@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:js_util';
-
 import 'package:collection/collection.dart';
 import 'package:node_interop/js.dart';
 import 'package:sass/src/node/immutable.dart';
@@ -30,48 +28,41 @@ void isCalculationValue(Object arg, {bool checkUnquoted = true}) {
 
 /// The JavaScript `SassCalculation` class.
 final JSClass calculationClass = () {
-  calc(Object argument) {
-    isCalculationValue(argument);
-    return SassCalculation.unsimplified('calc', [argument]);
-  }
-
-  min(Object arguments) {
-    var argList = jsToDartList(arguments).cast<Object>();
-    argList.forEach(isCalculationValue);
-    return SassCalculation.unsimplified('min', argList);
-  }
-
-  max(Object arguments) {
-    var argList = jsToDartList(arguments).cast<Object>();
-    argList.forEach(isCalculationValue);
-    return SassCalculation.unsimplified('max', argList);
-  }
-
-  clamp(Object min, [Object? value, Object? max]) {
-    if (value == null && max != null) {
-      jsThrow(JsError('`value` is undefined and `max` is not undefined'));
-    }
-    if ((value == null || max == null) &&
-        !(min is SassString && min.text.startsWith('var(')) &&
-        !(value is SassString && value.text.startsWith('var('))) {
-      jsThrow(JsError(
-          '`value` or `max` is undefined and neither `min` nor `value` is a SassString that begins with "var("'));
-    }
-    [min, value, max].whereNotNull().forEach(isCalculationValue);
-    return SassCalculation.unsimplified(
-        'clamp', [min, value, max].whereNotNull());
-  }
-
   var jsClass =
       createJSClass('sass.SassCalculation', (Object self, [Object? _]) {
     jsThrow(JsError("new sass.SassCalculation() isn't allowed"));
   });
 
-  // Static methods
-  setProperty(jsClass, 'calc', allowInteropNamed('calc', calc));
-  setProperty(jsClass, 'min', allowInteropNamed('min', min));
-  setProperty(jsClass, 'max', allowInteropNamed('max', max));
-  setProperty(jsClass, 'clamp', allowInteropNamed('clamp', clamp));
+  jsClass.defineStaticMethods({
+    'calc': (Object argument) {
+      isCalculationValue(argument);
+      return SassCalculation.unsimplified('calc', [argument]);
+    },
+    'min': (Object arguments) {
+      var argList = jsToDartList(arguments).cast<Object>();
+      argList.forEach(isCalculationValue);
+      return SassCalculation.unsimplified('min', argList);
+    },
+    'max': (Object arguments) {
+      var argList = jsToDartList(arguments).cast<Object>();
+      argList.forEach(isCalculationValue);
+      return SassCalculation.unsimplified('max', argList);
+    },
+    'clamp': (Object min, [Object? value, Object? max]) {
+      if (value == null && max != null) {
+        jsThrow(JsError('`value` is undefined and `max` is not undefined'));
+      }
+      if ((value == null || max == null) &&
+          !(min is SassString && min.text.startsWith('var(')) &&
+          !(value is SassString && value.text.startsWith('var('))) {
+        jsThrow(JsError(
+            '`value` or `max` is undefined and neither `min` nor `value` is a SassString that begins with "var("'));
+      }
+      [min, value, max].whereNotNull().forEach(isCalculationValue);
+      return SassCalculation.unsimplified(
+          'clamp', [min, value, max].whereNotNull());
+    },
+  });
 
   jsClass.defineMethods({
     'assertCalculation': (SassCalculation self, [String? name]) => self,
