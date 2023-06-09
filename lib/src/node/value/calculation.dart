@@ -70,7 +70,7 @@ final JSClass calculationClass = () {
 
   jsClass.defineGetters({
     // The `name` getter is included by default by `createJSClass`
-    'arguments': (SassCalculation self) => self.arguments,
+    'arguments': (SassCalculation self) => ImmutableList(self.arguments),
   });
 
   getJSClass(SassCalculation.unsimplified('calc', [SassNumber(1)]))
