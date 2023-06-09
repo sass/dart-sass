@@ -90,7 +90,9 @@ void afterTask(String taskName, FutureOr<void> callback()) {
   if (index == -1) fail("There is no task named $taskName.");
 
   var oldTask = grinder.tasks[index];
-  grinder.tasks[index] = GrinderTask(taskName, description: oldTask.description, depends: oldTask.depends, taskFunction: (TaskArgs args) async {
+  grinder.tasks[index] = GrinderTask(taskName,
+      description: oldTask.description,
+      depends: oldTask.depends, taskFunction: (TaskArgs args) async {
     await oldTask.execute(context, args);
     await callback();
   });

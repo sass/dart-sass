@@ -254,9 +254,9 @@ dart run protoc_plugin "\$@"
 /// See sass/dart-sass#2008.
 void _addDefaultExport() {
   var buffer = StringBuffer();
-buffer.writeln(File("build/npm/sass.node.mjs").readAsStringSync());
+  buffer.writeln(File("build/npm/sass.node.mjs").readAsStringSync());
 
-buffer.writeln("""
+  buffer.writeln("""
 let printedDefaultExportDeprecation = false;
 function defaultExportDeprecation() {
   if (printedDefaultExportDeprecation) return;
@@ -267,17 +267,17 @@ function defaultExportDeprecation() {
 }
 """);
 
-buffer.writeln("export default {");
-for (var export in pkg.jsEsmExports.value!) {
-  buffer.write("""
+  buffer.writeln("export default {");
+  for (var export in pkg.jsEsmExports.value!) {
+    buffer.write("""
   get $export() {
     defaultExportDeprecation();
     return _cliPkgExports.$export;
   },
 """);
-}
+  }
 
-buffer.writeln("};");
+  buffer.writeln("};");
 
-File("build/npm/sass.node.mjs").writeAsStringSync(buffer.toString());
+  File("build/npm/sass.node.mjs").writeAsStringSync(buffer.toString());
 }
