@@ -224,6 +224,19 @@ void main() {
     await process.shouldExit(0);
   });
 
+  test("closes gracefully with many in-flight compilations", () async {
+    // This should always be equal to the size of
+    // [IsolateDispatcher._isolatePool], since that's as many concurrent
+    // compilations as we can realistically have anyway.
+    var totalRequests = 15;
+    for (var i = 1; i <= totalRequests; i++) {
+      process.inbound
+          .add((i, compileString("a {b: foo() + 2px}", functions: [r"foo()"])));
+    }
+
+    await process.close();
+  }, skip: "Enable once dart-lang/stream_channel#92 is released");
+
   test("doesn't include a source map by default", () async {
     process.send(compileString("a {b: 1px + 2px}"));
     await expectSuccess(process, "a { b: 3px; }", sourceMap: isEmpty);

@@ -2,6 +2,10 @@
 
 ### Embedded Sass
 
+* Fix a race condition where closing standard input while requests are in-flight
+  could sometimes cause the process to hang rather than shutting down
+  gracefully.
+
 * Properly include the root stylesheet's URL in the set of loaded URLs when it
   fails to parse.
 

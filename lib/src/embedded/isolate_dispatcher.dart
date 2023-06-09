@@ -46,7 +46,7 @@ class IsolateDispatcher {
   /// The actual isolate objects that have been spawned.
   ///
   /// Only used for cleaning up the process when the underlying channel closes.
-  final _allIsolates = <Isolate>[];
+  final _allIsolates = <Future<Isolate>>[];
 
   /// A pool controlling how many isolates (and thus concurrent compilations)
   /// may be live at once.
@@ -101,10 +101,10 @@ class IsolateDispatcher {
       }
     }, onError: (Object error, StackTrace stackTrace) {
       _handleError(error, stackTrace);
-    }, onDone: () {
+    }, onDone: () async {
       _closed = true;
       for (var isolate in _allIsolates) {
-        isolate.kill();
+        (await isolate).kill();
       }
 
       // Killing isolates isn't sufficient to make sure the process closes; we
@@ -130,7 +130,9 @@ class IsolateDispatcher {
     }
 
     var receivePort = ReceivePort();
-    _allIsolates.add(await Isolate.spawn(_isolateMain, receivePort.sendPort));
+    var future = Isolate.spawn(_isolateMain, receivePort.sendPort);
+    _allIsolates.add(future);
+    await future;
 
     var channel = IsolateChannel<_InitialMessage?>.connectReceive(receivePort)
         .transform(const ExplicitCloseTransformer());
