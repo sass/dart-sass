@@ -1,3 +1,9 @@
+## 1.63.3
+
+### JavaScript API
+
+* Fix loading Sass as an ECMAScript module on Node.js.
+
 ## 1.63.2
 
 * No user-visible changes.
