@@ -78,7 +78,7 @@ final JSClass calculationClass = () {
   });
 
   jsClass.defineGetters({
-    'name': (SassCalculation self) => self.name,
+    // The `name` getter is included by default by `createJSClass`
     'arguments': (SassCalculation self) => self.arguments,
   });
 
