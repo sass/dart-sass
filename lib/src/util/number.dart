@@ -124,7 +124,7 @@ double moduloLikeSass(double num1, double num2) {
 
 /// Returns the square root of [number].
 SassNumber sqrt(SassNumber number) {
-  number.assertNoUnits();
+  number.assertNoUnits("number");
   return SassNumber(math.sqrt(number.value));
 }
 
@@ -148,25 +148,28 @@ SassNumber tan(SassNumber number) {
 
 /// Returns the arctangent of [number].
 SassNumber atan(SassNumber number) {
+  number.assertNoUnits("number");
   return SassNumber.withUnits(math.atan(number.value) * 180 / math.pi,
       numeratorUnits: ['deg']);
 }
 
 /// Returns the arcsine of [number].
 SassNumber asin(SassNumber number) {
+  number.assertNoUnits("number");
   return SassNumber.withUnits(math.asin(number.value) * 180 / math.pi,
       numeratorUnits: ['deg']);
 }
 
 /// Returns the arccosine of [number]
 SassNumber acos(SassNumber number) {
+  number.assertNoUnits("number");
   return SassNumber.withUnits(math.acos(number.value) * 180 / math.pi,
       numeratorUnits: ['deg']);
 }
 
 /// Returns the absolute value of [number].
 SassNumber abs(SassNumber number) {
-  return SassNumber(number.value.abs());
+  return SassNumber(number.value.abs()).coerceToMatch(number);
 }
 
 /// Returns the logarithm of [number] with respect to [base].
@@ -178,10 +181,10 @@ SassNumber log(SassNumber number, SassNumber? base) {
 }
 
 /// Returns the value of [num1] raised to the power of [num2].
-SassNumber pow(SassNumber num1, SassNumber num2) {
-  num1.assertNoUnits();
-  num2.assertNoUnits();
-  return SassNumber(math.pow(num1.value, num2.value));
+SassNumber pow(SassNumber base, SassNumber exponent) {
+  base.assertNoUnits("base");
+  exponent.assertNoUnits("exponent");
+  return SassNumber(math.pow(base.value, exponent.value));
 }
 
 /// Returns the arctangent for [y] and [x].
@@ -195,54 +198,64 @@ SassNumber atan2(SassNumber y, SassNumber x) {
 /// to the nearest integer multiple of [step].
 SassNumber roundWithStep(
     SassString strategy, SassNumber number, SassNumber step) {
-  if (step.value == 0) return SassNumber(double.nan).coerceToMatch(number);
-  if (number.value.isInfinite) {
-    if (step.value.isInfinite) {
-      return SassNumber(double.nan).coerceToMatch(number);
-    }
-    return SassNumber(double.infinity).coerceToMatch(number);
+  if (!{'nearest', 'up', 'down', 'to-zero'}.contains(strategy.text)) {
+    throw ArgumentError(
+        "$strategy must be either nearest, up, down or to-zero.");
   }
 
+  if (number.value.isInfinite && step.value.isInfinite ||
+      step.value == 0 ||
+      number.value.isNaN ||
+      step.value.isNaN) {
+    return SassNumber(double.nan).coerceToMatch(number);
+  }
+  if (number.value.isInfinite) return number;
+
   if (step.value.isInfinite) {
-    if (number.value == -0.0) return number;
-    if (strategy.text == "nearest" || strategy.text == "to-zero") {
-      return number.value >= 0
-          ? SassNumber(0).coerceToMatch(number)
-          : SassNumber(-0.0).coerceToMatch(number);
-    }
-    if (strategy.text == "up") {
-      return number.value >= 0
-          ? number.value == 0
-              ? number
-              : SassNumber(double.infinity).coerceToMatch(number)
-          : SassNumber(-0.0).coerceToMatch(number);
-    }
-    if (number.value < 0 && strategy.text == "down") {
-      return number.value <= -0.0
-          ? number.value == -0.0
-              ? number
-              : SassNumber(-double.infinity).coerceToMatch(number)
-          : SassNumber(0).coerceToMatch(number);
+    switch (strategy.text) {
+      case 'nearest':
+      case 'to-zero':
+        return number.value >= 0
+            ? SassNumber(0).coerceToMatch(number)
+            : SassNumber(-0.0).coerceToMatch(number);
+      case 'up':
+        return number.value >= 0
+            ? number.value == 0
+                ? number
+                : SassNumber(double.infinity).coerceToMatch(number)
+            : SassNumber(-0.0).coerceToMatch(number);
+      case 'down':
+        return number.value <= -0.0
+            ? number.value == -0.0
+                ? number
+                : SassNumber(-double.infinity).coerceToMatch(number)
+            : SassNumber(0).coerceToMatch(number);
     }
 
     return SassNumber(0).coerceToMatch(number);
   }
 
+  var stepWithNumberUnit = step.coerceToMatch(number);
   switch (strategy.text) {
     case 'nearest':
-      return SassNumber((number.value / step.value).round() * step.value)
+      return SassNumber((number.value / stepWithNumberUnit.value).round() *
+              stepWithNumberUnit.value)
           .coerceToMatch(number);
     case 'up':
-      return SassNumber((number.value / step.value).ceil() * step.value)
+      return SassNumber((number.value / stepWithNumberUnit.value).ceil() *
+              stepWithNumberUnit.value)
           .coerceToMatch(number);
     case 'down':
-      return SassNumber((number.value / step.value).floor() * step.value)
+      return SassNumber((number.value / stepWithNumberUnit.value).floor() *
+              stepWithNumberUnit.value)
           .coerceToMatch(number);
     case 'to-zero':
       return number.value < 0
-          ? SassNumber((number.value / step.value).ceil() * step.value)
+          ? SassNumber((number.value / stepWithNumberUnit.value).ceil() *
+                  stepWithNumberUnit.value)
               .coerceToMatch(number)
-          : SassNumber((number.value / step.value).floor() * step.value)
+          : SassNumber((number.value / stepWithNumberUnit.value).floor() *
+                  stepWithNumberUnit.value)
               .coerceToMatch(number);
   }
   return SassNumber(double.nan).coerceToMatch(number);

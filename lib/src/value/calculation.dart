@@ -293,15 +293,15 @@ class SassCalculation extends Value {
     }
     if (argument.hasUnit("%")) {
       warnForDeprecation(
-          "Passing percentage units to the global abs() function is deprecated"
-          " In the future, this will emit a CSS abs() function to be resolved by the browser.\n"
-          "\n"
+          "Passing percentage units to the global abs() function is deprecated.\n"
+          "In the future, this will emit a CSS abs() function to be resolved by the browser.\n"
+          "\n\n"
           "To preserve current behavior:\n"
           "math.abs($argument)"
           "\n"
           "To emit a CSS abs() now:\n"
           "abs(#{$argument})\n"
-          "More info: https://sass-lang.com/d/abs-percent",
+          "More info: https://sass-lang.com/documentation/values/calculations#abs",
           Deprecation.absPercent);
     }
     return number_lib.abs(argument);
@@ -338,7 +338,9 @@ class SassCalculation extends Value {
     if (argument is! SassNumber || argument.hasUnit("%")) {
       return SassCalculation._("sign", [argument]);
     }
-    if (argument.value == 0 || argument.value.isNaN) return argument;
+    if (argument.value == 0 || argument.value.isNaN) {
+      return SassNumber(argument.value);
+    }
     return SassNumber(argument.value > 0 ? 1 : -1);
   }
 
@@ -418,8 +420,8 @@ class SassCalculation extends Value {
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
   ///
-  /// This may be passed fewer than two arguments, but only if one of the
-  /// arguments is an unquoted `var()` string.
+  /// If arguments contains exactly a single argument,
+  /// the base is set to `math.e` by default.
   static Value log(Object number, Object? base) {
     number = _simplify(number);
     base = base.andThen(_simplify);
@@ -446,10 +448,10 @@ class SassCalculation extends Value {
   /// This may be passed fewer than two arguments, but only if one of the
   /// arguments is an unquoted `var()` string.
   static Value atan2(Object y, Object? x) {
-    _verifyLength([y, if (x != null) x], 2);
     y = _simplify(y);
     x = x.andThen(_simplify);
     var args = [y, if (x != null) x];
+    _verifyLength(args, 2);
     if (y is! SassNumber ||
         x is! SassNumber ||
         y.hasUnit('%') ||
@@ -477,10 +479,7 @@ class SassCalculation extends Value {
     modulus = modulus.andThen(_simplify);
     var args = [dividend, if (modulus != null) modulus];
     _verifyLength(args, 2);
-    if (dividend is! SassNumber ||
-        modulus is! SassNumber ||
-        dividend.hasUnit('%') ||
-        modulus.hasUnit('%')) {
+    if (dividend is! SassNumber || modulus is! SassNumber) {
       return SassCalculation._("rem", args);
     }
     _verifyCompatibleNumbers(args);
@@ -489,7 +488,7 @@ class SassCalculation extends Value {
     if ((modulus.value < 0 && dividend.value >= 0) ||
         (modulus.value >= 0 && dividend.value < 0)) {
       if (modulus.value.isInfinite) return dividend;
-      if (result is SassNumber && result.value == 0) return SassNumber(-0.0);
+      if (result is SassNumber && result.value == 0) return SassNumber(-0.0).coerceToMatch(result);
       return result.minus(dividend);
     }
     return result;
@@ -512,10 +511,7 @@ class SassCalculation extends Value {
     modulus = modulus.andThen(_simplify);
     var args = [dividend, if (modulus != null) modulus];
     _verifyLength(args, 2);
-    if (dividend is! SassNumber ||
-        modulus is! SassNumber ||
-        dividend.hasUnit('%') ||
-        modulus.hasUnit('%')) {
+    if (dividend is! SassNumber || modulus is! SassNumber) {
       return SassCalculation._("mod", args);
     }
     _verifyCompatibleNumbers(args);
@@ -537,57 +533,47 @@ class SassCalculation extends Value {
   /// arguments is an unquoted `var()` string.
   static Value round(Object strategyOrNumber,
       [Object? numberOrStep, Object? step]) {
+    strategyOrNumber = _simplify(strategyOrNumber);
     numberOrStep = numberOrStep.andThen(_simplify);
     step = step.andThen(_simplify);
-    strategyOrNumber = _simplify(strategyOrNumber);
 
-    var args = [
+    var args = (strategyOrNumber, numberOrStep, step);
+
+    switch (args) {
+      case (SassNumber number, null, null):
+        return SassNumber(number.value.round().toDouble())
+            .coerceToMatch(number);
+
+      case (
+          SassString(text: 'nearest' || 'up' || 'down' || 'to-zero'),
+          SassString(isVar: false) || SassNumber(),
+          null
+        ):
+        throw SassScriptException("If strategy is not null, step is required.");
+
+      case (SassNumber number, SassNumber step, null):
+        _verifyCompatibleNumbers([number, step]);
+        return number_lib.roundWithStep(SassString('nearest'), number, step);
+
+      case (SassString(isVar: false), SassNumber number, SassNumber step):
+        _verifyCompatibleNumbers([number, step]);
+        return number_lib.roundWithStep(args.$1, number, step);
+
+      case (SassString(text: 'nearest' || 'up' || 'down' || 'to-zero'), _?, _?):
+      case (SassString(isVar: true), _?, _?):
+        break;
+
+      case (SassString(isVar: false), _?, _?):
+      case (_, _?, _?):
+        throw SassScriptException(
+            "${args.$1} must be either nearest, up, down or to-zero.");
+    }
+
+    return SassCalculation._("round", [
       strategyOrNumber,
       if (numberOrStep != null) numberOrStep,
       if (step != null) step
-    ];
-
-    switch (args.length) {
-      case 1:
-        var number = strategyOrNumber;
-        if (number is SassNumber) {
-          return SassNumber(number.value.round().toDouble())
-              .coerceToMatch(number);
-        }
-      case 2:
-        var number = strategyOrNumber;
-        var step = numberOrStep;
-        if (number is SassString && step is! SassString) {
-          if ({'nearest', 'up', 'down', 'to-zero'}.contains(number.text)) {
-            throw SassScriptException(
-                "If strategy is not null, step is required.");
-          }
-        }
-        if (number is SassNumber &&
-            !number.hasUnit('%') &&
-            step is SassNumber &&
-            !step.hasUnit('%')) {
-          _verifyCompatibleNumbers([number, step]);
-          return number_lib.roundWithStep(SassString('nearest'), number, step);
-        }
-      case 3:
-        var strategy = strategyOrNumber;
-        var number = numberOrStep;
-        if (strategy is! SassString ||
-            !{'nearest', 'up', 'down', 'to-zero'}.contains(strategy.text)) {
-          throw SassScriptException(
-              "$strategy must be either nearest, up, down or to-zero.");
-        }
-        if (number is SassNumber &&
-            !number.hasUnit('%') &&
-            step is SassNumber &&
-            !step.hasUnit('%')) {
-          _verifyCompatibleNumbers([number, step]);
-          return number_lib.roundWithStep(strategy, number, step);
-        }
-    }
-
-    return SassCalculation._("round", args);
+    ]);
   }
 
   /// Creates and simplifies a [CalculationOperation] with the given [operator],

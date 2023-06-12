@@ -57,8 +57,7 @@ enum Deprecation {
   /// Deprecation for passing invalid units to certain built-in functions.
   absPercent('abs-percent',
       deprecatedIn: '1.62.0',
-      description:
-          'Non-linear operations involving percentages are not supported.'),
+      description: 'Passing percentages to the Sass abs() function.'),
 
   duplicateVariableFlags('duplicate-var-flags',
       deprecatedIn: '1.62.0',

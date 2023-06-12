@@ -2902,14 +2902,24 @@ abstract class StylesheetParser extends Parser {
       case "asin":
       case "acos":
       case "atan":
-      case "abs":
       case "exp":
       case "sign":
         var arguments = _calculationArguments(1);
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
 
+      case "abs":
+        var beforeArguments = scanner.state;
+        try {
+          var arguments = _calculationArguments(1);
+          return CalculationExpression(
+              name, arguments, scanner.spanFrom(start));
+        } on FormatException catch (_) {
+          scanner.state = beforeArguments;
+          return null;
+        }
+
       case "hypot":
-        List<Expression> arguments = _calculationArguments();
+        var arguments = _calculationArguments();
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
 
       case "min":
@@ -2939,14 +2949,14 @@ abstract class StylesheetParser extends Parser {
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
       case "round":
         var beforeArguments = scanner.state;
-        List<Expression> arguments;
         try {
-          arguments = _calculationArguments(3);
+          var arguments = _calculationArguments(3);
+          return CalculationExpression(
+              name, arguments, scanner.spanFrom(start));
         } on FormatException catch (_) {
           scanner.state = beforeArguments;
           return null;
         }
-        return CalculationExpression(name, arguments, scanner.spanFrom(start));
 
       default:
         return null;

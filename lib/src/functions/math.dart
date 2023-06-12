@@ -147,28 +147,17 @@ final _sqrt = _function("sqrt", r"$number", (arguments) {
 
 final _acos = _function("acos", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
-  if (number.hasUnits) {
-    throw SassScriptException("\$number: Expected $number to have no units.");
-  }
   return acos(number);
 });
 
 final _asin = _function("asin", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
-  if (number.hasUnits) {
-    throw SassScriptException("\$number: Expected $number to have no units.");
-  } else {
-    return asin(number);
-  }
+  return asin(number);
 });
 
 final _atan = _function("atan", r"$number", (arguments) {
   var number = arguments[0].assertNumber("number");
-  if (number.hasUnits) {
-    throw SassScriptException("\$number: Expected $number to have no units.");
-  } else {
-    return atan(number);
-  }
+  return atan(number);
 });
 
 final _atan2 = _function("atan2", r"$y, $x", (arguments) {
