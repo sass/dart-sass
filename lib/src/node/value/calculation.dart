@@ -100,8 +100,6 @@ final JSClass calculationOperationClass = () {
 
   jsClass.defineGetters({
     'operator': (CalculationOperation self) => self.operator.operator,
-    'left': (CalculationOperation self) => self.left,
-    'right': (CalculationOperation self) => self.right,
   });
 
   getJSClass(SassCalculation.operateInternal(
