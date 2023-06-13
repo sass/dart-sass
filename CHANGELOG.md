@@ -9,6 +9,9 @@
   On the browser and other ESM-only platforms, only `import * as sass from
   'sass'` is supported.
 
+* Properly export the legacy API values `TRUE`, `FALSE`, `NULL`, and `types` from
+  the ECMAScript module API.
+
 ### Embedded Sass
 
 * Fix a race condition where closing standard input while requests are in-flight

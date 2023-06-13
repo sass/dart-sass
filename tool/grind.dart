@@ -71,6 +71,10 @@ void main(List<String> args) {
     'info',
     'render',
     'renderSync',
+    'TRUE',
+    'FALSE',
+    'NULL',
+    'types',
   };
 
   pkg.githubReleaseNotes.fn = () =>
