@@ -2,6 +2,13 @@
 
 ### JavaScript API
 
+* Re-enable support for `import sass from 'sass'` when loading the package from
+  an ESM module in Node.js. However, this syntax is now deprecated; ESM users
+  should use `import * as sass from 'sass'` instead.
+
+  On the browser and other ESM-only platforms, only `import * as sass from
+  'sass'` is supported.
+
 * Properly export the legacy API values `TRUE`, `FALSE`, `NULL`, and `types` from
   the ECMAScript module API.
 
