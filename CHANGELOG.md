@@ -1,3 +1,10 @@
+## 1.63.5
+
+### JavaScript API
+
+* Fix a bug where loading the package through both CJS `require()` and ESM
+  `import` could crash on Node.js.
+
 ## 1.63.4
 
 ### JavaScript API
