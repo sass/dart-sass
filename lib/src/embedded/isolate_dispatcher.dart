@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -51,9 +52,10 @@ class IsolateDispatcher {
   /// A pool controlling how many isolates (and thus concurrent compilations)
   /// may be live at once.
   ///
-  /// More than 15 concurrent `waitFor()` calls seems to deadlock the Dart VM,
-  /// even across isolates. See sass/dart-sass#1959.
-  final _isolatePool = Pool(15);
+  /// More than MaxMutatorThreadCount isolates in the same isolate group
+  /// can deadlock the Dart VM.
+  /// See https://github.com/sass/dart-sass/pull/2019
+  final _isolatePool = Pool(sizeOf<IntPtr>() <= 4 ? 7 : 15);
 
   /// Whether the underlying channel has closed and the dispatcher is shutting
   /// down.

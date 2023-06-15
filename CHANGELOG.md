@@ -1,3 +1,9 @@
+## 1.63.5
+
+### Embedded Sass
+
+* Fix a deadlock when running at high concurrency on 32-bit systems.
+
 ## 1.63.4
 
 ### JavaScript API
