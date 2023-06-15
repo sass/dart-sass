@@ -1,3 +1,10 @@
+## 1.63.5
+
+### Embedded Sass
+
+* Fix a race condition where the embedded compiler could deadlock or crash if a
+  compilation ID was reused immediately after the compilation completed.
+
 ## 1.63.4
 
 ### JavaScript API

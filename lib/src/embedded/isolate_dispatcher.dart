@@ -156,19 +156,28 @@ class IsolateDispatcher {
     var receivePort = ReceivePort();
     isolate.sink.add((receivePort.sendPort, compilationId));
 
-    var channel = IsolateChannel<Uint8List?>.connectReceive(receivePort)
-        .transform(const ExplicitCloseTransformer());
-    channel.stream.listen(_channel.sink.add,
+    var channel = IsolateChannel<Uint8List>.connectReceive(receivePort);
+    channel.stream.listen(
+        (message) {
+          _channel.sink.add(Uint8List.sublistView(message, 1));
+
+          // The first byte of messages from isolates indicates whether the
+          // entire compilation is finished. Sending this as part of the message
+          // buffer rather than a separate message avoids a race condition where
+          // the host might send a new compilation request with the same ID as
+          // one that just finished before the [IsolateDispatcher] receives word
+          // that the isolate with that ID is done. See sass/dart-sass#2004.
+          if (message[0] == 1) {
+            channel.sink.close();
+            _activeIsolates.remove(compilationId);
+            _inactiveIsolates.add(isolate);
+            resource.release();
+          }
+        },
         onError: (Object error, StackTrace stackTrace) =>
             _handleError(error, stackTrace),
         onDone: () {
-          _activeIsolates.remove(compilationId);
-          if (_closed) {
-            isolate.sink.close();
-          } else {
-            _inactiveIsolates.add(isolate);
-          }
-          resource.release();
+          if (_closed) isolate.sink.close();
         });
     _activeIsolates[compilationId] = channel.sink;
     return channel.sink;
@@ -226,8 +235,7 @@ void _isolateMain(SendPort sendPort) {
   channel.stream.listen((initialMessage) async {
     var (compilationSendPort, compilationId) = initialMessage;
     var compilationChannel =
-        IsolateChannel<Uint8List?>.connectSend(compilationSendPort)
-            .transform(const ExplicitCloseTransformer());
+        IsolateChannel<Uint8List>.connectSend(compilationSendPort);
     var success = await Dispatcher(compilationChannel, compilationId).listen();
     if (!success) channel.sink.close();
   });

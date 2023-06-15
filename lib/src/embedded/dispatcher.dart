@@ -322,10 +322,17 @@ class Dispatcher {
     var protobufWriter = CodedBufferWriter();
     message.writeToCodedBufferWriter(protobufWriter);
 
-    var packet =
-        Uint8List(_compilationIdVarint.length + protobufWriter.lengthInBytes);
-    packet.setAll(0, _compilationIdVarint);
-    protobufWriter.writeTo(packet, _compilationIdVarint.length);
+    // Add one additional byte to the beginning to indicate whether or not the
+    // compilation is finished, so the [IsolateDispatcher] knows whether to
+    // treat this isolate as inactive.
+    var packet = Uint8List(
+        1 + _compilationIdVarint.length + protobufWriter.lengthInBytes);
+    packet[0] =
+        message.whichMessage() == OutboundMessage_Message.compileResponse
+            ? 1
+            : 0;
+    packet.setAll(1, _compilationIdVarint);
+    protobufWriter.writeTo(packet, 1 + _compilationIdVarint.length);
     _channel.sink.add(packet);
   }
 }
