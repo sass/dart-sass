@@ -329,7 +329,13 @@ class SassCalculation extends Value {
 @sealed
 class CalculationOperation {
   /// The operator.
-  final CalculationOperator operator;
+  CalculationOperator get operator {
+    // We use a getter to allow overriding the logic in the JS API
+    // implementation
+    return _operator;
+  }
+
+  final CalculationOperator _operator;
 
   /// The left-hand operand.
   ///
@@ -343,7 +349,7 @@ class CalculationOperation {
   /// [SassString], a [CalculationOperation], or a [CalculationInterpolation].
   final Object right;
 
-  CalculationOperation._(this.operator, this.left, this.right);
+  CalculationOperation._(this._operator, this.left, this.right);
 
   bool operator ==(Object other) =>
       other is CalculationOperation &&
