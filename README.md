@@ -416,10 +416,11 @@ an API for users to invoke Sass and define custom functions and importers.
 ### Usage
 
 * `sass --embedded` starts the embedded compiler and listens on stdin.
-* `sass --embedded --version` prints `versionResponse` with `id = 0` in JSON and
-  exits.
+* `sass --embedded --version` prints `versionResponse` with `id = 0` in JSON and exits.
 
-No other command-line flags are supported with `--embedded`.
+The `--embedded` command-line flag is not available when you install Dart Sass as an [npm package]. No other command-line flags are supported with `--embedded`.
+
+[npm package]: #from-npm
 
 ## Behavioral Differences from Ruby Sass
 
