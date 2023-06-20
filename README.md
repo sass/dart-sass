@@ -72,9 +72,9 @@ Sass. See [the CLI docs][cli] for details.
 
 [cli]: https://sass-lang.com/documentation/cli/dart-sass
 
-### From Homebrew (macOS)
+### From Homebrew (macOS or Linux)
 
-If you use [the Homebrew package manager](https://brew.sh/) for macOS, you
+If you use [the Homebrew package manager](https://brew.sh/), you
 can install Dart Sass by running
 
 ```sh
