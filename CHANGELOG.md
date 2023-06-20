@@ -1,5 +1,10 @@
 ## 1.63.5
 
+### JavaScript API
+
+* Fix a bug where loading the package through both CJS `require()` and ESM
+  `import` could crash on Node.js.
+
 ### Embedded Sass
 
 * Fix a deadlock when running at high concurrency on 32-bit systems.
