@@ -276,7 +276,7 @@ function defaultExportDeprecation() {
     buffer.write("""
   get $export() {
     defaultExportDeprecation();
-    return _cliPkgExports.$export;
+    return cjs.$export;
   },
 """);
   }
