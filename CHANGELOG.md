@@ -1,3 +1,9 @@
+## 1.63.6
+
+### Embedded Sass
+
+* Fix the `exports` declaration in `package.json`.
+
 ## 1.63.5
 
 ### JavaScript API
