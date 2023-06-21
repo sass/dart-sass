@@ -1,3 +1,9 @@
+## 1.63.6
+
+### JavaScript API
+
+* Fix `import sass from 'sass'` again after it was broken in the last release.
+
 ## 1.63.5
 
 ### JavaScript API
