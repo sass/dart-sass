@@ -167,13 +167,13 @@ class IsolateDispatcher {
           // the host might send a new compilation request with the same ID as
           // one that just finished before the [IsolateDispatcher] receives word
           // that the isolate with that ID is done. See sass/dart-sass#2004.
-          _channel.sink.add(Uint8List.sublistView(message, 1));
           if (message[0] == 1) {
             channel.sink.close();
             _activeIsolates.remove(compilationId);
             _inactiveIsolates.add(isolate);
             resource.release();
           }
+          _channel.sink.add(Uint8List.sublistView(message, 1));
         },
         onError: (Object error, StackTrace stackTrace) =>
             _handleError(error, stackTrace),
