@@ -161,14 +161,13 @@ class IsolateDispatcher {
     var channel = IsolateChannel<Uint8List>.connectReceive(receivePort);
     channel.stream.listen(
         (message) {
-          _channel.sink.add(Uint8List.sublistView(message, 1));
-
           // The first byte of messages from isolates indicates whether the
           // entire compilation is finished. Sending this as part of the message
           // buffer rather than a separate message avoids a race condition where
           // the host might send a new compilation request with the same ID as
           // one that just finished before the [IsolateDispatcher] receives word
           // that the isolate with that ID is done. See sass/dart-sass#2004.
+          _channel.sink.add(Uint8List.sublistView(message, 1));
           if (message[0] == 1) {
             channel.sink.close();
             _activeIsolates.remove(compilationId);
