@@ -4,7 +4,6 @@
 
 // ignore: deprecated_member_use
 import 'dart:cli';
-import 'dart:io';
 
 import '../callable.dart';
 import '../exception.dart';
@@ -51,11 +50,10 @@ Callable hostCallable(
         case InboundMessage_FunctionCallResponse_Result.notSet:
           throw mandatoryError('FunctionCallResponse.result');
       }
-    } on ProtocolError catch (error) {
-      error.id = errorId;
-      stderr.writeln("Host caused ${error.type.name.toLowerCase()} error: "
-          "${error.message}");
-      dispatcher.sendError(error);
+    } on ProtocolError catch (error, stackTrace) {
+      handleError(error, stackTrace, (protocolError) {
+        dispatcher.sendError(error);
+      });
       throw error.message;
     }
   });
