@@ -4,7 +4,6 @@
 
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart' hide futureToPromise;
-import 'package:sass/src/node/value/calculation.dart';
 import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import '../../sass.dart';
