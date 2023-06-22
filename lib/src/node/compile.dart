@@ -4,6 +4,7 @@
 
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart' hide futureToPromise;
+import 'package:sass/src/node/value/calculation.dart';
 import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import '../../sass.dart';
@@ -225,6 +226,32 @@ Importer _parseImporter(Object? importer) {
   }
 }
 
+/// Implements the simplification algorithm for custom function return values.
+/// {@link https://github.com/sass/sass/blob/main/spec/types/calculation.md#simplifying-a-calculationvalue}
+dynamic simplify(dynamic value) {
+  if (value is SassCalculation) {
+    var simplifiedArgs = value.arguments.map(simplify).toList().cast<Object>();
+    if (value.name == 'calc') {
+      return simplifiedArgs[0];
+    }
+    if (value.name == 'clamp') {
+      return simplify(Function.apply(SassCalculation.clamp, simplifiedArgs));
+    }
+    if (value.name == 'min') {
+      return simplify(Function.apply(SassCalculation.min, [simplifiedArgs]));
+    }
+    if (value.name == 'max') {
+      return simplify(Function.apply(SassCalculation.max, [simplifiedArgs]));
+    }
+    return SassCalculation.unsimplified(value.name, simplifiedArgs);
+  }
+  if (value is CalculationOperation) {
+    return simplify(SassCalculation.operate(value.operator,
+        simplify(value.left) as Object, simplify(value.right) as Object));
+  }
+  return value;
+}
+
 /// Parses `functions` from [record] into a list of [Callable]s or
 /// [AsyncCallable]s.
 ///
@@ -239,6 +266,7 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
       late Callable callable;
       callable = Callable.fromSignature(signature, (arguments) {
         var result = (callback as Function)(toJSArray(arguments));
+        result = simplify(result);
         if (result is Value) return result;
         if (isPromise(result)) {
           throw 'Invalid return value for custom function '
@@ -259,6 +287,7 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
           result = await promiseToFuture<Object>(result as Promise);
         }
 
+        result = simplify(result);
         if (result is Value) return result;
         throw 'Invalid return value for custom function '
             '"${callable.name}": $result is not a sass.Value.';
