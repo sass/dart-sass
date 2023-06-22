@@ -116,10 +116,8 @@ class Dispatcher {
                 "Unknown message type: ${message.toDebugString()}");
         }
       } on ProtocolError catch (error, stackTrace) {
-        handleError(error, stackTrace, (protocolError) {
-          sendError(error);
-          _channel.sink.close();
-        });
+        sendError(handleError(error, stackTrace));
+        _channel.sink.close();
       }
     }).asFuture<void>();
     return success;

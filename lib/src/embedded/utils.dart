@@ -137,9 +137,8 @@ final _compilationIdBuilder = VarintBuilder(32, 'compilation ID');
   }
 }
 
-/// Wraps error object into ProtocolError, writes it to stderr, and sends it to errorHandler function.
-void handleError(Object error, StackTrace stackTrace,
-    void Function(ProtocolError) errorHandler,
+/// Wraps error object into ProtocolError, writes error to stderr, and returns the ProtocolError.
+ProtocolError handleError(Object error, StackTrace stackTrace,
     {int? messageId}) {
   if (error is ProtocolError) {
     error.id = messageId ?? errorId;
@@ -148,14 +147,14 @@ void handleError(Object error, StackTrace stackTrace,
     stderr.writeln(": ${error.message}");
     // PROTOCOL error from https://bit.ly/2poTt90
     exitCode = 76; // EX_PROTOCOL
-    errorHandler(error);
+    return error;
   } else {
     var errorMessage = "$error\n${Chain.forTrace(stackTrace)}";
     stderr.write("Internal compiler error: $errorMessage");
     exitCode = 70; // EX_SOFTWARE
-    errorHandler(ProtocolError()
+    return ProtocolError()
       ..type = ProtocolErrorType.INTERNAL
       ..id = messageId ?? errorId
-      ..message = errorMessage);
+      ..message = errorMessage;
   }
 }

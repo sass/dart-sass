@@ -51,9 +51,7 @@ Callable hostCallable(
           throw mandatoryError('FunctionCallResponse.result');
       }
     } on ProtocolError catch (error, stackTrace) {
-      handleError(error, stackTrace, (protocolError) {
-        dispatcher.sendError(error);
-      });
+      dispatcher.sendError(handleError(error, stackTrace));
       throw error.message;
     }
   });

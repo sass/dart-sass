@@ -197,10 +197,9 @@ class IsolateDispatcher {
   /// responded to, if available.
   void _handleError(Object error, StackTrace stackTrace,
       {int? compilationId, int? messageId}) {
-    handleError(error, stackTrace, (protocolError) {
-      sendError(compilationId ?? errorId, protocolError);
-      _channel.sink.close();
-    }, messageId: messageId);
+    sendError(compilationId ?? errorId,
+        handleError(error, stackTrace, messageId: messageId));
+    _channel.sink.close();
   }
 
   /// Sends [message] to the host.
