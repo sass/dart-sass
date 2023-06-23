@@ -1,8 +1,71 @@
-## 1.63.0
+## 1.64.0
 
 * Comments that appear before or between `@use` and `@forward` rules are now
   emitted in source order as much as possible, instead of always being emitted
   after the CSS of all module dependencies.
+
+## 1.63.6
+
+### JavaScript API
+
+* Fix `import sass from 'sass'` again after it was broken in the last release.
+
+### Embedded Sass
+
+* Fix the `exports` declaration in `package.json`.
+
+## 1.63.5
+
+### JavaScript API
+
+* Fix a bug where loading the package through both CJS `require()` and ESM
+  `import` could crash on Node.js.
+
+### Embedded Sass
+
+* Fix a deadlock when running at high concurrency on 32-bit systems.
+
+* Fix a race condition where the embedded compiler could deadlock or crash if a
+  compilation ID was reused immediately after the compilation completed.
+
+## 1.63.4
+
+### JavaScript API
+
+* Re-enable support for `import sass from 'sass'` when loading the package from
+  an ESM module in Node.js. However, this syntax is now deprecated; ESM users
+  should use `import * as sass from 'sass'` instead.
+
+  On the browser and other ESM-only platforms, only `import * as sass from
+  'sass'` is supported.
+
+* Properly export the legacy API values `TRUE`, `FALSE`, `NULL`, and `types` from
+  the ECMAScript module API.
+
+### Embedded Sass
+
+* Fix a race condition where closing standard input while requests are in-flight
+  could sometimes cause the process to hang rather than shutting down
+  gracefully.
+
+* Properly include the root stylesheet's URL in the set of loaded URLs when it
+  fails to parse.
+
+## 1.63.3
+
+### JavaScript API
+
+* Fix loading Sass as an ECMAScript module on Node.js.
+
+## 1.63.2
+
+* No user-visible changes.
+
+## 1.63.1
+
+* No user-visible changes.
+
+## 1.63.0
 
 ### JavaScript API
 
@@ -19,6 +82,17 @@
   The Node.js embedded host will still be distributed as the `sass-embedded`
   package on npm. The only change is that it will now provide direct access to a
   `sass` executable with the same CLI as the `sass` package.
+
+* The Dart Sass embedded compiler now uses version 2.0.0 of the Sass embedded
+  protocol. See [the spec][embedded-protocol-spec] for a full description of the
+  protocol, and [the changelog][embedded-protocol-changelog] for a summary of
+  changes since version 1.2.0.
+
+  [embedded-protocol-spec]: https://github.com/sass/sass/blob/main/spec/embedded-protocol.md
+  [embedded-protocol-changelog]: https://github.com/sass/sass/blob/main/EMBEDDED_PROTOCOL_CHANGELOG.md
+
+* The Dart Sass embedded compiler now runs multiple simultaneous compilations in
+  parallel, rather than serially.
 
 ## 1.62.1
 

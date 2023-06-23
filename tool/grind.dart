@@ -28,7 +28,7 @@ void main(List<String> args) {
   pkg.executables.value = {"sass": "bin/sass.dart"};
   pkg.chocolateyNuspec.value = _nuspec;
   pkg.homebrewRepo.value = "sass/homebrew-sass";
-  pkg.homebrewFormula.value = "sass.rb";
+  pkg.homebrewFormula.value = "Formula/sass.rb";
   pkg.jsRequires.value = [
     pkg.JSRequire("immutable", target: pkg.JSRequireTarget.all),
     pkg.JSRequire("chokidar", target: pkg.JSRequireTarget.cli),
@@ -71,6 +71,10 @@ void main(List<String> args) {
     'info',
     'render',
     'renderSync',
+    'TRUE',
+    'FALSE',
+    'NULL',
+    'types',
   };
 
   pkg.githubReleaseNotes.fn = () =>
@@ -101,6 +105,10 @@ void main(List<String> args) {
   };
 
   pkg.addAllTasks();
+
+  afterTask("pkg-npm-dev", _addDefaultExport);
+  afterTask("pkg-npm-release", _addDefaultExport);
+
   grind(args);
 }
 
@@ -242,4 +250,38 @@ dart run protoc_plugin "\$@"
             (Platform.isWindows ? ";" : ":") +
             Platform.environment["PATH"]!
       }));
+}
+
+/// After building the NPM package, add default exports to
+/// `build/npm/sass.node.mjs`.
+///
+/// See sass/dart-sass#2008.
+void _addDefaultExport() {
+  var buffer = StringBuffer();
+  buffer.writeln(File("build/npm/sass.node.mjs").readAsStringSync());
+
+  buffer.writeln("""
+let printedDefaultExportDeprecation = false;
+function defaultExportDeprecation() {
+  if (printedDefaultExportDeprecation) return;
+  printedDefaultExportDeprecation = true;
+  console.error(
+      "`import sass from 'sass'` is deprecated.\\n" +
+      "Please use `import * as sass from 'sass'` instead.");
+}
+""");
+
+  buffer.writeln("export default {");
+  for (var export in pkg.jsEsmExports.value!) {
+    buffer.write("""
+  get $export() {
+    defaultExportDeprecation();
+    return cjs.$export;
+  },
+""");
+  }
+
+  buffer.writeln("};");
+
+  File("build/npm/sass.node.mjs").writeAsStringSync(buffer.toString());
 }

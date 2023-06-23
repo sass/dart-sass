@@ -72,9 +72,9 @@ Sass. See [the CLI docs][cli] for details.
 
 [cli]: https://sass-lang.com/documentation/cli/dart-sass
 
-### From Homebrew (macOS)
+### From Homebrew (macOS or Linux)
 
-If you use [the Homebrew package manager](https://brew.sh/) for macOS, you
+If you use [the Homebrew package manager](https://brew.sh/), you
 can install Dart Sass by running
 
 ```sh
@@ -419,7 +419,11 @@ an API for users to invoke Sass and define custom functions and importers.
 * `sass --embedded --version` prints `versionResponse` with `id = 0` in JSON and
   exits.
 
-No other command-line flags are supported with `--embedded`.
+The `--embedded` command-line flag is not available when you install Dart Sass
+as an [npm package]. No other command-line flags are supported with
+`--embedded`.
+
+[npm package]: #from-npm
 
 ## Behavioral Differences from Ruby Sass
 
