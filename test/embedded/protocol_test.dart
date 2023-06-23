@@ -245,7 +245,7 @@ void main() {
     }
 
     await process.close();
-  }, skip: "Enable once dart-lang/stream_channel#92 is released");
+  });
 
   test("doesn't include a source map by default", () async {
     process.send(compileString("a {b: 1px + 2px}"));
