@@ -1,3 +1,9 @@
+## 1.64.0
+
+* Comments that appear before or between `@use` and `@forward` rules are now
+  emitted in source order as much as possible, instead of always being emitted
+  after the CSS of all module dependencies.
+
 ## 1.63.6
 
 ### JavaScript API

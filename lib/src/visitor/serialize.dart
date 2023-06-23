@@ -1401,6 +1401,7 @@ class _SerializeVisitor
     // (shespanigans?), since we're compressing all whitespace anyway.
     if (_isCompressed) return false;
     if (node is! CssComment) return false;
+    if (node.span.sourceUrl != previous.span.sourceUrl) return false;
 
     if (!previous.span.contains(node.span)) {
       return node.span.start.line == previous.span.end.line;

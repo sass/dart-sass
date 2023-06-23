@@ -22,6 +22,8 @@ class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
   List<Module<T>> get upstream => _inner.upstream;
   ExtensionStore get extensionStore => _inner.extensionStore;
   CssStylesheet get css => _inner.css;
+  Map<Module<T>, List<CssComment>> get preModuleComments =>
+      _inner.preModuleComments;
   bool get transitivelyContainsCss => _inner.transitivelyContainsCss;
   bool get transitivelyContainsExtensions =>
       _inner.transitivelyContainsExtensions;
