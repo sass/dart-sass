@@ -2,10 +2,12 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:protobuf/protobuf.dart';
 import 'package:source_span/source_span.dart';
+import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
 import '../syntax.dart';
@@ -132,5 +134,27 @@ final _compilationIdBuilder = VarintBuilder(32, 'compilation ID');
     }
   } finally {
     _compilationIdBuilder.reset();
+  }
+}
+
+/// Wraps error object into ProtocolError, writes error to stderr, and returns the ProtocolError.
+ProtocolError handleError(Object error, StackTrace stackTrace,
+    {int? messageId}) {
+  if (error is ProtocolError) {
+    error.id = messageId ?? errorId;
+    stderr.write("Host caused ${error.type.name.toLowerCase()} error");
+    if (error.id != errorId) stderr.write(" with request ${error.id}");
+    stderr.writeln(": ${error.message}");
+    // PROTOCOL error from https://bit.ly/2poTt90
+    exitCode = 76; // EX_PROTOCOL
+    return error;
+  } else {
+    var errorMessage = "$error\n${Chain.forTrace(stackTrace)}";
+    stderr.write("Internal compiler error: $errorMessage");
+    exitCode = 70; // EX_SOFTWARE
+    return ProtocolError()
+      ..type = ProtocolErrorType.INTERNAL
+      ..id = messageId ?? errorId
+      ..message = errorMessage;
   }
 }

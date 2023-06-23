@@ -4,13 +4,11 @@
 
 import 'dart:async';
 import 'dart:ffi';
-import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:pool/pool.dart';
 import 'package:protobuf/protobuf.dart';
-import 'package:stack_trace/stack_trace.dart';
 import 'package:stream_channel/isolate_channel.dart';
 import 'package:stream_channel/stream_channel.dart';
 
@@ -199,26 +197,9 @@ class IsolateDispatcher {
   /// responded to, if available.
   void _handleError(Object error, StackTrace stackTrace,
       {int? compilationId, int? messageId}) {
-    if (error is ProtocolError) {
-      error.id = messageId ?? errorId;
-      stderr.write("Host caused ${error.type.name.toLowerCase()} error");
-      if (error.id != errorId) stderr.write(" with request ${error.id}");
-      stderr.writeln(": ${error.message}");
-      sendError(compilationId ?? errorId, error);
-      // PROTOCOL error from https://bit.ly/2poTt90
-      exitCode = 76;
-      _channel.sink.close();
-    } else {
-      var errorMessage = "$error\n${Chain.forTrace(stackTrace)}";
-      stderr.write("Internal compiler error: $errorMessage");
-      sendError(
-          compilationId ?? errorId,
-          ProtocolError()
-            ..type = ProtocolErrorType.INTERNAL
-            ..id = messageId ?? errorId
-            ..message = errorMessage);
-      _channel.sink.close();
-    }
+    sendError(compilationId ?? errorId,
+        handleError(error, stackTrace, messageId: messageId));
+    _channel.sink.close();
   }
 
   /// Sends [message] to the host.
