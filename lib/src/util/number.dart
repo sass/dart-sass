@@ -110,11 +110,9 @@ double fuzzyAssertRange(double number, int min, int max, [String? name]) {
 ///
 /// [floored division]: https://en.wikipedia.org/wiki/Modulo_operation#Variants_of_the_definition
 double moduloLikeSass(double num1, double num2) {
+  if (num2.isInfinite && num1.sign != num2.sign) return double.nan;
   if (num2 > 0) return num1 % num2;
   if (num2 == 0) return double.nan;
-  if (num2.isInfinite && ((num2 < 0 && num1 >= 0) || num2 >= 0 && num1 < 0)) {
-    return double.nan;
-  }
 
   // Dart has different mod-negative semantics than Ruby, and thus than
   // Sass.
@@ -129,22 +127,16 @@ SassNumber sqrt(SassNumber number) {
 }
 
 /// Returns the sine of [number].
-SassNumber sin(SassNumber number) {
-  return SassNumber(math
-      .sin(number.assertNumber("number").coerceValueToUnit("rad", "number")));
-}
+SassNumber sin(SassNumber number) =>
+    SassNumber(math.sin(number.coerceValueToUnit("rad", "number")));
 
 /// Returns the cosine of [number].
-SassNumber cos(SassNumber number) {
-  return SassNumber(math
-      .cos(number.assertNumber("number").coerceValueToUnit("rad", "number")));
-}
+SassNumber cos(SassNumber number) =>
+    SassNumber(math.cos(number.coerceValueToUnit("rad", "number")));
 
 /// Returns the tangent of [number].
-SassNumber tan(SassNumber number) {
-  return SassNumber(math
-      .tan(number.assertNumber("number").coerceValueToUnit("rad", "number")));
-}
+SassNumber tan(SassNumber number) =>
+    SassNumber(math.tan(number.coerceValueToUnit("rad", "number")));
 
 /// Returns the arctangent of [number].
 SassNumber atan(SassNumber number) {
@@ -168,9 +160,8 @@ SassNumber acos(SassNumber number) {
 }
 
 /// Returns the absolute value of [number].
-SassNumber abs(SassNumber number) {
-  return SassNumber(number.value.abs()).coerceToMatch(number);
-}
+SassNumber abs(SassNumber number) =>
+    SassNumber(number.value.abs()).coerceToMatch(number);
 
 /// Returns the logarithm of [number] with respect to [base].
 SassNumber log(SassNumber number, SassNumber? base) {
@@ -180,7 +171,7 @@ SassNumber log(SassNumber number, SassNumber? base) {
   return SassNumber(math.log(number.value));
 }
 
-/// Returns the value of [num1] raised to the power of [num2].
+/// Returns the value of [base] raised to the power of [exponent].
 SassNumber pow(SassNumber base, SassNumber exponent) {
   base.assertNoUnits("base");
   exponent.assertNoUnits("exponent");
@@ -194,69 +185,12 @@ SassNumber atan2(SassNumber y, SassNumber x) {
       numeratorUnits: ['deg']);
 }
 
-/// Returns a rounded [number] based on a selected rounding [strategy],
-/// to the nearest integer multiple of [step].
-SassNumber roundWithStep(
-    SassString strategy, SassNumber number, SassNumber step) {
-  if (!{'nearest', 'up', 'down', 'to-zero'}.contains(strategy.text)) {
-    throw ArgumentError(
-        "$strategy must be either nearest, up, down or to-zero.");
+/// Extension methods to get the sign of the double's numerical value,
+/// including positive and negative zero.
+extension DoubleWithSignedZero on double {
+  double get signIncludingZero {
+    if (identical(this, -0.0)) return -1.0;
+    if (this == 0) return 1.0;
+    return sign;
   }
-
-  if (number.value.isInfinite && step.value.isInfinite ||
-      step.value == 0 ||
-      number.value.isNaN ||
-      step.value.isNaN) {
-    return SassNumber(double.nan).coerceToMatch(number);
-  }
-  if (number.value.isInfinite) return number;
-
-  if (step.value.isInfinite) {
-    switch (strategy.text) {
-      case 'nearest':
-      case 'to-zero':
-        return number.value >= 0
-            ? SassNumber(0).coerceToMatch(number)
-            : SassNumber(-0.0).coerceToMatch(number);
-      case 'up':
-        return number.value >= 0
-            ? number.value == 0
-                ? number
-                : SassNumber(double.infinity).coerceToMatch(number)
-            : SassNumber(-0.0).coerceToMatch(number);
-      case 'down':
-        return number.value <= -0.0
-            ? number.value == -0.0
-                ? number
-                : SassNumber(-double.infinity).coerceToMatch(number)
-            : SassNumber(0).coerceToMatch(number);
-    }
-
-    return SassNumber(0).coerceToMatch(number);
-  }
-
-  var stepWithNumberUnit = step.coerceToMatch(number);
-  switch (strategy.text) {
-    case 'nearest':
-      return SassNumber((number.value / stepWithNumberUnit.value).round() *
-              stepWithNumberUnit.value)
-          .coerceToMatch(number);
-    case 'up':
-      return SassNumber((number.value / stepWithNumberUnit.value).ceil() *
-              stepWithNumberUnit.value)
-          .coerceToMatch(number);
-    case 'down':
-      return SassNumber((number.value / stepWithNumberUnit.value).floor() *
-              stepWithNumberUnit.value)
-          .coerceToMatch(number);
-    case 'to-zero':
-      return number.value < 0
-          ? SassNumber((number.value / stepWithNumberUnit.value).ceil() *
-                  stepWithNumberUnit.value)
-              .coerceToMatch(number)
-          : SassNumber((number.value / stepWithNumberUnit.value).floor() *
-                  stepWithNumberUnit.value)
-              .coerceToMatch(number);
-  }
-  return SassNumber(double.nan).coerceToMatch(number);
 }

@@ -136,29 +136,17 @@ final _pow = _function("pow", r"$base, $exponent", (arguments) {
   return pow(base, exponent);
 });
 
-final _sqrt = _function("sqrt", r"$number", (arguments) {
-  var number = arguments[0].assertNumber("number");
-  return sqrt(number);
-});
+final _sqrt = _singleArgumentMathFunc("sqrt", sqrt);
 
 ///
 /// Trigonometric functions
 ///
 
-final _acos = _function("acos", r"$number", (arguments) {
-  var number = arguments[0].assertNumber("number");
-  return acos(number);
-});
+final _acos = _singleArgumentMathFunc("acos", acos);
 
-final _asin = _function("asin", r"$number", (arguments) {
-  var number = arguments[0].assertNumber("number");
-  return asin(number);
-});
+final _asin = _singleArgumentMathFunc("asin", asin);
 
-final _atan = _function("atan", r"$number", (arguments) {
-  var number = arguments[0].assertNumber("number");
-  return atan(number);
-});
+final _atan = _singleArgumentMathFunc("atan", atan);
 
 final _atan2 = _function("atan2", r"$y, $x", (arguments) {
   var y = arguments[0].assertNumber("y");
@@ -166,20 +154,11 @@ final _atan2 = _function("atan2", r"$y, $x", (arguments) {
   return atan2(y, x);
 });
 
-final _cos = _function("cos", r"$number", (arguments) {
-  var number = arguments[0].assertNumber("number");
-  return cos(number);
-});
+final _cos = _singleArgumentMathFunc("cos", cos);
 
-final _sin = _function("sin", r"$number", (arguments) {
-  var number = arguments[0].assertNumber("number");
-  return sin(number);
-});
+final _sin = _singleArgumentMathFunc("sin", sin);
 
-final _tan = _function("tan", r"$number", (arguments) {
-  var number = arguments[0].assertNumber("number");
-  return tan(number);
-});
+final _tan = _singleArgumentMathFunc("tan", tan);
 
 ///
 /// Unit functions
@@ -254,6 +233,16 @@ final _div = _function("div", r"$number1, $number2", (arguments) {
 ///
 /// Helpers
 ///
+
+/// Returns a [Callable] named [name] that calls a single argument
+/// math function.
+BuiltInCallable _singleArgumentMathFunc(
+    String name, SassNumber mathFunc(SassNumber value)) {
+  return _function(name, r"$number", (arguments) {
+    var number = arguments[0].assertNumber("number");
+    return mathFunc(number);
+  });
+}
 
 /// Returns a [Callable] named [name] that transforms a number's value
 /// using [transform] and preserves its units.

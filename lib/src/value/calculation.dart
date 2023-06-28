@@ -9,6 +9,7 @@ import 'package:meta/meta.dart';
 import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
+import '../callable.dart';
 import '../util/nullable.dart';
 import '../util/number.dart' as number_lib;
 import '../utils.dart';
@@ -141,17 +142,18 @@ class SassCalculation extends Value {
     _verifyCompatibleNumbers(args);
 
     var subtotal = 0.0;
-    var index = 0;
-    var first = arguments.first;
-    if (first is! SassNumber) return SassCalculation._("hypot", args);
-    for (var number in arguments) {
-      if (number is! SassNumber || number.hasUnit('%')) {
+    var first = args.first;
+    if (first is! SassNumber || first.hasUnit('%')) {
+      return SassCalculation._("hypot", args);
+    }
+    for (var i = 0; i < args.length; i++) {
+      var number = args.elementAt(i);
+      if (number is! SassNumber || !number.hasCompatibleUnits(first)) {
         return SassCalculation._("hypot", args);
       }
-      var value = number.convertValueToMatch(
-          first, "numbers[${index + 1}]", "numbers[1]");
+      var value =
+          number.convertValueToMatch(first, "numbers[${i + 1}]", "numbers[1]");
       subtotal += value * value;
-      index++;
     }
     return SassNumber.withUnits(math.sqrt(subtotal),
         numeratorUnits: first.numeratorUnits,
@@ -167,13 +169,8 @@ class SassCalculation extends Value {
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
-  static Value sqrt(Object argument) {
-    argument = _simplify(argument);
-    if (argument is! SassNumber || argument.hasUnit('%')) {
-      return SassCalculation._("sqrt", [argument]);
-    }
-    return number_lib.sqrt(argument);
-  }
+  static Value sqrt(Object argument) =>
+      _singleArgument("sqrt", argument, number_lib.sqrt, false);
 
   /// Creates a `sin()` calculation with the given [argument].
   ///
@@ -184,13 +181,8 @@ class SassCalculation extends Value {
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
-  static Value sin(Object argument) {
-    argument = _simplify(argument);
-    if (argument is! SassNumber || argument.hasUnit('%')) {
-      return SassCalculation._("sin", [argument]);
-    }
-    return number_lib.sin(argument);
-  }
+  static Value sin(Object argument) =>
+      _singleArgument("sin", argument, number_lib.sin, true);
 
   /// Creates a `cos()` calculation with the given [argument].
   ///
@@ -201,13 +193,8 @@ class SassCalculation extends Value {
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
-  static Value cos(Object argument) {
-    argument = _simplify(argument);
-    if (argument is! SassNumber || argument.hasUnit('%')) {
-      return SassCalculation._("cos", [argument]);
-    }
-    return number_lib.cos(argument);
-  }
+  static Value cos(Object argument) =>
+      _singleArgument("cos", argument, number_lib.cos, true);
 
   /// Creates a `tan()` calculation with the given [argument].
   ///
@@ -218,13 +205,8 @@ class SassCalculation extends Value {
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
-  static Value tan(Object argument) {
-    argument = _simplify(argument);
-    if (argument is! SassNumber || argument.hasUnit('%')) {
-      return SassCalculation._("tan", [argument]);
-    }
-    return number_lib.tan(argument);
-  }
+  static Value tan(Object argument) =>
+      _singleArgument("tan", argument, number_lib.tan, true);
 
   /// Creates an `atan()` calculation with the given [argument].
   ///
@@ -235,13 +217,8 @@ class SassCalculation extends Value {
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
-  static Value atan(Object argument) {
-    argument = _simplify(argument);
-    if (argument is! SassNumber || argument.hasUnit('%')) {
-      return SassCalculation._("atan", [argument]);
-    }
-    return number_lib.atan(argument);
-  }
+  static Value atan(Object argument) =>
+      _singleArgument("atan", argument, number_lib.atan, false);
 
   /// Creates an `asin()` calculation with the given [argument].
   ///
@@ -252,13 +229,8 @@ class SassCalculation extends Value {
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
-  static Value asin(Object argument) {
-    argument = _simplify(argument);
-    if (argument is! SassNumber || argument.hasUnit('%')) {
-      return SassCalculation._("asin", [argument]);
-    }
-    return number_lib.asin(argument);
-  }
+  static Value asin(Object argument) =>
+      _singleArgument("asin", argument, number_lib.asin, false);
 
   /// Creates an `acos()` calculation with the given [argument].
   ///
@@ -269,13 +241,8 @@ class SassCalculation extends Value {
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
-  static Value acos(Object argument) {
-    argument = _simplify(argument);
-    if (argument is! SassNumber || argument.hasUnit('%')) {
-      return SassCalculation._("acos", [argument]);
-    }
-    return number_lib.acos(argument);
-  }
+  static Value acos(Object argument) =>
+      _singleArgument("acos", argument, number_lib.acos, false);
 
   /// Creates an `abs()` calculation with the given [argument].
   ///
@@ -288,20 +255,15 @@ class SassCalculation extends Value {
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value abs(Object argument) {
     argument = _simplify(argument);
-    if (argument is! SassNumber) {
-      return SassCalculation._("abs", [argument]);
-    }
+    if (argument is! SassNumber) return SassCalculation._("abs", [argument]);
     if (argument.hasUnit("%")) {
       warnForDeprecation(
           "Passing percentage units to the global abs() function is deprecated.\n"
           "In the future, this will emit a CSS abs() function to be resolved by the browser.\n"
-          "\n\n"
-          "To preserve current behavior:\n"
-          "math.abs($argument)"
+          "To preserve current behavior: math.abs($argument)"
           "\n"
-          "To emit a CSS abs() now:\n"
-          "abs(#{$argument})\n"
-          "More info: https://sass-lang.com/documentation/values/calculations#abs",
+          "To emit a CSS abs() now: abs(#{$argument})\n"
+          "More info: https://sass-lang.com/d/abs-percent",
           Deprecation.absPercent);
     }
     return number_lib.abs(argument);
@@ -318,9 +280,10 @@ class SassCalculation extends Value {
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value exp(Object argument) {
     argument = _simplify(argument);
-    if (argument is! SassNumber || argument.hasUnit("%")) {
+    if (argument is! SassNumber) {
       return SassCalculation._("exp", [argument]);
     }
+    argument.assertNoUnits();
     return number_lib.pow(SassNumber(math.e), argument);
   }
 
@@ -335,13 +298,11 @@ class SassCalculation extends Value {
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value sign(Object argument) {
     argument = _simplify(argument);
-    if (argument is! SassNumber || argument.hasUnit("%")) {
-      return SassCalculation._("sign", [argument]);
-    }
-    if (argument.value == 0 || argument.value.isNaN) {
-      return SassNumber(argument.value);
-    }
-    return SassNumber(argument.value > 0 ? 1 : -1);
+    return switch (argument) {
+      SassNumber(value: double(isNaN: true) || 0) => SassNumber(argument.value),
+      SassNumber arg when !arg.hasUnit('%') => SassNumber(arg.value.sign),
+      _ => SassCalculation._("sign", [argument]),
+    };
   }
 
   /// Creates a `clamp()` calculation with the given [min], [value], and [max].
@@ -395,18 +356,15 @@ class SassCalculation extends Value {
   /// This may be passed fewer than two arguments, but only if one of the
   /// arguments is an unquoted `var()` string.
   static Value pow(Object base, Object? exponent) {
-    var args =
-        List<Object>.unmodifiable([base, if (exponent != null) exponent]);
+    var args = [base, if (exponent != null) exponent];
     _verifyLength(args, 2);
     base = _simplify(base);
     exponent = exponent.andThen(_simplify);
-    if (base is! SassNumber ||
-        exponent is! SassNumber ||
-        exponent.hasUnit('%') ||
-        base.hasUnit('%')) {
+    if (base is! SassNumber || exponent is! SassNumber) {
       return SassCalculation._("pow", args);
     }
-    _verifyCompatibleNumbers([base, exponent]);
+    base.assertNoUnits();
+    exponent.assertNoUnits();
     return number_lib.pow(base, exponent);
   }
 
@@ -426,13 +384,15 @@ class SassCalculation extends Value {
     number = _simplify(number);
     base = base.andThen(_simplify);
     var args = [number, if (base != null) base];
-    if (number is! SassNumber ||
-        number.hasUnit('%') ||
-        (base is SassNumber && base.hasUnit('%'))) {
+    if (number is! SassNumber || (base != null && base is! SassNumber)) {
       return SassCalculation._("log", args);
     }
-    _verifyCompatibleNumbers(args);
-    return number_lib.log(number, base is SassNumber ? base : null);
+    number.assertNoUnits();
+    if (base is SassNumber) {
+      base.assertNoUnits();
+      return number_lib.log(number, base);
+    }
+    return number_lib.log(number, null);
   }
 
   /// Creates a `atan2()` calculation for [y] and [x].
@@ -452,13 +412,14 @@ class SassCalculation extends Value {
     x = x.andThen(_simplify);
     var args = [y, if (x != null) x];
     _verifyLength(args, 2);
+    _verifyCompatibleNumbers(args);
     if (y is! SassNumber ||
         x is! SassNumber ||
         y.hasUnit('%') ||
-        x.hasUnit('%')) {
+        x.hasUnit('%') ||
+        !y.hasCompatibleUnits(x)) {
       return SassCalculation._("atan2", args);
     }
-    _verifyCompatibleNumbers(args);
     return number_lib.atan2(y, x);
   }
 
@@ -479,16 +440,18 @@ class SassCalculation extends Value {
     modulus = modulus.andThen(_simplify);
     var args = [dividend, if (modulus != null) modulus];
     _verifyLength(args, 2);
-    if (dividend is! SassNumber || modulus is! SassNumber) {
+    _verifyCompatibleNumbers(args);
+    if (dividend is! SassNumber ||
+        modulus is! SassNumber ||
+        !dividend.hasCompatibleUnits(modulus)) {
       return SassCalculation._("rem", args);
     }
-    _verifyCompatibleNumbers(args);
-
     var result = dividend.modulo(modulus);
-    if ((modulus.value < 0 && dividend.value >= 0) ||
-        (modulus.value >= 0 && dividend.value < 0)) {
+    if (modulus.value.signIncludingZero != dividend.value.signIncludingZero) {
       if (modulus.value.isInfinite) return dividend;
-      if (result is SassNumber && result.value == 0) return SassNumber(-0.0).coerceToMatch(result);
+      if (result is SassNumber && result.value == 0) {
+        return result.unaryMinus();
+      }
       return result.minus(dividend);
     }
     return result;
@@ -511,10 +474,12 @@ class SassCalculation extends Value {
     modulus = modulus.andThen(_simplify);
     var args = [dividend, if (modulus != null) modulus];
     _verifyLength(args, 2);
-    if (dividend is! SassNumber || modulus is! SassNumber) {
+    _verifyCompatibleNumbers(args);
+    if (dividend is! SassNumber ||
+        modulus is! SassNumber ||
+        !dividend.hasCompatibleUnits(modulus)) {
       return SassCalculation._("mod", args);
     }
-    _verifyCompatibleNumbers(args);
     return dividend.modulo(modulus);
   }
 
@@ -533,47 +498,83 @@ class SassCalculation extends Value {
   /// arguments is an unquoted `var()` string.
   static Value round(Object strategyOrNumber,
       [Object? numberOrStep, Object? step]) {
-    strategyOrNumber = _simplify(strategyOrNumber);
-    numberOrStep = numberOrStep.andThen(_simplify);
-    step = step.andThen(_simplify);
-
-    var args = (strategyOrNumber, numberOrStep, step);
-
-    switch (args) {
+    switch ((
+      _simplify(strategyOrNumber),
+      numberOrStep.andThen(_simplify),
+      step.andThen(_simplify)
+    )) {
       case (SassNumber number, null, null):
-        return SassNumber(number.value.round().toDouble())
-            .coerceToMatch(number);
+        return _matchUnits(number.value.round().toDouble(), number);
+
+      case (SassNumber number, SassNumber step, null):
+        _verifyCompatibleNumbers([number, step]);
+        return _roundWithStep('nearest', number, step);
+
+      case (
+          SassString(text: 'nearest' || 'up' || 'down' || 'to-zero') &&
+              var strategy,
+          SassNumber number,
+          SassNumber step
+        ):
+        _verifyCompatibleNumbers([number, step]);
+        return _roundWithStep(strategy.text, number, step);
+
+      case (
+          SassString(text: 'nearest' || 'up' || 'down' || 'to-zero') &&
+              var strategy,
+          (SassString() || CalculationInterpolation()) && var rest?,
+          null
+        ):
+        return SassCalculation._("round", [strategy, rest]);
 
       case (
           SassString(text: 'nearest' || 'up' || 'down' || 'to-zero'),
-          SassString(isVar: false) || SassNumber(),
+          _?,
           null
         ):
         throw SassScriptException("If strategy is not null, step is required.");
 
-      case (SassNumber number, SassNumber step, null):
-        _verifyCompatibleNumbers([number, step]);
-        return number_lib.roundWithStep(SassString('nearest'), number, step);
+      case (
+          SassString(text: 'nearest' || 'up' || 'down' || 'to-zero'),
+          null,
+          null
+        ):
+        throw SassScriptException(
+            "Number to round and step arguments are required.");
 
-      case (SassString(isVar: false), SassNumber number, SassNumber step):
-        _verifyCompatibleNumbers([number, step]);
-        return number_lib.roundWithStep(args.$1, number, step);
+      case (
+          (SassString() || CalculationInterpolation()) && var strategy,
+          null,
+          null
+        ):
+        return SassCalculation._("round", [strategy]);
 
-      case (SassString(text: 'nearest' || 'up' || 'down' || 'to-zero'), _?, _?):
-      case (SassString(isVar: true), _?, _?):
-        break;
+      case (var number, null, null):
+        throw SassScriptException(
+            "Single argument $number expected to be simplifiable.");
 
-      case (SassString(isVar: false), _?, _?):
+      case (var strategy, var number?, null):
+        return SassCalculation._("round", [strategy, number]);
+
+      case (
+          (SassString(text: 'nearest' || 'up' || 'down' || 'to-zero') ||
+                  SassString(isVar: true)) &&
+              var strategy,
+          Object number,
+          Object step
+        ):
+        return SassCalculation._("round", [strategy, number, step]);
+
       case (_, _?, _?):
         throw SassScriptException(
-            "${args.$1} must be either nearest, up, down or to-zero.");
-    }
+            "$strategyOrNumber must be either nearest, up, down or to-zero.");
 
-    return SassCalculation._("round", [
-      strategyOrNumber,
-      if (numberOrStep != null) numberOrStep,
-      if (step != null) step
-    ]);
+      case (_, null, _?):
+      // TODO(pamelalozano): Get rid of this case once dart-lang/sdk#52908 is solved.
+      // ignore: unreachable_switch_case
+      case (_, _, _):
+        throw SassScriptException("Invalid parameters.");
+    }
   }
 
   /// Creates and simplifies a [CalculationOperation] with the given [operator],
@@ -642,6 +643,63 @@ class SassCalculation extends Value {
   /// simplification.
   SassCalculation._(this.name, this.arguments);
 
+  // Returns [value] coerced to [number]'s units.
+  static SassNumber _matchUnits(double value, SassNumber number) {
+    return SassNumber.withUnits(value, numeratorUnits: number.numeratorUnits);
+  }
+
+  /// Returns a rounded [number] based on a selected rounding [strategy],
+  /// to the nearest integer multiple of [step].
+  static SassNumber _roundWithStep(
+      String strategy, SassNumber number, SassNumber step) {
+    if (!{'nearest', 'up', 'down', 'to-zero'}.contains(strategy)) {
+      throw ArgumentError(
+          "$strategy must be either nearest, up, down or to-zero.");
+    }
+
+    if (number.value.isInfinite && step.value.isInfinite ||
+        step.value == 0 ||
+        number.value.isNaN ||
+        step.value.isNaN) {
+      return _matchUnits(double.nan, number);
+    }
+    if (number.value.isInfinite) return number;
+
+    if (step.value.isInfinite) {
+      return switch ((strategy, number.value)) {
+        (_, 0) => number,
+        ('nearest' || 'to-zero', > 0) => _matchUnits(0.0, number),
+        ('nearest' || 'to-zero', _) => _matchUnits(-0.0, number),
+        ('up', > 0) => _matchUnits(double.infinity, number),
+        ('up', _) => _matchUnits(-0.0, number),
+        ('down', < 0) => _matchUnits(-double.infinity, number),
+        ('down', _) => _matchUnits(0, number),
+        (_, _) => throw UnsupportedError("Invalid argument: $strategy.")
+      };
+    }
+
+    var stepWithNumberUnit = step.convertValueToMatch(number);
+    return switch (strategy) {
+      'nearest' => _matchUnits(
+          (number.value / stepWithNumberUnit).round() * stepWithNumberUnit,
+          number),
+      'up' => _matchUnits(
+          (number.value / stepWithNumberUnit).ceil() * stepWithNumberUnit,
+          number),
+      'down' => _matchUnits(
+          (number.value / stepWithNumberUnit).floor() * stepWithNumberUnit,
+          number),
+      'to-zero' => number.value < 0
+          ? _matchUnits(
+              (number.value / stepWithNumberUnit).ceil() * stepWithNumberUnit,
+              number)
+          : _matchUnits(
+              (number.value / stepWithNumberUnit).floor() * stepWithNumberUnit,
+              number),
+      _ => _matchUnits(double.nan, number)
+    };
+  }
+
   /// Returns an unmodifiable list of [args], with each argument simplified.
   static List<Object> _simplifyArguments(Iterable<Object> args) =>
       List.unmodifiable(args.map(_simplify));
@@ -704,6 +762,19 @@ class SassCalculation extends Value {
     throw SassScriptException(
         "$expectedLength arguments required, but only ${args.length} "
         "${pluralize('was', args.length, plural: 'were')} passed.");
+  }
+
+  /// Returns a [Callable] named [name] that calls a single argument
+  /// math function.
+  static Value _singleArgument(String name, Object argument,
+      SassNumber mathFunc(SassNumber value), bool acceptsKnownUnits) {
+    argument = _simplify(argument);
+    if (argument is! SassNumber ||
+        (acceptsKnownUnits && argument.hasUnit('%'))) {
+      return SassCalculation._(name, [argument]);
+    }
+    if (!acceptsKnownUnits) argument.assertNoUnits();
+    return mathFunc(argument);
   }
 
   /// @nodoc

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 81aac8d1ac5bea43a019307cc5eb754610b0c6be
+// Checksum: 959805706b0be90eba25f04979b411dac85e648d
 //
 // ignore_for_file: unused_import
 
@@ -2384,11 +2384,8 @@ class _EvaluateVisitor
           return SassCalculation.rem(
               arguments[0], arguments.elementAtOrNull(1));
         case "round":
-          assert(arguments.isNotEmpty, true);
-          return arguments.length > 2
-              ? SassCalculation.round(arguments[0], arguments[1], arguments[2])
-              : SassCalculation.round(
-                  arguments[0], arguments.elementAtOrNull(1), null);
+          return SassCalculation.round(arguments[0],
+              arguments.elementAtOrNull(1), arguments.elementAtOrNull(2));
         case "clamp":
           return SassCalculation.clamp(arguments[0],
               arguments.elementAtOrNull(1), arguments.elementAtOrNull(2));
@@ -2445,7 +2442,7 @@ class _EvaluateVisitor
   ///
   /// If [inLegacySassFunction] is `true`, this allows unitless numbers to be added and
   /// subtracted with numbers with units, for backwards-compatibility with the
-  /// old global `min()` and `max()` functions.
+  /// old global `min()`, `max()`, `round()`, and `abs()` functions.
   Object _visitCalculationValue(Expression node,
       {required bool inLegacySassFunction}) {
     if (node is ParenthesizedExpression) {

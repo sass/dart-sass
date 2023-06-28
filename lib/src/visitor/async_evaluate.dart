@@ -2398,11 +2398,8 @@ class _EvaluateVisitor
           return SassCalculation.rem(
               arguments[0], arguments.elementAtOrNull(1));
         case "round":
-          assert(arguments.isNotEmpty, true);
-          return arguments.length > 2
-              ? SassCalculation.round(arguments[0], arguments[1], arguments[2])
-              : SassCalculation.round(
-                  arguments[0], arguments.elementAtOrNull(1), null);
+          return SassCalculation.round(arguments[0],
+              arguments.elementAtOrNull(1), arguments.elementAtOrNull(2));
         case "clamp":
           return SassCalculation.clamp(arguments[0],
               arguments.elementAtOrNull(1), arguments.elementAtOrNull(2));
@@ -2459,7 +2456,7 @@ class _EvaluateVisitor
   ///
   /// If [inLegacySassFunction] is `true`, this allows unitless numbers to be added and
   /// subtracted with numbers with units, for backwards-compatibility with the
-  /// old global `min()` and `max()` functions.
+  /// old global `min()`, `max()`, `round()`, and `abs()` functions.
   Future<Object> _visitCalculationValue(Expression node,
       {required bool inLegacySassFunction}) async {
     if (node is ParenthesizedExpression) {

@@ -2908,15 +2908,7 @@ abstract class StylesheetParser extends Parser {
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
 
       case "abs":
-        var beforeArguments = scanner.state;
-        try {
-          var arguments = _calculationArguments(1);
-          return CalculationExpression(
-              name, arguments, scanner.spanFrom(start));
-        } on FormatException catch (_) {
-          scanner.state = beforeArguments;
-          return null;
-        }
+        return _tryArgumentsCalculation(name, start, 1);
 
       case "hypot":
         var arguments = _calculationArguments();
@@ -2926,15 +2918,7 @@ abstract class StylesheetParser extends Parser {
       case "max":
         // min() and max() are parsed as calculations if possible, and otherwise
         // are parsed as normal Sass functions.
-        var beforeArguments = scanner.state;
-        List<Expression> arguments;
-        try {
-          arguments = _calculationArguments();
-        } on FormatException catch (_) {
-          scanner.state = beforeArguments;
-          return null;
-        }
-        return CalculationExpression(name, arguments, scanner.spanFrom(start));
+        return _tryArgumentsCalculation(name, start, null);
 
       case "pow":
       case "log":
@@ -2947,19 +2931,26 @@ abstract class StylesheetParser extends Parser {
       case "clamp":
         var arguments = _calculationArguments(3);
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
+
       case "round":
-        var beforeArguments = scanner.state;
-        try {
-          var arguments = _calculationArguments(3);
-          return CalculationExpression(
-              name, arguments, scanner.spanFrom(start));
-        } on FormatException catch (_) {
-          scanner.state = beforeArguments;
-          return null;
-        }
+        return _tryArgumentsCalculation(name, start, 3);
 
       default:
         return null;
+    }
+  }
+
+  // Returns a CalculationExpression if the function can be parsed as a calculation,
+  // otherwise, returns null and the function is parsed as a normal Sass function.
+  CalculationExpression? _tryArgumentsCalculation(
+      String name, LineScannerState start, int? maxArgs) {
+    var beforeArguments = scanner.state;
+    try {
+      var arguments = _calculationArguments(maxArgs);
+      return CalculationExpression(name, arguments, scanner.spanFrom(start));
+    } on FormatException catch (_) {
+      scanner.state = beforeArguments;
+      return null;
     }
   }
 

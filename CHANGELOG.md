@@ -14,6 +14,9 @@
 * Fix a bug where an interpolation in a custom property name crashed if the file
   was loaded by a `@use` nested in an `@import`.
 
+* All functions defined in CSS Values and Units 4 are now parsed as calculation objects:
+round(), mod(), rem(), sin(), cos(), tan(), asin(), acos(), atan(), atan2(), pow(), sqrt(), hypot(), log(), exp(), abs(), and sign().
+
 ### JavaScript API
 
 * Add a new `SassCalculation` type that represents the calculation objects added
