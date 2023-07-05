@@ -23,6 +23,7 @@ class BuiltInModule<T extends AsyncCallable> implements Module<T> {
   Map<String, AstNode> get variableNodes => const {};
   ExtensionStore get extensionStore => ExtensionStore.empty;
   CssStylesheet get css => CssStylesheet.empty(url: url);
+  Map<Module<T>, List<CssComment>> get preModuleComments => const {};
   bool get transitivelyContainsCss => false;
   bool get transitivelyContainsExtensions => false;
 
