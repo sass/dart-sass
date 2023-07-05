@@ -230,7 +230,16 @@ bool get isMacOS => process?.platform == 'darwin';
 
 bool get isJS => true;
 
-bool get isNode => process != null;
+/// The fs module object, used to check whether this has been loaded as Node.
+///
+/// It's safest to check for a library we load in manually rather than one
+/// that's ambiently available so that we don't get into a weird state in
+/// environments like VS Code that support some Node.js libraries but don't load
+/// Node.js entrypoints for dependencies.
+@JS('fs')
+external final Object? _fsNullable;
+
+bool get isNode => _fsNullable != null;
 
 bool get isBrowser => isJS && !isNode;
 
