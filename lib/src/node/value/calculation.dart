@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:node_interop/js.dart';
 import 'package:sass/src/node/immutable.dart';
 import 'package:sass/src/node/utils.dart';
+import 'package:sass/src/util/nullable.dart';
 
 import '../../value.dart';
 import '../reflection.dart';
@@ -49,19 +50,38 @@ final JSClass calculationClass = () {
       return SassCalculation.unsimplified('max', argList);
     },
     'clamp': (Object min, [Object? value, Object? max]) {
-      if (value == null && max != null) {
+      if (value == null && max == null) {
+        String minString;
+        if (min is SassString) {
+          minString = min.text;
+        } else if (min is CalculationInterpolation) {
+          minString = min.value;
+        } else {
+          jsThrow(JsError(
+              '`value` and `max` are both undefined and `min` is not a SassString or CalculationInterpolation'));
+        }
+        final values = minString
+            .split(',')
+            .map((v) => num.tryParse(v.trim()).andThen((v) => SassNumber(v)))
+            .toList();
+        final error = JsError(
+            'Expected a comma-separated string of 2 or 3 numbers, got `$minString`');
+        if (values.isEmpty || values[0] == null) {
+          jsThrow(error);
+        } else if (values.length == 2) {
+          [min as Object, value] = values;
+        } else if (values.length == 3) {
+          [min as Object, value, max] = values;
+        } else {
+          jsThrow(error);
+        }
+      } else if (value == null && max != null) {
         jsThrow(JsError('`value` is undefined and `max` is not undefined'));
-      }
-      if ((value == null || max == null) &&
-          !(min is SassString && min.text.startsWith('var(')) &&
-          !(value is SassString && value.text.startsWith('var('))) {
-        jsThrow(JsError(
-            '`value` or `max` is undefined and neither `min` nor `value` is a SassString that begins with "var("'));
       }
       [min, value, max].whereNotNull().forEach(isCalculationValue);
       return SassCalculation.unsimplified(
           'clamp', [min, value, max].whereNotNull());
-    },
+    }
   });
 
   jsClass.defineMethods({
@@ -117,10 +137,6 @@ final JSClass calculationInterpolationClass = () {
   jsClass.defineMethods({
     'equals': (CalculationInterpolation self, Object other) => self == other,
     'hashCode': (CalculationInterpolation self) => self.hashCode,
-  });
-
-  jsClass.defineGetters({
-    'value': (CalculationInterpolation self) => self.value,
   });
 
   getJSClass(CalculationInterpolation('')).injectSuperclass(jsClass);
