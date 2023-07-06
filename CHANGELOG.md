@@ -4,6 +4,11 @@
   emitted in source order as much as possible, instead of always being emitted
   after the CSS of all module dependencies.
 
+### JavaScript API
+
+* Produce a better error message when an environment that supports some Node.js
+  APIs loads the browser entrypoint but attempts to access the filesystem.
+
 ### Embedded Sass
 
 * Fix a bug where nested relative `@imports` failed to load when using the
