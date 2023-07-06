@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 38c688423116df1e489aa6eafc16de1bf9bc2bf5
+// Checksum: 487c34d7387b6f368ed60ff2db6a748483aba2a1
 //
 // ignore_for_file: unused_import
 
@@ -808,11 +808,14 @@ class Environment {
   }
 
   /// Returns a module that represents the top-level members defined in [this],
-  /// that contains [css] as its CSS tree, which can be extended using
-  /// [extensionStore].
-  Module<Callable> toModule(CssStylesheet css, ExtensionStore extensionStore) {
+  /// that contains [css] and [preModuleComments] as its CSS, which can be
+  /// extended using [extensionStore].
+  Module<Callable> toModule(
+      CssStylesheet css,
+      Map<Module<Callable>, List<CssComment>> preModuleComments,
+      ExtensionStore extensionStore) {
     assert(atRoot);
-    return _EnvironmentModule(this, css, extensionStore,
+    return _EnvironmentModule(this, css, preModuleComments, extensionStore,
         forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)));
   }
 
@@ -827,6 +830,7 @@ class Environment {
         this,
         CssStylesheet(const [],
             SourceFile.decoded(const [], url: "<dummy module>").span(0)),
+        const {},
         ExtensionStore.empty,
         forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)));
   }
@@ -909,6 +913,7 @@ class _EnvironmentModule implements Module<Callable> {
   final Map<String, Callable> mixins;
   final ExtensionStore extensionStore;
   final CssStylesheet css;
+  final Map<Module<Callable>, List<CssComment>> preModuleComments;
   final bool transitivelyContainsCss;
   final bool transitivelyContainsExtensions;
 
@@ -924,12 +929,19 @@ class _EnvironmentModule implements Module<Callable> {
   final Map<String, Module<Callable>> _modulesByVariable;
 
   factory _EnvironmentModule(
-      Environment environment, CssStylesheet css, ExtensionStore extensionStore,
+      Environment environment,
+      CssStylesheet css,
+      Map<Module<Callable>, List<CssComment>> preModuleComments,
+      ExtensionStore extensionStore,
       {Set<Module<Callable>>? forwarded}) {
     forwarded ??= const {};
     return _EnvironmentModule._(
         environment,
         css,
+        Map.unmodifiable({
+          for (var entry in preModuleComments.entries)
+            entry.key: List<CssComment>.unmodifiable(entry.value)
+        }),
         extensionStore,
         _makeModulesByVariable(forwarded),
         _memberMap(environment._variables.first,
@@ -941,6 +953,7 @@ class _EnvironmentModule implements Module<Callable> {
         _memberMap(environment._mixins.first,
             forwarded.map((module) => module.mixins)),
         transitivelyContainsCss: css.children.isNotEmpty ||
+            preModuleComments.isNotEmpty ||
             environment._allModules
                 .any((module) => module.transitivelyContainsCss),
         transitivelyContainsExtensions: !extensionStore.isEmpty ||
@@ -989,6 +1002,7 @@ class _EnvironmentModule implements Module<Callable> {
   _EnvironmentModule._(
       this._environment,
       this.css,
+      this.preModuleComments,
       this.extensionStore,
       this._modulesByVariable,
       this.variables,
@@ -1028,6 +1042,7 @@ class _EnvironmentModule implements Module<Callable> {
     return _EnvironmentModule._(
         _environment,
         newCssAndExtensionStore.item1,
+        preModuleComments,
         newCssAndExtensionStore.item2,
         _modulesByVariable,
         variables,

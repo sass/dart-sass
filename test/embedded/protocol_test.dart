@@ -224,6 +224,29 @@ void main() {
     await process.shouldExit(0);
   });
 
+  // Regression test for sass/dart-sass#2004
+  test("handles many sequential compilation requests", () async {
+    var totalRequests = 1000;
+    for (var i = 1; i <= totalRequests; i++) {
+      process.send(compileString("a {b: 1px + 2px}"));
+      await expectSuccess(process, "a { b: 3px; }");
+    }
+    await process.close();
+  });
+
+  test("closes gracefully with many in-flight compilations", () async {
+    // This should always be equal to the size of
+    // [IsolateDispatcher._isolatePool], since that's as many concurrent
+    // compilations as we can realistically have anyway.
+    var totalRequests = 15;
+    for (var i = 1; i <= totalRequests; i++) {
+      process.inbound
+          .add((i, compileString("a {b: foo() + 2px}", functions: [r"foo()"])));
+    }
+
+    await process.close();
+  });
+
   test("doesn't include a source map by default", () async {
     process.send(compileString("a {b: 1px + 2px}"));
     await expectSuccess(process, "a { b: 3px; }", sourceMap: isEmpty);

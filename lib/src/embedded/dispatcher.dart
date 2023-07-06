@@ -10,7 +10,6 @@ import 'dart:typed_data';
 import 'package:path/path.dart' as p;
 import 'package:protobuf/protobuf.dart';
 import 'package:sass/sass.dart' as sass;
-import 'package:stack_trace/stack_trace.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 import 'embedded_sass.pb.dart';
@@ -116,24 +115,8 @@ class Dispatcher {
             throw parseError(
                 "Unknown message type: ${message.toDebugString()}");
         }
-      } on ProtocolError catch (error) {
-        // Always set the ID to [errorId] because we're only ever reporting
-        // errors for responses or for [CompileRequest] which has no ID.
-        error.id = errorId;
-        stderr.write("Host caused ${error.type.name.toLowerCase()} error");
-        if (error.id != errorId) stderr.write(" with request ${error.id}");
-        stderr.writeln(": ${error.message}");
-        sendError(error);
-        // PROTOCOL error from https://bit.ly/2poTt90
-        exitCode = 76;
-        _channel.sink.close();
-      } catch (error, stackTrace) {
-        var errorMessage = "$error\n${Chain.forTrace(stackTrace)}";
-        stderr.write("Internal compiler error: $errorMessage");
-        sendError(ProtocolError()
-          ..type = ProtocolErrorType.INTERNAL
-          ..id = errorId
-          ..message = errorMessage);
+      } on ProtocolError catch (error, stackTrace) {
+        sendError(handleError(error, stackTrace));
         _channel.sink.close();
       }
     }).asFuture<void>();
@@ -322,10 +305,17 @@ class Dispatcher {
     var protobufWriter = CodedBufferWriter();
     message.writeToCodedBufferWriter(protobufWriter);
 
-    var packet =
-        Uint8List(_compilationIdVarint.length + protobufWriter.lengthInBytes);
-    packet.setAll(0, _compilationIdVarint);
-    protobufWriter.writeTo(packet, _compilationIdVarint.length);
+    // Add one additional byte to the beginning to indicate whether or not the
+    // compilation is finished, so the [IsolateDispatcher] knows whether to
+    // treat this isolate as inactive.
+    var packet = Uint8List(
+        1 + _compilationIdVarint.length + protobufWriter.lengthInBytes);
+    packet[0] =
+        message.whichMessage() == OutboundMessage_Message.compileResponse
+            ? 1
+            : 0;
+    packet.setAll(1, _compilationIdVarint);
+    protobufWriter.writeTo(packet, 1 + _compilationIdVarint.length);
     _channel.sink.add(packet);
   }
 }

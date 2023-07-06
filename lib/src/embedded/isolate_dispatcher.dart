@@ -3,13 +3,12 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:ffi';
 import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:pool/pool.dart';
 import 'package:protobuf/protobuf.dart';
-import 'package:stack_trace/stack_trace.dart';
 import 'package:stream_channel/isolate_channel.dart';
 import 'package:stream_channel/stream_channel.dart';
 
@@ -46,14 +45,15 @@ class IsolateDispatcher {
   /// The actual isolate objects that have been spawned.
   ///
   /// Only used for cleaning up the process when the underlying channel closes.
-  final _allIsolates = <Isolate>[];
+  final _allIsolates = <Future<Isolate>>[];
 
   /// A pool controlling how many isolates (and thus concurrent compilations)
   /// may be live at once.
   ///
-  /// More than 15 concurrent `waitFor()` calls seems to deadlock the Dart VM,
-  /// even across isolates. See sass/dart-sass#1959.
-  final _isolatePool = Pool(15);
+  /// More than MaxMutatorThreadCount isolates in the same isolate group
+  /// can deadlock the Dart VM.
+  /// See https://github.com/sass/dart-sass/pull/2019
+  final _isolatePool = Pool(sizeOf<IntPtr>() <= 4 ? 7 : 15);
 
   /// Whether the underlying channel has closed and the dispatcher is shutting
   /// down.
@@ -101,10 +101,10 @@ class IsolateDispatcher {
       }
     }, onError: (Object error, StackTrace stackTrace) {
       _handleError(error, stackTrace);
-    }, onDone: () {
+    }, onDone: () async {
       _closed = true;
       for (var isolate in _allIsolates) {
-        isolate.kill();
+        (await isolate).kill();
       }
 
       // Killing isolates isn't sufficient to make sure the process closes; we
@@ -130,7 +130,9 @@ class IsolateDispatcher {
     }
 
     var receivePort = ReceivePort();
-    _allIsolates.add(await Isolate.spawn(_isolateMain, receivePort.sendPort));
+    var future = Isolate.spawn(_isolateMain, receivePort.sendPort);
+    _allIsolates.add(future);
+    await future;
 
     var channel = IsolateChannel<_InitialMessage?>.connectReceive(receivePort)
         .transform(const ExplicitCloseTransformer());
@@ -154,19 +156,27 @@ class IsolateDispatcher {
     var receivePort = ReceivePort();
     isolate.sink.add((receivePort.sendPort, compilationId));
 
-    var channel = IsolateChannel<Uint8List?>.connectReceive(receivePort)
-        .transform(const ExplicitCloseTransformer());
-    channel.stream.listen(_channel.sink.add,
+    var channel = IsolateChannel<Uint8List>.connectReceive(receivePort);
+    channel.stream.listen(
+        (message) {
+          // The first byte of messages from isolates indicates whether the
+          // entire compilation is finished. Sending this as part of the message
+          // buffer rather than a separate message avoids a race condition where
+          // the host might send a new compilation request with the same ID as
+          // one that just finished before the [IsolateDispatcher] receives word
+          // that the isolate with that ID is done. See sass/dart-sass#2004.
+          if (message[0] == 1) {
+            channel.sink.close();
+            _activeIsolates.remove(compilationId);
+            _inactiveIsolates.add(isolate);
+            resource.release();
+          }
+          _channel.sink.add(Uint8List.sublistView(message, 1));
+        },
         onError: (Object error, StackTrace stackTrace) =>
             _handleError(error, stackTrace),
         onDone: () {
-          _activeIsolates.remove(compilationId);
-          if (_closed) {
-            isolate.sink.close();
-          } else {
-            _inactiveIsolates.add(isolate);
-          }
-          resource.release();
+          if (_closed) isolate.sink.close();
         });
     _activeIsolates[compilationId] = channel.sink;
     return channel.sink;
@@ -187,26 +197,9 @@ class IsolateDispatcher {
   /// responded to, if available.
   void _handleError(Object error, StackTrace stackTrace,
       {int? compilationId, int? messageId}) {
-    if (error is ProtocolError) {
-      error.id = messageId ?? errorId;
-      stderr.write("Host caused ${error.type.name.toLowerCase()} error");
-      if (error.id != errorId) stderr.write(" with request ${error.id}");
-      stderr.writeln(": ${error.message}");
-      sendError(compilationId ?? errorId, error);
-      // PROTOCOL error from https://bit.ly/2poTt90
-      exitCode = 76;
-      _channel.sink.close();
-    } else {
-      var errorMessage = "$error\n${Chain.forTrace(stackTrace)}";
-      stderr.write("Internal compiler error: $errorMessage");
-      sendError(
-          compilationId ?? errorId,
-          ProtocolError()
-            ..type = ProtocolErrorType.INTERNAL
-            ..id = messageId ?? errorId
-            ..message = errorMessage);
-      _channel.sink.close();
-    }
+    sendError(compilationId ?? errorId,
+        handleError(error, stackTrace, messageId: messageId));
+    _channel.sink.close();
   }
 
   /// Sends [message] to the host.
@@ -224,8 +217,7 @@ void _isolateMain(SendPort sendPort) {
   channel.stream.listen((initialMessage) async {
     var (compilationSendPort, compilationId) = initialMessage;
     var compilationChannel =
-        IsolateChannel<Uint8List?>.connectSend(compilationSendPort)
-            .transform(const ExplicitCloseTransformer());
+        IsolateChannel<Uint8List>.connectSend(compilationSendPort);
     var success = await Dispatcher(compilationChannel, compilationId).listen();
     if (!success) channel.sink.close();
   });

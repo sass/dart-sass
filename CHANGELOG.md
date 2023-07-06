@@ -1,3 +1,68 @@
+## 1.64.0
+
+* Comments that appear before or between `@use` and `@forward` rules are now
+  emitted in source order as much as possible, instead of always being emitted
+  after the CSS of all module dependencies.
+
+### Embedded Sass
+
+* Fix a bug where nested relative `@imports` failed to load when using the
+  deprecated functions `render` or `renderSync` and those relative imports were
+  loaded multiple times across different files.
+
+## 1.63.6
+
+### JavaScript API
+
+* Fix `import sass from 'sass'` again after it was broken in the last release.
+
+### Embedded Sass
+
+* Fix the `exports` declaration in `package.json`.
+
+## 1.63.5
+
+### JavaScript API
+
+* Fix a bug where loading the package through both CJS `require()` and ESM
+  `import` could crash on Node.js.
+
+### Embedded Sass
+
+* Fix a deadlock when running at high concurrency on 32-bit systems.
+
+* Fix a race condition where the embedded compiler could deadlock or crash if a
+  compilation ID was reused immediately after the compilation completed.
+
+## 1.63.4
+
+### JavaScript API
+
+* Re-enable support for `import sass from 'sass'` when loading the package from
+  an ESM module in Node.js. However, this syntax is now deprecated; ESM users
+  should use `import * as sass from 'sass'` instead.
+
+  On the browser and other ESM-only platforms, only `import * as sass from
+  'sass'` is supported.
+
+* Properly export the legacy API values `TRUE`, `FALSE`, `NULL`, and `types` from
+  the ECMAScript module API.
+
+### Embedded Sass
+
+* Fix a race condition where closing standard input while requests are in-flight
+  could sometimes cause the process to hang rather than shutting down
+  gracefully.
+
+* Properly include the root stylesheet's URL in the set of loaded URLs when it
+  fails to parse.
+
+## 1.63.3
+
+### JavaScript API
+
+* Fix loading Sass as an ECMAScript module on Node.js.
+
 ## 1.63.2
 
 * No user-visible changes.
