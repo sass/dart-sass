@@ -6,13 +6,12 @@ import 'package:collection/collection.dart';
 import 'package:node_interop/js.dart';
 import 'package:sass/src/node/immutable.dart';
 import 'package:sass/src/node/utils.dart';
-import 'package:sass/src/util/nullable.dart';
 
 import '../../value.dart';
 import '../reflection.dart';
 
 /// Check that [arg] is a valid argument to a calculation function.
-void isCalculationValue(Object arg, {bool checkUnquoted = true}) {
+void assertCalculationValue(Object arg, {bool checkUnquoted = true}) {
   if (arg is! SassNumber &&
       arg is! SassString &&
       arg is! SassCalculation &&
@@ -25,6 +24,19 @@ void isCalculationValue(Object arg, {bool checkUnquoted = true}) {
   if (checkUnquoted && arg is SassString && arg.hasQuotes) {
     jsThrow(JsError('Argument must be unquoted SassString'));
   }
+  if (arg is CalculationOperation) {
+    assertCalculationValue(arg.left, checkUnquoted: checkUnquoted);
+    assertCalculationValue(arg.right, checkUnquoted: checkUnquoted);
+  }
+}
+
+/// Check that [arg] is an unquoted string or interpolation
+void assertUnquotedStringOrInterpolation(Object arg) {
+  if ((arg is! SassString && arg is! CalculationInterpolation) ||
+      (arg is SassString && arg.hasQuotes)) {
+    jsThrow(JsError(
+        'Argument must be an unquoted SassString or CalculationInterpolation'));
+  }
 }
 
 /// The JavaScript `SassCalculation` class.
@@ -36,49 +48,27 @@ final JSClass calculationClass = () {
 
   jsClass.defineStaticMethods({
     'calc': (Object argument) {
-      isCalculationValue(argument);
+      assertCalculationValue(argument);
       return SassCalculation.unsimplified('calc', [argument]);
     },
     'min': (Object arguments) {
       var argList = jsToDartList(arguments).cast<Object>();
-      argList.forEach(isCalculationValue);
+      argList.forEach(assertCalculationValue);
       return SassCalculation.unsimplified('min', argList);
     },
     'max': (Object arguments) {
       var argList = jsToDartList(arguments).cast<Object>();
-      argList.forEach(isCalculationValue);
+      argList.forEach(assertCalculationValue);
       return SassCalculation.unsimplified('max', argList);
     },
     'clamp': (Object min, [Object? value, Object? max]) {
-      if (value == null && max == null) {
-        String minString;
-        if (min is SassString) {
-          minString = min.text;
-        } else if (min is CalculationInterpolation) {
-          minString = min.value;
-        } else {
-          jsThrow(JsError(
-              '`value` and `max` are both undefined and `min` is not a SassString or CalculationInterpolation'));
-        }
-        final values = minString
-            .split(',')
-            .map((v) => num.tryParse(v.trim()).andThen((v) => SassNumber(v)))
-            .toList();
-        final error = JsError(
-            'Expected a comma-separated string of 2 or 3 numbers, got `$minString`');
-        if (values.isEmpty || values[0] == null) {
-          jsThrow(error);
-        } else if (values.length == 2) {
-          [min as Object, value] = values;
-        } else if (values.length == 3) {
-          [min as Object, value, max] = values;
-        } else {
-          jsThrow(error);
-        }
-      } else if (value == null && max != null) {
-        jsThrow(JsError('`value` is undefined and `max` is not undefined'));
+      if (value == null) {
+        assertUnquotedStringOrInterpolation(min);
+      } else if (max == null) {
+        assertUnquotedStringOrInterpolation(min);
+        assertUnquotedStringOrInterpolation(value);
       }
-      [min, value, max].whereNotNull().forEach(isCalculationValue);
+      [min, value, max].whereNotNull().forEach(assertCalculationValue);
       return SassCalculation.unsimplified(
           'clamp', [min, value, max].whereNotNull());
     }
@@ -107,8 +97,8 @@ final JSClass calculationOperationClass = () {
     if (operator == null) {
       jsThrow(JsError('Invalid operator: $strOperator'));
     }
-    isCalculationValue(left, checkUnquoted: false);
-    isCalculationValue(right, checkUnquoted: false);
+    assertCalculationValue(left, checkUnquoted: false);
+    assertCalculationValue(right, checkUnquoted: false);
     return SassCalculation.operateInternal(operator, left, right,
         inMinMax: false, simplify: false);
   });
