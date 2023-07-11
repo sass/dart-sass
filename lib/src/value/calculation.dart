@@ -170,7 +170,7 @@ class SassCalculation extends Value {
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value sqrt(Object argument) =>
-      _singleArgument("sqrt", argument, number_lib.sqrt, false);
+      _singleArgument("sqrt", argument, number_lib.sqrt, forbidUnits: true);
 
   /// Creates a `sin()` calculation with the given [argument].
   ///
@@ -182,7 +182,7 @@ class SassCalculation extends Value {
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value sin(Object argument) =>
-      _singleArgument("sin", argument, number_lib.sin, true);
+      _singleArgument("sin", argument, number_lib.sin);
 
   /// Creates a `cos()` calculation with the given [argument].
   ///
@@ -194,7 +194,7 @@ class SassCalculation extends Value {
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value cos(Object argument) =>
-      _singleArgument("cos", argument, number_lib.cos, true);
+      _singleArgument("cos", argument, number_lib.cos);
 
   /// Creates a `tan()` calculation with the given [argument].
   ///
@@ -206,7 +206,7 @@ class SassCalculation extends Value {
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value tan(Object argument) =>
-      _singleArgument("tan", argument, number_lib.tan, true);
+      _singleArgument("tan", argument, number_lib.tan);
 
   /// Creates an `atan()` calculation with the given [argument].
   ///
@@ -218,7 +218,7 @@ class SassCalculation extends Value {
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value atan(Object argument) =>
-      _singleArgument("atan", argument, number_lib.atan, false);
+      _singleArgument("atan", argument, number_lib.atan, forbidUnits: true);
 
   /// Creates an `asin()` calculation with the given [argument].
   ///
@@ -230,7 +230,7 @@ class SassCalculation extends Value {
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value asin(Object argument) =>
-      _singleArgument("asin", argument, number_lib.asin, false);
+      _singleArgument("asin", argument, number_lib.asin, forbidUnits: true);
 
   /// Creates an `acos()` calculation with the given [argument].
   ///
@@ -242,7 +242,7 @@ class SassCalculation extends Value {
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value acos(Object argument) =>
-      _singleArgument("acos", argument, number_lib.acos, false);
+      _singleArgument("acos", argument, number_lib.acos, forbidUnits: true);
 
   /// Creates an `abs()` calculation with the given [argument].
   ///
@@ -449,7 +449,7 @@ class SassCalculation extends Value {
     var result = dividend.modulo(modulus);
     if (modulus.value.signIncludingZero != dividend.value.signIncludingZero) {
       if (modulus.value.isInfinite) return dividend;
-      if (result is SassNumber && result.value == 0) {
+      if (result.value == 0) {
         return result.unaryMinus();
       }
       return result.minus(dividend);
@@ -543,25 +543,25 @@ class SassCalculation extends Value {
             "Number to round and step arguments are required.");
 
       case (
-          (SassString() || CalculationInterpolation()) && var strategy,
+          (SassString() || CalculationInterpolation()) && var rest,
           null,
           null
         ):
-        return SassCalculation._("round", [strategy]);
+        return SassCalculation._("round", [rest]);
 
       case (var number, null, null):
         throw SassScriptException(
             "Single argument $number expected to be simplifiable.");
 
-      case (var strategy, var number?, null):
-        return SassCalculation._("round", [strategy, number]);
+      case (var number, var step?, null):
+        return SassCalculation._("round", [number, step]);
 
       case (
           (SassString(text: 'nearest' || 'up' || 'down' || 'to-zero') ||
                   SassString(isVar: true)) &&
               var strategy,
-          Object number,
-          Object step
+          var number?,
+          var step?
         ):
         return SassCalculation._("round", [strategy, number, step]);
 
@@ -644,9 +644,10 @@ class SassCalculation extends Value {
   SassCalculation._(this.name, this.arguments);
 
   // Returns [value] coerced to [number]'s units.
-  static SassNumber _matchUnits(double value, SassNumber number) {
-    return SassNumber.withUnits(value, numeratorUnits: number.numeratorUnits);
-  }
+  static SassNumber _matchUnits(double value, SassNumber number) =>
+      SassNumber.withUnits(value,
+          numeratorUnits: number.numeratorUnits,
+          denominatorUnits: number.denominatorUnits);
 
   /// Returns a rounded [number] based on a selected rounding [strategy],
   /// to the nearest integer multiple of [step].
@@ -766,14 +767,16 @@ class SassCalculation extends Value {
 
   /// Returns a [Callable] named [name] that calls a single argument
   /// math function.
-  static Value _singleArgument(String name, Object argument,
-      SassNumber mathFunc(SassNumber value), bool acceptsKnownUnits) {
+  ///
+  /// If [forbidUnits] is `true` it will throw an error if [argument] has units.
+  static Value _singleArgument(
+      String name, Object argument, SassNumber mathFunc(SassNumber value),
+      {bool forbidUnits = false}) {
     argument = _simplify(argument);
-    if (argument is! SassNumber ||
-        (acceptsKnownUnits && argument.hasUnit('%'))) {
+    if (argument is! SassNumber) {
       return SassCalculation._(name, [argument]);
     }
-    if (!acceptsKnownUnits) argument.assertNoUnits();
+    if (forbidUnits) argument.assertNoUnits();
     return mathFunc(argument);
   }
 
