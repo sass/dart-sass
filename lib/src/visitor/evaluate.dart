@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 0f0705b9773f694816ebf00cc91f43146d8c46ab
+// Checksum: 81aac8d1ac5bea43a019307cc5eb754610b0c6be
 //
 // ignore_for_file: unused_import
 
@@ -3009,7 +3009,7 @@ class _EvaluateVisitor
 
   void visitCssDeclaration(CssDeclaration node) {
     _parent.addChild(ModifiableCssDeclaration(node.name, node.value, node.span,
-        parsedAsCustomProperty: node.isCustomProperty,
+        parsedAsCustomProperty: node.parsedAsCustomProperty,
         valueSpanForMap: node.valueSpanForMap));
   }
 
