@@ -227,29 +227,25 @@ Importer _parseImporter(Object? importer) {
 
 /// Implements the simplification algorithm for custom function return values.
 /// {@link https://github.com/sass/sass/blob/main/spec/types/calculation.md#simplifying-a-calculationvalue}
-dynamic simplify(dynamic value) {
-  if (value is SassCalculation) {
-    var simplifiedArgs = value.arguments.map(simplify).toList().cast<Object>();
-    if (value.name == 'calc') {
-      return simplifiedArgs[0];
-    }
-    if (value.name == 'clamp') {
-      return simplify(Function.apply(SassCalculation.clamp, simplifiedArgs));
-    }
-    if (value.name == 'min') {
-      return simplify(Function.apply(SassCalculation.min, [simplifiedArgs]));
-    }
-    if (value.name == 'max') {
-      return simplify(Function.apply(SassCalculation.max, [simplifiedArgs]));
-    }
-    return SassCalculation.unsimplified(value.name, simplifiedArgs);
-  }
-  if (value is CalculationOperation) {
-    return simplify(SassCalculation.operate(value.operator,
-        simplify(value.left) as Object, simplify(value.right) as Object));
-  }
-  return value;
-}
+Object simplify(Object value) => switch (value) {
+      SassCalculation() => switch ((
+          // Match against...
+          value.name, // ...the calculation name
+          value.arguments.map(simplify).toList() // ...and simplified arguments
+        )) {
+          ('calc', [var first, ...]) => first,
+          ('clamp', [var min, var value, var max]) =>
+            SassCalculation.clamp(min, value, max),
+          ('clamp', _) =>
+            throw ArgumentError('clamp() requires exactly 3 arguments.'),
+          ('min', var args) => SassCalculation.min(args),
+          ('max', var args) => SassCalculation.max(args),
+          (var name, var args) => SassCalculation.unsimplified(name, args)
+        },
+      CalculationOperation() => simplify(SassCalculation.operate(
+          value.operator, simplify(value.left), simplify(value.right))),
+      _ => value,
+    };
 
 /// Parses `functions` from [record] into a list of [Callable]s or
 /// [AsyncCallable]s.
@@ -264,8 +260,8 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
     if (!asynch) {
       late Callable callable;
       callable = Callable.fromSignature(signature, (arguments) {
-        var result = (callback as Function)(toJSArray(arguments));
-        result = simplify(result);
+        var result =
+            simplify((callback as Function)(toJSArray(arguments)) as Object);
         if (result is Value) return result;
         if (isPromise(result)) {
           throw 'Invalid return value for custom function '
@@ -286,8 +282,8 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
           result = await promiseToFuture<Object>(result as Promise);
         }
 
-        result = simplify(result);
-        if (result is Value) return result;
+        var simplified = simplify(result as Object);
+        if (simplified is Value) return simplified;
         throw 'Invalid return value for custom function '
             '"${callable.name}": $result is not a sass.Value.';
       });
