@@ -4,6 +4,9 @@
   emitted in source order as much as possible, instead of always being emitted
   after the CSS of all module dependencies.
 
+* Fix a bug where an interpolation in a custom property name crashed if the file
+  was loaded by a `@use` nested in an `@import`.
+
 ### JavaScript API
 
 * Produce a better error message when an environment that supports some Node.js
