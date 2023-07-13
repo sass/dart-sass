@@ -242,8 +242,8 @@ Object simplify(Object value) => switch (value) {
           ('max', var args) => SassCalculation.max(args),
           (var name, var args) => SassCalculation.unsimplified(name, args)
         },
-      CalculationOperation() => simplify(SassCalculation.operate(
-          value.operator, simplify(value.left), simplify(value.right))),
+      CalculationOperation() => SassCalculation.operate(
+          value.operator, simplify(value.left), simplify(value.right)),
       _ => value,
     };
 
