@@ -260,18 +260,24 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
     if (!asynch) {
       late Callable callable;
       callable = Callable.fromSignature(signature, (arguments) {
-        var result =
-            simplify((callback as Function)(toJSArray(arguments)) as Object);
-        if (result is Value) return result;
+        var result = (callback as Function)(toJSArray(arguments));
         if (isPromise(result)) {
           throw 'Invalid return value for custom function '
               '"${callable.name}":\n'
               'Promises may only be returned for sass.compileAsync() and '
               'sass.compileStringAsync().';
-        } else {
-          throw 'Invalid return value for custom function '
-              '"${callable.name}": $result is not a sass.Value.';
         }
+        if (result is Value) {
+          var simplified = simplify(result);
+          if (simplified is! Value) {
+            throw 'Custom function "${callable.name}" '
+                'returned an object that cannot be simplified to a '
+                'sass.Value.';
+          }
+          return simplified;
+        }
+        throw 'Invalid return value for custom function '
+            '"${callable.name}": $result is not a sass.Value.';
       });
       result.add(callable);
     } else {
@@ -281,9 +287,15 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
         if (isPromise(result)) {
           result = await promiseToFuture<Object>(result as Promise);
         }
-
-        var simplified = simplify(result as Object);
-        if (simplified is Value) return simplified;
+        if (result is Value) {
+          var simplified = simplify(result);
+          if (simplified is! Value) {
+            throw 'Custom function "${callable.name}" '
+                'returned an object that cannot be simplified to a '
+                'sass.Value.';
+          }
+          return simplified;
+        }
         throw 'Invalid return value for custom function '
             '"${callable.name}": $result is not a sass.Value.';
       });
