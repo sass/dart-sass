@@ -11,24 +11,23 @@ import '../../value.dart';
 import '../reflection.dart';
 
 /// Check that [arg] is a valid argument to a calculation function.
-void assertCalculationValue(Object arg) {
-  if (arg is! SassNumber &&
-      arg is! SassString &&
-      arg is! SassCalculation &&
-      arg is! CalculationOperation &&
-      arg is! CalculationInterpolation) {
-    jsThrow(JsError('Argument `$arg` must be one of '
-        'SassNumber, SassString, SassCalculation, CalculationOperation, '
-        'CalculationInterpolation'));
-  }
-  if (arg is SassString && arg.hasQuotes) {
-    jsThrow(JsError('Argument `$arg` must be unquoted SassString'));
-  }
-}
+void assertCalculationValue(Object arg) => switch (arg) {
+      (SassNumber() ||
+            SassString(hasQuotes: false) ||
+            SassCalculation() ||
+            CalculationOperation() ||
+            CalculationInterpolation()) =>
+        null,
+      _ => jsThrow(JsError(
+          'Argument `$arg` must be one of SassNumber, unquoted SassString, '
+          'SassCalculation, CalculationOperation, CalculationInterpolation')),
+    };
 
-/// Check that [arg] is an unquoted string or interpolation
-bool isValidClampArg(Object? arg) => ((arg is CalculationInterpolation) ||
-    (arg is SassString && !arg.hasQuotes));
+/// Check that [arg] is an unquoted string or interpolation.
+bool isValidClampArg(Object? arg) => switch (arg) {
+      (CalculationInterpolation() || SassString(hasQuotes: false)) => true,
+      _ => false,
+    };
 
 /// The JavaScript `SassCalculation` class.
 final JSClass calculationClass = () {
@@ -54,7 +53,7 @@ final JSClass calculationClass = () {
     },
     'clamp': (Object min, [Object? value, Object? max]) {
       if ((value == null && !isValidClampArg(min)) ||
-          (max == null) && !([min, value]).any(isValidClampArg)) {
+          (max == null) && !([min, value].any(isValidClampArg))) {
         jsThrow(JsError('Expected at least one SassString or '
             'CalculationInterpolation in `${[
           min,
@@ -104,6 +103,8 @@ final JSClass calculationOperationClass = () {
 
   jsClass.defineGetters({
     'operator': (CalculationOperation self) => self.operator.operator,
+    'left': (CalculationOperation self) => self.left,
+    'right': (CalculationOperation self) => self.right,
   });
 
   getJSClass(SassCalculation.operateInternal(
@@ -121,6 +122,10 @@ final JSClass calculationInterpolationClass = () {
   jsClass.defineMethods({
     'equals': (CalculationInterpolation self, Object other) => self == other,
     'hashCode': (CalculationInterpolation self) => self.hashCode,
+  });
+
+  jsClass.defineGetters({
+    'value': (CalculationInterpolation self) => self.value,
   });
 
   getJSClass(CalculationInterpolation('')).injectSuperclass(jsClass);

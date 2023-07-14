@@ -328,10 +328,11 @@ class SassCalculation extends Value {
 /// {@category Value}
 @sealed
 class CalculationOperation {
+  /// We use a getters to allow overriding the logic in the JS API
+  /// implementation.
+
   /// The operator.
   CalculationOperator get operator {
-    // We use a getter to allow overriding the logic in the JS API
-    // implementation
     return _operator;
   }
 
@@ -341,15 +342,23 @@ class CalculationOperation {
   ///
   /// This is either a [SassNumber], a [SassCalculation], an unquoted
   /// [SassString], a [CalculationOperation], or a [CalculationInterpolation].
-  final Object left;
+  Object get left {
+    return _left;
+  }
+
+  final Object _left;
 
   /// The right-hand operand.
   ///
   /// This is either a [SassNumber], a [SassCalculation], an unquoted
   /// [SassString], a [CalculationOperation], or a [CalculationInterpolation].
-  final Object right;
+  Object get right {
+    return _right;
+  }
 
-  CalculationOperation._(this._operator, this.left, this.right);
+  final Object _right;
+
+  CalculationOperation._(this._operator, this._left, this._right);
 
   bool operator ==(Object other) =>
       other is CalculationOperation &&
@@ -409,9 +418,16 @@ enum CalculationOperator {
 /// {@category Value}
 @sealed
 class CalculationInterpolation {
-  final String value;
+  /// We use a getters to allow overriding the logic in the JS API
+  /// implementation.
 
-  CalculationInterpolation(this.value);
+  String get value {
+    return _value;
+  }
+
+  final String _value;
+
+  CalculationInterpolation(this._value);
 
   bool operator ==(Object other) =>
       other is CalculationInterpolation && value == other.value;

@@ -233,14 +233,17 @@ Object simplify(Object value) => switch (value) {
           value.name, // ...the calculation name
           value.arguments.map(simplify).toList() // ...and simplified arguments
         )) {
-          ('calc', [var first, ...]) => first,
+          ('calc', [var first]) => first,
+          ('calc', _) =>
+            throw ArgumentError('calc() must contain a single argument.'),
           ('clamp', [var min, var value, var max]) =>
             SassCalculation.clamp(min, value, max),
           ('clamp', _) =>
             throw ArgumentError('clamp() requires exactly 3 arguments.'),
           ('min', var args) => SassCalculation.min(args),
           ('max', var args) => SassCalculation.max(args),
-          (var name, var args) => SassCalculation.unsimplified(name, args)
+          (var name, _) =>
+            throw ArgumentError('Unknown calculation function "$name".'),
         },
       CalculationOperation() => SassCalculation.operate(
           value.operator, simplify(value.left), simplify(value.right)),
