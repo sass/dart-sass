@@ -28,6 +28,7 @@ void main() {
     });
 
     test("isn't any other type", () {
+      expect(value.assertCalculation, throwsSassScriptException);
       expect(value.assertColor, throwsSassScriptException);
       expect(value.assertFunction, throwsSassScriptException);
       expect(value.assertMap, throwsSassScriptException);

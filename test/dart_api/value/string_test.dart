@@ -34,6 +34,7 @@ void main() {
 
     test("isn't any other type", () {
       expect(value.assertBoolean, throwsSassScriptException);
+      expect(value.assertCalculation, throwsSassScriptException);
       expect(value.assertColor, throwsSassScriptException);
       expect(value.assertFunction, throwsSassScriptException);
       expect(value.assertMap, throwsSassScriptException);
