@@ -225,7 +225,7 @@ Importer _parseImporter(Object? importer) {
   }
 }
 
-/// Implements the simplification algorithm for custom function return Values.
+/// Implements the simplification algorithm for custom function return `Value`s.
 /// {@link https://github.com/sass/sass/blob/main/spec/types/calculation.md#simplifying-a-calculationvalue}
 Value _simplifyValue(Value value) => switch (value) {
       SassCalculation() => switch ((
@@ -292,6 +292,7 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
         if (isPromise(result)) {
           result = await promiseToFuture<Object>(result as Promise);
         }
+
         if (result is Value) return _simplifyValue(result);
         throw 'Invalid return value for custom function '
             '"${callable.name}": $result is not a sass.Value.';

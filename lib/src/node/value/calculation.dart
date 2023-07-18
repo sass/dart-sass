@@ -25,7 +25,7 @@ void _assertCalculationValue(Object arg) => switch (arg) {
 
 /// Check that [arg] is an unquoted string or interpolation.
 bool _isValidClampArg(Object? arg) => switch (arg) {
-      (CalculationInterpolation() || SassString(hasQuotes: false)) => true,
+      CalculationInterpolation() || SassString(hasQuotes: false) => true,
       _ => false,
     };
 
@@ -81,7 +81,7 @@ final JSClass calculationClass = () {
   return jsClass;
 }();
 
-/// The JavaScript CalculationOperation class
+/// The JavaScript `CalculationOperation` class.
 final JSClass calculationOperationClass = () {
   var jsClass = createJSClass('sass.CalculationOperation',
       (Object self, String strOperator, Object left, Object right) {
@@ -114,7 +114,7 @@ final JSClass calculationOperationClass = () {
   return jsClass;
 }();
 
-/// The JavaScript CalculationInterpolation class
+/// The JavaScript `CalculationInterpolation` class.
 final JSClass calculationInterpolationClass = () {
   var jsClass = createJSClass('sass.CalculationInterpolation',
       (Object self, String value) => CalculationInterpolation(value));
