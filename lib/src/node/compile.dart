@@ -235,15 +235,15 @@ Object simplify(Object value) => switch (value) {
         )) {
           ('calc', [var first]) => first,
           ('calc', _) =>
-            throw ArgumentError('calc() must contain a single argument.'),
+            throw ArgumentError('calc() requires exactly one argument.'),
           ('clamp', [var min, var value, var max]) =>
             SassCalculation.clamp(min, value, max),
           ('clamp', _) =>
             throw ArgumentError('clamp() requires exactly 3 arguments.'),
           ('min', var args) => SassCalculation.min(args),
           ('max', var args) => SassCalculation.max(args),
-          (var name, _) =>
-            throw ArgumentError('Unknown calculation function "$name".'),
+          (var name, _) => throw ArgumentError(
+              '"$name" is not a recognized calculation type.'),
         },
       CalculationOperation() => SassCalculation.operate(
           value.operator, simplify(value.left), simplify(value.right)),
