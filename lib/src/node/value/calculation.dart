@@ -11,12 +11,12 @@ import '../../value.dart';
 import '../reflection.dart';
 
 /// Check that [arg] is a valid argument to a calculation function.
-void assertCalculationValue(Object arg) => switch (arg) {
-      (SassNumber() ||
-            SassString(hasQuotes: false) ||
-            SassCalculation() ||
-            CalculationOperation() ||
-            CalculationInterpolation()) =>
+void _assertCalculationValue(Object arg) => switch (arg) {
+      SassNumber() ||
+      SassString(hasQuotes: false) ||
+      SassCalculation() ||
+      CalculationOperation() ||
+      CalculationInterpolation() =>
         null,
       _ => jsThrow(JsError(
           'Argument `$arg` must be one of SassNumber, unquoted SassString, '
@@ -24,7 +24,7 @@ void assertCalculationValue(Object arg) => switch (arg) {
     };
 
 /// Check that [arg] is an unquoted string or interpolation.
-bool isValidClampArg(Object? arg) => switch (arg) {
+bool _isValidClampArg(Object? arg) => switch (arg) {
       (CalculationInterpolation() || SassString(hasQuotes: false)) => true,
       _ => false,
     };
@@ -38,22 +38,22 @@ final JSClass calculationClass = () {
 
   jsClass.defineStaticMethods({
     'calc': (Object argument) {
-      assertCalculationValue(argument);
+      _assertCalculationValue(argument);
       return SassCalculation.unsimplified('calc', [argument]);
     },
     'min': (Object arguments) {
       var argList = jsToDartList(arguments).cast<Object>();
-      argList.forEach(assertCalculationValue);
+      argList.forEach(_assertCalculationValue);
       return SassCalculation.unsimplified('min', argList);
     },
     'max': (Object arguments) {
       var argList = jsToDartList(arguments).cast<Object>();
-      argList.forEach(assertCalculationValue);
+      argList.forEach(_assertCalculationValue);
       return SassCalculation.unsimplified('max', argList);
     },
     'clamp': (Object min, [Object? value, Object? max]) {
-      if ((value == null && !isValidClampArg(min)) ||
-          (max == null) && !([min, value].any(isValidClampArg))) {
+      if ((value == null && !_isValidClampArg(min)) ||
+          (max == null && ![min, value].any(_isValidClampArg))) {
         jsThrow(JsError('Expected at least one SassString or '
             'CalculationInterpolation in `${[
           min,
@@ -61,7 +61,7 @@ final JSClass calculationClass = () {
           max
         ].whereNotNull()}`'));
       }
-      [min, value, max].whereNotNull().forEach(assertCalculationValue);
+      [min, value, max].whereNotNull().forEach(_assertCalculationValue);
       return SassCalculation.unsimplified(
           'clamp', [min, value, max].whereNotNull());
     }
@@ -90,8 +90,8 @@ final JSClass calculationOperationClass = () {
     if (operator == null) {
       jsThrow(JsError('Invalid operator: $strOperator'));
     }
-    assertCalculationValue(left);
-    assertCalculationValue(right);
+    _assertCalculationValue(left);
+    _assertCalculationValue(right);
     return SassCalculation.operateInternal(operator, left, right,
         inMinMax: false, simplify: false);
   });

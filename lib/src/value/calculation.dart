@@ -332,30 +332,21 @@ class CalculationOperation {
   /// implementation.
 
   /// The operator.
-  CalculationOperator get operator {
-    return _operator;
-  }
-
+  CalculationOperator get operator => _operator;
   final CalculationOperator _operator;
 
   /// The left-hand operand.
   ///
   /// This is either a [SassNumber], a [SassCalculation], an unquoted
   /// [SassString], a [CalculationOperation], or a [CalculationInterpolation].
-  Object get left {
-    return _left;
-  }
-
+  Object get left => _left;
   final Object _left;
 
   /// The right-hand operand.
   ///
   /// This is either a [SassNumber], a [SassCalculation], an unquoted
   /// [SassString], a [CalculationOperation], or a [CalculationInterpolation].
-  Object get right {
-    return _right;
-  }
-
+  Object get right => _right;
   final Object _right;
 
   CalculationOperation._(this._operator, this._left, this._right);
@@ -421,10 +412,7 @@ class CalculationInterpolation {
   /// We use a getters to allow overriding the logic in the JS API
   /// implementation.
 
-  String get value {
-    return _value;
-  }
-
+  String get value => _value;
   final String _value;
 
   CalculationInterpolation(this._value);
