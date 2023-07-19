@@ -9,7 +9,6 @@ import 'package:source_maps/source_maps.dart';
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 import 'package:test/test.dart';
-import 'package:tuple/tuple.dart';
 
 import 'package:sass/sass.dart';
 import 'package:sass/src/utils.dart';
@@ -720,31 +719,22 @@ void _expectSourceMap(String sass, String scss, String css,
 /// Like [_expectSourceMap], but with only SCSS source.
 void _expectScssSourceMap(String scss, String css,
     {Importer? importer, OutputStyle? style}) {
-  var scssTuple = _extractLocations(_reindent(scss));
-  var scssText = scssTuple.item1;
-  var scssLocations = _tuplesToMap(scssTuple.item2);
-
-  var cssTuple = _extractLocations(_reindent(css));
-  var cssText = cssTuple.item1;
-  var cssLocations = cssTuple.item2;
+  var (scssText, scssLocations) = _extractLocations(_reindent(scss));
+  var (cssText, cssLocations) = _extractLocations(_reindent(css));
 
   late SingleMapping scssMap;
   var scssOutput = compileString(scssText,
       sourceMap: (map) => scssMap = map, importer: importer, style: style);
   expect(scssOutput, equals(cssText));
-  _expectMapMatches(scssMap, scssText, cssText, scssLocations, cssLocations);
+  _expectMapMatches(
+      scssMap, scssText, cssText, _pairsToMap(scssLocations), cssLocations);
 }
 
 /// Like [_expectSourceMap], but with only indented source.
 void _expectSassSourceMap(String sass, String css,
     {Importer? importer, OutputStyle? style}) {
-  var sassTuple = _extractLocations(_reindent(sass));
-  var sassText = sassTuple.item1;
-  var sassLocations = _tuplesToMap(sassTuple.item2);
-
-  var cssTuple = _extractLocations(_reindent(css));
-  var cssText = cssTuple.item1;
-  var cssLocations = cssTuple.item2;
+  var (sassText, sassLocations) = _extractLocations(_reindent(sass));
+  var (cssText, cssLocations) = _extractLocations(_reindent(css));
 
   late SingleMapping sassMap;
   var sassOutput = compileString(sassText,
@@ -753,7 +743,8 @@ void _expectSassSourceMap(String sass, String css,
       importer: importer,
       style: style);
   expect(sassOutput, equals(cssText));
-  _expectMapMatches(sassMap, sassText, cssText, sassLocations, cssLocations);
+  _expectMapMatches(
+      sassMap, sassText, cssText, _pairsToMap(sassLocations), cssLocations);
 }
 
 /// Returns [string] with leading whitespace stripped from each line so that the
@@ -770,11 +761,10 @@ String _reindent(String string) {
 }
 
 /// Parses and removes the location annotations from [text].
-Tuple2<String, List<Tuple2<String, SourceLocation>>> _extractLocations(
-    String text) {
+(String, List<(String, SourceLocation)>) _extractLocations(String text) {
   var scanner = StringScanner(text);
   var buffer = StringBuffer();
-  var locations = <Tuple2<String, SourceLocation>>[];
+  var locations = <(String, SourceLocation)>[];
 
   var offset = 0;
   var line = 0;
@@ -786,8 +776,10 @@ Tuple2<String, List<Tuple2<String, SourceLocation>>> _extractLocations(
       while (!scanner.scan("}}")) {
         scanner.readChar();
       }
-      locations.add(Tuple2(scanner.substring(start, scanner.position - 2),
-          SourceLocation(offset, line: line, column: column)));
+      locations.add((
+        scanner.substring(start, scanner.position - 2),
+        SourceLocation(offset, line: line, column: column)
+      ));
     } else if (scanner.scanChar($lf)) {
       offset++;
       line++;
@@ -800,16 +792,16 @@ Tuple2<String, List<Tuple2<String, SourceLocation>>> _extractLocations(
     }
   }
 
-  return Tuple2(buffer.toString(), locations);
+  return (buffer.toString(), locations);
 }
 
-/// Converts a list of tuples to a map, asserting that each key appears only
+/// Converts a list of pairs to a map, asserting that each key appears only
 /// once.
-Map<K, V> _tuplesToMap<K, V>(Iterable<Tuple2<K, V>> tuples) {
+Map<K, V> _pairsToMap<K, V>(Iterable<(K, V)> pairs) {
   var map = <K, V>{};
-  for (var tuple in tuples) {
-    expect(map, isNot(contains(tuple.item1)));
-    map[tuple.item1] = tuple.item2;
+  for (var (key, value) in pairs) {
+    expect(map, isNot(contains(key)));
+    map[key] = value;
   }
   return map;
 }
@@ -821,17 +813,15 @@ void _expectMapMatches(
     String sourceText,
     String targetText,
     Map<String, SourceLocation> sourceLocations,
-    List<Tuple2<String, SourceLocation>> targetLocations) {
+    List<(String, SourceLocation)> targetLocations) {
   expect(sourceLocations.keys,
-      equals({for (var tuple in targetLocations) tuple.item1}));
+      equals({for (var (name, _) in targetLocations) name}));
 
   String actualMap() =>
       "\nActual map:\n\n" + _mapToString(map, sourceText, targetText) + "\n";
 
   var entryIter = _entriesForMap(map).iterator;
-  for (var tuple in targetLocations) {
-    var name = tuple.item1;
-    var expectedTarget = tuple.item2;
+  for (var (name, expectedTarget) in targetLocations) {
     var expectedSource = sourceLocations[name]!;
 
     if (!entryIter.moveNext()) {
@@ -885,17 +875,17 @@ String _mapToString(SingleMapping map, String sourceText, String targetText) {
 
   // A map from lines and columns in [sourceText] to the names of the entries
   // with those source locations.
-  var entryNames = <Tuple2<int, int>, String>{};
+  var entryNames = <(int, int), String>{};
   var i = 0;
   for (var entry in entriesInSourceOrder) {
     entryNames.putIfAbsent(
-        Tuple2(entry.source.line, entry.source.column), () => (++i).toString());
+        (entry.source.line, entry.source.column), () => (++i).toString());
   }
 
   var sourceScanner = LineScanner(sourceText);
   var sourceBuffer = StringBuffer();
   while (!sourceScanner.isDone) {
-    var name = entryNames[Tuple2(sourceScanner.line, sourceScanner.column)];
+    var name = entryNames[(sourceScanner.line, sourceScanner.column)];
     if (name != null) sourceBuffer.write("{{$name}}");
     sourceBuffer.writeCharCode(sourceScanner.readChar());
   }
@@ -907,7 +897,7 @@ String _mapToString(SingleMapping map, String sourceText, String targetText) {
     var entry = entryIter.current;
     if (targetScanner.line == entry.target.line &&
         targetScanner.column == entry.target.column) {
-      var name = entryNames[Tuple2(entry.source.line, entry.source.column)];
+      var name = entryNames[(entry.source.line, entry.source.column)];
       targetBuffer.write("{{$name}}");
       if (!entryIter.moveNext()) {
         targetBuffer.write(targetScanner.rest);

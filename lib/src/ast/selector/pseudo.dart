@@ -20,8 +20,7 @@ import '../selector.dart';
 /// ensure that extension and other selector operations work properly.
 ///
 /// {@category AST}
-@sealed
-class PseudoSelector extends SimpleSelector {
+final class PseudoSelector extends SimpleSelector {
   /// The name of this selector.
   final String name;
 
@@ -157,12 +156,11 @@ class PseudoSelector extends SimpleSelector {
           (simple.isHost || simple.selector != null))) {
         return null;
       }
-    } else if (compound.length == 1) {
-      var other = compound.first;
-      if (other is UniversalSelector ||
-          (other is PseudoSelector && (other.isHost || other.isHostContext))) {
-        return other.unify([this]);
-      }
+    } else if (compound case [var other]
+        when other is UniversalSelector ||
+            (other is PseudoSelector &&
+                (other.isHost || other.isHostContext))) {
+      return other.unify([this]);
     }
 
     if (compound.contains(this)) return compound;
@@ -170,7 +168,7 @@ class PseudoSelector extends SimpleSelector {
     var result = <SimpleSelector>[];
     var addedThis = false;
     for (var simple in compound) {
-      if (simple is PseudoSelector && simple.isElement) {
+      if (simple case PseudoSelector(isElement: true)) {
         // A given compound selector may only contain one pseudo element. If
         // [compound] has a different one than [this], unification fails.
         if (isElement) return null;

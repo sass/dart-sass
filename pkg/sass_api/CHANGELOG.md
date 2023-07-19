@@ -1,3 +1,13 @@
+## 8.0.0
+
+* Various classes now use Dart 3 [class modifiers] to more specifically restrict
+  their usage to the intended patterns.
+
+  [class modifiers]: https://dart.dev/language/class-modifiers
+
+* All uses of classes from the `tuple` package have been replaced by record
+  types.
+
 ## 7.1.6
 
 * No user-visible changes.

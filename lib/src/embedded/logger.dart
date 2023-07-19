@@ -7,13 +7,14 @@ import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../logger.dart';
+import '../util/nullable.dart';
 import '../utils.dart';
 import 'dispatcher.dart';
 import 'embedded_sass.pb.dart' hide SourceSpan;
 import 'utils.dart';
 
 /// A Sass logger that sends log messages as `LogEvent`s.
-class EmbeddedLogger implements Logger {
+final class EmbeddedLogger implements Logger {
   /// The [Dispatcher] to which to send events.
   final Dispatcher _dispatcher;
 
@@ -28,18 +29,14 @@ class EmbeddedLogger implements Logger {
         _ascii = ascii;
 
   void debug(String message, SourceSpan span) {
-    var url =
-        span.start.sourceUrl == null ? '-' : p.prettyUri(span.start.sourceUrl);
-    var buffer = StringBuffer()
-      ..write('$url:${span.start.line + 1} ')
-      ..write(_color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG')
-      ..writeln(': $message');
-
     _dispatcher.sendLog(OutboundMessage_LogEvent()
       ..type = LogEventType.DEBUG
       ..message = message
       ..span = protofySpan(span)
-      ..formatted = buffer.toString());
+      ..formatted = (span.start.sourceUrl.andThen(p.prettyUri) ?? '-') +
+          ':${span.start.line + 1} ' +
+          (_color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG') +
+          ': $message\n');
   }
 
   void warn(String message,

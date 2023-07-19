@@ -71,13 +71,12 @@ String? _tryPathAsDirectory(String path) {
 ///
 /// If it contains no paths, returns `null`. If it contains more than one,
 /// throws an exception.
-String? _exactlyOne(List<String> paths) {
-  if (paths.isEmpty) return null;
-  if (paths.length == 1) return paths.first;
-
-  throw "It's not clear which file to import. Found:\n" +
-      paths.map((path) => "  " + p.prettyUri(p.toUri(path))).join("\n");
-}
+String? _exactlyOne(List<String> paths) => switch (paths) {
+      [] => null,
+      [var path] => path,
+      _ => throw "It's not clear which file to import. Found:\n" +
+          paths.map((path) => "  " + p.prettyUri(p.toUri(path))).join("\n")
+    };
 
 /// If [fromImport] is `true`, invokes callback and returns the result.
 ///

@@ -24,8 +24,7 @@ class ScssParser extends StylesheetParser {
   void expectStatementSeparator([String? name]) {
     whitespaceWithoutComments();
     if (scanner.isDone) return;
-    var next = scanner.peekChar();
-    if (next == $semicolon || next == $rbrace) return;
+    if (scanner.peekChar() case $semicolon || $rbrace) return;
     scanner.expectChar($semicolon);
   }
 
@@ -69,28 +68,22 @@ class ScssParser extends StylesheetParser {
       switch (scanner.peekChar()) {
         case $dollar:
           children.add(variableDeclarationWithoutNamespace());
-          break;
 
         case $slash:
           switch (scanner.peekChar(1)) {
             case $slash:
               children.add(_silentComment());
               whitespaceWithoutComments();
-              break;
             case $asterisk:
               children.add(_loudComment());
               whitespaceWithoutComments();
-              break;
             default:
               children.add(child());
-              break;
           }
-          break;
 
         case $semicolon:
           scanner.readChar();
           whitespaceWithoutComments();
-          break;
 
         case $rbrace:
           scanner.expectChar($rbrace);
@@ -98,7 +91,6 @@ class ScssParser extends StylesheetParser {
 
         default:
           children.add(child());
-          break;
       }
     }
   }
@@ -110,34 +102,25 @@ class ScssParser extends StylesheetParser {
       switch (scanner.peekChar()) {
         case $dollar:
           statements.add(variableDeclarationWithoutNamespace());
-          break;
 
         case $slash:
           switch (scanner.peekChar(1)) {
             case $slash:
               statements.add(_silentComment());
               whitespaceWithoutComments();
-              break;
             case $asterisk:
               statements.add(_loudComment());
               whitespaceWithoutComments();
-              break;
             default:
-              var child = statement();
-              if (child != null) statements.add(child);
-              break;
+              if (statement() case var child?) statements.add(child);
           }
-          break;
 
         case $semicolon:
           scanner.readChar();
           whitespaceWithoutComments();
-          break;
 
         default:
-          var child = statement();
-          if (child != null) statements.add(child);
-          break;
+          if (statement() case var child?) statements.add(child);
       }
     }
     return statements;
@@ -149,7 +132,7 @@ class ScssParser extends StylesheetParser {
     scanner.expect("//");
 
     do {
-      while (!scanner.isDone && !isNewline(scanner.readChar())) {}
+      while (!scanner.isDone && !scanner.readChar().isNewline) {}
       if (scanner.isDone) break;
       spaces();
     } while (scanner.scan("//"));
@@ -168,6 +151,7 @@ class ScssParser extends StylesheetParser {
     var start = scanner.state;
     scanner.expect("/*");
     var buffer = InterpolationBuffer()..write("/*");
+    loop:
     while (true) {
       switch (scanner.peekChar()) {
         case $hash:
@@ -180,7 +164,7 @@ class ScssParser extends StylesheetParser {
 
         case $asterisk:
           buffer.writeCharCode(scanner.readChar());
-          if (scanner.peekChar() != $slash) break;
+          if (scanner.peekChar() != $slash) continue loop;
 
           buffer.writeCharCode(scanner.readChar());
           return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
@@ -188,16 +172,13 @@ class ScssParser extends StylesheetParser {
         case $cr:
           scanner.readChar();
           if (scanner.peekChar() != $lf) buffer.writeCharCode($lf);
-          break;
 
         case $ff:
           scanner.readChar();
           buffer.writeCharCode($lf);
-          break;
 
         default:
           buffer.writeCharCode(scanner.readChar());
-          break;
       }
     }
   }

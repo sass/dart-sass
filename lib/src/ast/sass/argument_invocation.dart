@@ -2,10 +2,10 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../value/list.dart';
+import '../../util/map.dart';
 import 'expression.dart';
 import 'expression/list.dart';
 import 'node.dart';
@@ -13,8 +13,7 @@ import 'node.dart';
 /// A set of arguments passed in to a function or mixin.
 ///
 /// {@category AST}
-@sealed
-class ArgumentInvocation implements SassNode {
+final class ArgumentInvocation implements SassNode {
   /// The arguments passed by position.
   final List<Expression> positional;
 
@@ -48,24 +47,25 @@ class ArgumentInvocation implements SassNode {
         keywordRest = null;
 
   String toString() {
-    var rest = this.rest;
-    var keywordRest = this.keywordRest;
     var components = [
       for (var argument in positional) _parenthesizeArgument(argument),
-      for (var entry in named.entries)
-        "\$${entry.key}: ${_parenthesizeArgument(entry.value)}",
-      if (rest != null) "${_parenthesizeArgument(rest)}...",
-      if (keywordRest != null) "${_parenthesizeArgument(keywordRest)}..."
+      for (var (name, value) in named.pairs)
+        "\$$name: ${_parenthesizeArgument(value)}",
+      if (rest case var rest?) "${_parenthesizeArgument(rest)}...",
+      if (keywordRest case var keywordRest?)
+        "${_parenthesizeArgument(keywordRest)}..."
     ];
     return "(${components.join(', ')})";
   }
 
   /// Wraps [argument] in parentheses if necessary.
-  String _parenthesizeArgument(Expression argument) =>
-      argument is ListExpression &&
-              argument.separator == ListSeparator.comma &&
-              !argument.hasBrackets &&
-              argument.contents.length > 1
-          ? "($argument)"
-          : argument.toString();
+  String _parenthesizeArgument(Expression argument) => switch (argument) {
+        ListExpression(
+          separator: ListSeparator.comma,
+          hasBrackets: false,
+          contents: [_, _, ...]
+        ) =>
+          "($argument)",
+        _ => argument.toString()
+      };
 }

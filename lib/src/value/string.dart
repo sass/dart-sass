@@ -70,43 +70,32 @@ class SassString extends Value {
     if (hasQuotes) return false;
     if (text.length < "min(_)".length) return false;
 
-    var first = text.codeUnitAt(0);
-    if (equalsLetterIgnoreCase($c, first)) {
-      var second = text.codeUnitAt(1);
-      if (equalsLetterIgnoreCase($l, second)) {
-        if (!equalsLetterIgnoreCase($a, text.codeUnitAt(2))) return false;
-        if (!equalsLetterIgnoreCase($m, text.codeUnitAt(3))) return false;
-        if (!equalsLetterIgnoreCase($p, text.codeUnitAt(4))) return false;
-        return text.codeUnitAt(5) == $lparen;
-      } else if (equalsLetterIgnoreCase($a, second)) {
-        if (!equalsLetterIgnoreCase($l, text.codeUnitAt(2))) return false;
-        if (!equalsLetterIgnoreCase($c, text.codeUnitAt(3))) return false;
-        return text.codeUnitAt(4) == $lparen;
-      } else {
-        return false;
-      }
-    } else if (equalsLetterIgnoreCase($v, first)) {
-      if (!equalsLetterIgnoreCase($a, text.codeUnitAt(1))) return false;
-      if (!equalsLetterIgnoreCase($r, text.codeUnitAt(2))) return false;
-      return text.codeUnitAt(3) == $lparen;
-    } else if (equalsLetterIgnoreCase($e, first)) {
-      if (!equalsLetterIgnoreCase($n, text.codeUnitAt(1))) return false;
-      if (!equalsLetterIgnoreCase($v, text.codeUnitAt(2))) return false;
-      return text.codeUnitAt(3) == $lparen;
-    } else if (equalsLetterIgnoreCase($m, first)) {
-      var second = text.codeUnitAt(1);
-      if (equalsLetterIgnoreCase($a, second)) {
-        if (!equalsLetterIgnoreCase($x, text.codeUnitAt(2))) return false;
-        return text.codeUnitAt(3) == $lparen;
-      } else if (equalsLetterIgnoreCase($i, second)) {
-        if (!equalsLetterIgnoreCase($n, text.codeUnitAt(2))) return false;
-        return text.codeUnitAt(3) == $lparen;
-      } else {
-        return false;
-      }
-    } else {
-      return false;
-    }
+    return switch (text.codeUnitAt(0)) {
+      $c || $C => switch (text.codeUnitAt(1)) {
+          $l || $L => equalsLetterIgnoreCase($a, text.codeUnitAt(2)) &&
+              equalsLetterIgnoreCase($m, text.codeUnitAt(3)) &&
+              equalsLetterIgnoreCase($p, text.codeUnitAt(4)) &&
+              text.codeUnitAt(5) == $lparen,
+          $a || $A => equalsLetterIgnoreCase($l, text.codeUnitAt(2)) &&
+              equalsLetterIgnoreCase($c, text.codeUnitAt(3)) &&
+              text.codeUnitAt(4) == $lparen,
+          _ => false
+        },
+      $v || $V => equalsLetterIgnoreCase($a, text.codeUnitAt(1)) &&
+          equalsLetterIgnoreCase($r, text.codeUnitAt(2)) &&
+          text.codeUnitAt(3) == $lparen,
+      $e || $E => equalsLetterIgnoreCase($n, text.codeUnitAt(1)) &&
+          equalsLetterIgnoreCase($v, text.codeUnitAt(2)) &&
+          text.codeUnitAt(3) == $lparen,
+      $m || $M => switch (text.codeUnitAt(1)) {
+          $a || $A => equalsLetterIgnoreCase($x, text.codeUnitAt(2)) &&
+              text.codeUnitAt(3) == $lparen,
+          $i || $I => equalsLetterIgnoreCase($n, text.codeUnitAt(2)) &&
+              text.codeUnitAt(3) == $lparen,
+          _ => false
+        },
+      _ => false
+    };
   }
 
   /// @nodoc
@@ -189,13 +178,9 @@ class SassString extends Value {
 
   /// @nodoc
   @internal
-  Value plus(Value other) {
-    if (other is SassString) {
-      return SassString(text + other.text, quotes: hasQuotes);
-    } else {
-      return SassString(text + other.toCssString(), quotes: hasQuotes);
-    }
-  }
+  Value plus(Value other) => other is SassString
+      ? SassString(text + other.text, quotes: hasQuotes)
+      : SassString(text + other.toCssString(), quotes: hasQuotes);
 
   bool operator ==(Object other) => other is SassString && text == other.text;
 

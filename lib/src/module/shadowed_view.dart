@@ -14,7 +14,7 @@ import '../value.dart';
 
 /// A [Module] that only exposes members that aren't shadowed by a given
 /// blocklist of member names.
-class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
+final class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
   /// The wrapped module.
   final Module<T> _inner;
 
@@ -81,7 +81,7 @@ class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
     if (!variables.containsKey(name)) {
       throw SassScriptException("Undefined variable.");
     } else {
-      return _inner.setVariable(name, value, nodeWithSpan);
+      _inner.setVariable(name, value, nodeWithSpan);
     }
   }
 

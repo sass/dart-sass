@@ -14,7 +14,7 @@ import 'package:source_span/source_span.dart';
 ///
 /// {@category AST}
 @sealed
-abstract class AstNode {
+abstract interface class AstNode {
   /// The source span associated with the node.
   ///
   /// This indicates where in the source Sass or SCSS stylesheet the node was

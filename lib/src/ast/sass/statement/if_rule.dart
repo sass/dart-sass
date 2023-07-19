@@ -20,8 +20,7 @@ import 'variable_declaration.dart';
 /// This conditionally executes a block of code.
 ///
 /// {@category AST}
-@sealed
-class IfRule implements Statement {
+final class IfRule implements Statement {
   /// The `@if` and `@else if` clauses.
   ///
   /// The first clause whose expression evaluates to `true` will have its
@@ -44,7 +43,8 @@ class IfRule implements Statement {
   String toString() {
     var result = clauses
         .mapIndexed((index, clause) =>
-            "@${index == 0 ? 'if' : 'else if'} ${clause.expression} {${clause.children.join(' ')}}")
+            "@${index == 0 ? 'if' : 'else if'} ${clause.expression} "
+            "{${clause.children.join(' ')}}")
         .join(' ');
 
     var lastClause = this.lastClause;
@@ -56,8 +56,7 @@ class IfRule implements Statement {
 /// The superclass of `@if` and `@else` clauses.
 ///
 /// {@category AST}
-@sealed
-abstract class IfRuleClause {
+sealed class IfRuleClause {
   /// The statements to evaluate if this clause matches.
   final List<Statement> children;
 
@@ -71,19 +70,19 @@ abstract class IfRuleClause {
       : this._(List.unmodifiable(children));
 
   IfRuleClause._(this.children)
-      : hasDeclarations = children.any((child) =>
-            child is VariableDeclaration ||
-            child is FunctionRule ||
-            child is MixinRule ||
-            (child is ImportRule &&
-                child.imports.any((import) => import is DynamicImport)));
+      : hasDeclarations = children.any((child) => switch (child) {
+              VariableDeclaration() || FunctionRule() || MixinRule() => true,
+              ImportRule(:var imports)
+                  when imports.any((import) => import is DynamicImport) =>
+                true,
+              _ => false
+            });
 }
 
 /// An `@if` or `@else if` clause in an `@if` rule.
 ///
 /// {@category AST}
-@sealed
-class IfClause extends IfRuleClause {
+final class IfClause extends IfRuleClause {
   /// The expression to evaluate to determine whether to run this rule.
   final Expression expression;
 
@@ -95,8 +94,7 @@ class IfClause extends IfRuleClause {
 /// An `@else` clause in an `@if` rule.
 ///
 /// {@category AST}
-@sealed
-class ElseClause extends IfRuleClause {
+final class ElseClause extends IfRuleClause {
   ElseClause(Iterable<Statement> children) : super(children);
 
   String toString() => "@else {${children.join(' ')}}";

@@ -27,7 +27,7 @@ final _subselectorPseudos = {
 ///
 /// {@category AST}
 /// {@category Parsing}
-abstract class SimpleSelector extends Selector {
+abstract base class SimpleSelector extends Selector {
   /// This selector's specificity.
   ///
   /// Specificity is represented in base 1000. The spec says this should be
@@ -74,12 +74,11 @@ abstract class SimpleSelector extends Selector {
   /// @nodoc
   @internal
   List<SimpleSelector>? unify(List<SimpleSelector> compound) {
-    if (compound.length == 1) {
-      var other = compound.first;
-      if (other is UniversalSelector ||
-          (other is PseudoSelector && (other.isHost || other.isHostContext))) {
-        return other.unify([this]);
-      }
+    if (compound case [var other]
+        when other is UniversalSelector ||
+            (other is PseudoSelector &&
+                (other.isHost || other.isHostContext))) {
+      return other.unify([this]);
     }
     if (compound.contains(this)) return compound;
 

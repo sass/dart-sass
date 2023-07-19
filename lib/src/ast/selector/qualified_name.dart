@@ -2,15 +2,12 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
-
 /// A [qualified name].
 ///
 /// [qualified name]: https://www.w3.org/TR/css3-namespace/#css-qnames
 ///
 /// {@category AST}
-@sealed
-class QualifiedName {
+final class QualifiedName {
   /// The identifier name.
   final String name;
 

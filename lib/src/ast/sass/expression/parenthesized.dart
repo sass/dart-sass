@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/expression.dart';
@@ -11,8 +10,7 @@ import '../expression.dart';
 /// An expression wrapped in parentheses.
 ///
 /// {@category AST}
-@sealed
-class ParenthesizedExpression implements Expression {
+final class ParenthesizedExpression implements Expression {
   /// The internal expression.
   final Expression expression;
 

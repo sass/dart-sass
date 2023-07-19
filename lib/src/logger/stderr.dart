@@ -11,7 +11,7 @@ import '../logger.dart';
 import '../utils.dart';
 
 /// A logger that prints warnings to standard error or browser console.
-class StderrLogger implements Logger {
+final class StderrLogger implements Logger {
   /// Whether to use terminal colors in messages.
   final bool color;
 

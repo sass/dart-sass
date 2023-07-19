@@ -39,11 +39,11 @@ Value unwrapValue(Object? object) {
 }
 
 /// Wraps a [Value] in a wrapper that exposes the Node Sass API for that value.
-Object wrapValue(Value value) {
-  if (value is SassColor) return newNodeSassColor(value);
-  if (value is SassList) return newNodeSassList(value);
-  if (value is SassMap) return newNodeSassMap(value);
-  if (value is SassNumber) return newNodeSassNumber(value);
-  if (value is SassString) return newNodeSassString(value);
-  return value;
-}
+Object wrapValue(Value value) => switch (value) {
+      SassColor() => newNodeSassColor(value),
+      SassList() => newNodeSassList(value),
+      SassMap() => newNodeSassMap(value),
+      SassNumber() => newNodeSassNumber(value),
+      SassString() => newNodeSassString(value),
+      _ => value
+    };

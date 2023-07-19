@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:collection/collection.dart';
-import 'package:tuple/tuple.dart';
 
 import '../ast/css.dart';
 import '../ast/selector.dart';
@@ -14,7 +13,7 @@ import 'extension.dart';
 
 /// An [ExtensionStore] that contains no extensions and can have no extensions
 /// added.
-class EmptyExtensionStore implements ExtensionStore {
+final class EmptyExtensionStore implements ExtensionStore {
   bool get isEmpty => true;
 
   Set<SimpleSelector> get simpleSelectors => const UnmodifiableSetView.empty();
@@ -43,6 +42,6 @@ class EmptyExtensionStore implements ExtensionStore {
         "addExtensions() can't be called for a const ExtensionStore.");
   }
 
-  Tuple2<ExtensionStore, Map<SelectorList, Box<SelectorList>>> clone() =>
-      const Tuple2(EmptyExtensionStore(), {});
+  (ExtensionStore, Map<SelectorList, Box<SelectorList>>) clone() =>
+      const (EmptyExtensionStore(), {});
 }

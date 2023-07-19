@@ -8,7 +8,7 @@ import '../callable.dart';
 /// A callback defined in the user's Sass stylesheet.
 ///
 /// The type parameter [E] should either be `Environment` or `AsyncEnvironment`.
-class UserDefinedCallable<E> implements Callable {
+final class UserDefinedCallable<E> implements Callable {
   /// The declaration.
   final CallableDeclaration declaration;
 

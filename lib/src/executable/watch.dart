@@ -13,6 +13,7 @@ import '../exception.dart';
 import '../importer/filesystem.dart';
 import '../io.dart';
 import '../stylesheet_graph.dart';
+import '../util/map.dart';
 import '../util/multi_dir_watcher.dart';
 import '../utils.dart';
 import 'compile_stylesheet.dart';
@@ -40,12 +41,11 @@ Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
   // they currently exist. This ensures that changes that come in update a
   // known-good state.
   var watcher = _Watcher(options, graph);
-  for (var entry in _sourcesToDestinations(options).entries) {
-    graph.addCanonical(FilesystemImporter('.'),
-        p.toUri(canonicalize(entry.key)), p.toUri(entry.key),
+  for (var (source, destination) in _sourcesToDestinations(options).pairs) {
+    graph.addCanonical(
+        FilesystemImporter('.'), p.toUri(canonicalize(source)), p.toUri(source),
         recanonicalize: false);
-    var success =
-        await watcher.compile(entry.key, entry.value, ifModified: true);
+    var success = await watcher.compile(source, destination, ifModified: true);
     if (!success && options.stopOnError) {
       dirWatcher.events.listen(null).cancel();
       return;
@@ -58,7 +58,7 @@ Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
 
 /// Holds state that's shared across functions that react to changes on the
 /// filesystem.
-class _Watcher {
+final class _Watcher {
   /// The options for the Sass executable.
   final ExecutableOptions _options;
 
@@ -138,17 +138,14 @@ class _Watcher {
         case ChangeType.MODIFY:
           var success = await _handleModify(event.path);
           if (!success && _options.stopOnError) return;
-          break;
 
         case ChangeType.ADD:
           var success = await _handleAdd(event.path);
           if (!success && _options.stopOnError) return;
-          break;
 
         case ChangeType.REMOVE:
           var success = await _handleRemove(event.path);
           if (!success && _options.stopOnError) return;
-          break;
       }
     }
   }
@@ -162,11 +159,12 @@ class _Watcher {
     // It's important to access the node ahead-of-time because it's possible
     // that `_graph.reload()` notices the file has been deleted and removes it
     // from the graph.
-    var node = _graph.nodes[url];
-    if (node == null) return _handleAdd(path);
-
-    _graph.reload(url);
-    return await _recompileDownstream([node]);
+    if (_graph.nodes[url] case var node?) {
+      _graph.reload(url);
+      return await _recompileDownstream([node]);
+    } else {
+      return _handleAdd(path);
+    }
   }
 
   /// Handles an add event for the stylesheet at [url].
@@ -188,8 +186,7 @@ class _Watcher {
     var url = _canonicalize(path);
 
     if (_graph.nodes.containsKey(url)) {
-      var destination = _destinationFor(path);
-      if (destination != null) _delete(destination);
+      if (_destinationFor(path) case var destination?) _delete(destination);
     }
 
     var downstream = _graph.remove(FilesystemImporter('.'), url);
@@ -208,19 +205,17 @@ class _Watcher {
       var typeForPath = p.PathMap<ChangeType>();
       for (var event in buffer) {
         var oldType = typeForPath[event.path];
-        if (oldType == null) {
-          typeForPath[event.path] = event.type;
-        } else if (event.type == ChangeType.REMOVE) {
-          typeForPath[event.path] = ChangeType.REMOVE;
-        } else if (oldType != ChangeType.ADD) {
-          typeForPath[event.path] = ChangeType.MODIFY;
-        }
+        typeForPath[event.path] = switch ((oldType, event.type)) {
+          (null, var newType) => newType,
+          (_, ChangeType.REMOVE) => ChangeType.REMOVE,
+          (ChangeType.ADD, _) => ChangeType.ADD,
+          (_, _) => ChangeType.MODIFY
+        };
       }
 
       return [
-        for (var entry in typeForPath.entries)
-          // PathMap always has nullable keys
-          WatchEvent(entry.value, entry.key!)
+        // PathMap always has nullable keys
+        for (var (path!, type) in typeForPath.pairs) WatchEvent(type, path)
       ];
     });
   }
@@ -255,10 +250,10 @@ class _Watcher {
     if (url.scheme != 'file') return true;
 
     var source = p.fromUri(url);
-    var destination = _destinationFor(source);
-    if (destination == null) return true;
-
-    return await compile(source, destination);
+    return switch (_destinationFor(source)) {
+      var destination? => await compile(source, destination),
+      _ => true
+    };
   }
 
   /// If a Sass file at [source] should be compiled to CSS, returns the path to
@@ -266,15 +261,17 @@ class _Watcher {
   ///
   /// Otherwise, returns `null`.
   String? _destinationFor(String source) {
-    var destination = _sourcesToDestinations(_options)[source];
-    if (destination != null) return destination;
+    if (_sourcesToDestinations(_options)[source] case var destination?) {
+      return destination;
+    }
     if (p.basename(source).startsWith('_')) return null;
 
-    for (var entry in _sourceDirectoriesToDestinations(_options).entries) {
-      if (!p.isWithin(entry.key, source)) continue;
+    for (var (sourceDir, destinationDir)
+        in _sourceDirectoriesToDestinations(_options).pairs) {
+      if (!p.isWithin(sourceDir, source)) continue;
 
-      var destination = p.join(entry.value,
-          p.setExtension(p.relative(source, from: entry.key), '.css'));
+      var destination = p.join(destinationDir,
+          p.setExtension(p.relative(source, from: sourceDir), '.css'));
 
       // Don't compile ".css" files to their own locations.
       if (!p.equals(destination, source)) return destination;

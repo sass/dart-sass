@@ -16,7 +16,7 @@ import '../result.dart';
 
 /// A wrapper for a potentially-asynchronous JS API importer that exposes it as
 /// a Dart [AsyncImporter].
-class NodeToDartAsyncImporter extends AsyncImporter {
+final class NodeToDartAsyncImporter extends AsyncImporter {
   /// The wrapped canonicalize function.
   final Object? Function(String, CanonicalizeOptions) _canonicalize;
 

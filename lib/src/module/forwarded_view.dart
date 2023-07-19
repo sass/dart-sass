@@ -88,16 +88,15 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
   }
 
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
-    var shownVariables = _rule.shownVariables;
-    var hiddenVariables = _rule.hiddenVariables;
-    if (shownVariables != null && !shownVariables.contains(name)) {
+    if (_rule.shownVariables case var shownVariables?
+        when !shownVariables.contains(name)) {
       throw SassScriptException("Undefined variable.");
-    } else if (hiddenVariables != null && hiddenVariables.contains(name)) {
+    } else if (_rule.hiddenVariables case var hiddenVariables?
+        when hiddenVariables.contains(name)) {
       throw SassScriptException("Undefined variable.");
     }
 
-    var prefix = _rule.prefix;
-    if (prefix != null) {
+    if (_rule.prefix case var prefix?) {
       if (!name.startsWith(prefix)) {
         throw SassScriptException("Undefined variable.");
       }
@@ -111,8 +110,7 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
   Object variableIdentity(String name) {
     assert(variables.containsKey(name));
 
-    var prefix = _rule.prefix;
-    if (prefix != null) {
+    if (_rule.prefix case var prefix?) {
       assert(name.startsWith(prefix));
       name = name.substring(prefix.length);
     }

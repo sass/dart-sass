@@ -9,7 +9,7 @@ import '../stylesheet.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssStylesheet] for use in the evaluation step.
-class ModifiableCssStylesheet extends ModifiableCssParentNode
+final class ModifiableCssStylesheet extends ModifiableCssParentNode
     implements CssStylesheet {
   final FileSpan span;
 
