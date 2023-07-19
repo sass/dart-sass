@@ -4,6 +4,14 @@
   emitted in source order as much as possible, instead of always being emitted
   after the CSS of all module dependencies.
 
+### JavaScript API
+
+* Add a new `SassCalculation` type that represents the calculation objects added
+  in Dart Sass 1.40.0.
+
+* Add `Value.assertCalculation()`, which returns the value if it's a
+  `SassCalculation` and throws an error otherwise.
+
 ### Embedded Sass
 
 * Fix a bug where nested relative `@imports` failed to load when using the
