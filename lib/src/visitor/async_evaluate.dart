@@ -3034,7 +3034,7 @@ class _EvaluateVisitor
 
   Future<void> visitCssDeclaration(CssDeclaration node) async {
     _parent.addChild(ModifiableCssDeclaration(node.name, node.value, node.span,
-        parsedAsCustomProperty: node.isCustomProperty,
+        parsedAsCustomProperty: node.parsedAsCustomProperty,
         valueSpanForMap: node.valueSpanForMap));
   }
 

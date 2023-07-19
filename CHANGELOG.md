@@ -4,6 +4,9 @@
   emitted in source order as much as possible, instead of always being emitted
   after the CSS of all module dependencies.
 
+* Fix a bug where an interpolation in a custom property name crashed if the file
+  was loaded by a `@use` nested in an `@import`.
+
 ### JavaScript API
 
 * Add a new `SassCalculation` type that represents the calculation objects added
@@ -11,6 +14,9 @@
 
 * Add `Value.assertCalculation()`, which returns the value if it's a
   `SassCalculation` and throws an error otherwise.
+
+* Produce a better error message when an environment that supports some Node.js
+  APIs loads the browser entrypoint but attempts to access the filesystem.
 
 ### Embedded Sass
 
