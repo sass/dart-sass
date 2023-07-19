@@ -225,6 +225,40 @@ Importer _parseImporter(Object? importer) {
   }
 }
 
+/// Implements the simplification algorithm for custom function return `Value`s.
+/// {@link https://github.com/sass/sass/blob/main/spec/types/calculation.md#simplifying-a-calculationvalue}
+Value _simplifyValue(Value value) => switch (value) {
+      SassCalculation() => switch ((
+          // Match against...
+          value.name, // ...the calculation name
+          value.arguments // ...and simplified arguments
+              .map(_simplifyCalcArg)
+              .toList()
+        )) {
+          ('calc', [var first]) => first as Value,
+          ('calc', _) =>
+            throw ArgumentError('calc() requires exactly one argument.'),
+          ('clamp', [var min, var value, var max]) =>
+            SassCalculation.clamp(min, value, max),
+          ('clamp', _) =>
+            throw ArgumentError('clamp() requires exactly 3 arguments.'),
+          ('min', var args) => SassCalculation.min(args),
+          ('max', var args) => SassCalculation.max(args),
+          (var name, _) => throw ArgumentError(
+              '"$name" is not a recognized calculation type.'),
+        },
+      _ => value,
+    };
+
+/// Handles simplifying calculation arguments, which are not guaranteed to be
+/// Value instances.
+Object _simplifyCalcArg(Object value) => switch (value) {
+      SassCalculation() => _simplifyValue(value),
+      CalculationOperation() => SassCalculation.operate(value.operator,
+          _simplifyCalcArg(value.left), _simplifyCalcArg(value.right)),
+      _ => value,
+    };
+
 /// Parses `functions` from [record] into a list of [Callable]s or
 /// [AsyncCallable]s.
 ///
@@ -239,7 +273,7 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
       late Callable callable;
       callable = Callable.fromSignature(signature, (arguments) {
         var result = (callback as Function)(toJSArray(arguments));
-        if (result is Value) return result;
+        if (result is Value) return _simplifyValue(result);
         if (isPromise(result)) {
           throw 'Invalid return value for custom function '
               '"${callable.name}":\n'
@@ -259,7 +293,7 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
           result = await promiseToFuture<Object>(result as Promise);
         }
 
-        if (result is Value) return result;
+        if (result is Value) return _simplifyValue(result);
         throw 'Invalid return value for custom function '
             '"${callable.name}": $result is not a sass.Value.';
       });

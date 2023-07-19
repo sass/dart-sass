@@ -9,6 +9,12 @@
 
 ### JavaScript API
 
+* Add a new `SassCalculation` type that represents the calculation objects added
+  in Dart Sass 1.40.0.
+
+* Add `Value.assertCalculation()`, which returns the value if it's a
+  `SassCalculation` and throws an error otherwise.
+
 * Produce a better error message when an environment that supports some Node.js
   APIs loads the browser entrypoint but attempts to access the filesystem.
 

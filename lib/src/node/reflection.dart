@@ -76,6 +76,16 @@ extension JSClassExtension on JSClass {
         allowInteropCaptureThis((Object self, _, __, [___]) => inspect(self)));
   }
 
+  /// Defines a static method with the given [name] and [body].
+  void defineStaticMethod(String name, Function body) {
+    setProperty(this, name, allowInteropNamed(name, body));
+  }
+
+  /// A shorthand for calling [defineStaticMethod] multiple times.
+  void defineStaticMethods(Map<String, Function> methods) {
+    methods.forEach(defineStaticMethod);
+  }
+
   /// Defines a method with the given [name] and [body].
   ///
   /// The [body] should take an initial `self` parameter, representing the
