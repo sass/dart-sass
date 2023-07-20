@@ -3,12 +3,12 @@
 import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart';
-import 'package:sass/src/node/compile_options.dart';
-import 'package:sass/src/node/legacy/render_options.dart';
-import 'package:sass/src/node/legacy/render_result.dart';
+import 'package:sass/src/js/compile_options.dart';
+import 'package:sass/src/js/legacy/render_options.dart';
+import 'package:sass/src/js/legacy/render_result.dart';
 import 'package:test/test.dart';
 import 'ensure_npm_package.dart';
-import 'package:sass/src/node/compile_result.dart';
+import 'package:sass/src/js/compile_result.dart';
 
 @JS()
 external Sass get sass;

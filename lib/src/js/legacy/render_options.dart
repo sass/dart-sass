@@ -30,7 +30,7 @@ class RenderOptions {
   external bool? get quietDeps;
   external bool? get verbose;
   external bool? get charset;
-  external NodeLogger? get logger;
+  external JSLogger? get logger;
 
   external factory RenderOptions(
       {String? file,
@@ -53,5 +53,5 @@ class RenderOptions {
       bool? quietDeps,
       bool? verbose,
       bool? charset,
-      NodeLogger? logger});
+      JSLogger? logger});
 }
