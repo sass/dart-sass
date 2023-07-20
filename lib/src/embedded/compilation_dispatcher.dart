@@ -29,7 +29,7 @@ final _outboundRequestId = 0;
 
 /// A class that dispatches messages to and from the host for a single
 /// compilation.
-class Dispatcher {
+class CompilationDispatcher {
   /// The channel of encoded protocol buffers, connected to the host.
   final StreamChannel<Uint8List> _channel;
 
@@ -47,13 +47,13 @@ class Dispatcher {
 
   /// A completer awaiting a response to an outbound request.
   ///
-  /// Since each [Dispatcher] is only running a single-threaded compilation, it
-  /// can only ever have one request outstanding.
+  /// Since each [CompilationDispatcher] is only running a single-threaded
+  /// compilation, it can only ever have one request outstanding.
   Completer<GeneratedMessage>? _outstandingRequest;
 
-  /// Creates a [Dispatcher] that sends and receives encoded protocol buffers
-  /// over [channel].
-  Dispatcher(this._channel, this._compilationId)
+  /// Creates a [CompilatoinDispatcher] that sends and receives encoded protocol
+  /// buffers over [channel].
+  CompilationDispatcher(this._channel, this._compilationId)
       : _compilationIdVarint = serializeVarint(_compilationId);
 
   /// Listens for incoming `CompileRequests` and runs their compilations.
@@ -93,7 +93,8 @@ class Dispatcher {
             var response = await _compile(request);
             _send(OutboundMessage()..compileResponse = response);
             success = true;
-            // Each Dispatcher runs a single compilation and then closes.
+            // Each CompilationDispatcher runs a single compilation and then
+            // closes.
             _channel.sink.close();
 
           case InboundMessage_Message.canonicalizeResponse:
@@ -273,8 +274,8 @@ class Dispatcher {
 
     if (_outstandingRequest != null) {
       throw StateError(
-          "Dispatcher.sendRequest() can't be called when another request is "
-          "active.");
+          "CompilationDispatcher.sendRequest() can't be called when another "
+          "request is active.");
     }
 
     return (_outstandingRequest = Completer<T>()).future;

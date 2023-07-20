@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import '../value.dart';
-import 'dispatcher.dart';
+import 'compilation_dispatcher.dart';
 import 'embedded_sass.pb.dart' as proto;
 import 'embedded_sass.pb.dart' hide Value, ListSeparator, CalculationOperator;
 import 'function_registry.dart';
@@ -16,7 +16,7 @@ import 'utils.dart';
 /// custom function call.
 class Protofier {
   /// The dispatcher, for invoking deprotofied [Value_HostFunction]s.
-  final Dispatcher _dispatcher;
+  final CompilationDispatcher _dispatcher;
 
   /// The IDs of first-class functions.
   final FunctionRegistry _functions;

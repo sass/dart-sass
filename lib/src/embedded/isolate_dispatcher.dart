@@ -12,7 +12,7 @@ import 'package:protobuf/protobuf.dart';
 import 'package:stream_channel/isolate_channel.dart';
 import 'package:stream_channel/stream_channel.dart';
 
-import 'dispatcher.dart';
+import 'compilation_dispatcher.dart';
 import 'embedded_sass.pb.dart';
 import 'util/explicit_close_transformer.dart';
 import 'util/proto_extensions.dart';
@@ -218,7 +218,8 @@ void _isolateMain(SendPort sendPort) {
     var (compilationSendPort, compilationId) = initialMessage;
     var compilationChannel =
         IsolateChannel<Uint8List>.connectSend(compilationSendPort);
-    var success = await Dispatcher(compilationChannel, compilationId).listen();
+    var success =
+        await CompilationDispatcher(compilationChannel, compilationId).listen();
     if (!success) channel.sink.close();
   });
 }

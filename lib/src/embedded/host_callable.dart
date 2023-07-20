@@ -7,7 +7,7 @@ import 'dart:cli';
 
 import '../callable.dart';
 import '../exception.dart';
-import 'dispatcher.dart';
+import 'compilation_dispatcher.dart';
 import 'embedded_sass.pb.dart';
 import 'function_registry.dart';
 import 'protofier.dart';
@@ -21,8 +21,8 @@ import 'utils.dart';
 /// the name defined in the [signature].
 ///
 /// Throws a [SassException] if [signature] is invalid.
-Callable hostCallable(
-    Dispatcher dispatcher, FunctionRegistry functions, String signature,
+Callable hostCallable(CompilationDispatcher dispatcher,
+    FunctionRegistry functions, String signature,
     {int? id}) {
   late Callable callable;
   callable = Callable.fromSignature(signature, (arguments) {

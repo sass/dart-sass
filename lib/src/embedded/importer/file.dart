@@ -6,7 +6,7 @@
 import 'dart:cli';
 
 import '../../importer.dart';
-import '../dispatcher.dart';
+import '../compilation_dispatcher.dart';
 import '../embedded_sass.pb.dart' hide SourceSpan;
 import 'base.dart';
 
@@ -22,7 +22,8 @@ class FileImporter extends ImporterBase {
   /// The host-provided ID of the importer to invoke.
   final int _importerId;
 
-  FileImporter(Dispatcher dispatcher, this._importerId) : super(dispatcher);
+  FileImporter(CompilationDispatcher dispatcher, this._importerId)
+      : super(dispatcher);
 
   Uri? canonicalize(Uri url) {
     if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);

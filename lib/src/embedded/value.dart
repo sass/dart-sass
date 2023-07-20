@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import '../value.dart';
-import 'dispatcher.dart';
+import 'compilation_dispatcher.dart';
 import 'embedded_sass.pb.dart' as proto;
 import 'embedded_sass.pb.dart' hide Value, ListSeparator;
 import 'function_registry.dart';
@@ -83,8 +83,8 @@ proto.ListSeparator _protofySeparator(ListSeparator separator) {
 ///
 /// The [functions] tracks the IDs of first-class functions so that they can be
 /// deserialized to their original references.
-Value deprotofyValue(
-    Dispatcher dispatcher, FunctionRegistry functions, proto.Value value) {
+Value deprotofyValue(CompilationDispatcher dispatcher,
+    FunctionRegistry functions, proto.Value value) {
   // Curry recursive calls to this function so we don't have to keep repeating
   // ourselves.
   deprotofy(proto.Value value) => deprotofyValue(dispatcher, functions, value);

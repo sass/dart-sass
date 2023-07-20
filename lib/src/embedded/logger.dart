@@ -8,14 +8,14 @@ import 'package:stack_trace/stack_trace.dart';
 
 import '../logger.dart';
 import '../utils.dart';
-import 'dispatcher.dart';
+import 'compilation_dispatcher.dart';
 import 'embedded_sass.pb.dart' hide SourceSpan;
 import 'utils.dart';
 
 /// A Sass logger that sends log messages as `LogEvent`s.
 class EmbeddedLogger implements Logger {
-  /// The [Dispatcher] to which to send events.
-  final Dispatcher _dispatcher;
+  /// The [CompilationDispatcher] to which to send events.
+  final CompilationDispatcher _dispatcher;
 
   /// Whether the formatted message should contain terminal colors.
   final bool _color;

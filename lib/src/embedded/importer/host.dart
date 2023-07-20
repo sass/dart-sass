@@ -6,7 +6,7 @@
 import 'dart:cli';
 
 import '../../importer.dart';
-import '../dispatcher.dart';
+import '../compilation_dispatcher.dart';
 import '../embedded_sass.pb.dart' hide SourceSpan;
 import '../utils.dart';
 import 'base.dart';
@@ -16,7 +16,8 @@ class HostImporter extends ImporterBase {
   /// The host-provided ID of the importer to invoke.
   final int _importerId;
 
-  HostImporter(Dispatcher dispatcher, this._importerId) : super(dispatcher);
+  HostImporter(CompilationDispatcher dispatcher, this._importerId)
+      : super(dispatcher);
 
   Uri? canonicalize(Uri url) {
     // ignore: deprecated_member_use
