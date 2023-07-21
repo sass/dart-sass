@@ -299,8 +299,9 @@ class SassCalculation extends Value {
   static Value sign(Object argument) {
     argument = _simplify(argument);
     return switch (argument) {
-      SassNumber(value: double(isNaN: true) || 0) => SassNumber(argument.value),
-      SassNumber arg when !arg.hasUnit('%') => SassNumber(arg.value.sign),
+      SassNumber(value: double(isNaN: true) || 0) => argument,
+      SassNumber arg when !arg.hasUnit('%') =>
+        SassNumber(arg.value.sign).coerceToMatch(argument),
       _ => SassCalculation._("sign", [argument]),
     };
   }
@@ -452,7 +453,7 @@ class SassCalculation extends Value {
       if (result.value == 0) {
         return result.unaryMinus();
       }
-      return result.minus(dividend);
+      return result.minus(modulus);
     }
     return result;
   }
@@ -506,9 +507,24 @@ class SassCalculation extends Value {
       case (SassNumber number, null, null):
         return _matchUnits(number.value.round().toDouble(), number);
 
+      case (SassNumber number, SassNumber step, null)
+          when !number.hasCompatibleUnits(step):
+        _verifyCompatibleNumbers([number, step]);
+        return SassCalculation._("round", [number, step]);
+
       case (SassNumber number, SassNumber step, null):
         _verifyCompatibleNumbers([number, step]);
         return _roundWithStep('nearest', number, step);
+
+      case (
+            SassString(text: 'nearest' || 'up' || 'down' || 'to-zero') &&
+                var strategy,
+            SassNumber number,
+            SassNumber step
+          )
+          when !number.hasCompatibleUnits(step):
+        _verifyCompatibleNumbers([number, step]);
+        return SassCalculation._("round", [strategy, number, step]);
 
       case (
           SassString(text: 'nearest' || 'up' || 'down' || 'to-zero') &&
