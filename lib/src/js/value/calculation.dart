@@ -4,8 +4,8 @@
 
 import 'package:collection/collection.dart';
 import 'package:node_interop/js.dart';
-import 'package:sass/src/node/immutable.dart';
-import 'package:sass/src/node/utils.dart';
+import 'package:sass/src/js/immutable.dart';
+import 'package:sass/src/js/utils.dart';
 
 import '../../value.dart';
 import '../reflection.dart';

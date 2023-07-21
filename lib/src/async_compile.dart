@@ -78,7 +78,7 @@ Future<CompileResult> compileAsync(String path,
       sourceMap,
       charset);
 
-  deprecationLogger.summarize(node: nodeImporter != null);
+  deprecationLogger.summarize(js: nodeImporter != null);
   return result;
 }
 
@@ -130,7 +130,7 @@ Future<CompileResult> compileStringAsync(String source,
       sourceMap,
       charset);
 
-  deprecationLogger.summarize(node: nodeImporter != null);
+  deprecationLogger.summarize(js: nodeImporter != null);
   return result;
 }
 

@@ -8,14 +8,14 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import '../logger.dart';
-import '../node/logger.dart';
+import '../js/logger.dart';
 
-/// A wrapper around a [NodeLogger] that exposes it as a Dart [Logger].
-class NodeToDartLogger implements Logger {
+/// A wrapper around a [JSLogger] that exposes it as a Dart [Logger].
+class JSToDartLogger implements Logger {
   /// The wrapped logger object.
-  final NodeLogger? _node;
+  final JSLogger? _node;
 
-  /// The fallback logger to use if the [NodeLogger] doesn't define a method.
+  /// The fallback logger to use if the [JSLogger] doesn't define a method.
   final Logger _fallback;
 
   /// Whether to use only ASCII characters when highlighting sections of source
@@ -24,7 +24,7 @@ class NodeToDartLogger implements Logger {
   /// This defaults to [glyph.ascii].
   final bool _ascii;
 
-  NodeToDartLogger(this._node, this._fallback, {bool? ascii})
+  JSToDartLogger(this._node, this._fallback, {bool? ascii})
       : _ascii = ascii ?? glyph.ascii;
 
   void warn(String message,

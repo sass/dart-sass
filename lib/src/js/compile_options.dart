@@ -20,7 +20,7 @@ class CompileOptions {
   external bool? get charset;
   external bool? get sourceMap;
   external bool? get sourceMapIncludeSources;
-  external NodeLogger? get logger;
+  external JSLogger? get logger;
   external List<Object?>? get importers;
   external Object? get functions;
 }

@@ -52,9 +52,9 @@ class Exports {
 @JS()
 @anonymous
 class LoggerNamespace {
-  external NodeLogger get silent;
+  external JSLogger get silent;
 
-  external factory LoggerNamespace({required NodeLogger silent});
+  external factory LoggerNamespace({required JSLogger silent});
 }
 
 @JS()

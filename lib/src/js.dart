@@ -2,19 +2,19 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'node/exception.dart';
-import 'node/exports.dart';
-import 'node/compile.dart';
-import 'node/legacy.dart';
-import 'node/legacy/types.dart';
-import 'node/legacy/value.dart';
-import 'node/logger.dart';
-import 'node/source_span.dart';
-import 'node/utils.dart';
-import 'node/value.dart';
+import 'js/exception.dart';
+import 'js/exports.dart';
+import 'js/compile.dart';
+import 'js/legacy.dart';
+import 'js/legacy/types.dart';
+import 'js/legacy/value.dart';
+import 'js/logger.dart';
+import 'js/source_span.dart';
+import 'js/utils.dart';
+import 'js/value.dart';
 import 'value.dart';
 
-/// The entrypoint for the Node.js module.
+/// The entrypoint for the JavaScript module.
 ///
 /// This sets up exports that can be called from JS.
 void main() {
@@ -41,7 +41,7 @@ void main() {
   exports.sassFalse = sassFalse;
   exports.Exception = exceptionClass;
   exports.Logger = LoggerNamespace(
-      silent: NodeLogger(
+      silent: JSLogger(
           warn: allowInteropNamed('sass.Logger.silent.warn', (_, __) {}),
           debug: allowInteropNamed('sass.Logger.silent.debug', (_, __) {})));
 

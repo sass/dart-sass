@@ -821,8 +821,8 @@ class _SerializeVisitor
     // have to do is clamp doubles that are close to being integers.
     var integer = fuzzyAsInt(number);
     if (integer != null) {
-      // Node.js still uses exponential notation for integers, so we have to
-      // handle it here.
+      // JS still uses exponential notation for integers, so we have to handle
+      // it here.
       _buffer.write(_removeExponent(integer.toString()));
       return;
     }

@@ -9,10 +9,10 @@ import 'package:path/path.dart' as p;
 import 'package:tuple/tuple.dart';
 
 import '../../io.dart';
-import '../../node/function.dart';
-import '../../node/legacy/importer_result.dart';
-import '../../node/legacy/render_context.dart';
-import '../../node/utils.dart';
+import '../../js/function.dart';
+import '../../js/legacy/importer_result.dart';
+import '../../js/legacy/render_context.dart';
+import '../../js/utils.dart';
 import '../../util/nullable.dart';
 import '../utils.dart';
 

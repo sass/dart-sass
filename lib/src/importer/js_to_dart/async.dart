@@ -7,23 +7,23 @@ import 'dart:async';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart';
 
-import '../../node/importer.dart';
-import '../../node/url.dart';
-import '../../node/utils.dart';
+import '../../js/importer.dart';
+import '../../js/url.dart';
+import '../../js/utils.dart';
 import '../../util/nullable.dart';
 import '../async.dart';
 import '../result.dart';
 
 /// A wrapper for a potentially-asynchronous JS API importer that exposes it as
 /// a Dart [AsyncImporter].
-class NodeToDartAsyncImporter extends AsyncImporter {
+class JSToDartAsyncImporter extends AsyncImporter {
   /// The wrapped canonicalize function.
   final Object? Function(String, CanonicalizeOptions) _canonicalize;
 
   /// The wrapped load function.
   final Object? Function(JSUrl) _load;
 
-  NodeToDartAsyncImporter(this._canonicalize, this._load);
+  JSToDartAsyncImporter(this._canonicalize, this._load);
 
   FutureOr<Uri?> canonicalize(Uri url) async {
     var result = _canonicalize(

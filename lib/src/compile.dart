@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: bac7360553f772bbf8243cca78f4f63e4bdf2755
+// Checksum: d6fc59fc731ebbba7d3a8cabc259e09fdc871764
 //
 // ignore_for_file: unused_import
 
@@ -87,7 +87,7 @@ CompileResult compile(String path,
       sourceMap,
       charset);
 
-  deprecationLogger.summarize(node: nodeImporter != null);
+  deprecationLogger.summarize(js: nodeImporter != null);
   return result;
 }
 
@@ -139,7 +139,7 @@ CompileResult compileString(String source,
       sourceMap,
       charset);
 
-  deprecationLogger.summarize(node: nodeImporter != null);
+  deprecationLogger.summarize(js: nodeImporter != null);
   return result;
 }
 

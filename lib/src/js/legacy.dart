@@ -17,7 +17,7 @@ import '../exception.dart';
 import '../importer/legacy_node.dart';
 import '../io.dart';
 import '../logger.dart';
-import '../logger/node_to_dart.dart';
+import '../logger/js_to_dart.dart';
 import '../syntax.dart';
 import '../util/nullable.dart';
 import '../utils.dart';
@@ -88,8 +88,8 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
         verbose: options.verbose ?? false,
         charset: options.charset ?? true,
         sourceMap: _enableSourceMaps(options),
-        logger: NodeToDartLogger(
-            options.logger, Logger.stderr(color: hasTerminal)));
+        logger:
+            JSToDartLogger(options.logger, Logger.stderr(color: hasTerminal)));
   } else if (file != null) {
     result = await compileAsync(file,
         nodeImporter: _parseImporter(options, start),
@@ -103,8 +103,8 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
         verbose: options.verbose ?? false,
         charset: options.charset ?? true,
         sourceMap: _enableSourceMaps(options),
-        logger: NodeToDartLogger(
-            options.logger, Logger.stderr(color: hasTerminal)));
+        logger:
+            JSToDartLogger(options.logger, Logger.stderr(color: hasTerminal)));
   } else {
     throw ArgumentError("Either options.data or options.file must be set.");
   }
@@ -142,7 +142,7 @@ RenderResult renderSync(RenderOptions options) {
           verbose: options.verbose ?? false,
           charset: options.charset ?? true,
           sourceMap: _enableSourceMaps(options),
-          logger: NodeToDartLogger(
+          logger: JSToDartLogger(
               options.logger, Logger.stderr(color: hasTerminal)));
     } else if (file != null) {
       result = compile(file,
@@ -157,7 +157,7 @@ RenderResult renderSync(RenderOptions options) {
           verbose: options.verbose ?? false,
           charset: options.charset ?? true,
           sourceMap: _enableSourceMaps(options),
-          logger: NodeToDartLogger(
+          logger: JSToDartLogger(
               options.logger, Logger.stderr(color: hasTerminal)));
     } else {
       throw ArgumentError("Either options.data or options.file must be set.");

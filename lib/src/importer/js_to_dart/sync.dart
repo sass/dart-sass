@@ -5,21 +5,21 @@
 import 'package:node_interop/js.dart';
 
 import '../../importer.dart';
-import '../../node/importer.dart';
-import '../../node/url.dart';
-import '../../node/utils.dart';
+import '../../js/importer.dart';
+import '../../js/url.dart';
+import '../../js/utils.dart';
 import '../../util/nullable.dart';
 
 /// A wrapper for a synchronous JS API importer that exposes it as a Dart
 /// [Importer].
-class NodeToDartImporter extends Importer {
+class JSToDartImporter extends Importer {
   /// The wrapped canonicalize function.
   final Object? Function(String, CanonicalizeOptions) _canonicalize;
 
   /// The wrapped load function.
   final Object? Function(JSUrl) _load;
 
-  NodeToDartImporter(this._canonicalize, this._load);
+  JSToDartImporter(this._canonicalize, this._load);
 
   Uri? canonicalize(Uri url) {
     var result = _canonicalize(

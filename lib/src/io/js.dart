@@ -14,7 +14,7 @@ import 'package:source_span/source_span.dart';
 import 'package:watcher/watcher.dart';
 
 import '../exception.dart';
-import '../node/chokidar.dart';
+import '../js/chokidar.dart';
 
 @JS('process')
 external final Process? process; // process is null in the browser

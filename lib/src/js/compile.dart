@@ -8,12 +8,12 @@ import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import '../../sass.dart';
 import '../importer/no_op.dart';
-import '../importer/node_to_dart/async.dart';
-import '../importer/node_to_dart/async_file.dart';
-import '../importer/node_to_dart/file.dart';
-import '../importer/node_to_dart/sync.dart';
+import '../importer/js_to_dart/async.dart';
+import '../importer/js_to_dart/async_file.dart';
+import '../importer/js_to_dart/file.dart';
+import '../importer/js_to_dart/sync.dart';
 import '../io.dart';
-import '../logger/node_to_dart.dart';
+import '../logger/js_to_dart.dart';
 import '../util/nullable.dart';
 import 'compile_options.dart';
 import 'compile_result.dart';
@@ -40,7 +40,7 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
         verbose: options?.verbose ?? false,
         charset: options?.charset ?? true,
         sourceMap: options?.sourceMap ?? false,
-        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color),
+        logger: JSToDartLogger(options?.logger, Logger.stderr(color: color),
             ascii: ascii),
         importers: options?.importers?.map(_parseImporter),
         functions: _parseFunctions(options?.functions).cast());
@@ -69,7 +69,7 @@ NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
         verbose: options?.verbose ?? false,
         charset: options?.charset ?? true,
         sourceMap: options?.sourceMap ?? false,
-        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color),
+        logger: JSToDartLogger(options?.logger, Logger.stderr(color: color),
             ascii: ascii),
         importers: options?.importers?.map(_parseImporter),
         importer: options?.importer.andThen(_parseImporter) ??
@@ -101,7 +101,7 @@ Promise compileAsync(String path, [CompileOptions? options]) {
         verbose: options?.verbose ?? false,
         charset: options?.charset ?? true,
         sourceMap: options?.sourceMap ?? false,
-        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color),
+        logger: JSToDartLogger(options?.logger, Logger.stderr(color: color),
             ascii: ascii),
         importers: options?.importers
             ?.map((importer) => _parseAsyncImporter(importer)),
@@ -129,7 +129,7 @@ Promise compileStringAsync(String text, [CompileStringOptions? options]) {
         verbose: options?.verbose ?? false,
         charset: options?.charset ?? true,
         sourceMap: options?.sourceMap ?? false,
-        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color),
+        logger: JSToDartLogger(options?.logger, Logger.stderr(color: color),
             ascii: ascii),
         importers: options?.importers
             ?.map((importer) => _parseAsyncImporter(importer)),
@@ -193,12 +193,12 @@ AsyncImporter _parseAsyncImporter(Object? importer) {
           "An importer must have either canonicalize and load methods, or a "
           "findFileUrl method."));
     }
-    return NodeToDartAsyncImporter(canonicalize, load);
+    return JSToDartAsyncImporter(canonicalize, load);
   } else if (canonicalize != null || load != null) {
     jsThrow(JsError("An importer may not have a findFileUrl method as well as "
         "canonicalize and load methods."));
   } else {
-    return NodeToDartAsyncFileImporter(findFileUrl);
+    return JSToDartAsyncFileImporter(findFileUrl);
   }
 }
 
@@ -216,12 +216,12 @@ Importer _parseImporter(Object? importer) {
           "An importer must have either canonicalize and load methods, or a "
           "findFileUrl method."));
     }
-    return NodeToDartImporter(canonicalize, load);
+    return JSToDartImporter(canonicalize, load);
   } else if (canonicalize != null || load != null) {
     jsThrow(JsError("An importer may not have a findFileUrl method as well as "
         "canonicalize and load methods."));
   } else {
-    return NodeToDartFileImporter(findFileUrl);
+    return JSToDartFileImporter(findFileUrl);
   }
 }
 
