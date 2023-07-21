@@ -350,16 +350,20 @@ class Protofier {
       return SassCalculation.calc(
           _deprotofyCalculationValue(calculation.arguments[0]));
     } else if (calculation.name == "clamp") {
-      if (calculation.arguments.length != 3) {
+      if (calculation.arguments.isEmpty || calculation.arguments.length > 3) {
         throw paramsError(
-            "Value.Calculation.arguments must have exactly 3 arguments for "
+            "Value.Calculation.arguments must have 1 to 3 arguments for "
             "clamp().");
       }
 
       return SassCalculation.clamp(
           _deprotofyCalculationValue(calculation.arguments[0]),
-          _deprotofyCalculationValue(calculation.arguments[1]),
-          _deprotofyCalculationValue(calculation.arguments[2]));
+          calculation.arguments.length > 1
+              ? _deprotofyCalculationValue(calculation.arguments[1])
+              : null,
+          calculation.arguments.length > 2
+              ? _deprotofyCalculationValue(calculation.arguments[2])
+              : null);
     } else if (calculation.name == "min") {
       if (calculation.arguments.isEmpty) {
         throw paramsError(
