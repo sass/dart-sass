@@ -1,3 +1,10 @@
+## 1.64.1
+
+### Embedded Sass
+
+* Fix a bug where a valid `SassCalculation.clamp()` with less than 3 arguments
+  would throw an error.
+
 ## 1.64.0
 
 * Comments that appear before or between `@use` and `@forward` rules are now
