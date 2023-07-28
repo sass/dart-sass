@@ -6,13 +6,13 @@ import 'package:path/path.dart' as p;
 
 import 'io/interface.dart'
     if (dart.library.io) 'io/vm.dart'
-    if (dart.library.js) 'io/node.dart';
+    if (dart.library.js) 'io/js.dart';
 import 'utils.dart';
 import 'util/character.dart';
 
 export 'io/interface.dart'
     if (dart.library.io) 'io/vm.dart'
-    if (dart.library.js) 'io/node.dart';
+    if (dart.library.js) 'io/js.dart';
 
 /// A cache of return values for directories in [_realCasePath].
 final _realCaseCache = <String, String>{};

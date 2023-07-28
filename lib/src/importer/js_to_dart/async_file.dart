@@ -7,27 +7,27 @@ import 'dart:async';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart';
 
-import '../../node/importer.dart';
-import '../../node/url.dart';
-import '../../node/utils.dart';
+import '../../js/importer.dart';
+import '../../js/url.dart';
+import '../../js/utils.dart';
 import '../async.dart';
 import '../filesystem.dart';
 import '../result.dart';
 import '../utils.dart';
 
 /// A filesystem importer to use for most implementation details of
-/// [NodeToDartAsyncFileImporter].
+/// [JSToDartAsyncFileImporter].
 ///
 /// This allows us to avoid duplicating logic between the two importers.
 final _filesystemImporter = FilesystemImporter('.');
 
 /// A wrapper for a potentially-asynchronous JS API file importer that exposes
 /// it as a Dart [AsyncImporter].
-final class NodeToDartAsyncFileImporter extends AsyncImporter {
+final class JSToDartAsyncFileImporter extends AsyncImporter {
   /// The wrapped `findFileUrl` function.
   final Object? Function(String, CanonicalizeOptions) _findFileUrl;
 
-  NodeToDartAsyncFileImporter(this._findFileUrl);
+  JSToDartAsyncFileImporter(this._findFileUrl);
 
   FutureOr<Uri?> canonicalize(Uri url) async {
     if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);

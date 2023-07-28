@@ -37,7 +37,7 @@ void main(List<String> args) {
     pkg.JSRequire("stream", target: pkg.JSRequireTarget.node),
     pkg.JSRequire("util", target: pkg.JSRequireTarget.node),
   ];
-  pkg.jsModuleMainLibrary.value = "lib/src/node.dart";
+  pkg.jsModuleMainLibrary.value = "lib/src/js.dart";
   pkg.npmPackageJson.fn = () =>
       json.decode(File("package/package.json").readAsStringSync())
           as Map<String, dynamic>;
@@ -54,6 +54,9 @@ void main(List<String> args) {
     'Logger',
     'SassArgumentList',
     'SassBoolean',
+    'SassCalculation',
+    'CalculationOperation',
+    'CalculationInterpolation',
     'SassColor',
     'SassFunction',
     'SassList',

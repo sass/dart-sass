@@ -8,12 +8,12 @@ import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import '../../sass.dart';
 import '../importer/no_op.dart';
-import '../importer/node_to_dart/async.dart';
-import '../importer/node_to_dart/async_file.dart';
-import '../importer/node_to_dart/file.dart';
-import '../importer/node_to_dart/sync.dart';
+import '../importer/js_to_dart/async.dart';
+import '../importer/js_to_dart/async_file.dart';
+import '../importer/js_to_dart/file.dart';
+import '../importer/js_to_dart/sync.dart';
 import '../io.dart';
-import '../logger/node_to_dart.dart';
+import '../logger/js_to_dart.dart';
 import '../util/nullable.dart';
 import 'compile_options.dart';
 import 'compile_result.dart';
@@ -40,7 +40,7 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
         verbose: options?.verbose ?? false,
         charset: options?.charset ?? true,
         sourceMap: options?.sourceMap ?? false,
-        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color),
+        logger: JSToDartLogger(options?.logger, Logger.stderr(color: color),
             ascii: ascii),
         importers: options?.importers?.map(_parseImporter),
         functions: _parseFunctions(options?.functions).cast());
@@ -69,7 +69,7 @@ NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
         verbose: options?.verbose ?? false,
         charset: options?.charset ?? true,
         sourceMap: options?.sourceMap ?? false,
-        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color),
+        logger: JSToDartLogger(options?.logger, Logger.stderr(color: color),
             ascii: ascii),
         importers: options?.importers?.map(_parseImporter),
         importer: options?.importer.andThen(_parseImporter) ??
@@ -101,7 +101,7 @@ Promise compileAsync(String path, [CompileOptions? options]) {
         verbose: options?.verbose ?? false,
         charset: options?.charset ?? true,
         sourceMap: options?.sourceMap ?? false,
-        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color),
+        logger: JSToDartLogger(options?.logger, Logger.stderr(color: color),
             ascii: ascii),
         importers: options?.importers
             ?.map((importer) => _parseAsyncImporter(importer)),
@@ -129,7 +129,7 @@ Promise compileStringAsync(String text, [CompileStringOptions? options]) {
         verbose: options?.verbose ?? false,
         charset: options?.charset ?? true,
         sourceMap: options?.sourceMap ?? false,
-        logger: NodeToDartLogger(options?.logger, Logger.stderr(color: color),
+        logger: JSToDartLogger(options?.logger, Logger.stderr(color: color),
             ascii: ascii),
         importers: options?.importers
             ?.map((importer) => _parseAsyncImporter(importer)),
@@ -192,14 +192,14 @@ AsyncImporter _parseAsyncImporter(Object? importer) {
           JsError("An importer may not have a findFileUrl method as well as "
               "canonicalize and load methods."));
     } else {
-      return NodeToDartAsyncFileImporter(findFileUrl);
+      return JSToDartAsyncFileImporter(findFileUrl);
     }
   } else if (canonicalize == null || load == null) {
     jsThrow(JsError(
         "An importer must have either canonicalize and load methods, or a "
         "findFileUrl method."));
   } else {
-    return NodeToDartAsyncImporter(canonicalize, load);
+    return JSToDartAsyncImporter(canonicalize, load);
   }
 }
 
@@ -216,16 +216,50 @@ Importer _parseImporter(Object? importer) {
           JsError("An importer may not have a findFileUrl method as well as "
               "canonicalize and load methods."));
     } else {
-      return NodeToDartFileImporter(findFileUrl);
+      return JSToDartFileImporter(findFileUrl);
     }
   } else if (canonicalize == null || load == null) {
     jsThrow(JsError(
         "An importer must have either canonicalize and load methods, or a "
         "findFileUrl method."));
   } else {
-    return NodeToDartImporter(canonicalize, load);
+    return JSToDartImporter(canonicalize, load);
   }
 }
+
+/// Implements the simplification algorithm for custom function return `Value`s.
+/// {@link https://github.com/sass/sass/blob/main/spec/types/calculation.md#simplifying-a-calculationvalue}
+Value _simplifyValue(Value value) => switch (value) {
+      SassCalculation() => switch ((
+          // Match against...
+          value.name, // ...the calculation name
+          value.arguments // ...and simplified arguments
+              .map(_simplifyCalcArg)
+              .toList()
+        )) {
+          ('calc', [var first]) => first as Value,
+          ('calc', _) =>
+            throw ArgumentError('calc() requires exactly one argument.'),
+          ('clamp', [var min, var value, var max]) =>
+            SassCalculation.clamp(min, value, max),
+          ('clamp', _) =>
+            throw ArgumentError('clamp() requires exactly 3 arguments.'),
+          ('min', var args) => SassCalculation.min(args),
+          ('max', var args) => SassCalculation.max(args),
+          (var name, _) => throw ArgumentError(
+              '"$name" is not a recognized calculation type.'),
+        },
+      _ => value,
+    };
+
+/// Handles simplifying calculation arguments, which are not guaranteed to be
+/// Value instances.
+Object _simplifyCalcArg(Object value) => switch (value) {
+      SassCalculation() => _simplifyValue(value),
+      CalculationOperation() => SassCalculation.operate(value.operator,
+          _simplifyCalcArg(value.left), _simplifyCalcArg(value.right)),
+      _ => value,
+    };
 
 /// Parses `functions` from [record] into a list of [Callable]s or
 /// [AsyncCallable]s.
@@ -241,7 +275,7 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
       late Callable callable;
       callable = Callable.fromSignature(signature, (arguments) {
         var result = (callback as Function)(toJSArray(arguments));
-        if (result is Value) return result;
+        if (result is Value) return _simplifyValue(result);
         if (isPromise(result)) {
           throw 'Invalid return value for custom function '
               '"${callable.name}":\n'
@@ -261,7 +295,7 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
           result = await promiseToFuture<Object>(result as Promise);
         }
 
-        if (result is Value) return result;
+        if (result is Value) return _simplifyValue(result);
         throw 'Invalid return value for custom function '
             '"${callable.name}": $result is not a sass.Value.';
       });

@@ -801,8 +801,8 @@ final class _SerializeVisitor
     // Dart always converts integers to strings in the obvious way, so all we
     // have to do is clamp doubles that are close to being integers.
     if (fuzzyAsInt(number) case var integer?) {
-      // Node.js still uses exponential notation for integers, so we have to
-      // handle it here.
+      // JS still uses exponential notation for integers, so we have to handle
+      // it here.
       _buffer.write(_removeExponent(integer.toString()));
       return;
     }

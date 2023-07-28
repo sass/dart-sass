@@ -86,17 +86,16 @@ final class DeprecationHandlingLogger implements Logger {
   /// Prints a warning indicating the number of deprecation warnings that were
   /// omitted due to repetition.
   ///
-  /// The [node] flag indicates whether this is running in Node.js mode, in
-  /// which case it doesn't mention "verbose mode" because the Node API doesn't
-  /// support that.
-  void summarize({required bool node}) {
+  /// The [js] flag indicates whether this is running in JS mode, in which case
+  /// it doesn't mention "verbose mode" because the JS API doesn't support that.
+  void summarize({required bool js}) {
     var total = _warningCounts.values
         .where((count) => count > _maxRepetitions)
         .map((count) => count - _maxRepetitions)
         .sum;
     if (total > 0) {
       _inner.warn("$total repetitive deprecation warnings omitted." +
-          (node ? "" : "\nRun in verbose mode to see all warnings."));
+          (js ? "" : "\nRun in verbose mode to see all warnings."));
     }
   }
 }

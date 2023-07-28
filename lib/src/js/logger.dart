@@ -7,11 +7,11 @@ import 'package:source_span/source_span.dart';
 
 @JS()
 @anonymous
-class NodeLogger {
+class JSLogger {
   external void Function(String message, WarnOptions options)? get warn;
   external void Function(String message, DebugOptions options)? get debug;
 
-  external factory NodeLogger(
+  external factory JSLogger(
       {void Function(String message, WarnOptions options)? warn,
       void Function(String message, DebugOptions options)? debug});
 }

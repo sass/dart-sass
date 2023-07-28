@@ -26,6 +26,9 @@ class Exports {
   // Value APIs
   external set Value(JSClass function);
   external set SassArgumentList(JSClass function);
+  external set SassCalculation(JSClass function);
+  external set CalculationOperation(JSClass function);
+  external set CalculationInterpolation(JSClass function);
   external set SassBoolean(JSClass function);
   external set SassColor(JSClass function);
   external set SassFunction(JSClass function);
@@ -49,9 +52,9 @@ class Exports {
 @JS()
 @anonymous
 class LoggerNamespace {
-  external NodeLogger get silent;
+  external JSLogger get silent;
 
-  external factory LoggerNamespace({required NodeLogger silent});
+  external factory LoggerNamespace({required JSLogger silent});
 }
 
 @JS()

@@ -1699,7 +1699,7 @@ void main() {
                       ..number = (Value_Number()..value = 3.0))
                     ..arguments.add(Value_Calculation_CalculationValue()
                       ..number = (Value_Number()..value = 4.0))),
-                equals("Value.Calculation.arguments must have exactly 3 "
+                equals("Value.Calculation.arguments must have 1 to 3 "
                     "arguments for clamp()."));
           });
         });
@@ -1714,14 +1714,8 @@ void main() {
 
           test("for clamp", () async {
             await _expectDeprotofyError(
-                Value()
-                  ..calculation = (Value_Calculation()
-                    ..name = "clamp"
-                    ..arguments.add(Value_Calculation_CalculationValue()
-                      ..number = (Value_Number()..value = 1.0))
-                    ..arguments.add(Value_Calculation_CalculationValue()
-                      ..number = (Value_Number()..value = 2.0))),
-                equals("Value.Calculation.arguments must have exactly 3 "
+                Value()..calculation = (Value_Calculation()..name = "clamp"),
+                equals("Value.Calculation.arguments must have 1 to 3 "
                     "arguments for clamp()."));
           });
 

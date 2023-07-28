@@ -2,44 +2,49 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:async';
-
 import 'package:node_interop/js.dart';
-import 'package:node_interop/util.dart';
 
-import '../../node/importer.dart';
-import '../../node/url.dart';
-import '../../node/utils.dart';
+import '../../importer.dart';
+import '../../js/importer.dart';
+import '../../js/url.dart';
+import '../../js/utils.dart';
 import '../../util/nullable.dart';
-import '../async.dart';
-import '../result.dart';
 
-/// A wrapper for a potentially-asynchronous JS API importer that exposes it as
-/// a Dart [AsyncImporter].
-final class NodeToDartAsyncImporter extends AsyncImporter {
+/// A wrapper for a synchronous JS API importer that exposes it as a Dart
+/// [Importer].
+final class JSToDartImporter extends Importer {
   /// The wrapped canonicalize function.
   final Object? Function(String, CanonicalizeOptions) _canonicalize;
 
   /// The wrapped load function.
   final Object? Function(JSUrl) _load;
 
-  NodeToDartAsyncImporter(this._canonicalize, this._load);
+  JSToDartImporter(this._canonicalize, this._load);
 
-  FutureOr<Uri?> canonicalize(Uri url) async {
+  Uri? canonicalize(Uri url) {
     var result = _canonicalize(
         url.toString(), CanonicalizeOptions(fromImport: fromImport));
-    if (isPromise(result)) result = await promiseToFuture(result as Promise);
     if (result == null) return null;
-
     if (isJSUrl(result)) return jsToDartUrl(result as JSUrl);
 
-    jsThrow(JsError("The canonicalize() method must return a URL."));
+    if (isPromise(result)) {
+      jsThrow(JsError(
+          "The canonicalize() function can't return a Promise for synchronous "
+          "compile functions."));
+    } else {
+      jsThrow(JsError("The canonicalize() method must return a URL."));
+    }
   }
 
-  FutureOr<ImporterResult?> load(Uri url) async {
+  ImporterResult? load(Uri url) {
     var result = _load(dartToJSUrl(url));
-    if (isPromise(result)) result = await promiseToFuture(result as Promise);
     if (result == null) return null;
+
+    if (isPromise(result)) {
+      jsThrow(JsError(
+          "The load() function can't return a Promise for synchronous compile "
+          "functions."));
+    }
 
     result as NodeImporterResult;
     var contents = result.contents;

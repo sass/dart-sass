@@ -4,7 +4,7 @@
 
 import 'dart:js_util';
 
-import 'package:sass/src/node/utils.dart';
+import 'package:sass/src/js/utils.dart';
 
 import '../../value.dart';
 import 'value/color.dart';

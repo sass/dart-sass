@@ -1,3 +1,10 @@
+## 1.64.1
+
+### Embedded Sass
+
+* Fix a bug where a valid `SassCalculation.clamp()` with less than 3 arguments
+  would throw an error.
+
 ## 1.64.0
 
 * Comments that appear before or between `@use` and `@forward` rules are now
@@ -8,6 +15,12 @@
   was loaded by a `@use` nested in an `@import`.
 
 ### JavaScript API
+
+* Add a new `SassCalculation` type that represents the calculation objects added
+  in Dart Sass 1.40.0.
+
+* Add `Value.assertCalculation()`, which returns the value if it's a
+  `SassCalculation` and throws an error otherwise.
 
 * Produce a better error message when an environment that supports some Node.js
   APIs loads the browser entrypoint but attempts to access the filesystem.

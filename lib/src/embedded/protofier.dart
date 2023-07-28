@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import '../util/map.dart';
+import '../util/nullable.dart';
 import '../value.dart';
 import 'dispatcher.dart';
 import 'embedded_sass.pb.dart' as proto;
@@ -312,17 +313,14 @@ final class Protofier {
         Value_Calculation(name: "calc") => throw paramsError(
             "Value.Calculation.arguments must have exactly one argument for "
             "calc()."),
-        Value_Calculation(
-          name: "clamp",
-          arguments: [var arg1, var arg2, var arg3]
-        ) =>
+        Value_Calculation(name: "clamp", arguments: [var arg1, ...var rest]) =>
           SassCalculation.clamp(
               _deprotofyCalculationValue(arg1),
-              _deprotofyCalculationValue(arg2),
-              _deprotofyCalculationValue(arg3)),
+              rest.elementAtOrNull(0).andThen(_deprotofyCalculationValue),
+              rest.elementAtOrNull(1).andThen(_deprotofyCalculationValue)),
         Value_Calculation(name: "clamp") => throw paramsError(
-            "Value.Calculation.arguments must have exactly 3 arguments for "
-            "clamp()."),
+            "Value.Calculation.arguments must have exactly 1 to 3 arguments "
+            "for clamp()."),
         Value_Calculation(name: "min" || "max", arguments: []) =>
           throw paramsError(
               "Value.Calculation.arguments must have at least 1 argument for "
