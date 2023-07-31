@@ -90,11 +90,7 @@ Future<void> main(List<String> args) async {
             ifModified: options.update);
       } on SassException catch (error, stackTrace) {
         if (destination != null && !options.emitErrorCss) {
-          try {
-            deleteFile(destination);
-          } on FileSystemException {
-            // If the file doesn't exist, that's fine.
-          }
+          _tryDelete(destination);
         }
 
         printError(error.toString(color: options.color),
@@ -157,4 +153,15 @@ Future<String> _loadVersion() async {
       .firstWhere((line) => line.startsWith('version: '))
       .split(" ")
       .last;
+}
+
+/// Delete [path] if it exists and do nothing otherwise.
+///
+/// This is a separate function to work around dart-lang/sdk#53082.
+void _tryDelete(String path) {
+  try {
+    deleteFile(path);
+  } on FileSystemException {
+    // If the file doesn't exist, that's fine.
+  }
 }
