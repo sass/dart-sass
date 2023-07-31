@@ -5,6 +5,7 @@
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import 'io.dart';
 import 'util/nullable.dart';
 
 /// A deprecated feature in the language.
@@ -58,6 +59,10 @@ enum Deprecation {
       deprecatedIn: '1.62.0',
       description:
           'Using !default or !global multiple times for one variable.'),
+
+  nullAlpha('null-alpha',
+      deprecatedIn: '1.62.3',
+      description: 'Passing null as alpha in the ${isJS ? 'JS' : 'Dart'} API.'),
 
   /// Deprecation for `@import` rules.
   import.future('import', description: '@import rules.'),

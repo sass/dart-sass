@@ -22,7 +22,7 @@ bool get isMacOS => io.Platform.isMacOS;
 
 bool get hasTerminal => io.stdout.hasTerminal;
 
-bool get isJS => false;
+const bool isJS = false;
 
 bool get isNode => false;
 

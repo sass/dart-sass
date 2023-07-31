@@ -1,3 +1,26 @@
+## 1.64.3
+
+### Dart API
+
+* Deprecate explicitly passing `null` as the alpha channel for
+  `SassColor.rgb()`, `SassColor.hsl()`, and `SassColor.hwb()`. Omitting the
+  `alpha` channel is still allowed. In future releases, `null` will be used to
+  indicate a [missing component]. This deprecation is named `null-alpha`.
+
+  [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+
+### JS API
+
+* Deprecate explicitly passing `null` as the alpha channel for `new
+  SassColor()`. Omitting the `alpha` channel or passing `undefined` for it is
+  still allowed. In future releases, `null` will be used to indicate a [missing
+  component]. This deprecation is named `null-alpha`.
+
+  [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+
+  (Note that this was already prohibited by the TypeScript types, but in
+  practice prior to this `null` was treated as `1`.)
+
 ## 1.64.2
 
 ### Dart API
