@@ -701,10 +701,16 @@ class SassCalculation extends Value {
           (number.value / stepWithNumberUnit).round() * stepWithNumberUnit,
           number),
       'up' => _matchUnits(
-          (number.value / stepWithNumberUnit).ceil() * stepWithNumberUnit,
+          (step.value < 0
+                  ? (number.value / stepWithNumberUnit).floor()
+                  : (number.value / stepWithNumberUnit).ceil()) *
+              stepWithNumberUnit,
           number),
       'down' => _matchUnits(
-          (number.value / stepWithNumberUnit).floor() * stepWithNumberUnit,
+          (step.value < 0
+                  ? (number.value / stepWithNumberUnit).ceil()
+                  : (number.value / stepWithNumberUnit).floor()) *
+              stepWithNumberUnit,
           number),
       'to-zero' => number.value < 0
           ? _matchUnits(
