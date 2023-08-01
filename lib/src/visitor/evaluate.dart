@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 3170c459abe92e4ef49982a797b2be4209d57616
+// Checksum: 7781d0388d17a7466c893089ba8344d9425ececa
 //
 // ignore_for_file: unused_import
 
@@ -2328,75 +2328,44 @@ class _EvaluateVisitor
     }
 
     try {
-      switch (node.name) {
-        case "calc":
-          assert(arguments.length == 1);
-          return SassCalculation.calc(arguments[0]);
-        case "sqrt":
-          assert(arguments.length == 1);
-          return SassCalculation.sqrt(arguments[0]);
-        case "sin":
-          assert(arguments.length == 1);
-          return SassCalculation.sin(arguments[0]);
-        case "cos":
-          assert(arguments.length == 1);
-          return SassCalculation.cos(arguments[0]);
-        case "tan":
-          assert(arguments.length == 1);
-          return SassCalculation.tan(arguments[0]);
-        case "asin":
-          assert(arguments.length == 1);
-          return SassCalculation.asin(arguments[0]);
-        case "acos":
-          assert(arguments.length == 1);
-          return SassCalculation.acos(arguments[0]);
-        case "atan":
-          assert(arguments.length == 1);
-          return SassCalculation.atan(arguments[0]);
-        case "abs":
-          assert(arguments.length == 1);
-          return SassCalculation.abs(arguments[0]);
-        case "exp":
-          assert(arguments.length == 1);
-          return SassCalculation.exp(arguments[0]);
-        case "sign":
-          assert(arguments.length == 1);
-          return SassCalculation.sign(arguments[0]);
-        case "min":
-          return SassCalculation.min(arguments);
-        case "max":
-          return SassCalculation.max(arguments);
-        case "hypot":
-          return SassCalculation.hypot(arguments);
-        case "pow":
-          return SassCalculation.pow(
-              arguments[0], arguments.elementAtOrNull(1));
-        case "atan2":
-          return SassCalculation.atan2(
-              arguments[0], arguments.elementAtOrNull(1));
-        case "log":
-          return SassCalculation.log(
-              arguments[0], arguments.elementAtOrNull(1));
-        case "mod":
-          return SassCalculation.mod(
-              arguments[0], arguments.elementAtOrNull(1));
-        case "rem":
-          return SassCalculation.rem(
-              arguments[0], arguments.elementAtOrNull(1));
-        case "round":
-          return SassCalculation.round(arguments[0],
-              arguments.elementAtOrNull(1), arguments.elementAtOrNull(2));
-        case "clamp":
-          return SassCalculation.clamp(arguments[0],
-              arguments.elementAtOrNull(1), arguments.elementAtOrNull(2));
-        default:
-          throw UnsupportedError('Unknown calculation name "${node.name}".');
-      }
+      return switch (node.name) {
+        "calc" => SassCalculation.calc(arguments[0]),
+        "sqrt" => SassCalculation.sqrt(arguments[0]),
+        "sin" => SassCalculation.sin(arguments[0]),
+        "cos" => SassCalculation.cos(arguments[0]),
+        "tan" => SassCalculation.tan(arguments[0]),
+        "asin" => SassCalculation.asin(arguments[0]),
+        "acos" => SassCalculation.acos(arguments[0]),
+        "atan" => SassCalculation.atan(arguments[0]),
+        "abs" => SassCalculation.abs(arguments[0]),
+        "exp" => SassCalculation.exp(arguments[0]),
+        "sign" => SassCalculation.sign(arguments[0]),
+        "min" => SassCalculation.min(arguments),
+        "max" => SassCalculation.max(arguments),
+        "hypot" => SassCalculation.hypot(arguments),
+        "pow" =>
+          SassCalculation.pow(arguments[0], arguments.elementAtOrNull(1)),
+        "atan2" =>
+          SassCalculation.atan2(arguments[0], arguments.elementAtOrNull(1)),
+        "log" =>
+          SassCalculation.log(arguments[0], arguments.elementAtOrNull(1)),
+        "mod" =>
+          SassCalculation.mod(arguments[0], arguments.elementAtOrNull(1)),
+        "rem" =>
+          SassCalculation.rem(arguments[0], arguments.elementAtOrNull(1)),
+        "round" => SassCalculation.round(arguments[0],
+            arguments.elementAtOrNull(1), arguments.elementAtOrNull(2)),
+        "clamp" => SassCalculation.clamp(arguments[0],
+            arguments.elementAtOrNull(1), arguments.elementAtOrNull(2)),
+        _ => throw UnsupportedError('Unknown calculation name "${node.name}".')
+      };
     } on SassScriptException catch (error, stackTrace) {
       // The simplification logic in the [SassCalculation] static methods will
       // throw an error if the arguments aren't compatible, but we have access
       // to the original spans so we can throw a more informative error.
-      _verifyCompatibleNumbers(arguments, node.arguments);
+      if (error.message.contains("compatible")) {
+        _verifyCompatibleNumbers(arguments, node.arguments);
+      }
       throwWithTrace(_exception(error.message, node.span), stackTrace);
     }
   }
