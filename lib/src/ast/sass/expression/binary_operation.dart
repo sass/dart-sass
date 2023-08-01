@@ -82,8 +82,8 @@ final class BinaryOperationExpression implements Expression {
     var right = this.right; // Hack to make analysis work.
     var rightNeedsParens = switch (right) {
       BinaryOperationExpression(:var operator) =>
-        operator.precedence <= operator.precedence &&
-            !(operator == operator && operator.isAssociative),
+        operator.precedence <= this.operator.precedence &&
+            !(operator == this.operator && operator.isAssociative),
       ListExpression(hasBrackets: false, contents: [_, _, ...]) => true,
       _ => false
     };

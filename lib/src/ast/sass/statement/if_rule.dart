@@ -72,9 +72,8 @@ sealed class IfRuleClause {
   IfRuleClause._(this.children)
       : hasDeclarations = children.any((child) => switch (child) {
               VariableDeclaration() || FunctionRule() || MixinRule() => true,
-              ImportRule(:var imports)
-                  when imports.any((import) => import is DynamicImport) =>
-                true,
+              ImportRule(:var imports) =>
+                imports.any((import) => import is DynamicImport),
               _ => false
             });
 }

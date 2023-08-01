@@ -78,13 +78,11 @@ class StylesheetGraph {
   StylesheetNode? _add(Uri url, [Importer? baseImporter, Uri? baseUrl]) {
     var result = _ignoreErrors(() => importCache.canonicalize(url,
         baseImporter: baseImporter, baseUrl: baseUrl));
-    switch (result) {
-      case null:
-        return null;
-
-      case (var importer, var canonicalUrl, :var originalUrl):
-        addCanonical(importer, canonicalUrl, originalUrl);
-        return nodes[canonicalUrl];
+    if (result case (var importer, var canonicalUrl, :var originalUrl)) {
+      addCanonical(importer, canonicalUrl, originalUrl);
+      return nodes[canonicalUrl];
+    } else {
+      return null;
     }
   }
 
