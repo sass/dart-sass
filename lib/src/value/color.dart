@@ -89,6 +89,8 @@ class SassColor extends Value {
   /// indicates a [missing] component.
   ///
   /// [missing]: https://www.w3.org/TR/css-color-4/#missing
+  ///
+  /// @nodoc
   final double? channel0OrNull;
 
   /// This color's second channel.
@@ -136,6 +138,8 @@ class SassColor extends Value {
   /// indicates a [missing] component.
   ///
   /// [missing]: https://www.w3.org/TR/css-color-4/#missing
+  ///
+  /// @nodoc
   final double? channel1OrNull;
 
   /// Returns whether this color's third channel is [missing].
@@ -184,6 +188,8 @@ class SassColor extends Value {
   /// indicates a [missing] component.
   ///
   /// [missing]: https://www.w3.org/TR/css-color-4/#missing
+  ///
+  /// @nodoc
   final double? channel2OrNull;
 
   /// The format in which this color was originally written and should be
@@ -197,8 +203,24 @@ class SassColor extends Value {
   final ColorFormat? format;
 
   /// This color's alpha channel, between `0` and `1`.
-  double get alpha => _alpha;
-  final double _alpha;
+  double get alpha => alphaOrNull ?? 0;
+
+  /// This color's alpha channel.
+  ///
+  /// If this is `null`, that indicates a [missing] component.
+  ///
+  /// [missing]: https://www.w3.org/TR/css-color-4/#missing
+  ///
+  /// @nodoc
+  final double? alphaOrNull;
+
+  /// Returns whether this color's alpha channel is [missing].
+  ///
+  /// [missing]: https://www.w3.org/TR/css-color-4/#missing
+  ///
+  /// @nodoc
+  @internal
+  bool get isAlphaMissing => alphaOrNull == null;
 
   /// Whether this is a legacy color—that is, a color defined using
   /// pre-color-spaces syntax that preserves comaptibility with old color
@@ -267,8 +289,14 @@ class SassColor extends Value {
 
   /// Creates a color in [ColorSpace.rgb].
   ///
+  /// If `null` is passed for [alpha], that indicates that it's a [missing
+  /// component]. In most cases, this is equivalent to the color being
+  /// transparent.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.rgb(num? red, num? green, num? blue, [num? alpha]) =>
+  factory SassColor.rgb(num? red, num? green, num? blue, [num? alpha = 1]) =>
       SassColor.rgbInternal(red, green, blue, alpha);
 
   /// Like [SassColor.rgb], but also takes a [format] parameter.
@@ -276,15 +304,21 @@ class SassColor extends Value {
   /// @nodoc
   @internal
   factory SassColor.rgbInternal(num? red, num? green, num? blue,
-          [num? alpha, ColorFormat? format]) =>
+          [num? alpha = 1, ColorFormat? format]) =>
       SassColor.forSpaceInternal(ColorSpace.rgb, red?.toDouble(),
           green?.toDouble(), blue?.toDouble(), alpha?.toDouble(), format);
 
   /// Creates a color in [ColorSpace.hsl].
   ///
+  /// If `null` is passed for [alpha], that indicates that it's a [missing
+  /// component]. In most cases, this is equivalent to the color being
+  /// transparent.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.hsl(num? hue, num? saturation, num? lightness,
-          [num? alpha]) =>
+          [num? alpha = 1]) =>
       SassColor.forSpaceInternal(
           ColorSpace.hsl,
           _normalizeHue(hue?.toDouble()),
@@ -296,9 +330,15 @@ class SassColor extends Value {
 
   /// Creates a color in [ColorSpace.hwb].
   ///
+  /// If `null` is passed for [alpha], that indicates that it's a [missing
+  /// component]. In most cases, this is equivalent to the color being
+  /// transparent.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.hwb(num? hue, num? whiteness, num? blackness,
-          [num? alpha]) =>
+          [num? alpha = 1]) =>
       SassColor.forSpaceInternal(
           ColorSpace.hwb,
           _normalizeHue(hue?.toDouble()),
@@ -310,65 +350,121 @@ class SassColor extends Value {
 
   /// Creates a color in [ColorSpace.srgb].
   ///
+  /// If `null` is passed for [alpha], that indicates that it's a [missing
+  /// component]. In most cases, this is equivalent to the color being
+  /// transparent.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.srgb(double? red, double? green, double? blue,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(ColorSpace.srgb, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.srgbLinear].
   ///
+  /// If `null` is passed for [alpha], that indicates that it's a [missing
+  /// component]. In most cases, this is equivalent to the color being
+  /// transparent.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.srgbLinear(double? red, double? green, double? blue,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(
           ColorSpace.srgbLinear, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.displayP3].
   ///
+  /// If `null` is passed for [alpha], that indicates that it's a [missing
+  /// component]. In most cases, this is equivalent to the color being
+  /// transparent.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.displayP3(double? red, double? green, double? blue,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(ColorSpace.displayP3, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.a98Rgb].
   ///
+  /// If `null` is passed for [alpha], that indicates that it's a [missing
+  /// component]. In most cases, this is equivalent to the color being
+  /// transparent.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.a98Rgb(double? red, double? green, double? blue,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(ColorSpace.a98Rgb, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.prophotoRgb].
   ///
+  /// If `null` is passed for [alpha], that indicates that it's a [missing
+  /// component]. In most cases, this is equivalent to the color being
+  /// transparent.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.prophotoRgb(double? red, double? green, double? blue,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(
           ColorSpace.prophotoRgb, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.rec2020].
   ///
+  /// If `null` is passed for [alpha], that indicates that it's a [missing
+  /// component]. In most cases, this is equivalent to the color being
+  /// transparent.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.rec2020(double? red, double? green, double? blue,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(ColorSpace.rec2020, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.xyzD50].
   ///
+  /// If `null` is passed for [alpha], that indicates that it's a [missing
+  /// component]. In most cases, this is equivalent to the color being
+  /// transparent.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.xyzD50(double? x, double? y, double? z, [double? alpha]) =>
+  factory SassColor.xyzD50(double? x, double? y, double? z,
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(ColorSpace.xyzD50, x, y, z, alpha);
 
   /// Creates a color in [ColorSpace.xyzD65].
   ///
+  /// If `null` is passed for [alpha], that indicates that it's a [missing
+  /// component]. In most cases, this is equivalent to the color being
+  /// transparent.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.xyzD65(double? x, double? y, double? z, [double? alpha]) =>
+  factory SassColor.xyzD65(double? x, double? y, double? z,
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(ColorSpace.xyzD65, x, y, z, alpha);
 
   /// Creates a color in [ColorSpace.lab].
   ///
+  /// If `null` is passed for [alpha], that indicates that it's a [missing
+  /// component]. In most cases, this is equivalent to the color being
+  /// transparent.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.lab(double? lightness, double? a, double? b,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(
           ColorSpace.lab,
           lightness.andThen(
@@ -379,9 +475,15 @@ class SassColor extends Value {
 
   /// Creates a color in [ColorSpace.lch].
   ///
+  /// If `null` is passed for [alpha], that indicates that it's a [missing
+  /// component]. In most cases, this is equivalent to the color being
+  /// transparent.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.lch(double? lightness, double? chroma, double? hue,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(
           ColorSpace.lch,
           lightness.andThen(
@@ -392,9 +494,15 @@ class SassColor extends Value {
 
   /// Creates a color in [ColorSpace.oklab].
   ///
+  /// If `null` is passed for [alpha], that indicates that it's a [missing
+  /// component]. In most cases, this is equivalent to the color being
+  /// transparent.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.oklab(double? lightness, double? a, double? b,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(
           ColorSpace.oklab,
           lightness.andThen(
@@ -405,9 +513,15 @@ class SassColor extends Value {
 
   /// Creates a color in [ColorSpace.oklch].
   ///
+  /// If `null` is passed for [alpha], that indicates that it's a [missing
+  /// component]. In most cases, this is equivalent to the color being
+  /// transparent.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.oklch(double? lightness, double? chroma, double? hue,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(
           ColorSpace.oklch,
           lightness.andThen(
@@ -418,10 +532,16 @@ class SassColor extends Value {
 
   /// Creates a color in the color space named [space].
   ///
+  /// If `null` is passed for [alpha], that indicates that it's a [missing
+  /// component]. In most cases, this is equivalent to the color being
+  /// transparent.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1` or if
   /// [channels] is the wrong length for [space].
   factory SassColor.forSpace(ColorSpace space, List<double?> channels,
-      [double? alpha]) {
+      [double? alpha = 1]) {
     if (channels.length != space.channels.length) {
       throw RangeError.value(channels.length, "channels.length",
           'must be exactly ${space.channels.length} for color space "$space"');
@@ -449,9 +569,9 @@ class SassColor extends Value {
   /// @nodoc
   @internal
   SassColor.forSpaceInternal(this._space, this.channel0OrNull,
-      this.channel1OrNull, this.channel2OrNull, double? alpha,
-      [this.format])
-      : _alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha") {
+      this.channel1OrNull, this.channel2OrNull, double? alpha, [this.format])
+      : alphaOrNull =
+            alpha.andThen((alpha) => fuzzyAssertRange(alpha, 0, 1, "alpha")) {
     assert(format == null || _space == ColorSpace.rgb);
     assert(
         !(space == ColorSpace.hsl || space == ColorSpace.hwb) ||
@@ -521,6 +641,7 @@ class SassColor extends Value {
     if (channel == channels[0].name) return channel0;
     if (channel == channels[1].name) return channel1;
     if (channel == channels[2].name) return channel2;
+    if (channel == 'alpha') return alpha;
 
     throw SassScriptException(
         "Color $this doesn't have a channel named \"$channel\".", channelName);
@@ -540,6 +661,7 @@ class SassColor extends Value {
     if (channel == channels[0].name) return isChannel0Missing;
     if (channel == channels[1].name) return isChannel1Missing;
     if (channel == channels[2].name) return isChannel2Missing;
+    if (channel == 'alpha') return isAlphaMissing;
 
     throw SassScriptException(
         "Color $this doesn't have a channel named \"$channel\".", channelName);
@@ -559,6 +681,7 @@ class SassColor extends Value {
     if (channel == channels[0].name) return isChannel0Powerless;
     if (channel == channels[1].name) return isChannel1Powerless;
     if (channel == channels[2].name) return isChannel2Powerless;
+    if (channel == 'alpha') return false;
 
     throw SassScriptException(
         "Color $this doesn't have a channel named \"$channel\".", channelName);
@@ -599,10 +722,10 @@ class SassColor extends Value {
 
     if (fuzzyGreaterThanOrEquals(originOklch.channel0, 1)) {
       return space == ColorSpace.rgb
-          ? SassColor.rgb(255, 255, 255, alpha)
-          : SassColor.forSpaceInternal(space, 1, 1, 1, alpha);
+          ? SassColor.rgb(255, 255, 255, alphaOrNull)
+          : SassColor.forSpaceInternal(space, 1, 1, 1, alphaOrNull);
     } else if (fuzzyLessThanOrEquals(originOklch.channel0, 0)) {
-      return SassColor.forSpaceInternal(space, 0, 0, 0, alpha);
+      return SassColor.forSpaceInternal(space, 0, 0, 0, alphaOrNull);
     }
 
     // Always target RGB for legacy colors because HSL and HWB can't even
@@ -637,14 +760,14 @@ class SassColor extends Value {
           fuzzyClamp(current.channel0, 0, 255),
           fuzzyClamp(current.channel1, 0, 255),
           fuzzyClamp(current.channel2, 0, 255),
-          current.alpha);
+          current.alphaOrNull);
     } else {
       return SassColor.forSpaceInternal(
           space,
           fuzzyClamp(current.channel0, 0, 1),
           fuzzyClamp(current.channel1, 0, 1),
           fuzzyClamp(current.channel2, 0, 1),
-          current.alpha);
+          current.alphaOrNull);
     }
   }
 
@@ -802,10 +925,10 @@ class SassColor extends Value {
 
     return SassColor.forSpaceInternal(
         this.space,
-        _clampChannelIfNecessary(new0, this.space, 0) ?? channel0,
-        _clampChannelIfNecessary(new1, this.space, 1) ?? channel1,
-        _clampChannelIfNecessary(new2, this.space, 2) ?? channel2,
-        alpha ?? this.alpha);
+        _clampChannelIfNecessary(new0, this.space, 0) ?? channel0OrNull,
+        _clampChannelIfNecessary(new1, this.space, 1) ?? channel1OrNull,
+        _clampChannelIfNecessary(new2, this.space, 2) ?? channel2OrNull,
+        alpha ?? alphaOrNull);
   }
 
   /// If [space] is strictly bounded and its [index]th channel isn't polar,
@@ -854,23 +977,26 @@ class SassColor extends Value {
     var channel2_0 = (missing2_0 ? color1 : color2).channel0;
     var channel2_1 = (missing2_1 ? color1 : color2).channel1;
     var channel2_2 = (missing2_2 ? color1 : color2).channel2;
+    var alpha1 = alphaOrNull ?? other.alpha;
+    var alpha2 = other.alphaOrNull ?? alpha;
 
-    // TODO: handle missing channels
-    var thisMultiplier = alpha * weight;
-    var otherMultiplier = other.alpha * (1 - weight);
-    var mixedAlpha = alpha * weight + other.alpha * (1 - weight);
+    var thisMultiplier = (alphaOrNull ?? 1) * weight;
+    var otherMultiplier = (other.alphaOrNull ?? 1) * (1 - weight);
+    var mixedAlpha = isAlphaMissing && other.isAlphaMissing
+        ? null
+        : alpha1 * weight + alpha2 * (1 - weight);
     var mixed0 = missing1_0 && missing2_0
         ? null
         : (channel1_0 * thisMultiplier + channel2_0 * otherMultiplier) /
-            mixedAlpha;
+            (mixedAlpha ?? 1);
     var mixed1 = missing1_1 && missing2_1
         ? null
         : (channel1_1 * thisMultiplier + channel2_1 * otherMultiplier) /
-            mixedAlpha;
+            (mixedAlpha ?? 1);
     var mixed2 = missing1_2 && missing2_2
         ? null
         : (channel1_2 * thisMultiplier + channel2_2 * otherMultiplier) /
-            mixedAlpha;
+            (mixedAlpha ?? 1);
 
     SassColor mixed;
     switch (method.space) {
