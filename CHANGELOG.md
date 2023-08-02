@@ -1,3 +1,13 @@
+## 1.64.3
+
+### Dart API
+
+* Include protocol buffer definitions when uploading the `sass` package to pub.
+
+## 1.64.2
+
+* No user-visible changes.
+
 ## 1.64.1
 
 ### Embedded Sass

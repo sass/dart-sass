@@ -529,7 +529,7 @@ jobs:
         with: {github-token: "${{ github.token }}"}
 
       - name: Deploy
-        run: dart run grinder pkg-pub-deploy
+        run: dart run grinder protobuf pkg-pub-deploy
         env: {PUB_CREDENTIALS: "${{ secrets.PUB_CREDENTIALS }}"}
 
   deploy_sub_packages:
