@@ -37,17 +37,15 @@ class _MakeExpressionCalculationSafe with ReplaceExpressionVisitor {
           InterpolatedFunctionExpression node) =>
       node;
 
-  Expression visitUnaryOperationExpression(UnaryOperationExpression node) {
-    // `calc()` doesn't support unary operations.
-    if (node.operator == UnaryOperator.plus) {
-      return node.operand;
-    } else if (node.operator == UnaryOperator.minus) {
-      return BinaryOperationExpression(
-          BinaryOperator.times, NumberExpression(-1, node.span), node.operand);
-    } else {
-      // Other unary operations don't produce numbers, so keep them as-is to
-      // give the user a more useful syntax error after serialization.
-      return super.visitUnaryOperationExpression(node);
-    }
-  }
+  Expression visitUnaryOperationExpression(UnaryOperationExpression node) =>
+      switch (node.operator) {
+        // `calc()` doesn't support unary operations.
+        UnaryOperator.plus => node.operand,
+        UnaryOperator.minus => BinaryOperationExpression(BinaryOperator.times,
+            NumberExpression(-1, node.span), node.operand),
+        _ =>
+          // Other unary operations don't produce numbers, so keep them as-is to
+          // give the user a more useful syntax error after serialization.
+          super.visitUnaryOperationExpression(node)
+      };
 }

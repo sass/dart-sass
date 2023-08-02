@@ -298,15 +298,12 @@ class SassColor extends Value {
     if (hue < 0) hue += 1;
     if (hue > 1) hue -= 1;
 
-    if (hue < 1 / 6) {
-      return m1 + (m2 - m1) * hue * 6;
-    } else if (hue < 1 / 2) {
-      return m2;
-    } else if (hue < 2 / 3) {
-      return m1 + (m2 - m1) * (2 / 3 - hue) * 6;
-    } else {
-      return m1;
-    }
+    return switch (hue) {
+      < 1 / 6 => m1 + (m2 - m1) * hue * 6,
+      < 1 / 2 => m2,
+      < 2 / 3 => m1 + (m2 - m1) * (2 / 3 - hue) * 6,
+      _ => m1
+    };
   }
 
   /// Returns an `rgb()` or `rgba()` function call that will evaluate to this

@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/expression.dart';
@@ -15,8 +14,7 @@ import '../expression.dart';
 /// constructed dynamically, as for the `call()` function.
 ///
 /// {@category AST}
-@sealed
-class ValueExpression implements Expression {
+final class ValueExpression implements Expression {
   /// The embedded value.
   final Value value;
 

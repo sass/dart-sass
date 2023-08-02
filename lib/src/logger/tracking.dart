@@ -8,7 +8,7 @@ import 'package:stack_trace/stack_trace.dart';
 import '../logger.dart';
 
 /// An logger that wraps another logger and keeps track of when it is used.
-class TrackingLogger implements Logger {
+final class TrackingLogger implements Logger {
   final Logger _logger;
 
   /// Whether [warn] has been called on this logger.

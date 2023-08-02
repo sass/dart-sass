@@ -29,9 +29,8 @@ class FileSystemException {
 }
 
 void printError(Object? message) {
-  var process_ = process;
-  if (process_ != null) {
-    process_.stderr.write("${message ?? ''}\n");
+  if (process case var process?) {
+    process.stderr.write("${message ?? ''}\n");
   } else {
     console.error(message ?? '');
   }

@@ -38,7 +38,7 @@ final _setNth = _function("set-nth", r"$list, $n, $value", (arguments) {
   var value = arguments[2];
   var newList = list.asList.toList();
   newList[list.sassIndexToListIndex(index, "n")] = value;
-  return arguments[0].withListContents(newList);
+  return list.withListContents(newList);
 });
 
 final _join = _function(
@@ -48,25 +48,20 @@ final _join = _function(
   var separatorParam = arguments[2].assertString("separator");
   var bracketedParam = arguments[3];
 
-  ListSeparator separator;
-  if (separatorParam.text == "auto") {
-    if (list1.separator != ListSeparator.undecided) {
-      separator = list1.separator;
-    } else if (list2.separator != ListSeparator.undecided) {
-      separator = list2.separator;
-    } else {
-      separator = ListSeparator.space;
-    }
-  } else if (separatorParam.text == "space") {
-    separator = ListSeparator.space;
-  } else if (separatorParam.text == "comma") {
-    separator = ListSeparator.comma;
-  } else if (separatorParam.text == "slash") {
-    separator = ListSeparator.slash;
-  } else {
-    throw SassScriptException(
-        '\$separator: Must be "space", "comma", "slash", or "auto".');
-  }
+  var separator = switch (separatorParam.text) {
+    "auto" => switch ((list1.separator, list2.separator)) {
+        (ListSeparator.undecided, ListSeparator.undecided) =>
+          ListSeparator.space,
+        (ListSeparator.undecided, var separator) ||
+        (var separator, _) =>
+          separator
+      },
+    "space" => ListSeparator.space,
+    "comma" => ListSeparator.comma,
+    "slash" => ListSeparator.slash,
+    _ => throw SassScriptException(
+        '\$separator: Must be "space", "comma", "slash", or "auto".')
+  };
 
   var bracketed = bracketedParam is SassString && bracketedParam.text == 'auto'
       ? list1.hasBrackets
@@ -82,21 +77,16 @@ final _append =
   var value = arguments[1];
   var separatorParam = arguments[2].assertString("separator");
 
-  ListSeparator separator;
-  if (separatorParam.text == "auto") {
-    separator = list.separator == ListSeparator.undecided
+  var separator = switch (separatorParam.text) {
+    "auto" => list.separator == ListSeparator.undecided
         ? ListSeparator.space
-        : list.separator;
-  } else if (separatorParam.text == "space") {
-    separator = ListSeparator.space;
-  } else if (separatorParam.text == "comma") {
-    separator = ListSeparator.comma;
-  } else if (separatorParam.text == "slash") {
-    separator = ListSeparator.slash;
-  } else {
-    throw SassScriptException(
-        '\$separator: Must be "space", "comma", "slash", or "auto".');
-  }
+        : list.separator,
+    "space" => ListSeparator.space,
+    "comma" => ListSeparator.comma,
+    "slash" => ListSeparator.slash,
+    _ => throw SassScriptException(
+        '\$separator: Must be "space", "comma", "slash", or "auto".')
+  };
 
   var newList = [...list.asList, value];
   return list.withListContents(newList, separator: separator);
@@ -125,16 +115,14 @@ final _index = _function("index", r"$list, $value", (arguments) {
   return index == -1 ? sassNull : SassNumber(index + 1);
 });
 
-final _separator = _function("separator", r"$list", (arguments) {
-  switch (arguments[0].separator) {
-    case ListSeparator.comma:
-      return SassString("comma", quotes: false);
-    case ListSeparator.slash:
-      return SassString("slash", quotes: false);
-    default:
-      return SassString("space", quotes: false);
-  }
-});
+final _separator = _function(
+    "separator",
+    r"$list",
+    (arguments) => switch (arguments[0].separator) {
+          ListSeparator.comma => SassString("comma", quotes: false),
+          ListSeparator.slash => SassString("slash", quotes: false),
+          _ => SassString("space", quotes: false)
+        });
 
 final _isBracketed = _function("is-bracketed", r"$list",
     (arguments) => SassBoolean(arguments[0].hasBrackets));

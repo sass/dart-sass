@@ -16,7 +16,7 @@ const _maxRepetitions = 5;
 
 /// A logger that wraps an inner logger to have special handling for
 /// deprecation warnings.
-class DeprecationHandlingLogger implements Logger {
+final class DeprecationHandlingLogger implements Logger {
   /// A map of how many times each deprecation has been emitted by this logger.
   final _warningCounts = <Deprecation, int>{};
 
@@ -61,11 +61,11 @@ class DeprecationHandlingLogger implements Logger {
       message += "\n\nThis is only an error because you've set the "
           '$deprecation deprecation to be fatal.\n'
           'Remove this setting if you need to keep using this feature.';
-      if (span != null && trace != null) {
-        throw SassRuntimeException(message, span, trace);
-      }
-      if (span == null) throw SassScriptException(message);
-      throw SassException(message, span);
+      throw switch ((span, trace)) {
+        (var span?, var trace?) => SassRuntimeException(message, span, trace),
+        (var span?, null) => SassException(message, span),
+        _ => SassScriptException(message)
+      };
     }
 
     if (deprecation.isFuture && !futureDeprecations.contains(deprecation)) {

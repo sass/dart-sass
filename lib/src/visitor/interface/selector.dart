@@ -9,7 +9,7 @@ import '../../ast/selector.dart';
 /// [visitors]: https://en.wikipedia.org/wiki/Visitor_pattern
 ///
 /// {@category Visitor}
-abstract class SelectorVisitor<T> {
+abstract interface class SelectorVisitor<T> {
   T visitAttributeSelector(AttributeSelector attribute);
   T visitClassSelector(ClassSelector klass);
   T visitComplexSelector(ComplexSelector complex);

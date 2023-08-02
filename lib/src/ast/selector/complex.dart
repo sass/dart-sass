@@ -20,8 +20,7 @@ import '../selector.dart';
 ///
 /// {@category AST}
 /// {@category Parsing}
-@sealed
-class ComplexSelector extends Selector {
+final class ComplexSelector extends Selector {
   /// This selector's leading combinators.
   ///
   /// If this is empty, that indicates that it has no leading combinator. If
@@ -62,11 +61,13 @@ class ComplexSelector extends Selector {
   ///
   /// @nodoc
   @internal
-  CompoundSelector? get singleCompound => leadingCombinators.isEmpty &&
-          components.length == 1 &&
-          components.first.combinators.isEmpty
-      ? components.first.selector
-      : null;
+  CompoundSelector? get singleCompound {
+    if (leadingCombinators.isNotEmpty) return null;
+    return switch (components) {
+      [ComplexSelectorComponent(:var selector, combinators: [])] => selector,
+      _ => null
+    };
+  }
 
   ComplexSelector(Iterable<CssValue<Combinator>> leadingCombinators,
       Iterable<ComplexSelectorComponent> components, FileSpan span,
@@ -115,22 +116,15 @@ class ComplexSelector extends Selector {
   ComplexSelector withAdditionalCombinators(
       List<CssValue<Combinator>> combinators,
       {bool forceLineBreak = false}) {
-    if (combinators.isEmpty) {
-      return this;
-    } else if (components.isEmpty) {
-      return ComplexSelector(
+    if (combinators.isEmpty) return this;
+    return switch (components) {
+      [...var initial, var last] => ComplexSelector(leadingCombinators,
+          [...initial, last.withAdditionalCombinators(combinators)], span,
+          lineBreak: lineBreak || forceLineBreak),
+      [] => ComplexSelector(
           [...leadingCombinators, ...combinators], const [], span,
-          lineBreak: lineBreak || forceLineBreak);
-    } else {
-      return ComplexSelector(
-          leadingCombinators,
-          [
-            ...components.exceptLast,
-            components.last.withAdditionalCombinators(combinators)
-          ],
-          span,
-          lineBreak: lineBreak || forceLineBreak);
-    }
+          lineBreak: lineBreak || forceLineBreak)
+    };
   }
 
   /// Returns a copy of `this` with an additional [component] added to the end.
@@ -166,20 +160,20 @@ class ComplexSelector extends Selector {
       return ComplexSelector(
           leadingCombinators, [...components, ...child.components], span,
           lineBreak: lineBreak || child.lineBreak || forceLineBreak);
-    } else if (components.isEmpty) {
+    } else if (components case [...var initial, var last]) {
       return ComplexSelector(
-          [...leadingCombinators, ...child.leadingCombinators],
-          child.components,
+          leadingCombinators,
+          [
+            ...initial,
+            last.withAdditionalCombinators(child.leadingCombinators),
+            ...child.components
+          ],
           span,
           lineBreak: lineBreak || child.lineBreak || forceLineBreak);
     } else {
       return ComplexSelector(
-          leadingCombinators,
-          [
-            ...components.exceptLast,
-            components.last.withAdditionalCombinators(child.leadingCombinators),
-            ...child.components
-          ],
+          [...leadingCombinators, ...child.leadingCombinators],
+          child.components,
           span,
           lineBreak: lineBreak || child.lineBreak || forceLineBreak);
     }

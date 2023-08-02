@@ -46,36 +46,34 @@ class CssParser extends ScssParser {
     var name = interpolatedIdentifier();
     whitespace();
 
-    switch (name.asPlain) {
-      case "at-root":
-      case "content":
-      case "debug":
-      case "each":
-      case "error":
-      case "extend":
-      case "for":
-      case "function":
-      case "if":
-      case "include":
-      case "mixin":
-      case "return":
-      case "warn":
-      case "while":
-        almostAnyValue();
-        error("This at-rule isn't allowed in plain CSS.",
-            scanner.spanFrom(start));
+    return switch (name.asPlain) {
+      "at-root" ||
+      "content" ||
+      "debug" ||
+      "each" ||
+      "error" ||
+      "extend" ||
+      "for" ||
+      "function" ||
+      "if" ||
+      "include" ||
+      "mixin" ||
+      "return" ||
+      "warn" ||
+      "while" =>
+        _forbiddenAtRoot(start),
+      "import" => _cssImportRule(start),
+      "media" => mediaRule(start),
+      "-moz-document" => mozDocumentRule(start, name),
+      "supports" => supportsRule(start),
+      _ => unknownAtRule(start, name)
+    };
+  }
 
-      case "import":
-        return _cssImportRule(start);
-      case "media":
-        return mediaRule(start);
-      case "-moz-document":
-        return mozDocumentRule(start, name);
-      case "supports":
-        return supportsRule(start);
-      default:
-        return unknownAtRule(start, name);
-    }
+  /// Throws an error for a forbidden at-rule.
+  Never _forbiddenAtRoot(LineScannerState start) {
+    almostAnyValue();
+    error("This at-rule isn't allowed in plain CSS.", scanner.spanFrom(start));
   }
 
   /// Consumes a plain-CSS `@import` rule that disallows interpolation.
@@ -83,14 +81,10 @@ class CssParser extends ScssParser {
   /// [start] should point before the `@`.
   ImportRule _cssImportRule(LineScannerState start) {
     var urlStart = scanner.state;
-    var next = scanner.peekChar();
-    Expression url;
-    if (next == $u || next == $U) {
-      url = dynamicUrl();
-    } else {
-      url =
-          StringExpression(interpolatedString().asInterpolation(static: true));
-    }
+    var url = switch (scanner.peekChar()) {
+      $u || $U => dynamicUrl(),
+      _ => StringExpression(interpolatedString().asInterpolation(static: true))
+    };
     var urlSpan = scanner.spanFrom(urlStart);
 
     whitespace();
@@ -108,8 +102,9 @@ class CssParser extends ScssParser {
     var plain = identifier.asPlain!; // CSS doesn't allow non-plain identifiers
 
     var lower = plain.toLowerCase();
-    var specialFunction = trySpecialFunction(lower, start);
-    if (specialFunction != null) return specialFunction;
+    if (trySpecialFunction(lower, start) case var specialFunction?) {
+      return specialFunction;
+    }
 
     var beforeArguments = scanner.state;
     if (!scanner.scanChar($lparen)) return StringExpression(identifier);

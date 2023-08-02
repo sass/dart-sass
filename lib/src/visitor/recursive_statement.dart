@@ -53,11 +53,11 @@ mixin RecursiveStatementVisitor implements StatementVisitor<void> {
       }
     }
 
-    node.lastClause.andThen((lastClause) {
+    if (node.lastClause case var lastClause?) {
       for (var child in lastClause.children) {
         child.accept(this);
       }
-    });
+    }
   }
 
   void visitImportRule(ImportRule node) {}

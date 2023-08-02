@@ -4,6 +4,7 @@
 
 import 'package:node_interop/js.dart';
 
+import '../../util/map.dart';
 import '../../value.dart';
 import '../immutable.dart';
 import '../reflection.dart';
@@ -25,8 +26,8 @@ final JSClass mapClass = () {
       if (index < 0) index = self.lengthAsList + index;
       if (index < 0 || index >= self.lengthAsList) return undefined;
 
-      var entry = self.contents.entries.elementAt(index);
-      return SassList([entry.key, entry.value], ListSeparator.space);
+      var (key, value) = self.contents.pairs.elementAt(index);
+      return SassList([key, value], ListSeparator.space);
     } else {
       return self.contents[indexOrKey] ?? undefined;
     }

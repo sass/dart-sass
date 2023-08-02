@@ -44,8 +44,7 @@ extension WarnForDeprecation on Logger {
   /// Emits a deprecation warning for [deprecation] with the given [message].
   void warnForDeprecation(Deprecation deprecation, String message,
       {FileSpan? span, Trace? trace}) {
-    var self = this;
-    if (self is DeprecationHandlingLogger) {
+    if (this case DeprecationHandlingLogger self) {
       self.warnForDeprecation(deprecation, message, span: span, trace: trace);
     } else if (!deprecation.isFuture) {
       warn(message, span: span, trace: trace, deprecation: true);
@@ -54,7 +53,7 @@ extension WarnForDeprecation on Logger {
 }
 
 /// A logger that emits no messages.
-class _QuietLogger implements Logger {
+final class _QuietLogger implements Logger {
   void warn(String message,
       {FileSpan? span, Trace? trace, bool deprecation = false}) {}
   void debug(String message, SourceSpan span) {}

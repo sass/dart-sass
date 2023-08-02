@@ -16,8 +16,7 @@ import 'parent.dart';
 /// A declaration (that is, a `name: value` pair).
 ///
 /// {@category AST}
-@sealed
-class Declaration extends ParentStatement {
+final class Declaration extends ParentStatement {
   /// The name of this declaration.
   final Interpolation name;
 
@@ -59,13 +58,14 @@ class Declaration extends ParentStatement {
     buffer.writeCharCode($colon);
 
     if (value != null) {
-      if (!isCustomProperty) {
-        buffer.writeCharCode($space);
-      }
+      if (!isCustomProperty) buffer.writeCharCode($space);
       buffer.write("$value");
     }
 
-    var children = this.children;
-    return children == null ? "$buffer;" : "$buffer {${children.join(" ")}}";
+    if (children case var children?) {
+      return "$buffer {${children.join(" ")}}";
+    } else {
+      return "$buffer;";
+    }
   }
 }

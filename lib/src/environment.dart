@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 487c34d7387b6f368ed60ff2db6a748483aba2a1
+// Checksum: f7172be68e0a19c4dc2d2ad04fc32a843a98a6bd
 //
 // ignore_for_file: unused_import
 
@@ -24,6 +24,7 @@ import 'extend/extension_store.dart';
 import 'module.dart';
 import 'module/forwarded_view.dart';
 import 'module/shadowed_view.dart';
+import 'util/map.dart';
 import 'util/merged_map_view.dart';
 import 'util/nullable.dart';
 import 'util/public_member_map_view.dart';
@@ -40,7 +41,7 @@ import 'visitor/clone_css.dart';
 ///
 /// This tracks lexically-scoped information, such as variables, functions, and
 /// mixins.
-class Environment {
+final class Environment {
   /// The modules used in the current scope, indexed by their namespaces.
   Map<String, Module<Callable>> get modules => UnmodifiableMapView(_modules);
   final Map<String, Module<Callable>> _modules;
@@ -243,12 +244,11 @@ class Environment {
       _globalModules[module] = nodeWithSpan;
       _allModules.add(module);
 
-      for (var name in _variables.first.keys) {
-        if (module.variables.containsKey(name)) {
-          throw SassScriptException(
-              'This module and the new module both define a variable named '
-              '"\$$name".');
-        }
+      if (_variables.first.keys.firstWhereOrNull(module.variables.containsKey)
+          case var name?) {
+        throw SassScriptException(
+            'This module and the new module both define a variable named '
+            '"\$$name".');
       }
     } else {
       if (_modules.containsKey(namespace)) {
@@ -307,11 +307,12 @@ class Environment {
       larger = newMembers;
     }
 
-    for (var name in smaller.keys) {
-      if (!larger.containsKey(name)) continue;
+    for (var (name, small) in smaller.pairs) {
+      var large = larger[name];
+      if (large == null) continue;
       if (type == "variable"
           ? newModule.variableIdentity(name) == oldModule.variableIdentity(name)
-          : larger[name] == smaller[name]) {
+          : large == small) {
         continue;
       }
 
@@ -329,82 +330,82 @@ class Environment {
   ///
   /// This is called when [module] is `@import`ed.
   void importForwards(Module<Callable> module) {
-    if (module is _EnvironmentModule) {
-      var forwarded = module._environment._forwardedModules;
-      if (forwarded == null) return;
+    if (module is! _EnvironmentModule) return;
+    var forwarded = module._environment._forwardedModules;
+    if (forwarded == null) return;
 
-      // Omit modules from [forwarded] that are already globally available and
-      // forwarded in this module.
-      var forwardedModules = _forwardedModules;
-      if (forwardedModules != null) {
-        forwarded = {
-          for (var entry in forwarded.entries)
-            if (!forwardedModules.containsKey(entry.key) ||
-                !_globalModules.containsKey(entry.key))
-              entry.key: entry.value,
-        };
-      } else {
-        forwardedModules = _forwardedModules ??= {};
-      }
+    // Omit modules from [forwarded] that are already globally available and
+    // forwarded in this module.
+    var forwardedModules = _forwardedModules;
+    if (forwardedModules != null) {
+      forwarded = {
+        for (var (module, node) in forwarded.pairs)
+          if (!forwardedModules.containsKey(module) ||
+              !_globalModules.containsKey(module))
+            module: node,
+      };
+    } else {
+      forwardedModules = _forwardedModules ??= {};
+    }
 
-      var forwardedVariableNames =
-          forwarded.keys.expand((module) => module.variables.keys).toSet();
-      var forwardedFunctionNames =
-          forwarded.keys.expand((module) => module.functions.keys).toSet();
-      var forwardedMixinNames =
-          forwarded.keys.expand((module) => module.mixins.keys).toSet();
+    var forwardedVariableNames = {
+      for (var module in forwarded.keys) ...module.variables.keys
+    };
+    var forwardedFunctionNames = {
+      for (var module in forwarded.keys) ...module.functions.keys
+    };
+    var forwardedMixinNames = {
+      for (var module in forwarded.keys) ...module.mixins.keys
+    };
 
-      if (atRoot) {
-        // Hide members from modules that have already been imported or
-        // forwarded that would otherwise conflict with the @imported members.
-        for (var entry in _importedModules.entries.toList()) {
-          var module = entry.key;
-          var shadowed = ShadowedModuleView.ifNecessary(module,
-              variables: forwardedVariableNames,
-              mixins: forwardedMixinNames,
-              functions: forwardedFunctionNames);
-          if (shadowed != null) {
-            _importedModules.remove(module);
-            if (!shadowed.isEmpty) _importedModules[shadowed] = entry.value;
-          }
+    if (atRoot) {
+      // Hide members from modules that have already been imported or
+      // forwarded that would otherwise conflict with the @imported members.
+      for (var (module, node) in _importedModules.pairs.toList()) {
+        var shadowed = ShadowedModuleView.ifNecessary(module,
+            variables: forwardedVariableNames,
+            mixins: forwardedMixinNames,
+            functions: forwardedFunctionNames);
+        if (shadowed != null) {
+          _importedModules.remove(module);
+          if (!shadowed.isEmpty) _importedModules[shadowed] = node;
         }
+      }
 
-        for (var entry in forwardedModules.entries.toList()) {
-          var module = entry.key;
-          var shadowed = ShadowedModuleView.ifNecessary(module,
-              variables: forwardedVariableNames,
-              mixins: forwardedMixinNames,
-              functions: forwardedFunctionNames);
-          if (shadowed != null) {
-            forwardedModules.remove(module);
-            if (!shadowed.isEmpty) forwardedModules[shadowed] = entry.value;
-          }
+      for (var (module, node) in forwardedModules.pairs.toList()) {
+        var shadowed = ShadowedModuleView.ifNecessary(module,
+            variables: forwardedVariableNames,
+            mixins: forwardedMixinNames,
+            functions: forwardedFunctionNames);
+        if (shadowed != null) {
+          forwardedModules.remove(module);
+          if (!shadowed.isEmpty) forwardedModules[shadowed] = node;
         }
-
-        _importedModules.addAll(forwarded);
-        forwardedModules.addAll(forwarded);
-      } else {
-        (_nestedForwardedModules ??=
-                List.generate(_variables.length - 1, (_) => []))
-            .last
-            .addAll(forwarded.keys);
       }
 
-      // Remove existing member definitions that are now shadowed by the
-      // forwarded modules.
-      for (var variable in forwardedVariableNames) {
-        _variableIndices.remove(variable);
-        _variables.last.remove(variable);
-        _variableNodes.last.remove(variable);
-      }
-      for (var function in forwardedFunctionNames) {
-        _functionIndices.remove(function);
-        _functions.last.remove(function);
-      }
-      for (var mixin in forwardedMixinNames) {
-        _mixinIndices.remove(mixin);
-        _mixins.last.remove(mixin);
-      }
+      _importedModules.addAll(forwarded);
+      forwardedModules.addAll(forwarded);
+    } else {
+      (_nestedForwardedModules ??=
+              List.generate(_variables.length - 1, (_) => []))
+          .last
+          .addAll(forwarded.keys);
+    }
+
+    // Remove existing member definitions that are now shadowed by the
+    // forwarded modules.
+    for (var variable in forwardedVariableNames) {
+      _variableIndices.remove(variable);
+      _variables.last.remove(variable);
+      _variableNodes.last.remove(variable);
+    }
+    for (var function in forwardedFunctionNames) {
+      _functionIndices.remove(function);
+      _functions.last.remove(function);
+    }
+    for (var mixin in forwardedMixinNames) {
+      _mixinIndices.remove(mixin);
+      _mixins.last.remove(mixin);
     }
   }
 
@@ -421,25 +422,21 @@ class Environment {
           _getVariableFromGlobalModule(name);
     }
 
-    var index = _variableIndices[name];
-    if (index != null) {
+    if (_variableIndices[name] case var index?) {
       _lastVariableName = name;
       _lastVariableIndex = index;
       return _variables[index][name] ?? _getVariableFromGlobalModule(name);
-    }
-
-    index = _variableIndex(name);
-    if (index == null) {
+    } else if (_variableIndex(name) case var index?) {
+      _lastVariableName = name;
+      _lastVariableIndex = index;
+      _variableIndices[name] = index;
+      return _variables[index][name] ?? _getVariableFromGlobalModule(name);
+    } else {
       // There isn't a real variable defined as this index, but it will cause
       // [getVariable] to short-circuit and get to this function faster next
       // time the variable is accessed.
       return _getVariableFromGlobalModule(name);
     }
-
-    _lastVariableName = name;
-    _lastVariableIndex = index;
-    _variableIndices[name] = index;
-    return _variables[index][name] ?? _getVariableFromGlobalModule(name);
   }
 
   /// Returns the value of the variable named [name] from a namespaceless
@@ -464,22 +461,20 @@ class Environment {
           _getVariableNodeFromGlobalModule(name);
     }
 
-    var index = _variableIndices[name];
-    if (index != null) {
+    if (_variableIndices[name] case var index?) {
       _lastVariableName = name;
       _lastVariableIndex = index;
       return _variableNodes[index][name] ??
           _getVariableNodeFromGlobalModule(name);
+    } else if (_variableIndex(name) case var index?) {
+      _lastVariableName = name;
+      _lastVariableIndex = index;
+      _variableIndices[name] = index;
+      return _variableNodes[index][name] ??
+          _getVariableNodeFromGlobalModule(name);
+    } else {
+      return _getVariableNodeFromGlobalModule(name);
     }
-
-    index = _variableIndex(name);
-    if (index == null) return _getVariableNodeFromGlobalModule(name);
-
-    _lastVariableName = name;
-    _lastVariableIndex = index;
-    _variableIndices[name] = index;
-    return _variableNodes[index][name] ??
-        _getVariableNodeFromGlobalModule(name);
   }
 
   /// Returns the node for the variable named [name] from a namespaceless
@@ -494,8 +489,7 @@ class Environment {
     // We don't need to worry about multiple modules defining the same variable,
     // because that's already been checked by [getVariable].
     for (var module in _importedModules.keys.followedBy(_globalModules.keys)) {
-      var value = module.variableNodes[name];
-      if (value != null) return value;
+      if (module.variableNodes[name] case var value?) return value;
     }
     return null;
   }
@@ -629,16 +623,14 @@ class Environment {
   Callable? getFunction(String name, {String? namespace}) {
     if (namespace != null) return _getModule(namespace).functions[name];
 
-    var index = _functionIndices[name];
-    if (index != null) {
+    if (_functionIndices[name] case var index?) {
       return _functions[index][name] ?? _getFunctionFromGlobalModule(name);
+    } else if (_functionIndex(name) case var index?) {
+      _functionIndices[name] = index;
+      return _functions[index][name] ?? _getFunctionFromGlobalModule(name);
+    } else {
+      return _getFunctionFromGlobalModule(name);
     }
-
-    index = _functionIndex(name);
-    if (index == null) return _getFunctionFromGlobalModule(name);
-
-    _functionIndices[name] = index;
-    return _functions[index][name] ?? _getFunctionFromGlobalModule(name);
   }
 
   /// Returns the value of the function named [name] from a namespaceless
@@ -678,16 +670,14 @@ class Environment {
   Callable? getMixin(String name, {String? namespace}) {
     if (namespace != null) return _getModule(namespace).mixins[name];
 
-    var index = _mixinIndices[name];
-    if (index != null) {
+    if (_mixinIndices[name] case var index?) {
       return _mixins[index][name] ?? _getMixinFromGlobalModule(name);
+    } else if (_mixinIndex(name) case var index?) {
+      _mixinIndices[name] = index;
+      return _mixins[index][name] ?? _getMixinFromGlobalModule(name);
+    } else {
+      return _getMixinFromGlobalModule(name);
     }
-
-    index = _mixinIndex(name);
-    if (index == null) return _getMixinFromGlobalModule(name);
-
-    _mixinIndices[name] = index;
-    return _mixins[index][name] ?? _getMixinFromGlobalModule(name);
   }
 
   /// Returns the value of the mixin named [name] from a namespaceless
@@ -797,11 +787,10 @@ class Environment {
     for (var i = 0; i < _variables.length; i++) {
       var values = _variables[i];
       var nodes = _variableNodes[i];
-      for (var entry in values.entries) {
+      for (var (name, value) in values.pairs) {
         // Implicit configurations are never invalid, making [configurationSpan]
         // unnecessary, so we pass null here to avoid having to compute it.
-        configuration[entry.key] =
-            ConfiguredValue.implicit(entry.value, nodes[entry.key]!);
+        configuration[name] = ConfiguredValue.implicit(value, nodes[name]!);
       }
     }
     return Configuration.implicit(configuration);
@@ -825,22 +814,18 @@ class Environment {
   /// This is used when resolving imports, since they need to inject forwarded
   /// members into the current scope. It's the only situation in which a nested
   /// environment can become a module.
-  Module<Callable> toDummyModule() {
-    return _EnvironmentModule(
-        this,
-        CssStylesheet(const [],
-            SourceFile.decoded(const [], url: "<dummy module>").span(0)),
-        const {},
-        ExtensionStore.empty,
-        forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)));
-  }
+  Module<Callable> toDummyModule() => _EnvironmentModule(
+      this,
+      CssStylesheet(const [],
+          SourceFile.decoded(const [], url: "<dummy module>").span(0)),
+      const {},
+      ExtensionStore.empty,
+      forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)));
 
   /// Returns the module with the given [namespace], or throws a
   /// [SassScriptException] if none exists.
   Module<Callable> _getModule(String namespace) {
-    var module = _modules[namespace];
-    if (module != null) return module;
-
+    if (_modules[namespace] case var module?) return module;
     throw SassScriptException(
         'There is no module with the namespace "$namespace".');
   }
@@ -858,18 +843,15 @@ class Environment {
   /// It's used to format an appropriate error message.
   T? _fromOneModule<T>(
       String name, String type, T? callback(Module<Callable> module)) {
-    var nestedForwardedModules = _nestedForwardedModules;
-    if (nestedForwardedModules != null) {
+    if (_nestedForwardedModules case var nestedForwardedModules?) {
       for (var modules in nestedForwardedModules.reversed) {
         for (var module in modules.reversed) {
-          var value = callback(module);
-          if (value != null) return value;
+          if (callback(module) case var value?) return value;
         }
       }
     }
     for (var module in _importedModules.keys) {
-      var value = callback(module);
-      if (value != null) return value;
+      if (callback(module) case var value?) return value;
     }
 
     T? value;
@@ -884,14 +866,11 @@ class Environment {
       if (identityFromModule == identity) continue;
 
       if (value != null) {
-        var spans = _globalModules.entries.map(
-            (entry) => callback(entry.key).andThen((_) => entry.value.span));
-
         throw MultiSpanSassScriptException(
             'This $type is available from multiple global modules.',
             '$type use', {
-          for (var span in spans)
-            if (span != null) span: 'includes $type'
+          for (var (module, node) in _globalModules.pairs)
+            if (callback(module) != null) node.span: 'includes $type'
         });
       }
 
@@ -903,7 +882,7 @@ class Environment {
 }
 
 /// A module that represents the top-level members defined in an [Environment].
-class _EnvironmentModule implements Module<Callable> {
+final class _EnvironmentModule implements Module<Callable> {
   Uri? get url => css.span.sourceUrl;
 
   final List<Module<Callable>> upstream;
@@ -939,8 +918,8 @@ class _EnvironmentModule implements Module<Callable> {
         environment,
         css,
         Map.unmodifiable({
-          for (var entry in preModuleComments.entries)
-            entry.key: List<CssComment>.unmodifiable(entry.value)
+          for (var (module, comments) in preModuleComments.pairs)
+            module: List<CssComment>.unmodifiable(comments)
         }),
         extensionStore,
         _makeModulesByVariable(forwarded),
@@ -1014,8 +993,7 @@ class _EnvironmentModule implements Module<Callable> {
       : upstream = _environment._allModules;
 
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
-    var module = _modulesByVariable[name];
-    if (module != null) {
+    if (_modulesByVariable[name] case var module?) {
       module.setVariable(name, value, nodeWithSpan);
       return;
     }
@@ -1038,12 +1016,13 @@ class _EnvironmentModule implements Module<Callable> {
   Module<Callable> cloneCss() {
     if (!transitivelyContainsCss) return this;
 
-    var newCssAndExtensionStore = cloneCssStylesheet(css, extensionStore);
+    var (newStylesheet, newExtensionStore) =
+        cloneCssStylesheet(css, extensionStore);
     return _EnvironmentModule._(
         _environment,
-        newCssAndExtensionStore.item1,
+        newStylesheet,
         preModuleComments,
-        newCssAndExtensionStore.item2,
+        newExtensionStore,
         _modulesByVariable,
         variables,
         variableNodes,

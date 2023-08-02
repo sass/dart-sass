@@ -2,12 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import '../../visitor/interface/css.dart';
 import 'node.dart';
 import 'value.dart';
 
 /// A plain CSS `@import`.
-abstract class CssImport extends CssNode {
+abstract interface class CssImport implements CssNode {
   /// The URL being imported.
   ///
   /// This includes quotes.
@@ -15,6 +14,4 @@ abstract class CssImport extends CssNode {
 
   /// The modifiers (such as media or supports queries) attached to this import.
   CssValue<String>? get modifiers;
-
-  T accept<T>(CssVisitor<T> visitor) => visitor.visitCssImport(this);
 }

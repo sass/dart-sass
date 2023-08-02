@@ -10,4 +10,4 @@ import '../node.dart';
 ///
 /// {@category AST}
 @sealed
-abstract class SassNode extends AstNode {}
+abstract interface class SassNode implements AstNode {}

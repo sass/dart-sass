@@ -2,10 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:tuple/tuple.dart';
-
 import '../ast/sass.dart';
 import '../callable.dart';
+import '../util/map.dart';
 import '../value.dart';
 
 typedef Callback = Value Function(List<Value> arguments);
@@ -16,11 +15,11 @@ typedef Callback = Value Function(List<Value> arguments);
 /// may declare multiple different callbacks with multiple different sets of
 /// arguments. When the callable is invoked, the first callback with matching
 /// arguments is invoked.
-class BuiltInCallable implements Callable, AsyncBuiltInCallable {
+final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   final String name;
 
   /// The overloads declared for this callable.
-  final List<Tuple2<ArgumentDeclaration, Callback>> _overloads;
+  final List<(ArgumentDeclaration, Callback)> _overloads;
 
   /// Creates a function with a single [arguments] declaration and a single
   /// [callback].
@@ -61,7 +60,7 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// [callback].
   BuiltInCallable.parsed(this.name, ArgumentDeclaration arguments,
       Value callback(List<Value> arguments))
-      : _overloads = [Tuple2(arguments, callback)];
+      : _overloads = [(arguments, callback)];
 
   /// Creates a function with multiple implementations.
   ///
@@ -75,11 +74,11 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   BuiltInCallable.overloadedFunction(this.name, Map<String, Callback> overloads,
       {Object? url})
       : _overloads = [
-          for (var entry in overloads.entries)
-            Tuple2(
-                ArgumentDeclaration.parse('@function $name(${entry.key}) {',
-                    url: url),
-                entry.value)
+          for (var (args, callback) in overloads.pairs)
+            (
+              ArgumentDeclaration.parse('@function $name($args) {', url: url),
+              callback
+            )
         ];
 
   BuiltInCallable._(this.name, this._overloads);
@@ -90,16 +89,16 @@ class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// If no exact match is found, finds the closest approximation. Note that this
   /// doesn't guarantee that [positional] and [names] are valid for the returned
   /// [ArgumentDeclaration].
-  Tuple2<ArgumentDeclaration, Callback> callbackFor(
+  (ArgumentDeclaration, Callback) callbackFor(
       int positional, Set<String> names) {
-    Tuple2<ArgumentDeclaration, Callback>? fuzzyMatch;
+    (ArgumentDeclaration, Callback)? fuzzyMatch;
     int? minMismatchDistance;
 
     for (var overload in _overloads) {
       // Ideally, find an exact match.
-      if (overload.item1.matches(positional, names)) return overload;
+      if (overload.$1.matches(positional, names)) return overload;
 
-      var mismatchDistance = overload.item1.arguments.length - positional;
+      var mismatchDistance = overload.$1.arguments.length - positional;
 
       if (minMismatchDistance != null) {
         if (mismatchDistance.abs() > minMismatchDistance.abs()) continue;

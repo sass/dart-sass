@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:js/js.dart';
 import 'package:path/path.dart' as p;
-import 'package:tuple/tuple.dart';
 
 import '../../io.dart';
 import '../../js/function.dart';
@@ -39,7 +38,7 @@ import '../utils.dart';
 ///   3. Filesystem imports relative to the working directory.
 ///   4. Filesystem imports relative to an `includePaths` path.
 ///   5. Filesystem imports relative to a `SASS_PATH` path.
-class NodeImporter {
+final class NodeImporter {
   /// The options for the `this` context in which importer functions are
   /// invoked.
   ///
@@ -74,7 +73,7 @@ class NodeImporter {
   ///
   /// Returns the stylesheet at that path and the URL used to load it, or `null`
   /// if loading failed.
-  Tuple2<String, String>? loadRelative(
+  (String contents, String url)? loadRelative(
       String url, Uri? previous, bool forImport) {
     if (p.url.isAbsolute(url)) {
       if (!url.startsWith('/') && !url.startsWith('file:')) return null;
@@ -93,13 +92,13 @@ class NodeImporter {
   /// The [previous] URL is the URL of the stylesheet in which the import
   /// appeared. Returns the contents of the stylesheet and the URL to use as
   /// [previous] for imports within the loaded stylesheet.
-  Tuple2<String, String>? load(String url, Uri? previous, bool forImport) {
+  (String contents, String url)? load(
+      String url, Uri? previous, bool forImport) {
     // The previous URL is always an absolute file path for filesystem imports.
     var previousString = _previousToString(previous);
     for (var importer in _importers) {
-      var value =
-          call2(importer, _renderContext(forImport), url, previousString);
-      if (value != null) {
+      if (call2(importer, _renderContext(forImport), url, previousString)
+          case var value?) {
         return _handleImportResult(url, previous, value, forImport);
       }
     }
@@ -113,14 +112,13 @@ class NodeImporter {
   /// The [previous] URL is the URL of the stylesheet in which the import
   /// appeared. Returns the contents of the stylesheet and the URL to use as
   /// [previous] for imports within the loaded stylesheet.
-  Future<Tuple2<String, String>?> loadAsync(
+  Future<(String contents, String url)?> loadAsync(
       String url, Uri? previous, bool forImport) async {
     // The previous URL is always an absolute file path for filesystem imports.
     var previousString = _previousToString(previous);
     for (var importer in _importers) {
-      var value =
-          await _callImporterAsync(importer, url, previousString, forImport);
-      if (value != null) {
+      if (await _callImporterAsync(importer, url, previousString, forImport)
+          case var value?) {
         return _handleImportResult(url, previous, value, forImport);
       }
     }
@@ -129,18 +127,18 @@ class NodeImporter {
   }
 
   /// Converts [previous] to a string to pass to the importer function.
-  String _previousToString(Uri? previous) {
-    if (previous == null) return 'stdin';
-    if (previous.scheme == 'file') return p.fromUri(previous);
-    return previous.toString();
-  }
+  String _previousToString(Uri? previous) => switch (previous) {
+        null => 'stdin',
+        Uri(scheme: 'file') => p.fromUri(previous),
+        _ => previous.toString()
+      };
 
   /// Tries to load a stylesheet at the given [url] from a load path (including
   /// the working directory), if that URL refers to the filesystem.
   ///
   /// Returns the stylesheet at that path and the URL used to load it, or `null`
   /// if loading failed.
-  Tuple2<String, String>? _resolveLoadPathFromUrl(Uri url, bool forImport) =>
+  (String, String)? _resolveLoadPathFromUrl(Uri url, bool forImport) =>
       url.scheme == '' || url.scheme == 'file'
           ? _resolveLoadPath(p.fromUri(url), forImport)
           : null;
@@ -150,15 +148,16 @@ class NodeImporter {
   ///
   /// Returns the stylesheet at that path and the URL used to load it, or `null`
   /// if loading failed.
-  Tuple2<String, String>? _resolveLoadPath(String path, bool forImport) {
+  (String, String)? _resolveLoadPath(String path, bool forImport) {
     // 2: Filesystem imports relative to the working directory.
-    var cwdResult = _tryPath(p.absolute(path), forImport);
-    if (cwdResult != null) return cwdResult;
+    if (_tryPath(p.absolute(path), forImport) case var result?) return result;
 
     // 3: Filesystem imports relative to [_includePaths].
     for (var includePath in _includePaths) {
-      var result = _tryPath(p.absolute(p.join(includePath, path)), forImport);
-      if (result != null) return result;
+      if (_tryPath(p.absolute(p.join(includePath, path)), forImport)
+          case var result?) {
+        return result;
+      }
     }
 
     return null;
@@ -168,15 +167,15 @@ class NodeImporter {
   ///
   /// Returns the stylesheet at that path and the URL used to load it, or `null`
   /// if loading failed.
-  Tuple2<String, String>? _tryPath(String path, bool forImport) => (forImport
+  (String, String)? _tryPath(String path, bool forImport) => (forImport
           ? inImportRule(() => resolveImportPath(path))
           : resolveImportPath(path))
-      .andThen((resolved) =>
-          Tuple2(readFile(resolved), p.toUri(resolved).toString()));
+      .andThen(
+          (resolved) => (readFile(resolved), p.toUri(resolved).toString()));
 
-  /// Converts an importer's return [value] to a tuple that can be returned by
-  /// [load].
-  Tuple2<String, String>? _handleImportResult(
+  /// Converts an importer's return [value] to a (contents, url) pair that can
+  /// be returned by [load].
+  (String, String)? _handleImportResult(
       String url, Uri? previous, Object value, bool forImport) {
     if (isJSError(value)) throw value;
     if (value is! NodeImporterResult) return null;
@@ -189,9 +188,9 @@ class NodeImporter {
     }
 
     if (file == null) {
-      return Tuple2(contents ?? '', url);
+      return (contents ?? '', url);
     } else if (contents != null) {
-      return Tuple2(contents, p.toUri(file).toString());
+      return (contents, p.toUri(file).toString());
     } else {
       var resolved =
           loadRelative(p.toUri(file).toString(), previous, forImport) ??

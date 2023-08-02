@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -15,8 +14,7 @@ import 'parent.dart';
 /// This applies style declarations to elements that match a given selector.
 ///
 /// {@category AST}
-@sealed
-class StyleRule extends ParentStatement<List<Statement>> {
+final class StyleRule extends ParentStatement<List<Statement>> {
   /// The selector to which the declaration will be applied.
   ///
   /// This is only parsed after the interpolation has been resolved.

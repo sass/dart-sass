@@ -2,15 +2,14 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../exception.dart';
 import '../../logger.dart';
 import '../../parse/scss.dart';
-import '../../utils.dart';
 import '../../util/character.dart';
 import '../../util/span.dart';
+import '../../utils.dart';
 import 'argument.dart';
 import 'node.dart';
 
@@ -18,8 +17,7 @@ import 'node.dart';
 ///
 /// {@category AST}
 /// {@category Parsing}
-@sealed
-class ArgumentDeclaration implements SassNode {
+final class ArgumentDeclaration implements SassNode {
   /// The arguments that are taken.
   final List<Argument> arguments;
 
@@ -36,19 +34,19 @@ class ArgumentDeclaration implements SassNode {
 
     // Move backwards through any whitespace between the name and the arguments.
     var i = span.start.offset - 1;
-    while (i > 0 && isWhitespace(text.codeUnitAt(i))) {
+    while (i > 0 && text.codeUnitAt(i).isWhitespace) {
       i--;
     }
 
     // Then move backwards through the name itself.
-    if (!isName(text.codeUnitAt(i))) return span;
+    if (!text.codeUnitAt(i).isName) return span;
     i--;
-    while (i >= 0 && isName(text.codeUnitAt(i))) {
+    while (i >= 0 && text.codeUnitAt(i).isName) {
       i--;
     }
 
     // If the name didn't start with [isNameStart], it's not a valid identifier.
-    if (!isNameStart(text.codeUnitAt(i + 1))) return span;
+    if (!text.codeUnitAt(i + 1).isNameStart) return span;
 
     // Trim because it's possible that this span is empty (for example, a mixin
     // may be declared without an argument list).

@@ -57,6 +57,7 @@ String readFile(String path) {
     throwWithTrace(
         SassException(
             "Invalid UTF-8.", sourceFile.location(stringOffset).pointSpan()),
+        error,
         stackTrace);
   }
 }

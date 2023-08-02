@@ -8,6 +8,7 @@ import 'dart:math' as math;
 
 import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as p;
+import 'package:sass/src/util/nullable.dart';
 
 import 'utils.dart';
 
@@ -86,11 +87,11 @@ Future<void> _writeNTimes(String path, String text, num times,
 
   log("Generating $path...");
   var sink = file.openWrite();
-  if (header != null) sink.writeln(header);
+  header.andThen(sink.writeln);
   for (var i = 0; i < times; i++) {
     sink.writeln(text);
   }
-  if (footer != null) sink.writeln(footer);
+  footer.andThen(sink.writeln);
   await sink.close();
 }
 

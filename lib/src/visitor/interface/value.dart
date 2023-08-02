@@ -7,7 +7,7 @@ import '../../value.dart';
 /// An interface for [visitors][] that traverse SassScript values.
 ///
 /// [visitors]: https://en.wikipedia.org/wiki/Visitor_pattern
-abstract class ValueVisitor<T> {
+abstract interface class ValueVisitor<T> {
   T visitBoolean(SassBoolean value);
   T visitCalculation(SassCalculation value);
   T visitColor(SassColor value);

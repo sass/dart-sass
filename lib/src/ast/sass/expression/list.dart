@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../value.dart';
@@ -14,8 +13,7 @@ import 'unary_operation.dart';
 /// A list literal.
 ///
 /// {@category AST}
-@sealed
-class ListExpression implements Expression {
+final class ListExpression implements Expression {
   /// The elements of this list.
   final List<Expression> contents;
 
@@ -62,22 +60,19 @@ class ListExpression implements Expression {
 
   /// Returns whether [expression], contained in [this], needs parentheses when
   /// printed as Sass source.
-  bool _elementNeedsParens(Expression expression) {
-    if (expression is ListExpression) {
-      if (expression.contents.length < 2) return false;
-      if (expression.hasBrackets) return false;
-      return separator == ListSeparator.comma
-          ? expression.separator == ListSeparator.comma
-          : expression.separator != ListSeparator.undecided;
-    }
-
-    if (separator != ListSeparator.space) return false;
-
-    if (expression is UnaryOperationExpression) {
-      return expression.operator == UnaryOperator.plus ||
-          expression.operator == UnaryOperator.minus;
-    }
-
-    return false;
-  }
+  bool _elementNeedsParens(Expression expression) => switch (expression) {
+        ListExpression(
+          contents: [_, _, ...],
+          hasBrackets: false,
+          separator: var childSeparator
+        ) =>
+          separator == ListSeparator.comma
+              ? childSeparator == ListSeparator.comma
+              : childSeparator != ListSeparator.undecided,
+        UnaryOperationExpression(
+          operator: UnaryOperator.plus || UnaryOperator.minus
+        ) =>
+          separator == ListSeparator.space,
+        _ => false
+      };
 }

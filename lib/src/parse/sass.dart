@@ -49,7 +49,7 @@ class SassParser extends StylesheetParser {
       buffer.addInterpolation(almostAnyValue(omitComments: true));
       buffer.writeCharCode($lf);
     } while (buffer.trailingString.trimRight().endsWith(',') &&
-        scanCharIf(isNewline));
+        scanCharIf((char) => char.isNewline));
 
     return buffer.interpolation(scanner.spanFrom(start));
   }
@@ -62,18 +62,14 @@ class SassParser extends StylesheetParser {
         position: _nextIndentationEnd!.position);
   }
 
-  bool atEndOfStatement() {
-    var next = scanner.peekChar();
-    return next == null || isNewline(next);
-  }
+  bool atEndOfStatement() => scanner.peekChar()?.isNewline ?? true;
 
   bool lookingAtChildren() =>
       atEndOfStatement() && _peekIndentation() > currentIndentation;
 
   Import importArgument() {
     switch (scanner.peekChar()) {
-      case $u:
-      case $U:
+      case $u || $U:
         var start = scanner.state;
         if (scanIdentifier("url")) {
           if (scanner.scanChar($lparen)) {
@@ -83,10 +79,8 @@ class SassParser extends StylesheetParser {
             scanner.state = start;
           }
         }
-        break;
 
-      case $single_quote:
-      case $double_quote:
+      case $single_quote || $double_quote:
         return super.importArgument();
     }
 
@@ -95,7 +89,7 @@ class SassParser extends StylesheetParser {
     while (next != null &&
         next != $comma &&
         next != $semicolon &&
-        !isNewline(next)) {
+        !next.isNewline) {
       scanner.readChar();
       next = scanner.peekChar();
     }
@@ -136,23 +130,20 @@ class SassParser extends StylesheetParser {
   List<Statement> children(Statement child()) {
     var children = <Statement>[];
     _whileIndentedLower(() {
-      var parsedChild = _child(child);
-      if (parsedChild != null) children.add(parsedChild);
+      if (_child(child) case var parsedChild?) children.add(parsedChild);
     });
     return children;
   }
 
   List<Statement> statements(Statement? statement()) {
-    var first = scanner.peekChar();
-    if (first == $tab || first == $space) {
+    if (scanner.peekChar() case $tab || $space) {
       scanner.error("Indenting at the beginning of the document is illegal.",
           position: 0, length: scanner.position);
     }
 
     var statements = <Statement>[];
     while (!scanner.isDone) {
-      var child = _child(statement);
-      if (child != null) statements.add(child);
+      if (_child(statement) case var child?) statements.add(child);
       var indentation = _readIndentation();
       assert(indentation == 0);
     }
@@ -164,31 +155,17 @@ class SassParser extends StylesheetParser {
   /// This consumes children that are allowed at all levels of the document; the
   /// [child] parameter is called to consume any children that are specifically
   /// allowed in the caller's context.
-  Statement? _child(Statement? child()) {
-    switch (scanner.peekChar()) {
-      // Ignore empty lines.
-      case $cr:
-      case $lf:
-      case $ff:
-        return null;
-
-      case $dollar:
-        return variableDeclarationWithoutNamespace();
-
-      case $slash:
-        switch (scanner.peekChar(1)) {
-          case $slash:
-            return _silentComment();
-          case $asterisk:
-            return _loudComment();
-          default:
-            return child();
-        }
-
-      default:
-        return child();
-    }
-  }
+  Statement? _child(Statement? child()) => switch (scanner.peekChar()) {
+        // Ignore empty lines.
+        $cr || $lf || $ff => null,
+        $dollar => variableDeclarationWithoutNamespace(),
+        $slash => switch (scanner.peekChar(1)) {
+            $slash => _silentComment(),
+            $asterisk => _loudComment(),
+            _ => child()
+          },
+        _ => child()
+      };
 
   /// Consumes an indented-style silent comment.
   SilentComment _silentComment() {
@@ -212,7 +189,7 @@ class SassParser extends StylesheetParser {
           buffer.writeCharCode($space);
         }
 
-        while (!scanner.isDone && !isNewline(scanner.peekChar())) {
+        while (!scanner.isDone && !scanner.peekChar().isNewline) {
           buffer.writeCharCode(scanner.readChar());
         }
         buffer.writeln();
@@ -248,7 +225,7 @@ class SassParser extends StylesheetParser {
         // If the first line is empty, ignore it.
         var beginningOfComment = scanner.position;
         spaces();
-        if (isNewline(scanner.peekChar())) {
+        if (scanner.peekChar().isNewline) {
           _readIndentation();
           buffer.writeCharCode($space);
         } else {
@@ -266,11 +243,8 @@ class SassParser extends StylesheetParser {
 
       loop:
       while (!scanner.isDone) {
-        var next = scanner.peekChar();
-        switch (next) {
-          case $lf:
-          case $cr:
-          case $ff:
+        switch (scanner.peekChar()) {
+          case $lf || $cr || $ff:
             break loop;
 
           case $hash:
@@ -279,11 +253,9 @@ class SassParser extends StylesheetParser {
             } else {
               buffer.writeCharCode(scanner.readChar());
             }
-            break;
 
-          default:
+          case _:
             buffer.writeCharCode(scanner.readChar());
-            break;
         }
       }
 
@@ -319,7 +291,7 @@ class SassParser extends StylesheetParser {
     scanner.expect("/*");
     while (true) {
       var next = scanner.readChar();
-      if (isNewline(next)) scanner.error("expected */.");
+      if (next.isNewline) scanner.error("expected */.");
       if (next != $asterisk) continue;
 
       do {
@@ -338,8 +310,7 @@ class SassParser extends StylesheetParser {
         scanner.readChar();
         if (scanner.peekChar() == $lf) scanner.readChar();
         return;
-      case $lf:
-      case $ff:
+      case $lf || $ff:
         scanner.readChar();
         return;
       default:
@@ -348,19 +319,15 @@ class SassParser extends StylesheetParser {
   }
 
   /// Returns whether the scanner is immediately before *two* newlines.
-  bool _lookingAtDoubleNewline() {
-    switch (scanner.peekChar()) {
-      case $cr:
-        var nextChar = scanner.peekChar(1);
-        if (nextChar == $lf) return isNewline(scanner.peekChar(2));
-        return nextChar == $cr || nextChar == $ff;
-      case $lf:
-      case $ff:
-        return isNewline(scanner.peekChar(1));
-      default:
-        return false;
-    }
-  }
+  bool _lookingAtDoubleNewline() => switch (scanner.peekChar()) {
+        $cr => switch (scanner.peekChar(1)) {
+            $lf => scanner.peekChar(2).isNewline,
+            $cr || $ff => true,
+            _ => false
+          },
+        $lf || $ff => scanner.peekChar(1).isNewline,
+        _ => false
+      };
 
   /// As long as the scanner's position is indented beneath the starting line,
   /// runs [body] to consume the next statement.
@@ -394,8 +361,7 @@ class SassParser extends StylesheetParser {
 
   /// Returns the indentation level of the next line.
   int _peekIndentation() {
-    var cached = _nextIndentation;
-    if (cached != null) return cached;
+    if (_nextIndentation case var cached?) return cached;
 
     if (scanner.isDone) {
       _nextIndentation = 0;
@@ -404,7 +370,7 @@ class SassParser extends StylesheetParser {
     }
 
     var start = scanner.state;
-    if (!scanCharIf(isNewline)) {
+    if (!scanCharIf((char) => char.isNewline)) {
       scanner.error("Expected newline.", position: scanner.position);
     }
 
@@ -416,14 +382,15 @@ class SassParser extends StylesheetParser {
       containsSpace = false;
       nextIndentation = 0;
 
+      loop:
       while (true) {
-        var next = scanner.peekChar();
-        if (next == $space) {
-          containsSpace = true;
-        } else if (next == $tab) {
-          containsTab = true;
-        } else {
-          break;
+        switch (scanner.peekChar()) {
+          case $space:
+            containsSpace = true;
+          case $tab:
+            containsTab = true;
+          case _:
+            break loop;
         }
         nextIndentation++;
         scanner.readChar();
@@ -435,7 +402,7 @@ class SassParser extends StylesheetParser {
         scanner.state = start;
         return 0;
       }
-    } while (scanCharIf(isNewline));
+    } while (scanCharIf((char) => char.isNewline));
 
     _checkIndentationConsistency(containsTab, containsSpace);
 
