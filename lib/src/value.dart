@@ -5,6 +5,7 @@
 import 'package:meta/meta.dart';
 
 import 'ast/selector.dart';
+import 'deprecation.dart';
 import 'evaluation_context.dart';
 import 'exception.dart';
 import 'utils.dart';
@@ -123,7 +124,7 @@ abstract class Value {
   int sassIndexToListIndex(Value sassIndex, [String? name]) {
     var indexValue = sassIndex.assertNumber(name);
     if (indexValue.hasUnits) {
-      warn(
+      warnForDeprecation(
           "\$$name: Passing a number with unit ${indexValue.unitString} is "
           "deprecated.\n"
           "\n"
@@ -131,7 +132,7 @@ abstract class Value {
           "${indexValue.unitSuggestion(name ?? 'index')}\n"
           "\n"
           "More info: https://sass-lang.com/d/function-units",
-          deprecation: true);
+          Deprecation.functionUnits);
     }
 
     var index = indexValue.assertInt(name);
@@ -234,8 +235,7 @@ abstract class Value {
   /// Throws a [SassScriptException] if [this] isn't a type or a structure that
   /// can be parsed as a selector.
   String _selectorString([String? name]) {
-    var string = _selectorStringOrNull();
-    if (string != null) return string;
+    if (_selectorStringOrNull() case var string?) return string;
 
     throw SassScriptException(
         "$this is not a valid selector: it must be a string,\n"
@@ -249,40 +249,35 @@ abstract class Value {
   /// Returns `null` if [this] isn't a type or a structure that can be parsed as
   /// a selector.
   String? _selectorStringOrNull() {
-    if (this is SassString) return (this as SassString).text;
-    if (this is! SassList) return null;
-    var list = this as SassList;
-    if (list.asList.isEmpty) return null;
+    var self = this;
+    if (self is SassString) return self.text;
+    if (self is! SassList) return null;
+    if (self.asList.isEmpty) return null;
 
     var result = <String>[];
-    switch (list.separator) {
+    switch (self.separator) {
       case ListSeparator.comma:
-        for (var complex in list.asList) {
-          if (complex is SassString) {
-            result.add(complex.text);
-          } else if (complex is SassList &&
-              complex.separator == ListSeparator.space) {
-            var string = complex._selectorStringOrNull();
-            if (string == null) return null;
-            result.add(string);
-          } else {
-            return null;
+        for (var complex in self.asList) {
+          switch (complex) {
+            case SassString():
+              result.add(complex.text);
+            case SassList(separator: ListSeparator.space):
+              var string = complex._selectorStringOrNull();
+              if (string == null) return null;
+              result.add(string);
+            case _:
+              return null;
           }
         }
-        break;
       case ListSeparator.slash:
         return null;
-      default:
-        for (var compound in list.asList) {
-          if (compound is SassString) {
-            result.add(compound.text);
-          } else {
-            return null;
-          }
+      case _:
+        for (var compound in self.asList) {
+          if (compound is! SassString) return null;
+          result.add(compound.text);
         }
-        break;
     }
-    return result.join(list.separator == ListSeparator.comma ? ', ' : ' ');
+    return result.join(self.separator == ListSeparator.comma ? ', ' : ' ');
   }
 
   /// Returns a new list containing [contents] that defaults to this value's
@@ -346,28 +341,21 @@ abstract class Value {
   ///
   /// @nodoc
   @internal
-  Value plus(Value other) {
-    if (other is SassString) {
-      return SassString(toCssString() + other.text, quotes: other.hasQuotes);
-    } else if (other is SassCalculation) {
-      throw SassScriptException('Undefined operation "$this + $other".');
-    } else {
-      return SassString(toCssString() + other.toCssString(), quotes: false);
-    }
-  }
+  Value plus(Value other) => switch (other) {
+        SassString() =>
+          SassString(toCssString() + other.text, quotes: other.hasQuotes),
+        SassCalculation() =>
+          throw SassScriptException('Undefined operation "$this + $other".'),
+        _ => SassString(toCssString() + other.toCssString(), quotes: false)
+      };
 
   /// The SassScript `-` operation.
   ///
   /// @nodoc
   @internal
-  Value minus(Value other) {
-    if (other is SassCalculation) {
-      throw SassScriptException('Undefined operation "$this - $other".');
-    } else {
-      return SassString("${toCssString()}-${other.toCssString()}",
-          quotes: false);
-    }
-  }
+  Value minus(Value other) => other is SassCalculation
+      ? throw SassScriptException('Undefined operation "$this - $other".')
+      : SassString("${toCssString()}-${other.toCssString()}", quotes: false);
 
   /// The SassScript `/` operation.
   ///
@@ -453,6 +441,7 @@ extension SassApiValue on Value {
       throwWithTrace(
           SassScriptException(
               error.toString().replaceFirst("Error: ", ""), name),
+          error,
           stackTrace);
     }
   }
@@ -477,6 +466,7 @@ extension SassApiValue on Value {
       throwWithTrace(
           SassScriptException(
               error.toString().replaceFirst("Error: ", ""), name),
+          error,
           stackTrace);
     }
   }
@@ -501,6 +491,7 @@ extension SassApiValue on Value {
       throwWithTrace(
           SassScriptException(
               error.toString().replaceFirst("Error: ", ""), name),
+          error,
           stackTrace);
     }
   }
@@ -525,6 +516,7 @@ extension SassApiValue on Value {
       throwWithTrace(
           SassScriptException(
               error.toString().replaceFirst("Error: ", ""), name),
+          error,
           stackTrace);
     }
   }

@@ -72,7 +72,9 @@ Future<void> compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
               quietDeps: options.quietDeps,
               verbose: options.verbose,
               sourceMap: options.emitSourceMap,
-              charset: options.charset)
+              charset: options.charset,
+              fatalDeprecations: options.fatalDeprecations,
+              futureDeprecations: options.futureDeprecations)
           : await compileAsync(source,
               syntax: syntax,
               logger: options.logger,
@@ -81,7 +83,9 @@ Future<void> compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
               quietDeps: options.quietDeps,
               verbose: options.verbose,
               sourceMap: options.emitSourceMap,
-              charset: options.charset);
+              charset: options.charset,
+              fatalDeprecations: options.fatalDeprecations,
+              futureDeprecations: options.futureDeprecations);
     } else {
       result = source == null
           ? compileString(await readStdin(),
@@ -93,7 +97,9 @@ Future<void> compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
               quietDeps: options.quietDeps,
               verbose: options.verbose,
               sourceMap: options.emitSourceMap,
-              charset: options.charset)
+              charset: options.charset,
+              fatalDeprecations: options.fatalDeprecations,
+              futureDeprecations: options.futureDeprecations)
           : compile(source,
               syntax: syntax,
               logger: options.logger,
@@ -102,7 +108,9 @@ Future<void> compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
               quietDeps: options.quietDeps,
               verbose: options.verbose,
               sourceMap: options.emitSourceMap,
-              charset: options.charset);
+              charset: options.charset,
+              fatalDeprecations: options.fatalDeprecations,
+              futureDeprecations: options.futureDeprecations);
     }
   } on SassException catch (error) {
     if (options.emitErrorCss) {
@@ -127,13 +135,21 @@ Future<void> compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
 
   if (options.quiet || (!options.update && !options.watch)) return;
   var buffer = StringBuffer();
-  if (options.color) buffer.write('\u001b[32m');
 
   var sourceName = source == null ? 'stdin' : p.prettyUri(p.toUri(source));
   // `destination` is guaranteed to be non-null in update and watch mode.
   var destinationName = p.prettyUri(p.toUri(destination!));
+
+  var nowStr = DateTime.now().toString();
+  // Remove fractional seconds from printed timestamp
+  var timestamp = nowStr.substring(0, nowStr.length - 7);
+
+  if (options.color) buffer.write('\u001b[90m');
+  buffer.write('[$timestamp] ');
+  if (options.color) buffer.write('\u001b[32m');
   buffer.write('Compiled $sourceName to $destinationName.');
   if (options.color) buffer.write('\u001b[0m');
+
   print(buffer);
 }
 

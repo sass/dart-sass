@@ -7,7 +7,7 @@ import '../callable.dart';
 /// A callable that emits a plain CSS function.
 ///
 /// This can't be used for mixins.
-class PlainCssCallable implements Callable {
+final class PlainCssCallable implements Callable {
   final String name;
 
   PlainCssCallable(this.name);

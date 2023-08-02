@@ -1,4 +1,4 @@
-## 5.0.0
+## 9.0.0
 
 * **Breaking change:** Remove the `SassApiColor.hasCalculatedRgb` and
   `.hasCalculatedHsl` extension methods. These can now be determined by checking
@@ -48,6 +48,123 @@
 
 * Added `SassNumber.convertValueToUnit()` as a shorthand for
   `SassNumber.convertValue()` with a single numerator.
+
+## 8.0.0
+
+* Various classes now use Dart 3 [class modifiers] to more specifically restrict
+  their usage to the intended patterns.
+
+  [class modifiers]: https://dart.dev/language/class-modifiers
+
+* All uses of classes from the `tuple` package have been replaced by record
+  types.
+
+## 7.2.1
+
+* No user-visible changes.
+
+## 7.2.0
+
+* No user-visible changes.
+
+## 7.1.6
+
+* No user-visible changes.
+
+## 7.1.5
+
+* No user-visible changes.
+
+## 7.1.4
+
+* No user-visible changes.
+
+## 7.1.3
+
+* No user-visible changes.
+
+## 7.1.2
+
+* No user-visible changes.
+
+## 7.1.1
+
+* No user-visible changes.
+
+## 7.1.0
+
+* No user-visible changes.
+
+## 7.0.0
+
+* Silent comments in SCSS that are separated by blank lines are now parsed as
+  separate `SilentComment` nodes rather than a single conjoined node.
+
+## 6.3.0
+
+* No user-visible changes.
+
+## 6.2.0
+
+* No user-visible changes.
+
+## 6.1.0
+
+* No user-visible changes.
+
+## 6.0.3
+
+* No user-visible changes.
+
+## 6.0.2
+
+* No user-visible changes.
+
+## 6.0.1
+
+* No user-visible changes.
+
+## 6.0.0
+
+* **Breaking change:** All selector AST node constructors now require a
+  `FileSpan` and expose a `span` field.
+
+* **Breaking change:** The `CssStyleRule.selector` field is now a plain
+  `SelectorList` rather than a `CssValue<SelectorList>`.
+
+* **Breaking change:** The `ModifiableCssValue` class has been removed.
+
+* Add an `InterpolationMap` class which represents a mapping from an
+  interpolation's source to the string it generated.
+
+* Add an `interpolationMap` parameter to `CssMediaQuery.parseList()`,
+  `AtRootQuery.parse()`, `ComplexSelector.parse`, `CompoundSelector.parse`,
+  `ListSelector.parse`, and `SimpleSelector.parse`.
+
+* Add a `SelectorSearchVisitor` mixin, which can be used to return the first
+  instance of a selector in an AST matching a certain criterion.
+
+## 5.1.1
+
+* No user-visible changes.
+
+## 5.1.0
+
+* Add `BinaryOperation.isAssociative`.
+
+* Add a `ReplaceExpressionVisitor`, which recursively visits all expressions in
+  an AST and rebuilds them with replacement components.
+
+## 5.0.1
+
+* No user-visible changes.
+
+## 5.0.0
+
+* **Breaking change:** Instead of a `Tuple`, `findDependencies()` now returns a
+  `DependencyReport` object with named fields. This provides finer-grained
+  access to import URLs, as well as information about `meta.load-css()` calls
+  with non-interpolated string literal arguments.
 
 ## 4.2.2
 

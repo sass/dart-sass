@@ -4,13 +4,14 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../../../utils.dart';
 import '../../../visitor/interface/modifiable_css.dart';
 import '../media_query.dart';
 import '../media_rule.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssMediaRule] for use in the evaluation step.
-class ModifiableCssMediaRule extends ModifiableCssParentNode
+final class ModifiableCssMediaRule extends ModifiableCssParentNode
     implements CssMediaRule {
   final List<CssMediaQuery> queries;
   final FileSpan span;
@@ -24,6 +25,9 @@ class ModifiableCssMediaRule extends ModifiableCssParentNode
 
   T accept<T>(ModifiableCssVisitor<T> visitor) =>
       visitor.visitCssMediaRule(this);
+
+  bool equalsIgnoringChildren(ModifiableCssNode other) =>
+      other is ModifiableCssMediaRule && listEquals(queries, other.queries);
 
   ModifiableCssMediaRule copyWithoutChildren() =>
       ModifiableCssMediaRule(queries, span);

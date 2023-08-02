@@ -21,8 +21,7 @@ import 'silent_comment.dart';
 /// This defines or sets a variable.
 ///
 /// {@category AST}
-@sealed
-class VariableDeclaration implements Statement, SassDeclaration {
+final class VariableDeclaration implements Statement, SassDeclaration {
   /// The namespace of the variable being set, or `null` if it's defined or set
   /// without a namespace.
   final String? namespace;

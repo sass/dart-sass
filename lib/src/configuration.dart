@@ -7,6 +7,7 @@ import 'ast/node.dart';
 import 'ast/sass.dart';
 import 'configured_value.dart';
 import 'util/limited_map_view.dart';
+import 'util/map.dart';
 import 'util/unprefixed_map_view.dart';
 
 /// A set of variables meant to configure a module by overriding its
@@ -17,7 +18,7 @@ import 'util/unprefixed_map_view.dart';
 /// meaning that it's created by passing a `with` clause to a `@use` rule.
 /// Explicit configurations have spans associated with them and are represented
 /// by the [ExplicitConfiguration] subclass.
-class Configuration {
+final class Configuration {
   /// A map from variable names (without `$`) to values.
   ///
   /// This map may not be modified directly. To remove a value from this
@@ -76,14 +77,14 @@ class Configuration {
     // configured. These views support [Map.remove] so we can mark when a
     // configuration variable is used by removing it even when the underlying
     // map is wrapped.
-    var prefix = forward.prefix;
-    if (prefix != null) newValues = UnprefixedMapView(newValues, prefix);
+    if (forward.prefix case var prefix?) {
+      newValues = UnprefixedMapView(newValues, prefix);
+    }
 
-    var shownVariables = forward.shownVariables;
-    var hiddenVariables = forward.hiddenVariables;
-    if (shownVariables != null) {
+    if (forward.shownVariables case var shownVariables?) {
       newValues = LimitedMapView.safelist(newValues, shownVariables);
-    } else if (hiddenVariables != null && hiddenVariables.isNotEmpty) {
+    } else if (forward.hiddenVariables case var hiddenVariables?
+        when hiddenVariables.isNotEmpty) {
       newValues = LimitedMapView.blocklist(newValues, hiddenVariables);
     }
     return _withValues(newValues);
@@ -101,9 +102,7 @@ class Configuration {
 
   String toString() =>
       "(" +
-      values.entries
-          .map((entry) => "\$${entry.key}: ${entry.value}")
-          .join(", ") +
+      [for (var (name, value) in values.pairs) "\$$name: $value"].join(",") +
       ")";
 }
 
@@ -114,7 +113,7 @@ class Configuration {
 /// configurations will cause an error if attempting to use them on a module
 /// that has already been loaded, while implicit configurations will be
 /// silently ignored in this case.
-class ExplicitConfiguration extends Configuration {
+final class ExplicitConfiguration extends Configuration {
   /// The node whose span indicates where the configuration was declared.
   final AstNode nodeWithSpan;
 

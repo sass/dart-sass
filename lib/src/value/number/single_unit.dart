@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../util/number.dart';
 import '../../utils.dart';
@@ -18,8 +17,11 @@ import '../number.dart';
 /// sets in this list.
 const _knownCompatibilities = [
   {
-    "em", "ex", "ch", "rem", "vw", "vh", "vmin", "vmax", "cm", "mm", "q", //
-    "in", "pt", "pc", "px"
+    "em", "rem", "ex", "rex", "cap", "rcap", "ch", "rch", "ic", "ric", "lh", //
+    "rlh", "vw", "lvw", "svw", "dvw", "vh", "lvh", "svh", "dvh", "vi", "lvi", //
+    "svi", "dvi", "vb", "lvb", "svb", "dvb", "vmin", "lvmin", "svmin", //
+    "dvmin", "vmax", "lvmax", "svmax", "dvmax", "cqw", "cqh", "cqi", "cqb", //
+    "cqmin", "cqmax", "cm", "mm", "q", "in", "pt", "pc", "px"
   },
   {"deg", "grad", "rad", "turn"},
   {"s", "ms"},
@@ -46,16 +48,17 @@ class SingleUnitSassNumber extends SassNumber {
   List<String> get denominatorUnits => const [];
 
   bool get hasUnits => true;
+  bool get hasComplexUnits => false;
 
   SingleUnitSassNumber(double value, this._unit,
-      [Tuple2<SassNumber, SassNumber>? asSlash])
+      [(SassNumber, SassNumber)? asSlash])
       : super.protected(value, asSlash);
 
   SassNumber withValue(num value) =>
       SingleUnitSassNumber(value.toDouble(), _unit);
 
   SassNumber withSlash(SassNumber numerator, SassNumber denominator) =>
-      SingleUnitSassNumber(value, _unit, Tuple2(numerator, denominator));
+      SingleUnitSassNumber(value, _unit, (numerator, denominator));
 
   bool hasUnit(String unit) => unit == _unit;
 

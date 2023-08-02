@@ -2,12 +2,13 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../interpolation_map.dart';
 import '../../logger.dart';
 import '../../parse/media_query.dart';
 import '../../utils.dart';
 
 /// A plain CSS media query, as used in `@media` and `@import`.
-class CssMediaQuery {
+final class CssMediaQuery {
   /// The modifier, probably either "not" or "only".
   ///
   /// This may be `null` if no modifier is in use.
@@ -43,8 +44,10 @@ class CssMediaQuery {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   static List<CssMediaQuery> parseList(String contents,
-          {Object? url, Logger? logger}) =>
-      MediaQueryParser(contents, url: url, logger: logger).parse();
+          {Object? url, Logger? logger, InterpolationMap? interpolationMap}) =>
+      MediaQueryParser(contents,
+              url: url, logger: logger, interpolationMap: interpolationMap)
+          .parse();
 
   /// Creates a media query specifies a type and, optionally, conditions.
   ///
@@ -194,25 +197,21 @@ class CssMediaQuery {
 ///
 /// This is either the singleton values [empty] or [unrepresentable], or an
 /// instance of [MediaQuerySuccessfulMergeResult].
-abstract class MediaQueryMergeResult {
+sealed class MediaQueryMergeResult {
   /// A singleton value indicating that there are no contexts that match both
   /// input queries.
-  static const empty = _SingletonCssMediaQueryMergeResult("empty");
+  static const empty = _SingletonCssMediaQueryMergeResult.empty;
 
   /// A singleton value indicating that the contexts that match both input
   /// queries can't be represented by a Level 3 media query.
   static const unrepresentable =
-      _SingletonCssMediaQueryMergeResult("unrepresentable");
+      _SingletonCssMediaQueryMergeResult.unrepresentable;
 }
 
 /// The subclass [MediaQueryMergeResult] that represents singleton enum values.
-class _SingletonCssMediaQueryMergeResult implements MediaQueryMergeResult {
-  /// The name of the result type.
-  final String _name;
-
-  const _SingletonCssMediaQueryMergeResult(this._name);
-
-  String toString() => _name;
+enum _SingletonCssMediaQueryMergeResult implements MediaQueryMergeResult {
+  empty,
+  unrepresentable;
 }
 
 /// A successful result of [CssMediaQuery.merge].

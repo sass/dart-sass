@@ -5,9 +5,7 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:tuple/tuple.dart';
 
-import '../ast/sass.dart';
 import '../exception.dart';
 import '../utils.dart';
 import '../value.dart';
@@ -24,7 +22,7 @@ import 'async_built_in.dart';
 ///
 /// {@category Compile}
 @sealed
-abstract class AsyncCallable {
+abstract interface class AsyncCallable {
   /// The callable's name.
   String get name;
 
@@ -50,8 +48,8 @@ abstract class AsyncCallable {
   factory AsyncCallable.fromSignature(
       String signature, FutureOr<Value> callback(List<Value> arguments),
       {bool requireParens = true}) {
-    Tuple2<String, ArgumentDeclaration> tuple =
+    var (name, declaration) =
         parseSignature(signature, requireParens: requireParens);
-    return AsyncBuiltInCallable.parsed(tuple.item1, tuple.item2, callback);
+    return AsyncBuiltInCallable.parsed(name, declaration, callback);
   }
 }

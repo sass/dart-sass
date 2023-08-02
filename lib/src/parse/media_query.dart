@@ -5,14 +5,17 @@
 import 'package:charcode/charcode.dart';
 
 import '../ast/css.dart';
+import '../interpolation_map.dart';
 import '../logger.dart';
 import '../utils.dart';
 import 'parser.dart';
 
 /// A parser for `@media` queries.
 class MediaQueryParser extends Parser {
-  MediaQueryParser(String contents, {Object? url, Logger? logger})
-      : super(contents, url: url, logger: logger);
+  MediaQueryParser(String contents,
+      {Object? url, Logger? logger, InterpolationMap? interpolationMap})
+      : super(contents,
+            url: url, logger: logger, interpolationMap: interpolationMap);
 
   List<CssMediaQuery> parse() {
     return wrapSpanFormatException(() {

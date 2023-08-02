@@ -10,7 +10,8 @@ import '../value.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssAtRule] for use in the evaluation step.
-class ModifiableCssAtRule extends ModifiableCssParentNode implements CssAtRule {
+final class ModifiableCssAtRule extends ModifiableCssParentNode
+    implements CssAtRule {
   final CssValue<String> name;
   final CssValue<String>? value;
   final bool isChildless;
@@ -21,6 +22,12 @@ class ModifiableCssAtRule extends ModifiableCssParentNode implements CssAtRule {
       : isChildless = childless;
 
   T accept<T>(ModifiableCssVisitor<T> visitor) => visitor.visitCssAtRule(this);
+
+  bool equalsIgnoringChildren(ModifiableCssNode other) =>
+      other is ModifiableCssAtRule &&
+      name == other.name &&
+      value == other.value &&
+      isChildless == other.isChildless;
 
   ModifiableCssAtRule copyWithoutChildren() =>
       ModifiableCssAtRule(name, span, childless: isChildless, value: value);

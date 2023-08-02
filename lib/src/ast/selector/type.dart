@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
+import 'package:source_span/source_span.dart';
 
 import '../../extend/functions.dart';
 import '../../visitor/interface/selector.dart';
@@ -13,26 +14,25 @@ import '../selector.dart';
 /// This selects elements whose name equals the given name.
 ///
 /// {@category AST}
-@sealed
-class TypeSelector extends SimpleSelector {
+final class TypeSelector extends SimpleSelector {
   /// The element name being selected.
   final QualifiedName name;
 
   int get specificity => 1;
 
-  TypeSelector(this.name);
+  TypeSelector(this.name, FileSpan span) : super(span);
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitTypeSelector(this);
 
   /// @nodoc
   @internal
   TypeSelector addSuffix(String suffix) => TypeSelector(
-      QualifiedName(name.name + suffix, namespace: name.namespace));
+      QualifiedName(name.name + suffix, namespace: name.namespace), span);
 
   /// @nodoc
   @internal
   List<SimpleSelector>? unify(List<SimpleSelector> compound) {
-    if (compound.first is UniversalSelector || compound.first is TypeSelector) {
+    if (compound.first case UniversalSelector() || TypeSelector()) {
       var unified = unifyUniversalAndElement(this, compound.first);
       if (unified == null) return null;
       return [unified, ...compound.skip(1)];

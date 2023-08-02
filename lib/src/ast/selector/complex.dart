@@ -3,12 +3,14 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
+import 'package:source_span/source_span.dart';
 
 import '../../extend/functions.dart';
 import '../../logger.dart';
 import '../../parse/selector.dart';
 import '../../utils.dart';
 import '../../visitor/interface/selector.dart';
+import '../css/value.dart';
 import '../selector.dart';
 
 /// A complex selector.
@@ -18,14 +20,13 @@ import '../selector.dart';
 ///
 /// {@category AST}
 /// {@category Parsing}
-@sealed
-class ComplexSelector extends Selector {
+final class ComplexSelector extends Selector {
   /// This selector's leading combinators.
   ///
   /// If this is empty, that indicates that it has no leading combinator. If
   /// it's more than one element, that means it's invalid CSS; however, we still
   /// support this for backwards-compatibility purposes.
-  final List<Combinator> leadingCombinators;
+  final List<CssValue<Combinator>> leadingCombinators;
 
   /// The components of this selector.
   ///
@@ -60,17 +61,20 @@ class ComplexSelector extends Selector {
   ///
   /// @nodoc
   @internal
-  CompoundSelector? get singleCompound => leadingCombinators.isEmpty &&
-          components.length == 1 &&
-          components.first.combinators.isEmpty
-      ? components.first.selector
-      : null;
+  CompoundSelector? get singleCompound {
+    if (leadingCombinators.isNotEmpty) return null;
+    return switch (components) {
+      [ComplexSelectorComponent(:var selector, combinators: [])] => selector,
+      _ => null
+    };
+  }
 
-  ComplexSelector(Iterable<Combinator> leadingCombinators,
-      Iterable<ComplexSelectorComponent> components,
+  ComplexSelector(Iterable<CssValue<Combinator>> leadingCombinators,
+      Iterable<ComplexSelectorComponent> components, FileSpan span,
       {this.lineBreak = false})
       : leadingCombinators = List.unmodifiable(leadingCombinators),
-        components = List.unmodifiable(components) {
+        components = List.unmodifiable(components),
+        super(span) {
     if (this.leadingCombinators.isEmpty && this.components.isEmpty) {
       throw ArgumentError(
           "leadingCombinators and components may not both be empty.");
@@ -109,22 +113,18 @@ class ComplexSelector extends Selector {
   ///
   /// @nodoc
   @internal
-  ComplexSelector withAdditionalCombinators(List<Combinator> combinators,
+  ComplexSelector withAdditionalCombinators(
+      List<CssValue<Combinator>> combinators,
       {bool forceLineBreak = false}) {
-    if (combinators.isEmpty) {
-      return this;
-    } else if (components.isEmpty) {
-      return ComplexSelector([...leadingCombinators, ...combinators], const [],
-          lineBreak: lineBreak || forceLineBreak);
-    } else {
-      return ComplexSelector(
-          leadingCombinators,
-          [
-            ...components.exceptLast,
-            components.last.withAdditionalCombinators(combinators)
-          ],
-          lineBreak: lineBreak || forceLineBreak);
-    }
+    if (combinators.isEmpty) return this;
+    return switch (components) {
+      [...var initial, var last] => ComplexSelector(leadingCombinators,
+          [...initial, last.withAdditionalCombinators(combinators)], span,
+          lineBreak: lineBreak || forceLineBreak),
+      [] => ComplexSelector(
+          [...leadingCombinators, ...combinators], const [], span,
+          lineBreak: lineBreak || forceLineBreak)
+    };
   }
 
   /// Returns a copy of `this` with an additional [component] added to the end.
@@ -132,11 +132,14 @@ class ComplexSelector extends Selector {
   /// If [forceLineBreak] is `true`, this will mark the new complex selector as
   /// having a line break.
   ///
+  /// The [span] is used for the new selector.
+  ///
   /// @nodoc
   @internal
-  ComplexSelector withAdditionalComponent(ComplexSelectorComponent component,
+  ComplexSelector withAdditionalComponent(
+          ComplexSelectorComponent component, FileSpan span,
           {bool forceLineBreak = false}) =>
-      ComplexSelector(leadingCombinators, [...components, component],
+      ComplexSelector(leadingCombinators, [...components, component], span,
           lineBreak: lineBreak || forceLineBreak);
 
   /// Returns a copy of `this` with [child]'s combinators added to the end.
@@ -144,30 +147,34 @@ class ComplexSelector extends Selector {
   /// If [child] has [leadingCombinators], they're appended to `this`'s last
   /// combinator. This does _not_ resolve parent selectors.
   ///
+  /// The [span] is used for the new selector.
+  ///
   /// If [forceLineBreak] is `true`, this will mark the new complex selector as
   /// having a line break.
   ///
   /// @nodoc
   @internal
-  ComplexSelector concatenate(ComplexSelector child,
+  ComplexSelector concatenate(ComplexSelector child, FileSpan span,
       {bool forceLineBreak = false}) {
     if (child.leadingCombinators.isEmpty) {
       return ComplexSelector(
-          leadingCombinators, [...components, ...child.components],
+          leadingCombinators, [...components, ...child.components], span,
           lineBreak: lineBreak || child.lineBreak || forceLineBreak);
-    } else if (components.isEmpty) {
-      return ComplexSelector(
-          [...leadingCombinators, ...child.leadingCombinators],
-          child.components,
-          lineBreak: lineBreak || child.lineBreak || forceLineBreak);
-    } else {
+    } else if (components case [...var initial, var last]) {
       return ComplexSelector(
           leadingCombinators,
           [
-            ...components.exceptLast,
-            components.last.withAdditionalCombinators(child.leadingCombinators),
+            ...initial,
+            last.withAdditionalCombinators(child.leadingCombinators),
             ...child.components
           ],
+          span,
+          lineBreak: lineBreak || child.lineBreak || forceLineBreak);
+    } else {
+      return ComplexSelector(
+          [...leadingCombinators, ...child.leadingCombinators],
+          child.components,
+          span,
           lineBreak: lineBreak || child.lineBreak || forceLineBreak);
     }
   }

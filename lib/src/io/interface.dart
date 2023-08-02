@@ -4,29 +4,11 @@
 
 import 'package:watcher/watcher.dart';
 
-/// An output sink that writes to this process's standard error.
-class Stderr {
-  /// Writes the string representation of [object] to standard error.
-  void write(Object object) {}
-
-  /// Writes the string representation of [object] to standard error, followed
-  /// by a newline.
-  ///
-  /// If [object] is `null`, just writes a newline.
-  void writeln([Object? object]) {}
-
-  /// Flushes any buffered text.
-  void flush() {}
-}
-
 /// An error thrown by [readFile].
 class FileSystemException {
   String get message => throw '';
   String? get path => throw '';
 }
-
-/// The standard error for the current process.
-Stderr get stderr => throw '';
 
 /// Whether the current process is running on Windows.
 bool get isWindows => throw '';
@@ -37,15 +19,22 @@ bool get isMacOS => throw '';
 /// Returns whether or not stdout is connected to an interactive terminal.
 bool get hasTerminal => throw '';
 
-/// Whether we're running as Node.JS.
+/// Whether we're running as JS (browser or Node.js).
+bool get isJS => throw '';
+
+/// Whether we're running as Node.js (not browser or Dart VM).
 bool get isNode => throw '';
+
+/// Whether we're running as browser (not Node.js or Dart VM).
+bool get isBrowser => throw '';
 
 /// Whether this process is connected to a terminal that supports ANSI escape
 /// sequences.
 bool get supportsAnsiEscapes => throw '';
 
-/// The current working directory.
-String get currentPath => throw '';
+/// Prints [message] (followed by a newline) to standard error or the
+/// equivalent.
+void printError(Object? message) => throw '';
 
 /// Reads the file at [path] as a UTF-8 encoded string.
 ///

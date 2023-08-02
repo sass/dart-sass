@@ -46,7 +46,7 @@ one above, the
    dependencies.
 
 3. [Install Node.js][]. This is only necessary if you're making changes to the
-  language or to Dart Sass's Node API.
+   language or to Dart Sass's Node API.
 
 [Install the Dart SDK]: https://www.dartlang.org/install
 [Install Node.js]: https://nodejs.org/en/download/
@@ -86,7 +86,7 @@ repository contains language tests that are shared among the main Sass
 implementations. Any new feature should be thoroughly tested there, and any bug
 should have a regression test added.
 
-[sass-spec]: http://github.com/sass/sass-spec
+[sass-spec]: https://github.com/sass/sass-spec
 
 To create a new spec:
 

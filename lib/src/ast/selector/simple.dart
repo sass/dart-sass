@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
+import 'package:source_span/source_span.dart';
 
 import '../../exception.dart';
 import '../../logger.dart';
@@ -26,7 +27,7 @@ final _subselectorPseudos = {
 ///
 /// {@category AST}
 /// {@category Parsing}
-abstract class SimpleSelector extends Selector {
+abstract base class SimpleSelector extends Selector {
   /// This selector's specificity.
   ///
   /// Specificity is represented in base 1000. The spec says this should be
@@ -34,7 +35,7 @@ abstract class SimpleSelector extends Selector {
   /// sequence will contain 1000 simple selectors.
   int get specificity => 1000;
 
-  SimpleSelector();
+  SimpleSelector(FileSpan span) : super(span);
 
   /// Parses a simple selector from [contents].
   ///
@@ -57,8 +58,8 @@ abstract class SimpleSelector extends Selector {
   ///
   /// @nodoc
   @internal
-  SimpleSelector addSuffix(String suffix) =>
-      throw SassScriptException('Invalid parent selector "$this"');
+  SimpleSelector addSuffix(String suffix) => throw MultiSpanSassException(
+      'Selector "$this" can\'t have a suffix', span, "outer selector", {});
 
   /// Returns the components of a [CompoundSelector] that matches only elements
   /// matched by both this and [compound].
@@ -73,12 +74,11 @@ abstract class SimpleSelector extends Selector {
   /// @nodoc
   @internal
   List<SimpleSelector>? unify(List<SimpleSelector> compound) {
-    if (compound.length == 1) {
-      var other = compound.first;
-      if (other is UniversalSelector ||
-          (other is PseudoSelector && (other.isHost || other.isHostContext))) {
-        return other.unify([this]);
-      }
+    if (compound case [var other]
+        when other is UniversalSelector ||
+            (other is PseudoSelector &&
+                (other.isHost || other.isHostContext))) {
+      return other.unify([this]);
     }
     if (compound.contains(this)) return compound;
 

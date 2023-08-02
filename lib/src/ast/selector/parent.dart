@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
+import 'package:source_span/source_span.dart';
 
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
@@ -13,8 +14,7 @@ import '../selector.dart';
 /// document.
 ///
 /// {@category AST}
-@sealed
-class ParentSelector extends SimpleSelector {
+final class ParentSelector extends SimpleSelector {
   /// The suffix that will be added to the parent selector after it's been
   /// resolved.
   ///
@@ -22,7 +22,7 @@ class ParentSelector extends SimpleSelector {
   /// indicating that the parent selector will not be modified.
   final String? suffix;
 
-  ParentSelector({this.suffix});
+  ParentSelector(FileSpan span, {this.suffix}) : super(span);
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitParentSelector(this);
 

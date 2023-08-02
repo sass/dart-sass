@@ -12,8 +12,7 @@ import '../import.dart';
 /// An import that will load a Sass file at runtime.
 ///
 /// {@category AST}
-@sealed
-class DynamicImport implements Import, SassDependency {
+final class DynamicImport implements Import, SassDependency {
   /// The URL of the file to import.
   ///
   /// If this is relative, it's relative to the containing file.

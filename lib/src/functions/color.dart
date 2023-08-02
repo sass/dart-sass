@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:collection/collection.dart';
 
 import '../callable.dart';
+import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
@@ -48,7 +49,8 @@ final global = UnmodifiableListView([
         space: ColorSpace.rgb, name: 'channels')
   }),
 
-  _function("invert", r"$color, $weight: 100%, $space: null", _invert),
+  _function("invert", r"$color, $weight: 100%, $space: null",
+      (arguments) => _invert(arguments, global: true)),
 
   // ### HSL
   _channelFunction("hue", (color) => color.hue, unit: 'deg', global: true),
@@ -92,7 +94,8 @@ final global = UnmodifiableListView([
   _function(
       "grayscale",
       r"$color",
-      (arguments) => arguments[0] is SassNumber
+      (arguments) => arguments[0] is SassNumber || arguments[0].isSpecialNumber
+          // Use the native CSS `grayscale` filter function.
           ? _functionString('grayscale', arguments)
           : _grayscale(arguments[0])),
 
@@ -101,13 +104,13 @@ final global = UnmodifiableListView([
     var degrees = _angleValue(arguments[1], "degrees");
 
     var suggestedValue = SassNumber(degrees, 'deg');
-    warn(
+    warnForDeprecation(
         "adjust-hue() is deprecated. Suggestion:\n"
         "\n"
         "color.adjust(\$color, \$hue: $suggestedValue)\n"
         "\n"
         "More info: https://sass-lang.com/d/color-functions",
-        deprecation: true);
+        Deprecation.colorFunctions);
 
     return color.changeHsl(hue: color.hue + degrees);
   }),
@@ -119,12 +122,12 @@ final global = UnmodifiableListView([
         lightness: (color.lightness + amount.valueInRange(0, 100, "amount"))
             .clamp(0, 100));
 
-    warn(
+    warnForDeprecation(
         "lighten() is deprecated. "
         "${_suggestScaleAndAdjust(color, amount.value, 'lightness')}\n"
         "\n"
         "More info: https://sass-lang.com/d/color-functions",
-        deprecation: true);
+        Deprecation.colorFunctions);
     return result;
   }),
 
@@ -135,17 +138,21 @@ final global = UnmodifiableListView([
         lightness: (color.lightness - amount.valueInRange(0, 100, "amount"))
             .clamp(0, 100));
 
-    warn(
+    warnForDeprecation(
         "darken() is deprecated. "
         "${_suggestScaleAndAdjust(color, -amount.value, 'lightness')}\n"
         "\n"
         "More info: https://sass-lang.com/d/color-functions",
-        deprecation: true);
+        Deprecation.colorFunctions);
     return result;
   }),
 
   BuiltInCallable.overloadedFunction("saturate", {
     r"$amount": (arguments) {
+      if (arguments[0] is SassNumber || arguments[0].isSpecialNumber) {
+        // Use the native CSS `saturate` filter function.
+        return _functionString("saturate", arguments);
+      }
       var number = arguments[0].assertNumber("amount");
       return SassString("saturate(${number.toCssString()})", quotes: false);
     },
@@ -156,12 +163,12 @@ final global = UnmodifiableListView([
           saturation: (color.saturation + amount.valueInRange(0, 100, "amount"))
               .clamp(0, 100));
 
-      warn(
+      warnForDeprecation(
           "saturate() is deprecated. "
           "${_suggestScaleAndAdjust(color, amount.value, 'saturation')}\n"
           "\n"
           "More info: https://sass-lang.com/d/color-functions",
-          deprecation: true);
+          Deprecation.colorFunctions);
       return result;
     }
   }),
@@ -173,12 +180,12 @@ final global = UnmodifiableListView([
         saturation: (color.saturation - amount.valueInRange(0, 100, "amount"))
             .clamp(0, 100));
 
-    warn(
+    warnForDeprecation(
         "desaturate() is deprecated. "
         "${_suggestScaleAndAdjust(color, -amount.value, 'saturation')}\n"
         "\n"
         "More info: https://sass-lang.com/d/color-functions",
-        deprecation: true);
+        Deprecation.colorFunctions);
     return result;
   }),
 
@@ -227,7 +234,8 @@ final global = UnmodifiableListView([
   }),
 
   _function("opacity", r"$color", (arguments) {
-    if (arguments[0] is SassNumber) {
+    if (arguments[0] is SassNumber || arguments[0].isSpecialNumber) {
+      // Use the native CSS `opacity` filter function.
       return _functionString("opacity", arguments);
     }
 
@@ -293,12 +301,12 @@ final module = BuiltInModule("color", functions: <Callable>[
   _function("invert", r"$color, $weight: 100%, $space: null", (arguments) {
     var result = _invert(arguments);
     if (result is SassString) {
-      warn(
+      warnForDeprecation(
           "Passing a number (${arguments[0]}) to color.invert() is "
           "deprecated.\n"
           "\n"
           "Recommendation: $result",
-          deprecation: true);
+          Deprecation.colorModuleCompat);
     }
     return result;
   }),
@@ -316,12 +324,12 @@ final module = BuiltInModule("color", functions: <Callable>[
   _function("grayscale", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
       var result = _functionString("grayscale", arguments.take(1));
-      warn(
+      warnForDeprecation(
           "Passing a number (${arguments[0]}) to color.grayscale() is "
           "deprecated.\n"
           "\n"
           "Recommendation: $result",
-          deprecation: true);
+          Deprecation.colorModuleCompat);
       return result;
     }
 
@@ -358,11 +366,11 @@ final module = BuiltInModule("color", functions: <Callable>[
           !argument.hasQuotes &&
           argument.text.contains(_microsoftFilterStart)) {
         var result = _functionString("alpha", arguments);
-        warn(
+        warnForDeprecation(
             "Using color.alpha() for a Microsoft filter is deprecated.\n"
             "\n"
             "Recommendation: $result",
-            deprecation: true);
+            Deprecation.colorModuleCompat);
         return result;
       }
 
@@ -376,11 +384,11 @@ final module = BuiltInModule("color", functions: <Callable>[
           argument.text.contains(_microsoftFilterStart))) {
         // Support the proprietary Microsoft alpha() function.
         var result = _functionString("alpha", arguments);
-        warn(
+        warnForDeprecation(
             "Using color.alpha() for a Microsoft filter is deprecated.\n"
             "\n"
             "Recommendation: $result",
-            deprecation: true);
+            Deprecation.colorModuleCompat);
         return result;
       }
 
@@ -393,12 +401,12 @@ final module = BuiltInModule("color", functions: <Callable>[
   _function("opacity", r"$color", (arguments) {
     if (arguments[0] is SassNumber) {
       var result = _functionString("opacity", arguments);
-      warn(
+      warnForDeprecation(
           "Passing a number (${arguments[0]} to color.opacity() is "
           "deprecated.\n"
           "\n"
           "Recommendation: $result",
-          deprecation: true);
+          Deprecation.colorModuleCompat);
       return result;
     }
 
@@ -541,16 +549,19 @@ final _complement =
 });
 
 /// The implementation of the `invert()` function.
-Value _invert(List<Value> arguments) {
+///
+/// If [global] is true, that indicates that this is being called from the
+/// global `invert()` function.
+Value _invert(List<Value> arguments, {bool global = false}) {
   var weightNumber = arguments[1].assertNumber("weight");
-  if (arguments[0] is SassNumber) {
+  if (arguments[0] is SassNumber || (global && arguments[0].isSpecialNumber)) {
     if (weightNumber.value != 100 || !weightNumber.hasUnit("%")) {
       throw "Only one argument may be passed to the plain-CSS invert() "
           "function.";
     }
 
-    var result = _functionString("invert", arguments.take(1));
-    return result;
+    // Use the native CSS `invert` filter function.
+    return _functionString("invert", arguments.take(1));
   }
 
   var color = arguments[0].assertColor("color");
@@ -809,7 +820,7 @@ double _adjustChannel(ColorSpace space, ColorChannel channel, double oldValue,
     // `_channelFromValue` expects alpha to be unitless or `%`, but we're still
     // in the deprecation period where we allow other values (and interpret `%`
     // as unitless) so we have to handle that ahead-of-time.
-    warn(
+    warnForDeprecation(
         "\$alpha: Passing a number with unit ${adjustmentArg.unitString} is "
         "deprecated.\n"
         "\n"
@@ -817,7 +828,7 @@ double _adjustChannel(ColorSpace space, ColorChannel channel, double oldValue,
         "${adjustmentArg.unitSuggestion('alpha')}\n"
         "\n"
         "More info: https://sass-lang.com/d/function-units",
-        deprecation: true);
+        Deprecation.functionUnits);
     adjustmentArg = SassNumber(adjustmentArg.value);
   }
 
@@ -958,13 +969,13 @@ double _angleValue(Value angleValue, String name) {
   var angle = angleValue.assertNumber(name);
   if (angle.compatibleWithUnit('deg')) return angle.coerceValueToUnit('deg');
 
-  warn(
+  warnForDeprecation(
       "\$$name: Passing a unit other than deg ($angle) is deprecated.\n"
       "\n"
       "To preserve current behavior: ${angle.unitSuggestion(name)}\n"
       "\n"
       "See https://sass-lang.com/d/function-units",
-      deprecation: true);
+      Deprecation.functionUnits);
   return angle.value;
 }
 
@@ -972,13 +983,13 @@ double _angleValue(Value angleValue, String name) {
 void _checkPercent(SassNumber number, String name) {
   if (number.hasUnit('%')) return;
 
-  warn(
+  warnForDeprecation(
       "\$$name: Passing a number without unit % ($number) is deprecated.\n"
       "\n"
       "To preserve current behavior: ${number.unitSuggestion(name, '%')}\n"
       "\n"
       "More info: https://sass-lang.com/d/function-units",
-      deprecation: true);
+      Deprecation.functionUnits);
 }
 
 /// Asserts that [number] is a percentage or has no units, and normalizes the
@@ -1058,12 +1069,12 @@ SassColor _opacify(String name, List<Value> arguments) {
       (color.alpha + amount.valueInRangeWithUnit(0, 1, "amount", ""))
           .clamp(0, 1));
 
-  warn(
+  warnForDeprecation(
       "$name() is deprecated. "
       "${_suggestScaleAndAdjust(color, amount.value, 'alpha')}\n"
       "\n"
       "More info: https://sass-lang.com/d/color-functions",
-      deprecation: true);
+      Deprecation.colorFunctions);
   return result;
 }
 
@@ -1075,12 +1086,12 @@ SassColor _transparentize(String name, List<Value> arguments) {
       (color.alpha - amount.valueInRangeWithUnit(0, 1, "amount", ""))
           .clamp(0, 1));
 
-  warn(
+  warnForDeprecation(
       "$name() is deprecated. "
       "${_suggestScaleAndAdjust(color, -amount.value, 'alpha')}\n"
       "\n"
       "More info: https://sass-lang.com/d/color-functions",
-      deprecation: true);
+      Deprecation.colorFunctions);
   return result;
 }
 
@@ -1131,31 +1142,29 @@ Value _parseChannels(String functionName, Value input,
 
   Value components;
   Value? alphaValue;
-  if (input.separator == ListSeparator.slash) {
-    if (inputList.length != 2) {
+  switch (inputList) {
+    case [var components_, var alphaValue_]
+        when input.separator == ListSeparator.slash:
+      components = components_;
+      alphaValue = alphaValue_;
+
+    case _ when input.separator == ListSeparator.slash:
       throw SassScriptException(
           "Only 2 slash-separated elements allowed, but ${inputList.length} "
           "${pluralize('was', inputList.length, plural: 'were')} passed.");
-    } else {
-      components = inputList[0];
-      alphaValue = inputList[1];
-    }
-  } else if (inputList.isEmpty) {
-    components = input;
-  } else {
-    components = input;
-    var last = inputList.last;
-    if (last is SassString && !last.hasQuotes && last.text.contains('/')) {
+
+    case []:
+      components = input;
+
+    case [..., SassString(hasQuotes: false, :var text)] when text.contains('/'):
       return _functionString(functionName, [input]);
-    } else if (last is SassNumber) {
-      var slash = last.asSlash;
-      if (slash != null) {
-        components = SassList(
-            [...inputList.take(inputList.length - 1), slash.item1],
-            ListSeparator.space);
-        alphaValue = slash.item2;
-      }
-    }
+
+    case [...var initial, SassNumber(asSlash: (var before, var after))]:
+      components = SassList([...initial, before], ListSeparator.space);
+      alphaValue = after;
+
+    case _:
+      components = input;
   }
 
   List<Value> channels;
@@ -1339,13 +1348,13 @@ BuiltInCallable _channelFunction(
   return _function(name, r"$color", (arguments) {
     var result = SassNumber(getter(arguments.first.assertColor("color")), unit);
 
-    warn(
+    warnForDeprecation(
         "${global ? '' : 'color.'}$name() is deprecated. Suggestion:\n"
         "\n"
         'color.channel(\$color, $name)\n'
         "\n"
         "More info: https://sass-lang.com/d/color-functions",
-        deprecation: true);
+        Deprecation.colorFunctions);
 
     return result;
   });

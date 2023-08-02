@@ -13,7 +13,8 @@ import 'comment.dart';
 import 'style_rule.dart';
 
 /// A statement in a plain CSS syntax tree.
-abstract class CssNode extends AstNode {
+@sealed
+abstract class CssNode implements AstNode {
   /// Whether this was generated from the last node in a nested Sass tree that
   /// got flattened during evaluation.
   bool get isGroupEnd;
@@ -43,12 +44,13 @@ abstract class CssNode extends AstNode {
   bool get isInvisibleHidingComments => accept(
       const _IsInvisibleVisitor(includeBogus: true, includeComments: true));
 
-  String toString() => serialize(this, inspect: true).css;
+  String toString() => serialize(this, inspect: true).$1;
 }
 
 // NOTE: New at-rule implementations should add themselves to [AtRootRule]'s
 // exclude logic.
 /// A [CssNode] that can have child statements.
+@sealed
 abstract class CssParentNode extends CssNode {
   /// The child statements of this node.
   List<CssNode> get children;
@@ -82,7 +84,7 @@ class _IsInvisibleVisitor with EveryCssVisitor {
 
   bool visitCssStyleRule(CssStyleRule rule) =>
       (includeBogus
-          ? rule.selector.value.isInvisible
-          : rule.selector.value.isInvisibleOtherThanBogusCombinators) ||
+          ? rule.selector.isInvisible
+          : rule.selector.isInvisibleOtherThanBogusCombinators) ||
       super.visitCssStyleRule(rule);
 }

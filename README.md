@@ -1,4 +1,4 @@
-A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
+A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun**.
 
 <table>
   <tr>
@@ -31,7 +31,9 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
   * [From Homebrew (macOS)](#from-homebrew-macos)
   * [Standalone](#standalone)
   * [From npm](#from-npm)
+    * [Dart Sass in the Browser](#dart-sass-in-the-browser)
     * [Legacy JavaScript API](#legacy-javascript-api)
+    * [Using Sass with Jest](#using-sass-with-jest)
   * [From Pub](#from-pub)
     * [`sass_api` Package](#sass_api-package)
   * [From Source](#from-source)
@@ -40,6 +42,8 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun again**.
 * [Compatibility Policy](#compatibility-policy)
   * [Browser Compatibility](#browser-compatibility)
   * [Node.js Compatibility](#nodejs-compatibility)
+* [Embedded Dart Sass](#embedded-dart-sass)
+  * [Usage](#usage)
 * [Behavioral Differences from Ruby Sass](#behavioral-differences-from-ruby-sass)
 
 ## Using Dart Sass
@@ -68,9 +72,9 @@ Sass. See [the CLI docs][cli] for details.
 
 [cli]: https://sass-lang.com/documentation/cli/dart-sass
 
-### From Homebrew (macOS)
+### From Homebrew (macOS or Linux)
 
-If you use [the Homebrew package manager](https://brew.sh/) for macOS, you
+If you use [the Homebrew package manager](https://brew.sh/), you
 can install Dart Sass by running
 
 ```sh
@@ -115,6 +119,92 @@ See [the Sass website][js api] for full API documentation.
 
 [js api]: https://sass-lang.com/documentation/js-api
 
+#### Dart Sass in the Browser
+
+The `sass` npm package can also be run directly in the browser. It's compatible
+with all major web bundlers as long as you disable renaming (such as
+[`--keep-names`] in esbuild). You can also import it directly from a browser as
+an ECMAScript Module without any bundling (assuming `node_modules` is served as
+well):
+
+[`--keep-names`]: https://esbuild.github.io/api/#keep-names
+
+```html
+<script type="importmap">
+  {
+    "imports": {
+      "immutable": "./node_modules/immutable/dist/immutable.es.js",
+      "sass": "./node_modules/sass/sass.default.js"
+    }
+  }
+</script>
+
+<!-- Support browsers like Safari 16.3 without import maps support. -->
+<script async src="https://unpkg.com/es-module-shims@^1.7.0" crossorigin="anonymous"></script>
+
+<script type="module">
+  import * as sass from 'sass';
+
+  console.log(sass.compileString(`
+    .box {
+      width: 10px + 15px;
+    }
+  `));
+</script>
+```
+
+Or from a CDN:
+
+```html
+<script type="importmap">
+  {
+    "imports": {
+      "immutable": "https://unpkg.com/immutable@^4.0.0",
+      "sass": "https://unpkg.com/sass@^1.63.0/sass.default.js"
+    }
+  }
+</script>
+
+<!-- Support browsers like Safari 16.3 without import maps support. -->
+<script async src="https://unpkg.com/es-module-shims@^1.7.0" crossorigin="anonymous"></script>
+
+<script type="module">
+  import * as sass from 'sass';
+
+  console.log(sass.compileString(`
+    .box {
+      width: 10px + 15px;
+    }
+  `));
+</script>
+```
+
+Or even bundled with all its dependencies:
+
+```html
+<script type="module">
+  import * as sass from 'https://jspm.dev/sass';
+
+  console.log(sass.compileString(`
+    .box {
+      width: 10px + 15px;
+    }
+  `));
+</script>
+```
+
+Since the browser doesn't have access to the filesystem, the [`compile()`] and
+`compileAsync()` functions aren't available for it. If you want to load other
+files, you'll need to pass a [custom importer] to [`compileString()`] or
+[`compileStringAsync()`]. The [legacy API] is also not supported in the browser.
+
+[`compile()`]: https://sass-lang.com/documentation/js-api/functions/compile
+[`compileAsync()`]: https://sass-lang.com/documentation/js-api/functions/compileAsync
+[custom importer]: https://sass-lang.com/documentation/js-api/interfaces/StringOptionsWithImporter#importer
+[`compileString()`]: https://sass-lang.com/documentation/js-api/functions/compileString
+[`compileStringAsync()`]: https://sass-lang.com/documentation/js-api/functions/compileStringAsync
+[legacy API]: #legacy-javascript-api
+
 #### Legacy JavaScript API
 
 Dart Sass also supports an older JavaScript API that's fully compatible with
@@ -123,8 +213,8 @@ Dart Sass also supports an older JavaScript API that's fully compatible with
 and will be removed in Dart Sass 2.0.0, so it should be avoided in new projects.
 
 [Node Sass]: https://github.com/sass/node-sass
-[`render()`]: https://sass-lang.com/documentation/js-api/modules#render
-[`renderSync()`]: https://sass-lang.com/documentation/js-api/modules#renderSync
+[`render()`]: https://sass-lang.com/documentation/js-api/functions/render
+[`renderSync()`]: https://sass-lang.com/documentation/js-api/functions/renderSync
 
 Sass's support for the legacy JavaScript API has the following limitations:
 
@@ -192,10 +282,19 @@ Assuming you've already checked out this repository:
    manually rather than using an installer, make sure the SDK's `bin` directory
    is on your `PATH`.
 
-2. In this repository, run `pub get`. This will install Dart Sass's
+2. [Install Buf]. This is used to build the protocol buffers for the [embedded
+   compiler].
+
+3. In this repository, run `dart pub get`. This will install Dart Sass's
    dependencies.
 
-3. Run `dart bin/sass.dart path/to/file.scss`.
+4. Run `dart run grinder protobuf`. This will download and build the embedded
+   protocol definition.
+
+5. Run `dart bin/sass.dart path/to/file.scss`.
+
+[Install Buf]: https://docs.buf.build/installation
+[embedded compiler]: #embedded-dart-sass
 
 That's it!
 
@@ -207,13 +306,20 @@ commands:
 ```Dockerfile
 # Dart stage
 FROM dart:stable AS dart
+FROM bufbuild/buf AS buf
 
+# Add your scss files
 COPY --from=another_stage /app /app
+
+# Include Protocol Buffer binary
+COPY --from=buf /usr/local/bin/buf /usr/local/bin/
 
 WORKDIR /dart-sass
 RUN git clone https://github.com/sass/dart-sass.git . && \
   dart pub get && \
-  dart ./bin/sass.dart /app/sass/example.scss /app/public/css/example.css
+  dart run grinder protobuf
+# This is where you run sass.dart on your scss file(s)
+RUN dart ./bin/sass.dart /app/sass/example.scss /app/public/css/example.css
 ```
 
 ## Why Dart?
@@ -298,6 +404,26 @@ Node.js release page][]. Once a Node.js version is out of LTS, Dart Sass
 considers itself free to break support if necessary.
 
 [the Node.js release page]: https://nodejs.org/en/about/releases/
+
+## Embedded Dart Sass
+
+Dart Sass includes an implementation of the compiler side of the [Embedded Sass
+protocol]. It's designed to be embedded in a host language, which then exposes
+an API for users to invoke Sass and define custom functions and importers.
+
+[Embedded Sass protocol]: https://github.com/sass/sass/blob/main/spec/embedded-protocol.md
+
+### Usage
+
+* `sass --embedded` starts the embedded compiler and listens on stdin.
+* `sass --embedded --version` prints `versionResponse` with `id = 0` in JSON and
+  exits.
+
+The `--embedded` command-line flag is not available when you install Dart Sass
+as an [npm package]. No other command-line flags are supported with
+`--embedded`.
+
+[npm package]: #from-npm
 
 ## Behavioral Differences from Ruby Sass
 

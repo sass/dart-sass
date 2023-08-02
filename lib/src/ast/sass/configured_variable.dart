@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../util/span.dart';
@@ -13,8 +12,7 @@ import 'node.dart';
 /// A variable configured by a `with` clause in a `@use` or `@forward` rule.
 ///
 /// {@category AST}
-@sealed
-class ConfiguredVariable implements SassNode, SassDeclaration {
+final class ConfiguredVariable implements SassNode, SassDeclaration {
   /// The name of the variable being configured.
   final String name;
 

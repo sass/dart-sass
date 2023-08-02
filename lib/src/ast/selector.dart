@@ -3,12 +3,15 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
+import 'package:source_span/source_span.dart';
 
+import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../visitor/any_selector.dart';
 import '../visitor/interface/selector.dart';
 import '../visitor/serialize.dart';
+import 'node.dart';
 import 'selector/complex.dart';
 import 'selector/list.dart';
 import 'selector/placeholder.dart';
@@ -38,7 +41,7 @@ export 'selector/universal.dart';
 /// Selectors have structural equality semantics.
 ///
 /// {@category AST}
-abstract class Selector {
+abstract base class Selector implements AstNode {
   /// Whether this selector, and complex selectors containing it, should not be
   /// emitted.
   ///
@@ -76,19 +79,23 @@ abstract class Selector {
   @internal
   bool get isUseless => accept(const _IsUselessVisitor());
 
+  final FileSpan span;
+
+  Selector(this.span);
+
   /// Prints a warning if [this] is a bogus selector.
   ///
   /// This may only be called from within a custom Sass function. This will
-  /// throw a [SassScriptException] in Dart Sass 2.0.0.
+  /// throw a [SassException] in Dart Sass 2.0.0.
   void assertNotBogus({String? name}) {
     if (!isBogus) return;
-    warn(
+    warnForDeprecation(
         (name == null ? '' : '\$$name: ') +
             '$this is not valid CSS.\n'
                 'This will be an error in Dart Sass 2.0.0.\n'
                 '\n'
                 'More info: https://sass-lang.com/d/bogus-combinators',
-        deprecation: true);
+        Deprecation.bogusCombinators);
   }
 
   /// Calls the appropriate visit method on [visitor].
@@ -114,16 +121,17 @@ class _IsInvisibleVisitor with AnySelectorVisitor {
   bool visitPlaceholderSelector(PlaceholderSelector placeholder) => true;
 
   bool visitPseudoSelector(PseudoSelector pseudo) {
-    var selector = pseudo.selector;
-    if (selector == null) return false;
-
-    // We don't consider `:not(%foo)` to be invisible because, semantically, it
-    // means "doesn't match this selector that matches nothing", so it's
-    // equivalent to *. If the entire compound selector is composed of `:not`s
-    // with invisible lists, the serializer emits it as `*`.
-    return pseudo.name == 'not'
-        ? (includeBogus && selector.isBogus)
-        : selector.accept(this);
+    if (pseudo.selector case var selector?) {
+      // We don't consider `:not(%foo)` to be invisible because, semantically,
+      // it means "doesn't match this selector that matches nothing", so it's
+      // equivalent to *. If the entire compound selector is composed of `:not`s
+      // with invisible lists, the serializer emits it as `*`.
+      return pseudo.name == 'not'
+          ? (includeBogus && selector.isBogus)
+          : selector.accept(this);
+    } else {
+      return false;
+    }
   }
 }
 

@@ -5,6 +5,7 @@
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
+import 'package:source_span/source_span.dart';
 
 import '../../utils.dart';
 import '../../util/nullable.dart';
@@ -19,8 +20,7 @@ import '../selector.dart';
 /// ensure that extension and other selector operations work properly.
 ///
 /// {@category AST}
-@sealed
-class PseudoSelector extends SimpleSelector {
+final class PseudoSelector extends SimpleSelector {
   /// The name of this selector.
   final String name;
 
@@ -104,11 +104,12 @@ class PseudoSelector extends SimpleSelector {
     }
   }();
 
-  PseudoSelector(this.name,
+  PseudoSelector(this.name, FileSpan span,
       {bool element = false, this.argument, this.selector})
       : isClass = !element && !_isFakePseudoElement(name),
         isSyntacticClass = !element,
-        normalizedName = unvendor(name);
+        normalizedName = unvendor(name),
+        super(span);
 
   /// Returns whether [name] is the name of a pseudo-element that can be written
   /// with pseudo-class syntax (`:before`, `:after`, `:first-line`, or
@@ -135,14 +136,15 @@ class PseudoSelector extends SimpleSelector {
 
   /// Returns a new [PseudoSelector] based on this, but with the selector
   /// replaced with [selector].
-  PseudoSelector withSelector(SelectorList selector) => PseudoSelector(name,
-      element: isElement, argument: argument, selector: selector);
+  PseudoSelector withSelector(SelectorList selector) =>
+      PseudoSelector(name, span,
+          element: isElement, argument: argument, selector: selector);
 
   /// @nodoc
   @internal
   PseudoSelector addSuffix(String suffix) {
     if (argument != null || selector != null) super.addSuffix(suffix);
-    return PseudoSelector(name + suffix, element: isElement);
+    return PseudoSelector(name + suffix, span, element: isElement);
   }
 
   /// @nodoc
@@ -154,12 +156,11 @@ class PseudoSelector extends SimpleSelector {
           (simple.isHost || simple.selector != null))) {
         return null;
       }
-    } else if (compound.length == 1) {
-      var other = compound.first;
-      if (other is UniversalSelector ||
-          (other is PseudoSelector && (other.isHost || other.isHostContext))) {
-        return other.unify([this]);
-      }
+    } else if (compound case [var other]
+        when other is UniversalSelector ||
+            (other is PseudoSelector &&
+                (other.isHost || other.isHostContext))) {
+      return other.unify([this]);
     }
 
     if (compound.contains(this)) return compound;
@@ -167,7 +168,7 @@ class PseudoSelector extends SimpleSelector {
     var result = <SimpleSelector>[];
     var addedThis = false;
     for (var simple in compound) {
-      if (simple is PseudoSelector && simple.isElement) {
+      if (simple case PseudoSelector(isElement: true)) {
         // A given compound selector may only contain one pseudo element. If
         // [compound] has a different one than [this], unification fails.
         if (isElement) return null;
@@ -200,7 +201,8 @@ class PseudoSelector extends SimpleSelector {
 
     // Fall back to the logic defined in functions.dart, which knows how to
     // compare selector pseudoclasses against raw selectors.
-    return CompoundSelector([this]).isSuperselector(CompoundSelector([other]));
+    return CompoundSelector([this], span)
+        .isSuperselector(CompoundSelector([other], span));
   }
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitPseudoSelector(this);

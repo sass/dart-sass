@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:meta/meta.dart';
+import 'package:source_span/source_span.dart';
 
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
@@ -14,20 +15,19 @@ import '../selector.dart';
 /// This selects elements whose `id` attribute exactly matches the given name.
 ///
 /// {@category AST}
-@sealed
-class IDSelector extends SimpleSelector {
+final class IDSelector extends SimpleSelector {
   /// The ID name this selects for.
   final String name;
 
   int get specificity => math.pow(super.specificity, 2) as int;
 
-  IDSelector(this.name);
+  IDSelector(this.name, FileSpan span) : super(span);
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitIDSelector(this);
 
   /// @nodoc
   @internal
-  IDSelector addSuffix(String suffix) => IDSelector(name + suffix);
+  IDSelector addSuffix(String suffix) => IDSelector(name + suffix, span);
 
   /// @nodoc
   @internal
