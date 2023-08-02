@@ -984,64 +984,73 @@ void main() {
         group("without alpha:", () {
           group("hue", () {
             test("0", () async {
-              expect(await _deprotofy(_hsl(0, 50, 50, 1.0)), "#bf4040");
+              expect(
+                  await _deprotofy(_hsl(0, 50, 50, 1.0)), "hsl(0, 50%, 50%)");
             });
 
             test("360", () async {
-              expect(await _deprotofy(_hsl(360, 50, 50, 1.0)), "#bf4040");
+              expect(
+                  await _deprotofy(_hsl(360, 50, 50, 1.0)), "hsl(0, 50%, 50%)");
             });
 
             test("below 0", () async {
-              expect(await _deprotofy(_hsl(-100, 50, 50, 1.0)), "#6a40bf");
+              expect(await _deprotofy(_hsl(-100, 50, 50, 1.0)),
+                  "hsl(260, 50%, 50%)");
             });
 
             test("between 0 and 360", () async {
-              expect(await _deprotofy(_hsl(100, 50, 50, 1.0)), "#6abf40");
+              expect(await _deprotofy(_hsl(100, 50, 50, 1.0)),
+                  "hsl(100, 50%, 50%)");
             });
 
             test("above 360", () async {
-              expect(await _deprotofy(_hsl(560, 50, 50, 1.0)), "#4095bf");
+              expect(await _deprotofy(_hsl(560, 50, 50, 1.0)),
+                  "hsl(200, 50%, 50%)");
             });
           });
 
           group("saturation", () {
             test("0", () async {
-              expect(await _deprotofy(_hsl(0, 0, 50, 1.0)), "gray");
+              expect(await _deprotofy(_hsl(0, 0, 50, 1.0)), "hsl(0, 0%, 50%)");
             });
 
             test("100", () async {
-              expect(await _deprotofy(_hsl(0, 100, 50, 1.0)), "red");
+              expect(
+                  await _deprotofy(_hsl(0, 100, 50, 1.0)), "hsl(0, 100%, 50%)");
             });
 
             test("in the middle", () async {
-              expect(await _deprotofy(_hsl(0, 42, 50, 1.0)), "#b54a4a");
+              expect(
+                  await _deprotofy(_hsl(0, 42, 50, 1.0)), "hsl(0, 42%, 50%)");
             });
           });
 
           group("lightness", () {
             test("0", () async {
-              expect(await _deprotofy(_hsl(0, 50, 0, 1.0)), "black");
+              expect(await _deprotofy(_hsl(0, 50, 0, 1.0)), "hsl(0, 50%, 0%)");
             });
 
             test("100", () async {
-              expect(await _deprotofy(_hsl(0, 50, 100, 1.0)), "white");
+              expect(
+                  await _deprotofy(_hsl(0, 50, 100, 1.0)), "hsl(0, 50%, 100%)");
             });
 
             test("in the middle", () async {
-              expect(await _deprotofy(_hsl(0, 50, 42, 1.0)), "#a13636");
+              expect(
+                  await _deprotofy(_hsl(0, 50, 42, 1.0)), "hsl(0, 50%, 42%)");
             });
           });
         });
 
         group("with alpha", () {
           test("0", () async {
-            expect(
-                await _deprotofy(_hsl(10, 20, 30, 0.0)), "rgba(92, 66, 61, 0)");
+            expect(await _deprotofy(_hsl(10, 20, 30, 0.0)),
+                "hsla(10, 20%, 30%, 0)");
           });
 
           test("between 0 and 1", () async {
             expect(await _deprotofy(_hsl(10, 20, 30, 0.123)),
-                "rgba(92, 66, 61, 0.123)");
+                "hsla(10, 20%, 30%, 0.123)");
           });
         });
       });
