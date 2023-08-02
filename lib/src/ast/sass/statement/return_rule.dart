@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -14,8 +13,7 @@ import '../statement.dart';
 /// This exits from the current function body with a return value.
 ///
 /// {@category AST}
-@sealed
-class ReturnRule implements Statement {
+final class ReturnRule implements Statement {
   /// The value to return from this function.
   final Expression expression;
 

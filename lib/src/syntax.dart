@@ -18,16 +18,11 @@ enum Syntax {
   css('CSS');
 
   /// Returns the default syntax to use for a file loaded from [path].
-  static Syntax forPath(String path) {
-    switch (p.extension(path)) {
-      case '.sass':
-        return Syntax.sass;
-      case '.css':
-        return Syntax.css;
-      default:
-        return Syntax.scss;
-    }
-  }
+  static Syntax forPath(String path) => switch (p.extension(path)) {
+        '.sass' => Syntax.sass,
+        '.css' => Syntax.css,
+        _ => Syntax.scss
+      };
 
   /// The name of the syntax.
   final String _name;

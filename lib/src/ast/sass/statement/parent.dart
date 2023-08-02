@@ -17,8 +17,7 @@ import 'variable_declaration.dart';
 /// not their children lists are nullable.
 ///
 /// {@category AST}
-@sealed
-abstract class ParentStatement<T extends List<Statement>?>
+abstract base class ParentStatement<T extends List<Statement>?>
     implements Statement {
   /// The child statements of this statement.
   final T children;
@@ -31,11 +30,14 @@ abstract class ParentStatement<T extends List<Statement>?>
   final bool hasDeclarations;
 
   ParentStatement(this.children)
-      : hasDeclarations = children?.any((child) =>
-                child is VariableDeclaration ||
-                child is FunctionRule ||
-                child is MixinRule ||
-                (child is ImportRule &&
-                    child.imports.any((import) => import is DynamicImport))) ??
+      : hasDeclarations = children?.any((child) => switch (child) {
+                  VariableDeclaration() ||
+                  FunctionRule() ||
+                  MixinRule() =>
+                    true,
+                  ImportRule(:var imports) =>
+                    imports.any((import) => import is DynamicImport),
+                  _ => false,
+                }) ??
             false;
 }

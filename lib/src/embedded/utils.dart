@@ -57,18 +57,12 @@ SourceSpan_SourceLocation _protofyLocation(SourceLocation location) =>
       ..column = location.column;
 
 /// Converts a protocol buffer syntax enum into a Sass API syntax enum.
-Syntax syntaxToSyntax(proto.Syntax syntax) {
-  switch (syntax) {
-    case proto.Syntax.SCSS:
-      return Syntax.scss;
-    case proto.Syntax.INDENTED:
-      return Syntax.sass;
-    case proto.Syntax.CSS:
-      return Syntax.css;
-    default:
-      throw "Unknown syntax $syntax.";
-  }
-}
+Syntax syntaxToSyntax(proto.Syntax syntax) => switch (syntax) {
+      proto.Syntax.SCSS => Syntax.scss,
+      proto.Syntax.INDENTED => Syntax.sass,
+      proto.Syntax.CSS => Syntax.css,
+      _ => throw "Unknown syntax $syntax."
+    };
 
 /// Returns the result of running [callback] with the global ASCII config set
 /// to [ascii].

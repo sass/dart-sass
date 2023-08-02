@@ -172,11 +172,11 @@ Promise _wrapAsyncSassExceptions(Promise promise,
             : jsThrow(error as Object)));
 
 /// Converts an output style string to an instance of [OutputStyle].
-OutputStyle _parseOutputStyle(String? style) {
-  if (style == null || style == 'expanded') return OutputStyle.expanded;
-  if (style == 'compressed') return OutputStyle.compressed;
-  jsThrow(JsError('Unknown output style "$style".'));
-}
+OutputStyle _parseOutputStyle(String? style) => switch (style) {
+      null || 'expanded' => OutputStyle.expanded,
+      'compressed' => OutputStyle.compressed,
+      _ => jsThrow(JsError('Unknown output style "$style".'))
+    };
 
 /// Converts [importer] into an [AsyncImporter] that can be used with
 /// [compileAsync] or [compileStringAsync].
@@ -184,21 +184,22 @@ AsyncImporter _parseAsyncImporter(Object? importer) {
   if (importer == null) jsThrow(JsError("Importers may not be null."));
 
   importer as NodeImporter;
-  var findFileUrl = importer.findFileUrl;
   var canonicalize = importer.canonicalize;
   var load = importer.load;
-  if (findFileUrl == null) {
-    if (canonicalize == null || load == null) {
-      jsThrow(JsError(
-          "An importer must have either canonicalize and load methods, or a "
-          "findFileUrl method."));
+  if (importer.findFileUrl case var findFileUrl?) {
+    if (canonicalize != null || load != null) {
+      jsThrow(
+          JsError("An importer may not have a findFileUrl method as well as "
+              "canonicalize and load methods."));
+    } else {
+      return JSToDartAsyncFileImporter(findFileUrl);
     }
-    return JSToDartAsyncImporter(canonicalize, load);
-  } else if (canonicalize != null || load != null) {
-    jsThrow(JsError("An importer may not have a findFileUrl method as well as "
-        "canonicalize and load methods."));
+  } else if (canonicalize == null || load == null) {
+    jsThrow(JsError(
+        "An importer must have either canonicalize and load methods, or a "
+        "findFileUrl method."));
   } else {
-    return JSToDartAsyncFileImporter(findFileUrl);
+    return JSToDartAsyncImporter(canonicalize, load);
   }
 }
 
@@ -207,21 +208,22 @@ Importer _parseImporter(Object? importer) {
   if (importer == null) jsThrow(JsError("Importers may not be null."));
 
   importer as NodeImporter;
-  var findFileUrl = importer.findFileUrl;
   var canonicalize = importer.canonicalize;
   var load = importer.load;
-  if (findFileUrl == null) {
-    if (canonicalize == null || load == null) {
-      jsThrow(JsError(
-          "An importer must have either canonicalize and load methods, or a "
-          "findFileUrl method."));
+  if (importer.findFileUrl case var findFileUrl?) {
+    if (canonicalize != null || load != null) {
+      jsThrow(
+          JsError("An importer may not have a findFileUrl method as well as "
+              "canonicalize and load methods."));
+    } else {
+      return JSToDartFileImporter(findFileUrl);
     }
-    return JSToDartImporter(canonicalize, load);
-  } else if (canonicalize != null || load != null) {
-    jsThrow(JsError("An importer may not have a findFileUrl method as well as "
-        "canonicalize and load methods."));
+  } else if (canonicalize == null || load == null) {
+    jsThrow(JsError(
+        "An importer must have either canonicalize and load methods, or a "
+        "findFileUrl method."));
   } else {
-    return JSToDartFileImporter(findFileUrl);
+    return JSToDartImporter(canonicalize, load);
   }
 }
 

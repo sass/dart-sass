@@ -3,8 +3,8 @@
 // https://opensource.org/licenses/MIT.
 
 import '../ast/selector.dart';
+import '../util/iterable.dart';
 import '../util/nullable.dart';
-import '../utils.dart';
 import 'interface/selector.dart';
 
 /// A [SelectorVisitor] whose `visit*` methods default to returning `null`, but

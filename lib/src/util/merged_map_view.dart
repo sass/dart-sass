@@ -47,12 +47,11 @@ class MergedMapView<K, V> extends MapBase<K, V> {
   V? operator [](Object? key) => _mapsByKey[key as K]?[key];
 
   operator []=(K key, V value) {
-    var child = _mapsByKey[key];
-    if (child == null) {
+    if (_mapsByKey[key] case var child?) {
+      child[key] = value;
+    } else {
       throw UnsupportedError("New entries may not be added to MergedMapView.");
     }
-
-    child[key] = value;
   }
 
   V? remove(Object? key) {

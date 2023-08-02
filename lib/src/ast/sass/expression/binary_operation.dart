@@ -13,8 +13,7 @@ import 'list.dart';
 /// A binary operator, as in `1 + 2` or `$this and $other`.
 ///
 /// {@category AST}
-@sealed
-class BinaryOperationExpression implements Expression {
+final class BinaryOperationExpression implements Expression {
   /// The operator being invoked.
   final BinaryOperator operator;
 
@@ -64,12 +63,14 @@ class BinaryOperationExpression implements Expression {
   String toString() {
     var buffer = StringBuffer();
 
-    var left = this.left; // Hack to make analysis work.
-    var leftNeedsParens = (left is BinaryOperationExpression &&
-            left.operator.precedence < operator.precedence) ||
-        (left is ListExpression &&
-            !left.hasBrackets &&
-            left.contents.length > 1);
+    // dart-lang/language#3064 and #3062 track potential ways of making this
+    // cleaner.
+    var leftNeedsParens = switch (left) {
+      BinaryOperationExpression(operator: BinaryOperator(:var precedence)) =>
+        precedence < operator.precedence,
+      ListExpression(hasBrackets: false, contents: [_, _, ...]) => true,
+      _ => false
+    };
     if (leftNeedsParens) buffer.writeCharCode($lparen);
     buffer.write(left);
     if (leftNeedsParens) buffer.writeCharCode($rparen);
@@ -79,12 +80,13 @@ class BinaryOperationExpression implements Expression {
     buffer.writeCharCode($space);
 
     var right = this.right; // Hack to make analysis work.
-    var rightNeedsParens = (right is BinaryOperationExpression &&
-            right.operator.precedence <= operator.precedence &&
-            !(right.operator == operator && operator.isAssociative)) ||
-        (right is ListExpression &&
-            !right.hasBrackets &&
-            right.contents.length > 1);
+    var rightNeedsParens = switch (right) {
+      BinaryOperationExpression(:var operator) =>
+        operator.precedence <= this.operator.precedence &&
+            !(operator == this.operator && operator.isAssociative),
+      ListExpression(hasBrackets: false, contents: [_, _, ...]) => true,
+      _ => false
+    };
     if (rightNeedsParens) buffer.writeCharCode($lparen);
     buffer.write(right);
     if (rightNeedsParens) buffer.writeCharCode($rparen);

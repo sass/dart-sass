@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/expression.dart';
@@ -16,8 +15,8 @@ import '../interpolation.dart';
 /// This is always a plain CSS function.
 ///
 /// {@category AST}
-@sealed
-class InterpolatedFunctionExpression implements Expression, CallableInvocation {
+final class InterpolatedFunctionExpression
+    implements Expression, CallableInvocation {
   /// The name of the function being invoked.
   final Interpolation name;
 

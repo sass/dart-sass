@@ -7,7 +7,7 @@ import '../../ast/css/modifiable.dart';
 /// An interface for [visitors][] that traverse CSS statements.
 ///
 /// [visitors]: https://en.wikipedia.org/wiki/Visitor_pattern
-abstract class ModifiableCssVisitor<T> {
+abstract interface class ModifiableCssVisitor<T> {
   T visitCssAtRule(ModifiableCssAtRule node);
   T visitCssComment(ModifiableCssComment node);
   T visitCssDeclaration(ModifiableCssDeclaration node);

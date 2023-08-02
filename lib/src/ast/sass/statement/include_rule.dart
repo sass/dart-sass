@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../util/span.dart';
@@ -16,8 +15,8 @@ import 'content_block.dart';
 /// A mixin invocation.
 ///
 /// {@category AST}
-@sealed
-class IncludeRule implements Statement, CallableInvocation, SassReference {
+final class IncludeRule
+    implements Statement, CallableInvocation, SassReference {
   /// The namespace of the mixin being invoked, or `null` if it's invoked
   /// without a namespace.
   final String? namespace;

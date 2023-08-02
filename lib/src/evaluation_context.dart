@@ -12,15 +12,17 @@ import 'deprecation.dart';
 ///
 /// This allows us to expose zone-scoped information without having to create a
 /// new zone variable for each piece of information.
-abstract class EvaluationContext {
+abstract interface class EvaluationContext {
   /// The current evaluation context.
   ///
   /// Throws [StateError] if there isn't a Sass stylesheet currently being
   /// evaluated.
   static EvaluationContext get current {
-    var context = Zone.current[#_evaluationContext];
-    if (context is EvaluationContext) return context;
-    throw StateError("No Sass stylesheet is currently being evaluated.");
+    if (Zone.current[#_evaluationContext] case EvaluationContext context) {
+      return context;
+    } else {
+      throw StateError("No Sass stylesheet is currently being evaluated.");
+    }
   }
 
   /// Returns the span for the currently executing callable.

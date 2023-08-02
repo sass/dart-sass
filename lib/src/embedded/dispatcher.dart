@@ -29,7 +29,7 @@ final _outboundRequestId = 0;
 
 /// A class that dispatches messages to and from the host for a single
 /// compilation.
-class Dispatcher {
+final class Dispatcher {
   /// The channel of encoded protocol buffers, connected to the host.
   final StreamChannel<Uint8List> _channel;
 

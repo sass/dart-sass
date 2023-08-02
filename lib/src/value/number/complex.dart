@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../value.dart';
 import '../number.dart';
@@ -24,6 +23,7 @@ class ComplexSassNumber extends SassNumber {
   final List<String> _denominatorUnits;
 
   bool get hasUnits => true;
+  bool get hasComplexUnits => true;
 
   ComplexSassNumber(
       double value, List<String> numeratorUnits, List<String> denominatorUnits)
@@ -31,7 +31,7 @@ class ComplexSassNumber extends SassNumber {
 
   ComplexSassNumber._(
       double value, this._numeratorUnits, this._denominatorUnits,
-      [Tuple2<SassNumber, SassNumber>? asSlash])
+      [(SassNumber, SassNumber)? asSlash])
       : super.protected(value, asSlash) {
     assert(numeratorUnits.length > 1 || denominatorUnits.isNotEmpty);
   }
@@ -52,6 +52,6 @@ class ComplexSassNumber extends SassNumber {
       ComplexSassNumber._(value.toDouble(), numeratorUnits, denominatorUnits);
 
   SassNumber withSlash(SassNumber numerator, SassNumber denominator) =>
-      ComplexSassNumber._(value, numeratorUnits, denominatorUnits,
-          Tuple2(numerator, denominator));
+      ComplexSassNumber._(
+          value, numeratorUnits, denominatorUnits, (numerator, denominator));
 }

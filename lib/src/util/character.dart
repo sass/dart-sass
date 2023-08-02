@@ -10,69 +10,79 @@ import 'package:charcode/charcode.dart';
 /// lowercase equivalents.
 const _asciiCaseBit = 0x20;
 
-/// Returns whether [character] is an ASCII whitespace character.
-bool isWhitespace(int? character) =>
-    isSpaceOrTab(character) || isNewline(character);
+// Define these checks as extension getters so they can be used in pattern
+// matches.
+extension CharacterExtension on int {
+  /// Returns whether [character] is a letter or number.
+  bool get isAlphanumeric => isAlphabetic || isDigit;
 
-/// Returns whether [character] is an ASCII newline.
-bool isNewline(int? character) =>
-    character == $lf || character == $cr || character == $ff;
+  /// Returns whether [character] is a letter.
+  bool get isAlphabetic =>
+      (this >= $a && this <= $z) || (this >= $A && this <= $Z);
 
-/// Returns whether [character] is a space or a tab character.
-bool isSpaceOrTab(int? character) => character == $space || character == $tab;
+  /// Returns whether [character] is a number.
+  bool get isDigit => this >= $0 && this <= $9;
 
-/// Returns whether [character] is a letter or number.
-bool isAlphanumeric(int character) =>
-    isAlphabetic(character) || isDigit(character);
+  /// Returns whether [character] is legal as the start of a Sass identifier.
+  bool get isNameStart => this == $_ || isAlphabetic || this >= 0x0080;
 
-/// Returns whether [character] is a letter.
-bool isAlphabetic(int character) =>
-    (character >= $a && character <= $z) ||
-    (character >= $A && character <= $Z);
+  /// Returns whether [character] is legal in the body of a Sass identifier.
+  bool get isName => isNameStart || isDigit || this == $minus;
 
-/// Returns whether [character] is a number.
-bool isDigit(int? character) =>
-    character != null && character >= $0 && character <= $9;
+  /// Returns whether [character] is the beginning of a UTF-16 surrogate pair.
+  bool get isHighSurrogate =>
+      // A character is a high surrogate exactly if it matches 0b110110XXXXXXXXXX.
+      // 0x36 == 0b110110.
+      this >> 10 == 0x36;
 
-/// Returns whether [character] is legal as the start of a Sass identifier.
-bool isNameStart(int character) =>
-    character == $_ || isAlphabetic(character) || character >= 0x0080;
+  /// Returns whether [character] is a Unicode private-use code point in the Basic
+  /// Multilingual Plane.
+  ///
+  /// See https://en.wikipedia.org/wiki/Private_Use_Areas for details.
+  bool get isPrivateUseBMP => this >= 0xE000 && this <= 0xF8FF;
 
-/// Returns whether [character] is legal in the body of a Sass identifier.
-bool isName(int character) =>
-    isNameStart(character) || isDigit(character) || character == $minus;
+  /// Returns whether [character] is the high surrogate for a code point in a
+  /// Unicode private-use supplementary plane.
+  ///
+  /// See https://en.wikipedia.org/wiki/Private_Use_Areas for details.
+  bool get isPrivateUseHighSurrogate =>
+      // Supplementary Private Use Area-A's and B's high surrogates range from
+      // 0xDB80 to 0xDBFF, which covers exactly the range 0b110110111XXXXXXX.
+      // 0b110110111 == 0x1B7.
+      this >> 7 == 0x1B7;
 
-/// Returns whether [character] is a hexadecimal digit.
-bool isHex(int? character) {
-  if (character == null) return false;
-  if (isDigit(character)) return true;
-  if (character >= $a && character <= $f) return true;
-  if (character >= $A && character <= $F) return true;
-  return false;
+  /// Returns whether [character] is a hexadecimal digit.
+  bool get isHex =>
+      isDigit || (this >= $a && this <= $f) || (this >= $A && this <= $F);
 }
 
-/// Returns whether [character] is the beginning of a UTF-16 surrogate pair.
-bool isHighSurrogate(int character) =>
-    // A character is a high surrogate exactly if it matches 0b110110XXXXXXXXXX.
-    // 0x36 == 0b110110.
-    character >> 10 == 0x36;
+// Like [CharacterExtension], but these are defined on nullable ints because
+// they only use equality comparisons.
+//
+// This also extends a few [CharacterExtension] getters to return `false` for
+// null values.
+extension NullableCharacterExtension on int? {
+  /// Returns whether [character] is an ASCII whitespace character.
+  bool get isWhitespace => isSpaceOrTab || isNewline;
 
-/// Returns whether [character] is a Unicode private-use code point in the Basic
-/// Multilingual Plane.
-///
-/// See https://en.wikipedia.org/wiki/Private_Use_Areas for details.
-bool isPrivateUseBMP(int character) =>
-    character >= 0xE000 && character <= 0xF8FF;
+  /// Returns whether [character] is an ASCII newline.
+  bool get isNewline => this == $lf || this == $cr || this == $ff;
 
-/// Returns whether [character] is the high surrogate for a code point in a
-/// Unicode private-use supplementary plane.
-///
-/// See https://en.wikipedia.org/wiki/Private_Use_Areas for details.
-bool isPrivateUseHighSurrogate(int character) =>
-    // Supplementary Private Use Area-A's and B's high surrogates range from
-    // 0xDB80 to 0xDBFF, which covers exactly the range 0b110110111XXXXXXX.
-    // 0b110110111 == 0x1B7.
-    character >> 7 == 0x1B7;
+  /// Returns whether [character] is a space or a tab character.
+  bool get isSpaceOrTab => this == $space || this == $tab;
+
+  /// Returns whether [character] is a number.
+  bool get isDigit {
+    var self = this;
+    return self != null && self.isDigit;
+  }
+
+  /// Returns whether [character] is a hexadecimal digit.
+  bool get isHex {
+    var self = this;
+    return self != null && self.isHex;
+  }
+}
 
 /// Combines a UTF-16 high and low surrogate pair into a single code unit.
 ///
@@ -104,10 +114,15 @@ bool isPrivate(String identifier) {
 ///
 /// Assumes that [character] is a hex digit.
 int asHex(int character) {
-  assert(isHex(character));
-  if (character <= $9) return character - $0;
-  if (character <= $F) return 10 + character - $A;
-  return 10 + character - $a;
+  assert(character.isHex);
+  return switch (character) {
+    // dart-lang/sdk#52740
+    // ignore: non_constant_relational_pattern_expression
+    <= $9 => character - $0,
+    // ignore: non_constant_relational_pattern_expression
+    <= $F => 10 + character - $A,
+    _ => 10 + character - $a
+  };
 }
 
 /// Returns the hexadecimal digit for [number].
@@ -136,19 +151,13 @@ int decimalCharFor(int number) {
 
 /// Assumes that [character] is a left-hand brace-like character, and returns
 /// the right-hand version.
-int opposite(int character) {
-  switch (character) {
-    case $lparen:
-      return $rparen;
-    case $lbrace:
-      return $rbrace;
-    case $lbracket:
-      return $rbracket;
-    default:
-      throw ArgumentError(
-          '"${String.fromCharCode(character)}" isn\'t a brace-like character.');
-  }
-}
+int opposite(int character) => switch (character) {
+      $lparen => $rparen,
+      $lbrace => $rbrace,
+      $lbracket => $rbracket,
+      _ => throw ArgumentError(
+          '"${String.fromCharCode(character)}" isn\'t a brace-like character.')
+    };
 
 /// Returns [character], converted to upper case if it's an ASCII lowercase
 /// letter.

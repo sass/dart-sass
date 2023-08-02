@@ -9,6 +9,8 @@
 
   [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
 
+* Include protocol buffer definitions when uploading the `sass` package to pub.
+
 ### JS API
 
 * Deprecate explicitly passing `null` as the alpha channel for `new
@@ -23,9 +25,7 @@
 
 ## 1.64.2
 
-### Dart API
-
-* Include protocol buffer definitions when uploading the `sass` package to pub.
+* No user-visible changes.
 
 ## 1.64.1
 

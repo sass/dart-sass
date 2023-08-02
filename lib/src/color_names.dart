@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'value.dart';
+import 'util/map.dart';
 
 /// A map from (lowercase) color names to their color values.
 final colorsByName = {
@@ -161,5 +162,5 @@ final colorsByName = {
 
 /// A map from Sass colors to (lowercase) color names.
 final namesByColor = {
-  for (var entry in colorsByName.entries) entry.value: entry.key
+  for (var (name, color) in colorsByName.pairs) color: name
 };

@@ -16,8 +16,7 @@ import '../selector.dart';
 /// emitting a CSS document.
 ///
 /// {@category AST}
-@sealed
-class PlaceholderSelector extends SimpleSelector {
+final class PlaceholderSelector extends SimpleSelector {
   /// The name of the placeholder.
   final String name;
 

@@ -4,6 +4,7 @@
 
 import 'package:js/js.dart';
 
+import '../../../util/map.dart';
 import '../../../value.dart';
 import '../../reflection.dart';
 import '../value.dart';
@@ -39,14 +40,14 @@ final JSClass legacyMapClass = createJSClass('sass.types.Map',
       var newKey = unwrapValue(key);
       var newMap = <Value, Value>{};
       var i = 0;
-      for (var oldEntry in thisArg.dartValue.contents.entries) {
+      for (var (oldKey, oldValue) in thisArg.dartValue.contents.pairs) {
         if (i == index) {
-          newMap[newKey] = oldEntry.value;
+          newMap[newKey] = oldValue;
         } else {
-          if (newKey == oldEntry.key) {
+          if (newKey == oldKey) {
             throw ArgumentError.value(key, 'key', "is already in the map");
           }
-          newMap[oldEntry.key] = oldEntry.value;
+          newMap[oldKey] = oldValue;
         }
         i++;
       }

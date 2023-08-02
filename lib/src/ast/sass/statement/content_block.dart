@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -13,8 +12,7 @@ import 'callable_declaration.dart';
 /// An anonymous block of code that's invoked for a [ContentRule].
 ///
 /// {@category AST}
-@sealed
-class ContentBlock extends CallableDeclaration {
+final class ContentBlock extends CallableDeclaration {
   ContentBlock(ArgumentDeclaration arguments, Iterable<Statement> children,
       FileSpan span)
       : super("@content", arguments, children, span);

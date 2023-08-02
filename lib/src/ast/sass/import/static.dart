@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../import.dart';
@@ -11,8 +10,7 @@ import '../interpolation.dart';
 /// An import that produces a plain CSS `@import` rule.
 ///
 /// {@category AST}
-@sealed
-class StaticImport implements Import {
+final class StaticImport implements Import {
   /// The URL for this import.
   ///
   /// This already contains quotes.

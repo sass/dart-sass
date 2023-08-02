@@ -14,8 +14,7 @@ import '../selector.dart';
 /// the given name.
 ///
 /// {@category AST}
-@sealed
-class ClassSelector extends SimpleSelector {
+final class ClassSelector extends SimpleSelector {
   /// The class name this selects for.
   final String name;
 

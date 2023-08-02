@@ -86,7 +86,7 @@ enum Deprecation {
   /// For deprecations that have existed in all versions of Dart Sass, this
   /// should be 0.0.0. For deprecations not related to a specific Sass version,
   /// this should be null.
-  Version? get deprecatedIn => _deprecatedIn?.andThen(Version.parse);
+  Version? get deprecatedIn => _deprecatedIn.andThen(Version.parse);
 
   /// A description of this deprecation that will be displayed in the CLI usage.
   ///
@@ -121,8 +121,7 @@ enum Deprecation {
     var range = VersionRange(max: version, includeMax: true);
     return {
       for (var deprecation in Deprecation.values)
-        if (deprecation.deprecatedIn?.andThen(range.allows) ?? false)
-          deprecation
+        if (deprecation.deprecatedIn.andThen(range.allows) ?? false) deprecation
     };
   }
 }

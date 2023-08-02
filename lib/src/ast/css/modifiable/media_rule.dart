@@ -11,7 +11,7 @@ import '../media_rule.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssMediaRule] for use in the evaluation step.
-class ModifiableCssMediaRule extends ModifiableCssParentNode
+final class ModifiableCssMediaRule extends ModifiableCssParentNode
     implements CssMediaRule {
   final List<CssMediaQuery> queries;
   final FileSpan span;

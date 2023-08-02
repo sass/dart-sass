@@ -3,10 +3,11 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../interpolation_buffer.dart';
+// dart-lang/sdk#52535
+// ignore: unused_import
 import '../../../util/character.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
@@ -15,8 +16,7 @@ import '../interpolation.dart';
 /// A string literal.
 ///
 /// {@category AST}
-@sealed
-class StringExpression implements Expression {
+final class StringExpression implements Expression {
   /// Interpolation that, when evaluated, produces the contents of this string.
   ///
   /// Unlike [asInterpolation], escapes are resolved and quotes are not
@@ -65,10 +65,11 @@ class StringExpression implements Expression {
     buffer.writeCharCode(quote);
     for (var value in text.contents) {
       assert(value is Expression || value is String);
-      if (value is Expression) {
-        buffer.add(value);
-      } else if (value is String) {
-        _quoteInnerText(value, quote, buffer, static: static);
+      switch (value) {
+        case Expression():
+          buffer.add(value);
+        case String():
+          _quoteInnerText(value, quote, buffer, static: static);
       }
     }
     buffer.writeCharCode(quote);
@@ -84,27 +85,28 @@ class StringExpression implements Expression {
   static void _quoteInnerText(String text, int quote, StringSink buffer,
       {bool static = false}) {
     for (var i = 0; i < text.length; i++) {
-      var codeUnit = text.codeUnitAt(i);
-
-      if (isNewline(codeUnit)) {
-        buffer.writeCharCode($backslash);
-        buffer.writeCharCode($a);
-        if (i != text.length - 1) {
-          var next = text.codeUnitAt(i + 1);
-          if (isWhitespace(next) || isHex(next)) {
-            buffer.writeCharCode($space);
-          }
-        }
-      } else {
-        if (codeUnit == quote ||
-            codeUnit == $backslash ||
-            (static &&
-                codeUnit == $hash &&
-                i < text.length - 1 &&
-                text.codeUnitAt(i + 1) == $lbrace)) {
+      switch (text.codeUnitAt(i)) {
+        case int(isNewline: true):
           buffer.writeCharCode($backslash);
-        }
-        buffer.writeCharCode(codeUnit);
+          buffer.writeCharCode($a);
+          if (i != text.length - 1) {
+            if (text.codeUnitAt(i + 1)
+                case int(isWhitespace: true) || int(isHex: true)) {
+              buffer.writeCharCode($space);
+            }
+          }
+
+        case $backslash && var codeUnit:
+        case var codeUnit when codeUnit == quote:
+        case $hash && var codeUnit
+            when static &&
+                i < text.length - 1 &&
+                text.codeUnitAt(i + 1) == $lbrace:
+          buffer.writeCharCode($backslash);
+          buffer.writeCharCode(codeUnit);
+
+        case var codeUnit:
+          buffer.writeCharCode(codeUnit);
       }
     }
   }
@@ -114,8 +116,7 @@ class StringExpression implements Expression {
   static int _bestQuote(Iterable<String> strings) {
     var containsDoubleQuote = false;
     for (var value in strings) {
-      for (var i = 0; i < value.length; i++) {
-        var codeUnit = value.codeUnitAt(i);
+      for (var codeUnit in value.codeUnits) {
         if (codeUnit == $single_quote) return $double_quote;
         if (codeUnit == $double_quote) containsDoubleQuote = true;
       }

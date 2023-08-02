@@ -41,8 +41,7 @@ void render(
   if (!isNode) {
     jsThrow(JsError("The render() method is only available in Node.js."));
   }
-  var fiber = options.fiber;
-  if (fiber != null) {
+  if (options.fiber case var fiber?) {
     fiber.call(allowInterop(() {
       try {
         callback(null, renderSync(options));
@@ -72,9 +71,8 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
   var start = DateTime.now();
   CompileResult result;
 
-  var data = options.data;
   var file = options.file.andThen(p.absolute);
-  if (data != null) {
+  if (options.data case var data?) {
     result = await compileStringAsync(data,
         nodeImporter: _parseImporter(options, start),
         functions: _parseFunctions(options, start, asynch: true),
@@ -126,9 +124,8 @@ RenderResult renderSync(RenderOptions options) {
     var start = DateTime.now();
     CompileResult result;
 
-    var data = options.data;
     var file = options.file.andThen(p.absolute);
-    if (data != null) {
+    if (options.data case var data?) {
       result = compileString(data,
           nodeImporter: _parseImporter(options, start),
           functions: _parseFunctions(options, start).cast(),
@@ -175,15 +172,11 @@ RenderResult renderSync(RenderOptions options) {
 /// Converts an exception to a [JsError].
 JsError _wrapException(Object exception, StackTrace stackTrace) {
   if (exception is SassException) {
-    String file;
-    var url = exception.span.sourceUrl;
-    if (url == null) {
-      file = 'stdin';
-    } else if (url.scheme == 'file') {
-      file = p.fromUri(url);
-    } else {
-      file = url.toString();
-    }
+    var file = switch (exception.span.sourceUrl) {
+      null => 'stdin',
+      Uri(scheme: 'file') && var url => p.fromUri(url),
+      var url => url.toString()
+    };
 
     return _newRenderError(exception.toString().replaceFirst("Error: ", ""),
         getTrace(exception) ?? stackTrace,
@@ -213,8 +206,7 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
     var context = RenderContext(options: _contextOptions(options, start));
     context.options.context = context;
 
-    var fiber = options.fiber;
-    if (fiber != null) {
+    if (options.fiber case var fiber?) {
       result.add(Callable.fromSignature(signature.trimLeft(), (arguments) {
         var currentFiber = fiber.current;
         var jsArguments = [
@@ -259,20 +251,16 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
 /// Parses [importer] and [includePaths] from [RenderOptions] into a
 /// [NodeImporter].
 NodeImporter _parseImporter(RenderOptions options, DateTime start) {
-  List<JSFunction> importers;
-  if (options.importer == null) {
-    importers = [];
-  } else if (options.importer is List<Object?>) {
-    importers = (options.importer as List<Object?>).cast();
-  } else {
-    importers = [options.importer as JSFunction];
-  }
+  var importers = switch (options.importer) {
+    null => <JSFunction>[],
+    List<Object?> importers => importers.cast<JSFunction>(),
+    var importer => [importer as JSFunction],
+  };
 
   var contextOptions =
       importers.isNotEmpty ? _contextOptions(options, start) : Object();
 
-  var fiber = options.fiber;
-  if (fiber != null) {
+  if (options.fiber case var fiber?) {
     importers = importers.map((importer) {
       return allowInteropCaptureThis(
           (Object thisArg, String url, String previous, [Object? _]) {
@@ -317,31 +305,26 @@ RenderContextOptions _contextOptions(RenderOptions options, DateTime start) {
 }
 
 /// Parse [style] into an [OutputStyle].
-OutputStyle _parseOutputStyle(String? style) {
-  if (style == null || style == 'expanded') return OutputStyle.expanded;
-  if (style == 'compressed') return OutputStyle.compressed;
-  throw ArgumentError('Unsupported output style "$style".');
-}
+OutputStyle _parseOutputStyle(String? style) => switch (style) {
+      null || 'expanded' => OutputStyle.expanded,
+      'compressed' => OutputStyle.compressed,
+      _ => jsThrow(JsError('Unknown output style "$style".'))
+    };
 
 /// Parses the indentation width into an [int].
-int? _parseIndentWidth(Object? width) {
-  if (width == null) return null;
-  return width is int ? width : int.parse(width.toString());
-}
+int? _parseIndentWidth(Object? width) => switch (width) {
+      null => null,
+      int() => width,
+      _ => int.parse(width.toString())
+    };
 
 /// Parses the name of a line feed type into a [LineFeed].
-LineFeed _parseLineFeed(String? str) {
-  switch (str) {
-    case 'cr':
-      return LineFeed.cr;
-    case 'crlf':
-      return LineFeed.crlf;
-    case 'lfcr':
-      return LineFeed.lfcr;
-    default:
-      return LineFeed.lf;
-  }
-}
+LineFeed _parseLineFeed(String? str) => switch (str) {
+      'cr' => LineFeed.cr,
+      'crlf' => LineFeed.crlf,
+      'lfcr' => LineFeed.lfcr,
+      _ => LineFeed.lf
+    };
 
 /// Creates a [RenderResult] that exposes [result] in the Node Sass API format.
 RenderResult _newRenderResult(
@@ -363,12 +346,10 @@ RenderResult _newRenderResult(
     sourceMap.sourceRoot = options.sourceMapRoot;
     var outFile = options.outFile;
     if (outFile == null) {
-      var file = options.file;
-      if (file == null) {
-        sourceMap.targetUrl = 'stdin.css';
-      } else {
-        sourceMap.targetUrl = p.toUri(p.setExtension(file, '.css')).toString();
-      }
+      sourceMap.targetUrl = switch (options.file) {
+        var file? => p.toUri(p.setExtension(file, '.css')).toString(),
+        _ => sourceMap.targetUrl = 'stdin.css'
+      };
     } else {
       sourceMap.targetUrl =
           p.toUri(p.relative(outFile, from: sourceMapDir)).toString();
@@ -412,7 +393,7 @@ RenderResult _newRenderResult(
           duration: end.difference(start).inMilliseconds,
           includedFiles: [
             for (var url in result.loadedUrls)
-              if (url.scheme == 'file') p.fromUri(url) else url.toString()
+              url.scheme == 'file' ? p.fromUri(url) : url.toString()
           ]));
 }
 

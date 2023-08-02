@@ -4,7 +4,6 @@
 
 import 'dart:isolate';
 
-import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
@@ -19,6 +18,7 @@ import 'package:sass/src/io.dart';
 import 'package:sass/src/io.dart' as io;
 import 'package:sass/src/logger/deprecation_handling.dart';
 import 'package:sass/src/stylesheet_graph.dart';
+import 'package:sass/src/util/map.dart';
 import 'package:sass/src/utils.dart';
 import 'package:sass/src/embedded/executable.dart'
     // Never load the embedded protocol when compiling to JS.
@@ -47,8 +47,8 @@ Future<void> main(List<String> args) async {
     io.printError(buffer);
   }
 
-  if (args.firstOrNull == '--embedded') {
-    embedded.main(args.sublist(1));
+  if (args case ['--embedded', ...var rest]) {
+    embedded.main(rest);
     return;
   }
 
@@ -84,25 +84,14 @@ Future<void> main(List<String> args) async {
       return;
     }
 
-    for (var source in options.sourcesToDestinations.keys) {
-      var destination = options.sourcesToDestinations[source];
+    for (var (source, destination) in options.sourcesToDestinations.pairs) {
       try {
         await compileStylesheet(options, graph, source, destination,
             ifModified: options.update);
       } on SassException catch (error, stackTrace) {
-        // This is an immediately-invoked function expression to work around
-        // dart-lang/sdk#33400.
-        () {
-          try {
-            if (destination != null &&
-                // dart-lang/sdk#45348
-                !options!.emitErrorCss) {
-              deleteFile(destination);
-            }
-          } on FileSystemException {
-            // If the file doesn't exist, that's fine.
-          }
-        }();
+        if (destination != null && !options.emitErrorCss) {
+          _tryDelete(destination);
+        }
 
         printError(error.toString(color: options.color),
             options.trace ? getTrace(error) ?? stackTrace : null);
@@ -134,9 +123,9 @@ Future<void> main(List<String> args) async {
     exitCode = 64;
   } catch (error, stackTrace) {
     var buffer = StringBuffer();
-    if (options != null && options.color) buffer.write('\u001b[31m\u001b[1m');
+    if (options?.color ?? false) buffer.write('\u001b[31m\u001b[1m');
     buffer.write('Unexpected exception:');
-    if (options != null && options.color) buffer.write('\u001b[0m');
+    if (options?.color ?? false) buffer.write('\u001b[0m');
     buffer.writeln();
     buffer.writeln(error);
 
@@ -164,4 +153,15 @@ Future<String> _loadVersion() async {
       .firstWhere((line) => line.startsWith('version: '))
       .split(" ")
       .last;
+}
+
+/// Delete [path] if it exists and do nothing otherwise.
+///
+/// This is a separate function to work around dart-lang/sdk#53082.
+void _tryDelete(String path) {
+  try {
+    deleteFile(path);
+  } on FileSystemException {
+    // If the file doesn't exist, that's fine.
+  }
 }
