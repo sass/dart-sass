@@ -1,10 +1,15 @@
 ## 1.65.0
 
+* **Breaking change**: Passing a number with unit `%` to the `$alpha` parameter
+  of `color.change()`, `color.adjust()`, `change-color()`, and `adjust-color()`
+  is now interpreted as a percentage, instead of ignoring the unit. For example,
+  `color.change(red, $alpha: 50%)` now returns `rgb(255 0 0 / 0.5)`.
+
 * Add support for CSS Color Level 4 [color spaces]. Each color value now tracks
   its color space along with the values of each channel in that color space.
   There are two general principles to keep in mind when dealing with new color
   spaces:
-  
+
   1. With the exception of legacy color spaces (`rgb`, `hsl`, and `hwb`), colors
      will always be emitted in the color space they were defined in unless
      they're explicitly converted.

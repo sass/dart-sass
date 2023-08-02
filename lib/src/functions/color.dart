@@ -728,8 +728,24 @@ SassColor _changeColor(
       channelArgs[0] ?? SassNumber(color.channel0),
       channelArgs[1] ?? SassNumber(color.channel1, latterUnits),
       channelArgs[2] ?? SassNumber(color.channel2, latterUnits),
-      alphaArg.andThen(
-              (alphaArg) => _percentageOrUnitless(alphaArg, 1, 'alpha')) ??
+      alphaArg.andThen((alphaArg) {
+            if (!alphaArg.hasUnits) {
+              return alphaArg.value;
+            } else if (alphaArg.hasUnit('%')) {
+              return alphaArg.value / 100;
+            } else {
+              warnForDeprecation(
+                  "\$alpha: Passing a unit other than % ($alphaArg) is "
+                  "deprecated.\n"
+                  "\n"
+                  "To preserve current behavior: "
+                  "${alphaArg.unitSuggestion('alpha')}\n"
+                  "\n"
+                  "See https://sass-lang.com/d/function-units",
+                  Deprecation.functionUnits);
+              return alphaArg.value;
+            }
+          }) ??
           color.alpha);
 }
 
