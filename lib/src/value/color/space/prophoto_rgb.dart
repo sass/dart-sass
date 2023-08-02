@@ -39,26 +39,17 @@ class ProphotoRgbColorSpace extends ColorSpace {
   }
 
   @protected
-  Float64List transformationMatrix(ColorSpace dest) {
-    switch (dest) {
-      case ColorSpace.srgbLinear:
-      case ColorSpace.srgb:
-      case ColorSpace.rgb:
-        return linearProphotoRgbToLinearSrgb;
-      case ColorSpace.a98Rgb:
-        return linearProphotoRgbToLinearA98Rgb;
-      case ColorSpace.displayP3:
-        return linearProphotoRgbToLinearDisplayP3;
-      case ColorSpace.rec2020:
-        return linearProphotoRgbToLinearRec2020;
-      case ColorSpace.xyzD65:
-        return linearProphotoRgbToXyzD65;
-      case ColorSpace.xyzD50:
-        return linearProphotoRgbToXyzD50;
-      case ColorSpace.lms:
-        return linearProphotoRgbToLms;
-      default:
-        return super.transformationMatrix(dest);
-    }
-  }
+  Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
+        ColorSpace.srgbLinear ||
+        ColorSpace.srgb ||
+        ColorSpace.rgb =>
+          linearProphotoRgbToLinearSrgb,
+        ColorSpace.a98Rgb => linearProphotoRgbToLinearA98Rgb,
+        ColorSpace.displayP3 => linearProphotoRgbToLinearDisplayP3,
+        ColorSpace.rec2020 => linearProphotoRgbToLinearRec2020,
+        ColorSpace.xyzD65 => linearProphotoRgbToXyzD65,
+        ColorSpace.xyzD50 => linearProphotoRgbToXyzD50,
+        ColorSpace.lms => linearProphotoRgbToLms,
+        _ => super.transformationMatrix(dest)
+      };
 }

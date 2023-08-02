@@ -39,15 +39,11 @@ final JSClass colorClass = () {
     } else if (options.red != null ||
         options.green != null ||
         options.blue != null) {
-      var red = options.red;
-      var green = options.green;
-      var blue = options.blue;
-      var alpha = options.alpha;
       return self.changeChannels({
-        if (red != null) "red": red,
-        if (green != null) "green": green,
-        if (blue != null) "blue": blue,
-        if (alpha != null) "alpha": alpha
+        if (options.red case var red?) "red": red,
+        if (options.green case var green?) "green": green,
+        if (options.blue case var blue?) "blue": blue,
+        if (options.alpha case var alpha?) "alpha": alpha
       });
     } else {
       return self.changeAlpha(options.alpha ?? self.alpha);

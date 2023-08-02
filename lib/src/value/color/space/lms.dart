@@ -90,26 +90,17 @@ class LmsColorSpace extends ColorSpace {
   double fromLinear(double channel) => channel;
 
   @protected
-  Float64List transformationMatrix(ColorSpace dest) {
-    switch (dest) {
-      case ColorSpace.srgbLinear:
-      case ColorSpace.srgb:
-      case ColorSpace.rgb:
-        return lmsToLinearSrgb;
-      case ColorSpace.a98Rgb:
-        return lmsToLinearA98Rgb;
-      case ColorSpace.prophotoRgb:
-        return lmsToLinearProphotoRgb;
-      case ColorSpace.displayP3:
-        return lmsToLinearDisplayP3;
-      case ColorSpace.rec2020:
-        return lmsToLinearRec2020;
-      case ColorSpace.xyzD65:
-        return lmsToXyzD65;
-      case ColorSpace.xyzD50:
-        return lmsToXyzD50;
-      default:
-        return super.transformationMatrix(dest);
-    }
-  }
+  Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
+        ColorSpace.srgbLinear ||
+        ColorSpace.srgb ||
+        ColorSpace.rgb =>
+          lmsToLinearSrgb,
+        ColorSpace.a98Rgb => lmsToLinearA98Rgb,
+        ColorSpace.prophotoRgb => lmsToLinearProphotoRgb,
+        ColorSpace.displayP3 => lmsToLinearDisplayP3,
+        ColorSpace.rec2020 => lmsToLinearRec2020,
+        ColorSpace.xyzD65 => lmsToXyzD65,
+        ColorSpace.xyzD50 => lmsToXyzD50,
+        _ => super.transformationMatrix(dest)
+      };
 }

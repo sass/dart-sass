@@ -105,20 +105,13 @@ enum HueInterpolationMethod {
   /// Throws a [SassScriptException] if [value] isn't a valid hue interpolation
   /// method. If [value] came from a function argument, [name] is the argument
   /// name (without the `$`). This is used for error reporting.
-  factory HueInterpolationMethod._fromValue(Value value, [String? name]) {
-    var text = (value.assertString(name)..assertUnquoted()).text.toLowerCase();
-    switch (text) {
-      case 'shorter':
-        return HueInterpolationMethod.shorter;
-      case 'longer':
-        return HueInterpolationMethod.longer;
-      case 'increasing':
-        return HueInterpolationMethod.increasing;
-      case 'decreasing':
-        return HueInterpolationMethod.decreasing;
-      default:
-        throw SassScriptException(
-            'Unknown hue interpolation method $value.', name);
-    }
-  }
+  factory HueInterpolationMethod._fromValue(Value value, [String? name]) =>
+      switch ((value.assertString(name)..assertUnquoted()).text.toLowerCase()) {
+        'shorter' => HueInterpolationMethod.shorter,
+        'longer' => HueInterpolationMethod.longer,
+        'increasing' => HueInterpolationMethod.increasing,
+        'decreasing' => HueInterpolationMethod.decreasing,
+        _ => throw SassScriptException(
+            'Unknown hue interpolation method $value.', name)
+      };
 }

@@ -11,6 +11,7 @@ import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
+import '../util/map.dart';
 import '../util/nullable.dart';
 import '../util/number.dart';
 import '../utils.dart';
@@ -589,40 +590,30 @@ Value _invert(List<Value> arguments, {bool global = false}) {
   if (fuzzyEquals(weight, 0)) return color;
 
   var inSpace = color.toSpace(space);
-  SassColor inverted;
-  switch (space) {
-    case ColorSpace.hwb:
-      inverted = SassColor.hwb((inSpace.channel0 + 180) % 360, inSpace.channel2,
-          inSpace.channel1, inSpace.alpha);
-      break;
-
-    case ColorSpace.hsl:
-      inverted = SassColor.hsl((inSpace.channel0 + 180) % 360, inSpace.channel1,
-          100 - inSpace.channel2, inSpace.alpha);
-      break;
-
-    case ColorSpace.lch:
-      inverted = SassColor.lch(100 - inSpace.channel0, inSpace.channel1,
-          (inSpace.channel2 + 180) % 360, inSpace.alpha);
-      break;
-
-    case ColorSpace.oklch:
-      inverted = SassColor.oklch(1 - inSpace.channel0, inSpace.channel1,
-          (inSpace.channel2 + 180) % 360, inSpace.alpha);
-      break;
-
-    default:
-      var channel0 = space.channels[0] as LinearChannel;
-      var channel1 = space.channels[1] as LinearChannel;
-      var channel2 = space.channels[2] as LinearChannel;
-      inverted = SassColor.forSpaceInternal(
+  var inverted = switch (space) {
+    ColorSpace.hwb => SassColor.hwb((inSpace.channel0 + 180) % 360,
+        inSpace.channel2, inSpace.channel1, inSpace.alpha),
+    ColorSpace.hsl => SassColor.hsl((inSpace.channel0 + 180) % 360,
+        inSpace.channel1, 100 - inSpace.channel2, inSpace.alpha),
+    ColorSpace.lch => SassColor.lch(100 - inSpace.channel0, inSpace.channel1,
+        (inSpace.channel2 + 180) % 360, inSpace.alpha),
+    ColorSpace.oklch => SassColor.oklch(1 - inSpace.channel0, inSpace.channel1,
+        (inSpace.channel2 + 180) % 360, inSpace.alpha),
+    ColorSpace(
+      channels: [
+        LinearChannel channel0,
+        LinearChannel channel1,
+        LinearChannel channel2
+      ]
+    ) =>
+      SassColor.forSpaceInternal(
           space,
           _invertChannel(channel0, inSpace.channel0),
           _invertChannel(channel1, inSpace.channel1),
           _invertChannel(channel2, inSpace.channel2),
-          inSpace.alpha);
-      break;
-  }
+          inSpace.alpha),
+    _ => throw UnsupportedError("Unknown color space $space.")
+  };
 
   if (fuzzyEquals(weight, 1)) return inverted;
   return color.interpolate(inverted, InterpolationMethod(space),
@@ -704,15 +695,15 @@ SassColor _updateComponents(List<Value> arguments,
   var oldChannels = color.channels;
   var channelArgs = List<SassNumber?>.filled(oldChannels.length, null);
   var channelInfo = color.space.channels;
-  for (var entry in keywords.entries) {
-    var channelIndex = channelInfo.indexWhere((info) => entry.key == info.name);
+  for (var (name, value) in keywords.pairs) {
+    var channelIndex = channelInfo.indexWhere((info) => name == info.name);
     if (channelIndex == -1) {
       throw SassScriptException(
           "Color space ${color.space} doesn't have a channel with this name.",
-          entry.key);
+          name);
     }
 
-    channelArgs[channelIndex] = entry.value.assertNumber(entry.key);
+    channelArgs[channelIndex] = value.assertNumber(name);
   }
 
   var result = change
@@ -765,17 +756,15 @@ double _scaleChannel(
   var factor = (factorArg..assertUnit('%', channel.name))
           .valueInRangeWithUnit(-100, 100, channel.name, '%') /
       100;
-  if (factor == 0) {
-    return oldValue;
-  } else if (factor > 0) {
-    return oldValue >= channel.max
+  return switch (factor) {
+    0 => oldValue,
+    > 0 => oldValue >= channel.max
         ? oldValue
-        : oldValue + (channel.max - oldValue) * factor;
-  } else {
-    return oldValue <= channel.min
+        : oldValue + (channel.max - oldValue) * factor,
+    _ => oldValue <= channel.min
         ? oldValue
-        : oldValue + (oldValue - channel.min) * factor;
-  }
+        : oldValue + (oldValue - channel.min) * factor
+  };
 }
 
 /// Returns a copy of [color] with its channel values adjusted by the values in
@@ -804,32 +793,34 @@ double _adjustChannel(ColorSpace space, ColorChannel channel, double oldValue,
     SassNumber? adjustmentArg) {
   if (adjustmentArg == null) return oldValue;
 
-  if ((space == ColorSpace.hsl || space == ColorSpace.hwb) &&
-      channel is! LinearChannel) {
-    // `_channelFromValue` expects all hue values to be compatible with `deg`,
-    // but we're still in the deprecation period where we allow non-`deg` values
-    // for HSL and HWB so we have to handle that ahead-of-time.
-    adjustmentArg = SassNumber(_angleValue(adjustmentArg, 'hue'));
-  } else if (space == ColorSpace.hsl && channel is LinearChannel) {
-    // `_channelFromValue` expects lightness/saturation to be `%`, but we're
-    // still in the deprecation period where we allow non-`%` values so we have
-    // to handle that ahead-of-time.
-    _checkPercent(adjustmentArg, channel.name);
-    adjustmentArg = SassNumber(adjustmentArg.value, '%');
-  } else if (channel == ColorChannel.alpha && adjustmentArg.hasUnits) {
-    // `_channelFromValue` expects alpha to be unitless or `%`, but we're still
-    // in the deprecation period where we allow other values (and interpret `%`
-    // as unitless) so we have to handle that ahead-of-time.
-    warnForDeprecation(
-        "\$alpha: Passing a number with unit ${adjustmentArg.unitString} is "
-        "deprecated.\n"
-        "\n"
-        "To preserve current behavior: "
-        "${adjustmentArg.unitSuggestion('alpha')}\n"
-        "\n"
-        "More info: https://sass-lang.com/d/function-units",
-        Deprecation.functionUnits);
-    adjustmentArg = SassNumber(adjustmentArg.value);
+  switch ((space, channel)) {
+    case (ColorSpace.hsl || ColorSpace.hwb, _) when channel is! LinearChannel:
+      // `_channelFromValue` expects all hue values to be compatible with `deg`,
+      // but we're still in the deprecation period where we allow non-`deg`
+      // values for HSL and HWB so we have to handle that ahead-of-time.
+      adjustmentArg = SassNumber(_angleValue(adjustmentArg, 'hue'));
+
+    case (ColorSpace.hsl, LinearChannel()):
+      // `_channelFromValue` expects lightness/saturation to be `%`, but we're
+      // still in the deprecation period where we allow non-`%` values so we
+      // have to handle that ahead-of-time.
+      _checkPercent(adjustmentArg, channel.name);
+      adjustmentArg = SassNumber(adjustmentArg.value, '%');
+
+    case (_, ColorChannel.alpha) when adjustmentArg.hasUnits:
+      // `_channelFromValue` expects alpha to be unitless or `%`, but we're
+      // still in the deprecation period where we allow other values (and
+      // interpret `%` as unitless) so we have to handle that ahead-of-time.
+      warnForDeprecation(
+          "\$alpha: Passing a number with unit ${adjustmentArg.unitString} is "
+          "deprecated.\n"
+          "\n"
+          "To preserve current behavior: "
+          "${adjustmentArg.unitSuggestion('alpha')}\n"
+          "\n"
+          "More info: https://sass-lang.com/d/function-units",
+          Deprecation.functionUnits);
+      adjustmentArg = SassNumber(adjustmentArg.value);
   }
 
   var result = oldValue + _channelFromValue(channel, adjustmentArg)!;
@@ -846,17 +837,13 @@ double _adjustChannel(ColorSpace space, ColorChannel channel, double oldValue,
 ColorSpace? _sniffLegacyColorSpace(Map<String, Value> keywords) {
   for (var key in keywords.keys) {
     switch (key) {
-      case "red":
-      case "green":
-      case "blue":
+      case "red" || "green" || "blue":
         return ColorSpace.rgb;
 
-      case "saturation":
-      case "lightness":
+      case "saturation" || "lightness":
         return ColorSpace.hsl;
 
-      case "whiteness":
-      case "blackness":
+      case "whiteness" || "blackness":
         return ColorSpace.hwb;
     }
   }
@@ -1138,23 +1125,19 @@ ColorSpace _spaceOrDefault(SassColor color, Value space, [String? name]) =>
 Value _parseChannels(String functionName, Value input,
     {ColorSpace? space, String? name}) {
   if (input.isVar) return _functionString(functionName, [input]);
-  var inputList = input.assertCommonListStyle(name, allowSlash: true);
 
   Value components;
   Value? alphaValue;
-  switch (inputList) {
+  switch (input.assertCommonListStyle(name, allowSlash: true)) {
     case [var components_, var alphaValue_]
         when input.separator == ListSeparator.slash:
       components = components_;
       alphaValue = alphaValue_;
 
-    case _ when input.separator == ListSeparator.slash:
+    case var inputList when input.separator == ListSeparator.slash:
       throw SassScriptException(
           "Only 2 slash-separated elements allowed, but ${inputList.length} "
           "${pluralize('was', inputList.length, plural: 'were')} passed.");
-
-    case []:
-      components = input;
 
     case [..., SassString(hasQuotes: false, :var text)] when text.contains('/'):
       return _functionString(functionName, [input]);
@@ -1169,46 +1152,51 @@ Value _parseChannels(String functionName, Value input,
 
   List<Value> channels;
   SassString? spaceName;
-  var componentList = components.assertCommonListStyle(name, allowSlash: false);
-  if (componentList.isEmpty) {
-    throw SassScriptException('Color component list may not be empty.', name);
-  } else if (components.isVar) {
-    channels = [components];
-  } else {
-    if (space == null) {
-      spaceName = componentList.first.assertString(name)..assertUnquoted(name);
-      space =
-          spaceName.isVar ? null : ColorSpace.fromName(spaceName.text, name);
-      channels = [...componentList.skip(1)];
+  switch (components.assertCommonListStyle(name, allowSlash: false)) {
+    case []:
+      throw SassScriptException('Color component list may not be empty.', name);
 
-      if (const {
-        ColorSpace.rgb,
-        ColorSpace.hsl,
-        ColorSpace.hwb,
-        ColorSpace.lab,
-        ColorSpace.lch,
-        ColorSpace.oklab,
-        ColorSpace.oklch
-      }.contains(space)) {
-        throw SassScriptException(
-            "The color() function doesn't support the color space $space. Use "
-            "the $space() function instead.",
-            name);
-      }
-    } else {
-      channels = componentList;
-    }
+    case _ when components.isVar:
+      channels = [components];
 
-    for (var channel in channels) {
-      if (!channel.isSpecialNumber &&
-          channel is! SassNumber &&
-          !_isNone(channel)) {
-        var channelName =
-            space?.channels[channels.indexOf(channel)].name ?? 'channel';
-        throw SassScriptException(
-            'Expected $channelName $channel to be a number.', name);
+    case [var first, ...var rest] && var componentList:
+      if (space == null) {
+        spaceName = first.assertString(name)..assertUnquoted(name);
+        space =
+            spaceName.isVar ? null : ColorSpace.fromName(spaceName.text, name);
+        channels = rest;
+
+        if (space
+            case ColorSpace.rgb ||
+                ColorSpace.hsl ||
+                ColorSpace.hwb ||
+                ColorSpace.lab ||
+                ColorSpace.lch ||
+                ColorSpace.oklab ||
+                ColorSpace.oklch) {
+          throw SassScriptException(
+              "The color() function doesn't support the color space $space. Use "
+              "the $space() function instead.",
+              name);
+        }
+      } else {
+        channels = componentList;
       }
-    }
+
+      for (var channel in channels) {
+        if (!channel.isSpecialNumber &&
+            channel is! SassNumber &&
+            !_isNone(channel)) {
+          var channelName =
+              space?.channels[channels.indexOf(channel)].name ?? 'channel';
+          throw SassScriptException(
+              'Expected $channelName $channel to be a number.', name);
+        }
+      }
+
+    // dart-lang/sdk#51926
+    case _:
+      throw "unreachable";
   }
 
   if (alphaValue?.isSpecialNumber ?? false) {
@@ -1319,16 +1307,14 @@ SassColor _colorFromChannels(ColorSpace space, SassNumber? channel0,
 /// Converts a channel value from a [SassNumber] into a [double] according to
 /// [channel].
 double? _channelFromValue(ColorChannel channel, SassNumber? value) =>
-    value.andThen((value) {
-      if (channel is! LinearChannel) {
-        return value.coerceValueToUnit('deg', channel.name);
-      } else if (channel.requiresPercent && !value.hasUnit('%')) {
-        throw SassScriptException(
-            'Expected $value to have unit "%".', channel.name);
-      } else {
-        return _percentageOrUnitless(value, channel.max, channel.name);
-      }
-    });
+    value.andThen((value) => switch (channel) {
+          LinearChannel(requiresPercent: true) when !value.hasUnit('%') =>
+            throw SassScriptException(
+                'Expected $value to have unit "%".', channel.name),
+          LinearChannel() =>
+            _percentageOrUnitless(value, channel.max, channel.name),
+          _ => value.coerceValueToUnit('deg', channel.name)
+        });
 
 /// Returns whether [value] is an unquoted string case-insensitively equal to
 /// "none".

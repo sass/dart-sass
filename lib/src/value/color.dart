@@ -70,18 +70,11 @@ class SassColor extends Value {
   ///
   /// @nodoc
   @internal
-  bool get isChannel0Powerless {
-    switch (space) {
-      case ColorSpace.hsl:
-        return fuzzyEquals(channel1, 0) || fuzzyEquals(channel2, 0);
-
-      case ColorSpace.hwb:
-        return fuzzyEquals(channel1 + channel2, 100);
-
-      default:
-        return false;
-    }
-  }
+  bool get isChannel0Powerless => switch (space) {
+        ColorSpace.hsl => fuzzyEquals(channel1, 0) || fuzzyEquals(channel2, 0),
+        ColorSpace.hwb => fuzzyEquals(channel1 + channel2, 100),
+        _ => false
+      };
 
   /// This color's first channel.
   ///
@@ -114,21 +107,15 @@ class SassColor extends Value {
   ///
   /// @nodoc
   @internal
-  bool get isChannel1Powerless {
-    switch (space) {
-      case ColorSpace.hsl:
-        return fuzzyEquals(channel2, 0);
-
-      case ColorSpace.lab:
-      case ColorSpace.oklab:
-      case ColorSpace.lch:
-      case ColorSpace.oklch:
-        return fuzzyEquals(channel0, 0) || fuzzyEquals(channel0, 100);
-
-      default:
-        return false;
-    }
-  }
+  bool get isChannel1Powerless => switch (space) {
+        ColorSpace.hsl => fuzzyEquals(channel2, 0),
+        ColorSpace.lab ||
+        ColorSpace.oklab ||
+        ColorSpace.lch ||
+        ColorSpace.oklch =>
+          fuzzyEquals(channel0, 0) || fuzzyEquals(channel0, 100),
+        _ => false
+      };
 
   /// This color's second channel.
   ///
@@ -152,22 +139,15 @@ class SassColor extends Value {
   ///
   /// @nodoc
   @internal
-  bool get isChannel2Powerless {
-    switch (space) {
-      case ColorSpace.lab:
-      case ColorSpace.oklab:
-        return fuzzyEquals(channel0, 0) || fuzzyEquals(channel0, 100);
-
-      case ColorSpace.lch:
-      case ColorSpace.oklch:
-        return fuzzyEquals(channel0, 0) ||
+  bool get isChannel2Powerless => switch (space) {
+        ColorSpace.lab ||
+        ColorSpace.oklab =>
+          fuzzyEquals(channel0, 0) || fuzzyEquals(channel0, 100),
+        ColorSpace.lch || ColorSpace.oklch => fuzzyEquals(channel0, 0) ||
             fuzzyEquals(channel0, 100) ||
-            fuzzyEquals(channel1, 0);
-
-      default:
-        return false;
-    }
-  }
+            fuzzyEquals(channel1, 0),
+        _ => false
+      };
 
   /// This color's third channel.
   ///
@@ -475,11 +455,13 @@ class SassColor extends Value {
 
   /// Throws a [RangeError] if [channel] isn't a finite number.
   void _checkChannel(double? channel, String name) {
-    if (channel == null) return;
-    if (channel.isNaN) {
-      throw RangeError.value(channel, name, 'must be a number.');
-    } else if (!channel.isFinite) {
-      throw RangeError.value(channel, name, 'must be finite.');
+    switch (channel) {
+      case null:
+        return;
+      case double(isNaN: true):
+        throw RangeError.value(channel, name, 'must be a number.');
+      case double(isFinite: false):
+        throw RangeError.value(channel, name, 'must be finite.');
     }
   }
 
@@ -632,20 +614,18 @@ class SassColor extends Value {
     assert(!current.isInGamut);
     assert(current.space == space);
 
-    if (space == ColorSpace.rgb) {
-      return SassColor.rgb(
-          fuzzyClamp(current.channel0, 0, 255),
-          fuzzyClamp(current.channel1, 0, 255),
-          fuzzyClamp(current.channel2, 0, 255),
-          current.alpha);
-    } else {
-      return SassColor.forSpaceInternal(
-          space,
-          fuzzyClamp(current.channel0, 0, 1),
-          fuzzyClamp(current.channel1, 0, 1),
-          fuzzyClamp(current.channel2, 0, 1),
-          current.alpha);
-    }
+    return space == ColorSpace.rgb
+        ? SassColor.rgb(
+            fuzzyClamp(current.channel0, 0, 255),
+            fuzzyClamp(current.channel1, 0, 255),
+            fuzzyClamp(current.channel2, 0, 255),
+            current.alpha)
+        : SassColor.forSpaceInternal(
+            space,
+            fuzzyClamp(current.channel0, 0, 1),
+            fuzzyClamp(current.channel1, 0, 1),
+            fuzzyClamp(current.channel2, 0, 1),
+            current.alpha);
   }
 
   /// Returns the ΔEOK measure between [color1] and [color2].
@@ -855,7 +835,6 @@ class SassColor extends Value {
     var channel2_1 = (missing2_1 ? color1 : color2).channel1;
     var channel2_2 = (missing2_2 ? color1 : color2).channel2;
 
-    // TODO: handle missing channels
     var thisMultiplier = alpha * weight;
     var otherMultiplier = other.alpha * (1 - weight);
     var mixedAlpha = alpha * weight + other.alpha * (1 - weight);
@@ -872,40 +851,27 @@ class SassColor extends Value {
         : (channel1_2 * thisMultiplier + channel2_2 * otherMultiplier) /
             mixedAlpha;
 
-    SassColor mixed;
-    switch (method.space) {
-      case ColorSpace.hsl:
-      case ColorSpace.hwb:
-        mixed = SassColor.forSpaceInternal(
-            method.space,
-            missing1_0 && missing2_0
-                ? null
-                : _interpolateHues(channel1_0, channel2_0, method.hue!, weight),
-            mixed1,
-            mixed2,
-            mixedAlpha);
-        break;
-
-      case ColorSpace.lch:
-      case ColorSpace.oklch:
-        mixed = SassColor.forSpaceInternal(
-            method.space,
-            mixed0,
-            mixed1,
-            missing1_2 && missing2_2
-                ? null
-                : _interpolateHues(channel1_2, channel2_2, method.hue!, weight),
-            mixedAlpha);
-        break;
-
-      default:
-        assert(!space.isPolar);
-        mixed = SassColor.forSpaceInternal(
-            method.space, mixed0, mixed1, mixed2, mixedAlpha);
-        break;
+    return switch (method.space) {
+      ColorSpace.hsl || ColorSpace.hwb => SassColor.forSpaceInternal(
+          method.space,
+          missing1_0 && missing2_0
+              ? null
+              : _interpolateHues(channel1_0, channel2_0, method.hue!, weight),
+          mixed1,
+          mixed2,
+          mixedAlpha),
+      ColorSpace.lch || ColorSpace.oklch => SassColor.forSpaceInternal(
+          method.space,
+          mixed0,
+          mixed1,
+          missing1_2 && missing2_2
+              ? null
+              : _interpolateHues(channel1_2, channel2_2, method.hue!, weight),
+          mixedAlpha),
+      _ => SassColor.forSpaceInternal(
+          method.space, mixed0, mixed1, mixed2, mixedAlpha)
     }
-
-    return mixed.toSpace(space);
+        .toSpace(space);
   }
 
   /// Returns whether [output], which was converted to its color space from
@@ -936,30 +902,28 @@ class SassColor extends Value {
     // Algorithms from https://www.w3.org/TR/css-color-4/#hue-interpolation
     switch (method) {
       case HueInterpolationMethod.shorter:
-        var difference = hue2 - hue1;
-        if (difference > 180) {
-          hue1 += 360;
-        } else if (difference < -180) {
-          hue2 += 360;
+        switch (hue2 - hue1) {
+          case > 180:
+            hue1 += 360;
+          case < -180:
+            hue2 += 360;
         }
-        break;
 
       case HueInterpolationMethod.longer:
-        var difference = hue2 - hue1;
-        if (difference > 0 && difference < 180) {
-          hue2 += 360;
-        } else if (difference > -180 && difference <= 0) {
-          hue1 += 360;
+        switch (hue2 - hue1) {
+          case > 0 && < 180:
+            hue2 += 360;
+          case > -180 && <= 0:
+            hue1 += 360;
         }
-        break;
 
-      case HueInterpolationMethod.increasing:
-        if (hue2 < hue1) hue2 += 360;
-        break;
+      case HueInterpolationMethod.increasing when hue2 < hue1:
+        hue2 += 360;
 
-      case HueInterpolationMethod.decreasing:
-        if (hue1 < hue2) hue1 += 360;
-        break;
+      case HueInterpolationMethod.decreasing when hue1 < hue2:
+        hue1 += 360;
+
+      case _: // do nothing
     }
 
     return hue1 * weight + hue2 * (1 - weight);
