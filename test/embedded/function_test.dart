@@ -965,6 +965,21 @@ void main() {
             expect(await _deprotofy(_rgb(0xaa, 0xbb, 0xcc, 1.0)),
                 equals('#aabbcc'));
           });
+
+          test("with red above 255", () async {
+            expect(await _deprotofy(_rgb(256, 0, 0, 1.0)),
+                equals('rgb(256, 0, 0)'));
+          });
+
+          test("with green above 255", () async {
+            expect(await _deprotofy(_rgb(0, 256, 0, 1.0)),
+                equals('rgb(0, 256, 0)'));
+          });
+
+          test("with blue above 255", () async {
+            expect(await _deprotofy(_rgb(0, 0, 256, 1.0)),
+                equals('rgb(0, 0, 256)'));
+          });
         });
 
         group("with alpha", () {
@@ -1603,21 +1618,6 @@ void main() {
 
     group("and rejects", () {
       group("a color", () {
-        test("with red above 255", () async {
-          await _expectDeprotofyError(_rgb(256, 0, 0, 1.0),
-              "RgbColor.red must be between 0 and 255, was 256");
-        });
-
-        test("with green above 255", () async {
-          await _expectDeprotofyError(_rgb(0, 256, 0, 1.0),
-              "RgbColor.green must be between 0 and 255, was 256");
-        });
-
-        test("with blue above 255", () async {
-          await _expectDeprotofyError(_rgb(0, 0, 256, 1.0),
-              "RgbColor.blue must be between 0 and 255, was 256");
-        });
-
         test("with RGB alpha below 0", () async {
           await _expectDeprotofyError(_rgb(0, 0, 0, -0.1),
               "RgbColor.alpha must be between 0 and 1, was -0.1");
