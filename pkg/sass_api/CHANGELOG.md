@@ -7,6 +7,10 @@
 
 * All uses of classes from the `tuple` package have been replaced by record
   types.
+  
+## 7.2.2
+
+* No user-visible changes.
 
 ## 7.2.1
 

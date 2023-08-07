@@ -600,7 +600,8 @@ Value _rgb(String name, List<Value> arguments) {
       fuzzyRound(_percentageOrUnitless(green, 255, "green")),
       fuzzyRound(_percentageOrUnitless(blue, 255, "blue")),
       alpha.andThen((alpha) =>
-          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")),
+              _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")) ??
+          1,
       ColorFormat.rgbFunction);
 }
 
@@ -644,7 +645,8 @@ Value _hsl(String name, List<Value> arguments) {
       saturation.value.clamp(0, 100),
       lightness.value.clamp(0, 100),
       alpha.andThen((alpha) =>
-          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")),
+              _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")) ??
+          1,
       ColorFormat.hslFunction);
 }
 
@@ -693,7 +695,8 @@ Value _hwb(List<Value> arguments) {
       whiteness.valueInRange(0, 100, "whiteness"),
       blackness.valueInRange(0, 100, "blackness"),
       alpha.andThen((alpha) =>
-          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")));
+              _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")) ??
+          1);
 }
 
 Object /* SassString | List<Value> */ _parseChannels(
