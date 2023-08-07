@@ -22,7 +22,7 @@ bool get isMacOS => io.Platform.isMacOS;
 
 bool get hasTerminal => io.stdout.hasTerminal;
 
-bool get isJS => false;
+const bool isJS = false;
 
 bool get isNode => false;
 
@@ -57,6 +57,7 @@ String readFile(String path) {
     throwWithTrace(
         SassException(
             "Invalid UTF-8.", sourceFile.location(stringOffset).pointSpan()),
+        error,
         stackTrace);
   }
 }

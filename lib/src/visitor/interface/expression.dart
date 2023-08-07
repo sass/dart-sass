@@ -9,7 +9,7 @@ import '../../ast/sass.dart';
 /// [visitors]: https://en.wikipedia.org/wiki/Visitor_pattern
 ///
 /// {@category Visitor}
-abstract class ExpressionVisitor<T> {
+abstract interface class ExpressionVisitor<T> {
   T visitBinaryOperationExpression(BinaryOperationExpression node);
   T visitBooleanExpression(BooleanExpression node);
   T visitCalculationExpression(CalculationExpression node);

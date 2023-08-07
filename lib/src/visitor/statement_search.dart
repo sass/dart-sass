@@ -5,8 +5,8 @@
 import 'package:meta/meta.dart';
 
 import '../ast/sass.dart';
+import '../util/iterable.dart';
 import '../util/nullable.dart';
-import '../utils.dart';
 import 'interface/statement.dart';
 import 'recursive_statement.dart';
 

@@ -13,8 +13,7 @@ import '../supports_condition.dart';
 /// supported.
 ///
 /// {@category AST}
-@sealed
-class SupportsDeclaration implements SupportsCondition {
+final class SupportsDeclaration implements SupportsCondition {
   /// The name of the declaration being tested.
   final Expression name;
 
@@ -33,12 +32,11 @@ class SupportsDeclaration implements SupportsCondition {
   ///
   /// @nodoc
   @internal
-  bool get isCustomProperty {
-    var name = this.name;
-    return name is StringExpression &&
-        !name.hasQuotes &&
-        name.text.initialPlain.startsWith('--');
-  }
+  bool get isCustomProperty => switch (name) {
+        StringExpression(hasQuotes: false, :var text) =>
+          text.initialPlain.startsWith('--'),
+        _ => false
+      };
 
   SupportsDeclaration(this.name, this.value, this.span);
 

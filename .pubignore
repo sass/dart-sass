@@ -1,0 +1,19 @@
+# This should be identical to .gitignore except that it doesn't exclude
+# generated protobuf files.
+
+.buildlog
+.DS_Store
+.idea
+.pub/
+.dart_tool/
+.settings/
+.sass-cache/
+build/
+packages
+.packages
+pubspec.lock
+package-lock.json
+/benchmark/source
+node_modules/
+/doc/api
+/pkg/*/doc/api

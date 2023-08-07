@@ -18,8 +18,7 @@ import 'variable.dart';
 /// A calculation literal.
 ///
 /// {@category AST}
-@sealed
-class CalculationExpression implements Expression {
+final class CalculationExpression implements Expression {
   /// This calculation's name.
   final String name;
 
@@ -143,29 +142,31 @@ class CalculationExpression implements Expression {
   /// Throws an [ArgumentError] if [expression] isn't a valid calculation
   /// argument.
   static void _verify(Expression expression) {
-    if (expression is NumberExpression) return;
-    if (expression is CalculationExpression) return;
-    if (expression is VariableExpression) return;
-    if (expression is FunctionExpression) return;
-    if (expression is IfExpression) return;
+    switch (expression) {
+      case NumberExpression() ||
+            CalculationExpression() ||
+            VariableExpression() ||
+            FunctionExpression() ||
+            IfExpression() ||
+            StringExpression(hasQuotes: false):
+        break;
 
-    if (expression is StringExpression) {
-      if (expression.hasQuotes) {
+      case ParenthesizedExpression(:var expression):
+        _verify(expression);
+
+      case BinaryOperationExpression(
+          :var left,
+          :var right,
+          operator: BinaryOperator.plus ||
+              BinaryOperator.minus ||
+              BinaryOperator.times ||
+              BinaryOperator.dividedBy
+        ):
+        _verify(left);
+        _verify(right);
+
+      case _:
         throw ArgumentError("Invalid calculation argument $expression.");
-      }
-    } else if (expression is ParenthesizedExpression) {
-      _verify(expression.expression);
-    } else if (expression is BinaryOperationExpression) {
-      _verify(expression.left);
-      _verify(expression.right);
-      if (expression.operator == BinaryOperator.plus) return;
-      if (expression.operator == BinaryOperator.minus) return;
-      if (expression.operator == BinaryOperator.times) return;
-      if (expression.operator == BinaryOperator.dividedBy) return;
-
-      throw ArgumentError("Invalid calculation argument $expression.");
-    } else {
-      throw ArgumentError("Invalid calculation argument $expression.");
     }
   }
 

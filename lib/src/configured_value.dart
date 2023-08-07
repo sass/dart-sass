@@ -8,7 +8,7 @@ import 'ast/node.dart';
 import 'value.dart';
 
 /// A variable value that's been configured for a [Configuration].
-class ConfiguredValue {
+final class ConfiguredValue {
   /// The value of the variable.
   final Value value;
 

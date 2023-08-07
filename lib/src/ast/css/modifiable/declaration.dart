@@ -11,7 +11,7 @@ import '../value.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssDeclaration] for use in the evaluation step.
-class ModifiableCssDeclaration extends ModifiableCssNode
+final class ModifiableCssDeclaration extends ModifiableCssNode
     implements CssDeclaration {
   final CssValue<String> name;
   final CssValue<Value> value;

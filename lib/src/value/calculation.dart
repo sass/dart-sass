@@ -25,8 +25,7 @@ import '../visitor/serialize.dart';
 /// works with are always fully simplified.
 ///
 /// {@category Value}
-@sealed
-class SassCalculation extends Value {
+final class SassCalculation extends Value {
   /// The calculation's name, such as `"calc"`.
   final String name;
 
@@ -56,12 +55,12 @@ class SassCalculation extends Value {
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
-  static Value calc(Object argument) {
-    argument = _simplify(argument);
-    if (argument is SassNumber) return argument;
-    if (argument is SassCalculation) return argument;
-    return SassCalculation._("calc", List.unmodifiable([argument]));
-  }
+  static Value calc(Object argument) => switch (_simplify(argument)) {
+        SassNumber value => value,
+        SassCalculation value => value,
+        var simplified =>
+          SassCalculation._("calc", List.unmodifiable([simplified]))
+      };
 
   /// Creates a `min()` calculation with the given [arguments].
   ///
@@ -618,14 +617,11 @@ class SassCalculation extends Value {
   static Object operateInternal(
       CalculationOperator operator, Object left, Object right,
       {required bool inLegacySassFunction, required bool simplify}) {
-    if (!simplify) {
-      return CalculationOperation._(operator, left, right);
-    }
+    if (!simplify) return CalculationOperation._(operator, left, right);
     left = _simplify(left);
     right = _simplify(right);
 
-    if (operator == CalculationOperator.plus ||
-        operator == CalculationOperator.minus) {
+    if (operator case CalculationOperator.plus || CalculationOperator.minus) {
       if (left is SassNumber &&
           right is SassNumber &&
           (inLegacySassFunction
@@ -728,23 +724,20 @@ class SassCalculation extends Value {
       List.unmodifiable(args.map(_simplify));
 
   /// Simplifies a calculation argument.
-  static Object _simplify(Object arg) {
-    if (arg is SassNumber ||
-        arg is CalculationInterpolation ||
-        arg is CalculationOperation) {
-      return arg;
-    } else if (arg is SassString) {
-      if (!arg.hasQuotes) return arg;
-      throw SassScriptException(
-          "Quoted string $arg can't be used in a calculation.");
-    } else if (arg is SassCalculation) {
-      return arg.name == 'calc' ? arg.arguments[0] : arg;
-    } else if (arg is Value) {
-      throw SassScriptException("Value $arg can't be used in a calculation.");
-    } else {
-      throw ArgumentError("Unexpected calculation argument $arg.");
-    }
-  }
+  static Object _simplify(Object arg) => switch (arg) {
+        SassNumber() ||
+        CalculationInterpolation() ||
+        CalculationOperation() =>
+          arg,
+        SassString(hasQuotes: false) => arg,
+        SassString() => throw SassScriptException(
+            "Quoted string $arg can't be used in a calculation."),
+        SassCalculation(name: 'calc', arguments: [var value]) => value,
+        SassCalculation() => arg,
+        Value() => throw SassScriptException(
+            "Value $arg can't be used in a calculation."),
+        _ => throw ArgumentError("Unexpected calculation argument $arg.")
+      };
 
   /// Verifies that all the numbers in [args] aren't known to be incompatible
   /// with one another, and that they don't have units that are too complex for
@@ -754,8 +747,7 @@ class SassCalculation extends Value {
     // _EvaluateVisitor._verifyCompatibleNumbers and most changes here should
     // also be reflected there.
     for (var arg in args) {
-      if (arg is! SassNumber) continue;
-      if (arg.numeratorUnits.length > 1 || arg.denominatorUnits.isNotEmpty) {
+      if (arg case SassNumber(hasComplexUnits: true)) {
         throw SassScriptException(
             "Number $arg isn't compatible with CSS calculations.");
       }
@@ -841,8 +833,7 @@ class SassCalculation extends Value {
 /// A binary operation that can appear in a [SassCalculation].
 ///
 /// {@category Value}
-@sealed
-class CalculationOperation {
+final class CalculationOperation {
   /// We use a getters to allow overriding the logic in the JS API
   /// implementation.
 

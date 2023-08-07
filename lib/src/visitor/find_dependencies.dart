@@ -66,20 +66,20 @@ class _FindDependenciesVisitor with RecursiveStatementVisitor {
   void visitIncludeRule(IncludeRule node) {
     if (node.name != 'load-css') return;
     if (!_metaNamespaces.contains(node.namespace)) return;
-    if (node.arguments.positional.isEmpty) return;
-    var argument = node.arguments.positional.first;
-    if (argument is! StringExpression) return;
-    var url = argument.text.asPlain;
-    try {
-      if (url != null) _metaLoadCss.add(Uri.parse(url));
-    } on FormatException {
-      // Ignore invalid URLs.
+
+    if (node.arguments.positional
+        case [StringExpression(text: Interpolation(asPlain: var url?))]) {
+      try {
+        _metaLoadCss.add(Uri.parse(url));
+      } on FormatException {
+        // Ignore invalid URLs.
+      }
     }
   }
 }
 
 /// A struct of different types of dependencies a Sass stylesheet can contain.
-class DependencyReport {
+final class DependencyReport {
   /// An unmodifiable set of all `@use`d URLs in the stylesheet (excluding
   /// built-in modules).
   final Set<Uri> uses;

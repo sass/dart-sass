@@ -10,9 +10,9 @@ import 'package:source_span/source_span.dart';
 import 'ast/sass.dart';
 import 'util/character.dart';
 
-/// A class that can map locations in a string generated from an [Interpolation]
-/// to the original source code in the interpolation.
-class InterpolationMap {
+/// A map from locations in a string generated from an [Interpolation] to the
+/// original source code in the interpolation.
+final class InterpolationMap {
   /// The interpolation from which this map was generated.
   final Interpolation _interpolation;
 
@@ -63,24 +63,17 @@ class InterpolationMap {
 
   /// Maps a span in the string generated from this interpolation to its
   /// original source.
-  FileSpan mapSpan(SourceSpan target) {
-    var start = _mapLocation(target.start);
-    var end = _mapLocation(target.end);
-
-    if (start is FileSpan) {
-      if (end is FileSpan) return start.expand(end);
-
-      return _interpolation.span.file.span(
-          _expandInterpolationSpanLeft(start.start),
-          (end as FileLocation).offset);
-    } else if (end is FileSpan) {
-      return _interpolation.span.file.span((start as FileLocation).offset,
-          _expandInterpolationSpanRight(end.end));
-    } else {
-      return _interpolation.span.file
-          .span((start as FileLocation).offset, (end as FileLocation).offset);
-    }
-  }
+  FileSpan mapSpan(SourceSpan target) =>
+      switch ((_mapLocation(target.start), _mapLocation(target.end))) {
+        (FileSpan start, FileSpan end) => start.expand(end),
+        (FileSpan start, FileLocation end) => _interpolation.span.file
+            .span(_expandInterpolationSpanLeft(start.start), end.offset),
+        (FileLocation start, FileSpan end) => _interpolation.span.file
+            .span(start.offset, _expandInterpolationSpanRight(end.end)),
+        (FileLocation start, FileLocation end) =>
+          _interpolation.span.file.span(start.offset, end.offset),
+        _ => throw '[BUG] Unreachable'
+      };
 
   /// Maps a location in the string generated from this interpolation to its
   /// original source.
@@ -91,8 +84,9 @@ class InterpolationMap {
   /// that interpolated expression.
   Object /* FileLocation|FileSpan */ _mapLocation(SourceLocation target) {
     var index = _indexInContents(target);
-    var chunk = _interpolation.contents[index];
-    if (chunk is Expression) return chunk.span;
+    if (_interpolation.contents[index] case Expression chunk) {
+      return chunk.span;
+    }
 
     var previousLocation = index == 0
         ? _interpolation.span.start
@@ -160,7 +154,7 @@ class InterpolationMap {
       if (next == $slash) {
         var second = source[i++];
         if (second == $slash) {
-          while (!isNewline(source[i++])) {}
+          while (!source[i++].isNewline) {}
         } else if (second == $asterisk) {
           while (true) {
             var char = source[i++];

@@ -11,7 +11,7 @@ import 'node.dart';
 ///
 /// {@category AST}
 @sealed
-abstract class SassDeclaration extends SassNode {
+abstract interface class SassDeclaration implements SassNode {
   /// The name of the declaration, with underscores converted to hyphens.
   ///
   /// This does not include the `$` for variables.

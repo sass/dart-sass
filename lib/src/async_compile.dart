@@ -170,9 +170,7 @@ Future<CompileResult> _compileStylesheet(
 
   var resultSourceMap = serializeResult.sourceMap;
   if (resultSourceMap != null && importCache != null) {
-    // TODO(nweiz): Don't explicitly use a type parameter when dart-lang/sdk#25490
-    // is fixed.
-    mapInPlace<String>(
+    mapInPlace(
         resultSourceMap.urls,
         (url) => url == ''
             ? Uri.dataFromString(stylesheet.span.file.getText(0),

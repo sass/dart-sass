@@ -12,8 +12,7 @@ import '../selector.dart';
 /// Matches any element in the given namespace.
 ///
 /// {@category AST}
-@sealed
-class UniversalSelector extends SimpleSelector {
+final class UniversalSelector extends SimpleSelector {
   /// The selector namespace.
   ///
   /// If this is `null`, this matches all elements in the default namespace. If
@@ -32,20 +31,23 @@ class UniversalSelector extends SimpleSelector {
   /// @nodoc
   @internal
   List<SimpleSelector>? unify(List<SimpleSelector> compound) {
-    var first = compound.first;
-    if (first is UniversalSelector || first is TypeSelector) {
-      var unified = unifyUniversalAndElement(this, first);
-      if (unified == null) return null;
-      return [unified, ...compound.skip(1)];
-    } else if (compound.length == 1 &&
-        first is PseudoSelector &&
-        (first.isHost || first.isHostContext)) {
-      return null;
-    }
+    switch (compound) {
+      case [UniversalSelector() || TypeSelector(), ...var rest]:
+        var unified = unifyUniversalAndElement(this, compound.first);
+        if (unified == null) return null;
+        return [unified, ...rest];
 
-    if (namespace != null && namespace != "*") return [this, ...compound];
-    if (compound.isNotEmpty) return compound;
-    return [this];
+      case [PseudoSelector first] when first.isHost || first.isHostContext:
+        return null;
+
+      case []:
+        return [this];
+
+      case _:
+        return namespace == null || namespace == "*"
+            ? compound
+            : [this, ...compound];
+    }
   }
 
   bool isSuperselector(SimpleSelector other) {

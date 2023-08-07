@@ -7,7 +7,7 @@ import 'embedded_sass.pb.dart';
 
 /// A registry of [SassFunction]s indexed by ID so that the host can invoke
 /// them.
-class FunctionRegistry {
+final class FunctionRegistry {
   /// First-class functions that have been sent to the host.
   ///
   /// The functions are located at indexes in the list matching their IDs.

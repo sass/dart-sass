@@ -46,8 +46,7 @@ Future<String> _findLatestRelease(String slug, {Pattern? pattern}) async {
 
   var page = 1;
   while (releases.isNotEmpty) {
-    for (var release in releases) {
-      var tagName = release['tag_name'] as String;
+    for (var {'tag_name': String tagName} in releases) {
       if (pattern.allMatches(tagName).isNotEmpty) return tagName;
     }
 

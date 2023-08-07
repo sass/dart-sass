@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../util/number.dart';
 import '../../value.dart';
@@ -18,14 +17,15 @@ class UnitlessSassNumber extends SassNumber {
   List<String> get denominatorUnits => const [];
 
   bool get hasUnits => false;
+  bool get hasComplexUnits => false;
 
-  UnitlessSassNumber(double value, [Tuple2<SassNumber, SassNumber>? asSlash])
+  UnitlessSassNumber(double value, [(SassNumber, SassNumber)? asSlash])
       : super.protected(value, asSlash);
 
   SassNumber withValue(num value) => UnitlessSassNumber(value.toDouble());
 
   SassNumber withSlash(SassNumber numerator, SassNumber denominator) =>
-      UnitlessSassNumber(value, Tuple2(numerator, denominator));
+      UnitlessSassNumber(value, (numerator, denominator));
 
   bool hasUnit(String unit) => false;
 

@@ -14,8 +14,7 @@ import '../selector.dart';
 /// document.
 ///
 /// {@category AST}
-@sealed
-class ParentSelector extends SimpleSelector {
+final class ParentSelector extends SimpleSelector {
   /// The suffix that will be added to the parent selector after it's been
   /// resolved.
   ///

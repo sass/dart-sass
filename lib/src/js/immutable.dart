@@ -4,6 +4,8 @@
 
 import 'package:js/js.dart';
 
+import '../util/map.dart';
+
 @JS('immutable.List')
 class ImmutableList {
   external factory ImmutableList([List<Object?>? contents]);
@@ -36,8 +38,8 @@ List<Object?> jsToDartList(Object? list) =>
 /// Converts a Dart map into an equivalent [ImmutableMap].
 ImmutableMap dartMapToImmutableMap(Map<Object, Object?> dartMap) {
   var immutableMap = ImmutableMap().asMutable();
-  for (var entry in dartMap.entries) {
-    immutableMap = immutableMap.set(entry.key, entry.value);
+  for (var (key, value) in dartMap.pairs) {
+    immutableMap = immutableMap.set(key, value);
   }
   return immutableMap.asImmutable();
 }

@@ -12,7 +12,7 @@ import '../../util/nullable.dart';
 
 /// A wrapper for a synchronous JS API importer that exposes it as a Dart
 /// [Importer].
-class JSToDartImporter extends Importer {
+final class JSToDartImporter extends Importer {
   /// The wrapped canonicalize function.
   final Object? Function(String, CanonicalizeOptions) _canonicalize;
 

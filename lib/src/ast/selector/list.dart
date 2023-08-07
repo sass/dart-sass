@@ -11,6 +11,7 @@ import '../../interpolation_map.dart';
 import '../../logger.dart';
 import '../../parse/selector.dart';
 import '../../utils.dart';
+import '../../util/iterable.dart';
 import '../../util/span.dart';
 import '../../value.dart';
 import '../../visitor/interface/selector.dart';
@@ -25,8 +26,7 @@ import '../selector.dart';
 ///
 /// {@category AST}
 /// {@category Parsing}
-@sealed
-class SelectorList extends Selector {
+final class SelectorList extends Selector {
   /// The components of this selector.
   ///
   /// This is never empty.
@@ -180,14 +180,13 @@ class SelectorList extends Selector {
     }
 
     var resolvedSimples = containsSelectorPseudo
-        ? simples.map((simple) {
-            if (simple is! PseudoSelector) return simple;
-            var selector = simple.selector;
-            if (selector == null) return simple;
-            if (!_containsParentSelector(selector)) return simple;
-            return simple.withSelector(
-                selector.resolveParentSelectors(parent, implicitParent: false));
-          })
+        ? simples.map((simple) => switch (simple) {
+              PseudoSelector(:var selector?)
+                  when _containsParentSelector(selector) =>
+                simple.withSelector(selector.resolveParentSelectors(parent,
+                    implicitParent: false)),
+              _ => simple
+            })
         : simples;
 
     var parentSelector = simples.first;
@@ -209,6 +208,7 @@ class SelectorList extends Selector {
     } on SassException catch (error, stackTrace) {
       throwWithTrace(
           error.withAdditionalSpan(parentSelector.span, "parent selector"),
+          error,
           stackTrace);
     }
 
@@ -248,6 +248,7 @@ class SelectorList extends Selector {
       } on SassException catch (error, stackTrace) {
         throwWithTrace(
             error.withAdditionalSpan(parentSelector.span, "parent selector"),
+            error,
             stackTrace);
       }
     });

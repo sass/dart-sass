@@ -160,6 +160,19 @@ class _Visitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    if (_sharedClasses.contains(node.name.lexeme)) {
+      _skipNode(node);
+    } else {
+      for (var child in node.sortedCommentAndAnnotations) {
+        child.accept(this);
+      }
+      _rename(node.name);
+      node.typeParameters?.accept(this);
+      node.type.accept(this);
+    }
+  }
+
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     _skip(node.keyword);
     node.visitChildren(this);
@@ -194,8 +207,11 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   void visitMethodInvocation(MethodInvocation node) {
     // Convert async utility methods to their synchronous equivalents.
-    if (node.target == null &&
-        ["mapAsync", "putIfAbsentAsync"].contains(node.methodName.name)) {
+    if (node
+        case MethodInvocation(
+          target: null,
+          methodName: SimpleIdentifier(name: "mapAsync" || "putIfAbsentAsync")
+        )) {
       _writeTo(node);
       var arguments = node.argumentList.arguments;
       _write(arguments.first);
@@ -219,10 +235,9 @@ class _Visitor extends RecursiveAstVisitor<void> {
   }
 
   void visitNamedType(NamedType node) {
-    if (["Future", "FutureOr"].contains(node.name2.lexeme)) {
+    if (node.name2.lexeme case "Future" || "FutureOr") {
       _skip(node.name2);
-      var typeArguments = node.typeArguments;
-      if (typeArguments != null) {
+      if (node.typeArguments case var typeArguments?) {
         _skip(typeArguments.leftBracket);
         typeArguments.arguments.first.accept(this);
         _skip(typeArguments.rightBracket);

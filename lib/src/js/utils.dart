@@ -218,25 +218,18 @@ Map<String, Object?> objectToMap(Object object) {
 }
 
 /// Converts a JavaScript separator string into a [ListSeparator].
-ListSeparator jsToDartSeparator(String? separator) {
-  switch (separator) {
-    case ' ':
-      return ListSeparator.space;
-    case ',':
-      return ListSeparator.comma;
-    case '/':
-      return ListSeparator.slash;
-    case null:
-      return ListSeparator.undecided;
-    default:
-      jsThrow(JsError('Unknown separator "$separator".'));
-  }
-}
+ListSeparator jsToDartSeparator(String? separator) => switch (separator) {
+      ' ' => ListSeparator.space,
+      ',' => ListSeparator.comma,
+      '/' => ListSeparator.slash,
+      null => ListSeparator.undecided,
+      _ => jsThrow(JsError('Unknown separator "$separator".'))
+    };
 
 /// Converts a syntax string to an instance of [Syntax].
-Syntax parseSyntax(String? syntax) {
-  if (syntax == null || syntax == 'scss') return Syntax.scss;
-  if (syntax == 'indented') return Syntax.sass;
-  if (syntax == 'css') return Syntax.css;
-  jsThrow(JsError('Unknown syntax "$syntax".'));
-}
+Syntax parseSyntax(String? syntax) => switch (syntax) {
+      null || 'scss' => Syntax.scss,
+      'indented' => Syntax.sass,
+      'css' => Syntax.css,
+      _ => jsThrow(JsError('Unknown syntax "$syntax".'))
+    };

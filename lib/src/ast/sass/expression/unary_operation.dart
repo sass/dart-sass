@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/expression.dart';
@@ -14,8 +13,7 @@ import 'list.dart';
 /// A unary operator, as in `+$var` or `not fn()`.
 ///
 /// {@category AST}
-@sealed
-class UnaryOperationExpression implements Expression {
+final class UnaryOperationExpression implements Expression {
   /// The operator being invoked.
   final UnaryOperator operator;
 
@@ -33,11 +31,13 @@ class UnaryOperationExpression implements Expression {
     var buffer = StringBuffer(operator.operator);
     if (operator == UnaryOperator.not) buffer.writeCharCode($space);
     var operand = this.operand;
-    var needsParens = operand is BinaryOperationExpression ||
-        operand is UnaryOperationExpression ||
-        (operand is ListExpression &&
-            !operand.hasBrackets &&
-            operand.contents.length > 1);
+    var needsParens = switch (operand) {
+      BinaryOperationExpression() ||
+      UnaryOperationExpression() ||
+      ListExpression(hasBrackets: false, contents: [_, _, ...]) =>
+        true,
+      _ => false
+    };
     if (needsParens) buffer.write($lparen);
     buffer.write(operand);
     if (needsParens) buffer.write($rparen);

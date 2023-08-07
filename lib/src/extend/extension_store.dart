@@ -6,15 +6,15 @@ import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
-import 'package:tuple/tuple.dart';
 
 import '../ast/css.dart';
 import '../ast/selector.dart';
 import '../ast/sass.dart';
 import '../exception.dart';
-import '../utils.dart';
 import '../util/box.dart';
+import '../util/map.dart';
 import '../util/nullable.dart';
+import '../utils.dart';
 import 'empty_extension_store.dart';
 import 'extension.dart';
 import 'merged_extension.dart';
@@ -96,9 +96,7 @@ class ExtensionStore {
       ExtendMode mode,
       FileSpan span) {
     var extender = ExtensionStore._mode(mode);
-    if (!selector.isInvisible) {
-      extender._originals.addAll(selector.components);
-    }
+    if (!selector.isInvisible) extender._originals.addAll(selector.components);
 
     for (var complex in targets.components) {
       var compound = complex.singleCompound;
@@ -150,9 +148,9 @@ class ExtensionStore {
   /// returned.
   Iterable<Extension> extensionsWhereTarget(
       bool callback(SimpleSelector target)) sync* {
-    for (var entry in _extensions.entries) {
-      if (!callback(entry.key)) continue;
-      for (var extension in entry.value.values) {
+    for (var (simple, sources) in _extensions.pairs) {
+      if (!callback(simple)) continue;
+      for (var extension in sources.values) {
         if (extension is MergedExtension) {
           yield* extension
               .unmerge()
@@ -176,9 +174,7 @@ class ExtensionStore {
       [List<CssMediaQuery>? mediaContext]) {
     var originalSelector = selector;
     if (!originalSelector.isInvisible) {
-      for (var complex in originalSelector.components) {
-        _originals.add(complex);
-      }
+      _originals.addAll(originalSelector.components);
     }
 
     if (_extensions.isNotEmpty) {
@@ -190,6 +186,7 @@ class ExtensionStore {
                 "From ${error.span.message('')}\n"
                 "${error.message}",
                 error.span),
+            error,
             stackTrace);
       }
     }
@@ -209,10 +206,7 @@ class ExtensionStore {
       for (var component in complex.components) {
         for (var simple in component.selector.components) {
           _selectors.putIfAbsent(simple, () => {}).add(selector);
-          if (simple is! PseudoSelector) continue;
-
-          var selectorInPseudo = simple.selector;
-          if (selectorInPseudo != null) {
+          if (simple case PseudoSelector(selector: var selectorInPseudo?)) {
             _registerSelector(selectorInPseudo, selector);
           }
         }
@@ -243,15 +237,13 @@ class ExtensionStore {
       var extension = Extension(complex, target, extend.span,
           mediaContext: mediaContext, optional: extend.isOptional);
 
-      var existingExtension = sources[complex];
-      if (existingExtension != null) {
+      if (sources[complex] case var existingExtension?) {
         // If there's already an extend from [extender] to [target], we don't need
         // to re-run the extension. We may need to mark the extension as
         // mandatory, though.
         sources[complex] = MergedExtension.merge(existingExtension, extension);
         continue;
       }
-
       sources[complex] = extension;
 
       for (var simple in _simpleSelectors(complex)) {
@@ -289,11 +281,10 @@ class ExtensionStore {
       for (var simple in component.selector.components) {
         yield simple;
 
-        if (simple is! PseudoSelector) continue;
-        var selector = simple.selector;
-        if (selector == null) continue;
-        for (var complex in selector.components) {
-          yield* _simpleSelectors(complex);
+        if (simple case PseudoSelector(:var selector?)) {
+          for (var complex in selector.components) {
+            yield* _simpleSelectors(complex);
+          }
         }
       }
     }
@@ -322,7 +313,7 @@ class ExtensionStore {
     for (var extension in extensions.toList()) {
       var sources = _extensions[extension.target]!;
 
-      List<ComplexSelector>? selectors;
+      Iterable<ComplexSelector>? selectors;
       try {
         selectors = _extendComplex(
             extension.extender.selector, newExtensions, extension.mediaContext);
@@ -331,22 +322,18 @@ class ExtensionStore {
         throwWithTrace(
             error.withAdditionalSpan(
                 extension.extender.selector.span, "target selector"),
+            error,
             stackTrace);
       }
 
+      // If the output contains the original complex selector, there's no need
+      // to recreate it.
       var containsExtension = selectors.first == extension.extender.selector;
-      var first = true;
-      for (var complex in selectors) {
-        // If the output contains the original complex selector, there's no
-        // need to recreate it.
-        if (containsExtension && first) {
-          first = false;
-          continue;
-        }
+      if (containsExtension) selectors = selectors.skip(1);
 
+      for (var complex in selectors) {
         var withExtender = extension.withExtender(complex);
-        var existingExtension = sources[complex];
-        if (existingExtension != null) {
+        if (sources[complex] case var existingExtension?) {
           sources[complex] =
               MergedExtension.merge(existingExtension, withExtender);
         } else {
@@ -393,6 +380,7 @@ class ExtensionStore {
                 "From ${selector.value.span.message('')}\n"
                 "${error.message}",
                 error.span),
+            error,
             stackTrace);
       }
 
@@ -423,9 +411,9 @@ class ExtensionStore {
     for (var extensionStore in extensionStores) {
       if (extensionStore.isEmpty) continue;
       _sourceSpecificity.addAll(extensionStore._sourceSpecificity);
-      extensionStore._extensions.forEach((target, newSources) {
+      for (var (target, newSources) in extensionStore._extensions.pairs) {
         // Private selectors can't be extended across module boundaries.
-        if (target is PlaceholderSelector && target.isPrivate) return;
+        if (target case PlaceholderSelector(isPrivate: true)) continue;
 
         // Find existing extensions to extend.
         var extensionsForTarget = _extensionsByExtender[target];
@@ -440,14 +428,8 @@ class ExtensionStore {
         }
 
         // Add [newSources] to [_extensions].
-        var existingSources = _extensions[target];
-        if (existingSources == null) {
-          _extensions[target] = Map.of(newSources);
-          if (extensionsForTarget != null || selectorsForTarget != null) {
-            (newExtensions ??= {})[target] = Map.of(newSources);
-          }
-        } else {
-          newSources.forEach((extender, extension) {
+        if (_extensions[target] case var existingSources?) {
+          for (var (extender, extension) in newSources.pairs) {
             extension = existingSources.putOrMerge(
                 extender, extension, MergedExtension.merge);
 
@@ -455,21 +437,27 @@ class ExtensionStore {
               (newExtensions ??= {}).putIfAbsent(target, () => {})[extender] =
                   extension;
             }
-          });
+          }
+        } else {
+          _extensions[target] = Map.of(newSources);
+          if (extensionsForTarget != null || selectorsForTarget != null) {
+            (newExtensions ??= {})[target] = Map.of(newSources);
+          }
         }
-      });
+      }
     }
 
-    // We can't just naively check for `null` here due to dart-lang/sdk#45348.
-    newExtensions.andThen((newExtensions) {
+    if (newExtensions != null) {
       // We can ignore the return value here because it's only useful for extend
       // loops, which can't exist across module boundaries.
-      extensionsToExtend.andThen((extensionsToExtend) =>
-          _extendExistingExtensions(extensionsToExtend, newExtensions));
+      if (extensionsToExtend != null) {
+        _extendExistingExtensions(extensionsToExtend, newExtensions);
+      }
 
-      selectorsToExtend.andThen((selectorsToExtend) =>
-          _extendExistingSelectors(selectorsToExtend, newExtensions));
-    });
+      if (selectorsToExtend != null) {
+        _extendExistingSelectors(selectorsToExtend, newExtensions);
+      }
+    }
   }
 
   /// Extends [list] using [extensions].
@@ -487,7 +475,7 @@ class ExtensionStore {
           '_extendComplex($complex) should return null rather than [] if '
           'extension fails');
       if (result == null) {
-        if (extended != null) extended.add(complex);
+        extended?.add(complex);
       } else {
         extended ??= i == 0 ? [] : list.components.sublist(0, i).toList();
         extended.addAll(result);
@@ -639,9 +627,9 @@ class ExtensionStore {
 
     // Optimize for the simple case of a single simple selector that doesn't
     // need any unification.
-    if (options.length == 1) {
+    if (options case [var extenders]) {
       List<ComplexSelector>? result;
-      for (var extender in options.first) {
+      for (var extender in extenders) {
         extender.assertCompatibleMediaContext(mediaQueryContext);
         var complex =
             extender.selector.withAdditionalCombinators(component.combinators);
@@ -788,9 +776,9 @@ class ExtensionStore {
       ];
     }
 
-    if (simple is PseudoSelector && simple.selector != null) {
-      var extended = _extendPseudo(simple, extensions, mediaQueryContext);
-      if (extended != null) {
+    if (simple case PseudoSelector(selector: _?)) {
+      if (_extendPseudo(simple, extensions, mediaQueryContext)
+          case var extended?) {
         return extended.map(
             (pseudo) => withoutPseudo(pseudo) ?? [_extenderForSimple(pseudo)]);
       }
@@ -993,7 +981,7 @@ class ExtensionStore {
   /// Returns a copy of [this] that extends new selectors, as well as a map
   /// (with reference equality) from the selectors extended by [this] to the
   /// selectors extended by the new [ExtensionStore].
-  Tuple2<ExtensionStore, Map<SelectorList, Box<SelectorList>>> clone() {
+  (ExtensionStore, Map<SelectorList, Box<SelectorList>>) clone() {
     var newSelectors = <SimpleSelector, Set<ModifiableBox<SelectorList>>>{};
     var newMediaContexts = <ModifiableBox<SelectorList>, List<CssMediaQuery>>{};
     var oldToNewSelectors = Map<SelectorList, Box<SelectorList>>.identity();
@@ -1007,19 +995,21 @@ class ExtensionStore {
         newSelectorSet.add(newSelector);
         oldToNewSelectors[selector.value] = newSelector.seal();
 
-        var mediaContext = _mediaContexts[selector];
-        if (mediaContext != null) newMediaContexts[newSelector] = mediaContext;
+        if (_mediaContexts[selector] case var mediaContext?) {
+          newMediaContexts[newSelector] = mediaContext;
+        }
       }
     });
 
-    return Tuple2(
-        ExtensionStore._(
-            newSelectors,
-            copyMapOfMap(_extensions),
-            copyMapOfList(_extensionsByExtender),
-            newMediaContexts,
-            Map.identity()..addAll(_sourceSpecificity),
-            Set.identity()..addAll(_originals)),
-        oldToNewSelectors);
+    return (
+      ExtensionStore._(
+          newSelectors,
+          copyMapOfMap(_extensions),
+          copyMapOfList(_extensionsByExtender),
+          newMediaContexts,
+          Map.identity()..addAll(_sourceSpecificity),
+          Set.identity()..addAll(_originals)),
+      oldToNewSelectors
+    );
   }
 }

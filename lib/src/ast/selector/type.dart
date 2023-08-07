@@ -14,8 +14,7 @@ import '../selector.dart';
 /// This selects elements whose name equals the given name.
 ///
 /// {@category AST}
-@sealed
-class TypeSelector extends SimpleSelector {
+final class TypeSelector extends SimpleSelector {
   /// The element name being selected.
   final QualifiedName name;
 
@@ -33,7 +32,7 @@ class TypeSelector extends SimpleSelector {
   /// @nodoc
   @internal
   List<SimpleSelector>? unify(List<SimpleSelector> compound) {
-    if (compound.first is UniversalSelector || compound.first is TypeSelector) {
+    if (compound.first case UniversalSelector() || TypeSelector()) {
       var unified = unifyUniversalAndElement(this, compound.first);
       if (unified == null) return null;
       return [unified, ...compound.skip(1)];

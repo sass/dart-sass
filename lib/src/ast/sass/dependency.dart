@@ -11,7 +11,7 @@ import 'node.dart';
 ///
 /// {@category AST}
 @sealed
-abstract class SassDependency extends SassNode {
+abstract interface class SassDependency implements SassNode {
   /// The URL of the dependency this rule loads.
   Uri get url;
 

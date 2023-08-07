@@ -1,3 +1,43 @@
+## 1.65.0
+
+* All functions defined in CSS Values and Units 4 are now parsed as calculation
+  objects: `round()`, `mod()`, `rem()`, `sin()`, `cos()`, `tan()`, `asin()`,
+  `acos()`, `atan()`, `atan2()`, `pow()`, `sqrt()`, `hypot()`, `log()`, `exp()`,
+  `abs()`, and `sign()`.
+
+* Deprecate explicitly passing the `%` unit to the global `abs()` function. In
+  future releases, this will emit a CSS abs() function to be resolved by the
+  browser. This deprecation is named `abs-percent`.
+
+## 1.64.3
+
+### Dart API
+
+* Deprecate explicitly passing `null` as the alpha channel for
+  `SassColor.rgb()`, `SassColor.hsl()`, and `SassColor.hwb()`. Omitting the
+  `alpha` channel is still allowed. In future releases, `null` will be used to
+  indicate a [missing component]. This deprecation is named `null-alpha`.
+
+  [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+
+* Include protocol buffer definitions when uploading the `sass` package to pub.
+
+### JS API
+
+* Deprecate explicitly passing `null` as the alpha channel for `new
+  SassColor()`. Omitting the `alpha` channel or passing `undefined` for it is
+  still allowed. In future releases, `null` will be used to indicate a [missing
+  component]. This deprecation is named `null-alpha`.
+
+  [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+
+  (Note that this was already prohibited by the TypeScript types, but in
+  practice prior to this `null` was treated as `1`.)
+
+## 1.64.2
+
+* No user-visible changes.
+
 ## 1.64.1
 
 ### Embedded Sass
@@ -13,11 +53,6 @@
 
 * Fix a bug where an interpolation in a custom property name crashed if the file
   was loaded by a `@use` nested in an `@import`.
-
-* All functions defined in CSS Values and Units 4 are now parsed as calculation
-  objects: `round()`, `mod()`, `rem()`, `sin()`, `cos()`, `tan()`, `asin()`,
-  `acos()`, `atan()`, `atan2()`, `pow()`, `sqrt()`, `hypot()`, `log()`, `exp()`,
-  `abs()`, and `sign()`.
 
 ### JavaScript API
 

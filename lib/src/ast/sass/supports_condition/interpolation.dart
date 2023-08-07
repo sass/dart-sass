@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../expression.dart';
@@ -11,8 +10,7 @@ import '../supports_condition.dart';
 /// An interpolated condition.
 ///
 /// {@category AST}
-@sealed
-class SupportsInterpolation implements SupportsCondition {
+final class SupportsInterpolation implements SupportsCondition {
   /// The expression in the interpolation.
   final Expression expression;
 

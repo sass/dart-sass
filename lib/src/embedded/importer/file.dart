@@ -18,7 +18,7 @@ final _filesystemImporter = FilesystemImporter('.');
 
 /// An importer that asks the host to resolve imports in a simplified,
 /// file-system-centric way.
-class FileImporter extends ImporterBase {
+final class FileImporter extends ImporterBase {
   /// The host-provided ID of the importer to invoke.
   final int _importerId;
 
