@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:js_util';
 import 'dart:typed_data';
 
+import 'package:cli_pkg/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:path/path.dart' as p;
 
@@ -217,7 +218,8 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
             scheduleMicrotask(() => currentFiber.run(result));
           })
         ];
-        var result = (callback as JSFunction).apply(context, jsArguments);
+        var result = wrapJSExceptions(
+            () => (callback as JSFunction).apply(context, jsArguments));
         return unwrapValue(isUndefined(result)
             // Run `fiber.yield()` in runZoned() so that Dart resets the current
             // zone once it's done. Otherwise, interweaving fibers can leave
@@ -228,8 +230,9 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
     } else if (!asynch) {
       result.add(Callable.fromSignature(
           signature.trimLeft(),
-          (arguments) => unwrapValue((callback as JSFunction)
-              .apply(context, arguments.map(wrapValue).toList())),
+          (arguments) => unwrapValue(wrapJSExceptions(() =>
+              (callback as JSFunction)
+                  .apply(context, arguments.map(wrapValue).toList()))),
           requireParens: false));
     } else {
       result.add(
@@ -239,7 +242,8 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
           ...arguments.map(wrapValue),
           allowInterop(([Object? result]) => completer.complete(result))
         ];
-        var result = (callback as JSFunction).apply(context, jsArguments);
+        var result = wrapJSExceptions(
+            () => (callback as JSFunction).apply(context, jsArguments));
         return unwrapValue(
             isUndefined(result) ? await completer.future : result);
       }, requireParens: false));

@@ -23,6 +23,9 @@
   (Note that this was already prohibited by the TypeScript types, but in
   practice prior to this `null` was treated as `1`.)
 
+* Fix a bug where Sass compilation could crash in strict mode if passed a
+  callback that threw a string, boolean, number, symbol, or bignum.
+
 ## 1.64.2
 
 * No user-visible changes.

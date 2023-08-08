@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:cli_pkg/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart' hide futureToPromise;
 import 'package:term_glyph/term_glyph.dart' as glyph;
@@ -274,7 +275,8 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
     if (!asynch) {
       late Callable callable;
       callable = Callable.fromSignature(signature, (arguments) {
-        var result = (callback as Function)(toJSArray(arguments));
+        var result = wrapJSExceptions(
+            () => (callback as Function)(toJSArray(arguments)));
         if (result is Value) return _simplifyValue(result);
         if (isPromise(result)) {
           throw 'Invalid return value for custom function '
@@ -290,7 +292,8 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
     } else {
       late AsyncCallable callable;
       callable = AsyncCallable.fromSignature(signature, (arguments) async {
-        var result = (callback as Function)(toJSArray(arguments));
+        var result = wrapJSExceptions(
+            () => (callback as Function)(toJSArray(arguments)));
         if (isPromise(result)) {
           result = await promiseToFuture<Object>(result as Promise);
         }

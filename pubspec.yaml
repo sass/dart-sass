@@ -14,6 +14,7 @@ dependencies:
   args: ^2.0.0
   async: ^2.5.0
   charcode: ^1.2.0
+  cli_pkg: ^2.5.0
   cli_repl: ^0.2.1
   collection: ^1.16.0
   http: ">=0.13.3 <1.0.0"
@@ -38,7 +39,6 @@ dependencies:
 dev_dependencies:
   analyzer: ">=5.13.0 <7.0.0"
   archive: ^3.1.2
-  cli_pkg: ^2.4.4
   crypto: ^3.0.0
   dart_style: ^2.0.0
   dartdoc: ^6.0.0

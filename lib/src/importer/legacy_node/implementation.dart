@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cli_pkg/js.dart';
 import 'package:js/js.dart';
 import 'package:path/path.dart' as p;
 
@@ -97,7 +98,8 @@ final class NodeImporter {
     // The previous URL is always an absolute file path for filesystem imports.
     var previousString = _previousToString(previous);
     for (var importer in _importers) {
-      if (call2(importer, _renderContext(forImport), url, previousString)
+      if (wrapJSExceptions(() =>
+              call2(importer, _renderContext(forImport), url, previousString))
           case var value?) {
         return _handleImportResult(url, previous, value, forImport);
       }
@@ -205,8 +207,12 @@ final class NodeImporter {
       String previousString, bool forImport) async {
     var completer = Completer<Object>();
 
-    var result = call3(importer, _renderContext(forImport), url, previousString,
-        allowInterop(completer.complete));
+    var result = wrapJSExceptions(() => call3(
+        importer,
+        _renderContext(forImport),
+        url,
+        previousString,
+        allowInterop(completer.complete)));
     if (isUndefined(result)) return await completer.future;
     return result;
   }
