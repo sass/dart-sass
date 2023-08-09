@@ -1,3 +1,7 @@
+## 8.1.0
+
+* No user-visible changes.
+
 ## 8.0.0
 
 * Various classes now use Dart 3 [class modifiers] to more specifically restrict

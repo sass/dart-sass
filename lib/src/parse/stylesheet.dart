@@ -2065,7 +2065,8 @@ abstract class StylesheetParser extends Parser {
   /// produces a potentially slash-separated number.
   bool _isSlashOperand(Expression expression) =>
       expression is NumberExpression ||
-      expression is CalculationExpression ||
+      (expression is CalculationExpression &&
+          !{'min', 'max', 'round', 'abs'}.contains(expression.name)) ||
       (expression is BinaryOperationExpression && expression.allowsSlash);
 
   /// Consumes an expression that doesn't contain any top-level whitespace.
@@ -2652,29 +2653,61 @@ abstract class StylesheetParser extends Parser {
     assert(scanner.peekChar() == $lparen);
     switch (name) {
       case "calc":
+      case "sqrt":
+      case "sin":
+      case "cos":
+      case "tan":
+      case "asin":
+      case "acos":
+      case "atan":
+      case "exp":
+      case "sign":
         var arguments = _calculationArguments(1);
+        return CalculationExpression(name, arguments, scanner.spanFrom(start));
+
+      case "abs":
+        return _tryArgumentsCalculation(name, start, 1);
+
+      case "hypot":
+        var arguments = _calculationArguments();
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
 
       case "min" || "max":
         // min() and max() are parsed as calculations if possible, and otherwise
         // are parsed as normal Sass functions.
-        var beforeArguments = scanner.state;
-        List<Expression> arguments;
-        try {
-          arguments = _calculationArguments();
-        } on FormatException catch (_) {
-          scanner.state = beforeArguments;
-          return null;
-        }
+        return _tryArgumentsCalculation(name, start, null);
 
+      case "pow":
+      case "log":
+      case "atan2":
+      case "mod":
+      case "rem":
+        var arguments = _calculationArguments(2);
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
 
       case "clamp":
         var arguments = _calculationArguments(3);
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
 
+      case "round":
+        return _tryArgumentsCalculation(name, start, 3);
+
       case _:
         return null;
+    }
+  }
+
+  // Returns a CalculationExpression if the function can be parsed as a calculation,
+  // otherwise, returns null and the function is parsed as a normal Sass function.
+  CalculationExpression? _tryArgumentsCalculation(
+      String name, LineScannerState start, int? maxArgs) {
+    var beforeArguments = scanner.state;
+    try {
+      var arguments = _calculationArguments(maxArgs);
+      return CalculationExpression(name, arguments, scanner.spanFrom(start));
+    } on FormatException catch (_) {
+      scanner.state = beforeArguments;
+      return null;
     }
   }
 
