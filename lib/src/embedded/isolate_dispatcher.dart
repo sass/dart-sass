@@ -7,6 +7,8 @@ import 'dart:ffi';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:native_synchronization/mailbox.dart';
+import 'package:native_synchronization/sendable.dart';
 import 'package:pool/pool.dart';
 import 'package:protobuf/protobuf.dart';
 import 'package:stream_channel/isolate_channel.dart';
@@ -18,16 +20,20 @@ import 'util/explicit_close_transformer.dart';
 import 'util/proto_extensions.dart';
 import 'utils.dart';
 
-/// The message sent to a previously-inactive isolate to initiate a new
-/// compilation session.
-///
-/// The [SendPort] is used to establish a dedicated [IsolateChannel] for this
-/// compilation and the [int] is the compilation ID to use on the wire.
-///
-/// We apply the compilation ID in the isolate for efficiency reasons: it allows
-/// us to write the protobuf directly to the same buffer as the wire ID, which
-/// saves a copy for each message.
-typedef _InitialMessage = (SendPort, int);
+/// A persisted mailbox resource lease from the pool that can be transfered over
+/// to new owners.
+class _Lease {
+  /// A mailbox.
+  final Mailbox mailbox;
+
+  /// The compilationId.
+  int id = 0;
+
+  /// The PoolResource.
+  PoolResource resource;
+
+  _Lease(this.mailbox, this.id, this.resource);
+}
 
 /// A class that dispatches messages between the host and various isolates that
 /// are each running an individual compilation.
@@ -35,17 +41,17 @@ class IsolateDispatcher {
   /// The channel of encoded protocol buffers, connected to the host.
   final StreamChannel<Uint8List> _channel;
 
-  /// A map from compilation IDs to the sinks for isolates running those
-  /// compilations.
-  final _activeIsolates = <int, StreamSink<Uint8List>>{};
+  /// All isolates.
+  final _isolates = <Future<Isolate>>{};
 
-  /// A set of isolates that are _not_ actively running compilations.
-  final _inactiveIsolates = <StreamChannel<_InitialMessage>>{};
+  /// All sinks. Only used with ExplicitCloseTransformer for closing channels.
+  final _sinks = <StreamSink<Uint8List>>{};
 
-  /// The actual isolate objects that have been spawned.
-  ///
-  /// Only used for cleaning up the process when the underlying channel closes.
-  final _allIsolates = <Future<Isolate>>[];
+  /// A set of lease for tracking for inactive mailboxes.
+  final _inactive = <_Lease>{};
+
+  /// A map of active compilationId to mailbox.
+  final _mailboxes = <int, Mailbox>{};
 
   /// A pool controlling how many isolates (and thus concurrent compilations)
   /// may be live at once.
@@ -54,10 +60,6 @@ class IsolateDispatcher {
   /// can deadlock the Dart VM.
   /// See https://github.com/sass/dart-sass/pull/2019
   final _isolatePool = Pool(sizeOf<IntPtr>() <= 4 ? 7 : 15);
-
-  /// Whether the underlying channel has closed and the dispatcher is shutting
-  /// down.
-  var _closed = false;
 
   IsolateDispatcher(this._channel);
 
@@ -70,13 +72,15 @@ class IsolateDispatcher {
         (compilationId, messageBuffer) = parsePacket(packet);
 
         if (compilationId != 0) {
-          // TODO(nweiz): Consider using the techniques described in
-          // https://github.com/dart-lang/language/issues/124#issuecomment-988718728
-          // or https://github.com/dart-lang/language/issues/3118 for low-cost
-          // inter-isolate transfers.
-          (_activeIsolates[compilationId] ?? await _getIsolate(compilationId))
-              .add(messageBuffer);
-          return;
+          var mailbox =
+              (_mailboxes[compilationId] ?? await _getMailbox(compilationId));
+          try {
+            mailbox.put(packet);
+            return;
+          } on StateError catch (_) {
+            throw paramsError(
+                "InboundMessage with compilation ID $compilationId is out of order.");
+          }
         }
 
         try {
@@ -102,84 +106,67 @@ class IsolateDispatcher {
     }, onError: (Object error, StackTrace stackTrace) {
       _handleError(error, stackTrace);
     }, onDone: () async {
-      _closed = true;
-      for (var isolate in _allIsolates) {
+      for (var isolate in _isolates) {
         (await isolate).kill();
       }
 
-      // Killing isolates isn't sufficient to make sure the process closes; we
-      // also have to close all the [ReceivePort]s we've constructed (by closing
-      // the [IsolateChannel]s).
-      for (var sink in _activeIsolates.values) {
+      for (var sink in _sinks) {
         sink.close();
-      }
-      for (var channel in _inactiveIsolates) {
-        channel.sink.close();
       }
     });
   }
 
-  /// Returns an isolate that's ready to run a new compilation.
+  /// Returns the mailbox for an isolate that's ready to run a new compilation.
   ///
   /// This re-uses an existing isolate if possible, and spawns a new one
   /// otherwise.
-  Future<StreamSink<Uint8List>> _getIsolate(int compilationId) async {
+  Future<Mailbox> _getMailbox(int compilationId) async {
     var resource = await _isolatePool.request();
-    if (_inactiveIsolates.isNotEmpty) {
-      return _activate(_inactiveIsolates.first, compilationId, resource);
+    if (_inactive.isNotEmpty) {
+      var lease = _inactive.first;
+      _inactive.remove(lease);
+      lease.id = compilationId;
+      lease.resource = resource;
+      _mailboxes[compilationId] = lease.mailbox;
+      return lease.mailbox;
     }
 
+    var mailbox = Mailbox();
+    var lease = _Lease(mailbox, compilationId, resource);
+    _mailboxes[compilationId] = mailbox;
+
     var receivePort = ReceivePort();
-    var future = Isolate.spawn(_isolateMain, receivePort.sendPort);
-    _allIsolates.add(future);
+    var future =
+        Isolate.spawn(_isolateMain, (mailbox.asSendable, receivePort.sendPort));
+    _isolates.add(future);
     await future;
 
-    var channel = IsolateChannel<_InitialMessage?>.connectReceive(receivePort)
+    var channel = IsolateChannel<Uint8List?>.connectReceive(receivePort)
         .transform(const ExplicitCloseTransformer());
-    channel.stream.listen(null,
-        onError: (Object error, StackTrace stackTrace) =>
-            _handleError(error, stackTrace),
-        onDone: _channel.sink.close);
-    return _activate(channel, compilationId, resource);
-  }
+    _sinks.add(channel.sink);
 
-  /// Activates [isolate] for a new individual compilation.
-  ///
-  /// This pipes all the outputs from the given isolate through to [_channel].
-  /// The [resource] is released once the isolate is no longer active.
-  StreamSink<Uint8List> _activate(StreamChannel<_InitialMessage> isolate,
-      int compilationId, PoolResource resource) {
-    _inactiveIsolates.remove(isolate);
-
-    // Each individual compilation has its own dedicated [IsolateChannel], which
-    // closes once the compilation is finished.
-    var receivePort = ReceivePort();
-    isolate.sink.add((receivePort.sendPort, compilationId));
-
-    var channel = IsolateChannel<Uint8List>.connectReceive(receivePort);
-    channel.stream.listen(
-        (message) {
-          // The first byte of messages from isolates indicates whether the
-          // entire compilation is finished. Sending this as part of the message
-          // buffer rather than a separate message avoids a race condition where
-          // the host might send a new compilation request with the same ID as
-          // one that just finished before the [IsolateDispatcher] receives word
-          // that the isolate with that ID is done. See sass/dart-sass#2004.
-          if (message[0] == 1) {
-            channel.sink.close();
-            _activeIsolates.remove(compilationId);
-            _inactiveIsolates.add(isolate);
-            resource.release();
-          }
-          _channel.sink.add(Uint8List.sublistView(message, 1));
-        },
-        onError: (Object error, StackTrace stackTrace) =>
-            _handleError(error, stackTrace),
-        onDone: () {
-          if (_closed) isolate.sink.close();
-        });
-    _activeIsolates[compilationId] = channel.sink;
-    return channel.sink;
+    channel.stream.listen((message) {
+      // The first byte of messages from isolates indicates whether the
+      // entire compilation is finished. Sending this as part of the message
+      // buffer rather than a separate message avoids a race condition where
+      // the host might send a new compilation request with the same ID as
+      // one that just finished before the [IsolateDispatcher] receives word
+      // that the isolate with that ID is done. See sass/dart-sass#2004.
+      if (message[0] == 1) {
+        _mailboxes.remove(lease.id);
+        _inactive.add(lease);
+        lease.resource.release();
+      }
+      _channel.sink.add(Uint8List.sublistView(message, 1));
+    }, onError: (Object error, StackTrace stackTrace) {
+      _handleError(error, stackTrace);
+    }, onDone: () {
+      try {
+        mailbox.put(Uint8List(0));
+      } on StateError catch (_) {}
+      _channel.sink.close();
+    });
+    return mailbox;
   }
 
   /// Creates a [OutboundMessage_VersionResponse]
@@ -211,14 +198,11 @@ class IsolateDispatcher {
       _send(compilationId, OutboundMessage()..error = error);
 }
 
-void _isolateMain(SendPort sendPort) {
-  var channel = IsolateChannel<_InitialMessage?>.connectSend(sendPort)
-      .transform(const ExplicitCloseTransformer());
-  channel.stream.listen((initialMessage) async {
-    var (compilationSendPort, compilationId) = initialMessage;
-    var compilationChannel =
-        IsolateChannel<Uint8List>.connectSend(compilationSendPort);
-    var success = await Dispatcher(compilationChannel, compilationId).listen();
-    if (!success) channel.sink.close();
-  });
+void _isolateMain((Sendable<Mailbox>, SendPort) message) {
+  var (sendableMailbox, sendPort) = message;
+  var mailbox = sendableMailbox.materialize();
+  var sink = IsolateChannel<Uint8List?>.connectSend(sendPort)
+      .transform(const ExplicitCloseTransformer())
+      .sink;
+  Dispatcher(mailbox, sink).listen();
 }
