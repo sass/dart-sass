@@ -1,3 +1,11 @@
+## 1.65.2
+
+- `pubspec.yaml`:
+  - Update to `http: ^1.1.0`
+    - Required for compatibility with `http: ^1.1.0`:
+      - `cli_pkg: ^2.5.0`
+      - `pub_api_client: ^2.6.0`
+
 ## 1.65.1
 
 * Update abs-percent deprecatedIn version to `1.65.0`.
