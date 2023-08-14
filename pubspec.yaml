@@ -16,7 +16,7 @@ dependencies:
   charcode: ^1.2.0
   cli_repl: ^0.2.1
   collection: ^1.16.0
-  http: ">=0.13.3 <1.0.0"
+  http: ">=0.13.3 <2.0.0"
   js: ^0.6.3
   meta: ^1.3.0
   node_interop: ^2.1.0
