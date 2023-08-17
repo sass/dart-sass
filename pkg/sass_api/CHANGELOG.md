@@ -1,3 +1,7 @@
+## 8.2.0
+
+* No user-visible changes.
+
 ## 8.1.1
 
 * No user-visible changes.

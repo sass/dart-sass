@@ -1,3 +1,15 @@
+## 1.66.0
+
+* **Breaking change:** Drop support for the additional CSS calculations defined
+  in CSS Values and Units 4. Custom Sass functions whose names overlapped with
+  these new CSS functions were being parsed as CSS calculations instead, causing
+  an unintentional breaking change outside our normal [compatibility policy] for
+  CSS compatibility changes.
+
+  Support will be added again in a future version, but only after Sass has
+  emitted a deprecation warning for all functions that will break for at least
+  three months prior to the breakage.
+
 ## 1.65.1
 
 * Update abs-percent deprecatedIn version to `1.65.0`.

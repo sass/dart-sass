@@ -98,7 +98,7 @@ class UnitlessSassNumber extends SassNumber {
     return super.lessThanOrEquals(other);
   }
 
-  SassNumber modulo(Value other) {
+  Value modulo(Value other) {
     if (other is SassNumber) {
       return other.withValue(moduloLikeSass(value, other.value));
     }
