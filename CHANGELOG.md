@@ -1,7 +1,3 @@
-## 1.65.1
-
-* Update abs-percent deprecatedIn version to `1.65.0`.
-
 ## 1.65.0
 
 * All functions defined in CSS Values and Units 4 are now parsed as calculation
