@@ -12,7 +12,6 @@ import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
-import '../util/number.dart';
 import '../value.dart';
 
 /// The global definitions of Sass math functions.
@@ -133,32 +132,87 @@ final _log = _function("log", r"$number, $base: null", (arguments) {
 final _pow = _function("pow", r"$base, $exponent", (arguments) {
   var base = arguments[0].assertNumber("base");
   var exponent = arguments[1].assertNumber("exponent");
-  return pow(base, exponent);
+  if (base.hasUnits) {
+    throw SassScriptException("\$base: Expected $base to have no units.");
+  } else if (exponent.hasUnits) {
+    throw SassScriptException(
+        "\$exponent: Expected $exponent to have no units.");
+  } else {
+    return SassNumber(math.pow(base.value, exponent.value));
+  }
 });
 
-final _sqrt = _singleArgumentMathFunc("sqrt", sqrt);
+final _sqrt = _function("sqrt", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  if (number.hasUnits) {
+    throw SassScriptException("\$number: Expected $number to have no units.");
+  } else {
+    return SassNumber(math.sqrt(number.value));
+  }
+});
 
 ///
 /// Trigonometric functions
 ///
 
-final _acos = _singleArgumentMathFunc("acos", acos);
+final _acos = _function("acos", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  if (number.hasUnits) {
+    throw SassScriptException("\$number: Expected $number to have no units.");
+  } else {
+    return SassNumber.withUnits(math.acos(number.value) * 180 / math.pi,
+        numeratorUnits: ['deg']);
+  }
+});
 
-final _asin = _singleArgumentMathFunc("asin", asin);
+final _asin = _function("asin", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  if (number.hasUnits) {
+    throw SassScriptException("\$number: Expected $number to have no units.");
+  } else {
+    return SassNumber.withUnits(math.asin(number.value) * 180 / math.pi,
+        numeratorUnits: ['deg']);
+  }
+});
 
-final _atan = _singleArgumentMathFunc("atan", atan);
+final _atan = _function("atan", r"$number", (arguments) {
+  var number = arguments[0].assertNumber("number");
+  if (number.hasUnits) {
+    throw SassScriptException("\$number: Expected $number to have no units.");
+  } else {
+    return SassNumber.withUnits(math.atan(number.value) * 180 / math.pi,
+        numeratorUnits: ['deg']);
+  }
+});
 
 final _atan2 = _function("atan2", r"$y, $x", (arguments) {
   var y = arguments[0].assertNumber("y");
   var x = arguments[1].assertNumber("x");
-  return atan2(y, x);
+  return SassNumber.withUnits(
+      math.atan2(y.value, x.convertValueToMatch(y, 'x', 'y')) * 180 / math.pi,
+      numeratorUnits: ['deg']);
 });
 
-final _cos = _singleArgumentMathFunc("cos", cos);
+final _cos = _function(
+    "cos",
+    r"$number",
+    (arguments) => SassNumber(math.cos(arguments[0]
+        .assertNumber("number")
+        .coerceValueToUnit("rad", "number"))));
 
-final _sin = _singleArgumentMathFunc("sin", sin);
+final _sin = _function(
+    "sin",
+    r"$number",
+    (arguments) => SassNumber(math.sin(arguments[0]
+        .assertNumber("number")
+        .coerceValueToUnit("rad", "number"))));
 
-final _tan = _singleArgumentMathFunc("tan", tan);
+final _tan = _function(
+    "tan",
+    r"$number",
+    (arguments) => SassNumber(math.tan(arguments[0]
+        .assertNumber("number")
+        .coerceValueToUnit("rad", "number"))));
 
 ///
 /// Unit functions
@@ -233,16 +287,6 @@ final _div = _function("div", r"$number1, $number2", (arguments) {
 ///
 /// Helpers
 ///
-
-/// Returns a [Callable] named [name] that calls a single argument
-/// math function.
-BuiltInCallable _singleArgumentMathFunc(
-    String name, SassNumber mathFunc(SassNumber value)) {
-  return _function(name, r"$number", (arguments) {
-    var number = arguments[0].assertNumber("number");
-    return mathFunc(number);
-  });
-}
 
 /// Returns a [Callable] named [name] that transforms a number's value
 /// using [transform] and preserves its units.

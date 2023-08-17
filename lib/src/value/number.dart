@@ -710,7 +710,7 @@ abstract class SassNumber extends Value {
 
   /// @nodoc
   @internal
-  SassNumber modulo(Value other) {
+  Value modulo(Value other) {
     if (other is SassNumber) {
       return withValue(_coerceUnits(other, moduloLikeSass));
     }

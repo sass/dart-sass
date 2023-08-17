@@ -1,14 +1,3 @@
-## 1.65.0
-
-* All functions defined in CSS Values and Units 4 are now parsed as calculation
-  objects: `round()`, `mod()`, `rem()`, `sin()`, `cos()`, `tan()`, `asin()`,
-  `acos()`, `atan()`, `atan2()`, `pow()`, `sqrt()`, `hypot()`, `log()`, `exp()`,
-  `abs()`, and `sign()`.
-
-* Deprecate explicitly passing the `%` unit to the global `abs()` function. In
-  future releases, this will emit a CSS abs() function to be resolved by the
-  browser. This deprecation is named `abs-percent`.
-
 ## 1.64.3
 
 ### Dart API

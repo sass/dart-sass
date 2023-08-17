@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: e4d8cd913b88b73d11417b5ccda03a6313a5bb78
+// Checksum: 6eb7f76735562eba91e9460af796b269b3b0aaf7
 //
 // ignore_for_file: unused_import
 
@@ -2282,8 +2282,7 @@ final class _EvaluateVisitor
     var arguments = [
       for (var argument in node.arguments)
         _visitCalculationValue(argument,
-            inLegacySassFunction:
-                {'min', 'max', 'round', 'abs'}.contains(node.name))
+            inMinMax: node.name == 'min' || node.name == 'max')
     ];
     if (_inSupportsDeclaration) {
       return SassCalculation.unsimplified(node.name, arguments);
@@ -2292,31 +2291,8 @@ final class _EvaluateVisitor
     try {
       return switch (node.name) {
         "calc" => SassCalculation.calc(arguments[0]),
-        "sqrt" => SassCalculation.sqrt(arguments[0]),
-        "sin" => SassCalculation.sin(arguments[0]),
-        "cos" => SassCalculation.cos(arguments[0]),
-        "tan" => SassCalculation.tan(arguments[0]),
-        "asin" => SassCalculation.asin(arguments[0]),
-        "acos" => SassCalculation.acos(arguments[0]),
-        "atan" => SassCalculation.atan(arguments[0]),
-        "abs" => SassCalculation.abs(arguments[0]),
-        "exp" => SassCalculation.exp(arguments[0]),
-        "sign" => SassCalculation.sign(arguments[0]),
         "min" => SassCalculation.min(arguments),
         "max" => SassCalculation.max(arguments),
-        "hypot" => SassCalculation.hypot(arguments),
-        "pow" =>
-          SassCalculation.pow(arguments[0], arguments.elementAtOrNull(1)),
-        "atan2" =>
-          SassCalculation.atan2(arguments[0], arguments.elementAtOrNull(1)),
-        "log" =>
-          SassCalculation.log(arguments[0], arguments.elementAtOrNull(1)),
-        "mod" =>
-          SassCalculation.mod(arguments[0], arguments.elementAtOrNull(1)),
-        "rem" =>
-          SassCalculation.rem(arguments[0], arguments.elementAtOrNull(1)),
-        "round" => SassCalculation.round(arguments[0],
-            arguments.elementAtOrNull(1), arguments.elementAtOrNull(2)),
         "clamp" => SassCalculation.clamp(arguments[0],
             arguments.elementAtOrNull(1), arguments.elementAtOrNull(2)),
         _ => throw UnsupportedError('Unknown calculation name "${node.name}".')
@@ -2325,9 +2301,7 @@ final class _EvaluateVisitor
       // The simplification logic in the [SassCalculation] static methods will
       // throw an error if the arguments aren't compatible, but we have access
       // to the original spans so we can throw a more informative error.
-      if (error.message.contains("compatible")) {
-        _verifyCompatibleNumbers(arguments, node.arguments);
-      }
+      _verifyCompatibleNumbers(arguments, node.arguments);
       throwWithTrace(_exception(error.message, node.span), error, stackTrace);
     }
   }
@@ -2369,15 +2343,13 @@ final class _EvaluateVisitor
 
   /// Evaluates [node] as a component of a calculation.
   ///
-  /// If [inLegacySassFunction] is `true`, this allows unitless numbers to be added and
+  /// If [inMinMax] is `true`, this allows unitless numbers to be added and
   /// subtracted with numbers with units, for backwards-compatibility with the
-  /// old global `min()`, `max()`, `round()`, and `abs()` functions.
-  Object _visitCalculationValue(Expression node,
-      {required bool inLegacySassFunction}) {
+  /// old global `min()` and `max()` functions.
+  Object _visitCalculationValue(Expression node, {required bool inMinMax}) {
     switch (node) {
       case ParenthesizedExpression(expression: var inner):
-        var result = _visitCalculationValue(inner,
-            inLegacySassFunction: inLegacySassFunction);
+        var result = _visitCalculationValue(inner, inMinMax: inMinMax);
         return inner is FunctionExpression &&
                 inner.name.toLowerCase() == 'var' &&
                 result is SassString &&
@@ -2408,11 +2380,9 @@ final class _EvaluateVisitor
             node,
             () => SassCalculation.operateInternal(
                 _binaryOperatorToCalculationOperator(operator),
-                _visitCalculationValue(left,
-                    inLegacySassFunction: inLegacySassFunction),
-                _visitCalculationValue(right,
-                    inLegacySassFunction: inLegacySassFunction),
-                inLegacySassFunction: inLegacySassFunction,
+                _visitCalculationValue(left, inMinMax: inMinMax),
+                _visitCalculationValue(right, inMinMax: inMinMax),
+                inMinMax: inMinMax,
                 simplify: !_inSupportsDeclaration));
 
       case _:
