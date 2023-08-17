@@ -1,3 +1,12 @@
+## 1.66.1
+
+* Deprecate user-defined Sass functions named `round()`, `mod()`, `rem()`,
+  `sin()`, `cos()`, `tan()`, `asin()`, `acos()`, `atan()`, `atan2()`, `pow()`,
+  `sqrt()`, `hypot()`, `log()`, `exp()`, `abs()`, and `sign()`. Defining
+  functions with these names will be an error in Dart Sass 2.0.0. In a more
+  immediate release, they will also be parsed as CSS calculations in ambiguous
+  cases.
+
 ## 1.66.0
 
 * **Breaking change:** Drop support for the additional CSS calculations defined

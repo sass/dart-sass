@@ -69,6 +69,11 @@ enum Deprecation {
       deprecatedIn: '1.62.3',
       description: 'Passing null as alpha in the ${isJS ? 'JS' : 'Dart'} API.'),
 
+  mathFunctionName('math-fn-name',
+      deprecatedIn: '1.66.1',
+      description:
+          'Defining a function with the same name as a CSS calculation.'),
+
   /// Deprecation for `@import` rules.
   import.future('import', description: '@import rules.'),
 

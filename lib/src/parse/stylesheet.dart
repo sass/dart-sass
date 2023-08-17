@@ -870,6 +870,37 @@ abstract class StylesheetParser extends Parser {
             "not" ||
             "clamp") {
       error("Invalid function name.", scanner.spanFrom(start));
+    } else if (name
+        case "round" ||
+            "mod" ||
+            "rem" ||
+            "sin" ||
+            "cos" ||
+            "tan" ||
+            "asin" ||
+            "acos" ||
+            "atan" ||
+            "atan2" ||
+            "pow" ||
+            "sqrt" ||
+            "hypot" ||
+            "log" ||
+            "exp" ||
+            "abs" ||
+            "sign") {
+      var suggestion = switch (name) {
+        "sign" || "rem" || "mod" || "exp" => 'Please rename it.',
+        _ => 'Either rename it or use the math.$name() function.'
+      };
+
+      logger.warnForDeprecation(
+          Deprecation.mathFunctionName,
+          'Naming a Sass function "$name" is deprecated because it conflicts '
+          'with the new\n'
+          'CSS $name() syntax. $suggestion\n'
+          '\n'
+          'More info: https:/sass-lang.com/d/math-fn-name',
+          span: scanner.spanFrom(start));
     }
 
     whitespace();
