@@ -16,17 +16,36 @@ import '../value.dart';
 
 /// The global definitions of Sass math functions.
 final global = UnmodifiableListView([
-  _abs, _ceil, _floor, _max, _min, _percentage, _randomFunction, _round,
-  _unit, //
+  _function("abs", r"$number", (arguments) {
+    var number = arguments[0].assertNumber("number");
+    if (number.hasUnit("%")) {
+      warnForDeprecation(
+          "Passing percentage units to the global abs() function is "
+          "deprecated.\n"
+          "In the future, this will emit a CSS abs() function to be resolved "
+          "by the browser.\n"
+          "To preserve current behavior: math.abs($number)"
+          "\n"
+          "To emit a CSS abs() now: abs(#{$number})\n"
+          "More info: https://sass-lang.com/d/abs-percent",
+          Deprecation.absPercent);
+    }
+    return SassNumber.withUnits(number.value.abs(),
+        numeratorUnits: number.numeratorUnits,
+        denominatorUnits: number.denominatorUnits);
+  }),
+
+  _ceil, _floor, _max, _min, _percentage, _randomFunction, _round, _unit, //
   _compatible.withName("comparable"),
   _isUnitless.withName("unitless"),
 ]);
 
 /// The Sass math module.
 final module = BuiltInModule("math", functions: <Callable>[
-  _abs, _acos, _asin, _atan, _atan2, _ceil, _clamp, _cos, _compatible, //
-  _floor, _hypot, _isUnitless, _log, _max, _min, _percentage, _pow, //
-  _randomFunction, _round, _sin, _sqrt, _tan, _unit, _div
+  _numberFunction("abs", (value) => value.abs()),
+  _acos, _asin, _atan, _atan2, _ceil, _clamp, _cos, _compatible, _floor, //
+  _hypot, _isUnitless, _log, _max, _min, _percentage, _pow, _randomFunction,
+  _round, _sin, _sqrt, _tan, _unit, _div
 ], variables: {
   "e": SassNumber(math.e),
   "pi": SassNumber(math.pi),
@@ -87,8 +106,6 @@ final _round = _numberFunction("round", (number) => number.round().toDouble());
 ///
 /// Distance functions
 ///
-
-final _abs = _numberFunction("abs", (value) => value.abs());
 
 final _hypot = _function("hypot", r"$numbers...", (arguments) {
   var numbers =
