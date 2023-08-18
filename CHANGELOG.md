@@ -1,3 +1,10 @@
+## 1.66.1
+
+### JS API
+
+* Fix a bug where Sass compilation could crash in strict mode if passed a
+  callback that threw a string, boolean, number, symbol, or bignum.
+
 ## 1.66.0
 
 * **Breaking change:** Drop support for the additional CSS calculations defined

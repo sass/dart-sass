@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cli_pkg/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart';
 
@@ -32,8 +33,8 @@ final class JSToDartAsyncFileImporter extends AsyncImporter {
   FutureOr<Uri?> canonicalize(Uri url) async {
     if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
 
-    var result = _findFileUrl(
-        url.toString(), CanonicalizeOptions(fromImport: fromImport));
+    var result = wrapJSExceptions(() => _findFileUrl(
+        url.toString(), CanonicalizeOptions(fromImport: fromImport)));
     if (isPromise(result)) result = await promiseToFuture(result as Promise);
     if (result == null) return null;
     if (!isJSUrl(result)) {
