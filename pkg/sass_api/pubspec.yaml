@@ -13,7 +13,7 @@ dependencies:
   sass: 1.64.3
 
 dev_dependencies:
-  dartdoc: ^5.0.0
+  dartdoc: ^6.0.0
 
 dependency_overrides:
   sass: { path: ../.. }
