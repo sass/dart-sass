@@ -8,10 +8,7 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
-import '../deprecation.dart';
-import '../evaluation_context.dart';
 import '../exception.dart';
-import '../io.dart';
 import '../util/nullable.dart';
 import '../util/number.dart';
 import '../value.dart';
