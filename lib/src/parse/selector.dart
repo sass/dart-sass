@@ -4,7 +4,9 @@
 
 import 'package:charcode/charcode.dart';
 
+import '../ast/css/value.dart';
 import '../ast/selector.dart';
+import '../interpolation_map.dart';
 import '../logger.dart';
 import '../util/character.dart';
 import '../utils.dart';
@@ -37,11 +39,13 @@ class SelectorParser extends Parser {
   SelectorParser(String contents,
       {Object? url,
       Logger? logger,
+      InterpolationMap? interpolationMap,
       bool allowParent = true,
       bool allowPlaceholder = true})
       : _allowParent = allowParent,
         _allowPlaceholder = allowPlaceholder,
-        super(contents, url: url, logger: logger);
+        super(contents,
+            url: url, logger: logger, interpolationMap: interpolationMap);
 
   SelectorList parse() {
     return wrapSpanFormatException(() {
@@ -77,14 +81,14 @@ class SelectorParser extends Parser {
 
   /// Consumes a selector list.
   SelectorList _selectorList() {
+    var start = scanner.state;
     var previousLine = scanner.line;
     var components = <ComplexSelector>[_complexSelector()];
 
     whitespace();
     while (scanner.scanChar($comma)) {
       whitespace();
-      var next = scanner.peekChar();
-      if (next == $comma) continue;
+      if (scanner.peekChar() == $comma) continue;
       if (scanner.isDone) break;
 
       var lineBreak = scanner.line != previousLine;
@@ -92,7 +96,7 @@ class SelectorParser extends Parser {
       components.add(_complexSelector(lineBreak: lineBreak));
     }
 
-    return SelectorList(components);
+    return SelectorList(components, spanFrom(start));
   }
 
   /// Consumes a complex selector.
@@ -100,54 +104,57 @@ class SelectorParser extends Parser {
   /// If [lineBreak] is `true`, that indicates that there was a line break
   /// before this selector.
   ComplexSelector _complexSelector({bool lineBreak = false}) {
-    CompoundSelector? lastCompound;
-    var combinators = <Combinator>[];
+    var start = scanner.state;
 
-    List<Combinator>? initialCombinators;
+    var componentStart = scanner.state;
+    CompoundSelector? lastCompound;
+    var combinators = <CssValue<Combinator>>[];
+
+    List<CssValue<Combinator>>? initialCombinators;
     var components = <ComplexSelectorComponent>[];
 
     loop:
     while (true) {
       whitespace();
 
-      var next = scanner.peekChar();
-      switch (next) {
+      switch (scanner.peekChar()) {
         case $plus:
+          var combinatorStart = scanner.state;
           scanner.readChar();
-          combinators.add(Combinator.nextSibling);
-          break;
+          combinators
+              .add(CssValue(Combinator.nextSibling, spanFrom(combinatorStart)));
 
         case $gt:
+          var combinatorStart = scanner.state;
           scanner.readChar();
-          combinators.add(Combinator.child);
-          break;
+          combinators
+              .add(CssValue(Combinator.child, spanFrom(combinatorStart)));
 
         case $tilde:
+          var combinatorStart = scanner.state;
           scanner.readChar();
-          combinators.add(Combinator.followingSibling);
-          break;
+          combinators.add(
+              CssValue(Combinator.followingSibling, spanFrom(combinatorStart)));
 
-        default:
-          if (next == null ||
-              (!const {
-                    $lbracket,
-                    $dot,
-                    $hash,
-                    $percent,
-                    $colon,
-                    $ampersand,
-                    $asterisk,
-                    $pipe
-                  }.contains(next) &&
-                  !lookingAtIdentifier())) {
-            break loop;
-          }
+        case null:
+          break loop;
 
+        case $lbracket ||
+              $dot ||
+              $hash ||
+              $percent ||
+              $colon ||
+              $ampersand ||
+              $asterisk ||
+              $pipe:
+        case _ when lookingAtIdentifier():
           if (lastCompound != null) {
-            components.add(ComplexSelectorComponent(lastCompound, combinators));
+            components.add(ComplexSelectorComponent(
+                lastCompound, combinators, spanFrom(componentStart)));
           } else if (combinators.isNotEmpty) {
             assert(initialCombinators == null);
             initialCombinators = combinators;
+            componentStart = scanner.state;
           }
 
           lastCompound = _compoundSelector();
@@ -156,31 +163,36 @@ class SelectorParser extends Parser {
             scanner.error(
                 '"&" may only used at the beginning of a compound selector.');
           }
-          break;
+
+        case _:
+          break loop;
       }
     }
 
     if (lastCompound != null) {
-      components.add(ComplexSelectorComponent(lastCompound, combinators));
+      components.add(ComplexSelectorComponent(
+          lastCompound, combinators, spanFrom(componentStart)));
     } else if (combinators.isNotEmpty) {
       initialCombinators = combinators;
     } else {
       scanner.error("expected selector.");
     }
 
-    return ComplexSelector(initialCombinators ?? const [], components,
+    return ComplexSelector(
+        initialCombinators ?? const [], components, spanFrom(start),
         lineBreak: lineBreak);
   }
 
   /// Consumes a compound selector.
   CompoundSelector _compoundSelector() {
+    var start = scanner.state;
     var components = <SimpleSelector>[_simpleSelector()];
 
     while (isSimpleSelectorStart(scanner.peekChar())) {
       components.add(_simpleSelector(allowParent: false));
     }
 
-    return CompoundSelector(components);
+    return CompoundSelector(components, spanFrom(start));
   }
 
   /// Consumes a simple selector.
@@ -221,12 +233,15 @@ class SelectorParser extends Parser {
 
   /// Consumes an attribute selector.
   AttributeSelector _attributeSelector() {
+    var start = scanner.state;
     scanner.expectChar($lbracket);
     whitespace();
 
     var name = _attributeName();
     whitespace();
-    if (scanner.scanChar($rbracket)) return AttributeSelector(name);
+    if (scanner.scanChar($rbracket)) {
+      return AttributeSelector(name, spanFrom(start));
+    }
 
     var operator = _attributeOperator();
     whitespace();
@@ -238,12 +253,13 @@ class SelectorParser extends Parser {
     whitespace();
 
     next = scanner.peekChar();
-    var modifier = next != null && isAlphabetic(next)
+    var modifier = next != null && next.isAlphabetic
         ? String.fromCharCode(scanner.readChar())
         : null;
 
     scanner.expectChar($rbracket);
-    return AttributeSelector.withOperator(name, operator, value,
+    return AttributeSelector.withOperator(
+        name, operator, value, spanFrom(start),
         modifier: modifier);
   }
 
@@ -301,40 +317,45 @@ class SelectorParser extends Parser {
 
   /// Consumes a class selector.
   ClassSelector _classSelector() {
+    var start = scanner.state;
     scanner.expectChar($dot);
     var name = identifier();
-    return ClassSelector(name);
+    return ClassSelector(name, spanFrom(start));
   }
 
   /// Consumes an ID selector.
   IDSelector _idSelector() {
+    var start = scanner.state;
     scanner.expectChar($hash);
     var name = identifier();
-    return IDSelector(name);
+    return IDSelector(name, spanFrom(start));
   }
 
   /// Consumes a placeholder selector.
   PlaceholderSelector _placeholderSelector() {
+    var start = scanner.state;
     scanner.expectChar($percent);
     var name = identifier();
-    return PlaceholderSelector(name);
+    return PlaceholderSelector(name, spanFrom(start));
   }
 
   /// Consumes a parent selector.
   ParentSelector _parentSelector() {
+    var start = scanner.state;
     scanner.expectChar($ampersand);
     var suffix = lookingAtIdentifierBody() ? identifierBody() : null;
-    return ParentSelector(suffix: suffix);
+    return ParentSelector(spanFrom(start), suffix: suffix);
   }
 
   /// Consumes a pseudo selector.
   PseudoSelector _pseudoSelector() {
+    var start = scanner.state;
     scanner.expectChar($colon);
     var element = scanner.scanChar($colon);
     var name = identifier();
 
     if (!scanner.scanChar($lparen)) {
-      return PseudoSelector(name, element: element);
+      return PseudoSelector(name, spanFrom(start), element: element);
     }
     whitespace();
 
@@ -352,7 +373,7 @@ class SelectorParser extends Parser {
     } else if (unvendored == "nth-child" || unvendored == "nth-last-child") {
       argument = _aNPlusB();
       whitespace();
-      if (isWhitespace(scanner.peekChar(-1)) && scanner.peekChar() != $rparen) {
+      if (scanner.peekChar(-1).isWhitespace && scanner.peekChar() != $rparen) {
         expectIdentifier("of");
         argument += " of";
         whitespace();
@@ -364,7 +385,7 @@ class SelectorParser extends Parser {
     }
     scanner.expectChar($rparen);
 
-    return PseudoSelector(name,
+    return PseudoSelector(name, spanFrom(start),
         element: element, argument: argument, selector: selector);
   }
 
@@ -374,27 +395,23 @@ class SelectorParser extends Parser {
   String _aNPlusB() {
     var buffer = StringBuffer();
     switch (scanner.peekChar()) {
-      case $e:
-      case $E:
+      case $e || $E:
         expectIdentifier("even");
         return "even";
 
-      case $o:
-      case $O:
+      case $o || $O:
         expectIdentifier("odd");
         return "odd";
 
-      case $plus:
-      case $minus:
+      case $plus || $minus:
         buffer.writeCharCode(scanner.readChar());
         break;
     }
 
-    var first = scanner.peekChar();
-    if (first != null && isDigit(first)) {
-      while (isDigit(scanner.peekChar())) {
+    if (scanner.peekChar().isDigit) {
+      do {
         buffer.writeCharCode(scanner.readChar());
-      }
+      } while (scanner.peekChar().isDigit);
       whitespace();
       if (!scanIdentChar($n)) return buffer.toString();
     } else {
@@ -408,11 +425,10 @@ class SelectorParser extends Parser {
     buffer.writeCharCode(scanner.readChar());
     whitespace();
 
-    var last = scanner.peekChar();
-    if (last == null || !isDigit(last)) scanner.error("Expected a number.");
-    while (isDigit(scanner.peekChar())) {
+    if (!scanner.peekChar().isDigit) scanner.error("Expected a number.");
+    do {
       buffer.writeCharCode(scanner.readChar());
-    }
+    } while (scanner.peekChar().isDigit);
     return buffer.toString();
   }
 
@@ -420,32 +436,29 @@ class SelectorParser extends Parser {
   ///
   /// These are combined because either one could start with `*`.
   SimpleSelector _typeOrUniversalSelector() {
-    var first = scanner.peekChar();
-    if (first == $asterisk) {
-      scanner.readChar();
-      if (!scanner.scanChar($pipe)) return UniversalSelector();
-      if (scanner.scanChar($asterisk)) {
-        return UniversalSelector(namespace: "*");
-      } else {
-        return TypeSelector(QualifiedName(identifier(), namespace: "*"));
-      }
-    } else if (first == $pipe) {
-      scanner.readChar();
-      if (scanner.scanChar($asterisk)) {
-        return UniversalSelector(namespace: "");
-      } else {
-        return TypeSelector(QualifiedName(identifier(), namespace: ""));
-      }
+    var start = scanner.state;
+    if (scanner.scanChar($asterisk)) {
+      if (!scanner.scanChar($pipe)) return UniversalSelector(spanFrom(start));
+      return scanner.scanChar($asterisk)
+          ? UniversalSelector(spanFrom(start), namespace: "*")
+          : TypeSelector(
+              QualifiedName(identifier(), namespace: "*"), spanFrom(start));
+    } else if (scanner.scanChar($pipe)) {
+      return scanner.scanChar($asterisk)
+          ? UniversalSelector(spanFrom(start), namespace: "")
+          : TypeSelector(
+              QualifiedName(identifier(), namespace: ""), spanFrom(start));
     }
 
     var nameOrNamespace = identifier();
     if (!scanner.scanChar($pipe)) {
-      return TypeSelector(QualifiedName(nameOrNamespace));
+      return TypeSelector(QualifiedName(nameOrNamespace), spanFrom(start));
     } else if (scanner.scanChar($asterisk)) {
-      return UniversalSelector(namespace: nameOrNamespace);
+      return UniversalSelector(spanFrom(start), namespace: nameOrNamespace);
     } else {
       return TypeSelector(
-          QualifiedName(identifier(), namespace: nameOrNamespace));
+          QualifiedName(identifier(), namespace: nameOrNamespace),
+          spanFrom(start));
     }
   }
 }

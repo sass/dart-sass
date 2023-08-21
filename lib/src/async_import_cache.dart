@@ -6,20 +6,31 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:package_config/package_config_types.dart';
 import 'package:path/path.dart' as p;
-import 'package:tuple/tuple.dart';
 
 import 'ast/sass.dart';
+import 'deprecation.dart';
 import 'importer.dart';
+import 'importer/no_op.dart';
 import 'importer/utils.dart';
 import 'io.dart';
 import 'logger.dart';
+import 'util/nullable.dart';
 import 'utils.dart';
+
+/// A canonicalized URL and the importer that canonicalized it.
+///
+/// This also includes the URL that was originally passed to the importer, which
+/// may be resolved relative to a base URL.
+typedef AsyncCanonicalizeResult = (
+  AsyncImporter,
+  Uri canonicalUrl, {
+  Uri originalUrl
+});
 
 /// An in-memory cache of parsed stylesheets that have been imported by Sass.
 ///
 /// {@category Dependencies}
-@sealed
-class AsyncImportCache {
+final class AsyncImportCache {
   /// The importers to use when loading new Sass files.
   final List<AsyncImporter> _importers;
 
@@ -28,16 +39,14 @@ class AsyncImportCache {
 
   /// The canonicalized URLs for each non-canonical URL.
   ///
-  /// The second item in each key's tuple is true when this canonicalization is
-  /// for an `@import` rule. Otherwise, it's for a `@use` or `@forward` rule.
-  ///
-  /// This map's values are the same as the return value of [canonicalize].
+  /// The `forImport` in each key is true when this canonicalization is for an
+  /// `@import` rule. Otherwise, it's for a `@use` or `@forward` rule.
   ///
   /// This cache isn't used for relative imports, because they depend on the
   /// specific base importer. That's stored separately in
   /// [_relativeCanonicalizeCache].
   final _canonicalizeCache =
-      <Tuple2<Uri, bool>, Tuple3<AsyncImporter, Uri, Uri>?>{};
+      <(Uri, {bool forImport}), AsyncCanonicalizeResult?>{};
 
   /// The canonicalized URLs for each non-canonical URL that's resolved using a
   /// relative importer.
@@ -50,8 +59,13 @@ class AsyncImportCache {
   /// 4. The `baseUrl` passed to [canonicalize].
   ///
   /// The map's values are the same as the return value of [canonicalize].
-  final _relativeCanonicalizeCache = <Tuple4<Uri, bool, AsyncImporter, Uri?>,
-      Tuple3<AsyncImporter, Uri, Uri>?>{};
+  final _relativeCanonicalizeCache = <(
+    Uri, {
+    bool forImport,
+    AsyncImporter baseImporter,
+    Uri? baseUrl
+  }),
+      AsyncCanonicalizeResult?>{};
 
   /// The parsed stylesheets for each canonicalized import URL.
   final _importCache = <Uri, Stylesheet?>{};
@@ -94,6 +108,7 @@ class AsyncImportCache {
   static List<AsyncImporter> _toImporters(Iterable<AsyncImporter>? importers,
       Iterable<String>? loadPaths, PackageConfig? packageConfig) {
     var sassPath = getEnvironmentVariable('SASS_PATH');
+    if (isBrowser) return [...?importers];
     return [
       ...?importers,
       if (loadPaths != null)
@@ -117,28 +132,40 @@ class AsyncImportCache {
   /// If any importers understand [url], returns that importer as well as the
   /// canonicalized URL and the original URL (resolved relative to [baseUrl] if
   /// applicable). Otherwise, returns `null`.
-  Future<Tuple3<AsyncImporter, Uri, Uri>?> canonicalize(Uri url,
+  Future<AsyncCanonicalizeResult?> canonicalize(Uri url,
       {AsyncImporter? baseImporter,
       Uri? baseUrl,
       bool forImport = false}) async {
+    if (isBrowser &&
+        (baseImporter == null || baseImporter is NoOpImporter) &&
+        _importers.isEmpty) {
+      throw "Custom importers are required to load stylesheets when compiling in the browser.";
+    }
+
     if (baseImporter != null) {
-      var relativeResult = await putIfAbsentAsync(_relativeCanonicalizeCache,
-          Tuple4(url, forImport, baseImporter, baseUrl), () async {
+      var relativeResult = await putIfAbsentAsync(_relativeCanonicalizeCache, (
+        url,
+        forImport: forImport,
+        baseImporter: baseImporter,
+        baseUrl: baseUrl
+      ), () async {
         var resolvedUrl = baseUrl?.resolveUri(url) ?? url;
-        var canonicalUrl =
-            await _canonicalize(baseImporter, resolvedUrl, forImport);
-        if (canonicalUrl == null) return null;
-        return Tuple3(baseImporter, canonicalUrl, resolvedUrl);
+        if (await _canonicalize(baseImporter, resolvedUrl, forImport)
+            case var canonicalUrl?) {
+          return (baseImporter, canonicalUrl, originalUrl: resolvedUrl);
+        } else {
+          return null;
+        }
       });
       if (relativeResult != null) return relativeResult;
     }
 
-    return await putIfAbsentAsync(_canonicalizeCache, Tuple2(url, forImport),
-        () async {
+    return await putIfAbsentAsync(
+        _canonicalizeCache, (url, forImport: forImport), () async {
       for (var importer in _importers) {
-        var canonicalUrl = await _canonicalize(importer, url, forImport);
-        if (canonicalUrl != null) {
-          return Tuple3(importer, canonicalUrl, url);
+        if (await _canonicalize(importer, url, forImport)
+            case var canonicalUrl?) {
+          return (importer, canonicalUrl, originalUrl: url);
         }
       }
 
@@ -154,10 +181,10 @@ class AsyncImportCache {
         ? inImportRule(() => importer.canonicalize(url))
         : importer.canonicalize(url));
     if (result?.scheme == '') {
-      _logger.warn("""
+      _logger.warnForDeprecation(Deprecation.relativeCanonical, """
 Importer $importer canonicalized $url to $result.
 Relative canonical URLs are deprecated and will eventually be disallowed.
-""", deprecation: true);
+""");
     }
     return result;
   }
@@ -171,17 +198,19 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// parsed stylesheet. Otherwise, returns `null`.
   ///
   /// Caches the result of the import and uses cached results if possible.
-  Future<Tuple2<AsyncImporter, Stylesheet>?> import(Uri url,
+  Future<(AsyncImporter, Stylesheet)?> import(Uri url,
       {AsyncImporter? baseImporter,
       Uri? baseUrl,
       bool forImport = false}) async {
-    var tuple = await canonicalize(url,
-        baseImporter: baseImporter, baseUrl: baseUrl, forImport: forImport);
-    if (tuple == null) return null;
-    var stylesheet = await importCanonical(tuple.item1, tuple.item2,
-        originalUrl: tuple.item3);
-    if (stylesheet == null) return null;
-    return Tuple2(tuple.item1, stylesheet);
+    if (await canonicalize(url,
+            baseImporter: baseImporter, baseUrl: baseUrl, forImport: forImport)
+        case (var importer, var canonicalUrl, :var originalUrl)) {
+      return (await importCanonical(importer, canonicalUrl,
+              originalUrl: originalUrl))
+          .andThen((stylesheet) => (importer, stylesheet));
+    } else {
+      return null;
+    }
   }
 
   /// Tries to load the canonicalized [canonicalUrl] using [importer].
@@ -217,21 +246,22 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// Return a human-friendly URL for [canonicalUrl] to use in a stack trace.
   ///
   /// Returns [canonicalUrl] as-is if it hasn't been loaded by this cache.
-  Uri humanize(Uri canonicalUrl) {
-    // Display the URL with the shortest path length.
-    var url = minBy<Uri, int>(
-        _canonicalizeCache.values
-            .whereNotNull()
-            .where((tuple) => tuple.item2 == canonicalUrl)
-            .map((tuple) => tuple.item3),
-        (url) => url.path.length);
-    if (url == null) return canonicalUrl;
-
-    // Use the canonicalized basename so that we display e.g.
-    // package:example/_example.scss rather than package:example/example in
-    // stack traces.
-    return url.resolve(p.url.basename(canonicalUrl.path));
-  }
+  Uri humanize(Uri canonicalUrl) =>
+      // If multiple original URLs canonicalize to the same thing, choose the
+      // shortest one.
+      minBy<Uri, int>(
+              _canonicalizeCache.values
+                  .whereNotNull()
+                  .where((result) => result.$2 == canonicalUrl)
+                  .map((result) => result.originalUrl),
+              (url) => url.path.length)
+          // Use the canonicalized basename so that we display e.g.
+          // package:example/_example.scss rather than package:example/example
+          // in stack traces.
+          .andThen((url) => url.resolve(p.url.basename(canonicalUrl.path))) ??
+      // If we don't have an original URL cached, display the canonical URL
+      // as-is.
+      canonicalUrl;
 
   /// Returns the URL to use in the source map to refer to [canonicalUrl].
   ///
@@ -246,16 +276,9 @@ Relative canonical URLs are deprecated and will eventually be disallowed.
   /// @nodoc
   @internal
   void clearCanonicalize(Uri url) {
-    _canonicalizeCache.remove(Tuple2(url, false));
-    _canonicalizeCache.remove(Tuple2(url, true));
-
-    var relativeKeysToClear = [
-      for (var key in _relativeCanonicalizeCache.keys)
-        if (key.item1 == url) key
-    ];
-    for (var key in relativeKeysToClear) {
-      _relativeCanonicalizeCache.remove(key);
-    }
+    _canonicalizeCache.remove((url, forImport: false));
+    _canonicalizeCache.remove((url, forImport: true));
+    _relativeCanonicalizeCache.removeWhere((key, _) => key.$1 == url);
   }
 
   /// Clears the cached parse tree for the stylesheet with the given

@@ -10,12 +10,13 @@ import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:string_scanner/string_scanner.dart';
 import 'package:term_glyph/term_glyph.dart' as glyph;
-import 'package:tuple/tuple.dart';
 
 import 'ast/sass.dart';
 import 'exception.dart';
 import 'parse/scss.dart';
 import 'util/character.dart';
+import 'util/iterable.dart';
+import 'util/map.dart';
 
 /// The URL used in stack traces when no source URL is available.
 final _noSourceUrl = Uri.parse("-");
@@ -50,13 +51,14 @@ String a(String word) =>
     [$a, $e, $i, $o, $u].contains(word.codeUnitAt(0)) ? "an $word" : "a $word";
 
 /// Returns a bulleted list of items in [bullets].
-String bulletedList(Iterable<String> bullets) {
-  return bullets.map((element) {
-    var lines = element.split("\n");
-    return "${glyph.bullet} ${lines.first}" +
-        (lines.length > 1 ? "\n" + indent(lines.skip(1).join("\n"), 2) : "");
-  }).join("\n");
-}
+String bulletedList(Iterable<String> bullets) => bullets.map((element) {
+      var lines = element.split("\n");
+      return "${glyph.bullet} ${lines.first}" +
+          switch (lines) {
+            [_, ...var rest] => "\n" + indent(rest.join("\n"), 2),
+            _ => ""
+          };
+    }).join("\n");
 
 /// Returns the number of times [codeUnit] appears in [string].
 int countOccurrences(String string, int codeUnit) {
@@ -98,7 +100,7 @@ String trimAsciiRight(String string, {bool excludeEscape = false}) {
 /// whitespace, or [null] if [string] is entirely spaces.
 int? _firstNonWhitespace(String string) {
   for (var i = 0; i < string.length; i++) {
-    if (!isWhitespace(string.codeUnitAt(i))) return i;
+    if (!string.codeUnitAt(i).isWhitespace) return i;
   }
   return null;
 }
@@ -111,10 +113,10 @@ int? _firstNonWhitespace(String string) {
 int? _lastNonWhitespace(String string, {bool excludeEscape = false}) {
   for (var i = string.length - 1; i >= 0; i--) {
     var codeUnit = string.codeUnitAt(i);
-    if (!isWhitespace(codeUnit)) {
+    if (!codeUnit.isWhitespace) {
       if (excludeEscape &&
           i != 0 &&
-          i != string.length &&
+          i != string.length - 1 &&
           codeUnit == $backslash) {
         return i + 1;
       } else {
@@ -153,13 +155,6 @@ List<T> flattenVertically<T>(Iterable<Iterable<T>> iterable) {
   return result;
 }
 
-/// Returns the first element of [iterable], or `null` if the iterable is empty.
-// TODO(nweiz): Use package:collection
-T? firstOrNull<T>(Iterable<T> iterable) {
-  var iterator = iterable.iterator;
-  return iterator.moveNext() ? iterator.current : null;
-}
-
 /// Returns [value] if it's a [T] or null otherwise.
 T? castOrNull<T>(Object? value) => value is T ? value : null;
 
@@ -170,7 +165,7 @@ T? castOrNull<T>(Object? value) => value is T ? value : null;
 int codepointIndexToCodeUnitIndex(String string, int codepointIndex) {
   var codeUnitIndex = 0;
   for (var i = 0; i < codepointIndex; i++) {
-    if (isHighSurrogate(string.codeUnitAt(codeUnitIndex++))) codeUnitIndex++;
+    if (string.codeUnitAt(codeUnitIndex++).isHighSurrogate) codeUnitIndex++;
   }
   return codeUnitIndex;
 }
@@ -183,7 +178,7 @@ int codeUnitIndexToCodepointIndex(String string, int codeUnitIndex) {
   var codepointIndex = 0;
   for (var i = 0; i < codeUnitIndex; i++) {
     codepointIndex++;
-    if (isHighSurrogate(string.codeUnitAt(i))) i++;
+    if (string.codeUnitAt(i).isHighSurrogate) i++;
   }
   return codepointIndex;
 }
@@ -342,8 +337,7 @@ void removeFirstWhere<T>(List<T> list, bool test(T value), {void orElse()?}) {
 void mapAddAll2<K1, K2, V>(
     Map<K1, Map<K2, V>> destination, Map<K1, Map<K2, V>> source) {
   source.forEach((key, inner) {
-    var innerDestination = destination[key];
-    if (innerDestination != null) {
+    if (destination[key] case var innerDestination?) {
       innerDestination.addAll(inner);
     } else {
       destination[key] = inner;
@@ -388,11 +382,11 @@ Future<V> putIfAbsentAsync<K, V>(
 
 /// Returns a deep copy of a map that contains maps.
 Map<K1, Map<K2, V>> copyMapOfMap<K1, K2, V>(Map<K1, Map<K2, V>> map) =>
-    {for (var entry in map.entries) entry.key: Map.of(entry.value)};
+    {for (var (key, child) in map.pairs) key: Map.of(child)};
 
 /// Returns a deep copy of a map that contains lists.
 Map<K, List<E>> copyMapOfList<K, E>(Map<K, List<E>> map) =>
-    {for (var entry in map.entries) entry.key: entry.value.toList()};
+    {for (var (key, list) in map.pairs) key: list.toList()};
 
 /// Consumes an escape sequence from [scanner] and returns the character it
 /// represents.
@@ -400,39 +394,37 @@ int consumeEscapedCharacter(StringScanner scanner) {
   // See https://drafts.csswg.org/css-syntax-3/#consume-escaped-code-point.
 
   scanner.expectChar($backslash);
-  var first = scanner.peekChar();
-  if (first == null) {
-    return 0xFFFD;
-  } else if (isNewline(first)) {
-    scanner.error("Expected escape sequence.");
-  } else if (isHex(first)) {
-    var value = 0;
-    for (var i = 0; i < 6; i++) {
-      var next = scanner.peekChar();
-      if (next == null || !isHex(next)) break;
-      value = (value << 4) + asHex(scanner.readChar());
-    }
-    if (isWhitespace(scanner.peekChar())) scanner.readChar();
-
-    if (value == 0 ||
-        (value >= 0xD800 && value <= 0xDFFF) ||
-        value >= 0x10FFFF) {
+  switch (scanner.peekChar()) {
+    case null:
       return 0xFFFD;
-    } else {
-      return value;
-    }
-  } else {
-    return scanner.readChar();
+    case int(isNewline: true):
+      scanner.error("Expected escape sequence.");
+    case int(isHex: true):
+      var value = 0;
+      for (var i = 0; i < 6; i++) {
+        var next = scanner.peekChar();
+        if (next == null || !next.isHex) break;
+        value = (value << 4) + asHex(scanner.readChar());
+      }
+      if (scanner.peekChar().isWhitespace) scanner.readChar();
+
+      return switch (value) {
+        0 || (>= 0xD800 && <= 0xDFFF) || >= 0x10FFFF => 0xFFFD,
+        _ => value
+      };
+    case _:
+      return scanner.readChar();
   }
 }
 
 // TODO(nweiz): Use a built-in solution for this when dart-lang/sdk#10297 is
 // fixed.
-/// Throws [error] with [trace] stored as its stack trace.
+/// Throws [error] with [originalError]'s stack trace (which defaults to
+/// [trace]) stored as its stack trace.
 ///
 /// Note that [trace] is only accessible via [getTrace].
-Never throwWithTrace(Object error, StackTrace trace) {
-  attachTrace(error, trace);
+Never throwWithTrace(Object error, Object originalError, StackTrace trace) {
+  attachTrace(error, getTrace(originalError) ?? trace);
   throw error;
 }
 
@@ -440,7 +432,7 @@ Never throwWithTrace(Object error, StackTrace trace) {
 ///
 /// In most cases, [throwWithTrace] should be used instead of this.
 void attachTrace(Object error, StackTrace trace) {
-  if (error is String || error is num || error is bool) return;
+  if (error case String() || num() || bool()) return;
 
   // Non-`Error` objects thrown in Node will have empty stack traces. We don't
   // want to store these because they don't have any useful information.
@@ -454,36 +446,13 @@ void attachTrace(Object error, StackTrace trace) {
 StackTrace? getTrace(Object error) =>
     error is String || error is num || error is bool ? null : _traces[error];
 
-extension MapExtension<K, V> on Map<K, V> {
-  /// If [this] doesn't contain the given [key], sets that key to [value] and
-  /// returns it.
-  ///
-  /// Otherwise, calls [merge] with the existing value and [value] and sets
-  /// [key] to the result.
-  V putOrMerge(K key, V value, V Function(V oldValue, V newValue) merge) =>
-      containsKey(key)
-          ? this[key] = merge(this[key] as V, value)
-          : this[key] = value;
-}
-
-extension IterableExtension<E> on Iterable<E> {
-  /// Returns a view of this list that covers all elements except the last.
-  ///
-  /// Note this is only efficient for an iterable with a known length.
-  Iterable<E> get exceptLast {
-    var size = length - 1;
-    if (size < 0) throw StateError('Iterable may not be empty');
-    return take(size);
-  }
-}
-
 /// Parses a function signature of the format allowed by Node Sass's functions
 /// option and returns its name and declaration.
 ///
 /// If [requireParens] is `false`, this allows parentheses to be omitted.
 ///
 /// Throws a [SassFormatException] if parsing fails.
-Tuple2<String, ArgumentDeclaration> parseSignature(String signature,
+(String name, ArgumentDeclaration) parseSignature(String signature,
     {bool requireParens = true}) {
   try {
     return ScssParser(signature).parseSignature(requireParens: requireParens);
@@ -491,6 +460,7 @@ Tuple2<String, ArgumentDeclaration> parseSignature(String signature,
     throwWithTrace(
         SassFormatException(
             'Invalid signature "$signature": ${error.message}', error.span),
+        error,
         stackTrace);
   }
 }

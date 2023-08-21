@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/expression.dart';
@@ -12,8 +11,7 @@ import '../expression.dart';
 /// A number literal.
 ///
 /// {@category AST}
-@sealed
-class NumberExpression implements Expression {
+final class NumberExpression implements Expression {
   /// The numeric value.
   final double value;
 

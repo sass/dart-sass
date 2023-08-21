@@ -11,7 +11,7 @@ import 'extend/extension_store.dart';
 import 'value.dart';
 
 /// The interface for a Sass module.
-abstract class Module<T extends AsyncCallable> {
+abstract interface class Module<T extends AsyncCallable> {
   /// The canonical URL for this module's source file.
   ///
   /// This may be `null` if the module was loaded from a string without a URL
@@ -52,6 +52,10 @@ abstract class Module<T extends AsyncCallable> {
 
   /// The module's CSS tree.
   CssStylesheet get css;
+
+  /// A map from modules in [upstream] to loud comments written in this module
+  /// that should be emitted before the given module.
+  Map<Module<T>, List<CssComment>> get preModuleComments;
 
   /// Whether this module *or* any modules in [upstream] contain any CSS.
   bool get transitivelyContainsCss;

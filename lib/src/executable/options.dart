@@ -2,14 +2,12 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:collection';
-
 import 'package:args/args.dart';
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
-import 'package:tuple/tuple.dart';
 
 import '../../sass.dart';
 import '../io.dart';
@@ -19,7 +17,7 @@ import '../util/character.dart';
 ///
 /// The constructor and any members may throw [UsageException]s indicating that
 /// invalid arguments were passed.
-class ExecutableOptions {
+final class ExecutableOptions {
   /// The bar character to use in help separators.
   static final _separatorBar = isWindows ? '=' : '━';
 
@@ -79,6 +77,42 @@ class ExecutableOptions {
           help: 'Embed source map contents in CSS.', defaultsTo: false);
 
     parser
+      ..addSeparator(_separator('Warnings'))
+      ..addFlag('quiet', abbr: 'q', help: "Don't print warnings.")
+      ..addFlag('quiet-deps',
+          help: "Don't print compiler warnings from dependencies.\n"
+              "Stylesheets imported through load paths count as dependencies.")
+      ..addFlag('verbose',
+          help: "Print all deprecation warnings even when they're repetitive.")
+      ..addMultiOption('fatal-deprecation',
+          help: 'Deprecations to treat as errors. You may also pass a Sass\n'
+              'version to include any behavior deprecated in or before it.\n'
+              'See https://sass-lang.com/documentation/breaking-changes for \n'
+              'a complete list.',
+          allowedHelp: {
+            for (var deprecation in Deprecation.values)
+              if (deprecation
+                  case Deprecation(
+                    deprecatedIn: _?,
+                    :var id,
+                    :var description?
+                  ))
+                id: description
+          })
+      ..addMultiOption('future-deprecation',
+          help: 'Opt in to a deprecation early.',
+          allowedHelp: {
+            for (var deprecation in Deprecation.values)
+              if (deprecation
+                  case Deprecation(
+                    deprecatedIn: null,
+                    :var id,
+                    :var description?
+                  ))
+                id: description
+          });
+
+    parser
       ..addSeparator(_separator('Other'))
       ..addFlag('watch',
           abbr: 'w',
@@ -98,12 +132,6 @@ class ExecutableOptions {
           abbr: 'c', help: 'Whether to use terminal colors for messages.')
       ..addFlag('unicode',
           help: 'Whether to use Unicode characters for messages.')
-      ..addFlag('quiet', abbr: 'q', help: "Don't print warnings.")
-      ..addFlag('quiet-deps',
-          help: "Don't print compiler warnings from dependencies.\n"
-              "Stylesheets imported through load paths count as dependencies.")
-      ..addFlag('verbose',
-          help: "Print all deprecation warnings even when they're repetitive.")
       ..addFlag('trace', help: 'Print full Dart stack traces for exceptions.')
       ..addFlag('help',
           abbr: 'h', help: 'Print this usage information.', negatable: false)
@@ -144,10 +172,8 @@ class ExecutableOptions {
       'stdin', 'indented', 'style', 'source-map', 'source-map-urls', //
       'embed-sources', 'embed-source-map', 'update', 'watch'
     ];
-    for (var option in invalidOptions) {
-      if (_options.wasParsed(option)) {
-        throw UsageException("--$option isn't allowed with --interactive.");
-      }
+    if (invalidOptions.firstWhereOrNull(_options.wasParsed) case var option?) {
+      throw UsageException("--$option isn't allowed with --interactive.");
     }
     return true;
   }();
@@ -336,10 +362,7 @@ class ExecutableOptions {
         continue;
       }
 
-      var sourceAndDestination = _splitSourceAndDestination(argument);
-      var source = sourceAndDestination.item1;
-      var destination = sourceAndDestination.item2;
-
+      var (source, destination) = _splitSourceAndDestination(argument);
       if (!seen.add(source)) _fail('Duplicate source "$source".');
 
       if (source == '-') {
@@ -358,7 +381,7 @@ class ExecutableOptions {
 
   /// Splits an argument that contains a colon and returns its source and its
   /// destination component.
-  Tuple2<String, String> _splitSourceAndDestination(String argument) {
+  (String, String) _splitSourceAndDestination(String argument) {
     for (var i = 0; i < argument.length; i++) {
       // A colon at position 1 may be a Windows drive letter and not a
       // separator.
@@ -373,7 +396,7 @@ class ExecutableOptions {
         }
         if (nextColon != -1) _fail('"$argument" may only contain one ":".');
 
-        return Tuple2(argument.substring(0, i), argument.substring(i + 1));
+        return (argument.substring(0, i), argument.substring(i + 1));
       }
     }
 
@@ -383,7 +406,7 @@ class ExecutableOptions {
   /// Returns whether [string] contains an absolute Windows path at [index].
   bool _isWindowsPath(String string, int index) =>
       string.length > index + 2 &&
-      isAlphabetic(string.codeUnitAt(index)) &&
+      string.codeUnitAt(index).isAlphabetic &&
       string.codeUnitAt(index + 1) == $colon;
 
   /// Returns the sub-map of [sourcesToDestinations] for the given [source] and
@@ -484,6 +507,43 @@ class ExecutableOptions {
         ? p.relative(path, from: p.dirname(destination!))
         : p.absolute(path));
   }
+
+  /// The set of deprecations that cause errors.
+  Set<Deprecation> get fatalDeprecations => _fatalDeprecations ??= () {
+        var deprecations = <Deprecation>{};
+        for (var id in _options['fatal-deprecation'] as List<String>) {
+          if (Deprecation.fromId(id) case var deprecation?) {
+            deprecations.add(deprecation);
+            continue;
+          }
+
+          try {
+            var argVersion = Version.parse(id);
+            // We can't get the version synchronously when running from
+            // source, so we just ignore this check by using a version higher
+            // than any that will ever be used.
+            var sassVersion = Version.parse(const bool.hasEnvironment('version')
+                ? const String.fromEnvironment('version')
+                : '1000.0.0');
+            if (argVersion > sassVersion) {
+              _fail('Invalid version $argVersion. --fatal-deprecation '
+                  'requires a version less than or equal to the current '
+                  'Dart Sass version.');
+            }
+            deprecations.addAll(Deprecation.forVersion(argVersion));
+          } on FormatException {
+            _fail('Invalid deprecation "$id".');
+          }
+        }
+        return deprecations;
+      }();
+  Set<Deprecation>? _fatalDeprecations;
+
+  /// The set of future deprecations that should emit warnings anyway.
+  Set<Deprecation> get futureDeprecations => {
+        for (var id in _options['future-deprecation'] as List<String>)
+          Deprecation.fromId(id) ?? _fail('Invalid deprecation "$id".')
+      };
 
   /// Returns the value of [name] in [options] if it was explicitly provided by
   /// the user, and `null` otherwise.

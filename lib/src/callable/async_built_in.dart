@@ -4,8 +4,6 @@
 
 import 'dart:async';
 
-import 'package:tuple/tuple.dart';
-
 import '../ast/sass.dart';
 import '../value.dart';
 import 'async.dart';
@@ -76,7 +74,7 @@ class AsyncBuiltInCallable implements AsyncCallable {
   /// If no exact match is found, finds the closest approximation. Note that this
   /// doesn't guarantee that [positional] and [names] are valid for the returned
   /// [ArgumentDeclaration].
-  Tuple2<ArgumentDeclaration, Callback> callbackFor(
+  (ArgumentDeclaration, Callback) callbackFor(
           int positional, Set<String> names) =>
-      Tuple2(_arguments, _callback);
+      (_arguments, _callback);
 }

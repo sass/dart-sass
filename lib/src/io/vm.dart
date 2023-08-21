@@ -16,15 +16,17 @@ import '../utils.dart';
 
 export 'dart:io' show exitCode, FileSystemException;
 
-io.Stdout get stderr => io.stderr;
-
 bool get isWindows => io.Platform.isWindows;
 
 bool get isMacOS => io.Platform.isMacOS;
 
 bool get hasTerminal => io.stdout.hasTerminal;
 
+const bool isJS = false;
+
 bool get isNode => false;
+
+bool get isBrowser => false;
 
 bool get supportsAnsiEscapes {
   if (!hasTerminal) return false;
@@ -35,7 +37,9 @@ bool get supportsAnsiEscapes {
   return io.stdout.supportsAnsiEscapes;
 }
 
-String get currentPath => io.Directory.current.path;
+void printError(Object? message) {
+  io.stderr.writeln(message);
+}
 
 String readFile(String path) {
   var bytes = io.File(path).readAsBytesSync();
@@ -53,6 +57,7 @@ String readFile(String path) {
     throwWithTrace(
         SassException(
             "Invalid UTF-8.", sourceFile.location(stringOffset).pointSpan()),
+        error,
         stackTrace);
   }
 }

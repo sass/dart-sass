@@ -38,15 +38,12 @@ double hueToRgb(double m1, double m2, double hue) {
   if (hue < 0) hue += 1;
   if (hue > 1) hue -= 1;
 
-  if (hue < 1 / 6) {
-    return m1 + (m2 - m1) * hue * 6;
-  } else if (hue < 1 / 2) {
-    return m2;
-  } else if (hue < 2 / 3) {
-    return m1 + (m2 - m1) * (2 / 3 - hue) * 6;
-  } else {
-    return m1;
-  }
+  return switch (hue) {
+    < 1 / 6 => m1 + (m2 - m1) * hue * 6,
+    < 1 / 2 => m2,
+    < 2 / 3 => m1 + (m2 - m1) * (2 / 3 - hue) * 6,
+    _ => m1
+  };
 }
 
 /// The algorithm for converting a single `srgb` or `display-p3` channel to

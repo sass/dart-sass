@@ -813,6 +813,72 @@ void sharedTests(
     });
   });
 
+  group("with --fatal-deprecation", () {
+    test("set to a specific deprecation, errors as intended", () async {
+      await d.file("test.scss", "a {b: (4/2)}").create();
+      var sass = await runSass(["--fatal-deprecation=slash-div", "test.scss"]);
+      expect(sass.stdout, emitsDone);
+      await sass.shouldExit(65);
+    });
+
+    test("set to version, errors as intended", () async {
+      await d.file("test.scss", "a {b: (4/2)}").create();
+      var sass = await runSass(["--fatal-deprecation=1.33.0", "test.scss"]);
+      expect(sass.stdout, emitsDone);
+      await sass.shouldExit(65);
+    });
+
+    test("set to lower version, only warns", () async {
+      await d.file("test.scss", "a {b: (4/2)}").create();
+      var sass = await runSass(["--fatal-deprecation=1.32.0", "test.scss"]);
+      expect(
+          sass.stdout,
+          emitsInOrder([
+            "a {",
+            "  b: 2;",
+            "}",
+          ]));
+      expect(sass.stderr, emitsThrough(contains("DEPRECATION WARNING")));
+      await sass.shouldExit(0);
+    });
+
+    test("set to future version, usage error", () async {
+      await d.file("test.scss", "a {b: (4/2)}").create();
+      var sass = await runSass(["--fatal-deprecation=1000.0.0", "test.scss"]);
+      expect(sass.stdout, emitsThrough(contains("Invalid version 1000.0.0")));
+      await sass.shouldExit(64);
+    });
+  });
+
+  group("with --future-deprecation", () {
+    test("set to a deprecation, warns as intended", () async {
+      await d.file("_lib.scss", "a{b:c}").create();
+      await d.file("test.scss", "@import 'lib'").create();
+      var sass = await runSass(["--future-deprecation=import", "test.scss"]);
+      expect(
+          sass.stdout,
+          emitsInOrder([
+            "a {",
+            "  b: c;",
+            "}",
+          ]));
+      expect(sass.stderr, emitsThrough(contains("DEPRECATION WARNING")));
+      await sass.shouldExit(0);
+    });
+
+    test("set alongside --fatal-deprecation, errors as intended", () async {
+      await d.file("_lib.scss", "a{b:c}").create();
+      await d.file("test.scss", "@import 'lib'").create();
+      var sass = await runSass([
+        "--future-deprecation=import",
+        "--fatal-deprecation=import",
+        "test.scss"
+      ]);
+      expect(sass.stdout, emitsDone);
+      await sass.shouldExit(65);
+    });
+  });
+
   test("doesn't unassign variables", () async {
     // This is a regression test for one of the strangest errors I've ever
     // encountered. Every bit of what's going on was necessary to reproduce it,

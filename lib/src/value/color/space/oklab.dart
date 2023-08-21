@@ -30,9 +30,7 @@ class OklabColorSpace extends ColorSpace {
 
   SassColor convert(
       ColorSpace dest, double lightness, double a, double b, double alpha) {
-    if (dest == ColorSpace.oklch) {
-      return labToLch(dest, lightness, a, b, alpha);
-    }
+    if (dest == ColorSpace.oklch) return labToLch(dest, lightness, a, b, alpha);
 
     // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
     return ColorSpace.lms.convert(

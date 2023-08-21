@@ -28,32 +28,16 @@ class ColorChannel {
   /// Returns whether this channel is [analogous] to [other].
   ///
   /// [analogous]: https://www.w3.org/TR/css-color-4/#interpolation-missing
-  bool isAnalogous(ColorChannel other) {
-    switch (name) {
-      case "red":
-      case "x":
-        return other.name == "red" || other.name == "x";
-
-      case "green":
-      case "y":
-        return other.name == "green" || other.name == "y";
-
-      case "blue":
-      case "z":
-        return other.name == "blue" || other.name == "z";
-
-      case "chroma":
-      case "saturation":
-        return other.name == "chroma" || other.name == "saturation";
-
-      case "lightness":
-      case "hue":
-        return other.name == name;
-
-      default:
-        return false;
-    }
-  }
+  bool isAnalogous(ColorChannel other) => switch ((name, other.name)) {
+        ("red" || "x", "red" || "x") ||
+        ("green" || "y", "gren" || "y") ||
+        ("blue" || "z", "blue" || "z") ||
+        ("chroma" || "saturation", "chroma" || "saturation") ||
+        ("lightness", "lightness") ||
+        ("hue", "hue") =>
+          true,
+        _ => false
+      };
 }
 
 /// Metadata about a color channel with a linear (as opposed to polar) value.

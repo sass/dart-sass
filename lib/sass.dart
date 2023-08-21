@@ -13,6 +13,7 @@ import 'src/async_import_cache.dart';
 import 'src/callable.dart';
 import 'src/compile.dart' as c;
 import 'src/compile_result.dart';
+import 'src/deprecation.dart';
 import 'src/exception.dart';
 import 'src/import_cache.dart';
 import 'src/importer.dart';
@@ -24,9 +25,10 @@ import 'src/visitor/serialize.dart';
 
 export 'src/callable.dart' show Callable, AsyncCallable;
 export 'src/compile_result.dart';
+export 'src/deprecation.dart';
 export 'src/exception.dart' show SassException;
 export 'src/importer.dart';
-export 'src/logger.dart';
+export 'src/logger.dart' show Logger;
 export 'src/syntax.dart';
 export 'src/value.dart'
     hide
@@ -110,7 +112,9 @@ CompileResult compileToResult(String path,
         bool quietDeps = false,
         bool verbose = false,
         bool sourceMap = false,
-        bool charset = true}) =>
+        bool charset = true,
+        Iterable<Deprecation>? fatalDeprecations,
+        Iterable<Deprecation>? futureDeprecations}) =>
     c.compile(path,
         logger: logger,
         importCache: ImportCache(
@@ -123,7 +127,9 @@ CompileResult compileToResult(String path,
         quietDeps: quietDeps,
         verbose: verbose,
         sourceMap: sourceMap,
-        charset: charset);
+        charset: charset,
+        fatalDeprecations: fatalDeprecations,
+        futureDeprecations: futureDeprecations);
 
 /// Compiles [source] to CSS and returns a [CompileResult] containing the CSS
 /// and additional metadata about the compilation..
@@ -205,7 +211,9 @@ CompileResult compileStringToResult(String source,
         bool quietDeps = false,
         bool verbose = false,
         bool sourceMap = false,
-        bool charset = true}) =>
+        bool charset = true,
+        Iterable<Deprecation>? fatalDeprecations,
+        Iterable<Deprecation>? futureDeprecations}) =>
     c.compileString(source,
         syntax: syntax,
         logger: logger,
@@ -221,7 +229,9 @@ CompileResult compileStringToResult(String source,
         quietDeps: quietDeps,
         verbose: verbose,
         sourceMap: sourceMap,
-        charset: charset);
+        charset: charset,
+        fatalDeprecations: fatalDeprecations,
+        futureDeprecations: futureDeprecations);
 
 /// Like [compileToResult], except it runs asynchronously.
 ///
@@ -239,7 +249,9 @@ Future<CompileResult> compileToResultAsync(String path,
         bool quietDeps = false,
         bool verbose = false,
         bool sourceMap = false,
-        bool charset = true}) =>
+        bool charset = true,
+        Iterable<Deprecation>? fatalDeprecations,
+        Iterable<Deprecation>? futureDeprecations}) =>
     c.compileAsync(path,
         logger: logger,
         importCache: AsyncImportCache(
@@ -252,7 +264,9 @@ Future<CompileResult> compileToResultAsync(String path,
         quietDeps: quietDeps,
         verbose: verbose,
         sourceMap: sourceMap,
-        charset: charset);
+        charset: charset,
+        fatalDeprecations: fatalDeprecations,
+        futureDeprecations: futureDeprecations);
 
 /// Like [compileStringToResult], except it runs asynchronously.
 ///
@@ -275,7 +289,9 @@ Future<CompileResult> compileStringToResultAsync(String source,
         bool quietDeps = false,
         bool verbose = false,
         bool sourceMap = false,
-        bool charset = true}) =>
+        bool charset = true,
+        Iterable<Deprecation>? fatalDeprecations,
+        Iterable<Deprecation>? futureDeprecations}) =>
     c.compileStringAsync(source,
         syntax: syntax,
         logger: logger,
@@ -315,8 +331,7 @@ Future<CompileResult> compileStringToResultAsync(String source,
 ///
 /// {@category Compile}
 @Deprecated("Use compileToResult() instead.")
-String compile(
-    String path,
+String compile(String path,
     {bool color = false,
     Logger? logger,
     Iterable<Importer>? importers,
@@ -327,7 +342,7 @@ String compile(
     bool quietDeps = false,
     bool verbose = false,
     @Deprecated("Use CompileResult.sourceMap from compileToResult() instead.")
-        void sourceMap(SingleMapping map)?,
+    void sourceMap(SingleMapping map)?,
     bool charset = true}) {
   var result = compileToResult(path,
       logger: logger,
@@ -366,8 +381,7 @@ String compile(
 ///
 /// {@category Compile}
 @Deprecated("Use compileStringToResult() instead.")
-String compileString(
-    String source,
+String compileString(String source,
     {Syntax? syntax,
     bool color = false,
     Logger? logger,
@@ -380,11 +394,11 @@ String compileString(
     Object? url,
     bool quietDeps = false,
     bool verbose = false,
-    @Deprecated("Use CompileResult.sourceMap from compileStringToResult() instead.")
-        void sourceMap(SingleMapping map)?,
+    @Deprecated(
+        "Use CompileResult.sourceMap from compileStringToResult() instead.")
+    void sourceMap(SingleMapping map)?,
     bool charset = true,
-    @Deprecated("Use syntax instead.")
-        bool indented = false}) {
+    @Deprecated("Use syntax instead.") bool indented = false}) {
   var result = compileStringToResult(source,
       syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
       logger: logger,
@@ -411,8 +425,7 @@ String compileString(
 ///
 /// {@category Compile}
 @Deprecated("Use compileToResultAsync() instead.")
-Future<String> compileAsync(
-    String path,
+Future<String> compileAsync(String path,
     {bool color = false,
     Logger? logger,
     Iterable<AsyncImporter>? importers,
@@ -422,8 +435,9 @@ Future<String> compileAsync(
     OutputStyle? style,
     bool quietDeps = false,
     bool verbose = false,
-    @Deprecated("Use CompileResult.sourceMap from compileToResultAsync() instead.")
-        void sourceMap(SingleMapping map)?}) async {
+    @Deprecated(
+        "Use CompileResult.sourceMap from compileToResultAsync() instead.")
+    void sourceMap(SingleMapping map)?}) async {
   var result = await compileToResultAsync(path,
       logger: logger,
       importers: importers,
@@ -446,8 +460,7 @@ Future<String> compileAsync(
 ///
 /// {@category Compile}
 @Deprecated("Use compileStringToResultAsync() instead.")
-Future<String> compileStringAsync(
-    String source,
+Future<String> compileStringAsync(String source,
     {Syntax? syntax,
     bool color = false,
     Logger? logger,
@@ -460,11 +473,11 @@ Future<String> compileStringAsync(
     Object? url,
     bool quietDeps = false,
     bool verbose = false,
-    @Deprecated("Use CompileResult.sourceMap from compileStringToResultAsync() instead.")
-        void sourceMap(SingleMapping map)?,
+    @Deprecated(
+        "Use CompileResult.sourceMap from compileStringToResultAsync() instead.")
+    void sourceMap(SingleMapping map)?,
     bool charset = true,
-    @Deprecated("Use syntax instead.")
-        bool indented = false}) async {
+    @Deprecated("Use syntax instead.") bool indented = false}) async {
   var result = await compileStringToResultAsync(source,
       syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
       logger: logger,

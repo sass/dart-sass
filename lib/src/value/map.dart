@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 import '../visitor/interface/value.dart';
 import '../value.dart';
 import '../utils.dart';
+import '../util/map.dart';
 
 /// A SassScript map.
 ///
@@ -29,13 +30,10 @@ class SassMap extends Value {
   ListSeparator get separator =>
       contents.isEmpty ? ListSeparator.undecided : ListSeparator.comma;
 
-  List<Value> get asList {
-    var result = <Value>[];
-    contents.forEach((key, value) {
-      result.add(SassList([key, value], ListSeparator.space));
-    });
-    return result;
-  }
+  List<Value> get asList => [
+        for (var (key, value) in contents.pairs)
+          SassList([key, value], ListSeparator.space)
+      ];
 
   /// @nodoc
   @internal

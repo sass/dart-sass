@@ -4,30 +4,38 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../../../util/box.dart';
 import '../../../visitor/interface/modifiable_css.dart';
 import '../../selector.dart';
 import '../style_rule.dart';
 import 'node.dart';
-import 'value.dart';
 
 /// A modifiable version of [CssStyleRule] for use in the evaluation step.
-class ModifiableCssStyleRule extends ModifiableCssParentNode
+final class ModifiableCssStyleRule extends ModifiableCssParentNode
     implements CssStyleRule {
-  final ModifiableCssValue<SelectorList> selector;
+  SelectorList get selector => _selector.value;
+
+  /// A reference to the modifiable selector list provided by the extension
+  /// store, which may update it over time as new extensions are applied.
+  final Box<SelectorList> _selector;
+
   final SelectorList originalSelector;
   final FileSpan span;
 
   /// Creates a new [ModifiableCssStyleRule].
   ///
-  /// If [originalSelector] isn't passed, it defaults to [selector.value].
-  ModifiableCssStyleRule(this.selector, this.span,
+  /// If [originalSelector] isn't passed, it defaults to [_selector.value].
+  ModifiableCssStyleRule(this._selector, this.span,
       {SelectorList? originalSelector})
-      : originalSelector = originalSelector ?? selector.value;
+      : originalSelector = originalSelector ?? _selector.value;
 
   T accept<T>(ModifiableCssVisitor<T> visitor) =>
       visitor.visitCssStyleRule(this);
 
+  bool equalsIgnoringChildren(ModifiableCssNode other) =>
+      other is ModifiableCssStyleRule && other.selector == selector;
+
   ModifiableCssStyleRule copyWithoutChildren() =>
-      ModifiableCssStyleRule(selector, span,
+      ModifiableCssStyleRule(_selector, span,
           originalSelector: originalSelector);
 }

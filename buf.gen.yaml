@@ -1,0 +1,4 @@
+version: v1
+plugins:
+- plugin: dart
+  out: lib/src/embedded

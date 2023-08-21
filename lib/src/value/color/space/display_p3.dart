@@ -28,26 +28,17 @@ class DisplayP3ColorSpace extends ColorSpace {
   double fromLinear(double channel) => srgbAndDisplayP3FromLinear(channel);
 
   @protected
-  Float64List transformationMatrix(ColorSpace dest) {
-    switch (dest) {
-      case ColorSpace.srgbLinear:
-      case ColorSpace.srgb:
-      case ColorSpace.rgb:
-        return linearDisplayP3ToLinearSrgb;
-      case ColorSpace.a98Rgb:
-        return linearDisplayP3ToLinearA98Rgb;
-      case ColorSpace.prophotoRgb:
-        return linearDisplayP3ToLinearProphotoRgb;
-      case ColorSpace.rec2020:
-        return linearDisplayP3ToLinearRec2020;
-      case ColorSpace.xyzD65:
-        return linearDisplayP3ToXyzD65;
-      case ColorSpace.xyzD50:
-        return linearDisplayP3ToXyzD50;
-      case ColorSpace.lms:
-        return linearDisplayP3ToLms;
-      default:
-        return super.transformationMatrix(dest);
-    }
-  }
+  Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
+        ColorSpace.srgbLinear ||
+        ColorSpace.srgb ||
+        ColorSpace.rgb =>
+          linearDisplayP3ToLinearSrgb,
+        ColorSpace.a98Rgb => linearDisplayP3ToLinearA98Rgb,
+        ColorSpace.prophotoRgb => linearDisplayP3ToLinearProphotoRgb,
+        ColorSpace.rec2020 => linearDisplayP3ToLinearRec2020,
+        ColorSpace.xyzD65 => linearDisplayP3ToXyzD65,
+        ColorSpace.xyzD50 => linearDisplayP3ToXyzD50,
+        ColorSpace.lms => linearDisplayP3ToLms,
+        _ => super.transformationMatrix(dest)
+      };
 }

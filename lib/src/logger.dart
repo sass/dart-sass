@@ -2,9 +2,12 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
+import 'deprecation.dart';
+import 'logger/deprecation_handling.dart';
 import 'logger/stderr.dart';
 
 /// An interface for loggers that print messages produced by Sass stylesheets.
@@ -34,8 +37,23 @@ abstract class Logger {
   void debug(String message, SourceSpan span);
 }
 
+/// An extension to add a `warnForDeprecation` method to loggers without
+/// making a breaking API change.
+@internal
+extension WarnForDeprecation on Logger {
+  /// Emits a deprecation warning for [deprecation] with the given [message].
+  void warnForDeprecation(Deprecation deprecation, String message,
+      {FileSpan? span, Trace? trace}) {
+    if (this case DeprecationHandlingLogger self) {
+      self.warnForDeprecation(deprecation, message, span: span, trace: trace);
+    } else if (!deprecation.isFuture) {
+      warn(message, span: span, trace: trace, deprecation: true);
+    }
+  }
+}
+
 /// A logger that emits no messages.
-class _QuietLogger implements Logger {
+final class _QuietLogger implements Logger {
   void warn(String message,
       {FileSpan? span, Trace? trace, bool deprecation = false}) {}
   void debug(String message, SourceSpan span) {}

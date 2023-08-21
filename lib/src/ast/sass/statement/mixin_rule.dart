@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../util/span.dart';
@@ -20,8 +19,7 @@ import 'silent_comment.dart';
 /// This declares a mixin that's invoked using `@include`.
 ///
 /// {@category AST}
-@sealed
-class MixinRule extends CallableDeclaration implements SassDeclaration {
+final class MixinRule extends CallableDeclaration implements SassDeclaration {
   /// Whether the mixin contains a `@content` rule.
   late final bool hasContent =
       const _HasContentVisitor().visitMixinRule(this) == true;

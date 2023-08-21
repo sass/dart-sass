@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:convert';
 
 import 'package:cli_pkg/cli_pkg.dart' as pkg;
+import 'package:cli_util/cli_util.dart';
 import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
@@ -15,22 +16,8 @@ import 'package:yaml/yaml.dart';
 import 'utils.dart';
 
 /// The path in which pub expects to find its credentials file.
-final String _pubCredentialsPath = () {
-  // This follows the same logic as pub:
-  // https://github.com/dart-lang/pub/blob/d99b0d58f4059d7bb4ac4616fd3d54ec00a2b5d4/lib/src/system_cache.dart#L34-L43
-  String cacheDir;
-  var pubCache = Platform.environment['PUB_CACHE'];
-  if (pubCache != null) {
-    cacheDir = pubCache;
-  } else if (Platform.isWindows) {
-    var appData = Platform.environment['APPDATA']!;
-    cacheDir = p.join(appData, 'Pub', 'Cache');
-  } else {
-    cacheDir = p.join(Platform.environment['HOME']!, '.pub-cache');
-  }
-
-  return p.join(cacheDir, 'credentials.json');
-}();
+final String _pubCredentialsPath =
+    p.join(applicationConfigHome('dart'), 'pub-credentials.json');
 
 @Task('Deploy sub-packages to pub.')
 Future<void> deploySubPackages() async {

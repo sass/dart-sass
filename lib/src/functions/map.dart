@@ -9,7 +9,8 @@ import 'package:collection/collection.dart';
 import '../callable.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
-import '../utils.dart';
+import '../util/iterable.dart';
+import '../util/map.dart';
 import '../value.dart';
 
 /// The global definitions of Sass map functions.
@@ -40,11 +41,8 @@ final _get = _function("get", r"$map, $key, $keys...", (arguments) {
   var keys = [arguments[1], ...arguments[2].asList];
   for (var key in keys.exceptLast) {
     var value = map.contents[key];
-    if (value is SassMap) {
-      map = value;
-    } else {
-      return sassNull;
-    }
+    if (value is! SassMap) return sassNull;
+    map = value;
   }
   return map.contents[keys.last] ?? sassNull;
 });
@@ -56,13 +54,16 @@ final _set = BuiltInCallable.overloadedFunction("set", {
   },
   r"$map, $args...": (arguments) {
     var map = arguments[0].assertMap("map");
-    var args = arguments[1].asList;
-    if (args.isEmpty) {
-      throw SassScriptException("Expected \$args to contain a key.");
-    } else if (args.length == 1) {
-      throw SassScriptException("Expected \$args to contain a value.");
+    switch (arguments[1].asList) {
+      case []:
+        throw SassScriptException("Expected \$args to contain a key.");
+      case [_]:
+        throw SassScriptException("Expected \$args to contain a value.");
+      case [...var keys, var value]:
+        return _modify(map, keys, (_) => value);
+      default:
+        throw '[BUG] Unreachable code';
     }
-    return _modify(map, args.sublist(0, args.length - 1), (_) => args.last);
   },
 });
 
@@ -74,18 +75,21 @@ final _merge = BuiltInCallable.overloadedFunction("merge", {
   },
   r"$map1, $args...": (arguments) {
     var map1 = arguments[0].assertMap("map1");
-    var args = arguments[1].asList;
-    if (args.isEmpty) {
-      throw SassScriptException("Expected \$args to contain a key.");
-    } else if (args.length == 1) {
-      throw SassScriptException("Expected \$args to contain a map.");
+    switch (arguments[1].asList) {
+      case []:
+        throw SassScriptException("Expected \$args to contain a key.");
+      case [_]:
+        throw SassScriptException("Expected \$args to contain a map.");
+      case [...var keys, var last]:
+        var map2 = last.assertMap("map2");
+        return _modify(map1, keys, (oldValue) {
+          var nestedMap = oldValue.tryMap();
+          if (nestedMap == null) return map2;
+          return SassMap({...nestedMap.contents, ...map2.contents});
+        });
+      default:
+        throw '[BUG] Unreachable code';
     }
-    var map2 = args.last.assertMap("map2");
-    return _modify(map1, args.exceptLast, (oldValue) {
-      var nestedMap = oldValue.tryMap();
-      if (nestedMap == null) return map2;
-      return SassMap({...nestedMap.contents, ...map2.contents});
-    });
   },
 });
 
@@ -100,8 +104,8 @@ final _deepRemove =
   var map = arguments[0].assertMap("map");
   var keys = [arguments[1], ...arguments[2].asList];
   return _modify(map, keys.exceptLast, (value) {
-    var nestedMap = value.tryMap();
-    if (nestedMap != null && nestedMap.contents.containsKey(keys.last)) {
+    if (value.tryMap() case var nestedMap?
+        when nestedMap.contents.containsKey(keys.last)) {
       return SassMap(Map.of(nestedMap.contents)..remove(keys.last));
     }
     return value;
@@ -144,11 +148,8 @@ final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {
   var keys = [arguments[1], ...arguments[2].asList];
   for (var key in keys.exceptLast) {
     var value = map.contents[key];
-    if (value is SassMap) {
-      map = value;
-    } else {
-      return sassFalse;
-    }
+    if (value is! SassMap) return sassFalse;
+    map = value;
   }
   return SassBoolean(map.contents.containsKey(keys.last));
 });
@@ -198,22 +199,16 @@ SassMap _deepMergeImpl(SassMap map1, SassMap map2) {
   if (map2.contents.isEmpty) return map1;
 
   var result = Map.of(map1.contents);
-
-  map2.contents.forEach((key, value) {
-    var resultMap = result[key]?.tryMap();
-    if (resultMap == null) {
-      result[key] = value;
+  for (var (key, value) in map2.contents.pairs) {
+    if ((result[key]?.tryMap(), value.tryMap())
+        case (var resultMap?, var valueMap?)) {
+      var merged = _deepMergeImpl(resultMap, valueMap);
+      if (identical(merged, resultMap)) continue;
+      result[key] = merged;
     } else {
-      var valueMap = value.tryMap();
-      if (valueMap != null) {
-        var merged = _deepMergeImpl(resultMap, valueMap);
-        if (identical(merged, resultMap)) return;
-        result[key] = merged;
-      } else {
-        result[key] = value;
-      }
+      result[key] = value;
     }
-  });
+  }
 
   return SassMap(result);
 }

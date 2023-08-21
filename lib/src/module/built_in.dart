@@ -13,7 +13,7 @@ import '../module.dart';
 import '../value.dart';
 
 /// A module provided by Sass, available under the special `sass:` URL space.
-class BuiltInModule<T extends AsyncCallable> implements Module<T> {
+final class BuiltInModule<T extends AsyncCallable> implements Module<T> {
   final Uri url;
   final Map<String, T> functions;
   final Map<String, T> mixins;
@@ -23,6 +23,7 @@ class BuiltInModule<T extends AsyncCallable> implements Module<T> {
   Map<String, AstNode> get variableNodes => const {};
   ExtensionStore get extensionStore => ExtensionStore.empty;
   CssStylesheet get css => CssStylesheet.empty(url: url);
+  Map<Module<T>, List<CssComment>> get preModuleComments => const {};
   bool get transitivelyContainsCss => false;
   bool get transitivelyContainsExtensions => false;
 

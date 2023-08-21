@@ -10,7 +10,7 @@ import '../value.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssSupportsRule] for use in the evaluation step.
-class ModifiableCssSupportsRule extends ModifiableCssParentNode
+final class ModifiableCssSupportsRule extends ModifiableCssParentNode
     implements CssSupportsRule {
   final CssValue<String> condition;
   final FileSpan span;
@@ -19,6 +19,9 @@ class ModifiableCssSupportsRule extends ModifiableCssParentNode
 
   T accept<T>(ModifiableCssVisitor<T> visitor) =>
       visitor.visitCssSupportsRule(this);
+
+  bool equalsIgnoringChildren(ModifiableCssNode other) =>
+      other is ModifiableCssSupportsRule && condition == other.condition;
 
   ModifiableCssSupportsRule copyWithoutChildren() =>
       ModifiableCssSupportsRule(condition, span);

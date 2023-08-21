@@ -8,8 +8,11 @@ import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 import '../exception.dart';
+import '../interpolation_map.dart';
 import '../logger.dart';
 import '../util/character.dart';
+import '../util/lazy_file_span.dart';
+import '../util/map.dart';
 import '../utils.dart';
 
 /// The abstract base class for all parsers.
@@ -24,6 +27,11 @@ class Parser {
   /// The logger to use when emitting warnings.
   @protected
   final Logger logger;
+
+  /// A map used to map source spans in the text being parsed back to their
+  /// original locations in the source file, if this isn't being parsed directly
+  /// from source.
+  final InterpolationMap? _interpolationMap;
 
   /// Parses [text] as a CSS identifier and returns the result.
   ///
@@ -48,9 +56,11 @@ class Parser {
       Parser(text, logger: logger)._isVariableDeclarationLike();
 
   @protected
-  Parser(String contents, {Object? url, Logger? logger})
+  Parser(String contents,
+      {Object? url, Logger? logger, InterpolationMap? interpolationMap})
       : scanner = SpanScanner(contents, sourceUrl: url),
-        logger = logger ?? const Logger.stderr();
+        logger = logger ?? const Logger.stderr(),
+        _interpolationMap = interpolationMap;
 
   String _parseIdentifier() {
     return wrapSpanFormatException(() {
@@ -81,7 +91,7 @@ class Parser {
   /// Consumes whitespace, but not comments.
   @protected
   void whitespaceWithoutComments() {
-    while (!scanner.isDone && isWhitespace(scanner.peekChar())) {
+    while (!scanner.isDone && scanner.peekChar().isWhitespace) {
       scanner.readChar();
     }
   }
@@ -89,7 +99,7 @@ class Parser {
   /// Consumes spaces and tabs.
   @protected
   void spaces() {
-    while (!scanner.isDone && isSpaceOrTab(scanner.peekChar())) {
+    while (!scanner.isDone && scanner.peekChar().isSpaceOrTab) {
       scanner.readChar();
     }
   }
@@ -101,23 +111,22 @@ class Parser {
   bool scanComment() {
     if (scanner.peekChar() != $slash) return false;
 
-    var next = scanner.peekChar(1);
-    if (next == $slash) {
-      silentComment();
-      return true;
-    } else if (next == $asterisk) {
-      loudComment();
-      return true;
-    } else {
-      return false;
+    switch (scanner.peekChar(1)) {
+      case $slash:
+        silentComment();
+        return true;
+      case $asterisk:
+        loudComment();
+        return true;
+      case _:
+        return false;
     }
   }
 
   /// Like [whitespace], but throws an error if no whitespace is consumed.
   @protected
   void expectWhitespace() {
-    if (scanner.isDone ||
-        !(isWhitespace(scanner.peekChar()) || scanComment())) {
+    if (scanner.isDone || !(scanner.peekChar().isWhitespace || scanComment())) {
       scanner.error("Expected whitespace.");
     }
 
@@ -128,7 +137,7 @@ class Parser {
   @protected
   void silentComment() {
     scanner.expect("//");
-    while (!scanner.isDone && !isNewline(scanner.peekChar())) {
+    while (!scanner.isDone && !scanner.peekChar().isNewline) {
       scanner.readChar();
     }
   }
@@ -172,18 +181,18 @@ class Parser {
       }
     }
 
-    var first = scanner.peekChar();
-    if (first == null) {
-      scanner.error("Expected identifier.");
-    } else if (normalize && first == $underscore) {
-      scanner.readChar();
-      text.writeCharCode($dash);
-    } else if (isNameStart(first)) {
-      text.writeCharCode(scanner.readChar());
-    } else if (first == $backslash) {
-      text.write(escape(identifierStart: true));
-    } else {
-      scanner.error("Expected identifier.");
+    switch (scanner.peekChar()) {
+      case null:
+        scanner.error("Expected identifier.");
+      case $underscore when normalize:
+        scanner.readChar();
+        text.writeCharCode($dash);
+      case int(isNameStart: true):
+        text.writeCharCode(scanner.readChar());
+      case $backslash:
+        text.write(escape(identifierStart: true));
+      case _:
+        scanner.error("Expected identifier.");
     }
 
     _identifierBody(text, normalize: normalize, unit: unit);
@@ -202,24 +211,24 @@ class Parser {
   /// Like [_identifierBody], but parses the body into the [text] buffer.
   void _identifierBody(StringBuffer text,
       {bool normalize = false, bool unit = false}) {
+    loop:
     while (true) {
-      var next = scanner.peekChar();
-      if (next == null) {
-        break;
-      } else if (unit && next == $dash) {
-        // Disallow `-` followed by a dot or a digit digit in units.
-        var second = scanner.peekChar(1);
-        if (second != null && (second == $dot || isDigit(second))) break;
-        text.writeCharCode(scanner.readChar());
-      } else if (normalize && next == $underscore) {
-        scanner.readChar();
-        text.writeCharCode($dash);
-      } else if (isName(next)) {
-        text.writeCharCode(scanner.readChar());
-      } else if (next == $backslash) {
-        text.write(escape());
-      } else {
-        break;
+      switch (scanner.peekChar()) {
+        case null:
+          break loop;
+        case $dash when unit:
+          // Disallow `-` followed by a dot or a digit digit in units.
+          if (scanner.peekChar(1) case $dot || int(isDigit: true)) break loop;
+          text.writeCharCode(scanner.readChar());
+        case $underscore when normalize:
+          scanner.readChar();
+          text.writeCharCode($dash);
+        case int(isName: true):
+          text.writeCharCode(scanner.readChar());
+        case $backslash:
+          text.write(escape());
+        case _:
+          break loop;
       }
     }
   }
@@ -230,8 +239,9 @@ class Parser {
   /// quotes and its escapes are resolved.
   @protected
   String string() {
-    // NOTE: this logic is largely duplicated in ScssParser._interpolatedString.
-    // Most changes here should be mirrored there.
+    // NOTE: this logic is largely duplicated in
+    // StylesheetParser.interpolatedString. Most changes here should be mirrored
+    // there.
 
     var quote = scanner.readChar();
     if (quote != $single_quote && quote != $double_quote) {
@@ -239,22 +249,23 @@ class Parser {
     }
 
     var buffer = StringBuffer();
+    loop:
     while (true) {
-      var next = scanner.peekChar();
-      if (next == quote) {
-        scanner.readChar();
-        break;
-      } else if (next == null || isNewline(next)) {
-        scanner.error("Expected ${String.fromCharCode(quote)}.");
-      } else if (next == $backslash) {
-        if (isNewline(scanner.peekChar(1))) {
+      switch (scanner.peekChar()) {
+        case var next when next == quote:
           scanner.readChar();
-          scanner.readChar();
-        } else {
-          buffer.writeCharCode(escapeCharacter());
-        }
-      } else {
-        buffer.writeCharCode(scanner.readChar());
+          break loop;
+        case null || int(isNewline: true):
+          scanner.error("Expected ${String.fromCharCode(quote)}.");
+        case $backslash:
+          if (scanner.peekChar(1).isNewline) {
+            scanner.readChar();
+            scanner.readChar();
+          } else {
+            buffer.writeCharCode(escapeCharacter());
+          }
+        case _:
+          buffer.writeCharCode(scanner.readChar());
       }
     }
 
@@ -268,12 +279,12 @@ class Parser {
   @protected
   double naturalNumber() {
     var first = scanner.readChar();
-    if (!isDigit(first)) {
+    if (!first.isDigit) {
       scanner.error("Expected digit.", position: scanner.position - 1);
     }
 
     var number = asDecimal(first).toDouble();
-    while (isDigit(scanner.peekChar())) {
+    while (scanner.peekChar().isDigit) {
       number *= 10;
       number += asDecimal(scanner.readChar());
     }
@@ -297,16 +308,16 @@ class Parser {
     while (true) {
       var next = scanner.peekChar();
       switch (next) {
+        case null:
+          break loop;
+
         case $backslash:
           buffer.write(escape(identifierStart: true));
           wroteNewline = false;
-          break;
 
-        case $double_quote:
-        case $single_quote:
+        case $double_quote || $single_quote:
           buffer.write(rawText(string));
           wroteNewline = false;
-          break;
 
         case $slash:
           if (scanner.peekChar(1) == $asterisk) {
@@ -315,67 +326,48 @@ class Parser {
             buffer.writeCharCode(scanner.readChar());
           }
           wroteNewline = false;
-          break;
 
-        case $space:
-        case $tab:
-          if (wroteNewline || !isWhitespace(scanner.peekChar(1))) {
+        case $space || $tab:
+          if (wroteNewline || !scanner.peekChar(1).isWhitespace) {
             buffer.writeCharCode($space);
           }
           scanner.readChar();
-          break;
 
-        case $lf:
-        case $cr:
-        case $ff:
-          if (!isNewline(scanner.peekChar(-1))) buffer.writeln();
+        case $lf || $cr || $ff:
+          if (!scanner.peekChar(-1).isNewline) buffer.writeln();
           scanner.readChar();
           wroteNewline = true;
-          break;
 
-        case $lparen:
-        case $lbrace:
-        case $lbracket:
-          buffer.writeCharCode(next!); // dart-lang/sdk#45357
+        case $lparen || $lbrace || $lbracket:
+          buffer.writeCharCode(next);
           brackets.add(opposite(scanner.readChar()));
           wroteNewline = false;
-          break;
 
-        case $rparen:
-        case $rbrace:
-        case $rbracket:
+        case $rparen || $rbrace || $rbracket:
           if (brackets.isEmpty) break loop;
-          buffer.writeCharCode(next!); // dart-lang/sdk#45357
+          buffer.writeCharCode(next);
           scanner.expectChar(brackets.removeLast());
           wroteNewline = false;
-          break;
 
         case $semicolon:
           if (brackets.isEmpty) break loop;
           buffer.writeCharCode(scanner.readChar());
-          break;
 
-        case $u:
-        case $U:
-          var url = tryUrl();
-          if (url != null) {
+        case $u || $U:
+          if (tryUrl() case var url?) {
             buffer.write(url);
           } else {
             buffer.writeCharCode(scanner.readChar());
           }
           wroteNewline = false;
-          break;
 
         default:
-          if (next == null) break loop;
-
           if (lookingAtIdentifier()) {
             buffer.write(identifier());
           } else {
             buffer.writeCharCode(scanner.readChar());
           }
           wroteNewline = false;
-          break;
       }
     }
 
@@ -403,26 +395,29 @@ class Parser {
     // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
     // backtrack and re-parse as a function expression.
     var buffer = StringBuffer()..write("url(");
+    loop:
     while (true) {
-      var next = scanner.peekChar();
-      if (next == null) {
-        break;
-      } else if (next == $backslash) {
-        buffer.write(escape());
-      } else if (next == $percent ||
-          next == $ampersand ||
-          next == $hash ||
-          (next >= $asterisk && next <= $tilde) ||
-          next >= 0x0080) {
-        buffer.writeCharCode(scanner.readChar());
-      } else if (isWhitespace(next)) {
-        whitespace();
-        if (scanner.peekChar() != $rparen) break;
-      } else if (next == $rparen) {
-        buffer.writeCharCode(scanner.readChar());
-        return buffer.toString();
-      } else {
-        break;
+      switch (scanner.peekChar()) {
+        case null:
+          break loop;
+        case $backslash:
+          buffer.write(escape());
+        case $percent ||
+              $ampersand ||
+              $hash ||
+              // dart-lang/sdk#52740
+              // ignore: non_constant_relational_pattern_expression
+              (>= $asterisk && <= $tilde) ||
+              >= 0x0080:
+          buffer.writeCharCode(scanner.readChar());
+        case int(isWhitespace: true):
+          whitespace();
+          if (scanner.peekChar() != $rparen) break loop;
+        case $rparen:
+          buffer.writeCharCode(scanner.readChar());
+          return buffer.toString();
+        case _:
+          break loop;
       }
     }
 
@@ -451,25 +446,25 @@ class Parser {
     var start = scanner.position;
     scanner.expectChar($backslash);
     var value = 0;
-    var first = scanner.peekChar();
-    if (first == null) {
-      scanner.error("Expected escape sequence.");
-    } else if (isNewline(first)) {
-      scanner.error("Expected escape sequence.");
-    } else if (isHex(first)) {
-      for (var i = 0; i < 6; i++) {
-        var next = scanner.peekChar();
-        if (next == null || !isHex(next)) break;
-        value *= 16;
-        value += asHex(scanner.readChar());
-      }
+    switch (scanner.peekChar()) {
+      case null:
+        scanner.error("Expected escape sequence.");
+      case int(isNewline: true):
+        scanner.error("Expected escape sequence.");
+      case int(isHex: true):
+        for (var i = 0; i < 6; i++) {
+          var next = scanner.peekChar();
+          if (next == null || !next.isHex) break;
+          value *= 16;
+          value += asHex(scanner.readChar());
+        }
 
-      scanCharIf(isWhitespace);
-    } else {
-      value = scanner.readChar();
+        scanCharIf((char) => char.isWhitespace);
+      case _:
+        value = scanner.readChar();
     }
 
-    if (identifierStart ? isNameStart(value) : isName(value)) {
+    if (identifierStart ? value.isNameStart : value.isName) {
       try {
         return String.fromCharCode(value);
       } on RangeError {
@@ -478,7 +473,7 @@ class Parser {
       }
     } else if (value <= 0x1F ||
         value == 0x7F ||
-        (identifierStart && isDigit(value))) {
+        (identifierStart && value.isDigit)) {
       var buffer = StringBuffer()..writeCharCode($backslash);
       if (value > 0xF) buffer.writeCharCode(hexCharFor(value >> 4));
       buffer.writeCharCode(hexCharFor(value & 0xF));
@@ -513,14 +508,15 @@ class Parser {
         ? actual == char
         : characterEqualsIgnoreCase(char, actual);
 
-    var next = scanner.peekChar();
-    if (next != null && matches(next)) {
-      scanner.readChar();
-      return true;
-    } else if (next == $backslash) {
-      var start = scanner.state;
-      if (matches(escapeCharacter())) return true;
-      scanner.state = start;
+    switch (scanner.peekChar()) {
+      case var next? when matches(next):
+        scanner.readChar();
+        return true;
+
+      case $backslash:
+        var start = scanner.state;
+        if (matches(escapeCharacter())) return true;
+        scanner.state = start;
     }
     return false;
   }
@@ -545,26 +541,16 @@ class Parser {
   ///
   /// [the CSS algorithm]: https://drafts.csswg.org/css-syntax-3/#starts-with-a-number
   @protected
-  bool lookingAtNumber() {
-    var first = scanner.peekChar();
-    if (first == null) return false;
-    if (isDigit(first)) return true;
-
-    if (first == $dot) {
-      var second = scanner.peekChar(1);
-      return second != null && isDigit(second);
-    } else if (first == $plus || first == $minus) {
-      var second = scanner.peekChar(1);
-      if (second == null) return false;
-      if (isDigit(second)) return true;
-      if (second != $dot) return false;
-
-      var third = scanner.peekChar(2);
-      return third != null && isDigit(third);
-    } else {
-      return false;
-    }
-  }
+  bool lookingAtNumber() => switch (scanner.peekChar()) {
+        int(isDigit: true) => true,
+        $dot => scanner.peekChar(1)?.isDigit ?? false,
+        $plus || $minus => switch (scanner.peekChar(1)) {
+            int(isDigit: true) => true,
+            $dot => scanner.peekChar(2)?.isDigit ?? false,
+            _ => false
+          },
+        _ => false
+      };
 
   /// Returns whether the scanner is immediately before a plain CSS identifier.
   ///
@@ -579,14 +565,14 @@ class Parser {
     // See also [ScssParser._lookingAtInterpolatedIdentifier].
 
     forward ??= 0;
-    var first = scanner.peekChar(forward);
-    if (first == null) return false;
-    if (isNameStart(first) || first == $backslash) return true;
-    if (first != $dash) return false;
-
-    var second = scanner.peekChar(forward + 1);
-    if (second == null) return false;
-    return isNameStart(second) || second == $backslash || second == $dash;
+    return switch (scanner.peekChar(forward)) {
+      int(isNameStart: true) || $backslash => true,
+      $dash => switch (scanner.peekChar(forward + 1)) {
+          int(isNameStart: true) || $backslash || $dash => true,
+          _ => false
+        },
+      _ => false
+    };
   }
 
   /// Returns whether the scanner is immediately before a sequence of characters
@@ -594,7 +580,7 @@ class Parser {
   @protected
   bool lookingAtIdentifierBody() {
     var next = scanner.peekChar();
-    return next != null && (isName(next) || next == $backslash);
+    return next != null && (next.isName || next == $backslash);
   }
 
   /// Consumes an identifier if its name exactly matches [text].
@@ -626,7 +612,7 @@ class Parser {
     return result;
   }
 
-  /// Consumes [text] as an identifer, but doesn't verify whether there's
+  /// Consumes [text] as an identifier, but doesn't verify whether there's
   /// additional identifier text afterwards.
   ///
   /// Returns `true` if the full [text] is consumed and `false` otherwise, but
@@ -662,6 +648,16 @@ class Parser {
     return scanner.substring(start);
   }
 
+  /// Like [scanner.spanFrom], but passes the span through [_interpolationMap]
+  /// if it's available.
+  @protected
+  FileSpan spanFrom(LineScannerState state) {
+    var span = scanner.spanFrom(state);
+    return _interpolationMap == null
+        ? span
+        : LazyFileSpan(() => _interpolationMap!.mapSpan(span));
+  }
+
   /// Prints a warning to standard error, associated with [span].
   @protected
   void warn(String message, FileSpan span) => logger.warn(message, span: span);
@@ -675,7 +671,7 @@ class Parser {
     if (trace == null) {
       throw exception;
     } else {
-      throwWithTrace(exception, trace);
+      throwWithTrace(exception, error, trace);
     }
   }
 
@@ -688,6 +684,7 @@ class Parser {
     } on SourceSpanFormatException catch (error, stackTrace) {
       throwWithTrace(
           SourceSpanFormatException(message, error.span, error.source),
+          error,
           stackTrace);
     }
   }
@@ -710,40 +707,74 @@ class Parser {
   @protected
   T wrapSpanFormatException<T>(T callback()) {
     try {
-      return callback();
+      try {
+        return callback();
+      } on SourceSpanFormatException catch (error, stackTrace) {
+        var map = _interpolationMap;
+        if (map == null) rethrow;
+
+        throwWithTrace(map.mapException(error), error, stackTrace);
+      }
     } on SourceSpanFormatException catch (error, stackTrace) {
       var span = error.span as FileSpan;
-      if (startsWithIgnoreCase(error.message, "expected") && span.length == 0) {
-        var startPosition = _firstNewlineBefore(span.start.offset);
-        if (startPosition != span.start.offset) {
-          span = span.file.span(startPosition, startPosition);
-        }
+      if (startsWithIgnoreCase(error.message, "expected")) {
+        span = _adjustExceptionSpan(span);
       }
 
-      throwWithTrace(SassFormatException(error.message, span), stackTrace);
+      throwWithTrace(
+          SassFormatException(error.message, span), error, stackTrace);
+    } on MultiSourceSpanFormatException catch (error, stackTrace) {
+      var span = error.span as FileSpan;
+      var secondarySpans = error.secondarySpans.cast<FileSpan, String>();
+      if (startsWithIgnoreCase(error.message, "expected")) {
+        span = _adjustExceptionSpan(span);
+        secondarySpans = {
+          for (var (span, description) in secondarySpans.pairs)
+            _adjustExceptionSpan(span): description
+        };
+      }
+
+      throwWithTrace(
+          MultiSpanSassFormatException(
+              error.message, span, error.primaryLabel, secondarySpans),
+          error,
+          stackTrace);
     }
   }
 
-  /// If [position] is separated from the previous non-whitespace character in
-  /// `scanner.string` by one or more newlines, returns the offset of the last
+  /// Moves span to [_firstNewlineBefore] if necessary.
+  FileSpan _adjustExceptionSpan(FileSpan span) {
+    if (span.length > 0) return span;
+
+    var start = _firstNewlineBefore(span.start);
+    return start == span.start ? span : start.pointSpan();
+  }
+
+  /// If [location] is separated from the previous non-whitespace character in
+  /// `scanner.string` by one or more newlines, returns the location of the last
   /// separating newline.
   ///
-  /// Otherwise returns [position].
+  /// Otherwise returns [location].
   ///
   /// This helps avoid missing token errors pointing at the next closing bracket
   /// rather than the line where the problem actually occurred.
-  int _firstNewlineBefore(int position) {
-    var index = position - 1;
+  FileLocation _firstNewlineBefore(FileLocation location) {
+    var text = location.file.getText(0, location.offset);
+    var index = location.offset - 1;
     int? lastNewline;
     while (index >= 0) {
-      var codeUnit = scanner.string.codeUnitAt(index);
-      if (!isWhitespace(codeUnit)) return lastNewline ?? position;
-      if (isNewline(codeUnit)) lastNewline = index;
+      var codeUnit = text.codeUnitAt(index);
+      if (!codeUnit.isWhitespace) {
+        return lastNewline == null
+            ? location
+            : location.file.location(lastNewline);
+      }
+      if (codeUnit.isNewline) lastNewline = index;
       index--;
     }
 
-    // If the document *only* contains whitespace before [position], always
-    // return [position].
-    return position;
+    // If the document *only* contains whitespace before [location], always
+    // return [location].
+    return location;
   }
 }

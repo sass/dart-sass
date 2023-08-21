@@ -9,7 +9,7 @@ import '../stylesheet.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssStylesheet] for use in the evaluation step.
-class ModifiableCssStylesheet extends ModifiableCssParentNode
+final class ModifiableCssStylesheet extends ModifiableCssParentNode
     implements CssStylesheet {
   final FileSpan span;
 
@@ -17,6 +17,9 @@ class ModifiableCssStylesheet extends ModifiableCssParentNode
 
   T accept<T>(ModifiableCssVisitor<T> visitor) =>
       visitor.visitCssStylesheet(this);
+
+  bool equalsIgnoringChildren(ModifiableCssNode other) =>
+      other is ModifiableCssStylesheet;
 
   ModifiableCssStylesheet copyWithoutChildren() =>
       ModifiableCssStylesheet(span);

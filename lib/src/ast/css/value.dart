@@ -9,8 +9,8 @@ import '../node.dart';
 /// A value in a plain CSS tree.
 ///
 /// This is used to associate a span with a value that doesn't otherwise track
-/// its span.
-class CssValue<T extends Object> implements AstNode {
+/// its span. It has value equality semantics.
+final class CssValue<T extends Object> implements AstNode {
   /// The value.
   final T value;
 
@@ -18,6 +18,11 @@ class CssValue<T extends Object> implements AstNode {
   final FileSpan span;
 
   CssValue(this.value, this.span);
+
+  bool operator ==(Object other) =>
+      other is CssValue<T> && other.value == value;
+
+  int get hashCode => value.hashCode;
 
   String toString() => value.toString();
 }

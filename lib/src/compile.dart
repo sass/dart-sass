@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f8b5bf7eafbe3523ca4df1a6832e131c5c03986b
+// Checksum: c2982db43bcd56f81cab3f51b5669e0edd3cfafb
 //
 // ignore_for_file: unused_import
 
@@ -19,11 +19,13 @@ import 'ast/sass.dart';
 import 'import_cache.dart';
 import 'callable.dart';
 import 'compile_result.dart';
+import 'deprecation.dart';
 import 'importer.dart';
 import 'importer/legacy_node.dart';
+import 'importer/no_op.dart';
 import 'io.dart';
 import 'logger.dart';
-import 'logger/terse.dart';
+import 'logger/deprecation_handling.dart';
 import 'syntax.dart';
 import 'utils.dart';
 import 'visitor/evaluate.dart';
@@ -46,9 +48,14 @@ CompileResult compile(String path,
     bool quietDeps = false,
     bool verbose = false,
     bool sourceMap = false,
-    bool charset = true}) {
-  TerseLogger? terseLogger;
-  if (!verbose) logger = terseLogger = TerseLogger(logger ?? Logger.stderr());
+    bool charset = true,
+    Iterable<Deprecation>? fatalDeprecations,
+    Iterable<Deprecation>? futureDeprecations}) {
+  DeprecationHandlingLogger deprecationLogger = logger =
+      DeprecationHandlingLogger(logger ?? Logger.stderr(),
+          fatalDeprecations: {...?fatalDeprecations},
+          futureDeprecations: {...?futureDeprecations},
+          limitRepetition: !verbose);
 
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
@@ -80,7 +87,7 @@ CompileResult compile(String path,
       sourceMap,
       charset);
 
-  terseLogger?.summarize(node: nodeImporter != null);
+  deprecationLogger.summarize(js: nodeImporter != null);
   return result;
 }
 
@@ -105,9 +112,14 @@ CompileResult compileString(String source,
     bool quietDeps = false,
     bool verbose = false,
     bool sourceMap = false,
-    bool charset = true}) {
-  TerseLogger? terseLogger;
-  if (!verbose) logger = terseLogger = TerseLogger(logger ?? Logger.stderr());
+    bool charset = true,
+    Iterable<Deprecation>? fatalDeprecations,
+    Iterable<Deprecation>? futureDeprecations}) {
+  DeprecationHandlingLogger deprecationLogger = logger =
+      DeprecationHandlingLogger(logger ?? Logger.stderr(),
+          fatalDeprecations: {...?fatalDeprecations},
+          futureDeprecations: {...?futureDeprecations},
+          limitRepetition: !verbose);
 
   var stylesheet =
       Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
@@ -117,7 +129,7 @@ CompileResult compileString(String source,
       logger,
       importCache,
       nodeImporter,
-      importer ?? FilesystemImporter('.'),
+      importer ?? (isBrowser ? NoOpImporter() : FilesystemImporter('.')),
       functions,
       style,
       useSpaces,
@@ -127,7 +139,7 @@ CompileResult compileString(String source,
       sourceMap,
       charset);
 
-  terseLogger?.summarize(node: nodeImporter != null);
+  deprecationLogger.summarize(js: nodeImporter != null);
   return result;
 }
 
@@ -167,9 +179,7 @@ CompileResult _compileStylesheet(
 
   var resultSourceMap = serializeResult.sourceMap;
   if (resultSourceMap != null && importCache != null) {
-    // TODO(nweiz): Don't explicitly use a type parameter when dart-lang/sdk#25490
-    // is fixed.
-    mapInPlace<String>(
+    mapInPlace(
         resultSourceMap.urls,
         (url) => url == ''
             ? Uri.dataFromString(stylesheet.span.file.getText(0),

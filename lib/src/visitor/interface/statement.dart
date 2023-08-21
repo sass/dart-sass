@@ -9,7 +9,7 @@ import '../../ast/sass.dart';
 /// [visitors]: https://en.wikipedia.org/wiki/Visitor_pattern
 ///
 /// {@category Visitor}
-abstract class StatementVisitor<T> {
+abstract interface class StatementVisitor<T> {
   T visitAtRootRule(AtRootRule node);
   T visitAtRule(AtRule node);
   T visitContentBlock(ContentBlock node);

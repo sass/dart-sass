@@ -23,24 +23,21 @@ class SrgbLinearColorSpace extends ColorSpace {
 
   const SrgbLinearColorSpace() : super('srgb-linear', rgbChannels);
 
-  SassColor convert(
-      ColorSpace dest, double red, double green, double blue, double alpha) {
-    switch (dest) {
-      case ColorSpace.rgb:
-      case ColorSpace.hsl:
-      case ColorSpace.hwb:
-      case ColorSpace.srgb:
-        return ColorSpace.srgb.convert(
-            dest,
-            srgbAndDisplayP3FromLinear(red),
-            srgbAndDisplayP3FromLinear(green),
-            srgbAndDisplayP3FromLinear(blue),
-            alpha);
-
-      default:
-        return super.convert(dest, red, green, blue, alpha);
-    }
-  }
+  SassColor convert(ColorSpace dest, double red, double green, double blue,
+          double alpha) =>
+      switch (dest) {
+        ColorSpace.rgb ||
+        ColorSpace.hsl ||
+        ColorSpace.hwb ||
+        ColorSpace.srgb =>
+          ColorSpace.srgb.convert(
+              dest,
+              srgbAndDisplayP3FromLinear(red),
+              srgbAndDisplayP3FromLinear(green),
+              srgbAndDisplayP3FromLinear(blue),
+              alpha),
+        _ => super.convert(dest, red, green, blue, alpha)
+      };
 
   @protected
   double toLinear(double channel) => channel;
@@ -49,24 +46,14 @@ class SrgbLinearColorSpace extends ColorSpace {
   double fromLinear(double channel) => channel;
 
   @protected
-  Float64List transformationMatrix(ColorSpace dest) {
-    switch (dest) {
-      case ColorSpace.displayP3:
-        return linearSrgbToLinearDisplayP3;
-      case ColorSpace.a98Rgb:
-        return linearSrgbToLinearA98Rgb;
-      case ColorSpace.prophotoRgb:
-        return linearSrgbToLinearProphotoRgb;
-      case ColorSpace.rec2020:
-        return linearSrgbToLinearRec2020;
-      case ColorSpace.xyzD65:
-        return linearSrgbToXyzD65;
-      case ColorSpace.xyzD50:
-        return linearSrgbToXyzD50;
-      case ColorSpace.lms:
-        return linearSrgbToLms;
-      default:
-        return super.transformationMatrix(dest);
-    }
-  }
+  Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
+        ColorSpace.displayP3 => linearSrgbToLinearDisplayP3,
+        ColorSpace.a98Rgb => linearSrgbToLinearA98Rgb,
+        ColorSpace.prophotoRgb => linearSrgbToLinearProphotoRgb,
+        ColorSpace.rec2020 => linearSrgbToLinearRec2020,
+        ColorSpace.xyzD65 => linearSrgbToXyzD65,
+        ColorSpace.xyzD50 => linearSrgbToXyzD50,
+        ColorSpace.lms => linearSrgbToLms,
+        _ => super.transformationMatrix(dest)
+      };
 }

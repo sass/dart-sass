@@ -11,7 +11,7 @@ import 'ast/sass.dart';
 ///
 /// Add text using [write] and related methods, and [Expression]s using [add].
 /// Once that's done, call [interpolation] to build the result.
-class InterpolationBuffer implements StringSink {
+final class InterpolationBuffer implements StringSink {
   /// The buffer that accumulates plain text.
   final _text = StringBuffer();
 
@@ -49,10 +49,9 @@ class InterpolationBuffer implements StringSink {
     if (interpolation.contents.isEmpty) return;
 
     Iterable<Object> toAdd = interpolation.contents;
-    var first = interpolation.contents.first;
-    if (first is String) {
+    if (interpolation.contents case [String first, ...var rest]) {
       _text.write(first);
-      toAdd = interpolation.contents.skip(1);
+      toAdd = rest;
     }
 
     _flushText();

@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../ast/sass.dart';
@@ -15,8 +14,7 @@ import '../../../visitor/interface/expression.dart';
 /// evaluated.
 ///
 /// {@category AST}
-@sealed
-class IfExpression implements Expression, CallableInvocation {
+final class IfExpression implements Expression, CallableInvocation {
   /// The declaration of `if()`, as though it were a normal function.
   static final declaration = ArgumentDeclaration.parse(
       r"@function if($condition, $if-true, $if-false) {");

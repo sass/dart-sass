@@ -28,14 +28,16 @@ void main(List<String> args) {
   pkg.executables.value = {"sass": "bin/sass.dart"};
   pkg.chocolateyNuspec.value = _nuspec;
   pkg.homebrewRepo.value = "sass/homebrew-sass";
-  pkg.homebrewFormula.value = "sass.rb";
+  pkg.homebrewFormula.value = "Formula/sass.rb";
   pkg.jsRequires.value = [
+    pkg.JSRequire("immutable", target: pkg.JSRequireTarget.all),
     pkg.JSRequire("chokidar", target: pkg.JSRequireTarget.cli),
     pkg.JSRequire("readline", target: pkg.JSRequireTarget.cli),
-    pkg.JSRequire("immutable", target: pkg.JSRequireTarget.all),
-    pkg.JSRequire("util", target: pkg.JSRequireTarget.all),
+    pkg.JSRequire("fs", target: pkg.JSRequireTarget.node),
+    pkg.JSRequire("stream", target: pkg.JSRequireTarget.node),
+    pkg.JSRequire("util", target: pkg.JSRequireTarget.node),
   ];
-  pkg.jsModuleMainLibrary.value = "lib/src/node.dart";
+  pkg.jsModuleMainLibrary.value = "lib/src/js.dart";
   pkg.npmPackageJson.fn = () =>
       json.decode(File("package/package.json").readAsStringSync())
           as Map<String, dynamic>;
@@ -44,6 +46,39 @@ void main(List<String> args) {
   pkg.standaloneName.value = "dart-sass";
   pkg.githubUser.fn = () => Platform.environment["GH_USER"];
   pkg.githubPassword.fn = () => Platform.environment["GH_TOKEN"];
+  pkg.jsEsmExports.value = {
+    'compile',
+    'compileAsync',
+    'compileString',
+    'compileStringAsync',
+    'Logger',
+    'SassArgumentList',
+    'SassBoolean',
+    'SassCalculation',
+    'CalculationOperation',
+    'CalculationInterpolation',
+    'SassColor',
+    'SassFunction',
+    'SassList',
+    'SassMap',
+    'SassNumber',
+    'SassString',
+    'Value',
+    'CustomFunction',
+    'ListSeparator',
+    'sassFalse',
+    'sassNull',
+    'sassTrue',
+    'Exception',
+    'PromiseOr',
+    'info',
+    'render',
+    'renderSync',
+    'TRUE',
+    'FALSE',
+    'NULL',
+    'types',
+  };
 
   pkg.githubReleaseNotes.fn = () =>
       "To install Sass ${pkg.version}, download one of the packages below "
@@ -57,7 +92,26 @@ void main(List<String> args) {
       "\n"
       "${pkg.githubReleaseNotes.defaultValue}";
 
+  pkg.environmentConstants.fn = () {
+    if (!Directory('build/language').existsSync()) {
+      fail('Run `dart run grinder protobuf` before building Dart Sass '
+          'executables.');
+    }
+
+    return {
+      ...pkg.environmentConstants.defaultValue,
+      "protocol-version": File('build/language/spec/EMBEDDED_PROTOCOL_VERSION')
+          .readAsStringSync()
+          .trim(),
+      "compiler-version": pkg.pubspec.version!.toString(),
+    };
+  };
+
   pkg.addAllTasks();
+
+  afterTask("pkg-npm-dev", _addDefaultExport);
+  afterTask("pkg-npm-release", _addDefaultExport);
+
   grind(args);
 }
 
@@ -67,8 +121,7 @@ void all() {}
 
 @Task('Run the Dart formatter.')
 void format() {
-  run('dart',
-      arguments: ['run', 'dart_style:format', '--overwrite', '--fix', '.']);
+  run('dart', arguments: ['format', '--fix', '.']);
 }
 
 @Task('Installs dependencies from npm.')
@@ -76,7 +129,8 @@ void npmInstall() =>
     run(Platform.isWindows ? "npm.cmd" : "npm", arguments: ["install"]);
 
 @Task('Runs the tasks that are required for running tests.')
-@Depends(format, synchronize, "pkg-npm-dev", npmInstall, "pkg-standalone-dev")
+@Depends(format, synchronize, protobuf, "pkg-npm-dev", npmInstall,
+    "pkg-standalone-dev")
 void beforeTest() {}
 
 String get _nuspec => """
@@ -164,4 +218,72 @@ Map<String, String> _fetchJSTypes() {
 void _matchError(Match match, String message, {Object? url}) {
   var file = SourceFile.fromString(match.input, url: url);
   throw SourceSpanException(message, file.span(match.start, match.end));
+}
+
+@Task('Compile the protocol buffer definition to a Dart library.')
+Future<void> protobuf() async {
+  Directory('build').createSync(recursive: true);
+
+  // Make sure we use the version of protoc_plugin defined by our pubspec,
+  // rather than whatever version the developer might have globally installed.
+  log("Writing protoc-gen-dart");
+  if (Platform.isWindows) {
+    File('build/protoc-gen-dart.bat').writeAsStringSync('''
+@echo off
+dart run protoc_plugin %*
+''');
+  } else {
+    File('build/protoc-gen-dart').writeAsStringSync('''
+#!/bin/sh
+dart run protoc_plugin "\$@"
+''');
+    run('chmod', arguments: ['a+x', 'build/protoc-gen-dart']);
+  }
+
+  if (Platform.environment['UPDATE_SASS_PROTOCOL'] != 'false') {
+    cloneOrCheckout("https://github.com/sass/sass.git", "main",
+        name: 'language');
+  }
+
+  await runAsync("buf",
+      arguments: ["generate"],
+      runOptions: RunOptions(environment: {
+        "PATH": 'build' +
+            (Platform.isWindows ? ";" : ":") +
+            Platform.environment["PATH"]!
+      }));
+}
+
+/// After building the NPM package, add default exports to
+/// `build/npm/sass.node.mjs`.
+///
+/// See sass/dart-sass#2008.
+void _addDefaultExport() {
+  var buffer = StringBuffer();
+  buffer.writeln(File("build/npm/sass.node.mjs").readAsStringSync());
+
+  buffer.writeln("""
+let printedDefaultExportDeprecation = false;
+function defaultExportDeprecation() {
+  if (printedDefaultExportDeprecation) return;
+  printedDefaultExportDeprecation = true;
+  console.error(
+      "`import sass from 'sass'` is deprecated.\\n" +
+      "Please use `import * as sass from 'sass'` instead.");
+}
+""");
+
+  buffer.writeln("export default {");
+  for (var export in pkg.jsEsmExports.value!) {
+    buffer.write("""
+  get $export() {
+    defaultExportDeprecation();
+    return cjs.$export;
+  },
+""");
+  }
+
+  buffer.writeln("};");
+
+  File("build/npm/sass.node.mjs").writeAsStringSync(buffer.toString());
 }

@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../util/span.dart';
@@ -18,8 +17,7 @@ import '../reference.dart';
 /// interpolation.
 ///
 /// {@category AST}
-@sealed
-class FunctionExpression
+final class FunctionExpression
     implements Expression, CallableInvocation, SassReference {
   /// The namespace of the function being invoked, or `null` if it's invoked
   /// without a namespace.

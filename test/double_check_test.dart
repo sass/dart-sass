@@ -2,10 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+@TestOn('vm')
+
 import 'dart:io';
 import 'dart:convert';
 
-import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
@@ -16,21 +17,13 @@ import '../tool/grind/synchronize.dart' as synchronize;
 /// Tests that double-check that everything in the repo looks sensible.
 void main() {
   group("synchronized file is up-to-date:", () {
-    /// The pattern of a checksum in a generated file.
-    var checksumPattern = RegExp(r"^// Checksum: (.*)$", multiLine: true);
-
     synchronize.sources.forEach((sourcePath, targetPath) {
       test(targetPath, () {
-        var message = "$targetPath is out-of-date.\n"
-            "Run pub run grinder to update it.";
-
-        var target = File(targetPath).readAsStringSync();
-        var match = checksumPattern.firstMatch(target);
-        if (match == null) fail(message);
-
-        var source = File(sourcePath).readAsBytesSync();
-        var expectedHash = sha1.convert(source).toString();
-        expect(match[1], equals(expectedHash), reason: message);
+        if (File(targetPath).readAsStringSync() !=
+            synchronize.synchronizeFile(sourcePath)) {
+          fail("$targetPath is out-of-date.\n"
+              "Run `dart pub run grinder` to update it.");
+        }
       });
     });
   },
