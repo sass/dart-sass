@@ -1,4 +1,4 @@
-## 1.65.0
+## 1.67.0
 
 * **Breaking change**: Passing a number with unit `%` to the `$alpha` parameter
   of `color.change()`, `color.adjust()`, `change-color()`, and `adjust-color()`
@@ -152,11 +152,64 @@
 * Added `InterpolationMethod` and `HueInterpolationMethod` which collectively
   represent the method to use to interpolate two colors.
 
+## 1.66.1
+
+### JS API
+
+* Fix a bug where Sass compilation could crash in strict mode if passed a
+  callback that threw a string, boolean, number, symbol, or bignum.
+
+## 1.66.0
+
+* **Breaking change:** Drop support for the additional CSS calculations defined
+  in CSS Values and Units 4. Custom Sass functions whose names overlapped with
+  these new CSS functions were being parsed as CSS calculations instead, causing
+  an unintentional breaking change outside our normal [compatibility policy] for
+  CSS compatibility changes.
+
+  Support will be added again in a future version, but only after Sass has
+  emitted a deprecation warning for all functions that will break for at least
+  three months prior to the breakage.
+
+## 1.65.1
+
+* Update abs-percent deprecatedIn version to `1.65.0`.
+
+## 1.65.0
+
+* All functions defined in CSS Values and Units 4 are now parsed as calculation
+  objects: `round()`, `mod()`, `rem()`, `sin()`, `cos()`, `tan()`, `asin()`,
+  `acos()`, `atan()`, `atan2()`, `pow()`, `sqrt()`, `hypot()`, `log()`, `exp()`,
+  `abs()`, and `sign()`.
+
+* Deprecate explicitly passing the `%` unit to the global `abs()` function. In
+  future releases, this will emit a CSS abs() function to be resolved by the
+  browser. This deprecation is named `abs-percent`.
+
 ## 1.64.3
 
 ### Dart API
 
+* Deprecate explicitly passing `null` as the alpha channel for
+  `SassColor.rgb()`, `SassColor.hsl()`, and `SassColor.hwb()`. Omitting the
+  `alpha` channel is still allowed. In future releases, `null` will be used to
+  indicate a [missing component]. This deprecation is named `null-alpha`.
+
+  [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+
 * Include protocol buffer definitions when uploading the `sass` package to pub.
+
+### JS API
+
+* Deprecate explicitly passing `null` as the alpha channel for `new
+  SassColor()`. Omitting the `alpha` channel or passing `undefined` for it is
+  still allowed. In future releases, `null` will be used to indicate a [missing
+  component]. This deprecation is named `null-alpha`.
+
+  [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+
+  (Note that this was already prohibited by the TypeScript types, but in
+  practice prior to this `null` was treated as `1`.)
 
 ## 1.64.2
 

@@ -20,7 +20,7 @@ bool get isMacOS => throw '';
 bool get hasTerminal => throw '';
 
 /// Whether we're running as JS (browser or Node.js).
-bool get isJS => throw '';
+const bool isJS = false;
 
 /// Whether we're running as Node.js (not browser or Dart VM).
 bool get isNode => throw '';

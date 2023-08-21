@@ -227,7 +227,7 @@ bool get isWindows => process?.platform == 'win32';
 
 bool get isMacOS => process?.platform == 'darwin';
 
-bool get isJS => true;
+const bool isJS = true;
 
 /// The fs module object, used to check whether this has been loaded as Node.
 ///

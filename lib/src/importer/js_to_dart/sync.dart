@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:cli_pkg/js.dart';
 import 'package:node_interop/js.dart';
 
 import '../../importer.dart';
@@ -22,8 +23,8 @@ final class JSToDartImporter extends Importer {
   JSToDartImporter(this._canonicalize, this._load);
 
   Uri? canonicalize(Uri url) {
-    var result = _canonicalize(
-        url.toString(), CanonicalizeOptions(fromImport: fromImport));
+    var result = wrapJSExceptions(() => _canonicalize(
+        url.toString(), CanonicalizeOptions(fromImport: fromImport)));
     if (result == null) return null;
     if (isJSUrl(result)) return jsToDartUrl(result as JSUrl);
 
@@ -37,7 +38,7 @@ final class JSToDartImporter extends Importer {
   }
 
   ImporterResult? load(Uri url) {
-    var result = _load(dartToJSUrl(url));
+    var result = wrapJSExceptions(() => _load(dartToJSUrl(url)));
     if (result == null) return null;
 
     if (isPromise(result)) {

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cli_pkg/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart';
 
@@ -26,8 +27,8 @@ final class JSToDartAsyncImporter extends AsyncImporter {
   JSToDartAsyncImporter(this._canonicalize, this._load);
 
   FutureOr<Uri?> canonicalize(Uri url) async {
-    var result = _canonicalize(
-        url.toString(), CanonicalizeOptions(fromImport: fromImport));
+    var result = wrapJSExceptions(() => _canonicalize(
+        url.toString(), CanonicalizeOptions(fromImport: fromImport)));
     if (isPromise(result)) result = await promiseToFuture(result as Promise);
     if (result == null) return null;
 
@@ -37,7 +38,7 @@ final class JSToDartAsyncImporter extends AsyncImporter {
   }
 
   FutureOr<ImporterResult?> load(Uri url) async {
-    var result = _load(dartToJSUrl(url));
+    var result = wrapJSExceptions(() => _load(dartToJSUrl(url)));
     if (isPromise(result)) result = await promiseToFuture(result as Promise);
     if (result == null) return null;
 

@@ -5,6 +5,7 @@
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import 'io.dart';
 import 'util/nullable.dart';
 
 /// A deprecated feature in the language.
@@ -54,13 +55,22 @@ enum Deprecation {
       deprecatedIn: '1.56.0',
       description: 'Passing invalid units to built-in functions.'),
 
+  /// Deprecation for passing percentages to the Sass abs() function.
+  absPercent('abs-percent',
+      deprecatedIn: '1.65.0',
+      description: 'Passing percentages to the Sass abs() function.'),
+
   duplicateVariableFlags('duplicate-var-flags',
       deprecatedIn: '1.62.0',
       description:
           'Using !default or !global multiple times for one variable.'),
 
+  nullAlpha('null-alpha',
+      deprecatedIn: '1.62.3',
+      description: 'Passing null as alpha in the ${isJS ? 'JS' : 'Dart'} API.'),
+
   colorFunctions('color-functions',
-      deprecatedIn: '1.65.0',
+      deprecatedIn: '1.67.0',
       description: 'Using global Sass color functions.'),
 
   /// Deprecation for `@import` rules.

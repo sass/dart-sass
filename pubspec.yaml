@@ -1,5 +1,5 @@
 name: sass
-version: 1.65.0-dev # TODO: update the color-functions deprecation when this is updated
+version: 1.67.0-dev # TODO: update the color-functions deprecation when this is updated
 description: A Sass implementation in Dart.
 homepage: https://github.com/sass/dart-sass
 
@@ -14,9 +14,10 @@ dependencies:
   args: ^2.0.0
   async: ^2.5.0
   charcode: ^1.2.0
+  cli_pkg: ^2.5.0
   cli_repl: ^0.2.1
   collection: ^1.16.0
-  http: ">=0.13.3 <1.0.0"
+  http: "^1.1.0"
   js: ^0.6.3
   meta: ^1.3.0
   node_interop: ^2.1.0
@@ -38,7 +39,6 @@ dependencies:
 dev_dependencies:
   analyzer: ">=5.13.0 <7.0.0"
   archive: ^3.1.2
-  cli_pkg: ^2.4.4
   crypto: ^3.0.0
   dart_style: ^2.0.0
   dartdoc: ^6.0.0
