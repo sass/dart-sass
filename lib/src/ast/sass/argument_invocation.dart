@@ -2,17 +2,18 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
+import '../../value/list.dart';
+import '../../util/map.dart';
 import 'expression.dart';
+import 'expression/list.dart';
 import 'node.dart';
 
 /// A set of arguments passed in to a function or mixin.
 ///
 /// {@category AST}
-@sealed
-class ArgumentInvocation implements SassNode {
+final class ArgumentInvocation implements SassNode {
   /// The arguments passed by position.
   final List<Expression> positional;
 
@@ -47,11 +48,24 @@ class ArgumentInvocation implements SassNode {
 
   String toString() {
     var components = [
-      ...positional,
-      for (var name in named.keys) "\$$name: ${named[name]}",
-      if (rest != null) "$rest...",
-      if (keywordRest != null) "$keywordRest..."
+      for (var argument in positional) _parenthesizeArgument(argument),
+      for (var (name, value) in named.pairs)
+        "\$$name: ${_parenthesizeArgument(value)}",
+      if (rest case var rest?) "${_parenthesizeArgument(rest)}...",
+      if (keywordRest case var keywordRest?)
+        "${_parenthesizeArgument(keywordRest)}..."
     ];
     return "(${components.join(', ')})";
   }
+
+  /// Wraps [argument] in parentheses if necessary.
+  String _parenthesizeArgument(Expression argument) => switch (argument) {
+        ListExpression(
+          separator: ListSeparator.comma,
+          hasBrackets: false,
+          contents: [_, _, ...]
+        ) =>
+          "($argument)",
+        _ => argument.toString()
+      };
 }

@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+@TestOn('vm')
+
 import 'package:test/test.dart';
 
 import 'package:sass/sass.dart';
@@ -22,6 +24,7 @@ void main() {
 
   test("isn't any type", () {
     expect(value.assertBoolean, throwsSassScriptException);
+    expect(value.assertCalculation, throwsSassScriptException);
     expect(value.assertColor, throwsSassScriptException);
     expect(value.assertFunction, throwsSassScriptException);
     expect(value.assertMap, throwsSassScriptException);

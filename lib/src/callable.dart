@@ -3,9 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
-import 'package:tuple/tuple.dart';
 
-import 'ast/sass.dart';
 import 'callable/async.dart';
 import 'callable/built_in.dart';
 import 'exception.dart';
@@ -69,7 +67,7 @@ export 'callable/user_defined.dart';
 ///
 /// {@category Compile}
 @sealed
-abstract class Callable extends AsyncCallable {
+abstract interface class Callable implements AsyncCallable {
   @Deprecated('Use `Callable.function` instead.')
   factory Callable(String name, String arguments,
           Value callback(List<Value> arguments)) =>
@@ -127,8 +125,8 @@ abstract class Callable extends AsyncCallable {
   factory Callable.fromSignature(
       String signature, Value callback(List<Value> arguments),
       {bool requireParens = true}) {
-    Tuple2<String, ArgumentDeclaration> tuple =
+    var (name, declaration) =
         parseSignature(signature, requireParens: requireParens);
-    return BuiltInCallable.parsed(tuple.item1, tuple.item2, callback);
+    return BuiltInCallable.parsed(name, declaration, callback);
   }
 }

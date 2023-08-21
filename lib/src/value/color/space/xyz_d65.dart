@@ -28,26 +28,17 @@ class XyzD65ColorSpace extends ColorSpace {
   double fromLinear(double channel) => channel;
 
   @protected
-  Float64List transformationMatrix(ColorSpace dest) {
-    switch (dest) {
-      case ColorSpace.srgbLinear:
-      case ColorSpace.srgb:
-      case ColorSpace.rgb:
-        return xyzD65ToLinearSrgb;
-      case ColorSpace.a98Rgb:
-        return xyzD65ToLinearA98Rgb;
-      case ColorSpace.prophotoRgb:
-        return xyzD65ToLinearProphotoRgb;
-      case ColorSpace.displayP3:
-        return xyzD65ToLinearDisplayP3;
-      case ColorSpace.rec2020:
-        return xyzD65ToLinearRec2020;
-      case ColorSpace.xyzD50:
-        return xyzD65ToXyzD50;
-      case ColorSpace.lms:
-        return xyzD65ToLms;
-      default:
-        return super.transformationMatrix(dest);
-    }
-  }
+  Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
+        ColorSpace.srgbLinear ||
+        ColorSpace.srgb ||
+        ColorSpace.rgb =>
+          xyzD65ToLinearSrgb,
+        ColorSpace.a98Rgb => xyzD65ToLinearA98Rgb,
+        ColorSpace.prophotoRgb => xyzD65ToLinearProphotoRgb,
+        ColorSpace.displayP3 => xyzD65ToLinearDisplayP3,
+        ColorSpace.rec2020 => xyzD65ToLinearRec2020,
+        ColorSpace.xyzD50 => xyzD65ToXyzD50,
+        ColorSpace.lms => xyzD65ToLms,
+        _ => super.transformationMatrix(dest)
+      };
 }

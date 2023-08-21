@@ -70,18 +70,11 @@ class SassColor extends Value {
   ///
   /// @nodoc
   @internal
-  bool get isChannel0Powerless {
-    switch (space) {
-      case ColorSpace.hsl:
-        return fuzzyEquals(channel1, 0) || fuzzyEquals(channel2, 0);
-
-      case ColorSpace.hwb:
-        return fuzzyEquals(channel1 + channel2, 100);
-
-      default:
-        return false;
-    }
-  }
+  bool get isChannel0Powerless => switch (space) {
+        ColorSpace.hsl => fuzzyEquals(channel1, 0) || fuzzyEquals(channel2, 0),
+        ColorSpace.hwb => fuzzyEquals(channel1 + channel2, 100),
+        _ => false
+      };
 
   /// This color's first channel.
   ///
@@ -114,21 +107,15 @@ class SassColor extends Value {
   ///
   /// @nodoc
   @internal
-  bool get isChannel1Powerless {
-    switch (space) {
-      case ColorSpace.hsl:
-        return fuzzyEquals(channel2, 0);
-
-      case ColorSpace.lab:
-      case ColorSpace.oklab:
-      case ColorSpace.lch:
-      case ColorSpace.oklch:
-        return fuzzyEquals(channel0, 0) || fuzzyEquals(channel0, 100);
-
-      default:
-        return false;
-    }
-  }
+  bool get isChannel1Powerless => switch (space) {
+        ColorSpace.hsl => fuzzyEquals(channel2, 0),
+        ColorSpace.lab ||
+        ColorSpace.oklab ||
+        ColorSpace.lch ||
+        ColorSpace.oklch =>
+          fuzzyEquals(channel0, 0) || fuzzyEquals(channel0, 100),
+        _ => false
+      };
 
   /// This color's second channel.
   ///
@@ -152,22 +139,15 @@ class SassColor extends Value {
   ///
   /// @nodoc
   @internal
-  bool get isChannel2Powerless {
-    switch (space) {
-      case ColorSpace.lab:
-      case ColorSpace.oklab:
-        return fuzzyEquals(channel0, 0) || fuzzyEquals(channel0, 100);
-
-      case ColorSpace.lch:
-      case ColorSpace.oklch:
-        return fuzzyEquals(channel0, 0) ||
+  bool get isChannel2Powerless => switch (space) {
+        ColorSpace.lab ||
+        ColorSpace.oklab =>
+          fuzzyEquals(channel0, 0) || fuzzyEquals(channel0, 100),
+        ColorSpace.lch || ColorSpace.oklch => fuzzyEquals(channel0, 0) ||
             fuzzyEquals(channel0, 100) ||
-            fuzzyEquals(channel1, 0);
-
-      default:
-        return false;
-    }
-  }
+            fuzzyEquals(channel1, 0),
+        _ => false
+      };
 
   /// This color's third channel.
   ///
@@ -267,8 +247,13 @@ class SassColor extends Value {
 
   /// Creates a color in [ColorSpace.rgb].
   ///
+  /// **Note:** Passing `null` to [alpha] represents a [missing component], not
+  /// the default value of `1`
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.rgb(num? red, num? green, num? blue, [num? alpha]) =>
+  factory SassColor.rgb(num? red, num? green, num? blue, [num? alpha = 1]) =>
       SassColor.rgbInternal(red, green, blue, alpha);
 
   /// Like [SassColor.rgb], but also takes a [format] parameter.
@@ -282,9 +267,14 @@ class SassColor extends Value {
 
   /// Creates a color in [ColorSpace.hsl].
   ///
+  /// **Note:** Passing `null` to [alpha] represents a [missing component], not
+  /// the default value of `1`
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.hsl(num? hue, num? saturation, num? lightness,
-          [num? alpha]) =>
+          [num? alpha = 1]) =>
       SassColor.forSpaceInternal(
           ColorSpace.hsl,
           _normalizeHue(hue?.toDouble()),
@@ -296,9 +286,14 @@ class SassColor extends Value {
 
   /// Creates a color in [ColorSpace.hwb].
   ///
+  /// **Note:** Passing `null` to [alpha] represents a [missing component], not
+  /// the default value of `1`
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.hwb(num? hue, num? whiteness, num? blackness,
-          [num? alpha]) =>
+          [num? alpha = 1]) =>
       SassColor.forSpaceInternal(
           ColorSpace.hwb,
           _normalizeHue(hue?.toDouble()),
@@ -310,65 +305,112 @@ class SassColor extends Value {
 
   /// Creates a color in [ColorSpace.srgb].
   ///
+  /// **Note:** Passing `null` to [alpha] represents a [missing component], not
+  /// the default value of `1`
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.srgb(double? red, double? green, double? blue,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(ColorSpace.srgb, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.srgbLinear].
   ///
+  /// **Note:** Passing `null` to [alpha] represents a [missing component], not
+  /// the default value of `1`
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.srgbLinear(double? red, double? green, double? blue,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(
           ColorSpace.srgbLinear, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.displayP3].
   ///
+  /// **Note:** Passing `null` to [alpha] represents a [missing component], not
+  /// the default value of `1`
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.displayP3(double? red, double? green, double? blue,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(ColorSpace.displayP3, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.a98Rgb].
   ///
+  /// **Note:** Passing `null` to [alpha] represents a [missing component], not
+  /// the default value of `1`
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.a98Rgb(double? red, double? green, double? blue,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(ColorSpace.a98Rgb, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.prophotoRgb].
   ///
+  /// **Note:** Passing `null` to [alpha] represents a [missing component], not
+  /// the default value of `1`
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.prophotoRgb(double? red, double? green, double? blue,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(
           ColorSpace.prophotoRgb, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.rec2020].
   ///
+  /// **Note:** Passing `null` to [alpha] represents a [missing component], not
+  /// the default value of `1`
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.rec2020(double? red, double? green, double? blue,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(ColorSpace.rec2020, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.xyzD50].
   ///
+  /// **Note:** Passing `null` to [alpha] represents a [missing component], not
+  /// the default value of `1`
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.xyzD50(double? x, double? y, double? z, [double? alpha]) =>
+  factory SassColor.xyzD50(double? x, double? y, double? z,
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(ColorSpace.xyzD50, x, y, z, alpha);
 
   /// Creates a color in [ColorSpace.xyzD65].
   ///
+  /// **Note:** Passing `null` to [alpha] represents a [missing component], not
+  /// the default value of `1`
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.xyzD65(double? x, double? y, double? z, [double? alpha]) =>
+  factory SassColor.xyzD65(double? x, double? y, double? z,
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(ColorSpace.xyzD65, x, y, z, alpha);
 
   /// Creates a color in [ColorSpace.lab].
   ///
+  /// **Note:** Passing `null` to [alpha] represents a [missing component], not
+  /// the default value of `1`
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.lab(double? lightness, double? a, double? b,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(
           ColorSpace.lab,
           lightness.andThen(
@@ -379,9 +421,14 @@ class SassColor extends Value {
 
   /// Creates a color in [ColorSpace.lch].
   ///
+  /// **Note:** Passing `null` to [alpha] represents a [missing component], not
+  /// the default value of `1`
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.lch(double? lightness, double? chroma, double? hue,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(
           ColorSpace.lch,
           lightness.andThen(
@@ -392,9 +439,14 @@ class SassColor extends Value {
 
   /// Creates a color in [ColorSpace.oklab].
   ///
+  /// **Note:** Passing `null` to [alpha] represents a [missing component], not
+  /// the default value of `1`
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.oklab(double? lightness, double? a, double? b,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(
           ColorSpace.oklab,
           lightness.andThen(
@@ -405,9 +457,14 @@ class SassColor extends Value {
 
   /// Creates a color in [ColorSpace.oklch].
   ///
+  /// **Note:** Passing `null` to [alpha] represents a [missing component], not
+  /// the default value of `1`
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.oklch(double? lightness, double? chroma, double? hue,
-          [double? alpha]) =>
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(
           ColorSpace.oklch,
           lightness.andThen(
@@ -418,10 +475,15 @@ class SassColor extends Value {
 
   /// Creates a color in the color space named [space].
   ///
+  /// **Note:** Passing `null` to [alpha] represents a [missing component], not
+  /// the default value of `1`
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1` or if
   /// [channels] is the wrong length for [space].
   factory SassColor.forSpace(ColorSpace space, List<double?> channels,
-      [double? alpha]) {
+      [double? alpha = 1]) {
     if (channels.length != space.channels.length) {
       throw RangeError.value(channels.length, "channels.length",
           'must be exactly ${space.channels.length} for color space "$space"');
@@ -451,7 +513,10 @@ class SassColor extends Value {
   SassColor.forSpaceInternal(this._space, this.channel0OrNull,
       this.channel1OrNull, this.channel2OrNull, double? alpha,
       [this.format])
-      : _alpha = alpha == null ? 1 : fuzzyAssertRange(alpha, 0, 1, "alpha") {
+      // TODO(nweiz): Support missing alpha channels.
+      : _alpha =
+            alpha.andThen((alpha) => fuzzyAssertRange(alpha, 0, 1, "alpha")) ??
+                1.0 {
     assert(format == null || _space == ColorSpace.rgb);
     assert(
         !(space == ColorSpace.hsl || space == ColorSpace.hwb) ||
@@ -475,11 +540,13 @@ class SassColor extends Value {
 
   /// Throws a [RangeError] if [channel] isn't a finite number.
   void _checkChannel(double? channel, String name) {
-    if (channel == null) return;
-    if (channel.isNaN) {
-      throw RangeError.value(channel, name, 'must be a number.');
-    } else if (!channel.isFinite) {
-      throw RangeError.value(channel, name, 'must be finite.');
+    switch (channel) {
+      case null:
+        return;
+      case double(isNaN: true):
+        throw RangeError.value(channel, name, 'must be a number.');
+      case double(isFinite: false):
+        throw RangeError.value(channel, name, 'must be finite.');
     }
   }
 
@@ -632,20 +699,18 @@ class SassColor extends Value {
     assert(!current.isInGamut);
     assert(current.space == space);
 
-    if (space == ColorSpace.rgb) {
-      return SassColor.rgb(
-          fuzzyClamp(current.channel0, 0, 255),
-          fuzzyClamp(current.channel1, 0, 255),
-          fuzzyClamp(current.channel2, 0, 255),
-          current.alpha);
-    } else {
-      return SassColor.forSpaceInternal(
-          space,
-          fuzzyClamp(current.channel0, 0, 1),
-          fuzzyClamp(current.channel1, 0, 1),
-          fuzzyClamp(current.channel2, 0, 1),
-          current.alpha);
-    }
+    return space == ColorSpace.rgb
+        ? SassColor.rgb(
+            fuzzyClamp(current.channel0, 0, 255),
+            fuzzyClamp(current.channel1, 0, 255),
+            fuzzyClamp(current.channel2, 0, 255),
+            current.alpha)
+        : SassColor.forSpaceInternal(
+            space,
+            fuzzyClamp(current.channel0, 0, 1),
+            fuzzyClamp(current.channel1, 0, 1),
+            fuzzyClamp(current.channel2, 0, 1),
+            current.alpha);
   }
 
   /// Returns the ΔEOK measure between [color1] and [color2].
@@ -855,7 +920,6 @@ class SassColor extends Value {
     var channel2_1 = (missing2_1 ? color1 : color2).channel1;
     var channel2_2 = (missing2_2 ? color1 : color2).channel2;
 
-    // TODO: handle missing channels
     var thisMultiplier = alpha * weight;
     var otherMultiplier = other.alpha * (1 - weight);
     var mixedAlpha = alpha * weight + other.alpha * (1 - weight);
@@ -872,40 +936,27 @@ class SassColor extends Value {
         : (channel1_2 * thisMultiplier + channel2_2 * otherMultiplier) /
             mixedAlpha;
 
-    SassColor mixed;
-    switch (method.space) {
-      case ColorSpace.hsl:
-      case ColorSpace.hwb:
-        mixed = SassColor.forSpaceInternal(
-            method.space,
-            missing1_0 && missing2_0
-                ? null
-                : _interpolateHues(channel1_0, channel2_0, method.hue!, weight),
-            mixed1,
-            mixed2,
-            mixedAlpha);
-        break;
-
-      case ColorSpace.lch:
-      case ColorSpace.oklch:
-        mixed = SassColor.forSpaceInternal(
-            method.space,
-            mixed0,
-            mixed1,
-            missing1_2 && missing2_2
-                ? null
-                : _interpolateHues(channel1_2, channel2_2, method.hue!, weight),
-            mixedAlpha);
-        break;
-
-      default:
-        assert(!space.isPolar);
-        mixed = SassColor.forSpaceInternal(
-            method.space, mixed0, mixed1, mixed2, mixedAlpha);
-        break;
+    return switch (method.space) {
+      ColorSpace.hsl || ColorSpace.hwb => SassColor.forSpaceInternal(
+          method.space,
+          missing1_0 && missing2_0
+              ? null
+              : _interpolateHues(channel1_0, channel2_0, method.hue!, weight),
+          mixed1,
+          mixed2,
+          mixedAlpha),
+      ColorSpace.lch || ColorSpace.oklch => SassColor.forSpaceInternal(
+          method.space,
+          mixed0,
+          mixed1,
+          missing1_2 && missing2_2
+              ? null
+              : _interpolateHues(channel1_2, channel2_2, method.hue!, weight),
+          mixedAlpha),
+      _ => SassColor.forSpaceInternal(
+          method.space, mixed0, mixed1, mixed2, mixedAlpha)
     }
-
-    return mixed.toSpace(space);
+        .toSpace(space);
   }
 
   /// Returns whether [output], which was converted to its color space from
@@ -936,30 +987,28 @@ class SassColor extends Value {
     // Algorithms from https://www.w3.org/TR/css-color-4/#hue-interpolation
     switch (method) {
       case HueInterpolationMethod.shorter:
-        var difference = hue2 - hue1;
-        if (difference > 180) {
-          hue1 += 360;
-        } else if (difference < -180) {
-          hue2 += 360;
+        switch (hue2 - hue1) {
+          case > 180:
+            hue1 += 360;
+          case < -180:
+            hue2 += 360;
         }
-        break;
 
       case HueInterpolationMethod.longer:
-        var difference = hue2 - hue1;
-        if (difference > 0 && difference < 180) {
-          hue2 += 360;
-        } else if (difference > -180 && difference <= 0) {
-          hue1 += 360;
+        switch (hue2 - hue1) {
+          case > 0 && < 180:
+            hue2 += 360;
+          case > -180 && <= 0:
+            hue1 += 360;
         }
-        break;
 
-      case HueInterpolationMethod.increasing:
-        if (hue2 < hue1) hue2 += 360;
-        break;
+      case HueInterpolationMethod.increasing when hue2 < hue1:
+        hue2 += 360;
 
-      case HueInterpolationMethod.decreasing:
-        if (hue1 < hue2) hue1 += 360;
-        break;
+      case HueInterpolationMethod.decreasing when hue1 < hue2:
+        hue1 += 360;
+
+      case _: // do nothing
     }
 
     return hue1 * weight + hue2 * (1 - weight);

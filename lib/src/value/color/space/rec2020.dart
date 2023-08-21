@@ -47,26 +47,17 @@ class Rec2020ColorSpace extends ColorSpace {
   }
 
   @protected
-  Float64List transformationMatrix(ColorSpace dest) {
-    switch (dest) {
-      case ColorSpace.srgbLinear:
-      case ColorSpace.srgb:
-      case ColorSpace.rgb:
-        return linearRec2020ToLinearSrgb;
-      case ColorSpace.a98Rgb:
-        return linearRec2020ToLinearA98Rgb;
-      case ColorSpace.displayP3:
-        return linearRec2020ToLinearDisplayP3;
-      case ColorSpace.prophotoRgb:
-        return linearRec2020ToLinearProphotoRgb;
-      case ColorSpace.xyzD65:
-        return linearRec2020ToXyzD65;
-      case ColorSpace.xyzD50:
-        return linearRec2020ToXyzD50;
-      case ColorSpace.lms:
-        return linearRec2020ToLms;
-      default:
-        return super.transformationMatrix(dest);
-    }
-  }
+  Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
+        ColorSpace.srgbLinear ||
+        ColorSpace.srgb ||
+        ColorSpace.rgb =>
+          linearRec2020ToLinearSrgb,
+        ColorSpace.a98Rgb => linearRec2020ToLinearA98Rgb,
+        ColorSpace.displayP3 => linearRec2020ToLinearDisplayP3,
+        ColorSpace.prophotoRgb => linearRec2020ToLinearProphotoRgb,
+        ColorSpace.xyzD65 => linearRec2020ToXyzD65,
+        ColorSpace.xyzD50 => linearRec2020ToXyzD50,
+        ColorSpace.lms => linearRec2020ToLms,
+        _ => super.transformationMatrix(dest),
+      };
 }

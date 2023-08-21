@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @Skip("TODO(nweiz): Update these for the new Color API")
+@TestOn('vm')
 
 import 'package:test/test.dart';
 
@@ -181,6 +182,7 @@ void main() {
 
     test("isn't any other type", () {
       expect(value.assertBoolean, throwsSassScriptException);
+      expect(value.assertCalculation, throwsSassScriptException);
       expect(value.assertFunction, throwsSassScriptException);
       expect(value.assertMap, throwsSassScriptException);
       expect(value.tryMap(), isNull);

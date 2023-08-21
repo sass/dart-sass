@@ -25,8 +25,6 @@ import 'space/srgb_linear.dart';
 import 'space/xyz_d50.dart';
 import 'space/xyz_d65.dart';
 
-// TODO: limit instance methods to sass_api
-
 /// A color space whose channel names and semantics Sass knows.
 ///
 /// {@category Value}
@@ -150,43 +148,26 @@ abstract class ColorSpace {
   ///
   /// If this came from a function argument, [argumentName] is the argument name
   /// (without the `$`). This is used for error reporting.
-  static ColorSpace fromName(String name, [String? argumentName]) {
-    switch (name.toLowerCase()) {
-      case 'rgb':
-        return rgb;
-      case 'hwb':
-        return hwb;
-      case 'hsl':
-        return hsl;
-      case 'srgb':
-        return srgb;
-      case 'srgb-linear':
-        return srgbLinear;
-      case 'display-p3':
-        return displayP3;
-      case 'a98-rgb':
-        return a98Rgb;
-      case 'prophoto-rgb':
-        return prophotoRgb;
-      case 'rec2020':
-        return rec2020;
-      case 'xyz':
-      case 'xyz-d65':
-        return xyzD65;
-      case 'xyz-d50':
-        return xyzD50;
-      case 'lab':
-        return lab;
-      case 'lch':
-        return lch;
-      case 'oklab':
-        return oklab;
-      case 'oklch':
-        return oklch;
-      default:
-        throw SassScriptException('Unknown color space "$name".', argumentName);
-    }
-  }
+  static ColorSpace fromName(String name, [String? argumentName]) =>
+      switch (name.toLowerCase()) {
+        'rgb' => rgb,
+        'hwb' => hwb,
+        'hsl' => hsl,
+        'srgb' => srgb,
+        'srgb-linear' => srgbLinear,
+        'display-p3' => displayP3,
+        'a98-rgb' => a98Rgb,
+        'prophoto-rgb' => prophotoRgb,
+        'rec2020' => rec2020,
+        'xyz' || 'xyz-d65' => xyzD65,
+        'xyz-d50' => xyzD50,
+        'lab' => lab,
+        'lch' => lch,
+        'oklab' => oklab,
+        'oklch' => oklch,
+        _ => throw SassScriptException(
+            'Unknown color space "$name".', argumentName)
+      };
 
   /// Converts a color with the given channels from this color space to [dest].
   ///
@@ -199,23 +180,12 @@ abstract class ColorSpace {
   @internal
   SassColor convert(ColorSpace dest, double channel0, double channel1,
       double channel2, double alpha) {
-    var linearDest = dest;
-    switch (dest) {
-      case ColorSpace.hsl:
-      case ColorSpace.hwb:
-        linearDest = ColorSpace.srgb;
-        break;
-
-      case ColorSpace.lab:
-      case ColorSpace.lch:
-        linearDest = ColorSpace.xyzD50;
-        break;
-
-      case ColorSpace.oklab:
-      case ColorSpace.oklch:
-        linearDest = ColorSpace.lms;
-        break;
-    }
+    var linearDest = switch (dest) {
+      ColorSpace.hsl || ColorSpace.hwb => ColorSpace.srgb,
+      ColorSpace.lab || ColorSpace.lch => ColorSpace.xyzD50,
+      ColorSpace.oklab || ColorSpace.oklch => ColorSpace.lms,
+      _ => dest
+    };
 
     double transformed0;
     double transformed1;
@@ -239,20 +209,18 @@ abstract class ColorSpace {
           matrix[6] * linear0 + matrix[7] * linear1 + matrix[8] * linear2);
     }
 
-    switch (dest) {
-      case ColorSpace.hsl:
-      case ColorSpace.hwb:
-      case ColorSpace.lab:
-      case ColorSpace.lch:
-      case ColorSpace.oklab:
-      case ColorSpace.oklch:
-        return linearDest.convert(
-            dest, transformed0, transformed1, transformed2, alpha);
-
-      default:
-        return SassColor.forSpaceInternal(
-            dest, transformed0, transformed1, transformed2, alpha);
-    }
+    return switch (dest) {
+      ColorSpace.hsl ||
+      ColorSpace.hwb ||
+      ColorSpace.lab ||
+      ColorSpace.lch ||
+      ColorSpace.oklab ||
+      ColorSpace.oklch =>
+        linearDest.convert(
+            dest, transformed0, transformed1, transformed2, alpha),
+      _ => SassColor.forSpaceInternal(
+          dest, transformed0, transformed1, transformed2, alpha)
+    };
   }
 
   /// Converts a channel in this color space into an element of a vector that

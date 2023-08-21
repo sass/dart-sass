@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:watcher/watcher.dart';
 
 import '../io.dart';
+import 'map.dart';
 
 /// Watches multiple directories which may change over time recursively for changes.
 ///
@@ -37,10 +38,8 @@ class MultiDirWatcher {
   /// from [directory].
   Future<void> watch(String directory) {
     var isParentOfExistingDir = false;
-    for (var entry in _watchers.entries.toList()) {
-      var existingDir = entry.key!; // dart-lang/path#100
-      var existingWatcher = entry.value;
-
+    // dart-lang/path#100
+    for (var (existingDir!, existingWatcher) in _watchers.pairs.toList()) {
       if (!isParentOfExistingDir &&
           (p.equals(existingDir, directory) ||
               p.isWithin(existingDir, directory))) {

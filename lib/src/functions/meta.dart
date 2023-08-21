@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:collection/collection.dart';
 
 import '../callable.dart';
+import '../util/map.dart';
 import '../value.dart';
 import '../visitor/serialize.dart';
 
@@ -35,34 +36,33 @@ final global = UnmodifiableListView([
       (arguments) => SassString(serializeValue(arguments.first, inspect: true),
           quotes: false)),
 
-  _function("type-of", r"$value", (arguments) {
-    var value = arguments[0];
-    if (value is SassArgumentList) {
-      return SassString("arglist", quotes: false);
-    }
-    if (value is SassBoolean) return SassString("bool", quotes: false);
-    if (value is SassColor) return SassString("color", quotes: false);
-    if (value is SassList) return SassString("list", quotes: false);
-    if (value is SassMap) return SassString("map", quotes: false);
-    if (value == sassNull) return SassString("null", quotes: false);
-    if (value is SassNumber) return SassString("number", quotes: false);
-    if (value is SassFunction) return SassString("function", quotes: false);
-    if (value is SassCalculation) {
-      return SassString("calculation", quotes: false);
-    }
-    assert(value is SassString);
-    return SassString("string", quotes: false);
-  }),
+  _function(
+      "type-of",
+      r"$value",
+      (arguments) => SassString(
+          switch (arguments[0]) {
+            SassArgumentList() => "arglist",
+            SassBoolean() => "bool",
+            SassColor() => "color",
+            SassList() => "list",
+            SassMap() => "map",
+            sassNull => "null",
+            SassNumber() => "number",
+            SassFunction() => "function",
+            SassCalculation() => "calculation",
+            SassString() => "string",
+            _ => throw "[BUG] Unknown value type ${arguments[0]}"
+          },
+          quotes: false)),
 
   _function("keywords", r"$args", (arguments) {
-    var argumentList = arguments[0];
-    if (argumentList is SassArgumentList) {
+    if (arguments[0] case SassArgumentList(:var keywords)) {
       return SassMap({
-        for (var entry in argumentList.keywords.entries)
-          SassString(entry.key, quotes: false): entry.value
+        for (var (key, value) in keywords.pairs)
+          SassString(key, quotes: false): value
       });
     } else {
-      throw "\$args: $argumentList is not an argument list.";
+      throw "\$args: ${arguments[0]} is not an argument list.";
     }
   })
 ]);
@@ -76,10 +76,11 @@ final local = UnmodifiableListView([
   }),
   _function("calc-args", r"$calc", (arguments) {
     var calculation = arguments[0].assertCalculation("calc");
-    return SassList(calculation.arguments.map((argument) {
-      if (argument is Value) return argument;
-      return SassString(argument.toString(), quotes: false);
-    }), ListSeparator.comma);
+    return SassList(
+        calculation.arguments.map((argument) => argument is Value
+            ? argument
+            : SassString(argument.toString(), quotes: false)),
+        ListSeparator.comma);
   })
 ]);
 

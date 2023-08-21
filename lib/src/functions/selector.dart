@@ -63,6 +63,7 @@ final _append = _function("append", r"$selectors...", (arguments) {
         "\$selectors: At least one selector must be passed.");
   }
 
+  var span = EvaluationContext.current.currentCallableSpan;
   return selectors
       .map((selector) => selector.assertSelector())
       .reduce((parent, child) {
@@ -71,17 +72,18 @@ final _append = _function("append", r"$selectors...", (arguments) {
         throw SassScriptException("Can't append $complex to $parent.");
       }
 
-      var component = complex.components.first;
+      var [component, ...rest] = complex.components;
       var newCompound = _prependParent(component.selector);
       if (newCompound == null) {
         throw SassScriptException("Can't append $complex to $parent.");
       }
 
       return ComplexSelector(const [], [
-        ComplexSelectorComponent(newCompound, component.combinators),
-        ...complex.components.skip(1)
-      ]);
-    })).resolveParentSelectors(parent);
+        ComplexSelectorComponent(newCompound, component.combinators, span),
+        ...rest
+      ], span);
+    }), span)
+        .resolveParentSelectors(parent);
   }).asSassList;
 });
 
@@ -119,8 +121,7 @@ final _unify = _function("unify", r"$selector1, $selector2", (arguments) {
   var selector2 = arguments[1].assertSelector(name: "selector2")
     ..assertNotBogus(name: "selector2");
 
-  var result = selector1.unify(selector2);
-  return result == null ? sassNull : result.asSassList;
+  return selector1.unify(selector2)?.asSassList ?? sassNull;
 });
 
 final _isSuperselector =
@@ -149,17 +150,15 @@ final _parse = _function("parse", r"$selector",
 /// Adds a [ParentSelector] to the beginning of [compound], or returns `null` if
 /// that wouldn't produce a valid selector.
 CompoundSelector? _prependParent(CompoundSelector compound) {
-  var first = compound.components.first;
-  if (first is UniversalSelector) return null;
-  if (first is TypeSelector) {
-    if (first.name.namespace != null) return null;
-    return CompoundSelector([
-      ParentSelector(suffix: first.name.name),
-      ...compound.components.skip(1)
-    ]);
-  } else {
-    return CompoundSelector([ParentSelector(), ...compound.components]);
-  }
+  var span = EvaluationContext.current.currentCallableSpan;
+  return switch (compound.components) {
+    [UniversalSelector(), ...] => null,
+    [TypeSelector type, ...] when type.name.namespace != null => null,
+    [TypeSelector type, ...var rest] => CompoundSelector(
+        [ParentSelector(span, suffix: type.name.name), ...rest], span),
+    var components =>
+      CompoundSelector([ParentSelector(span), ...components], span)
+  };
 }
 
 /// Like [BuiltInCallable.function], but always sets the URL to

@@ -6,6 +6,8 @@
 // just covers tests that explicitly validate out that's considered too
 // implementation-specific to verify in sass-spec.
 
+@TestOn('vm')
+
 import 'package:test/test.dart';
 
 import 'package:sass/sass.dart';
@@ -92,7 +94,7 @@ void main() {
     group("for floating-point numbers", () {
       test("Infinity", () {
         expect(compileString("a {b: 1e999}"),
-            equalsIgnoringWhitespace("a { b: Infinity; }"));
+            equalsIgnoringWhitespace("a { b: calc(infinity); }"));
       });
 
       test(">= 1e21", () {

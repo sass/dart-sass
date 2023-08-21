@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../util/span.dart';
@@ -16,8 +15,7 @@ import '../statement.dart';
 /// A `@forward` rule.
 ///
 /// {@category AST}
-@sealed
-class ForwardRule implements Statement, SassDependency {
+final class ForwardRule implements Statement, SassDependency {
   /// The URI of the module to forward.
   ///
   /// If this is relative, it's relative to the containing file.

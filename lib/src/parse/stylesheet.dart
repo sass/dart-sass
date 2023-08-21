@@ -7,10 +7,10 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
-import 'package:tuple/tuple.dart';
 
 import '../ast/sass.dart';
 import '../color_names.dart';
+import '../deprecation.dart';
 import '../exception.dart';
 import '../interpolation_buffer.dart';
 import '../logger.dart';
@@ -143,7 +143,7 @@ abstract class StylesheetParser extends Parser {
   /// option and returns its name and declaration.
   ///
   /// If [requireParens] is `false`, this allows parentheses to be omitted.
-  Tuple2<String, ArgumentDeclaration> parseSignature(
+  (String name, ArgumentDeclaration) parseSignature(
       {bool requireParens = true}) {
     return wrapSpanFormatException(() {
       var name = identifier();
@@ -151,7 +151,7 @@ abstract class StylesheetParser extends Parser {
           ? _argumentDeclaration()
           : ArgumentDeclaration.empty(scanner.emptySpan);
       scanner.expectDone();
-      return Tuple2(name, arguments);
+      return (name, arguments);
     });
   }
 
@@ -183,7 +183,7 @@ abstract class StylesheetParser extends Parser {
       case $rbrace:
         scanner.error('unmatched "}".', length: 1);
 
-      default:
+      case _:
         return _inStyleRule || _inUnknownAtRule || _inMixin || _inContentBlock
             ? _declarationOrStyleRule()
             : _variableDeclarationOrStyleRule();
@@ -227,18 +227,32 @@ abstract class StylesheetParser extends Parser {
     var global = false;
     var flagStart = scanner.state;
     while (scanner.scanChar($exclamation)) {
-      var flag = identifier();
-      if (flag == 'default') {
-        guarded = true;
-      } else if (flag == 'global') {
-        if (namespace != null) {
-          error("!global isn't allowed for variables in other modules.",
-              scanner.spanFrom(flagStart));
-        }
+      switch (identifier()) {
+        case 'default':
+          if (guarded) {
+            logger.warnForDeprecation(
+                Deprecation.duplicateVariableFlags,
+                '!default should only be written once for each variable.\n'
+                'This will be an error in Dart Sass 2.0.0.',
+                span: scanner.spanFrom(flagStart));
+          }
+          guarded = true;
 
-        global = true;
-      } else {
-        error("Invalid flag name.", scanner.spanFrom(flagStart));
+        case 'global':
+          if (namespace != null) {
+            error("!global isn't allowed for variables in other modules.",
+                scanner.spanFrom(flagStart));
+          } else if (global) {
+            logger.warnForDeprecation(
+                Deprecation.duplicateVariableFlags,
+                '!global should only be written once for each variable.\n'
+                'This will be an error in Dart Sass 2.0.0.',
+                span: scanner.spanFrom(flagStart));
+          }
+          global = true;
+
+        case _:
+          error("Invalid flag name.", scanner.spanFrom(flagStart));
       }
 
       whitespace();
@@ -268,14 +282,12 @@ abstract class StylesheetParser extends Parser {
 
     var start = scanner.state;
     var variableOrInterpolation = _variableDeclarationOrInterpolation();
-    if (variableOrInterpolation is VariableDeclaration) {
-      return variableOrInterpolation;
-    } else {
-      return _styleRule(
-          InterpolationBuffer()
-            ..addInterpolation(variableOrInterpolation as Interpolation),
-          start);
-    }
+    return variableOrInterpolation is VariableDeclaration
+        ? variableOrInterpolation
+        : _styleRule(
+            InterpolationBuffer()
+              ..addInterpolation(variableOrInterpolation as Interpolation),
+            start);
   }
 
   /// Consumes a [VariableDeclaration], a [Declaration], or a [StyleRule].
@@ -335,14 +347,8 @@ abstract class StylesheetParser extends Parser {
     var start = scanner.state;
     var nameBuffer = InterpolationBuffer();
 
-    // Allow the "*prop: val", ":prop: val", "#prop: val", and ".prop: val"
-    // hacks.
-    var first = scanner.peekChar();
     var startsWithPunctuation = false;
-    if (first == $colon ||
-        first == $asterisk ||
-        first == $dot ||
-        (first == $hash && scanner.peekChar(1) != $lbrace)) {
+    if (_lookingAtPotentialPropertyHack()) {
       startsWithPunctuation = true;
       nameBuffer.writeCharCode(scanner.readChar());
       nameBuffer.write(rawText(whitespace));
@@ -512,13 +518,7 @@ abstract class StylesheetParser extends Parser {
     var start = scanner.state;
 
     Interpolation name;
-    // Allow the "*prop: val", ":prop: val", "#prop: val", and ".prop: val"
-    // hacks.
-    var first = scanner.peekChar();
-    if (first == $colon ||
-        first == $asterisk ||
-        first == $dot ||
-        (first == $hash && scanner.peekChar(1) != $lbrace)) {
+    if (_lookingAtPotentialPropertyHack()) {
       var nameBuffer = InterpolationBuffer();
       nameBuffer.writeCharCode(scanner.readChar());
       nameBuffer.write(rawText(whitespace));
@@ -571,10 +571,9 @@ abstract class StylesheetParser extends Parser {
   }
 
   /// Consumes a statement that's allowed within a declaration.
-  Statement _declarationChild() {
-    if (scanner.peekChar() == $at) return _declarationAtRule();
-    return _propertyOrVariableDeclaration(parseCustomProperties: false);
-  }
+  Statement _declarationChild() => scanner.peekChar() == $at
+      ? _declarationAtRule()
+      : _propertyOrVariableDeclaration(parseCustomProperties: false);
 
   // ## At Rules
 
@@ -658,32 +657,19 @@ abstract class StylesheetParser extends Parser {
   /// Consumes an at-rule allowed within a property declaration.
   Statement _declarationAtRule() {
     var start = scanner.state;
-    var name = _plainAtRuleName();
-
-    switch (name) {
-      case "content":
-        return _contentRule(start);
-      case "debug":
-        return _debugRule(start);
-      case "each":
-        return _eachRule(start, _declarationChild);
-      case "else":
-        return _disallowedAtRule(start);
-      case "error":
-        return _errorRule(start);
-      case "for":
-        return _forRule(start, _declarationChild);
-      case "if":
-        return _ifRule(start, _declarationChild);
-      case "include":
-        return _includeRule(start);
-      case "warn":
-        return _warnRule(start);
-      case "while":
-        return _whileRule(start, _declarationChild);
-      default:
-        return _disallowedAtRule(start);
-    }
+    return switch (_plainAtRuleName()) {
+      "content" => _contentRule(start),
+      "debug" => _debugRule(start),
+      "each" => _eachRule(start, _declarationChild),
+      "else" => _disallowedAtRule(start),
+      "error" => _errorRule(start),
+      "for" => _forRule(start, _declarationChild),
+      "if" => _ifRule(start, _declarationChild),
+      "include" => _includeRule(start),
+      "warn" => _warnRule(start),
+      "while" => _whileRule(start, _declarationChild),
+      _ => _disallowedAtRule(start)
+    };
   }
 
   /// Consumes a statement allowed within a function.
@@ -714,28 +700,18 @@ abstract class StylesheetParser extends Parser {
     }
 
     var start = scanner.state;
-    switch (_plainAtRuleName()) {
-      case "debug":
-        return _debugRule(start);
-      case "each":
-        return _eachRule(start, _functionChild);
-      case "else":
-        return _disallowedAtRule(start);
-      case "error":
-        return _errorRule(start);
-      case "for":
-        return _forRule(start, _functionChild);
-      case "if":
-        return _ifRule(start, _functionChild);
-      case "return":
-        return _returnRule(start);
-      case "warn":
-        return _warnRule(start);
-      case "while":
-        return _whileRule(start, _functionChild);
-      default:
-        return _disallowedAtRule(start);
-    }
+    return switch (_plainAtRuleName()) {
+      "debug" => _debugRule(start),
+      "each" => _eachRule(start, _functionChild),
+      "else" => _disallowedAtRule(start),
+      "error" => _errorRule(start),
+      "for" => _forRule(start, _functionChild),
+      "if" => _ifRule(start, _functionChild),
+      "return" => _returnRule(start),
+      "warn" => _warnRule(start),
+      "while" => _whileRule(start, _functionChild),
+      _ => _disallowedAtRule(start),
+    };
   }
 
   /// Consumes an at-rule's name, with interpolation disallowed.
@@ -884,16 +860,16 @@ abstract class StylesheetParser extends Parser {
           scanner.spanFrom(start));
     }
 
-    switch (unvendor(name)) {
-      case "calc":
-      case "element":
-      case "expression":
-      case "url":
-      case "and":
-      case "or":
-      case "not":
-      case "clamp":
-        error("Invalid function name.", scanner.spanFrom(start));
+    if (unvendor(name)
+        case "calc" ||
+            "element" ||
+            "expression" ||
+            "url" ||
+            "and" ||
+            "or" ||
+            "not" ||
+            "clamp") {
+      error("Invalid function name.", scanner.spanFrom(start));
     }
 
     whitespace();
@@ -962,13 +938,9 @@ abstract class StylesheetParser extends Parser {
     Set<String>? hiddenMixinsAndFunctions;
     Set<String>? hiddenVariables;
     if (scanIdentifier("show")) {
-      var members = _memberList();
-      shownMixinsAndFunctions = members.item1;
-      shownVariables = members.item2;
+      (shownMixinsAndFunctions, shownVariables) = _memberList();
     } else if (scanIdentifier("hide")) {
-      var members = _memberList();
-      hiddenMixinsAndFunctions = members.item1;
-      hiddenVariables = members.item2;
+      (hiddenMixinsAndFunctions, hiddenVariables) = _memberList();
     }
 
     var configuration = _configuration(allowGuarded: true);
@@ -998,7 +970,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// The plain identifiers are returned in the first set, and the variable
   /// names in the second.
-  Tuple2<Set<String>, Set<String>> _memberList() {
+  (Set<String>, Set<String>) _memberList() {
     var identifiers = <String>{};
     var variables = <String>{};
     do {
@@ -1013,7 +985,7 @@ abstract class StylesheetParser extends Parser {
       whitespace();
     } while (scanner.scanChar($comma));
 
-    return Tuple2(identifiers, variables);
+    return (identifiers, variables);
   }
 
   /// Consumes an `@if` rule.
@@ -1056,6 +1028,14 @@ abstract class StylesheetParser extends Parser {
     do {
       whitespace();
       var argument = importArgument();
+      if (argument is DynamicImport) {
+        logger.warnForDeprecation(
+            Deprecation.import,
+            'Sass @import rules will be deprecated in the future.\n'
+            'Remove the --future-deprecation=import flag to silence this '
+            'warning for now.',
+            span: argument.span);
+      }
       if ((_inControlDirective || _inMixin) && argument is DynamicImport) {
         _disallowedAtRule(start);
       }
@@ -1074,8 +1054,7 @@ abstract class StylesheetParser extends Parser {
   @protected
   Import importArgument() {
     var start = scanner.state;
-    var next = scanner.peekChar();
-    if (next == $u || next == $U) {
+    if (scanner.peekChar() case $u || $U) {
       var url = dynamicUrl();
       whitespace();
       var modifiers = tryImportModifiers();
@@ -1121,10 +1100,11 @@ abstract class StylesheetParser extends Parser {
     if (url.length < 5) return false;
     if (url.endsWith(".css")) return true;
 
-    var first = url.codeUnitAt(0);
-    if (first == $slash) return url.codeUnitAt(1) == $slash;
-    if (first != $h) return false;
-    return url.startsWith("http://") || url.startsWith("https://");
+    return switch (url.codeUnitAt(0)) {
+      $slash => url.codeUnitAt(1) == $slash,
+      $h => url.startsWith("http://") || url.startsWith("https://"),
+      _ => false
+    };
   }
 
   /// Consumes a sequence of modifiers (such as media or supports queries)
@@ -1192,8 +1172,7 @@ abstract class StylesheetParser extends Parser {
     } else if (scanner.peekChar() == $lparen) {
       return _supportsCondition();
     } else {
-      var function = _tryImportSupportsFunction();
-      if (function != null) return function;
+      if (_tryImportSupportsFunction() case var function?) return function;
 
       var start = scanner.state;
       var name = _expression();
@@ -1328,11 +1307,9 @@ abstract class StylesheetParser extends Parser {
         var identifierStart = scanner.state;
         var identifier = this.identifier();
         switch (identifier) {
-          case "url":
-          case "url-prefix":
-          case "domain":
-            var contents = _tryUrlContents(identifierStart, name: identifier);
-            if (contents != null) {
+          case "url" || "url-prefix" || "domain":
+            if (_tryUrlContents(identifierStart, name: identifier)
+                case var contents?) {
               buffer.addInterpolation(contents);
             } else {
               scanner.expectChar($lparen);
@@ -1355,7 +1332,6 @@ abstract class StylesheetParser extends Parser {
                 !trailing.endsWith('url-prefix("")')) {
               needsDeprecationWarning = true;
             }
-            break;
 
           case "regexp":
             buffer.write("regexp(");
@@ -1364,7 +1340,6 @@ abstract class StylesheetParser extends Parser {
             scanner.expectChar($rparen);
             buffer.writeCharCode($rparen);
             needsDeprecationWarning = true;
-            break;
 
           default:
             error("Invalid function name.", scanner.spanFrom(identifierStart));
@@ -1381,13 +1356,13 @@ abstract class StylesheetParser extends Parser {
     var value = buffer.interpolation(scanner.spanFrom(valueStart));
     return _withChildren(_statement, start, (children, span) {
       if (needsDeprecationWarning) {
-        logger.warn(
+        logger.warnForDeprecation(
+            Deprecation.mozDocument,
             "@-moz-document is deprecated and support will be removed in Dart "
             "Sass 2.0.0.\n"
             "\n"
             "For details, see https://sass-lang.com/d/moz-document.",
-            span: span,
-            deprecation: true);
+            span: span);
       }
 
       return AtRule(name, span, value: value, children: children);
@@ -1489,8 +1464,7 @@ abstract class StylesheetParser extends Parser {
       var guarded = false;
       var flagStart = scanner.state;
       if (allowGuarded && scanner.scanChar($exclamation)) {
-        var flag = identifier();
-        if (flag == 'default') {
+        if (identifier() == 'default') {
           guarded = true;
           whitespace();
         } else {
@@ -1547,8 +1521,9 @@ abstract class StylesheetParser extends Parser {
     _inUnknownAtRule = true;
 
     Interpolation? value;
-    var next = scanner.peekChar();
-    if (next != $exclamation && !atEndOfStatement()) value = almostAnyValue();
+    if (scanner.peekChar() != $exclamation && !atEndOfStatement()) {
+      value = almostAnyValue();
+    }
 
     AtRule rule;
     if (lookingAtChildren()) {
@@ -1715,7 +1690,7 @@ abstract class StylesheetParser extends Parser {
     var wasInParentheses = _inParentheses;
 
     // We use the convention below of referring to nullable variables that are
-    // shared across anonymous functions in this method with a trailling
+    // shared across anonymous functions in this method with a trailing
     // underscore. This allows us to copy them to non-underscored local
     // variables to make it easier for Dart's type system to reason about their
     // local nullability.
@@ -1781,13 +1756,13 @@ abstract class StylesheetParser extends Parser {
         singleExpression_ = BinaryOperationExpression(operator, left, right);
         allowSlash = false;
 
-        if (operator == BinaryOperator.plus ||
-            operator == BinaryOperator.minus) {
+        if (operator case BinaryOperator.plus || BinaryOperator.minus) {
           if (scanner.string.substring(
                       right.span.start.offset - 1, right.span.start.offset) ==
                   operator.operator &&
-              isWhitespace(scanner.string.codeUnitAt(left.span.end.offset))) {
-            logger.warn(
+              scanner.string.codeUnitAt(left.span.end.offset).isWhitespace) {
+            logger.warnForDeprecation(
+                Deprecation.strictUnary,
                 "This operation is parsed as:\n"
                 "\n"
                 "    $left ${operator.operator} $right\n"
@@ -1804,8 +1779,7 @@ abstract class StylesheetParser extends Parser {
                 "\n"
                 "More info and automated migrator: "
                 "https://sass-lang.com/d/strict-unary",
-                span: singleExpression_!.span,
-                deprecation: true);
+                span: singleExpression_!.span);
           }
         }
       }
@@ -1880,17 +1854,15 @@ abstract class StylesheetParser extends Parser {
       resolveOperations();
 
       var spaceExpressions = spaceExpressions_;
-      if (spaceExpressions != null) {
-        var singleExpression = singleExpression_;
-        if (singleExpression == null) scanner.error("Expected expression.");
+      if (spaceExpressions == null) return;
 
-        spaceExpressions.add(singleExpression);
-        singleExpression_ = ListExpression(
-            spaceExpressions,
-            ListSeparator.space,
-            spaceExpressions.first.span.expand(singleExpression.span));
-        spaceExpressions_ = null;
-      }
+      var singleExpression = singleExpression_;
+      if (singleExpression == null) scanner.error("Expected expression.");
+
+      spaceExpressions.add(singleExpression);
+      singleExpression_ = ListExpression(spaceExpressions, ListSeparator.space,
+          spaceExpressions.first.span.expand(singleExpression.span));
+      spaceExpressions_ = null;
     }
 
     loop:
@@ -1898,33 +1870,28 @@ abstract class StylesheetParser extends Parser {
       whitespace();
       if (until != null && until()) break;
 
-      var first = scanner.peekChar();
-      switch (first) {
+      switch (scanner.peekChar()) {
+        case null:
+          break loop;
+
         case $lparen:
           // Parenthesized numbers can't be slash-separated.
           addSingleExpression(_parentheses());
-          break;
 
         case $lbracket:
           addSingleExpression(_expression(bracketList: true));
-          break;
 
         case $dollar:
           addSingleExpression(_variable());
-          break;
 
         case $ampersand:
           addSingleExpression(_selector());
-          break;
 
-        case $single_quote:
-        case $double_quote:
+        case $single_quote || $double_quote:
           addSingleExpression(interpolatedString());
-          break;
 
         case $hash:
           addSingleExpression(_hashExpression());
-          break;
 
         case $equal:
           scanner.readChar();
@@ -1934,57 +1901,47 @@ abstract class StylesheetParser extends Parser {
             scanner.expectChar($equal);
             addOperator(BinaryOperator.equals);
           }
-          break;
 
         case $exclamation:
-          var next = scanner.peekChar(1);
-          if (next == $equal) {
-            scanner.readChar();
-            scanner.readChar();
-            addOperator(BinaryOperator.notEquals);
-          } else if (next == null ||
-              equalsLetterIgnoreCase($i, next) ||
-              isWhitespace(next)) {
-            addSingleExpression(_importantExpression());
-          } else {
-            break loop;
+          switch (scanner.peekChar(1)) {
+            case $equal:
+              scanner.readChar();
+              scanner.readChar();
+              addOperator(BinaryOperator.notEquals);
+            case null || $i || $I || int(isWhitespace: true):
+              addSingleExpression(_importantExpression());
+            case _:
+              break loop;
           }
-          break;
 
         case $langle:
           scanner.readChar();
           addOperator(scanner.scanChar($equal)
               ? BinaryOperator.lessThanOrEquals
               : BinaryOperator.lessThan);
-          break;
 
         case $rangle:
           scanner.readChar();
           addOperator(scanner.scanChar($equal)
               ? BinaryOperator.greaterThanOrEquals
               : BinaryOperator.greaterThan);
-          break;
 
         case $asterisk:
           scanner.readChar();
           addOperator(BinaryOperator.times);
-          break;
+
+        case $plus when singleExpression_ == null:
+          addSingleExpression(_unaryOperation());
 
         case $plus:
-          if (singleExpression_ == null) {
-            addSingleExpression(_unaryOperation());
-          } else {
-            scanner.readChar();
-            addOperator(BinaryOperator.plus);
-          }
-          break;
+          scanner.readChar();
+          addOperator(BinaryOperator.plus);
 
         case $minus:
-          var next = scanner.peekChar(1);
-          if ((isDigit(next) || next == $dot) &&
+          if (scanner.peekChar(1) case int(isDigit: true) || $dot
               // Make sure `1-2` parses as `1 - 2`, not `1 (-2)`.
-              (singleExpression_ == null ||
-                  isWhitespace(scanner.peekChar(-1)))) {
+              when singleExpression_ == null ||
+                  scanner.peekChar(-1).isWhitespace) {
             addSingleExpression(_number());
           } else if (_lookingAtInterpolatedIdentifier()) {
             addSingleExpression(identifierLike());
@@ -1994,117 +1951,48 @@ abstract class StylesheetParser extends Parser {
             scanner.readChar();
             addOperator(BinaryOperator.minus);
           }
-          break;
+
+        case $slash when singleExpression_ == null:
+          addSingleExpression(_unaryOperation());
 
         case $slash:
-          if (singleExpression_ == null) {
-            addSingleExpression(_unaryOperation());
-          } else {
-            scanner.readChar();
-            addOperator(BinaryOperator.dividedBy);
-          }
-          break;
+          scanner.readChar();
+          addOperator(BinaryOperator.dividedBy);
 
         case $percent:
           scanner.readChar();
           addOperator(BinaryOperator.modulo);
-          break;
 
-        case $0:
-        case $1:
-        case $2:
-        case $3:
-        case $4:
-        case $5:
-        case $6:
-        case $7:
-        case $8:
-        case $9:
+        // dart-lang/sdk#52740
+        // ignore: non_constant_relational_pattern_expression
+        case >= $0 && <= $9:
           addSingleExpression(_number());
-          break;
+
+        case $dot when scanner.peekChar(1) == $dot:
+          break loop;
 
         case $dot:
-          if (scanner.peekChar(1) == $dot) break loop;
           addSingleExpression(_number());
-          break;
 
-        case $a:
-          if (!plainCss && scanIdentifier("and")) {
-            addOperator(BinaryOperator.and);
-          } else {
-            addSingleExpression(identifierLike());
-          }
-          break;
+        case $a when !plainCss && scanIdentifier("and"):
+          addOperator(BinaryOperator.and);
 
-        case $o:
-          if (!plainCss && scanIdentifier("or")) {
-            addOperator(BinaryOperator.or);
-          } else {
-            addSingleExpression(identifierLike());
-          }
-          break;
+        case $o when !plainCss && scanIdentifier("or"):
+          addOperator(BinaryOperator.or);
 
-        case $u:
-        case $U:
-          if (scanner.peekChar(1) == $plus) {
-            addSingleExpression(_unicodeRange());
-          } else {
-            addSingleExpression(identifierLike());
-          }
-          break;
+        // dart-lang/sdk#52740
+        // ignore: non_constant_relational_pattern_expression
+        case $u || $U when scanner.peekChar(1) == $plus:
+          addSingleExpression(_unicodeRange());
 
-        case $b:
-        case $c:
-        case $d:
-        case $e:
-        case $f:
-        case $g:
-        case $h:
-        case $i:
-        case $j:
-        case $k:
-        case $l:
-        case $m:
-        case $n:
-        case $p:
-        case $q:
-        case $r:
-        case $s:
-        case $t:
-        case $v:
-        case $w:
-        case $x:
-        case $y:
-        case $z:
-        case $A:
-        case $B:
-        case $C:
-        case $D:
-        case $E:
-        case $F:
-        case $G:
-        case $H:
-        case $I:
-        case $J:
-        case $K:
-        case $L:
-        case $M:
-        case $N:
-        case $O:
-        case $P:
-        case $Q:
-        case $R:
-        case $S:
-        case $T:
-        case $V:
-        case $W:
-        case $X:
-        case $Y:
-        case $Z:
-        case $_:
-        case $backslash:
+        // ignore: non_constant_relational_pattern_expression
+        case (>= $a && <= $z) ||
+              // ignore: non_constant_relational_pattern_expression
+              (>= $A && <= $Z) ||
+              $_ ||
+              $backslash ||
+              >= 0x80:
           addSingleExpression(identifierLike());
-          break;
 
         case $comma:
           // If we discover we're parsing a list whose first element is a
@@ -2131,20 +2019,15 @@ abstract class StylesheetParser extends Parser {
           scanner.readChar();
           allowSlash = true;
           singleExpression_ = null;
-          break;
 
-        default:
-          if (first != null && first >= 0x80) {
-            addSingleExpression(identifierLike());
-            break;
-          } else {
-            break loop;
-          }
+        case _:
+          break loop;
       }
     }
 
     if (bracketList) scanner.expectChar($rbracket);
 
+    // TODO(dart-lang/sdk#52756): Use patterns to null-check these values.
     var commaExpressions = commaExpressions_;
     var spaceExpressions = spaceExpressions_;
     if (commaExpressions != null) {
@@ -2186,119 +2069,36 @@ abstract class StylesheetParser extends Parser {
       (expression is BinaryOperationExpression && expression.allowsSlash);
 
   /// Consumes an expression that doesn't contain any top-level whitespace.
-  Expression _singleExpression() {
-    var first = scanner.peekChar();
-    switch (first) {
-      // Note: when adding a new case, make sure it's reflected in
-      // [_lookingAtExpression] and [_expression].
-      case $lparen:
-        return _parentheses();
-      case $slash:
-        return _unaryOperation();
-      case $dot:
-        return _number();
-      case $lbracket:
-        return _expression(bracketList: true);
-      case $dollar:
-        return _variable();
-      case $ampersand:
-        return _selector();
-
-      case $single_quote:
-      case $double_quote:
-        return interpolatedString();
-
-      case $hash:
-        return _hashExpression();
-
-      case $plus:
-        return _plusExpression();
-
-      case $minus:
-        return _minusExpression();
-
-      case $exclamation:
-        return _importantExpression();
-
-      case $u:
-      case $U:
-        if (scanner.peekChar(1) == $plus) {
-          return _unicodeRange();
-        } else {
-          return identifierLike();
-        }
-
-      case $0:
-      case $1:
-      case $2:
-      case $3:
-      case $4:
-      case $5:
-      case $6:
-      case $7:
-      case $8:
-      case $9:
-        return _number();
-
-      case $a:
-      case $b:
-      case $c:
-      case $d:
-      case $e:
-      case $f:
-      case $g:
-      case $h:
-      case $i:
-      case $j:
-      case $k:
-      case $l:
-      case $m:
-      case $n:
-      case $o:
-      case $p:
-      case $q:
-      case $r:
-      case $s:
-      case $t:
-      case $v:
-      case $w:
-      case $x:
-      case $y:
-      case $z:
-      case $A:
-      case $B:
-      case $C:
-      case $D:
-      case $E:
-      case $F:
-      case $G:
-      case $H:
-      case $I:
-      case $J:
-      case $K:
-      case $L:
-      case $M:
-      case $N:
-      case $O:
-      case $P:
-      case $Q:
-      case $R:
-      case $S:
-      case $T:
-      case $V:
-      case $W:
-      case $X:
-      case $Y:
-      case $Z:
-      case $_:
-      case $backslash:
-        return identifierLike();
-
-      default:
-        if (first != null && first >= 0x80) return identifierLike();
-        scanner.error("Expected expression.");
-    }
-  }
+  Expression _singleExpression() => switch (scanner.peekChar()) {
+        // Note: when adding a new case, make sure it's reflected in
+        // [_lookingAtExpression] and [_expression].
+        null => scanner.error("Expected expression."),
+        $lparen => _parentheses(),
+        $slash => _unaryOperation(),
+        $dot => _number(),
+        $lbracket => _expression(bracketList: true),
+        $dollar => _variable(),
+        $ampersand => _selector(),
+        $single_quote || $double_quote => interpolatedString(),
+        $hash => _hashExpression(),
+        $plus => _plusExpression(),
+        $minus => _minusExpression(),
+        $exclamation => _importantExpression(),
+        // dart-lang/sdk#52740
+        // ignore: non_constant_relational_pattern_expression
+        $u || $U when scanner.peekChar(1) == $plus => _unicodeRange(),
+        // ignore: non_constant_relational_pattern_expression
+        >= $0 && <= $9 => _number(),
+        // ignore: non_constant_relational_pattern_expression
+        (>= $a && <= $z) ||
+        // ignore: non_constant_relational_pattern_expression
+        (>= $A && <= $Z) ||
+        $_ ||
+        $backslash ||
+        >= 0x80 =>
+          identifierLike(),
+        _ => scanner.error("Expected expression.")
+      };
 
   /// Consumes a parenthesized expression.
   Expression _parentheses() {
@@ -2352,7 +2152,7 @@ abstract class StylesheetParser extends Parser {
   /// as the expression before the colon and [start] the point before the
   /// opening parenthesis.
   MapExpression _map(Expression first, LineScannerState start) {
-    var pairs = [Tuple2(first, expressionUntilComma())];
+    var pairs = [(first, expressionUntilComma())];
 
     while (scanner.scanChar($comma)) {
       whitespace();
@@ -2362,7 +2162,7 @@ abstract class StylesheetParser extends Parser {
       scanner.expectChar($colon);
       whitespace();
       var value = expressionUntilComma();
-      pairs.add(Tuple2(key, value));
+      pairs.add((key, value));
     }
 
     scanner.expectChar($rparen);
@@ -2377,8 +2177,7 @@ abstract class StylesheetParser extends Parser {
     var start = scanner.state;
     scanner.expectChar($hash);
 
-    var first = scanner.peekChar();
-    if (first != null && isDigit(first)) {
+    if (scanner.peekChar()?.isDigit ?? false) {
       return ColorExpression(_hexColorContents(start), scanner.spanFrom(start));
     }
 
@@ -2405,14 +2204,14 @@ abstract class StylesheetParser extends Parser {
     int green;
     int blue;
     double? alpha;
-    if (!isHex(scanner.peekChar())) {
+    if (!scanner.peekChar().isHex) {
       // #abc
       red = (digit1 << 4) + digit1;
       green = (digit2 << 4) + digit2;
       blue = (digit3 << 4) + digit3;
     } else {
       var digit4 = _hexDigit();
-      if (!isHex(scanner.peekChar())) {
+      if (!scanner.peekChar().isHex) {
         // #abcd
         red = (digit1 << 4) + digit1;
         green = (digit2 << 4) + digit2;
@@ -2423,7 +2222,7 @@ abstract class StylesheetParser extends Parser {
         green = (digit3 << 4) + digit4;
         blue = (_hexDigit() << 4) + _hexDigit();
 
-        if (isHex(scanner.peekChar())) {
+        if (scanner.peekChar().isHex) {
           alpha = ((_hexDigit() << 4) + _hexDigit()) / 0xff;
         }
       }
@@ -2433,7 +2232,7 @@ abstract class StylesheetParser extends Parser {
         red,
         green,
         blue,
-        alpha,
+        alpha ?? 1,
         // Don't emit four- or eight-digit hex colors as hex, since that's not
         // yet well-supported in browsers.
         alpha == null ? SpanColorFormat(scanner.spanFrom(start)) : null);
@@ -2443,35 +2242,29 @@ abstract class StylesheetParser extends Parser {
   /// hex color.
   bool _isHexColor(Interpolation interpolation) {
     var plain = interpolation.asPlain;
-    if (plain == null) return false;
-    if (plain.length != 3 &&
-        plain.length != 4 &&
-        plain.length != 6 &&
-        plain.length != 8) {
+    if (plain case String(length: 3 || 4 || 6 || 8)) {
+      return plain.codeUnits.every((char) => char.isHex);
+    } else {
       return false;
     }
-    return plain.codeUnits.every(isHex);
   }
 
   // Consumes a single hexadecimal digit.
-  int _hexDigit() {
-    var char = scanner.peekChar();
-    if (char == null || !isHex(char)) scanner.error("Expected hex digit.");
-    return asHex(scanner.readChar());
-  }
+  int _hexDigit() => (scanner.peekChar()?.isHex ?? false)
+      ? asHex(scanner.readChar())
+      : scanner.error("Expected hex digit.");
 
   /// Consumes an expression that starts with a `+`.
   Expression _plusExpression() {
     assert(scanner.peekChar() == $plus);
     var next = scanner.peekChar(1);
-    return isDigit(next) || next == $dot ? _number() : _unaryOperation();
+    return next.isDigit || next == $dot ? _number() : _unaryOperation();
   }
 
   /// Consumes an expression that starts with a `-`.
   Expression _minusExpression() {
     assert(scanner.peekChar() == $minus);
-    var next = scanner.peekChar(1);
-    if (isDigit(next) || next == $dot) return _number();
+    if (scanner.peekChar(1) case int(isDigit: true) || $dot) return _number();
     if (_lookingAtInterpolatedIdentifier()) return identifierLike();
     return _unaryOperation();
   }
@@ -2505,18 +2298,12 @@ abstract class StylesheetParser extends Parser {
 
   /// Returns the unary operator corresponding to [character], or `null` if
   /// the character is not a unary operator.
-  UnaryOperator? _unaryOperatorFor(int character) {
-    switch (character) {
-      case $plus:
-        return UnaryOperator.plus;
-      case $minus:
-        return UnaryOperator.minus;
-      case $slash:
-        return UnaryOperator.divide;
-      default:
-        return null;
-    }
-  }
+  UnaryOperator? _unaryOperatorFor(int character) => switch (character) {
+        $plus => UnaryOperator.plus,
+        $minus => UnaryOperator.minus,
+        $slash => UnaryOperator.divide,
+        _ => null
+      };
 
   /// Consumes a number expression.
   NumberExpression _number() {
@@ -2555,11 +2342,11 @@ abstract class StylesheetParser extends Parser {
   ///
   /// Doesn't support scientific notation.
   void _consumeNaturalNumber() {
-    if (!isDigit(scanner.readChar())) {
+    if (!scanner.readChar().isDigit) {
       scanner.error("Expected digit.", position: scanner.position - 1);
     }
 
-    while (isDigit(scanner.peekChar())) {
+    while (scanner.peekChar().isDigit) {
       scanner.readChar();
     }
   }
@@ -2572,13 +2359,13 @@ abstract class StylesheetParser extends Parser {
   void _tryDecimal({bool allowTrailingDot = false}) {
     if (scanner.peekChar() != $dot) return;
 
-    if (!isDigit(scanner.peekChar(1))) {
+    if (!scanner.peekChar(1).isDigit) {
       if (allowTrailingDot) return;
       scanner.error("Expected digit.", position: scanner.position + 1);
     }
 
     scanner.readChar();
-    while (isDigit(scanner.peekChar())) {
+    while (scanner.peekChar().isDigit) {
       scanner.readChar();
     }
   }
@@ -2589,13 +2376,13 @@ abstract class StylesheetParser extends Parser {
     if (first != $e && first != $E) return;
 
     var next = scanner.peekChar(1);
-    if (!isDigit(next) && next != $minus && next != $plus) return;
+    if (!next.isDigit && next != $minus && next != $plus) return;
 
     scanner.readChar();
-    if (next == $plus || next == $minus) scanner.readChar();
-    if (!isDigit(scanner.peekChar())) scanner.error("Expected digit.");
+    if (next case $plus || $minus) scanner.readChar();
+    if (!scanner.peekChar().isDigit) scanner.error("Expected digit.");
 
-    while (isDigit(scanner.peekChar())) {
+    while (scanner.peekChar().isDigit) {
       scanner.readChar();
     }
   }
@@ -2607,7 +2394,7 @@ abstract class StylesheetParser extends Parser {
     scanner.expectChar($plus);
 
     var firstRangeLength = 0;
-    while (scanCharIf((char) => char != null && isHex(char))) {
+    while (scanCharIf((char) => char != null && char.isHex)) {
       firstRangeLength++;
     }
 
@@ -2629,7 +2416,7 @@ abstract class StylesheetParser extends Parser {
     if (scanner.scanChar($minus)) {
       var secondRangeStart = scanner.state;
       var secondRangeLength = 0;
-      while (scanCharIf((char) => char != null && isHex(char))) {
+      while (scanCharIf((char) => char != null && char.isHex)) {
         secondRangeLength++;
       }
 
@@ -2684,8 +2471,8 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes a quoted string expression.
   StringExpression interpolatedString() {
-    // NOTE: this logic is largely duplicated in ScssParser.interpolatedString.
-    // Most changes here should be mirrored there.
+    // NOTE: this logic is largely duplicated in Parser.string. Most changes
+    // here should be mirrored there.
 
     var start = scanner.state;
     var quote = scanner.readChar();
@@ -2695,30 +2482,27 @@ abstract class StylesheetParser extends Parser {
     }
 
     var buffer = InterpolationBuffer();
+    loop:
     while (true) {
-      var next = scanner.peekChar();
-      if (next == quote) {
-        scanner.readChar();
-        break;
-      } else if (next == null || isNewline(next)) {
-        scanner.error("Expected ${String.fromCharCode(quote)}.");
-      } else if (next == $backslash) {
-        var second = scanner.peekChar(1);
-        if (isNewline(second)) {
+      switch (scanner.peekChar()) {
+        case var next when next == quote:
           scanner.readChar();
-          scanner.readChar();
-          if (second == $cr) scanner.scanChar($lf);
-        } else {
-          buffer.writeCharCode(escapeCharacter());
-        }
-      } else if (next == $hash) {
-        if (scanner.peekChar(1) == $lbrace) {
+          break loop;
+        case null || int(isNewline: true):
+          scanner.error("Expected ${String.fromCharCode(quote)}.");
+        case $backslash:
+          var second = scanner.peekChar(1);
+          if (second.isNewline) {
+            scanner.readChar();
+            scanner.readChar();
+            if (second == $cr) scanner.scanChar($lf);
+          } else {
+            buffer.writeCharCode(escapeCharacter());
+          }
+        case $hash when scanner.peekChar(1) == $lbrace:
           buffer.add(singleInterpolation());
-        } else {
+        case _:
           buffer.writeCharCode(scanner.readChar());
-        }
-      } else {
-        buffer.writeCharCode(scanner.readChar());
       }
     }
 
@@ -2756,38 +2540,39 @@ abstract class StylesheetParser extends Parser {
             return BooleanExpression(true, identifier.span);
         }
 
-        var color = colorsByName[lower];
-        if (color != null) {
+        if (colorsByName[lower] case var color?) {
           color = SassColor.rgbInternal(color.red, color.green, color.blue,
               color.alpha, SpanColorFormat(identifier.span));
           return ColorExpression(color, identifier.span);
         }
       }
 
-      var specialFunction = trySpecialFunction(lower, start);
-      if (specialFunction != null) return specialFunction;
+      if (trySpecialFunction(lower, start) case var specialFunction?) {
+        return specialFunction;
+      }
     }
 
     switch (scanner.peekChar()) {
-      case $dot:
-        if (scanner.peekChar(1) == $dot) return StringExpression(identifier);
-        scanner.readChar();
+      case $dot when scanner.peekChar(1) == $dot:
+        return StringExpression(identifier);
 
+      case $dot:
+        scanner.readChar();
+        // TODO(dart-lang/sdk#52757): Make this a separate case.
         if (plain != null) return namespacedExpression(plain, start);
         error("Interpolation isn't allowed in namespaces.", identifier.span);
 
-      case $lparen:
-        if (plain == null) {
-          return InterpolatedFunctionExpression(
-              identifier, _argumentInvocation(), scanner.spanFrom(start));
-        } else {
-          return FunctionExpression(
-              plain,
-              _argumentInvocation(allowEmptySecondArg: lower == 'var'),
-              scanner.spanFrom(start));
-        }
+      case $lparen when plain != null:
+        return FunctionExpression(
+            plain,
+            _argumentInvocation(allowEmptySecondArg: lower == 'var'),
+            scanner.spanFrom(start));
 
-      default:
+      case $lparen:
+        return InterpolatedFunctionExpression(
+            identifier, _argumentInvocation(), scanner.spanFrom(start));
+
+      case _:
         return StringExpression(identifier);
     }
   }
@@ -2816,42 +2601,38 @@ abstract class StylesheetParser extends Parser {
   /// [name].
   @protected
   Expression? trySpecialFunction(String name, LineScannerState start) {
-    var calculation =
-        scanner.peekChar() == $lparen ? _tryCalculation(name, start) : null;
-    if (calculation != null) return calculation;
+    if (scanner.peekChar() == $lparen) {
+      if (_tryCalculation(name, start) case var calculation?) {
+        return calculation;
+      }
+    }
 
     var normalized = unvendor(name);
 
     InterpolationBuffer buffer;
     switch (normalized) {
-      case "calc":
-      case "element":
-      case "expression":
-        if (!scanner.scanChar($lparen)) return null;
+      case "calc" || "element" || "expression" when scanner.scanChar($lparen):
         buffer = InterpolationBuffer()
           ..write(name)
           ..writeCharCode($lparen);
-        break;
 
-      case "progid":
-        if (!scanner.scanChar($colon)) return null;
+      case "progid" when scanner.scanChar($colon):
         buffer = InterpolationBuffer()
           ..write(name)
           ..writeCharCode($colon);
         var next = scanner.peekChar();
-        while (next != null && (isAlphabetic(next) || next == $dot)) {
+        while (next != null && (next.isAlphabetic || next == $dot)) {
           buffer.writeCharCode(scanner.readChar());
           next = scanner.peekChar();
         }
         scanner.expectChar($lparen);
         buffer.writeCharCode($lparen);
-        break;
 
       case "url":
         return _tryUrlContents(start)
             .andThen((contents) => StringExpression(contents));
 
-      default:
+      case _:
         return null;
     }
 
@@ -2874,8 +2655,7 @@ abstract class StylesheetParser extends Parser {
         var arguments = _calculationArguments(1);
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
 
-      case "min":
-      case "max":
+      case "min" || "max":
         // min() and max() are parsed as calculations if possible, and otherwise
         // are parsed as normal Sass functions.
         var beforeArguments = scanner.state;
@@ -2893,7 +2673,7 @@ abstract class StylesheetParser extends Parser {
         var arguments = _calculationArguments(3);
         return CalculationExpression(name, arguments, scanner.spanFrom(start));
 
-      default:
+      case _:
         return null;
     }
   }
@@ -2905,8 +2685,7 @@ abstract class StylesheetParser extends Parser {
   /// Otherwise, any number greater than zero are consumed.
   List<Expression> _calculationArguments([int? maxArgs]) {
     scanner.expectChar($lparen);
-    var interpolation = _tryCalculationInterpolation();
-    if (interpolation != null) {
+    if (_tryCalculationInterpolation() case var interpolation?) {
       scanner.expectChar($rparen);
       return [interpolation];
     }
@@ -2933,22 +2712,20 @@ abstract class StylesheetParser extends Parser {
 
     while (true) {
       var next = scanner.peekChar();
-      if (next == $plus || next == $minus) {
-        if (!isWhitespace(scanner.peekChar(-1)) ||
-            !isWhitespace(scanner.peekChar(1))) {
-          scanner.error(
-              '"+" and "-" must be surrounded by whitespace in calculations.');
-        }
+      if (next != $plus && next != $minus) return sum;
 
-        scanner.readChar();
-        whitespace();
-        sum = BinaryOperationExpression(
-            next == $plus ? BinaryOperator.plus : BinaryOperator.minus,
-            sum,
-            _calculationProduct());
-      } else {
-        return sum;
+      if (!scanner.peekChar(-1).isWhitespace ||
+          !scanner.peekChar(1).isWhitespace) {
+        scanner.error(
+            '"+" and "-" must be surrounded by whitespace in calculations.');
       }
+
+      scanner.readChar();
+      whitespace();
+      sum = BinaryOperationExpression(
+          next == $plus ? BinaryOperator.plus : BinaryOperator.minus,
+          sum,
+          _calculationProduct());
     }
   }
 
@@ -2959,57 +2736,64 @@ abstract class StylesheetParser extends Parser {
     while (true) {
       whitespace();
       var next = scanner.peekChar();
-      if (next == $asterisk || next == $slash) {
-        scanner.readChar();
-        whitespace();
-        product = BinaryOperationExpression(
-            next == $asterisk ? BinaryOperator.times : BinaryOperator.dividedBy,
-            product,
-            _calculationValue());
-      } else {
-        return product;
-      }
+      if (next != $asterisk && next != $slash) return product;
+
+      scanner.readChar();
+      whitespace();
+      product = BinaryOperationExpression(
+          next == $asterisk ? BinaryOperator.times : BinaryOperator.dividedBy,
+          product,
+          _calculationValue());
     }
   }
 
   /// Parses a single calculation value.
   Expression _calculationValue() {
-    var next = scanner.peekChar();
-    if (next == $plus || next == $minus || next == $dot || isDigit(next)) {
-      return _number();
-    } else if (next == $dollar) {
-      return _variable();
-    } else if (next == $lparen) {
-      var start = scanner.state;
-      scanner.readChar();
+    switch (scanner.peekChar()) {
+      case $plus || $dot || int(isDigit: true):
+        return _number();
+      case $dollar:
+        return _variable();
+      case $lparen:
+        var start = scanner.state;
+        scanner.readChar();
 
-      Expression? value = _tryCalculationInterpolation();
-      if (value == null) {
+        Expression? value = _tryCalculationInterpolation();
+        if (value == null) {
+          whitespace();
+          value = _calculationSum();
+        }
+
         whitespace();
-        value = _calculationSum();
-      }
+        scanner.expectChar($rparen);
+        return ParenthesizedExpression(value, scanner.spanFrom(start));
+      case _ when lookingAtIdentifier():
+        var start = scanner.state;
+        var ident = identifier();
+        if (scanner.scanChar($dot)) return namespacedExpression(ident, start);
+        if (scanner.peekChar() != $lparen) {
+          return StringExpression(
+              Interpolation([ident], scanner.spanFrom(start)),
+              quotes: false);
+        }
 
-      whitespace();
-      scanner.expectChar($rparen);
-      return ParenthesizedExpression(value, scanner.spanFrom(start));
-    } else if (!lookingAtIdentifier()) {
-      scanner.error("Expected number, variable, function, or calculation.");
-    } else {
-      var start = scanner.state;
-      var ident = identifier();
-      if (scanner.scanChar($dot)) return namespacedExpression(ident, start);
-      if (scanner.peekChar() != $lparen) scanner.error('Expected "(" or ".".');
+        var lowerCase = ident.toLowerCase();
+        if (_tryCalculation(lowerCase, start) case var calculation?) {
+          return calculation;
+        } else if (lowerCase == "if") {
+          return IfExpression(_argumentInvocation(), scanner.spanFrom(start));
+        } else {
+          return FunctionExpression(
+              ident, _argumentInvocation(), scanner.spanFrom(start));
+        }
 
-      var lowerCase = ident.toLowerCase();
-      var calculation = _tryCalculation(lowerCase, start);
-      if (calculation != null) {
-        return calculation;
-      } else if (lowerCase == "if") {
-        return IfExpression(_argumentInvocation(), scanner.spanFrom(start));
-      } else {
-        return FunctionExpression(
-            ident, _argumentInvocation(), scanner.spanFrom(start));
-      }
+      // This has to go after [lookingAtIdentifier] because a hyphen can start
+      // an identifier as well as a number.
+      case $minus:
+        return _number();
+
+      case _:
+        scanner.error("Expected number, variable, function, or calculation.");
     }
   }
 
@@ -3034,16 +2818,12 @@ abstract class StylesheetParser extends Parser {
         case $backslash:
           scanner.readChar();
           scanner.readChar();
-          break;
 
         case $slash:
           if (!scanComment()) scanner.readChar();
-          break;
 
-        case $single_quote:
-        case $double_quote:
+        case $single_quote || $double_quote:
           interpolatedString();
-          break;
 
         case $hash:
           if (parens == 0 && scanner.peekChar(1) == $lbrace) {
@@ -3051,7 +2831,6 @@ abstract class StylesheetParser extends Parser {
             return true;
           }
           scanner.readChar();
-          break;
 
         case $lparen:
           parens++;
@@ -3063,7 +2842,6 @@ abstract class StylesheetParser extends Parser {
           // dart-lang/sdk#45357
           brackets.add(opposite(next!));
           scanner.readChar();
-          break;
 
         case $rparen:
           parens--;
@@ -3077,9 +2855,8 @@ abstract class StylesheetParser extends Parser {
             return false;
           }
           scanner.readChar();
-          break;
 
-        default:
+        case _:
           scanner.readChar();
       }
     }
@@ -3105,32 +2882,32 @@ abstract class StylesheetParser extends Parser {
     var buffer = InterpolationBuffer()
       ..write(name ?? 'url')
       ..writeCharCode($lparen);
+    loop:
     while (true) {
-      var next = scanner.peekChar();
-      if (next == null) {
-        break;
-      } else if (next == $backslash) {
-        buffer.write(escape());
-      } else if (next == $exclamation ||
-          next == $percent ||
-          next == $ampersand ||
-          (next >= $asterisk && next <= $tilde) ||
-          next >= 0x0080) {
-        buffer.writeCharCode(scanner.readChar());
-      } else if (next == $hash) {
-        if (scanner.peekChar(1) == $lbrace) {
+      switch (scanner.peekChar()) {
+        case null:
+          break loop;
+        case $backslash:
+          buffer.write(escape());
+        case $hash when scanner.peekChar(1) == $lbrace:
           buffer.add(singleInterpolation());
-        } else {
+        case $exclamation ||
+              $percent ||
+              $ampersand ||
+              $hash ||
+              // dart-lang/sdk#52740
+              // ignore: non_constant_relational_pattern_expression
+              (>= $asterisk && <= $tilde) ||
+              >= 0x80:
           buffer.writeCharCode(scanner.readChar());
-        }
-      } else if (isWhitespace(next)) {
-        whitespaceWithoutComments();
-        if (scanner.peekChar() != $rparen) break;
-      } else if (next == $rparen) {
-        buffer.writeCharCode(scanner.readChar());
-        return buffer.interpolation(scanner.spanFrom(start));
-      } else {
-        break;
+        case int(isWhitespace: true):
+          whitespaceWithoutComments();
+          if (scanner.peekChar() != $rparen) break loop;
+        case $rparen:
+          buffer.writeCharCode(scanner.readChar());
+          return buffer.interpolation(scanner.spanFrom(start));
+        case _:
+          break loop;
       }
     }
 
@@ -3143,8 +2920,9 @@ abstract class StylesheetParser extends Parser {
   Expression dynamicUrl() {
     var start = scanner.state;
     expectIdentifier("url");
-    var contents = _tryUrlContents(start);
-    if (contents != null) return StringExpression(contents);
+    if (_tryUrlContents(start) case var contents?) {
+      return StringExpression(contents);
+    }
 
     return InterpolatedFunctionExpression(
         Interpolation(["url"], scanner.spanFrom(start)),
@@ -3177,18 +2955,14 @@ abstract class StylesheetParser extends Parser {
 
     loop:
     while (true) {
-      var next = scanner.peekChar();
-      switch (next) {
+      switch (scanner.peekChar()) {
         case $backslash:
           // Write a literal backslash because this text will be re-parsed.
           buffer.writeCharCode(scanner.readChar());
           buffer.writeCharCode(scanner.readChar());
-          break;
 
-        case $double_quote:
-        case $single_quote:
+        case $double_quote || $single_quote:
           buffer.addInterpolation(interpolatedString().asInterpolation());
-          break;
 
         case $slash:
           var commentStart = scanner.position;
@@ -3197,57 +2971,41 @@ abstract class StylesheetParser extends Parser {
           } else {
             buffer.writeCharCode(scanner.readChar());
           }
-          break;
 
-        case $hash:
-          if (scanner.peekChar(1) == $lbrace) {
-            // Add a full interpolated identifier to handle cases like
-            // "#{...}--1", since "--1" isn't a valid identifier on its own.
-            buffer.addInterpolation(interpolatedIdentifier());
-          } else {
-            buffer.writeCharCode(scanner.readChar());
-          }
-          break;
+        case $hash when scanner.peekChar(1) == $lbrace:
+          // Add a full interpolated identifier to handle cases like
+          // "#{...}--1", since "--1" isn't a valid identifier on its own.
+          buffer.addInterpolation(interpolatedIdentifier());
 
-        case $cr:
-        case $lf:
-        case $ff:
+        case $cr || $lf || $ff:
           if (indented) break loop;
           buffer.writeCharCode(scanner.readChar());
-          break;
 
-        case $exclamation:
-        case $semicolon:
-        case $lbrace:
-        case $rbrace:
+        case $exclamation || $semicolon || $lbrace || $rbrace:
           break loop;
 
-        case $u:
-        case $U:
+        case $u || $U:
           var beforeUrl = scanner.state;
           if (!scanIdentifier("url")) {
             buffer.writeCharCode(scanner.readChar());
-            break;
+            continue loop;
           }
 
-          var contents = _tryUrlContents(beforeUrl);
-          if (contents == null) {
+          if (_tryUrlContents(beforeUrl) case var contents?) {
+            buffer.addInterpolation(contents);
+          } else {
             scanner.state = beforeUrl;
             buffer.writeCharCode(scanner.readChar());
-          } else {
-            buffer.addInterpolation(contents);
           }
-          break;
 
-        default:
-          if (next == null) break loop;
+        case null:
+          break loop;
 
-          if (lookingAtIdentifier()) {
-            buffer.write(identifier());
-          } else {
-            buffer.writeCharCode(scanner.readChar());
-          }
-          break;
+        case _ when lookingAtIdentifier():
+          buffer.write(identifier());
+
+        case _:
+          buffer.writeCharCode(scanner.readChar());
       }
     }
 
@@ -3279,115 +3037,92 @@ abstract class StylesheetParser extends Parser {
     var wroteNewline = false;
     loop:
     while (true) {
-      var next = scanner.peekChar();
-      switch (next) {
+      switch (scanner.peekChar()) {
         case $backslash:
           buffer.write(escape(identifierStart: true));
           wroteNewline = false;
-          break;
 
-        case $double_quote:
-        case $single_quote:
+        case $double_quote || $single_quote:
           buffer.addInterpolation(interpolatedString().asInterpolation());
           wroteNewline = false;
-          break;
 
-        case $slash:
-          if (scanner.peekChar(1) == $asterisk) {
-            buffer.write(rawText(loudComment));
-          } else {
-            buffer.writeCharCode(scanner.readChar());
-          }
+        case $slash when scanner.peekChar(1) == $asterisk:
+          buffer.write(rawText(loudComment));
           wroteNewline = false;
-          break;
 
-        case $hash:
-          if (scanner.peekChar(1) == $lbrace) {
-            // Add a full interpolated identifier to handle cases like
-            // "#{...}--1", since "--1" isn't a valid identifier on its own.
-            buffer.addInterpolation(interpolatedIdentifier());
-          } else {
-            buffer.writeCharCode(scanner.readChar());
-          }
+        // Add a full interpolated identifier to handle cases like "#{...}--1",
+        // since "--1" isn't a valid identifier on its own.
+        case $hash when scanner.peekChar(1) == $lbrace:
+          buffer.addInterpolation(interpolatedIdentifier());
           wroteNewline = false;
-          break;
 
-        case $space:
-        case $tab:
-          if (wroteNewline || !isWhitespace(scanner.peekChar(1))) {
-            buffer.writeCharCode(scanner.readChar());
-          } else {
-            scanner.readChar();
-          }
-          break;
+        case $space || $tab
+            when !wroteNewline && scanner.peekChar(1).isWhitespace:
+          // Collapse whitespace into a single character unless it's following a
+          // newline, in which case we assume it's indentation.
+          scanner.readChar();
 
-        case $lf:
-        case $cr:
-        case $ff:
-          if (indented) break loop;
-          if (!isNewline(scanner.peekChar(-1))) buffer.writeln();
+        case $space || $tab:
+          buffer.writeCharCode(scanner.readChar());
+
+        case $lf || $cr || $ff when indented:
+          break loop;
+
+        case $lf || $cr || $ff:
+          // Collapse multiple newlines into one.
+          if (!scanner.peekChar(-1).isNewline) buffer.writeln();
           scanner.readChar();
           wroteNewline = true;
-          break;
 
-        case $lparen:
-        case $lbrace:
-        case $lbracket:
-          buffer.writeCharCode(next!); // dart-lang/sdk#45357
-          brackets.add(opposite(scanner.readChar()));
+        case $lparen || $lbrace || $lbracket:
+          var bracket = scanner.readChar();
+          buffer.writeCharCode(bracket);
+          brackets.add(opposite(bracket));
           wroteNewline = false;
-          break;
 
-        case $rparen:
-        case $rbrace:
-        case $rbracket:
+        case $rparen || $rbrace || $rbracket:
           if (brackets.isEmpty) break loop;
-          buffer.writeCharCode(next!); // dart-lang/sdk#45357
-          scanner.expectChar(brackets.removeLast());
+          var bracket = brackets.removeLast();
+          scanner.expectChar(bracket);
+          buffer.writeCharCode(bracket);
           wroteNewline = false;
-          break;
 
         case $semicolon:
           if (!allowSemicolon && brackets.isEmpty) break loop;
           buffer.writeCharCode(scanner.readChar());
           wroteNewline = false;
-          break;
 
         case $colon:
           if (!allowColon && brackets.isEmpty) break loop;
           buffer.writeCharCode(scanner.readChar());
           wroteNewline = false;
-          break;
 
-        case $u:
-        case $U:
+        case $u || $U:
           var beforeUrl = scanner.state;
           if (!scanIdentifier("url")) {
             buffer.writeCharCode(scanner.readChar());
             wroteNewline = false;
-            break;
+            continue loop;
           }
 
-          var contents = _tryUrlContents(beforeUrl);
-          if (contents == null) {
+          if (_tryUrlContents(beforeUrl) case var contents?) {
+            buffer.addInterpolation(contents);
+          } else {
             scanner.state = beforeUrl;
             buffer.writeCharCode(scanner.readChar());
-          } else {
-            buffer.addInterpolation(contents);
           }
           wroteNewline = false;
-          break;
 
-        default:
-          if (next == null) break loop;
+        case null:
+          break loop;
 
-          if (lookingAtIdentifier()) {
-            buffer.write(identifier());
-          } else {
-            buffer.writeCharCode(scanner.readChar());
-          }
+        case _ when lookingAtIdentifier():
+          buffer.write(identifier());
           wroteNewline = false;
-          break;
+
+        case _:
+          buffer.writeCharCode(scanner.readChar());
+          wroteNewline = false;
       }
     }
 
@@ -3412,17 +3147,17 @@ abstract class StylesheetParser extends Parser {
       }
     }
 
-    var first = scanner.peekChar();
-    if (first == null) {
-      scanner.error("Expected identifier.");
-    } else if (isNameStart(first)) {
-      buffer.writeCharCode(scanner.readChar());
-    } else if (first == $backslash) {
-      buffer.write(escape(identifierStart: true));
-    } else if (first == $hash && scanner.peekChar(1) == $lbrace) {
-      buffer.add(singleInterpolation());
-    } else {
-      scanner.error("Expected identifier.");
+    switch (scanner.peekChar()) {
+      case null:
+        scanner.error("Expected identifier.");
+      case int(isNameStart: true):
+        buffer.writeCharCode(scanner.readChar());
+      case $backslash:
+        buffer.write(escape(identifierStart: true));
+      case $hash when scanner.peekChar(1) == $lbrace:
+        buffer.add(singleInterpolation());
+      case _:
+        scanner.error("Expected identifier.");
     }
 
     _interpolatedIdentifierBody(buffer);
@@ -3432,21 +3167,19 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a chunk of a possibly-interpolated CSS identifier after the name
   /// start, and adds the contents to the [buffer] buffer.
   void _interpolatedIdentifierBody(InterpolationBuffer buffer) {
+    loop:
     while (true) {
-      var next = scanner.peekChar();
-      if (next == null) {
-        break;
-      } else if (next == $underscore ||
-          next == $dash ||
-          isAlphanumeric(next) ||
-          next >= 0x0080) {
-        buffer.writeCharCode(scanner.readChar());
-      } else if (next == $backslash) {
-        buffer.write(escape());
-      } else if (next == $hash && scanner.peekChar(1) == $lbrace) {
-        buffer.add(singleInterpolation());
-      } else {
-        break;
+      switch (scanner.peekChar()) {
+        case null:
+          break loop;
+        case $underscore || $dash || int(isAlphanumeric: true) || >= 0x80:
+          buffer.writeCharCode(scanner.readChar());
+        case $backslash:
+          buffer.write(escape());
+        case $hash when scanner.peekChar(1) == $lbrace:
+          buffer.add(singleInterpolation());
+        case _:
+          break loop;
       }
     }
   }
@@ -3616,11 +3349,10 @@ abstract class StylesheetParser extends Parser {
         buffer.add(_expression());
       } else {
         var next = scanner.peekChar();
-        if (next == $langle || next == $rangle || next == $equal) {
+        if (next case $langle || $rangle || $equal) {
           buffer.writeCharCode($space);
           buffer.writeCharCode(scanner.readChar());
-          if ((next == $langle || next == $rangle) &&
-              scanner.scanChar($equal)) {
+          if (next case $langle || $rangle when scanner.scanChar($equal)) {
             buffer.writeCharCode($equal);
           }
           buffer.writeCharCode($space);
@@ -3628,9 +3360,8 @@ abstract class StylesheetParser extends Parser {
           whitespace();
           buffer.add(_expressionUntilComparison());
 
-          if ((next == $langle || next == $rangle) &&
-              // dart-lang/sdk#45356
-              scanner.scanChar(next!)) {
+          // dart-lang/sdk#45356
+          if (next case $langle || $rangle when scanner.scanChar(next!)) {
             buffer.writeCharCode($space);
             buffer.writeCharCode(next);
             if (scanner.scanChar($equal)) buffer.writeCharCode($equal);
@@ -3650,11 +3381,12 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes an expression until it reaches a top-level `<`, `>`, or a `=`
   /// that's not `==`.
-  Expression _expressionUntilComparison() => _expression(until: () {
-        var next = scanner.peekChar();
-        if (next == $equal) return scanner.peekChar(1) != $equal;
-        return next == $langle || next == $rangle;
-      });
+  Expression _expressionUntilComparison() => _expression(
+      until: () => switch (scanner.peekChar()) {
+            $equal => scanner.peekChar(1) != $equal,
+            $langle || $rangle => true,
+            _ => false
+          });
 
   // ## Supports Conditions
 
@@ -3704,12 +3436,10 @@ abstract class StylesheetParser extends Parser {
             allowEmpty: true, allowSemicolon: true);
         scanner.expectChar($rparen);
         return SupportsFunction(identifier, arguments, scanner.spanFrom(start));
-      } else if (identifier.contents.length != 1 ||
-          identifier.contents.first is! Expression) {
-        error("Expected @supports condition.", identifier.span);
+      } else if (identifier.contents case [Expression expression]) {
+        return SupportsInterpolation(expression, scanner.spanFrom(start));
       } else {
-        return SupportsInterpolation(
-            identifier.contents.first as Expression, scanner.spanFrom(start));
+        error("Expected @supports condition.", identifier.span);
       }
     }
 
@@ -3751,8 +3481,7 @@ abstract class StylesheetParser extends Parser {
       _inParentheses = wasInParentheses;
 
       var identifier = interpolatedIdentifier();
-      var operation = _trySupportsOperation(identifier, nameStart);
-      if (operation != null) {
+      if (_trySupportsOperation(identifier, nameStart) case var operation?) {
         scanner.expectChar($rparen);
         return operation;
       }
@@ -3782,9 +3511,8 @@ abstract class StylesheetParser extends Parser {
   SupportsDeclaration _supportsDeclarationValue(
       Expression name, LineScannerState start) {
     Expression value;
-    if (name is StringExpression &&
-        !name.hasQuotes &&
-        name.text.initialPlain.startsWith("--")) {
+    if (name case StringExpression(hasQuotes: false, :var text)
+        when text.initialPlain.startsWith("--")) {
       value = StringExpression(_interpolatedDeclarationValue());
     } else {
       whitespace();
@@ -3841,58 +3569,65 @@ abstract class StylesheetParser extends Parser {
   /// start escapes and it considers interpolation to be valid in an identifier.
   ///
   /// [the CSS algorithm]: https://drafts.csswg.org/css-syntax-3/#would-start-an-identifier
-  bool _lookingAtInterpolatedIdentifier() {
-    // See also [ScssParser._lookingAtIdentifier].
+  bool _lookingAtInterpolatedIdentifier() =>
+      // See also [ScssParser._lookingAtIdentifier].
 
-    var first = scanner.peekChar();
-    if (first == null) return false;
-    if (isNameStart(first) || first == $backslash) return true;
-    if (first == $hash) return scanner.peekChar(1) == $lbrace;
+      switch (scanner.peekChar()) {
+        null => false,
+        int(isNameStart: true) || $backslash => true,
+        $hash => scanner.peekChar(1) == $lbrace,
+        $dash => switch (scanner.peekChar(1)) {
+            null => false,
+            $hash => scanner.peekChar(2) == $lbrace,
+            int(isNameStart: true) || $backslash || $dash => true,
+            _ => false
+          },
+        _ => false
+      };
 
-    if (first != $dash) return false;
-    var second = scanner.peekChar(1);
-    if (second == null) return false;
-    if (second == $hash) return scanner.peekChar(2) == $lbrace;
-    return isNameStart(second) || second == $backslash || second == $dash;
-  }
+  /// Returns whether the scanner is immediately before a character that could
+  /// start a `*prop: val`, `:prop: val`, `#prop: val`, or `.prop: val` hack.
+  bool _lookingAtPotentialPropertyHack() => switch (scanner.peekChar()) {
+        $colon || $asterisk || $dot => true,
+        $hash => scanner.peekChar(1) != $lbrace,
+        _ => false
+      };
 
   /// Returns whether the scanner is immediately before a sequence of characters
   /// that could be part of an CSS identifier body.
   ///
   /// The identifier body may include interpolation.
-  bool _lookingAtInterpolatedIdentifierBody() {
-    var first = scanner.peekChar();
-    if (first == null) return false;
-    if (isName(first) || first == $backslash) return true;
-    return first == $hash && scanner.peekChar(1) == $lbrace;
-  }
+  bool _lookingAtInterpolatedIdentifierBody() => switch (scanner.peekChar()) {
+        null => false,
+        int(isName: true) || $backslash => true,
+        $hash => scanner.peekChar(1) == $lbrace,
+        _ => false
+      };
 
   /// Returns whether the scanner is immediately before a SassScript expression.
-  bool _lookingAtExpression() {
-    var character = scanner.peekChar();
-    if (character == null) return false;
-    if (character == $dot) return scanner.peekChar(1) != $dot;
-    if (character == $exclamation) {
-      var next = scanner.peekChar(1);
-      return next == null ||
-          equalsLetterIgnoreCase($i, next) ||
-          isWhitespace(next);
-    }
-
-    return character == $lparen ||
-        character == $slash ||
-        character == $lbracket ||
-        character == $single_quote ||
-        character == $double_quote ||
-        character == $hash ||
-        character == $plus ||
-        character == $minus ||
-        character == $backslash ||
-        character == $dollar ||
-        character == $ampersand ||
-        isNameStart(character) ||
-        isDigit(character);
-  }
+  bool _lookingAtExpression() => switch (scanner.peekChar()) {
+        null => false,
+        $dot => scanner.peekChar(1) != $dot,
+        $exclamation => switch (scanner.peekChar(1)) {
+            null || $i || $I || int(isWhitespace: true) => true,
+            _ => false
+          },
+        $lparen ||
+        $slash ||
+        $lbracket ||
+        $single_quote ||
+        $double_quote ||
+        $hash ||
+        $plus ||
+        $minus ||
+        $backslash ||
+        $dollar ||
+        $ampersand ||
+        int(isNameStart: true) ||
+        int(isDigit: true) =>
+          true,
+        _ => false
+      };
 
   // ## Utilities
 

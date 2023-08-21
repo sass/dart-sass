@@ -6,13 +6,13 @@ import 'package:path/path.dart' as p;
 
 import 'io/interface.dart'
     if (dart.library.io) 'io/vm.dart'
-    if (dart.library.js) 'io/node.dart';
+    if (dart.library.js) 'io/js.dart';
 import 'utils.dart';
 import 'util/character.dart';
 
 export 'io/interface.dart'
     if (dart.library.io) 'io/vm.dart'
-    if (dart.library.js) 'io/node.dart';
+    if (dart.library.js) 'io/js.dart';
 
 /// A cache of return values for directories in [_realCasePath].
 final _realCaseCache = <String, String>{};
@@ -42,7 +42,7 @@ String _realCasePath(String path) {
   if (isWindows) {
     // Drive names are *always* case-insensitive, so convert them to uppercase.
     var prefix = p.rootPrefix(path);
-    if (prefix.isNotEmpty && isAlphabetic(prefix.codeUnitAt(0))) {
+    if (prefix.isNotEmpty && prefix.codeUnitAt(0).isAlphabetic) {
       path = prefix.toUpperCase() + path.substring(prefix.length);
     }
   }
@@ -61,12 +61,13 @@ String _realCasePath(String path) {
                 (realPath) => equalsIgnoreCase(p.basename(realPath), basename))
             .toList();
 
-        return matches.length != 1
-            // If the file doesn't exist, or if there are multiple options (meaning
-            // the filesystem isn't actually case-insensitive), use `basename`
-            // as-is.
-            ? p.join(realDirname, basename)
-            : matches[0];
+        return switch (matches) {
+          [var match] => match,
+          // If the file doesn't exist, or if there are multiple options
+          // (meaning the filesystem isn't actually case-insensitive), use
+          // `basename` as-is.
+          _ => p.join(realDirname, basename)
+        };
       } on FileSystemException catch (_) {
         // If there's an error listing a directory, it's likely because we're
         // trying to reach too far out of the current directory into something

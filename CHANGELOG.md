@@ -1,10 +1,15 @@
-## 1.58.0
+## 1.67.0
+
+* **Breaking change**: Passing a number with unit `%` to the `$alpha` parameter
+  of `color.change()`, `color.adjust()`, `change-color()`, and `adjust-color()`
+  is now interpreted as a percentage, instead of ignoring the unit. For example,
+  `color.change(red, $alpha: 50%)` now returns `rgb(255 0 0 / 0.5)`.
 
 * Add support for CSS Color Level 4 [color spaces]. Each color value now tracks
   its color space along with the values of each channel in that color space.
   There are two general principles to keep in mind when dealing with new color
   spaces:
-  
+
   1. With the exception of legacy color spaces (`rgb`, `hsl`, and `hwb`), colors
      will always be emitted in the color space they were defined in unless
      they're explicitly converted.
@@ -147,7 +152,306 @@
 * Added `InterpolationMethod` and `HueInterpolationMethod` which collectively
   represent the method to use to interpolate two colors.
 
-## 1.57.2
+## 1.66.1
+
+### JS API
+
+* Fix a bug where Sass compilation could crash in strict mode if passed a
+  callback that threw a string, boolean, number, symbol, or bignum.
+
+## 1.66.0
+
+* **Breaking change:** Drop support for the additional CSS calculations defined
+  in CSS Values and Units 4. Custom Sass functions whose names overlapped with
+  these new CSS functions were being parsed as CSS calculations instead, causing
+  an unintentional breaking change outside our normal [compatibility policy] for
+  CSS compatibility changes.
+
+  Support will be added again in a future version, but only after Sass has
+  emitted a deprecation warning for all functions that will break for at least
+  three months prior to the breakage.
+
+## 1.65.1
+
+* Update abs-percent deprecatedIn version to `1.65.0`.
+
+## 1.65.0
+
+* All functions defined in CSS Values and Units 4 are now parsed as calculation
+  objects: `round()`, `mod()`, `rem()`, `sin()`, `cos()`, `tan()`, `asin()`,
+  `acos()`, `atan()`, `atan2()`, `pow()`, `sqrt()`, `hypot()`, `log()`, `exp()`,
+  `abs()`, and `sign()`.
+
+* Deprecate explicitly passing the `%` unit to the global `abs()` function. In
+  future releases, this will emit a CSS abs() function to be resolved by the
+  browser. This deprecation is named `abs-percent`.
+
+## 1.64.3
+
+### Dart API
+
+* Deprecate explicitly passing `null` as the alpha channel for
+  `SassColor.rgb()`, `SassColor.hsl()`, and `SassColor.hwb()`. Omitting the
+  `alpha` channel is still allowed. In future releases, `null` will be used to
+  indicate a [missing component]. This deprecation is named `null-alpha`.
+
+  [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+
+* Include protocol buffer definitions when uploading the `sass` package to pub.
+
+### JS API
+
+* Deprecate explicitly passing `null` as the alpha channel for `new
+  SassColor()`. Omitting the `alpha` channel or passing `undefined` for it is
+  still allowed. In future releases, `null` will be used to indicate a [missing
+  component]. This deprecation is named `null-alpha`.
+
+  [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+
+  (Note that this was already prohibited by the TypeScript types, but in
+  practice prior to this `null` was treated as `1`.)
+
+## 1.64.2
+
+* No user-visible changes.
+
+## 1.64.1
+
+### Embedded Sass
+
+* Fix a bug where a valid `SassCalculation.clamp()` with less than 3 arguments
+  would throw an error.
+
+## 1.64.0
+
+* Comments that appear before or between `@use` and `@forward` rules are now
+  emitted in source order as much as possible, instead of always being emitted
+  after the CSS of all module dependencies.
+
+* Fix a bug where an interpolation in a custom property name crashed if the file
+  was loaded by a `@use` nested in an `@import`.
+
+### JavaScript API
+
+* Add a new `SassCalculation` type that represents the calculation objects added
+  in Dart Sass 1.40.0.
+
+* Add `Value.assertCalculation()`, which returns the value if it's a
+  `SassCalculation` and throws an error otherwise.
+
+* Produce a better error message when an environment that supports some Node.js
+  APIs loads the browser entrypoint but attempts to access the filesystem.
+
+### Embedded Sass
+
+* Fix a bug where nested relative `@imports` failed to load when using the
+  deprecated functions `render` or `renderSync` and those relative imports were
+  loaded multiple times across different files.
+
+## 1.63.6
+
+### JavaScript API
+
+* Fix `import sass from 'sass'` again after it was broken in the last release.
+
+### Embedded Sass
+
+* Fix the `exports` declaration in `package.json`.
+
+## 1.63.5
+
+### JavaScript API
+
+* Fix a bug where loading the package through both CJS `require()` and ESM
+  `import` could crash on Node.js.
+
+### Embedded Sass
+
+* Fix a deadlock when running at high concurrency on 32-bit systems.
+
+* Fix a race condition where the embedded compiler could deadlock or crash if a
+  compilation ID was reused immediately after the compilation completed.
+
+## 1.63.4
+
+### JavaScript API
+
+* Re-enable support for `import sass from 'sass'` when loading the package from
+  an ESM module in Node.js. However, this syntax is now deprecated; ESM users
+  should use `import * as sass from 'sass'` instead.
+
+  On the browser and other ESM-only platforms, only `import * as sass from
+  'sass'` is supported.
+
+* Properly export the legacy API values `TRUE`, `FALSE`, `NULL`, and `types` from
+  the ECMAScript module API.
+
+### Embedded Sass
+
+* Fix a race condition where closing standard input while requests are in-flight
+  could sometimes cause the process to hang rather than shutting down
+  gracefully.
+
+* Properly include the root stylesheet's URL in the set of loaded URLs when it
+  fails to parse.
+
+## 1.63.3
+
+### JavaScript API
+
+* Fix loading Sass as an ECMAScript module on Node.js.
+
+## 1.63.2
+
+* No user-visible changes.
+
+## 1.63.1
+
+* No user-visible changes.
+
+## 1.63.0
+
+### JavaScript API
+
+* Dart Sass's JS API now supports running in the browser. Further details and
+  instructions for use are in [the README](README.md#dart-sass-in-the-browser).
+
+### Embedded Sass
+
+* The Dart Sass embedded compiler is now included as part of the primary Dart
+  Sass distribution, rather than a separate executable. To use the embedded
+  compiler, just run `sass --embedded` from any Sass executable (other than the
+  pure JS executable).
+
+  The Node.js embedded host will still be distributed as the `sass-embedded`
+  package on npm. The only change is that it will now provide direct access to a
+  `sass` executable with the same CLI as the `sass` package.
+
+* The Dart Sass embedded compiler now uses version 2.0.0 of the Sass embedded
+  protocol. See [the spec][embedded-protocol-spec] for a full description of the
+  protocol, and [the changelog][embedded-protocol-changelog] for a summary of
+  changes since version 1.2.0.
+
+  [embedded-protocol-spec]: https://github.com/sass/sass/blob/main/spec/embedded-protocol.md
+  [embedded-protocol-changelog]: https://github.com/sass/sass/blob/main/EMBEDDED_PROTOCOL_CHANGELOG.md
+
+* The Dart Sass embedded compiler now runs multiple simultaneous compilations in
+  parallel, rather than serially.
+
+## 1.62.1
+
+* Fix a bug where `:has(+ &)` and related constructs would drop the leading
+  combinator.
+
+## 1.62.0
+
+* Deprecate the use of multiple `!global` or `!default` flags on the same
+  variable. This deprecation is named `duplicate-var-flags`.
+
+* Allow special numbers like `var()` or `calc()` in the global functions:
+  `grayscale()`, `invert()`, `saturate()`, and `opacity()`. These are also
+  native CSS `filter` functions. This is in addition to number values which were
+  already allowed.
+
+* Fix a cosmetic bug where an outer rule could be duplicated after nesting was
+  resolved, instead of re-using a shared rule.
+
+## 1.61.0
+
+* **Potentially breaking change:** Drop support for End-of-Life Node.js 12.
+
+* Fix remaining cases for the performance regression introduced in 1.59.0.
+
+### Embedded Sass
+
+* The JS embedded host now loads files from the working directory when using the
+  legacy API.
+
+## 1.60.0
+
+* Add support for the `pi`, `e`, `infinity`, `-infinity`, and `NaN` constants in
+  calculations. These will be interpreted as the corresponding numbers.
+
+* Add support for unknown constants in calculations. These will be interpreted
+  as unquoted strings.
+
+* Serialize numbers with value `infinity`, `-infinity`, and `NaN` to `calc()`
+  expressions rather than CSS-invalid identifiers. Numbers with complex units
+  still can't be serialized.
+
+## 1.59.3
+
+* Fix a performance regression introduced in 1.59.0.
+
+* The NPM release of 1.59.0 dropped support for Node 12 without actually
+  indicating so in its pubspec. This release temporarily adds back support so
+  that the latest Sass version that declares it supports Node 12 actually does
+  so. However, Node 12 is now end-of-life, so we will drop support for it
+  properly in an upcoming release.
+
+## 1.59.2
+
+* No user-visible changes.
+
+## 1.59.1
+
+* No user-visible changes.
+
+## 1.59.0
+
+### Command Line Interface
+
+* Added a new `--fatal-deprecation` flag that lets you treat a deprecation
+  warning as an error. You can pass an individual deprecation ID
+  (e.g. `slash-div`) or you can pass a Dart Sass version to treat all
+  deprecations initially emitted in that version or earlier as errors.
+
+* New `--future-deprecation` flag that lets you opt into warning for use of
+  certain features that will be deprecated in the future. At the moment, the
+  only option is `--future-deprecation=import`, which will emit warnings for
+  Sass `@import` rules, which are not yet deprecated, but will be in the future.
+
+### Dart API
+
+* New `Deprecation` enum, which contains the different current and future
+  deprecations used by the new CLI flags.
+
+* The `compile` methods now take in `fatalDeprecations` and `futureDeprecations`
+  parameters, which work similarly to the CLI flags.
+
+## 1.58.4
+
+* Pull `@font-face` to the root rather than bubbling the style rule selector
+  inwards.
+
+* Improve error messages for invalid CSS values passed to plain CSS functions.
+
+* Improve error messages involving selectors.
+
+### Embedded Sass
+
+* Improve the performance of starting up a compilation.
+
+## 1.58.3
+
+* No user-visible changes.
+
+## 1.58.2
+
+### Command Line Interface
+
+* Add a timestamp to messages printed in `--watch` mode.
+
+* Print better `calc()`-based suggestions for `/`-as-division expression that
+  contain calculation-incompatible constructs like unary minus.
+
+## 1.58.1
+
+* Emit a unitless hue when serializing `hsl()` colors. The `deg` unit is
+  incompatible with IE, and while that officially falls outside our
+  compatibility policy, it's better to lean towards greater compatibility.
+
+## 1.58.0
 
 * Remove sourcemap comments from Sass sources. The generated sourcemap comment
   for the compiled CSS output remains unaffected.
@@ -159,6 +463,19 @@
 
 * Produce a better error message for a number with a leading `+` or `-`, a
   decimal point, but no digits.
+
+* Produce a better error message for a nested property whose name starts with
+  `--`.
+
+* Fix a crash when a selector ends in an escaped backslash.
+
+* Add the relative length units from CSS Values 4 and CSS Contain 3 as known
+  units to validate bad computation in `calc`.
+
+### Command Line Interface
+
+* The `--watch` flag will now track loads through calls to `meta.load-css()` as
+  long as their URLs are literal strings without any interpolation.
 
 ## 1.57.1
 

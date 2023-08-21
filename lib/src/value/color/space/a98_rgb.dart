@@ -33,26 +33,17 @@ class A98RgbColorSpace extends ColorSpace {
       channel.sign * math.pow(channel.abs(), 256 / 563);
 
   @protected
-  Float64List transformationMatrix(ColorSpace dest) {
-    switch (dest) {
-      case ColorSpace.srgbLinear:
-      case ColorSpace.srgb:
-      case ColorSpace.rgb:
-        return linearA98RgbToLinearSrgb;
-      case ColorSpace.displayP3:
-        return linearA98RgbToLinearDisplayP3;
-      case ColorSpace.prophotoRgb:
-        return linearA98RgbToLinearProphotoRgb;
-      case ColorSpace.rec2020:
-        return linearA98RgbToLinearRec2020;
-      case ColorSpace.xyzD65:
-        return linearA98RgbToXyzD65;
-      case ColorSpace.xyzD50:
-        return linearA98RgbToXyzD50;
-      case ColorSpace.lms:
-        return linearA98RgbToLms;
-      default:
-        return super.transformationMatrix(dest);
-    }
-  }
+  Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
+        ColorSpace.srgbLinear ||
+        ColorSpace.srgb ||
+        ColorSpace.rgb =>
+          linearA98RgbToLinearSrgb,
+        ColorSpace.displayP3 => linearA98RgbToLinearDisplayP3,
+        ColorSpace.prophotoRgb => linearA98RgbToLinearProphotoRgb,
+        ColorSpace.rec2020 => linearA98RgbToLinearRec2020,
+        ColorSpace.xyzD65 => linearA98RgbToXyzD65,
+        ColorSpace.xyzD50 => linearA98RgbToXyzD50,
+        ColorSpace.lms => linearA98RgbToLms,
+        _ => super.transformationMatrix(dest)
+      };
 }

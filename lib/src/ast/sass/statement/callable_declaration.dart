@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../argument_declaration.dart';
@@ -14,8 +13,8 @@ import 'silent_comment.dart';
 /// user code.
 ///
 /// {@category AST}
-@sealed
-abstract class CallableDeclaration extends ParentStatement<List<Statement>> {
+abstract base class CallableDeclaration
+    extends ParentStatement<List<Statement>> {
   /// The name of this callable, with underscores converted to hyphens.
   final String name;
 

@@ -16,8 +16,7 @@ import 'parent.dart';
 /// A declaration (that is, a `name: value` pair).
 ///
 /// {@category AST}
-@sealed
-class Declaration extends ParentStatement {
+final class Declaration extends ParentStatement {
   /// The name of this declaration.
   final Interpolation name;
 
@@ -42,25 +41,14 @@ class Declaration extends ParentStatement {
   bool get isCustomProperty => name.initialPlain.startsWith('--');
 
   /// Creates a declaration with no children.
-  Declaration(this.name, this.value, this.span) : super(null) {
-    if (isCustomProperty && value is! StringExpression) {
-      throw ArgumentError(
-          'Declarations whose names begin with "--" must have StringExpression '
-          'values (was `$value` of type ${value.runtimeType}).');
-    }
-  }
+  Declaration(this.name, this.value, this.span) : super(null);
 
   /// Creates a declaration with children.
   ///
   /// For these declarations, a value is optional.
   Declaration.nested(this.name, Iterable<Statement> children, this.span,
       {this.value})
-      : super(List.unmodifiable(children)) {
-    if (isCustomProperty && value is! StringExpression) {
-      throw ArgumentError(
-          'Declarations whose names begin with "--" may not be nested.');
-    }
-  }
+      : super(List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitDeclaration(this);
 
@@ -70,13 +58,14 @@ class Declaration extends ParentStatement {
     buffer.writeCharCode($colon);
 
     if (value != null) {
-      if (!isCustomProperty) {
-        buffer.writeCharCode($space);
-      }
+      if (!isCustomProperty) buffer.writeCharCode($space);
       buffer.write("$value");
     }
 
-    var children = this.children;
-    return children == null ? "$buffer;" : "$buffer {${children.join(" ")}}";
+    if (children case var children?) {
+      return "$buffer {${children.join(" ")}}";
+    } else {
+      return "$buffer;";
+    }
   }
 }

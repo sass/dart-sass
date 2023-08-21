@@ -108,10 +108,11 @@ double? fuzzyCheckRange(double number, num min, num max) {
 ///
 /// If [number] is [fuzzyEquals] to [min] or [max], it's clamped to the
 /// appropriate value. [name] is used in error reporting.
-double fuzzyAssertRange(double number, double min, double max, [String? name]) {
+double fuzzyAssertRange(double number, int min, int max, [String? name]) {
   var result = fuzzyCheckRange(number, min, max);
   if (result != null) return result;
-  throw RangeError.value(number, name, "must be between $min and $max");
+  throw RangeError.range(
+      number, min, max, name, "must be between $min and $max");
 }
 
 /// Return [num1] modulo [num2], using Sass's [floored division] modulo

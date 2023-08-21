@@ -10,7 +10,7 @@ import '../value.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssImport] for use in the evaluation step.
-class ModifiableCssImport extends ModifiableCssNode implements CssImport {
+final class ModifiableCssImport extends ModifiableCssNode implements CssImport {
   /// The URL being imported.
   ///
   /// This includes quotes.

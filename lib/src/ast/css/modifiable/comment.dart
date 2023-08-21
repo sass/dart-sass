@@ -10,7 +10,8 @@ import '../comment.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssComment] for use in the evaluation step.
-class ModifiableCssComment extends ModifiableCssNode implements CssComment {
+final class ModifiableCssComment extends ModifiableCssNode
+    implements CssComment {
   final String text;
   final FileSpan span;
 
