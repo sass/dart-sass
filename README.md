@@ -28,7 +28,7 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun**.
 
 * [Using Dart Sass](#using-dart-sass)
   * [From Chocolatey or Scoop (Windows)](#from-chocolatey-or-scoop-windows)
-  * [From Homebrew (macOS)](#from-homebrew-macos)
+  * [From Homebrew (macOS)](#from-homebrew-macos-or-linux)
   * [Standalone](#standalone)
   * [From npm](#from-npm)
     * [Dart Sass in the Browser](#dart-sass-in-the-browser)
