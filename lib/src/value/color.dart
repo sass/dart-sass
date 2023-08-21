@@ -277,7 +277,7 @@ class SassColor extends Value {
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.hsl(num? hue, num? saturation, num? lightness,
-          [num? alpha= 1]) =>
+          [num? alpha = 1]) =>
       SassColor.forSpaceInternal(
           ColorSpace.hsl,
           _normalizeHue(hue?.toDouble()),
@@ -388,7 +388,8 @@ class SassColor extends Value {
   /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.xyzD50(double? x, double? y, double? z, [double? alpha = 1]) =>
+  factory SassColor.xyzD50(double? x, double? y, double? z,
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(ColorSpace.xyzD50, x, y, z, alpha);
 
   /// Creates a color in [ColorSpace.xyzD65].
@@ -399,7 +400,8 @@ class SassColor extends Value {
   /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.xyzD65(double? x, double? y, double? z, [double? alpha = 1]) =>
+  factory SassColor.xyzD65(double? x, double? y, double? z,
+          [double? alpha = 1]) =>
       SassColor.forSpaceInternal(ColorSpace.xyzD65, x, y, z, alpha);
 
   /// Creates a color in [ColorSpace.lab].
@@ -514,7 +516,10 @@ class SassColor extends Value {
   SassColor.forSpaceInternal(this._space, this.channel0OrNull,
       this.channel1OrNull, this.channel2OrNull, double? alpha,
       [this.format])
-      : _alpha = alpha.andThen((alpha) => fuzzyAssertRange(alpha, 0, 1, "alpha")) {
+      // TODO(nweiz): Support missing alpha channels.
+      : _alpha =
+            alpha.andThen((alpha) => fuzzyAssertRange(alpha, 0, 1, "alpha")) ??
+                1.0 {
     assert(format == null || _space == ColorSpace.rgb);
     assert(
         !(space == ColorSpace.hsl || space == ColorSpace.hwb) ||

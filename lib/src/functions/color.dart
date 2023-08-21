@@ -910,8 +910,9 @@ Value _rgb(String name, List<Value> arguments) {
       arguments[1].assertNumber("green"),
       arguments[2].assertNumber("blue"),
       alpha.andThen((alpha) =>
-           _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")
-              .clamp(0, 1)) ?? 1,
+              _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")
+                  .clamp(0, 1)) ??
+          1,
       fromRgbFunction: true);
 }
 
@@ -959,8 +960,9 @@ Value _hsl(String name, List<Value> arguments) {
       arguments[1].assertNumber("saturation"),
       arguments[2].assertNumber("lightness"),
       alpha.andThen((alpha) =>
-          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")
-              .clamp(0, 1)) ?? 1);
+              _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")
+                  .clamp(0, 1)) ??
+          1);
 }
 
 /// Asserts that [angle] is a number and returns its value in degrees.
