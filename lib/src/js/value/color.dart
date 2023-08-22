@@ -12,13 +12,14 @@ import '../utils.dart';
 final JSClass colorClass = () {
   var jsClass = createJSClass('sass.SassColor', (Object self, _Channels color) {
     if (color.red != null) {
-      return SassColor.rgb(color.red!, color.green!, color.blue!, color.alpha);
+      return SassColor.rgb(color.red!, color.green!, color.blue!,
+          _handleUndefinedAlpha(color.alpha));
     } else if (color.saturation != null) {
       return SassColor.hsl(color.hue!, color.saturation!, color.lightness!,
-          _handleNullAlpha(color.alpha));
+          _handleUndefinedAlpha(color.alpha));
     } else {
       return SassColor.hwb(color.hue!, color.whiteness!, color.blackness!,
-          _handleNullAlpha(color.alpha));
+          _handleUndefinedAlpha(color.alpha));
     }
   });
 
@@ -69,9 +70,9 @@ final JSClass colorClass = () {
 
 /// Converts an undefined [alpha] to 1.
 ///
-/// This ensures that an explicitly null alpha will produce a deprecation
-/// warning when passed to the Dart API.
-num? _handleNullAlpha(num? alpha) => isUndefined(alpha) ? 1 : alpha;
+/// This ensures that an explicitly null alpha will be treated as a missing
+/// component.
+num? _handleUndefinedAlpha(num? alpha) => isUndefined(alpha) ? 1 : alpha;
 
 @JS()
 @anonymous

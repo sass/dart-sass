@@ -578,7 +578,7 @@ Value _invert(List<Value> arguments, {bool global = false}) {
     var rgb = color.toSpace(ColorSpace.rgb);
     return _mixLegacy(
         SassColor.rgb(255.0 - rgb.channel0, 255.0 - rgb.channel1,
-            255.0 - rgb.channel2, color.alpha),
+            255.0 - rgb.channel2, color.alphaOrNull),
         color,
         weightNumber);
   }
