@@ -38,12 +38,13 @@ final class Dispatcher {
 
   /// The compilation ID for which this dispatcher is running.
   ///
-  /// This is added to outgoing messages but is _not_ parsed from incoming
-  /// messages, since that's already handled by the [IsolateDispatcher].
-  int _compilationId = 0;
+  /// This is used in error messages.
+  late int _compilationId;
 
   /// [_compilationId], serialized as a varint.
-  Uint8List _compilationIdVarint = Uint8List.fromList([0]);
+  ///
+  /// This is used in outgoing messages.
+  late Uint8List _compilationIdVarint;
 
   /// Whether a fatal error has occured during host request.
   var _asyncError = false;
