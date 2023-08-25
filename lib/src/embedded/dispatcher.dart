@@ -291,11 +291,13 @@ final class Dispatcher {
       }
       if (message.id != _outboundRequestId) {
         throw paramsError(
-            "Response ID ${message.id} doesn't match any outstanding requests in compilation $_compilationId.");
+            "Response ID ${message.id} doesn't match any outstanding requests in"
+            " compilation $_compilationId.");
       }
       if (response is! T) {
         throw paramsError(
-            "Request ID $_outboundRequestId doesn't match response type ${response.runtimeType} in compilation $_compilationId.");
+            "Request ID $_outboundRequestId doesn't match response type"
+            " ${response.runtimeType} in compilation $_compilationId.");
       }
       return response;
     } catch (error, stackTrace) {
