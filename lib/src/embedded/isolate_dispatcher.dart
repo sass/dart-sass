@@ -41,8 +41,10 @@ class IsolateDispatcher {
   /// The channel of encoded protocol buffers, connected to the host.
   final StreamChannel<Uint8List> _channel;
 
-  /// All isolates.
-  final _isolates = <Future<Isolate>>{};
+  /// The actual isolate objects that have been spawned.
+  ///
+  /// Only used for cleaning up the process when the underlying channel closes.
+  final _allIsolates = <Future<Isolate>>[];
 
   /// All sinks. Only used with ExplicitCloseTransformer for closing channels.
   final _sinks = <StreamSink<Uint8List>>{};
@@ -106,7 +108,7 @@ class IsolateDispatcher {
     }, onError: (Object error, StackTrace stackTrace) {
       _handleError(error, stackTrace);
     }, onDone: () async {
-      for (var isolate in _isolates) {
+      for (var isolate in _allIsolates) {
         (await isolate).kill();
       }
 
@@ -138,7 +140,7 @@ class IsolateDispatcher {
     var receivePort = ReceivePort();
     var future =
         Isolate.spawn(_isolateMain, (mailbox.asSendable, receivePort.sendPort));
-    _isolates.add(future);
+    _allIsolates.add(future);
     await future;
 
     var channel = IsolateChannel<Uint8List?>.connectReceive(receivePort)
