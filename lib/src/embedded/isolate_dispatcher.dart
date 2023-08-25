@@ -33,6 +33,11 @@ class _Lease {
   PoolResource resource;
 
   _Lease(this.mailbox, this.id, this.resource);
+
+  void transfer(int id, PoolResource resource) {
+    this.id = id;
+    this.resource = resource;
+  }
 }
 
 /// A class that dispatches messages between the host and various isolates that
@@ -127,8 +132,7 @@ class IsolateDispatcher {
     if (_inactive.isNotEmpty) {
       var lease = _inactive.first;
       _inactive.remove(lease);
-      lease.id = compilationId;
-      lease.resource = resource;
+      lease.transfer(compilationId, resource);
       _mailboxes[compilationId] = lease.mailbox;
       return lease.mailbox;
     }
