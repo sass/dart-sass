@@ -27,7 +27,7 @@ class _Lease {
   final Mailbox mailbox;
 
   /// The compilationId.
-  int id = 0;
+  int id;
 
   /// The PoolResource.
   PoolResource resource;
