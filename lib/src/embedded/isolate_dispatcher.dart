@@ -51,8 +51,10 @@ class IsolateDispatcher {
   /// Only used for cleaning up the process when the underlying channel closes.
   final _allIsolates = <Future<Isolate>>[];
 
-  /// All sinks. Only used with ExplicitCloseTransformer for closing channels.
-  final _sinks = <StreamSink<Uint8List>>{};
+  /// The sinks that connect to isolate channels.
+  ///
+  /// Only used with ExplicitCloseTransformer for closing channels.
+  final _allSinks = <StreamSink<Uint8List>>{};
 
   /// A set of lease for tracking for inactive mailboxes.
   final _inactive = <_Lease>{};
@@ -117,7 +119,7 @@ class IsolateDispatcher {
         (await isolate).kill();
       }
 
-      for (var sink in _sinks) {
+      for (var sink in _allSinks) {
         sink.close();
       }
     });
@@ -149,7 +151,7 @@ class IsolateDispatcher {
 
     var channel = IsolateChannel<Uint8List?>.connectReceive(receivePort)
         .transform(const ExplicitCloseTransformer());
-    _sinks.add(channel.sink);
+    _allSinks.add(channel.sink);
 
     channel.stream.listen((message) {
       // The first byte of messages from isolates indicates whether the
