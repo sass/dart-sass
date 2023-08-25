@@ -88,7 +88,8 @@ final class Dispatcher {
           case InboundMessage_Message.fileImportResponse:
           case InboundMessage_Message.functionCallResponse:
             throw paramsError(
-                "Response ID ${message.id} doesn't match any outstanding requests in compilation $_compilationId.");
+                "Response ID ${message.id} doesn't match any outstanding requests"
+                " in compilation $_compilationId.");
 
           case InboundMessage_Message.notSet:
             throw parseError("InboundMessage.message is not set.");
