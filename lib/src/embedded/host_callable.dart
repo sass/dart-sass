@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:async';
+
 import '../callable.dart';
 import '../exception.dart';
 import 'dispatcher.dart';
@@ -47,8 +49,7 @@ Callable hostCallable(
           throw mandatoryError('FunctionCallResponse.result');
       }
     } on ProtocolError catch (error, stackTrace) {
-      dispatcher.sendError(handleError(error, stackTrace));
-      throw error.message;
+      throw AsyncError(error, stackTrace);
     }
   });
   return callable;

@@ -5,13 +5,14 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 6eb7f76735562eba91e9460af796b269b3b0aaf7
+// Checksum: f61c6ac9843ae0f9b4892030a5d2f7876c6cf54f
 //
 // ignore_for_file: unused_import
 
 import 'async_evaluate.dart' show EvaluateResult;
 export 'async_evaluate.dart' show EvaluateResult;
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:math' as math;
 
@@ -1661,6 +1662,8 @@ final class _EvaluateVisitor
       } else {
         throw "Can't find stylesheet to import.";
       }
+    } on AsyncError {
+      rethrow;
     } on SassException {
       rethrow;
     } on ArgumentError catch (error, stackTrace) {
@@ -2670,6 +2673,8 @@ final class _EvaluateVisitor
     try {
       result =
           _addExceptionSpan(nodeWithSpan, () => callback(evaluated.positional));
+    } on AsyncError {
+      rethrow;
     } on SassException {
       rethrow;
     } catch (error, stackTrace) {

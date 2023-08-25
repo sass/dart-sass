@@ -46,16 +46,13 @@ final class Dispatcher {
   /// This is used in outgoing messages.
   late Uint8List _compilationIdVarint;
 
-  /// Whether a fatal error has occured during host request.
-  var _asyncError = false;
-
   /// Creates a [Dispatcher] that sends and receives encoded protocol buffers
   /// over [channel].
   Dispatcher(this._mailbox, this._sink);
 
   /// Listens for incoming `CompileRequests` and runs their compilations.
   void listen() {
-    do {
+    while (true) {
       var packet = _mailbox.take();
       if (packet.isEmpty) break;
 
@@ -76,9 +73,7 @@ final class Dispatcher {
           case InboundMessage_Message.compileRequest:
             var request = message.compileRequest;
             var response = _compile(request);
-            if (!_asyncError) {
-              _send(OutboundMessage()..compileResponse = response);
-            }
+            _send(OutboundMessage()..compileResponse = response);
 
           case InboundMessage_Message.versionRequest:
             throw paramsError("VersionRequest must have compilation ID 0.");
@@ -98,10 +93,16 @@ final class Dispatcher {
             throw parseError(
                 "Unknown message type: ${message.toDebugString()}");
         }
+      } on AsyncError catch (error) {
+        if (error.error is ProtocolError) {
+          _handleError(error.error, error.stackTrace);
+        }
+        break;
       } catch (error, stackTrace) {
         _handleError(error, stackTrace);
+        break;
       }
-    } while (!_asyncError);
+    }
   }
 
   OutboundMessage_CompileResponse _compile(
@@ -301,9 +302,7 @@ final class Dispatcher {
       }
       return response;
     } catch (error, stackTrace) {
-      _handleError(error, stackTrace);
-      _asyncError = true;
-      rethrow;
+      throw AsyncError(error, stackTrace);
     }
   }
 

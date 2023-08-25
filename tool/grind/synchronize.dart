@@ -202,6 +202,8 @@ class _Visitor extends RecursiveAstVisitor<void> {
     var text = node.toString();
     if (!text.contains("dart:async")) {
       _buffer.write(text.replaceAll("async_", ""));
+    } else {
+      _buffer.write(text);
     }
   }
 
@@ -305,6 +307,9 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   /// Strips an "async" prefix or suffix from [name].
   String _synchronizeName(String name) {
+    if (name == 'AsyncError') {
+      return name;
+    }
     if (name.toLowerCase().startsWith('async')) {
       return name.substring('async'.length);
     } else if (name.toLowerCase().endsWith('async')) {
