@@ -79,7 +79,6 @@ final class Dispatcher {
             if (!_asyncError) {
               _send(OutboundMessage()..compileResponse = response);
             }
-            break;
 
           case InboundMessage_Message.versionRequest:
             throw paramsError("VersionRequest must have compilation ID 0.");
@@ -140,7 +139,6 @@ final class Dispatcher {
               verbose: request.verbose,
               sourceMap: request.sourceMap,
               charset: request.charset);
-          break;
 
         case InboundMessage_CompileRequest_Input.path:
           if (request.path.isEmpty) {
@@ -169,7 +167,6 @@ final class Dispatcher {
                   ..end = SourceSpan_SourceLocation()
                   ..url = p.toUri(request.path).toString()));
           }
-          break;
 
         case InboundMessage_CompileRequest_Input.notSet:
           throw mandatoryError("CompileRequest.input");
@@ -268,19 +265,15 @@ final class Dispatcher {
       switch (message.whichMessage()) {
         case InboundMessage_Message.canonicalizeResponse:
           response = message.canonicalizeResponse;
-          break;
 
         case InboundMessage_Message.importResponse:
           response = message.importResponse;
-          break;
 
         case InboundMessage_Message.fileImportResponse:
           response = message.fileImportResponse;
-          break;
 
         case InboundMessage_Message.functionCallResponse:
           response = message.functionCallResponse;
-          break;
 
         case InboundMessage_Message.compileRequest:
           throw paramsError(
