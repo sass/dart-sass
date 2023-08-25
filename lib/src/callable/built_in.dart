@@ -21,6 +21,8 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// The overloads declared for this callable.
   final List<(ArgumentDeclaration, Callback)> _overloads;
 
+  bool hasContent = false;
+
   /// Creates a function with a single [arguments] declaration and a single
   /// [callback].
   ///
@@ -48,18 +50,19 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// defined.
   BuiltInCallable.mixin(
       String name, String arguments, void callback(List<Value> arguments),
-      {Object? url})
+      {Object? url, bool hasContent = false})
       : this.parsed(name,
             ArgumentDeclaration.parse('@mixin $name($arguments) {', url: url),
             (arguments) {
           callback(arguments);
           return sassNull;
-        });
+        }, hasContent: hasContent);
 
   /// Creates a callable with a single [arguments] declaration and a single
   /// [callback].
   BuiltInCallable.parsed(this.name, ArgumentDeclaration arguments,
-      Value callback(List<Value> arguments))
+      Value callback(List<Value> arguments),
+      {this.hasContent = false})
       : _overloads = [(arguments, callback)];
 
   /// Creates a function with multiple implementations.

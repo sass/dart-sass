@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:collection/collection.dart';
 
+import '../ast/sass/statement/mixin_rule.dart';
 import '../callable.dart';
 import '../util/map.dart';
 import '../value.dart';
@@ -45,6 +46,7 @@ final global = UnmodifiableListView([
             sassNull => "null",
             SassNumber() => "number",
             SassFunction() => "function",
+            SassMixin() => "mixin",
             SassCalculation() => "calculation",
             SassString() => "string",
             _ => throw "[BUG] Unknown value type ${arguments[0]}"
@@ -77,6 +79,17 @@ final local = UnmodifiableListView([
             ? argument
             : SassString(argument.toString(), quotes: false)),
         ListSeparator.comma);
+  }),
+  _function("accepts-content", r"$mixin", (arguments) {
+    var mixin = arguments[0].assertMixin("mixin");
+    bool acceptsContent = switch (mixin.callable) {
+      BuiltInCallable(hasContent: var hasContent) => hasContent,
+      UserDefinedCallable(declaration: MixinRule(hasContent: var hasContent)) =>
+        hasContent,
+      AsyncCallable() =>
+        throw UnsupportedError("Unknown callable type $mixin."),
+    };
+    return SassBoolean(acceptsContent);
   })
 ]);
 

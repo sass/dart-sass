@@ -15,6 +15,7 @@ import 'value/color.dart';
 import 'value/function.dart';
 import 'value/list.dart';
 import 'value/map.dart';
+import 'value/mixin.dart';
 import 'value/number.dart';
 import 'value/string.dart';
 import 'visitor/interface/value.dart';
@@ -27,6 +28,7 @@ export 'value/color.dart';
 export 'value/function.dart';
 export 'value/list.dart';
 export 'value/map.dart';
+export 'value/mixin.dart';
 export 'value/null.dart';
 export 'value/number.dart' hide conversionFactor;
 export 'value/string.dart';
@@ -176,6 +178,13 @@ abstract class Value {
   /// (without the `$`). It's used for error reporting.
   SassFunction assertFunction([String? name]) =>
       throw SassScriptException("$this is not a function reference.", name);
+
+  /// Throws a [SassScriptException] if [this] isn't a mixin reference.
+  ///
+  /// If this came from a mixin argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
+  SassMixin assertMixin([String? name]) =>
+      throw SassScriptException("$this is not a mixin reference.", name);
 
   /// Throws a [SassScriptException] if [this] isn't a map.
   ///
