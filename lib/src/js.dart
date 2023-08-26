@@ -32,6 +32,7 @@ void main() {
   exports.CalculationInterpolation = calculationInterpolationClass;
   exports.SassColor = colorClass;
   exports.SassFunction = functionClass;
+  exports.SassMixin = mixinClass;
   exports.SassList = listClass;
   exports.SassMap = mapClass;
   exports.SassNumber = numberClass;
