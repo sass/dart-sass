@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 6eb7f76735562eba91e9460af796b269b3b0aaf7
+// Checksum: d7004c5c19ae2dc5523c96cecb3c24168deddcf4
 //
 // ignore_for_file: unused_import
 
@@ -425,6 +425,19 @@ final class _EvaluateVisitor
         });
       }, url: "sass:meta"),
 
+      BuiltInCallable.function("module-mixins", r"$module", (arguments) {
+        var namespace = arguments[0].assertString("module");
+        var module = _environment.modules[namespace.text];
+        if (module == null) {
+          throw 'There is no module with namespace "${namespace.text}".';
+        }
+
+        return SassMap({
+          for (var (name, value) in module.mixins.pairs)
+            SassString(name): SassMixin(value)
+        });
+      }, url: "sass:meta"),
+
       BuiltInCallable.function(
           "get-function", r"$name, $css: false, $module: null", (arguments) {
         var name = arguments[0].assertString("name");
@@ -445,6 +458,20 @@ final class _EvaluateVisitor
         if (callable == null) throw "Function not found: $name";
 
         return SassFunction(callable);
+      }, url: "sass:meta"),
+
+      BuiltInCallable.function("get-mixin", r"$name, $module: null",
+          (arguments) {
+        var name = arguments[0].assertString("name");
+        var module = arguments[1].realNull?.assertString("module");
+
+        var callable = _addExceptionSpan(
+            _callableNode!,
+            () => _environment.getMixin(name.text.replaceAll("_", "-"),
+                namespace: module?.text));
+        if (callable == null) throw "Mixin not found: $name";
+
+        return SassMixin(callable);
       }, url: "sass:meta"),
 
       BuiltInCallable.function("call", r"$function, $args...", (arguments) {
@@ -517,7 +544,68 @@ final class _EvaluateVisitor
             configuration: configuration,
             namesInErrors: true);
         _assertConfigurationIsEmpty(configuration, nameInError: true);
-      }, url: "sass:meta")
+      }, url: "sass:meta"),
+      BuiltInCallable.mixin("apply", r"$mixin, $args...", (arguments) {
+        var mixin = arguments[0];
+        var args = arguments[1] as SassArgumentList;
+
+        var callableNode = _callableNode!;
+        var invocation = ArgumentInvocation([], {}, callableNode.span,
+            rest: ValueExpression(args, callableNode.span),
+            keywordRest: args.keywords.isEmpty
+                ? null
+                : ValueExpression(
+                    SassMap({
+                      for (var (name, value) in args.keywords.pairs)
+                        SassString(name, quotes: false): value
+                    }),
+                    callableNode.span));
+
+        var callable = mixin.assertMixin("mixin").callable;
+        // ignore: unnecessary_type_check
+        if (callable is Callable) {
+          switch (callable) {
+            case BuiltInCallable() when _environment.content != null:
+              throw _exception("Mixin doesn't accept a content block.");
+
+            case BuiltInCallable():
+              _runBuiltInCallable(invocation, callable, callableNode);
+
+            case UserDefinedCallable<Environment>(
+                  declaration: MixinRule(hasContent: false)
+                )
+                when _environment.content != null:
+              throw MultiSpanSassRuntimeException(
+                  "Mixin doesn't accept a content block.",
+                  callableNode.span,
+                  "invocation",
+                  {callable.declaration.arguments.spanWithName: "declaration"},
+                  _stackTrace(callableNode.span));
+
+            case UserDefinedCallable<Environment>():
+              var contentCallable = _environment.content.andThen((content) =>
+                  UserDefinedCallable(
+                      content as CallableDeclaration, _environment.closure(),
+                      inDependency: _inDependency));
+              _runUserDefinedCallable(invocation, callable, callableNode, () {
+                _environment.withContent(contentCallable, () {
+                  _environment.asMixin(() {
+                    for (var statement in callable.declaration.children) {
+                      _addErrorSpan(callableNode, () => statement.accept(this));
+                    }
+                  });
+                });
+              });
+
+            case _:
+              throw UnsupportedError("Unknown callable type $mixin.");
+          }
+        } else {
+          throw SassScriptException(
+              "The mixin ${callable.name} is asynchronous.\n"
+              "This is probably caused by a bug in a Sass plugin.");
+        }
+      }, url: "sass:meta", hasContent: true),
     ];
 
     var metaModule = BuiltInModule("meta",
