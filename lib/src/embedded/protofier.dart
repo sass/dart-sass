@@ -9,6 +9,7 @@ import 'dispatcher.dart';
 import 'embedded_sass.pb.dart' as proto;
 import 'embedded_sass.pb.dart' hide Value, ListSeparator, CalculationOperator;
 import 'function_registry.dart';
+import 'mixin_registry.dart';
 import 'host_callable.dart';
 import 'utils.dart';
 
@@ -23,6 +24,9 @@ final class Protofier {
   /// The IDs of first-class functions.
   final FunctionRegistry _functions;
 
+  /// The IDs of first-class mixins.
+  final MixinRegistry _mixins;
+
   /// Any argument lists transitively contained in [value].
   ///
   /// The IDs of the [Value_ArgumentList] protobufs are always one greater than
@@ -35,7 +39,10 @@ final class Protofier {
   ///
   /// The [functions] tracks the IDs of first-class functions so that the host
   /// can pass them back to the compiler.
-  Protofier(this._dispatcher, this._functions);
+  ///
+  /// Similarly, the [mixins] tracks the IDs of first-class mixins so that the
+  /// host can pass them back to the compiler.
+  Protofier(this._dispatcher, this._functions, this._mixins);
 
   /// Converts [value] to its protocol buffer representation.
   proto.Value protofy(Value value) {
@@ -85,6 +92,8 @@ final class Protofier {
         result.calculation = _protofyCalculation(value);
       case SassFunction():
         result.compilerFunction = _functions.protofy(value);
+      case SassMixin():
+        result.compilerMixin = _mixins.protofy(value);
       case sassTrue:
         result.singleton = SingletonValue.TRUE;
       case sassFalse:
@@ -240,8 +249,14 @@ final class Protofier {
 
         case Value_Value.hostFunction:
           return SassFunction(hostCallable(
-              _dispatcher, _functions, value.hostFunction.signature,
+              _dispatcher, _functions, _mixins, value.hostFunction.signature,
               id: value.hostFunction.id));
+
+        case Value_Value.compilerMixin:
+          var id = value.compilerMixin.id;
+          if (_mixins[id] case var mixin?) return mixin;
+          throw paramsError(
+              "CompilerMixin.id $id doesn't match any known mixins");
 
         case Value_Value.calculation:
           return _deprotofyCalculation(value.calculation);
