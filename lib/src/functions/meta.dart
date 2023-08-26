@@ -83,7 +83,8 @@ final local = UnmodifiableListView([
   _function("accepts-content", r"$mixin", (arguments) {
     var mixin = arguments[0].assertMixin("mixin");
     bool acceptsContent = switch (mixin.callable) {
-      BuiltInCallable(hasContent: var hasContent) => hasContent,
+      AsyncBuiltInCallable(hasContent: var hasContent) ||
+      BuiltInCallable(hasContent: var hasContent) ||
       UserDefinedCallable(declaration: MixinRule(hasContent: var hasContent)) =>
         hasContent,
       AsyncCallable() =>
