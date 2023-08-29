@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:native_synchronization/mailbox.dart';
@@ -34,7 +35,7 @@ final class Dispatcher {
   final Mailbox _mailbox;
 
   /// The sink for sending messages to the host.
-  final StreamSink<Uint8List> _sink;
+  final SendPort _sendPort;
 
   /// The compilation ID for which this dispatcher is running.
   ///
@@ -46,9 +47,9 @@ final class Dispatcher {
   /// This is used in outgoing messages.
   late Uint8List _compilationIdVarint;
 
-  /// Creates a [Dispatcher] that sends and receives encoded protocol buffers
-  /// over [channel].
-  Dispatcher(this._mailbox, this._sink);
+  /// Creates a [Dispatcher] that receives encoded protocol buffers through
+  /// [_mailbox] and sends them through [_sendPort].
+  Dispatcher(this._mailbox, this._sendPort);
 
   /// Listens for incoming `CompileRequests` and runs their compilations.
   void listen() {
@@ -308,10 +309,10 @@ final class Dispatcher {
 
   /// Handles an error thrown by the dispatcher or code it dispatches to.
   ///
-  /// The [messageId] indicate the IDs of the message being responded to, if available.
+  /// The [messageId] indicate the IDs of the message being responded to, if
+  /// available.
   void _handleError(Object error, StackTrace stackTrace, {int? messageId}) {
     sendError(handleError(error, stackTrace, messageId: messageId));
-    _sink.close();
   }
 
   /// Sends [message] to the host with the given [wireId].
@@ -320,16 +321,18 @@ final class Dispatcher {
     message.writeToCodedBufferWriter(protobufWriter);
 
     // Add one additional byte to the beginning to indicate whether or not the
-    // compilation is finished, so the [IsolateDispatcher] knows whether to
-    // treat this isolate as inactive.
+    // compilation has finished (1) or encountered a fatal error (2), so the
+    // [IsolateDispatcher] knows whether to treat this isolate as inactive or
+    // close out entirely.
     var packet = Uint8List(
         1 + _compilationIdVarint.length + protobufWriter.lengthInBytes);
-    packet[0] =
-        message.whichMessage() == OutboundMessage_Message.compileResponse
-            ? 1
-            : 0;
+    packet[0] = switch (message.whichMessage()) {
+      OutboundMessage_Message.compileResponse => 1,
+      OutboundMessage_Message.error => 2,
+      _ => 0
+    };
     packet.setAll(1, _compilationIdVarint);
     protobufWriter.writeTo(packet, 1 + _compilationIdVarint.length);
-    _sink.add(packet);
+    _sendPort.send(packet);
   }
 }
