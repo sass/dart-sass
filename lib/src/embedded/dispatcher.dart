@@ -46,8 +46,8 @@ final class Dispatcher {
   /// This is used in outgoing messages.
   late Uint8List _compilationIdVarint;
 
-  /// Whether a fatal error has occured during host request.
-  var _asyncError = false;
+  /// Whether a ProtocolError has occured parsing response of any host request.
+  var _requestError = false;
 
   /// Creates a [Dispatcher] that receives encoded protocol buffers through
   /// [_mailbox] and sends them through [_sendPort].
@@ -76,7 +76,7 @@ final class Dispatcher {
           case InboundMessage_Message.compileRequest:
             var request = message.compileRequest;
             var response = _compile(request);
-            if (!_asyncError) {
+            if (!_requestError) {
               _send(OutboundMessage()..compileResponse = response);
             }
 
@@ -101,7 +101,7 @@ final class Dispatcher {
       } catch (error, stackTrace) {
         _handleError(error, stackTrace);
       }
-    } while (!_asyncError);
+    } while (!_requestError);
   }
 
   OutboundMessage_CompileResponse _compile(
@@ -302,7 +302,7 @@ final class Dispatcher {
       return response;
     } catch (error, stackTrace) {
       _handleError(error, stackTrace);
-      _asyncError = true;
+      _requestError = true;
       rethrow;
     }
   }
