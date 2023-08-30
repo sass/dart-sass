@@ -1664,8 +1664,6 @@ final class _EvaluateVisitor
       } else {
         throw "Can't find stylesheet to import.";
       }
-    } on AsyncError {
-      rethrow;
     } on SassException {
       rethrow;
     } on ArgumentError catch (error, stackTrace) {
@@ -2696,8 +2694,6 @@ final class _EvaluateVisitor
     try {
       result = await _addExceptionSpanAsync(
           nodeWithSpan, () => callback(evaluated.positional));
-    } on AsyncError {
-      rethrow;
     } on SassException {
       rethrow;
     } catch (error, stackTrace) {

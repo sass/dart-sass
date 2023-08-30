@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
@@ -34,7 +33,7 @@ final class Dispatcher {
   /// The mailbox for receiving messages from the host.
   final Mailbox _mailbox;
 
-  /// The sink for sending messages to the host.
+  /// The send port for sending messages to the host.
   final SendPort _sendPort;
 
   /// The compilation ID for which this dispatcher is running.
@@ -47,13 +46,16 @@ final class Dispatcher {
   /// This is used in outgoing messages.
   late Uint8List _compilationIdVarint;
 
+  /// Whether a fatal error has occured during host request.
+  var _asyncError = false;
+
   /// Creates a [Dispatcher] that receives encoded protocol buffers through
   /// [_mailbox] and sends them through [_sendPort].
   Dispatcher(this._mailbox, this._sendPort);
 
   /// Listens for incoming `CompileRequests` and runs their compilations.
   void listen() {
-    while (true) {
+    do {
       var packet = _mailbox.take();
       if (packet.isEmpty) break;
 
@@ -74,7 +76,9 @@ final class Dispatcher {
           case InboundMessage_Message.compileRequest:
             var request = message.compileRequest;
             var response = _compile(request);
-            _send(OutboundMessage()..compileResponse = response);
+            if (!_asyncError) {
+              _send(OutboundMessage()..compileResponse = response);
+            }
 
           case InboundMessage_Message.versionRequest:
             throw paramsError("VersionRequest must have compilation ID 0.");
@@ -94,16 +98,10 @@ final class Dispatcher {
             throw parseError(
                 "Unknown message type: ${message.toDebugString()}");
         }
-      } on AsyncError catch (error) {
-        if (error.error is ProtocolError) {
-          _handleError(error.error, error.stackTrace);
-        }
-        break;
       } catch (error, stackTrace) {
         _handleError(error, stackTrace);
-        break;
       }
-    }
+    } while (!_asyncError);
   }
 
   OutboundMessage_CompileResponse _compile(
@@ -303,7 +301,9 @@ final class Dispatcher {
       }
       return response;
     } catch (error, stackTrace) {
-      throw AsyncError(error, stackTrace);
+      _handleError(error, stackTrace);
+      _asyncError = true;
+      rethrow;
     }
   }
 
