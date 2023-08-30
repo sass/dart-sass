@@ -110,6 +110,7 @@ double fuzzyAssertRange(double number, int min, int max, [String? name]) {
 ///
 /// [floored division]: https://en.wikipedia.org/wiki/Modulo_operation#Variants_of_the_definition
 double moduloLikeSass(double num1, double num2) {
+  if (num2.isInfinite && num1.sign != num2.sign) return double.nan;
   if (num2 > 0) return num1 % num2;
   if (num2 == 0) return double.nan;
 
@@ -117,4 +118,79 @@ double moduloLikeSass(double num1, double num2) {
   // Sass.
   var result = num1 % num2;
   return result == 0 ? 0 : result + num2;
+}
+
+/// Returns the square root of [number].
+SassNumber sqrt(SassNumber number) {
+  number.assertNoUnits("number");
+  return SassNumber(math.sqrt(number.value));
+}
+
+/// Returns the sine of [number].
+SassNumber sin(SassNumber number) =>
+    SassNumber(math.sin(number.coerceValueToUnit("rad", "number")));
+
+/// Returns the cosine of [number].
+SassNumber cos(SassNumber number) =>
+    SassNumber(math.cos(number.coerceValueToUnit("rad", "number")));
+
+/// Returns the tangent of [number].
+SassNumber tan(SassNumber number) =>
+    SassNumber(math.tan(number.coerceValueToUnit("rad", "number")));
+
+/// Returns the arctangent of [number].
+SassNumber atan(SassNumber number) {
+  number.assertNoUnits("number");
+  return SassNumber.withUnits(math.atan(number.value) * 180 / math.pi,
+      numeratorUnits: ['deg']);
+}
+
+/// Returns the arcsine of [number].
+SassNumber asin(SassNumber number) {
+  number.assertNoUnits("number");
+  return SassNumber.withUnits(math.asin(number.value) * 180 / math.pi,
+      numeratorUnits: ['deg']);
+}
+
+/// Returns the arccosine of [number]
+SassNumber acos(SassNumber number) {
+  number.assertNoUnits("number");
+  return SassNumber.withUnits(math.acos(number.value) * 180 / math.pi,
+      numeratorUnits: ['deg']);
+}
+
+/// Returns the absolute value of [number].
+SassNumber abs(SassNumber number) =>
+    SassNumber(number.value.abs()).coerceToMatch(number);
+
+/// Returns the logarithm of [number] with respect to [base].
+SassNumber log(SassNumber number, SassNumber? base) {
+  if (base != null) {
+    return SassNumber(math.log(number.value) / math.log(base.value));
+  }
+  return SassNumber(math.log(number.value));
+}
+
+/// Returns the value of [base] raised to the power of [exponent].
+SassNumber pow(SassNumber base, SassNumber exponent) {
+  base.assertNoUnits("base");
+  exponent.assertNoUnits("exponent");
+  return SassNumber(math.pow(base.value, exponent.value));
+}
+
+/// Returns the arctangent for [y] and [x].
+SassNumber atan2(SassNumber y, SassNumber x) {
+  return SassNumber.withUnits(
+      math.atan2(y.value, x.convertValueToMatch(y, 'x', 'y')) * 180 / math.pi,
+      numeratorUnits: ['deg']);
+}
+
+/// Extension methods to get the sign of the double's numerical value,
+/// including positive and negative zero.
+extension DoubleWithSignedZero on double {
+  double get signIncludingZero {
+    if (identical(this, -0.0)) return -1.0;
+    if (this == 0) return 1.0;
+    return sign;
+  }
 }

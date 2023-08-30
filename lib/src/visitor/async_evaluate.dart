@@ -2300,7 +2300,8 @@ final class _EvaluateVisitor
     var arguments = [
       for (var argument in node.arguments)
         await _visitCalculationValue(argument,
-            inMinMax: node.name == 'min' || node.name == 'max')
+            inLegacySassFunction:
+                {'min', 'max', 'round', 'abs'}.contains(node.name))
     ];
     if (_inSupportsDeclaration) {
       return SassCalculation.unsimplified(node.name, arguments);
@@ -2309,8 +2310,31 @@ final class _EvaluateVisitor
     try {
       return switch (node.name) {
         "calc" => SassCalculation.calc(arguments[0]),
+        "sqrt" => SassCalculation.sqrt(arguments[0]),
+        "sin" => SassCalculation.sin(arguments[0]),
+        "cos" => SassCalculation.cos(arguments[0]),
+        "tan" => SassCalculation.tan(arguments[0]),
+        "asin" => SassCalculation.asin(arguments[0]),
+        "acos" => SassCalculation.acos(arguments[0]),
+        "atan" => SassCalculation.atan(arguments[0]),
+        "abs" => SassCalculation.abs(arguments[0]),
+        "exp" => SassCalculation.exp(arguments[0]),
+        "sign" => SassCalculation.sign(arguments[0]),
         "min" => SassCalculation.min(arguments),
         "max" => SassCalculation.max(arguments),
+        "hypot" => SassCalculation.hypot(arguments),
+        "pow" =>
+          SassCalculation.pow(arguments[0], arguments.elementAtOrNull(1)),
+        "atan2" =>
+          SassCalculation.atan2(arguments[0], arguments.elementAtOrNull(1)),
+        "log" =>
+          SassCalculation.log(arguments[0], arguments.elementAtOrNull(1)),
+        "mod" =>
+          SassCalculation.mod(arguments[0], arguments.elementAtOrNull(1)),
+        "rem" =>
+          SassCalculation.rem(arguments[0], arguments.elementAtOrNull(1)),
+        "round" => SassCalculation.round(arguments[0],
+            arguments.elementAtOrNull(1), arguments.elementAtOrNull(2)),
         "clamp" => SassCalculation.clamp(arguments[0],
             arguments.elementAtOrNull(1), arguments.elementAtOrNull(2)),
         _ => throw UnsupportedError('Unknown calculation name "${node.name}".')
@@ -2319,7 +2343,9 @@ final class _EvaluateVisitor
       // The simplification logic in the [SassCalculation] static methods will
       // throw an error if the arguments aren't compatible, but we have access
       // to the original spans so we can throw a more informative error.
-      _verifyCompatibleNumbers(arguments, node.arguments);
+      if (error.message.contains("compatible")) {
+        _verifyCompatibleNumbers(arguments, node.arguments);
+      }
       throwWithTrace(_exception(error.message, node.span), error, stackTrace);
     }
   }
@@ -2361,14 +2387,15 @@ final class _EvaluateVisitor
 
   /// Evaluates [node] as a component of a calculation.
   ///
-  /// If [inMinMax] is `true`, this allows unitless numbers to be added and
+  /// If [inLegacySassFunction] is `true`, this allows unitless numbers to be added and
   /// subtracted with numbers with units, for backwards-compatibility with the
-  /// old global `min()` and `max()` functions.
+  /// old global `min()`, `max()`, `round()`, and `abs()` functions.
   Future<Object> _visitCalculationValue(Expression node,
-      {required bool inMinMax}) async {
+      {required bool inLegacySassFunction}) async {
     switch (node) {
       case ParenthesizedExpression(expression: var inner):
-        var result = await _visitCalculationValue(inner, inMinMax: inMinMax);
+        var result = await _visitCalculationValue(inner,
+            inLegacySassFunction: inLegacySassFunction);
         return inner is FunctionExpression &&
                 inner.name.toLowerCase() == 'var' &&
                 result is SassString &&
@@ -2399,9 +2426,11 @@ final class _EvaluateVisitor
             node,
             () async => SassCalculation.operateInternal(
                 _binaryOperatorToCalculationOperator(operator),
-                await _visitCalculationValue(left, inMinMax: inMinMax),
-                await _visitCalculationValue(right, inMinMax: inMinMax),
-                inMinMax: inMinMax,
+                await _visitCalculationValue(left,
+                    inLegacySassFunction: inLegacySassFunction),
+                await _visitCalculationValue(right,
+                    inLegacySassFunction: inLegacySassFunction),
+                inLegacySassFunction: inLegacySassFunction,
                 simplify: !_inSupportsDeclaration));
 
       case _:
