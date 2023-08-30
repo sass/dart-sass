@@ -110,7 +110,11 @@ double fuzzyAssertRange(double number, int min, int max, [String? name]) {
 ///
 /// [floored division]: https://en.wikipedia.org/wiki/Modulo_operation#Variants_of_the_definition
 double moduloLikeSass(double num1, double num2) {
-  if (num2.isInfinite && num1.sign != num2.sign) return double.nan;
+  if (num1.isInfinite) return double.nan;
+  if (num2.isInfinite) {
+    return num1.signIncludingZero == num2.sign ? num1 : double.nan;
+  }
+
   if (num2 > 0) return num1 % num2;
   if (num2 == 0) return double.nan;
 

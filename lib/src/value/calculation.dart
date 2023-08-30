@@ -4,12 +4,14 @@
 
 import 'dart:math' as math;
 
+import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
 
 import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../callable.dart';
+import '../util/character.dart';
 import '../util/nullable.dart';
 import '../util/number.dart' as number_lib;
 import '../utils.dart';
@@ -32,7 +34,7 @@ final class SassCalculation extends Value {
   /// The calculation's arguments.
   ///
   /// Each argument is either a [SassNumber], a [SassCalculation], an unquoted
-  /// [SassString], a [CalculationOperation], or a [CalculationInterpolation].
+  /// [SassString], or a [CalculationOperation].
   final List<Object> arguments;
 
   /// @nodoc
@@ -49,8 +51,7 @@ final class SassCalculation extends Value {
   /// Creates a `calc()` calculation with the given [argument].
   ///
   /// The [argument] must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation].
+  /// unquoted [SassString], or a [CalculationOperation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -65,8 +66,8 @@ final class SassCalculation extends Value {
   /// Creates a `min()` calculation with the given [arguments].
   ///
   /// Each argument must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation]. It must be passed at least one argument.
+  /// unquoted [SassString], or a [CalculationOperation]. It must be passed at
+  /// least one argument.
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -96,8 +97,8 @@ final class SassCalculation extends Value {
   /// Creates a `max()` calculation with the given [arguments].
   ///
   /// Each argument must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation]. It must be passed at least one argument.
+  /// unquoted [SassString], or a [CalculationOperation]. It must be passed at
+  /// least one argument.
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -127,8 +128,8 @@ final class SassCalculation extends Value {
   /// Creates a `hypot()` calculation with the given [arguments].
   ///
   /// Each argument must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation]. It must be passed at least one argument.
+  /// unquoted [SassString], or a [CalculationOperation]. It must be passed at
+  /// least one argument.
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -162,8 +163,7 @@ final class SassCalculation extends Value {
   /// Creates a `sqrt()` calculation with the given [argument].
   ///
   /// The [argument] must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation].
+  /// unquoted [SassString], or a [CalculationOperation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -174,8 +174,7 @@ final class SassCalculation extends Value {
   /// Creates a `sin()` calculation with the given [argument].
   ///
   /// The [argument] must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation].
+  /// unquoted [SassString], or a [CalculationOperation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -186,8 +185,7 @@ final class SassCalculation extends Value {
   /// Creates a `cos()` calculation with the given [argument].
   ///
   /// The [argument] must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation].
+  /// unquoted [SassString], or a [CalculationOperation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -198,8 +196,7 @@ final class SassCalculation extends Value {
   /// Creates a `tan()` calculation with the given [argument].
   ///
   /// The [argument] must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation].
+  /// unquoted [SassString], or a [CalculationOperation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -210,8 +207,7 @@ final class SassCalculation extends Value {
   /// Creates an `atan()` calculation with the given [argument].
   ///
   /// The [argument] must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation].
+  /// unquoted [SassString], or a [CalculationOperation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -222,8 +218,7 @@ final class SassCalculation extends Value {
   /// Creates an `asin()` calculation with the given [argument].
   ///
   /// The [argument] must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation].
+  /// unquoted [SassString], or a [CalculationOperation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -234,8 +229,7 @@ final class SassCalculation extends Value {
   /// Creates an `acos()` calculation with the given [argument].
   ///
   /// The [argument] must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation].
+  /// unquoted [SassString], or a [CalculationOperation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -246,8 +240,7 @@ final class SassCalculation extends Value {
   /// Creates an `abs()` calculation with the given [argument].
   ///
   /// The [argument] must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation].
+  /// unquoted [SassString], or a [CalculationOperation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -271,8 +264,7 @@ final class SassCalculation extends Value {
   /// Creates an `exp()` calculation with the given [argument].
   ///
   /// The [argument] must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation].
+  /// unquoted [SassString], or a [CalculationOperation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -289,8 +281,7 @@ final class SassCalculation extends Value {
   /// Creates a `sign()` calculation with the given [argument].
   ///
   /// The [argument] must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation].
+  /// unquoted [SassString], or a [CalculationOperation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -308,8 +299,7 @@ final class SassCalculation extends Value {
   /// Creates a `clamp()` calculation with the given [min], [value], and [max].
   ///
   /// Each argument must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation].
+  /// unquoted [SassString], or a [CalculationOperation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -346,8 +336,7 @@ final class SassCalculation extends Value {
   /// Creates a `pow()` calculation with the given [base] and [exponent].
   ///
   /// Each argument must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation].
+  /// unquoted [SassString], or a [CalculationOperation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -371,8 +360,7 @@ final class SassCalculation extends Value {
   /// Creates a `log()` calculation with the given [number] and [base].
   ///
   /// Each argument must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation].
+  /// unquoted [SassString], or a [CalculationOperation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -398,8 +386,7 @@ final class SassCalculation extends Value {
   /// Creates a `atan2()` calculation for [y] and [x].
   ///
   /// Each argument must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation].
+  /// unquoted [SassString], or a [CalculationOperation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -426,8 +413,7 @@ final class SassCalculation extends Value {
   /// Creates a `rem()` calculation with the given [dividend] and [modulus].
   ///
   /// Each argument must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation].
+  /// unquoted [SassString], or a [CalculationOperation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -460,8 +446,7 @@ final class SassCalculation extends Value {
   /// Creates a `mod()` calculation with the given [dividend] and [modulus].
   ///
   /// Each argument must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation].
+  /// unquoted [SassString], or a [CalculationOperation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -487,8 +472,7 @@ final class SassCalculation extends Value {
   /// Strategy must be either nearest, up, down or to-zero.
   ///
   /// Number and step must be either a [SassNumber], a [SassCalculation], an
-  /// unquoted [SassString], a [CalculationOperation], or a
-  /// [CalculationInterpolation].
+  /// unquoted [SassString], or a [CalculationOperation].
   ///
   /// This automatically simplifies the calculation, so it may return a
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
@@ -537,7 +521,7 @@ final class SassCalculation extends Value {
       case (
           SassString(text: 'nearest' || 'up' || 'down' || 'to-zero') &&
               var strategy,
-          (SassString() || CalculationInterpolation()) && var rest?,
+          SassString rest,
           null
         ):
         return SassCalculation._("round", [strategy, rest]);
@@ -557,11 +541,7 @@ final class SassCalculation extends Value {
         throw SassScriptException(
             "Number to round and step arguments are required.");
 
-      case (
-          (SassString() || CalculationInterpolation()) && var rest,
-          null,
-          null
-        ):
+      case (SassString rest, null, null):
         return SassCalculation._("round", [rest]);
 
       case (var number, null, null):
@@ -599,8 +579,7 @@ final class SassCalculation extends Value {
   /// [SassNumber] rather than a [CalculationOperation].
   ///
   /// Each of [left] and [right] must be either a [SassNumber], a
-  /// [SassCalculation], an unquoted [SassString], a [CalculationOperation], or
-  /// a [CalculationInterpolation].
+  /// [SassCalculation], an unquoted [SassString], or a [CalculationOperation].
   static Object operate(
           CalculationOperator operator, Object left, Object right) =>
       operateInternal(operator, left, right,
@@ -725,19 +704,58 @@ final class SassCalculation extends Value {
 
   /// Simplifies a calculation argument.
   static Object _simplify(Object arg) => switch (arg) {
-        SassNumber() ||
-        CalculationInterpolation() ||
-        CalculationOperation() =>
-          arg,
+        SassNumber() || CalculationOperation() => arg,
+        CalculationInterpolation() =>
+          SassString('(${arg.value})', quotes: false),
         SassString(hasQuotes: false) => arg,
         SassString() => throw SassScriptException(
             "Quoted string $arg can't be used in a calculation."),
+        SassCalculation(
+          name: 'calc',
+          arguments: [SassString(hasQuotes: false, :var text)]
+        )
+            when _needsParentheses(text) =>
+          SassString('($text)', quotes: false),
         SassCalculation(name: 'calc', arguments: [var value]) => value,
         SassCalculation() => arg,
         Value() => throw SassScriptException(
             "Value $arg can't be used in a calculation."),
         _ => throw ArgumentError("Unexpected calculation argument $arg.")
       };
+
+  /// Returns whether [text] needs parentheses if it's the contents of a
+  /// `calc()` being embedded in another calculation.
+  static bool _needsParentheses(String text) {
+    var first = text.codeUnitAt(0);
+    if (_charNeedsParentheses(first)) return true;
+    var couldBeVar = text.length >= 4 && characterEqualsIgnoreCase(first, $v);
+
+    if (text.length < 2) return false;
+    var second = text.codeUnitAt(1);
+    if (_charNeedsParentheses(second)) return true;
+    couldBeVar = couldBeVar && characterEqualsIgnoreCase(second, $a);
+
+    if (text.length < 3) return false;
+    var third = text.codeUnitAt(2);
+    if (_charNeedsParentheses(third)) return true;
+    couldBeVar = couldBeVar && characterEqualsIgnoreCase(third, $r);
+
+    if (text.length < 4) return false;
+    var fourth = text.codeUnitAt(3);
+    if (couldBeVar && fourth == $lparen) return true;
+    if (_charNeedsParentheses(fourth)) return true;
+
+    for (var i = 4; i < text.length; i++) {
+      if (_charNeedsParentheses(text.codeUnitAt(i))) return true;
+    }
+    return false;
+  }
+
+  /// Returns whether [character] intrinsically needs parentheses if it appears
+  /// in the unquoted string argument of a `calc()` being embedded in another
+  /// calculation.
+  static bool _charNeedsParentheses(int character) =>
+      character.isWhitespace || character == $slash || character == $asterisk;
 
   /// Verifies that all the numbers in [args] aren't known to be incompatible
   /// with one another, and that they don't have units that are too complex for
@@ -767,11 +785,10 @@ final class SassCalculation extends Value {
   }
 
   /// Throws a [SassScriptException] if [args] isn't [expectedLength] *and*
-  /// doesn't contain either a [SassString] or a [CalculationInterpolation].
+  /// doesn't contain a [SassString].
   static void _verifyLength(List<Object> args, int expectedLength) {
     if (args.length == expectedLength) return;
-    if (args
-        .any((arg) => arg is SassString || arg is CalculationInterpolation)) {
+    if (args.any((arg) => arg is SassString)) {
       return;
     }
     throw SassScriptException(
@@ -844,14 +861,14 @@ final class CalculationOperation {
   /// The left-hand operand.
   ///
   /// This is either a [SassNumber], a [SassCalculation], an unquoted
-  /// [SassString], a [CalculationOperation], or a [CalculationInterpolation].
+  /// [SassString], or a [CalculationOperation].
   Object get left => _left;
   final Object _left;
 
   /// The right-hand operand.
   ///
   /// This is either a [SassNumber], a [SassCalculation], an unquoted
-  /// [SassString], a [CalculationOperation], or a [CalculationInterpolation].
+  /// [SassString], or a [CalculationOperation].
   Object get right => _right;
   final Object _right;
 
@@ -907,12 +924,15 @@ enum CalculationOperator {
   String toString() => name;
 }
 
-/// A string injected into a [SassCalculation] using interpolation.
+/// A deprecated representation of a string injected into a [SassCalculation]
+/// using interpolation.
 ///
-/// This is tracked separately from string arguments because it requires
-/// additional parentheses when used as an operand of a [CalculationOperation].
+/// This only exists for backwards-compatibility with an older version of Dart
+/// Sass. It's now equivalent to creating a `SassString` whose value is wrapped
+/// in parentheses.
 ///
 /// {@category Value}
+@Deprecated("Use SassString instead.")
 @sealed
 class CalculationInterpolation {
   /// We use a getters to allow overriding the logic in the JS API

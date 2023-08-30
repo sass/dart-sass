@@ -1,3 +1,30 @@
+## 1.67.0
+
+* All functions defined in CSS Values and Units 4 are now once again parsed as
+  calculation objects: `round()`, `mod()`, `rem()`, `sin()`, `cos()`, `tan()`,
+  `asin()`, `acos()`, `atan()`, `atan2()`, `pow()`, `sqrt()`, `hypot()`,
+  `log()`, `exp()`, `abs()`, and `sign()`.
+
+  Unlike in 1.65.0, function calls are _not_ locked into being parsed as
+  calculations or plain Sass functions at parse-time. This means that
+  user-defined functions will take precedence over CSS calculations of the same
+  name. Although the function names `calc()` and `clamp()` are still forbidden,
+  users may continue to freely define functions whose names overlap with other
+  CSS calculations.
+
+* As a consequence of the change in calculation parsing described above,
+  calculation functions containing interpolation are now parsed more strictly
+  than before. However, all interpolations that would have produced valid CSS
+  will continue to work, so this is not considered a breaking change.
+
+* Interpolations in calculation functions that aren't used in a position that
+  could also have a normal calculation value are now deprecated. For example,
+  `calc(1px #{"+ 2px"})` is deprecated, but `calc(1px + #{"2px"})` is still
+  allowed. This deprecation is named `calc-interp`. See [the Sass website] for
+  more information.
+
+  [the Sass website]: https://sass-lang.com/d/calc-interp
+
 ## 1.66.1
 
 ### JS API

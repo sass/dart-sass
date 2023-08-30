@@ -21,6 +21,10 @@ final class Interpolation implements SassNode {
 
   final FileSpan span;
 
+  /// Returns whether this contains no interpolated expressions.
+  bool get isPlain =>
+      contents.isEmpty || (contents.length == 1 && contents.first is String);
+
   /// If this contains no interpolated expressions, returns its text contents.
   ///
   /// Otherwise, returns `null`.

@@ -134,8 +134,6 @@ final class Protofier {
           ..operator = _protofyCalculationOperator(value.operator)
           ..left = _protofyCalculationValue(value.left)
           ..right = _protofyCalculationValue(value.right);
-      case CalculationInterpolation():
-        result.interpolation = value.value;
       case _:
         throw "Unknown calculation value $value";
     }
@@ -352,7 +350,7 @@ final class Protofier {
               _deprotofyCalculationValue(value.operation.left),
               _deprotofyCalculationValue(value.operation.right)),
         Value_Calculation_CalculationValue_Value.interpolation =>
-          CalculationInterpolation(value.interpolation),
+          SassString('(${value.interpolation})', quotes: false),
         Value_Calculation_CalculationValue_Value.notSet =>
           throw mandatoryError("Value.Calculation.value")
       };

@@ -130,6 +130,17 @@ abstract class StylesheetParser extends Parser {
         return _useRule(start);
       });
 
+  Interpolation parseInterpolatedDeclarationValue(
+          {bool allowEmpty = false,
+          bool allowSemicolon = false,
+          bool allowColon = true}) =>
+      // Don't use [_parseSingleProduction] because we want to allow text after
+      // the value.
+      wrapSpanFormatException(() => _interpolatedDeclarationValue(
+          allowEmpty: allowEmpty,
+          allowSemicolon: allowSemicolon,
+          allowColon: allowColon));
+
   /// Parses and returns [production] as the entire contents of [scanner].
   T _parseSingleProduction<T>(T production()) {
     return wrapSpanFormatException(() {
@@ -1821,8 +1832,13 @@ abstract class StylesheetParser extends Parser {
 
     void addOperator(BinaryOperator operator) {
       if (plainCss &&
-          operator != BinaryOperator.dividedBy &&
-          operator != BinaryOperator.singleEquals) {
+          operator != BinaryOperator.singleEquals &&
+          // These are allowed in calculations, so we have to check them at
+          // evaluation time.
+          operator != BinaryOperator.plus &&
+          operator != BinaryOperator.minus &&
+          operator != BinaryOperator.times &&
+          operator != BinaryOperator.dividedBy) {
         scanner.error("Operators aren't allowed in plain CSS.",
             position: scanner.position - operator.operator.length,
             length: operator.operator.length);
@@ -1876,7 +1892,7 @@ abstract class StylesheetParser extends Parser {
 
         case $lparen:
           // Parenthesized numbers can't be slash-separated.
-          addSingleExpression(_parentheses());
+          addSingleExpression(parentheses());
 
         case $lbracket:
           addSingleExpression(_expression(bracketList: true));
@@ -2065,8 +2081,7 @@ abstract class StylesheetParser extends Parser {
   /// produces a potentially slash-separated number.
   bool _isSlashOperand(Expression expression) =>
       expression is NumberExpression ||
-      (expression is CalculationExpression &&
-          !{'min', 'max', 'round', 'abs'}.contains(expression.name)) ||
+      expression is FunctionExpression ||
       (expression is BinaryOperationExpression && expression.allowsSlash);
 
   /// Consumes an expression that doesn't contain any top-level whitespace.
@@ -2074,7 +2089,7 @@ abstract class StylesheetParser extends Parser {
         // Note: when adding a new case, make sure it's reflected in
         // [_lookingAtExpression] and [_expression].
         null => scanner.error("Expected expression."),
-        $lparen => _parentheses(),
+        $lparen => parentheses(),
         $slash => _unaryOperation(),
         $dot => _number(),
         $lbracket => _expression(bracketList: true),
@@ -2102,11 +2117,8 @@ abstract class StylesheetParser extends Parser {
       };
 
   /// Consumes a parenthesized expression.
-  Expression _parentheses() {
-    if (plainCss) {
-      scanner.error("Parentheses aren't allowed in plain CSS.", length: 1);
-    }
-
+  @protected
+  Expression parentheses() {
     var wasInParentheses = _inParentheses;
     _inParentheses = true;
     try {
@@ -2602,17 +2614,12 @@ abstract class StylesheetParser extends Parser {
   /// [name].
   @protected
   Expression? trySpecialFunction(String name, LineScannerState start) {
-    if (scanner.peekChar() == $lparen) {
-      if (_tryCalculation(name, start) case var calculation?) {
-        return calculation;
-      }
-    }
-
     var normalized = unvendor(name);
 
     InterpolationBuffer buffer;
     switch (normalized) {
-      case "calc" || "element" || "expression" when scanner.scanChar($lparen):
+      case "calc" when normalized != name && scanner.scanChar($lparen):
+      case "element" || "expression" when scanner.scanChar($lparen):
         buffer = InterpolationBuffer()
           ..write(name)
           ..writeCharCode($lparen);
@@ -2642,260 +2649,6 @@ abstract class StylesheetParser extends Parser {
     buffer.writeCharCode($rparen);
 
     return StringExpression(buffer.interpolation(scanner.spanFrom(start)));
-  }
-
-  /// If [name] is the name of a calculation expression, parses the
-  /// corresponding calculation and returns it.
-  ///
-  /// Assumes the scanner is positioned immediately before the opening
-  /// parenthesis of the argument list.
-  CalculationExpression? _tryCalculation(String name, LineScannerState start) {
-    assert(scanner.peekChar() == $lparen);
-    switch (name) {
-      case "calc":
-      case "sqrt":
-      case "sin":
-      case "cos":
-      case "tan":
-      case "asin":
-      case "acos":
-      case "atan":
-      case "exp":
-      case "sign":
-        var arguments = _calculationArguments(1);
-        return CalculationExpression(name, arguments, scanner.spanFrom(start));
-
-      case "abs":
-        return _tryArgumentsCalculation(name, start, 1);
-
-      case "hypot":
-        var arguments = _calculationArguments();
-        return CalculationExpression(name, arguments, scanner.spanFrom(start));
-
-      case "min" || "max":
-        // min() and max() are parsed as calculations if possible, and otherwise
-        // are parsed as normal Sass functions.
-        return _tryArgumentsCalculation(name, start, null);
-
-      case "pow":
-      case "log":
-      case "atan2":
-      case "mod":
-      case "rem":
-        var arguments = _calculationArguments(2);
-        return CalculationExpression(name, arguments, scanner.spanFrom(start));
-
-      case "clamp":
-        var arguments = _calculationArguments(3);
-        return CalculationExpression(name, arguments, scanner.spanFrom(start));
-
-      case "round":
-        return _tryArgumentsCalculation(name, start, 3);
-
-      case _:
-        return null;
-    }
-  }
-
-  // Returns a CalculationExpression if the function can be parsed as a calculation,
-  // otherwise, returns null and the function is parsed as a normal Sass function.
-  CalculationExpression? _tryArgumentsCalculation(
-      String name, LineScannerState start, int? maxArgs) {
-    var beforeArguments = scanner.state;
-    try {
-      var arguments = _calculationArguments(maxArgs);
-      return CalculationExpression(name, arguments, scanner.spanFrom(start));
-    } on FormatException catch (_) {
-      scanner.state = beforeArguments;
-      return null;
-    }
-  }
-
-  /// Consumes and returns arguments for a calculation expression, including the
-  /// opening and closing parentheses.
-  ///
-  /// If [maxArgs] is passed, at most that many arguments are consumed.
-  /// Otherwise, any number greater than zero are consumed.
-  List<Expression> _calculationArguments([int? maxArgs]) {
-    scanner.expectChar($lparen);
-    if (_tryCalculationInterpolation() case var interpolation?) {
-      scanner.expectChar($rparen);
-      return [interpolation];
-    }
-
-    whitespace();
-    var arguments = [_calculationSum()];
-    while ((maxArgs == null || arguments.length < maxArgs) &&
-        scanner.scanChar($comma)) {
-      whitespace();
-      arguments.add(_calculationSum());
-    }
-
-    scanner.expectChar($rparen,
-        name: arguments.length == maxArgs
-            ? '"+", "-", "*", "/", or ")"'
-            : '"+", "-", "*", "/", ",", or ")"');
-
-    return arguments;
-  }
-
-  /// Parses a calculation operation or value expression.
-  Expression _calculationSum() {
-    var sum = _calculationProduct();
-
-    while (true) {
-      var next = scanner.peekChar();
-      if (next != $plus && next != $minus) return sum;
-
-      if (!scanner.peekChar(-1).isWhitespace ||
-          !scanner.peekChar(1).isWhitespace) {
-        scanner.error(
-            '"+" and "-" must be surrounded by whitespace in calculations.');
-      }
-
-      scanner.readChar();
-      whitespace();
-      sum = BinaryOperationExpression(
-          next == $plus ? BinaryOperator.plus : BinaryOperator.minus,
-          sum,
-          _calculationProduct());
-    }
-  }
-
-  /// Parses a calculation product or value expression.
-  Expression _calculationProduct() {
-    var product = _calculationValue();
-
-    while (true) {
-      whitespace();
-      var next = scanner.peekChar();
-      if (next != $asterisk && next != $slash) return product;
-
-      scanner.readChar();
-      whitespace();
-      product = BinaryOperationExpression(
-          next == $asterisk ? BinaryOperator.times : BinaryOperator.dividedBy,
-          product,
-          _calculationValue());
-    }
-  }
-
-  /// Parses a single calculation value.
-  Expression _calculationValue() {
-    switch (scanner.peekChar()) {
-      case $plus || $dot || int(isDigit: true):
-        return _number();
-      case $dollar:
-        return _variable();
-      case $lparen:
-        var start = scanner.state;
-        scanner.readChar();
-
-        Expression? value = _tryCalculationInterpolation();
-        if (value == null) {
-          whitespace();
-          value = _calculationSum();
-        }
-
-        whitespace();
-        scanner.expectChar($rparen);
-        return ParenthesizedExpression(value, scanner.spanFrom(start));
-      case _ when lookingAtIdentifier():
-        var start = scanner.state;
-        var ident = identifier();
-        if (scanner.scanChar($dot)) return namespacedExpression(ident, start);
-        if (scanner.peekChar() != $lparen) {
-          return StringExpression(
-              Interpolation([ident], scanner.spanFrom(start)),
-              quotes: false);
-        }
-
-        var lowerCase = ident.toLowerCase();
-        if (_tryCalculation(lowerCase, start) case var calculation?) {
-          return calculation;
-        } else if (lowerCase == "if") {
-          return IfExpression(_argumentInvocation(), scanner.spanFrom(start));
-        } else {
-          return FunctionExpression(
-              ident, _argumentInvocation(), scanner.spanFrom(start));
-        }
-
-      // This has to go after [lookingAtIdentifier] because a hyphen can start
-      // an identifier as well as a number.
-      case $minus:
-        return _number();
-
-      case _:
-        scanner.error("Expected number, variable, function, or calculation.");
-    }
-  }
-
-  /// If the following text up to the next unbalanced `")"`, `"]"`, or `"}"`
-  /// contains interpolation, parses that interpolation as an unquoted
-  /// [StringExpression] and returns it.
-  StringExpression? _tryCalculationInterpolation() =>
-      _containsCalculationInterpolation()
-          ? StringExpression(_interpolatedDeclarationValue())
-          : null;
-
-  /// Returns whether the following text up to the next unbalanced `")"`, `"]"`,
-  /// or `"}"` contains interpolation.
-  bool _containsCalculationInterpolation() {
-    var parens = 0;
-    var brackets = <int>[];
-
-    var start = scanner.state;
-    while (!scanner.isDone) {
-      var next = scanner.peekChar();
-      switch (next) {
-        case $backslash:
-          scanner.readChar();
-          scanner.readChar();
-
-        case $slash:
-          if (!scanComment()) scanner.readChar();
-
-        case $single_quote || $double_quote:
-          interpolatedString();
-
-        case $hash:
-          if (parens == 0 && scanner.peekChar(1) == $lbrace) {
-            scanner.state = start;
-            return true;
-          }
-          scanner.readChar();
-
-        case $lparen:
-          parens++;
-          continue left;
-
-        left:
-        case $lbrace:
-        case $lbracket:
-          // dart-lang/sdk#45357
-          brackets.add(opposite(next!));
-          scanner.readChar();
-
-        case $rparen:
-          parens--;
-          continue right;
-
-        right:
-        case $rbrace:
-        case $rbracket:
-          if (brackets.isEmpty || brackets.removeLast() != next) {
-            scanner.state = start;
-            return false;
-          }
-          scanner.readChar();
-
-        case _:
-          scanner.readChar();
-      }
-    }
-
-    scanner.state = start;
-    return false;
   }
 
   /// Like [_urlContents], but returns `null` if the URL fails to parse.

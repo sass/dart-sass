@@ -10,17 +10,19 @@ import 'replace_expression.dart';
 /// This assumes that [expression] already returns a number. It's intended for
 /// use in end-user messaging, and may not produce directly evaluable
 /// expressions.
-CalculationExpression expressionToCalc(Expression expression) =>
-    CalculationExpression.calc(
-        expression.accept(const _MakeExpressionCalculationSafe()),
+FunctionExpression expressionToCalc(Expression expression) =>
+    FunctionExpression(
+        "calc",
+        ArgumentInvocation(
+            [expression.accept(const _MakeExpressionCalculationSafe())],
+            const {},
+            expression.span),
         expression.span);
 
 /// A visitor that replaces constructs that can't be used in a calculation with
 /// those that can.
 class _MakeExpressionCalculationSafe with ReplaceExpressionVisitor {
   const _MakeExpressionCalculationSafe();
-
-  Expression visitCalculationExpression(CalculationExpression node) => node;
 
   Expression visitBinaryOperationExpression(BinaryOperationExpression node) => node
               .operator ==
