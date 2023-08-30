@@ -61,7 +61,7 @@ class IsolateDispatcher {
             return;
           } on StateError catch (_) {
             throw paramsError(
-                "InboundMessage with compilation ID $compilationId is out of order.");
+                "Received multiple messages for compilation ID $compilationId");
           }
         }
 
