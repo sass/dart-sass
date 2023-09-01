@@ -11,8 +11,9 @@ import 'interface/expression.dart';
 import 'recursive_statement.dart';
 import 'statement_search.dart';
 
-/// An [AstVisitor] whose `visit*` methods default to returning `null`, but
-/// which returns the first non-`null` value returned by any method.
+/// A visitor that recursively traverses each statement and expression in a Sass
+/// AST whose `visit*` methods default to returning `null`, but which returns
+/// the first non-`null` value returned by any method.
 ///
 /// This extends [RecursiveStatementVisitor] to traverse each expression in
 /// addition to each statement. It supports the same additional methods as
