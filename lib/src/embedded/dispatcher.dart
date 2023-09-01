@@ -46,7 +46,10 @@ final class Dispatcher {
   /// This is used in outgoing messages.
   late Uint8List _compilationIdVarint;
 
-  /// Whether a ProtocolError has occured parsing response of any host request.
+  /// Whether we detected a [ProtocolError] while parsing an incoming response.
+  ///
+  /// If we have, we don't want to send the final compilation result because
+  /// it'll just be a wrapper around the error.
   var _requestError = false;
 
   /// Creates a [Dispatcher] that receives encoded protocol buffers through
@@ -83,10 +86,10 @@ final class Dispatcher {
           case InboundMessage_Message.versionRequest:
             throw paramsError("VersionRequest must have compilation ID 0.");
 
-          case InboundMessage_Message.canonicalizeResponse:
-          case InboundMessage_Message.importResponse:
-          case InboundMessage_Message.fileImportResponse:
-          case InboundMessage_Message.functionCallResponse:
+          case InboundMessage_Message.canonicalizeResponse ||
+                InboundMessage_Message.importResponse ||
+                InboundMessage_Message.fileImportResponse ||
+                InboundMessage_Message.functionCallResponse:
             throw paramsError(
                 "Response ID ${message.id} doesn't match any outstanding requests"
                 " in compilation $_compilationId.");
@@ -262,43 +265,34 @@ final class Dispatcher {
         throw parseError(error.message);
       }
 
-      GeneratedMessage response;
-      switch (message.whichMessage()) {
-        case InboundMessage_Message.canonicalizeResponse:
-          response = message.canonicalizeResponse;
+      var response = switch (message.whichMessage()) {
+        InboundMessage_Message.canonicalizeResponse =>
+          message.canonicalizeResponse,
+        InboundMessage_Message.importResponse => message.importResponse,
+        InboundMessage_Message.fileImportResponse => message.fileImportResponse,
+        InboundMessage_Message.functionCallResponse =>
+          message.functionCallResponse,
+        InboundMessage_Message.compileRequest => throw paramsError(
+            "A CompileRequest with compilation ID $_compilationId is already "
+            "active."),
+        InboundMessage_Message.versionRequest =>
+          throw paramsError("VersionRequest must have compilation ID 0."),
+        InboundMessage_Message.notSet =>
+          throw parseError("InboundMessage.message is not set."),
+        _ =>
+          throw parseError("Unknown message type: ${message.toDebugString()}")
+      };
 
-        case InboundMessage_Message.importResponse:
-          response = message.importResponse;
-
-        case InboundMessage_Message.fileImportResponse:
-          response = message.fileImportResponse;
-
-        case InboundMessage_Message.functionCallResponse:
-          response = message.functionCallResponse;
-
-        case InboundMessage_Message.compileRequest:
-          throw paramsError(
-              "A CompileRequest with compilation ID $_compilationId is already active.");
-
-        case InboundMessage_Message.versionRequest:
-          throw paramsError("VersionRequest must have compilation ID 0.");
-
-        case InboundMessage_Message.notSet:
-          throw parseError("InboundMessage.message is not set.");
-
-        default:
-          throw parseError("Unknown message type: ${message.toDebugString()}");
-      }
       if (message.id != _outboundRequestId) {
         throw paramsError(
-            "Response ID ${message.id} doesn't match any outstanding requests in"
-            " compilation $_compilationId.");
-      }
-      if (response is! T) {
+            "Response ID ${message.id} doesn't match any outstanding requests "
+            "in compilation $_compilationId.");
+      } else if (response is! T) {
         throw paramsError(
-            "Request ID $_outboundRequestId doesn't match response type"
-            " ${response.runtimeType} in compilation $_compilationId.");
+            "Request ID $_outboundRequestId doesn't match response type "
+            "${response.runtimeType} in compilation $_compilationId.");
       }
+
       return response;
     } catch (error, stackTrace) {
       _handleError(error, stackTrace);
