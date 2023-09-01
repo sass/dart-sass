@@ -2,9 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-// ignore: deprecated_member_use
-import 'dart:cli';
-
 import '../../importer.dart';
 import '../dispatcher.dart';
 import '../embedded_sass.pb.dart' hide SourceSpan;
@@ -19,44 +16,35 @@ final class HostImporter extends ImporterBase {
   HostImporter(Dispatcher dispatcher, this._importerId) : super(dispatcher);
 
   Uri? canonicalize(Uri url) {
-    // ignore: deprecated_member_use
-    return waitFor(() async {
-      var response = await dispatcher
-          .sendCanonicalizeRequest(OutboundMessage_CanonicalizeRequest()
-            ..importerId = _importerId
-            ..url = url.toString()
-            ..fromImport = fromImport);
+    var response =
+        dispatcher.sendCanonicalizeRequest(OutboundMessage_CanonicalizeRequest()
+          ..importerId = _importerId
+          ..url = url.toString()
+          ..fromImport = fromImport);
 
-      return switch (response.whichResult()) {
-        InboundMessage_CanonicalizeResponse_Result.url =>
-          parseAbsoluteUrl("The importer", response.url),
-        InboundMessage_CanonicalizeResponse_Result.error =>
-          throw response.error,
-        InboundMessage_CanonicalizeResponse_Result.notSet => null
-      };
-    }());
+    return switch (response.whichResult()) {
+      InboundMessage_CanonicalizeResponse_Result.url =>
+        parseAbsoluteUrl("The importer", response.url),
+      InboundMessage_CanonicalizeResponse_Result.error => throw response.error,
+      InboundMessage_CanonicalizeResponse_Result.notSet => null
+    };
   }
 
   ImporterResult? load(Uri url) {
-    // ignore: deprecated_member_use
-    return waitFor(() async {
-      var response =
-          await dispatcher.sendImportRequest(OutboundMessage_ImportRequest()
-            ..importerId = _importerId
-            ..url = url.toString());
+    var response = dispatcher.sendImportRequest(OutboundMessage_ImportRequest()
+      ..importerId = _importerId
+      ..url = url.toString());
 
-      return switch (response.whichResult()) {
-        InboundMessage_ImportResponse_Result.success => ImporterResult(
-            response.success.contents,
-            sourceMapUrl: response.success.sourceMapUrl.isEmpty
-                ? null
-                : parseAbsoluteUrl(
-                    "The importer", response.success.sourceMapUrl),
-            syntax: syntaxToSyntax(response.success.syntax)),
-        InboundMessage_ImportResponse_Result.error => throw response.error,
-        InboundMessage_ImportResponse_Result.notSet => null
-      };
-    }());
+    return switch (response.whichResult()) {
+      InboundMessage_ImportResponse_Result.success => ImporterResult(
+          response.success.contents,
+          sourceMapUrl: response.success.sourceMapUrl.isEmpty
+              ? null
+              : parseAbsoluteUrl("The importer", response.success.sourceMapUrl),
+          syntax: syntaxToSyntax(response.success.syntax)),
+      InboundMessage_ImportResponse_Result.error => throw response.error,
+      InboundMessage_ImportResponse_Result.notSet => null
+    };
   }
 
   String toString() => "HostImporter";

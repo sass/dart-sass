@@ -2,11 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-// ignore: deprecated_member_use
-import 'dart:cli';
-
-import 'package:sass/src/embedded/mixin_registry.dart';
-
+import '../../src/embedded/mixin_registry.dart';
 import '../callable.dart';
 import '../exception.dart';
 import 'dispatcher.dart';
@@ -39,8 +35,7 @@ Callable hostCallable(Dispatcher dispatcher, FunctionRegistry functions,
       request.name = callable.name;
     }
 
-    // ignore: deprecated_member_use
-    var response = waitFor(dispatcher.sendFunctionCallRequest(request));
+    var response = dispatcher.sendFunctionCallRequest(request);
     try {
       switch (response.whichResult()) {
         case InboundMessage_FunctionCallResponse_Result.success:
