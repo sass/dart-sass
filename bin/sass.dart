@@ -2,20 +2,19 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:async';
 import 'dart:isolate';
 
 import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
-import 'package:sass/src/exception.dart';
-import 'package:sass/src/executable/compile_stylesheet.dart';
+import 'package:sass/src/executable/concurrent.dart';
 import 'package:sass/src/executable/options.dart';
 import 'package:sass/src/executable/repl.dart';
 import 'package:sass/src/executable/watch.dart';
 import 'package:sass/src/import_cache.dart';
 import 'package:sass/src/io.dart';
-import 'package:sass/src/io.dart' as io;
 import 'package:sass/src/logger/deprecation_handling.dart';
 import 'package:sass/src/stylesheet_graph.dart';
 import 'package:sass/src/util/map.dart';
@@ -26,27 +25,6 @@ import 'package:sass/src/embedded/executable.dart'
     as embedded;
 
 Future<void> main(List<String> args) async {
-  var printedError = false;
-
-  // Prints [error] to stderr, along with a preceding newline if anything else
-  // has been printed to stderr.
-  //
-  // If [trace] is passed, its terse representation is printed after the error.
-  void printError(String error, StackTrace? stackTrace) {
-    var buffer = StringBuffer();
-    if (printedError) buffer.writeln();
-    printedError = true;
-    buffer.write(error);
-
-    if (stackTrace != null) {
-      buffer.writeln();
-      buffer.writeln();
-      buffer.write(Trace.from(stackTrace).terse.toString().trimRight());
-    }
-
-    io.printError(buffer);
-  }
-
   if (args case ['--embedded', ...var rest]) {
     embedded.main(rest);
     return;
@@ -84,37 +62,9 @@ Future<void> main(List<String> args) async {
       return;
     }
 
-    for (var (source, destination) in options.sourcesToDestinations.pairs) {
-      try {
-        await compileStylesheet(options, graph, source, destination,
-            ifModified: options.update);
-      } on SassException catch (error, stackTrace) {
-        if (destination != null && !options.emitErrorCss) {
-          _tryDelete(destination);
-        }
-
-        printError(error.toString(color: options.color),
-            options.trace ? getTrace(error) ?? stackTrace : null);
-
-        // Exit code 65 indicates invalid data per
-        // https://www.freebsd.org/cgi/man.cgi?query=sysexits.
-        //
-        // We let exitCode 66 take precedence for deterministic behavior.
-        if (exitCode != 66) exitCode = 65;
-        if (options.stopOnError) return;
-      } on FileSystemException catch (error, stackTrace) {
-        var path = error.path;
-        printError(
-            path == null
-                ? error.message
-                : "Error reading ${p.relative(path)}: ${error.message}.",
-            options.trace ? getTrace(error) ?? stackTrace : null);
-
-        // Error 66 indicates no input.
-        exitCode = 66;
-        if (options.stopOnError) return;
-      }
-    }
+    await compileStylesheets(
+        options, graph, options.sourcesToDestinations.pairs,
+        ifModified: options.update);
   } on UsageException catch (error) {
     print("${error.message}\n");
     print("Usage: sass <input.scss> [output.css]\n"
@@ -128,8 +78,11 @@ Future<void> main(List<String> args) async {
     if (options?.color ?? false) buffer.write('\u001b[0m');
     buffer.writeln();
     buffer.writeln(error);
-
-    printError(buffer.toString(), getTrace(error) ?? stackTrace);
+    buffer.writeln();
+    buffer.writeln();
+    buffer.write(
+        Trace.from(getTrace(error) ?? stackTrace).terse.toString().trimRight());
+    printError(buffer);
     exitCode = 255;
   }
 }
@@ -153,15 +106,4 @@ Future<String> _loadVersion() async {
       .firstWhere((line) => line.startsWith('version: '))
       .split(" ")
       .last;
-}
-
-/// Delete [path] if it exists and do nothing otherwise.
-///
-/// This is a separate function to work around dart-lang/sdk#53082.
-void _tryDelete(String path) {
-  try {
-    deleteFile(path);
-  } on FileSystemException {
-    // If the file doesn't exist, that's fine.
-  }
 }
