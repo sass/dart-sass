@@ -10,7 +10,8 @@
   user-defined functions will take precedence over CSS calculations of the same
   name. Although the function names `calc()` and `clamp()` are still forbidden,
   users may continue to freely define functions whose names overlap with other
-  CSS calculations.
+  CSS calculations (including `abs()`, `min()`, `max()`, and `round()` whose
+  names overlap with global Sass functions).
 
 * As a consequence of the change in calculation parsing described above,
   calculation functions containing interpolation are now parsed more strictly

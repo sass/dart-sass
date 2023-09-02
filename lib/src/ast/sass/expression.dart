@@ -32,7 +32,7 @@ abstract interface class Expression implements SassNode {
 }
 
 // Use an extension class rather than a method so we don't have to make
-// [Extension] a concrete base class for something we'll get rid of anyway once
+// [Expression] a concrete base class for something we'll get rid of anyway once
 // we remove the global math functions that make this necessary.
 extension ExpressionExtensions on Expression {
   /// Whether this expression can be used in a calculation context.

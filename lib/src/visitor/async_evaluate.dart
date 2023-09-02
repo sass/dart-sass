@@ -2345,8 +2345,7 @@ final class _EvaluateVisitor
       var keyValue = await key.accept(this);
       var valueValue = await value.accept(this);
 
-      var oldValue = map[keyValue];
-      if (oldValue != null) {
+      if (map.containsKey(keyValue)) {
         var oldValueSpan = keyNodes[keyValue]?.span;
         throw MultiSpanSassRuntimeException(
             'Duplicate key.',
@@ -2494,47 +2493,23 @@ final class _EvaluateVisitor
     }
 
     switch (node.name.toLowerCase()) {
-      case "calc":
+      case "calc" ||
+            "sqrt" ||
+            "sin" ||
+            "cos" ||
+            "tan" ||
+            "asin" ||
+            "acos" ||
+            "atan" ||
+            "abs" ||
+            "exp" ||
+            "sign":
         check(1);
-      case "sqrt":
-        check(1);
-      case "sin":
-        check(1);
-      case "cos":
-        check(1);
-      case "tan":
-        check(1);
-      case "asin":
-        check(1);
-      case "acos":
-        check(1);
-      case "atan":
-        check(1);
-      case "abs":
-        check(1);
-      case "exp":
-        check(1);
-      case "sign":
-        check(1);
-      case "min":
+      case "min" || "max" || "hypot":
         check();
-      case "max":
-        check();
-      case "hypot":
-        check();
-      case "pow":
+      case "pow" || "atan2" || "log" || "mod" || "rem":
         check(2);
-      case "atan2":
-        check(2);
-      case "log":
-        check(2);
-      case "mod":
-        check(2);
-      case "rem":
-        check(2);
-      case "round":
-        check(3);
-      case "clamp":
+      case "round" || "clamp":
         check(3);
       case _:
         throw UnsupportedError('Unknown calculation name "${node.name}".');

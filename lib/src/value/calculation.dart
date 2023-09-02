@@ -366,8 +366,8 @@ final class SassCalculation extends Value {
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
   ///
-  /// If arguments contains exactly a single argument,
-  /// the base is set to `math.e` by default.
+  /// If arguments contains exactly a single argument, the base is set to
+  /// `math.e` by default.
   static Value log(Object number, Object? base) {
     number = _simplify(number);
     base = base.andThen(_simplify);
@@ -468,8 +468,9 @@ final class SassCalculation extends Value {
     return dividend.modulo(modulus);
   }
 
-  /// Creates a `round()` calculation with the given [strategyOrNumber], [numberOrStep], and [step].
-  /// Strategy must be either nearest, up, down or to-zero.
+  /// Creates a `round()` calculation with the given [strategyOrNumber],
+  /// [numberOrStep], and [step]. Strategy must be either nearest, up, down or
+  /// to-zero.
   ///
   /// Number and step must be either a [SassNumber], a [SassCalculation], an
   /// unquoted [SassString], or a [CalculationOperation].

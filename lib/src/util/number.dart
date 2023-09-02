@@ -145,22 +145,19 @@ SassNumber tan(SassNumber number) =>
 /// Returns the arctangent of [number].
 SassNumber atan(SassNumber number) {
   number.assertNoUnits("number");
-  return SassNumber.withUnits(math.atan(number.value) * 180 / math.pi,
-      numeratorUnits: ['deg']);
+  return _radiansToDegrees(math.atan(number.value));
 }
 
 /// Returns the arcsine of [number].
 SassNumber asin(SassNumber number) {
   number.assertNoUnits("number");
-  return SassNumber.withUnits(math.asin(number.value) * 180 / math.pi,
-      numeratorUnits: ['deg']);
+  return _radiansToDegrees(math.asin(number.value));
 }
 
 /// Returns the arccosine of [number]
 SassNumber acos(SassNumber number) {
   number.assertNoUnits("number");
-  return SassNumber.withUnits(math.acos(number.value) * 180 / math.pi,
-      numeratorUnits: ['deg']);
+  return _radiansToDegrees(math.acos(number.value));
 }
 
 /// Returns the absolute value of [number].
@@ -183,11 +180,12 @@ SassNumber pow(SassNumber base, SassNumber exponent) {
 }
 
 /// Returns the arctangent for [y] and [x].
-SassNumber atan2(SassNumber y, SassNumber x) {
-  return SassNumber.withUnits(
-      math.atan2(y.value, x.convertValueToMatch(y, 'x', 'y')) * 180 / math.pi,
-      numeratorUnits: ['deg']);
-}
+SassNumber atan2(SassNumber y, SassNumber x) =>
+    _radiansToDegrees(math.atan2(y.value, x.convertValueToMatch(y, 'x', 'y')));
+
+/// Returns [radians] as a [SassNumber] with unit `deg`.
+SassNumber _radiansToDegrees(double radians) =>
+    SassNumber.withUnits(radians * (180 / math.pi), numeratorUnits: ['deg']);
 
 /// Extension methods to get the sign of the double's numerical value,
 /// including positive and negative zero.
