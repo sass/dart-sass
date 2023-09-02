@@ -18,7 +18,6 @@ import 'host_callable.dart';
 import 'importer/file.dart';
 import 'importer/host.dart';
 import 'logger.dart';
-import 'mixin_registry.dart';
 import 'util/proto_extensions.dart';
 import 'utils.dart';
 
@@ -111,7 +110,6 @@ final class Dispatcher {
   OutboundMessage_CompileResponse _compile(
       InboundMessage_CompileRequest request) {
     var functions = FunctionRegistry();
-    var mixins = MixinRegistry();
 
     var style = request.style == OutputStyle.COMPRESSED
         ? sass.OutputStyle.compressed
@@ -125,7 +123,7 @@ final class Dispatcher {
           (throw mandatoryError("Importer.importer")));
 
       var globalFunctions = request.globalFunctions
-          .map((signature) => hostCallable(this, functions, mixins, signature));
+          .map((signature) => hostCallable(this, functions, signature));
 
       late sass.CompileResult result;
       switch (request.whichInput()) {
