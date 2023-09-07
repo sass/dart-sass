@@ -181,7 +181,7 @@ abstract class Value {
 
   /// Throws a [SassScriptException] if [this] isn't a mixin reference.
   ///
-  /// If this came from a mixin argument, [name] is the argument name
+  /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   SassMixin assertMixin([String? name]) =>
       throw SassScriptException("$this is not a mixin reference.", name);

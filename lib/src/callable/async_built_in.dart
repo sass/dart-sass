@@ -26,8 +26,6 @@ class AsyncBuiltInCallable implements AsyncCallable {
   /// The callback to run when executing this callable.
   final Callback _callback;
 
-  bool hasContent = false;
-
   /// Creates a function with a single [arguments] declaration and a single
   /// [callback].
   ///
@@ -54,7 +52,7 @@ class AsyncBuiltInCallable implements AsyncCallable {
   /// defined.
   AsyncBuiltInCallable.mixin(String name, String arguments,
       FutureOr<void> callback(List<Value> arguments),
-      {Object? url, bool hasContent = false})
+      {Object? url})
       : this.parsed(name,
             ArgumentDeclaration.parse('@mixin $name($arguments) {', url: url),
             (arguments) async {
@@ -64,12 +62,11 @@ class AsyncBuiltInCallable implements AsyncCallable {
           // quickly so it's easier to just return Sass's `null` for mixins and
           // simply ignore it at the call site.
           return sassNull;
-        }, hasContent: hasContent);
+        });
 
   /// Creates a callable with a single [arguments] declaration and a single
   /// [callback].
-  AsyncBuiltInCallable.parsed(this.name, this._arguments, this._callback,
-      {this.hasContent = false});
+  AsyncBuiltInCallable.parsed(this.name, this._arguments, this._callback);
 
   /// Returns the argument declaration and Dart callback for the given
   /// positional and named arguments.
