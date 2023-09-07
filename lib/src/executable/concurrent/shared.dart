@@ -36,7 +36,7 @@ Future<(int, String, String?)?> compileStylesheetConcurrently(
 
     // Exit code 65 indicates invalid data per
     // https://www.freebsd.org/cgi/man.cgi?query=sysexits.
-    return getErrorWithStackTrace(
+    return _getErrorWithStackTrace(
         65, message, options.trace ? getTrace(error) ?? stackTrace : null);
   } on FileSystemException catch (error, stackTrace) {
     var path = error.path;
@@ -45,7 +45,7 @@ Future<(int, String, String?)?> compileStylesheetConcurrently(
         : "Error reading ${p.relative(path)}: ${error.message}.";
 
     // Exit code 66 indicates no input.
-    return getErrorWithStackTrace(
+    return _getErrorWithStackTrace(
         66, message, options.trace ? getTrace(error) ?? stackTrace : null);
   }
   return null;
@@ -63,7 +63,7 @@ void _tryDelete(String path) {
 }
 
 /// Return a Record of `(exitCode, error, stackTrace)` for the given error.
-(int, String, String?) getErrorWithStackTrace(
+(int, String, String?) _getErrorWithStackTrace(
     int exitCode, String error, StackTrace? stackTrace) {
   return (
     exitCode,
