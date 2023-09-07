@@ -200,7 +200,7 @@ final class _Watcher {
         allSucceeded = allSucceeded && success;
       }
 
-      nodes = nodes.expand((node) => node.downstream).toList();
+      nodes = [for (var node in nodes) ...node.downstream];
     }
     return allSucceeded;
   }
