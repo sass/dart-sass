@@ -8,23 +8,26 @@ import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
 import '../options.dart';
 import '../../stylesheet_graph.dart';
-import 'js.dart' as c;
+import 'shared.dart' as s;
 
 /// Compiles the stylesheet at [source] to [destination].
 ///
 /// Runs in a new Dart Isolate, unless [source] is `null`.
-Future<(int, String, String?)?> compileStylesheet(ExecutableOptions options,
-    StylesheetGraph graph, String? source, String? destination,
-    {bool ifModified = false}) async {
+Future<(int, String, String?)?> compileStylesheetConcurrently(
+    ExecutableOptions options,
+    StylesheetGraph graph,
+    String? source,
+    String? destination,
+    {bool ifModified = false}) {
   // Reading from stdin does not work properly in dart isolate.
   if (source == null) {
-    return c.compileStylesheet(options, graph, source, destination,
+    return s.compileStylesheetConcurrently(options, graph, source, destination,
         ifModified: ifModified);
   }
 
   return Isolate.run(() {
     term_glyph.ascii = !options.unicode;
-    return c.compileStylesheet(options, graph, source, destination,
+    return s.compileStylesheetConcurrently(options, graph, source, destination,
         ifModified: ifModified);
   });
 }

@@ -37,7 +37,7 @@ Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
   // known-good state.
   var watcher = _Watcher(options, graph);
   var sourcesToDestinations = _sourcesToDestinations(options);
-  for (var (source, _) in sourcesToDestinations.pairs) {
+  for (var source in sourcesToDestinations.keys) {
     graph.addCanonical(
         FilesystemImporter('.'), p.toUri(canonicalize(source)), p.toUri(source),
         recanonicalize: false);
@@ -184,7 +184,10 @@ final class _Watcher {
     var seen = <StylesheetNode>{};
     var allSucceeded = true;
     while (nodes.isNotEmpty) {
-      nodes = nodes.where((node) => seen.add(node)).toList();
+      nodes = [
+        for (var node in nodes)
+          if (seen.add(node)) node
+      ];
 
       var sourcesToDestinationsPairs =
           _sourceEntrypointsToDestinationsPairs(nodes);
@@ -211,8 +214,7 @@ final class _Watcher {
       if (url.scheme != 'file') continue;
 
       var source = p.fromUri(url);
-      var destination = _destinationFor(source);
-      if (destination != null) {
+      if (_destinationFor(source) case var destination?) {
         pairs.add((source, destination));
       }
     }

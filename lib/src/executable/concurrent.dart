@@ -3,13 +3,14 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import '../io.dart';
 import '../stylesheet_graph.dart';
-import 'concurrent/js.dart' as c;
+import 'concurrent/shared.dart' as s;
 import 'concurrent/vm.dart'
-    // Never load the isolate when compiling to JS.
-    if (dart.library.js) 'concurrent/js.dart';
+    // Never load the isolate library when compiling to JS.
+    if (dart.library.js) 'concurrent/shared.dart';
 import 'options.dart';
 
 /// Compiles the stylesheets concurrently and returns whether all stylesheets are compiled
@@ -21,7 +22,7 @@ Future<bool> compileStylesheets(
     {bool ifModified = false}) async {
   var errorsWithStackTraces = sourcesToDestinationsPairs.length == 1
       ? [
-          await c.compileStylesheet(
+          await s.compileStylesheetConcurrently(
               options,
               graph,
               sourcesToDestinationsPairs.first.$1,
@@ -30,7 +31,7 @@ Future<bool> compileStylesheets(
         ]
       : await Future.wait([
           for (var (source, destination) in sourcesToDestinationsPairs)
-            compileStylesheet(options, graph, source, destination,
+            compileStylesheetConcurrently(options, graph, source, destination,
                 ifModified: ifModified)
         ], eagerError: options.stopOnError);
 
@@ -40,13 +41,10 @@ Future<bool> compileStylesheets(
   for (var errorWithStackTrace in errorsWithStackTraces) {
     if (errorWithStackTrace == null) continue;
     var (code, error, stackTrace) = errorWithStackTrace;
-    switch (code) {
-      case 65:
-        // We let exitCode 66 take precedence for deterministic behavior.
-        if (exitCode != 66) exitCode = code;
-      case 66:
-        exitCode = code;
-    }
+
+    // We let the highest exitCode take precedence for deterministic behavior.
+    exitCode = math.max(exitCode, code);
+
     _printError(error, stackTrace, printedError);
     printedError = true;
   }

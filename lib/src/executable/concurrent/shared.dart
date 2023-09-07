@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 
-import '../compile_stylesheet.dart' as c;
+import '../compile_stylesheet.dart';
 import '../options.dart';
 import '../../exception.dart';
 import '../../io.dart';
@@ -16,12 +16,17 @@ import '../../utils.dart';
 
 /// Compiles the stylesheet at [source] to [destination].
 ///
-/// Returns `(exitCode, error, stackTrace)` when error occurs.
-Future<(int, String, String?)?> compileStylesheet(ExecutableOptions options,
-    StylesheetGraph graph, String? source, String? destination,
+/// Returns `(exitCode, error, stackTrace)` when an error occurs.
+///
+/// In the current pure JS implementation it is single threaded.
+Future<(int, String, String?)?> compileStylesheetConcurrently(
+    ExecutableOptions options,
+    StylesheetGraph graph,
+    String? source,
+    String? destination,
     {bool ifModified = false}) async {
   try {
-    await c.compileStylesheet(options, graph, source, destination,
+    await compileStylesheet(options, graph, source, destination,
         ifModified: ifModified);
   } on SassException catch (error, stackTrace) {
     if (destination != null && !options.emitErrorCss) {
@@ -57,10 +62,7 @@ void _tryDelete(String path) {
   }
 }
 
-// Prints [error] to stderr, along with a preceding newline if anything else
-// has been printed to stderr.
-//
-// If [trace] is passed, its terse representation is printed after the error.
+/// Return a Record of `(exitCode, error, stackTrace)` for the given error.
 (int, String, String?) getErrorWithStackTrace(
     int exitCode, String error, StackTrace? stackTrace) {
   return (
