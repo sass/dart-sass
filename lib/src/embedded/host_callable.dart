@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../src/embedded/mixin_registry.dart';
 import '../callable.dart';
 import '../exception.dart';
 import 'dispatcher.dart';
@@ -18,12 +19,12 @@ import 'utils.dart';
 /// the name defined in the [signature].
 ///
 /// Throws a [SassException] if [signature] is invalid.
-Callable hostCallable(
-    Dispatcher dispatcher, FunctionRegistry functions, String signature,
+Callable hostCallable(Dispatcher dispatcher, FunctionRegistry functions,
+    MixinRegistry mixins, String signature,
     {int? id}) {
   late Callable callable;
   callable = Callable.fromSignature(signature, (arguments) {
-    var protofier = Protofier(dispatcher, functions);
+    var protofier = Protofier(dispatcher, functions, mixins);
     var request = OutboundMessage_FunctionCallRequest()
       ..arguments.addAll(
           [for (var argument in arguments) protofier.protofy(argument)]);
