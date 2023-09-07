@@ -17,7 +17,6 @@ import 'package:sass/src/import_cache.dart';
 import 'package:sass/src/io.dart';
 import 'package:sass/src/logger/deprecation_handling.dart';
 import 'package:sass/src/stylesheet_graph.dart';
-import 'package:sass/src/util/map.dart';
 import 'package:sass/src/utils.dart';
 import 'package:sass/src/embedded/executable.dart'
     // Never load the embedded protocol when compiling to JS.
@@ -62,8 +61,7 @@ Future<void> main(List<String> args) async {
       return;
     }
 
-    await compileStylesheets(
-        options, graph, options.sourcesToDestinations.pairs,
+    await compileStylesheets(options, graph, options.sourcesToDestinations,
         ifModified: options.update);
   } on UsageException catch (error) {
     print("${error.message}\n");

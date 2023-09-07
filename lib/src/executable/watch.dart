@@ -42,8 +42,7 @@ Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
         FilesystemImporter('.'), p.toUri(canonicalize(source)), p.toUri(source),
         recanonicalize: false);
   }
-  var success = await compileStylesheets(
-      options, graph, sourcesToDestinations.pairs,
+  var success = await compileStylesheets(options, graph, sourcesToDestinations,
       ifModified: true);
   if (!success && options.stopOnError) {
     dirWatcher.events.listen(null).cancel();
@@ -128,7 +127,7 @@ final class _Watcher {
   Future<bool> _handleAdd(String path) async {
     var destination = _destinationFor(path);
     var success = destination == null ||
-        await compileStylesheets(_options, _graph, [(path, destination)],
+        await compileStylesheets(_options, _graph, {path: destination},
             ifModified: true);
     var downstream = _graph.addCanonical(
         FilesystemImporter('.'), _canonicalize(path), p.toUri(path));
@@ -189,11 +188,10 @@ final class _Watcher {
           if (seen.add(node)) node
       ];
 
-      var sourcesToDestinationsPairs =
-          _sourceEntrypointsToDestinationsPairs(nodes);
-      if (sourcesToDestinationsPairs.isNotEmpty) {
+      var sourcesToDestinations = _sourceEntrypointsToDestinations(nodes);
+      if (sourcesToDestinations.isNotEmpty) {
         var success = await compileStylesheets(
-            _options, _graph, sourcesToDestinationsPairs,
+            _options, _graph, sourcesToDestinations,
             ifModified: true);
         if (!success && _options.stopOnError) return false;
 
@@ -206,19 +204,19 @@ final class _Watcher {
   }
 
   /// Returns a sourcesToDestinations mapping for nodes that are entrypoints.
-  Iterable<(String, String)> _sourceEntrypointsToDestinationsPairs(
+  Map<String, String> _sourceEntrypointsToDestinations(
       Iterable<StylesheetNode> nodes) {
-    var pairs = <(String, String)>[];
+    var entrypoints = <String, String>{};
     for (var node in nodes) {
       var url = node.canonicalUrl;
       if (url.scheme != 'file') continue;
 
       var source = p.fromUri(url);
       if (_destinationFor(source) case var destination?) {
-        pairs.add((source, destination));
+        entrypoints[source] = destination;
       }
     }
-    return pairs;
+    return entrypoints;
   }
 
   /// If a Sass file at [source] should be compiled to CSS, returns the path to

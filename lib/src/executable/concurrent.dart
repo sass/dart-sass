@@ -7,6 +7,7 @@ import 'dart:math' as math;
 
 import '../io.dart';
 import '../stylesheet_graph.dart';
+import '../util/map.dart';
 import 'concurrent/shared.dart' as s;
 import 'concurrent/vm.dart'
     // Never load the isolate library when compiling to JS.
@@ -15,11 +16,10 @@ import 'options.dart';
 
 /// Compiles the stylesheets concurrently and returns whether all stylesheets are compiled
 /// successfully.
-Future<bool> compileStylesheets(
-    ExecutableOptions options,
-    StylesheetGraph graph,
-    Iterable<(String?, String?)> sourcesToDestinationsPairs,
+Future<bool> compileStylesheets(ExecutableOptions options,
+    StylesheetGraph graph, Map<String?, String?> sourcesToDestinations,
     {bool ifModified = false}) async {
+  var sourcesToDestinationsPairs = sourcesToDestinations.pairs;
   var errorsWithStackTraces = sourcesToDestinationsPairs.length == 1
       ? [
           await s.compileStylesheetConcurrently(
