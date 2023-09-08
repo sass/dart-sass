@@ -26,6 +26,12 @@
 
   [the Sass website]: https://sass-lang.com/d/calc-interp
 
+### Embedded Sass
+
+* Substantially improve the embedded compiler's performance when compiling many
+  files or files that require many importer or function call round-trips with
+  the embedded host.
+
 ## 1.66.1
 
 ### JS API
