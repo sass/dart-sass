@@ -37,8 +37,24 @@ bool get supportsAnsiEscapes {
   return io.stdout.supportsAnsiEscapes;
 }
 
+void print(Object? message) {
+  _threadSafeWriteLn(io.stdout, message);
+}
+
 void printError(Object? message) {
-  io.stderr.writeln(message);
+  _threadSafeWriteLn(io.stderr, message);
+}
+
+void _threadSafeWriteLn(io.IOSink sink, Object? message) {
+  // For better performance the buffer is mutated.
+  if (message is StringBuffer) {
+    message.writeln();
+    sink.write(message);
+  } else {
+    var buffer = StringBuffer(message.toString());
+    buffer.writeln();
+    sink.write(buffer);
+  }
 }
 
 String readFile(String path) {
