@@ -56,7 +56,7 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
             (arguments) {
           callback(arguments);
           return sassNull;
-        });
+        }, acceptsContent: acceptsContent);
 
   /// Creates a callable with a single [arguments] declaration and a single
   /// [callback].
