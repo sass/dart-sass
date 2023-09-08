@@ -569,19 +569,13 @@ final class _EvaluateVisitor
                 _stackTrace(callableNode.span));
 
           case UserDefinedCallable<AsyncEnvironment>():
-            var contentCallable = _environment.content.andThen((content) =>
-                UserDefinedCallable(
-                    content as CallableDeclaration, _environment.closure(),
-                    inDependency: _inDependency));
             _runUserDefinedCallable(invocation, callable, callableNode,
                 () async {
-              _environment.withContent(contentCallable, () async {
-                _environment.asMixin(() async {
-                  for (var statement in callable.declaration.children) {
-                    await _addErrorSpan(
-                        callableNode, () => statement.accept(this));
-                  }
-                });
+              _environment.asMixin(() async {
+                for (var statement in callable.declaration.children) {
+                  await _addErrorSpan(
+                      callableNode, () => statement.accept(this));
+                }
               });
             });
 
