@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 1b6289e0dd362fcb02f331a16a30fe94050b4e17
+// Checksum: 3e4cae79c03ce2af6626b1822f1468523b401e90
 //
 // ignore_for_file: unused_import
 
@@ -142,7 +142,7 @@ final class ImportCache {
       throw "Custom importers are required to load stylesheets when compiling in the browser.";
     }
 
-    if (baseImporter != null) {
+    if (baseImporter != null && url.scheme == '') {
       var relativeResult = _relativeCanonicalizeCache.putIfAbsent((
         url,
         forImport: forImport,

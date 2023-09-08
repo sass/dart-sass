@@ -1,4 +1,10 @@
-## 1.66.2
+## 1.67.0
+
+* **Potentially breaking bug fix**: The importer used to load a given file is no
+  longer used to load absolute URLs that appear in that file. This was
+  unintented behavior that contradicted the Sass specification. Absolute URLs
+  will now correctly be loaded only from the global importer list. This applies
+  to the modern JS API, the Dart API, and the embedded protocol.
 
 ### Embedded Sass
 
