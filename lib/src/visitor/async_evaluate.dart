@@ -472,12 +472,16 @@ final class _EvaluateVisitor
         var args = arguments[1] as SassArgumentList;
 
         var callableNode = _callableNode!;
-        var invocation = ArgumentInvocation(
-          [],
-          {},
-          callableNode.span,
-          rest: ValueExpression(args, callableNode.span),
-        );
+        var invocation = ArgumentInvocation([], {}, callableNode.span,
+            rest: ValueExpression(args, callableNode.span),
+            keywordRest: args.keywords.isEmpty
+                ? null
+                : ValueExpression(
+                    SassMap({
+                      for (var (name, value) in args.keywords.pairs)
+                        SassString(name, quotes: false): value
+                    }),
+                    callableNode.span));
 
         if (function is SassString) {
           warnForDeprecation(
@@ -549,18 +553,22 @@ final class _EvaluateVisitor
         );
 
         var callable = mixin.assertMixin("mixin").callable;
+        var content = _environment.content;
+
         switch (callable) {
-          case AsyncBuiltInCallable() when _environment.content != null:
+          case AsyncBuiltInCallable(acceptsContent: false) when content != null:
             throw _exception(
                 "Mixin doesn't accept a content block.", callableNode.span);
 
           case AsyncBuiltInCallable():
-            await _runBuiltInCallable(invocation, callable, callableNode);
+            await _environment.withContent(content, () async {
+              await _runBuiltInCallable(invocation, callable, callableNode);
+            });
 
           case UserDefinedCallable<AsyncEnvironment>(
                 declaration: MixinRule(hasContent: false)
               )
-              when _environment.content != null:
+              when content != null:
             throw MultiSpanSassRuntimeException(
                 "Mixin doesn't accept a content block.",
                 callableNode.span,
@@ -571,11 +579,13 @@ final class _EvaluateVisitor
           case UserDefinedCallable<AsyncEnvironment>():
             _runUserDefinedCallable(invocation, callable, callableNode,
                 () async {
-              _environment.asMixin(() async {
-                for (var statement in callable.declaration.children) {
-                  await _addErrorSpan(
-                      callableNode, () => statement.accept(this));
-                }
+              await _environment.withContent(content, () async {
+                _environment.asMixin(() async {
+                  for (var statement in callable.declaration.children) {
+                    await _addErrorSpan(
+                        callableNode, () => statement.accept(this));
+                  }
+                });
               });
             });
 
@@ -584,7 +594,7 @@ final class _EvaluateVisitor
                 "The mixin ${callable.name} is asynchronous.\n"
                 "This is probably caused by a bug in a Sass plugin.");
         }
-      }, url: "sass:meta"),
+      }, url: "sass:meta", acceptsContent: true),
     ];
 
     var metaModule = BuiltInModule("meta",
@@ -1804,15 +1814,24 @@ final class _EvaluateVisitor
     var nodeWithSpan = AstNode.fake(() => node.spanWithoutContent);
     var mixin = _addExceptionSpan(node,
         () => _environment.getMixin(node.name, namespace: node.namespace));
+    var contentCallable = node.content.andThen((content) => UserDefinedCallable(
+        content, _environment.closure(),
+        inDependency: _inDependency));
+
     switch (mixin) {
       case null:
         throw _exception("Undefined mixin.", node.span);
 
-      case AsyncBuiltInCallable() when node.content != null:
+      case AsyncBuiltInCallable(acceptsContent: false)
+          when node.content != null:
         throw _exception("Mixin doesn't accept a content block.", node.span);
 
       case AsyncBuiltInCallable():
-        await _runBuiltInCallable(node.arguments, mixin, nodeWithSpan);
+        await _environment.withContent(contentCallable, () async {
+          await _environment.asMixin(() async {
+            await _runBuiltInCallable(node.arguments, mixin, nodeWithSpan);
+          });
+        });
 
       case UserDefinedCallable<AsyncEnvironment>(
             declaration: MixinRule(hasContent: false)
@@ -1826,9 +1845,6 @@ final class _EvaluateVisitor
             _stackTrace(node.spanWithoutContent));
 
       case UserDefinedCallable<AsyncEnvironment>():
-        var contentCallable = node.content.andThen((content) =>
-            UserDefinedCallable(content, _environment.closure(),
-                inDependency: _inDependency));
         await _runUserDefinedCallable(node.arguments, mixin, nodeWithSpan,
             () async {
           await _environment.withContent(contentCallable, () async {
