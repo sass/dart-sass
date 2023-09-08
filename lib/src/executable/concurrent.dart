@@ -7,10 +7,10 @@ import 'dart:math' as math;
 import '../io.dart';
 import '../stylesheet_graph.dart';
 import '../util/map.dart';
-import 'concurrent/shared.dart' as s;
+import 'compile_stylesheet.dart';
 import 'concurrent/vm.dart'
     // Never load the isolate library when compiling to JS.
-    if (dart.library.js) 'concurrent/shared.dart';
+    if (dart.library.js) 'concurrent/js.dart';
 import 'options.dart';
 
 /// Compiles the stylesheets concurrently and returns whether all stylesheets are compiled
@@ -18,21 +18,19 @@ import 'options.dart';
 Future<bool> compileStylesheets(ExecutableOptions options,
     StylesheetGraph graph, Map<String?, String?> sourcesToDestinations,
     {bool ifModified = false}) async {
-  var sourcesToDestinationsPairs = sourcesToDestinations.pairs;
-  var errorsWithStackTraces = sourcesToDestinationsPairs.length == 1
-      ? [
-          await s.compileStylesheetConcurrently(
-              options,
-              graph,
-              sourcesToDestinationsPairs.first.$1,
-              sourcesToDestinationsPairs.first.$2,
+  var errorsWithStackTraces = switch ([...sourcesToDestinations.pairs]) {
+    // Concurrency does add some overhead, so avoid it in the common case of
+    // compiling a single stylesheet.
+    [(var source, var destination)] => [
+        await compileStylesheet(options, graph, source, destination,
+            ifModified: ifModified)
+      ],
+    var pairs => await Future.wait([
+        for (var (source, destination) in pairs)
+          compileStylesheetConcurrently(options, graph, source, destination,
               ifModified: ifModified)
-        ]
-      : await Future.wait([
-          for (var (source, destination) in sourcesToDestinationsPairs)
-            compileStylesheetConcurrently(options, graph, source, destination,
-                ifModified: ifModified)
-        ], eagerError: options.stopOnError);
+      ], eagerError: options.stopOnError)
+  };
 
   var printedError = false;
 

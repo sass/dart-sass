@@ -8,7 +8,7 @@ import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
 import '../options.dart';
 import '../../stylesheet_graph.dart';
-import 'shared.dart' as s;
+import '../compile_stylesheet.dart';
 
 /// Compiles the stylesheet at [source] to [destination].
 ///
@@ -21,13 +21,13 @@ Future<(int, String, String?)?> compileStylesheetConcurrently(
     {bool ifModified = false}) {
   // Reading from stdin does not work properly in dart isolate.
   if (source == null) {
-    return s.compileStylesheetConcurrently(options, graph, source, destination,
+    return compileStylesheet(options, graph, source, destination,
         ifModified: ifModified);
   }
 
   return Isolate.run(() {
     term_glyph.ascii = !options.unicode;
-    return s.compileStylesheetConcurrently(options, graph, source, destination,
+    return compileStylesheet(options, graph, source, destination,
         ifModified: ifModified);
   });
 }

@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 import '../async_import_cache.dart';
 import '../compile.dart';
@@ -30,8 +31,42 @@ import 'options.dart';
 /// If [ifModified] is `true`, only recompiles if [source]'s modification time
 /// or that of a file it imports is more recent than [destination]'s
 /// modification time. Note that these modification times are cached by [graph].
-Future<void> compileStylesheet(ExecutableOptions options, StylesheetGraph graph,
-    String? source, String? destination,
+///
+/// Returns `(exitCode, error, stackTrace)` when an error occurs.
+Future<(int, String, String?)?> compileStylesheet(ExecutableOptions options,
+    StylesheetGraph graph, String? source, String? destination,
+    {bool ifModified = false}) async {
+  try {
+    await _compileStylesheetWithoutErrorHandling(
+        options, graph, source, destination,
+        ifModified: ifModified);
+  } on SassException catch (error, stackTrace) {
+    if (destination != null && !options.emitErrorCss) {
+      _tryDelete(destination);
+    }
+    var message = error.toString(color: options.color);
+
+    // Exit code 65 indicates invalid data per
+    // https://www.freebsd.org/cgi/man.cgi?query=sysexits.
+    return _getErrorWithStackTrace(
+        65, message, options.trace ? getTrace(error) ?? stackTrace : null);
+  } on FileSystemException catch (error, stackTrace) {
+    var path = error.path;
+    var message = path == null
+        ? error.message
+        : "Error reading ${p.relative(path)}: ${error.message}.";
+
+    // Exit code 66 indicates no input.
+    return _getErrorWithStackTrace(
+        66, message, options.trace ? getTrace(error) ?? stackTrace : null);
+  }
+  return null;
+}
+
+/// Like [compileStylesheet], but throws errors instead of handling them
+/// internally.
+Future<void> _compileStylesheetWithoutErrorHandling(ExecutableOptions options,
+    StylesheetGraph graph, String? source, String? destination,
     {bool ifModified = false}) async {
   var importer = FilesystemImporter('.');
   if (ifModified) {
@@ -194,4 +229,27 @@ String _writeSourceMap(
 
   return (options.style == OutputStyle.compressed ? '' : '\n\n') +
       '/*# sourceMappingURL=$escapedUrl */';
+}
+
+/// Delete [path] if it exists and do nothing otherwise.
+///
+/// This is a separate function to work around dart-lang/sdk#53082.
+void _tryDelete(String path) {
+  try {
+    deleteFile(path);
+  } on FileSystemException {
+    // If the file doesn't exist, that's fine.
+  }
+}
+
+/// Return a Record of `(exitCode, error, stackTrace)` for the given error.
+(int, String, String?) _getErrorWithStackTrace(
+    int exitCode, String error, StackTrace? stackTrace) {
+  return (
+    exitCode,
+    error,
+    stackTrace != null
+        ? Trace.from(stackTrace).terse.toString().trimRight()
+        : null
+  );
 }
