@@ -32,8 +32,16 @@ bool get isBrowser => throw '';
 /// sequences.
 bool get supportsAnsiEscapes => throw '';
 
+/// Prints [message] (followed by a newline) to standard output or the
+/// equivalent.
+///
+/// This method is thread-safe.
+void safePrint(Object? message) => throw '';
+
 /// Prints [message] (followed by a newline) to standard error or the
 /// equivalent.
+///
+/// This method is thread-safe.
 void printError(Object? message) => throw '';
 
 /// Reads the file at [path] as a UTF-8 encoded string.

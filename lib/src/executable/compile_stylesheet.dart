@@ -185,7 +185,7 @@ Future<void> _compileStylesheetWithoutErrorHandling(ExecutableOptions options,
   buffer.write('Compiled $sourceName to $destinationName.');
   if (options.color) buffer.write('\u001b[0m');
 
-  print(buffer);
+  safePrint(buffer);
 }
 
 /// Writes the source map given by [mapping] to disk (if necessary) according to

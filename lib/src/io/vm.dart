@@ -37,7 +37,7 @@ bool get supportsAnsiEscapes {
   return io.stdout.supportsAnsiEscapes;
 }
 
-void print(Object? message) {
+void safePrint(Object? message) {
   _threadSafeWriteLn(io.stdout, message);
 }
 
@@ -46,15 +46,12 @@ void printError(Object? message) {
 }
 
 void _threadSafeWriteLn(io.IOSink sink, Object? message) {
-  // For better performance the buffer is mutated.
-  if (message is StringBuffer) {
-    message.writeln();
-    sink.write(message);
-  } else {
-    var buffer = StringBuffer(message.toString());
-    buffer.writeln();
-    sink.write(buffer);
-  }
+  // This does have performance penality of copying buffer
+  // if message is already a StringBuffer.
+  // https://github.com/dart-lang/sdk/issues/53471.
+  var buffer = StringBuffer(message.toString());
+  buffer.writeln();
+  sink.write(buffer);
 }
 
 String readFile(String path) {
