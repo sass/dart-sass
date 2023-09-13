@@ -305,8 +305,8 @@ commands:
 
 ```Dockerfile
 # Dart stage
-FROM dart:stable AS dart
 FROM bufbuild/buf AS buf
+FROM dart:stable AS dart
 
 # Add your scss files
 COPY --from=another_stage /app /app

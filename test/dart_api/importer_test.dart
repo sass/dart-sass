@@ -201,6 +201,61 @@ void main() {
     })));
   });
 
+  group("compileString()'s importer option", () {
+    test("loads relative imports from the entrypoint", () {
+      var css = compileString('@import "orange";',
+          importer: TestImporter((url) => Uri.parse("u:$url"), (url) {
+            var color = url.path;
+            return ImporterResult('.$color {color: $color}', indented: false);
+          }));
+
+      expect(css, equals(".orange {\n  color: orange;\n}"));
+    });
+
+    test("loads imports relative to the entrypoint's URL", () {
+      var css = compileString('@import "baz/qux";',
+          importer: TestImporter((url) => url.resolve("bang"), (url) {
+            return ImporterResult('a {result: "${url.path}"}', indented: false);
+          }),
+          url: Uri.parse("u:foo/bar"));
+
+      expect(css, equals('a {\n  result: "foo/baz/bang";\n}'));
+    });
+
+    test("doesn't load absolute imports", () {
+      var css = compileString('@import "u:orange";',
+          importer: TestImporter((_) => throw "Should not be called",
+              (_) => throw "Should not be called"),
+          importers: [
+            TestImporter((url) => url, (url) {
+              var color = url.path;
+              return ImporterResult('.$color {color: $color}', indented: false);
+            })
+          ]);
+
+      expect(css, equals(".orange {\n  color: orange;\n}"));
+    });
+
+    test("doesn't load from other importers", () {
+      var css = compileString('@import "u:midstream";',
+          importer: TestImporter((_) => throw "Should not be called",
+              (_) => throw "Should not be called"),
+          importers: [
+            TestImporter((url) => url, (url) {
+              if (url.path == "midstream") {
+                return ImporterResult("@import 'orange';", indented: false);
+              } else {
+                var color = url.path;
+                return ImporterResult('.$color {color: $color}',
+                    indented: false);
+              }
+            })
+          ]);
+
+      expect(css, equals(".orange {\n  color: orange;\n}"));
+    });
+  });
+
   group("currentLoadFromImport is", () {
     test("true from an @import", () {
       compileString('@import "foo"', importers: [FromImportImporter(true)]);

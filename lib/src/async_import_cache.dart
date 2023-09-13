@@ -142,7 +142,7 @@ final class AsyncImportCache {
       throw "Custom importers are required to load stylesheets when compiling in the browser.";
     }
 
-    if (baseImporter != null) {
+    if (baseImporter != null && url.scheme == '') {
       var relativeResult = await putIfAbsentAsync(_relativeCanonicalizeCache, (
         url,
         forImport: forImport,
