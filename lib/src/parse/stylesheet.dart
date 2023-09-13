@@ -130,17 +130,6 @@ abstract class StylesheetParser extends Parser {
         return _useRule(start);
       });
 
-  Interpolation parseInterpolatedDeclarationValue(
-          {bool allowEmpty = false,
-          bool allowSemicolon = false,
-          bool allowColon = true}) =>
-      // Don't use [_parseSingleProduction] because we want to allow text after
-      // the value.
-      wrapSpanFormatException(() => _interpolatedDeclarationValue(
-          allowEmpty: allowEmpty,
-          allowSemicolon: allowSemicolon,
-          allowColon: allowColon));
-
   /// Parses and returns [production] as the entire contents of [scanner].
   T _parseSingleProduction<T>(T production()) {
     return wrapSpanFormatException(() {

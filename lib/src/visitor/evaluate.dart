@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 7dbf689b46c5413791593fe03b3b9e0250af71c2
+// Checksum: fe43d438db00381c2ccceaea951bac15806c35a5
 //
 // ignore_for_file: unused_import
 
@@ -47,7 +47,6 @@ import '../logger.dart';
 import '../module.dart';
 import '../module/built_in.dart';
 import '../parse/keyframe_selector.dart';
-import '../parse/scss.dart';
 import '../syntax.dart';
 import '../utils.dart';
 import '../util/character.dart';
@@ -2405,7 +2404,7 @@ final class _EvaluateVisitor
     _checkCalculationArguments(node);
     var arguments = [
       for (var argument in node.arguments.positional)
-        _visitCalculationValue(argument,
+        _visitCalculationExpression(argument,
             inLegacySassFunction: inLegacySassFunction)
     ];
     if (_inSupportsDeclaration) {
@@ -2536,17 +2535,13 @@ final class _EvaluateVisitor
   /// If [inLegacySassFunction] is `true`, this allows unitless numbers to be added and
   /// subtracted with numbers with units, for backwards-compatibility with the
   /// old global `min()`, `max()`, `round()`, and `abs()` functions.
-  Object _visitCalculationValue(Expression node,
+  Object _visitCalculationExpression(Expression node,
       {required bool inLegacySassFunction}) {
     switch (node) {
       case ParenthesizedExpression(expression: var inner):
-        var result = _visitCalculationValue(inner,
+        var result = _visitCalculationExpression(inner,
             inLegacySassFunction: inLegacySassFunction);
-        return result is SassString &&
-                !result.hasQuotes &&
-                (startsWithIgnoreCase(result.text, 'var(') ||
-                    (inner is StringExpression && !inner.text.isPlain) ||
-                    inner is ListExpression)
+        return result is SassString
             ? SassString('(${result.text})', quotes: false)
             : result;
 
@@ -2567,9 +2562,9 @@ final class _EvaluateVisitor
             node,
             () => SassCalculation.operateInternal(
                 _binaryOperatorToCalculationOperator(operator, node),
-                _visitCalculationValue(left,
+                _visitCalculationExpression(left,
                     inLegacySassFunction: inLegacySassFunction),
-                _visitCalculationValue(right,
+                _visitCalculationExpression(right,
                     inLegacySassFunction: inLegacySassFunction),
                 inLegacySassFunction: inLegacySassFunction,
                 simplify: !_inSupportsDeclaration));
@@ -2586,48 +2581,27 @@ final class _EvaluateVisitor
               "Value $result can't be used in a calculation.", node.span)
         };
 
-      case ListExpression() when node.isCalculationSafe:
-        _warn(
-            "Interpolation should only be used in calculations where\n"
-            "values are allowed. This will be an error in Dart Sass 2.0.0.\n"
-            "\n"
-            "More info: https://sass-lang.com/d/calc-interp",
-            node.contents
-                .firstWhere((element) =>
-                    element is StringExpression &&
-                    !element.hasQuotes &&
-                    !element.text.isPlain)
-                .span,
-            Deprecation.calcInterp);
-
-        // This would produce incorrect error locations if it encountered an
-        // error, but that shouldn't be possible since anything that's valid
-        // Sass should also be a valid declaration value.
-        var parser = ScssParser(node.span.file.getText(0),
-            url: node.span.sourceUrl, logger: _logger);
-        parser.scanner.position = node.span.start.offset;
-        var reparsed = parser.parseInterpolatedDeclarationValue();
-        return SassString(_performInterpolation(reparsed), quotes: false);
-
       case ListExpression(
           hasBrackets: false,
           separator: ListSeparator.space,
-          contents: [
-            _,
-            (UnaryOperationExpression(
-                      operator: UnaryOperator.minus || UnaryOperator.plus
-                    ) ||
-                    NumberExpression(value: < 0)) &&
-                var right
-          ]
+          contents: [_, _, ...]
         ):
-        // `calc(1 -2)` parses as a space-separated list whose second value is a
-        // unary operator or a negative number, but just saying it's an invalid
-        // expression doesn't help the user understand what's going wrong. We
-        // add special case error handling to help clarify the issue.
-        throw _exception(
-            '"+" and "-" must be surrounded by whitespace in calculations.',
-            right.span.subspan(0, 1));
+        var elements = [
+          for (var element in node.contents)
+            _visitCalculationExpression(element,
+                inLegacySassFunction: inLegacySassFunction)
+        ];
+
+        _checkAdjacentCalculationValues(elements, node);
+
+        for (var i = 0; i < elements.length; i++) {
+          if (elements[i] is CalculationOperation &&
+              node.contents[i] is ParenthesizedExpression) {
+            elements[i] = SassString("(${elements[i]})", quotes: false);
+          }
+        }
+
+        return SassString(elements.join(' '), quotes: false);
 
       case _:
         assert(!node.isCalculationSafe);
@@ -2674,6 +2648,37 @@ final class _EvaluateVisitor
         _ => throw _exception(
             "This operation can't be used in a calculation.", node.operatorSpan)
       };
+
+  /// Throws an error if [elements] contains two adjacent non-string values.
+  void _checkAdjacentCalculationValues(
+      List<Object> elements, ListExpression node) {
+    assert(elements.length > 1);
+
+    for (var i = 1; i < elements.length; i++) {
+      var previous = elements[i - 1];
+      var next = elements[i];
+      if (previous is SassString || next is SassString) continue;
+
+      var previousNode = node.contents[i - 1];
+      var nextNode = node.contents[i];
+      if (nextNode
+          case UnaryOperationExpression(
+                operator: UnaryOperator.minus || UnaryOperator.plus
+              ) ||
+              NumberExpression(value: < 0)) {
+        // `calc(1 -2)` parses as a space-separated list whose second value is a
+        // unary operator or a negative number, but just saying it's an invalid
+        // expression doesn't help the user understand what's going wrong. We
+        // add special case error handling to help clarify the issue.
+        throw _exception(
+            '"+" and "-" must be surrounded by whitespace in calculations.',
+            nextNode.span.subspan(0, 1));
+      } else {
+        throw _exception(
+            'Missing math operator.', previousNode.span.expand(nextNode.span));
+      }
+    }
+  }
 
   Value visitInterpolatedFunctionExpression(
       InterpolatedFunctionExpression node) {

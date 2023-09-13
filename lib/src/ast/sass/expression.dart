@@ -72,10 +72,8 @@ class _IsCalculationSafeVisitor implements ExpressionVisitor<bool> {
   bool visitListExpression(ListExpression node) =>
       node.separator == ListSeparator.space &&
       !node.hasBrackets &&
-      node.contents.any((expression) =>
-          expression is StringExpression &&
-          !expression.hasQuotes &&
-          !expression.text.isPlain);
+      node.contents.length > 1 &&
+      node.contents.every((expression) => expression.accept(this));
 
   bool visitMapExpression(MapExpression node) => false;
 
