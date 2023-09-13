@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: fe43d438db00381c2ccceaea951bac15806c35a5
+// Checksum: ccd4ec1a65cfc2487fccd30481d427086f5c76cc
 //
 // ignore_for_file: unused_import
 
@@ -2656,12 +2656,12 @@ final class _EvaluateVisitor
 
     for (var i = 1; i < elements.length; i++) {
       var previous = elements[i - 1];
-      var next = elements[i];
-      if (previous is SassString || next is SassString) continue;
+      var current = elements[i];
+      if (previous is SassString || current is SassString) continue;
 
       var previousNode = node.contents[i - 1];
-      var nextNode = node.contents[i];
-      if (nextNode
+      var currentNode = node.contents[i];
+      if (currentNode
           case UnaryOperationExpression(
                 operator: UnaryOperator.minus || UnaryOperator.plus
               ) ||
@@ -2672,10 +2672,10 @@ final class _EvaluateVisitor
         // add special case error handling to help clarify the issue.
         throw _exception(
             '"+" and "-" must be surrounded by whitespace in calculations.',
-            nextNode.span.subspan(0, 1));
+            currentNode.span.subspan(0, 1));
       } else {
-        throw _exception(
-            'Missing math operator.', previousNode.span.expand(nextNode.span));
+        throw _exception('Missing math operator.',
+            previousNode.span.expand(currentNode.span));
       }
     }
   }
