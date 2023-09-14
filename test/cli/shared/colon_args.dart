@@ -97,7 +97,6 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await sass.shouldExit(65);
 
     await d.file("out1.css", contains(message)).validate();
-    await d.nothing("out2.css").validate();
   });
 
   group("with a directory argument", () {

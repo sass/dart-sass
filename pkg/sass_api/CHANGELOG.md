@@ -1,3 +1,11 @@
+## 9.0.0
+
+* Remove the `CalculationExpression` class and the associated visitor methods.
+
+* Add an `AstSearchVisitor` helper class.
+
+* Add an `Interpolation.isPlain` getter.
+
 ## 8.2.1
 
 * No user-visible changes.

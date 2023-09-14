@@ -12,6 +12,8 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:sass/sass.dart';
 import 'package:sass/src/exception.dart';
 
+import 'dart_api/test_importer.dart';
+
 void main() {
   // TODO(nweiz): test SASS_PATH when dart-lang/sdk#28160 is fixed.
 
@@ -139,8 +141,9 @@ void main() {
       expect(css, equals("a {\n  b: from-relative;\n}"));
     });
 
-    test("the original importer takes precedence over other importers",
-        () async {
+    test(
+        "the original importer takes precedence over other importers for "
+        "relative imports", () async {
       await d.dir(
           "original", [d.file("other.scss", "a {b: from-original}")]).create();
       await d
@@ -151,6 +154,21 @@ void main() {
           url: p.toUri(d.path('original/test.scss')),
           importers: [FilesystemImporter(d.path('other'))]);
       expect(css, equals("a {\n  b: from-original;\n}"));
+    });
+
+    test("importer order is preserved for absolute imports", () {
+      var css = compileString('@import "second:other";', importers: [
+        TestImporter((url) => url.scheme == 'first' ? url : null,
+            (url) => ImporterResult('a {from: first}', indented: false)),
+        // This importer should only be invoked once, because when the
+        // "first:other" import is resolved it should be passed to the first
+        // importer first despite being in the second importer's file.
+        TestImporter(
+            expectAsync1((url) => url.scheme == 'second' ? url : null,
+                count: 1),
+            (url) => ImporterResult('@import "first:other";', indented: false)),
+      ]);
+      expect(css, equals("a {\n  from: first;\n}"));
     });
 
     test("importers take precedence over load paths", () async {

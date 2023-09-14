@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: a195d5b1947bfcb7a76679a8d77c3a6fb040adf8
+// Checksum: 321f5ab63cade7d65c715f19548899528480e436
 //
 // ignore_for_file: unused_import
 
@@ -49,6 +49,7 @@ import '../module/built_in.dart';
 import '../parse/keyframe_selector.dart';
 import '../syntax.dart';
 import '../utils.dart';
+import '../util/character.dart';
 import '../util/map.dart';
 import '../util/multi_span.dart';
 import '../util/nullable.dart';
@@ -451,10 +452,14 @@ final class _EvaluateVisitor
           return SassFunction(PlainCssCallable(name.text));
         }
 
-        var callable = _addExceptionSpan(
-            _callableNode!,
-            () => _getFunction(name.text.replaceAll("_", "-"),
-                namespace: module?.text));
+        var callable = _addExceptionSpan(_callableNode!, () {
+          var normalizedName = name.text.replaceAll("_", "-");
+          var namespace = module?.text;
+          var local =
+              _environment.getFunction(normalizedName, namespace: namespace);
+          if (local != null || namespace != null) return local;
+          return _builtInFunctions[normalizedName];
+        });
         if (callable == null) throw "Function not found: $name";
 
         return SassFunction(callable);
@@ -2246,6 +2251,13 @@ final class _EvaluateVisitor
   // ## Expressions
 
   Value visitBinaryOperationExpression(BinaryOperationExpression node) {
+    if (_stylesheet.plainCss &&
+        node.operator != BinaryOperator.singleEquals &&
+        node.operator != BinaryOperator.dividedBy) {
+      throw _exception(
+          "Operators aren't allowed in plain CSS.", node.operatorSpan);
+    }
+
     return _addExceptionSpan(node, () {
       var left = node.left.accept(this);
       return switch (node.operator) {
@@ -2276,7 +2288,10 @@ final class _EvaluateVisitor
   Value _slash(Value left, Value right, BinaryOperationExpression node) {
     var result = left.dividedBy(right);
     switch ((left, right)) {
-      case (SassNumber left, SassNumber right) when node.allowsSlash:
+      case (SassNumber left, SassNumber right)
+          when node.allowsSlash &&
+              _operandAllowsSlash(node.left) &&
+              _operandAllowsSlash(node.right):
         return (result as SassNumber).withSlash(left, right);
 
       case (SassNumber(), SassNumber()):
@@ -2308,6 +2323,20 @@ final class _EvaluateVisitor
         return result;
     }
   }
+
+  /// Returns whether [node] can be used as a component of a slash-separated
+  /// number.
+  ///
+  /// Although this logic is mostly resolved at parse-time, we can't tell
+  /// whether operands will be evaluated as calculations until evaluation-time.
+  bool _operandAllowsSlash(Expression node) =>
+      node is! FunctionExpression ||
+      (node.namespace == null &&
+          const {
+            "calc", "clamp", "hypot", "sin", "cos", "tan", "asin", "acos", //
+            "atan", "sqrt", "exp", "sign", "mod", "rem", "atan2", "pow", "log"
+          }.contains(node.name.toLowerCase()) &&
+          _environment.getFunction(node.name) == null);
 
   Value visitValueExpression(ValueExpression node) => node.value;
 
@@ -2352,23 +2381,140 @@ final class _EvaluateVisitor
       SassNumber(node.value, node.unit);
 
   Value visitParenthesizedExpression(ParenthesizedExpression node) =>
-      node.expression.accept(this);
+      _stylesheet.plainCss
+          ? throw _exception(
+              "Parentheses aren't allowed in plain CSS.", node.span)
+          : node.expression.accept(this);
 
-  Value visitCalculationExpression(CalculationExpression node) {
+  SassColor visitColorExpression(ColorExpression node) => node.value;
+
+  SassList visitListExpression(ListExpression node) => SassList(
+      node.contents.map((Expression expression) => expression.accept(this)),
+      node.separator,
+      brackets: node.hasBrackets);
+
+  SassMap visitMapExpression(MapExpression node) {
+    var map = <Value, Value>{};
+    var keyNodes = <Value, AstNode>{};
+    for (var (key, value) in node.pairs) {
+      var keyValue = key.accept(this);
+      var valueValue = value.accept(this);
+
+      if (map.containsKey(keyValue)) {
+        var oldValueSpan = keyNodes[keyValue]?.span;
+        throw MultiSpanSassRuntimeException(
+            'Duplicate key.',
+            key.span,
+            'second key',
+            {if (oldValueSpan != null) oldValueSpan: 'first key'},
+            _stackTrace(key.span));
+      }
+      map[keyValue] = valueValue;
+      keyNodes[keyValue] = key;
+    }
+    return SassMap(map);
+  }
+
+  Value visitFunctionExpression(FunctionExpression node) {
+    var function = _stylesheet.plainCss
+        ? null
+        : _addExceptionSpan(
+            node,
+            () =>
+                _environment.getFunction(node.name, namespace: node.namespace));
+    if (function == null) {
+      if (node.namespace != null) {
+        throw _exception("Undefined function.", node.span);
+      }
+
+      switch (node.name.toLowerCase()) {
+        case "min" || "max" || "round" || "abs"
+            when node.arguments.named.isEmpty &&
+                node.arguments.rest == null &&
+                node.arguments.positional
+                    .every((argument) => argument.isCalculationSafe):
+          return _visitCalculation(node, inLegacySassFunction: true);
+
+        case "calc" ||
+              "clamp" ||
+              "hypot" ||
+              "sin" ||
+              "cos" ||
+              "tan" ||
+              "asin" ||
+              "acos" ||
+              "atan" ||
+              "sqrt" ||
+              "exp" ||
+              "sign" ||
+              "mod" ||
+              "rem" ||
+              "atan2" ||
+              "pow" ||
+              "log":
+          return _visitCalculation(node);
+      }
+
+      function = (_stylesheet.plainCss ? null : _builtInFunctions[node.name]) ??
+          PlainCssCallable(node.originalName);
+    }
+
+    var oldInFunction = _inFunction;
+    _inFunction = true;
+    var result = _addErrorSpan(
+        node, () => _runFunctionCallable(node.arguments, function, node));
+    _inFunction = oldInFunction;
+    return result;
+  }
+
+  Value _visitCalculation(FunctionExpression node,
+      {bool inLegacySassFunction = false}) {
+    if (node.arguments.named.isNotEmpty) {
+      throw _exception(
+          "Keyword arguments can't be used with calculations.", node.span);
+    } else if (node.arguments.rest != null) {
+      throw _exception(
+          "Rest arguments can't be used with calculations.", node.span);
+    }
+
+    _checkCalculationArguments(node);
     var arguments = [
-      for (var argument in node.arguments)
-        _visitCalculationValue(argument,
-            inMinMax: node.name == 'min' || node.name == 'max')
+      for (var argument in node.arguments.positional)
+        _visitCalculationExpression(argument,
+            inLegacySassFunction: inLegacySassFunction)
     ];
     if (_inSupportsDeclaration) {
       return SassCalculation.unsimplified(node.name, arguments);
     }
 
     try {
-      return switch (node.name) {
+      return switch (node.name.toLowerCase()) {
         "calc" => SassCalculation.calc(arguments[0]),
+        "sqrt" => SassCalculation.sqrt(arguments[0]),
+        "sin" => SassCalculation.sin(arguments[0]),
+        "cos" => SassCalculation.cos(arguments[0]),
+        "tan" => SassCalculation.tan(arguments[0]),
+        "asin" => SassCalculation.asin(arguments[0]),
+        "acos" => SassCalculation.acos(arguments[0]),
+        "atan" => SassCalculation.atan(arguments[0]),
+        "abs" => SassCalculation.abs(arguments[0]),
+        "exp" => SassCalculation.exp(arguments[0]),
+        "sign" => SassCalculation.sign(arguments[0]),
         "min" => SassCalculation.min(arguments),
         "max" => SassCalculation.max(arguments),
+        "hypot" => SassCalculation.hypot(arguments),
+        "pow" =>
+          SassCalculation.pow(arguments[0], arguments.elementAtOrNull(1)),
+        "atan2" =>
+          SassCalculation.atan2(arguments[0], arguments.elementAtOrNull(1)),
+        "log" =>
+          SassCalculation.log(arguments[0], arguments.elementAtOrNull(1)),
+        "mod" =>
+          SassCalculation.mod(arguments[0], arguments.elementAtOrNull(1)),
+        "rem" =>
+          SassCalculation.rem(arguments[0], arguments.elementAtOrNull(1)),
+        "round" => SassCalculation.round(arguments[0],
+            arguments.elementAtOrNull(1), arguments.elementAtOrNull(2)),
         "clamp" => SassCalculation.clamp(arguments[0],
             arguments.elementAtOrNull(1), arguments.elementAtOrNull(2)),
         _ => throw UnsupportedError('Unknown calculation name "${node.name}".')
@@ -2377,8 +2523,51 @@ final class _EvaluateVisitor
       // The simplification logic in the [SassCalculation] static methods will
       // throw an error if the arguments aren't compatible, but we have access
       // to the original spans so we can throw a more informative error.
-      _verifyCompatibleNumbers(arguments, node.arguments);
+      if (error.message.contains("compatible")) {
+        _verifyCompatibleNumbers(arguments, node.arguments.positional);
+      }
       throwWithTrace(_exception(error.message, node.span), error, stackTrace);
+    }
+  }
+
+  /// Verifies that the calculation [node] has the correct number of arguments.
+  void _checkCalculationArguments(FunctionExpression node) {
+    void check([int? maxArgs]) {
+      if (node.arguments.positional.isEmpty) {
+        throw _exception("Missing argument.", node.span);
+      } else if (maxArgs != null &&
+          node.arguments.positional.length > maxArgs) {
+        throw _exception(
+            "Only $maxArgs ${pluralize('argument', maxArgs)} allowed, but "
+                    "${node.arguments.positional.length} " +
+                pluralize('was', node.arguments.positional.length,
+                    plural: 'were') +
+                " passed.",
+            node.span);
+      }
+    }
+
+    switch (node.name.toLowerCase()) {
+      case "calc" ||
+            "sqrt" ||
+            "sin" ||
+            "cos" ||
+            "tan" ||
+            "asin" ||
+            "acos" ||
+            "atan" ||
+            "abs" ||
+            "exp" ||
+            "sign":
+        check(1);
+      case "min" || "max" || "hypot":
+        check();
+      case "pow" || "atan2" || "log" || "mod" || "rem":
+        check(2);
+      case "round" || "clamp":
+        check(3);
+      case _:
+        throw UnsupportedError('Unknown calculation name "${node.name}".');
     }
   }
 
@@ -2419,54 +2608,47 @@ final class _EvaluateVisitor
 
   /// Evaluates [node] as a component of a calculation.
   ///
-  /// If [inMinMax] is `true`, this allows unitless numbers to be added and
+  /// If [inLegacySassFunction] is `true`, this allows unitless numbers to be added and
   /// subtracted with numbers with units, for backwards-compatibility with the
-  /// old global `min()` and `max()` functions.
-  Object _visitCalculationValue(Expression node, {required bool inMinMax}) {
+  /// old global `min()`, `max()`, `round()`, and `abs()` functions.
+  Object _visitCalculationExpression(Expression node,
+      {required bool inLegacySassFunction}) {
     switch (node) {
       case ParenthesizedExpression(expression: var inner):
-        var result = _visitCalculationValue(inner, inMinMax: inMinMax);
-        return inner is FunctionExpression &&
-                inner.name.toLowerCase() == 'var' &&
-                result is SassString &&
-                !result.hasQuotes
+        var result = _visitCalculationExpression(inner,
+            inLegacySassFunction: inLegacySassFunction);
+        return result is SassString
             ? SassString('(${result.text})', quotes: false)
             : result;
 
-      case StringExpression(text: Interpolation(asPlain: var text?)):
+      case StringExpression() when node.isCalculationSafe:
         assert(!node.hasQuotes);
-        return switch (text.toLowerCase()) {
+        return switch (node.text.asPlain?.toLowerCase()) {
           'pi' => SassNumber(math.pi),
           'e' => SassNumber(math.e),
           'infinity' => SassNumber(double.infinity),
           '-infinity' => SassNumber(double.negativeInfinity),
           'nan' => SassNumber(double.nan),
-          _ => SassString(text, quotes: false)
+          _ => SassString(_performInterpolation(node.text), quotes: false)
         };
 
-      // If there's actual interpolation, create a CalculationInterpolation.
-      // Otherwise, create an UnquotedString. The main difference is that
-      // UnquotedStrings don't get extra defensive parentheses.
-      case StringExpression():
-        assert(!node.hasQuotes);
-        return CalculationInterpolation(_performInterpolation(node.text));
-
       case BinaryOperationExpression(:var operator, :var left, :var right):
+        _checkWhitespaceAroundCalculationOperator(node);
         return _addExceptionSpan(
             node,
             () => SassCalculation.operateInternal(
-                _binaryOperatorToCalculationOperator(operator),
-                _visitCalculationValue(left, inMinMax: inMinMax),
-                _visitCalculationValue(right, inMinMax: inMinMax),
-                inMinMax: inMinMax,
+                _binaryOperatorToCalculationOperator(operator, node),
+                _visitCalculationExpression(left,
+                    inLegacySassFunction: inLegacySassFunction),
+                _visitCalculationExpression(right,
+                    inLegacySassFunction: inLegacySassFunction),
+                inLegacySassFunction: inLegacySassFunction,
                 simplify: !_inSupportsDeclaration));
 
-      case _:
-        assert(node is NumberExpression ||
-            node is CalculationExpression ||
-            node is VariableExpression ||
-            node is FunctionExpression ||
-            node is IfExpression);
+      case NumberExpression() ||
+            VariableExpression() ||
+            FunctionExpression() ||
+            IfExpression():
         return switch (node.accept(this)) {
           SassNumber result => result,
           SassCalculation result => result,
@@ -2474,68 +2656,104 @@ final class _EvaluateVisitor
           var result => throw _exception(
               "Value $result can't be used in a calculation.", node.span)
         };
+
+      case ListExpression(
+          hasBrackets: false,
+          separator: ListSeparator.space,
+          contents: [_, _, ...]
+        ):
+        var elements = [
+          for (var element in node.contents)
+            _visitCalculationExpression(element,
+                inLegacySassFunction: inLegacySassFunction)
+        ];
+
+        _checkAdjacentCalculationValues(elements, node);
+
+        for (var i = 0; i < elements.length; i++) {
+          if (elements[i] is CalculationOperation &&
+              node.contents[i] is ParenthesizedExpression) {
+            elements[i] = SassString("(${elements[i]})", quotes: false);
+          }
+        }
+
+        return SassString(elements.join(' '), quotes: false);
+
+      case _:
+        assert(!node.isCalculationSafe);
+        throw _exception(
+            "This expression can't be used in a calculation.", node.span);
+    }
+  }
+
+  /// Throws an error if [node] requires whitespace around its operator in a
+  /// calculation but doesn't have it.
+  void _checkWhitespaceAroundCalculationOperator(
+      BinaryOperationExpression node) {
+    if (node.operator != BinaryOperator.plus &&
+        node.operator != BinaryOperator.minus) {
+      return;
+    }
+
+    // We _should_ never be able to violate these conditions since we always
+    // parse binary operations from a single file, but it's better to be safe
+    // than have this crash bizarrely.
+    if (node.left.span.file != node.right.span.file) return;
+    if (node.left.span.end.offset >= node.right.span.start.offset) return;
+
+    var textBetweenOperands = node.left.span.file
+        .getText(node.left.span.end.offset, node.right.span.start.offset);
+    var first = textBetweenOperands.codeUnitAt(0);
+    var last = textBetweenOperands.codeUnitAt(textBetweenOperands.length - 1);
+    if (!(first.isWhitespace || first == $slash) ||
+        !(last.isWhitespace || last == $slash)) {
+      throw _exception(
+          '"+" and "-" must be surrounded by whitespace in calculations.',
+          node.operatorSpan);
     }
   }
 
   /// Returns the [CalculationOperator] that corresponds to [operator].
   CalculationOperator _binaryOperatorToCalculationOperator(
-          BinaryOperator operator) =>
+          BinaryOperator operator, BinaryOperationExpression node) =>
       switch (operator) {
         BinaryOperator.plus => CalculationOperator.plus,
         BinaryOperator.minus => CalculationOperator.minus,
         BinaryOperator.times => CalculationOperator.times,
         BinaryOperator.dividedBy => CalculationOperator.dividedBy,
-        _ => throw UnsupportedError("Invalid calculation operator $operator.")
+        _ => throw _exception(
+            "This operation can't be used in a calculation.", node.operatorSpan)
       };
 
-  SassColor visitColorExpression(ColorExpression node) => node.value;
+  /// Throws an error if [elements] contains two adjacent non-string values.
+  void _checkAdjacentCalculationValues(
+      List<Object> elements, ListExpression node) {
+    assert(elements.length > 1);
 
-  SassList visitListExpression(ListExpression node) => SassList(
-      node.contents.map((Expression expression) => expression.accept(this)),
-      node.separator,
-      brackets: node.hasBrackets);
+    for (var i = 1; i < elements.length; i++) {
+      var previous = elements[i - 1];
+      var current = elements[i];
+      if (previous is SassString || current is SassString) continue;
 
-  SassMap visitMapExpression(MapExpression node) {
-    var map = <Value, Value>{};
-    var keyNodes = <Value, AstNode>{};
-    for (var (key, value) in node.pairs) {
-      var keyValue = key.accept(this);
-      var valueValue = value.accept(this);
-
-      var oldValue = map[keyValue];
-      if (oldValue != null) {
-        var oldValueSpan = keyNodes[keyValue]?.span;
-        throw MultiSpanSassRuntimeException(
-            'Duplicate key.',
-            key.span,
-            'second key',
-            {if (oldValueSpan != null) oldValueSpan: 'first key'},
-            _stackTrace(key.span));
+      var previousNode = node.contents[i - 1];
+      var currentNode = node.contents[i];
+      if (currentNode
+          case UnaryOperationExpression(
+                operator: UnaryOperator.minus || UnaryOperator.plus
+              ) ||
+              NumberExpression(value: < 0)) {
+        // `calc(1 -2)` parses as a space-separated list whose second value is a
+        // unary operator or a negative number, but just saying it's an invalid
+        // expression doesn't help the user understand what's going wrong. We
+        // add special case error handling to help clarify the issue.
+        throw _exception(
+            '"+" and "-" must be surrounded by whitespace in calculations.',
+            currentNode.span.subspan(0, 1));
+      } else {
+        throw _exception('Missing math operator.',
+            previousNode.span.expand(currentNode.span));
       }
-      map[keyValue] = valueValue;
-      keyNodes[keyValue] = key;
     }
-    return SassMap(map);
-  }
-
-  Value visitFunctionExpression(FunctionExpression node) {
-    var function = _addExceptionSpan(
-        node, () => _getFunction(node.name, namespace: node.namespace));
-
-    if (function == null) {
-      if (node.namespace != null) {
-        throw _exception("Undefined function.", node.span);
-      }
-
-      function = PlainCssCallable(node.originalName);
-    }
-
-    var oldInFunction = _inFunction;
-    _inFunction = true;
-    var result = _addErrorSpan(
-        node, () => _runFunctionCallable(node.arguments, function, node));
-    _inFunction = oldInFunction;
-    return result;
   }
 
   Value visitInterpolatedFunctionExpression(
@@ -2547,14 +2765,6 @@ final class _EvaluateVisitor
         node, () => _runFunctionCallable(node.arguments, function, node));
     _inFunction = oldInFunction;
     return result;
-  }
-
-  /// Like `_environment.getFunction`, but also returns built-in
-  /// globally-available functions.
-  Callable? _getFunction(String name, {String? namespace}) {
-    var local = _environment.getFunction(name, namespace: namespace);
-    if (local != null || namespace != null) return local;
-    return _builtInFunctions[name];
   }
 
   /// Evaluates the arguments in [arguments] as applied to [callable], and
