@@ -8,9 +8,8 @@ import '../value.dart';
 import 'dispatcher.dart';
 import 'embedded_sass.pb.dart' as proto;
 import 'embedded_sass.pb.dart' hide Value, ListSeparator, CalculationOperator;
-import 'function_registry.dart';
-import 'mixin_registry.dart';
 import 'host_callable.dart';
+import 'opaque_registry.dart';
 import 'utils.dart';
 
 /// A class that converts Sass [Value] objects into [Value] protobufs.
@@ -22,10 +21,10 @@ final class Protofier {
   final Dispatcher _dispatcher;
 
   /// The IDs of first-class functions.
-  final FunctionRegistry _functions;
+  final OpaqueRegistry<SassFunction> _functions;
 
   /// The IDs of first-class mixins.
-  final MixinRegistry _mixins;
+  final OpaqueRegistry<SassMixin> _mixins;
 
   /// Any argument lists transitively contained in [value].
   ///
@@ -91,9 +90,10 @@ final class Protofier {
       case SassCalculation():
         result.calculation = _protofyCalculation(value);
       case SassFunction():
-        result.compilerFunction = _functions.protofy(value);
+        result.compilerFunction =
+            Value_CompilerFunction(id: _functions.protofy(value));
       case SassMixin():
-        result.compilerMixin = _mixins.protofy(value);
+        result.compilerMixin = Value_CompilerMixin(id: _mixins.protofy(value));
       case sassTrue:
         result.singleton = SingletonValue.TRUE;
       case sassFalse:
