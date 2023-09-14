@@ -21,6 +21,9 @@ class SassMixin extends Value {
   /// Note that this is typed as an [AsyncCallable] so that it will work with
   /// both synchronous and asynchronous evaluate visitors, but in practice the
   /// synchronous evaluate visitor will crash if this isn't a [Callable].
+  ///
+  /// @nodoc
+  @internal
   final AsyncCallable callable;
 
   SassMixin(this.callable);

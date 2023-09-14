@@ -26,7 +26,9 @@ class AsyncBuiltInCallable implements AsyncCallable {
   /// The callback to run when executing this callable.
   final Callback _callback;
 
-  /// Whether this callback could potentially accept an `@content` block.
+  /// Whether this callable could potentially accept an `@content` block.
+  ///
+  /// This can only be true for mixins.
   final bool acceptsContent;
 
   /// Creates a function with a single [arguments] declaration and a single

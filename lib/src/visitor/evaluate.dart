@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 247a61eb8ef7396fdf0f6082e113cf49e2706e3c
+// Checksum: a195d5b1947bfcb7a76679a8d77c3a6fb040adf8
 //
 // ignore_for_file: unused_import
 
@@ -551,8 +551,8 @@ final class _EvaluateVisitor
 
         var callableNode = _callableNode!;
         var invocation = ArgumentInvocation(
-          [],
-          {},
+          const [],
+          const {},
           callableNode.span,
           rest: ValueExpression(args, callableNode.span),
         );
@@ -560,42 +560,14 @@ final class _EvaluateVisitor
         var callable = mixin.assertMixin("mixin").callable;
         var content = _environment.content;
 
-        switch (callable) {
-          case BuiltInCallable(acceptsContent: false) when content != null:
-            throw _exception(
-                "Mixin doesn't accept a content block.", callableNode.span);
-
-          case BuiltInCallable():
-            _environment.withContent(content, () {
-              _runBuiltInCallable(invocation, callable, callableNode);
-            });
-
-          case UserDefinedCallable<Environment>(
-                declaration: MixinRule(hasContent: false)
-              )
-              when content != null:
-            throw MultiSpanSassRuntimeException(
-                "Mixin doesn't accept a content block.",
-                callableNode.span,
-                "invocation",
-                {callable.declaration.arguments.spanWithName: "declaration"},
-                _stackTrace(callableNode.span));
-
-          case UserDefinedCallable<Environment>():
-            _runUserDefinedCallable(invocation, callable, callableNode, () {
-              _environment.withContent(content, () {
-                _environment.asMixin(() {
-                  for (var statement in callable.declaration.children) {
-                    _addErrorSpan(callableNode, () => statement.accept(this));
-                  }
-                });
-              });
-            });
-
-          case _:
-            throw SassScriptException(
-                "The mixin ${callable.name} is asynchronous.\n"
-                "This is probably caused by a bug in a Sass plugin.");
+        // ignore: unnecessary_type_check
+        if (callable is Callable) {
+          _applyMixin(callable, content, invocation, callableNode.span,
+              callableNode.span);
+        } else {
+          throw SassScriptException(
+              "The mixin ${callable.name} is asynchronous.\n"
+              "This is probably caused by a bug in a Sass plugin.");
         }
       }, url: "sass:meta", acceptsContent: true),
     ];
@@ -1805,41 +1777,49 @@ final class _EvaluateVisitor
     }
   }
 
-  Value? visitIncludeRule(IncludeRule node) {
-    var nodeWithSpan = AstNode.fake(() => node.spanWithoutContent);
-    var mixin = _addExceptionSpan(node,
-        () => _environment.getMixin(node.name, namespace: node.namespace));
-    var contentCallable = node.content.andThen((content) => UserDefinedCallable(
-        content, _environment.closure(),
-        inDependency: _inDependency));
-
+  void _applyMixin(
+      Callable? mixin,
+      UserDefinedCallable<Environment>? contentCallable,
+      ArgumentInvocation arguments,
+      FileSpan span,
+      FileSpan spanWithoutContent) {
+    var nodeWithSpan = AstNode.fake(() => spanWithoutContent);
     switch (mixin) {
       case null:
-        throw _exception("Undefined mixin.", node.span);
+        throw _exception("Undefined mixin.", span);
 
-      case BuiltInCallable(acceptsContent: false) when node.content != null:
-        throw _exception("Mixin doesn't accept a content block.", node.span);
-
+      case BuiltInCallable(acceptsContent: false) when contentCallable != null:
+        {
+          var evaluated = _evaluateArguments(arguments);
+          var (overload, _) = mixin.callbackFor(
+              evaluated.positional.length, MapKeySet(evaluated.named));
+          throw MultiSpanSassRuntimeException(
+              "Mixin doesn't accept a content block.",
+              spanWithoutContent,
+              "invocation",
+              {overload.spanWithName: "declaration"},
+              _stackTrace(spanWithoutContent));
+        }
       case BuiltInCallable():
         _environment.withContent(contentCallable, () {
           _environment.asMixin(() {
-            _runBuiltInCallable(node.arguments, mixin, nodeWithSpan);
+            _runBuiltInCallable(arguments, mixin, nodeWithSpan);
           });
         });
 
       case UserDefinedCallable<Environment>(
             declaration: MixinRule(hasContent: false)
           )
-          when node.content != null:
+          when contentCallable != null:
         throw MultiSpanSassRuntimeException(
             "Mixin doesn't accept a content block.",
-            node.spanWithoutContent,
+            spanWithoutContent,
             "invocation",
             {mixin.declaration.arguments.spanWithName: "declaration"},
-            _stackTrace(node.spanWithoutContent));
+            _stackTrace(spanWithoutContent));
 
       case UserDefinedCallable<Environment>():
-        _runUserDefinedCallable(node.arguments, mixin, nodeWithSpan, () {
+        _runUserDefinedCallable(arguments, mixin, nodeWithSpan, () {
           _environment.withContent(contentCallable, () {
             _environment.asMixin(() {
               for (var statement in mixin.declaration.children) {
@@ -1852,6 +1832,17 @@ final class _EvaluateVisitor
       case _:
         throw UnsupportedError("Unknown callable type $mixin.");
     }
+  }
+
+  Value? visitIncludeRule(IncludeRule node) {
+    var mixin = _addExceptionSpan(node,
+        () => _environment.getMixin(node.name, namespace: node.namespace));
+    var contentCallable = node.content.andThen((content) => UserDefinedCallable(
+        content, _environment.closure(),
+        inDependency: _inDependency));
+
+    _applyMixin(mixin, contentCallable, node.arguments, node.span,
+        node.spanWithoutContent);
 
     return null;
   }

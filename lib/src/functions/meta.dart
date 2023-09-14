@@ -83,7 +83,9 @@ final local = UnmodifiableListView([
   _function("accepts-content", r"$mixin", (arguments) {
     var mixin = arguments[0].assertMixin("mixin");
     return SassBoolean(switch (mixin.callable) {
-      AsyncBuiltInCallable() || BuiltInCallable() => false,
+      AsyncBuiltInCallable(acceptsContent: var acceptsContent) ||
+      BuiltInCallable(acceptsContent: var acceptsContent) =>
+        acceptsContent,
       UserDefinedCallable(declaration: MixinRule(hasContent: var hasContent)) =>
         hasContent,
       _ => throw UnsupportedError("Unknown callable type $mixin.")
