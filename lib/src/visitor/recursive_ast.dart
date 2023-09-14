@@ -33,12 +33,6 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
     super.visitAtRule(node);
   }
 
-  void visitCalculationExpression(CalculationExpression node) {
-    for (var argument in node.arguments) {
-      argument.accept(this);
-    }
-  }
-
   void visitContentRule(ContentRule node) {
     visitArgumentInvocation(node.arguments);
   }
@@ -110,8 +104,6 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
     super.visitMediaRule(node);
   }
 
-  void visitMixinRule(MixinRule node) => visitCallableDeclaration(node);
-
   void visitReturnRule(ReturnRule node) {
     visitExpression(node.expression);
   }
@@ -128,7 +120,7 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
 
   void visitUseRule(UseRule node) {
     for (var variable in node.configuration) {
-      variable.expression.accept(this);
+      visitExpression(variable.expression);
     }
   }
 
@@ -160,7 +152,7 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
 
   void visitForwardRule(ForwardRule node) {
     for (var variable in node.configuration) {
-      variable.expression.accept(this);
+      visitExpression(variable.expression);
     }
   }
 

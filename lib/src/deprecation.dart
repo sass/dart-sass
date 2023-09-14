@@ -69,6 +69,11 @@ enum Deprecation {
       deprecatedIn: '1.62.3',
       description: 'Passing null as alpha in the ${isJS ? 'JS' : 'Dart'} API.'),
 
+  calcInterp('calc-interp',
+      deprecatedIn: '1.67.0',
+      description: 'Using interpolation in a calculation outside a value '
+          'position.'),
+
   /// Deprecation for `@import` rules.
   import.future('import', description: '@import rules.'),
 
