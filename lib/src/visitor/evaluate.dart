@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ccd4ec1a65cfc2487fccd30481d427086f5c76cc
+// Checksum: 7669de19668af665d1a9a60cf67e53e071bf415e
 //
 // ignore_for_file: unused_import
 
@@ -2411,6 +2411,9 @@ final class _EvaluateVisitor
       return SassCalculation.unsimplified(node.name, arguments);
     }
 
+    var oldCallableNode = _callableNode;
+    _callableNode = node;
+
     try {
       return switch (node.name.toLowerCase()) {
         "calc" => SassCalculation.calc(arguments[0]),
@@ -2451,6 +2454,8 @@ final class _EvaluateVisitor
         _verifyCompatibleNumbers(arguments, node.arguments.positional);
       }
       throwWithTrace(_exception(error.message, node.span), error, stackTrace);
+    } finally {
+      _callableNode = oldCallableNode;
     }
   }
 
