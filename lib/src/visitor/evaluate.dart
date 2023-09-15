@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ccd4ec1a65cfc2487fccd30481d427086f5c76cc
+// Checksum: db452638565e552a9310a99bc8573bf038d67d7d
 //
 // ignore_for_file: unused_import
 
@@ -2411,8 +2411,12 @@ final class _EvaluateVisitor
       return SassCalculation.unsimplified(node.name, arguments);
     }
 
+    var oldCallableNode = _callableNode;
+    _callableNode = node;
+
+    Value result;
     try {
-      return switch (node.name.toLowerCase()) {
+      result = switch (node.name.toLowerCase()) {
         "calc" => SassCalculation.calc(arguments[0]),
         "sqrt" => SassCalculation.sqrt(arguments[0]),
         "sin" => SassCalculation.sin(arguments[0]),
@@ -2452,6 +2456,9 @@ final class _EvaluateVisitor
       }
       throwWithTrace(_exception(error.message, node.span), error, stackTrace);
     }
+    _callableNode = oldCallableNode;
+
+    return result;
   }
 
   /// Verifies that the calculation [node] has the correct number of arguments.
