@@ -2434,9 +2434,8 @@ final class _EvaluateVisitor
     var oldCallableNode = _callableNode;
     _callableNode = node;
 
-    Value result;
     try {
-      result = switch (node.name.toLowerCase()) {
+      return switch (node.name.toLowerCase()) {
         "calc" => SassCalculation.calc(arguments[0]),
         "sqrt" => SassCalculation.sqrt(arguments[0]),
         "sin" => SassCalculation.sin(arguments[0]),
@@ -2475,10 +2474,9 @@ final class _EvaluateVisitor
         _verifyCompatibleNumbers(arguments, node.arguments.positional);
       }
       throwWithTrace(_exception(error.message, node.span), error, stackTrace);
+    } finally {
+      _callableNode = oldCallableNode;
     }
-    _callableNode = oldCallableNode;
-
-    return result;
   }
 
   /// Verifies that the calculation [node] has the correct number of arguments.
