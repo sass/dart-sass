@@ -13,18 +13,13 @@
   CSS calculations (including `abs()`, `min()`, `max()`, and `round()` whose
   names overlap with global Sass functions).
 
-* As a consequence of the change in calculation parsing described above,
-  calculation functions containing interpolation are now parsed more strictly
-  than before. However, all interpolations that would have produced valid CSS
-  will continue to work, so this is not considered a breaking change.
-
-* Interpolations in calculation functions that aren't used in a position that
-  could also have a normal calculation value are now deprecated. For example,
-  `calc(1px #{"+ 2px"})` is deprecated, but `calc(1px + #{"2px"})` is still
-  allowed. This deprecation is named `calc-interp`. See [the Sass website] for
-  more information.
-
-  [the Sass website]: https://sass-lang.com/d/calc-interp
+* **Breaking change**: As a consequence of the change in calculation parsing
+  described above, calculation functions containing interpolation are now parsed
+  more strictly than before. However, _almost_ all interpolations that would
+  have produced valid CSS will continue to work. The only exception is
+  `#{$variable}%` which is not valid in Sass and is no longer valid in
+  calculations. Instead of this, either use `$variable` directly and ensure it
+  already has the `%` unit, or write `($variable * 1%)`.
 
 * **Potentially breaking bug fix**: The importer used to load a given file is no
   longer used to load absolute URLs that appear in that file. This was
