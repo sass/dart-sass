@@ -11,6 +11,7 @@ import 'package:node_interop/util.dart';
 import '../../js/importer.dart';
 import '../../js/url.dart';
 import '../../js/utils.dart';
+import '../../util/nullable.dart';
 import '../async.dart';
 import '../filesystem.dart';
 import '../result.dart';
@@ -26,7 +27,7 @@ final _filesystemImporter = FilesystemImporter('.');
 /// it as a Dart [AsyncImporter].
 final class JSToDartAsyncFileImporter extends AsyncImporter {
   /// The wrapped `findFileUrl` function.
-  final Object? Function(String, CanonicalizeOptions) _findFileUrl;
+  final Object? Function(String, CanonicalizeContext) _findFileUrl;
 
   JSToDartAsyncFileImporter(this._findFileUrl);
 
@@ -34,7 +35,10 @@ final class JSToDartAsyncFileImporter extends AsyncImporter {
     if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
 
     var result = wrapJSExceptions(() => _findFileUrl(
-        url.toString(), CanonicalizeOptions(fromImport: fromImport)));
+        url.toString(),
+        CanonicalizeContext(
+            fromImport: fromImport,
+            containingUrl: containingUrl.andThen(dartToJSUrl))));
     if (isPromise(result)) result = await promiseToFuture(result as Promise);
     if (result == null) return null;
     if (!isJSUrl(result)) {
@@ -58,4 +62,6 @@ final class JSToDartAsyncFileImporter extends AsyncImporter {
 
   bool couldCanonicalize(Uri url, Uri canonicalUrl) =>
       _filesystemImporter.couldCanonicalize(url, canonicalUrl);
+
+  bool isNonCanonicalScheme(String scheme) => scheme != 'file';
 }

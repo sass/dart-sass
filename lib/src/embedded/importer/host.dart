@@ -2,7 +2,10 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../../exception.dart';
 import '../../importer.dart';
+import '../../importer/utils.dart';
+import '../../util/span.dart';
 import '../dispatcher.dart';
 import '../embedded_sass.pb.dart' hide SourceSpan;
 import '../utils.dart';
@@ -13,14 +16,31 @@ final class HostImporter extends ImporterBase {
   /// The host-provided ID of the importer to invoke.
   final int _importerId;
 
-  HostImporter(Dispatcher dispatcher, this._importerId) : super(dispatcher);
+  /// The set of URL schemes that this importer promises never to return from
+  /// [canonicalize].
+  final Set<String> _nonCanonicalSchemes;
+
+  HostImporter(Dispatcher dispatcher, this._importerId,
+      Iterable<String> nonCanonicalSchemes)
+      : _nonCanonicalSchemes = Set.unmodifiable(nonCanonicalSchemes),
+        super(dispatcher) {
+    for (var scheme in _nonCanonicalSchemes) {
+      if (isValidUrlScheme(scheme)) continue;
+      throw SassException(
+          '"$scheme" isn\'t a valid URL scheme (for example "file").',
+          bogusSpan);
+    }
+  }
 
   Uri? canonicalize(Uri url) {
-    var response =
-        dispatcher.sendCanonicalizeRequest(OutboundMessage_CanonicalizeRequest()
-          ..importerId = _importerId
-          ..url = url.toString()
-          ..fromImport = fromImport);
+    var request = OutboundMessage_CanonicalizeRequest()
+      ..importerId = _importerId
+      ..url = url.toString()
+      ..fromImport = fromImport;
+    if (containingUrl case var containingUrl?) {
+      request.containingUrl = containingUrl.toString();
+    }
+    var response = dispatcher.sendCanonicalizeRequest(request);
 
     return switch (response.whichResult()) {
       InboundMessage_CanonicalizeResponse_Result.url =>
@@ -46,6 +66,9 @@ final class HostImporter extends ImporterBase {
       InboundMessage_ImportResponse_Result.notSet => null
     };
   }
+
+  bool isNonCanonicalScheme(String scheme) =>
+      _nonCanonicalSchemes.contains(scheme);
 
   String toString() => "HostImporter";
 }
