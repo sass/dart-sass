@@ -1,3 +1,9 @@
+## 1.67.1
+
+### Embedded Sass
+
+* Properly include TypeScript types in the `sass-embedded` package.
+
 ## 1.67.0
 
 * All functions defined in CSS Values and Units 4 are now once again parsed as
