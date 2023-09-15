@@ -1,3 +1,7 @@
+## 1.67.1
+
+* Fix the source spans associated with the `abs-percent` deprecation.
+
 ## 1.67.0
 
 * All functions defined in CSS Values and Units 4 are now once again parsed as
