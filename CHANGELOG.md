@@ -1,6 +1,29 @@
-## 1.67.1
+## 1.68.0
 
 * Fix the source spans associated with the `abs-percent` deprecation.
+
+### JS API
+
+* Non-filesystem importers can now set the `nonCanonicalScheme` field, which
+  declares that one or more URL schemes (without `:`) will never be used for
+  URLs returned by the `canonicalize()` method.
+
+* Add a `containingUrl` field to the `canonicalize()` and `findFileUrl()`
+  methods of importers, which is set to the canonical URL of the stylesheet that
+  contains the current load. For filesystem importers, this is always set; for
+  other importers, it's set only if the current load has no URL scheme, or if
+  its URL scheme is declared as non-canonical by the importer.
+
+### Dart API
+
+* Add `AsyncImporter.isNonCanonicalScheme`, which importers (async or sync) can
+  use to indicate that a certain URL scheme will never be used for URLs returned
+  by the `canonicalize()` method.
+
+* Add `AsyncImporter.containingUrl`, which is set during calls to the
+  `canonicalize()` method to the canonical URL of the stylesheet that contains
+  the current load. This is set only if the current load has no URL scheme, or
+  if its URL scheme is declared as non-canonical by the importer.
 
 ### Embedded Sass
 
