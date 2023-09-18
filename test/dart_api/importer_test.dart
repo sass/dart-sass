@@ -112,6 +112,99 @@ void main() {
     });
   });
 
+  group("the containing URL", () {
+    test("is null for a potentially canonical scheme", () {
+      late TestImporter importer;
+      compileString('@import "u:orange";',
+          importers: [
+            importer = TestImporter(expectAsync1((url) {
+              expect(importer.publicContainingUrl, isNull);
+              return url;
+            }), (_) => ImporterResult('', indented: false))
+          ],
+          url: 'x:original.scss');
+    });
+
+    test("throws an error outside canonicalize", () {
+      late TestImporter importer;
+      compileString('@import "orange";', importers: [
+        importer =
+            TestImporter((url) => Uri.parse("u:$url"), expectAsync1((url) {
+          expect(() => importer.publicContainingUrl, throwsStateError);
+          return ImporterResult('', indented: false);
+        }))
+      ]);
+    });
+
+    group("for a non-canonical scheme", () {
+      test("is set to the original URL", () {
+        late TestImporter importer;
+        compileString('@import "u:orange";',
+            importers: [
+              importer = TestImporter(expectAsync1((url) {
+                expect(importer.publicContainingUrl,
+                    equals(Uri.parse('x:original.scss')));
+                return url.replace(scheme: 'x');
+              }), (_) => ImporterResult('', indented: false),
+                  nonCanonicalSchemes: {'u'})
+            ],
+            url: 'x:original.scss');
+      });
+
+      test("is null if the original URL is null", () {
+        late TestImporter importer;
+        compileString('@import "u:orange";', importers: [
+          importer = TestImporter(expectAsync1((url) {
+            expect(importer.publicContainingUrl, isNull);
+            return url.replace(scheme: 'x');
+          }), (_) => ImporterResult('', indented: false),
+              nonCanonicalSchemes: {'u'})
+        ]);
+      });
+    });
+
+    group("for a schemeless load", () {
+      test("is set to the original URL", () {
+        late TestImporter importer;
+        compileString('@import "orange";',
+            importers: [
+              importer = TestImporter(expectAsync1((url) {
+                expect(importer.publicContainingUrl,
+                    equals(Uri.parse('x:original.scss')));
+                return Uri.parse("u:$url");
+              }), (_) => ImporterResult('', indented: false))
+            ],
+            url: 'x:original.scss');
+      });
+
+      test("is null if the original URL is null", () {
+        late TestImporter importer;
+        compileString('@import "orange";', importers: [
+          importer = TestImporter(expectAsync1((url) {
+            expect(importer.publicContainingUrl, isNull);
+            return Uri.parse("u:$url");
+          }), (_) => ImporterResult('', indented: false))
+        ]);
+      });
+    });
+  });
+
+  test(
+      "throws an error if the importer returns a canonical URL with a "
+      "non-canonical scheme", () {
+    expect(
+        () => compileString('@import "orange";', importers: [
+              TestImporter(expectAsync1((url) => Uri.parse("u:$url")),
+                  (_) => ImporterResult('', indented: false),
+                  nonCanonicalSchemes: {'u'})
+            ]), throwsA(predicate((error) {
+      expect(error, const TypeMatcher<SassException>());
+      expect(error.toString(),
+          contains("uses a scheme declared as non-canonical"));
+      return true;
+    })));
+  });
+
   test("uses an importer's source map URL", () {
     var result = compileStringToResult('@import "orange";',
         importers: [

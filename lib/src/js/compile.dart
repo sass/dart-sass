@@ -184,7 +184,7 @@ OutputStyle _parseOutputStyle(String? style) => switch (style) {
 AsyncImporter _parseAsyncImporter(Object? importer) {
   if (importer == null) jsThrow(JsError("Importers may not be null."));
 
-  importer as NodeImporter;
+  importer as JSImporter;
   var canonicalize = importer.canonicalize;
   var load = importer.load;
   if (importer.findFileUrl case var findFileUrl?) {
@@ -200,7 +200,8 @@ AsyncImporter _parseAsyncImporter(Object? importer) {
         "An importer must have either canonicalize and load methods, or a "
         "findFileUrl method."));
   } else {
-    return JSToDartAsyncImporter(canonicalize, load);
+    return JSToDartAsyncImporter(canonicalize, load,
+        _normalizeNonCanonicalSchemes(importer.nonCanonicalScheme));
   }
 }
 
@@ -208,7 +209,7 @@ AsyncImporter _parseAsyncImporter(Object? importer) {
 Importer _parseImporter(Object? importer) {
   if (importer == null) jsThrow(JsError("Importers may not be null."));
 
-  importer as NodeImporter;
+  importer as JSImporter;
   var canonicalize = importer.canonicalize;
   var load = importer.load;
   if (importer.findFileUrl case var findFileUrl?) {
@@ -224,9 +225,22 @@ Importer _parseImporter(Object? importer) {
         "An importer must have either canonicalize and load methods, or a "
         "findFileUrl method."));
   } else {
-    return JSToDartImporter(canonicalize, load);
+    return JSToDartImporter(canonicalize, load,
+        _normalizeNonCanonicalSchemes(importer.nonCanonicalScheme));
   }
 }
+
+/// Converts a JS-style `nonCanonicalScheme` field into the form expected by
+/// Dart classes.
+List<String>? _normalizeNonCanonicalSchemes(Object? schemes) =>
+    switch (schemes) {
+      String scheme => [scheme],
+      List<dynamic> schemes => schemes.cast<String>(),
+      null => null,
+      _ => jsThrow(
+          JsError('nonCanonicalScheme must be a string or list of strings, was '
+              '"$schemes"'))
+    };
 
 /// Implements the simplification algorithm for custom function return `Value`s.
 /// {@link https://github.com/sass/sass/blob/main/spec/types/calculation.md#simplifying-a-calculationvalue}

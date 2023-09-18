@@ -137,6 +137,7 @@ jobs:
   sass_spec_js_embedded:
     name: 'JS API Tests | Embedded | Node ${{ matrix.node-version }} | ${{ matrix.os }}'
     runs-on: ${{ matrix.os }}-latest
+    if: "github.event_name != 'pull_request' || !contains(github.event.pull_request.body, 'skip sass-embedded')"
 
     strategy:
       fail-fast: false

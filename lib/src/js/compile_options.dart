@@ -30,5 +30,5 @@ class CompileOptions {
 class CompileStringOptions extends CompileOptions {
   external String? get syntax;
   external JSUrl? get url;
-  external NodeImporter? get importer;
+  external JSImporter? get importer;
 }
