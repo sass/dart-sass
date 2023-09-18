@@ -2431,6 +2431,9 @@ final class _EvaluateVisitor
       return SassCalculation.unsimplified(node.name, arguments);
     }
 
+    var oldCallableNode = _callableNode;
+    _callableNode = node;
+
     try {
       return switch (node.name.toLowerCase()) {
         "calc" => SassCalculation.calc(arguments[0]),
@@ -2471,6 +2474,8 @@ final class _EvaluateVisitor
         _verifyCompatibleNumbers(arguments, node.arguments.positional);
       }
       throwWithTrace(_exception(error.message, node.span), error, stackTrace);
+    } finally {
+      _callableNode = oldCallableNode;
     }
   }
 
