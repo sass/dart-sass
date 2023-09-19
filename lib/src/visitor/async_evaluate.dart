@@ -562,7 +562,7 @@ final class _EvaluateVisitor
 
         // ignore: unnecessary_type_check
         if (callable is AsyncCallable) {
-          _applyMixin(callable, content, invocation, callableNode.span,
+          await _applyMixin(callable, content, invocation, callableNode.span,
               callableNode.span);
         } else {
           throw SassScriptException(
@@ -1850,7 +1850,7 @@ final class _EvaluateVisitor
         content, _environment.closure(),
         inDependency: _inDependency));
 
-    _applyMixin(mixin, contentCallable, node.arguments, node.span,
+    await _applyMixin(mixin, contentCallable, node.arguments, node.span,
         node.spanWithoutContent);
 
     return null;
