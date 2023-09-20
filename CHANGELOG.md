@@ -27,6 +27,12 @@
 
 ### Embedded Sass
 
+* The `CalculationValue.interpolation` field is deprecated and will be removed
+  in a future version. It will no longer be set by the compiler, and if the host
+  sets it it will be treated as equivalent to `CalculationValue.string` except
+  that `"("` and `")"` will be added to the beginning and end of the string
+  values.
+
 * Properly include TypeScript types in the `sass-embedded` package.
 
 ## 1.67.0
