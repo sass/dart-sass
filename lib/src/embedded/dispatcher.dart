@@ -209,17 +209,30 @@ final class Dispatcher {
       InboundMessage_CompileRequest_Importer importer) {
     switch (importer.whichImporter()) {
       case InboundMessage_CompileRequest_Importer_Importer.path:
+        _checkNoNonCanonicalScheme(importer);
         return sass.FilesystemImporter(importer.path);
 
       case InboundMessage_CompileRequest_Importer_Importer.importerId:
-        return HostImporter(this, importer.importerId);
+        return HostImporter(
+            this, importer.importerId, importer.nonCanonicalScheme);
 
       case InboundMessage_CompileRequest_Importer_Importer.fileImporterId:
+        _checkNoNonCanonicalScheme(importer);
         return FileImporter(this, importer.fileImporterId);
 
       case InboundMessage_CompileRequest_Importer_Importer.notSet:
+        _checkNoNonCanonicalScheme(importer);
         return null;
     }
+  }
+
+  /// Throws a [ProtocolError] if [importer] contains one or more
+  /// `nonCanonicalScheme`s.
+  void _checkNoNonCanonicalScheme(
+      InboundMessage_CompileRequest_Importer importer) {
+    if (importer.nonCanonicalScheme.isEmpty) return;
+    throw paramsError("Importer.non_canonical_scheme may only be set along "
+        "with Importer.importer.importer_id");
   }
 
   /// Sends [event] to the host.
@@ -281,9 +294,7 @@ final class Dispatcher {
         InboundMessage_Message.versionRequest =>
           throw paramsError("VersionRequest must have compilation ID 0."),
         InboundMessage_Message.notSet =>
-          throw parseError("InboundMessage.message is not set."),
-        _ =>
-          throw parseError("Unknown message type: ${message.toDebugString()}")
+          throw parseError("InboundMessage.message is not set.")
       };
 
       if (message.id != _outboundRequestId) {

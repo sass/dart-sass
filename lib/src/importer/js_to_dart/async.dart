@@ -14,21 +14,35 @@ import '../../js/utils.dart';
 import '../../util/nullable.dart';
 import '../async.dart';
 import '../result.dart';
+import 'utils.dart';
 
 /// A wrapper for a potentially-asynchronous JS API importer that exposes it as
 /// a Dart [AsyncImporter].
 final class JSToDartAsyncImporter extends AsyncImporter {
   /// The wrapped canonicalize function.
-  final Object? Function(String, CanonicalizeOptions) _canonicalize;
+  final Object? Function(String, CanonicalizeContext) _canonicalize;
 
   /// The wrapped load function.
   final Object? Function(JSUrl) _load;
 
-  JSToDartAsyncImporter(this._canonicalize, this._load);
+  /// The set of URL schemes that this importer promises never to return from
+  /// [canonicalize].
+  final Set<String> _nonCanonicalSchemes;
+
+  JSToDartAsyncImporter(
+      this._canonicalize, this._load, Iterable<String>? nonCanonicalSchemes)
+      : _nonCanonicalSchemes = nonCanonicalSchemes == null
+            ? const {}
+            : Set.unmodifiable(nonCanonicalSchemes) {
+    _nonCanonicalSchemes.forEach(validateUrlScheme);
+  }
 
   FutureOr<Uri?> canonicalize(Uri url) async {
     var result = wrapJSExceptions(() => _canonicalize(
-        url.toString(), CanonicalizeOptions(fromImport: fromImport)));
+        url.toString(),
+        CanonicalizeContext(
+            fromImport: fromImport,
+            containingUrl: containingUrl.andThen(dartToJSUrl))));
     if (isPromise(result)) result = await promiseToFuture(result as Promise);
     if (result == null) return null;
 
@@ -42,7 +56,7 @@ final class JSToDartAsyncImporter extends AsyncImporter {
     if (isPromise(result)) result = await promiseToFuture(result as Promise);
     if (result == null) return null;
 
-    result as NodeImporterResult;
+    result as JSImporterResult;
     var contents = result.contents;
     if (!isJsString(contents)) {
       jsThrow(ArgumentError.value(contents, 'contents',
@@ -59,4 +73,7 @@ final class JSToDartAsyncImporter extends AsyncImporter {
         syntax: parseSyntax(syntax),
         sourceMapUrl: result.sourceMapUrl.andThen(jsToDartUrl));
   }
+
+  bool isNonCanonicalScheme(String scheme) =>
+      _nonCanonicalSchemes.contains(scheme);
 }

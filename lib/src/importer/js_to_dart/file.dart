@@ -9,6 +9,7 @@ import '../../importer.dart';
 import '../../js/importer.dart';
 import '../../js/url.dart';
 import '../../js/utils.dart';
+import '../../util/nullable.dart';
 import '../utils.dart';
 
 /// A filesystem importer to use for most implementation details of
@@ -21,7 +22,7 @@ final _filesystemImporter = FilesystemImporter('.');
 /// it as a Dart [AsyncImporter].
 final class JSToDartFileImporter extends Importer {
   /// The wrapped `findFileUrl` function.
-  final Object? Function(String, CanonicalizeOptions) _findFileUrl;
+  final Object? Function(String, CanonicalizeContext) _findFileUrl;
 
   JSToDartFileImporter(this._findFileUrl);
 
@@ -29,7 +30,10 @@ final class JSToDartFileImporter extends Importer {
     if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
 
     var result = wrapJSExceptions(() => _findFileUrl(
-        url.toString(), CanonicalizeOptions(fromImport: fromImport)));
+        url.toString(),
+        CanonicalizeContext(
+            fromImport: fromImport,
+            containingUrl: containingUrl.andThen(dartToJSUrl))));
     if (result == null) return null;
 
     if (isPromise(result)) {
@@ -57,4 +61,6 @@ final class JSToDartFileImporter extends Importer {
 
   bool couldCanonicalize(Uri url, Uri canonicalUrl) =>
       _filesystemImporter.couldCanonicalize(url, canonicalUrl);
+
+  bool isNonCanonicalScheme(String scheme) => scheme != 'file';
 }

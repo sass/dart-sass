@@ -24,11 +24,14 @@ final class FileImporter extends ImporterBase {
   Uri? canonicalize(Uri url) {
     if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
 
-    var response =
-        dispatcher.sendFileImportRequest(OutboundMessage_FileImportRequest()
-          ..importerId = _importerId
-          ..url = url.toString()
-          ..fromImport = fromImport);
+    var request = OutboundMessage_FileImportRequest()
+      ..importerId = _importerId
+      ..url = url.toString()
+      ..fromImport = fromImport;
+    if (containingUrl case var containingUrl?) {
+      request.containingUrl = containingUrl.toString();
+    }
+    var response = dispatcher.sendFileImportRequest(request);
 
     switch (response.whichResult()) {
       case InboundMessage_FileImportResponse_Result.fileUrl:
@@ -48,6 +51,8 @@ final class FileImporter extends ImporterBase {
   }
 
   ImporterResult? load(Uri url) => _filesystemImporter.load(url);
+
+  bool isNonCanonicalScheme(String scheme) => scheme != 'file';
 
   String toString() => "FileImporter";
 }

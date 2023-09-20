@@ -40,4 +40,6 @@ abstract class Importer extends AsyncImporter {
   DateTime modificationTime(Uri url) => DateTime.now();
 
   bool couldCanonicalize(Uri url, Uri canonicalUrl) => true;
+
+  bool isNonCanonicalScheme(String scheme) => false;
 }
