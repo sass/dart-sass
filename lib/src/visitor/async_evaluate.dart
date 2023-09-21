@@ -1785,6 +1785,7 @@ final class _EvaluateVisitor
     }
   }
 
+  /// Evaluate a given [mixin] with [arguments] and [contentCallable]
   Future<void> _applyMixin(
       AsyncCallable? mixin,
       UserDefinedCallable<AsyncEnvironment>? contentCallable,
