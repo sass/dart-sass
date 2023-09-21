@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: dart-lang/setup-dart@v1
     - run: dart format --fix .
     - run: git diff --exit-code
@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -72,7 +72,7 @@ jobs:
             async_args: '--cmd-args --async'
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -110,7 +110,7 @@ jobs:
             node-version: 18
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -152,7 +152,7 @@ jobs:
             node-version: 14
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with:
           github-token: ${{ github.token }}
@@ -198,7 +198,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: browser-actions/setup-chrome@v1
       - uses: ./.github/util/initialize
         with:
@@ -240,7 +240,7 @@ jobs:
         # include: [{os: ubuntu-latest, dart_channel: dev}]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -278,7 +278,7 @@ jobs:
             dart_channel: dev
             node-version: 18
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -299,7 +299,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: browser-actions/setup-chrome@v1
     - uses: ./.github/util/initialize
       with:
@@ -329,7 +329,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -347,7 +347,7 @@ jobs:
         bootstrap_version: [4, 5]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -362,7 +362,7 @@ jobs:
     needs: [double_check]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -379,7 +379,7 @@ jobs:
     needs: [double_check]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -397,7 +397,7 @@ jobs:
     needs: [double_check]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -413,7 +413,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -437,7 +437,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -475,7 +475,7 @@ jobs:
             architecture: x64
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         # Workaround for dart-lang/setup-dart#59
         with:
@@ -495,7 +495,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -511,7 +511,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -528,7 +528,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -543,7 +543,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -561,7 +561,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
 
@@ -578,7 +578,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -592,7 +592,7 @@ jobs:
     needs: [bootstrap, bourbon, foundation, bulma]
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: sass/sass-site
           token: ${{ secrets.SASS_SITE_TOKEN }}
@@ -610,7 +610,7 @@ jobs:
     needs: [deploy_github_linux, deploy_github_linux_qemu, deploy_github]
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: sass/embedded-host-node
           token: ${{ secrets.GH_TOKEN }}
