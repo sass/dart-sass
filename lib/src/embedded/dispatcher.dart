@@ -269,6 +269,12 @@ final class Dispatcher {
     _send(message);
 
     var packet = _mailbox.take();
+    if (packet.isEmpty) {
+      // Compiler is shutting down, throw without calling `_handleError` as we
+      // don't want to report this as an actual error.
+      _requestError = true;
+      throw StateError('Compiler is shutting down.');
+    }
 
     try {
       var messageBuffer =
