@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 61f8aeb4df0e1a3e236d824dbdd934f325978090
+// Checksum: 0985a8b7386d8784bf7cb08a0337b9b81deb5bbe
 //
 // ignore_for_file: unused_import
 
@@ -1782,6 +1782,7 @@ final class _EvaluateVisitor
     }
   }
 
+  /// Evaluate a given [mixin] with [arguments] and [contentCallable]
   void _applyMixin(
       Callable? mixin,
       UserDefinedCallable<Environment>? contentCallable,
