@@ -23,7 +23,7 @@ class OklchColorSpace extends ColorSpace {
 
   const OklchColorSpace()
       : super('oklch', const [
-          LinearChannel('lightness', 0, 1),
+          LinearChannel('lightness', 0, 1, conventionallyPercent: true),
           LinearChannel('chroma', 0, 0.4),
           hueChannel
         ]);

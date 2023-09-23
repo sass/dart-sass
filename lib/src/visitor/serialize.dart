@@ -560,38 +560,29 @@ final class _SerializeVisitor
       case ColorSpace.rgb || ColorSpace.hsl || ColorSpace.hwb:
         _writeLegacyColor(value);
 
-      case ColorSpace.lab || ColorSpace.oklab:
+      case ColorSpace.lab ||
+            ColorSpace.oklab ||
+            ColorSpace.lch ||
+            ColorSpace.oklch:
         _buffer
           ..write(value.space)
           ..writeCharCode($lparen);
-        _writeChannel(value.channel0OrNull);
-        if (!_isCompressed &&
-            value.space == ColorSpace.lab &&
-            !value.isChannel0Missing) {
+        if (!_isCompressed && !value.isChannel0Missing) {
+          var max = (value.space.channels[0] as LinearChannel).max;
+          _writeNumber(value.channel0 * 100 / max);
           _buffer.writeCharCode($percent);
+        } else {
+          _writeChannel(value.channel0OrNull);
         }
         _buffer.writeCharCode($space);
         _writeChannel(value.channel1OrNull);
         _buffer.writeCharCode($space);
         _writeChannel(value.channel2OrNull);
-        _maybeWriteSlashAlpha(value);
-        _buffer.writeCharCode($rparen);
-
-      case ColorSpace.lch || ColorSpace.oklch:
-        _buffer
-          ..write(value.space)
-          ..writeCharCode($lparen);
-        _writeChannel(value.channel0OrNull);
         if (!_isCompressed &&
-            value.space == ColorSpace.lch &&
-            !value.isChannel0Missing) {
-          _buffer.writeCharCode($percent);
+            !value.isChannel2Missing &&
+            value.space.channels[2].isPolarAngle) {
+          _buffer.write('deg');
         }
-        _buffer.writeCharCode($space);
-        _writeChannel(value.channel1OrNull);
-        _buffer.writeCharCode($space);
-        _writeChannel(value.channel2OrNull);
-        if (!_isCompressed && !value.isChannel2Missing) _buffer.write('deg');
         _maybeWriteSlashAlpha(value);
         _buffer.writeCharCode($rparen);
 

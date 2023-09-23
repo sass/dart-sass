@@ -476,11 +476,12 @@ final module = BuiltInModule("color", functions: <Callable>[
 
     var channelInfo = color.space.channels[channelIndex];
     var channelValue = color.channels[channelIndex];
+    var unit = channelInfo.associatedUnit;
+    if (unit == '%') {
+      channelValue = channelValue * 100 / (channelInfo as LinearChannel).max;
+    }
 
-    return channelInfo is LinearChannel
-        ? SassNumber(channelValue,
-            channelInfo.min == 0 && channelInfo.max == 100 ? '%' : null)
-        : SassNumber(channelValue, 'deg');
+    return SassNumber(channelValue, unit);
   }),
 
   _function("same", r"$color1, $color2", (arguments) {
@@ -1346,14 +1347,15 @@ SassColor _colorFromChannels(ColorSpace space, SassNumber? channel0,
           alpha,
           fromRgbFunction ? ColorFormat.rgbFunction : null);
 
-    case ColorSpace.lab:
-    case ColorSpace.lch:
-    case ColorSpace.oklab:
-    case ColorSpace.oklch:
+    case ColorSpace.lab ||
+          ColorSpace.lch ||
+          ColorSpace.oklab ||
+          ColorSpace.oklch:
       return SassColor.forSpaceInternal(
           space,
-          _channelFromValue(space.channels[0], channel0)
-              .andThen((lightness) => fuzzyClamp(lightness, 0, 100)),
+          _channelFromValue(space.channels[0], channel0).andThen((lightness) =>
+              fuzzyClamp(
+                  lightness, 0, (space.channels[0] as LinearChannel).max)),
           _channelFromValue(space.channels[1], channel1),
           _channelFromValue(space.channels[2], channel2),
           alpha);
