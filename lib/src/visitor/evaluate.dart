@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 7669de19668af665d1a9a60cf67e53e071bf415e
+// Checksum: 1c3027293ac9cb8a0d03b18c9ca447d62c2733d7
 //
 // ignore_for_file: unused_import
 
@@ -3372,7 +3372,7 @@ final class _EvaluateVisitor
   String _performInterpolation(Interpolation interpolation,
       {bool warnForColor = false}) {
     var (result, _) = _performInterpolationHelper(interpolation,
-        sourceMap: true, warnForColor: warnForColor);
+        sourceMap: false, warnForColor: warnForColor);
     return result;
   }
 
