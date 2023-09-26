@@ -128,9 +128,25 @@ final JSClass colorClass = () {
     'isLegacy': (SassColor self) => self.isLegacy,
   });
 
-  jsClass.defineMethod('toSpace', (SassColor self, String space) {});
-  jsClass.defineMethod('isInGamut', (SassColor self, String? space) {});
-  jsClass.defineMethod('toGamut', (SassColor self, String? space) {});
+  jsClass.defineMethod('toSpace', (SassColor self, String space) {
+    if (self.space.name == space) {
+      return self;
+    }
+    var spaceClass = ColorSpace.fromName(space);
+    return self.toSpace(spaceClass);
+  });
+  jsClass.defineMethod('isInGamut', (SassColor self, String? space) {
+    var spaceName = space ?? self.space.name;
+    var spaceClass = ColorSpace.fromName(spaceName);
+    var color = self.toSpace(spaceClass);
+    return color.isInGamut;
+  });
+  jsClass.defineMethod('toGamut', (SassColor self, String? space) {
+    var spaceName = space ?? self.space.name;
+    var spaceClass = ColorSpace.fromName(spaceName);
+    var color = self.toSpace(spaceClass);
+    return color.toGamut();
+  });
 
   jsClass.defineGetter('channelsOrNull', (SassColor self) {});
   jsClass.defineGetter('channels', (SassColor self) {});
