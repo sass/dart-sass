@@ -132,19 +132,19 @@ final JSClass colorClass = () {
     if (self.space.name == space) {
       return self;
     }
-    var spaceClass = ColorSpace.fromName(space);
+    ColorSpace spaceClass = ColorSpace.fromName(space);
     return self.toSpace(spaceClass);
   });
   jsClass.defineMethod('isInGamut', (SassColor self, String? space) {
-    var spaceName = space ?? self.space.name;
-    var spaceClass = ColorSpace.fromName(spaceName);
-    var color = self.toSpace(spaceClass);
+    String spaceName = space ?? self.space.name;
+    ColorSpace spaceClass = ColorSpace.fromName(spaceName);
+    SassColor color = self.toSpace(spaceClass);
     return color.isInGamut;
   });
   jsClass.defineMethod('toGamut', (SassColor self, String? space) {
-    var spaceName = space ?? self.space.name;
-    var spaceClass = ColorSpace.fromName(spaceName);
-    var color = self.toSpace(spaceClass);
+    String spaceName = space ?? self.space.name;
+    ColorSpace spaceClass = ColorSpace.fromName(spaceName);
+    SassColor color = self.toSpace(spaceClass);
     return color.toGamut();
   });
 
@@ -161,7 +161,16 @@ final JSClass colorClass = () {
     return channels;
   });
 
-  jsClass.defineMethod('channel', (SassColor self, ChannelOptions options) {});
+  jsClass.defineMethod('channel',
+      (SassColor self, String channel, ChannelOptions options) {
+    String initialSpace = self.space.name;
+    String space = options.space ?? initialSpace;
+    ColorSpace spaceClass = ColorSpace.fromName(space);
+
+    SassColor color = self.toSpace(spaceClass);
+
+    return color.channel(channel);
+  });
   jsClass.defineMethod('isChannelMissing', (SassColor self, String channel) {});
   jsClass.defineGetter('isAlphaMissing', (SassColor self) {});
   jsClass.defineMethod(
