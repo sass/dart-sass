@@ -17,39 +17,39 @@ final JSClass colorClass = () {
       case ColorSpace.rgb:
         return SassColor.forSpaceInternal(
             constructionSpace,
-            parseChannelValue(color.red),
-            parseChannelValue(color.green),
-            parseChannelValue(color.blue),
+            _parseChannelValue(color.red),
+            _parseChannelValue(color.green),
+            _parseChannelValue(color.blue),
             _handleUndefinedAlpha(color.alpha));
       case ColorSpace.hsl:
         return SassColor.forSpaceInternal(
             constructionSpace,
-            parseChannelValue(color.hue),
-            parseChannelValue(color.saturation),
-            parseChannelValue(color.lightness),
+            _parseChannelValue(color.hue),
+            _parseChannelValue(color.saturation),
+            _parseChannelValue(color.lightness),
             _handleUndefinedAlpha(color.alpha));
       case ColorSpace.hwb:
         return SassColor.forSpaceInternal(
             constructionSpace,
-            parseChannelValue(color.hue),
-            parseChannelValue(color.whiteness),
-            parseChannelValue(color.blackness),
+            _parseChannelValue(color.hue),
+            _parseChannelValue(color.whiteness),
+            _parseChannelValue(color.blackness),
             _handleUndefinedAlpha(color.alpha));
       case ColorSpace.lab:
       case ColorSpace.oklab:
         return SassColor.forSpaceInternal(
             constructionSpace,
-            parseChannelValue(color.lightness),
-            parseChannelValue(color.a),
-            parseChannelValue(color.b),
+            _parseChannelValue(color.lightness),
+            _parseChannelValue(color.a),
+            _parseChannelValue(color.b),
             _handleUndefinedAlpha(color.alpha));
       case ColorSpace.lch:
       case ColorSpace.oklch:
         return SassColor.forSpaceInternal(
             constructionSpace,
-            parseChannelValue(color.lightness),
-            parseChannelValue(color.chroma),
-            parseChannelValue(color.hue),
+            _parseChannelValue(color.lightness),
+            _parseChannelValue(color.chroma),
+            _parseChannelValue(color.hue),
             _handleUndefinedAlpha(color.alpha));
       case ColorSpace.srgb:
       case ColorSpace.srgbLinear:
@@ -58,26 +58,25 @@ final JSClass colorClass = () {
       case ColorSpace.prophotoRgb:
         return SassColor.forSpaceInternal(
             constructionSpace,
-            parseChannelValue(color.red),
-            parseChannelValue(color.green),
-            parseChannelValue(color.blue),
+            _parseChannelValue(color.red),
+            _parseChannelValue(color.green),
+            _parseChannelValue(color.blue),
             _handleUndefinedAlpha(color.alpha));
-      // @todo: xyz space is in spec, but not implemented
-      // case ColorSpace.xyz:
       case ColorSpace.xyzD50:
+      // `xyz` name is mapped to `xyzD65` space.
       case ColorSpace.xyzD65:
         return SassColor.forSpaceInternal(
             constructionSpace,
-            parseChannelValue(color.x),
-            parseChannelValue(color.y),
-            parseChannelValue(color.z),
+            _parseChannelValue(color.x),
+            _parseChannelValue(color.y),
+            _parseChannelValue(color.z),
             _handleUndefinedAlpha(color.alpha));
       default:
         throw "Unreachable";
     }
   });
 
-  jsClass.defineMethod('change', (SassColor self, _Channels options) {
+  SassColor legacyChange(SassColor self, _Channels options) {
     if (options.whiteness != null || options.blackness != null) {
       return self.changeHwb(
           hue: options.hue ?? self.hue,
@@ -104,8 +103,14 @@ final JSClass colorClass = () {
     } else {
       return self.changeAlpha(options.alpha ?? self.alpha);
     }
-  });
+  }
 
+  jsClass.defineMethod('legacyChange', legacyChange);
+
+  jsClass.defineMethod(
+      'change', (SassColor self, _ConstructionOptions options) {});
+
+  // @todo: Add deprecation warnings to all these getters
   jsClass.defineGetters({
     'red': (SassColor self) => self.red,
     'green': (SassColor self) => self.green,
@@ -117,6 +122,27 @@ final JSClass colorClass = () {
     'blackness': (SassColor self) => self.blackness,
     'alpha': (SassColor self) => self.alpha,
   });
+
+  jsClass.defineGetters({
+    'space': (SassColor self) => self.space.name,
+    'isLegacy': (SassColor self) => self.isLegacy,
+  });
+
+  jsClass.defineMethod('toSpace', (SassColor self, String space) {});
+  jsClass.defineMethod('isInGamut', (SassColor self, String? space) {});
+  jsClass.defineMethod('toGamut', (SassColor self, String? space) {});
+
+  jsClass.defineGetter('channelsOrNull', (SassColor self) {});
+  jsClass.defineGetter('channels', (SassColor self) {});
+
+  jsClass.defineMethod('channel', (SassColor self, ChannelOptions options) {});
+  jsClass.defineMethod('isChannelMissing', (SassColor self, String channel) {});
+  jsClass.defineGetter('isAlphaMissing', (SassColor self) {});
+  jsClass.defineMethod(
+      'isChannelPowerless', (SassColor self, ChannelOptions options) {});
+
+  jsClass.defineMethod(
+      'interpolate', (SassColor self, InterpolationOptions options) {});
 
   getJSClass(SassColor.rgb(0, 0, 0)).injectSuperclass(jsClass);
   return jsClass;
@@ -131,7 +157,15 @@ double? _handleUndefinedAlpha(double? alpha) => isUndefined(alpha) ? 1 : alpha;
 /// This procedure takes a channel value `value`, and returns the special value
 /// `none` if the value is `null`.
 /// @todo needs to be implemented
-double? parseChannelValue(double? value) => value;
+double? _parseChannelValue(double? value) => value;
+
+/// This procedure takes a `channel` name, an object `changes` and a SassColor
+/// `initial` and returns the result of applying the change for `channel` to
+/// `initial`.\
+double? _changeComponentValue(
+    SassColor initial, String channel, _ConstructionOptions changes) {
+  return null;
+}
 
 /// Determines the construction space based on the provided options.
 ColorSpace _constructionSpace(_ConstructionOptions options) {
@@ -166,4 +200,18 @@ class _Channels {
 @anonymous
 class _ConstructionOptions extends _Channels {
   external String? get space;
+}
+
+@JS()
+@anonymous
+class ChannelOptions {
+  String? space;
+}
+
+@JS()
+@anonymous
+class InterpolationOptions {
+  late SassColor color2;
+  double? weight;
+  String? method;
 }
