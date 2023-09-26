@@ -3480,7 +3480,7 @@ final class _EvaluateVisitor
   Future<String> _performInterpolation(Interpolation interpolation,
       {bool warnForColor = false}) async {
     var (result, _) = await _performInterpolationHelper(interpolation,
-        sourceMap: true, warnForColor: warnForColor);
+        sourceMap: false, warnForColor: warnForColor);
     return result;
   }
 
