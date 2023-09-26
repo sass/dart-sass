@@ -1,3 +1,10 @@
+## 1.68.1
+
+### Dart API
+
+* Deprecate `Deprecation.calcInterp` since it was never actually emitted as a
+  deprecation.
+
 ## 1.68.0
 
 * Fix the source spans associated with the `abs-percent` deprecation.
