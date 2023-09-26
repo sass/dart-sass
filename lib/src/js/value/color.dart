@@ -148,8 +148,18 @@ final JSClass colorClass = () {
     return color.toGamut();
   });
 
-  jsClass.defineGetter('channelsOrNull', (SassColor self) {});
-  jsClass.defineGetter('channels', (SassColor self) {});
+  jsClass.defineGetter(
+      'channelsOrNull', (SassColor self) => self.channelsOrNull);
+
+  jsClass.defineGetter('channels', (SassColor self) {
+    final channelsOrNull = self.channelsOrNull;
+    var channels = <num>[];
+    for (final channel in channelsOrNull) {
+      final value = channel ?? 0;
+      channels.add(value);
+    }
+    return channels;
+  });
 
   jsClass.defineMethod('channel', (SassColor self, ChannelOptions options) {});
   jsClass.defineMethod('isChannelMissing', (SassColor self, String channel) {});
