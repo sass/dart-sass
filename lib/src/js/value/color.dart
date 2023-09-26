@@ -10,16 +10,70 @@ import '../utils.dart';
 
 /// The JavaScript `SassColor` class.
 final JSClass colorClass = () {
-  var jsClass = createJSClass('sass.SassColor', (Object self, _Channels color) {
-    if (color.red != null) {
-      return SassColor.rgb(color.red!, color.green!, color.blue!,
-          _handleUndefinedAlpha(color.alpha));
-    } else if (color.saturation != null) {
-      return SassColor.hsl(color.hue!, color.saturation!, color.lightness!,
-          _handleUndefinedAlpha(color.alpha));
-    } else {
-      return SassColor.hwb(color.hue!, color.whiteness!, color.blackness!,
-          _handleUndefinedAlpha(color.alpha));
+  var jsClass = createJSClass('sass.SassColor',
+      (Object self, _ConstructionOptions color) {
+    var constructionSpace = _constructionSpace(color);
+    switch (constructionSpace) {
+      case ColorSpace.rgb:
+        return SassColor.forSpaceInternal(
+            constructionSpace,
+            parseChannelValue(color.red),
+            parseChannelValue(color.green),
+            parseChannelValue(color.blue),
+            _handleUndefinedAlpha(color.alpha));
+      case ColorSpace.hsl:
+        return SassColor.forSpaceInternal(
+            constructionSpace,
+            parseChannelValue(color.hue),
+            parseChannelValue(color.saturation),
+            parseChannelValue(color.lightness),
+            _handleUndefinedAlpha(color.alpha));
+      case ColorSpace.hwb:
+        return SassColor.forSpaceInternal(
+            constructionSpace,
+            parseChannelValue(color.hue),
+            parseChannelValue(color.whiteness),
+            parseChannelValue(color.blackness),
+            _handleUndefinedAlpha(color.alpha));
+      case ColorSpace.lab:
+      case ColorSpace.oklab:
+        return SassColor.forSpaceInternal(
+            constructionSpace,
+            parseChannelValue(color.lightness),
+            parseChannelValue(color.a),
+            parseChannelValue(color.b),
+            _handleUndefinedAlpha(color.alpha));
+      case ColorSpace.lch:
+      case ColorSpace.oklch:
+        return SassColor.forSpaceInternal(
+            constructionSpace,
+            parseChannelValue(color.lightness),
+            parseChannelValue(color.chroma),
+            parseChannelValue(color.hue),
+            _handleUndefinedAlpha(color.alpha));
+      case ColorSpace.srgb:
+      case ColorSpace.srgbLinear:
+      case ColorSpace.displayP3:
+      case ColorSpace.a98Rgb:
+      case ColorSpace.prophotoRgb:
+        return SassColor.forSpaceInternal(
+            constructionSpace,
+            parseChannelValue(color.red),
+            parseChannelValue(color.green),
+            parseChannelValue(color.blue),
+            _handleUndefinedAlpha(color.alpha));
+      // @todo: xyz space is in spec, but not implemented
+      // case ColorSpace.xyz:
+      case ColorSpace.xyzD50:
+      case ColorSpace.xyzD65:
+        return SassColor.forSpaceInternal(
+            constructionSpace,
+            parseChannelValue(color.x),
+            parseChannelValue(color.y),
+            parseChannelValue(color.z),
+            _handleUndefinedAlpha(color.alpha));
+      default:
+        throw "Unreachable";
     }
   });
 
@@ -72,7 +126,21 @@ final JSClass colorClass = () {
 ///
 /// This ensures that an explicitly null alpha will be treated as a missing
 /// component.
-num? _handleUndefinedAlpha(num? alpha) => isUndefined(alpha) ? 1 : alpha;
+double? _handleUndefinedAlpha(double? alpha) => isUndefined(alpha) ? 1 : alpha;
+
+/// This procedure takes a channel value `value`, and returns the special value
+/// `none` if the value is `null`.
+/// @todo needs to be implemented
+double? parseChannelValue(double? value) => value;
+
+/// Determines the construction space based on the provided options.
+ColorSpace _constructionSpace(_ConstructionOptions options) {
+  if (options.space != null) return ColorSpace.fromName(options.space!);
+  if (options.red != null) return ColorSpace.rgb;
+  if (options.saturation != null) return ColorSpace.hsl;
+  if (options.whiteness != null) return ColorSpace.hwb;
+  throw "No color space found";
+}
 
 @JS()
 @anonymous
@@ -86,4 +154,16 @@ class _Channels {
   external double? get whiteness;
   external double? get blackness;
   external double? get alpha;
+  external double? get a;
+  external double? get b;
+  external double? get x;
+  external double? get y;
+  external double? get z;
+  external double? get chroma;
+}
+
+@JS()
+@anonymous
+class _ConstructionOptions extends _Channels {
+  external String? get space;
 }
