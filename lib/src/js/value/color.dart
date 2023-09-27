@@ -11,46 +11,54 @@ import '../utils.dart';
 /// The JavaScript `SassColor` class.
 final JSClass colorClass = () {
   var jsClass = createJSClass('sass.SassColor',
-      (Object self, _ConstructionOptions color) {
-    var constructionSpace = _constructionSpace(color);
+      (Object self, _ConstructionOptions options) {
+    var constructionSpace = _constructionSpace(options);
     switch (constructionSpace) {
       case ColorSpace.rgb:
+        _checkNullAlphaDeprecation(options);
         return SassColor.forSpaceInternal(
             constructionSpace,
-            _parseChannelValue(color.red),
-            _parseChannelValue(color.green),
-            _parseChannelValue(color.blue),
-            _handleUndefinedAlpha(color.alpha));
+            _parseChannelValue(options.red),
+            _parseChannelValue(options.green),
+            _parseChannelValue(options.blue),
+            _handleUndefinedAlpha(options.alpha));
+
       case ColorSpace.hsl:
+        _checkNullAlphaDeprecation(options);
         return SassColor.forSpaceInternal(
             constructionSpace,
-            _parseChannelValue(color.hue),
-            _parseChannelValue(color.saturation),
-            _parseChannelValue(color.lightness),
-            _handleUndefinedAlpha(color.alpha));
+            _parseChannelValue(options.hue),
+            _parseChannelValue(options.saturation),
+            _parseChannelValue(options.lightness),
+            _handleUndefinedAlpha(options.alpha));
+
       case ColorSpace.hwb:
+        _checkNullAlphaDeprecation(options);
         return SassColor.forSpaceInternal(
             constructionSpace,
-            _parseChannelValue(color.hue),
-            _parseChannelValue(color.whiteness),
-            _parseChannelValue(color.blackness),
-            _handleUndefinedAlpha(color.alpha));
+            _parseChannelValue(options.hue),
+            _parseChannelValue(options.whiteness),
+            _parseChannelValue(options.blackness),
+            _handleUndefinedAlpha(options.alpha));
+
       case ColorSpace.lab:
       case ColorSpace.oklab:
         return SassColor.forSpaceInternal(
             constructionSpace,
-            _parseChannelValue(color.lightness),
-            _parseChannelValue(color.a),
-            _parseChannelValue(color.b),
-            _handleUndefinedAlpha(color.alpha));
+            _parseChannelValue(options.lightness),
+            _parseChannelValue(options.a),
+            _parseChannelValue(options.b),
+            _handleUndefinedAlpha(options.alpha));
+
       case ColorSpace.lch:
       case ColorSpace.oklch:
         return SassColor.forSpaceInternal(
             constructionSpace,
-            _parseChannelValue(color.lightness),
-            _parseChannelValue(color.chroma),
-            _parseChannelValue(color.hue),
-            _handleUndefinedAlpha(color.alpha));
+            _parseChannelValue(options.lightness),
+            _parseChannelValue(options.chroma),
+            _parseChannelValue(options.hue),
+            _handleUndefinedAlpha(options.alpha));
+
       case ColorSpace.srgb:
       case ColorSpace.srgbLinear:
       case ColorSpace.displayP3:
@@ -58,19 +66,21 @@ final JSClass colorClass = () {
       case ColorSpace.prophotoRgb:
         return SassColor.forSpaceInternal(
             constructionSpace,
-            _parseChannelValue(color.red),
-            _parseChannelValue(color.green),
-            _parseChannelValue(color.blue),
-            _handleUndefinedAlpha(color.alpha));
+            _parseChannelValue(options.red),
+            _parseChannelValue(options.green),
+            _parseChannelValue(options.blue),
+            _handleUndefinedAlpha(options.alpha));
+
       case ColorSpace.xyzD50:
       // `xyz` name is mapped to `xyzD65` space.
       case ColorSpace.xyzD65:
         return SassColor.forSpaceInternal(
             constructionSpace,
-            _parseChannelValue(color.x),
-            _parseChannelValue(color.y),
-            _parseChannelValue(color.z),
-            _handleUndefinedAlpha(color.alpha));
+            _parseChannelValue(options.x),
+            _parseChannelValue(options.y),
+            _parseChannelValue(options.z),
+            _handleUndefinedAlpha(options.alpha));
+
       default:
         throw "Unreachable";
     }
@@ -209,6 +219,13 @@ ColorSpace _constructionSpace(_ConstructionOptions options) {
   if (options.saturation != null) return ColorSpace.hsl;
   if (options.whiteness != null) return ColorSpace.hwb;
   throw "No color space found";
+}
+
+void _checkNullAlphaDeprecation(_ConstructionOptions options) {
+  // @todo Verify if options.space is equivalent to "not set"
+  if (options.alpha == null && options.space == null) {
+    // emit deprecation
+  }
 }
 
 @JS()
