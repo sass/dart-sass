@@ -1,4 +1,8 @@
-## 1.68.1
+## 1.69.0
+
+* Add support for the relative color syntax from CSS Color 5. This syntax
+  cannot be used to create Sass color values. It is always emitted as-is in the
+  CSS output.
 
 ### Dart API
 
