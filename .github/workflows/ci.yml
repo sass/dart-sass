@@ -619,7 +619,7 @@ jobs:
         id: version
         run: |
           echo "version=${GITHUB_REF##*/}" | tee --append "$GITHUB_OUTPUT"
-          echo "protocol_version=$(curl https://raw.githubusercontent.com/sass/sass/HEAD/spec/EMBEDDED_PROTOCOL_VERSION)" | tee --append "$GITHUB_OUTPUT"
+          echo "protocol_version=$(curl -fsSL -H "Authorization: Bearer ${{ github.token }}" https://raw.githubusercontent.com/sass/sass/HEAD/spec/EMBEDDED_PROTOCOL_VERSION)" | tee --append "$GITHUB_OUTPUT"
 
       - name: Update version
         run: |
@@ -641,7 +641,7 @@ jobs:
                 .optionalDependencies = (.optionalDependencies | .[] |= $version)
               ' > package.json.tmp &&
             mv package.json.tmp package.json
-          curl https://raw.githubusercontent.com/sass/dart-sass/${{ steps.version.outputs.version }}/CHANGELOG.md > CHANGELOG.md
+          curl -fsSL -H "Authorization: Bearer ${{ github.token }}" https://raw.githubusercontent.com/sass/dart-sass/${{ steps.version.outputs.version }}/CHANGELOG.md > CHANGELOG.md
         shell: bash
 
       - uses: EndBug/add-and-commit@v9
