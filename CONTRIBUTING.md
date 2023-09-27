@@ -64,7 +64,7 @@ revisions that's not a big deal.
 
 Before you send a pull request, we recommend you run the following steps:
 
-* `w` will reformat your code using the Dart formatter to make
+* `dart run grinder` will reformat your code using the Dart formatter to make
   sure it's nice and neat, and [run the synchronizer](#synchronizing) on
   asynchronous files.
 
