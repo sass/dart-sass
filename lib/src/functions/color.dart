@@ -736,6 +736,11 @@ Object /* SassString | List<Value> */ _parseChannels(
   }
 
   var list = channels.asList;
+  if (list case [SassString(:var text, hasQuotes: false), _, ...]
+      when equalsIgnoreCase(text, "from")) {
+    return _functionString(name, [originalChannels]);
+  }
+
   if (list.length > 3) {
     throw SassScriptException("Only 3 elements allowed, but ${list.length} "
         "were passed.");
