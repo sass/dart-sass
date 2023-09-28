@@ -736,12 +736,9 @@ Object /* SassString | List<Value> */ _parseChannels(
   }
 
   var list = channels.asList;
-  if (list.length > 1) {
-    switch (list[0]) {
-      case SassString(:var text, hasQuotes: false)
-          when equalsIgnoreCase(text, "from"):
-        return _functionString(name, [originalChannels]);
-    }
+  if (list case [SassString(:var text, hasQuotes: false), _, ...]
+      when equalsIgnoreCase(text, "from")) {
+    return _functionString(name, [originalChannels]);
   }
 
   if (list.length > 3) {
