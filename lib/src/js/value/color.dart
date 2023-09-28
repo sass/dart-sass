@@ -130,8 +130,9 @@ final JSClass colorClass = () {
     'lightness': (SassColor self) => self.lightness,
     'whiteness': (SassColor self) => self.whiteness,
     'blackness': (SassColor self) => self.blackness,
-    'alpha': (SassColor self) => self.alpha,
   });
+
+  jsClass.defineGetter('alpha', (SassColor self) => self.alpha);
 
   jsClass.defineGetters({
     'space': (SassColor self) => self.space.name,
@@ -181,10 +182,23 @@ final JSClass colorClass = () {
 
     return color.channel(channel);
   });
-  jsClass.defineMethod('isChannelMissing', (SassColor self, String channel) {});
-  jsClass.defineGetter('isAlphaMissing', (SassColor self) {});
-  jsClass.defineMethod(
-      'isChannelPowerless', (SassColor self, ChannelOptions options) {});
+
+  jsClass.defineMethod('isChannelMissing',
+      (SassColor self, String channel) => self.isChannelMissing(channel));
+
+  jsClass.defineGetter(
+      'isAlphaMissing', (SassColor self) => self.isChannelMissing('alpha'));
+
+  jsClass.defineMethod('isChannelPowerless',
+      (SassColor self, String channel, ChannelOptions options) {
+    String initialSpace = self.space.name;
+    String space = options.space ?? initialSpace;
+    ColorSpace spaceClass = ColorSpace.fromName(space);
+
+    SassColor color = self.toSpace(spaceClass);
+
+    return color.isChannelPowerless(channel);
+  });
 
   jsClass.defineMethod(
       'interpolate', (SassColor self, InterpolationOptions options) {});
