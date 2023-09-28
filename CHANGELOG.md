@@ -1,4 +1,15 @@
-## 1.68.1
+## 1.69.0
+
+* Add a `meta.get-mixin()` function that returns a mixin as a first-class Sass
+  value.
+
+* Add a `meta.apply()` mixin that includes a mixin value.
+
+* Add a `meta.module-mixins()` function which returns a map from mixin names in
+  a module to the first-class mixins that belong to those names.
+
+* Add a `meta.accepts-content()` function which returns whether or not a mixin
+  value can take a content block.
 
 ### Dart API
 
