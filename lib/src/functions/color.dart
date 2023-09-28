@@ -11,6 +11,7 @@ import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
+import '../parse/scss.dart';
 import '../util/map.dart';
 import '../util/nullable.dart';
 import '../util/number.dart';
@@ -430,6 +431,17 @@ final module = BuiltInModule("color", functions: <Callable>[
 
   _function("is-legacy", r"$color",
       (arguments) => SassBoolean(arguments[0].assertColor("color").isLegacy)),
+
+  _function(
+      "is-missing",
+      r"$color, $channel",
+      (arguments) => SassBoolean(arguments[0]
+          .assertColor("color")
+          .isChannelMissing(
+              (arguments[1].assertString("channel")..assertQuoted("channel"))
+                  .text,
+              colorName: "color",
+              channelName: "channel"))),
 
   _function(
       "is-in-gamut",
@@ -1142,29 +1154,9 @@ Value _parseChannels(String functionName, Value input,
     {ColorSpace? space, String? name}) {
   if (input.isVar) return _functionString(functionName, [input]);
 
-  Value components;
-  Value? alphaValue;
-  switch (input.assertCommonListStyle(name, allowSlash: true)) {
-    case [var components_, var alphaValue_]
-        when input.separator == ListSeparator.slash:
-      components = components_;
-      alphaValue = alphaValue_;
-
-    case var inputList when input.separator == ListSeparator.slash:
-      throw SassScriptException(
-          "Only 2 slash-separated elements allowed, but ${inputList.length} "
-          "${pluralize('was', inputList.length, plural: 'were')} passed.");
-
-    case [..., SassString(hasQuotes: false, :var text)] when text.contains('/'):
-      return _functionString(functionName, [input]);
-
-    case [...var initial, SassNumber(asSlash: (var before, var after))]:
-      components = SassList([...initial, before], ListSeparator.space);
-      alphaValue = after;
-
-    case _:
-      components = input;
-  }
+  var parsedSlash = _parseSlashChannels(input, name: name);
+  if (parsedSlash == null) return _functionString(functionName, [input]);
+  var (components, alphaValue) = parsedSlash;
 
   List<Value> channels;
   SassString? spaceName;
@@ -1221,11 +1213,13 @@ Value _parseChannels(String functionName, Value input,
         : _functionString(functionName, [input]);
   }
 
-  var alpha = alphaValue == null
-      ? 1.0
-      : _percentageOrUnitless(alphaValue.assertNumber(name), 1, 'alpha')
-          .clamp(0, 1)
-          .toDouble();
+  var alpha = switch (alphaValue) {
+    null => 1.0,
+    SassString(hasQuotes: false, text: 'none') => null,
+    _ => _percentageOrUnitless(alphaValue.assertNumber(name), 1, 'alpha')
+        .clamp(0, 1)
+        .toDouble()
+  };
 
   // `space` will be null if either `components` or `spaceName` is a `var()`.
   // Again, we check this here rather than returning early in those cases so
@@ -1255,10 +1249,64 @@ Value _parseChannels(String functionName, Value input,
       fromRgbFunction: space == ColorSpace.rgb);
 }
 
+/// Parses [input]'s slash-separated third number and alpha value, if one
+/// exists.
+///
+/// Returns a single value that contains the space-separated list of components,
+/// and an alpha value if one was specified. If this channel set couldn't be
+/// parsed and should be returned as-is, returns null.
+///
+/// Throws a [SassScriptException] if [input] is invalid. If [input] came from a
+/// function argument, [name] is the argument name (without the `$`). It's used
+/// for error reporting.
+(Value components, Value? alpha)? _parseSlashChannels(Value input,
+        {String? name}) =>
+    switch (input.assertCommonListStyle(name, allowSlash: true)) {
+      [var components, var alphaValue]
+          when input.separator == ListSeparator.slash =>
+        (components, alphaValue),
+      var inputList when input.separator == ListSeparator.slash =>
+        throw SassScriptException(
+            "Only 2 slash-separated elements allowed, but ${inputList.length} "
+            "${pluralize('was', inputList.length, plural: 'were')} passed.",
+            name),
+      [...var initial, SassString(hasQuotes: false, :var text)] => switch (
+            text.split('/')) {
+          [_] => (input, null),
+          [var channel3 && 'none', var alpha] ||
+          [var channel3, var alpha && 'none'] =>
+            switch ((_parseNumberOrNone(channel3), _parseNumberOrNone(alpha))) {
+              (var channel3Value?, var alphaValue?) => (
+                  SassList([...initial, channel3Value], ListSeparator.space),
+                  alphaValue
+                ),
+              _ => null
+            },
+          _ => null
+        },
+      [...var initial, SassNumber(asSlash: (var before, var after))] => (
+          SassList([...initial, before], ListSeparator.space),
+          after
+        ),
+      _ => (input, null)
+    };
+
+/// Parses [text] as either a Sass number or the unquoted Sass string "none".
+///
+/// If neither matches, returns null.
+Value? _parseNumberOrNone(String text) {
+  if (text == 'none') return SassString('none', quotes: false);
+  try {
+    return ScssParser(text).parseNumber();
+  } on SassFormatException {
+    return null;
+  }
+}
+
 /// Creates a [SassColor] for the given [space] from the given channel values,
 /// or throws a [SassScriptException] if the channel values are invalid.
 SassColor _colorFromChannels(ColorSpace space, SassNumber? channel0,
-    SassNumber? channel1, SassNumber? channel2, double alpha,
+    SassNumber? channel1, SassNumber? channel2, double? alpha,
     {bool fromRgbFunction = false}) {
   switch (space) {
     case ColorSpace.hsl:

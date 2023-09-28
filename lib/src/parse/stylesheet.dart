@@ -117,6 +117,11 @@ abstract class StylesheetParser extends Parser {
 
   Expression parseExpression() => _parseSingleProduction(_expression);
 
+  SassNumber parseNumber() {
+    var expression = _parseSingleProduction(_number);
+    return SassNumber(expression.value, expression.unit);
+  }
+
   VariableDeclaration parseVariableDeclaration() =>
       _parseSingleProduction(() => lookingAtIdentifier()
           ? _variableDeclarationWithNamespace()

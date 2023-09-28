@@ -233,7 +233,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         dart_channel: [stable]
-        include: [{os: ubuntu-latest, dart_channel: dev}]
+        # TODO(nweiz): Re-enable this when
+        # https://github.com/dart-lang/sdk/issues/52121#issuecomment-1728534228
+        # is addressed.
+        # include: [{os: ubuntu-latest, dart_channel: dev}]
 
     steps:
       - uses: actions/checkout@v3
