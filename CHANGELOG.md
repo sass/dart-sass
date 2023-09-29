@@ -11,6 +11,10 @@
 * Add a `meta.accepts-content()` function which returns whether or not a mixin
   value can take a content block.
 
+* Add support for the relative color syntax from CSS Color 5. This syntax
+  cannot be used to create Sass color values. It is always emitted as-is in the
+  CSS output.
+
 ### Dart API
 
 * Deprecate `Deprecation.calcInterp` since it was never actually emitted as a

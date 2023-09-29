@@ -736,6 +736,11 @@ Object /* SassString | List<Value> */ _parseChannels(
   }
 
   var list = channels.asList;
+  if (list case [SassString(:var text, hasQuotes: false), _, ...]
+      when equalsIgnoreCase(text, "from")) {
+    return _functionString(name, [originalChannels]);
+  }
+
   if (list.length > 3) {
     throw SassScriptException("Only 3 elements allowed, but ${list.length} "
         "were passed.");
@@ -788,7 +793,7 @@ double _percentageOrUnitless(SassNumber number, num max, String name) {
     value = max * number.value / 100;
   } else {
     throw SassScriptException(
-        '\$$name: Expected $number to have no units or "%".');
+        '\$$name: Expected $number to have unit "%" or no units.');
   }
 
   return value.clamp(0, max).toDouble();
