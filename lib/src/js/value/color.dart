@@ -2,6 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:js_interop';
+import 'dart:js_util';
+
 import 'package:js/js.dart';
 
 import '../../value.dart';
@@ -117,8 +120,176 @@ final JSClass colorClass = () {
 
   jsClass.defineMethod('legacyChange', legacyChange);
 
-  jsClass.defineMethod(
-      'change', (SassColor self, _ConstructionOptions options) {});
+  jsClass.defineMethod('change',
+      (SassColor self, _ConstructionOptions options) {
+    String initialSpace = self.space.name;
+    ColorSpace initialSpaceClass = self.space;
+
+    bool spaceSetExplicitly = options.space != null;
+    String space = spaceSetExplicitly ? options.space! : initialSpace;
+
+    if (!self.isLegacy && !spaceSetExplicitly) {
+      // @todo throw error
+    }
+
+    if (self.isLegacy && !spaceSetExplicitly) {
+      if (options.whiteness.isUndefined || options.blackness.isUndefined) {
+        space = 'hwb';
+      } else if (options.hue.isUndefined ||
+          options.saturation.isUndefined ||
+          options.lightness.isUndefined) {
+        space = 'hsl';
+      } else if (options.red.isUndefined) {
+        space = 'rgb';
+      }
+      if (space != initialSpace) {
+        // @todo emit a deprecation warning named `color-4-api`.
+      }
+    }
+
+    Map<String, double?> changes = _changedOptions(options);
+
+    var keys = changes.keys;
+    var spaceClass = ColorSpace.fromName(space);
+    var components =
+        spaceClass.channels.map((channel) => channel.name).toList();
+    components.add('alpha');
+
+    for (final key in keys) {
+      if (!components.contains(key)) {
+        if (initialSpaceClass.isLegacy && spaceSetExplicitly) {
+          // @todo Emit color-4-api deprecation
+        } else {
+          // @todo throw an error
+        }
+      }
+    }
+    SassColor color = self.toSpace(spaceClass);
+    // @todo remove initial value
+    SassColor changedColor = SassColor.hsl(1, 1, 1);
+
+    changedValue(String channel) {
+      return _changeComponentValue(color, channel, changes);
+    }
+
+    switch (spaceClass) {
+      case ColorSpace.hsl:
+        if (!spaceSetExplicitly) {
+          if ((keys.contains('hue') && changes['hue'] == null) ||
+              (keys.contains('saturation') && changes['saturation'] == null) ||
+              (keys.contains('lightness') && changes['lightness'] == null) ||
+              (keys.contains('alpha') && changes['alpha'] == null)) {
+            // @todo emit deprecation `null-alpha`
+          }
+          changedColor = SassColor.forSpaceInternal(
+              spaceClass,
+              changes['hue'] ?? color.channel('hue'),
+              changes['saturation'] ?? color.channel('saturation'),
+              changes['lightness'] ?? color.channel('lightness'),
+              changes['alpha'] ?? color.channel('alpha'));
+        } else {
+          changedColor = SassColor.forSpaceInternal(
+              spaceClass,
+              changedValue('hue'),
+              changedValue('saturation'),
+              changedValue('lightness'),
+              changedValue('alpha'));
+        }
+        break;
+
+      case ColorSpace.hwb:
+        if (!spaceSetExplicitly) {
+          if ((keys.contains('hue') && changes['hue'] == null) ||
+              (keys.contains('whiteness') && changes['whiteness'] == null) ||
+              (keys.contains('blackness') && changes['blackness'] == null) ||
+              (keys.contains('alpha') && changes['alpha'] == null)) {
+            // @todo emit deprecation `null-alpha`
+          }
+          changedColor = SassColor.forSpaceInternal(
+              spaceClass,
+              options.hue ?? color.channel('hue'),
+              options.whiteness ?? color.channel('whiteness'),
+              options.blackness ?? color.channel('blackness'),
+              options.alpha ?? color.channel('alpha'));
+        } else {
+          changedColor = SassColor.forSpaceInternal(
+              spaceClass,
+              changedValue('hue'),
+              changedValue('whiteness'),
+              changedValue('blackness'),
+              changedValue('alpha'));
+        }
+        break;
+
+      case ColorSpace.rgb:
+        if (!spaceSetExplicitly) {
+          if ((keys.contains('red') && changes['red'] == null) ||
+              (keys.contains('green') && changes['green'] == null) ||
+              (keys.contains('blue') && changes['blue'] == null) ||
+              (keys.contains('alpha') && changes['alpha'] == null)) {
+            // @todo emit deprecation `null-alpha`
+          }
+          changedColor = SassColor.forSpaceInternal(
+              spaceClass,
+              options.red ?? color.channel('red'),
+              options.green ?? color.channel('green'),
+              options.blue ?? color.channel('blue'),
+              options.alpha ?? color.channel('alpha'));
+        } else {
+          changedColor = SassColor.forSpaceInternal(
+              spaceClass,
+              changedValue('red'),
+              changedValue('green'),
+              changedValue('blue'),
+              changedValue('alpha'));
+        }
+        break;
+
+      case ColorSpace.lab:
+      case ColorSpace.oklab:
+        changedColor = SassColor.forSpaceInternal(
+            spaceClass,
+            changedValue('lightness'),
+            changedValue('a'),
+            changedValue('b'),
+            changedValue('alpha'));
+        break;
+
+      case ColorSpace.lch:
+      case ColorSpace.oklch:
+        changedColor = SassColor.forSpaceInternal(
+            spaceClass,
+            changedValue('lightness'),
+            changedValue('chroma'),
+            changedValue('hue'),
+            changedValue('alpha'));
+        break;
+
+      case ColorSpace.a98Rgb:
+      case ColorSpace.displayP3:
+      case ColorSpace.prophotoRgb:
+      case ColorSpace.srgb:
+      case ColorSpace.srgbLinear:
+        changedColor = SassColor.forSpaceInternal(
+            spaceClass,
+            changedValue('red'),
+            changedValue('green'),
+            changedValue('blue'),
+            changedValue('alpha'));
+        break;
+
+      case ColorSpace.xyzD50:
+      case ColorSpace.xyzD65:
+        changedColor = SassColor.forSpaceInternal(spaceClass, changedValue('x'),
+            changedValue('y'), changedValue('z'), changedValue('alpha'));
+        break;
+
+      default:
+        throw "No space set";
+    }
+
+    return changedColor.toSpace(initialSpaceClass);
+  });
 
   // @todo: Add deprecation warnings to all these getters
   jsClass.defineGetters({
@@ -222,8 +393,12 @@ double? _parseChannelValue(double? value) => value;
 /// `initial` and returns the result of applying the change for `channel` to
 /// `initial`.\
 double? _changeComponentValue(
-    SassColor initial, String channel, _ConstructionOptions changes) {
-  return null;
+    SassColor initial, String channel, Map<String, double?> changes) {
+  var initialValue = initial.channel(channel);
+  if (!changes.containsKey(channel)) {
+    return initialValue;
+  }
+  return changes[channel];
 }
 
 /// Determines the construction space based on the provided options.
@@ -240,6 +415,26 @@ void _checkNullAlphaDeprecation(_ConstructionOptions options) {
   if (options.alpha == null && options.space == null) {
     // emit deprecation
   }
+}
+
+Map<String, double?> _changedOptions(_ConstructionOptions options) {
+  return {
+    if (hasProperty(options, 'red')) 'red': options.red,
+    if (hasProperty(options, 'green')) 'green': options.green,
+    if (hasProperty(options, 'blue')) 'blue': options.blue,
+    if (hasProperty(options, 'hue')) 'hue': options.hue,
+    if (hasProperty(options, 'saturation')) 'saturation': options.saturation,
+    if (hasProperty(options, 'lightness')) 'lightness': options.lightness,
+    if (hasProperty(options, 'whiteness')) 'whiteness': options.whiteness,
+    if (hasProperty(options, 'blackness')) 'blackness': options.blackness,
+    if (hasProperty(options, 'alpha')) 'alpha': options.alpha,
+    if (hasProperty(options, 'a')) 'a': options.a,
+    if (hasProperty(options, 'b')) 'b': options.b,
+    if (hasProperty(options, 'x')) 'x': options.x,
+    if (hasProperty(options, 'y')) 'y': options.y,
+    if (hasProperty(options, 'z')) 'z': options.z,
+    if (hasProperty(options, 'chroma')) 'chroma': options.chroma,
+  };
 }
 
 @JS()
