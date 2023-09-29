@@ -589,7 +589,7 @@ jobs:
   deploy_website:
     name: "Deploy sass-lang.com"
     runs-on: ubuntu-latest
-    needs: [bootstrap, bourbon, foundation, bulma]
+    needs: [deploy_npm]
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
     steps:
       - uses: actions/checkout@v3
@@ -602,12 +602,7 @@ jobs:
         run: echo "version=${GITHUB_REF##*/}" | tee --append "$GITHUB_OUTPUT"
 
       - name: Update Dart Sass version
-        run: |
-          cat package.json |
-            jq --arg version ^${{ steps.version.outputs.version }} '
-              .devDependencies.sass |= $version
-            ' > package.json.tmp
-          mv package.json.tmp package.json
+        run: npm install sass@${{ steps.version.outputs.version }}
 
       - uses: EndBug/add-and-commit@v9
         with:
