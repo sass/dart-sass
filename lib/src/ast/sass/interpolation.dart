@@ -12,8 +12,7 @@ import 'node.dart';
 /// Plain text interpolated with Sass expressions.
 ///
 /// {@category AST}
-@sealed
-class Interpolation implements SassNode {
+final class Interpolation implements SassNode {
   /// The contents of this interpolation.
   ///
   /// This contains [String]s and [Expression]s. It never contains two adjacent
@@ -22,24 +21,21 @@ class Interpolation implements SassNode {
 
   final FileSpan span;
 
+  /// Returns whether this contains no interpolated expressions.
+  bool get isPlain => asPlain != null;
+
   /// If this contains no interpolated expressions, returns its text contents.
   ///
   /// Otherwise, returns `null`.
-  String? get asPlain {
-    if (contents.isEmpty) return '';
-    if (contents.length > 1) return null;
-    var first = contents.first;
-    return first is String ? first : null;
-  }
+  String? get asPlain =>
+      switch (contents) { [] => '', [String first] => first, _ => null };
 
   /// Returns the plain text before the interpolation, or the empty string.
   ///
   /// @nodoc
   @internal
-  String get initialPlain {
-    var first = contents.first;
-    return first is String ? first : '';
-  }
+  String get initialPlain =>
+      switch (contents) { [String first, ...] => first, _ => '' };
 
   /// Creates a new [Interpolation] by concatenating a sequence of [String]s,
   /// [Expression]s, or nested [Interpolation]s.
@@ -48,15 +44,16 @@ class Interpolation implements SassNode {
       FileSpan span) {
     var buffer = InterpolationBuffer();
     for (var element in contents) {
-      if (element is String) {
-        buffer.write(element);
-      } else if (element is Expression) {
-        buffer.add(element);
-      } else if (element is Interpolation) {
-        buffer.addInterpolation(element);
-      } else {
-        throw ArgumentError.value(contents, "contents",
-            "May only contains Strings, Expressions, or Interpolations.");
+      switch (element) {
+        case String():
+          buffer.write(element);
+        case Expression():
+          buffer.add(element);
+        case Interpolation():
+          buffer.addInterpolation(element);
+        case _:
+          throw ArgumentError.value(contents, "contents",
+              "May only contains Strings, Expressions, or Interpolations.");
       }
     }
 

@@ -11,7 +11,7 @@ import '../style_rule.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssStyleRule] for use in the evaluation step.
-class ModifiableCssStyleRule extends ModifiableCssParentNode
+final class ModifiableCssStyleRule extends ModifiableCssParentNode
     implements CssStyleRule {
   SelectorList get selector => _selector.value;
 

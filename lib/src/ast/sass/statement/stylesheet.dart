@@ -13,6 +13,7 @@ import '../../../parse/css.dart';
 import '../../../parse/sass.dart';
 import '../../../parse/scss.dart';
 import '../../../syntax.dart';
+import '../../../utils.dart';
 import '../../../visitor/interface/statement.dart';
 import '../statement.dart';
 import 'forward_rule.dart';
@@ -28,8 +29,7 @@ import 'variable_declaration.dart';
 ///
 /// {@category AST}
 /// {@category Parsing}
-@sealed
-class Stylesheet extends ParentStatement<List<Statement>> {
+final class Stylesheet extends ParentStatement<List<Statement>> {
   final FileSpan span;
 
   /// Whether this was parsed from a plain CSS stylesheet.
@@ -56,15 +56,22 @@ class Stylesheet extends ParentStatement<List<Statement>> {
   Stylesheet.internal(Iterable<Statement> children, this.span,
       {this.plainCss = false})
       : super(List.unmodifiable(children)) {
+    loop:
     for (var child in this.children) {
-      if (child is UseRule) {
-        _uses.add(child);
-      } else if (child is ForwardRule) {
-        _forwards.add(child);
-      } else if (child is! SilentComment &&
-          child is! LoudComment &&
-          child is! VariableDeclaration) {
-        break;
+      switch (child) {
+        case UseRule():
+          _uses.add(child);
+
+        case ForwardRule():
+          _forwards.add(child);
+
+        case SilentComment() || LoudComment() || VariableDeclaration():
+          // These are allowed between `@use` and `@forward` rules.
+          break;
+
+        case _:
+          break loop;
+        // Once we reach anything else, we know we're done with loads.
       }
     }
   }
@@ -87,11 +94,12 @@ class Stylesheet extends ParentStatement<List<Statement>> {
         default:
           throw ArgumentError("Unknown syntax $syntax.");
       }
-    } on SassException catch (error) {
+    } on SassException catch (error, stackTrace) {
       var url = error.span.sourceUrl;
       if (url == null || url.toString() == 'stdin') rethrow;
 
-      throw error.withLoadedUrls(Set.unmodifiable({url}));
+      throw throwWithTrace(
+          error.withLoadedUrls(Set.unmodifiable({url})), error, stackTrace);
     }
   }
 

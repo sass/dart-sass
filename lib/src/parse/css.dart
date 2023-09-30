@@ -22,7 +22,11 @@ final _disallowedFunctionNames =
       ..remove("invert")
       ..remove("alpha")
       ..remove("opacity")
-      ..remove("saturate");
+      ..remove("saturate")
+      ..remove("min")
+      ..remove("max")
+      ..remove("round")
+      ..remove("abs");
 
 class CssParser extends ScssParser {
   bool get plainCss => true;
@@ -46,36 +50,34 @@ class CssParser extends ScssParser {
     var name = interpolatedIdentifier();
     whitespace();
 
-    switch (name.asPlain) {
-      case "at-root":
-      case "content":
-      case "debug":
-      case "each":
-      case "error":
-      case "extend":
-      case "for":
-      case "function":
-      case "if":
-      case "include":
-      case "mixin":
-      case "return":
-      case "warn":
-      case "while":
-        almostAnyValue();
-        error("This at-rule isn't allowed in plain CSS.",
-            scanner.spanFrom(start));
+    return switch (name.asPlain) {
+      "at-root" ||
+      "content" ||
+      "debug" ||
+      "each" ||
+      "error" ||
+      "extend" ||
+      "for" ||
+      "function" ||
+      "if" ||
+      "include" ||
+      "mixin" ||
+      "return" ||
+      "warn" ||
+      "while" =>
+        _forbiddenAtRoot(start),
+      "import" => _cssImportRule(start),
+      "media" => mediaRule(start),
+      "-moz-document" => mozDocumentRule(start, name),
+      "supports" => supportsRule(start),
+      _ => unknownAtRule(start, name)
+    };
+  }
 
-      case "import":
-        return _cssImportRule(start);
-      case "media":
-        return mediaRule(start);
-      case "-moz-document":
-        return mozDocumentRule(start, name);
-      case "supports":
-        return supportsRule(start);
-      default:
-        return unknownAtRule(start, name);
-    }
+  /// Throws an error for a forbidden at-rule.
+  Never _forbiddenAtRoot(LineScannerState start) {
+    almostAnyValue();
+    error("This at-rule isn't allowed in plain CSS.", scanner.spanFrom(start));
   }
 
   /// Consumes a plain-CSS `@import` rule that disallows interpolation.
@@ -83,14 +85,10 @@ class CssParser extends ScssParser {
   /// [start] should point before the `@`.
   ImportRule _cssImportRule(LineScannerState start) {
     var urlStart = scanner.state;
-    var next = scanner.peekChar();
-    Expression url;
-    if (next == $u || next == $U) {
-      url = dynamicUrl();
-    } else {
-      url =
-          StringExpression(interpolatedString().asInterpolation(static: true));
-    }
+    var url = switch (scanner.peekChar()) {
+      $u || $U => dynamicUrl(),
+      _ => StringExpression(interpolatedString().asInterpolation(static: true))
+    };
     var urlSpan = scanner.spanFrom(urlStart);
 
     whitespace();
@@ -102,16 +100,30 @@ class CssParser extends ScssParser {
     ], scanner.spanFrom(start));
   }
 
+  ParenthesizedExpression parentheses() {
+    // Expressions are only allowed within calculations, but we verify this at
+    // evaluation time.
+    var start = scanner.state;
+    scanner.expectChar($lparen);
+    whitespace();
+    var expression = expressionUntilComma();
+    scanner.expectChar($rparen);
+    return ParenthesizedExpression(expression, scanner.spanFrom(start));
+  }
+
   Expression identifierLike() {
     var start = scanner.state;
     var identifier = interpolatedIdentifier();
     var plain = identifier.asPlain!; // CSS doesn't allow non-plain identifiers
 
     var lower = plain.toLowerCase();
-    var specialFunction = trySpecialFunction(lower, start);
-    if (specialFunction != null) return specialFunction;
+    if (trySpecialFunction(lower, start) case var specialFunction?) {
+      return specialFunction;
+    }
 
     var beforeArguments = scanner.state;
+    // `namespacedExpression()` is just here to throw a clearer error.
+    if (scanner.scanChar($dot)) return namespacedExpression(plain, start);
     if (!scanner.scanChar($lparen)) return StringExpression(identifier);
 
     var allowEmptySecondArg = lower == 'var';
@@ -137,10 +149,8 @@ class CssParser extends ScssParser {
           "This function isn't allowed in plain CSS.", scanner.spanFrom(start));
     }
 
-    return InterpolatedFunctionExpression(
-        // Create a fake interpolation to force the function to be interpreted
-        // as plain CSS, rather than calling a user-defined function.
-        Interpolation([StringExpression(identifier)], identifier.span),
+    return FunctionExpression(
+        plain,
         ArgumentInvocation(
             arguments, const {}, scanner.spanFrom(beforeArguments)),
         scanner.spanFrom(start));

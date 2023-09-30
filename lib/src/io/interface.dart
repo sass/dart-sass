@@ -20,7 +20,7 @@ bool get isMacOS => throw '';
 bool get hasTerminal => throw '';
 
 /// Whether we're running as JS (browser or Node.js).
-bool get isJS => throw '';
+const bool isJS = false;
 
 /// Whether we're running as Node.js (not browser or Dart VM).
 bool get isNode => throw '';
@@ -32,8 +32,16 @@ bool get isBrowser => throw '';
 /// sequences.
 bool get supportsAnsiEscapes => throw '';
 
+/// Prints [message] (followed by a newline) to standard output or the
+/// equivalent.
+///
+/// This method is thread-safe.
+void safePrint(Object? message) => throw '';
+
 /// Prints [message] (followed by a newline) to standard error or the
 /// equivalent.
+///
+/// This method is thread-safe.
 void printError(Object? message) => throw '';
 
 /// Reads the file at [path] as a UTF-8 encoded string.

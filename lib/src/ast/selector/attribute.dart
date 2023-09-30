@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/interface/selector.dart';
@@ -14,8 +13,7 @@ import '../selector.dart';
 /// value matching certain conditions as well.
 ///
 /// {@category AST}
-@sealed
-class AttributeSelector extends SimpleSelector {
+final class AttributeSelector extends SimpleSelector {
   /// The name of the attribute being selected for.
   final QualifiedName name;
 

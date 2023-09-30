@@ -9,8 +9,10 @@ import 'package:string_scanner/string_scanner.dart';
 import '../utils.dart';
 import 'character.dart';
 
-/// A span that points nowhere, only used for fake AST nodes that will never be
-/// presented to the user.
+/// A span that points nowhere.
+///
+/// This is used for fake AST nodes that will never be presented to the user, as
+/// well as for embedded compilation failures that have no associated spans.
 final bogusSpan = SourceFile.decoded([]).span(0);
 
 extension SpanExtensions on FileSpan {
@@ -20,7 +22,7 @@ extension SpanExtensions on FileSpan {
   /// Returns this span with all leading whitespace trimmed.
   FileSpan trimLeft() {
     var start = 0;
-    while (isWhitespace(text.codeUnitAt(start))) {
+    while (text.codeUnitAt(start).isWhitespace) {
       start++;
     }
     return subspan(start);
@@ -29,7 +31,7 @@ extension SpanExtensions on FileSpan {
   /// Returns this span with all trailing whitespace trimmed.
   FileSpan trimRight() {
     var end = text.length - 1;
-    while (isWhitespace(text.codeUnitAt(end))) {
+    while (text.codeUnitAt(end).isWhitespace) {
       end--;
     }
     return subspan(0, end + 1);
@@ -94,14 +96,15 @@ extension SpanExtensions on FileSpan {
 
 /// Consumes an identifier from [scanner].
 void _scanIdentifier(StringScanner scanner) {
+  loop:
   while (!scanner.isDone) {
-    var char = scanner.peekChar()!;
-    if (char == $backslash) {
-      consumeEscapedCharacter(scanner);
-    } else if (isName(char)) {
-      scanner.readChar();
-    } else {
-      break;
+    switch (scanner.peekChar()) {
+      case $backslash:
+        consumeEscapedCharacter(scanner);
+      case int(isName: true):
+        scanner.readChar();
+      case _:
+        break loop;
     }
   }
 }

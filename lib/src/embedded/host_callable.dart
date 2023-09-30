@@ -2,9 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-// ignore: deprecated_member_use
-import 'dart:cli';
-
 import '../callable.dart';
 import '../exception.dart';
 import 'compilation_dispatcher.dart';
@@ -37,8 +34,7 @@ Callable hostCallable(CompilationDispatcher dispatcher,
       request.name = callable.name;
     }
 
-    // ignore: deprecated_member_use
-    var response = waitFor(dispatcher.sendFunctionCallRequest(request));
+    var response = dispatcher.sendFunctionCallRequest(request);
     try {
       switch (response.whichResult()) {
         case InboundMessage_FunctionCallResponse_Result.success:

@@ -1,3 +1,156 @@
+## 1.69.0
+
+* Add support for the relative color syntax from CSS Color 5. This syntax
+  cannot be used to create Sass color values. It is always emitted as-is in the
+  CSS output.
+
+### Dart API
+
+* Deprecate `Deprecation.calcInterp` since it was never actually emitted as a
+  deprecation.
+
+## 1.68.0
+
+* Fix the source spans associated with the `abs-percent` deprecation.
+
+### JS API
+
+* Non-filesystem importers can now set the `nonCanonicalScheme` field, which
+  declares that one or more URL schemes (without `:`) will never be used for
+  URLs returned by the `canonicalize()` method.
+
+* Add a `containingUrl` field to the `canonicalize()` and `findFileUrl()`
+  methods of importers, which is set to the canonical URL of the stylesheet that
+  contains the current load. For filesystem importers, this is always set; for
+  other importers, it's set only if the current load has no URL scheme, or if
+  its URL scheme is declared as non-canonical by the importer.
+
+### Dart API
+
+* Add `AsyncImporter.isNonCanonicalScheme`, which importers (async or sync) can
+  use to indicate that a certain URL scheme will never be used for URLs returned
+  by the `canonicalize()` method.
+
+* Add `AsyncImporter.containingUrl`, which is set during calls to the
+  `canonicalize()` method to the canonical URL of the stylesheet that contains
+  the current load. This is set only if the current load has no URL scheme, or
+  if its URL scheme is declared as non-canonical by the importer.
+
+### Embedded Sass
+
+* The `CalculationValue.interpolation` field is deprecated and will be removed
+  in a future version. It will no longer be set by the compiler, and if the host
+  sets it it will be treated as equivalent to `CalculationValue.string` except
+  that `"("` and `")"` will be added to the beginning and end of the string
+  values.
+
+* Properly include TypeScript types in the `sass-embedded` package.
+
+## 1.67.0
+
+* All functions defined in CSS Values and Units 4 are now once again parsed as
+  calculation objects: `round()`, `mod()`, `rem()`, `sin()`, `cos()`, `tan()`,
+  `asin()`, `acos()`, `atan()`, `atan2()`, `pow()`, `sqrt()`, `hypot()`,
+  `log()`, `exp()`, `abs()`, and `sign()`.
+
+  Unlike in 1.65.0, function calls are _not_ locked into being parsed as
+  calculations or plain Sass functions at parse-time. This means that
+  user-defined functions will take precedence over CSS calculations of the same
+  name. Although the function names `calc()` and `clamp()` are still forbidden,
+  users may continue to freely define functions whose names overlap with other
+  CSS calculations (including `abs()`, `min()`, `max()`, and `round()` whose
+  names overlap with global Sass functions).
+
+* **Breaking change**: As a consequence of the change in calculation parsing
+  described above, calculation functions containing interpolation are now parsed
+  more strictly than before. However, _almost_ all interpolations that would
+  have produced valid CSS will continue to work. The only exception is
+  `#{$variable}%` which is not valid in Sass and is no longer valid in
+  calculations. Instead of this, either use `$variable` directly and ensure it
+  already has the `%` unit, or write `($variable * 1%)`.
+
+* **Potentially breaking bug fix**: The importer used to load a given file is no
+  longer used to load absolute URLs that appear in that file. This was
+  unintented behavior that contradicted the Sass specification. Absolute URLs
+  will now correctly be loaded only from the global importer list. This applies
+  to the modern JS API, the Dart API, and the embedded protocol.
+
+### Embedded Sass
+
+* Substantially improve the embedded compiler's performance when compiling many
+  files or files that require many importer or function call round-trips with
+  the embedded host.
+
+## 1.66.1
+
+### JS API
+
+* Fix a bug where Sass compilation could crash in strict mode if passed a
+  callback that threw a string, boolean, number, symbol, or bignum.
+
+## 1.66.0
+
+* **Breaking change:** Drop support for the additional CSS calculations defined
+  in CSS Values and Units 4. Custom Sass functions whose names overlapped with
+  these new CSS functions were being parsed as CSS calculations instead, causing
+  an unintentional breaking change outside our normal [compatibility policy] for
+  CSS compatibility changes.
+
+  Support will be added again in a future version, but only after Sass has
+  emitted a deprecation warning for all functions that will break for at least
+  three months prior to the breakage.
+
+## 1.65.1
+
+* Update abs-percent deprecatedIn version to `1.65.0`.
+
+## 1.65.0
+
+* All functions defined in CSS Values and Units 4 are now parsed as calculation
+  objects: `round()`, `mod()`, `rem()`, `sin()`, `cos()`, `tan()`, `asin()`,
+  `acos()`, `atan()`, `atan2()`, `pow()`, `sqrt()`, `hypot()`, `log()`, `exp()`,
+  `abs()`, and `sign()`.
+
+* Deprecate explicitly passing the `%` unit to the global `abs()` function. In
+  future releases, this will emit a CSS abs() function to be resolved by the
+  browser. This deprecation is named `abs-percent`.
+
+## 1.64.3
+
+### Dart API
+
+* Deprecate explicitly passing `null` as the alpha channel for
+  `SassColor.rgb()`, `SassColor.hsl()`, and `SassColor.hwb()`. Omitting the
+  `alpha` channel is still allowed. In future releases, `null` will be used to
+  indicate a [missing component]. This deprecation is named `null-alpha`.
+
+  [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+
+* Include protocol buffer definitions when uploading the `sass` package to pub.
+
+### JS API
+
+* Deprecate explicitly passing `null` as the alpha channel for `new
+  SassColor()`. Omitting the `alpha` channel or passing `undefined` for it is
+  still allowed. In future releases, `null` will be used to indicate a [missing
+  component]. This deprecation is named `null-alpha`.
+
+  [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+
+  (Note that this was already prohibited by the TypeScript types, but in
+  practice prior to this `null` was treated as `1`.)
+
+## 1.64.2
+
+* No user-visible changes.
+
+## 1.64.1
+
+### Embedded Sass
+
+* Fix a bug where a valid `SassCalculation.clamp()` with less than 3 arguments
+  would throw an error.
+
 ## 1.64.0
 
 * Comments that appear before or between `@use` and `@forward` rules are now

@@ -3,10 +3,10 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
-import 'package:tuple/tuple.dart';
 
 import '../ast/sass.dart';
 import '../exception.dart';
+import '../util/map.dart';
 import 'interface/expression.dart';
 
 /// A visitor that recursively traverses each expression in a SassScript AST and
@@ -22,10 +22,6 @@ import 'interface/expression.dart';
 ///
 /// {@category Visitor}
 mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
-  Expression visitCalculationExpression(CalculationExpression node) =>
-      CalculationExpression(node.name,
-          node.arguments.map((argument) => argument.accept(this)), node.span);
-
   Expression visitBinaryOperationExpression(BinaryOperationExpression node) =>
       BinaryOperationExpression(
           node.operator, node.left.accept(this), node.right.accept(this));
@@ -52,10 +48,10 @@ mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
       node.contents.map((item) => item.accept(this)), node.separator, node.span,
       brackets: node.hasBrackets);
 
-  Expression visitMapExpression(MapExpression node) => MapExpression(
-      node.pairs.map(
-          (pair) => Tuple2(pair.item1.accept(this), pair.item2.accept(this))),
-      node.span);
+  Expression visitMapExpression(MapExpression node) => MapExpression([
+        for (var (key, value) in node.pairs)
+          (key.accept(this), value.accept(this))
+      ], node.span);
 
   Expression visitNullExpression(NullExpression node) => node;
 
@@ -89,8 +85,8 @@ mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
       ArgumentInvocation(
           invocation.positional.map((expression) => expression.accept(this)),
           {
-            for (var entry in invocation.named.entries)
-              entry.key: entry.value.accept(this)
+            for (var (name, value) in invocation.named.pairs)
+              name: value.accept(this)
           },
           invocation.span,
           rest: invocation.rest?.accept(this),

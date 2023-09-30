@@ -40,9 +40,8 @@ void ensureBuild() {
 /// Returns the environment variable named [name], or throws an exception if it
 /// can't be found.
 String environment(String name) {
-  var value = Platform.environment[name];
-  if (value == null) fail("Required environment variable $name not found.");
-  return value;
+  if (Platform.environment[name] case var value?) return value;
+  fail("Required environment variable $name not found.");
 }
 
 /// Ensure that the repository at [url] is cloned into the build directory and
@@ -59,6 +58,10 @@ String cloneOrCheckout(String url, String ref, {String? name}) {
   }
 
   var path = p.join("build", name);
+  if (Link(path).existsSync()) {
+    log("$url is symlinked, leaving as-is");
+    return path;
+  }
 
   if (!Directory(p.join(path, '.git')).existsSync()) {
     delete(Directory(path));

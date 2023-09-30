@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: bac7360553f772bbf8243cca78f4f63e4bdf2755
+// Checksum: c2982db43bcd56f81cab3f51b5669e0edd3cfafb
 //
 // ignore_for_file: unused_import
 
@@ -87,7 +87,7 @@ CompileResult compile(String path,
       sourceMap,
       charset);
 
-  deprecationLogger.summarize(node: nodeImporter != null);
+  deprecationLogger.summarize(js: nodeImporter != null);
   return result;
 }
 
@@ -139,7 +139,7 @@ CompileResult compileString(String source,
       sourceMap,
       charset);
 
-  deprecationLogger.summarize(node: nodeImporter != null);
+  deprecationLogger.summarize(js: nodeImporter != null);
   return result;
 }
 
@@ -179,9 +179,7 @@ CompileResult _compileStylesheet(
 
   var resultSourceMap = serializeResult.sourceMap;
   if (resultSourceMap != null && importCache != null) {
-    // TODO(nweiz): Don't explicitly use a type parameter when dart-lang/sdk#25490
-    // is fixed.
-    mapInPlace<String>(
+    mapInPlace(
         resultSourceMap.urls,
         (url) => url == ''
             ? Uri.dataFromString(stylesheet.span.file.getText(0),

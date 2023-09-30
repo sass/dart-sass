@@ -11,23 +11,23 @@ import 'isolate_dispatcher.dart';
 import 'util/length_delimited_transformer.dart';
 
 void main(List<String> args) {
-  if (args.isNotEmpty) {
-    if (args.first == "--version") {
+  switch (args) {
+    case ["--version", ...]:
       var response = IsolateDispatcher.versionResponse();
       response.id = 0;
       stdout.writeln(
           JsonEncoder.withIndent("  ").convert(response.toProto3Json()));
       return;
-    }
 
-    stderr.writeln(
-        "sass --embedded is not intended to be executed with additional "
-        "arguments.\n"
-        "See https://github.com/sass/dart-sass#embedded-dart-sass for "
-        "details.");
-    // USAGE error from https://bit.ly/2poTt90
-    exitCode = 64;
-    return;
+    case [_, ...]:
+      stderr.writeln(
+          "sass --embedded is not intended to be executed with additional "
+          "arguments.\n"
+          "See https://github.com/sass/dart-sass#embedded-dart-sass for "
+          "details.");
+      // USAGE error from https://bit.ly/2poTt90
+      exitCode = 64;
+      return;
   }
 
   IsolateDispatcher(

@@ -192,12 +192,12 @@ the [`value`] directory.
 [`value`]: value/README.md
 
 Exposing values is a bit more complex for other platforms. For the JS API, we do
-a bit of metaprogramming in [`node/value`] so that we can return the
+a bit of metaprogramming in [`js/value`] so that we can return the
 same Dart values we use internally while still having them expose a JS API that
 feels native to that language. For the embedded host, we convert them to and
-from a protocol buffer representation in [`embedded/value.dart`].
+from a protocol buffer representation in [`embedded/protofier.dart`].
 
-[`node/value`]: node/value/README.md
+[`js/value`]: js/value/README.md
 [`embedded/value.dart`]: embedded/value.dart
 
 ### Loggers
@@ -207,7 +207,7 @@ any time Dart Sass would emit a warning (from the language or from `@warn`) or a
 debug message from `@debug`. They're defined in:
 
 * [`logger.dart`](logger.dart) for Dart
-* [`node/logger.dart`](node/logger.dart) for Node
+* [`js/logger.dart`](js/logger.dart) for Node
 * [`embedded/logger.dart`](embedded/logger.dart) for the embedded compiler
 
 ## Built-In Functions

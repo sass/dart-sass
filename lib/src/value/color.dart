@@ -7,7 +7,10 @@ import 'dart:math' as math;
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
+import '../deprecation.dart';
+import '../evaluation_context.dart';
 import '../exception.dart';
+import '../io.dart';
 import '../util/number.dart';
 import '../value.dart';
 import '../visitor/interface/value.dart';
@@ -98,20 +101,25 @@ class SassColor extends Value {
 
   /// Creates an RGB color.
   ///
+  /// Passing `null` to [alpha] is deprecated, and will change behavior in
+  /// future versions of Dart Sass to represent a [missing component] instead of
+  /// being equivalent to `1`. Callers who want to create opaque colors should
+  /// explicitly pass `1` or not pass [alpha] at all.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [red], [green], and [blue] aren't between `0` and
   /// `255`, or if [alpha] isn't between `0` and `1`.
-  SassColor.rgb(int red, int green, int blue, [num? alpha])
-      : this.rgbInternal(red, green, blue, alpha);
+  SassColor.rgb(int red, int green, int blue, [num? alpha = 1])
+      : this.rgbInternal(red, green, blue, _handleNullAlpha(alpha));
 
   /// Like [SassColor.rgb], but also takes a [format] parameter.
   ///
   /// @nodoc
   @internal
   SassColor.rgbInternal(this._red, this._green, this._blue,
-      [num? alpha, this.format])
-      : _alpha = alpha == null
-            ? 1
-            : fuzzyAssertRange(alpha.toDouble(), 0, 1, "alpha") {
+      [num alpha = 1, this.format])
+      : _alpha = fuzzyAssertRange(alpha.toDouble(), 0, 1, "alpha") {
     RangeError.checkValueInInterval(red, 0, 255, "red");
     RangeError.checkValueInInterval(green, 0, 255, "green");
     RangeError.checkValueInInterval(blue, 0, 255, "blue");
@@ -119,31 +127,37 @@ class SassColor extends Value {
 
   /// Creates an HSL color.
   ///
+  /// Passing `null` to [alpha] is deprecated, and will change behavior in
+  /// future versions of Dart Sass to represent a [missing component] instead of
+  /// being equivalent to `1`. Callers who want to create opaque colors should
+  /// explicitly pass `1` or not pass [alpha] at all.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
   /// Throws a [RangeError] if [saturation] or [lightness] aren't between `0`
   /// and `100`, or if [alpha] isn't between `0` and `1`.
-  SassColor.hsl(num hue, num saturation, num lightness, [num? alpha])
-      : this.hslInternal(hue, saturation, lightness, alpha);
+  SassColor.hsl(num hue, num saturation, num lightness, [num? alpha = 1])
+      : this.hslInternal(hue, saturation, lightness, _handleNullAlpha(alpha));
 
   /// Like [SassColor.hsl], but also takes a [format] parameter.
   ///
   /// @nodoc
   @internal
   SassColor.hslInternal(num hue, num saturation, num lightness,
-      [num? alpha, this.format])
+      [num alpha = 1, this.format])
       : _hue = hue % 360,
         _saturation =
             fuzzyAssertRange(saturation.toDouble(), 0, 100, "saturation"),
         _lightness =
             fuzzyAssertRange(lightness.toDouble(), 0, 100, "lightness"),
-        _alpha = alpha == null
-            ? 1
-            : fuzzyAssertRange(alpha.toDouble(), 0, 1, "alpha");
+        _alpha = fuzzyAssertRange(alpha.toDouble(), 0, 1, "alpha");
 
   /// Creates an HWB color.
   ///
   /// Throws a [RangeError] if [whiteness] or [blackness] aren't between `0` and
   /// `100`, or if [alpha] isn't between `0` and `1`.
-  factory SassColor.hwb(num hue, num whiteness, num blackness, [num? alpha]) {
+  factory SassColor.hwb(num hue, num whiteness, num blackness,
+      [num? alpha = 1]) {
     // From https://www.w3.org/TR/css-color-4/#hwb-to-rgb
     var scaledHue = hue % 360 / 360;
     var scaledWhiteness =
@@ -169,6 +183,21 @@ class SassColor extends Value {
     // convert it to RGB and then convert back if necessary.
     return SassColor.rgb(toRgb(scaledHue + 1 / 3), toRgb(scaledHue),
         toRgb(scaledHue - 1 / 3), alpha);
+  }
+
+  /// Prints a deprecation warning if [alpha] is explicitly `null`.
+  static num _handleNullAlpha(num? alpha) {
+    if (alpha != null) return alpha;
+
+    warnForDeprecation(
+        'Passing null for alpha in the ${isJS ? 'JS' : 'Dart'} API is '
+        'deprecated.\n'
+        'To preserve current behavior, pass 1${isJS ? ' or undefined' : ''} '
+        'instead.'
+        '\n'
+        'More info: https://sass-lang.com/d/null-alpha',
+        Deprecation.nullAlpha);
+    return 1;
   }
 
   SassColor._(this._red, this._green, this._blue, this._hue, this._saturation,
@@ -298,15 +327,12 @@ class SassColor extends Value {
     if (hue < 0) hue += 1;
     if (hue > 1) hue -= 1;
 
-    if (hue < 1 / 6) {
-      return m1 + (m2 - m1) * hue * 6;
-    } else if (hue < 1 / 2) {
-      return m2;
-    } else if (hue < 2 / 3) {
-      return m1 + (m2 - m1) * (2 / 3 - hue) * 6;
-    } else {
-      return m1;
-    }
+    return switch (hue) {
+      < 1 / 6 => m1 + (m2 - m1) * hue * 6,
+      < 1 / 2 => m2,
+      < 2 / 3 => m1 + (m2 - m1) * (2 / 3 - hue) * 6,
+      _ => m1
+    };
   }
 
   /// Returns an `rgb()` or `rgba()` function call that will evaluate to this

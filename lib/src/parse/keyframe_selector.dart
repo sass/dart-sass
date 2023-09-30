@@ -44,33 +44,32 @@ class KeyframeSelectorParser extends Parser {
     if (scanner.scanChar($plus)) buffer.writeCharCode($plus);
 
     var second = scanner.peekChar();
-    if (!isDigit(second) && second != $dot) {
+    if (!second.isDigit && second != $dot) {
       scanner.error("Expected number.");
     }
 
-    while (isDigit(scanner.peekChar())) {
+    while (scanner.peekChar().isDigit) {
       buffer.writeCharCode(scanner.readChar());
     }
 
     if (scanner.peekChar() == $dot) {
       buffer.writeCharCode(scanner.readChar());
 
-      while (isDigit(scanner.peekChar())) {
+      while (scanner.peekChar().isDigit) {
         buffer.writeCharCode(scanner.readChar());
       }
     }
 
     if (scanIdentChar($e)) {
       buffer.writeCharCode($e);
-      var next = scanner.peekChar();
-      if (next == $plus || next == $minus) {
+      if (scanner.peekChar() case $plus || $minus) {
         buffer.writeCharCode(scanner.readChar());
       }
-      if (!isDigit(scanner.peekChar())) scanner.error("Expected digit.");
+      if (!scanner.peekChar().isDigit) scanner.error("Expected digit.");
 
-      while (isDigit(scanner.peekChar())) {
+      do {
         buffer.writeCharCode(scanner.readChar());
-      }
+      } while (scanner.peekChar().isDigit);
     }
 
     scanner.expectChar($percent);

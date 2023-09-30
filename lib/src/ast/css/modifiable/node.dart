@@ -12,7 +12,7 @@ import '../node.dart';
 /// Almost all CSS nodes are the modifiable classes under the covers. However,
 /// modification should only be done within the evaluation step, so the
 /// unmodifiable types are used elsewhere to enforce that constraint.
-abstract class ModifiableCssNode extends CssNode {
+abstract base class ModifiableCssNode extends CssNode {
   /// The node that contains this, or `null` for the root [CssStylesheet] node.
   ModifiableCssParentNode? get parent => _parent;
   ModifiableCssParentNode? _parent;
@@ -43,8 +43,7 @@ abstract class ModifiableCssNode extends CssNode {
     }
 
     parent._children.removeAt(_indexInParent!);
-    for (var i = _indexInParent!; i < parent._children.length; i++) {
-      var child = parent._children[i];
+    for (var child in parent._children.skip(_indexInParent!)) {
       child._indexInParent = child._indexInParent! - 1;
     }
     _parent = null;
@@ -52,7 +51,7 @@ abstract class ModifiableCssNode extends CssNode {
 }
 
 /// A modifiable version of [CssParentNode] for use in the evaluation step.
-abstract class ModifiableCssParentNode extends ModifiableCssNode
+abstract base class ModifiableCssParentNode extends ModifiableCssNode
     implements CssParentNode {
   final List<ModifiableCssNode> children;
   final List<ModifiableCssNode> _children;

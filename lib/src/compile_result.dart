@@ -21,7 +21,7 @@ class CompileResult {
   final SerializeResult _serialize;
 
   /// The compiled CSS.
-  String get css => _serialize.css;
+  String get css => _serialize.$1;
 
   /// The source map indicating how the source files map to [css].
   ///

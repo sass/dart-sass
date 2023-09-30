@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import 'node.dart';
@@ -10,8 +9,7 @@ import 'node.dart';
 /// A common interface for any node that references a Sass member.
 ///
 /// {@category AST}
-@sealed
-abstract class SassReference extends SassNode {
+abstract interface class SassReference implements SassNode {
   /// The namespace of the member being referenced, or `null` if it's referenced
   /// without a namespace.
   String? get namespace;

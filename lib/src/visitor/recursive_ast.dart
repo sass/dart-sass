@@ -33,12 +33,6 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
     super.visitAtRule(node);
   }
 
-  void visitCalculationExpression(CalculationExpression node) {
-    for (var argument in node.arguments) {
-      argument.accept(this);
-    }
-  }
-
   void visitContentRule(ContentRule node) {
     visitArgumentInvocation(node.arguments);
   }
@@ -80,11 +74,11 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
       }
     }
 
-    node.lastClause.andThen((lastClause) {
+    if (node.lastClause case var lastClause?) {
       for (var child in lastClause.children) {
         child.accept(this);
       }
-    });
+    }
   }
 
   void visitImportRule(ImportRule node) {
@@ -110,8 +104,6 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
     super.visitMediaRule(node);
   }
 
-  void visitMixinRule(MixinRule node) => visitCallableDeclaration(node);
-
   void visitReturnRule(ReturnRule node) {
     visitExpression(node.expression);
   }
@@ -128,7 +120,7 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
 
   void visitUseRule(UseRule node) {
     for (var variable in node.configuration) {
-      variable.expression.accept(this);
+      visitExpression(variable.expression);
     }
   }
 
@@ -160,7 +152,7 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
 
   void visitForwardRule(ForwardRule node) {
     for (var variable in node.configuration) {
-      variable.expression.accept(this);
+      visitExpression(variable.expression);
     }
   }
 
@@ -185,9 +177,9 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
   }
 
   void visitMapExpression(MapExpression node) {
-    for (var pair in node.pairs) {
-      pair.item1.accept(this);
-      pair.item2.accept(this);
+    for (var (key, value) in node.pairs) {
+      key.accept(this);
+      value.accept(this);
     }
   }
 
@@ -247,16 +239,17 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
   /// [SupportsCondition] they encounter.
   @protected
   void visitSupportsCondition(SupportsCondition condition) {
-    if (condition is SupportsOperation) {
-      visitSupportsCondition(condition.left);
-      visitSupportsCondition(condition.right);
-    } else if (condition is SupportsNegation) {
-      visitSupportsCondition(condition.condition);
-    } else if (condition is SupportsInterpolation) {
-      visitExpression(condition.expression);
-    } else if (condition is SupportsDeclaration) {
-      visitExpression(condition.name);
-      visitExpression(condition.value);
+    switch (condition) {
+      case SupportsOperation():
+        visitSupportsCondition(condition.left);
+        visitSupportsCondition(condition.right);
+      case SupportsNegation():
+        visitSupportsCondition(condition.condition);
+      case SupportsInterpolation():
+        visitExpression(condition.expression);
+      case SupportsDeclaration():
+        visitExpression(condition.name);
+        visitExpression(condition.value);
     }
   }
 

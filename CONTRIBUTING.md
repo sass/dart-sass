@@ -2,6 +2,7 @@ Want to contribute? Great! First, read this page.
 
 * [Before You Contribute](#before-you-contribute)
   * [The Small Print](#the-small-print)
+* [Large Language Models](#large-language-models)
 * [Development Dependencies](#development-dependencies)
 * [Writing Code](#writing-code)
   * [Changing the Language](#changing-the-language)
@@ -37,6 +38,17 @@ one above, the
 [Software Grant and Corporate Contributor License Agreement][corporate cla].
 
 [corporate cla]: https://developers.google.com/open-source/cla/corporate
+
+## Large Language Models
+
+Do not submit any code or prose written or modified by large language models or
+"artificial intelligence" such as GitHub Copilot or ChatGPT to this project.
+These tools produce code that looks plausible, which means that not only is it
+likely to contain bugs those bugs are likely to be difficult to notice on
+review. In addition, because these models were trained indiscriminately and
+non-consensually on open-source code with a variety of licenses, it's not
+obvious that we have the moral or legal right to redistribute code they
+generate.
 
 ## Development Dependencies
 

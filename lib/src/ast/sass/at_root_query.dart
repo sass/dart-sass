@@ -14,8 +14,7 @@ import '../css.dart';
 /// A query for the `@at-root` rule.
 ///
 /// @nodoc
-@internal
-class AtRootQuery {
+final class AtRootQuery {
   /// The default at-root query, which excludes only style rules.
   static const defaultQuery = AtRootQuery._default();
 
@@ -68,11 +67,13 @@ class AtRootQuery {
   @internal
   bool excludes(CssParentNode node) {
     if (_all) return !include;
-    if (node is CssStyleRule) return excludesStyleRules;
-    if (node is CssMediaRule) return excludesName("media");
-    if (node is CssSupportsRule) return excludesName("supports");
-    if (node is CssAtRule) return excludesName(node.name.value.toLowerCase());
-    return false;
+    return switch (node) {
+      CssStyleRule() => excludesStyleRules,
+      CssMediaRule() => excludesName("media"),
+      CssSupportsRule() => excludesName("supports"),
+      CssAtRule() => excludesName(node.name.value.toLowerCase()),
+      _ => false
+    };
   }
 
   /// Returns whether [this] excludes an at-rule with the given [name].

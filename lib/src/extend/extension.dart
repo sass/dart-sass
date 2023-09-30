@@ -51,7 +51,7 @@ class Extension {
 
 /// A selector that's extending another selector, such as `A` in `A {@extend
 /// B}`.
-class Extender {
+final class Extender {
   /// The selector in which the `@extend` appeared.
   final ComplexSelector selector;
 

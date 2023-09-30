@@ -2,20 +2,19 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:tuple/tuple.dart';
-
-class NodeImporter {
+final class NodeImporter {
   NodeImporter(Object options, Iterable<String> includePaths,
       Iterable<Object> importers);
 
-  Tuple2<String, String>? loadRelative(
+  (String contents, String url)? loadRelative(
           String url, Uri? previous, bool forImport) =>
       throw '';
 
-  Tuple2<String, String>? load(String url, Uri? previous, bool forImport) =>
+  (String contents, String url)? load(
+          String url, Uri? previous, bool forImport) =>
       throw '';
 
-  Future<Tuple2<String, String>?> loadAsync(
+  Future<(String contents, String url)?> loadAsync(
           String url, Uri? previous, bool forImport) =>
       throw '';
 }

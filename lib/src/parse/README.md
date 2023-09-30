@@ -17,13 +17,14 @@ classes are:
   [`StylesheetParser`]: stylesheet.dart
 
 All Sass parsing is done by hand using the [`string_scanner`] package, which we
-use to read the source byte-by-byte while also tracking source span information
-which we can then use to report errors and generate source maps. We don't use
-any kind of parser generator, partly because Sass's grammar requires arbitrary
-backtracking in various places and partly because handwritten code is often
-easier to read and debug.
+use to read the source [code-unit]-by-code-unit while also tracking source span
+information which we can then use to report errors and generate source maps. We
+don't use any kind of parser generator, partly because Sass's grammar requires
+arbitrary backtracking in various places and partly because handwritten code is
+often easier to read and debug.
 
 [`string_scanner`]: https://pub.dev/packages/string_scanner
+[code-unit]: https://developer.mozilla.org/en-US/docs/Glossary/Code_unit
 
 The parser is simple recursive descent. There's usually a method for each
 logical production that either consumes text and returns its corresponding AST

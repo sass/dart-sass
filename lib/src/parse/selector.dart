@@ -88,8 +88,7 @@ class SelectorParser extends Parser {
     whitespace();
     while (scanner.scanChar($comma)) {
       whitespace();
-      var next = scanner.peekChar();
-      if (next == $comma) continue;
+      if (scanner.peekChar() == $comma) continue;
       if (scanner.isDone) break;
 
       var lineBreak = scanner.line != previousLine;
@@ -118,45 +117,37 @@ class SelectorParser extends Parser {
     while (true) {
       whitespace();
 
-      var next = scanner.peekChar();
-      switch (next) {
+      switch (scanner.peekChar()) {
         case $plus:
           var combinatorStart = scanner.state;
           scanner.readChar();
           combinators
               .add(CssValue(Combinator.nextSibling, spanFrom(combinatorStart)));
-          break;
 
         case $gt:
           var combinatorStart = scanner.state;
           scanner.readChar();
           combinators
               .add(CssValue(Combinator.child, spanFrom(combinatorStart)));
-          break;
 
         case $tilde:
           var combinatorStart = scanner.state;
           scanner.readChar();
           combinators.add(
               CssValue(Combinator.followingSibling, spanFrom(combinatorStart)));
-          break;
 
-        default:
-          if (next == null ||
-              (!const {
-                    $lbracket,
-                    $dot,
-                    $hash,
-                    $percent,
-                    $colon,
-                    $ampersand,
-                    $asterisk,
-                    $pipe
-                  }.contains(next) &&
-                  !lookingAtIdentifier())) {
-            break loop;
-          }
+        case null:
+          break loop;
 
+        case $lbracket ||
+              $dot ||
+              $hash ||
+              $percent ||
+              $colon ||
+              $ampersand ||
+              $asterisk ||
+              $pipe:
+        case _ when lookingAtIdentifier():
           if (lastCompound != null) {
             components.add(ComplexSelectorComponent(
                 lastCompound, combinators, spanFrom(componentStart)));
@@ -172,7 +163,9 @@ class SelectorParser extends Parser {
             scanner.error(
                 '"&" may only used at the beginning of a compound selector.');
           }
-          break;
+
+        case _:
+          break loop;
       }
     }
 
@@ -260,7 +253,7 @@ class SelectorParser extends Parser {
     whitespace();
 
     next = scanner.peekChar();
-    var modifier = next != null && isAlphabetic(next)
+    var modifier = next != null && next.isAlphabetic
         ? String.fromCharCode(scanner.readChar())
         : null;
 
@@ -380,7 +373,7 @@ class SelectorParser extends Parser {
     } else if (unvendored == "nth-child" || unvendored == "nth-last-child") {
       argument = _aNPlusB();
       whitespace();
-      if (isWhitespace(scanner.peekChar(-1)) && scanner.peekChar() != $rparen) {
+      if (scanner.peekChar(-1).isWhitespace && scanner.peekChar() != $rparen) {
         expectIdentifier("of");
         argument += " of";
         whitespace();
@@ -402,27 +395,23 @@ class SelectorParser extends Parser {
   String _aNPlusB() {
     var buffer = StringBuffer();
     switch (scanner.peekChar()) {
-      case $e:
-      case $E:
+      case $e || $E:
         expectIdentifier("even");
         return "even";
 
-      case $o:
-      case $O:
+      case $o || $O:
         expectIdentifier("odd");
         return "odd";
 
-      case $plus:
-      case $minus:
+      case $plus || $minus:
         buffer.writeCharCode(scanner.readChar());
         break;
     }
 
-    var first = scanner.peekChar();
-    if (first != null && isDigit(first)) {
-      while (isDigit(scanner.peekChar())) {
+    if (scanner.peekChar().isDigit) {
+      do {
         buffer.writeCharCode(scanner.readChar());
-      }
+      } while (scanner.peekChar().isDigit);
       whitespace();
       if (!scanIdentChar($n)) return buffer.toString();
     } else {
@@ -436,11 +425,10 @@ class SelectorParser extends Parser {
     buffer.writeCharCode(scanner.readChar());
     whitespace();
 
-    var last = scanner.peekChar();
-    if (last == null || !isDigit(last)) scanner.error("Expected a number.");
-    while (isDigit(scanner.peekChar())) {
+    if (!scanner.peekChar().isDigit) scanner.error("Expected a number.");
+    do {
       buffer.writeCharCode(scanner.readChar());
-    }
+    } while (scanner.peekChar().isDigit);
     return buffer.toString();
   }
 
@@ -449,24 +437,17 @@ class SelectorParser extends Parser {
   /// These are combined because either one could start with `*`.
   SimpleSelector _typeOrUniversalSelector() {
     var start = scanner.state;
-    var first = scanner.peekChar();
-    if (first == $asterisk) {
-      scanner.readChar();
+    if (scanner.scanChar($asterisk)) {
       if (!scanner.scanChar($pipe)) return UniversalSelector(spanFrom(start));
-      if (scanner.scanChar($asterisk)) {
-        return UniversalSelector(spanFrom(start), namespace: "*");
-      } else {
-        return TypeSelector(
-            QualifiedName(identifier(), namespace: "*"), spanFrom(start));
-      }
-    } else if (first == $pipe) {
-      scanner.readChar();
-      if (scanner.scanChar($asterisk)) {
-        return UniversalSelector(spanFrom(start), namespace: "");
-      } else {
-        return TypeSelector(
-            QualifiedName(identifier(), namespace: ""), spanFrom(start));
-      }
+      return scanner.scanChar($asterisk)
+          ? UniversalSelector(spanFrom(start), namespace: "*")
+          : TypeSelector(
+              QualifiedName(identifier(), namespace: "*"), spanFrom(start));
+    } else if (scanner.scanChar($pipe)) {
+      return scanner.scanChar($asterisk)
+          ? UniversalSelector(spanFrom(start), namespace: "")
+          : TypeSelector(
+              QualifiedName(identifier(), namespace: ""), spanFrom(start));
     }
 
     var nameOrNamespace = identifier();

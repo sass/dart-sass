@@ -4,19 +4,16 @@
 
 import 'dart:isolate';
 
-import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
-import 'package:sass/src/exception.dart';
-import 'package:sass/src/executable/compile_stylesheet.dart';
+import 'package:sass/src/executable/concurrent.dart';
 import 'package:sass/src/executable/options.dart';
 import 'package:sass/src/executable/repl.dart';
 import 'package:sass/src/executable/watch.dart';
 import 'package:sass/src/import_cache.dart';
 import 'package:sass/src/io.dart';
-import 'package:sass/src/io.dart' as io;
 import 'package:sass/src/logger/deprecation_handling.dart';
 import 'package:sass/src/stylesheet_graph.dart';
 import 'package:sass/src/utils.dart';
@@ -26,29 +23,8 @@ import 'package:sass/src/embedded/executable.dart'
     as embedded;
 
 Future<void> main(List<String> args) async {
-  var printedError = false;
-
-  // Prints [error] to stderr, along with a preceding newline if anything else
-  // has been printed to stderr.
-  //
-  // If [trace] is passed, its terse representation is printed after the error.
-  void printError(String error, StackTrace? stackTrace) {
-    var buffer = StringBuffer();
-    if (printedError) buffer.writeln();
-    printedError = true;
-    buffer.write(error);
-
-    if (stackTrace != null) {
-      buffer.writeln();
-      buffer.writeln();
-      buffer.write(Trace.from(stackTrace).terse.toString().trimRight());
-    }
-
-    io.printError(buffer);
-  }
-
-  if (args.firstOrNull == '--embedded') {
-    embedded.main(args.sublist(1));
+  if (args case ['--embedded', ...var rest]) {
+    embedded.main(rest);
     return;
   }
 
@@ -84,48 +60,8 @@ Future<void> main(List<String> args) async {
       return;
     }
 
-    for (var source in options.sourcesToDestinations.keys) {
-      var destination = options.sourcesToDestinations[source];
-      try {
-        await compileStylesheet(options, graph, source, destination,
-            ifModified: options.update);
-      } on SassException catch (error, stackTrace) {
-        // This is an immediately-invoked function expression to work around
-        // dart-lang/sdk#33400.
-        () {
-          try {
-            if (destination != null &&
-                // dart-lang/sdk#45348
-                !options!.emitErrorCss) {
-              deleteFile(destination);
-            }
-          } on FileSystemException {
-            // If the file doesn't exist, that's fine.
-          }
-        }();
-
-        printError(error.toString(color: options.color),
-            options.trace ? getTrace(error) ?? stackTrace : null);
-
-        // Exit code 65 indicates invalid data per
-        // https://www.freebsd.org/cgi/man.cgi?query=sysexits.
-        //
-        // We let exitCode 66 take precedence for deterministic behavior.
-        if (exitCode != 66) exitCode = 65;
-        if (options.stopOnError) return;
-      } on FileSystemException catch (error, stackTrace) {
-        var path = error.path;
-        printError(
-            path == null
-                ? error.message
-                : "Error reading ${p.relative(path)}: ${error.message}.",
-            options.trace ? getTrace(error) ?? stackTrace : null);
-
-        // Error 66 indicates no input.
-        exitCode = 66;
-        if (options.stopOnError) return;
-      }
-    }
+    await compileStylesheets(options, graph, options.sourcesToDestinations,
+        ifModified: options.update);
   } on UsageException catch (error) {
     print("${error.message}\n");
     print("Usage: sass <input.scss> [output.css]\n"
@@ -134,13 +70,16 @@ Future<void> main(List<String> args) async {
     exitCode = 64;
   } catch (error, stackTrace) {
     var buffer = StringBuffer();
-    if (options != null && options.color) buffer.write('\u001b[31m\u001b[1m');
+    if (options?.color ?? false) buffer.write('\u001b[31m\u001b[1m');
     buffer.write('Unexpected exception:');
-    if (options != null && options.color) buffer.write('\u001b[0m');
+    if (options?.color ?? false) buffer.write('\u001b[0m');
     buffer.writeln();
     buffer.writeln(error);
-
-    printError(buffer.toString(), getTrace(error) ?? stackTrace);
+    buffer.writeln();
+    buffer.writeln();
+    buffer.write(
+        Trace.from(getTrace(error) ?? stackTrace).terse.toString().trimRight());
+    printError(buffer);
     exitCode = 255;
   }
 }

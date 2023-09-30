@@ -19,8 +19,7 @@ import '../selector.dart';
 ///
 /// {@category AST}
 /// {@category Parsing}
-@sealed
-class CompoundSelector extends Selector {
+final class CompoundSelector extends Selector {
   /// The components of this selector.
   ///
   /// This is never empty.

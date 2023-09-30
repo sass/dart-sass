@@ -41,7 +41,7 @@ export 'selector/universal.dart';
 /// Selectors have structural equality semantics.
 ///
 /// {@category AST}
-abstract class Selector implements AstNode {
+abstract base class Selector implements AstNode {
   /// Whether this selector, and complex selectors containing it, should not be
   /// emitted.
   ///
@@ -121,16 +121,17 @@ class _IsInvisibleVisitor with AnySelectorVisitor {
   bool visitPlaceholderSelector(PlaceholderSelector placeholder) => true;
 
   bool visitPseudoSelector(PseudoSelector pseudo) {
-    var selector = pseudo.selector;
-    if (selector == null) return false;
-
-    // We don't consider `:not(%foo)` to be invisible because, semantically, it
-    // means "doesn't match this selector that matches nothing", so it's
-    // equivalent to *. If the entire compound selector is composed of `:not`s
-    // with invisible lists, the serializer emits it as `*`.
-    return pseudo.name == 'not'
-        ? (includeBogus && selector.isBogus)
-        : selector.accept(this);
+    if (pseudo.selector case var selector?) {
+      // We don't consider `:not(%foo)` to be invisible because, semantically,
+      // it means "doesn't match this selector that matches nothing", so it's
+      // equivalent to *. If the entire compound selector is composed of `:not`s
+      // with invisible lists, the serializer emits it as `*`.
+      return pseudo.name == 'not'
+          ? (includeBogus && selector.isBogus)
+          : selector.accept(this);
+    } else {
+      return false;
+    }
   }
 }
 

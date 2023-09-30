@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import '../util/map.dart';
+import '../util/nullable.dart';
 import '../value.dart';
 import 'compilation_dispatcher.dart';
 import 'embedded_sass.pb.dart' as proto;
@@ -14,7 +16,7 @@ import 'utils.dart';
 ///
 /// A given [Protofier] instance is valid only within the scope of a single
 /// custom function call.
-class Protofier {
+final class Protofier {
   /// The dispatcher, for invoking deprotofied [Value_HostFunction]s.
   final CompilationDispatcher _dispatcher;
 
@@ -38,138 +40,115 @@ class Protofier {
   /// Converts [value] to its protocol buffer representation.
   proto.Value protofy(Value value) {
     var result = proto.Value();
-    if (value is SassString) {
-      result.string = Value_String()
-        ..text = value.text
-        ..quoted = value.hasQuotes;
-    } else if (value is SassNumber) {
-      result.number = _protofyNumber(value);
-    } else if (value is SassColor) {
-      if (value.hasCalculatedHsl) {
+    switch (value) {
+      case SassString():
+        result.string = Value_String()
+          ..text = value.text
+          ..quoted = value.hasQuotes;
+      case SassNumber():
+        result.number = _protofyNumber(value);
+      case SassColor(hasCalculatedHsl: true):
         result.hslColor = Value_HslColor()
           ..hue = value.hue * 1.0
           ..saturation = value.saturation * 1.0
           ..lightness = value.lightness * 1.0
           ..alpha = value.alpha * 1.0;
-      } else {
+      case SassColor():
         result.rgbColor = Value_RgbColor()
           ..red = value.red
           ..green = value.green
           ..blue = value.blue
           ..alpha = value.alpha * 1.0;
-      }
-    } else if (value is SassArgumentList) {
-      _argumentLists.add(value);
-      var argList = Value_ArgumentList()
-        ..id = _argumentLists.length
-        ..separator = _protofySeparator(value.separator)
-        ..contents.addAll([for (var element in value.asList) protofy(element)]);
-      value.keywordsWithoutMarking.forEach((key, value) {
-        argList.keywords[key] = protofy(value);
-      });
-
-      result.argumentList = argList;
-    } else if (value is SassList) {
-      result.list = Value_List()
-        ..separator = _protofySeparator(value.separator)
-        ..hasBrackets = value.hasBrackets
-        ..contents.addAll([for (var element in value.asList) protofy(element)]);
-    } else if (value is SassMap) {
-      var map = Value_Map();
-      value.contents.forEach((key, value) {
-        map.entries.add(Value_Map_Entry()
-          ..key = protofy(key)
-          ..value = protofy(value));
-      });
-      result.map = map;
-    } else if (value is SassCalculation) {
-      result.calculation = _protofyCalculation(value);
-    } else if (value is SassFunction) {
-      result.compilerFunction = _functions.protofy(value);
-    } else if (value == sassTrue) {
-      result.singleton = SingletonValue.TRUE;
-    } else if (value == sassFalse) {
-      result.singleton = SingletonValue.FALSE;
-    } else if (value == sassNull) {
-      result.singleton = SingletonValue.NULL;
-    } else {
-      throw "Unknown Value $value";
+      case SassArgumentList():
+        _argumentLists.add(value);
+        result.argumentList = Value_ArgumentList()
+          ..id = _argumentLists.length
+          ..separator = _protofySeparator(value.separator)
+          ..keywords.addAll({
+            for (var (key, value) in value.keywordsWithoutMarking.pairs)
+              key: protofy(value)
+          })
+          ..contents.addAll(value.asList.map(protofy));
+      case SassList():
+        result.list = Value_List()
+          ..separator = _protofySeparator(value.separator)
+          ..hasBrackets = value.hasBrackets
+          ..contents.addAll(value.asList.map(protofy));
+      case SassMap():
+        result.map = Value_Map();
+        for (var (key, value) in value.contents.pairs) {
+          result.map.entries.add(Value_Map_Entry()
+            ..key = protofy(key)
+            ..value = protofy(value));
+        }
+      case SassCalculation():
+        result.calculation = _protofyCalculation(value);
+      case SassFunction():
+        result.compilerFunction = _functions.protofy(value);
+      case sassTrue:
+        result.singleton = SingletonValue.TRUE;
+      case sassFalse:
+        result.singleton = SingletonValue.FALSE;
+      case sassNull:
+        result.singleton = SingletonValue.NULL;
+      case _:
+        throw "Unknown Value $value";
     }
     return result;
   }
 
   /// Converts [number] to its protocol buffer representation.
-  Value_Number _protofyNumber(SassNumber number) {
-    var value = Value_Number()..value = number.value * 1.0;
-    value.numerators.addAll(number.numeratorUnits);
-    value.denominators.addAll(number.denominatorUnits);
-    return value;
-  }
+  Value_Number _protofyNumber(SassNumber number) => Value_Number()
+    ..value = number.value * 1.0
+    ..numerators.addAll(number.numeratorUnits)
+    ..denominators.addAll(number.denominatorUnits);
 
   /// Converts [separator] to its protocol buffer representation.
-  proto.ListSeparator _protofySeparator(ListSeparator separator) {
-    switch (separator) {
-      case ListSeparator.comma:
-        return proto.ListSeparator.COMMA;
-      case ListSeparator.space:
-        return proto.ListSeparator.SPACE;
-      case ListSeparator.slash:
-        return proto.ListSeparator.SLASH;
-      case ListSeparator.undecided:
-        return proto.ListSeparator.UNDECIDED;
-      default:
-        throw "Unknown ListSeparator $separator";
-    }
-  }
+  proto.ListSeparator _protofySeparator(ListSeparator separator) =>
+      switch (separator) {
+        ListSeparator.comma => proto.ListSeparator.COMMA,
+        ListSeparator.space => proto.ListSeparator.SPACE,
+        ListSeparator.slash => proto.ListSeparator.SLASH,
+        ListSeparator.undecided => proto.ListSeparator.UNDECIDED
+      };
 
   /// Converts [calculation] to its protocol buffer representation.
   Value_Calculation _protofyCalculation(SassCalculation calculation) =>
       Value_Calculation()
         ..name = calculation.name
-        ..arguments.addAll([
-          for (var argument in calculation.arguments)
-            _protofyCalculationValue(argument)
-        ]);
+        ..arguments.addAll(calculation.arguments.map(_protofyCalculationValue));
 
   /// Converts a calculation value that appears within a `SassCalculation` to
   /// its protocol buffer representation.
   Value_Calculation_CalculationValue _protofyCalculationValue(Object value) {
     var result = Value_Calculation_CalculationValue();
-    if (value is SassNumber) {
-      result.number = _protofyNumber(value);
-    } else if (value is SassCalculation) {
-      result.calculation = _protofyCalculation(value);
-    } else if (value is SassString) {
-      result.string = value.text;
-    } else if (value is CalculationOperation) {
-      result.operation = Value_Calculation_CalculationOperation()
-        ..operator = _protofyCalculationOperator(value.operator)
-        ..left = _protofyCalculationValue(value.left)
-        ..right = _protofyCalculationValue(value.right);
-    } else if (value is CalculationInterpolation) {
-      result.interpolation = value.value;
-    } else {
-      throw "Unknown calculation value $value";
+    switch (value) {
+      case SassNumber():
+        result.number = _protofyNumber(value);
+      case SassCalculation():
+        result.calculation = _protofyCalculation(value);
+      case SassString():
+        result.string = value.text;
+      case CalculationOperation():
+        result.operation = Value_Calculation_CalculationOperation()
+          ..operator = _protofyCalculationOperator(value.operator)
+          ..left = _protofyCalculationValue(value.left)
+          ..right = _protofyCalculationValue(value.right);
+      case _:
+        throw "Unknown calculation value $value";
     }
     return result;
   }
 
   /// Converts [operator] to its protocol buffer representation.
   proto.CalculationOperator _protofyCalculationOperator(
-      CalculationOperator operator) {
-    switch (operator) {
-      case CalculationOperator.plus:
-        return proto.CalculationOperator.PLUS;
-      case CalculationOperator.minus:
-        return proto.CalculationOperator.MINUS;
-      case CalculationOperator.times:
-        return proto.CalculationOperator.TIMES;
-      case CalculationOperator.dividedBy:
-        return proto.CalculationOperator.DIVIDE;
-      default:
-        throw "Unknown CalculationOperator $operator";
-    }
-  }
+          CalculationOperator operator) =>
+      switch (operator) {
+        CalculationOperator.plus => proto.CalculationOperator.PLUS,
+        CalculationOperator.minus => proto.CalculationOperator.MINUS,
+        CalculationOperator.times => proto.CalculationOperator.TIMES,
+        CalculationOperator.dividedBy => proto.CalculationOperator.DIVIDE
+      };
 
   /// Converts [response]'s return value to its Sass representation.
   Value deprotofyResponse(InboundMessage_FunctionCallResponse response) {
@@ -218,12 +197,13 @@ class Protofier {
                 "$length elements");
           }
 
-          return SassArgumentList([
-            for (var element in value.argumentList.contents) _deprotofy(element)
-          ], {
-            for (var entry in value.argumentList.keywords.entries)
-              entry.key: _deprotofy(entry.value)
-          }, separator);
+          return SassArgumentList(
+              value.argumentList.contents.map(_deprotofy),
+              {
+                for (var (name, value) in value.argumentList.keywords.pairs)
+                  name: _deprotofy(value)
+              },
+              separator);
 
         case Value_Value.list:
           var separator = _deprotofySeparator(value.list.separator);
@@ -239,27 +219,22 @@ class Protofier {
                 "$length elements");
           }
 
-          return SassList([
-            for (var element in value.list.contents) _deprotofy(element)
-          ], separator, brackets: value.list.hasBrackets);
+          return SassList(value.list.contents.map(_deprotofy), separator,
+              brackets: value.list.hasBrackets);
 
         case Value_Value.map:
           return value.map.entries.isEmpty
               ? const SassMap.empty()
               : SassMap({
-                  for (var entry in value.map.entries)
-                    _deprotofy(entry.key): _deprotofy(entry.value)
+                  for (var Value_Map_Entry(:key, :value) in value.map.entries)
+                    _deprotofy(key): _deprotofy(value)
                 });
 
         case Value_Value.compilerFunction:
           var id = value.compilerFunction.id;
-          var function = _functions[id];
-          if (function == null) {
-            throw paramsError(
-                "CompilerFunction.id $id doesn't match any known functions");
-          }
-
-          return function;
+          if (_functions[id] case var function?) return function;
+          throw paramsError(
+              "CompilerFunction.id $id doesn't match any known functions");
 
         case Value_Value.hostFunction:
           return SassFunction(hostCallable(
@@ -270,16 +245,12 @@ class Protofier {
           return _deprotofyCalculation(value.calculation);
 
         case Value_Value.singleton:
-          switch (value.singleton) {
-            case SingletonValue.TRUE:
-              return sassTrue;
-            case SingletonValue.FALSE:
-              return sassFalse;
-            case SingletonValue.NULL:
-              return sassNull;
-            default:
-              throw "Unknown Value.singleton ${value.singleton}";
-          }
+          return switch (value.singleton) {
+            SingletonValue.TRUE => sassTrue,
+            SingletonValue.FALSE => sassFalse,
+            SingletonValue.NULL => sassNull,
+            _ => throw "Unknown Value.singleton ${value.singleton}"
+          };
 
         case Value_Value.notSet:
           throw mandatoryError("Value.value");
@@ -323,108 +294,75 @@ class Protofier {
   }
 
   /// Converts [separator] to its Sass representation.
-  ListSeparator _deprotofySeparator(proto.ListSeparator separator) {
-    switch (separator) {
-      case proto.ListSeparator.COMMA:
-        return ListSeparator.comma;
-      case proto.ListSeparator.SPACE:
-        return ListSeparator.space;
-      case proto.ListSeparator.SLASH:
-        return ListSeparator.slash;
-      case proto.ListSeparator.UNDECIDED:
-        return ListSeparator.undecided;
-      default:
-        throw "Unknown separator $separator";
-    }
-  }
+  ListSeparator _deprotofySeparator(proto.ListSeparator separator) =>
+      switch (separator) {
+        proto.ListSeparator.COMMA => ListSeparator.comma,
+        proto.ListSeparator.SPACE => ListSeparator.space,
+        proto.ListSeparator.SLASH => ListSeparator.slash,
+        proto.ListSeparator.UNDECIDED => ListSeparator.undecided,
+        _ => throw "Unknown ListSeparator $separator",
+      };
 
   /// Converts [calculation] to its Sass representation.
-  Value _deprotofyCalculation(Value_Calculation calculation) {
-    if (calculation.name == "calc") {
-      if (calculation.arguments.length != 1) {
-        throw paramsError(
+  Value _deprotofyCalculation(Value_Calculation calculation) =>
+      switch (calculation) {
+        Value_Calculation(name: "calc", arguments: [var arg]) =>
+          SassCalculation.calc(_deprotofyCalculationValue(arg)),
+        Value_Calculation(name: "calc") => throw paramsError(
             "Value.Calculation.arguments must have exactly one argument for "
-            "calc().");
-      }
-
-      return SassCalculation.calc(
-          _deprotofyCalculationValue(calculation.arguments[0]));
-    } else if (calculation.name == "clamp") {
-      if (calculation.arguments.length != 3) {
-        throw paramsError(
-            "Value.Calculation.arguments must have exactly 3 arguments for "
-            "clamp().");
-      }
-
-      return SassCalculation.clamp(
-          _deprotofyCalculationValue(calculation.arguments[0]),
-          _deprotofyCalculationValue(calculation.arguments[1]),
-          _deprotofyCalculationValue(calculation.arguments[2]));
-    } else if (calculation.name == "min") {
-      if (calculation.arguments.isEmpty) {
-        throw paramsError(
-            "Value.Calculation.arguments must have at least 1 argument for "
-            "min().");
-      }
-
-      return SassCalculation.min(
-          calculation.arguments.map(_deprotofyCalculationValue));
-    } else if (calculation.name == "max") {
-      if (calculation.arguments.isEmpty) {
-        throw paramsError(
-            "Value.Calculation.arguments must have at least 1 argument for "
-            "max().");
-      }
-
-      return SassCalculation.max(
-          calculation.arguments.map(_deprotofyCalculationValue));
-    } else {
-      throw paramsError(
-          'Value.Calculation.name "${calculation.name}" is not a recognized '
-          'calculation type.');
-    }
-  }
+            "calc()."),
+        Value_Calculation(
+          name: "clamp",
+          arguments: [var arg1, ...var rest] && List(length: < 4)
+        ) =>
+          SassCalculation.clamp(
+              _deprotofyCalculationValue(arg1),
+              rest.elementAtOrNull(0).andThen(_deprotofyCalculationValue),
+              rest.elementAtOrNull(1).andThen(_deprotofyCalculationValue)),
+        Value_Calculation(name: "clamp") => throw paramsError(
+            "Value.Calculation.arguments must have 1 to 3 arguments for "
+            "clamp()."),
+        Value_Calculation(name: "min" || "max", arguments: []) =>
+          throw paramsError(
+              "Value.Calculation.arguments must have at least 1 argument for "
+              "${calculation.name}()."),
+        Value_Calculation(name: "min", :var arguments) =>
+          SassCalculation.min(arguments.map(_deprotofyCalculationValue)),
+        Value_Calculation(name: "max", :var arguments) =>
+          SassCalculation.max(arguments.map(_deprotofyCalculationValue)),
+        _ => throw paramsError(
+            'Value.Calculation.name "${calculation.name}" is not a recognized '
+            'calculation type.')
+      };
 
   /// Converts [value] to its Sass representation.
-  Object _deprotofyCalculationValue(Value_Calculation_CalculationValue value) {
-    switch (value.whichValue()) {
-      case Value_Calculation_CalculationValue_Value.number:
-        return _deprotofyNumber(value.number);
-
-      case Value_Calculation_CalculationValue_Value.calculation:
-        return _deprotofyCalculation(value.calculation);
-
-      case Value_Calculation_CalculationValue_Value.string:
-        return SassString(value.string, quotes: false);
-
-      case Value_Calculation_CalculationValue_Value.operation:
-        return SassCalculation.operate(
-            _deprotofyCalculationOperator(value.operation.operator),
-            _deprotofyCalculationValue(value.operation.left),
-            _deprotofyCalculationValue(value.operation.right));
-
-      case Value_Calculation_CalculationValue_Value.interpolation:
-        return CalculationInterpolation(value.interpolation);
-
-      case Value_Calculation_CalculationValue_Value.notSet:
-        throw mandatoryError("Value.Calculation.value");
-    }
-  }
+  Object _deprotofyCalculationValue(Value_Calculation_CalculationValue value) =>
+      switch (value.whichValue()) {
+        Value_Calculation_CalculationValue_Value.number =>
+          _deprotofyNumber(value.number),
+        Value_Calculation_CalculationValue_Value.calculation =>
+          _deprotofyCalculation(value.calculation),
+        Value_Calculation_CalculationValue_Value.string =>
+          SassString(value.string, quotes: false),
+        Value_Calculation_CalculationValue_Value.operation =>
+          SassCalculation.operate(
+              _deprotofyCalculationOperator(value.operation.operator),
+              _deprotofyCalculationValue(value.operation.left),
+              _deprotofyCalculationValue(value.operation.right)),
+        Value_Calculation_CalculationValue_Value.interpolation =>
+          SassString('(${value.interpolation})', quotes: false),
+        Value_Calculation_CalculationValue_Value.notSet =>
+          throw mandatoryError("Value.Calculation.value")
+      };
 
   /// Converts [operator] to its Sass representation.
   CalculationOperator _deprotofyCalculationOperator(
-      proto.CalculationOperator operator) {
-    switch (operator) {
-      case proto.CalculationOperator.PLUS:
-        return CalculationOperator.plus;
-      case proto.CalculationOperator.MINUS:
-        return CalculationOperator.minus;
-      case proto.CalculationOperator.TIMES:
-        return CalculationOperator.times;
-      case proto.CalculationOperator.DIVIDE:
-        return CalculationOperator.dividedBy;
-      default:
-        throw "Unknown CalculationOperator $operator";
-    }
-  }
+          proto.CalculationOperator operator) =>
+      switch (operator) {
+        proto.CalculationOperator.PLUS => CalculationOperator.plus,
+        proto.CalculationOperator.MINUS => CalculationOperator.minus,
+        proto.CalculationOperator.TIMES => CalculationOperator.times,
+        proto.CalculationOperator.DIVIDE => CalculationOperator.dividedBy,
+        _ => throw "Unknown CalculationOperator $operator"
+      };
 }

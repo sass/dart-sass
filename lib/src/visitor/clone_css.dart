@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:tuple/tuple.dart';
-
 import '../ast/css.dart';
 import '../ast/css/modifiable.dart';
 import '../ast/selector.dart';
@@ -14,19 +12,18 @@ import 'interface/css.dart';
 /// Returns deep copies of both [stylesheet] and [extender].
 ///
 /// The [extender] must be associated with [stylesheet].
-Tuple2<ModifiableCssStylesheet, ExtensionStore> cloneCssStylesheet(
+(ModifiableCssStylesheet, ExtensionStore) cloneCssStylesheet(
     CssStylesheet stylesheet, ExtensionStore extensionStore) {
-  var result = extensionStore.clone();
-  var newExtensionStore = result.item1;
-  var oldToNewSelectors = result.item2;
+  var (newExtensionStore, oldToNewSelectors) = extensionStore.clone();
 
-  return Tuple2(
-      _CloneCssVisitor(oldToNewSelectors).visitCssStylesheet(stylesheet),
-      newExtensionStore);
+  return (
+    _CloneCssVisitor(oldToNewSelectors).visitCssStylesheet(stylesheet),
+    newExtensionStore
+  );
 }
 
 /// A visitor that creates a deep (and mutable) copy of a [CssStylesheet].
-class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
+final class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
   /// A map from selectors in the original stylesheet to selectors generated for
   /// the new stylesheet using [ExtensionStore.clone].
   final Map<SelectorList, Box<SelectorList>> _oldToNewSelectors;
@@ -58,17 +55,16 @@ class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
       _visitChildren(ModifiableCssMediaRule(node.queries, node.span), node);
 
   ModifiableCssStyleRule visitCssStyleRule(CssStyleRule node) {
-    var newSelector = _oldToNewSelectors[node.selector];
-    if (newSelector == null) {
+    if (_oldToNewSelectors[node.selector] case var newSelector?) {
+      return _visitChildren(
+          ModifiableCssStyleRule(newSelector, node.span,
+              originalSelector: node.originalSelector),
+          node);
+    } else {
       throw StateError(
           "The ExtensionStore and CssStylesheet passed to cloneCssStylesheet() "
           "must come from the same compilation.");
     }
-
-    return _visitChildren(
-        ModifiableCssStyleRule(newSelector, node.span,
-            originalSelector: node.originalSelector),
-        node);
   }
 
   ModifiableCssStylesheet visitCssStylesheet(CssStylesheet node) =>

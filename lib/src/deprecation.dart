@@ -5,6 +5,7 @@
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import 'io.dart';
 import 'util/nullable.dart';
 
 /// A deprecated feature in the language.
@@ -54,10 +55,22 @@ enum Deprecation {
       deprecatedIn: '1.56.0',
       description: 'Passing invalid units to built-in functions.'),
 
+  /// Deprecation for passing percentages to the Sass abs() function.
+  absPercent('abs-percent',
+      deprecatedIn: '1.65.0',
+      description: 'Passing percentages to the Sass abs() function.'),
+
   duplicateVariableFlags('duplicate-var-flags',
       deprecatedIn: '1.62.0',
       description:
           'Using !default or !global multiple times for one variable.'),
+
+  nullAlpha('null-alpha',
+      deprecatedIn: '1.62.3',
+      description: 'Passing null as alpha in the ${isJS ? 'JS' : 'Dart'} API.'),
+
+  @Deprecated('This deprecation name was never actually used.')
+  calcInterp('calc-interp', deprecatedIn: null),
 
   /// Deprecation for `@import` rules.
   import.future('import', description: '@import rules.'),
@@ -81,7 +94,7 @@ enum Deprecation {
   /// For deprecations that have existed in all versions of Dart Sass, this
   /// should be 0.0.0. For deprecations not related to a specific Sass version,
   /// this should be null.
-  Version? get deprecatedIn => _deprecatedIn?.andThen(Version.parse);
+  Version? get deprecatedIn => _deprecatedIn.andThen(Version.parse);
 
   /// A description of this deprecation that will be displayed in the CLI usage.
   ///
@@ -116,8 +129,7 @@ enum Deprecation {
     var range = VersionRange(max: version, includeMax: true);
     return {
       for (var deprecation in Deprecation.values)
-        if (deprecation.deprecatedIn?.andThen(range.allows) ?? false)
-          deprecation
+        if (deprecation.deprecatedIn.andThen(range.allows) ?? false) deprecation
     };
   }
 }

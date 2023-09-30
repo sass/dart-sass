@@ -1,3 +1,49 @@
+## 9.1.0
+
+* No user-visible changes.
+
+## 9.0.0
+
+* Remove the `CalculationExpression` class and the associated visitor methods.
+
+* Add an `AstSearchVisitor` helper class.
+
+* Add an `Interpolation.isPlain` getter.
+
+## 8.2.1
+
+* No user-visible changes.
+
+## 8.2.0
+
+* No user-visible changes.
+
+## 8.1.1
+
+* No user-visible changes.
+
+## 8.1.0
+
+* No user-visible changes.
+
+## 8.0.0
+
+* Various classes now use Dart 3 [class modifiers] to more specifically restrict
+  their usage to the intended patterns.
+
+  [class modifiers]: https://dart.dev/language/class-modifiers
+
+* All uses of classes from the `tuple` package have been replaced by record
+  types.
+  
+## 7.2.2
+
+* No user-visible changes.
+
+## 7.2.1
+
+* No user-visible changes.
+
 ## 7.2.0
 
 * No user-visible changes.

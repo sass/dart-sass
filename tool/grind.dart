@@ -37,7 +37,7 @@ void main(List<String> args) {
     pkg.JSRequire("stream", target: pkg.JSRequireTarget.node),
     pkg.JSRequire("util", target: pkg.JSRequireTarget.node),
   ];
-  pkg.jsModuleMainLibrary.value = "lib/src/node.dart";
+  pkg.jsModuleMainLibrary.value = "lib/src/js.dart";
   pkg.npmPackageJson.fn = () =>
       json.decode(File("package/package.json").readAsStringSync())
           as Map<String, dynamic>;
@@ -121,8 +121,7 @@ void all() {}
 
 @Task('Run the Dart formatter.')
 void format() {
-  run('dart',
-      arguments: ['run', 'dart_style:format', '--overwrite', '--fix', '.']);
+  run('dart', arguments: ['format', '--fix', '.']);
 }
 
 @Task('Installs dependencies from npm.')

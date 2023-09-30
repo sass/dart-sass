@@ -2,20 +2,16 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:collection';
-
 import 'package:path/path.dart' as p;
-import 'package:stack_trace/stack_trace.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:watcher/watcher.dart';
 
-import '../exception.dart';
 import '../importer/filesystem.dart';
 import '../io.dart';
 import '../stylesheet_graph.dart';
+import '../util/map.dart';
 import '../util/multi_dir_watcher.dart';
-import '../utils.dart';
-import 'compile_stylesheet.dart';
+import 'concurrent.dart';
 import 'options.dart';
 
 /// Watches all the files in [graph] for changes and updates them as necessary.
@@ -40,16 +36,17 @@ Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
   // they currently exist. This ensures that changes that come in update a
   // known-good state.
   var watcher = _Watcher(options, graph);
-  for (var entry in _sourcesToDestinations(options).entries) {
-    graph.addCanonical(FilesystemImporter('.'),
-        p.toUri(canonicalize(entry.key)), p.toUri(entry.key),
+  var sourcesToDestinations = _sourcesToDestinations(options);
+  for (var source in sourcesToDestinations.keys) {
+    graph.addCanonical(
+        FilesystemImporter('.'), p.toUri(canonicalize(source)), p.toUri(source),
         recanonicalize: false);
-    var success =
-        await watcher.compile(entry.key, entry.value, ifModified: true);
-    if (!success && options.stopOnError) {
-      dirWatcher.events.listen(null).cancel();
-      return;
-    }
+  }
+  var success = await compileStylesheets(options, graph, sourcesToDestinations,
+      ifModified: true);
+  if (!success && options.stopOnError) {
+    dirWatcher.events.listen(null).cancel();
+    return;
   }
 
   print("Sass is watching for changes. Press Ctrl-C to stop.\n");
@@ -58,7 +55,7 @@ Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
 
 /// Holds state that's shared across functions that react to changes on the
 /// filesystem.
-class _Watcher {
+final class _Watcher {
   /// The options for the Sass executable.
   final ExecutableOptions _options;
 
@@ -66,34 +63,6 @@ class _Watcher {
   final StylesheetGraph _graph;
 
   _Watcher(this._options, this._graph);
-
-  /// Compiles the stylesheet at [source] to [destination], and prints any
-  /// errors that occur.
-  ///
-  /// Returns whether or not compilation succeeded.
-  Future<bool> compile(String source, String destination,
-      {bool ifModified = false}) async {
-    try {
-      await compileStylesheet(_options, _graph, source, destination,
-          ifModified: ifModified);
-      return true;
-    } on SassException catch (error, stackTrace) {
-      if (!_options.emitErrorCss) _delete(destination);
-      _printError(
-          error.toString(color: _options.color), getTrace(error) ?? stackTrace);
-      exitCode = 65;
-      return false;
-    } on FileSystemException catch (error, stackTrace) {
-      var path = error.path;
-      _printError(
-          path == null
-              ? error.message
-              : "Error reading ${p.relative(path)}: ${error.message}.",
-          getTrace(error) ?? stackTrace);
-      exitCode = 66;
-      return false;
-    }
-  }
 
   /// Deletes the file at [path] and prints a message about it.
   void _delete(String path) {
@@ -107,21 +76,6 @@ class _Watcher {
     } on FileSystemException {
       // If the file doesn't exist, that's fine.
     }
-  }
-
-  /// Prints [message] to standard error, with [stackTrace] if [_options.trace]
-  /// is set.
-  void _printError(String message, StackTrace stackTrace) {
-    var buffer = StringBuffer(message);
-
-    if (_options.trace) {
-      buffer.writeln();
-      buffer.writeln();
-      buffer.write(Trace.from(stackTrace).terse.toString().trimRight());
-    }
-
-    if (!_options.stopOnError) buffer.writeln();
-    printError(buffer);
   }
 
   /// Listens to `watcher.events` and updates the filesystem accordingly.
@@ -138,17 +92,14 @@ class _Watcher {
         case ChangeType.MODIFY:
           var success = await _handleModify(event.path);
           if (!success && _options.stopOnError) return;
-          break;
 
         case ChangeType.ADD:
           var success = await _handleAdd(event.path);
           if (!success && _options.stopOnError) return;
-          break;
 
         case ChangeType.REMOVE:
           var success = await _handleRemove(event.path);
           if (!success && _options.stopOnError) return;
-          break;
       }
     }
   }
@@ -162,11 +113,12 @@ class _Watcher {
     // It's important to access the node ahead-of-time because it's possible
     // that `_graph.reload()` notices the file has been deleted and removes it
     // from the graph.
-    var node = _graph.nodes[url];
-    if (node == null) return _handleAdd(path);
-
-    _graph.reload(url);
-    return await _recompileDownstream([node]);
+    if (_graph.nodes[url] case var node?) {
+      _graph.reload(url);
+      return await _recompileDownstream([node]);
+    } else {
+      return _handleAdd(path);
+    }
   }
 
   /// Handles an add event for the stylesheet at [url].
@@ -174,8 +126,9 @@ class _Watcher {
   /// Returns whether all necessary recompilations succeeded.
   Future<bool> _handleAdd(String path) async {
     var destination = _destinationFor(path);
-
-    var success = destination == null || await compile(path, destination);
+    var success = destination == null ||
+        await compileStylesheets(_options, _graph, {path: destination},
+            ifModified: true);
     var downstream = _graph.addCanonical(
         FilesystemImporter('.'), _canonicalize(path), p.toUri(path));
     return await _recompileDownstream(downstream) && success;
@@ -188,8 +141,7 @@ class _Watcher {
     var url = _canonicalize(path);
 
     if (_graph.nodes.containsKey(url)) {
-      var destination = _destinationFor(path);
-      if (destination != null) _delete(destination);
+      if (_destinationFor(path) case var destination?) _delete(destination);
     }
 
     var downstream = _graph.remove(FilesystemImporter('.'), url);
@@ -208,19 +160,17 @@ class _Watcher {
       var typeForPath = p.PathMap<ChangeType>();
       for (var event in buffer) {
         var oldType = typeForPath[event.path];
-        if (oldType == null) {
-          typeForPath[event.path] = event.type;
-        } else if (event.type == ChangeType.REMOVE) {
-          typeForPath[event.path] = ChangeType.REMOVE;
-        } else if (oldType != ChangeType.ADD) {
-          typeForPath[event.path] = ChangeType.MODIFY;
-        }
+        typeForPath[event.path] = switch ((oldType, event.type)) {
+          (null, var newType) => newType,
+          (_, ChangeType.REMOVE) => ChangeType.REMOVE,
+          (ChangeType.ADD, _) => ChangeType.ADD,
+          (_, _) => ChangeType.MODIFY
+        };
       }
 
       return [
-        for (var entry in typeForPath.entries)
-          // PathMap always has nullable keys
-          WatchEvent(entry.value, entry.key!)
+        // PathMap always has nullable keys
+        for (var (path!, type) in typeForPath.pairs) WatchEvent(type, path)
       ];
     });
   }
@@ -231,34 +181,42 @@ class _Watcher {
   /// Returns whether all recompilations succeeded.
   Future<bool> _recompileDownstream(Iterable<StylesheetNode> nodes) async {
     var seen = <StylesheetNode>{};
-    var toRecompile = Queue.of(nodes);
-
     var allSucceeded = true;
-    while (toRecompile.isNotEmpty) {
-      var node = toRecompile.removeFirst();
-      if (!seen.add(node)) continue;
+    while (nodes.isNotEmpty) {
+      nodes = [
+        for (var node in nodes)
+          if (seen.add(node)) node
+      ];
 
-      var success = await _compileIfEntrypoint(node.canonicalUrl);
-      allSucceeded = allSucceeded && success;
-      if (!success && _options.stopOnError) return false;
+      var sourcesToDestinations = _sourceEntrypointsToDestinations(nodes);
+      if (sourcesToDestinations.isNotEmpty) {
+        var success = await compileStylesheets(
+            _options, _graph, sourcesToDestinations,
+            ifModified: true);
+        if (!success && _options.stopOnError) return false;
 
-      toRecompile.addAll(node.downstream);
+        allSucceeded = allSucceeded && success;
+      }
+
+      nodes = [for (var node in nodes) ...node.downstream];
     }
     return allSucceeded;
   }
 
-  /// Compiles the stylesheet at [url] to CSS if it's an entrypoint that's being
-  /// watched.
-  ///
-  /// Returns `false` if compilation failed, `true` otherwise.
-  Future<bool> _compileIfEntrypoint(Uri url) async {
-    if (url.scheme != 'file') return true;
+  /// Returns a sourcesToDestinations mapping for nodes that are entrypoints.
+  Map<String, String> _sourceEntrypointsToDestinations(
+      Iterable<StylesheetNode> nodes) {
+    var entrypoints = <String, String>{};
+    for (var node in nodes) {
+      var url = node.canonicalUrl;
+      if (url.scheme != 'file') continue;
 
-    var source = p.fromUri(url);
-    var destination = _destinationFor(source);
-    if (destination == null) return true;
-
-    return await compile(source, destination);
+      var source = p.fromUri(url);
+      if (_destinationFor(source) case var destination?) {
+        entrypoints[source] = destination;
+      }
+    }
+    return entrypoints;
   }
 
   /// If a Sass file at [source] should be compiled to CSS, returns the path to
@@ -266,15 +224,17 @@ class _Watcher {
   ///
   /// Otherwise, returns `null`.
   String? _destinationFor(String source) {
-    var destination = _sourcesToDestinations(_options)[source];
-    if (destination != null) return destination;
+    if (_sourcesToDestinations(_options)[source] case var destination?) {
+      return destination;
+    }
     if (p.basename(source).startsWith('_')) return null;
 
-    for (var entry in _sourceDirectoriesToDestinations(_options).entries) {
-      if (!p.isWithin(entry.key, source)) continue;
+    for (var (sourceDir, destinationDir)
+        in _sourceDirectoriesToDestinations(_options).pairs) {
+      if (!p.isWithin(sourceDir, source)) continue;
 
-      var destination = p.join(entry.value,
-          p.setExtension(p.relative(source, from: entry.key), '.css'));
+      var destination = p.join(destinationDir,
+          p.setExtension(p.relative(source, from: sourceDir), '.css'));
 
       // Don't compile ".css" files to their own locations.
       if (!p.equals(destination, source)) return destination;

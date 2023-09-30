@@ -5,9 +5,9 @@
 import 'dart:math';
 
 import 'package:meta/meta.dart';
-import 'package:tuple/tuple.dart';
 
 import '../exception.dart';
+import '../util/map.dart';
 import '../util/number.dart';
 import '../utils.dart';
 import '../value.dart';
@@ -155,8 +155,8 @@ const _unitsByType = {
 
 /// A map from units to the human-readable names of those unit types.
 final _typesByUnit = {
-  for (var entry in _unitsByType.entries)
-    for (var unit in entry.value) unit: entry.key
+  for (var (type, units) in _unitsByType.pairs)
+    for (var unit in units) unit: type
 };
 
 /// Returns the number of [unit1]s per [unit2].
@@ -167,9 +167,8 @@ final _typesByUnit = {
 @internal
 double? conversionFactor(String unit1, String unit2) {
   if (unit1 == unit2) return 1;
-  var innerMap = _conversions[unit1];
-  if (innerMap == null) return null;
-  return innerMap[unit2];
+  if (_conversions[unit1] case var innerMap?) return innerMap[unit2];
+  return null;
 }
 
 /// A SassScript number.
@@ -217,12 +216,18 @@ abstract class SassNumber extends Value {
   /// should use [assertUnit].
   bool get hasUnits;
 
+  /// Whether [this] has more than one numerator unit, or any denominator units.
+  ///
+  /// This is `true` for numbers whose units make them unrepresentable as CSS
+  /// lengths.
+  bool get hasComplexUnits;
+
   /// The representation of this number as two slash-separated numbers, if it
   /// has one.
   ///
   /// @nodoc
   @internal
-  final Tuple2<SassNumber, SassNumber>? asSlash;
+  final (SassNumber, SassNumber)? asSlash;
 
   /// Whether [this] is an integer, according to [fuzzyEquals].
   ///
@@ -253,47 +258,44 @@ abstract class SassNumber extends Value {
   factory SassNumber.withUnits(num value,
       {List<String>? numeratorUnits, List<String>? denominatorUnits}) {
     var valueDouble = value.toDouble();
-    if (denominatorUnits == null || denominatorUnits.isEmpty) {
-      if (numeratorUnits == null || numeratorUnits.isEmpty) {
+    switch ((numeratorUnits, denominatorUnits)) {
+      case (null || [], null || []):
         return UnitlessSassNumber(valueDouble);
-      } else if (numeratorUnits.length == 1) {
-        return SingleUnitSassNumber(valueDouble, numeratorUnits[0]);
-      } else {
+      case ([var unit], null || []):
+        return SingleUnitSassNumber(valueDouble, unit);
+      // TODO(dart-lang/language#3160): Remove extra null checks
+      case (var numerators?, null || []):
         return ComplexSassNumber(
-            valueDouble, List.unmodifiable(numeratorUnits), const []);
-      }
-    } else if (numeratorUnits == null || numeratorUnits.isEmpty) {
-      return ComplexSassNumber(
-          valueDouble, const [], List.unmodifiable(denominatorUnits));
-    } else {
-      var numerators = numeratorUnits.toList();
-      var unsimplifiedDenominators = denominatorUnits.toList();
-
-      var denominators = <String>[];
-      for (var denominator in unsimplifiedDenominators) {
-        var simplifiedAway = false;
-        for (var i = 0; i < numerators.length; i++) {
-          var factor = conversionFactor(denominator, numerators[i]);
-          if (factor == null) continue;
-          valueDouble *= factor;
-          numerators.removeAt(i);
-          simplifiedAway = true;
-          break;
-        }
-        if (!simplifiedAway) denominators.add(denominator);
-      }
-
-      if (denominatorUnits.isEmpty) {
-        if (numeratorUnits.isEmpty) {
-          return UnitlessSassNumber(valueDouble);
-        } else if (numeratorUnits.length == 1) {
-          return SingleUnitSassNumber(valueDouble, numeratorUnits.single);
-        }
-      }
-
-      return ComplexSassNumber(valueDouble, List.unmodifiable(numerators),
-          List.unmodifiable(denominators));
+            valueDouble, List.unmodifiable(numerators), const []);
+      case (null || [], var denominators?):
+        return ComplexSassNumber(
+            valueDouble, const [], List.unmodifiable(denominators));
     }
+
+    // dart-lang/language#3160 as well
+    var numerators = numeratorUnits!.toList();
+    var unsimplifiedDenominators = denominatorUnits!.toList();
+
+    var denominators = <String>[];
+    for (var denominator in unsimplifiedDenominators) {
+      var simplifiedAway = false;
+      for (var i = 0; i < numerators.length; i++) {
+        var factor = conversionFactor(denominator, numerators[i]);
+        if (factor == null) continue;
+        valueDouble *= factor;
+        numerators.removeAt(i);
+        simplifiedAway = true;
+        break;
+      }
+      if (!simplifiedAway) denominators.add(denominator);
+    }
+
+    return switch ((numerators, denominators)) {
+      ([], []) => UnitlessSassNumber(valueDouble),
+      ([var unit], []) => SingleUnitSassNumber(valueDouble, unit),
+      _ => ComplexSassNumber(valueDouble, List.unmodifiable(numerators),
+          List.unmodifiable(denominators))
+    };
   }
 
   /// @nodoc
@@ -315,7 +317,7 @@ abstract class SassNumber extends Value {
   @internal
   SassNumber withoutSlash() => asSlash == null ? this : withValue(value);
 
-  /// Returns a copy of [this] with [asSlash] set to a tuple containing
+  /// Returns a copy of [this] with [asSlash] set to a pair containing
   /// [numerator] and [denominator].
   ///
   /// @nodoc
@@ -331,8 +333,7 @@ abstract class SassNumber extends Value {
   /// from a function argument, [name] is the argument name (without the `$`).
   /// It's used for error reporting.
   int assertInt([String? name]) {
-    var integer = fuzzyAsInt(value);
-    if (integer != null) return integer;
+    if (fuzzyAsInt(value) case var integer?) return integer;
     throw SassScriptException("$this is not an int.", name);
   }
 
@@ -343,8 +344,7 @@ abstract class SassNumber extends Value {
   /// came from a function argument, [name] is the argument name (without the
   /// `$`). It's used for error reporting.
   double valueInRange(num min, num max, [String? name]) {
-    var result = fuzzyCheckRange(value, min, max);
-    if (result != null) return result;
+    if (fuzzyCheckRange(value, min, max) case var result?) return result;
     throw SassScriptException(
         "Expected $this to be within $min$unitString and $max$unitString.",
         name);
@@ -360,8 +360,7 @@ abstract class SassNumber extends Value {
   /// @nodoc
   @internal
   double valueInRangeWithUnit(num min, num max, String name, String unit) {
-    var result = fuzzyCheckRange(value, min, max);
-    if (result != null) return result;
+    if (fuzzyCheckRange(value, min, max) case var result?) return result;
     throw SassScriptException(
         "Expected $this to be within $min$unit and $max$unit.", name);
   }
@@ -711,7 +710,7 @@ abstract class SassNumber extends Value {
 
   /// @nodoc
   @internal
-  Value modulo(Value other) {
+  SassNumber modulo(Value other) {
     if (other is SassNumber) {
       return withValue(_coerceUnits(other, moduloLikeSass));
     }
@@ -792,28 +791,19 @@ abstract class SassNumber extends Value {
   SassNumber multiplyUnits(double value, List<String> otherNumerators,
       List<String> otherDenominators) {
     // Short-circuit without allocating any new unit lists if possible.
-    if (numeratorUnits.isEmpty) {
-      if (otherDenominators.isEmpty &&
-          !_areAnyConvertible(denominatorUnits, otherNumerators)) {
+    switch ((
+      numeratorUnits,
+      denominatorUnits,
+      otherNumerators,
+      otherDenominators
+    )) {
+      case (var numerators, var denominators, [], []) ||
+            ([], [], var numerators, var denominators):
+      case ([], var denominators, var numerators, []) ||
+              (var numerators, [], [], var denominators)
+          when !_areAnyConvertible(numerators, denominators):
         return SassNumber.withUnits(value,
-            numeratorUnits: otherNumerators,
-            denominatorUnits: denominatorUnits);
-      } else if (denominatorUnits.isEmpty) {
-        return SassNumber.withUnits(value,
-            numeratorUnits: otherNumerators,
-            denominatorUnits: otherDenominators);
-      }
-    } else if (otherNumerators.isEmpty) {
-      if (otherDenominators.isEmpty) {
-        return SassNumber.withUnits(value,
-            numeratorUnits: numeratorUnits,
-            denominatorUnits: otherDenominators);
-      } else if (denominatorUnits.isEmpty &&
-          !_areAnyConvertible(numeratorUnits, otherDenominators)) {
-        return SassNumber.withUnits(value,
-            numeratorUnits: numeratorUnits,
-            denominatorUnits: otherDenominators);
-      }
+            numeratorUnits: numerators, denominatorUnits: denominators);
     }
 
     var newNumerators = <String>[];
@@ -845,53 +835,45 @@ abstract class SassNumber extends Value {
 
   /// Returns whether there exists a unit in [units1] that can be converted to a
   /// unit in [units2].
-  bool _areAnyConvertible(List<String> units1, List<String> units2) {
-    return units1.any((unit1) {
-      var innerMap = _conversions[unit1];
-      if (innerMap == null) return units2.contains(unit1);
-      return units2.any(innerMap.containsKey);
-    });
-  }
+  bool _areAnyConvertible(List<String> units1, List<String> units2) =>
+      units1.any((unit1) => switch (_conversions[unit1]) {
+            var innerMap? => units2.any(innerMap.containsKey),
+            _ => units2.contains(unit1)
+          });
 
   /// Returns a human-readable string representation of [numerators] and
   /// [denominators].
-  String _unitString(List<String> numerators, List<String> denominators) {
-    if (numerators.isEmpty) {
-      if (denominators.isEmpty) return "no units";
-      if (denominators.length == 1) return denominators.single + "^-1";
-      return "(${denominators.join('*')})^-1";
-    }
-
-    if (denominators.isEmpty) return numerators.join("*");
-
-    return "${numerators.join("*")}/${denominators.join("*")}";
-  }
+  String _unitString(List<String> numerators, List<String> denominators) =>
+      switch ((numerators, denominators)) {
+        ([], []) => "no units",
+        ([], [var denominator]) => "$denominator^-1",
+        ([], _) => "(${denominators.join('*')})^-1",
+        (_, []) => numerators.join("*"),
+        _ => "${numerators.join("*")}/${denominators.join("*")}"
+      };
 
   bool operator ==(Object other) {
-    if (other is SassNumber) {
-      if (numeratorUnits.length != other.numeratorUnits.length ||
-          denominatorUnits.length != other.denominatorUnits.length) {
-        return false;
-      }
-      if (!hasUnits) return fuzzyEquals(value, other.value);
-
-      if (!listEquals(_canonicalizeUnitList(numeratorUnits),
-              _canonicalizeUnitList(other.numeratorUnits)) ||
-          !listEquals(_canonicalizeUnitList(denominatorUnits),
-              _canonicalizeUnitList(other.denominatorUnits))) {
-        return false;
-      }
-
-      return fuzzyEquals(
-          value *
-              _canonicalMultiplier(numeratorUnits) /
-              _canonicalMultiplier(denominatorUnits),
-          other.value *
-              _canonicalMultiplier(other.numeratorUnits) /
-              _canonicalMultiplier(other.denominatorUnits));
-    } else {
+    if (other is! SassNumber) return false;
+    if (numeratorUnits.length != other.numeratorUnits.length ||
+        denominatorUnits.length != other.denominatorUnits.length) {
       return false;
     }
+    if (!hasUnits) return fuzzyEquals(value, other.value);
+
+    if (!listEquals(_canonicalizeUnitList(numeratorUnits),
+            _canonicalizeUnitList(other.numeratorUnits)) ||
+        !listEquals(_canonicalizeUnitList(denominatorUnits),
+            _canonicalizeUnitList(other.denominatorUnits))) {
+      return false;
+    }
+
+    return fuzzyEquals(
+        value *
+            _canonicalMultiplier(numeratorUnits) /
+            _canonicalMultiplier(denominatorUnits),
+        other.value *
+            _canonicalMultiplier(other.numeratorUnits) /
+            _canonicalMultiplier(other.denominatorUnits));
   }
 
   int get hashCode => hashCache ??= fuzzyHashCode(value *

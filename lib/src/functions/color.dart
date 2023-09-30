@@ -600,25 +600,17 @@ Value _rgb(String name, List<Value> arguments) {
       fuzzyRound(_percentageOrUnitless(green, 255, "green")),
       fuzzyRound(_percentageOrUnitless(blue, 255, "blue")),
       alpha.andThen((alpha) =>
-          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")),
+              _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")) ??
+          1,
       ColorFormat.rgbFunction);
 }
 
 Value _rgbTwoArg(String name, List<Value> arguments) {
   // rgba(var(--foo), 0.5) is valid CSS because --foo might be `123, 456, 789`
   // and functions are parsed after variable substitution.
-  if (arguments[0].isVar) {
+  if (arguments[0].isVar ||
+      (arguments[0] is! SassColor && arguments[1].isVar)) {
     return _functionString(name, arguments);
-  } else if (arguments[1].isVar) {
-    var first = arguments[0];
-    if (first is SassColor) {
-      return SassString(
-          "$name(${first.red}, ${first.green}, ${first.blue}, "
-          "${arguments[1].toCssString()})",
-          quotes: false);
-    } else {
-      return _functionString(name, arguments);
-    }
   } else if (arguments[1].isSpecialNumber) {
     var color = arguments[0].assertColor("color");
     return SassString(
@@ -653,7 +645,8 @@ Value _hsl(String name, List<Value> arguments) {
       saturation.value.clamp(0, 100),
       lightness.value.clamp(0, 100),
       alpha.andThen((alpha) =>
-          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")),
+              _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")) ??
+          1,
       ColorFormat.hslFunction);
 }
 
@@ -702,7 +695,8 @@ Value _hwb(List<Value> arguments) {
       whiteness.valueInRange(0, 100, "whiteness"),
       blackness.valueInRange(0, 100, "blackness"),
       alpha.andThen((alpha) =>
-          _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")));
+              _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")) ??
+          1);
 }
 
 Object /* SassString | List<Value> */ _parseChannels(
@@ -742,6 +736,11 @@ Object /* SassString | List<Value> */ _parseChannels(
   }
 
   var list = channels.asList;
+  if (list case [SassString(:var text, hasQuotes: false), _, ...]
+      when equalsIgnoreCase(text, "from")) {
+    return _functionString(name, [originalChannels]);
+  }
+
   if (list.length > 3) {
     throw SassScriptException("Only 3 elements allowed, but ${list.length} "
         "were passed.");
@@ -757,18 +756,17 @@ Object /* SassString | List<Value> */ _parseChannels(
 
   if (alphaFromSlashList != null) return [...list, alphaFromSlashList];
 
-  var maybeSlashSeparated = list[2];
-  if (maybeSlashSeparated is SassNumber) {
-    var slash = maybeSlashSeparated.asSlash;
-    if (slash == null) return list;
-    return [list[0], list[1], slash.item1, slash.item2];
-  } else if (maybeSlashSeparated is SassString &&
-      !maybeSlashSeparated.hasQuotes &&
-      maybeSlashSeparated.text.contains("/")) {
-    return _functionString(name, [channels]);
-  } else {
-    return list;
-  }
+  return switch (list[2]) {
+    SassNumber(asSlash: (var channel3, var alpha)) => [
+        list[0],
+        list[1],
+        channel3,
+        alpha
+      ],
+    SassString(hasQuotes: false, :var text) when text.contains("/") =>
+      _functionString(name, [channels]),
+    _ => list
+  };
 }
 
 /// Returns whether [value] is an unquoted string that start with `var(` and
@@ -795,7 +793,7 @@ double _percentageOrUnitless(SassNumber number, num max, String name) {
     value = max * number.value / 100;
   } else {
     throw SassScriptException(
-        '\$$name: Expected $number to have no units or "%".');
+        '\$$name: Expected $number to have unit "%" or no units.');
   }
 
   return value.clamp(0, max).toDouble();

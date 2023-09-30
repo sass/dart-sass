@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -16,8 +15,7 @@ import 'parent.dart';
 /// `true`.
 ///
 /// {@category AST}
-@sealed
-class WhileRule extends ParentStatement<List<Statement>> {
+final class WhileRule extends ParentStatement<List<Statement>> {
   /// The condition that determines whether the block will be executed.
   final Expression condition;
 

@@ -5,12 +5,11 @@
 import 'package:source_span/source_span.dart';
 
 import '../../value.dart';
-import '../../visitor/interface/css.dart';
 import 'node.dart';
 import 'value.dart';
 
 /// A plain CSS declaration (that is, a `name: value` pair).
-abstract class CssDeclaration extends CssNode {
+abstract interface class CssDeclaration implements CssNode {
   /// The name of this declaration.
   CssValue<String> get name;
 
@@ -34,6 +33,4 @@ abstract class CssDeclaration extends CssNode {
   /// If this is `true`, [isCustomProperty] will also be `true` and [value] will
   /// contain a [SassString].
   bool get parsedAsCustomProperty;
-
-  T accept<T>(CssVisitor<T> visitor);
 }
