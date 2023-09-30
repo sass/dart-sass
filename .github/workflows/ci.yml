@@ -589,13 +589,20 @@ jobs:
   deploy_website:
     name: "Deploy sass-lang.com"
     runs-on: ubuntu-latest
-    needs: [bootstrap, bourbon, foundation, bulma]
+    needs: [deploy_npm]
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
     steps:
       - uses: actions/checkout@v4
         with:
           repository: sass/sass-site
           token: ${{ secrets.SASS_SITE_TOKEN }}
+
+      - name: Get version
+        id: version
+        run: echo "version=${GITHUB_REF##*/}" | tee --append "$GITHUB_OUTPUT"
+
+      - name: Update Dart Sass version
+        run: npm install sass@${{ steps.version.outputs.version }}
 
       - uses: EndBug/add-and-commit@v9
         with:
