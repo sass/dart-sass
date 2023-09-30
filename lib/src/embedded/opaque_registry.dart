@@ -13,8 +13,8 @@ final class OpaqueRegistry<T> {
   /// A reverse map from elements to their indexes in [_elementsById].
   final _idsByElement = <T, int>{};
 
-  /// Converts an element of type `T` to a protocol buffer to send to the host.
-  int protofy(T element) {
+  /// Returns the compiler-side id associated with [element].
+  int getId(T element) {
     var id = _idsByElement.putIfAbsent(element, () {
       _elementsById.add(element);
       return _elementsById.length - 1;

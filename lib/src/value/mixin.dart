@@ -14,8 +14,7 @@ import '../value.dart';
 /// it may be passed between modules.
 ///
 /// {@category Value}
-@sealed
-class SassMixin extends Value {
+final class SassMixin extends Value {
   /// The callable that this mixin invokes.
   ///
   /// Note that this is typed as an [AsyncCallable] so that it will work with

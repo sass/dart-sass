@@ -91,9 +91,9 @@ final class Protofier {
         result.calculation = _protofyCalculation(value);
       case SassFunction():
         result.compilerFunction =
-            Value_CompilerFunction(id: _functions.protofy(value));
+            Value_CompilerFunction(id: _functions.getId(value));
       case SassMixin():
-        result.compilerMixin = Value_CompilerMixin(id: _mixins.protofy(value));
+        result.compilerMixin = Value_CompilerMixin(id: _mixins.getId(value));
       case sassTrue:
         result.singleton = SingletonValue.TRUE;
       case sassFalse:
