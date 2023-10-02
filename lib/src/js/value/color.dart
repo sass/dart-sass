@@ -2,10 +2,10 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:js_interop';
 import 'dart:js_util';
 
 import 'package:js/js.dart';
+import 'package:node_interop/js.dart';
 
 import '../../value.dart';
 import '../reflection.dart';
@@ -128,18 +128,17 @@ final JSClass colorClass = () {
     bool spaceSetExplicitly = options.space != null;
     String space = spaceSetExplicitly ? options.space! : initialSpace;
 
-    if (!self.isLegacy && !spaceSetExplicitly) {
-      // @todo throw error
-    }
+    Map<String, double?> changes = _changedOptions(options);
+    var keys = changes.keys;
 
     if (self.isLegacy && !spaceSetExplicitly) {
-      if (options.whiteness.isUndefined || options.blackness.isUndefined) {
+      if (keys.contains('whiteness') || keys.contains('blackness')) {
         space = 'hwb';
-      } else if (options.hue.isUndefined ||
-          options.saturation.isUndefined ||
-          options.lightness.isUndefined) {
+      } else if (keys.contains('hue') ||
+          keys.contains('saturation') ||
+          keys.contains('lightness')) {
         space = 'hsl';
-      } else if (options.red.isUndefined) {
+      } else if (keys.contains('red')) {
         space = 'rgb';
       }
       if (space != initialSpace) {
@@ -147,9 +146,6 @@ final JSClass colorClass = () {
       }
     }
 
-    Map<String, double?> changes = _changedOptions(options);
-
-    var keys = changes.keys;
     var spaceClass = ColorSpace.fromName(space);
     var components =
         spaceClass.channels.map((channel) => channel.name).toList();
@@ -157,16 +153,12 @@ final JSClass colorClass = () {
 
     for (final key in keys) {
       if (!components.contains(key)) {
-        if (initialSpaceClass.isLegacy && spaceSetExplicitly) {
-          // @todo Emit color-4-api deprecation
-        } else {
-          // @todo throw an error
-        }
+        jsThrow(JsError("`$key` is not a valid channel in `$space`."));
       }
     }
     SassColor color = self.toSpace(spaceClass);
-    // @todo remove initial value
-    SassColor changedColor = SassColor.hsl(1, 1, 1);
+
+    SassColor changedColor;
 
     changedValue(String channel) {
       return _changeComponentValue(color, channel, changes);
@@ -391,7 +383,7 @@ double? _parseChannelValue(double? value) => value;
 
 /// This procedure takes a `channel` name, an object `changes` and a SassColor
 /// `initial` and returns the result of applying the change for `channel` to
-/// `initial`.\
+/// `initial`.
 double? _changeComponentValue(
     SassColor initial, String channel, Map<String, double?> changes) {
   var initialValue = initial.channel(channel);
