@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 1fb0e5a2af9c147e6a74073444b842cdfca87865
+// Checksum: 358960b72c6e4f48d3e2e9d52be3abbe9e8b5a9f
 //
 // ignore_for_file: unused_import
 
@@ -567,8 +567,8 @@ final class _EvaluateVisitor
 
         // ignore: unnecessary_type_check
         if (callable is Callable) {
-          _applyMixin(callable, content, invocation, callableNode.span,
-              callableNode.span);
+          _applyMixin(
+              callable, content, invocation, callableNode, callableNode);
         } else {
           throw SassScriptException(
               "The mixin ${callable.name} is asynchronous.\n"
@@ -1787,12 +1787,11 @@ final class _EvaluateVisitor
       Callable? mixin,
       UserDefinedCallable<Environment>? contentCallable,
       ArgumentInvocation arguments,
-      FileSpan span,
-      FileSpan spanWithoutContent) {
-    var nodeWithSpan = AstNode.fake(() => spanWithoutContent);
+      AstNode nodeWithSpan,
+      AstNode nodeWithSpanWithoutContent) {
     switch (mixin) {
       case null:
-        throw _exception("Undefined mixin.", span);
+        throw _exception("Undefined mixin.", nodeWithSpan.span);
 
       case BuiltInCallable(acceptsContent: false) when contentCallable != null:
         {
@@ -1801,15 +1800,15 @@ final class _EvaluateVisitor
               evaluated.positional.length, MapKeySet(evaluated.named));
           throw MultiSpanSassRuntimeException(
               "Mixin doesn't accept a content block.",
-              spanWithoutContent,
+              nodeWithSpanWithoutContent.span,
               "invocation",
               {overload.spanWithName: "declaration"},
-              _stackTrace(spanWithoutContent));
+              _stackTrace(nodeWithSpanWithoutContent.span));
         }
       case BuiltInCallable():
         _environment.withContent(contentCallable, () {
           _environment.asMixin(() {
-            _runBuiltInCallable(arguments, mixin, nodeWithSpan);
+            _runBuiltInCallable(arguments, mixin, nodeWithSpanWithoutContent);
           });
         });
 
@@ -1819,17 +1818,19 @@ final class _EvaluateVisitor
           when contentCallable != null:
         throw MultiSpanSassRuntimeException(
             "Mixin doesn't accept a content block.",
-            spanWithoutContent,
+            nodeWithSpanWithoutContent.span,
             "invocation",
             {mixin.declaration.arguments.spanWithName: "declaration"},
-            _stackTrace(spanWithoutContent));
+            _stackTrace(nodeWithSpanWithoutContent.span));
 
       case UserDefinedCallable<Environment>():
-        _runUserDefinedCallable(arguments, mixin, nodeWithSpan, () {
+        _runUserDefinedCallable(arguments, mixin, nodeWithSpanWithoutContent,
+            () {
           _environment.withContent(contentCallable, () {
             _environment.asMixin(() {
               for (var statement in mixin.declaration.children) {
-                _addErrorSpan(nodeWithSpan, () => statement.accept(this));
+                _addErrorSpan(
+                    nodeWithSpanWithoutContent, () => statement.accept(this));
               }
             });
           });
@@ -1847,8 +1848,11 @@ final class _EvaluateVisitor
         content, _environment.closure(),
         inDependency: _inDependency));
 
-    _applyMixin(mixin, contentCallable, node.arguments, node.span,
-        node.spanWithoutContent);
+    var nodeWithSpanWithoutContent =
+        AstNode.fake(() => node.spanWithoutContent);
+
+    _applyMixin(mixin, contentCallable, node.arguments, node,
+        nodeWithSpanWithoutContent);
 
     return null;
   }

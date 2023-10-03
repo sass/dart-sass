@@ -562,8 +562,8 @@ final class _EvaluateVisitor
 
         // ignore: unnecessary_type_check
         if (callable is AsyncCallable) {
-          await _applyMixin(callable, content, invocation, callableNode.span,
-              callableNode.span);
+          await _applyMixin(
+              callable, content, invocation, callableNode, callableNode);
         } else {
           throw SassScriptException(
               "The mixin ${callable.name} is asynchronous.\n"
@@ -1790,12 +1790,11 @@ final class _EvaluateVisitor
       AsyncCallable? mixin,
       UserDefinedCallable<AsyncEnvironment>? contentCallable,
       ArgumentInvocation arguments,
-      FileSpan span,
-      FileSpan spanWithoutContent) async {
-    var nodeWithSpan = AstNode.fake(() => spanWithoutContent);
+      AstNode nodeWithSpan,
+      AstNode nodeWithSpanWithoutContent) async {
     switch (mixin) {
       case null:
-        throw _exception("Undefined mixin.", span);
+        throw _exception("Undefined mixin.", nodeWithSpan.span);
 
       case AsyncBuiltInCallable(acceptsContent: false)
           when contentCallable != null:
@@ -1805,15 +1804,16 @@ final class _EvaluateVisitor
               evaluated.positional.length, MapKeySet(evaluated.named));
           throw MultiSpanSassRuntimeException(
               "Mixin doesn't accept a content block.",
-              spanWithoutContent,
+              nodeWithSpanWithoutContent.span,
               "invocation",
               {overload.spanWithName: "declaration"},
-              _stackTrace(spanWithoutContent));
+              _stackTrace(nodeWithSpanWithoutContent.span));
         }
       case AsyncBuiltInCallable():
         await _environment.withContent(contentCallable, () async {
           await _environment.asMixin(() async {
-            await _runBuiltInCallable(arguments, mixin, nodeWithSpan);
+            await _runBuiltInCallable(
+                arguments, mixin, nodeWithSpanWithoutContent);
           });
         });
 
@@ -1823,17 +1823,19 @@ final class _EvaluateVisitor
           when contentCallable != null:
         throw MultiSpanSassRuntimeException(
             "Mixin doesn't accept a content block.",
-            spanWithoutContent,
+            nodeWithSpanWithoutContent.span,
             "invocation",
             {mixin.declaration.arguments.spanWithName: "declaration"},
-            _stackTrace(spanWithoutContent));
+            _stackTrace(nodeWithSpanWithoutContent.span));
 
       case UserDefinedCallable<AsyncEnvironment>():
-        await _runUserDefinedCallable(arguments, mixin, nodeWithSpan, () async {
+        await _runUserDefinedCallable(
+            arguments, mixin, nodeWithSpanWithoutContent, () async {
           await _environment.withContent(contentCallable, () async {
             await _environment.asMixin(() async {
               for (var statement in mixin.declaration.children) {
-                await _addErrorSpan(nodeWithSpan, () => statement.accept(this));
+                await _addErrorSpan(
+                    nodeWithSpanWithoutContent, () => statement.accept(this));
               }
             });
           });
@@ -1851,8 +1853,11 @@ final class _EvaluateVisitor
         content, _environment.closure(),
         inDependency: _inDependency));
 
-    await _applyMixin(mixin, contentCallable, node.arguments, node.span,
-        node.spanWithoutContent);
+    var nodeWithSpanWithoutContent =
+        AstNode.fake(() => node.spanWithoutContent);
+
+    await _applyMixin(mixin, contentCallable, node.arguments, node,
+        nodeWithSpanWithoutContent);
 
     return null;
   }
