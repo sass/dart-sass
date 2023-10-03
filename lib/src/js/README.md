@@ -13,7 +13,7 @@ class that is in practice implemented by a CommonJS-like[^1] `exports` object,
 and then assign various values to this object.
 
 [`../js.dart`]: ../js.dart
-[`cli_pkg` package]: https://google.com/google/dart_cli_pkg
+[`cli_pkg` package]: https://github.com/google/dart_cli_pkg
 [`Exports`]: exports.dart
 
 [^1]: It's not _literally_ CommonJS because it needs to run directly on browsers

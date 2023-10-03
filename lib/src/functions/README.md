@@ -3,7 +3,7 @@
 This directory contains the standard functions that are built into Sass itself,
 both those that are available globally and those that are available only through
 built-in modules. Each of the files here exports a corresponding
-[`BuiltInModule`, and most define a list of global functions as well.
+[`BuiltInModule`], and most define a list of global functions as well.
 
 [`BuiltInModule`]: ../module/built_in.dart
 
