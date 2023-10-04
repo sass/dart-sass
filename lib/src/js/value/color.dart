@@ -89,37 +89,6 @@ final JSClass colorClass = () {
     }
   });
 
-  SassColor legacyChange(SassColor self, _Channels options) {
-    if (options.whiteness != null || options.blackness != null) {
-      return self.changeHwb(
-          hue: options.hue ?? self.hue,
-          whiteness: options.whiteness ?? self.whiteness,
-          blackness: options.blackness ?? self.blackness,
-          alpha: options.alpha ?? self.alpha);
-    } else if (options.hue != null ||
-        options.saturation != null ||
-        options.lightness != null) {
-      return self.changeHsl(
-          hue: options.hue ?? self.hue,
-          saturation: options.saturation ?? self.saturation,
-          lightness: options.lightness ?? self.lightness,
-          alpha: options.alpha ?? self.alpha);
-    } else if (options.red != null ||
-        options.green != null ||
-        options.blue != null) {
-      return self.changeChannels({
-        if (options.red case var red?) "red": red,
-        if (options.green case var green?) "green": green,
-        if (options.blue case var blue?) "blue": blue,
-        if (options.alpha case var alpha?) "alpha": alpha
-      });
-    } else {
-      return self.changeAlpha(options.alpha ?? self.alpha);
-    }
-  }
-
-  jsClass.defineMethod('legacyChange', legacyChange);
-
   jsClass.defineMethod('change',
       (SassColor self, _ConstructionOptions options) {
     String initialSpace = self.space.name;
@@ -309,13 +278,15 @@ final JSClass colorClass = () {
     ColorSpace spaceClass = ColorSpace.fromName(space);
     return self.toSpace(spaceClass);
   });
-  jsClass.defineMethod('isInGamut', (SassColor self, String? space) {
+
+  jsClass.defineMethod('isInGamut', (SassColor self, [String? space]) {
     String spaceName = space ?? self.space.name;
     ColorSpace spaceClass = ColorSpace.fromName(spaceName);
     SassColor color = self.toSpace(spaceClass);
     return color.isInGamut;
   });
-  jsClass.defineMethod('toGamut', (SassColor self, String? space) {
+
+  jsClass.defineMethod('toGamut', (SassColor self, [String? space]) {
     String spaceName = space ?? self.space.name;
     ColorSpace spaceClass = ColorSpace.fromName(spaceName);
     SassColor color = self.toSpace(spaceClass);
@@ -335,10 +306,10 @@ final JSClass colorClass = () {
     return channels;
   });
 
-  jsClass.defineMethod('channel',
-      (SassColor self, String channel, ChannelOptions options) {
+  jsClass.defineMethod('channel', (SassColor self, String channel,
+      [ChannelOptions? options]) {
     String initialSpace = self.space.name;
-    String space = options.space ?? initialSpace;
+    String space = options?.space ?? initialSpace;
     ColorSpace spaceClass = ColorSpace.fromName(space);
 
     SassColor color = self.toSpace(spaceClass);
@@ -352,10 +323,10 @@ final JSClass colorClass = () {
   jsClass.defineGetter(
       'isAlphaMissing', (SassColor self) => self.isChannelMissing('alpha'));
 
-  jsClass.defineMethod('isChannelPowerless',
-      (SassColor self, String channel, ChannelOptions options) {
+  jsClass.defineMethod('isChannelPowerless', (SassColor self, String channel,
+      [ChannelOptions? options]) {
     String initialSpace = self.space.name;
-    String space = options.space ?? initialSpace;
+    String space = options?.space ?? initialSpace;
     ColorSpace spaceClass = ColorSpace.fromName(space);
 
     SassColor color = self.toSpace(spaceClass);
