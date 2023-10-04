@@ -5,6 +5,11 @@
 * Deprecate `Deprecation.calcInterp` since it was never actually emitted as a
   deprecation.
 
+### Embedded Sass
+
+* Fix a rare race condition in the embedded compiler that could be triggered by
+  a protocol error and cause a crash.
+
 ## 1.68.0
 
 * Fix the source spans associated with the `abs-percent` deprecation.
