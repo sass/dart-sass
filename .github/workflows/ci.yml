@@ -234,10 +234,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         dart_channel: [stable]
-        # TODO(nweiz): Re-enable this when
-        # https://github.com/dart-lang/sdk/issues/52121#issuecomment-1728534228
-        # is addressed.
-        # include: [{os: ubuntu-latest, dart_channel: dev}]
+        include: [{os: ubuntu-latest, dart_channel: dev}]
 
     steps:
       - uses: actions/checkout@v3
@@ -246,7 +243,7 @@ jobs:
           dart-sdk: ${{ matrix.dart_channel }}
           github-token: ${{ github.token }}
 
-      - run: dart run grinder pkg-standalone-dev
+      - run: dart --ignore-unrecognized-flags --enable-deprecated-wait-for tool/grind.dart pkg-standalone-dev
       - name: Run tests
         run: dart run test -x node
 
