@@ -237,7 +237,17 @@ final class Dispatcher {
       _send(OutboundMessage()..logEvent = event);
 
   /// Sends [error] to the host.
-  void sendError(ProtocolError error) =>
+  ///
+  /// This is used during compilation by other classes like host callable.
+  /// Therefore it must set _requestError = true to prevent sending a CompileFailure after
+  /// sending a ProtocolError.
+  void sendError(ProtocolError error) {
+    _sendError(error);
+    _requestError = true;
+  }
+
+  /// Sends [error] to the host.
+  void _sendError(ProtocolError error) =>
       _send(OutboundMessage()..error = error);
 
   InboundMessage_CanonicalizeResponse sendCanonicalizeRequest(
@@ -323,7 +333,7 @@ final class Dispatcher {
   /// The [messageId] indicate the IDs of the message being responded to, if
   /// available.
   void _handleError(Object error, StackTrace stackTrace, {int? messageId}) {
-    sendError(handleError(error, stackTrace, messageId: messageId));
+    _sendError(handleError(error, stackTrace, messageId: messageId));
   }
 
   /// Sends [message] to the host with the given [wireId].
