@@ -418,6 +418,19 @@ final class _EvaluateVisitor
         });
       }, url: "sass:meta"),
 
+      BuiltInCallable.function("module-mixins", r"$module", (arguments) {
+        var namespace = arguments[0].assertString("module");
+        var module = _environment.modules[namespace.text];
+        if (module == null) {
+          throw 'There is no module with namespace "${namespace.text}".';
+        }
+
+        return SassMap({
+          for (var (name, value) in module.mixins.pairs)
+            SassString(name): SassMixin(value)
+        });
+      }, url: "sass:meta"),
+
       BuiltInCallable.function(
           "get-function", r"$name, $css: false, $module: null", (arguments) {
         var name = arguments[0].assertString("name");
@@ -442,6 +455,20 @@ final class _EvaluateVisitor
         if (callable == null) throw "Function not found: $name";
 
         return SassFunction(callable);
+      }, url: "sass:meta"),
+
+      BuiltInCallable.function("get-mixin", r"$name, $module: null",
+          (arguments) {
+        var name = arguments[0].assertString("name");
+        var module = arguments[1].realNull?.assertString("module");
+
+        var callable = _addExceptionSpan(
+            _callableNode!,
+            () => _environment.getMixin(name.text.replaceAll("_", "-"),
+                namespace: module?.text));
+        if (callable == null) throw "Mixin not found: $name";
+
+        return SassMixin(callable);
       }, url: "sass:meta"),
 
       AsyncBuiltInCallable.function("call", r"$function, $args...",
@@ -517,7 +544,32 @@ final class _EvaluateVisitor
             configuration: configuration,
             namesInErrors: true);
         _assertConfigurationIsEmpty(configuration, nameInError: true);
-      }, url: "sass:meta")
+      }, url: "sass:meta"),
+      BuiltInCallable.mixin("apply", r"$mixin, $args...", (arguments) async {
+        var mixin = arguments[0];
+        var args = arguments[1] as SassArgumentList;
+
+        var callableNode = _callableNode!;
+        var invocation = ArgumentInvocation(
+          const [],
+          const {},
+          callableNode.span,
+          rest: ValueExpression(args, callableNode.span),
+        );
+
+        var callable = mixin.assertMixin("mixin").callable;
+        var content = _environment.content;
+
+        // ignore: unnecessary_type_check
+        if (callable is AsyncCallable) {
+          await _applyMixin(
+              callable, content, invocation, callableNode, callableNode);
+        } else {
+          throw SassScriptException(
+              "The mixin ${callable.name} is asynchronous.\n"
+              "This is probably caused by a bug in a Sass plugin.");
+        }
+      }, url: "sass:meta", acceptsContent: true),
     ];
 
     var metaModule = BuiltInModule("meta",
@@ -1733,41 +1785,57 @@ final class _EvaluateVisitor
     }
   }
 
-  Future<Value?> visitIncludeRule(IncludeRule node) async {
-    var nodeWithSpan = AstNode.fake(() => node.spanWithoutContent);
-    var mixin = _addExceptionSpan(node,
-        () => _environment.getMixin(node.name, namespace: node.namespace));
+  /// Evaluate a given [mixin] with [arguments] and [contentCallable]
+  Future<void> _applyMixin(
+      AsyncCallable? mixin,
+      UserDefinedCallable<AsyncEnvironment>? contentCallable,
+      ArgumentInvocation arguments,
+      AstNode nodeWithSpan,
+      AstNode nodeWithSpanWithoutContent) async {
     switch (mixin) {
       case null:
-        throw _exception("Undefined mixin.", node.span);
+        throw _exception("Undefined mixin.", nodeWithSpan.span);
 
-      case AsyncBuiltInCallable() when node.content != null:
-        throw _exception("Mixin doesn't accept a content block.", node.span);
-
+      case AsyncBuiltInCallable(acceptsContent: false)
+          when contentCallable != null:
+        {
+          var evaluated = await _evaluateArguments(arguments);
+          var (overload, _) = mixin.callbackFor(
+              evaluated.positional.length, MapKeySet(evaluated.named));
+          throw MultiSpanSassRuntimeException(
+              "Mixin doesn't accept a content block.",
+              nodeWithSpanWithoutContent.span,
+              "invocation",
+              {overload.spanWithName: "declaration"},
+              _stackTrace(nodeWithSpanWithoutContent.span));
+        }
       case AsyncBuiltInCallable():
-        await _runBuiltInCallable(node.arguments, mixin, nodeWithSpan);
+        await _environment.withContent(contentCallable, () async {
+          await _environment.asMixin(() async {
+            await _runBuiltInCallable(
+                arguments, mixin, nodeWithSpanWithoutContent);
+          });
+        });
 
       case UserDefinedCallable<AsyncEnvironment>(
             declaration: MixinRule(hasContent: false)
           )
-          when node.content != null:
+          when contentCallable != null:
         throw MultiSpanSassRuntimeException(
             "Mixin doesn't accept a content block.",
-            node.spanWithoutContent,
+            nodeWithSpanWithoutContent.span,
             "invocation",
             {mixin.declaration.arguments.spanWithName: "declaration"},
-            _stackTrace(node.spanWithoutContent));
+            _stackTrace(nodeWithSpanWithoutContent.span));
 
       case UserDefinedCallable<AsyncEnvironment>():
-        var contentCallable = node.content.andThen((content) =>
-            UserDefinedCallable(content, _environment.closure(),
-                inDependency: _inDependency));
-        await _runUserDefinedCallable(node.arguments, mixin, nodeWithSpan,
-            () async {
+        await _runUserDefinedCallable(
+            arguments, mixin, nodeWithSpanWithoutContent, () async {
           await _environment.withContent(contentCallable, () async {
             await _environment.asMixin(() async {
               for (var statement in mixin.declaration.children) {
-                await _addErrorSpan(nodeWithSpan, () => statement.accept(this));
+                await _addErrorSpan(
+                    nodeWithSpanWithoutContent, () => statement.accept(this));
               }
             });
           });
@@ -1776,6 +1844,20 @@ final class _EvaluateVisitor
       case _:
         throw UnsupportedError("Unknown callable type $mixin.");
     }
+  }
+
+  Future<Value?> visitIncludeRule(IncludeRule node) async {
+    var mixin = _addExceptionSpan(node,
+        () => _environment.getMixin(node.name, namespace: node.namespace));
+    var contentCallable = node.content.andThen((content) => UserDefinedCallable(
+        content, _environment.closure(),
+        inDependency: _inDependency));
+
+    var nodeWithSpanWithoutContent =
+        AstNode.fake(() => node.spanWithoutContent);
+
+    await _applyMixin(mixin, contentCallable, node.arguments, node,
+        nodeWithSpanWithoutContent);
 
     return null;
   }

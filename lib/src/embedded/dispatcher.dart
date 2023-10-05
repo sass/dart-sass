@@ -12,8 +12,10 @@ import 'package:path/path.dart' as p;
 import 'package:protobuf/protobuf.dart';
 import 'package:sass/sass.dart' as sass;
 
+import '../value/function.dart';
+import '../value/mixin.dart';
 import 'embedded_sass.pb.dart';
-import 'function_registry.dart';
+import 'opaque_registry.dart';
 import 'host_callable.dart';
 import 'importer/file.dart';
 import 'importer/host.dart';
@@ -109,7 +111,8 @@ final class Dispatcher {
 
   OutboundMessage_CompileResponse _compile(
       InboundMessage_CompileRequest request) {
-    var functions = FunctionRegistry();
+    var functions = OpaqueRegistry<SassFunction>();
+    var mixins = OpaqueRegistry<SassMixin>();
 
     var style = request.style == OutputStyle.COMPRESSED
         ? sass.OutputStyle.compressed
@@ -123,7 +126,7 @@ final class Dispatcher {
           (throw mandatoryError("Importer.importer")));
 
       var globalFunctions = request.globalFunctions
-          .map((signature) => hostCallable(this, functions, signature));
+          .map((signature) => hostCallable(this, functions, mixins, signature));
 
       late sass.CompileResult result;
       switch (request.whichInput()) {
