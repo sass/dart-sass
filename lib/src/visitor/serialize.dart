@@ -570,14 +570,16 @@ final class _SerializeVisitor
           ..write(value.space)
           ..writeCharCode($lparen);
         _writeChannel(value.channel0OrNull);
-        if (!_isCompressed && value.space == ColorSpace.lab) {
+        if (!_isCompressed &&
+            value.space == ColorSpace.lab &&
+            !value.isChannel0Missing) {
           _buffer.writeCharCode($percent);
         }
         _buffer.writeCharCode($space);
         _writeChannel(value.channel1OrNull);
         _buffer.writeCharCode($space);
         _writeChannel(value.channel2OrNull);
-        _maybeWriteSlashAlpha(value.alpha);
+        _maybeWriteSlashAlpha(value);
         _buffer.writeCharCode($rparen);
 
       case ColorSpace.lch || ColorSpace.oklch:
@@ -585,7 +587,9 @@ final class _SerializeVisitor
           ..write(value.space)
           ..writeCharCode($lparen);
         _writeChannel(value.channel0OrNull);
-        if (!_isCompressed && value.space == ColorSpace.lch) {
+        if (!_isCompressed &&
+            value.space == ColorSpace.lch &&
+            !value.isChannel0Missing) {
           _buffer.writeCharCode($percent);
         }
         _buffer.writeCharCode($space);
@@ -593,7 +597,7 @@ final class _SerializeVisitor
         _buffer.writeCharCode($space);
         _writeChannel(value.channel2OrNull);
         if (!_isCompressed && !value.isChannel2Missing) _buffer.write('deg');
-        _maybeWriteSlashAlpha(value.alpha);
+        _maybeWriteSlashAlpha(value);
         _buffer.writeCharCode($rparen);
 
       case _:
@@ -602,7 +606,7 @@ final class _SerializeVisitor
           ..write(value.space)
           ..writeCharCode($space);
         _writeBetween(value.channelsOrNull, ' ', _writeChannel);
-        _maybeWriteSlashAlpha(value.alpha);
+        _maybeWriteSlashAlpha(value);
         _buffer.writeCharCode($rparen);
     }
   }
@@ -812,13 +816,17 @@ final class _SerializeVisitor
     _buffer.writeCharCode(hexCharFor(color & 0xF));
   }
 
-  /// Writes the alpha component of a color if [alpha] isn't 1.
-  void _maybeWriteSlashAlpha(double alpha) {
-    if (fuzzyEquals(alpha, 1)) return;
+  /// Writes the alpha component of [color] if it isn't 1.
+  void _maybeWriteSlashAlpha(SassColor color) {
+    if (fuzzyEquals(color.alpha, 1)) return;
     _writeOptionalSpace();
     _buffer.writeCharCode($slash);
     _writeOptionalSpace();
-    _writeNumber(alpha);
+    if (color.isAlphaMissing) {
+      _buffer.write('none');
+    } else {
+      _writeNumber(color.alpha);
+    }
   }
 
   void visitFunction(SassFunction function) {
