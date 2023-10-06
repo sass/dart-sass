@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: dart-lang/setup-dart@v1
     - run: dart format --fix .
     - run: git diff --exit-code
@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -72,7 +72,7 @@ jobs:
             async_args: '--cmd-args --async'
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -110,7 +110,7 @@ jobs:
             node-version: 18
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -137,6 +137,7 @@ jobs:
   sass_spec_js_embedded:
     name: 'JS API Tests | Embedded | Node ${{ matrix.node-version }} | ${{ matrix.os }}'
     runs-on: ${{ matrix.os }}-latest
+    if: "github.event_name != 'pull_request' || !contains(github.event.pull_request.body, 'skip sass-embedded')"
 
     strategy:
       fail-fast: false
@@ -151,7 +152,7 @@ jobs:
             node-version: 14
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with:
           github-token: ${{ github.token }}
@@ -197,7 +198,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: browser-actions/setup-chrome@v1
       - uses: ./.github/util/initialize
         with:
@@ -239,7 +240,7 @@ jobs:
         # include: [{os: ubuntu-latest, dart_channel: dev}]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -277,7 +278,7 @@ jobs:
             dart_channel: dev
             node-version: 18
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -298,7 +299,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: browser-actions/setup-chrome@v1
     - uses: ./.github/util/initialize
       with:
@@ -328,7 +329,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -346,7 +347,7 @@ jobs:
         bootstrap_version: [4, 5]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -361,7 +362,7 @@ jobs:
     needs: [double_check]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -378,7 +379,7 @@ jobs:
     needs: [double_check]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -396,7 +397,7 @@ jobs:
     needs: [double_check]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -412,7 +413,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -436,11 +437,11 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
-      - uses: docker/setup-qemu-action@v2
+      - uses: docker/setup-qemu-action@v3
       - name: Deploy
         run: |
           docker run --rm \
@@ -466,7 +467,8 @@ jobs:
           - runner: macos-latest
             platform: macos-x64
             architecture: x64
-          - runner: self-hosted
+          # https://github.blog/2023-10-02-introducing-the-new-apple-silicon-powered-m1-macos-larger-runner-for-github-actions/
+          - runner: macos-latest-xlarge
             platform: macos-arm64
             architecture: arm64
           - runner: windows-latest
@@ -474,7 +476,7 @@ jobs:
             architecture: x64
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         # Workaround for dart-lang/setup-dart#59
         with:
@@ -494,7 +496,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -510,7 +512,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -527,7 +529,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -542,7 +544,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -560,7 +562,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
 
@@ -577,7 +579,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -588,13 +590,20 @@ jobs:
   deploy_website:
     name: "Deploy sass-lang.com"
     runs-on: ubuntu-latest
-    needs: [bootstrap, bourbon, foundation, bulma]
+    needs: [deploy_npm]
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: sass/sass-site
           token: ${{ secrets.SASS_SITE_TOKEN }}
+
+      - name: Get version
+        id: version
+        run: echo "version=${GITHUB_REF##*/}" | tee --append "$GITHUB_OUTPUT"
+
+      - name: Update Dart Sass version
+        run: npm install sass@${{ steps.version.outputs.version }}
 
       - uses: EndBug/add-and-commit@v9
         with:
@@ -609,14 +618,16 @@ jobs:
     needs: [deploy_github_linux, deploy_github_linux_qemu, deploy_github]
     if: "startsWith(github.ref, 'refs/tags/') && github.repository == 'sass/dart-sass'"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: sass/embedded-host-node
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Get version
         id: version
-        run: echo "version=${GITHUB_REF##*/}" | tee --append "$GITHUB_OUTPUT"
+        run: |
+          echo "version=${GITHUB_REF##*/}" | tee --append "$GITHUB_OUTPUT"
+          echo "protocol_version=$(curl -fsSL -H "Authorization: Bearer ${{ github.token }}" https://raw.githubusercontent.com/sass/sass/HEAD/spec/EMBEDDED_PROTOCOL_VERSION)" | tee --append "$GITHUB_OUTPUT"
 
       - name: Update version
         run: |
@@ -631,13 +642,14 @@ jobs:
 
           # Update main package version and dependencies on binary packages
           cat package.json |
-              jq --arg version ${{ steps.version.outputs.version }} '
+              jq --arg version ${{ steps.version.outputs.version }} --arg protocol_version ${{ steps.version.outputs.protocol_version }} '
                 .version |= $version |
                 ."compiler-version" |= $version |
+                ."protocol-version" |= $protocol_version |
                 .optionalDependencies = (.optionalDependencies | .[] |= $version)
               ' > package.json.tmp &&
             mv package.json.tmp package.json
-          curl https://raw.githubusercontent.com/sass/dart-sass/${{ steps.version.outputs.version }}/CHANGELOG.md > CHANGELOG.md
+          curl -fsSL -H "Authorization: Bearer ${{ github.token }}" https://raw.githubusercontent.com/sass/dart-sass/${{ steps.version.outputs.version }}/CHANGELOG.md > CHANGELOG.md
         shell: bash
 
       - uses: EndBug/add-and-commit@v9

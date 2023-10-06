@@ -69,8 +69,11 @@ enum Deprecation {
       deprecatedIn: '1.62.3',
       description: 'Passing null as alpha in the ${isJS ? 'JS' : 'Dart'} API.'),
 
+  @Deprecated('This deprecation name was never actually used.')
+  calcInterp('calc-interp', deprecatedIn: null),
+
   colorFunctions('color-functions',
-      deprecatedIn: '1.67.0',
+      deprecatedIn: '1.70.0',
       description: 'Using global Sass color functions.'),
 
   /// Deprecation for `@import` rules.

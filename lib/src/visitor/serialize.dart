@@ -518,13 +518,9 @@ final class _SerializeVisitor
       case Value():
         value.accept(this);
 
-      case CalculationInterpolation():
-        _buffer.write(value.value);
-
       case CalculationOperation(:var operator, :var left, :var right):
-        var parenthesizeLeft = left is CalculationInterpolation ||
-            (left is CalculationOperation &&
-                left.operator.precedence < operator.precedence);
+        var parenthesizeLeft = left is CalculationOperation &&
+            left.operator.precedence < operator.precedence;
         if (parenthesizeLeft) _buffer.writeCharCode($lparen);
         _writeCalculationValue(left);
         if (parenthesizeLeft) _buffer.writeCharCode($rparen);
@@ -534,8 +530,7 @@ final class _SerializeVisitor
         _buffer.write(operator.operator);
         if (operatorWhitespace) _buffer.writeCharCode($space);
 
-        var parenthesizeRight = right is CalculationInterpolation ||
-            (right is CalculationOperation &&
+        var parenthesizeRight = (right is CalculationOperation &&
                 _parenthesizeCalculationRhs(operator, right.operator)) ||
             (operator == CalculationOperator.dividedBy &&
                 right is SassNumber &&
@@ -836,6 +831,16 @@ final class _SerializeVisitor
 
     _buffer.write("get-function(");
     _visitQuotedString(function.callable.name);
+    _buffer.writeCharCode($rparen);
+  }
+
+  void visitMixin(SassMixin mixin) {
+    if (!_inspect) {
+      throw SassScriptException("$mixin isn't a valid CSS value.");
+    }
+
+    _buffer.write("get-mixin(");
+    _visitQuotedString(mixin.callable.name);
     _buffer.writeCharCode($rparen);
   }
 

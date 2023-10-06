@@ -2,14 +2,13 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-// ignore: deprecated_member_use
-import 'dart:cli';
-
 import '../callable.dart';
 import '../exception.dart';
+import '../value/function.dart';
+import '../value/mixin.dart';
 import 'dispatcher.dart';
 import 'embedded_sass.pb.dart';
-import 'function_registry.dart';
+import 'opaque_registry.dart';
 import 'protofier.dart';
 import 'utils.dart';
 
@@ -22,11 +21,14 @@ import 'utils.dart';
 ///
 /// Throws a [SassException] if [signature] is invalid.
 Callable hostCallable(
-    Dispatcher dispatcher, FunctionRegistry functions, String signature,
+    Dispatcher dispatcher,
+    OpaqueRegistry<SassFunction> functions,
+    OpaqueRegistry<SassMixin> mixins,
+    String signature,
     {int? id}) {
   late Callable callable;
   callable = Callable.fromSignature(signature, (arguments) {
-    var protofier = Protofier(dispatcher, functions);
+    var protofier = Protofier(dispatcher, functions, mixins);
     var request = OutboundMessage_FunctionCallRequest()
       ..arguments.addAll(
           [for (var argument in arguments) protofier.protofy(argument)]);
@@ -37,8 +39,7 @@ Callable hostCallable(
       request.name = callable.name;
     }
 
-    // ignore: deprecated_member_use
-    var response = waitFor(dispatcher.sendFunctionCallRequest(request));
+    var response = dispatcher.sendFunctionCallRequest(request);
     try {
       switch (response.whichResult()) {
         case InboundMessage_FunctionCallResponse_Result.success:

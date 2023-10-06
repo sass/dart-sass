@@ -10,21 +10,35 @@ import '../../js/importer.dart';
 import '../../js/url.dart';
 import '../../js/utils.dart';
 import '../../util/nullable.dart';
+import 'utils.dart';
 
 /// A wrapper for a synchronous JS API importer that exposes it as a Dart
 /// [Importer].
 final class JSToDartImporter extends Importer {
   /// The wrapped canonicalize function.
-  final Object? Function(String, CanonicalizeOptions) _canonicalize;
+  final Object? Function(String, CanonicalizeContext) _canonicalize;
 
   /// The wrapped load function.
   final Object? Function(JSUrl) _load;
 
-  JSToDartImporter(this._canonicalize, this._load);
+  /// The set of URL schemes that this importer promises never to return from
+  /// [canonicalize].
+  final Set<String> _nonCanonicalSchemes;
+
+  JSToDartImporter(
+      this._canonicalize, this._load, Iterable<String>? nonCanonicalSchemes)
+      : _nonCanonicalSchemes = nonCanonicalSchemes == null
+            ? const {}
+            : Set.unmodifiable(nonCanonicalSchemes) {
+    _nonCanonicalSchemes.forEach(validateUrlScheme);
+  }
 
   Uri? canonicalize(Uri url) {
     var result = wrapJSExceptions(() => _canonicalize(
-        url.toString(), CanonicalizeOptions(fromImport: fromImport)));
+        url.toString(),
+        CanonicalizeContext(
+            fromImport: fromImport,
+            containingUrl: containingUrl.andThen(dartToJSUrl))));
     if (result == null) return null;
     if (isJSUrl(result)) return jsToDartUrl(result as JSUrl);
 
@@ -47,7 +61,7 @@ final class JSToDartImporter extends Importer {
           "functions."));
     }
 
-    result as NodeImporterResult;
+    result as JSImporterResult;
     var contents = result.contents;
     if (!isJsString(contents)) {
       jsThrow(ArgumentError.value(contents, 'contents',
@@ -64,4 +78,7 @@ final class JSToDartImporter extends Importer {
         syntax: parseSyntax(syntax),
         sourceMapUrl: result.sourceMapUrl.andThen(jsToDartUrl));
   }
+
+  bool isNonCanonicalScheme(String scheme) =>
+      _nonCanonicalSchemes.contains(scheme);
 }

@@ -64,6 +64,46 @@ void main() {
           process, errorId, "Missing mandatory field Importer.importer");
       await process.shouldExit(76);
     });
+
+    group("for an importer with nonCanonicalScheme set:", () {
+      test("path", () async {
+        process.send(compileString("a {b: c}", importers: [
+          InboundMessage_CompileRequest_Importer(
+              path: "somewhere", nonCanonicalScheme: ["u"])
+        ]));
+        await expectParamsError(
+            process,
+            errorId,
+            "Importer.non_canonical_scheme may only be set along with "
+            "Importer.importer.importer_id");
+        await process.shouldExit(76);
+      });
+
+      test("file importer", () async {
+        process.send(compileString("a {b: c}", importers: [
+          InboundMessage_CompileRequest_Importer(
+              fileImporterId: 1, nonCanonicalScheme: ["u"])
+        ]));
+        await expectParamsError(
+            process,
+            errorId,
+            "Importer.non_canonical_scheme may only be set along with "
+            "Importer.importer.importer_id");
+        await process.shouldExit(76);
+      });
+
+      test("unset", () async {
+        process.send(compileString("a {b: c}",
+            importer: InboundMessage_CompileRequest_Importer(
+                nonCanonicalScheme: ["u"])));
+        await expectParamsError(
+            process,
+            errorId,
+            "Importer.non_canonical_scheme may only be set along with "
+            "Importer.importer.importer_id");
+        await process.shouldExit(76);
+      });
+    });
   });
 
   group("canonicalization", () {
@@ -153,6 +193,86 @@ void main() {
       var failure = await getCompileFailure(process);
       expect(failure.message, equals("Can't find stylesheet to import."));
       expect(failure.span.text, equals("'other'"));
+      await process.close();
+    });
+
+    group("the containing URL", () {
+      test("is unset for a potentially canonical scheme", () async {
+        process.send(compileString('@import "u:orange"', importers: [
+          InboundMessage_CompileRequest_Importer(importerId: 1)
+        ]));
+
+        var request = await getCanonicalizeRequest(process);
+        expect(request.hasContainingUrl(), isFalse);
+        await process.close();
+      });
+
+      group("for a non-canonical scheme", () {
+        test("is set to the original URL", () async {
+          process.send(compileString('@import "u:orange"',
+              importers: [
+                InboundMessage_CompileRequest_Importer(
+                    importerId: 1, nonCanonicalScheme: ["u"])
+              ],
+              url: "x:original.scss"));
+
+          var request = await getCanonicalizeRequest(process);
+          expect(request.containingUrl, equals("x:original.scss"));
+          await process.close();
+        });
+
+        test("is unset to the original URL is unset", () async {
+          process.send(compileString('@import "u:orange"', importers: [
+            InboundMessage_CompileRequest_Importer(
+                importerId: 1, nonCanonicalScheme: ["u"])
+          ]));
+
+          var request = await getCanonicalizeRequest(process);
+          expect(request.hasContainingUrl(), isFalse);
+          await process.close();
+        });
+      });
+
+      group("for a schemeless load", () {
+        test("is set to the original URL", () async {
+          process.send(compileString('@import "orange"',
+              importers: [
+                InboundMessage_CompileRequest_Importer(importerId: 1)
+              ],
+              url: "x:original.scss"));
+
+          var request = await getCanonicalizeRequest(process);
+          expect(request.containingUrl, equals("x:original.scss"));
+          await process.close();
+        });
+
+        test("is unset to the original URL is unset", () async {
+          process.send(compileString('@import "u:orange"', importers: [
+            InboundMessage_CompileRequest_Importer(importerId: 1)
+          ]));
+
+          var request = await getCanonicalizeRequest(process);
+          expect(request.hasContainingUrl(), isFalse);
+          await process.close();
+        });
+      });
+    });
+
+    test(
+        "fails if the importer returns a canonical URL with a non-canonical "
+        "scheme", () async {
+      process.send(compileString("@import 'other'", importers: [
+        InboundMessage_CompileRequest_Importer(
+            importerId: 1, nonCanonicalScheme: ["u"])
+      ]));
+
+      var request = await getCanonicalizeRequest(process);
+      process.send(InboundMessage(
+          canonicalizeResponse: InboundMessage_CanonicalizeResponse(
+              id: request.id, url: "u:other")));
+
+      await _expectImportError(
+          process, contains('a scheme declared as non-canonical'));
       await process.close();
     });
 
@@ -471,6 +591,44 @@ void main() {
             ..contents = "x {y: z}")));
 
       await expectSuccess(process, "x { y: z; }");
+      await process.close();
+    });
+  });
+
+  group("fails compilation for an invalid scheme:", () {
+    test("empty", () async {
+      process.send(compileString("a {b: c}", importers: [
+        InboundMessage_CompileRequest_Importer(
+            importerId: 1, nonCanonicalScheme: [""])
+      ]));
+
+      var failure = await getCompileFailure(process);
+      expect(failure.message,
+          equals('"" isn\'t a valid URL scheme (for example "file").'));
+      await process.close();
+    });
+
+    test("uppercase", () async {
+      process.send(compileString("a {b: c}", importers: [
+        InboundMessage_CompileRequest_Importer(
+            importerId: 1, nonCanonicalScheme: ["U"])
+      ]));
+
+      var failure = await getCompileFailure(process);
+      expect(failure.message,
+          equals('"U" isn\'t a valid URL scheme (for example "file").'));
+      await process.close();
+    });
+
+    test("colon", () async {
+      process.send(compileString("a {b: c}", importers: [
+        InboundMessage_CompileRequest_Importer(
+            importerId: 1, nonCanonicalScheme: ["u:"])
+      ]));
+
+      var failure = await getCompileFailure(process);
+      expect(failure.message,
+          equals('"u:" isn\'t a valid URL scheme (for example "file").'));
       await process.close();
     });
   });

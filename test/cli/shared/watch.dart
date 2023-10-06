@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:path/path.dart' as p;
+import 'package:sass/src/io.dart';
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
@@ -29,7 +30,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     /// Modifying a file very quickly after it was processed can go
     /// unrecognized, especially on Windows where filesystem operations can have
     /// very high delays.
-    Future<void> tickIfPoll() => poll ? tick : Future.value();
+    Future<void> tickIfPoll() => poll || isWindows ? tick : Future.value();
 
     group("${poll ? 'with' : 'without'} --poll", () {
       group("when started", () {
@@ -128,7 +129,6 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           await sass.shouldExit(65);
 
           await d.file("out1.css", contains(message)).validate();
-          await d.nothing("out2.css").validate();
         });
       });
 

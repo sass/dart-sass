@@ -9,6 +9,7 @@ import 'package:string_scanner/string_scanner.dart';
 
 import '../exception.dart';
 import '../interpolation_map.dart';
+import '../io.dart';
 import '../logger.dart';
 import '../util/character.dart';
 import '../util/lazy_file_span.dart';
@@ -696,9 +697,9 @@ class Parser {
   @protected
   void debug([Object? message]) {
     if (message == null) {
-      print(scanner.emptySpan.highlight(color: true));
+      safePrint(scanner.emptySpan.highlight(color: true));
     } else {
-      print(scanner.emptySpan.message(message.toString(), color: true));
+      safePrint(scanner.emptySpan.message(message.toString(), color: true));
     }
   }
 
