@@ -1199,7 +1199,8 @@ Value _parseChannels(String functionName, Value input,
           var channelName =
               space?.channels[channels.indexOf(channel)].name ?? 'channel';
           throw SassScriptException(
-              'Expected $channelName $channel to be a number.', name);
+              'Expected $channelName channel to be a number, was $channel.',
+              name);
         }
       }
 
