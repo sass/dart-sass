@@ -4,9 +4,11 @@
 
 import '../callable.dart';
 import '../exception.dart';
+import '../value/function.dart';
+import '../value/mixin.dart';
 import 'compilation_dispatcher.dart';
 import 'embedded_sass.pb.dart';
-import 'function_registry.dart';
+import 'opaque_registry.dart';
 import 'protofier.dart';
 import 'utils.dart';
 
@@ -18,12 +20,15 @@ import 'utils.dart';
 /// the name defined in the [signature].
 ///
 /// Throws a [SassException] if [signature] is invalid.
-Callable hostCallable(CompilationDispatcher dispatcher,
-    FunctionRegistry functions, String signature,
+Callable hostCallable(
+    CompilationDispatcher dispatcher,
+    OpaqueRegistry<SassFunction> functions,
+    OpaqueRegistry<SassMixin> mixins,
+    String signature,
     {int? id}) {
   late Callable callable;
   callable = Callable.fromSignature(signature, (arguments) {
-    var protofier = Protofier(dispatcher, functions);
+    var protofier = Protofier(dispatcher, functions, mixins);
     var request = OutboundMessage_FunctionCallRequest()
       ..arguments.addAll(
           [for (var argument in arguments) protofier.protofy(argument)]);

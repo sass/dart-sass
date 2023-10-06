@@ -467,7 +467,8 @@ jobs:
           - runner: macos-latest
             platform: macos-x64
             architecture: x64
-          - runner: self-hosted
+          # https://github.blog/2023-10-02-introducing-the-new-apple-silicon-powered-m1-macos-larger-runner-for-github-actions/
+          - runner: macos-latest-xlarge
             platform: macos-arm64
             architecture: arm64
           - runner: windows-latest

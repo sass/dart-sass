@@ -671,6 +671,16 @@ final class _SerializeVisitor
     _buffer.writeCharCode($rparen);
   }
 
+  void visitMixin(SassMixin mixin) {
+    if (!_inspect) {
+      throw SassScriptException("$mixin isn't a valid CSS value.");
+    }
+
+    _buffer.write("get-mixin(");
+    _visitQuotedString(mixin.callable.name);
+    _buffer.writeCharCode($rparen);
+  }
+
   void visitList(SassList value) {
     if (value.hasBrackets) {
       _buffer.writeCharCode($lbracket);

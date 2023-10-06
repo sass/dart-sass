@@ -8,8 +8,8 @@ import '../value.dart';
 import 'compilation_dispatcher.dart';
 import 'embedded_sass.pb.dart' as proto;
 import 'embedded_sass.pb.dart' hide Value, ListSeparator, CalculationOperator;
-import 'function_registry.dart';
 import 'host_callable.dart';
+import 'opaque_registry.dart';
 import 'utils.dart';
 
 /// A class that converts Sass [Value] objects into [Value] protobufs.
@@ -21,7 +21,10 @@ final class Protofier {
   final CompilationDispatcher _dispatcher;
 
   /// The IDs of first-class functions.
-  final FunctionRegistry _functions;
+  final OpaqueRegistry<SassFunction> _functions;
+
+  /// The IDs of first-class mixins.
+  final OpaqueRegistry<SassMixin> _mixins;
 
   /// Any argument lists transitively contained in [value].
   ///
@@ -35,7 +38,10 @@ final class Protofier {
   ///
   /// The [functions] tracks the IDs of first-class functions so that the host
   /// can pass them back to the compiler.
-  Protofier(this._dispatcher, this._functions);
+  ///
+  /// Similarly, the [mixins] tracks the IDs of first-class mixins so that the
+  /// host can pass them back to the compiler.
+  Protofier(this._dispatcher, this._functions, this._mixins);
 
   /// Converts [value] to its protocol buffer representation.
   proto.Value protofy(Value value) {
@@ -84,7 +90,10 @@ final class Protofier {
       case SassCalculation():
         result.calculation = _protofyCalculation(value);
       case SassFunction():
-        result.compilerFunction = _functions.protofy(value);
+        result.compilerFunction =
+            Value_CompilerFunction(id: _functions.getId(value));
+      case SassMixin():
+        result.compilerMixin = Value_CompilerMixin(id: _mixins.getId(value));
       case sassTrue:
         result.singleton = SingletonValue.TRUE;
       case sassFalse:
@@ -238,8 +247,14 @@ final class Protofier {
 
         case Value_Value.hostFunction:
           return SassFunction(hostCallable(
-              _dispatcher, _functions, value.hostFunction.signature,
+              _dispatcher, _functions, _mixins, value.hostFunction.signature,
               id: value.hostFunction.id));
+
+        case Value_Value.compilerMixin:
+          var id = value.compilerMixin.id;
+          if (_mixins[id] case var mixin?) return mixin;
+          throw paramsError(
+              "CompilerMixin.id $id doesn't match any known mixins");
 
         case Value_Value.calculation:
           return _deprotofyCalculation(value.calculation);

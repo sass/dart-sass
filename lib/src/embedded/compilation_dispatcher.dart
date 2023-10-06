@@ -12,8 +12,10 @@ import 'package:path/path.dart' as p;
 import 'package:protobuf/protobuf.dart';
 import 'package:sass/sass.dart' as sass;
 
+import '../value/function.dart';
+import '../value/mixin.dart';
 import 'embedded_sass.pb.dart';
-import 'function_registry.dart';
+import 'opaque_registry.dart';
 import 'host_callable.dart';
 import 'importer/file.dart';
 import 'importer/host.dart';
@@ -109,7 +111,8 @@ final class CompilationDispatcher {
 
   OutboundMessage_CompileResponse _compile(
       InboundMessage_CompileRequest request) {
-    var functions = FunctionRegistry();
+    var functions = OpaqueRegistry<SassFunction>();
+    var mixins = OpaqueRegistry<SassMixin>();
 
     var style = request.style == OutputStyle.COMPRESSED
         ? sass.OutputStyle.compressed
@@ -123,7 +126,7 @@ final class CompilationDispatcher {
           (throw mandatoryError("Importer.importer")));
 
       var globalFunctions = request.globalFunctions
-          .map((signature) => hostCallable(this, functions, signature));
+          .map((signature) => hostCallable(this, functions, mixins, signature));
 
       late sass.CompileResult result;
       switch (request.whichInput()) {
@@ -237,7 +240,17 @@ final class CompilationDispatcher {
       _send(OutboundMessage()..logEvent = event);
 
   /// Sends [error] to the host.
-  void sendError(ProtocolError error) =>
+  ///
+  /// This is used during compilation by other classes like host callable.
+  /// Therefore it must set _requestError = true to prevent sending a CompileFailure after
+  /// sending a ProtocolError.
+  void sendError(ProtocolError error) {
+    _sendError(error);
+    _requestError = true;
+  }
+
+  /// Sends [error] to the host.
+  void _sendError(ProtocolError error) =>
       _send(OutboundMessage()..error = error);
 
   InboundMessage_CanonicalizeResponse sendCanonicalizeRequest(
@@ -323,7 +336,7 @@ final class CompilationDispatcher {
   /// The [messageId] indicate the IDs of the message being responded to, if
   /// available.
   void _handleError(Object error, StackTrace stackTrace, {int? messageId}) {
-    sendError(handleError(error, stackTrace, messageId: messageId));
+    _sendError(handleError(error, stackTrace, messageId: messageId));
   }
 
   /// Sends [message] to the host with the given [wireId].

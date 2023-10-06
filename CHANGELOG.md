@@ -1,5 +1,16 @@
 ## 1.69.0
 
+* Add a `meta.get-mixin()` function that returns a mixin as a first-class Sass
+  value.
+
+* Add a `meta.apply()` mixin that includes a mixin value.
+
+* Add a `meta.module-mixins()` function which returns a map from mixin names in
+  a module to the first-class mixins that belong to those names.
+
+* Add a `meta.accepts-content()` function which returns whether or not a mixin
+  value can take a content block.
+
 * Add support for the relative color syntax from CSS Color 5. This syntax
   cannot be used to create Sass color values. It is always emitted as-is in the
   CSS output.
@@ -8,6 +19,11 @@
 
 * Deprecate `Deprecation.calcInterp` since it was never actually emitted as a
   deprecation.
+
+### Embedded Sass
+
+* Fix a rare race condition where the embedded compiler could freeze when a
+  protocol error was immediately followed by another request.
 
 ## 1.68.0
 
