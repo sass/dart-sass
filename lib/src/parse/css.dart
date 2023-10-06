@@ -22,7 +22,11 @@ final _disallowedFunctionNames =
       ..remove("invert")
       ..remove("alpha")
       ..remove("opacity")
-      ..remove("saturate");
+      ..remove("saturate")
+      ..remove("min")
+      ..remove("max")
+      ..remove("round")
+      ..remove("abs");
 
 class CssParser extends ScssParser {
   bool get plainCss => true;
@@ -96,6 +100,17 @@ class CssParser extends ScssParser {
     ], scanner.spanFrom(start));
   }
 
+  ParenthesizedExpression parentheses() {
+    // Expressions are only allowed within calculations, but we verify this at
+    // evaluation time.
+    var start = scanner.state;
+    scanner.expectChar($lparen);
+    whitespace();
+    var expression = expressionUntilComma();
+    scanner.expectChar($rparen);
+    return ParenthesizedExpression(expression, scanner.spanFrom(start));
+  }
+
   Expression identifierLike() {
     var start = scanner.state;
     var identifier = interpolatedIdentifier();
@@ -107,6 +122,8 @@ class CssParser extends ScssParser {
     }
 
     var beforeArguments = scanner.state;
+    // `namespacedExpression()` is just here to throw a clearer error.
+    if (scanner.scanChar($dot)) return namespacedExpression(plain, start);
     if (!scanner.scanChar($lparen)) return StringExpression(identifier);
 
     var allowEmptySecondArg = lower == 'var';
@@ -132,10 +149,8 @@ class CssParser extends ScssParser {
           "This function isn't allowed in plain CSS.", scanner.spanFrom(start));
     }
 
-    return InterpolatedFunctionExpression(
-        // Create a fake interpolation to force the function to be interpreted
-        // as plain CSS, rather than calling a user-defined function.
-        Interpolation([StringExpression(identifier)], identifier.span),
+    return FunctionExpression(
+        plain,
         ArgumentInvocation(
             arguments, const {}, scanner.spanFrom(beforeArguments)),
         scanner.spanFrom(start));

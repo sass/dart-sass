@@ -761,7 +761,7 @@ void main() {
             equals(Value_Calculation()
               ..name = "calc"
               ..arguments.add(Value_Calculation_CalculationValue()
-                ..interpolation = "var(--foo)")));
+                ..string = "var(--foo)")));
       });
 
       test("with number arguments", () async {
@@ -1453,7 +1453,7 @@ void main() {
                 ..name = "calc"
                 ..arguments.add(Value_Calculation_CalculationValue()
                   ..interpolation = "var(--foo)"))),
-            "calc(var(--foo))");
+            "calc((var(--foo)))");
       });
 
       test("with number arguments", () async {

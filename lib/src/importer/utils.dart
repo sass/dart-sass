@@ -17,10 +17,28 @@ import '../io.dart';
 /// removed, at which point we can delete this and have one consistent behavior.
 bool get fromImport => Zone.current[#_inImportRule] as bool? ?? false;
 
+/// The URL of the stylesheet that contains the current load.
+Uri? get containingUrl => switch (Zone.current[#_containingUrl]) {
+      null => throw StateError(
+          "containingUrl may only be accessed within a call to canonicalize()."),
+      #_none => null,
+      Uri url => url,
+      var value => throw StateError(
+          "Unexpected Zone.current[#_containingUrl] value $value.")
+    };
+
 /// Runs [callback] in a context where [fromImport] returns `true` and
 /// [resolveImportPath] uses `@import` semantics rather than `@use` semantics.
 T inImportRule<T>(T callback()) =>
     runZoned(callback, zoneValues: {#_inImportRule: true});
+
+/// Runs [callback] in a context where [containingUrl] returns [url].
+///
+/// If [when] is `false`, runs [callback] without setting [containingUrl].
+T withContainingUrl<T>(Uri? url, T callback()) =>
+    // Use #_none as a sentinel value so we can distinguish a containing URL
+    // that's set to null from one that's unset at all.
+    runZoned(callback, zoneValues: {#_containingUrl: url ?? #_none});
 
 /// Resolves an imported path using the same logic as the filesystem importer.
 ///
@@ -82,3 +100,9 @@ String? _exactlyOne(List<String> paths) => switch (paths) {
 ///
 /// Otherwise, returns `null`.
 T? _ifInImport<T>(T callback()) => fromImport ? callback() : null;
+
+/// A regular expression matching valid URL schemes.
+final _urlSchemeRegExp = RegExp(r"^[a-z0-9+.-]+$");
+
+/// Returns whether [scheme] is a valid URL scheme.
+bool isValidUrlScheme(String scheme) => _urlSchemeRegExp.hasMatch(scheme);

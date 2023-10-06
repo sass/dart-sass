@@ -1023,7 +1023,7 @@ double _percentageOrUnitless(SassNumber number, double max, [String? name]) {
     value = max * number.value / 100;
   } else {
     throw SassScriptException(
-        'Expected $number to have no units or "%".', name);
+        'Expected $number to have unit "%" or no units.', name);
   }
 
   return value;

@@ -41,6 +41,21 @@ abstract class AsyncImporter {
   @nonVirtual
   bool get fromImport => utils.fromImport;
 
+  /// The canonical URL of the stylesheet that caused the current [canonicalize]
+  /// invocation.
+  ///
+  /// This is only set when the containing stylesheet has a canonical URL, and
+  /// when the URL being canonicalized is either relative or has a scheme for
+  /// which [isNonCanonicalScheme] returns `true`. This restriction ensures that
+  /// canonical URLs are always interpreted the same way regardless of their
+  /// context.
+  ///
+  /// Subclasses should only access this from within calls to [canonicalize].
+  /// Outside of that context, its value is undefined and subject to change.
+  @protected
+  @nonVirtual
+  Uri? get containingUrl => utils.containingUrl;
+
   /// If [url] is recognized by this importer, returns its canonical format.
   ///
   /// Note that canonical URLs *must* be absolute, including a scheme. Returning
@@ -137,4 +152,16 @@ abstract class AsyncImporter {
   /// [url] would actually resolve to [canonicalUrl]. Subclasses are not allowed
   /// to return false negatives.
   FutureOr<bool> couldCanonicalize(Uri url, Uri canonicalUrl) => true;
+
+  /// Returns whether the given URL scheme (without `:`) should be considered
+  /// "non-canonical" for this importer.
+  ///
+  /// An importer may not return a URL with a non-canonical scheme from
+  /// [canonicalize]. In exchange, [containingUrl] is available within
+  /// [canonicalize] for absolute URLs with non-canonical schemes so that the
+  /// importer can resolve those URLs differently based on where they're loaded.
+  ///
+  /// This must always return the same value for the same [scheme]. It is
+  /// expected to be very efficient.
+  FutureOr<bool> isNonCanonicalScheme(String scheme) => false;
 }
