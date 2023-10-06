@@ -31,11 +31,11 @@ wrapping them with JS-only wrappers.
 
 [`Value`]: ../value.dart
 
-To solve the first problem problems, in [`reflection.dart`] we use JS interop to
-wrap the manual method of defining a JavaScript class. We use this to create a
+To solve the first problem, in [`reflection.dart`] we use JS interop to wrap the
+manual method of defining a JavaScript class. We use this to create a
 JS-specific class for each value type, with all the JS-specific methods and
 properties defined by Sass's JS API spec. However, while normal JS constructors
-just sets some properties on `this`, our constructors for these classes return
+just set some properties on `this`, our constructors for these classes return
 Dart `Value` objects instead.
 
 [`reflection.dart`]: reflection.dart

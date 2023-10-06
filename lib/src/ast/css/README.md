@@ -26,8 +26,10 @@ in plain CSS (such as maps)—in this case, [the serializer] will emit an error.
 
 Internally, the CSS AST is mutable to allow for operations like hoisting rules
 to the root of the AST and updating existing selectors when `@extend` rules are
-encountered. However, because mutability poses a high risk for "spooky action at
-a distance", we limit access to mutating APIs exclusively to the evaluator.
+encountered. However, because mutability poses a high risk for "spooky [action
+at a distance]", we limit access to mutating APIs exclusively to the evaluator.
+
+[action at a distance]: https://en.wikipedia.org/wiki/Action_at_a_distance_(computer_programming)
 
 We do this by having an _unmodifiable_ interface (written in this directory) for
 each CSS AST node which only exposes members that don't modify the node in
