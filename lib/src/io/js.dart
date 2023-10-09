@@ -4,11 +4,12 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:js_util';
 
+import 'package:cli_pkg/js.dart';
 import 'package:js/js.dart';
 import 'package:node_interop/fs.dart';
 import 'package:node_interop/node_interop.dart' hide process;
+import 'package:node_interop/util.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:watcher/watcher.dart';
@@ -17,7 +18,12 @@ import '../exception.dart';
 import '../js/chokidar.dart';
 
 @JS('process')
-external final Process? process; // process is null in the browser
+external final Process? _nodeJsProcess; // process is null in the browser
+
+/// The Node.JS [Process] global variable.
+///
+/// This value is `null` when running the script is not run from Node.JS
+Process? get _process => isNodeJs ? _nodeJsProcess : null;
 
 class FileSystemException {
   final String message;
@@ -29,7 +35,7 @@ class FileSystemException {
 }
 
 void safePrint(Object? message) {
-  if (process case var process?) {
+  if (_process case var process?) {
     process.stdout.write("${message ?? ''}\n");
   } else {
     console.log(message ?? '');
@@ -37,7 +43,7 @@ void safePrint(Object? message) {
 }
 
 void printError(Object? message) {
-  if (process case var process?) {
+  if (_process case var process?) {
     process.stderr.write("${message ?? ''}\n");
   } else {
     console.error(message ?? '');
@@ -45,7 +51,7 @@ void printError(Object? message) {
 }
 
 String readFile(String path) {
-  if (!isNode) {
+  if (!isNodeJs) {
     throw UnsupportedError("readFile() is only supported on Node.js");
   }
   // TODO(nweiz): explicitly decode the bytes as UTF-8 like we do in the VM when
@@ -69,7 +75,7 @@ Object? _readFile(String path, [String? encoding]) =>
     _systemErrorToFileSystemException(() => fs.readFileSync(path, encoding));
 
 void writeFile(String path, String contents) {
-  if (!isNode) {
+  if (!isNodeJs) {
     throw UnsupportedError("writeFile() is only supported on Node.js");
   }
   return _systemErrorToFileSystemException(
@@ -77,15 +83,15 @@ void writeFile(String path, String contents) {
 }
 
 void deleteFile(String path) {
-  if (!isNode) {
+  if (!isNodeJs) {
     throw UnsupportedError("deleteFile() is only supported on Node.js");
   }
   return _systemErrorToFileSystemException(() => fs.unlinkSync(path));
 }
 
 Future<String> readStdin() async {
-  var process_ = process;
-  if (process_ == null) {
+  var process = _process;
+  if (process == null) {
     throw UnsupportedError("readStdin() is only supported on Node.js");
   }
   var completer = Completer<String>();
@@ -96,15 +102,15 @@ Future<String> readStdin() async {
   });
   // Node defaults all buffers to 'utf8'.
   var sink = utf8.decoder.startChunkedConversion(innerSink);
-  process_.stdin.on('data', allowInterop(([Object? chunk]) {
+  process.stdin.on('data', allowInterop(([Object? chunk]) {
     sink.add(chunk as List<int>);
   }));
-  process_.stdin.on('end', allowInterop(([Object? _]) {
+  process.stdin.on('end', allowInterop(([Object? _]) {
     // Callback for 'end' receives no args.
     assert(_ == null);
     sink.close();
   }));
-  process_.stdin.on('error', allowInterop(([Object? e]) {
+  process.stdin.on('error', allowInterop(([Object? e]) {
     printError('Failed to read from stdin');
     printError(e);
     completer.completeError(e!);
@@ -121,7 +127,7 @@ String _cleanErrorMessage(JsSystemError error) {
 }
 
 bool fileExists(String path) {
-  if (!isNode) {
+  if (!isNodeJs) {
     throw UnsupportedError("fileExists() is only supported on Node.js");
   }
   return _systemErrorToFileSystemException(() {
@@ -142,7 +148,7 @@ bool fileExists(String path) {
 }
 
 bool dirExists(String path) {
-  if (!isNode) {
+  if (!isNodeJs) {
     throw UnsupportedError("dirExists() is only supported on Node.js");
   }
   return _systemErrorToFileSystemException(() {
@@ -163,7 +169,7 @@ bool dirExists(String path) {
 }
 
 void ensureDir(String path) {
-  if (!isNode) {
+  if (!isNodeJs) {
     throw UnsupportedError("ensureDir() is only supported on Node.js");
   }
   return _systemErrorToFileSystemException(() {
@@ -180,7 +186,7 @@ void ensureDir(String path) {
 }
 
 Iterable<String> listDir(String path, {bool recursive = false}) {
-  if (!isNode) {
+  if (!isNodeJs) {
     throw UnsupportedError("listDir() is only supported on Node.js");
   }
   return _systemErrorToFileSystemException(() {
@@ -202,7 +208,7 @@ Iterable<String> listDir(String path, {bool recursive = false}) {
 }
 
 DateTime modificationTime(String path) {
-  if (!isNode) {
+  if (!isNodeJs) {
     throw UnsupportedError("modificationTime() is only supported on Node.js");
   }
   return _systemErrorToFileSystemException(() =>
@@ -210,7 +216,7 @@ DateTime modificationTime(String path) {
 }
 
 String? getEnvironmentVariable(String name) {
-  var env = process?.env;
+  var env = _process?.env;
   return env == null ? null : getProperty(env as Object, name) as String?;
 }
 
@@ -229,36 +235,21 @@ T _systemErrorToFileSystemException<T>(T callback()) {
 /// from `node_interop` declares `isTTY` as always non-nullably available, but
 /// in practice it's undefined if stdout isn't a TTY.
 /// See: https://github.com/pulyaevskiy/node-interop/issues/93
-bool get hasTerminal => process?.stdout.isTTY == true;
+bool get hasTerminal => _process?.stdout.isTTY == true;
 
-bool get isWindows => process?.platform == 'win32';
+bool get isWindows => _process?.platform == 'win32';
 
-bool get isMacOS => process?.platform == 'darwin';
-
-const bool isJS = true;
-
-/// The fs module object, used to check whether this has been loaded as Node.
-///
-/// It's safest to check for a library we load in manually rather than one
-/// that's ambiently available so that we don't get into a weird state in
-/// environments like VS Code that support some Node.js libraries but don't load
-/// Node.js entrypoints for dependencies.
-@JS('fs')
-external final Object? _fsNullable;
-
-bool get isNode => _fsNullable != null;
-
-bool get isBrowser => isJS && !isNode;
+bool get isMacOS => _process?.platform == 'darwin';
 
 // Node seems to support ANSI escapes on all terminals.
 bool get supportsAnsiEscapes => hasTerminal;
 
-int get exitCode => process?.exitCode ?? 0;
+int get exitCode => _process?.exitCode ?? 0;
 
-set exitCode(int code) => process?.exitCode = code;
+set exitCode(int code) => _process?.exitCode = code;
 
 Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) {
-  if (!isNode) {
+  if (!isNodeJs) {
     throw UnsupportedError("watchDir() is only supported on Node.js");
   }
   var watcher = chokidar.watch(

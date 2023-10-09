@@ -4,13 +4,13 @@
 
 import 'dart:math' as math;
 
+import 'package:cli_pkg/js.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
-import '../io.dart';
 import '../util/number.dart';
 import '../value.dart';
 import '../visitor/interface/value.dart';

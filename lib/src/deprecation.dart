@@ -2,10 +2,10 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:cli_pkg/js.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import 'io.dart';
 import 'util/nullable.dart';
 
 /// A deprecated feature in the language.

@@ -22,12 +22,6 @@ bool get isMacOS => io.Platform.isMacOS;
 
 bool get hasTerminal => io.stdout.hasTerminal;
 
-const bool isJS = false;
-
-bool get isNode => false;
-
-bool get isBrowser => false;
-
 bool get supportsAnsiEscapes {
   if (!hasTerminal) return false;
 
