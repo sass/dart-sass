@@ -1165,6 +1165,10 @@ Value _parseChannels(String functionName, Value input,
     case []:
       throw SassScriptException('Color component list may not be empty.', name);
 
+    case [SassString(:var text, hasQuotes: false), ...]
+        when text.toLowerCase() == "from":
+      return _functionString(functionName, [input]);
+
     case _ when components.isVar:
       channels = [components];
 
