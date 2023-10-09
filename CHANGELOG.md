@@ -1,3 +1,7 @@
+## 1.69.1
+
+* No user-visible changes.
+
 ## 1.69.0
 
 * Add a `meta.get-mixin()` function that returns a mixin as a first-class Sass
