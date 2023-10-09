@@ -334,8 +334,24 @@ final JSClass colorClass = () {
     return color.isChannelPowerless(channel);
   });
 
-  jsClass.defineMethod(
-      'interpolate', (SassColor self, InterpolationOptions options) {});
+  jsClass.defineMethod('interpolate',
+      (SassColor self, InterpolationOptions options) {
+    InterpolationMethod interpolationMethod;
+
+    if (options.method != null) {
+      HueInterpolationMethod hue =
+          HueInterpolationMethod.values.byName(options.method!);
+      interpolationMethod = InterpolationMethod(self.space, hue);
+    } else if (!self.space.isPolar) {
+      interpolationMethod = InterpolationMethod(self.space);
+    } else {
+      interpolationMethod =
+          InterpolationMethod(self.space, HueInterpolationMethod.shorter);
+    }
+
+    return self.interpolate(options.color2, interpolationMethod,
+        weight: options.weight);
+  });
 
   getJSClass(SassColor.rgb(0, 0, 0)).injectSuperclass(jsClass);
   return jsClass;
@@ -435,7 +451,7 @@ class ChannelOptions {
 @JS()
 @anonymous
 class InterpolationOptions {
-  late SassColor color2;
-  double? weight;
-  String? method;
+  external SassColor color2;
+  external double? weight;
+  external String? method;
 }
