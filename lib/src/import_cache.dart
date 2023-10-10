@@ -5,10 +5,11 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ff52307a3bc93358ddc46f1e76120894fa3e071f
+// Checksum: 342e907cf10e1dd80d7045fc32db43c74376654e
 //
 // ignore_for_file: unused_import
 
+import 'package:cli_pkg/js.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:package_config/package_config_types.dart';

@@ -1,3 +1,10 @@
+## 1.69.2
+
+### JS API
+
+* Fix a bug where Sass crashed when running in the browser if there was a global
+  variable named `process`.
+
 ## 1.69.1
 
 * No user-visible changes.

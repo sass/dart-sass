@@ -4,6 +4,7 @@
 
 import 'package:test/test.dart';
 
+import 'package:cli_pkg/js.dart';
 import 'package:sass/src/io.dart';
 
 /// Ensures that the NPM package is compiled and up-to-date.
@@ -12,7 +13,7 @@ import 'package:sass/src/io.dart';
 Future<void> ensureNpmPackage() async {
   // spawnHybridUri() doesn't currently work on Windows and Node due to busted
   // path handling in the SDK.
-  if (isNode && isWindows) return;
+  if (isNodeJs && isWindows) return;
 
   var channel = spawnHybridCode("""
     import 'package:cli_pkg/testing.dart' as pkg;
