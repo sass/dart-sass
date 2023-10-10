@@ -31,12 +31,6 @@ class SrgbColorSpace extends ColorSpace {
       ColorSpace dest, double red, double green, double blue, double alpha) {
     switch (dest) {
       case ColorSpace.hsl || ColorSpace.hwb:
-        if (fuzzyCheckRange(red, 0, 1) == null ||
-            fuzzyCheckRange(green, 0, 1) == null ||
-            fuzzyCheckRange(blue, 0, 1) == null) {
-          return SassColor.srgb(red, green, blue).toGamut().toSpace(dest);
-        }
-
         // Algorithm from https://en.wikipedia.org/wiki/HSL_and_HSV#RGB_to_HSL_and_HSV
         var max = math.max(math.max(red, green), blue);
         var min = math.min(math.min(red, green), blue);
