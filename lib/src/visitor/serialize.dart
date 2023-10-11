@@ -557,8 +557,37 @@ final class _SerializeVisitor
 
   void visitColor(SassColor value) {
     switch (value.space) {
-      case ColorSpace.rgb || ColorSpace.hsl || ColorSpace.hwb:
+      case ColorSpace.rgb || ColorSpace.hsl || ColorSpace.hwb
+          when !value.isChannel0Missing &&
+              !value.isChannel1Missing &&
+              !value.isChannel2Missing &&
+              !value.isAlphaMissing:
         _writeLegacyColor(value);
+
+      case ColorSpace.rgb:
+        _buffer.write('rgb(');
+        _writeChannel(value.channel0OrNull);
+        _buffer.writeCharCode($space);
+        _writeChannel(value.channel1OrNull);
+        _buffer.writeCharCode($space);
+        _writeChannel(value.channel2OrNull);
+        _maybeWriteSlashAlpha(value);
+        _buffer.writeCharCode($rparen);
+
+      case ColorSpace.hsl || ColorSpace.hwb:
+        _buffer
+          ..write(value.space)
+          ..writeCharCode($lparen);
+        _writeChannel(value.channel0OrNull);
+        if (!_isCompressed && !value.isChannel0Missing) _buffer.write('deg');
+        _buffer.writeCharCode($space);
+        _writeChannel(value.channel1OrNull);
+        if (!value.isChannel1Missing) _buffer.writeCharCode($percent);
+        _buffer.writeCharCode($space);
+        _writeChannel(value.channel2OrNull);
+        if (!value.isChannel2Missing) _buffer.writeCharCode($percent);
+        _maybeWriteSlashAlpha(value);
+        _buffer.writeCharCode($rparen);
 
       case ColorSpace.lab ||
             ColorSpace.oklab ||
