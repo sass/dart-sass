@@ -1,3 +1,9 @@
+## 1.69.3
+
+### Embedded Sass
+
+* Fix TypeScript type locations in `package.json`.
+
 ## 1.69.2
 
 ### JS API
