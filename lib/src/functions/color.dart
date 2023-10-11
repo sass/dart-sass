@@ -1384,7 +1384,7 @@ double? _channelFromValue(ColorChannel channel, SassNumber? value) =>
                 'Expected $value to have unit "%".', channel.name),
           LinearChannel() =>
             _percentageOrUnitless(value, channel.max, channel.name),
-          _ => value.coerceValueToUnit('deg', channel.name)
+          _ => value.coerceValueToUnit('deg', channel.name) % 360
         });
 
 /// Returns whether [value] is an unquoted string case-insensitively equal to
