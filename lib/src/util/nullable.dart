@@ -21,3 +21,10 @@ extension SetExtension<T> on Set<T?> {
     return cast<T>();
   }
 }
+
+extension StringExtension on String {
+  /// Like [String.codeUnitAt], but returns `null` instead of throwing an error
+  /// if [index] is past the end of the string.
+  int? codeUnitAtOrNull(int index) =>
+      index >= length ? null : codeUnitAt(index);
+}

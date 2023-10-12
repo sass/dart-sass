@@ -1,4 +1,4 @@
-## 9.0.0
+## 10.0.0
 
 * **Breaking change:** Remove the `SassApiColor.hasCalculatedRgb` and
   `.hasCalculatedHsl` extension methods. These can now be determined by checking
@@ -48,6 +48,22 @@
 
 * Added `SassNumber.convertValueToUnit()` as a shorthand for
   `SassNumber.convertValue()` with a single numerator.
+
+## 9.2.0
+
+* No user-visible changes.
+
+## 9.1.0
+
+* No user-visible changes.
+
+## 9.0.0
+
+* Remove the `CalculationExpression` class and the associated visitor methods.
+
+* Add an `AstSearchVisitor` helper class.
+
+* Add an `Interpolation.isPlain` getter.
 
 ## 8.2.1
 

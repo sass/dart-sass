@@ -8,23 +8,25 @@ import 'url.dart';
 
 @JS()
 @anonymous
-class NodeImporter {
-  external Object? Function(String, CanonicalizeOptions)? get canonicalize;
+class JSImporter {
+  external Object? Function(String, CanonicalizeContext)? get canonicalize;
   external Object? Function(JSUrl)? get load;
-  external Object? Function(String, CanonicalizeOptions)? get findFileUrl;
+  external Object? Function(String, CanonicalizeContext)? get findFileUrl;
+  external Object? get nonCanonicalScheme;
 }
 
 @JS()
 @anonymous
-class CanonicalizeOptions {
+class CanonicalizeContext {
   external bool get fromImport;
+  external JSUrl? get containingUrl;
 
-  external factory CanonicalizeOptions({bool fromImport});
+  external factory CanonicalizeContext({bool fromImport, JSUrl? containingUrl});
 }
 
 @JS()
 @anonymous
-class NodeImporterResult {
+class JSImporterResult {
   external String? get contents;
   external String? get syntax;
   external JSUrl? get sourceMapUrl;

@@ -28,6 +28,14 @@ class FileSystemException {
   String toString() => "${p.prettyUri(p.toUri(path))}: $message";
 }
 
+void safePrint(Object? message) {
+  if (process case var process?) {
+    process.stdout.write("${message ?? ''}\n");
+  } else {
+    console.log(message ?? '');
+  }
+}
+
 void printError(Object? message) {
   if (process case var process?) {
     process.stderr.write("${message ?? ''}\n");

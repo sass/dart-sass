@@ -21,9 +21,21 @@ class ColorChannel {
   /// This is true if and only if this is not a [LinearChannel].
   final bool isPolarAngle;
 
+  /// The unit that's associated with this channel.
+  ///
+  /// Some channels are typically written without units, while others have a
+  /// specific unit that is conventionally applied to their values. Although any
+  /// compatible unit or unitless value will work for input¹, this unit is used
+  /// when the value is serialized or returned from a Sass function.
+  ///
+  /// 1: Unless [LinearChannel.requiresPercent] is set, in which case unitless
+  /// values are not allowed.
+  final String? associatedUnit;
+
   /// @nodoc
   @internal
-  const ColorChannel(this.name, {required this.isPolarAngle});
+  const ColorChannel(this.name,
+      {required this.isPolarAngle, this.associatedUnit});
 
   /// Returns whether this channel is [analogous] to [other].
   ///
@@ -65,9 +77,19 @@ class LinearChannel extends ColorChannel {
   /// forbids unitless values.
   final bool requiresPercent;
 
+  /// Creates a linear color channel.
+  ///
+  /// By default, [ColorChannel.associatedUnit] is set to `%` if and only if
+  /// [min] is 0 and [max] is 100. However, if [conventionallyPercent] is
+  /// true, it's set to `%`, and if it's false, it's set to null.
+  ///
   /// @nodoc
   @internal
   const LinearChannel(String name, this.min, this.max,
-      {this.requiresPercent = false})
-      : super(name, isPolarAngle: false);
+      {this.requiresPercent = false, bool? conventionallyPercent})
+      : super(name,
+            isPolarAngle: false,
+            associatedUnit: (conventionallyPercent ?? (min == 0 && max == 100))
+                ? '%'
+                : null);
 }

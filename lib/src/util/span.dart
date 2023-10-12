@@ -9,8 +9,10 @@ import 'package:string_scanner/string_scanner.dart';
 import '../utils.dart';
 import 'character.dart';
 
-/// A span that points nowhere, only used for fake AST nodes that will never be
-/// presented to the user.
+/// A span that points nowhere.
+///
+/// This is used for fake AST nodes that will never be presented to the user, as
+/// well as for embedded compilation failures that have no associated spans.
 final bogusSpan = SourceFile.decoded([]).span(0);
 
 extension SpanExtensions on FileSpan {

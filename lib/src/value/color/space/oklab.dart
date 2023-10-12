@@ -23,7 +23,7 @@ class OklabColorSpace extends ColorSpace {
 
   const OklabColorSpace()
       : super('oklab', const [
-          LinearChannel('lightness', 0, 1),
+          LinearChannel('lightness', 0, 1, conventionallyPercent: true),
           LinearChannel('a', -0.4, 0.4),
           LinearChannel('b', -0.4, 0.4)
         ]);

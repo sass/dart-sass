@@ -249,7 +249,7 @@ class SassColor extends Value {
 
   /// This color's hue, between `0` and `360`.
   @Deprecated('Use channel() instead.')
-  double get hue => _legacyChannel(ColorSpace.hsl, 'hue') % 360;
+  double get hue => _legacyChannel(ColorSpace.hsl, 'hue');
 
   /// This color's saturation, a percentage between `0` and `100`.
   @Deprecated('Use channel() instead.')
@@ -531,7 +531,8 @@ class SassColor extends Value {
       return SassColor.forSpaceInternal(
           space,
           clampChannel0
-              ? channels[0].andThen((value) => fuzzyClamp(value, 0, 100))
+              ? channels[0].andThen((value) => fuzzyClamp(
+                  value, 0, (space.channels[0] as LinearChannel).max))
               : channels[0],
           clampChannel12
               ? channels[1].andThen((value) => fuzzyClamp(value, 0, 100))

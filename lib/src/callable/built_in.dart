@@ -21,6 +21,8 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// The overloads declared for this callable.
   final List<(ArgumentDeclaration, Callback)> _overloads;
 
+  final bool acceptsContent;
+
   /// Creates a function with a single [arguments] declaration and a single
   /// [callback].
   ///
@@ -48,18 +50,19 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// defined.
   BuiltInCallable.mixin(
       String name, String arguments, void callback(List<Value> arguments),
-      {Object? url})
+      {Object? url, bool acceptsContent = false})
       : this.parsed(name,
             ArgumentDeclaration.parse('@mixin $name($arguments) {', url: url),
             (arguments) {
           callback(arguments);
           return sassNull;
-        });
+        }, acceptsContent: acceptsContent);
 
   /// Creates a callable with a single [arguments] declaration and a single
   /// [callback].
   BuiltInCallable.parsed(this.name, ArgumentDeclaration arguments,
-      Value callback(List<Value> arguments))
+      Value callback(List<Value> arguments),
+      {this.acceptsContent = false})
       : _overloads = [(arguments, callback)];
 
   /// Creates a function with multiple implementations.
@@ -79,9 +82,10 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
               ArgumentDeclaration.parse('@function $name($args) {', url: url),
               callback
             )
-        ];
+        ],
+        acceptsContent = false;
 
-  BuiltInCallable._(this.name, this._overloads);
+  BuiltInCallable._(this.name, this._overloads, this.acceptsContent);
 
   /// Returns the argument declaration and Dart callback for the given
   /// positional and named arguments.
@@ -117,5 +121,6 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   }
 
   /// Returns a copy of this callable with the given [name].
-  BuiltInCallable withName(String name) => BuiltInCallable._(name, _overloads);
+  BuiltInCallable withName(String name) =>
+      BuiltInCallable._(name, _overloads, acceptsContent);
 }
