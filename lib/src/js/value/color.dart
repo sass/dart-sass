@@ -321,9 +321,6 @@ final JSClass colorClass = () {
   jsClass.defineMethod('isChannelMissing',
       (SassColor self, String channel) => self.isChannelMissing(channel));
 
-  jsClass.defineGetter(
-      'isAlphaMissing', (SassColor self) => self.isChannelMissing('alpha'));
-
   jsClass.defineMethod('isChannelPowerless', (SassColor self, String channel,
       [ChannelOptions? options]) {
     String initialSpace = self.space.name;
