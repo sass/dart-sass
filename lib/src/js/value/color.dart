@@ -8,6 +8,7 @@ import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
 
 import '../../value.dart';
+import '../immutable.dart';
 import '../reflection.dart';
 import '../utils.dart';
 
@@ -294,7 +295,7 @@ final JSClass colorClass = () {
   });
 
   jsClass.defineGetter(
-      'channelsOrNull', (SassColor self) => self.channelsOrNull);
+      'channelsOrNull', (SassColor self) => ImmutableList(self.channelsOrNull));
 
   jsClass.defineGetter('channels', (SassColor self) {
     final channelsOrNull = self.channelsOrNull;
@@ -303,7 +304,7 @@ final JSClass colorClass = () {
       final value = channel ?? 0;
       channels.add(value);
     }
-    return channels;
+    return ImmutableList(channels);
   });
 
   jsClass.defineMethod('channel', (SassColor self, String channel,
