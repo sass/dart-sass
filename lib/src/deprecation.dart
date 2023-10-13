@@ -76,6 +76,9 @@ enum Deprecation {
       deprecatedIn: '1.70.0',
       description: 'Using global Sass color functions.'),
 
+  color4Api('color-4-api',
+      deprecatedIn: '1.70.0', description: 'Breaking changes in Color 4.'),
+
   /// Deprecation for `@import` rules.
   import.future('import', description: '@import rules.'),
 

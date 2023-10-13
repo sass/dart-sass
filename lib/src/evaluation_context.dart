@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:source_span/source_span.dart';
 
 import 'deprecation.dart';
+import 'logger.dart';
 
 /// An interface that exposes information about the current Sass evaluation.
 ///
@@ -22,6 +23,16 @@ abstract interface class EvaluationContext {
       return context;
     } else {
       throw StateError("No Sass stylesheet is currently being evaluated.");
+    }
+  }
+
+  /// The current evaluation context, or null if there isn't a Sass stylesheet
+  /// currently being evaluated.
+  static EvaluationContext? get currentOrNull {
+    if (Zone.current[#_evaluationContext] case EvaluationContext context) {
+      return context;
+    } else {
+      return null;
     }
   }
 
@@ -56,6 +67,16 @@ void warn(String message, {bool deprecation = false}) =>
 /// Prints a deprecation warning with [message] of type [deprecation].
 void warnForDeprecation(String message, Deprecation deprecation) {
   EvaluationContext.current.warn(message, deprecation);
+}
+
+/// Prints a deprecation warning with [message] of type [deprecation].
+void warnForDeprecationFromJsApi(String message, Deprecation deprecation) {
+  final context = EvaluationContext.currentOrNull;
+  if (context == null) {
+    Logger.stderr().warnForDeprecation(deprecation, message);
+  } else {
+    context.warn(message, deprecation);
+  }
 }
 
 /// Runs [callback] with [context] as [EvaluationContext.current].

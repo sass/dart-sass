@@ -7,6 +7,8 @@ import 'dart:js_util';
 import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
 
+import '../../deprecation.dart';
+import '../../evaluation_context.dart';
 import '../../value.dart';
 import '../immutable.dart';
 import '../reflection.dart';
@@ -97,7 +99,10 @@ final JSClass colorClass = () {
         space = 'rgb';
       }
       if (space != initialSpace) {
-        // @todo emit a deprecation warning named `color-4-api`.
+        warnForDeprecationFromJsApi(
+            "Changing a channel not in this color's space without explicitly specifying "
+            "the `space` option is deprecated.",
+            Deprecation.color4Api);
       }
     }
 
@@ -126,7 +131,7 @@ final JSClass colorClass = () {
               (keys.contains('saturation') && changes['saturation'] == null) ||
               (keys.contains('lightness') && changes['lightness'] == null) ||
               (keys.contains('alpha') && changes['alpha'] == null)) {
-            // @todo emit deprecation `null-alpha`
+            _emitNullAlphaDeprecation();
           }
           changedColor = SassColor.forSpaceInternal(
               spaceClass,
@@ -150,7 +155,7 @@ final JSClass colorClass = () {
               (keys.contains('whiteness') && changes['whiteness'] == null) ||
               (keys.contains('blackness') && changes['blackness'] == null) ||
               (keys.contains('alpha') && changes['alpha'] == null)) {
-            // @todo emit deprecation `null-alpha`
+            _emitNullAlphaDeprecation();
           }
           changedColor = SassColor.forSpaceInternal(
               spaceClass,
@@ -174,7 +179,7 @@ final JSClass colorClass = () {
               (keys.contains('green') && changes['green'] == null) ||
               (keys.contains('blue') && changes['blue'] == null) ||
               (keys.contains('alpha') && changes['alpha'] == null)) {
-            // @todo emit deprecation `null-alpha`
+            _emitNullAlphaDeprecation();
           }
           changedColor = SassColor.forSpaceInternal(
               spaceClass,
@@ -238,16 +243,39 @@ final JSClass colorClass = () {
     return changedColor.toSpace(initialSpaceClass);
   });
 
-  // @todo: Add deprecation warnings to all these getters
   jsClass.defineGetters({
-    'red': (SassColor self) => self.red,
-    'green': (SassColor self) => self.green,
-    'blue': (SassColor self) => self.blue,
-    'hue': (SassColor self) => self.hue,
-    'saturation': (SassColor self) => self.saturation,
-    'lightness': (SassColor self) => self.lightness,
-    'whiteness': (SassColor self) => self.whiteness,
-    'blackness': (SassColor self) => self.blackness,
+    'red': (SassColor self) {
+      _emitColor4ApiDeprecation('red');
+      return self.red;
+    },
+    'green': (SassColor self) {
+      _emitColor4ApiDeprecation('green');
+      return self.green;
+    },
+    'blue': (SassColor self) {
+      _emitColor4ApiDeprecation('blue');
+      return self.blue;
+    },
+    'hue': (SassColor self) {
+      _emitColor4ApiDeprecation('hue');
+      return self.hue;
+    },
+    'saturation': (SassColor self) {
+      _emitColor4ApiDeprecation('saturation');
+      return self.saturation;
+    },
+    'lightness': (SassColor self) {
+      _emitColor4ApiDeprecation('lightness');
+      return self.lightness;
+    },
+    'whiteness': (SassColor self) {
+      _emitColor4ApiDeprecation('whiteness');
+      return self.whiteness;
+    },
+    'blackness': (SassColor self) {
+      _emitColor4ApiDeprecation('blackness');
+      return self.blackness;
+    },
   });
 
   jsClass.defineGetter('alpha', (SassColor self) => self.alpha);
@@ -370,8 +398,21 @@ ColorSpace _constructionSpace(_ConstructionOptions options) {
 void _checkNullAlphaDeprecation(_ConstructionOptions options) {
   // @todo Verify if options.space is equivalent to "not set"
   if (options.alpha == null && options.space == null) {
-    // emit deprecation
+    _emitNullAlphaDeprecation();
   }
+}
+
+void _emitNullAlphaDeprecation() {
+  warnForDeprecationFromJsApi(
+      "Passing `alpha: null` without setting `space` is deprecated."
+      "\n"
+      "More info: https://sass-lang.com/d/null-alpha",
+      Deprecation.nullAlpha);
+}
+
+void _emitColor4ApiDeprecation(String name) {
+  warnForDeprecationFromJsApi(
+      "$name is deprecated, use `channel` instead.", Deprecation.color4Api);
 }
 
 Map<String, double?> _changedOptions(_ConstructionOptions options) {
