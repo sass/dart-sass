@@ -6,7 +6,6 @@ import 'dart:js_util';
 
 import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
-import 'package:sass/src/js/immutable.dart';
 
 import '../../value.dart';
 import '../immutable.dart';
