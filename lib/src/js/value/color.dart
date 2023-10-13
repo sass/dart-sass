@@ -70,6 +70,11 @@ final JSClass colorClass = () {
     }
   });
 
+  jsClass.defineMethods({
+    'equals': (SassColor self, Object other) => self == other,
+    'hashCode': (SassColor self) => self.hashCode,
+  });
+
   jsClass.defineMethod('change',
       (SassColor self, _ConstructionOptions options) {
     String initialSpace = self.space.name;
