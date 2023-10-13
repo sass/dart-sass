@@ -122,6 +122,9 @@ final class AsyncImportCache {
 
   /// Canonicalizes [url] according to one of this cache's importers.
   ///
+  /// The [baseUrl] should be the canonical URL of the stylesheet that contains
+  /// the load, if it exists.
+  ///
   /// Returns the importer that was used to canonicalize [url], the canonical
   /// URL, and the URL that was passed to the importer (which may be resolved
   /// relative to [baseUrl] if it's passed).
@@ -139,33 +142,30 @@ final class AsyncImportCache {
     if (isBrowser &&
         (baseImporter == null || baseImporter is NoOpImporter) &&
         _importers.isEmpty) {
-      throw "Custom importers are required to load stylesheets when compiling in the browser.";
+      throw "Custom importers are required to load stylesheets when compiling "
+          "in the browser.";
     }
 
-    if (baseImporter != null) {
-      var relativeResult = await putIfAbsentAsync(_relativeCanonicalizeCache, (
-        url,
-        forImport: forImport,
-        baseImporter: baseImporter,
-        baseUrl: baseUrl
-      ), () async {
-        var resolvedUrl = baseUrl?.resolveUri(url) ?? url;
-        if (await _canonicalize(baseImporter, resolvedUrl, forImport)
-            case var canonicalUrl?) {
-          return (baseImporter, canonicalUrl, originalUrl: resolvedUrl);
-        } else {
-          return null;
-        }
-      });
+    if (baseImporter != null && url.scheme == '') {
+      var relativeResult = await putIfAbsentAsync(
+          _relativeCanonicalizeCache,
+          (
+            url,
+            forImport: forImport,
+            baseImporter: baseImporter,
+            baseUrl: baseUrl
+          ),
+          () => _canonicalize(baseImporter, baseUrl?.resolveUri(url) ?? url,
+              baseUrl, forImport));
       if (relativeResult != null) return relativeResult;
     }
 
     return await putIfAbsentAsync(
         _canonicalizeCache, (url, forImport: forImport), () async {
       for (var importer in _importers) {
-        if (await _canonicalize(importer, url, forImport)
-            case var canonicalUrl?) {
-          return (importer, canonicalUrl, originalUrl: url);
+        if (await _canonicalize(importer, url, baseUrl, forImport)
+            case var result?) {
+          return result;
         }
       }
 
@@ -175,18 +175,36 @@ final class AsyncImportCache {
 
   /// Calls [importer.canonicalize] and prints a deprecation warning if it
   /// returns a relative URL.
-  Future<Uri?> _canonicalize(
-      AsyncImporter importer, Uri url, bool forImport) async {
-    var result = await (forImport
-        ? inImportRule(() => importer.canonicalize(url))
-        : importer.canonicalize(url));
-    if (result?.scheme == '') {
-      _logger.warnForDeprecation(Deprecation.relativeCanonical, """
-Importer $importer canonicalized $url to $result.
-Relative canonical URLs are deprecated and will eventually be disallowed.
-""");
+  ///
+  /// If [resolveUrl] is `true`, this resolves [url] relative to [baseUrl]
+  /// before passing it to [importer].
+  Future<AsyncCanonicalizeResult?> _canonicalize(
+      AsyncImporter importer, Uri url, Uri? baseUrl, bool forImport,
+      {bool resolveUrl = false}) async {
+    var resolved =
+        resolveUrl && baseUrl != null ? baseUrl.resolveUri(url) : url;
+    var canonicalize = forImport
+        ? () => inImportRule(() => importer.canonicalize(resolved))
+        : () => importer.canonicalize(resolved);
+
+    var passContainingUrl = baseUrl != null &&
+        (url.scheme == '' || await importer.isNonCanonicalScheme(url.scheme));
+    var result = await withContainingUrl(
+        passContainingUrl ? baseUrl : null, canonicalize);
+    if (result == null) return null;
+
+    if (result.scheme == '') {
+      _logger.warnForDeprecation(
+          Deprecation.relativeCanonical,
+          "Importer $importer canonicalized $resolved to $result.\n"
+          "Relative canonical URLs are deprecated and will eventually be "
+          "disallowed.");
+    } else if (await importer.isNonCanonicalScheme(result.scheme)) {
+      throw "Importer $importer canonicalized $resolved to $result, which "
+          "uses a scheme declared as non-canonical.";
     }
-    return result;
+
+    return (importer, result, originalUrl: resolved);
   }
 
   /// Tries to import [url] using one of this cache's importers.

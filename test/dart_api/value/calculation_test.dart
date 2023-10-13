@@ -69,5 +69,12 @@ void main() {
               .assertNumber(),
           equals(SassNumber(8.5)));
     });
+
+    test('interpolation', () {
+      var result = SassCalculation.calc(CalculationInterpolation('1 + 2'))
+          .assertCalculation();
+      expect(result.name, equals('calc'));
+      expect(result.arguments[0], equals(SassString('(1 + 2)')));
+    });
   });
 }

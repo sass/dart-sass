@@ -9,6 +9,7 @@ import 'package:node_interop/js.dart';
 import 'package:sass/src/js/immutable.dart';
 
 import '../../value.dart';
+import '../immutable.dart';
 import '../reflection.dart';
 import '../utils.dart';
 

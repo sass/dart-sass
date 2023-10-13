@@ -22,10 +22,6 @@ import 'interface/expression.dart';
 ///
 /// {@category Visitor}
 mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
-  Expression visitCalculationExpression(CalculationExpression node) =>
-      CalculationExpression(node.name,
-          node.arguments.map((argument) => argument.accept(this)), node.span);
-
   Expression visitBinaryOperationExpression(BinaryOperationExpression node) =>
       BinaryOperationExpression(
           node.operator, node.left.accept(this), node.right.accept(this));

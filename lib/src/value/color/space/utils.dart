@@ -14,7 +14,8 @@ const labKappa = 24389 / 27; // 29^3/3^3;
 const labEpsilon = 216 / 24389; // 6^3/29^3;
 
 /// The hue channel shared across all polar color spaces.
-const hueChannel = ColorChannel('hue', isPolarAngle: true);
+const hueChannel =
+    ColorChannel('hue', isPolarAngle: true, associatedUnit: 'deg');
 
 /// The color channels shared across all RGB color spaces (except the legacy RGB space).
 const rgbChannels = [

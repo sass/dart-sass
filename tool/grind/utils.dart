@@ -58,6 +58,10 @@ String cloneOrCheckout(String url, String ref, {String? name}) {
   }
 
   var path = p.join("build", name);
+  if (Link(path).existsSync()) {
+    log("$url is symlinked, leaving as-is");
+    return path;
+  }
 
   if (!Directory(p.join(path, '.git')).existsSync()) {
     delete(Directory(path));

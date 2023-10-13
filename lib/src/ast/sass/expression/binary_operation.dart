@@ -6,6 +6,7 @@ import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
+import '../../../util/span.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
 import 'list.dart';
@@ -45,6 +46,17 @@ final class BinaryOperationExpression implements Expression {
     return left.span.expand(right.span);
   }
 
+  /// Returns the span that covers only [operator].
+  ///
+  /// @nodoc
+  @internal
+  FileSpan get operatorSpan => left.span.file == right.span.file &&
+          left.span.end.offset < right.span.start.offset
+      ? left.span.file
+          .span(left.span.end.offset, right.span.start.offset)
+          .trim()
+      : span;
+
   BinaryOperationExpression(this.operator, this.left, this.right)
       : allowsSlash = false;
 
@@ -82,10 +94,7 @@ final class BinaryOperationExpression implements Expression {
     var right = this.right; // Hack to make analysis work.
     var rightNeedsParens = switch (right) {
       BinaryOperationExpression(:var operator) =>
-        // dart-lang/linter#4381
-        // ignore: unnecessary_this
         operator.precedence <= this.operator.precedence &&
-            // ignore: unnecessary_this
             !(operator == this.operator && operator.isAssociative),
       ListExpression(hasBrackets: false, contents: [_, _, ...]) => true,
       _ => false

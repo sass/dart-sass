@@ -476,11 +476,12 @@ final module = BuiltInModule("color", functions: <Callable>[
 
     var channelInfo = color.space.channels[channelIndex];
     var channelValue = color.channels[channelIndex];
+    var unit = channelInfo.associatedUnit;
+    if (unit == '%') {
+      channelValue = channelValue * 100 / (channelInfo as LinearChannel).max;
+    }
 
-    return channelInfo is LinearChannel
-        ? SassNumber(channelValue,
-            channelInfo.min == 0 && channelInfo.max == 100 ? '%' : null)
-        : SassNumber(channelValue, 'deg');
+    return SassNumber(channelValue, unit);
   }),
 
   _function("same", r"$color1, $color2", (arguments) {
@@ -1023,7 +1024,7 @@ double _percentageOrUnitless(SassNumber number, double max, [String? name]) {
     value = max * number.value / 100;
   } else {
     throw SassScriptException(
-        'Expected $number to have no units or "%".', name);
+        'Expected $number to have unit "%" or no units.', name);
   }
 
   return value;
@@ -1164,6 +1165,10 @@ Value _parseChannels(String functionName, Value input,
     case []:
       throw SassScriptException('Color component list may not be empty.', name);
 
+    case [SassString(:var text, hasQuotes: false), ...]
+        when text.toLowerCase() == "from":
+      return _functionString(functionName, [input]);
+
     case _ when components.isVar:
       channels = [components];
 
@@ -1198,7 +1203,8 @@ Value _parseChannels(String functionName, Value input,
           var channelName =
               space?.channels[channels.indexOf(channel)].name ?? 'channel';
           throw SassScriptException(
-              'Expected $channelName $channel to be a number.', name);
+              'Expected $channelName channel to be a number, was $channel.',
+              name);
         }
       }
 
@@ -1346,14 +1352,15 @@ SassColor _colorFromChannels(ColorSpace space, SassNumber? channel0,
           alpha,
           fromRgbFunction ? ColorFormat.rgbFunction : null);
 
-    case ColorSpace.lab:
-    case ColorSpace.lch:
-    case ColorSpace.oklab:
-    case ColorSpace.oklch:
+    case ColorSpace.lab ||
+          ColorSpace.lch ||
+          ColorSpace.oklab ||
+          ColorSpace.oklch:
       return SassColor.forSpaceInternal(
           space,
-          _channelFromValue(space.channels[0], channel0)
-              .andThen((lightness) => fuzzyClamp(lightness, 0, 100)),
+          _channelFromValue(space.channels[0], channel0).andThen((lightness) =>
+              fuzzyClamp(
+                  lightness, 0, (space.channels[0] as LinearChannel).max)),
           _channelFromValue(space.channels[1], channel1),
           _channelFromValue(space.channels[2], channel2),
           alpha);
@@ -1377,7 +1384,7 @@ double? _channelFromValue(ColorChannel channel, SassNumber? value) =>
                 'Expected $value to have unit "%".', channel.name),
           LinearChannel() =>
             _percentageOrUnitless(value, channel.max, channel.name),
-          _ => value.coerceValueToUnit('deg', channel.name)
+          _ => value.coerceValueToUnit('deg', channel.name) % 360
         });
 
 /// Returns whether [value] is an unquoted string case-insensitively equal to

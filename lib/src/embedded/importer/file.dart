@@ -2,9 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-// ignore: deprecated_member_use
-import 'dart:cli';
-
 import '../../importer.dart';
 import '../dispatcher.dart';
 import '../embedded_sass.pb.dart' hide SourceSpan;
@@ -27,33 +24,35 @@ final class FileImporter extends ImporterBase {
   Uri? canonicalize(Uri url) {
     if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
 
-    // ignore: deprecated_member_use
-    return waitFor(() async {
-      var response = await dispatcher
-          .sendFileImportRequest(OutboundMessage_FileImportRequest()
-            ..importerId = _importerId
-            ..url = url.toString()
-            ..fromImport = fromImport);
+    var request = OutboundMessage_FileImportRequest()
+      ..importerId = _importerId
+      ..url = url.toString()
+      ..fromImport = fromImport;
+    if (containingUrl case var containingUrl?) {
+      request.containingUrl = containingUrl.toString();
+    }
+    var response = dispatcher.sendFileImportRequest(request);
 
-      switch (response.whichResult()) {
-        case InboundMessage_FileImportResponse_Result.fileUrl:
-          var url = parseAbsoluteUrl("The file importer", response.fileUrl);
-          if (url.scheme != 'file') {
-            throw 'The file importer must return a file: URL, was "$url"';
-          }
+    switch (response.whichResult()) {
+      case InboundMessage_FileImportResponse_Result.fileUrl:
+        var url = parseAbsoluteUrl("The file importer", response.fileUrl);
+        if (url.scheme != 'file') {
+          throw 'The file importer must return a file: URL, was "$url"';
+        }
 
-          return _filesystemImporter.canonicalize(url);
+        return _filesystemImporter.canonicalize(url);
 
-        case InboundMessage_FileImportResponse_Result.error:
-          throw response.error;
+      case InboundMessage_FileImportResponse_Result.error:
+        throw response.error;
 
-        case InboundMessage_FileImportResponse_Result.notSet:
-          return null;
-      }
-    }());
+      case InboundMessage_FileImportResponse_Result.notSet:
+        return null;
+    }
   }
 
   ImporterResult? load(Uri url) => _filesystemImporter.load(url);
+
+  bool isNonCanonicalScheme(String scheme) => scheme != 'file';
 
   String toString() => "FileImporter";
 }
