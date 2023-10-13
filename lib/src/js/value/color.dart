@@ -20,70 +20,50 @@ final JSClass colorClass = () {
     switch (constructionSpace) {
       case ColorSpace.rgb:
         _checkNullAlphaDeprecation(options);
-        return SassColor.forSpaceInternal(
-            constructionSpace,
-            _parseChannelValue(options.red),
-            _parseChannelValue(options.green),
-            _parseChannelValue(options.blue),
-            _handleUndefinedAlpha(options.alpha));
+        return SassColor.forSpaceInternal(constructionSpace, options.red,
+            options.green, options.blue, _handleUndefinedAlpha(options.alpha));
 
       case ColorSpace.hsl:
         _checkNullAlphaDeprecation(options);
         return SassColor.forSpaceInternal(
             constructionSpace,
-            _parseChannelValue(options.hue),
-            _parseChannelValue(options.saturation),
-            _parseChannelValue(options.lightness),
+            options.hue,
+            options.saturation,
+            options.lightness,
             _handleUndefinedAlpha(options.alpha));
 
       case ColorSpace.hwb:
         _checkNullAlphaDeprecation(options);
         return SassColor.forSpaceInternal(
             constructionSpace,
-            _parseChannelValue(options.hue),
-            _parseChannelValue(options.whiteness),
-            _parseChannelValue(options.blackness),
+            options.hue,
+            options.whiteness,
+            options.blackness,
             _handleUndefinedAlpha(options.alpha));
 
       case ColorSpace.lab:
       case ColorSpace.oklab:
-        return SassColor.forSpaceInternal(
-            constructionSpace,
-            _parseChannelValue(options.lightness),
-            _parseChannelValue(options.a),
-            _parseChannelValue(options.b),
-            _handleUndefinedAlpha(options.alpha));
+        return SassColor.forSpaceInternal(constructionSpace, options.lightness,
+            options.a, options.b, _handleUndefinedAlpha(options.alpha));
 
       case ColorSpace.lch:
       case ColorSpace.oklch:
-        return SassColor.forSpaceInternal(
-            constructionSpace,
-            _parseChannelValue(options.lightness),
-            _parseChannelValue(options.chroma),
-            _parseChannelValue(options.hue),
-            _handleUndefinedAlpha(options.alpha));
+        return SassColor.forSpaceInternal(constructionSpace, options.lightness,
+            options.chroma, options.hue, _handleUndefinedAlpha(options.alpha));
 
       case ColorSpace.srgb:
       case ColorSpace.srgbLinear:
       case ColorSpace.displayP3:
       case ColorSpace.a98Rgb:
       case ColorSpace.prophotoRgb:
-        return SassColor.forSpaceInternal(
-            constructionSpace,
-            _parseChannelValue(options.red),
-            _parseChannelValue(options.green),
-            _parseChannelValue(options.blue),
-            _handleUndefinedAlpha(options.alpha));
+        return SassColor.forSpaceInternal(constructionSpace, options.red,
+            options.green, options.blue, _handleUndefinedAlpha(options.alpha));
 
       case ColorSpace.xyzD50:
       // `xyz` name is mapped to `xyzD65` space.
       case ColorSpace.xyzD65:
-        return SassColor.forSpaceInternal(
-            constructionSpace,
-            _parseChannelValue(options.x),
-            _parseChannelValue(options.y),
-            _parseChannelValue(options.z),
-            _handleUndefinedAlpha(options.alpha));
+        return SassColor.forSpaceInternal(constructionSpace, options.x,
+            options.y, options.z, _handleUndefinedAlpha(options.alpha));
 
       default:
         throw "Unreachable";
@@ -360,11 +340,6 @@ final JSClass colorClass = () {
 /// This ensures that an explicitly null alpha will be treated as a missing
 /// component.
 double? _handleUndefinedAlpha(double? alpha) => isUndefined(alpha) ? 1 : alpha;
-
-/// This procedure takes a channel value `value`, and returns the special value
-/// `none` if the value is `null`.
-/// @todo needs to be implemented
-double? _parseChannelValue(double? value) => value;
 
 /// This procedure takes a `channel` name, an object `changes` and a SassColor
 /// `initial` and returns the result of applying the change for `channel` to
