@@ -1004,13 +1004,13 @@ void main() {
             });
 
             test("360", () async {
-              expect(
-                  await _deprotofy(_hsl(360, 50, 50, 1.0)), "hsl(0, 50%, 50%)");
+              expect(await _deprotofy(_hsl(360, 50, 50, 1.0)),
+                  "hsl(360, 50%, 50%)");
             });
 
             test("below 0", () async {
               expect(await _deprotofy(_hsl(-100, 50, 50, 1.0)),
-                  "hsl(260, 50%, 50%)");
+                  "hsl(-100, 50%, 50%)");
             });
 
             test("between 0 and 360", () async {
@@ -1020,7 +1020,7 @@ void main() {
 
             test("above 360", () async {
               expect(await _deprotofy(_hsl(560, 50, 50, 1.0)),
-                  "hsl(200, 50%, 50%)");
+                  "hsl(560, 50%, 50%)");
             });
           });
 
@@ -1620,46 +1620,22 @@ void main() {
       group("a color", () {
         test("with RGB alpha below 0", () async {
           await _expectDeprotofyError(_rgb(0, 0, 0, -0.1),
-              "RgbColor.alpha must be between 0 and 1, was -0.1");
+              "Color.alpha must be between 0 and 1, was -0.1");
         });
 
         test("with RGB alpha above 1", () async {
           await _expectDeprotofyError(_rgb(0, 0, 0, 1.1),
-              "RgbColor.alpha must be between 0 and 1, was 1.1");
-        });
-
-        test("with saturation below 0", () async {
-          await _expectDeprotofyError(_hsl(0, -0.1, 0, 1.0),
-              "HslColor.saturation must be between 0 and 100, was -0.1");
-        });
-
-        test("with saturation above 100", () async {
-          await _expectDeprotofyError(
-              _hsl(0, 100.1, 0, 1.0),
-              "HslColor.saturation must be between 0 and 100, was "
-              "100.1");
-        });
-
-        test("with lightness below 0", () async {
-          await _expectDeprotofyError(_hsl(0, 0, -0.1, 1.0),
-              "HslColor.lightness must be between 0 and 100, was -0.1");
-        });
-
-        test("with lightness above 100", () async {
-          await _expectDeprotofyError(
-              _hsl(0, 0, 100.1, 1.0),
-              "HslColor.lightness must be between 0 and 100, was "
-              "100.1");
+              "Color.alpha must be between 0 and 1, was 1.1");
         });
 
         test("with HSL alpha below 0", () async {
           await _expectDeprotofyError(_hsl(0, 0, 0, -0.1),
-              "HslColor.alpha must be between 0 and 1, was -0.1");
+              "Color.alpha must be between 0 and 1, was -0.1");
         });
 
         test("with HSL alpha above 1", () async {
           await _expectDeprotofyError(_hsl(0, 0, 0, 1.1),
-              "HslColor.alpha must be between 0 and 1, was 1.1");
+              "Color.alpha must be between 0 and 1, was 1.1");
         });
       });
 
@@ -1923,18 +1899,20 @@ Future<Value> _roundTrip(Value value) async {
 
 /// Returns a [Value] that's an RGB color with the given fields.
 Value _rgb(int red, int green, int blue, double alpha) => Value()
-  ..rgbColor = (Value_RgbColor()
-    ..red = red
-    ..green = green
-    ..blue = blue
+  ..color = (Value_Color()
+    ..space = 'rgb'
+    ..channel1 = red * 1.0
+    ..channel2 = green * 1.0
+    ..channel3 = blue * 1.0
     ..alpha = alpha);
 
 /// Returns a [Value] that's an HSL color with the given fields.
 Value _hsl(num hue, num saturation, num lightness, double alpha) => Value()
-  ..hslColor = (Value_HslColor()
-    ..hue = hue * 1.0
-    ..saturation = saturation * 1.0
-    ..lightness = lightness * 1.0
+  ..color = (Value_Color()
+    ..space = 'hsl'
+    ..channel1 = hue * 1.0
+    ..channel2 = saturation * 1.0
+    ..channel3 = lightness * 1.0
     ..alpha = alpha);
 
 /// Asserts that [process] emits a [CompileFailure] result with the given

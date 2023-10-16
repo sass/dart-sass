@@ -55,7 +55,7 @@ final class Protofier {
         result.number = _protofyNumber(value);
       case SassColor():
         result.color = Value_Color()
-          ..space = value.space as String
+          ..space = value.space.name
           ..channel1 = value.channel0
           ..channel2 = value.channel1
           ..channel3 = value.channel2
@@ -178,7 +178,7 @@ final class Protofier {
 
         case Value_Value.color:
           return SassColor.forSpaceInternal(
-              value.color.space as ColorSpace,
+              ColorSpace.fromName(value.color.space),
               value.color.channel1,
               value.color.channel2,
               value.color.channel3,
