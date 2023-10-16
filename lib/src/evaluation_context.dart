@@ -69,7 +69,8 @@ void warnForDeprecation(String message, Deprecation deprecation) {
   EvaluationContext.current.warn(message, deprecation);
 }
 
-/// Prints a deprecation warning with [message] of type [deprecation].
+/// Prints a deprecation warning with [message] of type [deprecation],
+/// using stderr if there is no [EvaluationContext.current].
 void warnForDeprecationFromJsApi(String message, Deprecation deprecation) {
   final context = EvaluationContext.currentOrNull;
   if (context == null) {
