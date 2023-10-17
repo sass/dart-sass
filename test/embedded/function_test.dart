@@ -1004,13 +1004,13 @@ void main() {
             });
 
             test("360", () async {
-              expect(await _deprotofy(_hsl(360, 50, 50, 1.0)),
-                  "hsl(360, 50%, 50%)");
+              expect(
+                  await _deprotofy(_hsl(360, 50, 50, 1.0)), "hsl(0, 50%, 50%)");
             });
 
             test("below 0", () async {
               expect(await _deprotofy(_hsl(-100, 50, 50, 1.0)),
-                  "hsl(-100, 50%, 50%)");
+                  "hsl(260, 50%, 50%)");
             });
 
             test("between 0 and 360", () async {
@@ -1020,7 +1020,7 @@ void main() {
 
             test("above 360", () async {
               expect(await _deprotofy(_hsl(560, 50, 50, 1.0)),
-                  "hsl(560, 50%, 50%)");
+                  "hsl(200, 50%, 50%)");
             });
           });
 

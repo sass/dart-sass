@@ -177,12 +177,78 @@ final class Protofier {
           return _deprotofyNumber(value.number);
 
         case Value_Value.color:
-          return SassColor.forSpaceInternal(
-              ColorSpace.fromName(value.color.space),
-              value.color.channel1,
-              value.color.channel2,
-              value.color.channel3,
-              value.color.alpha);
+          var space = ColorSpace.fromName(value.color.space);
+          switch (space) {
+            case ColorSpace.rgb:
+              return SassColor.rgb(value.color.channel1, value.color.channel2,
+                  value.color.channel3, value.color.alpha);
+
+            case ColorSpace.hsl:
+              return SassColor.hsl(value.color.channel1, value.color.channel2,
+                  value.color.channel3, value.color.alpha);
+
+            case ColorSpace.hwb:
+              return SassColor.hwb(value.color.channel1, value.color.channel2,
+                  value.color.channel3, value.color.alpha);
+
+            case ColorSpace.lab:
+              return SassColor.lab(value.color.channel1, value.color.channel2,
+                  value.color.channel3, value.color.alpha);
+            case ColorSpace.oklab:
+              return SassColor.oklab(value.color.channel1, value.color.channel2,
+                  value.color.channel3, value.color.alpha);
+
+            case ColorSpace.lch:
+              return SassColor.lch(value.color.channel1, value.color.channel2,
+                  value.color.channel3, value.color.alpha);
+            case ColorSpace.oklch:
+              return SassColor.oklch(value.color.channel1, value.color.channel2,
+                  value.color.channel3, value.color.alpha);
+
+            case ColorSpace.srgb:
+              return SassColor.srgb(value.color.channel1, value.color.channel2,
+                  value.color.channel3, value.color.alpha);
+            case ColorSpace.srgbLinear:
+              return SassColor.srgbLinear(
+                  value.color.channel1,
+                  value.color.channel2,
+                  value.color.channel3,
+                  value.color.alpha);
+            case ColorSpace.displayP3:
+              return SassColor.displayP3(
+                  value.color.channel1,
+                  value.color.channel2,
+                  value.color.channel3,
+                  value.color.alpha);
+            case ColorSpace.a98Rgb:
+              return SassColor.a98Rgb(
+                  value.color.channel1,
+                  value.color.channel2,
+                  value.color.channel3,
+                  value.color.alpha);
+            case ColorSpace.prophotoRgb:
+              return SassColor.prophotoRgb(
+                  value.color.channel1,
+                  value.color.channel2,
+                  value.color.channel3,
+                  value.color.alpha);
+
+            case ColorSpace.xyzD50:
+              return SassColor.xyzD50(
+                  value.color.channel1,
+                  value.color.channel2,
+                  value.color.channel3,
+                  value.color.alpha);
+            case ColorSpace.xyzD65:
+              return SassColor.xyzD65(
+                  value.color.channel1,
+                  value.color.channel2,
+                  value.color.channel3,
+                  value.color.alpha);
+
+            default:
+              throw "Unreachable";
+          }
 
         case Value_Value.argumentList:
           if (value.argumentList.id != 0) {
