@@ -43,27 +43,24 @@ final JSClass colorClass = () {
             options.blackness,
             _handleUndefinedAlpha(options.alpha));
 
-      case ColorSpace.lab:
-      case ColorSpace.oklab:
+      case ColorSpace.lab || ColorSpace.oklab:
         return SassColor.forSpaceInternal(constructionSpace, options.lightness,
             options.a, options.b, _handleUndefinedAlpha(options.alpha));
 
-      case ColorSpace.lch:
-      case ColorSpace.oklch:
+      case ColorSpace.lch || ColorSpace.oklch:
         return SassColor.forSpaceInternal(constructionSpace, options.lightness,
             options.chroma, options.hue, _handleUndefinedAlpha(options.alpha));
 
-      case ColorSpace.srgb:
-      case ColorSpace.srgbLinear:
-      case ColorSpace.displayP3:
-      case ColorSpace.a98Rgb:
-      case ColorSpace.prophotoRgb:
+      case ColorSpace.srgb ||
+            ColorSpace.srgbLinear ||
+            ColorSpace.displayP3 ||
+            ColorSpace.a98Rgb ||
+            ColorSpace.prophotoRgb:
         return SassColor.forSpaceInternal(constructionSpace, options.red,
             options.green, options.blue, _handleUndefinedAlpha(options.alpha));
 
-      case ColorSpace.xyzD50:
       // `xyz` name is mapped to `xyzD65` space.
-      case ColorSpace.xyzD65:
+      case ColorSpace.xyzD50 || ColorSpace.xyzD65:
         return SassColor.forSpaceInternal(constructionSpace, options.x,
             options.y, options.z, _handleUndefinedAlpha(options.alpha));
 
@@ -111,7 +108,7 @@ final JSClass colorClass = () {
       }
     }
 
-    SassColor color = self.toSpace(space);
+    var color = self.toSpace(space);
 
     SassColor changedColor;
 
@@ -302,7 +299,7 @@ final JSClass colorClass = () {
       'channels', (SassColor self) => ImmutableList(self.channels));
 
   jsClass.defineMethod('channel', (SassColor self, String channel,
-      [ChannelOptions? options]) {
+      [_ChannelOptions? options]) {
     String initialSpace = self.space.name;
     String space = options?.space ?? initialSpace;
     ColorSpace spaceClass = ColorSpace.fromName(space);
@@ -316,7 +313,7 @@ final JSClass colorClass = () {
       (SassColor self, String channel) => self.isChannelMissing(channel));
 
   jsClass.defineMethod('isChannelPowerless', (SassColor self, String channel,
-      [ChannelOptions? options]) {
+      [_ChannelOptions? options]) {
     String initialSpace = self.space.name;
     String space = options?.space ?? initialSpace;
     ColorSpace spaceClass = ColorSpace.fromName(space);
@@ -327,7 +324,7 @@ final JSClass colorClass = () {
   });
 
   jsClass.defineMethod('interpolate',
-      (SassColor self, InterpolationOptions options) {
+      (SassColor self, _InterpolationOptions options) {
     InterpolationMethod interpolationMethod;
 
     if (options.method != null) {
@@ -359,13 +356,8 @@ double? _handleUndefinedAlpha(double? alpha) => isUndefined(alpha) ? 1 : alpha;
 /// `initial` and returns the result of applying the change for `channel` to
 /// `initial`.
 double? _changeComponentValue(
-    SassColor initial, String channel, Map<String, double?> changes) {
-  var initialValue = initial.channel(channel);
-  if (!changes.containsKey(channel)) {
-    return initialValue;
-  }
-  return changes[channel];
-}
+        SassColor initial, String channel, Map<String, double?> changes) =>
+    changes.containsKey(channel) ? changes[channel] : initial.channel(channel);
 
 /// Determines the construction space based on the provided options.
 ColorSpace _constructionSpace(_ConstructionOptions options) {
@@ -444,13 +436,13 @@ class _ConstructionOptions extends _Channels {
 
 @JS()
 @anonymous
-class ChannelOptions {
+class _ChannelOptions {
   String? space;
 }
 
 @JS()
 @anonymous
-class InterpolationOptions {
+class _InterpolationOptions {
   external SassColor color2;
   external double? weight;
   external String? method;
