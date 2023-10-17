@@ -271,26 +271,14 @@ final JSClass colorClass = () {
     'isLegacy': (SassColor self) => self.isLegacy,
   });
 
-  jsClass.defineMethod('toSpace', (SassColor self, String space) {
-    if (self.space.name == space) return self;
+  jsClass.defineMethod(
+      'toSpace', (SassColor self, String space) => _toSpace(self, space));
 
-    ColorSpace spaceClass = ColorSpace.fromName(space);
-    return self.toSpace(spaceClass);
-  });
+  jsClass.defineMethod('isInGamut',
+      (SassColor self, [String? space]) => _toSpace(self, space).isInGamut);
 
-  jsClass.defineMethod('isInGamut', (SassColor self, [String? space]) {
-    String spaceName = space ?? self.space.name;
-    ColorSpace spaceClass = ColorSpace.fromName(spaceName);
-    SassColor color = self.toSpace(spaceClass);
-    return color.isInGamut;
-  });
-
-  jsClass.defineMethod('toGamut', (SassColor self, [String? space]) {
-    String spaceName = space ?? self.space.name;
-    ColorSpace spaceClass = ColorSpace.fromName(spaceName);
-    SassColor color = self.toSpace(spaceClass);
-    return color.toGamut();
-  });
+  jsClass.defineMethod('toGamut',
+      (SassColor self, [String? space]) => _toSpace(self, space).toGamut());
 
   jsClass.defineGetter(
       'channelsOrNull', (SassColor self) => ImmutableList(self.channelsOrNull));
@@ -298,30 +286,18 @@ final JSClass colorClass = () {
   jsClass.defineGetter(
       'channels', (SassColor self) => ImmutableList(self.channels));
 
-  jsClass.defineMethod('channel', (SassColor self, String channel,
-      [_ChannelOptions? options]) {
-    String initialSpace = self.space.name;
-    String space = options?.space ?? initialSpace;
-    ColorSpace spaceClass = ColorSpace.fromName(space);
-
-    SassColor color = self.toSpace(spaceClass);
-
-    return color.channel(channel);
-  });
+  jsClass.defineMethod(
+      'channel',
+      (SassColor self, String channel, [_ChannelOptions? options]) =>
+          _toSpace(self, options?.space).channel(channel));
 
   jsClass.defineMethod('isChannelMissing',
       (SassColor self, String channel) => self.isChannelMissing(channel));
 
-  jsClass.defineMethod('isChannelPowerless', (SassColor self, String channel,
-      [_ChannelOptions? options]) {
-    String initialSpace = self.space.name;
-    String space = options?.space ?? initialSpace;
-    ColorSpace spaceClass = ColorSpace.fromName(space);
-
-    SassColor color = self.toSpace(spaceClass);
-
-    return color.isChannelPowerless(channel);
-  });
+  jsClass.defineMethod(
+      'isChannelPowerless',
+      (SassColor self, String channel, [_ChannelOptions? options]) =>
+          _toSpace(self, options?.space).isChannelPowerless(channel));
 
   jsClass.defineMethod('interpolate',
       (SassColor self, _InterpolationOptions options) {
@@ -366,6 +342,11 @@ ColorSpace _constructionSpace(_ConstructionOptions options) {
   if (options.saturation != null) return ColorSpace.hsl;
   if (options.whiteness != null) return ColorSpace.hwb;
   throw "No color space found";
+}
+
+// Return a SassColor in a named space, or in its original space.
+SassColor _toSpace(SassColor self, String? space) {
+  return self.toSpace(ColorSpace.fromName(space ?? self.space.name));
 }
 
 void _checkNullAlphaDeprecation(_ConstructionOptions options) {
