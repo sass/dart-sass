@@ -71,8 +71,8 @@ void warnForDeprecation(String message, Deprecation deprecation) {
 
 /// Prints a deprecation warning with [message] of type [deprecation],
 /// using stderr if there is no [EvaluationContext.current].
-void warnForDeprecationFromJsApi(String message, Deprecation deprecation) {
-  final context = EvaluationContext.currentOrNull;
+void warnForDeprecationFromApi(String message, Deprecation deprecation) {
+  var context = EvaluationContext.currentOrNull;
   if (context == null) {
     Logger.stderr().warnForDeprecation(deprecation, message);
   } else {

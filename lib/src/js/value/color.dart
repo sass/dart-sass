@@ -79,44 +79,39 @@ final JSClass colorClass = () {
 
   jsClass.defineMethod('change',
       (SassColor self, _ConstructionOptions options) {
-    String initialSpace = self.space.name;
-    ColorSpace initialSpaceClass = self.space;
+    var spaceSetExplicitly = options.space != null;
+    var space =
+        spaceSetExplicitly ? ColorSpace.fromName(options.space!) : self.space;
 
-    bool spaceSetExplicitly = options.space != null;
-    String space = spaceSetExplicitly ? options.space! : initialSpace;
-
-    Map<String, double?> changes = _changedOptions(options);
-    var keys = changes.keys;
+    var changes = _changedOptions(options);
 
     if (self.isLegacy && !spaceSetExplicitly) {
-      if (keys.contains('whiteness') || keys.contains('blackness')) {
-        space = 'hwb';
-      } else if (keys.contains('hue') ||
-          keys.contains('saturation') ||
-          keys.contains('lightness')) {
-        space = 'hsl';
-      } else if (keys.contains('red')) {
-        space = 'rgb';
+      if (changes.containsKey('whiteness') ||
+          changes.containsKey('blackness')) {
+        space = ColorSpace.hwb;
+      } else if (changes.containsKey('hue') ||
+          changes.containsKey('saturation') ||
+          changes.containsKey('lightness')) {
+        space = ColorSpace.hsl;
+      } else if (changes.containsKey('red')) {
+        space = ColorSpace.rgb;
       }
-      if (space != initialSpace) {
-        warnForDeprecationFromJsApi(
+      if (space != self.space) {
+        warnForDeprecationFromApi(
             "Changing a channel not in this color's space without explicitly specifying "
             "the `space` option is deprecated.",
             Deprecation.color4Api);
       }
     }
 
-    var spaceClass = ColorSpace.fromName(space);
-    var components =
-        spaceClass.channels.map((channel) => channel.name).toList();
-    components.add('alpha');
-
-    for (final key in keys) {
-      if (!components.contains(key)) {
+    for (final key in changes.keys) {
+      if (key == 'alpha') continue;
+      if (!space.channels.any((channel) => channel.name == key)) {
         jsThrow(JsError("`$key` is not a valid channel in `$space`."));
       }
     }
-    SassColor color = self.toSpace(spaceClass);
+
+    SassColor color = self.toSpace(space);
 
     SassColor changedColor;
 
@@ -124,115 +119,109 @@ final JSClass colorClass = () {
       return _changeComponentValue(color, channel, changes);
     }
 
-    switch (spaceClass) {
+    switch (space) {
+      case ColorSpace.hsl when spaceSetExplicitly:
+        changedColor = SassColor.forSpaceInternal(
+            space,
+            changedValue('hue'),
+            changedValue('saturation'),
+            changedValue('lightness'),
+            changedValue('alpha'));
+        break;
+
       case ColorSpace.hsl:
-        if (!spaceSetExplicitly) {
-          if ((keys.contains('hue') && changes['hue'] == null) ||
-              (keys.contains('saturation') && changes['saturation'] == null) ||
-              (keys.contains('lightness') && changes['lightness'] == null) ||
-              (keys.contains('alpha') && changes['alpha'] == null)) {
-            _emitNullAlphaDeprecation();
-          }
-          changedColor = SassColor.forSpaceInternal(
-              spaceClass,
-              changes['hue'] ?? color.channel('hue'),
-              changes['saturation'] ?? color.channel('saturation'),
-              changes['lightness'] ?? color.channel('lightness'),
-              changes['alpha'] ?? color.channel('alpha'));
-        } else {
-          changedColor = SassColor.forSpaceInternal(
-              spaceClass,
-              changedValue('hue'),
-              changedValue('saturation'),
-              changedValue('lightness'),
-              changedValue('alpha'));
+        if ((changes.containsKey('hue') && changes['hue'] == null) ||
+            (changes.containsKey('saturation') &&
+                changes['saturation'] == null) ||
+            (changes.containsKey('lightness') &&
+                changes['lightness'] == null) ||
+            (changes.containsKey('alpha') && changes['alpha'] == null)) {
+          _emitNullAlphaDeprecation();
         }
+        changedColor = SassColor.forSpaceInternal(
+            space,
+            changes['hue'] ?? color.channel('hue'),
+            changes['saturation'] ?? color.channel('saturation'),
+            changes['lightness'] ?? color.channel('lightness'),
+            changes['alpha'] ?? color.channel('alpha'));
+        break;
+
+      case ColorSpace.hwb when spaceSetExplicitly:
+        changedColor = SassColor.forSpaceInternal(
+            space,
+            changedValue('hue'),
+            changedValue('whiteness'),
+            changedValue('blackness'),
+            changedValue('alpha'));
         break;
 
       case ColorSpace.hwb:
-        if (!spaceSetExplicitly) {
-          if ((keys.contains('hue') && changes['hue'] == null) ||
-              (keys.contains('whiteness') && changes['whiteness'] == null) ||
-              (keys.contains('blackness') && changes['blackness'] == null) ||
-              (keys.contains('alpha') && changes['alpha'] == null)) {
-            _emitNullAlphaDeprecation();
-          }
-          changedColor = SassColor.forSpaceInternal(
-              spaceClass,
-              options.hue ?? color.channel('hue'),
-              options.whiteness ?? color.channel('whiteness'),
-              options.blackness ?? color.channel('blackness'),
-              options.alpha ?? color.channel('alpha'));
-        } else {
-          changedColor = SassColor.forSpaceInternal(
-              spaceClass,
-              changedValue('hue'),
-              changedValue('whiteness'),
-              changedValue('blackness'),
-              changedValue('alpha'));
+        if ((changes.containsKey('hue') && changes['hue'] == null) ||
+            (changes.containsKey('whiteness') &&
+                changes['whiteness'] == null) ||
+            (changes.containsKey('blackness') &&
+                changes['blackness'] == null) ||
+            (changes.containsKey('alpha') && changes['alpha'] == null)) {
+          _emitNullAlphaDeprecation();
         }
+        changedColor = SassColor.forSpaceInternal(
+            space,
+            options.hue ?? color.channel('hue'),
+            options.whiteness ?? color.channel('whiteness'),
+            options.blackness ?? color.channel('blackness'),
+            options.alpha ?? color.channel('alpha'));
+
+        break;
+
+      case ColorSpace.rgb when spaceSetExplicitly:
+        changedColor = SassColor.forSpaceInternal(space, changedValue('red'),
+            changedValue('green'), changedValue('blue'), changedValue('alpha'));
         break;
 
       case ColorSpace.rgb:
-        if (!spaceSetExplicitly) {
-          if ((keys.contains('red') && changes['red'] == null) ||
-              (keys.contains('green') && changes['green'] == null) ||
-              (keys.contains('blue') && changes['blue'] == null) ||
-              (keys.contains('alpha') && changes['alpha'] == null)) {
-            _emitNullAlphaDeprecation();
-          }
-          changedColor = SassColor.forSpaceInternal(
-              spaceClass,
-              options.red ?? color.channel('red'),
-              options.green ?? color.channel('green'),
-              options.blue ?? color.channel('blue'),
-              options.alpha ?? color.channel('alpha'));
-        } else {
-          changedColor = SassColor.forSpaceInternal(
-              spaceClass,
-              changedValue('red'),
-              changedValue('green'),
-              changedValue('blue'),
-              changedValue('alpha'));
+        if ((changes.containsKey('red') && changes['red'] == null) ||
+            (changes.containsKey('green') && changes['green'] == null) ||
+            (changes.containsKey('blue') && changes['blue'] == null) ||
+            (changes.containsKey('alpha') && changes['alpha'] == null)) {
+          _emitNullAlphaDeprecation();
         }
+        changedColor = SassColor.forSpaceInternal(
+            space,
+            options.red ?? color.channel('red'),
+            options.green ?? color.channel('green'),
+            options.blue ?? color.channel('blue'),
+            options.alpha ?? color.channel('alpha'));
         break;
 
-      case ColorSpace.lab:
-      case ColorSpace.oklab:
+      case ColorSpace.lab || ColorSpace.oklab:
         changedColor = SassColor.forSpaceInternal(
-            spaceClass,
+            space,
             changedValue('lightness'),
             changedValue('a'),
             changedValue('b'),
             changedValue('alpha'));
         break;
 
-      case ColorSpace.lch:
-      case ColorSpace.oklch:
+      case ColorSpace.lch || ColorSpace.oklch:
         changedColor = SassColor.forSpaceInternal(
-            spaceClass,
+            space,
             changedValue('lightness'),
             changedValue('chroma'),
             changedValue('hue'),
             changedValue('alpha'));
         break;
 
-      case ColorSpace.a98Rgb:
-      case ColorSpace.displayP3:
-      case ColorSpace.prophotoRgb:
-      case ColorSpace.srgb:
-      case ColorSpace.srgbLinear:
-        changedColor = SassColor.forSpaceInternal(
-            spaceClass,
-            changedValue('red'),
-            changedValue('green'),
-            changedValue('blue'),
-            changedValue('alpha'));
+      case ColorSpace.a98Rgb ||
+            ColorSpace.displayP3 ||
+            ColorSpace.prophotoRgb ||
+            ColorSpace.srgb ||
+            ColorSpace.srgbLinear:
+        changedColor = SassColor.forSpaceInternal(space, changedValue('red'),
+            changedValue('green'), changedValue('blue'), changedValue('alpha'));
         break;
 
-      case ColorSpace.xyzD50:
-      case ColorSpace.xyzD65:
-        changedColor = SassColor.forSpaceInternal(spaceClass, changedValue('x'),
+      case ColorSpace.xyzD50 || ColorSpace.xyzD65:
+        changedColor = SassColor.forSpaceInternal(space, changedValue('x'),
             changedValue('y'), changedValue('z'), changedValue('alpha'));
         break;
 
@@ -240,7 +229,7 @@ final JSClass colorClass = () {
         throw "No space set";
     }
 
-    return changedColor.toSpace(initialSpaceClass);
+    return changedColor.toSpace(self.space);
   });
 
   jsClass.defineGetters({
@@ -286,9 +275,8 @@ final JSClass colorClass = () {
   });
 
   jsClass.defineMethod('toSpace', (SassColor self, String space) {
-    if (self.space.name == space) {
-      return self;
-    }
+    if (self.space.name == space) return self;
+
     ColorSpace spaceClass = ColorSpace.fromName(space);
     return self.toSpace(spaceClass);
   });
@@ -310,15 +298,8 @@ final JSClass colorClass = () {
   jsClass.defineGetter(
       'channelsOrNull', (SassColor self) => ImmutableList(self.channelsOrNull));
 
-  jsClass.defineGetter('channels', (SassColor self) {
-    final channelsOrNull = self.channelsOrNull;
-    var channels = <num>[];
-    for (final channel in channelsOrNull) {
-      final value = channel ?? 0;
-      channels.add(value);
-    }
-    return ImmutableList(channels);
-  });
+  jsClass.defineGetter(
+      'channels', (SassColor self) => ImmutableList(self.channels));
 
   jsClass.defineMethod('channel', (SassColor self, String channel,
       [ChannelOptions? options]) {
@@ -403,7 +384,7 @@ void _checkNullAlphaDeprecation(_ConstructionOptions options) {
 }
 
 void _emitNullAlphaDeprecation() {
-  warnForDeprecationFromJsApi(
+  warnForDeprecationFromApi(
       "Passing `alpha: null` without setting `space` is deprecated."
       "\n"
       "More info: https://sass-lang.com/d/null-alpha",
@@ -411,7 +392,7 @@ void _emitNullAlphaDeprecation() {
 }
 
 void _emitColor4ApiDeprecation(String name) {
-  warnForDeprecationFromJsApi(
+  warnForDeprecationFromApi(
       "$name is deprecated, use `channel` instead.", Deprecation.color4Api);
 }
 
