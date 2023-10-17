@@ -1,3 +1,7 @@
+## 1.69.4
+
+* No user-visible changes.
+
 ## 1.69.3
 
 ### Embedded Sass
