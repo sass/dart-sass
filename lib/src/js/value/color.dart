@@ -349,13 +349,16 @@ SassColor _toSpace(SassColor self, String? space) {
   return self.toSpace(ColorSpace.fromName(space ?? self.space.name));
 }
 
+// If alpha is explicitly null and space is not set, emit deprecation.
 void _checkNullAlphaDeprecation(_ConstructionOptions options) {
-  // @todo Verify if options.space is equivalent to "not set"
-  if (options.alpha == null && options.space == null) {
+  if (hasProperty(options, 'alpha') &&
+      options.alpha == null &&
+      options.space == null) {
     _emitNullAlphaDeprecation();
   }
 }
 
+// Warn users about null-alpha deprecation.
 void _emitNullAlphaDeprecation() {
   warnForDeprecationFromApi(
       "Passing `alpha: null` without setting `space` is deprecated."
@@ -364,11 +367,14 @@ void _emitNullAlphaDeprecation() {
       Deprecation.nullAlpha);
 }
 
+// Warn users about legacy color channel getters.
 void _emitColor4ApiDeprecation(String name) {
   warnForDeprecationFromApi(
       "$name is deprecated, use `channel` instead.", Deprecation.color4Api);
 }
 
+// Return a map with only the values explicitly being changed, taking into
+// account null values.
 Map<String, double?> _changedOptions(_ConstructionOptions options) {
   return {
     if (hasProperty(options, 'red')) 'red': options.red,
