@@ -22,47 +22,56 @@ final JSClass colorClass = () {
     switch (constructionSpace) {
       case ColorSpace.rgb:
         _checkNullAlphaDeprecation(options);
-        return SassColor.forSpaceInternal(constructionSpace, options.red,
-            options.green, options.blue, _handleUndefinedAlpha(options.alpha));
+        return SassColor.rgb(options.red, options.green, options.blue,
+            _handleUndefinedAlpha(options.alpha));
 
       case ColorSpace.hsl:
         _checkNullAlphaDeprecation(options);
-        return SassColor.forSpaceInternal(
-            constructionSpace,
-            options.hue,
-            options.saturation,
-            options.lightness,
+        return SassColor.hsl(options.hue, options.saturation, options.lightness,
             _handleUndefinedAlpha(options.alpha));
 
       case ColorSpace.hwb:
         _checkNullAlphaDeprecation(options);
-        return SassColor.forSpaceInternal(
-            constructionSpace,
-            options.hue,
-            options.whiteness,
-            options.blackness,
+        return SassColor.hwb(options.hue, options.whiteness, options.blackness,
             _handleUndefinedAlpha(options.alpha));
 
-      case ColorSpace.lab || ColorSpace.oklab:
-        return SassColor.forSpaceInternal(constructionSpace, options.lightness,
-            options.a, options.b, _handleUndefinedAlpha(options.alpha));
+      case ColorSpace.lab:
+        return SassColor.lab(options.lightness, options.a, options.b,
+            _handleUndefinedAlpha(options.alpha));
+      case ColorSpace.oklab:
+        return SassColor.oklab(options.lightness, options.a, options.b,
+            _handleUndefinedAlpha(options.alpha));
 
-      case ColorSpace.lch || ColorSpace.oklch:
-        return SassColor.forSpaceInternal(constructionSpace, options.lightness,
-            options.chroma, options.hue, _handleUndefinedAlpha(options.alpha));
+      case ColorSpace.lch:
+        return SassColor.lch(options.lightness, options.chroma, options.hue,
+            _handleUndefinedAlpha(options.alpha));
+      case ColorSpace.oklch:
+        return SassColor.oklch(options.lightness, options.chroma, options.hue,
+            _handleUndefinedAlpha(options.alpha));
 
-      case ColorSpace.srgb ||
-            ColorSpace.srgbLinear ||
-            ColorSpace.displayP3 ||
-            ColorSpace.a98Rgb ||
-            ColorSpace.prophotoRgb:
-        return SassColor.forSpaceInternal(constructionSpace, options.red,
-            options.green, options.blue, _handleUndefinedAlpha(options.alpha));
+      case ColorSpace.srgb:
+        return SassColor.srgb(options.red, options.green, options.blue,
+            _handleUndefinedAlpha(options.alpha));
+      case ColorSpace.srgbLinear:
+        return SassColor.srgbLinear(options.red, options.green, options.blue,
+            _handleUndefinedAlpha(options.alpha));
+      case ColorSpace.displayP3:
+        return SassColor.displayP3(options.red, options.green, options.blue,
+            _handleUndefinedAlpha(options.alpha));
+      case ColorSpace.a98Rgb:
+        return SassColor.a98Rgb(options.red, options.green, options.blue,
+            _handleUndefinedAlpha(options.alpha));
+      case ColorSpace.prophotoRgb:
+        return SassColor.prophotoRgb(options.red, options.green, options.blue,
+            _handleUndefinedAlpha(options.alpha));
 
       // `xyz` name is mapped to `xyzD65` space.
-      case ColorSpace.xyzD50 || ColorSpace.xyzD65:
-        return SassColor.forSpaceInternal(constructionSpace, options.x,
-            options.y, options.z, _handleUndefinedAlpha(options.alpha));
+      case ColorSpace.xyzD50:
+        return SassColor.xyzD50(options.x, options.y, options.z,
+            _handleUndefinedAlpha(options.alpha));
+      case ColorSpace.xyzD65:
+        return SassColor.xyzD65(options.x, options.y, options.z,
+            _handleUndefinedAlpha(options.alpha));
 
       default:
         throw "Unreachable";
@@ -125,8 +134,7 @@ final JSClass colorClass = () {
 
       switch (space) {
         case ColorSpace.hsl when spaceSetExplicitly:
-          changedColor = SassColor.forSpaceInternal(
-              space,
+          changedColor = SassColor.hsl(
               changedValue('hue'),
               changedValue('saturation'),
               changedValue('lightness'),
@@ -142,8 +150,7 @@ final JSClass colorClass = () {
               (hasProperty(options, 'alpha') && options.alpha == null)) {
             _emitNullAlphaDeprecation();
           }
-          changedColor = SassColor.forSpaceInternal(
-              space,
+          changedColor = SassColor.hsl(
               options.hue ?? color.channel('hue'),
               options.saturation ?? color.channel('saturation'),
               options.lightness ?? color.channel('lightness'),
@@ -151,8 +158,7 @@ final JSClass colorClass = () {
           break;
 
         case ColorSpace.hwb when spaceSetExplicitly:
-          changedColor = SassColor.forSpaceInternal(
-              space,
+          changedColor = SassColor.hwb(
               changedValue('hue'),
               changedValue('whiteness'),
               changedValue('blackness'),
@@ -168,8 +174,7 @@ final JSClass colorClass = () {
               (hasProperty(options, 'alpha') && options.alpha == null)) {
             _emitNullAlphaDeprecation();
           }
-          changedColor = SassColor.forSpaceInternal(
-              space,
+          changedColor = SassColor.hwb(
               options.hue ?? color.channel('hue'),
               options.whiteness ?? color.channel('whiteness'),
               options.blackness ?? color.channel('blackness'),
@@ -178,8 +183,7 @@ final JSClass colorClass = () {
           break;
 
         case ColorSpace.rgb when spaceSetExplicitly:
-          changedColor = SassColor.forSpaceInternal(
-              space,
+          changedColor = SassColor.rgb(
               changedValue('red'),
               changedValue('green'),
               changedValue('blue'),
@@ -193,46 +197,79 @@ final JSClass colorClass = () {
               (hasProperty(options, 'alpha') && options.alpha == null)) {
             _emitNullAlphaDeprecation();
           }
-          changedColor = SassColor.forSpaceInternal(
-              space,
+          changedColor = SassColor.rgb(
               options.red ?? color.channel('red'),
               options.green ?? color.channel('green'),
               options.blue ?? color.channel('blue'),
               options.alpha ?? color.channel('alpha'));
           break;
 
-        case ColorSpace.lab || ColorSpace.oklab:
-          changedColor = SassColor.forSpaceInternal(
-              space,
-              changedValue('lightness'),
-              changedValue('a'),
-              changedValue('b'),
-              changedValue('alpha'));
+        case ColorSpace.lab:
+          changedColor = SassColor.lab(changedValue('lightness'),
+              changedValue('a'), changedValue('b'), changedValue('alpha'));
           break;
 
-        case ColorSpace.lch || ColorSpace.oklch:
-          changedColor = SassColor.forSpaceInternal(
-              space,
+        case ColorSpace.oklab:
+          changedColor = SassColor.oklab(changedValue('lightness'),
+              changedValue('a'), changedValue('b'), changedValue('alpha'));
+          break;
+
+        case ColorSpace.lch:
+          changedColor = SassColor.lch(
+              changedValue('lightness'),
+              changedValue('chroma'),
+              changedValue('hue'),
+              changedValue('alpha'));
+          break;
+        case ColorSpace.oklch:
+          changedColor = SassColor.oklch(
               changedValue('lightness'),
               changedValue('chroma'),
               changedValue('hue'),
               changedValue('alpha'));
           break;
 
-        case ColorSpace.a98Rgb ||
-              ColorSpace.displayP3 ||
-              ColorSpace.prophotoRgb ||
-              ColorSpace.srgb ||
-              ColorSpace.srgbLinear:
-          changedColor = SassColor.forSpaceInternal(
-              space,
+        case ColorSpace.a98Rgb:
+          changedColor = SassColor.a98Rgb(
+              changedValue('red'),
+              changedValue('green'),
+              changedValue('blue'),
+              changedValue('alpha'));
+          break;
+        case ColorSpace.displayP3:
+          changedColor = SassColor.displayP3(
+              changedValue('red'),
+              changedValue('green'),
+              changedValue('blue'),
+              changedValue('alpha'));
+          break;
+        case ColorSpace.prophotoRgb:
+          changedColor = SassColor.prophotoRgb(
+              changedValue('red'),
+              changedValue('green'),
+              changedValue('blue'),
+              changedValue('alpha'));
+          break;
+        case ColorSpace.srgb:
+          changedColor = SassColor.srgb(
+              changedValue('red'),
+              changedValue('green'),
+              changedValue('blue'),
+              changedValue('alpha'));
+          break;
+        case ColorSpace.srgbLinear:
+          changedColor = SassColor.srgbLinear(
               changedValue('red'),
               changedValue('green'),
               changedValue('blue'),
               changedValue('alpha'));
           break;
 
-        case ColorSpace.xyzD50 || ColorSpace.xyzD65:
+        case ColorSpace.xyzD50:
+          changedColor = SassColor.forSpaceInternal(space, changedValue('x'),
+              changedValue('y'), changedValue('z'), changedValue('alpha'));
+          break;
+        case ColorSpace.xyzD65:
           changedColor = SassColor.forSpaceInternal(space, changedValue('x'),
               changedValue('y'), changedValue('z'), changedValue('alpha'));
           break;
