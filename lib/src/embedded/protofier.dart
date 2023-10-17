@@ -232,6 +232,12 @@ final class Protofier {
                   value.color.channel2,
                   value.color.channel3,
                   value.color.alpha);
+            case ColorSpace.rec2020:
+              return SassColor.rec2020(
+                  value.color.channel1,
+                  value.color.channel2,
+                  value.color.channel3,
+                  value.color.alpha);
 
             case ColorSpace.xyzD50:
               return SassColor.xyzD50(

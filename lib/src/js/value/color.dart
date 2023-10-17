@@ -64,6 +64,9 @@ final JSClass colorClass = () {
       case ColorSpace.prophotoRgb:
         return SassColor.prophotoRgb(options.red, options.green, options.blue,
             _handleUndefinedAlpha(options.alpha));
+      case ColorSpace.rec2020:
+        return SassColor.rec2020(options.red, options.green, options.blue,
+            _handleUndefinedAlpha(options.alpha));
 
       // `xyz` name is mapped to `xyzD65` space.
       case ColorSpace.xyzD50:
@@ -250,6 +253,13 @@ final JSClass colorClass = () {
               changedValue('blue'),
               changedValue('alpha'));
           break;
+        case ColorSpace.rec2020:
+          changedColor = SassColor.rec2020(
+              changedValue('red'),
+              changedValue('green'),
+              changedValue('blue'),
+              changedValue('alpha'));
+          break;
         case ColorSpace.srgb:
           changedColor = SassColor.srgb(
               changedValue('red'),
@@ -280,7 +290,8 @@ final JSClass colorClass = () {
 
       return changedColor.toSpace(self.space);
     },
-    'interpolate': (SassColor self, _InterpolationOptions options) {
+    'interpolate':
+        (SassColor self, SassColor color2, _InterpolationOptions options) {
       InterpolationMethod interpolationMethod;
 
       if (options.method != null) {
@@ -293,7 +304,7 @@ final JSClass colorClass = () {
             InterpolationMethod(self.space, HueInterpolationMethod.shorter);
       }
 
-      return self.interpolate(options.color2, interpolationMethod,
+      return self.interpolate(color2, interpolationMethod,
           weight: options.weight);
     }
   });
@@ -430,7 +441,6 @@ class _ChannelOptions {
 @JS()
 @anonymous
 class _InterpolationOptions {
-  external SassColor color2;
   external double? weight;
   external String? method;
 }
