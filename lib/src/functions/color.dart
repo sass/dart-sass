@@ -459,7 +459,7 @@ final module = BuiltInModule("color", functions: <Callable>[
             ? ColorSpace.srgb
             : space)
         .toGamut()
-        .toSpace(space);
+        .toSpace(color.space);
   }),
 
   _function("channel", r"$color, $channel, $space: null", (arguments) {
