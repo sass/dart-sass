@@ -247,6 +247,9 @@ class _Visitor extends RecursiveAstVisitor<void> {
     } else if (node.name2.lexeme == "Module") {
       _skipNode(node);
       _buffer.write("Module<Callable>");
+    } else if (node.typeArguments == null) {
+      _skip(node.name2);
+      _buffer.write(_synchronizeName(node.name2.lexeme));
     } else {
       super.visitNamedType(node);
     }
