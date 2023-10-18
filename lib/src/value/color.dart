@@ -842,7 +842,7 @@ class SassColor extends Value {
     if (space != null && space != this.space) {
       return toSpace(space)
           .changeChannels(newValues, colorName: colorName)
-          .toSpace(space);
+          .toSpace(this.space);
     }
 
     double? new0;
