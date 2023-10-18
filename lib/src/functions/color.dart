@@ -423,11 +423,20 @@ final module = BuiltInModule("color", functions: <Callable>[
       (arguments) => SassString(arguments.first.assertColor("color").space.name,
           quotes: false)),
 
-  _function(
-      "to-space",
-      r"$color, $space",
-      (arguments) =>
-          _colorInSpace(arguments[0], arguments[1].assertString("space"))),
+  _function("to-space", r"$color, $space", (arguments) {
+    var converted = _colorInSpace(arguments[0], arguments[1]);
+    // `color.to-space()` never returns missing channels for legacy color
+    // spaces because they're less compatible and users are probably using a
+    // legacy space because they want a highly compatible color.
+    return converted.isLegacy &&
+            (converted.isChannel0Missing ||
+                converted.isChannel1Missing ||
+                converted.isChannel2Missing ||
+                converted.isAlphaMissing)
+        ? SassColor.forSpaceInternal(converted.space, converted.channel0,
+            converted.channel1, converted.channel2, converted.alpha)
+        : converted;
+  }),
 
   _function("is-legacy", r"$color",
       (arguments) => SassBoolean(arguments[0].assertColor("color").isLegacy)),
