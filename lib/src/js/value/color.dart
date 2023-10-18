@@ -294,8 +294,8 @@ final JSClass colorClass = () {
         (SassColor self, SassColor color2, _InterpolationOptions options) {
       InterpolationMethod interpolationMethod;
 
-      if (options.method != null) {
-        var hue = HueInterpolationMethod.values.byName(options.method!);
+      if (options.method case var method?) {
+        var hue = HueInterpolationMethod.values.byName(method);
         interpolationMethod = InterpolationMethod(self.space, hue);
       } else if (!self.space.isPolar) {
         interpolationMethod = InterpolationMethod(self.space);
