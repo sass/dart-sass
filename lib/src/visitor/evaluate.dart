@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 08ee05790c0d5cce3b190278723c52dadaee1701
+// Checksum: ba8431368d89d6d8b141fbcca43b0170409af9ba
 //
 // ignore_for_file: unused_import
 
@@ -1725,13 +1725,7 @@ final class _EvaluateVisitor
     } on ArgumentError catch (error, stackTrace) {
       throwWithTrace(_exception(error.toString()), error, stackTrace);
     } catch (error, stackTrace) {
-      String? message;
-      try {
-        message = (error as dynamic).message as String;
-      } catch (_) {
-        message = error.toString();
-      }
-      throwWithTrace(_exception(message), error, stackTrace);
+      throwWithTrace(_exception(_getErrorMessage(error)), error, stackTrace);
     } finally {
       _importSpan = null;
     }
@@ -2971,13 +2965,8 @@ final class _EvaluateVisitor
     } on SassException {
       rethrow;
     } catch (error, stackTrace) {
-      String? message;
-      try {
-        message = (error as dynamic).message as String;
-      } catch (_) {
-        message = error.toString();
-      }
-      throwWithTrace(_exception(message, nodeWithSpan.span), error, stackTrace);
+      throwWithTrace(_exception(_getErrorMessage(error), nodeWithSpan.span),
+          error, stackTrace);
     }
     _callableNode = oldCallableNode;
 
@@ -3787,6 +3776,18 @@ final class _EvaluateVisitor
           SassRuntimeException(error.message, nodeWithSpan.span, _stackTrace()),
           error,
           stackTrace);
+    }
+  }
+
+  /// Returns the best human-readable message for [error].
+  String _getErrorMessage(Object error) {
+    // Built-in Dart Error objects often require their full toString()s for
+    // full context.
+    if (error is Error) return error.toString();
+    try {
+      return (error as dynamic).message as String;
+    } catch (_) {
+      return error.toString();
     }
   }
 }
