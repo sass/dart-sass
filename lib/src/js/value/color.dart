@@ -131,7 +131,7 @@ final JSClass colorClass = () {
 
       SassColor changedColor;
 
-      changedValue(String channel) {
+      double? changedValue(String channel) {
         return _changeComponentValue(color, channel, options);
       }
 
@@ -384,9 +384,9 @@ SassColor _toSpace(SassColor self, String? space) {
 
 // If alpha is explicitly null and space is not set, emit deprecation.
 void _checkNullAlphaDeprecation(_ConstructionOptions options) {
-  if (hasProperty(options, 'alpha') &&
-      options.alpha == null &&
-      options.space == null) {
+  if (!isUndefined(options.alpha) &&
+      identical(options.alpha, null) &&
+      identical(options.space, null)) {
     _emitNullAlphaDeprecation();
   }
 }
