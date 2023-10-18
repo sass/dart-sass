@@ -28,7 +28,7 @@ abstract interface class EvaluationContext {
 
   /// The current evaluation context, or null if there isn't a Sass stylesheet
   /// currently being evaluated.
-  static EvaluationContext? get currentOrNull {
+  static EvaluationContext? get _currentOrNull {
     if (Zone.current[#_evaluationContext] case EvaluationContext context) {
       return context;
     } else {
@@ -72,11 +72,10 @@ void warnForDeprecation(String message, Deprecation deprecation) {
 /// Prints a deprecation warning with [message] of type [deprecation],
 /// using stderr if there is no [EvaluationContext.current].
 void warnForDeprecationFromApi(String message, Deprecation deprecation) {
-  var context = EvaluationContext.currentOrNull;
-  if (context == null) {
-    Logger.stderr().warnForDeprecation(deprecation, message);
-  } else {
+  if (EvaluationContext._currentOrNull case var context?) {
     context.warn(message, deprecation);
+  } else {
+    Logger.stderr().warnForDeprecation(deprecation, message);
   }
 }
 

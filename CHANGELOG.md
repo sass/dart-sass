@@ -154,7 +154,7 @@
 
 ### JS API
 
-* Modify constructor to accept a new `space` option, with support for all the
+* Modify `SassColor` to accept a new `space` option, with support for all the
   new color spaces defined in Color Level 4.
 
 * Add `SassColor.space` which returns a color's color space.
