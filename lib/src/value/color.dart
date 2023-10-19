@@ -71,7 +71,7 @@ class SassColor extends Value {
   /// @nodoc
   @internal
   bool get isChannel0Powerless => switch (space) {
-        ColorSpace.hsl => fuzzyEquals(channel1, 0) || fuzzyEquals(channel2, 0),
+        ColorSpace.hsl => fuzzyEquals(channel1, 0),
         ColorSpace.hwb => fuzzyEquals(channel1 + channel2, 100),
         _ => false
       };
@@ -109,15 +109,7 @@ class SassColor extends Value {
   ///
   /// @nodoc
   @internal
-  bool get isChannel1Powerless => switch (space) {
-        ColorSpace.hsl => fuzzyEquals(channel2, 0),
-        ColorSpace.lab ||
-        ColorSpace.oklab ||
-        ColorSpace.lch ||
-        ColorSpace.oklch =>
-          fuzzyEquals(channel0, 0) || fuzzyEquals(channel0, 100),
-        _ => false
-      };
+  final bool isChannel1Powerless = false;
 
   /// This color's second channel.
   ///
@@ -144,12 +136,7 @@ class SassColor extends Value {
   /// @nodoc
   @internal
   bool get isChannel2Powerless => switch (space) {
-        ColorSpace.lab ||
-        ColorSpace.oklab =>
-          fuzzyEquals(channel0, 0) || fuzzyEquals(channel0, 100),
-        ColorSpace.lch || ColorSpace.oklch => fuzzyEquals(channel0, 0) ||
-            fuzzyEquals(channel0, 100) ||
-            fuzzyEquals(channel1, 0),
+        ColorSpace.lch || ColorSpace.oklch => fuzzyEquals(channel1, 0),
         _ => false
       };
 

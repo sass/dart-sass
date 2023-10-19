@@ -51,12 +51,12 @@ final class LmsColorSpace extends ColorSpace {
 
         return SassColor.oklab(
             missingLightness ? null : lightness,
-            missingA || fuzzyEquals(lightness, 0)
+            missingA
                 ? null
                 : lmsToOklab[3] * longScaled +
                     lmsToOklab[4] * mediumScaled +
                     lmsToOklab[5] * shortScaled,
-            missingB || fuzzyEquals(lightness, 0)
+            missingB
                 ? null
                 : lmsToOklab[6] * longScaled +
                     lmsToOklab[7] * mediumScaled +

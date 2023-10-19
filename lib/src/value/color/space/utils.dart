@@ -75,10 +75,6 @@ SassColor labToLch(
     ColorSpace dest, double? lightness, double? a, double? b, double? alpha,
     {bool missingChroma = false, bool missingHue = false}) {
   // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
-  if (lightness == null || fuzzyEquals(lightness, 0)) {
-    return SassColor.forSpaceInternal(dest, 0, null, null, alpha);
-  }
-
   var chroma = math.sqrt(math.pow(a ?? 0, 2) + math.pow(b ?? 0, 2));
   var hue = missingHue || fuzzyEquals(chroma, 0)
       ? null
