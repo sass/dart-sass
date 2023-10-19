@@ -432,7 +432,8 @@ final module = BuiltInModule("color", functions: <Callable>[
             (converted.isChannel0Missing ||
                 converted.isChannel1Missing ||
                 converted.isChannel2Missing ||
-                converted.isAlphaMissing)
+                converted.isAlphaMissing) &&
+            converted.space != (arguments[0] as SassColor).space
         ? SassColor.forSpaceInternal(converted.space, converted.channel0,
             converted.channel1, converted.channel2, converted.alpha)
         : converted;
