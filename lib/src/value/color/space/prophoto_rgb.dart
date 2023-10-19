@@ -17,7 +17,7 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-class ProphotoRgbColorSpace extends ColorSpace {
+final class ProphotoRgbColorSpace extends ColorSpace {
   bool get isBoundedInternal => true;
 
   const ProphotoRgbColorSpace() : super('prophoto-rgb', rgbChannels);

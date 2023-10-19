@@ -22,15 +22,22 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-class SrgbColorSpace extends ColorSpace {
+final class SrgbColorSpace extends ColorSpace {
   bool get isBoundedInternal => true;
 
   const SrgbColorSpace() : super('srgb', rgbChannels);
 
   SassColor convert(
-      ColorSpace dest, double red, double green, double blue, double alpha) {
+      ColorSpace dest, double? red, double? green, double? blue, double? alpha,
+      {bool missingLightness = false,
+      bool missingChroma = false,
+      bool missingHue = false}) {
     switch (dest) {
       case ColorSpace.hsl || ColorSpace.hwb:
+        red ??= 0;
+        green ??= 0;
+        blue ??= 0;
+
         // Algorithm from https://en.wikipedia.org/wiki/HSL_and_HSV#RGB_to_HSL_and_HSV
         var max = math.max(math.max(red, green), blue);
         var min = math.min(math.min(red, green), blue);
@@ -66,30 +73,39 @@ class SrgbColorSpace extends ColorSpace {
 
           return SassColor.forSpaceInternal(
               dest,
-              saturation == 0 || saturation == null ? null : hue,
-              saturation,
-              lightness,
+              missingHue || saturation == 0 || saturation == null ? null : hue,
+              missingChroma ? null : saturation,
+              missingLightness ? null : lightness,
               alpha);
         } else {
           var whiteness = fuzzyClamp(min * 100, 0, 100);
           var blackness = fuzzyClamp(100 - max * 100, 0, 100);
           return SassColor.forSpaceInternal(
               dest,
-              fuzzyEquals(whiteness + blackness, 100) ? null : hue,
+              missingHue || fuzzyEquals(whiteness + blackness, 100)
+                  ? null
+                  : hue,
               whiteness,
               blackness,
               alpha);
         }
 
       case ColorSpace.rgb:
-        return SassColor.rgb(red * 255, green * 255, blue * 255, alpha);
+        return SassColor.rgb(
+            red == null ? null : red * 255,
+            green == null ? null : green * 255,
+            blue == null ? null : blue * 255,
+            alpha);
 
       case ColorSpace.srgbLinear:
-        return SassColor.forSpaceInternal(
-            dest, toLinear(red), toLinear(green), toLinear(blue), alpha);
+        return SassColor.forSpaceInternal(dest, red.andThen(toLinear),
+            green.andThen(toLinear), blue.andThen(toLinear), alpha);
 
       default:
-        return super.convert(dest, red, green, blue, alpha);
+        return super.convertLinear(dest, red, green, blue, alpha,
+            missingLightness: missingLightness,
+            missingChroma: missingChroma,
+            missingHue: missingHue);
     }
   }
 

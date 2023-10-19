@@ -16,7 +16,7 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-class DisplayP3ColorSpace extends ColorSpace {
+final class DisplayP3ColorSpace extends ColorSpace {
   bool get isBoundedInternal => true;
 
   const DisplayP3ColorSpace() : super('display-p3', rgbChannels);

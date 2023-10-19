@@ -68,16 +68,26 @@ double srgbAndDisplayP3FromLinear(double channel) {
 }
 
 /// Converts a Lab or OKLab color to LCH or OKLCH, respectively.
+///
+/// The [missingChroma] and [missingHue] arguments indicate whether this came
+/// from a color that was missing its chroma or hue channels, respectively.
 SassColor labToLch(
-    ColorSpace dest, double lightness, double a, double b, double alpha) {
+    ColorSpace dest, double? lightness, double? a, double? b, double? alpha,
+    {bool missingChroma = false, bool missingHue = false}) {
   // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
-  if (fuzzyEquals(lightness, 0)) {
+  if (lightness == null || fuzzyEquals(lightness, 0)) {
     return SassColor.forSpaceInternal(dest, 0, null, null, alpha);
   }
 
-  var chroma = math.sqrt(math.pow(a, 2) + math.pow(b, 2));
-  var hue = fuzzyEquals(chroma, 0) ? null : math.atan2(b, a) * 180 / math.pi;
+  var chroma = math.sqrt(math.pow(a ?? 0, 2) + math.pow(b ?? 0, 2));
+  var hue = missingHue || fuzzyEquals(chroma, 0)
+      ? null
+      : math.atan2(b ?? 0, a ?? 0) * 180 / math.pi;
 
-  return SassColor.forSpaceInternal(dest, lightness, chroma,
-      hue == null || hue >= 0 ? hue : hue + 360, alpha);
+  return SassColor.forSpaceInternal(
+      dest,
+      lightness,
+      missingChroma ? null : chroma,
+      hue == null || hue >= 0 ? hue : hue + 360,
+      alpha);
 }

@@ -7,13 +7,14 @@
 import 'package:meta/meta.dart';
 
 import '../../color.dart';
+import 'srgb.dart';
 import 'utils.dart';
 
 /// The legacy HSL color space.
 ///
 /// @nodoc
 @internal
-class HslColorSpace extends ColorSpace {
+final class HslColorSpace extends ColorSpace {
   bool get isBoundedInternal => true;
   bool get isStrictlyBoundedInternal => true;
   bool get isLegacyInternal => true;
@@ -26,12 +27,12 @@ class HslColorSpace extends ColorSpace {
           LinearChannel('lightness', 0, 100, requiresPercent: true)
         ]);
 
-  SassColor convert(ColorSpace dest, double hue, double saturation,
-      double lightness, double alpha) {
+  SassColor convert(ColorSpace dest, double? hue, double? saturation,
+      double? lightness, double? alpha) {
     // Algorithm from the CSS3 spec: https://www.w3.org/TR/css3-color/#hsl-color.
-    var scaledHue = (hue / 360) % 1;
-    var scaledSaturation = saturation / 100;
-    var scaledLightness = lightness / 100;
+    var scaledHue = ((hue ?? 0) / 360) % 1;
+    var scaledSaturation = (saturation ?? 0) / 100;
+    var scaledLightness = (lightness ?? 0) / 100;
 
     var m2 = scaledLightness <= 0.5
         ? scaledLightness * (scaledSaturation + 1)
@@ -40,11 +41,14 @@ class HslColorSpace extends ColorSpace {
             scaledLightness * scaledSaturation;
     var m1 = scaledLightness * 2 - m2;
 
-    return ColorSpace.srgb.convert(
+    return const SrgbColorSpace().convert(
         dest,
         hueToRgb(m1, m2, scaledHue + 1 / 3),
         hueToRgb(m1, m2, scaledHue),
         hueToRgb(m1, m2, scaledHue - 1 / 3),
-        alpha);
+        alpha,
+        missingLightness: lightness == null,
+        missingChroma: saturation == null,
+        missingHue: hue == null);
   }
 }

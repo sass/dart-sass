@@ -694,7 +694,8 @@ class SassColor extends Value {
   /// automatic conversions.
   SassColor toSpace(ColorSpace space) => this.space == space
       ? this
-      : this.space.convert(space, channel0, channel1, channel2, alpha);
+      : this.space.convert(
+          space, channel0OrNull, channel1OrNull, channel2OrNull, alpha);
 
   /// Returns a copy of this color that's in-gamut in the current color space.
   SassColor toGamut() {

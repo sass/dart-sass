@@ -9,6 +9,7 @@ import 'dart:math' as math;
 import 'package:meta/meta.dart';
 
 import '../../color.dart';
+import 'oklab.dart';
 import 'utils.dart';
 
 /// The OKLCH color space.
@@ -17,7 +18,7 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-class OklchColorSpace extends ColorSpace {
+final class OklchColorSpace extends ColorSpace {
   bool get isBoundedInternal => false;
   bool get isPolarInternal => true;
 
@@ -28,10 +29,16 @@ class OklchColorSpace extends ColorSpace {
           hueChannel
         ]);
 
-  SassColor convert(ColorSpace dest, double lightness, double chroma,
-      double hue, double alpha) {
-    var hueRadians = hue * math.pi / 180;
-    return ColorSpace.oklab.convert(dest, lightness,
-        chroma * math.cos(hueRadians), chroma * math.sin(hueRadians), alpha);
+  SassColor convert(ColorSpace dest, double? lightness, double? chroma,
+      double? hue, double? alpha) {
+    var hueRadians = (hue ?? 0) * math.pi / 180;
+    return const OklabColorSpace().convert(
+        dest,
+        lightness,
+        (chroma ?? 0) * math.cos(hueRadians),
+        (chroma ?? 0) * math.sin(hueRadians),
+        alpha,
+        missingChroma: chroma == null,
+        missingHue: hue == null);
   }
 }
