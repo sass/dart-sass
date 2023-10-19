@@ -363,7 +363,7 @@ double? _handleUndefinedAlpha(double? alpha) => isUndefined(alpha) ? 1 : alpha;
 /// `initial`.
 double? _changeComponentValue(
         SassColor initial, String channel, _ConstructionOptions changes) =>
-    hasProperty(changes, channel)
+    hasProperty(changes, channel) && !isUndefined(getProperty(changes, channel))
         ? getProperty(changes, channel)
         : initial.channel(channel);
 
