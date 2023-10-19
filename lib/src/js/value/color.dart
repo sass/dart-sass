@@ -105,6 +105,9 @@ final JSClass colorClass = () {
         if (hasProperty(options, 'whiteness') ||
             hasProperty(options, 'blackness')) {
           space = ColorSpace.hwb;
+        } else if (hasProperty(options, 'hue') &&
+            self.space == ColorSpace.hwb) {
+          space = ColorSpace.hwb;
         } else if (hasProperty(options, 'hue') ||
             hasProperty(options, 'saturation') ||
             hasProperty(options, 'lightness')) {
@@ -145,12 +148,10 @@ final JSClass colorClass = () {
           break;
 
         case ColorSpace.hsl:
-          if ((hasProperty(options, 'hue') && options.hue == null) ||
-              (hasProperty(options, 'saturation') &&
-                  options.saturation == null) ||
-              (hasProperty(options, 'lightness') &&
-                  options.lightness == null) ||
-              (hasProperty(options, 'alpha') && options.alpha == null)) {
+          if (isExplicityNull(options.hue) ||
+              isExplicityNull(options.saturation) ||
+              isExplicityNull(options.lightness) ||
+              isExplicityNull(options.alpha)) {
             _emitNullAlphaDeprecation();
           }
           changedColor = SassColor.hsl(
@@ -169,12 +170,10 @@ final JSClass colorClass = () {
           break;
 
         case ColorSpace.hwb:
-          if ((hasProperty(options, 'hue') && options.hue == null) ||
-              (hasProperty(options, 'whiteness') &&
-                  options.whiteness == null) ||
-              (hasProperty(options, 'blackness') &&
-                  options.blackness == null) ||
-              (hasProperty(options, 'alpha') && options.alpha == null)) {
+          if (isExplicityNull(options.hue) ||
+              isExplicityNull(options.whiteness) ||
+              isExplicityNull(options.blackness) ||
+              isExplicityNull(options.alpha)) {
             _emitNullAlphaDeprecation();
           }
           changedColor = SassColor.hwb(
@@ -194,10 +193,10 @@ final JSClass colorClass = () {
           break;
 
         case ColorSpace.rgb:
-          if ((hasProperty(options, 'red') && options.red == null) ||
-              (hasProperty(options, 'green') && options.green == null) ||
-              (hasProperty(options, 'blue') && options.blue == null) ||
-              (hasProperty(options, 'alpha') && options.alpha == null)) {
+          if (isExplicityNull(options.red) ||
+              isExplicityNull(options.green) ||
+              isExplicityNull(options.blue) ||
+              isExplicityNull(options.alpha)) {
             _emitNullAlphaDeprecation();
           }
           changedColor = SassColor.rgb(
@@ -404,6 +403,11 @@ void _emitNullAlphaDeprecation() {
 void _emitColor4ApiDeprecation(String name) {
   warnForDeprecationFromApi(
       "$name is deprecated, use `channel` instead.", Deprecation.color4Api);
+}
+
+// Returns if value is explicitly the JS null value and not undefined
+bool isExplicityNull(double? value) {
+  return !isUndefined(value) && identical(value, null);
 }
 
 @JS()
