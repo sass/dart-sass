@@ -118,7 +118,9 @@ final JSClass colorClass = () {
         if (space != self.space) {
           warnForDeprecationFromApi(
               "Changing a channel not in this color's space without explicitly specifying "
-              "the `space` option is deprecated.",
+              "the `space` option is deprecated."
+              "\n"
+              "More info: https://sass-lang.com/d/color-4-api",
               Deprecation.color4Api);
         }
       }
@@ -148,10 +150,14 @@ final JSClass colorClass = () {
           break;
 
         case ColorSpace.hsl:
-          if (isNull(options.hue) ||
-              isNull(options.saturation) ||
-              isNull(options.lightness) ||
-              isNull(options.alpha)) {
+          if (isNull(options.hue)) {
+            _emitColor4ApiNullDeprecation('hue');
+          } else if (isNull(options.saturation)) {
+            _emitColor4ApiNullDeprecation('saturation');
+          } else if (isNull(options.lightness)) {
+            _emitColor4ApiNullDeprecation('lightness');
+          }
+          if (isNull(options.alpha)) {
             _emitNullAlphaDeprecation();
           }
           changedColor = SassColor.hsl(
@@ -170,10 +176,14 @@ final JSClass colorClass = () {
           break;
 
         case ColorSpace.hwb:
-          if (isNull(options.hue) ||
-              isNull(options.whiteness) ||
-              isNull(options.blackness) ||
-              isNull(options.alpha)) {
+          if (isNull(options.hue)) {
+            _emitColor4ApiNullDeprecation('hue');
+          } else if (isNull(options.whiteness)) {
+            _emitColor4ApiNullDeprecation('whiteness');
+          } else if (isNull(options.blackness)) {
+            _emitColor4ApiNullDeprecation('blackness');
+          }
+          if (isNull(options.alpha)) {
             _emitNullAlphaDeprecation();
           }
           changedColor = SassColor.hwb(
@@ -193,10 +203,14 @@ final JSClass colorClass = () {
           break;
 
         case ColorSpace.rgb:
-          if (isNull(options.red) ||
-              isNull(options.green) ||
-              isNull(options.blue) ||
-              isNull(options.alpha)) {
+          if (isNull(options.red)) {
+            _emitColor4ApiNullDeprecation('red');
+          } else if (isNull(options.green)) {
+            _emitColor4ApiNullDeprecation('green');
+          } else if (isNull(options.blue)) {
+            _emitColor4ApiNullDeprecation('blue');
+          }
+          if (isNull(options.alpha)) {
             _emitNullAlphaDeprecation();
           }
           changedColor = SassColor.rgb(
@@ -310,35 +324,35 @@ final JSClass colorClass = () {
 
   jsClass.defineGetters({
     'red': (SassColor self) {
-      _emitColor4ApiDeprecation('red');
+      _emitColor4ApiChannelDeprecation('red');
       return self.red;
     },
     'green': (SassColor self) {
-      _emitColor4ApiDeprecation('green');
+      _emitColor4ApiChannelDeprecation('green');
       return self.green;
     },
     'blue': (SassColor self) {
-      _emitColor4ApiDeprecation('blue');
+      _emitColor4ApiChannelDeprecation('blue');
       return self.blue;
     },
     'hue': (SassColor self) {
-      _emitColor4ApiDeprecation('hue');
+      _emitColor4ApiChannelDeprecation('hue');
       return self.hue;
     },
     'saturation': (SassColor self) {
-      _emitColor4ApiDeprecation('saturation');
+      _emitColor4ApiChannelDeprecation('saturation');
       return self.saturation;
     },
     'lightness': (SassColor self) {
-      _emitColor4ApiDeprecation('lightness');
+      _emitColor4ApiChannelDeprecation('lightness');
       return self.lightness;
     },
     'whiteness': (SassColor self) {
-      _emitColor4ApiDeprecation('whiteness');
+      _emitColor4ApiChannelDeprecation('whiteness');
       return self.whiteness;
     },
     'blackness': (SassColor self) {
-      _emitColor4ApiDeprecation('blackness');
+      _emitColor4ApiChannelDeprecation('blackness');
       return self.blackness;
     },
     'alpha': (SassColor self) => self.alpha,
@@ -400,9 +414,21 @@ void _emitNullAlphaDeprecation() {
 }
 
 // Warn users about legacy color channel getters.
-void _emitColor4ApiDeprecation(String name) {
+void _emitColor4ApiNullDeprecation(String name) {
   warnForDeprecationFromApi(
-      "$name is deprecated, use `channel` instead.", Deprecation.color4Api);
+      "Passing `$name: null` without setting `space` is deprecated."
+      "\n"
+      "More info: https://sass-lang.com/d/color-4-api",
+      Deprecation.color4Api);
+}
+
+// Warn users about legacy color channel getters.
+void _emitColor4ApiChannelDeprecation(String name) {
+  warnForDeprecationFromApi(
+      "$name is deprecated, use `channel` instead."
+      "\n"
+      "More info: https://sass-lang.com/d/color-4-api",
+      Deprecation.color4Api);
 }
 
 @JS()
