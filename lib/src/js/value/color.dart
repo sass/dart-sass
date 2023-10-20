@@ -148,10 +148,10 @@ final JSClass colorClass = () {
           break;
 
         case ColorSpace.hsl:
-          if (isExplicityNull(options.hue) ||
-              isExplicityNull(options.saturation) ||
-              isExplicityNull(options.lightness) ||
-              isExplicityNull(options.alpha)) {
+          if (isNull(options.hue) ||
+              isNull(options.saturation) ||
+              isNull(options.lightness) ||
+              isNull(options.alpha)) {
             _emitNullAlphaDeprecation();
           }
           changedColor = SassColor.hsl(
@@ -170,10 +170,10 @@ final JSClass colorClass = () {
           break;
 
         case ColorSpace.hwb:
-          if (isExplicityNull(options.hue) ||
-              isExplicityNull(options.whiteness) ||
-              isExplicityNull(options.blackness) ||
-              isExplicityNull(options.alpha)) {
+          if (isNull(options.hue) ||
+              isNull(options.whiteness) ||
+              isNull(options.blackness) ||
+              isNull(options.alpha)) {
             _emitNullAlphaDeprecation();
           }
           changedColor = SassColor.hwb(
@@ -193,10 +193,10 @@ final JSClass colorClass = () {
           break;
 
         case ColorSpace.rgb:
-          if (isExplicityNull(options.red) ||
-              isExplicityNull(options.green) ||
-              isExplicityNull(options.blue) ||
-              isExplicityNull(options.alpha)) {
+          if (isNull(options.red) ||
+              isNull(options.green) ||
+              isNull(options.blue) ||
+              isNull(options.alpha)) {
             _emitNullAlphaDeprecation();
           }
           changedColor = SassColor.rgb(
@@ -403,11 +403,6 @@ void _emitNullAlphaDeprecation() {
 void _emitColor4ApiDeprecation(String name) {
   warnForDeprecationFromApi(
       "$name is deprecated, use `channel` instead.", Deprecation.color4Api);
-}
-
-// Returns if value is explicitly the JS null value and not undefined
-bool isExplicityNull(double? value) {
-  return !isUndefined(value) && identical(value, null);
 }
 
 @JS()
