@@ -321,3 +321,10 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
   });
   return result;
 }
+
+const NodePackageImporter nodePackageImporter = NodePackageImporter();
+
+class NodePackageImporter {
+  final String nodePackageImporterBrand = '';
+  const NodePackageImporter();
+}
