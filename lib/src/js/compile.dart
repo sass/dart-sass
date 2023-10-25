@@ -13,6 +13,7 @@ import '../importer/js_to_dart/async.dart';
 import '../importer/js_to_dart/async_file.dart';
 import '../importer/js_to_dart/file.dart';
 import '../importer/js_to_dart/sync.dart';
+import '../importer/node_package.dart';
 import '../io.dart';
 import '../logger/js_to_dart.dart';
 import '../util/nullable.dart';
@@ -207,6 +208,15 @@ AsyncImporter _parseAsyncImporter(Object? importer) {
 
 /// Converts [importer] into a synchronous [Importer].
 Importer _parseImporter(Object? importer) {
+  if (importer == nodePackageImporter) {
+    // TODO(jamesnw) Is this the correct check?
+    if (isBrowser) {
+      jsThrow(JsError(
+          "The Node Package Importer can not be used without a filesystem."));
+    }
+    Uri entryPointURL = Uri.directory('.');
+    importer = NodePackageImporterInternal(entryPointURL);
+  }
   if (importer == null) jsThrow(JsError("Importers may not be null."));
 
   importer as JSImporter;
