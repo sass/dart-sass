@@ -1,3 +1,9 @@
+## 1.69.5
+
+### JS API
+
+* Compatibility with Node.js 21.0.0.
+
 ## 1.69.4
 
 * No user-visible changes.
