@@ -37,9 +37,9 @@ class LmsColorSpace extends ColorSpace {
     switch (dest) {
       case ColorSpace.oklab:
         // Algorithm from https://drafts.csswg.org/css-color-4/#color-conversion-code
-        var longScaled = math.pow(long, 1 / 3);
-        var mediumScaled = math.pow(medium, 1 / 3);
-        var shortScaled = math.pow(short, 1 / 3);
+        var longScaled = _cubeRootPreservingSign(long);
+        var mediumScaled = _cubeRootPreservingSign(medium);
+        var shortScaled = _cubeRootPreservingSign(short);
         var lightness = lmsToOklab[0] * longScaled +
             lmsToOklab[1] * mediumScaled +
             lmsToOklab[2] * shortScaled;
@@ -62,9 +62,9 @@ class LmsColorSpace extends ColorSpace {
         // This is equivalent to converting to OKLab and then to OKLCH, but we
         // do it inline to avoid extra list allocations since we expect
         // conversions to and from OKLCH to be very common.
-        var longScaled = math.pow(long, 1 / 3);
-        var mediumScaled = math.pow(medium, 1 / 3);
-        var shortScaled = math.pow(short, 1 / 3);
+        var longScaled = _cubeRootPreservingSign(long);
+        var mediumScaled = _cubeRootPreservingSign(medium);
+        var shortScaled = _cubeRootPreservingSign(short);
         return labToLch(
             dest,
             lmsToOklab[0] * longScaled +
@@ -82,6 +82,11 @@ class LmsColorSpace extends ColorSpace {
         return super.convert(dest, long, medium, short, alpha);
     }
   }
+
+  /// Returns the cube root of the absolute value of [number] with the same sign
+  /// as [number].
+  double _cubeRootPreservingSign(double number) =>
+      math.pow(number.abs(), 1 / 3) * number.sign;
 
   @protected
   double toLinear(double channel) => channel;
