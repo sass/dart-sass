@@ -223,6 +223,10 @@ final class Dispatcher {
       case InboundMessage_CompileRequest_Importer_Importer.notSet:
         _checkNoNonCanonicalScheme(importer);
         return null;
+
+      // TODO(jamesnw) replace with node package importer
+      case InboundMessage_CompileRequest_Importer_Importer.nodePackageImporter:
+        return HostImporter(this, importer.importerId, ['pkg']);
     }
   }
 
