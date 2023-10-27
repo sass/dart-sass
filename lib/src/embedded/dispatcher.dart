@@ -11,6 +11,7 @@ import 'package:native_synchronization/mailbox.dart';
 import 'package:path/path.dart' as p;
 import 'package:protobuf/protobuf.dart';
 import 'package:sass/sass.dart' as sass;
+import 'package:sass/src/importer/node_package.dart';
 
 import '../value/function.dart';
 import '../value/mixin.dart';
@@ -224,9 +225,10 @@ final class Dispatcher {
         _checkNoNonCanonicalScheme(importer);
         return null;
 
-      // TODO(jamesnw) replace with node package importer
       case InboundMessage_CompileRequest_Importer_Importer.nodePackageImporter:
-        return HostImporter(this, importer.importerId, ['pkg']);
+        var entryPointURL =
+            Uri.parse(importer.nodePackageImporter.entryPointUrl);
+        return NodePackageImporterInternal(entryPointURL);
     }
   }
 
