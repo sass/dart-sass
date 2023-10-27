@@ -4,8 +4,8 @@
 
 import '../importer.dart';
 import './utils.dart';
-import 'dart:io';
 import 'dart:convert';
+import '../io.dart';
 import 'package:path/path.dart' as p;
 
 /// A filesystem importer to use for load implementation details, and for
@@ -37,12 +37,11 @@ class NodePackageImporterInternal extends Importer {
     var (packageName, subpath) = packageNameAndSubpath(url.path);
     var packageRoot = resolvePackageRoot(packageName, baseURL);
     if (packageRoot == null) {
-      throw "Node Package $packageName could not be found.";
+      throw "Node Package '$packageName' could not be found.";
     }
 
     // Attempt to resolve using conditional exports
-    var jsonString =
-        File(packageRoot.path + '/package.json').readAsStringSync();
+    var jsonString = readFile(packageRoot.path + '/package.json');
     var packageManifest = jsonDecode(jsonString) as Map<String, dynamic>;
 
     var resolved = resolvePackageExports(
@@ -65,7 +64,7 @@ class NodePackageImporterInternal extends Importer {
     // If there is a subpath, attempt to resolve the path relative to the package root, and
     //  resolve for file extensions and partials.
     return _filesystemImporter
-        .canonicalize(Uri.parse("${packageRoot.path}/$subpath"));
+        .canonicalize(Uri.file("${packageRoot.path}/$subpath"));
   }
 
   @override
@@ -80,14 +79,22 @@ class NodePackageImporterInternal extends Importer {
   if (name.startsWith('@')) {
     name = '$name/${parts.removeAt(0)}';
   }
-  return (name, parts.isNotEmpty ? parts.join('/') : '.');
+  return (name, parts.isNotEmpty ? parts.join('/') : '');
 }
 
 // Takes a string, `packageName`, and an absolute URL `baseURL`, and returns an
 // absolute URL to the root directory for the most proximate installed
 // `packageName`.
 Uri? resolvePackageRoot(String packageName, Uri baseURL) {
-  // TODO implement
+  var baseDirectory = p.dirname(baseURL.toString());
+
+  // TODO make recursive
+  var potentialPackage =
+      p.joinAll([baseDirectory, 'node_modules', packageName]);
+
+  if (dirExists(potentialPackage)) {
+    return Uri.parse(potentialPackage);
+  }
   return null;
 }
 
@@ -96,7 +103,7 @@ Uri? resolvePackageRoot(String packageName, Uri baseURL) {
 // file, and returns a file URL.
 Uri? resolvePackageRootValues(
     String packageRoot, Map<String, dynamic> packageManifest) {
-  var extensions = ['scss', 'sass', 'css'];
+  var extensions = ['.scss', '.sass', '.css'];
 
   var sassValue = packageManifest['sass'] as String?;
   if (sassValue != null && extensions.contains(p.extension(sassValue))) {
@@ -108,7 +115,7 @@ Uri? resolvePackageRootValues(
   }
 
   var result = resolveImportPath('$packageRoot/index');
-  if (result != null) return Uri.parse(result);
+  if (result != null) return Uri.file(result);
   return null;
 }
 

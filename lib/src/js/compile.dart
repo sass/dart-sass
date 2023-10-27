@@ -5,6 +5,7 @@
 import 'package:cli_pkg/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart' hide futureToPromise;
+import 'package:path/path.dart' as p;
 import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import '../../sass.dart';
@@ -214,8 +215,9 @@ Importer _parseImporter(Object? importer) {
       jsThrow(JsError(
           "The Node Package Importer can not be used without a filesystem."));
     }
-    Uri entryPointURL = Uri.directory('.');
-    importer = NodePackageImporterInternal(entryPointURL);
+    // TODO(jamesnw) Can we get an actual filename for parity? Is it needed?
+    Uri entryPointURL = Uri.parse(p.absolute('./index.js'));
+    return NodePackageImporterInternal(entryPointURL);
   }
   if (importer == null) jsThrow(JsError("Importers may not be null."));
 
@@ -335,6 +337,7 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
 const NodePackageImporter nodePackageImporter = NodePackageImporter();
 
 class NodePackageImporter {
-  final String nodePackageImporterBrand = '';
+  // ignore: unused_field
+  final String _nodePackageImporterBrand = '';
   const NodePackageImporter();
 }
