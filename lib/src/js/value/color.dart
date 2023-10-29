@@ -183,9 +183,7 @@ final JSClass colorClass = () {
           } else if (isNull(options.blackness)) {
             _emitColor4ApiNullDeprecation('blackness');
           }
-          if (isNull(options.alpha)) {
-            _emitNullAlphaDeprecation();
-          }
+          if (isNull(options.alpha)) _emitNullAlphaDeprecation();
           changedColor = SassColor.hwb(
               options.hue ?? color.channel('hue'),
               options.whiteness ?? color.channel('whiteness'),
