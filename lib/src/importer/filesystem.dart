@@ -20,6 +20,8 @@ class FilesystemImporter extends Importer {
   final String _loadPath;
 
   /// Creates an importer that loads files relative to [loadPath].
+  /// @nodoc
+  @internal
   FilesystemImporter(String loadPath) : _loadPath = p.absolute(loadPath);
 
   Uri? canonicalize(Uri url) {
