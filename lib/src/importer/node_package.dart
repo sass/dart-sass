@@ -31,6 +31,7 @@ class NodePackageImporterInternal extends Importer {
     if (url.userInfo != '' || url.hasPort || url.hasQuery || url.hasFragment) {
       throw "Invalid URL $url";
     }
+    // TODO(jamesnw) `containingUrl` seems to be always null
     var baseURL =
         containingUrl?.scheme == 'file:' ? containingUrl! : entryPointURL;
 
@@ -88,14 +89,21 @@ class NodePackageImporterInternal extends Importer {
 Uri? resolvePackageRoot(String packageName, Uri baseURL) {
   var baseDirectory = p.dirname(baseURL.toString());
 
-  // TODO make recursive
-  var potentialPackage =
-      p.joinAll([baseDirectory, 'node_modules', packageName]);
+  Uri? recurseUpFrom(String entry) {
+    var potentialPackage = p.joinAll([entry, 'node_modules', packageName]);
 
-  if (dirExists(potentialPackage)) {
-    return Uri.parse(potentialPackage);
+    if (dirExists(potentialPackage)) {
+      return Uri.file(potentialPackage);
+    }
+    List<String> parentDirectoryParts = List.from(Uri.parse(entry).pathSegments)
+      ..removeLast();
+
+    if (parentDirectoryParts.isEmpty) return null;
+
+    return recurseUpFrom(p.joinAll(parentDirectoryParts));
   }
-  return null;
+
+  return recurseUpFrom(baseDirectory);
 }
 
 // Takes a string `packagePath`, which is the root directory for a package, and
