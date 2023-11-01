@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:collection/collection.dart';
+
 import '../importer.dart';
 import './utils.dart';
 import 'dart:convert';
@@ -49,10 +51,11 @@ class NodePackageImporterInternal extends Importer {
         packageRoot, subpath, packageManifest, packageName);
 
     if (resolved != null &&
-        resolved.scheme == 'file:' &&
-        ['scss', 'sass', 'css'].contains(p.extension(resolved.path))) {
+        resolved.scheme == 'file' &&
+        ['.scss', '.sass', '.css'].contains(p.extension(resolved.path))) {
       return resolved;
     } else if (resolved != null) {
+      // TODO(jamesnw) handle empty subpath
       throw "The export for $subpath in $packageName is not a valid Sass file.";
     }
     // If no subpath, attempt to resolve `sass` or `style` key in package.json,
@@ -133,10 +136,10 @@ Uri? resolvePackageRootValues(
 Uri? resolvePackageExports(Uri packageRoot, String subpath,
     Map<String, dynamic> packageManifest, String packageName) {
   if (packageManifest['exports'] == null) return null;
-  var exports = packageManifest['exports'] as Map<String, dynamic>;
+  var exports = packageManifest['exports'] as Object;
   var subpathVariants = exportLoadPaths(subpath);
   var resolvedPaths =
-      nodePackageExportsResolve(packageRoot, subpathVariants, exports);
+      _nodePackageExportsResolve(packageRoot, subpathVariants, exports);
 
   if (resolvedPaths.length == 1) return resolvedPaths.first;
   if (resolvedPaths.length > 1) {
@@ -148,7 +151,7 @@ Uri? resolvePackageExports(Uri packageRoot, String subpath,
   var subpathIndexVariants = exportLoadPaths("$subpath/index");
 
   var resolvedIndexpaths =
-      nodePackageExportsResolve(packageRoot, subpathIndexVariants, exports);
+      _nodePackageExportsResolve(packageRoot, subpathIndexVariants, exports);
 
   if (resolvedIndexpaths.length == 1) return resolvedPaths.first;
   if (resolvedIndexpaths.length > 1) {
@@ -162,16 +165,84 @@ Uri? resolvePackageExports(Uri packageRoot, String subpath,
 // Takes a package.json value `packageManifest`, a directory URL `packageRoot`
 // and a list of relative URL paths `subpathVariants`. It returns a list of all
 // subpaths present in the package Manifest exports.
-List<Uri> nodePackageExportsResolve(Uri packageRoot,
-    List<String> subpathVariants, Map<String, dynamic> exports) {
-  // TODO implement
-  return [];
+List<Uri> _nodePackageExportsResolve(
+    Uri packageRoot, List<String> subpathVariants, Object exports) {
+  Uri? processVariant(String subpath) {
+    if (subpath == '') {
+      // main export
+      Object? mainExport = _getMainExport(exports);
+      if (mainExport == null) return null;
+      return _packageTargetResolve(subpath, exports, packageRoot);
+    }
+    return null;
+  }
+
+  return subpathVariants.map(processVariant).whereNotNull().toList();
+}
+
+Uri? _packageTargetResolve(String subpath, Object exports, Uri packageRoot) {
+  switch (exports) {
+    case String string:
+      if (!string.startsWith('./')) {
+        throw "Invalid Package Target";
+      }
+      return Uri.parse("$packageRoot/$string");
+    case Map<String, dynamic> map:
+      var conditions = ['sass', 'style', 'default'];
+      for (var key in map.keys) {
+        if (conditions.contains(key)) {
+          var result =
+              _packageTargetResolve(subpath, map[key] as Object, packageRoot);
+          if (result != null) {
+            return result;
+          }
+        }
+      }
+      return null;
+    case List<dynamic> array:
+      if (array.isEmpty) return null;
+
+      for (var value in array) {
+        var result =
+            _packageTargetResolve(subpath, value as Object, packageRoot);
+        if (result != null) {
+          return result;
+        }
+      }
+
+      return null;
+    default:
+      break;
+  }
+  return null;
+}
+
+Object? _getMainExport(Object exports) {
+  switch (exports) {
+    case String string:
+      return string;
+
+    case List<String> list:
+      return list;
+
+    case Map<String, dynamic> map:
+      if (!map.keys.any((key) => key.startsWith('.'))) {
+        return map;
+      } else if (map.containsKey('.')) {
+        return map['.'] as Object;
+      }
+      break;
+    default:
+      break;
+  }
+  return null;
 }
 
 // Given a string `subpath`, returns a list of all possible variations with
 // extensions and partials.
 List<String> exportLoadPaths(String subpath) {
   List<String> paths = [];
+  if (subpath == '') return [subpath];
 
   if (['scss', 'sass', 'css'].any((ext) => subpath.endsWith(ext))) {
     paths.add(subpath);
