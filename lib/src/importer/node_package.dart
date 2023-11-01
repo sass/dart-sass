@@ -153,7 +153,7 @@ Uri? resolvePackageExports(Uri packageRoot, String subpath,
   var resolvedIndexpaths =
       _nodePackageExportsResolve(packageRoot, subpathIndexVariants, exports);
 
-  if (resolvedIndexpaths.length == 1) return resolvedPaths.first;
+  if (resolvedIndexpaths.length == 1) return resolvedIndexpaths.first;
   if (resolvedIndexpaths.length > 1) {
     throw "Unable to determine which of multiple potential"
         "resolutions found for $subpath in $packageName should be used.";
@@ -169,10 +169,18 @@ List<Uri> _nodePackageExportsResolve(
     Uri packageRoot, List<String> subpathVariants, Object exports) {
   Uri? processVariant(String subpath) {
     if (subpath == '') {
-      // main export
       Object? mainExport = _getMainExport(exports);
       if (mainExport == null) return null;
-      return _packageTargetResolve(subpath, exports, packageRoot);
+      return _packageTargetResolve(subpath, mainExport, packageRoot);
+    } else {
+      if (exports is Map<String, dynamic> &&
+          exports.keys.every((key) => key.startsWith('.'))) {
+        var matchKey = "./$subpath";
+        if (exports.containsKey(matchKey)) {
+          return _packageTargetResolve(
+              matchKey, exports[matchKey] as Object, packageRoot);
+        }
+      }
     }
     return null;
   }
