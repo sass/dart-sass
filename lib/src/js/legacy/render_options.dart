@@ -13,6 +13,7 @@ class RenderOptions {
   external String? get file;
   external String? get data;
   external Object? get importer;
+  external String? get pkgImporter;
   external Object? get functions;
   external List<Object /* String */ >? get includePaths;
   external bool? get indentedSyntax;
@@ -36,6 +37,7 @@ class RenderOptions {
       {String? file,
       String? data,
       Object? importer,
+      String? pkgImporter,
       Object? functions,
       List<String>? includePaths,
       bool? indentedSyntax,

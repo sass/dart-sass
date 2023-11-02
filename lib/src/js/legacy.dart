@@ -10,6 +10,9 @@ import 'dart:typed_data';
 import 'package:cli_pkg/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:path/path.dart' as p;
+import '../async_import_cache.dart';
+import '../import_cache.dart';
+import '../importer/node_package.dart';
 
 import '../callable.dart';
 import '../compile.dart';
@@ -74,24 +77,27 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
 
   var file = options.file.andThen(p.absolute);
   if (options.data case var data?) {
-    result = await compileStringAsync(data,
-        nodeImporter: _parseImporter(options, start),
-        functions: _parseFunctions(options, start, asynch: true),
-        syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
-        style: _parseOutputStyle(options.outputStyle),
-        useSpaces: options.indentType != 'tab',
-        indentWidth: _parseIndentWidth(options.indentWidth),
-        lineFeed: _parseLineFeed(options.linefeed),
-        url: file == null ? 'stdin' : p.toUri(file).toString(),
-        quietDeps: options.quietDeps ?? false,
-        verbose: options.verbose ?? false,
-        charset: options.charset ?? true,
-        sourceMap: _enableSourceMaps(options),
-        logger:
-            JSToDartLogger(options.logger, Logger.stderr(color: hasTerminal)));
+    result = await compileStringAsync(
+      data,
+      nodeImporter: _parseImporter(options, start),
+      importCache: _parsePackageImportersAsync(options, start),
+      functions: _parseFunctions(options, start, asynch: true),
+      syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
+      style: _parseOutputStyle(options.outputStyle),
+      useSpaces: options.indentType != 'tab',
+      indentWidth: _parseIndentWidth(options.indentWidth),
+      lineFeed: _parseLineFeed(options.linefeed),
+      url: file == null ? 'stdin' : p.toUri(file).toString(),
+      quietDeps: options.quietDeps ?? false,
+      verbose: options.verbose ?? false,
+      charset: options.charset ?? true,
+      sourceMap: _enableSourceMaps(options),
+      logger: JSToDartLogger(options.logger, Logger.stderr(color: hasTerminal)),
+    );
   } else if (file != null) {
     result = await compileAsync(file,
         nodeImporter: _parseImporter(options, start),
+        importCache: _parsePackageImportersAsync(options, start),
         functions: _parseFunctions(options, start, asynch: true),
         syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
         style: _parseOutputStyle(options.outputStyle),
@@ -129,6 +135,7 @@ RenderResult renderSync(RenderOptions options) {
     if (options.data case var data?) {
       result = compileString(data,
           nodeImporter: _parseImporter(options, start),
+          importCache: _parsePackageImporters(options, start),
           functions: _parseFunctions(options, start).cast(),
           syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
           style: _parseOutputStyle(options.outputStyle),
@@ -145,6 +152,7 @@ RenderResult renderSync(RenderOptions options) {
     } else if (file != null) {
       result = compile(file,
           nodeImporter: _parseImporter(options, start),
+          importCache: _parsePackageImporters(options, start),
           functions: _parseFunctions(options, start).cast(),
           syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
           style: _parseOutputStyle(options.outputStyle),
@@ -287,6 +295,28 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
 
   var includePaths = List<String>.from(options.includePaths ?? []);
   return NodeImporter(contextOptions, includePaths, importers);
+}
+
+/// Creates an [AsyncImportCache] for Package Importers.
+AsyncImportCache? _parsePackageImportersAsync(
+    RenderOptions options, DateTime start) {
+  if (options.pkgImporter case 'node') {
+    // TODO(jamesnw) Can we get an actual filename for parity? Is it needed?
+    Uri entryPointURL = Uri.parse(p.absolute('./index.js'));
+    return AsyncImportCache(
+        importers: [NodePackageImporterInternal(entryPointURL)]);
+  }
+  return null;
+}
+
+/// Creates an [ImportCache] for Package Importers.
+ImportCache? _parsePackageImporters(RenderOptions options, DateTime start) {
+  if (options.pkgImporter case 'node') {
+    // TODO(jamesnw) Can we get an actual filename for parity? Is it needed?
+    Uri entryPointURL = Uri.parse(p.absolute('./index.js'));
+    return ImportCache(importers: [NodePackageImporterInternal(entryPointURL)]);
+  }
+  return null;
 }
 
 /// Creates the [RenderContextOptions] for the `this` context in which custom

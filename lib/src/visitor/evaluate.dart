@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 58ef9912c6a9d9cfe9c3f5d991f625ab1a627e7a
+// Checksum: 243938b731f0196c3df9a7d6f8fce9cb84a6de60
 //
 // ignore_for_file: unused_import
 
@@ -345,9 +345,7 @@ final class _EvaluateVisitor
       Logger? logger,
       bool quietDeps = false,
       bool sourceMap = false})
-      : _importCache = nodeImporter == null
-            ? importCache ?? ImportCache.none(logger: logger)
-            : null,
+      : _importCache = importCache ?? ImportCache.none(logger: logger),
         _nodeImporter = nodeImporter,
         _logger = logger ?? const Logger.stderr(),
         _quietDeps = quietDeps,
@@ -1702,7 +1700,8 @@ final class _EvaluateVisitor
             return (stylesheet, importer: importer, isDependency: isDependency);
           }
         }
-      } else {
+      }
+      if (_nodeImporter != null) {
         if (_importLikeNode(
                 url, baseUrl ?? _stylesheet.span.sourceUrl, forImport)
             case var result?) {

@@ -26,7 +26,8 @@ import 'visitor/serialize.dart';
 /// Like [compileAsync] in `lib/sass.dart`, but provides more options to support
 /// the node-sass compatible API and the executable.
 ///
-/// At most one of `importCache` and `nodeImporter` may be provided at once.
+/// If both `importCache` and `nodeImporter` are provided, the importers in
+/// `importCache` will be evaluated before `nodeImporter`.
 Future<CompileResult> compileAsync(String path,
     {Syntax? syntax,
     Logger? logger,
