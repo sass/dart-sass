@@ -143,19 +143,19 @@ Uri? resolvePackageExports(Uri packageRoot, String subpath,
 
   if (resolvedPaths.length == 1) return resolvedPaths.first;
   if (resolvedPaths.length > 1) {
-    throw "Unable to determine which of multiple potential"
+    throw "Unable to determine which of multiple potential "
         "resolutions found for $subpath in $packageName should be used.";
   }
   if (p.extension(subpath).isNotEmpty) return null;
 
-  var subpathIndexVariants = exportLoadPaths("$subpath/index");
+  var subpathIndexVariants = exportLoadPaths(subpath, true);
 
   var resolvedIndexpaths =
       _nodePackageExportsResolve(packageRoot, subpathIndexVariants, exports);
 
   if (resolvedIndexpaths.length == 1) return resolvedIndexpaths.first;
   if (resolvedIndexpaths.length > 1) {
-    throw "Unable to determine which of multiple potential"
+    throw "Unable to determine which of multiple potential "
         "resolutions found for $subpath in $packageName should be used.";
   }
 
@@ -175,7 +175,7 @@ List<Uri> _nodePackageExportsResolve(
     } else {
       if (exports is Map<String, dynamic> &&
           exports.keys.every((key) => key.startsWith('.'))) {
-        var matchKey = "./$subpath";
+        var matchKey = subpath.startsWith('/') ? ".$subpath" : "./$subpath";
         if (exports.containsKey(matchKey)) {
           return _packageTargetResolve(
               matchKey, exports[matchKey] as Object, packageRoot);
@@ -248,9 +248,14 @@ Object? _getMainExport(Object exports) {
 
 // Given a string `subpath`, returns a list of all possible variations with
 // extensions and partials.
-List<String> exportLoadPaths(String subpath) {
+List<String> exportLoadPaths(String subpath, [bool addIndex = false]) {
   List<String> paths = [];
-  if (subpath == '') return [subpath];
+  if (subpath.isEmpty && !addIndex) return [subpath];
+  if (subpath.isEmpty && addIndex) {
+    subpath = 'index';
+  } else if (subpath.isNotEmpty && addIndex) {
+    subpath = "$subpath/index";
+  }
 
   if (['scss', 'sass', 'css'].any((ext) => subpath.endsWith(ext))) {
     paths.add(subpath);
@@ -261,11 +266,18 @@ List<String> exportLoadPaths(String subpath) {
       '$subpath.css',
     ]);
   }
-  var basename = Uri.parse(subpath).pathSegments.last;
+  var subpathSegments = Uri.parse(subpath).pathSegments;
+  var basename = subpathSegments.last;
+  var dirPath = subpathSegments.sublist(0, subpathSegments.length - 1);
   if (!basename.startsWith('_')) {
     List<String> prefixedPaths = [];
     for (final path in paths) {
-      prefixedPaths.add('_$path');
+      var pathBasename = Uri.parse(path).pathSegments.last;
+      if (dirPath.isEmpty) {
+        prefixedPaths.add('_$pathBasename');
+      } else {
+        prefixedPaths.add('$dirPath/_$pathBasename');
+      }
     }
     paths.addAll(prefixedPaths);
   }
