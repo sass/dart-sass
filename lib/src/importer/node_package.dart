@@ -29,19 +29,19 @@ class NodePackageImporterInternal extends Importer {
   @override
   Uri? canonicalize(Uri url) {
     if (url.scheme != 'pkg') return null;
+    // TODO(jamesnw) Can these errors even be thrown? Or are these cases
+    // filtered out before this?
     if (url.path.startsWith('/')) {
-      throw "pkg: URL $url must not be an absolute path";
+      throw "pkg: URL $url must not be an absolute path.";
     }
     if (url.path.isEmpty) {
-      throw "pkg: URL $url must not have an empty path";
+      throw "pkg: URL $url must not have an empty path.";
     }
     if (url.userInfo != '' || url.hasPort || url.hasQuery || url.hasFragment) {
       throw "Invalid URL $url";
     }
     var baseURL =
         containingUrl?.scheme == 'file' ? containingUrl! : entryPointURL;
-    print("url: $url, baseURL: $baseURL, containingUrl: "
-    "$containingUrl, entryPointURL: $entryPointURL");
 
     var (packageName, subpath) = _packageNameAndSubpath(url.path);
     var packageRoot = _resolvePackageRoot(packageName, baseURL);
@@ -74,7 +74,7 @@ class NodePackageImporterInternal extends Importer {
     // If there is a subpath, attempt to resolve the path relative to the package root, and
     //  resolve for file extensions and partials.
     return _filesystemImporter
-        .canonicalize(Uri.file("${packageRoot.path}/$subpath"));
+        .canonicalize(Uri.file("${packageRoot.path}${p.separator}$subpath"));
   }
 
   @override
@@ -98,7 +98,7 @@ class NodePackageImporterInternal extends Importer {
     var baseDirectory = p.dirname(baseURL.toFilePath());
 
     Uri? recurseUpFrom(String entry) {
-      if (!entry.startsWith("/")) entry = "/$entry";
+      if (!entry.startsWith(p.separator)) entry = "${p.separator}$entry";
       var potentialPackage = p.joinAll([entry, 'node_modules', packageName]);
 
       if (dirExists(potentialPackage)) {
@@ -128,10 +128,10 @@ class NodePackageImporterInternal extends Importer {
     }
     var styleValue = packageManifest['style'] as String?;
     if (styleValue != null && extensions.contains(p.extension(styleValue))) {
-      return Uri.file('$packageRoot/$styleValue');
+      return Uri.file('$packageRoot${p.separator}$styleValue');
     }
 
-    var result = resolveImportPath('$packageRoot/index');
+    var result = resolveImportPath('$packageRoot${p.separator}index');
     if (result != null) return Uri.file(result);
     return null;
   }
