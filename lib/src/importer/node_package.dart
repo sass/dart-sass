@@ -96,11 +96,11 @@ class NodePackageImporterInternal extends Importer {
   // `packageName`.
   Uri? _resolvePackageRoot(String packageName, Uri baseURL) {
     var baseDirectory = p.dirname(Uri.file(baseURL.toString()).toFilePath());
-
+    print("baseDirectory: $baseDirectory, baseURL: $baseURL");
     Uri? recurseUpFrom(String entry) {
       if (!entry.startsWith(p.separator)) entry = "${p.separator}$entry";
       var potentialPackage = p.joinAll([entry, 'node_modules', packageName]);
-
+      print("potentialPackage: $potentialPackage");
       if (dirExists(potentialPackage)) {
         return Uri.file(potentialPackage);
       }
