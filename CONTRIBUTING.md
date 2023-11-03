@@ -10,6 +10,7 @@ Want to contribute? Great! First, read this page.
   * [Synchronizing](#synchronizing)
   * [File Headers](#file-headers)
 * [Release Process](#release-process)
+* [Package Structure](#package-structure)
 
 ## Before You Contribute
 
@@ -245,3 +246,13 @@ few things to do before pushing that tag:
 
 You *don't* need to create tags for packages in `pkg`; that will be handled
 automatically by GitHub actions.
+
+## Package Structure
+
+The structure of the Sass package is documented in README.md files in most
+directories under `lib/`. This documentation is intended to help contributors
+quickly build a basic understanding of the structure of the compiler and how its
+various pieces fit together. [`lib/src/README.md`] is a good starting point to get
+an overview of the compiler as a whole.
+
+[`lib/src/README.md`]: lib/src/README.md

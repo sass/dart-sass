@@ -5,7 +5,7 @@
 import '../util/map.dart';
 import '../util/nullable.dart';
 import '../value.dart';
-import 'dispatcher.dart';
+import 'compilation_dispatcher.dart';
 import 'embedded_sass.pb.dart' as proto;
 import 'embedded_sass.pb.dart' hide Value, ListSeparator, CalculationOperator;
 import 'host_callable.dart';
@@ -18,7 +18,7 @@ import 'utils.dart';
 /// custom function call.
 final class Protofier {
   /// The dispatcher, for invoking deprotofied [Value_HostFunction]s.
-  final Dispatcher _dispatcher;
+  final CompilationDispatcher _dispatcher;
 
   /// The IDs of first-class functions.
   final OpaqueRegistry<SassFunction> _functions;
