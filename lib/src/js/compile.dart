@@ -184,6 +184,15 @@ OutputStyle _parseOutputStyle(String? style) => switch (style) {
 /// Converts [importer] into an [AsyncImporter] that can be used with
 /// [compileAsync] or [compileStringAsync].
 AsyncImporter _parseAsyncImporter(Object? importer) {
+  if (importer == nodePackageImporter) {
+    if (isBrowser) {
+      jsThrow(JsError(
+          "The Node Package Importer can not be used without a filesystem."));
+    }
+    // TODO(jamesnw) Can we get an actual filename for parity? Is it needed?
+    Uri entryPointURL = Uri.parse(p.absolute('./index.js'));
+    return NodePackageImporterInternal(entryPointURL);
+  }
   if (importer == null) jsThrow(JsError("Importers may not be null."));
 
   importer as JSImporter;
