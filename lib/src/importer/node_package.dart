@@ -40,6 +40,8 @@ class NodePackageImporterInternal extends Importer {
     }
     var baseURL =
         containingUrl?.scheme == 'file' ? containingUrl! : entryPointURL;
+    print("url: $url, baseURL: $baseURL, containingUrl: "
+    "$containingUrl, entryPointURL: $entryPointURL");
 
     var (packageName, subpath) = _packageNameAndSubpath(url.path);
     var packageRoot = _resolvePackageRoot(packageName, baseURL);
