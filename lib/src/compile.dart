@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 5178e366228bde7854df12221393857bb3022628
+// Checksum: 23b059beeb519469aa45fead0956a1a25f0c814e
 //
 // ignore_for_file: unused_import
 
@@ -35,7 +35,8 @@ import 'visitor/serialize.dart';
 /// Like [compile] in `lib/sass.dart`, but provides more options to support
 /// the node-sass compatible API and the executable.
 ///
-/// At most one of `importCache` and `nodeImporter` may be provided at once.
+/// If both `importCache` and `nodeImporter` are provided, the importers in
+/// `importCache` will be evaluated before `nodeImporter`.
 CompileResult compile(String path,
     {Syntax? syntax,
     Logger? logger,

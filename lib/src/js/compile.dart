@@ -210,7 +210,6 @@ AsyncImporter _parseAsyncImporter(Object? importer) {
 /// Converts [importer] into a synchronous [Importer].
 Importer _parseImporter(Object? importer) {
   if (importer == nodePackageImporter) {
-    // TODO(jamesnw) Is this the correct check?
     if (isBrowser) {
       jsThrow(JsError(
           "The Node Package Importer can not be used without a filesystem."));

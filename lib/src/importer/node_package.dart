@@ -22,6 +22,11 @@ class NodePackageImporterInternal extends Importer {
   NodePackageImporterInternal(this.entryPointURL);
 
   @override
+  bool isNonCanonicalScheme(String scheme) {
+    return scheme == 'pkg';
+  }
+
+  @override
   Uri? canonicalize(Uri url) {
     if (url.scheme != 'pkg') return null;
     if (url.path.startsWith('/')) {
@@ -33,9 +38,8 @@ class NodePackageImporterInternal extends Importer {
     if (url.userInfo != '' || url.hasPort || url.hasQuery || url.hasFragment) {
       throw "Invalid URL $url";
     }
-    // TODO(jamesnw) `containingUrl` seems to be always null
     var baseURL =
-        containingUrl?.scheme == 'file:' ? containingUrl! : entryPointURL;
+        containingUrl?.scheme == 'file' ? containingUrl! : entryPointURL;
 
     var (packageName, subpath) = _packageNameAndSubpath(url.path);
     var packageRoot = _resolvePackageRoot(packageName, baseURL);
@@ -55,8 +59,8 @@ class NodePackageImporterInternal extends Importer {
         ['.scss', '.sass', '.css'].contains(p.extension(resolved.path))) {
       return resolved;
     } else if (resolved != null) {
-      // TODO(jamesnw) handle empty subpath
-      throw "The export for $subpath in $packageName is not a valid Sass file.";
+      throw "The export for '${subpath == '' ? "root" : subpath}' in "
+          "'$packageName' is not a valid Sass file.";
     }
     // If no subpath, attempt to resolve `sass` or `style` key in package.json,
     // then `index` file at package root, resolved for file extensions and
@@ -89,9 +93,10 @@ class NodePackageImporterInternal extends Importer {
   // absolute URL to the root directory for the most proximate installed
   // `packageName`.
   Uri? _resolvePackageRoot(String packageName, Uri baseURL) {
-    var baseDirectory = p.dirname(baseURL.toString());
+    var baseDirectory = p.dirname(baseURL.toFilePath());
 
     Uri? recurseUpFrom(String entry) {
+      if (!entry.startsWith("/")) entry = "/$entry";
       var potentialPackage = p.joinAll([entry, 'node_modules', packageName]);
 
       if (dirExists(potentialPackage)) {
