@@ -32,7 +32,7 @@ final _outboundRequestId = 0;
 
 /// A class that dispatches messages to and from the host for a single
 /// compilation.
-final class Dispatcher {
+final class CompilationDispatcher {
   /// The mailbox for receiving messages from the host.
   final Mailbox _mailbox;
 
@@ -55,9 +55,9 @@ final class Dispatcher {
   /// it'll just be a wrapper around the error.
   var _requestError = false;
 
-  /// Creates a [Dispatcher] that receives encoded protocol buffers through
-  /// [_mailbox] and sends them through [_sendPort].
-  Dispatcher(this._mailbox, this._sendPort);
+  /// Creates a [CompilationDispatcher] that receives encoded protocol buffers
+  /// through [_mailbox] and sends them through [_sendPort].
+  CompilationDispatcher(this._mailbox, this._sendPort);
 
   /// Listens for incoming `CompileRequests` and runs their compilations.
   void listen() {

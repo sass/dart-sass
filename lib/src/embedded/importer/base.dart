@@ -5,14 +5,14 @@
 import 'package:meta/meta.dart';
 
 import '../../importer.dart';
-import '../dispatcher.dart';
+import '../compilation_dispatcher.dart';
 
 /// An abstract base class for importers that communicate with the host in some
 /// way.
 abstract base class ImporterBase extends Importer {
-  /// The [Dispatcher] to which to send requests.
+  /// The [CompilationDispatcher] to which to send requests.
   @protected
-  final Dispatcher dispatcher;
+  final CompilationDispatcher dispatcher;
 
   ImporterBase(this.dispatcher);
 
