@@ -184,10 +184,39 @@ class NodePackageImporterInternal extends Importer {
         if (exports is Map<String, dynamic> &&
             exports.keys.every((key) => key.startsWith('.'))) {
           var matchKey = subpath.startsWith('/') ? ".$subpath" : "./$subpath";
-          if (exports.containsKey(matchKey)) {
+          if (exports.containsKey(matchKey) && !matchKey.contains('*')) {
             return _packageTargetResolve(
                 matchKey, exports[matchKey] as Object, packageRoot);
           }
+          var expansionKeys = exports.keys.where(
+              (key) => key.split('').where((char) => char == '*').length == 1);
+          expansionKeys = _sortExpansionKeys(expansionKeys.toList());
+
+          for (var expansionKey in expansionKeys) {
+            var parts = expansionKey.split('*');
+            var patternBase = parts[0];
+            if (matchKey.startsWith(patternBase) && matchKey != patternBase) {
+              var patternTrailer = parts[1];
+              if (patternTrailer.isEmpty ||
+                  (matchKey.endsWith(patternTrailer) &&
+                      matchKey.length >= expansionKey.length)) {
+                var target = exports[expansionKey] as Object;
+                var patternMatch = matchKey.substring(patternBase.length,
+                    matchKey.length - patternTrailer.length);
+                return _packageTargetResolve(
+                    subpath, target, packageRoot, patternMatch);
+              }
+            }
+          }
+
+//           For each key expansionKey in expansionKeys, do
+// Let patternBase be the substring of expansionKey up to but excluding the first "*" character.
+// If matchKey starts with but is not equal to patternBase, then
+// Let patternTrailer be the substring of expansionKey from the index after the first "*" character.
+// If patternTrailer has zero length, or if matchKey ends with patternTrailer and the length of matchKey is greater than or equal to the length of expansionKey, then
+// Let target be the value of matchObj[expansionKey].
+// Let patternMatch be the substring of matchKey starting at the index of the length of patternBase up to the length of matchKey minus the length of patternTrailer.
+// Return the result of PACKAGE_TARGET_RESOLVE(packageURL, target, patternMatch, isImports, conditions).
         }
       }
       return null;
@@ -196,19 +225,44 @@ class NodePackageImporterInternal extends Importer {
     return subpathVariants.map(processVariant).whereNotNull().toList();
   }
 
-  Uri? _packageTargetResolve(String subpath, Object exports, Uri packageRoot) {
+  /// Implementation of the `PATTERN_KEY_COMPARE` algorithm from
+  /// https://nodejs.org/api/esm.html#resolution-algorithm-specification.
+  List<String> _sortExpansionKeys(List<String> keys) {
+    int sorter(String keyA, String keyB) {
+      var baseLengthA =
+          keyA.contains('*') ? keyA.indexOf('*') + 1 : keyA.length;
+      var baseLengthB =
+          keyB.contains('*') ? keyB.indexOf('*') + 1 : keyB.length;
+      if (baseLengthA > baseLengthB) return -1;
+      if (baseLengthB > baseLengthA) return 1;
+      if (!keyA.contains("*")) return 1;
+      if (!keyB.contains("*")) return -1;
+      if (keyA.length > keyB.length) return -1;
+      if (keyB.length > keyA.length) return 1;
+      return 0;
+    }
+
+    keys.sort(sorter);
+    return keys;
+  }
+
+  Uri? _packageTargetResolve(String subpath, Object exports, Uri packageRoot,
+      [String? patternMatch]) {
     switch (exports) {
       case String string:
         if (!string.startsWith('./')) {
           throw "Invalid Package Target";
+        }
+        if (patternMatch != null) {
+          string = string.replaceAll(RegExp(r'\*'), patternMatch);
         }
         return Uri.parse("$packageRoot/$string");
       case Map<String, dynamic> map:
         var conditions = ['sass', 'style', 'default'];
         for (var key in map.keys) {
           if (conditions.contains(key)) {
-            var result =
-                _packageTargetResolve(subpath, map[key] as Object, packageRoot);
+            var result = _packageTargetResolve(
+                subpath, map[key] as Object, packageRoot, patternMatch);
             if (result != null) {
               return result;
             }
@@ -219,8 +273,8 @@ class NodePackageImporterInternal extends Importer {
         if (array.isEmpty) return null;
 
         for (var value in array) {
-          var result =
-              _packageTargetResolve(subpath, value as Object, packageRoot);
+          var result = _packageTargetResolve(
+              subpath, value as Object, packageRoot, patternMatch);
           if (result != null) {
             return result;
           }
