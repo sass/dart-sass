@@ -87,8 +87,10 @@ final JSClass colorClass = () {
     'toSpace': (SassColor self, String space) => _toSpace(self, space),
     'isInGamut': (SassColor self, [String? space]) =>
         _toSpace(self, space).isInGamut,
-    'toGamut': (SassColor self, [String? space]) =>
-        _toSpace(self, space).toGamut(),
+    'toGamut': (SassColor self, [String? space]) {
+      var originalSpace = self.space;
+      return _toSpace(self, space).toGamut().toSpace(originalSpace);
+    },
     'channel': (SassColor self, String channel, [_ChannelOptions? options]) =>
         _toSpace(self, options?.space).channel(channel),
     'isChannelMissing': (SassColor self, String channel) =>
