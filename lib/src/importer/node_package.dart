@@ -26,6 +26,9 @@ class NodePackageImporterInternal extends Importer {
     return scheme == 'pkg';
   }
 
+  // Disable while determining path forward.
+  bool useWildcard = false;
+
   @override
   Uri? canonicalize(Uri url) {
     if (url.scheme != 'pkg') return null;
@@ -188,35 +191,28 @@ class NodePackageImporterInternal extends Importer {
             return _packageTargetResolve(
                 matchKey, exports[matchKey] as Object, packageRoot);
           }
-          var expansionKeys = exports.keys.where(
-              (key) => key.split('').where((char) => char == '*').length == 1);
-          expansionKeys = _sortExpansionKeys(expansionKeys.toList());
+          if (useWildcard) {
+            var expansionKeys = exports.keys.where((key) =>
+                key.split('').where((char) => char == '*').length == 1);
+            expansionKeys = _sortExpansionKeys(expansionKeys.toList());
 
-          for (var expansionKey in expansionKeys) {
-            var parts = expansionKey.split('*');
-            var patternBase = parts[0];
-            if (matchKey.startsWith(patternBase) && matchKey != patternBase) {
-              var patternTrailer = parts[1];
-              if (patternTrailer.isEmpty ||
-                  (matchKey.endsWith(patternTrailer) &&
-                      matchKey.length >= expansionKey.length)) {
-                var target = exports[expansionKey] as Object;
-                var patternMatch = matchKey.substring(patternBase.length,
-                    matchKey.length - patternTrailer.length);
-                return _packageTargetResolve(
-                    subpath, target, packageRoot, patternMatch);
+            for (var expansionKey in expansionKeys) {
+              var parts = expansionKey.split('*');
+              var patternBase = parts[0];
+              if (matchKey.startsWith(patternBase) && matchKey != patternBase) {
+                var patternTrailer = parts[1];
+                if (patternTrailer.isEmpty ||
+                    (matchKey.endsWith(patternTrailer) &&
+                        matchKey.length >= expansionKey.length)) {
+                  var target = exports[expansionKey] as Object;
+                  var patternMatch = matchKey.substring(patternBase.length,
+                      matchKey.length - patternTrailer.length);
+                  return _packageTargetResolve(
+                      subpath, target, packageRoot, patternMatch);
+                }
               }
             }
           }
-
-//           For each key expansionKey in expansionKeys, do
-// Let patternBase be the substring of expansionKey up to but excluding the first "*" character.
-// If matchKey starts with but is not equal to patternBase, then
-// Let patternTrailer be the substring of expansionKey from the index after the first "*" character.
-// If patternTrailer has zero length, or if matchKey ends with patternTrailer and the length of matchKey is greater than or equal to the length of expansionKey, then
-// Let target be the value of matchObj[expansionKey].
-// Let patternMatch be the substring of matchKey starting at the index of the length of patternBase up to the length of matchKey minus the length of patternTrailer.
-// Return the result of PACKAGE_TARGET_RESOLVE(packageURL, target, patternMatch, isImports, conditions).
         }
       }
       return null;
