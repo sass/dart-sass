@@ -218,8 +218,8 @@ class NodePackageImporterInternal extends Importer {
     return subpathVariants.map(processVariant).whereNotNull().toList();
   }
 
-  /// Implementation of the `PATTERN_KEY_COMPARE` algorithm from
-  /// https://nodejs.org/api/esm.html#resolution-algorithm-specification.
+  // Implementation of the `PATTERN_KEY_COMPARE` algorithm from
+  // https://nodejs.org/api/esm.html#resolution-algorithm-specification.
   List<String> _sortExpansionKeys(List<String> keys) {
     int sorter(String keyA, String keyB) {
       var baseLengthA =
@@ -239,6 +239,7 @@ class NodePackageImporterInternal extends Importer {
     return keys;
   }
 
+  // Recurses through `exports` object to find match for `subpath`.
   Uri? _packageTargetResolve(String subpath, Object exports, Uri packageRoot,
       [String? patternMatch]) {
     switch (exports) {
@@ -286,6 +287,8 @@ class NodePackageImporterInternal extends Importer {
     return null;
   }
 
+  // Given an `exports` object, returns the entry for an export without a
+  // subpath.
   Object? _getMainExport(Object exports) {
     switch (exports) {
       case String string:
