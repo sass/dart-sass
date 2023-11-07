@@ -26,9 +26,6 @@ class NodePackageImporterInternal extends Importer {
     return scheme == 'pkg';
   }
 
-  // Disable while determining path forward.
-  bool useWildcard = false;
-
   @override
   Uri? canonicalize(Uri url) {
     if (url.scheme != 'pkg') return null;
@@ -192,25 +189,24 @@ class NodePackageImporterInternal extends Importer {
             return _packageTargetResolve(
                 matchKey, exports[matchKey] as Object, packageRoot);
           }
-          if (useWildcard) {
-            var expansionKeys = exports.keys.where((key) =>
-                key.split('').where((char) => char == '*').length == 1);
-            expansionKeys = _sortExpansionKeys(expansionKeys.toList());
 
-            for (var expansionKey in expansionKeys) {
-              var parts = expansionKey.split('*');
-              var patternBase = parts[0];
-              if (matchKey.startsWith(patternBase) && matchKey != patternBase) {
-                var patternTrailer = parts[1];
-                if (patternTrailer.isEmpty ||
-                    (matchKey.endsWith(patternTrailer) &&
-                        matchKey.length >= expansionKey.length)) {
-                  var target = exports[expansionKey] as Object;
-                  var patternMatch = matchKey.substring(patternBase.length,
-                      matchKey.length - patternTrailer.length);
-                  return _packageTargetResolve(
-                      subpath, target, packageRoot, patternMatch);
-                }
+          var expansionKeys = exports.keys.where(
+              (key) => key.split('').where((char) => char == '*').length == 1);
+          expansionKeys = _sortExpansionKeys(expansionKeys.toList());
+
+          for (var expansionKey in expansionKeys) {
+            var parts = expansionKey.split('*');
+            var patternBase = parts[0];
+            if (matchKey.startsWith(patternBase) && matchKey != patternBase) {
+              var patternTrailer = parts[1];
+              if (patternTrailer.isEmpty ||
+                  (matchKey.endsWith(patternTrailer) &&
+                      matchKey.length >= expansionKey.length)) {
+                var target = exports[expansionKey] as Object;
+                var patternMatch = matchKey.substring(patternBase.length,
+                    matchKey.length - patternTrailer.length);
+                return _packageTargetResolve(
+                    subpath, target, packageRoot, patternMatch);
               }
             }
           }
@@ -252,6 +248,12 @@ class NodePackageImporterInternal extends Importer {
         }
         if (patternMatch != null) {
           string = string.replaceAll(RegExp(r'\*'), patternMatch);
+          var path = p.normalize("${packageRoot.toFilePath()}/$string");
+          if (fileExists(path)) {
+            return Uri.parse('$packageRoot/$string');
+          } else {
+            return null;
+          }
         }
         return Uri.parse("$packageRoot/$string");
       case Map<String, dynamic> map:
@@ -335,7 +337,7 @@ class NodePackageImporterInternal extends Importer {
         if (dirPath.isEmpty) {
           prefixedPaths.add('_$pathBasename');
         } else {
-          prefixedPaths.add('$dirPath/_$pathBasename');
+          prefixedPaths.add('${dirPath.join(p.separator)}/_$pathBasename');
         }
       }
       paths.addAll(prefixedPaths);
