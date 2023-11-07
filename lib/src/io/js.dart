@@ -285,3 +285,5 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) {
 
   return completer.future;
 }
+
+String parentDir(String path) => p.dirname(path);

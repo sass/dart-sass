@@ -107,12 +107,14 @@ class NodePackageImporterInternal extends Importer {
       if (dirExists(potentialPackage)) {
         return Uri.file(potentialPackage);
       }
+
+      var parent = parentDir(entry);
       List<String> parentDirectoryParts =
-          List.from(Uri.file(entry).pathSegments)..removeLast();
+          List.from(Uri.file(parent).pathSegments);
 
       if (parentDirectoryParts.isEmpty) return null;
 
-      return recurseUpFrom(p.joinAll(parentDirectoryParts));
+      return recurseUpFrom(parent);
     }
 
     return recurseUpFrom(baseDirectory);

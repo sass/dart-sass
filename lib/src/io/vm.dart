@@ -114,3 +114,5 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
 
   return stream;
 }
+
+String parentDir(String path) => io.FileSystemEntity.parentOf(path);
