@@ -98,10 +98,11 @@ class NodePackageImporterInternal extends Importer {
   // absolute URL to the root directory for the most proximate installed
   // `packageName`.
   Uri? _resolvePackageRoot(String packageName, Uri baseURL) {
-    var baseDirectory = p.dirname(baseURL.toFilePath());
+    var baseDirectory = isWindows
+        ? p.dirname(Uri.file(baseURL.toString()).toFilePath())
+        : p.dirname(baseURL.toFilePath());
 
     Uri? recurseUpFrom(String entry) {
-      if (!isWindows && !entry.startsWith("/")) entry = "/$entry";
       var potentialPackage = p.joinAll([entry, 'node_modules', packageName]);
       print("potentialPackage: $potentialPackage");
       if (dirExists(potentialPackage)) {
@@ -112,7 +113,7 @@ class NodePackageImporterInternal extends Importer {
       List<String> parentDirectoryParts =
           List.from(Uri.file(parent).pathSegments);
 
-      if (parentDirectoryParts.isEmpty) return null;
+      if (parentDirectoryParts.length == 1) return null;
 
       return recurseUpFrom(parent);
     }
