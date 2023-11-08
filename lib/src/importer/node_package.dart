@@ -46,15 +46,18 @@ class NodePackageImporterInternal extends Importer {
     var (packageName, subpath) = _packageNameAndSubpath(url.path);
     var packageRoot = _resolvePackageRoot(packageName, baseURL);
     if (packageRoot == null) {
+      print("resolving packageRoot Failed");
       return null;
     }
 
     // Attempt to resolve using conditional exports
     var jsonString = readFile(p.join(packageRoot.path, 'package.json'));
     var packageManifest = jsonDecode(jsonString) as Map<String, dynamic>;
+    print("loaded jsonString, packageManifest");
 
     var resolved = _resolvePackageExports(
         packageRoot, subpath, packageManifest, packageName);
+    print("resolved $resolved");
 
     if (resolved != null &&
         resolved.scheme == 'file' &&
@@ -68,8 +71,10 @@ class NodePackageImporterInternal extends Importer {
     // then `index` file at package root, resolved for file extensions and
     // partials.
     if (subpath == '') {
+      print("subpath");
       return _resolvePackageRootValues(packageRoot.path, packageManifest);
     }
+    print('filesystem');
 
     // If there is a subpath, attempt to resolve the path relative to the package root, and
     //  resolve for file extensions and partials.
