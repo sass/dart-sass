@@ -103,9 +103,11 @@ class NodePackageImporterInternal extends Importer {
     var baseDirectory = isWindows
         ? p.dirname(Uri.file(baseURL.toString()).toFilePath())
         : p.dirname(baseURL.toFilePath());
+    print("resolve $baseDirectory");
 
     Uri? recurseUpFrom(String entry) {
       var potentialPackage = p.joinAll([entry, 'node_modules', packageName]);
+      print("recurse $entry $potentialPackage");
       if (dirExists(potentialPackage)) {
         return Uri.file(potentialPackage);
       }
