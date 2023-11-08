@@ -101,7 +101,6 @@ class NodePackageImporterInternal extends Importer {
 
     Uri? recurseUpFrom(String entry) {
       var potentialPackage = p.joinAll([entry, 'node_modules', packageName]);
-      print("potentialPackage: $potentialPackage");
       if (dirExists(potentialPackage)) {
         return Uri.file(potentialPackage);
       }
