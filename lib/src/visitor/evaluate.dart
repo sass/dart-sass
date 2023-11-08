@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 243938b731f0196c3df9a7d6f8fce9cb84a6de60
+// Checksum: 17c4d5069f1c6a7f159c7a228cdc9802b1b0707d
 //
 // ignore_for_file: unused_import
 
@@ -345,7 +345,8 @@ final class _EvaluateVisitor
       Logger? logger,
       bool quietDeps = false,
       bool sourceMap = false})
-      : _importCache = importCache ?? ImportCache.none(logger: logger),
+      : _importCache = importCache ??
+            (nodeImporter == null ? ImportCache.none(logger: logger) : null),
         _nodeImporter = nodeImporter,
         _logger = logger ?? const Logger.stderr(),
         _quietDeps = quietDeps,

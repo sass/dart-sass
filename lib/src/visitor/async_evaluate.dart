@@ -337,7 +337,10 @@ final class _EvaluateVisitor
       Logger? logger,
       bool quietDeps = false,
       bool sourceMap = false})
-      : _importCache = importCache ?? AsyncImportCache.none(logger: logger),
+      : _importCache = importCache ??
+            (nodeImporter == null
+                ? AsyncImportCache.none(logger: logger)
+                : null),
         _nodeImporter = nodeImporter,
         _logger = logger ?? const Logger.stderr(),
         _quietDeps = quietDeps,
