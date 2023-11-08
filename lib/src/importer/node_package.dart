@@ -49,6 +49,7 @@ class NodePackageImporterInternal extends Importer {
       print("resolving packageRoot Failed");
       return null;
     }
+    print("resolving packageRoot worked");
 
     // Attempt to resolve using conditional exports
     var jsonString = readFile(p.join(packageRoot.path, 'package.json'));
@@ -111,12 +112,16 @@ class NodePackageImporterInternal extends Importer {
       if (dirExists(potentialPackage)) {
         return Uri.file(potentialPackage);
       }
+      print("directory doesn't exist");
 
       var parent = parentDir(entry);
       List<String> parentDirectoryParts =
           List.from(Uri.file(parent).pathSegments);
+      print("parent $parent ${parentDirectoryParts.join(p.separator)}");
 
       if (parentDirectoryParts.length == 1) return null;
+
+      print("length longer than 1, recurse again.");
 
       return recurseUpFrom(parent);
     }
