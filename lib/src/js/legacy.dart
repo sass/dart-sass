@@ -303,7 +303,7 @@ AsyncImportCache? _parsePackageImportersAsync(
   if (options.pkgImporter case 'node') {
     // TODO(jamesnw) Can we get an actual filename for parity? Is it needed?
     Uri entryPointURL = Uri.parse(p.absolute('./index.js'));
-    return AsyncImportCache(
+    return AsyncImportCache.only(
         importers: [NodePackageImporterInternal(entryPointURL)]);
   }
   return null;
@@ -314,7 +314,8 @@ ImportCache? _parsePackageImporters(RenderOptions options, DateTime start) {
   if (options.pkgImporter case 'node') {
     // TODO(jamesnw) Can we get an actual filename for parity? Is it needed?
     Uri entryPointURL = Uri.parse(p.absolute('./index.js'));
-    return ImportCache(importers: [NodePackageImporterInternal(entryPointURL)]);
+    return ImportCache.only(
+        importers: [NodePackageImporterInternal(entryPointURL)]);
   }
   return null;
 }
