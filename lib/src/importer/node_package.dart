@@ -46,11 +46,11 @@ class NodePackageImporterInternal extends Importer {
     var (packageName, subpath) = _packageNameAndSubpath(url.path);
     var packageRoot = _resolvePackageRoot(packageName, baseURL);
     if (packageRoot == null) {
-      throw "Node Package '$packageName' could not be found.";
+      return null;
     }
 
     // Attempt to resolve using conditional exports
-    var jsonString = readFile(packageRoot.path + '/package.json');
+    var jsonString = readFile(p.join(packageRoot.path, 'package.json'));
     var packageManifest = jsonDecode(jsonString) as Map<String, dynamic>;
 
     var resolved = _resolvePackageExports(
