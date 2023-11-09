@@ -42,6 +42,8 @@ class NodePackageImporterInternal extends Importer {
     }
     var baseURL =
         containingUrl?.scheme == 'file' ? containingUrl! : entryPointURL;
+    print(
+        "resolving $url, containing $containingUrl, entry $entryPointURL, base $baseURL");
 
     var (packageName, subpath) = _packageNameAndSubpath(url.path);
     var packageRoot = _resolvePackageRoot(packageName, baseURL);
@@ -72,7 +74,7 @@ class NodePackageImporterInternal extends Importer {
     // then `index` file at package root, resolved for file extensions and
     // partials.
     if (subpath == '') {
-      print("no subpath");
+      print("no subpath $packageRoot");
       return _resolvePackageRootValues(
           packageRoot.toFilePath(), packageManifest);
     }
