@@ -52,7 +52,9 @@ class NodePackageImporterInternal extends Importer {
     print("resolving packageRoot worked");
 
     // Attempt to resolve using conditional exports
-    var jsonString = readFile(p.join(packageRoot.path, 'package.json'));
+    var jsonPath = p.join(packageRoot.path, 'package.json');
+    print("jsonPath $jsonPath");
+    var jsonString = readFile(jsonPath);
     var packageManifest = jsonDecode(jsonString) as Map<String, dynamic>;
     print("loaded jsonString, packageManifest");
 
@@ -105,8 +107,12 @@ class NodePackageImporterInternal extends Importer {
         ? p.dirname(Uri.file(baseURL.toString()).toFilePath())
         : p.dirname(baseURL.toFilePath());
     print("resolve $baseDirectory");
+    var lastEntry = '';
 
     Uri? recurseUpFrom(String entry) {
+      // prevent infinite recursion
+      if (entry == lastEntry) return null;
+      lastEntry = entry;
       var potentialPackage = p.joinAll([entry, 'node_modules', packageName]);
       print("recurse $entry $potentialPackage");
       if (dirExists(potentialPackage)) {

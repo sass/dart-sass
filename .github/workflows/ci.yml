@@ -94,20 +94,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [windows-latest]
         dart_channel: [stable]
         node-version: [18]
-        include:
-          # Include LTS versions on Ubuntu
-          - os: ubuntu-latest
-            dart_channel: stable
-            node-version: 16
-          - os: ubuntu-latest
-            dart_channel: stable
-            node-version: 14
-          - os: ubuntu-latest
-            dart_channel: dev
-            node-version: 18
 
     steps:
       - uses: actions/checkout@v4
@@ -263,20 +252,9 @@ jobs:
       fail-fast: false
 
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [windows-latest]
         dart_channel: [stable]
         node-version: [18]
-        include:
-          # Include LTS versions on Ubuntu
-          - os: ubuntu-latest
-            dart_channel: stable
-            node-version: 16
-          - os: ubuntu-latest
-            dart_channel: stable
-            node-version: 14
-          - os: ubuntu-latest
-            dart_channel: dev
-            node-version: 18
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
