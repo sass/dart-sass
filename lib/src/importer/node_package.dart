@@ -46,21 +46,15 @@ class NodePackageImporterInternal extends Importer {
     var (packageName, subpath) = _packageNameAndSubpath(url.path);
     var packageRoot = _resolvePackageRoot(packageName, baseURL);
     if (packageRoot == null) {
-      print("resolving packageRoot Failed");
       return null;
     }
-    print("resolving packageRoot worked - ${packageRoot.path}");
 
     // Attempt to resolve using conditional exports
     var jsonPath = p.join(packageRoot.toFilePath(), 'package.json');
-    print("jsonPath $jsonPath");
-
     var jsonFile = Uri.file(jsonPath).toFilePath();
-    print("jsonFile $jsonFile");
 
     var jsonString = readFile(jsonFile);
     var packageManifest = jsonDecode(jsonString) as Map<String, dynamic>;
-    print("loaded jsonString, packageManifest");
 
     var resolved = _resolvePackageExports(
         packageRoot, subpath, packageManifest, packageName);
@@ -78,15 +72,16 @@ class NodePackageImporterInternal extends Importer {
     // then `index` file at package root, resolved for file extensions and
     // partials.
     if (subpath == '') {
-      print("subpath");
-      return _resolvePackageRootValues(packageRoot.path, packageManifest);
+      print("no subpath");
+      return _resolvePackageRootValues(
+          packageRoot.toFilePath(), packageManifest);
     }
-    print('filesystem');
 
     // If there is a subpath, attempt to resolve the path relative to the package root, and
     //  resolve for file extensions and partials.
-    return _filesystemImporter
-        .canonicalize(Uri.file("${packageRoot.path}${p.separator}$subpath"));
+    var relativeSubpath = "${packageRoot.toFilePath()}${p.separator}$subpath";
+    print("filesystem $relativeSubpath");
+    return _filesystemImporter.canonicalize(Uri.file(relativeSubpath));
   }
 
   @override
@@ -110,7 +105,6 @@ class NodePackageImporterInternal extends Importer {
     var baseDirectory = isWindows
         ? p.dirname(Uri.directory(baseURL.toString()).toFilePath())
         : p.dirname(baseURL.toFilePath());
-    print("resolve $baseDirectory");
     var lastEntry = '';
 
     Uri? recurseUpFrom(String entry) {
@@ -118,21 +112,16 @@ class NodePackageImporterInternal extends Importer {
       if (entry == lastEntry) return null;
       lastEntry = entry;
       var potentialPackage = p.joinAll([entry, 'node_modules', packageName]);
-      print("recurse $entry $potentialPackage");
+
       if (dirExists(potentialPackage)) {
         return Uri.directory(potentialPackage);
       }
-      print("directory doesn't exist");
 
       var parent = parentDir(entry);
       List<String> parentDirectoryParts =
           List.from(Uri.directory(parent).pathSegments);
-      print("parent $parent ${parentDirectoryParts.join(p.separator)}");
 
       if (parentDirectoryParts.length == 1) return null;
-
-      print("length longer than 1, recurse again.");
-
       return recurseUpFrom(parent);
     }
 
