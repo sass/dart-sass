@@ -139,14 +139,14 @@ class NodePackageImporterInternal extends Importer {
 
     var sassValue = packageManifest['sass'] as String?;
     if (sassValue != null && extensions.contains(p.extension(sassValue))) {
-      return Uri.file('$packageRoot/$sassValue');
+      return Uri.file('$packageRoot$sassValue');
     }
     var styleValue = packageManifest['style'] as String?;
     if (styleValue != null && extensions.contains(p.extension(styleValue))) {
-      return Uri.file('$packageRoot${p.separator}$styleValue');
+      return Uri.file('$packageRoot$styleValue');
     }
 
-    var result = resolveImportPath('$packageRoot${p.separator}index');
+    var result = resolveImportPath('${packageRoot}index');
     if (result != null) return Uri.file(result);
     return null;
   }
