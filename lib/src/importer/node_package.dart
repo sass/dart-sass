@@ -52,7 +52,7 @@ class NodePackageImporterInternal extends Importer {
     print("resolving packageRoot worked - ${packageRoot.path}");
 
     // Attempt to resolve using conditional exports
-    var jsonPath = p.join(packageRoot.path, 'package.json');
+    var jsonPath = p.join(packageRoot.toFilePath(), 'package.json');
     print("jsonPath $jsonPath");
 
     var jsonFile = Uri.file(jsonPath).toFilePath();
