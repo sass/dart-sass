@@ -44,8 +44,6 @@ class NodePackageImporterInternal extends Importer {
     var baseURL = containingUrl?.scheme == 'file'
         ? Uri.parse(containingUrl!.toFilePath())
         : entryPointURL;
-    print(
-        "resolving $url, containing $containingUrl, entry $entryPointURL, base $baseURL");
 
     var (packageName, subpath) = _packageNameAndSubpath(url.path);
     var packageRoot = _resolvePackageRoot(packageName, baseURL);
@@ -62,7 +60,6 @@ class NodePackageImporterInternal extends Importer {
 
     var resolved = _resolvePackageExports(
         packageRoot, subpath, packageManifest, packageName);
-    print("resolved $resolved");
 
     if (resolved != null &&
         resolved.scheme == 'file' &&
@@ -76,7 +73,6 @@ class NodePackageImporterInternal extends Importer {
     // then `index` file at package root, resolved for file extensions and
     // partials.
     if (subpath == '') {
-      print("no subpath $packageRoot");
       return _resolvePackageRootValues(
           packageRoot.toFilePath(), packageManifest);
     }
@@ -84,7 +80,6 @@ class NodePackageImporterInternal extends Importer {
     // If there is a subpath, attempt to resolve the path relative to the package root, and
     //  resolve for file extensions and partials.
     var relativeSubpath = "${packageRoot.toFilePath()}${p.separator}$subpath";
-    print("filesystem $relativeSubpath");
     return _filesystemImporter.canonicalize(Uri.file(relativeSubpath));
   }
 
