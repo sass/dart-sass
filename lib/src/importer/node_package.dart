@@ -49,7 +49,7 @@ class NodePackageImporterInternal extends Importer {
       print("resolving packageRoot Failed");
       return null;
     }
-    print("resolving packageRoot worked");
+    print("resolving packageRoot worked - ${packageRoot.path}");
 
     // Attempt to resolve using conditional exports
     var jsonPath = p.join(packageRoot.path, 'package.json');
@@ -104,7 +104,7 @@ class NodePackageImporterInternal extends Importer {
   // `packageName`.
   Uri? _resolvePackageRoot(String packageName, Uri baseURL) {
     var baseDirectory = isWindows
-        ? p.dirname(Uri.file(baseURL.toString()).toFilePath())
+        ? p.dirname(Uri.directory(baseURL.toString()).toFilePath())
         : p.dirname(baseURL.toFilePath());
     print("resolve $baseDirectory");
     var lastEntry = '';
@@ -116,13 +116,13 @@ class NodePackageImporterInternal extends Importer {
       var potentialPackage = p.joinAll([entry, 'node_modules', packageName]);
       print("recurse $entry $potentialPackage");
       if (dirExists(potentialPackage)) {
-        return Uri.file(potentialPackage);
+        return Uri.directory(potentialPackage);
       }
       print("directory doesn't exist");
 
       var parent = parentDir(entry);
       List<String> parentDirectoryParts =
-          List.from(Uri.file(parent).pathSegments);
+          List.from(Uri.directory(parent).pathSegments);
       print("parent $parent ${parentDirectoryParts.join(p.separator)}");
 
       if (parentDirectoryParts.length == 1) return null;
