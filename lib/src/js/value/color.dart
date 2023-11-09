@@ -413,7 +413,7 @@ void _emitNullAlphaDeprecation() {
       Deprecation.nullAlpha);
 }
 
-// Warn users about legacy color channel getters.
+// Warn users about `null` channel values without setting `space`.
 void _emitColor4ApiNullDeprecation(String name) {
   warnForDeprecationFromApi(
       "Passing `$name: null` without setting `space` is deprecated."
