@@ -54,7 +54,11 @@ class NodePackageImporterInternal extends Importer {
     // Attempt to resolve using conditional exports
     var jsonPath = p.join(packageRoot.path, 'package.json');
     print("jsonPath $jsonPath");
-    var jsonString = readFile(jsonPath);
+
+    var jsonFile = Uri.file(jsonPath).toFilePath();
+    print("jsonFile $jsonFile");
+
+    var jsonString = readFile(jsonFile);
     var packageManifest = jsonDecode(jsonString) as Map<String, dynamic>;
     print("loaded jsonString, packageManifest");
 
