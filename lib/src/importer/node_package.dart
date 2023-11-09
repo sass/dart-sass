@@ -40,8 +40,10 @@ class NodePackageImporterInternal extends Importer {
     if (url.userInfo != '' || url.hasPort || url.hasQuery || url.hasFragment) {
       throw "Invalid URL $url";
     }
-    var baseURL =
-        containingUrl?.scheme == 'file' ? containingUrl! : entryPointURL;
+
+    var baseURL = containingUrl?.scheme == 'file'
+        ? Uri.parse(containingUrl!.toFilePath())
+        : entryPointURL;
     print(
         "resolving $url, containing $containingUrl, entry $entryPointURL, base $baseURL");
 
