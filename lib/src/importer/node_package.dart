@@ -12,13 +12,13 @@ import 'package:path/path.dart' as p;
 
 /// A filesystem importer to use for load implementation details, and for
 /// canonicalizing paths not defined in package.json.
-///
 final _filesystemImporter = FilesystemImporter('.');
 
-/// An importer that resolves `pkg:` URLs using the Node resolution algorithm.
+/// An [Importer] that resolves `pkg:` URLs using the Node resolution algorithm.
 class NodePackageImporterInternal extends Importer {
   final Uri entryPointURL;
-  // Creates an importer with the associated entry point url
+
+  /// Creates a Node Package Importer with the associated entry point url
   NodePackageImporterInternal(this.entryPointURL);
 
   @override
@@ -77,8 +77,8 @@ class NodePackageImporterInternal extends Importer {
           packageRoot.toFilePath(), packageManifest);
     }
 
-    // If there is a subpath, attempt to resolve the path relative to the package root, and
-    //  resolve for file extensions and partials.
+    // If there is a subpath, attempt to resolve the path relative to the
+    // package root, and resolve for file extensions and partials.
     var relativeSubpath = "${packageRoot.toFilePath()}${p.separator}$subpath";
     return _filesystemImporter.canonicalize(Uri.file(relativeSubpath));
   }
@@ -86,8 +86,8 @@ class NodePackageImporterInternal extends Importer {
   @override
   ImporterResult? load(Uri url) => _filesystemImporter.load(url);
 
-  // Takes a string, `path`, and returns a tuple with the package name and the
-  // subpath if it is present.
+  /// Takes a string, `path`, and returns a tuple with the package name and the
+  /// subpath if it is present.
   (String, String) _packageNameAndSubpath(String path) {
     var parts = path.split('/');
     var name = parts.removeAt(0);
@@ -97,9 +97,9 @@ class NodePackageImporterInternal extends Importer {
     return (name, parts.isNotEmpty ? parts.join('/') : '');
   }
 
-  // Takes a string, `packageName`, and an absolute URL `baseURL`, and returns an
-  // absolute URL to the root directory for the most proximate installed
-  // `packageName`.
+  /// Takes a string, `packageName`, and an absolute URL `baseURL`, and returns
+  /// an absolute URL to the root directory for the most proximate installed
+  /// `packageName`.
   Uri? _resolvePackageRoot(String packageName, Uri baseURL) {
     var baseDirectory = isWindows
         ? p.dirname(Uri.directory(baseURL.toString()).toFilePath())
@@ -127,9 +127,9 @@ class NodePackageImporterInternal extends Importer {
     return recurseUpFrom(baseDirectory);
   }
 
-  // Takes a string `packagePath`, which is the root directory for a package, and
-  // `packageManifest`, which is the contents of that package's `package.json`
-  // file, and returns a file URL.
+  /// Takes a string `packagePath`, which is the root directory for a package,
+  /// and `packageManifest`, which is the contents of that package's
+  /// `package.json` file, and returns a file URL.
   Uri? _resolvePackageRootValues(
       String packageRoot, Map<String, dynamic> packageManifest) {
     var extensions = ['.scss', '.sass', '.css'];
@@ -148,9 +148,9 @@ class NodePackageImporterInternal extends Importer {
     return null;
   }
 
-  // Takes a package.json value `packageManifest`, a directory URL `packageRoot`
-  // and a relative URL path `subpath`. It returns a file URL or null.
-  // `packageName` is used for error reporting only.
+  /// Takes a package.json value `packageManifest`, a directory URL
+  /// `packageRoot` and a relative URL path `subpath`. It returns a file URL or
+  /// null. `packageName` is used for error reporting only.
   Uri? _resolvePackageExports(Uri packageRoot, String subpath,
       Map<String, dynamic> packageManifest, String packageName) {
     if (packageManifest['exports'] == null) return null;
@@ -180,9 +180,9 @@ class NodePackageImporterInternal extends Importer {
     return null;
   }
 
-  // Takes a package.json value `packageManifest`, a directory URL `packageRoot`
-  // and a list of relative URL paths `subpathVariants`. It returns a list of all
-  // subpaths present in the package Manifest exports.
+  /// Takes a package.json value `packageManifest`, a directory URL
+  /// `packageRoot` and a list of relative URL paths `subpathVariants`. It
+  /// returns a list of all subpaths present in the package manifest exports.
   List<Uri> _nodePackageExportsResolve(
       Uri packageRoot, List<String> subpathVariants, Object exports) {
     Uri? processVariant(String subpath) {
@@ -227,8 +227,8 @@ class NodePackageImporterInternal extends Importer {
     return subpathVariants.map(processVariant).whereNotNull().toList();
   }
 
-  // Implementation of the `PATTERN_KEY_COMPARE` algorithm from
-  // https://nodejs.org/api/esm.html#resolution-algorithm-specification.
+  /// Implementation of the `PATTERN_KEY_COMPARE` algorithm from
+  /// https://nodejs.org/api/esm.html#resolution-algorithm-specification.
   List<String> _sortExpansionKeys(List<String> keys) {
     int sorter(String keyA, String keyB) {
       var baseLengthA =
@@ -248,7 +248,7 @@ class NodePackageImporterInternal extends Importer {
     return keys;
   }
 
-  // Recurses through `exports` object to find match for `subpath`.
+  /// Recurses through `exports` object to find match for `subpath`.
   Uri? _packageTargetResolve(String subpath, Object exports, Uri packageRoot,
       [String? patternMatch]) {
     switch (exports) {
@@ -296,8 +296,8 @@ class NodePackageImporterInternal extends Importer {
     return null;
   }
 
-  // Given an `exports` object, returns the entry for an export without a
-  // subpath.
+  /// Given an `exports` object, returns the entry for an export without a
+  /// subpath.
   Object? _getMainExport(Object exports) {
     switch (exports) {
       case String string:
@@ -319,8 +319,8 @@ class NodePackageImporterInternal extends Importer {
     return null;
   }
 
-  // Given a string `subpath`, returns a list of all possible variations with
-  // extensions and partials.
+  /// Given a string `subpath`, returns a list of all possible variations with
+  /// extensions and partials.
   List<String> _exportLoadPaths(String subpath, [bool addIndex = false]) {
     List<String> paths = [];
     if (subpath.isEmpty && !addIndex) return [subpath];
