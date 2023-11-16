@@ -28,6 +28,7 @@ class NodePackageImporterInternal extends Importer {
 
   @override
   Uri? canonicalize(Uri url) {
+    if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
     if (url.scheme != 'pkg') return null;
     // TODO(jamesnw) Can these errors even be thrown? Or are these cases
     // filtered out before this?
