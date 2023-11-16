@@ -39,7 +39,7 @@ import 'utils.dart';
 /// [render]: https://github.com/sass/node-sass#options
 void render(
     RenderOptions options, void callback(Object? error, RenderResult? result)) {
-  if (!isNode) {
+  if (!isNodeJs) {
     jsThrow(JsError("The render() method is only available in Node.js."));
   }
   if (options.fiber case var fiber?) {
@@ -118,7 +118,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
 ///
 /// [render]: https://github.com/sass/node-sass#options
 RenderResult renderSync(RenderOptions options) {
-  if (!isNode) {
+  if (!isNodeJs) {
     jsThrow(JsError("The renderSync() method is only available in Node.js."));
   }
   try {

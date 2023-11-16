@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:cli_pkg/js.dart';
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
@@ -33,7 +34,6 @@ import '../functions/meta.dart' as meta;
 import '../importer.dart';
 import '../importer/legacy_node.dart';
 import '../interpolation_map.dart';
-import '../io.dart';
 import '../logger.dart';
 import '../module.dart';
 import '../module/built_in.dart';

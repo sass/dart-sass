@@ -6,7 +6,7 @@ import '../callable.dart';
 import '../exception.dart';
 import '../value/function.dart';
 import '../value/mixin.dart';
-import 'dispatcher.dart';
+import 'compilation_dispatcher.dart';
 import 'embedded_sass.pb.dart';
 import 'opaque_registry.dart';
 import 'protofier.dart';
@@ -21,7 +21,7 @@ import 'utils.dart';
 ///
 /// Throws a [SassException] if [signature] is invalid.
 Callable hostCallable(
-    Dispatcher dispatcher,
+    CompilationDispatcher dispatcher,
     OpaqueRegistry<SassFunction> functions,
     OpaqueRegistry<SassMixin> mixins,
     String signature,

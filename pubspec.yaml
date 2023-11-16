@@ -14,7 +14,7 @@ dependencies:
   args: ^2.0.0
   async: ^2.5.0
   charcode: ^1.2.0
-  cli_pkg: ^2.5.0
+  cli_pkg: ^2.7.0
   cli_repl: ^0.2.1
   collection: ^1.16.0
   http: "^1.1.0"
@@ -42,10 +42,10 @@ dev_dependencies:
   archive: ^3.1.2
   crypto: ^3.0.0
   dart_style: ^2.0.0
-  dartdoc: ^6.0.0
+  dartdoc: ">=6.0.0 <8.0.0"
   grinder: ^0.9.0
   node_preamble: ^2.0.2
-  lints: ^2.0.0
+  lints: ">=2.0.0 <4.0.0"
   protoc_plugin: ">=20.0.0 <22.0.0"
   pub_api_client: ^2.1.1
   pubspec_parse: ^1.0.0

@@ -152,6 +152,33 @@
 * Added `InterpolationMethod` and `HueInterpolationMethod` which collectively
   represent the method to use to interpolate two colors.
 
+## 1.69.5
+
+### JS API
+
+* Compatibility with Node.js 21.0.0.
+
+## 1.69.4
+
+* No user-visible changes.
+
+## 1.69.3
+
+### Embedded Sass
+
+* Fix TypeScript type locations in `package.json`.
+
+## 1.69.2
+
+### JS API
+
+* Fix a bug where Sass crashed when running in the browser if there was a global
+  variable named `process`.
+
+## 1.69.1
+
+* No user-visible changes.
+
 ## 1.69.0
 
 * Add a `meta.get-mixin()` function that returns a mixin as a first-class Sass
