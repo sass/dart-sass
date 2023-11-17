@@ -403,7 +403,7 @@ releases listed as Current, Active LTS, or Maintenance LTS according to [the
 Node.js release page][]. Once a Node.js version is out of LTS, Dart Sass
 considers itself free to break support if necessary.
 
-[the Node.js release page]: https://nodejs.org/en/about/releases/
+[the Node.js release page]: https://nodejs.org/en/about/previous-releases
 
 ## Embedded Dart Sass
 

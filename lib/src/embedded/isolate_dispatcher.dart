@@ -12,7 +12,7 @@ import 'package:pool/pool.dart';
 import 'package:protobuf/protobuf.dart';
 import 'package:stream_channel/stream_channel.dart';
 
-import 'dispatcher.dart';
+import 'compilation_dispatcher.dart';
 import 'embedded_sass.pb.dart';
 import 'reusable_isolate.dart';
 import 'util/proto_extensions.dart';
@@ -161,5 +161,5 @@ class IsolateDispatcher {
 }
 
 void _isolateMain(Mailbox mailbox, SendPort sendPort) {
-  Dispatcher(mailbox, sendPort).listen();
+  CompilationDispatcher(mailbox, sendPort).listen();
 }

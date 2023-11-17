@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c2982db43bcd56f81cab3f51b5669e0edd3cfafb
+// Checksum: 5178e366228bde7854df12221393857bb3022628
 //
 // ignore_for_file: unused_import
 
@@ -13,6 +13,7 @@ export 'async_compile.dart';
 
 import 'dart:convert';
 
+import 'package:cli_pkg/js.dart';
 import 'package:path/path.dart' as p;
 
 import 'ast/sass.dart';
