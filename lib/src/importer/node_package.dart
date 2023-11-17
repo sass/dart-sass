@@ -30,16 +30,18 @@ class NodePackageImporterInternal extends Importer {
   Uri? canonicalize(Uri url) {
     if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
     if (url.scheme != 'pkg') return null;
-    // TODO(jamesnw) Can these errors even be thrown? Or are these cases
-    // filtered out before this?
-    if (url.path.startsWith('/')) {
+
+    if (url.hasAuthority) {
+      throw "pkg: URL $url must not have a host, port, username or password.";
+    }
+    if (p.isAbsolute(url.path)) {
       throw "pkg: URL $url must not be an absolute path.";
     }
     if (url.path.isEmpty) {
       throw "pkg: URL $url must not have an empty path.";
     }
-    if (url.userInfo != '' || url.hasPort || url.hasQuery || url.hasFragment) {
-      throw "Invalid URL $url";
+    if (url.hasQuery || url.hasFragment) {
+      throw "pkg: URL $url must not have a query or fragment.";
     }
 
     var baseURL = containingUrl?.scheme == 'file'
