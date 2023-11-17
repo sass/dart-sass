@@ -201,7 +201,7 @@ String _readAndResolveMarkdown(String path) => File(path)
       return included.substring(headerMatch.end, sectionEnd).trim();
     });
 
-/// Returns a map from JS type declaration file names to their contnets.
+/// Returns a map from JS type declaration file names to their contents.
 Map<String, String> _fetchJSTypes() {
   var languageRepo =
       cloneOrCheckout("https://github.com/sass/sass", "main", name: 'language');
