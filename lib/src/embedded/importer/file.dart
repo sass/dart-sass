@@ -11,7 +11,7 @@ import 'base.dart';
 /// [FileImporter].
 ///
 /// This allows us to avoid duplicating logic between the two importers.
-final _filesystemImporter = FilesystemImporter('.');
+final _filesystemImporter = FilesystemImporter.cwd;
 
 /// An importer that asks the host to resolve imports in a simplified,
 /// file-system-centric way.

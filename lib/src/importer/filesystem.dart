@@ -23,7 +23,7 @@ class FilesystemImporter extends Importer {
   FilesystemImporter(String loadPath) : _loadPath = p.absolute(loadPath);
 
   /// Creates an importer relative to the current working directory.
-  static FilesystemImporter cwd = FilesystemImporter('.');
+  static FilesystemImporter cwd = FilesystemImporter.cwd;
 
   Uri? canonicalize(Uri url) {
     if (url.scheme != 'file' && url.scheme != '') return null;
