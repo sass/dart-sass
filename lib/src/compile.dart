@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 23b059beeb519469aa45fead0956a1a25f0c814e
+// Checksum: a9421a2975e79ad591ae32474cd076e1379d0e75
 //
 // ignore_for_file: unused_import
 
@@ -66,7 +66,7 @@ CompileResult compile(String path,
       (syntax == null || syntax == Syntax.forPath(path))) {
     importCache ??= ImportCache.none(logger: logger);
     stylesheet = importCache.importCanonical(
-        FilesystemImporter('.'), p.toUri(canonicalize(path)),
+        FilesystemImporter.cwd, p.toUri(canonicalize(path)),
         originalUrl: p.toUri(path))!;
   } else {
     stylesheet = Stylesheet.parse(
@@ -79,7 +79,7 @@ CompileResult compile(String path,
       logger,
       importCache,
       nodeImporter,
-      FilesystemImporter('.'),
+      FilesystemImporter.cwd,
       functions,
       style,
       useSpaces,
@@ -131,7 +131,7 @@ CompileResult compileString(String source,
       logger,
       importCache,
       nodeImporter,
-      importer ?? (isBrowser ? NoOpImporter() : FilesystemImporter('.')),
+      importer ?? (isBrowser ? NoOpImporter() : FilesystemImporter.cwd),
       functions,
       style,
       useSpaces,

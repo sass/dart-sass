@@ -11,7 +11,7 @@ import '../importer.dart';
 ///
 /// This allows us to avoid duplicating the logic for choosing an extension and
 /// looking for partials.
-final _filesystemImporter = FilesystemImporter('.');
+final _filesystemImporter = FilesystemImporter.cwd;
 
 /// An importer that loads stylesheets from `package:` imports.
 ///

@@ -21,7 +21,7 @@ import '../utils.dart';
 /// [JSToDartAsyncFileImporter].
 ///
 /// This allows us to avoid duplicating logic between the two importers.
-final _filesystemImporter = FilesystemImporter('.');
+final _filesystemImporter = FilesystemImporter.cwd;
 
 /// A wrapper for a potentially-asynchronous JS API file importer that exposes
 /// it as a Dart [AsyncImporter].

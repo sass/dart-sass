@@ -12,7 +12,7 @@ import 'package:path/path.dart' as p;
 
 /// A filesystem importer to use for load implementation details, and for
 /// canonicalizing paths not defined in package.json.
-final _filesystemImporter = FilesystemImporter('.');
+final _filesystemImporter = FilesystemImporter.cwd;
 
 /// An [Importer] that resolves `pkg:` URLs using the Node resolution algorithm.
 class NodePackageImporterInternal extends Importer {
