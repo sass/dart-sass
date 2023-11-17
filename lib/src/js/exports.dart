@@ -23,7 +23,7 @@ class Exports {
   external set info(String info);
   external set Exception(JSClass function);
   external set Logger(LoggerNamespace namespace);
-  external set nodePackageImporter(NodePackageImporter nodePackageImporter);
+  external set nodePackageImporter(JSSymbol nodePackageImporter);
 
   // Value APIs
   external set Value(JSClass function);

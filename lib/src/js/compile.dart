@@ -3,9 +3,11 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:cli_pkg/js.dart';
+import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart' hide futureToPromise;
 import 'package:path/path.dart' as p;
+import 'package:sass/src/js/function.dart';
 import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import '../../sass.dart';
@@ -184,7 +186,8 @@ OutputStyle _parseOutputStyle(String? style) => switch (style) {
 /// Converts [importer] into an [AsyncImporter] that can be used with
 /// [compileAsync] or [compileStringAsync].
 AsyncImporter _parseAsyncImporter(Object? importer) {
-  if (importer == nodePackageImporter) {
+  var jsEquals = JSFunction('a', 'b', 'return a===b');
+  if (jsEquals.call(importer, nodePackageImporter) == true) {
     if (isBrowser) {
       jsThrow(JsError(
           "The Node Package Importer can not be used without a filesystem."));
@@ -218,7 +221,8 @@ AsyncImporter _parseAsyncImporter(Object? importer) {
 
 /// Converts [importer] into a synchronous [Importer].
 Importer _parseImporter(Object? importer) {
-  if (importer == nodePackageImporter) {
+  var jsEquals = JSFunction('a', 'b', 'return a===b');
+  if (jsEquals.call(importer, nodePackageImporter) == true) {
     if (isBrowser) {
       jsThrow(JsError(
           "The Node Package Importer can not be used without a filesystem."));
@@ -227,6 +231,7 @@ Importer _parseImporter(Object? importer) {
     Uri entryPointURL = Uri.parse(p.absolute('./index.js'));
     return NodePackageImporterInternal(entryPointURL);
   }
+
   if (importer == null) jsThrow(JsError("Importers may not be null."));
 
   importer as JSImporter;
@@ -342,10 +347,10 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
   return result;
 }
 
-const NodePackageImporter nodePackageImporter = NodePackageImporter();
+@JS("Symbol")
+class JSSymbol {}
 
-class NodePackageImporter {
-  // ignore: unused_field
-  final String _nodePackageImporterBrand = '';
-  const NodePackageImporter();
-}
+@JS("Symbol")
+external JSSymbol createJSSymbol();
+
+final nodePackageImporter = createJSSymbol();
