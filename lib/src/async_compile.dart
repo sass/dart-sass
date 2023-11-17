@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cli_pkg/js.dart';
 import 'package:path/path.dart' as p;
 
 import 'ast/sass.dart';

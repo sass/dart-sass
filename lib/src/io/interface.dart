@@ -19,15 +19,6 @@ bool get isMacOS => throw '';
 /// Returns whether or not stdout is connected to an interactive terminal.
 bool get hasTerminal => throw '';
 
-/// Whether we're running as JS (browser or Node.js).
-const bool isJS = false;
-
-/// Whether we're running as Node.js (not browser or Dart VM).
-bool get isNode => throw '';
-
-/// Whether we're running as browser (not Node.js or Dart VM).
-bool get isBrowser => throw '';
-
 /// Whether this process is connected to a terminal that supports ANSI escape
 /// sequences.
 bool get supportsAnsiEscapes => throw '';

@@ -6,7 +6,7 @@ import '../../exception.dart';
 import '../../importer.dart';
 import '../../importer/utils.dart';
 import '../../util/span.dart';
-import '../dispatcher.dart';
+import '../compilation_dispatcher.dart';
 import '../embedded_sass.pb.dart' hide SourceSpan;
 import '../utils.dart';
 import 'base.dart';
@@ -20,7 +20,7 @@ final class HostImporter extends ImporterBase {
   /// [canonicalize].
   final Set<String> _nonCanonicalSchemes;
 
-  HostImporter(Dispatcher dispatcher, this._importerId,
+  HostImporter(CompilationDispatcher dispatcher, this._importerId,
       Iterable<String> nonCanonicalSchemes)
       : _nonCanonicalSchemes = Set.unmodifiable(nonCanonicalSchemes),
         super(dispatcher) {
