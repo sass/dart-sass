@@ -1,5 +1,3 @@
-import 'dart:js_util';
-
 import 'package:node_interop/js.dart';
 
 import 'compile.dart';
@@ -17,9 +15,7 @@ class Compiler {
   }
 }
 
-class AsyncCompiler extends Compiler {
-  final List<Promise> _compilations = [];
-}
+class AsyncCompiler extends Compiler {}
 
 /// The JS API Compiler class
 ///
@@ -64,20 +60,15 @@ final JSClass asyncCompilerClass = () {
     'compileAsync': (AsyncCompiler self, String path,
         [CompileOptions? options]) {
       self.throwIfDisposed();
-      var compilation = compileAsync(path, options);
-      self._compilations.add(compilation);
-      return compilation;
+      return compileAsync(path, options);
     },
     'compileStringAsync': (AsyncCompiler self, String source,
         [CompileStringOptions? options]) {
       self.throwIfDisposed();
-      var compilation = compileStringAsync(source, options);
-      self._compilations.add(compilation);
-      return compilation;
+      return compileStringAsync(source, options);
     },
     'dispose': (AsyncCompiler self) async {
       self._disposed = true;
-      await Future.wait(self._compilations.map(promiseToFuture<Object>));
     },
   });
 
