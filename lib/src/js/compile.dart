@@ -47,7 +47,8 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
         sourceMap: options?.sourceMap ?? false,
         logger: JSToDartLogger(options?.logger, Logger.stderr(color: color),
             ascii: ascii),
-        importers: options?.importers?.map(_parseImporter),
+        importers: options?.importers
+            ?.map((importer) => _parseImporter(importer, Uri.parse(path))),
         functions: _parseFunctions(options?.functions).cast());
     return _convertResult(result,
         includeSourceContents: options?.sourceMapIncludeSources ?? false);
@@ -63,10 +64,11 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
 NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
   var color = options?.alertColor ?? hasTerminal;
   var ascii = options?.alertAscii ?? glyph.ascii;
+  var url = options?.url.andThen(jsToDartUrl);
   try {
     var result = compileStringToResult(text,
         syntax: parseSyntax(options?.syntax),
-        url: options?.url.andThen(jsToDartUrl),
+        url: url,
         color: color,
         loadPaths: options?.loadPaths,
         quietDeps: options?.quietDeps ?? false,
@@ -76,7 +78,8 @@ NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
         sourceMap: options?.sourceMap ?? false,
         logger: JSToDartLogger(options?.logger, Logger.stderr(color: color),
             ascii: ascii),
-        importers: options?.importers?.map(_parseImporter),
+        importers: options?.importers
+            ?.map((importer) => _parseImporter(importer, url)),
         importer: options?.importer.andThen(_parseImporter) ??
             (options?.url == null ? NoOpImporter() : null),
         functions: _parseFunctions(options?.functions).cast());
@@ -109,7 +112,7 @@ Promise compileAsync(String path, [CompileOptions? options]) {
         logger: JSToDartLogger(options?.logger, Logger.stderr(color: color),
             ascii: ascii),
         importers: options?.importers
-            ?.map((importer) => _parseAsyncImporter(importer)),
+            ?.map((importer) => _parseAsyncImporter(importer, Uri.parse(path))),
         functions: _parseFunctions(options?.functions, asynch: true));
     return _convertResult(result,
         includeSourceContents: options?.sourceMapIncludeSources ?? false);
@@ -123,10 +126,11 @@ Promise compileAsync(String path, [CompileOptions? options]) {
 Promise compileStringAsync(String text, [CompileStringOptions? options]) {
   var color = options?.alertColor ?? hasTerminal;
   var ascii = options?.alertAscii ?? glyph.ascii;
+  var url = options?.url.andThen(jsToDartUrl);
   return _wrapAsyncSassExceptions(futureToPromise(() async {
     var result = await compileStringToResultAsync(text,
         syntax: parseSyntax(options?.syntax),
-        url: options?.url.andThen(jsToDartUrl),
+        url: url,
         color: color,
         loadPaths: options?.loadPaths,
         quietDeps: options?.quietDeps ?? false,
@@ -139,7 +143,7 @@ Promise compileStringAsync(String text, [CompileStringOptions? options]) {
         importers: options?.importers
             ?.map((importer) => _parseAsyncImporter(importer)),
         importer: options?.importer
-                .andThen((importer) => _parseAsyncImporter(importer)) ??
+                .andThen((importer) => _parseAsyncImporter(importer, url)) ??
             (options?.url == null ? NoOpImporter() : null),
         functions: _parseFunctions(options?.functions, asynch: true));
     return _convertResult(result,
@@ -185,15 +189,14 @@ OutputStyle _parseOutputStyle(String? style) => switch (style) {
 
 /// Converts [importer] into an [AsyncImporter] that can be used with
 /// [compileAsync] or [compileStringAsync].
-AsyncImporter _parseAsyncImporter(Object? importer) {
+AsyncImporter _parseAsyncImporter(Object? importer, [Uri? entryPointURL]) {
   var jsEquals = JSFunction('a', 'b', 'return a===b');
   if (jsEquals.call(importer, nodePackageImporter) == true) {
     if (isBrowser) {
       jsThrow(JsError(
           "The Node Package Importer can not be used without a filesystem."));
     }
-    // TODO(jamesnw) Can we get an actual filename for parity? Is it needed?
-    Uri entryPointURL = Uri.parse(p.absolute('./index.js'));
+    entryPointURL = entryPointURL ?? Uri.parse(p.absolute('./index.scss'));
     return NodePackageImporterInternal(entryPointURL);
   }
   if (importer == null) jsThrow(JsError("Importers may not be null."));
@@ -220,15 +223,14 @@ AsyncImporter _parseAsyncImporter(Object? importer) {
 }
 
 /// Converts [importer] into a synchronous [Importer].
-Importer _parseImporter(Object? importer) {
+Importer _parseImporter(Object? importer, [Uri? entryPointURL]) {
   var jsEquals = JSFunction('a', 'b', 'return a===b');
   if (jsEquals.call(importer, nodePackageImporter) == true) {
     if (isBrowser) {
       jsThrow(JsError(
           "The Node Package Importer can not be used without a filesystem."));
     }
-    // TODO(jamesnw) Can we get an actual filename for parity? Is it needed?
-    Uri entryPointURL = Uri.parse(p.absolute('./index.js'));
+    entryPointURL = entryPointURL ?? Uri.parse(p.absolute('./index.scss'));
     return NodePackageImporterInternal(entryPointURL);
   }
 
