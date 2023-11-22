@@ -1,3 +1,5 @@
+import 'dart:js_util';
+
 import 'package:node_interop/js.dart';
 
 import 'compile.dart';
@@ -15,7 +17,19 @@ class Compiler {
   }
 }
 
-class AsyncCompiler extends Compiler {}
+class AsyncCompiler extends Compiler {
+  final Set<Promise> _compilations = {};
+
+  /// Adds a compilation to the pending set and removes it when it's done.
+  void _addCompilation(Promise compilation) {
+    _compilations.add(compilation);
+    compilation.then((value) {
+      _compilations.remove(compilation);
+    }, (error) {
+      _compilations.remove(compilation);
+    });
+  }
+}
 
 /// The JS API Compiler class
 ///
@@ -60,16 +74,23 @@ final JSClass asyncCompilerClass = () {
     'compileAsync': (AsyncCompiler self, String path,
         [CompileOptions? options]) {
       self.throwIfDisposed();
-      return compileAsync(path, options);
+      var compilation = compileAsync(path, options);
+      self._addCompilation(compilation);
+      return compilation;
     },
     'compileStringAsync': (AsyncCompiler self, String source,
         [CompileStringOptions? options]) {
       self.throwIfDisposed();
-      return compileStringAsync(source, options);
+      var compilation = compileStringAsync(source, options);
+      self._addCompilation(compilation);
+      return compilation;
     },
-    'dispose': (AsyncCompiler self) async {
+    'dispose': (AsyncCompiler self) {
       self._disposed = true;
-    },
+      return futureToPromise((() async {
+        await Future.wait(self._compilations.map(promiseToFuture<Object>));
+      })());
+    }
   });
 
   getJSClass(AsyncCompiler()).injectSuperclass(jsClass);
