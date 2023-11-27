@@ -31,10 +31,7 @@ class AsyncCompiler extends Compiler {
   }
 }
 
-/// The JS API Compiler class
-///
-/// See https://github.com/sass/sass/spec/tree/main/js-api/compile.d.ts for
-/// details.
+/// The JavaScript `Compiler` class.
 final JSClass compilerClass = () {
   var jsClass = createJSClass('sass.Compiler', () => Compiler());
 
@@ -57,16 +54,9 @@ final JSClass compilerClass = () {
   return jsClass;
 }();
 
-/// Returns an instance of the JS API Compiler class
-///
-/// See https://github.com/sass/sass/spec/tree/main/js-api/compile.d.ts for
-/// details.
 Compiler initCompiler() => Compiler();
 
-/// The JS AsyncCompiler class
-///
-/// See https://github.com/sass/sass/spec/tree/main/js-api/compile.d.ts for
-/// details.
+/// The JavaScript `AsyncCompiler` class.
 final JSClass asyncCompilerClass = () {
   var jsClass = createJSClass('sass.AsyncCompiler', () => AsyncCompiler());
 
@@ -97,8 +87,4 @@ final JSClass asyncCompilerClass = () {
   return jsClass;
 }();
 
-/// Resolves an instance of the JS API AsyncCompiler class
-///
-/// See https://github.com/sass/sass/spec/tree/main/js-api/compile.d.ts for
-/// details.
 Promise initAsyncCompiler() => futureToPromise((() async => AsyncCompiler())());
