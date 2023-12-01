@@ -151,7 +151,7 @@ class NodePackageImporterInternal extends Importer {
       Map<String, dynamic> packageManifest, String packageName) {
     if (packageManifest['exports'] == null) return null;
     var exports = packageManifest['exports'] as Object;
-    var subpathVariants = _exportLoadPaths(subpath);
+    var subpathVariants = _exportsToCheck(subpath);
     var resolvedPaths =
         _nodePackageExportsResolve(packageRoot, subpathVariants, exports);
 
@@ -162,7 +162,7 @@ class NodePackageImporterInternal extends Importer {
     }
     if (p.extension(subpath).isNotEmpty) return null;
 
-    var subpathIndexVariants = _exportLoadPaths(subpath, true);
+    var subpathIndexVariants = _exportsToCheck(subpath, addIndex: true);
 
     var resolvedIndexPaths =
         _nodePackageExportsResolve(packageRoot, subpathIndexVariants, exports);
@@ -308,7 +308,7 @@ class NodePackageImporterInternal extends Importer {
 
   /// Given a string `subpath`, returns a list of all possible variations with
   /// extensions and partials.
-  List<String> _exportLoadPaths(String subpath, [bool addIndex = false]) {
+  List<String> _exportsToCheck(String subpath, {bool addIndex = false}) {
     List<String> paths = [];
     if (subpath.isEmpty && !addIndex) return [subpath];
     if (subpath.isEmpty && addIndex) {
