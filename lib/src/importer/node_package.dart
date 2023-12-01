@@ -151,9 +151,10 @@ class NodePackageImporterInternal extends Importer {
     return null;
   }
 
-  /// Takes a package.json value `packageManifest`, a directory URL
-  /// `packageRoot` and a relative URL path `subpath`. It returns a file URL or
-  /// null. `packageName` is used for error reporting only.
+  /// Returns a path specified in the `exports` section of package.json. Takes a
+  /// package.json value `packageManifest`, a directory URL `packageRoot` and a
+  /// relative URL path `subpath`. `packageName` is used for error reporting
+  /// only.
   Uri? _resolvePackageExports(Uri packageRoot, String? subpath,
       Map<String, dynamic> packageManifest, String packageName) {
     if (packageManifest['exports'] == null) return null;
@@ -164,8 +165,10 @@ class NodePackageImporterInternal extends Importer {
 
     if (resolvedPaths.length == 1) return resolvedPaths.first;
     if (resolvedPaths.length > 1) {
-      throw "Unable to determine which of multiple potential "
-          "resolutions found for $subpath in $packageName should be used.";
+      throw "Unable to determine which of multiple potential resolutions "
+          "found for ${subpath ?? 'root'} in $packageName should be used. "
+          "\n\nFound:\n"
+          "${resolvedPaths.join('\n')}";
     }
     if (subpath != null && p.extension(subpath).isNotEmpty) return null;
 
@@ -176,8 +179,10 @@ class NodePackageImporterInternal extends Importer {
 
     if (resolvedIndexPaths.length == 1) return resolvedIndexPaths.first;
     if (resolvedIndexPaths.length > 1) {
-      throw "Unable to determine which of multiple potential "
-          "resolutions found for $subpath in $packageName should be used.";
+      throw "Unable to determine which of multiple potential resolutions "
+          "found for ${subpath ?? 'root'} in $packageName should be used. "
+          "\n\nFound:\n"
+          "${resolvedIndexPaths.join('\n')}";
     }
 
     return null;
