@@ -66,7 +66,7 @@ class NodePackageImporterInternal extends Importer {
           validExtensions.contains(p.url.extension(resolved.path))) {
         return resolved;
       } else {
-        throw "The export for '${subpath == '' ? "root" : subpath}' in "
+        throw "The export for '${subpath ?? "root"}' in "
             "'$packageName' resolved to '${resolved.toString()}', "
             "which is not a '.scss', '.sass', or '.css' file.";
       }
@@ -74,7 +74,7 @@ class NodePackageImporterInternal extends Importer {
     // If no subpath, attempt to resolve `sass` or `style` key in package.json,
     // then `index` file at package root, resolved for file extensions and
     // partials.
-    if (subpath == '') {
+    if (subpath == null) {
       return _resolvePackageRootValues(
           packageRoot.toFilePath(), packageManifest);
     }
@@ -90,13 +90,13 @@ class NodePackageImporterInternal extends Importer {
 
   /// Takes a string, `path`, and returns a tuple with the package name and the
   /// subpath if it is present.
-  (String, String) _packageNameAndSubpath(String path) {
+  (String, String?) _packageNameAndSubpath(String path) {
     var parts = path.split('/');
     var name = parts.removeAt(0);
     if (name.startsWith('@')) {
       name = '$name/${parts.removeAt(0)}';
     }
-    return (name, parts.isNotEmpty ? parts.join('/') : '');
+    return (name, parts.isNotEmpty ? parts.join('/') : null);
   }
 
   /// Takes a string, `packageName`, and an absolute URL `baseURL`, and returns
@@ -154,7 +154,7 @@ class NodePackageImporterInternal extends Importer {
   /// Takes a package.json value `packageManifest`, a directory URL
   /// `packageRoot` and a relative URL path `subpath`. It returns a file URL or
   /// null. `packageName` is used for error reporting only.
-  Uri? _resolvePackageExports(Uri packageRoot, String subpath,
+  Uri? _resolvePackageExports(Uri packageRoot, String? subpath,
       Map<String, dynamic> packageManifest, String packageName) {
     if (packageManifest['exports'] == null) return null;
     var exports = packageManifest['exports'] as Object;
@@ -167,7 +167,7 @@ class NodePackageImporterInternal extends Importer {
       throw "Unable to determine which of multiple potential "
           "resolutions found for $subpath in $packageName should be used.";
     }
-    if (p.extension(subpath).isNotEmpty) return null;
+    if (subpath != null && p.extension(subpath).isNotEmpty) return null;
 
     var subpathIndexVariants = _exportsToCheck(subpath, addIndex: true);
 
@@ -187,9 +187,9 @@ class NodePackageImporterInternal extends Importer {
   /// `packageRoot` and a list of relative URL paths `subpathVariants`. It
   /// returns a list of all subpaths present in the package manifest exports.
   List<Uri> _nodePackageExportsResolve(
-      Uri packageRoot, List<String> subpathVariants, Object exports) {
-    Uri? processVariant(String subpath) {
-      if (subpath == '') {
+      Uri packageRoot, List<String?> subpathVariants, Object exports) {
+    Uri? processVariant(String? subpath) {
+      if (subpath == null) {
         Object? mainExport = _getMainExport(exports);
         if (mainExport == null) return null;
         return _packageTargetResolve(subpath, mainExport, packageRoot);
@@ -250,7 +250,7 @@ class NodePackageImporterInternal extends Importer {
   }
 
   /// Recurses through `exports` object to find match for `subpath`.
-  Uri? _packageTargetResolve(String subpath, Object exports, Uri packageRoot,
+  Uri? _packageTargetResolve(String? subpath, Object exports, Uri packageRoot,
       [String? patternMatch]) {
     switch (exports) {
       case String string:
@@ -315,16 +315,17 @@ class NodePackageImporterInternal extends Importer {
 
   /// Given a string `subpath`, returns a list of all possible variations with
   /// extensions and partials.
-  List<String> _exportsToCheck(String subpath, {bool addIndex = false}) {
+  List<String?> _exportsToCheck(String? subpath, {bool addIndex = false}) {
     var paths = <String>[];
-    if (subpath.isEmpty && !addIndex) return [subpath];
-    if (subpath.isEmpty && addIndex) {
+
+    if (subpath == null && addIndex) {
       subpath = 'index';
-    } else if (subpath.isNotEmpty && addIndex) {
+    } else if (subpath != null && addIndex) {
       subpath = "$subpath/index";
     }
+    if (subpath == null) return [null];
 
-    if (['scss', 'sass', 'css'].any((ext) => subpath.endsWith(ext))) {
+    if (['scss', 'sass', 'css'].any((ext) => subpath!.endsWith(ext))) {
       paths.add(subpath);
     } else {
       paths.addAll([
