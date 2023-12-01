@@ -288,24 +288,22 @@ class NodePackageImporterInternal extends Importer {
   /// Given an `exports` object, returns the entry for an export without a
   /// subpath.
   Object? _getMainExport(Object exports) {
-    switch (exports) {
-      case String string:
-        return string;
-
-      case List<String> list:
-        return list;
-
-      case Map<String, dynamic> map:
-        if (!map.keys.any((key) => key.startsWith('.'))) {
-          return map;
-        } else if (map.containsKey('.')) {
-          return map['.'] as Object;
-        }
-        break;
-      default:
-        break;
+    Object? parseMap(Map<String, dynamic> map) {
+      if (!map.keys.any((key) => key.startsWith('.'))) {
+        return map;
+      }
+      if (map.containsKey('.')) {
+        return map['.'] as Object;
+      }
+      return null;
     }
-    return null;
+
+    return switch (exports) {
+      String string => string,
+      List<String> list => list,
+      Map<String, dynamic> map => parseMap(map),
+      _ => null
+    };
   }
 
   /// Given a string `subpath`, returns a list of all possible variations with
