@@ -226,9 +226,9 @@ final class CompilationDispatcher {
         return null;
 
       case InboundMessage_CompileRequest_Importer_Importer.nodePackageImporter:
-        var entryPointURL =
+        var entryPointUrl =
             Uri.parse(importer.nodePackageImporter.entryPointUrl);
-        return NodePackageImporterInternal(entryPointURL);
+        return NodePackageImporterInternal(entryPointUrl);
     }
   }
 

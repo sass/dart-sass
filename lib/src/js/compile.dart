@@ -190,11 +190,10 @@ OutputStyle _parseOutputStyle(String? style) => switch (style) {
 /// Converts [importer] into an [AsyncImporter] that can be used with
 /// [compileAsync] or [compileStringAsync].
 AsyncImporter _parseAsyncImporter(Object? importer, [Uri? entryPointURL]) {
-  var jsEquals = JSFunction('a', 'b', 'return a===b');
-  if (jsEquals.call(importer, nodePackageImporter) == true) {
+  if (jsEquals(importer, nodePackageImporter)) {
     if (isBrowser) {
       jsThrow(JsError(
-          "The Node Package Importer can not be used without a filesystem."));
+          "The Node Package Importer cannot be used without a filesystem."));
     }
     entryPointURL = entryPointURL ?? Uri.parse(p.absolute('./index.scss'));
     return NodePackageImporterInternal(entryPointURL);
@@ -349,10 +348,6 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
   return result;
 }
 
-@JS("Symbol")
-class JSSymbol {}
-
-@JS("Symbol")
-external JSSymbol createJSSymbol();
-
+/// The exported `nodePackageImporter` that can be added to the `importers`
+/// option to enable loading `pkg:` URLs from `node_modules`.
 final nodePackageImporter = createJSSymbol();

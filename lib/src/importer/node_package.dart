@@ -22,9 +22,7 @@ class NodePackageImporterInternal extends Importer {
   NodePackageImporterInternal(this.entryPointURL);
 
   @override
-  bool isNonCanonicalScheme(String scheme) {
-    return scheme == 'pkg';
-  }
+  bool isNonCanonicalScheme(String scheme) => scheme == 'pkg';
 
   @override
   Uri? canonicalize(Uri url) {
@@ -50,11 +48,8 @@ class NodePackageImporterInternal extends Importer {
 
     var (packageName, subpath) = _packageNameAndSubpath(url.path);
     var packageRoot = _resolvePackageRoot(packageName, baseURL);
-    if (packageRoot == null) {
-      return null;
-    }
 
-    // Attempt to resolve using conditional exports
+    if (packageRoot == null) return null;
     var jsonPath = p.join(packageRoot.toFilePath(), 'package.json');
     var jsonFile = Uri.file(jsonPath).toFilePath();
 
@@ -202,15 +197,13 @@ class NodePackageImporterInternal extends Importer {
                 matchKey, exports[matchKey] as Object, packageRoot);
           }
 
-          var expansionKeys = exports.keys.where(
-              (key) => key.split('').where((char) => char == '*').length == 1);
+          var expansionKeys =
+              exports.keys.where((key) => '*'.allMatches(key).length == 1);
           expansionKeys = _sortExpansionKeys(expansionKeys.toList());
 
           for (var expansionKey in expansionKeys) {
-            var parts = expansionKey.split('*');
-            var patternBase = parts[0];
+            var [patternBase, patternTrailer] = expansionKey.split('*');
             if (matchKey.startsWith(patternBase) && matchKey != patternBase) {
-              var patternTrailer = parts[1];
               if (patternTrailer.isEmpty ||
                   (matchKey.endsWith(patternTrailer) &&
                       matchKey.length >= expansionKey.length)) {

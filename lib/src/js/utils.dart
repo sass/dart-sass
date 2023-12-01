@@ -33,6 +33,17 @@ external JSClass get jsErrorClass;
 /// Returns whether [value] is a JS Error object.
 bool isJSError(Object value) => instanceof(value, jsErrorClass);
 
+final _jsEquals = JSFunction('a', 'b', 'return a===b');
+
+/// Returns where [a] and [b] are considered equal in JS.
+bool jsEquals(Object? a, Object? b) => _jsEquals.call(a, b) == true;
+
+@JS("Symbol")
+class JSSymbol {}
+
+@JS("Symbol")
+external JSSymbol createJSSymbol();
+
 /// Attaches [trace] to [error] as its stack trace.
 void attachJsStack(JsError error, StackTrace trace) {
   // Stack traces in v8 contain the error message itself as well as the stack

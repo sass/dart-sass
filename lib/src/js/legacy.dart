@@ -77,23 +77,22 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
 
   var file = options.file.andThen(p.absolute);
   if (options.data case var data?) {
-    result = await compileStringAsync(
-      data,
-      nodeImporter: _parseImporter(options, start),
-      importCache: _parsePackageImportersAsync(options, start),
-      functions: _parseFunctions(options, start, asynch: true),
-      syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
-      style: _parseOutputStyle(options.outputStyle),
-      useSpaces: options.indentType != 'tab',
-      indentWidth: _parseIndentWidth(options.indentWidth),
-      lineFeed: _parseLineFeed(options.linefeed),
-      url: file == null ? 'stdin' : p.toUri(file).toString(),
-      quietDeps: options.quietDeps ?? false,
-      verbose: options.verbose ?? false,
-      charset: options.charset ?? true,
-      sourceMap: _enableSourceMaps(options),
-      logger: JSToDartLogger(options.logger, Logger.stderr(color: hasTerminal)),
-    );
+    result = await compileStringAsync(data,
+        nodeImporter: _parseImporter(options, start),
+        importCache: _parsePackageImportersAsync(options, start),
+        functions: _parseFunctions(options, start, asynch: true),
+        syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
+        style: _parseOutputStyle(options.outputStyle),
+        useSpaces: options.indentType != 'tab',
+        indentWidth: _parseIndentWidth(options.indentWidth),
+        lineFeed: _parseLineFeed(options.linefeed),
+        url: file == null ? 'stdin' : p.toUri(file).toString(),
+        quietDeps: options.quietDeps ?? false,
+        verbose: options.verbose ?? false,
+        charset: options.charset ?? true,
+        sourceMap: _enableSourceMaps(options),
+        logger:
+            JSToDartLogger(options.logger, Logger.stderr(color: hasTerminal)));
   } else if (file != null) {
     result = await compileAsync(file,
         nodeImporter: _parseImporter(options, start),
@@ -303,8 +302,7 @@ AsyncImportCache? _parsePackageImportersAsync(
   if (options.pkgImporter case 'node') {
     // TODO(jamesnw) Can we get an actual filename for parity? Is it needed?
     Uri entryPointURL = Uri.parse(p.absolute('./index.js'));
-    return AsyncImportCache.only(
-        importers: [NodePackageImporterInternal(entryPointURL)]);
+    return AsyncImportCache.only([NodePackageImporterInternal(entryPointURL)]);
   }
   return null;
 }

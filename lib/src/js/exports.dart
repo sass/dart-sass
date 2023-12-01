@@ -11,7 +11,7 @@ import '../value.dart' as value;
 import 'legacy/types.dart';
 import 'logger.dart';
 import 'reflection.dart';
-import 'compile.dart';
+import 'utils.dart';
 
 @JS()
 class Exports {
