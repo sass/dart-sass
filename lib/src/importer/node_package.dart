@@ -52,7 +52,12 @@ class NodePackageImporterInternal extends Importer {
     var jsonFile = Uri.file(jsonPath).toFilePath();
 
     var jsonString = readFile(jsonFile);
-    var packageManifest = jsonDecode(jsonString) as Map<String, dynamic>;
+    Map<String, dynamic> packageManifest;
+    try {
+      packageManifest = json.decode(jsonString) as Map<String, dynamic>;
+    } catch (e) {
+      throw "'package.json' in 'pkg:$packageName' cannot be parsed.";
+    }
 
     if (_resolvePackageExports(
             packageRoot, subpath, packageManifest, packageName)
@@ -129,17 +134,19 @@ class NodePackageImporterInternal extends Importer {
   /// `package.json` file, and returns a file URL.
   Uri? _resolvePackageRootValues(
       String packageRoot, Map<String, dynamic> packageManifest) {
-    var sassValue = packageManifest['sass'] as String?;
-    if (sassValue != null && validExtensions.contains(p.extension(sassValue))) {
-      return Uri.file('$packageRoot$sassValue');
-    }
-    var styleValue = packageManifest['style'] as String?;
-    if (styleValue != null &&
-        validExtensions.contains(p.extension(styleValue))) {
-      return Uri.file('$packageRoot$styleValue');
+    if (packageManifest['sass'] case String sassValue) {
+      if (validExtensions.contains(p.extension(sassValue))) {
+        return Uri.file(p.url.join(packageRoot, sassValue));
+      }
     }
 
-    var result = resolveImportPath('${packageRoot}index');
+    if (packageManifest['style'] case String styleValue) {
+      if (validExtensions.contains(p.extension(styleValue))) {
+        return Uri.file(p.url.join(packageRoot, styleValue));
+      }
+    }
+
+    var result = resolveImportPath(p.url.join(packageRoot, 'index'));
     if (result != null) return Uri.file(result);
     return null;
   }
@@ -309,7 +316,7 @@ class NodePackageImporterInternal extends Importer {
   /// Given a string `subpath`, returns a list of all possible variations with
   /// extensions and partials.
   List<String> _exportsToCheck(String subpath, {bool addIndex = false}) {
-    List<String> paths = [];
+    var paths = <String>[];
     if (subpath.isEmpty && !addIndex) return [subpath];
     if (subpath.isEmpty && addIndex) {
       subpath = 'index';
