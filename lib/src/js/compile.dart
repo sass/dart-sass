@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:cli_pkg/js.dart';
-import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart' hide futureToPromise;
 import 'package:path/path.dart' as p;
