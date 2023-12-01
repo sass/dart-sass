@@ -17,6 +17,8 @@ class NodePackageImporterInternal extends Importer {
   /// Creates a Node Package Importer with the associated entry point url
   NodePackageImporterInternal(this.entryPointURL);
 
+  static const validExtensions = {'.scss', '.sass', '.css'};
+
   @override
   bool isNonCanonicalScheme(String scheme) => scheme == 'pkg';
 
@@ -52,16 +54,17 @@ class NodePackageImporterInternal extends Importer {
     var jsonString = readFile(jsonFile);
     var packageManifest = jsonDecode(jsonString) as Map<String, dynamic>;
 
-    var resolved = _resolvePackageExports(
-        packageRoot, subpath, packageManifest, packageName);
-
-    if (resolved != null &&
-        resolved.scheme == 'file' &&
-        ['.scss', '.sass', '.css'].contains(p.extension(resolved.path))) {
-      return resolved;
-    } else if (resolved != null) {
-      throw "The export for '${subpath == '' ? "root" : subpath}' in "
-          "'$packageName' is not a valid Sass file.";
+    if (_resolvePackageExports(
+            packageRoot, subpath, packageManifest, packageName)
+        case var resolved?) {
+      if (resolved.scheme == 'file' &&
+          validExtensions.contains(p.url.extension(resolved.path))) {
+        return resolved;
+      } else {
+        throw "The export for '${subpath == '' ? "root" : subpath}' in "
+            "'$packageName' resolved to '${resolved.toString()}', "
+            "which is not a '.scss', '.sass', or '.css' file.";
+      }
     }
     // If no subpath, attempt to resolve `sass` or `style` key in package.json,
     // then `index` file at package root, resolved for file extensions and
@@ -121,19 +124,18 @@ class NodePackageImporterInternal extends Importer {
     return recurseUpFrom(baseDirectory);
   }
 
-  /// Takes a string `packagePath`, which is the root directory for a package,
+  /// Takes a string `packageRoot`, which is the root directory for a package,
   /// and `packageManifest`, which is the contents of that package's
   /// `package.json` file, and returns a file URL.
   Uri? _resolvePackageRootValues(
       String packageRoot, Map<String, dynamic> packageManifest) {
-    var extensions = ['.scss', '.sass', '.css'];
-
     var sassValue = packageManifest['sass'] as String?;
-    if (sassValue != null && extensions.contains(p.extension(sassValue))) {
+    if (sassValue != null && validExtensions.contains(p.extension(sassValue))) {
       return Uri.file('$packageRoot$sassValue');
     }
     var styleValue = packageManifest['style'] as String?;
-    if (styleValue != null && extensions.contains(p.extension(styleValue))) {
+    if (styleValue != null &&
+        validExtensions.contains(p.extension(styleValue))) {
       return Uri.file('$packageRoot$styleValue');
     }
 
@@ -162,11 +164,11 @@ class NodePackageImporterInternal extends Importer {
 
     var subpathIndexVariants = _exportLoadPaths(subpath, true);
 
-    var resolvedIndexpaths =
+    var resolvedIndexPaths =
         _nodePackageExportsResolve(packageRoot, subpathIndexVariants, exports);
 
-    if (resolvedIndexpaths.length == 1) return resolvedIndexpaths.first;
-    if (resolvedIndexpaths.length > 1) {
+    if (resolvedIndexPaths.length == 1) return resolvedIndexPaths.first;
+    if (resolvedIndexPaths.length > 1) {
       throw "Unable to determine which of multiple potential "
           "resolutions found for $subpath in $packageName should be used.";
     }
@@ -251,11 +253,7 @@ class NodePackageImporterInternal extends Importer {
         if (patternMatch != null) {
           string = string.replaceAll(RegExp(r'\*'), patternMatch);
           var path = p.normalize("${packageRoot.toFilePath()}/$string");
-          if (fileExists(path)) {
-            return Uri.parse('$packageRoot/$string');
-          } else {
-            return null;
-          }
+          return fileExists(path) ? Uri.parse('$packageRoot/$string') : null;
         }
         return Uri.parse("$packageRoot/$string");
       case Map<String, dynamic> map:
@@ -283,9 +281,8 @@ class NodePackageImporterInternal extends Importer {
 
         return null;
       default:
-        break;
+        return null;
     }
-    return null;
   }
 
   /// Given an `exports` object, returns the entry for an export without a

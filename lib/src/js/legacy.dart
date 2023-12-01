@@ -312,8 +312,7 @@ ImportCache? _parsePackageImporters(RenderOptions options, DateTime start) {
   if (options.pkgImporter case 'node') {
     // TODO(jamesnw) Can we get an actual filename for parity? Is it needed?
     Uri entryPointURL = Uri.parse(p.absolute('./index.js'));
-    return ImportCache.only(
-        importers: [NodePackageImporterInternal(entryPointURL)]);
+    return ImportCache.only([NodePackageImporterInternal(entryPointURL)]);
   }
   return null;
 }
