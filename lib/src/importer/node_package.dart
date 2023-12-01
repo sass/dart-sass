@@ -10,10 +10,6 @@ import 'dart:convert';
 import '../io.dart';
 import 'package:path/path.dart' as p;
 
-/// A filesystem importer to use for load implementation details, and for
-/// canonicalizing paths not defined in package.json.
-final _filesystemImporter = FilesystemImporter.cwd;
-
 /// An [Importer] that resolves `pkg:` URLs using the Node resolution algorithm.
 class NodePackageImporterInternal extends Importer {
   final Uri entryPointURL;
@@ -26,7 +22,7 @@ class NodePackageImporterInternal extends Importer {
 
   @override
   Uri? canonicalize(Uri url) {
-    if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
+    if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);
     if (url.scheme != 'pkg') return null;
 
     if (url.hasAuthority) {
@@ -78,11 +74,11 @@ class NodePackageImporterInternal extends Importer {
     // If there is a subpath, attempt to resolve the path relative to the
     // package root, and resolve for file extensions and partials.
     var relativeSubpath = "${packageRoot.toFilePath()}${p.separator}$subpath";
-    return _filesystemImporter.canonicalize(Uri.file(relativeSubpath));
+    return FilesystemImporter.cwd.canonicalize(Uri.file(relativeSubpath));
   }
 
   @override
-  ImporterResult? load(Uri url) => _filesystemImporter.load(url);
+  ImporterResult? load(Uri url) => FilesystemImporter.cwd.load(url);
 
   /// Takes a string, `path`, and returns a tuple with the package name and the
   /// subpath if it is present.

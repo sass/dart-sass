@@ -7,12 +7,6 @@ import '../compilation_dispatcher.dart';
 import '../embedded_sass.pb.dart' hide SourceSpan;
 import 'base.dart';
 
-/// A filesystem importer to use for most implementation details of
-/// [FileImporter].
-///
-/// This allows us to avoid duplicating logic between the two importers.
-final _filesystemImporter = FilesystemImporter.cwd;
-
 /// An importer that asks the host to resolve imports in a simplified,
 /// file-system-centric way.
 final class FileImporter extends ImporterBase {
@@ -23,7 +17,7 @@ final class FileImporter extends ImporterBase {
       : super(dispatcher);
 
   Uri? canonicalize(Uri url) {
-    if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
+    if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);
 
     var request = OutboundMessage_FileImportRequest()
       ..importerId = _importerId
@@ -41,7 +35,7 @@ final class FileImporter extends ImporterBase {
           throw 'The file importer must return a file: URL, was "$url"';
         }
 
-        return _filesystemImporter.canonicalize(url);
+        return FilesystemImporter.cwd.canonicalize(url);
 
       case InboundMessage_FileImportResponse_Result.error:
         throw response.error;
@@ -51,7 +45,7 @@ final class FileImporter extends ImporterBase {
     }
   }
 
-  ImporterResult? load(Uri url) => _filesystemImporter.load(url);
+  ImporterResult? load(Uri url) => FilesystemImporter.cwd.load(url);
 
   bool isNonCanonicalScheme(String scheme) => scheme != 'file';
 
