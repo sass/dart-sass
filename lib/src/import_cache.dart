@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 039ce81351c314df5ec550096ab034ac3595916b
+// Checksum: d157b83599dbc07a80ac6cb5ffdf5dde03b60376
 //
 // ignore_for_file: unused_import
 
@@ -108,8 +108,8 @@ final class ImportCache {
 
   /// Creates an import cache without any globally-available importers, and only
   /// the passed in importers.
-  ImportCache.only({Iterable<Importer>? importers, Logger? logger})
-      : _importers = [...?importers],
+  ImportCache.only(Iterable<Importer> importers, {Logger? logger})
+      : _importers = List.unmodifiable(importers),
         _logger = logger ?? const Logger.stderr();
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
