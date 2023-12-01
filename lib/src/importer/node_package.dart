@@ -160,29 +160,19 @@ class NodePackageImporterInternal extends Importer {
     if (packageManifest['exports'] == null) return null;
     var exports = packageManifest['exports'] as Object;
     var subpathVariants = _exportsToCheck(subpath);
-    var resolvedPaths =
-        _nodePackageExportsResolve(packageRoot, subpathVariants, exports);
-
-    if (resolvedPaths.length == 1) return resolvedPaths.first;
-    if (resolvedPaths.length > 1) {
-      throw "Unable to determine which of multiple potential resolutions "
-          "found for ${subpath ?? 'root'} in $packageName should be used. "
-          "\n\nFound:\n"
-          "${resolvedPaths.join('\n')}";
+    if (_nodePackageExportsResolve(
+            packageRoot, subpathVariants, exports, subpath, packageName)
+        case Uri uri) {
+      return uri;
     }
+
     if (subpath != null && p.extension(subpath).isNotEmpty) return null;
 
     var subpathIndexVariants = _exportsToCheck(subpath, addIndex: true);
-
-    var resolvedIndexPaths =
-        _nodePackageExportsResolve(packageRoot, subpathIndexVariants, exports);
-
-    if (resolvedIndexPaths.length == 1) return resolvedIndexPaths.first;
-    if (resolvedIndexPaths.length > 1) {
-      throw "Unable to determine which of multiple potential resolutions "
-          "found for ${subpath ?? 'root'} in $packageName should be used. "
-          "\n\nFound:\n"
-          "${resolvedIndexPaths.join('\n')}";
+    if (_nodePackageExportsResolve(
+            packageRoot, subpathIndexVariants, exports, subpath, packageName)
+        case Uri uri) {
+      return uri;
     }
 
     return null;
@@ -191,8 +181,12 @@ class NodePackageImporterInternal extends Importer {
   /// Takes a package.json value `packageManifest`, a directory URL
   /// `packageRoot` and a list of relative URL paths `subpathVariants`. It
   /// returns a list of all subpaths present in the package manifest exports.
-  List<Uri> _nodePackageExportsResolve(
-      Uri packageRoot, List<String?> subpathVariants, Object exports) {
+  Uri? _nodePackageExportsResolve(
+      Uri packageRoot,
+      List<String?> subpathVariants,
+      Object exports,
+      String? subpath,
+      String packageName) {
     Uri? processVariant(String? subpath) {
       if (subpath == null) {
         Object? mainExport = _getMainExport(exports);
@@ -230,7 +224,18 @@ class NodePackageImporterInternal extends Importer {
       return null;
     }
 
-    return subpathVariants.map(processVariant).whereNotNull().toList();
+    var matches = subpathVariants.map(processVariant).whereNotNull().toList();
+
+    switch (matches) {
+      case [var path]:
+        return path;
+      case [_, _, ...] && var paths:
+        throw "Unable to determine which of multiple potential resolutions "
+            "found for ${subpath ?? 'root'} in $packageName should be used. "
+            "\n\nFound:\n"
+            "${paths.join('\n')}";
+    }
+    return null;
   }
 
   /// Implementation of the `PATTERN_KEY_COMPARE` algorithm from
