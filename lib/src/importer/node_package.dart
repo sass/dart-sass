@@ -81,7 +81,7 @@ class NodePackageImporterInternal extends Importer {
 
     // If there is a subpath, attempt to resolve the path relative to the
     // package root, and resolve for file extensions and partials.
-    var relativeSubpath = p.join(packageRoot, subpath);
+    var relativeSubpath = "$packageRoot${p.separator}$subpath";
     return FilesystemImporter.cwd.canonicalize(Uri.file(relativeSubpath));
   }
 
