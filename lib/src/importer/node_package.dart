@@ -111,23 +111,20 @@ class NodePackageImporterInternal extends Importer {
     var baseDirectory = isWindows
         ? p.dirname(Uri.directory(baseURL.toString()).toFilePath())
         : p.dirname(baseURL.toFilePath());
-    var lastEntry = '';
 
     Uri? recurseUpFrom(String entry) {
-      // prevent infinite recursion
-      if (entry == lastEntry) return null;
-      lastEntry = entry;
-      var potentialPackage = p.joinAll([entry, 'node_modules', packageName]);
+      var potentialPackage = p.join(entry, 'node_modules', packageName);
 
-      if (dirExists(potentialPackage)) {
-        return Uri.directory(potentialPackage);
-      }
-
+      if (dirExists(potentialPackage)) return Uri.directory(potentialPackage);
       var parent = parentDir(entry);
-      List<String> parentDirectoryParts =
-          List.from(Uri.directory(parent).pathSegments);
 
-      if (parentDirectoryParts.length == 1) return null;
+      // prevent infinite recursion
+      if (entry == parent) return null;
+
+      var rootLength = isWindows ? 1 : 0;
+
+      if (Uri.directory(parent).pathSegments.length == rootLength) return null;
+
       return recurseUpFrom(parent);
     }
 
