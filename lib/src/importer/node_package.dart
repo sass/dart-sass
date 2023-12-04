@@ -42,8 +42,9 @@ class NodePackageImporterInternal extends Importer {
       throw "pkg: URL $url must not have a query or fragment.";
     }
 
-    var baseURL =
-        containingUrl?.scheme == 'file' ? containingUrl! : entryPointURL;
+    var baseURL = containingUrl?.scheme == 'file'
+        ? Uri.parse(containingUrl!.toFilePath())
+        : entryPointURL;
 
     var (packageName, subpath) = _packageNameAndSubpath(url.path);
     var packageRoot = _resolvePackageRoot(packageName, baseURL);
@@ -108,7 +109,7 @@ class NodePackageImporterInternal extends Importer {
   /// `packageName`.
   String? _resolvePackageRoot(String packageName, Uri baseURL) {
     var baseDirectory = isWindows
-        ? p.dirname(Uri.directory(baseURL.toString()).toFilePath())
+        ? p.dirname(p.fromUri(Uri.directory(baseURL.toString())))
         : p.dirname(p.fromUri(baseURL));
 
     Uri? recurseUpFrom(String entry) {
