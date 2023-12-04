@@ -217,16 +217,16 @@ class NodePackageImporterInternal extends Importer {
 
       for (var expansionKey in expansionKeys) {
         var [patternBase, patternTrailer] = expansionKey.split('*');
-        if (matchKey.startsWith(patternBase) && matchKey != patternBase) {
-          if (patternTrailer.isEmpty ||
-              (matchKey.endsWith(patternTrailer) &&
-                  matchKey.length >= expansionKey.length)) {
-            var target = exports[expansionKey] as Object;
-            var patternMatch = matchKey.substring(
-                patternBase.length, matchKey.length - patternTrailer.length);
-            return _packageTargetResolve(
-                subpath, target, packageRoot, patternMatch);
-          }
+        if (!matchKey.startsWith(patternBase)) continue;
+        if (matchKey == patternBase) continue;
+        if (patternTrailer.isEmpty ||
+            (matchKey.endsWith(patternTrailer) &&
+                matchKey.length >= expansionKey.length)) {
+          var target = exports[expansionKey] as Object;
+          var patternMatch = matchKey.substring(
+              patternBase.length, matchKey.length - patternTrailer.length);
+          return _packageTargetResolve(
+              subpath, target, packageRoot, patternMatch);
         }
       }
 
