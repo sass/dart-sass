@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:collection/collection.dart';
+import 'package:sass/src/util/map.dart';
 import 'package:sass/src/util/nullable.dart';
 
 import '../importer.dart';
@@ -41,16 +42,15 @@ class NodePackageImporterInternal extends Importer {
       throw "pkg: URL $url must not have a query or fragment.";
     }
 
-    var baseURL = containingUrl?.scheme == 'file'
-        ? Uri.parse(containingUrl!.toFilePath())
-        : entryPointURL;
+    var baseURL =
+        containingUrl?.scheme == 'file' ? containingUrl! : entryPointURL;
 
     var (packageName, subpath) = _packageNameAndSubpath(url.path);
     var packageRoot = _resolvePackageRoot(packageName, baseURL);
 
     if (packageRoot == null) return null;
-    var jsonPath = p.join(packageRoot.toFilePath(), 'package.json');
-    var jsonFile = Uri.file(jsonPath).toFilePath();
+    var jsonPath = p.join(packageRoot, 'package.json');
+    var jsonFile = p.fromUri(Uri.file(jsonPath));
 
     var jsonString = readFile(jsonFile);
     Map<String, dynamic> packageManifest;
@@ -61,7 +61,7 @@ class NodePackageImporterInternal extends Importer {
     }
 
     if (_resolvePackageExports(
-            packageRoot, subpath, packageManifest, packageName)
+            Uri.file(packageRoot), subpath, packageManifest, packageName)
         case var resolved?) {
       if (resolved.scheme == 'file' &&
           validExtensions.contains(p.url.extension(resolved.path))) {
@@ -76,13 +76,12 @@ class NodePackageImporterInternal extends Importer {
     // then `index` file at package root, resolved for file extensions and
     // partials.
     if (subpath == null) {
-      return _resolvePackageRootValues(
-          packageRoot.toFilePath(), packageManifest);
+      return _resolvePackageRootValues(packageRoot, packageManifest);
     }
 
     // If there is a subpath, attempt to resolve the path relative to the
     // package root, and resolve for file extensions and partials.
-    var relativeSubpath = "${packageRoot.toFilePath()}${p.separator}$subpath";
+    var relativeSubpath = p.join(packageRoot, subpath);
     return FilesystemImporter.cwd.canonicalize(Uri.file(relativeSubpath));
   }
 
@@ -107,10 +106,10 @@ class NodePackageImporterInternal extends Importer {
   /// Takes a string, `packageName`, and an absolute URL `baseURL`, and returns
   /// an absolute URL to the root directory for the most proximate installed
   /// `packageName`.
-  Uri? _resolvePackageRoot(String packageName, Uri baseURL) {
+  String? _resolvePackageRoot(String packageName, Uri baseURL) {
     var baseDirectory = isWindows
-        ? p.dirname(Uri.directory(baseURL.toString()).toFilePath())
-        : p.dirname(baseURL.toFilePath());
+        ? p.dirname(p.fromUri(Uri.directory(baseURL.toString())))
+        : p.dirname(p.fromUri(baseURL));
 
     Uri? recurseUpFrom(String entry) {
       var potentialPackage = p.join(entry, 'node_modules', packageName);
@@ -128,7 +127,9 @@ class NodePackageImporterInternal extends Importer {
       return recurseUpFrom(parent);
     }
 
-    return recurseUpFrom(baseDirectory);
+    var directory = recurseUpFrom(baseDirectory);
+    if (directory == null) return null;
+    return p.fromUri(directory);
   }
 
   /// Takes a string `packageRoot`, which is the root directory for a package,
@@ -277,26 +278,27 @@ class NodePackageImporterInternal extends Importer {
           throw "Invalid Package Target";
         }
         if (patternMatch != null) {
-          string = string.replaceAll(RegExp(r'\*'), patternMatch);
-          var path = p.normalize("${packageRoot.toFilePath()}/$string");
-          return fileExists(path) ? Uri.parse('$packageRoot/$string') : null;
+          var replaced = string.replaceAll(RegExp(r'\*'), patternMatch);
+          var path = p.normalize(p.join(p.fromUri(packageRoot), replaced));
+          return fileExists(path) ? Uri.parse('$packageRoot/$replaced') : null;
         }
         return Uri.parse("$packageRoot/$string");
       case Map<String, dynamic> map:
         var conditions = ['sass', 'style', 'default'];
-        for (var key in map.keys) {
-          if (conditions.contains(key)) {
-            var result = _packageTargetResolve(
-                subpath, map[key] as Object, packageRoot, patternMatch);
-            if (result != null) {
-              return result;
-            }
+        for (var (key, value) in map.pairs) {
+          if (!conditions.contains(key)) continue;
+          if (_packageTargetResolve(
+                  subpath, value as Object, packageRoot, patternMatch)
+              case var result?) {
+            return result;
           }
         }
         return null;
-      case List<dynamic> array:
-        if (array.isEmpty) return null;
 
+      case []:
+        return null;
+
+      case List<dynamic> array:
         for (var value in array) {
           var result = _packageTargetResolve(
               subpath, value as Object, packageRoot, patternMatch);
