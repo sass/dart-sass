@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:collection/collection.dart';
+import 'package:sass/src/util/nullable.dart';
 
 import '../importer.dart';
 import './utils.dart';
@@ -189,38 +190,39 @@ class NodePackageImporterInternal extends Importer {
       String packageName) {
     Uri? processVariant(String? subpath) {
       if (subpath == null) {
-        Object? mainExport = _getMainExport(exports);
-        if (mainExport == null) return null;
-        return _packageTargetResolve(subpath, mainExport, packageRoot);
-      } else {
-        if (exports is Map<String, dynamic> &&
-            exports.keys.every((key) => key.startsWith('.'))) {
-          var matchKey = subpath.startsWith('/') ? ".$subpath" : "./$subpath";
-          if (exports.containsKey(matchKey) && !matchKey.contains('*')) {
+        return _getMainExport(exports).andThen((mainExport) =>
+            _packageTargetResolve(subpath, mainExport, packageRoot));
+      }
+      if (exports is! Map<String, dynamic> ||
+          exports.keys.every((key) => !key.startsWith('.'))) {
+        return null;
+      }
+      var matchKey = subpath.startsWith('/') ? ".$subpath" : "./$subpath";
+      if (exports.containsKey(matchKey) && !matchKey.contains('*')) {
+        return _packageTargetResolve(
+            matchKey, exports[matchKey] as Object, packageRoot);
+      }
+
+      var expansionKeys = _sortExpansionKeys([
+        for (var key in exports.keys)
+          if (key.split('').where((char) => char == '*').length == 1) key
+      ]);
+
+      for (var expansionKey in expansionKeys) {
+        var [patternBase, patternTrailer] = expansionKey.split('*');
+        if (matchKey.startsWith(patternBase) && matchKey != patternBase) {
+          if (patternTrailer.isEmpty ||
+              (matchKey.endsWith(patternTrailer) &&
+                  matchKey.length >= expansionKey.length)) {
+            var target = exports[expansionKey] as Object;
+            var patternMatch = matchKey.substring(
+                patternBase.length, matchKey.length - patternTrailer.length);
             return _packageTargetResolve(
-                matchKey, exports[matchKey] as Object, packageRoot);
-          }
-
-          var expansionKeys =
-              exports.keys.where((key) => '*'.allMatches(key).length == 1);
-          expansionKeys = _sortExpansionKeys(expansionKeys.toList());
-
-          for (var expansionKey in expansionKeys) {
-            var [patternBase, patternTrailer] = expansionKey.split('*');
-            if (matchKey.startsWith(patternBase) && matchKey != patternBase) {
-              if (patternTrailer.isEmpty ||
-                  (matchKey.endsWith(patternTrailer) &&
-                      matchKey.length >= expansionKey.length)) {
-                var target = exports[expansionKey] as Object;
-                var patternMatch = matchKey.substring(patternBase.length,
-                    matchKey.length - patternTrailer.length);
-                return _packageTargetResolve(
-                    subpath, target, packageRoot, patternMatch);
-              }
-            }
+                subpath, target, packageRoot, patternMatch);
           }
         }
       }
+
       return null;
     }
 
