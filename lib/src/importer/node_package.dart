@@ -89,10 +89,14 @@ class NodePackageImporterInternal extends Importer {
   @override
   ImporterResult? load(Uri url) => FilesystemImporter.cwd.load(url);
 
-  /// Takes a string, `path`, and returns a tuple with the package name and the
-  /// subpath if it is present.
-  (String, String?) _packageNameAndSubpath(String path) {
-    var parts = path.split('/');
+  /// Splits a [bare import
+  /// specifier](https://nodejs.org/api/esm.html#import-specifiers) `specifier`
+  /// into its package name and subpath, if one exists.
+  ///
+  /// Because this is a bare import specifier and not a path, we always use `/`
+  /// to avoid invalid values on non-Posix machines.
+  (String, String?) _packageNameAndSubpath(String specifier) {
+    var parts = specifier.split('/');
     var name = parts.removeAt(0);
     if (name.startsWith('@')) {
       name = '$name/${parts.removeAt(0)}';
