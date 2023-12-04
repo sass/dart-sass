@@ -189,6 +189,12 @@ class NodePackageImporterInternal extends Importer {
       Object exports,
       String? subpath,
       String packageName) {
+    if (exports is Map<String, dynamic>) {
+      if (exports.keys.any((key) => key.startsWith('.')) &&
+          exports.keys.any((key) => !key.startsWith('.'))) {
+        throw 'Invalid Package Configuration';
+      }
+    }
     Uri? processVariant(String? subpath) {
       if (subpath == null) {
         return _getMainExport(exports).andThen((mainExport) =>
