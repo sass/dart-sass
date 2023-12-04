@@ -81,7 +81,7 @@ class NodePackageImporterInternal extends Importer {
 
     // If there is a subpath, attempt to resolve the path relative to the
     // package root, and resolve for file extensions and partials.
-    var relativeSubpath = "$packageRoot${p.separator}$subpath";
+    var relativeSubpath = p.join(packageRoot, subpath);
     return FilesystemImporter.cwd.canonicalize(Uri.file(relativeSubpath));
   }
 
@@ -108,7 +108,7 @@ class NodePackageImporterInternal extends Importer {
   /// `packageName`.
   String? _resolvePackageRoot(String packageName, Uri baseURL) {
     var baseDirectory = isWindows
-        ? p.dirname(p.fromUri(Uri.directory(baseURL.toString())))
+        ? p.dirname(Uri.directory(baseURL.toString()).toFilePath())
         : p.dirname(p.fromUri(baseURL));
 
     Uri? recurseUpFrom(String entry) {
