@@ -6,7 +6,6 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:charcode/charcode.dart';
-import 'package:collection/collection.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:string_scanner/string_scanner.dart';
 
@@ -532,7 +531,9 @@ final class _SerializeVisitor
                 _parenthesizeCalculationRhs(operator, right.operator)) ||
             (operator == CalculationOperator.dividedBy &&
                 right is SassNumber &&
-                (right.value.isFinite ? right.hasComplexUnits : right.hasUnits));
+                (right.value.isFinite
+                    ? right.hasComplexUnits
+                    : right.hasUnits));
         if (parenthesizeRight) _buffer.writeCharCode($lparen);
         _writeCalculationValue(right);
         if (parenthesizeRight) _buffer.writeCharCode($rparen);
