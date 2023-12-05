@@ -1,3 +1,10 @@
+## 1.69.6
+
+### JS API
+
+* Fix a bug where certain exceptions could produce `SourceSpan`s that didn't
+  follow the documented `SourceSpan` API.
+
 ## 1.69.5
 
 ### JS API
