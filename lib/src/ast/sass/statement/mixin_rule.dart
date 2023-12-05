@@ -7,12 +7,9 @@ import 'package:source_span/source_span.dart';
 import '../../../util/span.dart';
 import '../../../visitor/interface/statement.dart';
 import '../../../visitor/statement_search.dart';
-import '../argument_declaration.dart';
 import '../declaration.dart';
-import '../statement.dart';
 import 'callable_declaration.dart';
 import 'content_rule.dart';
-import 'silent_comment.dart';
 
 /// A mixin declaration.
 ///
@@ -31,10 +28,8 @@ final class MixinRule extends CallableDeclaration implements SassDeclaration {
     return startSpan.initialIdentifier();
   }
 
-  MixinRule(String name, ArgumentDeclaration arguments,
-      Iterable<Statement> children, FileSpan span,
-      {SilentComment? comment})
-      : super(name, arguments, children, span, comment: comment);
+  MixinRule(super.name, super.arguments, super.children, super.span,
+      {super.comment});
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitMixinRule(this);
 
