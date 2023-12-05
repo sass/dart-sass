@@ -28,8 +28,7 @@ final class MixinRule extends CallableDeclaration implements SassDeclaration {
     return startSpan.initialIdentifier();
   }
 
-  MixinRule(super.name, super.arguments,
-      super.children, super.span,
+  MixinRule(super.name, super.arguments, super.children, super.span,
       {super.comment});
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitMixinRule(this);

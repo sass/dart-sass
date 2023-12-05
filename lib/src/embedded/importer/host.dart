@@ -19,8 +19,8 @@ final class HostImporter extends ImporterBase {
   /// [canonicalize].
   final Set<String> _nonCanonicalSchemes;
 
-  HostImporter(super.dispatcher, this._importerId,
-      Iterable<String> nonCanonicalSchemes)
+  HostImporter(
+      super.dispatcher, this._importerId, Iterable<String> nonCanonicalSchemes)
       : _nonCanonicalSchemes = Set.unmodifiable(nonCanonicalSchemes) {
     for (var scheme in _nonCanonicalSchemes) {
       if (isValidUrlScheme(scheme)) continue;

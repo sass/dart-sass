@@ -223,8 +223,7 @@ class SassFormatException extends SassException
   SassFormatException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       SassFormatException(message, span, loadedUrls);
 
-  SassFormatException(super.message, super.span,
-      [super.loadedUrls]);
+  SassFormatException(super.message, super.span, [super.loadedUrls]);
 }
 
 /// A [SassFormatException] that's also a [MultiSpanFormatException].
@@ -246,8 +245,8 @@ class MultiSpanSassFormatException extends MultiSpanSassException
       MultiSpanSassFormatException(
           message, span, primaryLabel, secondarySpans, loadedUrls);
 
-  MultiSpanSassFormatException(super.message, super.span,
-      super.primaryLabel, super.secondarySpans,
+  MultiSpanSassFormatException(
+      super.message, super.span, super.primaryLabel, super.secondarySpans,
       [super.loadedUrls]);
 }
 

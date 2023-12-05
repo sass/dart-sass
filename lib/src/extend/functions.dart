@@ -11,7 +11,6 @@
 /// classes, to reduce allocations.
 library;
 
-
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
