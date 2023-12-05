@@ -28,10 +28,9 @@ class SassException extends SourceSpanException {
   /// compilation, before it failed.
   final Set<Uri> loadedUrls;
 
-  SassException(String message, FileSpan span, [Iterable<Uri>? loadedUrls])
+  SassException(super.message, FileSpan super.span, [Iterable<Uri>? loadedUrls])
       : loadedUrls =
-            loadedUrls == null ? const {} : Set.unmodifiable(loadedUrls),
-        super(message, span);
+            loadedUrls == null ? const {} : Set.unmodifiable(loadedUrls);
 
   /// Converts this to a [MultiSpanSassException] with the additional [span] and
   /// [label].
@@ -224,9 +223,8 @@ class SassFormatException extends SassException
   SassFormatException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       SassFormatException(message, span, loadedUrls);
 
-  SassFormatException(String message, FileSpan span,
-      [Iterable<Uri>? loadedUrls])
-      : super(message, span, loadedUrls);
+  SassFormatException(super.message, super.span,
+      [super.loadedUrls]);
 }
 
 /// A [SassFormatException] that's also a [MultiSpanFormatException].
@@ -248,10 +246,9 @@ class MultiSpanSassFormatException extends MultiSpanSassException
       MultiSpanSassFormatException(
           message, span, primaryLabel, secondarySpans, loadedUrls);
 
-  MultiSpanSassFormatException(String message, FileSpan span,
-      String primaryLabel, Map<FileSpan, String> secondarySpans,
-      [Iterable<Uri>? loadedUrls])
-      : super(message, span, primaryLabel, secondarySpans, loadedUrls);
+  MultiSpanSassFormatException(super.message, super.span,
+      super.primaryLabel, super.secondarySpans,
+      [super.loadedUrls]);
 }
 
 /// An exception thrown by SassScript.
@@ -287,9 +284,8 @@ class MultiSpanSassScriptException extends SassScriptException {
   final Map<FileSpan, String> secondarySpans;
 
   MultiSpanSassScriptException(
-      String message, this.primaryLabel, Map<FileSpan, String> secondarySpans)
-      : secondarySpans = Map.unmodifiable(secondarySpans),
-        super(message);
+      super.message, this.primaryLabel, Map<FileSpan, String> secondarySpans)
+      : secondarySpans = Map.unmodifiable(secondarySpans);
 
   /// Converts this to a [SassException] with the given primary [span].
   MultiSpanSassException withSpan(FileSpan span) =>

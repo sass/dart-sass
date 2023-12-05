@@ -9,6 +9,8 @@
 /// aren't instance methods on other objects because their APIs aren't a good
 /// fit—usually because they deal with raw component lists rather than selector
 /// classes, to reduce allocations.
+library;
+
 
 import 'dart:collection';
 
