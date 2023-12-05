@@ -1,3 +1,8 @@
+## 1.69.6
+
+* Produce better output for numbers with complex units in `meta.inspect()` and
+  debugging messages.
+
 ## 1.69.5
 
 ### JS API
