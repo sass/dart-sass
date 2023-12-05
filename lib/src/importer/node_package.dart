@@ -116,7 +116,7 @@ class NodePackageImporterInternal extends Importer {
       var potentialPackage = p.join(entry, 'node_modules', packageName);
 
       if (dirExists(potentialPackage)) return Uri.directory(potentialPackage);
-      var parent = parentDir(entry);
+      var parent = p.dirname(entry);
 
       // prevent infinite recursion
       if (entry == parent) return null;

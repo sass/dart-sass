@@ -92,5 +92,3 @@ set exitCode(int value) => throw '';
 /// periodically rather than using a native filesystem monitoring API.
 Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) =>
     throw '';
-
-String parentDir(String path) => throw '';
