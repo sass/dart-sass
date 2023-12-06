@@ -82,12 +82,12 @@ class SassException extends SourceSpanException {
         .replaceAll("\r\n", "\n");
     term_glyph.ascii = wasAscii;
 
-    // For the string comment, render all non-ASCII characters as escape
+    // For the string comment, render all non-US-ASCII characters as escape
     // sequences so that they'll show up even if the HTTP headers are set
     // incorrectly.
     var stringMessage = StringBuffer();
     for (var rune in SassString(toString(color: false)).toString().runes) {
-      if (rune > 0xFF) {
+      if (rune > 0x7F) {
         stringMessage
           ..writeCharCode($backslash)
           ..write(rune.toRadixString(16))
