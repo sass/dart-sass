@@ -113,10 +113,55 @@ void main() {
     });
   });
 
-  // Tests for sass/dart-sass#417.
+  // Tests for sass/dart-sass#2070.
   //
-  // Note there's no need for "in Sass" cases as it's not possible to have
-  // trailing loud comments in the Sass syntax.
+  // These aren't covered by sass-spec because the inspect format for
+  // non-literal values isn't covered by the spec.
+  group("uses a nice format to inspect numbers with complex units", () {
+    group("finite", () {
+      test("top-level", () {
+        expect(compileString("""
+          @use 'sass:meta';
+          a {b: meta.inspect(1px * 1em)};
+        """), equalsIgnoringWhitespace('a { b: calc(1px * 1em); }'));
+      });
+
+      test("in calc", () {
+        expect(compileString("""
+          @use 'sass:meta';
+          a {b: meta.inspect(calc(1px * 1em))};
+        """), equalsIgnoringWhitespace('a { b: calc(1px * 1em); }'));
+      });
+
+      test("nested in calc", () {
+        expect(compileString("""
+          @use 'sass:meta';
+          a {b: meta.inspect(calc(c / (1px * 1em)))};
+        """), equalsIgnoringWhitespace('a { b: calc(c / (1px * 1em)); }'));
+      });
+
+      test("numerator and denominator", () {
+        expect(compileString("""
+          @use 'sass:math';
+          @use 'sass:meta';
+          a {b: meta.inspect(1px * math.div(math.div(1em, 1s), 1x))};
+        """), equalsIgnoringWhitespace('a { b: calc(1px * 1em / 1s / 1x); }'));
+      });
+
+      test("denominator only", () {
+        expect(compileString("""
+          @use 'sass:math';
+          @use 'sass:meta';
+          a {b: meta.inspect(math.div(math.div(1, 1s), 1x))};
+        """), equalsIgnoringWhitespace('a { b: calc(1 / 1s / 1x); }'));
+      });
+    });
+  });
+
+  // Tests for sass/dart-sass#417.
+  //
+  // Note there's no need for "in Sass" cases as it's not possible to have
+  // trailing loud comments in the Sass syntax.
   group("preserve trailing loud comments in SCSS", () {
     test("after open block", () {
       expect(compileString("""
