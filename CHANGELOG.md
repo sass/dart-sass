@@ -1,5 +1,8 @@
 ## 1.69.6
 
+* Produce better output for numbers with complex units in `meta.inspect()` and
+  debugging messages.
+
 ### JS API
 
 * Fix a bug where certain exceptions could produce `SourceSpan`s that didn't
