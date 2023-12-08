@@ -1,5 +1,8 @@
 ## 1.69.6
 
+* Produce better output for numbers with complex units in `meta.inspect()` and
+  debugging messages.
+
 * When generating CSS error messages to display in-browser, escape all code
   points that aren't in the US-ASCII region. Previously only code points U+0100
   LATIN CAPITAL LETTER A WITH MACRON were escaped.
