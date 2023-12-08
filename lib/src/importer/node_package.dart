@@ -212,16 +212,16 @@ class NodePackageImporterInternal extends Importer {
           exports.keys.every((key) => !key.startsWith('.'))) {
         return null;
       }
-      var matchKey = subpath.startsWith('/') ? ".$subpath" : "./$subpath";
+      var matchKey = "./$subpath";
       if (exports.containsKey(matchKey) && !matchKey.contains('*')) {
         return _packageTargetResolve(
             matchKey, exports[matchKey] as Object, packageRoot);
       }
 
-      var expansionKeys = _sortExpansionKeys([
+      var expansionKeys = [
         for (var key in exports.keys)
           if (key.split('').where((char) => char == '*').length == 1) key
-      ]);
+      ]..sort(_compareExpansionKeys);
 
       for (var expansionKey in expansionKeys) {
         var [patternBase, patternTrailer] = expansionKey.split('*');
@@ -255,25 +255,18 @@ class NodePackageImporterInternal extends Importer {
     return null;
   }
 
-  /// Implementation of the `PATTERN_KEY_COMPARE` algorithm from
+  /// Implementation of the `PATTERN_KEY_COMPARE` comparator from
   /// https://nodejs.org/api/esm.html#resolution-algorithm-specification.
-  List<String> _sortExpansionKeys(List<String> keys) {
-    int sorter(String keyA, String keyB) {
-      var baseLengthA =
-          keyA.contains('*') ? keyA.indexOf('*') + 1 : keyA.length;
-      var baseLengthB =
-          keyB.contains('*') ? keyB.indexOf('*') + 1 : keyB.length;
-      if (baseLengthA > baseLengthB) return -1;
-      if (baseLengthB > baseLengthA) return 1;
-      if (!keyA.contains("*")) return 1;
-      if (!keyB.contains("*")) return -1;
-      if (keyA.length > keyB.length) return -1;
-      if (keyB.length > keyA.length) return 1;
-      return 0;
-    }
-
-    keys.sort(sorter);
-    return keys;
+  int _compareExpansionKeys(String keyA, String keyB) {
+    var baseLengthA = keyA.contains('*') ? keyA.indexOf('*') + 1 : keyA.length;
+    var baseLengthB = keyB.contains('*') ? keyB.indexOf('*') + 1 : keyB.length;
+    if (baseLengthA > baseLengthB) return -1;
+    if (baseLengthB > baseLengthA) return 1;
+    if (!keyA.contains("*")) return 1;
+    if (!keyB.contains("*")) return -1;
+    if (keyA.length > keyB.length) return -1;
+    if (keyB.length > keyA.length) return 1;
+    return 0;
   }
 
   /// Recurses through `exports` object to find match for `subpath`, verifying
@@ -287,7 +280,7 @@ class NodePackageImporterInternal extends Importer {
     switch (exports) {
       case String string:
         if (!string.startsWith('./')) {
-          throw "Invalid Package Target";
+          throw "Export '$string' must be a path relative to the package root at '$packageRoot'.";
         }
         if (patternMatch != null) {
           var replaced = string.replaceAll(RegExp(r'\*'), patternMatch);
@@ -320,8 +313,9 @@ class NodePackageImporterInternal extends Importer {
         }
 
         return null;
+
       default:
-        return null;
+        throw "Invalid 'exports' value in ${p.join(packageRoot.toFilePath(), 'package.json')}";
     }
   }
 
