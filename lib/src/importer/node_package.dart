@@ -107,6 +107,9 @@ class NodePackageImporterInternal extends Importer {
   /// Takes a string, `packageName`, and an absolute URL `baseURL`, and returns
   /// an absolute URL to the root directory for the most proximate installed
   /// `packageName`.
+  ///
+  /// Implementation of `PACKAGE_RESOLVE` from the [Resolution Algorithm
+  /// Specification](https://nodejs.org/api/esm.html#resolution-algorithm-specification).
   String? _resolvePackageRoot(String packageName, Uri baseURL) {
     var baseDirectory = isWindows
         ? p.dirname(p.fromUri(Uri.directory(baseURL.toString())))
@@ -185,6 +188,9 @@ class NodePackageImporterInternal extends Importer {
   /// Takes a package.json value `packageManifest`, a directory URL
   /// `packageRoot` and a list of relative URL paths `subpathVariants`. It
   /// returns a list of all subpaths present in the package manifest exports.
+  ///
+  /// Implementation of `PACKAGE_EXPORTS_RESOLVE` from the [Resolution Algorithm
+  /// Specification](https://nodejs.org/api/esm.html#resolution-algorithm-specification).
   Uri? _nodePackageExportsResolve(
       Uri packageRoot,
       List<String?> subpathVariants,
@@ -270,7 +276,12 @@ class NodePackageImporterInternal extends Importer {
     return keys;
   }
 
-  /// Recurses through `exports` object to find match for `subpath`.
+  /// Recurses through `exports` object to find match for `subpath`, verifying
+  /// the file exists relative to `packageRoot`. Instances of `*` will be
+  /// replaced with `patternMatch`.
+  ///
+  /// Implementation of `PACKAGE_TARGET_RESOLVE` from the [Resolution Algorithm
+  /// Specification](https://nodejs.org/api/esm.html#resolution-algorithm-specification).
   Uri? _packageTargetResolve(String? subpath, Object exports, Uri packageRoot,
       [String? patternMatch]) {
     switch (exports) {
