@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
-import 'package:source_span/source_span.dart';
 
 import '../../exception.dart';
 import '../../logger.dart';
@@ -35,7 +34,7 @@ abstract base class SimpleSelector extends Selector {
   /// sequence will contain 1000 simple selectors.
   int get specificity => 1000;
 
-  SimpleSelector(FileSpan span) : super(span);
+  SimpleSelector(super.span);
 
   /// Parses a simple selector from [contents].
   ///

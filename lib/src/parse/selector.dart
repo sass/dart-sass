@@ -6,8 +6,6 @@ import 'package:charcode/charcode.dart';
 
 import '../ast/css/value.dart';
 import '../ast/selector.dart';
-import '../interpolation_map.dart';
-import '../logger.dart';
 import '../util/character.dart';
 import '../utils.dart';
 import 'parser.dart';
@@ -36,16 +34,14 @@ class SelectorParser extends Parser {
   /// Whether this parser allows placeholder selectors beginning with `%`.
   final bool _allowPlaceholder;
 
-  SelectorParser(String contents,
-      {Object? url,
-      Logger? logger,
-      InterpolationMap? interpolationMap,
+  SelectorParser(super.contents,
+      {super.url,
+      super.logger,
+      super.interpolationMap,
       bool allowParent = true,
       bool allowPlaceholder = true})
       : _allowParent = allowParent,
-        _allowPlaceholder = allowPlaceholder,
-        super(contents,
-            url: url, logger: logger, interpolationMap: interpolationMap);
+        _allowPlaceholder = allowPlaceholder;
 
   SelectorList parse() {
     return wrapSpanFormatException(() {

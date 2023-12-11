@@ -94,7 +94,7 @@ final class IfClause extends IfRuleClause {
 ///
 /// {@category AST}
 final class ElseClause extends IfRuleClause {
-  ElseClause(Iterable<Statement> children) : super(children);
+  ElseClause(super.children);
 
   String toString() => "@else {${children.join(' ')}}";
 }

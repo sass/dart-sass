@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
-import 'package:source_span/source_span.dart';
 
 import '../../extend/functions.dart';
 import '../../visitor/interface/selector.dart';
@@ -23,7 +22,7 @@ final class UniversalSelector extends SimpleSelector {
 
   int get specificity => 0;
 
-  UniversalSelector(FileSpan span, {this.namespace}) : super(span);
+  UniversalSelector(super.span, {this.namespace});
 
   T accept<T>(SelectorVisitor<T> visitor) =>
       visitor.visitUniversalSelector(this);

@@ -69,8 +69,7 @@ abstract class StylesheetParser extends Parser {
   @protected
   SilentComment? lastSilentComment;
 
-  StylesheetParser(String contents, {Object? url, Logger? logger})
-      : super(contents, url: url, logger: logger);
+  StylesheetParser(super.contents, {super.url, super.logger});
 
   // ## Statements
 
