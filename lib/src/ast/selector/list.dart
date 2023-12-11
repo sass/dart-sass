@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
-import 'package:source_span/source_span.dart';
 
 import '../../exception.dart';
 import '../../extend/functions.dart';
@@ -49,9 +48,8 @@ final class SelectorList extends Selector {
     }), ListSeparator.comma);
   }
 
-  SelectorList(Iterable<ComplexSelector> components, FileSpan span)
-      : components = List.unmodifiable(components),
-        super(span) {
+  SelectorList(Iterable<ComplexSelector> components, super.span)
+      : components = List.unmodifiable(components) {
     if (this.components.isEmpty) {
       throw ArgumentError("components may not be empty.");
     }

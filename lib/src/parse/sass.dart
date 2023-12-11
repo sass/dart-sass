@@ -7,7 +7,6 @@ import 'package:string_scanner/string_scanner.dart';
 
 import '../ast/sass.dart';
 import '../interpolation_buffer.dart';
-import '../logger.dart';
 import '../util/character.dart';
 import '../value.dart';
 import 'stylesheet.dart';
@@ -38,8 +37,7 @@ class SassParser extends StylesheetParser {
 
   bool get indented => true;
 
-  SassParser(String contents, {Object? url, Logger? logger})
-      : super(contents, url: url, logger: logger);
+  SassParser(super.contents, {super.url, super.logger});
 
   Interpolation styleRuleSelector() {
     var start = scanner.state;

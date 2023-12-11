@@ -70,11 +70,10 @@ final class ComplexSelector extends Selector {
   }
 
   ComplexSelector(Iterable<CssValue<Combinator>> leadingCombinators,
-      Iterable<ComplexSelectorComponent> components, FileSpan span,
+      Iterable<ComplexSelectorComponent> components, super.span,
       {this.lineBreak = false})
       : leadingCombinators = List.unmodifiable(leadingCombinators),
-        components = List.unmodifiable(components),
-        super(span) {
+        components = List.unmodifiable(components) {
     if (this.leadingCombinators.isEmpty && this.components.isEmpty) {
       throw ArgumentError(
           "leadingCombinators and components may not both be empty.");

@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../importer.dart';
-import '../compilation_dispatcher.dart';
 import '../embedded_sass.pb.dart' hide SourceSpan;
 import 'base.dart';
 
@@ -13,8 +12,7 @@ final class FileImporter extends ImporterBase {
   /// The host-provided ID of the importer to invoke.
   final int _importerId;
 
-  FileImporter(CompilationDispatcher dispatcher, this._importerId)
-      : super(dispatcher);
+  FileImporter(super.dispatcher, this._importerId);
 
   Uri? canonicalize(Uri url) {
     if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);
