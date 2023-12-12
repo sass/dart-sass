@@ -1,5 +1,6 @@
 import 'dart:js_util';
 
+import 'package:async/async.dart';
 import 'package:node_interop/js.dart';
 
 import 'compile.dart';
@@ -7,9 +8,14 @@ import 'compile_options.dart';
 import 'reflection.dart';
 import 'utils.dart';
 
+/// The Dart Compiler class.
 class Compiler {
+  /// A flag signifying whether the instance has been disposed.
   bool _disposed = false;
 
+  /// Checks if `dispose()` has been called on this instance, and throws an
+  /// error if it has. Used to verify that compilation methods are not called
+  /// after disposal.
   void throwIfDisposed() {
     if (_disposed) {
       jsThrow(JsError('Compiler has already been disposed.'));
@@ -17,17 +23,15 @@ class Compiler {
   }
 }
 
+/// The Dart Async Compiler class.
 class AsyncCompiler extends Compiler {
-  final Set<Promise> _compilations = {};
+  /// A set of all compilations, tracked to ensure all compilations settle
+  /// before async disposal resolves.
+  final FutureGroup<Promise> compilations = FutureGroup();
 
-  /// Adds a compilation to the pending set and removes it when it's done.
-  void _addCompilation(Promise compilation) {
-    _compilations.add(compilation);
-    compilation.then((value) {
-      _compilations.remove(compilation);
-    }, (error) {
-      _compilations.remove(compilation);
-    });
+  /// Adds a compilation to the FutureGroup.
+  void addCompilation(Promise compilation) {
+    compilations.add(promiseToFuture(compilation));
   }
 }
 
@@ -65,20 +69,21 @@ final JSClass asyncCompilerClass = () {
         [CompileOptions? options]) {
       self.throwIfDisposed();
       var compilation = compileAsync(path, options);
-      self._addCompilation(compilation);
+      self.addCompilation(compilation);
       return compilation;
     },
     'compileStringAsync': (AsyncCompiler self, String source,
         [CompileStringOptions? options]) {
       self.throwIfDisposed();
       var compilation = compileStringAsync(source, options);
-      self._addCompilation(compilation);
+      self.addCompilation(compilation);
       return compilation;
     },
     'dispose': (AsyncCompiler self) {
       self._disposed = true;
       return futureToPromise((() async {
-        await Future.wait(self._compilations.map(promiseToFuture<Object>));
+        self.compilations.close();
+        await self.compilations.future;
       })());
     }
   });
