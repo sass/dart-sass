@@ -27,11 +27,15 @@ class Compiler {
 class AsyncCompiler extends Compiler {
   /// A set of all compilations, tracked to ensure all compilations settle
   /// before async disposal resolves.
-  final FutureGroup<Promise> compilations = FutureGroup();
+  final FutureGroup<dynamic> compilations = FutureGroup();
 
   /// Adds a compilation to the FutureGroup.
   void addCompilation(Promise compilation) {
-    compilations.add(promiseToFuture(compilation));
+    Future<dynamic> comp = promiseToFuture(compilation);
+    comp.catchError((err) {
+      return;
+    });
+    compilations.add(comp);
   }
 }
 
