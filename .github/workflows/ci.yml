@@ -40,5 +40,7 @@ jobs:
   release:
     needs: [test_framework]
     if: "startsWith(github.ref, 'refs/tags/') && github.event.repository.fork == false"
+    permissions:
+      contents: write
     uses: ./.github/workflows/release.yml
     secrets: inherit
