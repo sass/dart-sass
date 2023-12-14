@@ -41,7 +41,12 @@ class AsyncCompiler extends Compiler {
 
 /// The JavaScript `Compiler` class.
 final JSClass compilerClass = () {
-  var jsClass = createJSClass('sass.Compiler', () => Compiler());
+  var jsClass = createJSClass(
+      'sass.Compiler',
+      (Object self) => {
+            jsThrow(JsError(("Compiler can not be directly constructed. "
+                "Please use `sass.initCompiler()` instead.")))
+          });
 
   jsClass.defineMethods({
     'compile': (Compiler self, String path, [CompileOptions? options]) {
@@ -66,7 +71,12 @@ Compiler initCompiler() => Compiler();
 
 /// The JavaScript `AsyncCompiler` class.
 final JSClass asyncCompilerClass = () {
-  var jsClass = createJSClass('sass.AsyncCompiler', () => AsyncCompiler());
+  var jsClass = createJSClass(
+      'sass.AsyncCompiler',
+      (Object self) => {
+            jsThrow(JsError(("AsyncCompiler can not be directly constructed. "
+                "Please use `sass.initAsyncCompiler()` instead.")))
+          });
 
   jsClass.defineMethods({
     'compileAsync': (AsyncCompiler self, String path,
