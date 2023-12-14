@@ -25,6 +25,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: ./.github/util/initialize
+        with: {github-token: "${{ github.token }}"}
 
       - name: Build
         run: dart run grinder pkg-standalone-windows-${{ matrix.arch }}
