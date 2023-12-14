@@ -1,0 +1,72 @@
+name: Test Framework
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  bootstrap:
+    name: "Bootstrap ${{ matrix.bootstrap_version }}"
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        bootstrap_version: [4, 5]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/util/initialize
+        with: {github-token: "${{ github.token }}"}
+
+      - run: dart run grinder fetch-bootstrap${{matrix.bootstrap_version}}
+        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+      - name: Build
+        run: dart bin/sass.dart --quiet build/bootstrap/scss:build/bootstrap-output
+
+  bourbon:
+    name: Bourbon
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/util/initialize
+        with: {github-token: "${{ github.token }}"}
+
+      - run: dart run grinder fetch-bourbon
+        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+      - name: Test
+        run: |
+          dart bin/sass.dart --quiet -I build/bourbon -I build/bourbon/spec/fixtures \
+              build/bourbon/spec/fixtures:build/bourbon-output
+
+  foundation:
+    name: Foundation
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/util/initialize
+        with: {github-token: "${{ github.token }}"}
+
+      - run: dart run grinder fetch-foundation
+        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+      # TODO(nweiz): Foundation has proper Sass tests, but they're currently not
+      # compatible with Dart Sass. Once they are, we should run those rather
+      # than just building the CSS output.
+      - name: Build
+        run: dart bin/sass.dart --quiet build/foundation-sites/assets:build/foundation-output
+
+  bulma:
+    name: Bulma
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/util/initialize
+        with: {github-token: "${{ github.token }}"}
+
+      - run: dart run grinder fetch-bulma
+        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+      - name: Build
+        run: dart bin/sass.dart --quiet build/bulma/bulma.sass build/bulma-output.css

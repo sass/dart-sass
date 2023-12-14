@@ -1,0 +1,37 @@
+name: Build for macos
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: macos-latest
+          # https://github.blog/2023-10-02-introducing-the-new-apple-silicon-powered-m1-macos-larger-runner-for-github-actions/
+          - arch: arm64
+            runner: macos-latest-xlarge
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/util/initialize
+
+      - name: Build
+        run: dart run grinder pkg-standalone-macos-${{ matrix.arch }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-macos-${{ matrix.arch }}
+          path: build/*.tar.gz
+          if-no-files-found: error
+          compression-level: 0
