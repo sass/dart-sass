@@ -1,11 +1,5 @@
 name: Test
 
-# The default Node version lives in ../util/initialize/action.yml. It should be
-# kept up-to-date with the latest Node LTS releases, along with the various
-# node-version matrices below.
-#
-# Next update: April 2021
-
 defaults:
   run: {shell: bash}
 
@@ -82,9 +76,6 @@ jobs:
         working-directory: sass-spec
         env: {extra_args: "${{ matrix.async_args }}"}
 
-  # The versions should be kept up-to-date with the latest LTS Node releases.
-  # They next need to be rotated April 2021. See
-  # https://github.com/nodejs/Release.
   sass_spec_js:
     name: "JS API Tests | Pure JS | Dart ${{ matrix.dart_channel }} | Node ${{ matrix.node-version }} | ${{ matrix.os }}"
     runs-on: "${{ matrix.os }}"
@@ -94,18 +85,22 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         dart_channel: [stable]
-        node-version: [18]
+        node-version: ['lts/*']
         include:
-          # Include LTS versions on Ubuntu
+          # Test older LTS versions
           - os: ubuntu-latest
             dart_channel: stable
-            node-version: 16
+            node-version: lts/-3
           - os: ubuntu-latest
             dart_channel: stable
-            node-version: 14
+            node-version: lts/-2
+          - os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-1
+          # Test LTS version with dart dev channel
           - os: ubuntu-latest
             dart_channel: dev
-            node-version: 18
+            node-version: 'lts/*'
 
     steps:
       - uses: actions/checkout@v4
