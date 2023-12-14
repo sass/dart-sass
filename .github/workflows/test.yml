@@ -90,13 +90,13 @@ jobs:
           # Test older LTS versions
           - os: ubuntu-latest
             dart_channel: stable
-            node-version: lts/-3
+            node-version: lts/-1
           - os: ubuntu-latest
             dart_channel: stable
             node-version: lts/-2
           - os: ubuntu-latest
             dart_channel: stable
-            node-version: lts/-1
+            node-version: lts/-3
           # Test LTS version with dart dev channel
           - os: ubuntu-latest
             dart_channel: dev
