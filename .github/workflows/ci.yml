@@ -1,11 +1,5 @@
 name: CI
 
-# The default Node version lives in ../util/initialize/action.yml. It should be
-# kept up-to-date with the latest Node LTS releases, along with the various
-# node-version matrices below.
-#
-# Next update: April 2021
-
 on:
   push:
     branches: [main, feature.*]
