@@ -63,8 +63,9 @@ jobs:
           EOF
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-android-${{ matrix.arch }}
           path: build/*.tar.gz
           if-no-files-found: error
+          compression-level: 0
