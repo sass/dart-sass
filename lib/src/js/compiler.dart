@@ -16,7 +16,7 @@ class Compiler {
   /// Checks if `dispose()` has been called on this instance, and throws an
   /// error if it has. Used to verify that compilation methods are not called
   /// after disposal.
-  void throwIfDisposed() {
+  void _throwIfDisposed() {
     if (_disposed) {
       jsThrow(JsError('Compiler has already been disposed.'));
     }
@@ -25,17 +25,17 @@ class Compiler {
 
 /// The Dart Async Compiler class.
 class AsyncCompiler extends Compiler {
-  /// A set of all compilations, tracked to ensure all compilations settle
+  /// A set of all compilations, tracked to ensure all compilations complete
   /// before async disposal resolves.
-  final FutureGroup<dynamic> compilations = FutureGroup();
+  final FutureGroup<void> compilations = FutureGroup();
 
   /// Adds a compilation to the FutureGroup.
   void addCompilation(Promise compilation) {
     Future<dynamic> comp = promiseToFuture(compilation);
-    comp.catchError((err) {
-      return;
+    var wrappedComp = comp.catchError((err) {
+      /// Ignore errors so FutureGroup doesn't close when a compilation fails.
     });
-    compilations.add(comp);
+    compilations.add(wrappedComp);
   }
 }
 
@@ -45,12 +45,12 @@ final JSClass compilerClass = () {
 
   jsClass.defineMethods({
     'compile': (Compiler self, String path, [CompileOptions? options]) {
-      self.throwIfDisposed();
+      self._throwIfDisposed();
       return compile(path, options);
     },
     'compileString': (Compiler self, String source,
         [CompileStringOptions? options]) {
-      self.throwIfDisposed();
+      self._throwIfDisposed();
       return compileString(source, options);
     },
     'dispose': (Compiler self) {
@@ -71,14 +71,14 @@ final JSClass asyncCompilerClass = () {
   jsClass.defineMethods({
     'compileAsync': (AsyncCompiler self, String path,
         [CompileOptions? options]) {
-      self.throwIfDisposed();
+      self._throwIfDisposed();
       var compilation = compileAsync(path, options);
       self.addCompilation(compilation);
       return compilation;
     },
     'compileStringAsync': (AsyncCompiler self, String source,
         [CompileStringOptions? options]) {
-      self.throwIfDisposed();
+      self._throwIfDisposed();
       var compilation = compileStringAsync(source, options);
       self.addCompilation(compilation);
       return compilation;
