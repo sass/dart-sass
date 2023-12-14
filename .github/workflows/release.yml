@@ -56,8 +56,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            dart-sass-*.tar.gz
-            dart-sass-*.zip
+            build-*/*
 
   deploy_npm:
     name: Deploy npm
