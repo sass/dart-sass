@@ -31,14 +31,14 @@ jobs:
       - name: Run checks
         run: dart run grinder double-check-before-release
 
-  test_framework:
+  test_vendor:
     needs: [double_check]
     if: "startsWith(github.ref, 'refs/tags/') && github.event.repository.fork == false"
-    uses: ./.github/workflows/test-framework.yml
+    uses: ./.github/workflows/test-vendor.yml
     secrets: inherit
 
   release:
-    needs: [test_framework]
+    needs: [test_vendor]
     if: "startsWith(github.ref, 'refs/tags/') && github.event.repository.fork == false"
     permissions:
       contents: write

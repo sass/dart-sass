@@ -1,4 +1,4 @@
-name: Test Framework
+name: Test Vendor
 
 on:
   workflow_call:
