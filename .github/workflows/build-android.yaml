@@ -38,11 +38,11 @@ jobs:
       - name: Compile Protobuf
         run: |
           docker run --rm -i \
-                     --volume $PWD:$PWD \
-                     --workdir $PWD \
+                     --volume "$PWD:$PWD" \
+                     --workdir "$PWD" \
                      docker.io/library/dart <<'EOF'
           set -e
-          curl -fsSL "https://github.com/bufbuild/buf/releases/latest/download/buf-$(uname -s)-$(uname -m).tar.gz" | tar -xzC /usr/local --strip-components 1
+          curl -fsSL -H "Authorization: Bearer ${{ github.token }}" "https://github.com/bufbuild/buf/releases/latest/download/buf-$(uname -s)-$(uname -m).tar.gz" | tar -xzC /usr/local --strip-components 1
           dart pub get
           dart run grinder protobuf
           EOF
@@ -52,8 +52,8 @@ jobs:
           docker run --rm -i \
                      --platform ${{ matrix.platform }} \
                      --privileged \
-                     --volume $PWD:$PWD \
-                     --workdir $PWD \
+                     --volume "$PWD:$PWD" \
+                     --workdir "$PWD" \
                      ghcr.io/dart-android/dart <<'EOF'
           set -e
           export DART_SDK=/system/${{ matrix.lib }}/dart
