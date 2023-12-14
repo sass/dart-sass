@@ -1,4 +1,4 @@
-name: Test Framework
+name: Test
 
 defaults:
   run: {shell: bash}
