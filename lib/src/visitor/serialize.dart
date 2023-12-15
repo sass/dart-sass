@@ -1090,7 +1090,8 @@ final class _SerializeVisitor
               $fs ||
               $gs ||
               $rs ||
-              $us:
+              $us ||
+              $del:
           _writeEscape(buffer, char, string, i);
 
         case $backslash:
