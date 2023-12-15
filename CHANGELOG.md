@@ -9,6 +9,8 @@
   points that aren't in the US-ASCII region. Previously only code points U+0100
   LATIN CAPITAL LETTER A WITH MACRON were escaped.
 
+* Provide official releases for musl LibC and for Android.
+
 ### JS API
 
 * Fix a bug where certain exceptions could produce `SourceSpan`s that didn't
