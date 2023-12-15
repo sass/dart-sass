@@ -43,7 +43,7 @@ jobs:
 
       # There is a bug in qemu's mremap causing pthread_getattr_np in musl to stuck in a loop on arm.
       # Unless qemu fixes the bug or we get a real linux-arm runner, we cannot build aot-snapshot
-      # for arm on CI. So, we create an kernel snapshot for arm build in amd64 container instead.
+      # for arm on CI. So, we create a kernel snapshot for arm build in amd64 container instead.
       #
       # In addition, we need to rename the artifact from -linux- to -linux-musl- to avoid conflict
       # with glibc builds.
@@ -61,7 +61,7 @@ jobs:
           EOF
 
       # The kernel snapshot created for arm in the previous step is bundling a glibc based dart runtime
-      # due to how cli_pkg download the sdk for building non-native platforms. Therefore we need to
+      # due to how cli_pkg downloads the sdk for building non-native platforms. Therefore we need to
       # replace it with musl-libc based dart runtime to create a working linux-musl-arm package.
       - name: Fix Dart Runtime
         if: matrix.arch == 'arm'
