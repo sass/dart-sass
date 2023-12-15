@@ -124,9 +124,6 @@ jobs:
         run: npm run js-api-spec -- --sassSassRepo ../language --sassPackage ../build/npm
         working-directory: sass-spec
 
-  # The versions should be kept up-to-date with the latest LTS Node releases.
-  # They next need to be rotated October 2021. See
-  # https://github.com/nodejs/Release.
   sass_spec_js_embedded:
     name: 'JS API Tests | Embedded | Node ${{ matrix.node-version }} | ${{ matrix.os }}'
     runs-on: ${{ matrix.os }}-latest
@@ -136,13 +133,18 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, windows, macos]
-        node-version: [18]
+        node-version: ['lts/*']
         include:
-          # Include LTS versions on Ubuntu
-          - os: ubuntu
-            node-version: 16
-          - os: ubuntu
-            node-version: 14
+          # Test older LTS versions
+          - os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-1
+          - os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-2
+          - os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-3
 
     steps:
       - uses: actions/checkout@v4
@@ -244,10 +246,6 @@ jobs:
         run: dart run test -x node
 
   # Unit tests that use Node.js, defined in test/.
-  #
-  # The versions should be kept up-to-date with the latest LTS Node releases.
-  # They next need to be rotated April 2021. See
-  # https://github.com/nodejs/Release.
   node_tests:
     name: "Node tests | Dart ${{ matrix.dart_channel }} | Node ${{ matrix.node-version }} | ${{ matrix.os }}"
     runs-on: "${{ matrix.os }}"
@@ -258,18 +256,23 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         dart_channel: [stable]
-        node-version: [18]
+        node-version: ['lts/*']
         include:
-          # Include LTS versions on Ubuntu
+          # Test older LTS versions
           - os: ubuntu-latest
             dart_channel: stable
-            node-version: 16
+            node-version: lts/-1
           - os: ubuntu-latest
             dart_channel: stable
-            node-version: 14
+            node-version: lts/-2
+          - os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-3
+          # Test LTS version with dart dev channel
           - os: ubuntu-latest
             dart_channel: dev
-            node-version: 18
+            node-version: 'lts/*'
+
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/util/initialize
