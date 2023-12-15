@@ -41,12 +41,11 @@ jobs:
           dart run grinder protobuf
           EOF
 
+      # https://gitlab.com/qemu-project/qemu/-/issues/1729
+      #
       # There is a bug in qemu's mremap causing pthread_getattr_np in musl to stuck in a loop on arm.
       # Unless qemu fixes the bug or we get a real linux-arm runner, we cannot build aot-snapshot
       # for arm on CI. So, we create a kernel snapshot for arm build in amd64 container instead.
-      #
-      # In addition, we need to rename the artifact from -linux- to -linux-musl- to avoid conflict
-      # with glibc builds.
       - name: Build
         run: |
           docker run --rm -i \
@@ -57,6 +56,7 @@ jobs:
           set -e
           dart pub get
           dart run grinder pkg-standalone-linux-${{ matrix.arch }}
+          # Rename the artifact from -linux- to -linux-musl- to avoid conflict with glibc builds.
           find build -name '*.tar.gz' -print0 | xargs -0 -n 1 -- sh -xc 'mv "$1" "$(echo "$1" | sed -e "s/linux/linux-musl/")"' --
           EOF
 
