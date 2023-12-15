@@ -126,13 +126,13 @@ jobs:
 
   sass_spec_js_embedded:
     name: 'JS API Tests | Embedded | Node ${{ matrix.node-version }} | ${{ matrix.os }}'
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.os }}
     if: "github.event_name != 'pull_request' || !contains(github.event.pull_request.body, 'skip sass-embedded')"
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, windows, macos]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         node-version: ['lts/*']
         include:
           # Test older LTS versions
