@@ -2,7 +2,7 @@ name: Initialize
 description: Check out Dart Sass and build the embedded protocol buffer.
 inputs:
   github-token: {required: true}
-  node-version: {required: false, default: 18}
+  node-version: {required: false, default: 'lts/*'}
   dart-sdk: {required: false, default: stable}
   architecture: {required: false}
 runs:
