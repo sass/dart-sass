@@ -11,7 +11,6 @@ import '../value.dart' as value;
 import 'legacy/types.dart';
 import 'logger.dart';
 import 'reflection.dart';
-import 'utils.dart';
 
 @JS()
 class Exports {
@@ -23,7 +22,7 @@ class Exports {
   external set info(String info);
   external set Exception(JSClass function);
   external set Logger(LoggerNamespace namespace);
-  external set nodePackageImporter(JSSymbol nodePackageImporter);
+  external set NodePackageImporter(JSClass function);
 
   // Value APIs
   external set Value(JSClass function);

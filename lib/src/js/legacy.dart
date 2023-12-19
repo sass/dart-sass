@@ -299,20 +299,37 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
 /// Creates an [AsyncImportCache] for Package Importers.
 AsyncImportCache? _parsePackageImportersAsync(
     RenderOptions options, DateTime start) {
-  if (options.pkgImporter case 'node') {
-    // TODO(jamesnw) Can we get an actual filename for parity? Is it needed?
-    Uri entryPointURL = Uri.parse(p.absolute('./index.js'));
-    return AsyncImportCache.only([NodePackageImporterInternal(entryPointURL)]);
+  if (options.pkgImporter?.type case 'node') {
+    var entryPointURL = options.pkgImporter?.entryPointPath != null
+        ? p.join(p.current, options.pkgImporter?.entryPointPath)
+        : requireMainFilename;
+
+    if (entryPointURL == null) {
+      jsThrow(JsError(
+          "The Node Package Importer cannot determine an entry point."
+          "Please provide an `entryPointPath` to the Node Package Importer."));
+    }
+
+    return AsyncImportCache.only(
+        [NodePackageImporterInternal(Uri.file(entryPointURL))]);
   }
   return null;
 }
 
 /// Creates an [ImportCache] for Package Importers.
 ImportCache? _parsePackageImporters(RenderOptions options, DateTime start) {
-  if (options.pkgImporter case 'node') {
-    // TODO(jamesnw) Can we get an actual filename for parity? Is it needed?
-    Uri entryPointURL = Uri.parse(p.absolute('./index.js'));
-    return ImportCache.only([NodePackageImporterInternal(entryPointURL)]);
+  if (options.pkgImporter?.type case 'node') {
+    var entryPointURL = options.pkgImporter?.entryPointPath != null
+        ? p.join(p.current, options.pkgImporter?.entryPointPath)
+        : requireMainFilename;
+
+    if (entryPointURL == null) {
+      jsThrow(JsError(
+          "The Node Package Importer cannot determine an entry point."
+          "Please provide an `entryPointPath` to the Node Package Importer."));
+    }
+    return ImportCache.only(
+        [NodePackageImporterInternal(Uri.file(entryPointURL))]);
   }
   return null;
 }

@@ -14,7 +14,7 @@ dependencies:
   args: ^2.0.0
   async: ^2.5.0
   charcode: ^1.2.0
-  cli_pkg: ^2.7.0
+  cli_pkg: ^2.7.1
   cli_repl: ^0.2.1
   collection: ^1.16.0
   http: "^1.1.0"
