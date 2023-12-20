@@ -126,6 +126,7 @@ class NodePackageImporterInternal extends Importer {
   /// Implementation of `PACKAGE_RESOLVE` from the [Resolution Algorithm
   /// Specification](https://nodejs.org/api/esm.html#resolution-algorithm-specification).
   String? _resolvePackageRoot(String packageName, Uri baseURL) {
+    print(baseURL.toString());
     var baseDirectory = isWindows
         ? p.dirname(p.fromUri(Uri.directory(baseURL.toString())))
         : p.dirname(p.fromUri(baseURL));
