@@ -96,12 +96,28 @@ class NodePackageImporterInternal extends Importer {
   /// Because this is a bare import specifier and not a path, we always use `/`
   /// to avoid invalid values on non-Posix machines.
   (String, String?) _packageNameAndSubpath(String specifier) {
-    var parts = specifier.split('/');
+    var parts = p.posix.split(specifier);
     var name = parts.removeAt(0);
-    if (name.startsWith('@')) {
-      name = '$name/${parts.removeAt(0)}';
+
+    if (name.startsWith('.')) {
+      throw "pkg: name $name must not start with a '.'.";
     }
-    return (name, parts.isNotEmpty ? parts.join('/') : null);
+    if (name.contains('\\')) {
+      throw "pkg: name $name must not contain a '\\'.";
+    }
+    if (name.contains('%')) {
+      throw "pkg: name $name must not contain a '%'.";
+    }
+
+    if (name.startsWith('@')) {
+      if (parts.isEmpty) {
+        throw "pkg: name $name is an invalid package name."
+            "Scoped packages, which start with '@', must have a second segment.";
+      }
+      name = p.posix.join(name, parts.removeAt(0));
+    }
+
+    return (name, parts.isNotEmpty ? p.posix.joinAll(parts) : null);
   }
 
   /// Takes a string, `packageName`, and an absolute URL `baseURL`, and returns
