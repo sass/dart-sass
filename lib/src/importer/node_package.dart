@@ -127,7 +127,7 @@ class NodePackageImporterInternal extends Importer {
   /// Specification](https://nodejs.org/api/esm.html#resolution-algorithm-specification).
   String? _resolvePackageRoot(String packageName, Uri baseURL) {
     print("baseURL: " + baseURL.toString());
-    var path = baseURL.path;
+    var path = baseURL.path.substring(1);
     if (path.startsWith(r"\\?\")) {
       if (path.startsWith(r"UNC\", 4)) {
         path = path.replaceRange(0, 7, r'\');
@@ -197,7 +197,7 @@ class NodePackageImporterInternal extends Importer {
     }
 
     var baseDirectory = isWindows
-        ? p.dirname(p.fromUri(Uri.directory(baseURL.path)))
+        ? p.dirname(p.fromUri(Uri.directory(baseURL.path.substring(1))))
         : p.dirname(p.fromUri(baseURL));
 
     Uri? recurseUpFrom(String entry) {
