@@ -42,9 +42,8 @@ class NodePackageImporterInternal extends Importer {
       throw "pkg: URL $url must not have a query or fragment.";
     }
 
-    var baseURL = containingUrl?.scheme == 'file'
-        ? Uri.parse(containingUrl!.toFilePath())
-        : entryPointURL;
+    var baseURL =
+        containingUrl?.scheme == 'file' ? containingUrl! : entryPointURL;
 
     var (packageName, subpath) = _packageNameAndSubpath(url.path);
     var packageRoot = _resolvePackageRoot(packageName, baseURL);
