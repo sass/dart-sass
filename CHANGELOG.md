@@ -11,6 +11,8 @@
 
 * Provide official releases for musl LibC and for Android.
 
+* Don't crash when running `meta.apply()` in asynchronous mode.
+
 ### JS API
 
 * Fix a bug where certain exceptions could produce `SourceSpan`s that didn't
