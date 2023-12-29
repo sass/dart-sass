@@ -161,6 +161,9 @@ jobs:
         id: version
         run: echo "version=${GITHUB_REF##*/}" | tee --append "$GITHUB_OUTPUT"
 
+      - name: Wait for npm registry's CDN to catch up on replications
+        run: sleep 600
+
       - name: Update Dart Sass version
         run: npm install sass@${{ steps.version.outputs.version }}
 
