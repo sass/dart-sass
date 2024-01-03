@@ -1,3 +1,7 @@
+## 9.2.7
+
+* No user-visible changes.
+
 ## 9.2.6
 
 * No user-visible changes.

@@ -1,3 +1,10 @@
+## 1.69.7
+
+### Embedded Sass
+
+* In the JS Embedded Host, properly install the x64 Dart Sass executable on
+  ARM64 Windows.
+
 ## 1.69.6
 
 * Produce better output for numbers with complex units in `meta.inspect()` and
