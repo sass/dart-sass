@@ -1,3 +1,10 @@
+## 1.69.8
+
+### Embedded Sass
+
+* The Dart Sass embedded compiler now reports its name as "dart-sass" rather
+  than "Dart Sass", to match the JS API's `info` field.
+
 ## 1.69.7
 
 ### Embedded Sass
