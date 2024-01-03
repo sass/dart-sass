@@ -311,7 +311,7 @@ AsyncImportCache? _parsePackageImportersAsync(
     }
 
     return AsyncImportCache.only(
-        [NodePackageImporterInternal(Uri.file(entryPointURL))]);
+        [NodePackageImporter(Uri.file(entryPointURL))]);
   }
   return null;
 }
@@ -328,8 +328,7 @@ ImportCache? _parsePackageImporters(RenderOptions options, DateTime start) {
           "The Node Package Importer cannot determine an entry point."
           "Please provide an `entryPointPath` to the Node Package Importer."));
     }
-    return ImportCache.only(
-        [NodePackageImporterInternal(Uri.file(entryPointURL))]);
+    return ImportCache.only([NodePackageImporter(Uri.file(entryPointURL))]);
   }
   return null;
 }

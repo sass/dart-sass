@@ -200,7 +200,7 @@ AsyncImporter _parseAsyncImporter(Object? importer) {
           "Please provide an `entryPointPath` to the Node Package Importer."));
     }
 
-    return NodePackageImporterInternal(Uri.file(entryPointURL));
+    return NodePackageImporter(Uri.file(entryPointURL));
   }
   if (importer == null) jsThrow(JsError("Importers may not be null."));
 
@@ -242,7 +242,7 @@ Importer _parseImporter(Object? importer) {
           "Please provide an `entryPointPath` to the Node Package Importer."));
     }
 
-    return NodePackageImporterInternal(Uri.file(entryPointURL));
+    return NodePackageImporter(Uri.file(entryPointURL));
   }
 
   if (importer == null) jsThrow(JsError("Importers may not be null."));

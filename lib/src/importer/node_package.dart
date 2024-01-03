@@ -13,11 +13,11 @@ import '../io.dart';
 import 'package:path/path.dart' as p;
 
 /// An [Importer] that resolves `pkg:` URLs using the Node resolution algorithm.
-class NodePackageImporterInternal extends Importer {
+class NodePackageImporter extends Importer {
   final Uri entryPointURL;
 
   /// Creates a Node Package Importer with the associated entry point url
-  NodePackageImporterInternal(this.entryPointURL);
+  NodePackageImporter(this.entryPointURL);
 
   static const validExtensions = {'.scss', '.sass', '.css'};
 
