@@ -1,3 +1,10 @@
+## 1.69.7
+
+### Embedded Sass
+
+* In the JS Embedded Host, properly install the x64 Dart Sass executable on
+  ARM64 Windows.
+
 ## 1.69.6
 
 * Produce better output for numbers with complex units in `meta.inspect()` and
@@ -8,6 +15,10 @@
 * When generating CSS error messages to display in-browser, escape all code
   points that aren't in the US-ASCII region. Previously only code points U+0100
   LATIN CAPITAL LETTER A WITH MACRON were escaped.
+
+* Provide official releases for musl LibC and for Android.
+
+* Don't crash when running `meta.apply()` in asynchronous mode.
 
 ### JS API
 

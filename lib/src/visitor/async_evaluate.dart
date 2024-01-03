@@ -546,7 +546,8 @@ final class _EvaluateVisitor
             namesInErrors: true);
         _assertConfigurationIsEmpty(configuration, nameInError: true);
       }, url: "sass:meta"),
-      BuiltInCallable.mixin("apply", r"$mixin, $args...", (arguments) async {
+      AsyncBuiltInCallable.mixin("apply", r"$mixin, $args...",
+          (arguments) async {
         var mixin = arguments[0];
         var args = arguments[1] as SassArgumentList;
 
