@@ -190,17 +190,17 @@ AsyncImporter _parseAsyncImporter(Object? importer) {
       jsThrow(JsError(
           "The Node Package Importer cannot be used without a filesystem."));
     }
-    var entryPointURL = importer.entryPointPath != null
+    var entryPointPath = importer.entryPointPath != null
         ? p.join(p.current, importer.entryPointPath)
         : requireMainFilename;
 
-    if (entryPointURL == null) {
+    if (entryPointPath == null) {
       jsThrow(JsError(
           "The Node Package Importer cannot determine an entry point."
           "Please provide an `entryPointPath` to the Node Package Importer."));
     }
 
-    return NodePackageImporter(Uri.file(entryPointURL));
+    return NodePackageImporter(entryPointPath);
   }
   if (importer == null) jsThrow(JsError("Importers may not be null."));
 
@@ -232,17 +232,17 @@ Importer _parseImporter(Object? importer) {
       jsThrow(JsError(
           "The Node Package Importer cannot be used without a filesystem."));
     }
-    var entryPointURL = importer.entryPointPath != null
+    var entryPointPath = importer.entryPointPath != null
         ? p.join(p.current, importer.entryPointPath)
         : requireMainFilename;
 
-    if (entryPointURL == null) {
+    if (entryPointPath == null) {
       jsThrow(JsError(
           "The Node Package Importer cannot determine an entry point."
           "Please provide an `entryPointPath` to the Node Package Importer."));
     }
 
-    return NodePackageImporter(Uri.file(entryPointURL));
+    return NodePackageImporter(entryPointPath);
   }
 
   if (importer == null) jsThrow(JsError("Importers may not be null."));

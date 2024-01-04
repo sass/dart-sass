@@ -11,7 +11,7 @@ import 'package:native_synchronization/mailbox.dart';
 import 'package:path/path.dart' as p;
 import 'package:protobuf/protobuf.dart';
 import 'package:sass/sass.dart' as sass;
-import 'package:sass/src/importer/node_package.dart';
+import 'package:sass/src/importer/node_package.dart' as npi;
 
 import '../value/function.dart';
 import '../value/mixin.dart';
@@ -226,9 +226,8 @@ final class CompilationDispatcher {
         return null;
 
       case InboundMessage_CompileRequest_Importer_Importer.nodePackageImporter:
-        var entryPointUrl =
-            Uri.parse(importer.nodePackageImporter.entryPointPath);
-        return NodePackageImporter(entryPointUrl);
+        return npi.NodePackageImporter(
+            importer.nodePackageImporter.entryPointPath);
     }
   }
 

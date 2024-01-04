@@ -300,18 +300,17 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
 AsyncImportCache? _parsePackageImportersAsync(
     RenderOptions options, DateTime start) {
   if (options.pkgImporter?.type case 'node') {
-    var entryPointURL = options.pkgImporter?.entryPointPath != null
+    var entryPointPath = options.pkgImporter?.entryPointPath != null
         ? p.join(p.current, options.pkgImporter?.entryPointPath)
         : requireMainFilename;
 
-    if (entryPointURL == null) {
+    if (entryPointPath == null) {
       jsThrow(JsError(
           "The Node Package Importer cannot determine an entry point."
           "Please provide an `entryPointPath` to the Node Package Importer."));
     }
 
-    return AsyncImportCache.only(
-        [NodePackageImporter(Uri.file(entryPointURL))]);
+    return AsyncImportCache.only([NodePackageImporter(entryPointPath)]);
   }
   return null;
 }
@@ -319,16 +318,16 @@ AsyncImportCache? _parsePackageImportersAsync(
 /// Creates an [ImportCache] for Package Importers.
 ImportCache? _parsePackageImporters(RenderOptions options, DateTime start) {
   if (options.pkgImporter?.type case 'node') {
-    var entryPointURL = options.pkgImporter?.entryPointPath != null
+    var entryPointPath = options.pkgImporter?.entryPointPath != null
         ? p.join(p.current, options.pkgImporter?.entryPointPath)
         : requireMainFilename;
 
-    if (entryPointURL == null) {
+    if (entryPointPath == null) {
       jsThrow(JsError(
           "The Node Package Importer cannot determine an entry point."
           "Please provide an `entryPointPath` to the Node Package Importer."));
     }
-    return ImportCache.only([NodePackageImporter(Uri.file(entryPointURL))]);
+    return ImportCache.only([NodePackageImporter(entryPointPath)]);
   }
   return null;
 }
