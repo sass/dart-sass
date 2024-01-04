@@ -360,7 +360,7 @@ class NodePackageImporter extends Importer {
     if (subpath == null && addIndex) {
       subpath = 'index';
     } else if (subpath != null && addIndex) {
-      subpath = "$subpath/index";
+      subpath = p.posix.join(subpath, 'index');
     }
     if (subpath == null) return [null];
 
@@ -375,15 +375,16 @@ class NodePackageImporter extends Importer {
     }
     var subpathSegments = p.toUri(subpath).pathSegments;
     var basename = subpathSegments.last;
-    var dirPath = subpathSegments.sublist(0, subpathSegments.length - 1);
     if (!basename.startsWith('_')) {
       List<String> prefixedPaths = [];
       for (final path in paths) {
+        var dirPath = subpathSegments.sublist(0, subpathSegments.length - 1);
         var pathBasename = p.toUri(path).pathSegments.last;
         if (dirPath.isEmpty) {
           prefixedPaths.add('_$pathBasename');
         } else {
-          prefixedPaths.add('${dirPath.join(p.separator)}/_$pathBasename');
+          dirPath.add('_$pathBasename');
+          prefixedPaths.add(p.posix.joinAll(dirPath));
         }
       }
       paths.addAll(prefixedPaths);
