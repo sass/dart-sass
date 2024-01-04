@@ -14,9 +14,10 @@ import 'package:path/path.dart' as p;
 
 /// An [Importer] that resolves `pkg:` URLs using the Node resolution algorithm.
 class NodePackageImporter extends Importer {
+  /// The starting path for canonicalizations without a containing URL.
   final String _entryPointPath;
 
-  /// Creates a Node Package Importer with the associated entry point url
+  /// Creates a Node Package Importer with the associated entry point.
   NodePackageImporter(this._entryPointPath);
 
   static const validExtensions = {'.scss', '.sass', '.css'};
@@ -75,7 +76,8 @@ class NodePackageImporter extends Importer {
     // then `index` file at package root, resolved for file extensions and
     // partials.
     if (subpath == null) {
-      return _resolvePackageRootValues(packageRoot, packageManifest);
+      var rootPath = _resolvePackageRootValues(packageRoot, packageManifest);
+      return rootPath != null ? p.toUri(rootPath) : null;
     }
 
     // If there is a subpath, attempt to resolve the path relative to the
@@ -118,9 +120,8 @@ class NodePackageImporter extends Importer {
     return (name, parts.isNotEmpty ? p.posix.joinAll(parts) : null);
   }
 
-  /// Takes a string, `packageName`, and an absolute URL `baseURL`, and returns
-  /// an absolute URL to the root directory for the most proximate installed
-  /// `packageName`.
+  /// Returns an absolute path to the root directory for the most proximate
+  /// installed `packageName`.
   ///
   /// Implementation of `PACKAGE_RESOLVE` from the [Resolution Algorithm
   /// Specification](https://nodejs.org/api/esm.html#resolution-algorithm-specification).
@@ -146,33 +147,31 @@ class NodePackageImporter extends Importer {
     return recurseUpFrom(baseDirectory);
   }
 
-  /// Takes a string `packageRoot`, which is the root directory for a package,
-  /// and `packageManifest`, which is the contents of that package's
-  /// `package.json` file, and returns a file URL.
-  Uri? _resolvePackageRootValues(
+  /// Returns a file path specified by the `sass` or `style` values in a package
+  /// manifest, or an `index` file relative to the package root.
+  String? _resolvePackageRootValues(
       String packageRoot, Map<String, dynamic> packageManifest) {
     if (packageManifest['sass'] case String sassValue) {
       if (validExtensions.contains(p.extension(sassValue))) {
-        return Uri.file(p.url.join(packageRoot, sassValue));
+        return p.url.join(packageRoot, sassValue);
       }
     }
 
     if (packageManifest['style'] case String styleValue) {
       if (validExtensions.contains(p.extension(styleValue))) {
-        return Uri.file(p.url.join(packageRoot, styleValue));
+        return p.url.join(packageRoot, styleValue);
       }
     }
 
     var result = resolveImportPath(p.url.join(packageRoot, 'index'));
-    if (result != null) return Uri.file(result);
+    if (result != null) return result;
     return null;
   }
 
-  /// Returns a file path specified in the `exports` section of package.json.
+  /// Returns a file path specified by a `subpath` in the `exports` section of
+  /// package.json.
   ///
-  /// Takes a package.json value `packageManifest`, a directory URL
-  /// `packageRoot` and a relative URL path `subpath`. `packageName` is used for
-  /// error reporting only.
+  /// `packageName` is used for error reporting.
   String? _resolvePackageExports(String packageRoot, String? subpath,
       Map<String, dynamic> packageManifest, String packageName) {
     if (packageManifest['exports'] == null) return null;
@@ -196,9 +195,11 @@ class NodePackageImporter extends Importer {
     return null;
   }
 
-  /// Takes a package.json value `packageManifest`, a directory URL
-  /// `packageRoot` and a list of relative URL paths `subpathVariants`. It
-  /// returns a list of all subpaths present in the package manifest exports.
+  /// Returns the path to one subpath variants, resolved in the `exports` of a
+  /// package manifest.
+  ///
+  /// Throws an error if multiple `subpathVariants` match, and null if none
+  /// match.
   ///
   /// Implementation of `PACKAGE_EXPORTS_RESOLVE` from the [Resolution Algorithm
   /// Specification](https://nodejs.org/api/esm.html#resolution-algorithm-specification).
@@ -280,9 +281,10 @@ class NodePackageImporter extends Importer {
     return 0;
   }
 
-  /// Recurses through `exports` object to find match for `subpath`, verifying
-  /// the file exists relative to `packageRoot`. Instances of `*` will be
-  /// replaced with `patternMatch`.
+  /// Returns a file path to `subpath`, resolved in the `exports` object.
+  ///
+  /// Verifies the file exists relative to `packageRoot`. Instances of `*`
+  /// will be replaced with `patternMatch`.
   ///
   /// Implementation of `PACKAGE_TARGET_RESOLVE` from the [Resolution Algorithm
   /// Specification](https://nodejs.org/api/esm.html#resolution-algorithm-specification).
@@ -331,8 +333,7 @@ class NodePackageImporter extends Importer {
     }
   }
 
-  /// Given an `exports` object, returns the entry for an export without a
-  /// subpath.
+  /// Returns a path to a package's export without a subpath.
   Object? _getMainExport(Object exports) {
     Object? parseMap(Map<String, dynamic> map) {
       if (!map.keys.any((key) => key.startsWith('.'))) {
@@ -352,8 +353,11 @@ class NodePackageImporter extends Importer {
     };
   }
 
-  /// Given a string `subpath`, returns a list of all possible variations with
-  /// extensions and partials.
+  /// Returns a list of all possible variations of `subpath` with extensions and
+  /// partials.
+  ///
+  /// `subpath` is part of the [bare import specifier], so we use the `/`
+  /// separator.
   List<String?> _exportsToCheck(String? subpath, {bool addIndex = false}) {
     var paths = <String>[];
 
@@ -373,13 +377,13 @@ class NodePackageImporter extends Importer {
         '$subpath.css',
       ]);
     }
-    var subpathSegments = p.toUri(subpath).pathSegments;
+    var subpathSegments = p.posix.split(subpath);
     var basename = subpathSegments.last;
     if (!basename.startsWith('_')) {
       List<String> prefixedPaths = [];
       for (final path in paths) {
         var dirPath = subpathSegments.sublist(0, subpathSegments.length - 1);
-        var pathBasename = p.toUri(path).pathSegments.last;
+        var pathBasename = p.posix.split(path).last;
         if (dirPath.isEmpty) {
           prefixedPaths.add('_$pathBasename');
         } else {
