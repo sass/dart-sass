@@ -190,7 +190,7 @@ class NodePackageImporter extends Importer {
     return null;
   }
 
-  /// Returns the path to one subpath variants, resolved in the `exports` of a
+  /// Returns the path to one subpath variant, resolved in the `exports` of a
   /// package manifest.
   ///
   /// Throws an error if multiple `subpathVariants` match, and null if none
@@ -210,7 +210,7 @@ class NodePackageImporter extends Importer {
       throw '`exports` in $packageName can not have both conditions and paths '
           'at the same level.\n'
           'Found ${exports.keys.map((key) => '"$key"').join(',')} in '
-          '${p.join(packageRoot, 'package.json')}';
+          '${p.join(packageRoot, 'package.json')}.';
     }
     String? processVariant(String? variant) {
       if (variant == null) {
@@ -221,7 +221,7 @@ class NodePackageImporter extends Importer {
           exports.keys.every((key) => !key.startsWith('.'))) {
         return null;
       }
-      var matchKey = "./$variant";
+      var matchKey = "./${p.toUri(variant)}";
       if (exports.containsKey(matchKey) && !matchKey.contains('*')) {
         return _packageTargetResolve(
             matchKey, exports[matchKey] as Object, packageRoot);
@@ -254,7 +254,7 @@ class NodePackageImporter extends Importer {
 
     switch (matches) {
       case [var path]:
-        return path;
+        return p.fromUri(path);
       case [_, _, ...] && var paths:
         throw "Unable to determine which of multiple potential resolutions "
             "found for ${subpath ?? 'root'} in $packageName should be used. "
