@@ -254,7 +254,7 @@ class NodePackageImporter extends Importer {
 
     switch (matches) {
       case [var path]:
-        return p.fromUri(path);
+        return path;
       case [_, _, ...] && var paths:
         throw "Unable to determine which of multiple potential resolutions "
             "found for ${subpath ?? 'root'} in $packageName should be used. "
