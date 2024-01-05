@@ -32,14 +32,11 @@ class NodePackageImporter extends Importer {
 
     if (url.hasAuthority) {
       throw "pkg: URL $url must not have a host, port, username or password.";
-    }
-    if (p.isAbsolute(url.path)) {
+    } else if (p.isAbsolute(url.path)) {
       throw "pkg: URL $url must not be an absolute path.";
-    }
-    if (url.path.isEmpty) {
+    } else if (url.path.isEmpty) {
       throw "pkg: URL $url must not have an empty path.";
-    }
-    if (url.hasQuery || url.hasFragment) {
+    } else if (url.hasQuery || url.hasFragment) {
       throw "pkg: URL $url must not have a query or fragment.";
     }
 
@@ -96,16 +93,14 @@ class NodePackageImporter extends Importer {
   /// Because this is a bare import specifier and not a path, we always use `/`
   /// to avoid invalid values on non-Posix machines.
   (String, String?) _packageNameAndSubpath(String specifier) {
-    var parts = p.posix.split(specifier);
+    var parts = p.url.split(specifier);
     var name = parts.removeAt(0);
 
     if (name.startsWith('.')) {
       throw "pkg: name $name must not start with a '.'.";
-    }
-    if (name.contains('\\')) {
+    } else if (name.contains('\\')) {
       throw "pkg: name $name must not contain a '\\'.";
-    }
-    if (name.contains('%')) {
+    } else if (name.contains('%')) {
       throw "pkg: name $name must not contain a '%'.";
     }
 
@@ -114,10 +109,10 @@ class NodePackageImporter extends Importer {
         throw "pkg: name $name is an invalid package name."
             "Scoped packages, which start with '@', must have a second segment.";
       }
-      name = p.posix.join(name, parts.removeAt(0));
+      name = p.url.join(name, parts.removeAt(0));
     }
-
-    return (name, parts.isNotEmpty ? p.posix.joinAll(parts) : null);
+    var subpath = parts.isNotEmpty ? p.fromUri(p.url.joinAll(parts)) : null;
+    return (name, subpath);
   }
 
   /// Returns an absolute path to the root directory for the most proximate
@@ -356,19 +351,19 @@ class NodePackageImporter extends Importer {
   /// Returns a list of all possible variations of `subpath` with extensions and
   /// partials.
   ///
-  /// `subpath` is part of the [bare import specifier], so we use the `/`
-  /// separator.
+  /// If there is no subpath, returns a single `null` value, which is used in
+  /// `_nodePackageExportsResolve` to denote the main package export.
   List<String?> _exportsToCheck(String? subpath, {bool addIndex = false}) {
     var paths = <String>[];
 
     if (subpath == null && addIndex) {
       subpath = 'index';
     } else if (subpath != null && addIndex) {
-      subpath = p.posix.join(subpath, 'index');
+      subpath = p.join(subpath, 'index');
     }
     if (subpath == null) return [null];
 
-    if (['scss', 'sass', 'css'].any((ext) => subpath!.endsWith(ext))) {
+    if (const {'.scss', '.sass', '.css'}.contains(p.extension(subpath))) {
       paths.add(subpath);
     } else {
       paths.addAll([
@@ -377,22 +372,18 @@ class NodePackageImporter extends Importer {
         '$subpath.css',
       ]);
     }
-    var subpathSegments = p.posix.split(subpath);
-    var basename = subpathSegments.last;
-    if (!basename.startsWith('_')) {
-      List<String> prefixedPaths = [];
-      for (final path in paths) {
-        var dirPath = subpathSegments.sublist(0, subpathSegments.length - 1);
-        var pathBasename = p.posix.split(path).last;
-        if (dirPath.isEmpty) {
-          prefixedPaths.add('_$pathBasename');
-        } else {
-          dirPath.add('_$pathBasename');
-          prefixedPaths.add(p.posix.joinAll(dirPath));
-        }
-      }
-      paths.addAll(prefixedPaths);
-    }
-    return paths;
+    var basename = p.basename(subpath);
+    var dirname = p.dirname(subpath);
+
+    if (basename.startsWith('_')) return paths;
+
+    return [
+      ...paths,
+      for (var path in paths)
+        if (dirname == '.')
+          '_${p.basename(path)}'
+        else
+          p.join(dirname, '_${p.basename(path)}')
+    ];
   }
 }
