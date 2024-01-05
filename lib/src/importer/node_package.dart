@@ -280,10 +280,13 @@ class NodePackageImporter extends Importer {
     return 0;
   }
 
-  /// Returns a file path to `subpath`, resolved in the `exports` object.
+  /// Returns a file path for `subpath`, as resolved in the `exports` object.
   ///
-  /// Verifies the file exists relative to `packageRoot`. Instances of `*`
-  /// will be replaced with `patternMatch`.
+  /// Verifies the file exists relative to `packageRoot`. Instances of `*` will
+  /// be replaced with `patternMatch`.
+  ///
+  /// `subpath` and `packageRoot` are native paths, and `patternMatch` is a URL
+  /// path.
   ///
   /// Implementation of `PACKAGE_TARGET_RESOLVE` from the [Resolution Algorithm
   /// Specification](https://nodejs.org/api/esm.html#resolution-algorithm-specification).
@@ -315,9 +318,9 @@ class NodePackageImporter extends Importer {
 
       case List<dynamic> array:
         for (var value in array) {
-          var result = _packageTargetResolve(
-              subpath, value as Object, packageRoot, patternMatch);
-          if (result != null) {
+          if (_packageTargetResolve(
+                  subpath, value as Object, packageRoot, patternMatch)
+              case var result?) {
             return result;
           }
         }
@@ -325,7 +328,8 @@ class NodePackageImporter extends Importer {
         return null;
 
       default:
-        throw "Invalid 'exports' value in ${p.join(packageRoot, 'package.json')}";
+        throw "Invalid 'exports' value $exports in "
+            "${p.join(packageRoot, 'package.json')}.";
     }
   }
 
