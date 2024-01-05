@@ -148,17 +148,17 @@ class NodePackageImporter extends Importer {
       String packageRoot, Map<String, dynamic> packageManifest) {
     if (packageManifest['sass'] case String sassValue) {
       if (validExtensions.contains(p.extension(sassValue))) {
-        return p.url.join(packageRoot, sassValue);
+        return p.join(packageRoot, sassValue);
       }
     }
 
     if (packageManifest['style'] case String styleValue) {
       if (validExtensions.contains(p.extension(styleValue))) {
-        return p.url.join(packageRoot, styleValue);
+        return p.join(packageRoot, styleValue);
       }
     }
 
-    var result = resolveImportPath(p.url.join(packageRoot, 'index'));
+    var result = resolveImportPath(p.join(packageRoot, 'index'));
     if (result != null) return result;
     return null;
   }
@@ -222,7 +222,9 @@ class NodePackageImporter extends Importer {
         return null;
       }
       var matchKey = "./${p.toUri(variant)}";
-      if (exports.containsKey(matchKey) && !matchKey.contains('*')) {
+      if (exports.containsKey(matchKey) &&
+          exports[matchKey] != null &&
+          !matchKey.contains('*')) {
         return _packageTargetResolve(
             matchKey, exports[matchKey] as Object, packageRoot);
       }
@@ -239,7 +241,8 @@ class NodePackageImporter extends Importer {
         if (patternTrailer.isEmpty ||
             (matchKey.endsWith(patternTrailer) &&
                 matchKey.length >= expansionKey.length)) {
-          var target = exports[expansionKey] as Object;
+          var target = exports[expansionKey] as Object?;
+          if (target == null) continue;
           var patternMatch = matchKey.substring(
               patternBase.length, matchKey.length - patternTrailer.length);
           return _packageTargetResolve(
@@ -252,16 +255,15 @@ class NodePackageImporter extends Importer {
 
     var matches = subpathVariants.map(processVariant).whereNotNull().toList();
 
-    switch (matches) {
-      case [var path]:
-        return path;
-      case [_, _, ...] && var paths:
+    return switch (matches) {
+      [var path] => path,
+      [_, _, ...] && var paths =>
         throw "Unable to determine which of multiple potential resolutions "
             "found for ${subpath ?? 'root'} in $packageName should be used. "
             "\n\nFound:\n"
-            "${paths.join('\n')}";
-    }
-    return null;
+            "${paths.join('\n')}",
+      _ => null
+    };
   }
 
   /// Implementation of the `PATTERN_KEY_COMPARE` comparator from
@@ -289,15 +291,13 @@ class NodePackageImporter extends Importer {
       String? subpath, Object exports, String packageRoot,
       [String? patternMatch]) {
     switch (exports) {
+      case String string when !string.startsWith('./'):
+        throw "Export '$string' must be a path relative to the package root at '$packageRoot'.";
+      case String string when patternMatch != null:
+        var replaced = string.replaceFirst('*', patternMatch);
+        var path = p.normalize(p.join(packageRoot, replaced));
+        return fileExists(path) ? path : null;
       case String string:
-        if (!string.startsWith('./')) {
-          throw "Export '$string' must be a path relative to the package root at '$packageRoot'.";
-        }
-        if (patternMatch != null) {
-          var replaced = string.replaceFirst('*', patternMatch);
-          var path = p.normalize(p.join(packageRoot, replaced));
-          return fileExists(path) ? path : null;
-        }
         return p.join(packageRoot, string);
       case Map<String, dynamic> map:
         for (var (key, value) in map.pairs) {
@@ -331,20 +331,14 @@ class NodePackageImporter extends Importer {
 
   /// Returns a path to a package's export without a subpath.
   Object? _getMainExport(Object exports) {
-    Object? parseMap(Map<String, dynamic> map) {
-      if (!map.keys.any((key) => key.startsWith('.'))) {
-        return map;
-      }
-      if (map.containsKey('.')) {
-        return map['.'] as Object;
-      }
-      return null;
-    }
-
     return switch (exports) {
       String string => string,
       List<String> list => list,
-      Map<String, dynamic> map => parseMap(map),
+      Map<String, dynamic> map
+          when !map.keys.any((key) => key.startsWith('.')) =>
+        map,
+      Map<String, dynamic> map when map.containsKey('.') && map['.'] != null =>
+        map['.'] as Object,
       _ => null
     };
   }
