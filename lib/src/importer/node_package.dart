@@ -55,14 +55,14 @@ class NodePackageImporter extends Importer {
     try {
       packageManifest = json.decode(jsonString) as Map<String, dynamic>;
     } catch (e) {
-      throw "'package.json' in 'pkg:$packageName' cannot be parsed.";
+      throw "Failed to parse $jsonPath for \"pkg:$packageName\": $e";
     }
 
     if (_resolvePackageExports(
             packageRoot, subpath, packageManifest, packageName)
         case var resolved?) {
       if (validExtensions.contains(p.extension(resolved))) {
-        return p.toUri(resolved);
+        return p.toUri(p.canonicalize(resolved));
       } else {
         throw "The export for '${subpath ?? "root"}' in "
             "'$packageName' resolved to '${resolved.toString()}', "
@@ -74,13 +74,13 @@ class NodePackageImporter extends Importer {
     // partials.
     if (subpath == null) {
       var rootPath = _resolvePackageRootValues(packageRoot, packageManifest);
-      return rootPath != null ? p.toUri(rootPath) : null;
+      return rootPath != null ? p.toUri(p.canonicalize(rootPath)) : null;
     }
 
     // If there is a subpath, attempt to resolve the path relative to the
     // package root, and resolve for file extensions and partials.
-    var relativeSubpath = p.join(packageRoot, subpath);
-    return FilesystemImporter.cwd.canonicalize(p.toUri(relativeSubpath));
+    var subpathInRoot = p.join(packageRoot, subpath);
+    return FilesystemImporter.cwd.canonicalize(p.toUri(subpathInRoot));
   }
 
   @override
@@ -169,12 +169,12 @@ class NodePackageImporter extends Importer {
   /// `packageName` is used for error reporting.
   String? _resolvePackageExports(String packageRoot, String? subpath,
       Map<String, dynamic> packageManifest, String packageName) {
-    if (packageManifest['exports'] == null) return null;
-    var exports = packageManifest['exports'] as Object;
+    var exports = packageManifest['exports'] as Object?;
+    if (exports == null) return null;
     var subpathVariants = _exportsToCheck(subpath);
     if (_nodePackageExportsResolve(
             packageRoot, subpathVariants, exports, subpath, packageName)
-        case String path) {
+        case var path?) {
       return path;
     }
 
@@ -183,7 +183,7 @@ class NodePackageImporter extends Importer {
     var subpathIndexVariants = _exportsToCheck(subpath, addIndex: true);
     if (_nodePackageExportsResolve(
             packageRoot, subpathIndexVariants, exports, subpath, packageName)
-        case String path) {
+        case var path?) {
       return path;
     }
 
@@ -204,22 +204,24 @@ class NodePackageImporter extends Importer {
       Object exports,
       String? subpath,
       String packageName) {
-    if (exports is Map<String, dynamic>) {
-      if (exports.keys.any((key) => key.startsWith('.')) &&
-          exports.keys.any((key) => !key.startsWith('.'))) {
-        throw 'Invalid Package Configuration';
-      }
+    if (exports is Map<String, dynamic> &&
+        exports.keys.any((key) => key.startsWith('.')) &&
+        exports.keys.any((key) => !key.startsWith('.'))) {
+      throw '`exports` in $packageName can not have both conditions and paths '
+          'at the same level.\n'
+          'Found ${exports.keys.map((key) => '"$key"').join(',')} in '
+          '${p.join(packageRoot, 'package.json')}';
     }
-    String? processVariant(String? subpath) {
-      if (subpath == null) {
+    String? processVariant(String? variant) {
+      if (variant == null) {
         return _getMainExport(exports).andThen((mainExport) =>
-            _packageTargetResolve(subpath, mainExport, packageRoot));
+            _packageTargetResolve(variant, mainExport, packageRoot));
       }
       if (exports is! Map<String, dynamic> ||
           exports.keys.every((key) => !key.startsWith('.'))) {
         return null;
       }
-      var matchKey = "./$subpath";
+      var matchKey = "./$variant";
       if (exports.containsKey(matchKey) && !matchKey.contains('*')) {
         return _packageTargetResolve(
             matchKey, exports[matchKey] as Object, packageRoot);
@@ -227,7 +229,7 @@ class NodePackageImporter extends Importer {
 
       var expansionKeys = [
         for (var key in exports.keys)
-          if (key.split('').where((char) => char == '*').length == 1) key
+          if ('*'.allMatches(key).length == 1) key
       ]..sort(_compareExpansionKeys);
 
       for (var expansionKey in expansionKeys) {
@@ -241,7 +243,7 @@ class NodePackageImporter extends Importer {
           var patternMatch = matchKey.substring(
               patternBase.length, matchKey.length - patternTrailer.length);
           return _packageTargetResolve(
-              subpath, target, packageRoot, patternMatch);
+              variant, target, packageRoot, patternMatch);
         }
       }
 
@@ -292,15 +294,14 @@ class NodePackageImporter extends Importer {
           throw "Export '$string' must be a path relative to the package root at '$packageRoot'.";
         }
         if (patternMatch != null) {
-          var replaced = string.replaceAll(RegExp(r'\*'), patternMatch);
+          var replaced = string.replaceFirst('*', patternMatch);
           var path = p.normalize(p.join(packageRoot, replaced));
           return fileExists(path) ? path : null;
         }
         return p.join(packageRoot, string);
       case Map<String, dynamic> map:
-        var conditions = ['sass', 'style', 'default'];
         for (var (key, value) in map.pairs) {
-          if (!conditions.contains(key)) continue;
+          if (!const {'sass', 'style', 'default'}.contains(key)) continue;
           if (_packageTargetResolve(
                   subpath, value as Object, packageRoot, patternMatch)
               case var result?) {
