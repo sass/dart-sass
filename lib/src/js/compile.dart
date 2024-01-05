@@ -14,6 +14,7 @@ import '../importer/js_to_dart/async.dart';
 import '../importer/js_to_dart/async_file.dart';
 import '../importer/js_to_dart/file.dart';
 import '../importer/js_to_dart/sync.dart';
+import '../importer/js_node_package.dart';
 import '../importer/node_package.dart';
 import '../io.dart';
 import '../logger/js_to_dart.dart';
@@ -185,20 +186,13 @@ OutputStyle _parseOutputStyle(String? style) => switch (style) {
 /// Converts [importer] into an [AsyncImporter] that can be used with
 /// [compileAsync] or [compileStringAsync].
 AsyncImporter _parseAsyncImporter(Object? importer) {
-  if (importer is NodePackageImporterClass) {
-    if (isBrowser) {
-      jsThrow(JsError(
-          "The Node Package Importer cannot be used without a filesystem."));
-    }
+  if (importer is JSNodePackageImporter) {
+    if (isBrowser) throwMissingFileSystem();
     var entryPointPath = importer.entryPointPath != null
         ? p.join(p.current, importer.entryPointPath)
         : requireMainFilename;
 
-    if (entryPointPath == null) {
-      jsThrow(JsError(
-          "The Node Package Importer cannot determine an entry point."
-          "Please provide an `entryPointPath` to the Node Package Importer."));
-    }
+    if (entryPointPath == null) throwMissingEntryPointPath();
 
     return NodePackageImporter(entryPointPath);
   }
@@ -227,20 +221,13 @@ AsyncImporter _parseAsyncImporter(Object? importer) {
 
 /// Converts [importer] into a synchronous [Importer].
 Importer _parseImporter(Object? importer) {
-  if (importer is NodePackageImporterClass) {
-    if (isBrowser) {
-      jsThrow(JsError(
-          "The Node Package Importer cannot be used without a filesystem."));
-    }
+  if (importer is JSNodePackageImporter) {
+    if (isBrowser) throwMissingFileSystem();
     var entryPointPath = importer.entryPointPath != null
         ? p.join(p.current, importer.entryPointPath)
         : requireMainFilename;
 
-    if (entryPointPath == null) {
-      jsThrow(JsError(
-          "The Node Package Importer cannot determine an entry point."
-          "Please provide an `entryPointPath` to the Node Package Importer."));
-    }
+    if (entryPointPath == null) throwMissingEntryPointPath();
 
     return NodePackageImporter(entryPointPath);
   }
@@ -360,17 +347,12 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
   return result;
 }
 
-class NodePackageImporterClass {
-  final String? entryPointPath;
-  NodePackageImporterClass(this.entryPointPath);
-}
-
 /// The exported `NodePackageImporter` class that can be added to the
 /// `importers` option to enable loading `pkg:` URLs from `node_modules`.
 final JSClass nodePackageImporterClass = () {
   var jsClass = createJSClass(
       'sass.NodePackageImporter',
       (Object self, [String? entryPointPath]) =>
-          NodePackageImporterClass(entryPointPath));
+          JSNodePackageImporter(entryPointPath));
   return jsClass;
 }();

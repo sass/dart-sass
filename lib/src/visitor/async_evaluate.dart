@@ -1708,6 +1708,7 @@ final class _EvaluateVisitor
           }
         }
       }
+
       if (_nodeImporter != null) {
         if (await _importLikeNode(
                 url, baseUrl ?? _stylesheet.span.sourceUrl, forImport)

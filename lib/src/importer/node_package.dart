@@ -17,7 +17,7 @@ class NodePackageImporter extends Importer {
   /// The starting path for canonicalizations without a containing URL.
   final String _entryPointPath;
 
-  /// Creates a Node Package Importer with the associated entry point.
+  /// Creates a Node package importer with the associated entry point.
   NodePackageImporter(this._entryPointPath);
 
   static const validExtensions = {'.scss', '.sass', '.css'};

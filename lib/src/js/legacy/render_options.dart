@@ -4,15 +4,9 @@
 
 import 'package:js/js.dart';
 
+import '../../importer/js_node_package.dart';
 import '../logger.dart';
 import 'fiber.dart';
-
-@JS()
-@anonymous
-class PackageImporterOptions {
-  external String get type;
-  external String? get entryPointPath;
-}
 
 @JS()
 @anonymous
@@ -20,7 +14,7 @@ class RenderOptions {
   external String? get file;
   external String? get data;
   external Object? get importer;
-  external PackageImporterOptions? get pkgImporter;
+  external JSNodePackageImporter? get pkgImporter;
   external Object? get functions;
   external List<Object /* String */ >? get includePaths;
   external bool? get indentedSyntax;
@@ -44,7 +38,7 @@ class RenderOptions {
       {String? file,
       String? data,
       Object? importer,
-      PackageImporterOptions? pkgImporter,
+      JSNodePackageImporter? pkgImporter,
       Object? functions,
       List<String>? includePaths,
       bool? indentedSyntax,
