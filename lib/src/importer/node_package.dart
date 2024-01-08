@@ -120,9 +120,10 @@ class NodePackageImporter extends Importer {
   ///
   /// Implementation of `PACKAGE_RESOLVE` from the [Resolution Algorithm
   /// Specification](https://nodejs.org/api/esm.html#resolution-algorithm-specification).
-  String? _resolvePackageRoot(String packageName, String baseDirectory) {
+  String? _resolvePackageRoot(String packageName, String basePath) {
+    String? baseDirectory;
     while (true) {
-      baseDirectory = p.dirname(baseDirectory);
+      baseDirectory = p.dirname(baseDirectory ?? basePath);
       var potentialPackage = p.join(baseDirectory, 'node_modules', packageName);
       if (dirExists(potentialPackage)) return potentialPackage;
       // baseDirectory has now reached root without finding a match.
