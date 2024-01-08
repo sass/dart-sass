@@ -297,6 +297,7 @@ class NodePackageImporter extends Importer {
       case Map<String, dynamic> map:
         for (var (key, value) in map.pairs) {
           if (!const {'sass', 'style', 'default'}.contains(key)) continue;
+          if (value == null) continue;
           if (_packageTargetResolve(
                   subpath, value as Object, packageRoot, patternMatch)
               case var result?) {
@@ -310,6 +311,7 @@ class NodePackageImporter extends Importer {
 
       case List<dynamic> array:
         for (var value in array) {
+          if (value == null) continue;
           if (_packageTargetResolve(
                   subpath, value as Object, packageRoot, patternMatch)
               case var result?) {
