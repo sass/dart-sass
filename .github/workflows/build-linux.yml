@@ -1,0 +1,62 @@
+name: Build for linux
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            platform: linux/amd64
+          - arch: ia32
+            platform: linux/amd64
+          - arch: arm
+            platform: linux/arm/v7
+          - arch: arm64
+            platform: linux/arm64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Compile Protobuf
+        run: |
+          docker run --rm -i \
+                     --volume "$PWD:$PWD" \
+                     --workdir "$PWD" \
+                     docker.io/library/dart <<'EOF'
+          set -e
+          curl -fsSL -H "Authorization: Bearer ${{ github.token }}" "https://github.com/bufbuild/buf/releases/latest/download/buf-$(uname -s)-$(uname -m).tar.gz" | tar -xzC /usr/local --strip-components 1
+          dart pub get
+          dart run grinder protobuf
+          EOF
+
+      - name: Build
+        run: |
+          docker run --rm -i \
+            --platform ${{ matrix.platform }} \
+            --volume "$PWD:$PWD" \
+            --workdir "$PWD" \
+          docker.io/library/dart:latest <<'EOF'
+          set -e
+          dart pub get
+          dart run grinder pkg-standalone-linux-${{ matrix.arch }}
+          EOF
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-linux-${{ matrix.arch }}
+          path: build/*.tar.gz
+          if-no-files-found: error
+          compression-level: 0
