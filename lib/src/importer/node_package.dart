@@ -120,26 +120,14 @@ class NodePackageImporter extends Importer {
   ///
   /// Implementation of `PACKAGE_RESOLVE` from the [Resolution Algorithm
   /// Specification](https://nodejs.org/api/esm.html#resolution-algorithm-specification).
-  String? _resolvePackageRoot(String packageName, String basePath) {
-    var baseDirectory = p.dirname(basePath);
-
-    String? recurseUpFrom(String entry) {
-      var potentialPackage = p.join(entry, 'node_modules', packageName);
-
+  String? _resolvePackageRoot(String packageName, String baseDirectory) {
+    while (true) {
+      baseDirectory = p.dirname(baseDirectory);
+      var potentialPackage = p.join(baseDirectory, 'node_modules', packageName);
       if (dirExists(potentialPackage)) return potentialPackage;
-      var parent = p.dirname(entry);
-
-      // prevent infinite recursion
-      if (entry == parent) return null;
-
-      var rootLength = isWindows ? 1 : 0;
-
-      if (Uri.directory(parent).pathSegments.length == rootLength) return null;
-
-      return recurseUpFrom(parent);
+      // baseDirectory has now reached root without finding a match.
+      if (p.split(baseDirectory).length == 1) return null;
     }
-
-    return recurseUpFrom(baseDirectory);
   }
 
   /// Returns a file path specified by the `sass` or `style` values in a package
