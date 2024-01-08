@@ -289,11 +289,11 @@ class NodePackageImporter extends Importer {
       case String string when !string.startsWith('./'):
         throw "Export '$string' must be a path relative to the package root at '$packageRoot'.";
       case String string when patternMatch != null:
-        var replaced = string.replaceFirst('*', patternMatch);
+        var replaced = p.fromUri(string.replaceFirst('*', patternMatch));
         var path = p.normalize(p.join(packageRoot, replaced));
         return fileExists(path) ? path : null;
       case String string:
-        return p.join(packageRoot, string);
+        return p.join(packageRoot, p.fromUri(string));
       case Map<String, dynamic> map:
         for (var (key, value) in map.pairs) {
           if (!const {'sass', 'style', 'default'}.contains(key)) continue;
