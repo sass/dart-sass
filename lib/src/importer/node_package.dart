@@ -45,6 +45,13 @@ class NodePackageImporter extends Importer {
         : _entryPointPath;
 
     var (packageName, subpath) = _packageNameAndSubpath(url.path);
+
+    // If the package name is not a valid Node package name, return null in case
+    // another importer can handle.
+    if (packageName.startsWith('.') || packageName.contains('\\')) {
+      return null;
+    }
+
     var packageRoot = _resolvePackageRoot(packageName, basePath);
 
     if (packageRoot == null) return null;
@@ -94,13 +101,9 @@ class NodePackageImporter extends Importer {
   /// to avoid invalid values on non-Posix machines.
   (String, String?) _packageNameAndSubpath(String specifier) {
     var parts = p.url.split(specifier);
-    var name = parts.removeAt(0);
+    var name = p.fromUri(parts.removeAt(0));
 
-    if (name.startsWith('.')) {
-      throw "pkg: name $name must not start with a '.'.";
-    } else if (name.contains('\\')) {
-      throw "pkg: name $name must not contain a '\\'.";
-    } else if (name.contains('%')) {
+    if (name.contains('%')) {
       throw "pkg: name $name must not contain a '%'.";
     }
 
