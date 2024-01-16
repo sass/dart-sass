@@ -137,7 +137,7 @@ class IsolateDispatcher {
       ..protocolVersion = const String.fromEnvironment("protocol-version")
       ..compilerVersion = const String.fromEnvironment("compiler-version")
       ..implementationVersion = const String.fromEnvironment("compiler-version")
-      ..implementationName = "Dart Sass";
+      ..implementationName = "dart-sass";
   }
 
   /// Handles an error thrown by the dispatcher or code it dispatches to.
