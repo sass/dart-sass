@@ -12,6 +12,7 @@ import 'package:path/path.dart' as p;
 import 'package:protobuf/protobuf.dart';
 import 'package:sass/sass.dart' as sass;
 
+import '../logger.dart';
 import '../value/function.dart';
 import '../value/mixin.dart';
 import 'embedded_sass.pb.dart';
@@ -117,8 +118,10 @@ final class CompilationDispatcher {
     var style = request.style == OutputStyle.COMPRESSED
         ? sass.OutputStyle.compressed
         : sass.OutputStyle.expanded;
-    var logger = EmbeddedLogger(this,
-        color: request.alertColor, ascii: request.alertAscii);
+    var logger = request.silent
+        ? Logger.quiet
+        : EmbeddedLogger(this,
+            color: request.alertColor, ascii: request.alertAscii);
 
     try {
       var importers = request.importers.map((importer) =>

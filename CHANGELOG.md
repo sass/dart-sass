@@ -1,3 +1,13 @@
+## 1.69.8
+
+### Embedded Sass
+
+* Support the `CompileRequest.silent` field. This allows compilations with no
+  logging to avoid unnecessary request/response cycles.
+
+* The Dart Sass embedded compiler now reports its name as "dart-sass" rather
+  than "Dart Sass", to match the JS API's `info` field.
+
 ## 1.69.7
 
 ### Embedded Sass
