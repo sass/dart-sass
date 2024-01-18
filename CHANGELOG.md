@@ -1,4 +1,18 @@
-## 1.69.8
+## 1.70.0
+
+### JavaScript API
+
+* Add a `sass.initCompiler()` function that returns a `sass.Compiler` object
+  which supports `compile()` and `compileString()` methods with the same API as
+  the global Sass object. On the Node.js embedded host, each `sass.Compiler`
+  object uses a single long-lived subprocess, making compiling multiple
+  stylesheets much more efficient.
+
+* Add a `sass.initAsyncCompiler()` function that returns a `sass.AsyncCompiler`
+  object which supports `compileAsync()` and `compileStringAsync()` methods with
+  the same API as the global Sass object. On the Node.js embedded host, each
+  `sass.AsynCompiler` object uses a single long-lived subprocess, making
+  compiling multiple stylesheets much more efficient.
 
 ### Embedded Sass
 
