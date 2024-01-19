@@ -9,8 +9,5 @@
     "chokidar": ">=3.0.0 <4.0.0",
     "immutable": "^4.0.0",
     "intercept-stdout": "^0.1.2"
-  },
-  "dependencies": {
-    "sass": "^1.63.5"
   }
 }
