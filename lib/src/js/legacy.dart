@@ -305,8 +305,6 @@ AsyncImportCache? _parsePackageImportersAsync(
         ? p.join(p.current, options.pkgImporter!.entryPointPath)
         : requireMainFilename;
 
-    if (entryPointPath == null) throwMissingEntryPointPath();
-
     return AsyncImportCache.only([NodePackageImporter(entryPointPath)]);
   }
   return null;
@@ -318,8 +316,6 @@ ImportCache? _parsePackageImporters(RenderOptions options, DateTime start) {
     var entryPointPath = options.pkgImporter?.entryPointPath != null
         ? p.join(p.current, options.pkgImporter!.entryPointPath)
         : requireMainFilename;
-
-    if (entryPointPath == null) throwMissingEntryPointPath();
 
     return ImportCache.only([NodePackageImporter(entryPointPath)]);
   }

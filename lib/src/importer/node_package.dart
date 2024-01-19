@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:cli_pkg/js.dart';
 import 'package:collection/collection.dart';
 import 'package:sass/src/util/map.dart';
 import 'package:sass/src/util/nullable.dart';
@@ -15,10 +16,20 @@ import 'package:path/path.dart' as p;
 /// An [Importer] that resolves `pkg:` URLs using the Node resolution algorithm.
 class NodePackageImporter extends Importer {
   /// The starting path for canonicalizations without a containing URL.
-  final String _entryPointPath;
+  late final String _entryPointPath;
 
   /// Creates a Node package importer with the associated entry point.
-  NodePackageImporter(this._entryPointPath);
+  NodePackageImporter(String? entryPointPath) {
+    if (entryPointPath == null) {
+      throw "The Node package importer cannot determine an entry point "
+          "because `require.main.filename` is not defined. "
+          "Please provide an `entryPointPath` to the `NodePackageImporter`.";
+    }
+    if (isBrowser) {
+      throw "The Node package importer cannot be used without a filesystem.";
+    }
+    _entryPointPath = entryPointPath;
+  }
 
   static const validExtensions = {'.scss', '.sass', '.css'};
 
