@@ -31,7 +31,10 @@ class NodePackageImporter extends Importer {
     _entryPointPath = entryPointPath;
   }
 
-  static const validExtensions = {'.scss', '.sass', '.css'};
+  /// The set of file extensions that Sass can parse. NodePackageImporter will
+  /// only resolve files with these extenstions, and uses these extensions to
+  /// check for matches if no extension is provided in the Url to canonicalize.
+  static const _validExtensions = {'.scss', '.sass', '.css'};
 
   @override
   bool isNonCanonicalScheme(String scheme) => scheme == 'pkg';
@@ -82,7 +85,7 @@ class NodePackageImporter extends Importer {
     if (_resolvePackageExports(
             packageRoot, subpath, packageManifest, packageName)
         case var resolved?) {
-      if (validExtensions.contains(p.extension(resolved))) {
+      if (_validExtensions.contains(p.extension(resolved))) {
         return p.toUri(p.canonicalize(resolved));
       } else {
         throw "The export for '${subpath ?? "root"}' in "
@@ -145,12 +148,12 @@ class NodePackageImporter extends Importer {
   String? _resolvePackageRootValues(
       String packageRoot, Map<String, dynamic> packageManifest) {
     if (packageManifest['sass'] case String sassValue
-        when validExtensions.contains(p.url.extension(sassValue))) {
+        when _validExtensions.contains(p.url.extension(sassValue))) {
       return p.join(packageRoot, sassValue);
     }
 
     if (packageManifest['style'] case String styleValue
-        when validExtensions.contains(p.url.extension(styleValue))) {
+        when _validExtensions.contains(p.url.extension(styleValue))) {
       return p.join(packageRoot, styleValue);
     }
 
@@ -360,7 +363,7 @@ class NodePackageImporter extends Importer {
     }
     if (subpath == null) return [null];
 
-    if (validExtensions.contains(p.url.extension(subpath))) {
+    if (_validExtensions.contains(p.url.extension(subpath))) {
       paths.add(subpath);
     } else {
       paths.addAll([
