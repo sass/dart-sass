@@ -31,13 +31,13 @@ class NodePackageImporter extends Importer {
     if (url.scheme != 'pkg') return null;
 
     if (url.hasAuthority) {
-      throw "pkg: URL $url must not have a host, port, username or password.";
-    } else if (p.isAbsolute(url.path)) {
-      throw "pkg: URL $url must not be an absolute path.";
+      throw "A pkg: URL must not have a host, port, username or password.";
+    } else if (p.url.isAbsolute(url.path)) {
+      throw "A pkg: URL's path must not begin with /.";
     } else if (url.path.isEmpty) {
-      throw "pkg: URL $url must not have an empty path.";
+      throw "A pkg: URL must not have an empty path.";
     } else if (url.hasQuery || url.hasFragment) {
-      throw "pkg: URL $url must not have a query or fragment.";
+      throw "A pkg: URL must not have a query or fragment.";
     }
 
     var basePath = containingUrl?.scheme == 'file'
@@ -48,9 +48,7 @@ class NodePackageImporter extends Importer {
 
     // If the package name is not a valid Node package name, return null in case
     // another importer can handle.
-    if (packageName.startsWith('.') || packageName.contains('\\')) {
-      return null;
-    }
+    if (packageName.startsWith('.') || packageName.contains('\\')) return null;
 
     var packageRoot = _resolvePackageRoot(packageName, basePath);
 
@@ -139,13 +137,13 @@ class NodePackageImporter extends Importer {
   String? _resolvePackageRootValues(
       String packageRoot, Map<String, dynamic> packageManifest) {
     if (packageManifest['sass'] case String sassValue) {
-      if (validExtensions.contains(p.extension(sassValue))) {
+      if (validExtensions.contains(p.url.extension(sassValue))) {
         return p.join(packageRoot, sassValue);
       }
     }
 
     if (packageManifest['style'] case String styleValue) {
-      if (validExtensions.contains(p.extension(styleValue))) {
+      if (validExtensions.contains(p.url.extension(styleValue))) {
         return p.join(packageRoot, styleValue);
       }
     }
@@ -170,7 +168,7 @@ class NodePackageImporter extends Importer {
       return path;
     }
 
-    if (subpath != null && p.extension(subpath).isNotEmpty) return null;
+    if (subpath != null && p.url.extension(subpath).isNotEmpty) return null;
 
     var subpathIndexVariants = _exportsToCheck(subpath, addIndex: true);
     if (_nodePackageExportsResolve(
@@ -356,7 +354,7 @@ class NodePackageImporter extends Importer {
     }
     if (subpath == null) return [null];
 
-    if (const {'.scss', '.sass', '.css'}.contains(p.extension(subpath))) {
+    if (validExtensions.contains(p.url.extension(subpath))) {
       paths.add(subpath);
     } else {
       paths.addAll([
