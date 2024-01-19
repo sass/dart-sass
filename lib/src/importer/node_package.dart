@@ -28,7 +28,7 @@ class NodePackageImporter extends Importer {
     if (isBrowser) {
       throw "The Node package importer cannot be used without a filesystem.";
     }
-    _entryPointPath = entryPointPath;
+    _entryPointPath = p.absolute(entryPointPath);
   }
 
   /// The set of file extensions that Sass can parse. NodePackageImporter will

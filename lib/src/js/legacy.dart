@@ -302,7 +302,7 @@ AsyncImportCache? _parsePackageImportersAsync(
     RenderOptions options, DateTime start) {
   if (options.pkgImporter is JSNodePackageImporter) {
     var entryPointPath = options.pkgImporter?.entryPointPath != null
-        ? p.join(p.current, options.pkgImporter!.entryPointPath)
+        ? options.pkgImporter!.entryPointPath
         : requireMainFilename;
 
     return AsyncImportCache.only([NodePackageImporter(entryPointPath)]);
@@ -314,7 +314,7 @@ AsyncImportCache? _parsePackageImportersAsync(
 ImportCache? _parsePackageImporters(RenderOptions options, DateTime start) {
   if (options.pkgImporter is JSNodePackageImporter) {
     var entryPointPath = options.pkgImporter?.entryPointPath != null
-        ? p.join(p.current, options.pkgImporter!.entryPointPath)
+        ? options.pkgImporter!.entryPointPath
         : requireMainFilename;
 
     return ImportCache.only([NodePackageImporter(entryPointPath)]);

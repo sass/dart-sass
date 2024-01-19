@@ -187,9 +187,7 @@ OutputStyle _parseOutputStyle(String? style) => switch (style) {
 /// [compileAsync] or [compileStringAsync].
 AsyncImporter _parseAsyncImporter(Object? importer) {
   if (importer is JSNodePackageImporter) {
-    var entryPointPath = importer.entryPointPath != null
-        ? p.join(p.current, importer.entryPointPath)
-        : requireMainFilename;
+    var entryPointPath = importer.entryPointPath ?? requireMainFilename;
 
     return NodePackageImporter(entryPointPath);
   }
@@ -219,9 +217,7 @@ AsyncImporter _parseAsyncImporter(Object? importer) {
 /// Converts [importer] into a synchronous [Importer].
 Importer _parseImporter(Object? importer) {
   if (importer is JSNodePackageImporter) {
-    var entryPointPath = importer.entryPointPath != null
-        ? p.join(p.current, importer.entryPointPath)
-        : requireMainFilename;
+    var entryPointPath = importer.entryPointPath ?? requireMainFilename;
 
     return NodePackageImporter(entryPointPath);
   }
