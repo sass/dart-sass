@@ -48,7 +48,12 @@ class NodePackageImporter extends Importer {
 
     // If the package name is not a valid Node package name, return null in case
     // another importer can handle.
-    if (packageName.startsWith('.') || packageName.contains('\\')) return null;
+    if (packageName.startsWith('.') ||
+        packageName.contains('\\') ||
+        packageName.contains('%') ||
+        packageName.startsWith('@') && !packageName.contains(p.url.separator)) {
+      return null;
+    }
 
     var packageRoot = _resolvePackageRoot(packageName, basePath);
 
@@ -101,16 +106,8 @@ class NodePackageImporter extends Importer {
     var parts = p.url.split(specifier);
     var name = p.fromUri(parts.removeAt(0));
 
-    if (name.contains('%')) {
-      throw "pkg: name $name must not contain a '%'.";
-    }
-
     if (name.startsWith('@')) {
-      if (parts.isEmpty) {
-        throw "pkg: name $name is an invalid package name."
-            "Scoped packages, which start with '@', must have a second segment.";
-      }
-      name = p.url.join(name, parts.removeAt(0));
+      if (parts.isNotEmpty) name = p.url.join(name, parts.removeAt(0));
     }
     var subpath = parts.isNotEmpty ? p.fromUri(p.url.joinAll(parts)) : null;
     return (name, subpath);
