@@ -18,7 +18,6 @@ import '../callable.dart';
 import '../compile.dart';
 import '../compile_result.dart';
 import '../exception.dart';
-import '../importer/js_node_package.dart';
 import '../importer/legacy_node.dart';
 import '../io.dart';
 import '../logger.dart';
@@ -300,22 +299,16 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
 /// Creates an [AsyncImportCache] for Package Importers.
 AsyncImportCache? _parsePackageImportersAsync(
     RenderOptions options, DateTime start) {
-  if (options.pkgImporter is JSNodePackageImporter) {
-    return AsyncImportCache.only([
-      NodePackageImporter(
-          options.pkgImporter?.entryPointPath ?? requireMainFilename)
-    ]);
+  if (options.pkgImporter is NodePackageImporter) {
+    return AsyncImportCache.only([options.pkgImporter!]);
   }
   return null;
 }
 
 /// Creates an [ImportCache] for Package Importers.
 ImportCache? _parsePackageImporters(RenderOptions options, DateTime start) {
-  if (options.pkgImporter is JSNodePackageImporter) {
-    return ImportCache.only([
-      NodePackageImporter(
-          options.pkgImporter?.entryPointPath ?? requireMainFilename)
-    ]);
+  if (options.pkgImporter is NodePackageImporter) {
+    return ImportCache.only([options.pkgImporter!]);
   }
   return null;
 }
