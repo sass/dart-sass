@@ -24,17 +24,11 @@ class NodePackageImporter extends Importer {
       throw "The Node package importer cannot determine an entry point "
           "because `require.main.filename` is not defined. "
           "Please provide an `entryPointPath` to the `NodePackageImporter`.";
-    }
-    if (isBrowser) {
+    } else if (isBrowser) {
       throw "The Node package importer cannot be used without a filesystem.";
     }
     _entryPointPath = p.absolute(entryPointPath);
   }
-
-  /// The set of file extensions that Sass can parse. NodePackageImporter will
-  /// only resolve files with these extenstions, and uses these extensions to
-  /// check for matches if no extension is provided in the Url to canonicalize.
-  static const _validExtensions = {'.scss', '.sass', '.css'};
 
   @override
   bool isNonCanonicalScheme(String scheme) => scheme == 'pkg';
@@ -65,7 +59,8 @@ class NodePackageImporter extends Importer {
     if (packageName.startsWith('.') ||
         packageName.contains('\\') ||
         packageName.contains('%') ||
-        packageName.startsWith('@') && !packageName.contains(p.url.separator)) {
+        (packageName.startsWith('@') &&
+            !packageName.contains(p.url.separator))) {
       return null;
     }
 
@@ -133,7 +128,7 @@ class NodePackageImporter extends Importer {
   /// Implementation of `PACKAGE_RESOLVE` from the [Resolution Algorithm
   /// Specification](https://nodejs.org/api/esm.html#resolution-algorithm-specification).
   String? _resolvePackageRoot(String packageName, String basePath) {
-    String baseDirectory = basePath;
+    var baseDirectory = basePath;
     while (true) {
       baseDirectory = p.dirname(baseDirectory);
       var potentialPackage = p.join(baseDirectory, 'node_modules', packageName);
@@ -150,9 +145,7 @@ class NodePackageImporter extends Importer {
     if (packageManifest['sass'] case String sassValue
         when _validExtensions.contains(p.url.extension(sassValue))) {
       return p.join(packageRoot, sassValue);
-    }
-
-    if (packageManifest['style'] case String styleValue
+    } else if (packageManifest['style'] case String styleValue
         when _validExtensions.contains(p.url.extension(styleValue))) {
       return p.join(packageRoot, styleValue);
     }
@@ -216,8 +209,7 @@ class NodePackageImporter extends Importer {
           if (variant == null) {
             return _getMainExport(exports).andThen((mainExport) =>
                 _packageTargetResolve(variant, mainExport, packageRoot));
-          }
-          if (exports is! Map<String, dynamic> ||
+          } else if (exports is! Map<String, dynamic> ||
               exports.keys.every((key) => !key.startsWith('.'))) {
             return null;
           }
@@ -387,3 +379,10 @@ class NodePackageImporter extends Importer {
     ];
   }
 }
+
+/// The set of file extensions that Sass can parse.
+///
+/// NodePackageImporter will only resolve files with these extenstions, and
+/// uses these extensions to check for matches if no extension is provided in
+/// the Url to canonicalize.
+const _validExtensions = {'.scss', '.sass', '.css'};
