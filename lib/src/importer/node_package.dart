@@ -382,7 +382,7 @@ class NodePackageImporter extends Importer {
 
 /// The set of file extensions that Sass can parse.
 ///
-/// NodePackageImporter will only resolve files with these extenstions, and
+/// `NodePackageImporter` will only resolve files with these extensions, and
 /// uses these extensions to check for matches if no extension is provided in
 /// the Url to canonicalize.
 const _validExtensions = {'.scss', '.sass', '.css'};
