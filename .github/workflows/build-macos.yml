@@ -15,7 +15,7 @@ jobs:
       matrix:
         include:
           - arch: x64
-            runner: macos-latest
+            runner: macos-13
           # https://github.blog/changelog/2024-01-30-github-actions-introducing-the-new-m1-macos-runner-available-to-open-source/
           - arch: arm64
             runner: macos-14
