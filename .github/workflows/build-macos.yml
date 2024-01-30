@@ -16,9 +16,9 @@ jobs:
         include:
           - arch: x64
             runner: macos-latest
-          # https://github.blog/2023-10-02-introducing-the-new-apple-silicon-powered-m1-macos-larger-runner-for-github-actions/
+          # https://github.blog/changelog/2024-01-30-github-actions-introducing-the-new-m1-macos-runner-available-to-open-source/
           - arch: arm64
-            runner: macos-latest-xlarge
+            runner: macos-14
 
     steps:
       - uses: actions/checkout@v4
