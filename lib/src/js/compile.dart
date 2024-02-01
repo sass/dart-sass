@@ -6,6 +6,7 @@ import 'package:cli_pkg/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart' hide futureToPromise;
 import 'package:term_glyph/term_glyph.dart' as glyph;
+import 'package:path/path.dart' as p;
 
 import '../../sass.dart';
 import '../importer/no_op.dart';
@@ -333,7 +334,10 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
 final JSClass nodePackageImporterClass = () {
   var jsClass = createJSClass(
       'sass.NodePackageImporter',
-      (Object self, [String? entryPointPath]) =>
-          NodePackageImporter(entryPointPath ?? requireMainFilename));
+      (Object self, [String? entryPointDirectory]) => NodePackageImporter(
+          entryPointDirectory ??
+              (requireMainFilename != null
+                  ? p.dirname(requireMainFilename!)
+                  : null)));
   return jsClass;
 }();

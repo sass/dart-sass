@@ -16,18 +16,18 @@ import 'package:path/path.dart' as p;
 /// An [Importer] that resolves `pkg:` URLs using the Node resolution algorithm.
 class NodePackageImporter extends Importer {
   /// The starting path for canonicalizations without a containing URL.
-  late final String _entryPointPath;
+  late final String _entryPointDirectory;
 
   /// Creates a Node package importer with the associated entry point.
-  NodePackageImporter(String? entryPointPath) {
-    if (entryPointPath == null) {
+  NodePackageImporter(String? entryPointDirectory) {
+    if (entryPointDirectory == null) {
       throw "The Node package importer cannot determine an entry point "
           "because `require.main.filename` is not defined. "
-          "Please provide an `entryPointPath` to the `NodePackageImporter`.";
+          "Please provide an `entryPointDirectory` to the `NodePackageImporter`.";
     } else if (isBrowser) {
       throw "The Node package importer cannot be used without a filesystem.";
     }
-    _entryPointPath = p.absolute(entryPointPath);
+    _entryPointDirectory = p.absolute(entryPointDirectory);
   }
 
   @override
@@ -50,7 +50,7 @@ class NodePackageImporter extends Importer {
 
     var basePath = containingUrl?.scheme == 'file'
         ? p.fromUri(containingUrl!)
-        : _entryPointPath;
+        : _entryPointDirectory;
 
     var (packageName, subpath) = _packageNameAndSubpath(url.path);
 
@@ -130,11 +130,11 @@ class NodePackageImporter extends Importer {
   String? _resolvePackageRoot(String packageName, String basePath) {
     var baseDirectory = basePath;
     while (true) {
-      baseDirectory = p.dirname(baseDirectory);
       var potentialPackage = p.join(baseDirectory, 'node_modules', packageName);
       if (dirExists(potentialPackage)) return potentialPackage;
       // baseDirectory has now reached root without finding a match.
       if (p.split(baseDirectory).length == 1) return null;
+      baseDirectory = p.dirname(baseDirectory);
     }
   }
 

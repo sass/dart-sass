@@ -230,7 +230,7 @@ final class CompilationDispatcher {
 
       case InboundMessage_CompileRequest_Importer_Importer.nodePackageImporter:
         return npi.NodePackageImporter(
-            importer.nodePackageImporter.entryPointPath);
+            importer.nodePackageImporter.entryPointDirectory);
     }
   }
 
