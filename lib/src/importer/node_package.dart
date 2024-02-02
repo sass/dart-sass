@@ -48,8 +48,8 @@ class NodePackageImporter extends Importer {
       throw "A pkg: URL must not have a query or fragment.";
     }
 
-    var basePath = containingUrl?.scheme == 'file'
-        ? p.fromUri(containingUrl!)
+    var baseDirectory = containingUrl?.scheme == 'file'
+        ? p.dirname(p.fromUri(containingUrl!))
         : _entryPointDirectory;
 
     var (packageName, subpath) = _packageNameAndSubpath(url.path);
@@ -64,7 +64,7 @@ class NodePackageImporter extends Importer {
       return null;
     }
 
-    var packageRoot = _resolvePackageRoot(packageName, basePath);
+    var packageRoot = _resolvePackageRoot(packageName, baseDirectory);
 
     if (packageRoot == null) return null;
     var jsonPath = p.join(packageRoot, 'package.json');
@@ -127,8 +127,7 @@ class NodePackageImporter extends Importer {
   ///
   /// Implementation of `PACKAGE_RESOLVE` from the [Resolution Algorithm
   /// Specification](https://nodejs.org/api/esm.html#resolution-algorithm-specification).
-  String? _resolvePackageRoot(String packageName, String basePath) {
-    var baseDirectory = basePath;
+  String? _resolvePackageRoot(String packageName, String baseDirectory) {
     while (true) {
       var potentialPackage = p.join(baseDirectory, 'node_modules', packageName);
       if (dirExists(potentialPackage)) return potentialPackage;
