@@ -10,6 +10,9 @@ import 'dart:typed_data';
 import 'package:cli_pkg/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:path/path.dart' as p;
+import '../async_import_cache.dart';
+import '../import_cache.dart';
+import '../importer/node_package.dart';
 
 import '../callable.dart';
 import '../compile.dart';
@@ -76,6 +79,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
   if (options.data case var data?) {
     result = await compileStringAsync(data,
         nodeImporter: _parseImporter(options, start),
+        importCache: _parsePackageImportersAsync(options, start),
         functions: _parseFunctions(options, start, asynch: true),
         syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
         style: _parseOutputStyle(options.outputStyle),
@@ -92,6 +96,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
   } else if (file != null) {
     result = await compileAsync(file,
         nodeImporter: _parseImporter(options, start),
+        importCache: _parsePackageImportersAsync(options, start),
         functions: _parseFunctions(options, start, asynch: true),
         syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
         style: _parseOutputStyle(options.outputStyle),
@@ -129,6 +134,7 @@ RenderResult renderSync(RenderOptions options) {
     if (options.data case var data?) {
       result = compileString(data,
           nodeImporter: _parseImporter(options, start),
+          importCache: _parsePackageImporters(options, start),
           functions: _parseFunctions(options, start).cast(),
           syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
           style: _parseOutputStyle(options.outputStyle),
@@ -145,6 +151,7 @@ RenderResult renderSync(RenderOptions options) {
     } else if (file != null) {
       result = compile(file,
           nodeImporter: _parseImporter(options, start),
+          importCache: _parsePackageImporters(options, start),
           functions: _parseFunctions(options, start).cast(),
           syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
           style: _parseOutputStyle(options.outputStyle),
@@ -287,6 +294,23 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
 
   var includePaths = List<String>.from(options.includePaths ?? []);
   return NodeImporter(contextOptions, includePaths, importers);
+}
+
+/// Creates an [AsyncImportCache] for Package Importers.
+AsyncImportCache? _parsePackageImportersAsync(
+    RenderOptions options, DateTime start) {
+  if (options.pkgImporter is NodePackageImporter) {
+    return AsyncImportCache.only([options.pkgImporter!]);
+  }
+  return null;
+}
+
+/// Creates an [ImportCache] for Package Importers.
+ImportCache? _parsePackageImporters(RenderOptions options, DateTime start) {
+  if (options.pkgImporter is NodePackageImporter) {
+    return ImportCache.only([options.pkgImporter!]);
+  }
+  return null;
 }
 
 /// Creates the [RenderContextOptions] for the `this` context in which custom

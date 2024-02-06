@@ -51,6 +51,7 @@ void main() {
       silent: JSLogger(
           warn: allowInteropNamed('sass.Logger.silent.warn', (_, __) {}),
           debug: allowInteropNamed('sass.Logger.silent.debug', (_, __) {})));
+  exports.NodePackageImporter = nodePackageImporterClass;
 
   exports.info =
       "dart-sass\t${const String.fromEnvironment('version')}\t(Sass Compiler)\t"

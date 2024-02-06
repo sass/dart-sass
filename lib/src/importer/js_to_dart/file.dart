@@ -12,12 +12,6 @@ import '../../js/utils.dart';
 import '../../util/nullable.dart';
 import '../utils.dart';
 
-/// A filesystem importer to use for most implementation details of
-/// [JSToDartAsyncFileImporter].
-///
-/// This allows us to avoid duplicating logic between the two importers.
-final _filesystemImporter = FilesystemImporter('.');
-
 /// A wrapper for a potentially-asynchronous JS API file importer that exposes
 /// it as a Dart [AsyncImporter].
 final class JSToDartFileImporter extends Importer {
@@ -27,7 +21,7 @@ final class JSToDartFileImporter extends Importer {
   JSToDartFileImporter(this._findFileUrl);
 
   Uri? canonicalize(Uri url) {
-    if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
+    if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);
 
     var result = wrapJSExceptions(() => _findFileUrl(
         url.toString(),
@@ -51,16 +45,16 @@ final class JSToDartFileImporter extends Importer {
           '"$url".'));
     }
 
-    return _filesystemImporter.canonicalize(resultUrl);
+    return FilesystemImporter.cwd.canonicalize(resultUrl);
   }
 
-  ImporterResult? load(Uri url) => _filesystemImporter.load(url);
+  ImporterResult? load(Uri url) => FilesystemImporter.cwd.load(url);
 
   DateTime modificationTime(Uri url) =>
-      _filesystemImporter.modificationTime(url);
+      FilesystemImporter.cwd.modificationTime(url);
 
   bool couldCanonicalize(Uri url, Uri canonicalUrl) =>
-      _filesystemImporter.couldCanonicalize(url, canonicalUrl);
+      FilesystemImporter.cwd.couldCanonicalize(url, canonicalUrl);
 
   bool isNonCanonicalScheme(String scheme) => scheme != 'file';
 }

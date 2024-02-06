@@ -6,6 +6,7 @@ import 'package:cli_pkg/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart' hide futureToPromise;
 import 'package:term_glyph/term_glyph.dart' as glyph;
+import 'package:path/path.dart' as p;
 
 import '../../sass.dart';
 import '../importer/no_op.dart';
@@ -13,6 +14,7 @@ import '../importer/js_to_dart/async.dart';
 import '../importer/js_to_dart/async_file.dart';
 import '../importer/js_to_dart/file.dart';
 import '../importer/js_to_dart/sync.dart';
+import '../importer/node_package.dart';
 import '../io.dart';
 import '../logger/js_to_dart.dart';
 import '../util/nullable.dart';
@@ -20,6 +22,7 @@ import 'compile_options.dart';
 import 'compile_result.dart';
 import 'exception.dart';
 import 'importer.dart';
+import 'reflection.dart';
 import 'utils.dart';
 
 /// The JS API `compile` function.
@@ -182,6 +185,8 @@ OutputStyle _parseOutputStyle(String? style) => switch (style) {
 /// Converts [importer] into an [AsyncImporter] that can be used with
 /// [compileAsync] or [compileStringAsync].
 AsyncImporter _parseAsyncImporter(Object? importer) {
+  if (importer is NodePackageImporter) return importer;
+
   if (importer == null) jsThrow(JsError("Importers may not be null."));
 
   importer as JSImporter;
@@ -207,6 +212,8 @@ AsyncImporter _parseAsyncImporter(Object? importer) {
 
 /// Converts [importer] into a synchronous [Importer].
 Importer _parseImporter(Object? importer) {
+  if (importer is NodePackageImporter) return importer;
+
   if (importer == null) jsThrow(JsError("Importers may not be null."));
 
   importer as JSImporter;
@@ -321,3 +328,16 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
   });
   return result;
 }
+
+/// The exported `NodePackageImporter` class that can be added to the
+/// `importers` option to enable loading `pkg:` URLs from `node_modules`.
+final JSClass nodePackageImporterClass = () {
+  var jsClass = createJSClass(
+      'sass.NodePackageImporter',
+      (Object self, [String? entryPointDirectory]) => NodePackageImporter(
+          entryPointDirectory ??
+              (requireMainFilename != null
+                  ? p.dirname(requireMainFilename!)
+                  : null)));
+  return jsClass;
+}();

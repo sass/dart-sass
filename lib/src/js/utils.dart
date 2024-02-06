@@ -233,3 +233,7 @@ Syntax parseSyntax(String? syntax) => switch (syntax) {
       'css' => Syntax.css,
       _ => jsThrow(JsError('Unknown syntax "$syntax".'))
     };
+
+/// The value of require.main.filename
+@JS("require.main.filename")
+external String? get requireMainFilename;
