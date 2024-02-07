@@ -45,6 +45,7 @@ Future<void> main(List<String> args) async {
     }
 
     var graph = StylesheetGraph(ImportCache(
+        importers: options.pkgImporters,
         loadPaths: options.loadPaths,
         // This logger is only used for handling fatal/future deprecations
         // during parsing, and is re-used across parses, so we don't want to

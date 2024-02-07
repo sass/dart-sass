@@ -95,7 +95,9 @@ Future<void> _compileStylesheetWithoutErrorHandling(ExecutableOptions options,
   try {
     if (options.asynchronous) {
       var importCache = AsyncImportCache(
-          loadPaths: options.loadPaths, logger: options.logger);
+          importers: options.pkgImporters,
+          loadPaths: options.loadPaths,
+          logger: options.logger);
 
       result = source == null
           ? await compileStringAsync(await readStdin(),

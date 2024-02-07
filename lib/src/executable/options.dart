@@ -10,6 +10,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
 import '../../sass.dart';
+import '../importer/node_package.dart';
 import '../io.dart';
 import '../util/character.dart';
 
@@ -46,6 +47,13 @@ final class ExecutableOptions {
           valueHelp: 'PATH',
           help: 'A path to use when resolving imports.\n'
               'May be passed multiple times.',
+          splitCommas: false)
+      ..addMultiOption('pkg-importer',
+          abbr: 'p',
+          valueHelp: 'TYPE',
+          allowed: ['node'],
+          help: 'Built-in importer(s) to use for pkg: URLs.',
+          allowedHelp: {'node': 'Load files like Node.js package resolution.'},
           splitCommas: false)
       ..addOption('style',
           abbr: 's',
@@ -217,6 +225,12 @@ final class ExecutableOptions {
 
   /// The set of paths Sass in which should look for imported files.
   List<String> get loadPaths => _options['load-path'] as List<String>;
+
+  /// The list of built-in importers to use to load `pkg:` URLs.
+  List<Importer> get pkgImporters => [
+        for (var _ in _options['pkg-importer'] as List<String>)
+          NodePackageImporter('.')
+      ];
 
   /// Whether to run the evaluator in asynchronous mode, for debugging purposes.
   bool get asynchronous => _options['async'] as bool;
