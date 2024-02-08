@@ -53,8 +53,7 @@ final class ExecutableOptions {
           valueHelp: 'TYPE',
           allowed: ['node'],
           help: 'Built-in importer(s) to use for pkg: URLs.',
-          allowedHelp: {'node': 'Load files like Node.js package resolution.'},
-          splitCommas: false)
+          allowedHelp: {'node': 'Load files like Node.js package resolution.'})
       ..addOption('style',
           abbr: 's',
           valueHelp: 'NAME',
