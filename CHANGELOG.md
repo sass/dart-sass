@@ -5,6 +5,13 @@ announcement][pkg-importers] on the Sass blog.
 
 [pkg-importers]: https://sass-lang.com/blog/announcing-pkg-importers
 
+### Command-Line Interface
+
+* Add a `--pkg-importer` flag to enable built-in `pkg:` importers. Currently
+  this only supports the Node.js package resolution algorithm, via
+  `--pkg-importer=node`. For example, `@use "pkg:bootstrap"` will load
+  `node_modules/bootstrap/scss/bootstrap.scss`.
+
 ### JavaScript API
 
 * Add a `NodePackageImporter` importer that can be passed to the `importers`

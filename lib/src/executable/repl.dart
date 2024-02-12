@@ -23,7 +23,10 @@ Future<void> repl(ExecutableOptions options) async {
   var logger = TrackingLogger(options.logger);
   var evaluator = Evaluator(
       importer: FilesystemImporter.cwd,
-      importCache: ImportCache(loadPaths: options.loadPaths, logger: logger),
+      importCache: ImportCache(
+          importers: options.pkgImporters,
+          loadPaths: options.loadPaths,
+          logger: logger),
       logger: logger);
   await for (String line in repl.runAsync()) {
     if (line.trim().isEmpty) continue;
