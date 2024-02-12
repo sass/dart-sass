@@ -307,8 +307,7 @@ final _homebrewLanguageRegExp = RegExp(
 /// to the latest revision.
 String _updateHomebrewLanguageRevision(String formula) {
   var languageRepoRevision = run("git",
-          arguments: ["ls-remote", "https://github.com/sass/sass"],
-          quiet: true)
+          arguments: ["ls-remote", "https://github.com/sass/sass"], quiet: true)
       .split("\t")
       .first;
 
