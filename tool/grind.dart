@@ -29,6 +29,7 @@ void main(List<String> args) {
   pkg.chocolateyNuspec.value = _nuspec;
   pkg.homebrewRepo.value = "sass/homebrew-sass";
   pkg.homebrewFormula.value = "Formula/sass.rb";
+  pkg.homebrewEditFormula.value = _updateHomebrewLanguageRevision;
   pkg.jsRequires.value = [
     pkg.JSRequire("immutable", target: pkg.JSRequireTarget.all),
     pkg.JSRequire("chokidar", target: pkg.JSRequireTarget.cli),
@@ -291,4 +292,31 @@ function defaultExportDeprecation() {
   buffer.writeln("};");
 
   File("build/npm/sass.node.mjs").writeAsStringSync(buffer.toString());
+}
+
+/// A regular expression to locate the language repo revision in the Dart Sass
+/// Homebrew formula.
+final _homebrewLanguageRegExp = RegExp(
+    r'resource "language" do$'
+    r'(?:(?! end$).)+'
+    r'revision: "([a-f0-9]{40})"',
+    dotAll: true,
+    multiLine: true);
+
+/// Updates the Homebrew [formula] to change the revision of the language repo
+/// to the latest revision.
+String _updateHomebrewLanguageRevision(String formula) {
+  var languageRepoRevision = run("git",
+          arguments: ["ls-remote", "https://github.com/sass/sass"], quiet: true)
+      .split("\t")
+      .first;
+
+  var match = _homebrewLanguageRegExp.firstMatch(formula);
+  if (match == null) {
+    fail("Couldn't find a language repo revision in the Homebrew formula.");
+  }
+
+  return formula.substring(0, match.start) +
+      match.group(0)!.replaceFirst(match.group(1)!, languageRepoRevision) +
+      formula.substring(match.end);
 }
