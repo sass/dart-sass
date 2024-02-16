@@ -54,9 +54,7 @@ jobs:
                      ghcr.io/dart-musl/dart <<'EOF'
           set -e
           dart pub get
-          dart run grinder pkg-standalone-linux-${{ matrix.arch }}
-          # Rename the artifact from -linux- to -linux-musl- to avoid conflict with glibc builds.
-          find build -name '*.tar.gz' -print0 | xargs -0 -n 1 -- sh -xc 'mv "$1" "$(echo "$1" | sed -e "s/linux/linux-musl/")"' --
+          dart run grinder pkg-standalone-linux-${{ matrix.arch }}-musl
           EOF
 
       - name: Upload Artifact
