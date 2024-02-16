@@ -13,7 +13,7 @@ class Box<T> {
 
   Box._(this._inner);
 
-  bool operator ==(Object? other) => other is Box<T> && other._inner == _inner;
+  bool operator ==(Object other) => other is Box<T> && other._inner == _inner;
 
   int get hashCode => _inner.hashCode;
 }
