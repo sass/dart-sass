@@ -1,3 +1,7 @@
+## 1.71.1
+
+* Fix linux musl releases.
+
 ## 1.71.0
 
 For more information about `pkg:` importers, see [the
