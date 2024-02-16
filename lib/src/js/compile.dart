@@ -250,7 +250,7 @@ List<String>? _normalizeNonCanonicalSchemes(Object? schemes) =>
     };
 
 /// Implements the simplification algorithm for custom function return `Value`s.
-/// {@link https://github.com/sass/sass/blob/main/spec/types/calculation.md#simplifying-a-calculationvalue}
+/// See https://github.com/sass/sass/blob/main/spec/types/calculation.md#simplifying-a-calculationvalue
 Value _simplifyValue(Value value) => switch (value) {
       SassCalculation() => switch ((
           // Match against...
