@@ -234,6 +234,19 @@ Syntax parseSyntax(String? syntax) => switch (syntax) {
       _ => jsThrow(JsError('Unknown syntax "$syntax".'))
     };
 
-/// The value of require.main.filename
+/// The value of require.main
+@JS("require.main")
+external Object? get _requireMain;
+
+/// The value of require.main.filename. require.main is not defined when the
+/// entry point is not a CommonJS module, so this throws if require.main is
+/// null.
 @JS("require.main.filename")
-external String? get requireMainFilename;
+external String? get _unsafeRequireMainFilename;
+
+/// The value of require.main.filename, or null if require.main or
+/// require.main.filename are null.
+String? requireMainFilename =
+    _requireMain != null && _unsafeRequireMainFilename != null
+        ? _unsafeRequireMainFilename
+        : null;
