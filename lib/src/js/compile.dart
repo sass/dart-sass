@@ -336,8 +336,8 @@ final JSClass nodePackageImporterClass = () {
       'sass.NodePackageImporter',
       (Object self, [String? entryPointDirectory]) => NodePackageImporter(
           entryPointDirectory ??
-              (requireMainFilename != null
-                  ? p.dirname(requireMainFilename!)
+              (requireMainFilename() != null
+                  ? p.dirname(requireMainFilename()!)
                   : null)));
   return jsClass;
 }();

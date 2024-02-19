@@ -246,7 +246,7 @@ external String? get _unsafeRequireMainFilename;
 
 /// The value of require.main.filename, or null if require.main or
 /// require.main.filename are null.
-String? requireMainFilename =
+String? requireMainFilename() =>
     _requireMain != null && _unsafeRequireMainFilename != null
         ? _unsafeRequireMainFilename
         : null;
