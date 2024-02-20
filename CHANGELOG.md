@@ -4,6 +4,10 @@
 
 * Ship the musl Linux release with the proper Dart executable.
 
+### JavaScript API
+
+* Export the `NodePackageImporter` class in ESM mode.
+
 ### Embedded Sass
 
 * In the JS Embedded Host, properly install the musl Linux embedded compiler
