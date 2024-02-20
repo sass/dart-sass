@@ -1,8 +1,17 @@
-## 1.71.1-dev
+## 1.71.1
+
+### Command-Line Interface
+
+* Ship the musl Linux release with the proper Dart executable.
 
 ### JavaScript API
 
 * Export the `NodePackageImporter` class in ESM mode.
+
+### Embedded Sass
+
+* In the JS Embedded Host, properly install the musl Linux embedded compiler
+  when running on musl Linux.
 
 ## 1.71.0
 
