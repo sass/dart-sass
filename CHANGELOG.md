@@ -1,3 +1,14 @@
+## 1.71.1
+
+### Command-Line Interface
+
+* Ship the musl Linux release with the proper Dart executable.
+
+### Embedded Sass
+
+* In the JS Embedded Host, properly install the musl Linux embedded compiler
+  when running on musl Linux.
+
 ## 1.71.0
 
 For more information about `pkg:` importers, see [the
