@@ -1,6 +1,13 @@
 ## 1.71.1
 
-* Fix linux musl releases.
+### Command-Line Interface
+
+* Ship the musl Linux release with the proper Dart executable.
+
+### Embedded Sass
+
+* In the JS Embedded Host, properly install the musl Linux embedded compiler
+  when running on musl Linux.
 
 ## 1.71.0
 
