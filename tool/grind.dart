@@ -35,6 +35,8 @@ void main(List<String> args) {
     pkg.JSRequire("chokidar", target: pkg.JSRequireTarget.cli),
     pkg.JSRequire("readline", target: pkg.JSRequireTarget.cli),
     pkg.JSRequire("fs", target: pkg.JSRequireTarget.node),
+    pkg.JSRequire("module",
+        target: pkg.JSRequireTarget.node, identifier: 'nodeModule'),
     pkg.JSRequire("stream", target: pkg.JSRequireTarget.node),
     pkg.JSRequire("util", target: pkg.JSRequireTarget.node),
   ];

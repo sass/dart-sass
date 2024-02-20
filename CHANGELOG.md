@@ -8,6 +8,14 @@
 
 * Export the `NodePackageImporter` class in ESM mode.
 
+* Allow `NodePackageImporter` to locate a default directory even when the
+  entrypoint is an ESM module.
+
+### Dart API
+
+* Make passing a null argument to `NodePackageImporter()` a static error rather
+  than just a runtime error.
+
 ### Embedded Sass
 
 * In the JS Embedded Host, properly install the musl Linux embedded compiler

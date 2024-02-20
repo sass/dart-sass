@@ -334,10 +334,13 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
 final JSClass nodePackageImporterClass = () {
   var jsClass = createJSClass(
       'sass.NodePackageImporter',
-      (Object self, [String? entryPointDirectory]) => NodePackageImporter(
-          entryPointDirectory ??
-              (requireMainFilename != null
-                  ? p.dirname(requireMainFilename!)
-                  : null)));
+      (Object self, [String? entrypointDirectory]) => NodePackageImporter(
+              switch ((entrypointDirectory, entrypointFilename)) {
+            ((var directory?, _)) => directory,
+            (_, var filename?) => p.dirname(filename),
+            _ => throw "The Node package importer cannot determine an entry "
+                "point because `require.main.filename` is not defined. Please "
+                "provide an `entryPointDirectory` to the `NodePackageImporter`."
+          }));
   return jsClass;
 }();
