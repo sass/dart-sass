@@ -1,3 +1,9 @@
+## 1.71.1-dev
+
+### JavaScript API
+
+* Export the `NodePackageImporter` class in ESM mode.
+
 ## 1.71.0
 
 For more information about `pkg:` importers, see [the
