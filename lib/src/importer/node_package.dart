@@ -19,12 +19,8 @@ class NodePackageImporter extends Importer {
   late final String _entryPointDirectory;
 
   /// Creates a Node package importer with the associated entry point.
-  NodePackageImporter(String? entryPointDirectory) {
-    if (entryPointDirectory == null) {
-      throw "The Node package importer cannot determine an entry point "
-          "because `require.main.filename` is not defined. "
-          "Please provide an `entryPointDirectory` to the `NodePackageImporter`.";
-    } else if (isBrowser) {
+  NodePackageImporter(String entryPointDirectory) {
+    if (isBrowser) {
       throw "The Node package importer cannot be used without a filesystem.";
     }
     _entryPointDirectory = p.absolute(entryPointDirectory);
