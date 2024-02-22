@@ -1,3 +1,8 @@
+## 1.71.2
+
+* When printing suggestions for variables, use underscores in variable names
+  when the original usage used underscores.
+
 ## 1.71.1
 
 ### Command-Line Interface
