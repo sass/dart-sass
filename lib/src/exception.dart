@@ -290,10 +290,3 @@ class MultiSpanSassScriptException extends SassScriptException {
   MultiSpanSassException withSpan(FileSpan span) =>
       MultiSpanSassException(message, span, primaryLabel, secondarySpans);
 }
-
-/// An exception indicating that invalid arguments were passed.
-class UsageException implements Exception {
-  final String message;
-
-  UsageException(this.message);
-}

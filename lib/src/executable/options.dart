@@ -578,3 +578,10 @@ final class ExecutableOptions {
   Object? _ifParsed(String name) =>
       _options.wasParsed(name) ? _options[name] : null;
 }
+
+/// An exception indicating that invalid arguments were passed.
+class UsageException implements Exception {
+  final String message;
+
+  UsageException(this.message);
+}
