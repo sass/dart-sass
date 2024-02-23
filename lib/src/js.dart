@@ -2,7 +2,10 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:js/js_util.dart';
+
 import 'js/exception.dart';
+import 'js/deprecations.dart';
 import 'js/exports.dart';
 import 'js/compile.dart';
 import 'js/compiler.dart';
@@ -46,6 +49,7 @@ void main() {
   exports.sassNull = sassNull;
   exports.sassTrue = sassTrue;
   exports.sassFalse = sassFalse;
+  exports.deprecations = jsify(deprecations);
   exports.Exception = exceptionClass;
   exports.Logger = LoggerNamespace(
       silent: JSLogger(

@@ -27,6 +27,7 @@ class Exports {
   external set Exception(JSClass function);
   external set Logger(LoggerNamespace namespace);
   external set NodePackageImporter(JSClass function);
+  external set deprecations(Object? object);
 
   // Value APIs
   external set Value(JSClass function);

@@ -53,6 +53,7 @@ Future<void> main(List<String> args) async {
         // each compilation, which will limit repetition if verbose is not
         // passed in addition to handling fatal/future deprecations.
         logger: DeprecationHandlingLogger(options.logger,
+            silenceDeprecations: options.silenceDeprecations,
             fatalDeprecations: options.fatalDeprecations,
             futureDeprecations: options.futureDeprecations,
             limitRepetition: false)));

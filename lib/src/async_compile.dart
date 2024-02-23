@@ -42,10 +42,12 @@ Future<CompileResult> compileAsync(String path,
     bool verbose = false,
     bool sourceMap = false,
     bool charset = true,
+    Iterable<Deprecation>? silenceDeprecations,
     Iterable<Deprecation>? fatalDeprecations,
     Iterable<Deprecation>? futureDeprecations}) async {
   DeprecationHandlingLogger deprecationLogger = logger =
       DeprecationHandlingLogger(logger ?? Logger.stderr(),
+          silenceDeprecations: {...?silenceDeprecations},
           fatalDeprecations: {...?fatalDeprecations},
           futureDeprecations: {...?futureDeprecations},
           limitRepetition: !verbose);
@@ -106,10 +108,12 @@ Future<CompileResult> compileStringAsync(String source,
     bool verbose = false,
     bool sourceMap = false,
     bool charset = true,
+    Iterable<Deprecation>? silenceDeprecations,
     Iterable<Deprecation>? fatalDeprecations,
     Iterable<Deprecation>? futureDeprecations}) async {
   DeprecationHandlingLogger deprecationLogger = logger =
       DeprecationHandlingLogger(logger ?? Logger.stderr(),
+          silenceDeprecations: {...?silenceDeprecations},
           fatalDeprecations: {...?fatalDeprecations},
           futureDeprecations: {...?futureDeprecations},
           limitRepetition: !verbose);

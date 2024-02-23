@@ -10,6 +10,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
 import '../../sass.dart';
+import '../exception.dart';
 import '../importer/node_package.dart';
 import '../io.dart';
 import '../util/character.dart';
@@ -91,6 +92,14 @@ final class ExecutableOptions {
               "Stylesheets imported through load paths count as dependencies.")
       ..addFlag('verbose',
           help: "Print all deprecation warnings even when they're repetitive.")
+      ..addMultiOption('silence-deprecation',
+          help: 'Deprecations to ignore.',
+          allowedHelp: {
+            for (var deprecation in Deprecation.values)
+              if (deprecation.deprecatedIn != null &&
+                  deprecation.description != null)
+                deprecation.id: deprecation.description!,
+          })
       ..addMultiOption('fatal-deprecation',
           help: 'Deprecations to treat as errors. You may also pass a Sass\n'
               'version to include any behavior deprecated in or before it.\n'
@@ -521,6 +530,12 @@ final class ExecutableOptions {
         : p.absolute(path));
   }
 
+  /// The set of deprecations whose warnings should be silenced.
+  Set<Deprecation> get silenceDeprecations => {
+        for (var id in _options['silence-deprecation'] as List<String>)
+          Deprecation.fromId(id) ?? _fail('Invalid deprecation "$id".')
+      };
+
   /// The set of deprecations that cause errors.
   Set<Deprecation> get fatalDeprecations => _fatalDeprecations ??= () {
         var deprecations = <Deprecation>{};
@@ -562,11 +577,4 @@ final class ExecutableOptions {
   /// the user, and `null` otherwise.
   Object? _ifParsed(String name) =>
       _options.wasParsed(name) ? _options[name] : null;
-}
-
-/// An exception indicating that invalid arguments were passed.
-class UsageException implements Exception {
-  final String message;
-
-  UsageException(this.message);
 }
