@@ -1,3 +1,8 @@
+## 1.72.0
+
+* Allow the Node.js `pkg:` importer to load Sass stylesheets for `package.json`
+  `exports` field entries without extensions.
+
 ## 1.71.1
 
 ### Command-Line Interface
