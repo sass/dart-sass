@@ -56,8 +56,8 @@ abstract class StylesheetParser extends Parser {
   /// Whether the parser is currently within a parenthesized expression.
   var _inParentheses = false;
 
-  @protected
   /// Whether the parser is currently within an expression.
+  @protected
   bool get inExpression => _inExpression;
   var _inExpression = false;
 

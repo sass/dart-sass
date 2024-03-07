@@ -39,7 +39,6 @@ class CssParser extends ScssParser {
     super.silentComment();
     error("Silent comments aren't allowed in plain CSS.",
         scanner.spanFrom(start));
-    return true;
   }
 
   Statement atRule(Statement child(), {bool root = false}) {
