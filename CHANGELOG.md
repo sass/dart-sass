@@ -1,7 +1,13 @@
 ## 1.72.0
 
+* Support adjacent `/`s without whitespace in between when parsing plain CSS
+  expressions.
+
 * Allow the Node.js `pkg:` importer to load Sass stylesheets for `package.json`
   `exports` field entries without extensions.
+
+* When printing suggestions for variables, use underscores in variable names
+  when the original usage used underscores.
 
 ### JavaScript API
 

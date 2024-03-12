@@ -32,7 +32,9 @@ class CssParser extends ScssParser {
 
   CssParser(super.contents, {super.url, super.logger});
 
-  void silentComment() {
+  bool silentComment() {
+    if (inExpression) return false;
+
     var start = scanner.state;
     super.silentComment();
     error("Silent comments aren't allowed in plain CSS.",
