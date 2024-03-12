@@ -56,6 +56,11 @@ abstract class StylesheetParser extends Parser {
   /// Whether the parser is currently within a parenthesized expression.
   var _inParentheses = false;
 
+  /// Whether the parser is currently within an expression.
+  @protected
+  bool get inExpression => _inExpression;
+  var _inExpression = false;
+
   /// A map from all variable names that are assigned with `!global` in the
   /// current stylesheet to the nodes where they're defined.
   ///
@@ -1686,7 +1691,9 @@ abstract class StylesheetParser extends Parser {
     }
 
     var start = scanner.state;
+    var wasInExpression = _inExpression;
     var wasInParentheses = _inParentheses;
+    _inExpression = true;
 
     // We use the convention below of referring to nullable variables that are
     // shared across anonymous functions in this method with a trailing
@@ -2039,11 +2046,13 @@ abstract class StylesheetParser extends Parser {
       _inParentheses = wasInParentheses;
       var singleExpression = singleExpression_;
       if (singleExpression != null) commaExpressions.add(singleExpression);
+      _inExpression = wasInExpression;
       return ListExpression(commaExpressions, ListSeparator.comma,
           scanner.spanFrom(beforeBracket ?? start),
           brackets: bracketList);
     } else if (bracketList && spaceExpressions != null) {
       resolveOperations();
+      _inExpression = wasInExpression;
       return ListExpression(spaceExpressions..add(singleExpression_!),
           ListSeparator.space, scanner.spanFrom(beforeBracket!),
           brackets: true);
@@ -2054,6 +2063,7 @@ abstract class StylesheetParser extends Parser {
             ListSeparator.undecided, scanner.spanFrom(beforeBracket!),
             brackets: true);
       }
+      _inExpression = wasInExpression;
       return singleExpression_!;
     }
   }
