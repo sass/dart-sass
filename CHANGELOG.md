@@ -9,6 +9,11 @@
 * When printing suggestions for variables, use underscores in variable names
   when the original usage used underscores.
 
+### JavaScript API
+
+* Properly resolve `pkg:` imports with the Node.js package importer when
+  arguments are passed to the JavaScript process.
+
 ## 1.71.1
 
 ### Command-Line Interface
