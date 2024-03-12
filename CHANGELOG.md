@@ -3,6 +3,11 @@
 * Allow the Node.js `pkg:` importer to load Sass stylesheets for `package.json`
   `exports` field entries without extensions.
 
+### JavaScript API
+
+* Properly resolve `pkg:` imports with the Node.js package importer when
+  arguments are passed to the JavaScript process.
+
 ## 1.71.1
 
 ### Command-Line Interface
