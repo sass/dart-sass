@@ -354,6 +354,7 @@ class NodePackageImporter extends Importer {
       paths.add(subpath);
     } else {
       paths.addAll([
+        subpath,
         '$subpath.scss',
         '$subpath.sass',
         '$subpath.css',
