@@ -1,3 +1,8 @@
+## 1.73.0
+
+* Add support for nesting in plain CSS files. This is not processed by Sass at
+  all; it's emitted exactly as-is in the CSS.
+
 ## 1.72.0
 
 * Support adjacent `/`s without whitespace in between when parsing plain CSS

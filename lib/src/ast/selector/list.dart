@@ -57,9 +57,10 @@ final class SelectorList extends Selector {
 
   /// Parses a selector list from [contents].
   ///
-  /// If passed, [url] is the name of the file from which [contents] comes.
-  /// [allowParent] and [allowPlaceholder] control whether [ParentSelector]s or
-  /// [PlaceholderSelector]s are allowed in this selector, respectively.
+  /// If passed, [url] is the name of the file from which [contents] comes. If
+  /// [allowParent] is false, this doesn't allow [ParentSelector]s. If
+  /// [plainCss] is true, this parses the selector as plain CSS rather than
+  /// unresolved Sass.
   ///
   /// If passed, [interpolationMap] maps the text of [contents] back to the
   /// original location of the selector in the source file.
@@ -70,13 +71,13 @@ final class SelectorList extends Selector {
           Logger? logger,
           InterpolationMap? interpolationMap,
           bool allowParent = true,
-          bool allowPlaceholder = true}) =>
+          bool plainCss = true}) =>
       SelectorParser(contents,
               url: url,
               logger: logger,
               interpolationMap: interpolationMap,
               allowParent: allowParent,
-              allowPlaceholder: allowPlaceholder)
+              plainCss: plainCss)
           .parse();
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitSelectorList(this);
@@ -261,6 +262,8 @@ final class SelectorList extends Selector {
 
   /// Returns a copy of `this` with [combinators] added to the end of each
   /// complex selector in [components].
+  ///
+  /// @nodoc
   @internal
   SelectorList withAdditionalCombinators(
           List<CssValue<Combinator>> combinators) =>

@@ -324,10 +324,6 @@ abstract class StylesheetParser extends Parser {
   ///   parsed as a selector and never as a property with nested properties
   ///   beneath it.
   Statement _declarationOrStyleRule() {
-    if (plainCss && _inStyleRule && !_inUnknownAtRule) {
-      return _propertyOrVariableDeclaration();
-    }
-
     // The indented syntax allows a single backslash to distinguish a style rule
     // from old-style property syntax. We don't support old property syntax, but
     // we do support the backslash because it's easy to do.

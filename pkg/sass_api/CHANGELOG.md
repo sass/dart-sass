@@ -1,3 +1,9 @@
+## 10.0.0
+
+* Remove the `allowPlaceholders` argument from `SelectorList.parse()`. Instead,
+  it now has a more generic `plainCss` argument which tells it to parse the
+  selector in plain CSS mode.
+
 ## 9.5.0
 
 * No user-visible changes.

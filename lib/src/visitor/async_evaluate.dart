@@ -2011,12 +2011,15 @@ final class _EvaluateVisitor
     }
 
     var parsedSelector = SelectorList.parse(selectorText,
-            interpolationMap: selectorMap,
-            allowParent: !_stylesheet.plainCss,
-            allowPlaceholder: !_stylesheet.plainCss,
-            logger: _logger)
-        .resolveParentSelectors(_styleRuleIgnoringAtRoot?.originalSelector,
-            implicitParent: !_atRootExcludingStyleRule);
+        interpolationMap: selectorMap,
+        plainCss: _stylesheet.plainCss,
+        logger: _logger);
+
+    if (!_stylesheet.plainCss) {
+      parsedSelector = parsedSelector.resolveParentSelectors(
+          _styleRuleIgnoringAtRoot?.originalSelector,
+          implicitParent: !_atRootExcludingStyleRule);
+    }
 
     var selector = _extensionStore.addSelector(parsedSelector, _mediaQueries);
     var rule = ModifiableCssStyleRule(selector, node.span,
@@ -2030,7 +2033,7 @@ final class _EvaluateVisitor
         }
       });
     },
-        through: (node) => node is CssStyleRule,
+        through: _stylesheet.plainCss ? null : (node) => node is CssStyleRule,
         scopeWhen: node.hasDeclarations);
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 

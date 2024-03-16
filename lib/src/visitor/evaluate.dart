@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 7351193aa9229e1434c09a2cbc9fa596cd924901
+// Checksum: 9d82985f5a6310f2e3e3d5679fdfda4e89b2aeab
 //
 // ignore_for_file: unused_import
 
@@ -2001,12 +2001,15 @@ final class _EvaluateVisitor
     }
 
     var parsedSelector = SelectorList.parse(selectorText,
-            interpolationMap: selectorMap,
-            allowParent: !_stylesheet.plainCss,
-            allowPlaceholder: !_stylesheet.plainCss,
-            logger: _logger)
-        .resolveParentSelectors(_styleRuleIgnoringAtRoot?.originalSelector,
-            implicitParent: !_atRootExcludingStyleRule);
+        interpolationMap: selectorMap,
+        plainCss: _stylesheet.plainCss,
+        logger: _logger);
+
+    if (!_stylesheet.plainCss) {
+      parsedSelector = parsedSelector.resolveParentSelectors(
+          _styleRuleIgnoringAtRoot?.originalSelector,
+          implicitParent: !_atRootExcludingStyleRule);
+    }
 
     var selector = _extensionStore.addSelector(parsedSelector, _mediaQueries);
     var rule = ModifiableCssStyleRule(selector, node.span,
@@ -2020,7 +2023,7 @@ final class _EvaluateVisitor
         }
       });
     },
-        through: (node) => node is CssStyleRule,
+        through: _stylesheet.plainCss ? null : (node) => node is CssStyleRule,
         scopeWhen: node.hasDeclarations);
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 
