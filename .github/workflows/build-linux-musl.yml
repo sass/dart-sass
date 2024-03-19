@@ -26,6 +26,9 @@ jobs:
           # https://gitlab.com/qemu-project/qemu/-/issues/1729
           - arch: arm
             platform: linux/amd64 # linux/arm/v7
+          # There is no docker image for riscv64 dart-sdk, build kernel snapshot instead.
+          - arch: riscv64
+            platform: linux/amd64 # linux/riscv64
 
     steps:
       - uses: actions/checkout@v4
