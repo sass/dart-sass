@@ -22,6 +22,10 @@ jobs:
             platform: linux/arm/v7
           - arch: arm64
             platform: linux/arm64
+          # There is no docker image for riscv64 dart-sdk, build kernel snapshot instead.
+          # https://github.com/dart-lang/dart-docker/issues/96#issuecomment-1669860829
+          - arch: riscv64
+            platform: linux/amd64 # linux/riscv64
 
     steps:
       - uses: actions/checkout@v4

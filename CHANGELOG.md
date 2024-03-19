@@ -1,3 +1,7 @@
+## 1.72.1
+
+* Add linux-riscv64 and windows-arm64 releases.
+
 ## 1.72.0
 
 * Support adjacent `/`s without whitespace in between when parsing plain CSS
