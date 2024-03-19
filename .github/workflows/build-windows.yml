@@ -18,10 +18,8 @@ jobs:
             runner: windows-latest
           - arch: ia32
             runner: windows-latest
-          # The support of windows-arm64 dart-sdk is in beta.
-          # TODO: Enable this once windows-arm64 support is stable.
-          # - arch: arm64
-          #   runner: windows-latest
+          - arch: arm64
+            runner: windows-latest
 
     steps:
       - uses: actions/checkout@v4
