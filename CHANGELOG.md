@@ -3,6 +3,8 @@
 * Add support for nesting in plain CSS files. This is not processed by Sass at
   all; it's emitted exactly as-is in the CSS.
 
+* Add linux-riscv64 and windows-arm64 releases.
+
 ## 1.72.0
 
 * Support adjacent `/`s without whitespace in between when parsing plain CSS
