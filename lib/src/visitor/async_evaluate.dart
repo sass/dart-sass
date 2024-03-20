@@ -2015,15 +2015,28 @@ final class _EvaluateVisitor
         plainCss: _stylesheet.plainCss,
         logger: _logger);
 
-    if (!_stylesheet.plainCss) {
-      parsedSelector = parsedSelector.resolveParentSelectors(
+    var nest = !(_styleRule?.fromPlainCss ?? false);
+    if (nest) {
+      if (_stylesheet.plainCss) {
+        for (var complex in parsedSelector.components) {
+          if (complex.leadingCombinators case [var first, ...]
+              when _stylesheet.plainCss) {
+            throw _exception(
+                "Top-level leading combinators aren't allowed in plain CSS.",
+                first.span);
+          }
+        }
+      }
+
+      parsedSelector = parsedSelector.nestWithin(
           _styleRuleIgnoringAtRoot?.originalSelector,
-          implicitParent: !_atRootExcludingStyleRule);
+          implicitParent: !_atRootExcludingStyleRule,
+          preserveParentSelectors: _stylesheet.plainCss);
     }
 
     var selector = _extensionStore.addSelector(parsedSelector, _mediaQueries);
     var rule = ModifiableCssStyleRule(selector, node.span,
-        originalSelector: parsedSelector);
+        originalSelector: parsedSelector, fromPlainCss: _stylesheet.plainCss);
     var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
     _atRootExcludingStyleRule = false;
     await _withParent(rule, () async {
@@ -2033,7 +2046,7 @@ final class _EvaluateVisitor
         }
       });
     },
-        through: _stylesheet.plainCss ? null : (node) => node is CssStyleRule,
+        through: nest ? (node) => node is CssStyleRule : null,
         scopeWhen: node.hasDeclarations);
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 
@@ -2051,13 +2064,15 @@ final class _EvaluateVisitor
               complex.span.trimRight(),
               Deprecation.bogusCombinators);
         } else if (complex.leadingCombinators.isNotEmpty) {
-          _warn(
-              'The selector "${complex.toString().trim()}" is invalid CSS.\n'
-              'This will be an error in Dart Sass 2.0.0.\n'
-              '\n'
-              'More info: https://sass-lang.com/d/bogus-combinators',
-              complex.span.trimRight(),
-              Deprecation.bogusCombinators);
+          if (!_stylesheet.plainCss) {
+            _warn(
+                'The selector "${complex.toString().trim()}" is invalid CSS.\n'
+                'This will be an error in Dart Sass 2.0.0.\n'
+                '\n'
+                'More info: https://sass-lang.com/d/bogus-combinators',
+                complex.span.trimRight(),
+                Deprecation.bogusCombinators);
+          }
         } else {
           _warn(
               'The selector "${complex.toString().trim()}" is only valid for '
@@ -3389,12 +3404,15 @@ final class _EvaluateVisitor
     }
 
     var styleRule = _styleRule;
-    var originalSelector = node.selector.resolveParentSelectors(
-        styleRule?.originalSelector,
-        implicitParent: !_atRootExcludingStyleRule);
+    var nest = !(_styleRule?.fromPlainCss ?? false);
+    var originalSelector = nest
+        ? node.selector.nestWithin(styleRule?.originalSelector,
+            implicitParent: !_atRootExcludingStyleRule,
+            preserveParentSelectors: node.fromPlainCss)
+        : node.selector;
     var selector = _extensionStore.addSelector(originalSelector, _mediaQueries);
     var rule = ModifiableCssStyleRule(selector, node.span,
-        originalSelector: originalSelector);
+        originalSelector: originalSelector, fromPlainCss: node.fromPlainCss);
     var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
     _atRootExcludingStyleRule = false;
     await _withParent(rule, () async {
@@ -3403,7 +3421,7 @@ final class _EvaluateVisitor
           await child.accept(this);
         }
       });
-    }, through: (node) => node is CssStyleRule, scopeWhen: false);
+    }, through: nest ? (node) => node is CssStyleRule : null, scopeWhen: false);
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 
     if (_parent.children case [..., var lastChild] when styleRule == null) {

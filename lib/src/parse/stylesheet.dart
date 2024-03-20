@@ -396,10 +396,7 @@ abstract class StylesheetParser extends Parser {
     }
 
     var postColonWhitespace = rawText(whitespace);
-    if (lookingAtChildren()) {
-      return _withChildren(_declarationChild, start,
-          (children, span) => Declaration.nested(name, children, span));
-    }
+    if (_tryDeclarationChildren(name, start) case var nested?) return nested;
 
     midBuffer.write(postColonWhitespace);
     var couldBeSelector =
@@ -435,12 +432,8 @@ abstract class StylesheetParser extends Parser {
       return nameBuffer;
     }
 
-    if (lookingAtChildren()) {
-      return _withChildren(
-          _declarationChild,
-          start,
-          (children, span) =>
-              Declaration.nested(name, children, span, value: value));
+    if (_tryDeclarationChildren(name, start, value: value) case var nested?) {
+      return nested;
     } else {
       expectStatementSeparator();
       return Declaration(name, value, scanner.spanFrom(start));
@@ -545,29 +538,34 @@ abstract class StylesheetParser extends Parser {
     }
 
     whitespace();
-
-    if (lookingAtChildren()) {
-      if (plainCss) {
-        scanner.error("Nested declarations aren't allowed in plain CSS.");
-      }
-      return _withChildren(_declarationChild, start,
-          (children, span) => Declaration.nested(name, children, span));
-    }
+    if (_tryDeclarationChildren(name, start) case var nested?) return nested;
 
     var value = _expression();
-    if (lookingAtChildren()) {
-      if (plainCss) {
-        scanner.error("Nested declarations aren't allowed in plain CSS.");
-      }
-      return _withChildren(
-          _declarationChild,
-          start,
-          (children, span) =>
-              Declaration.nested(name, children, span, value: value));
+    if (_tryDeclarationChildren(name, start, value: value) case var nested?) {
+      return nested;
     } else {
       expectStatementSeparator();
       return Declaration(name, value, scanner.spanFrom(start));
     }
+  }
+
+  /// Tries parsing nested children of a declaration whose [name] has already
+  /// been parsed, and returns `null` if it doesn't have any.
+  ///
+  /// If [value] is passed, it's used as the value of the peroperty without
+  /// nesting.
+  Declaration? _tryDeclarationChildren(
+      Interpolation name, LineScannerState start,
+      {Expression? value}) {
+    if (!lookingAtChildren()) return null;
+    if (plainCss) {
+      scanner.error("Nested declarations aren't allowed in plain CSS.");
+    }
+    return _withChildren(
+        _declarationChild,
+        start,
+        (children, span) =>
+            Declaration.nested(name, children, span, value: value));
   }
 
   /// Consumes a statement that's allowed within a declaration.

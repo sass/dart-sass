@@ -172,7 +172,9 @@ class SelectorParser extends Parser {
       }
     }
 
-    if (lastCompound != null) {
+    if (combinators.isNotEmpty && _plainCss) {
+      scanner.error("expected selector.");
+    } else if (lastCompound != null) {
       components.add(ComplexSelectorComponent(
           lastCompound, combinators, spanFrom(componentStart)));
     } else if (combinators.isNotEmpty) {
@@ -214,7 +216,7 @@ class SelectorParser extends Parser {
         return _idSelector();
       case $percent:
         var selector = _placeholderSelector();
-        if (!_plainCss) {
+        if (_plainCss) {
           error("Placeholder selectors aren't allowed in plain CSS.",
               scanner.spanFrom(start));
         }

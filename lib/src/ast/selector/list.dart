@@ -71,7 +71,7 @@ final class SelectorList extends Selector {
           Logger? logger,
           InterpolationMap? interpolationMap,
           bool allowParent = true,
-          bool plainCss = true}) =>
+          bool plainCss = false}) =>
       SelectorParser(contents,
               url: url,
               logger: logger,
@@ -96,17 +96,24 @@ final class SelectorList extends Selector {
     return contents.isEmpty ? null : SelectorList(contents, span);
   }
 
-  /// Returns a new list with all [ParentSelector]s replaced with [parent].
+  /// Returns a new selector list that represents [this] nested within [parent].
   ///
-  /// If [implicitParent] is true, this treats [ComplexSelector]s that don't
-  /// contain an explicit [ParentSelector] as though they began with one.
+  /// By default, this replaces [ParentSelector]s in [this] with [parent]. If
+  /// [preserveParentSelectors] is true, this instead preserves those selectors
+  /// as parent selectors.
+  ///
+  /// If [implicitParent] is true, this prepends [parent] to any
+  /// [ComplexSelector]s in this that don't contain explicit [ParentSelector]s,
+  /// or to _all_ [ComplexSelector]s if [preserveParentSelectors] is true.
   ///
   /// The given [parent] may be `null`, indicating that this has no parents. If
   /// so, this list is returned as-is if it doesn't contain any explicit
-  /// [ParentSelector]s. If it does, this throws a [SassScriptException].
-  SelectorList resolveParentSelectors(SelectorList? parent,
-      {bool implicitParent = true}) {
+  /// [ParentSelector]s or if [preserveParentSelectors] is true. Otherwise, this
+  /// throws a [SassScriptException].
+  SelectorList nestWithin(SelectorList? parent,
+      {bool implicitParent = true, bool preserveParentSelectors = false}) {
     if (parent == null) {
+      if (preserveParentSelectors) return this;
       var parentSelector = accept(const _ParentSelectorVisitor());
       if (parentSelector == null) return this;
       throw SassException(
@@ -115,7 +122,7 @@ final class SelectorList extends Selector {
     }
 
     return SelectorList(flattenVertically(components.map((complex) {
-      if (!_containsParentSelector(complex)) {
+      if (preserveParentSelectors || !_containsParentSelector(complex)) {
         if (!implicitParent) return [complex];
         return parent.components.map((parentComplex) =>
             parentComplex.concatenate(complex, complex.span));
@@ -123,7 +130,7 @@ final class SelectorList extends Selector {
 
       var newComplexes = <ComplexSelector>[];
       for (var component in complex.components) {
-        var resolved = _resolveParentSelectorsCompound(component, parent);
+        var resolved = _nestWithinCompound(component, parent);
         if (resolved == null) {
           if (newComplexes.isEmpty) {
             newComplexes.add(ComplexSelector(
@@ -166,7 +173,7 @@ final class SelectorList extends Selector {
   /// [ParentSelector]s replaced with [parent].
   ///
   /// Returns `null` if [component] doesn't contain any [ParentSelector]s.
-  Iterable<ComplexSelector>? _resolveParentSelectorsCompound(
+  Iterable<ComplexSelector>? _nestWithinCompound(
       ComplexSelectorComponent component, SelectorList parent) {
     var simples = component.selector.components;
     var containsSelectorPseudo = simples.any((simple) {
@@ -182,8 +189,8 @@ final class SelectorList extends Selector {
         ? simples.map((simple) => switch (simple) {
               PseudoSelector(:var selector?)
                   when _containsParentSelector(selector) =>
-                simple.withSelector(selector.resolveParentSelectors(parent,
-                    implicitParent: false)),
+                simple.withSelector(
+                    selector.nestWithin(parent, implicitParent: false)),
               _ => simple
             })
         : simples;
