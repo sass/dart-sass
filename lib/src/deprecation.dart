@@ -69,6 +69,11 @@ enum Deprecation {
       deprecatedIn: '1.62.3',
       description: 'Passing null as alpha in the ${isJS ? 'JS' : 'Dart'} API.'),
 
+  fsImporterCwd('fs-importer-cwd',
+      deprecatedIn: '1.73.0',
+      description:
+          'Using the current working directory as an implicit load ' 'path.'),
+
   @Deprecated('This deprecation name was never actually used.')
   calcInterp('calc-interp', deprecatedIn: null),
 
