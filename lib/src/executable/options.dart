@@ -10,7 +10,6 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
 import '../../sass.dart';
-import '../exception.dart';
 import '../importer/node_package.dart';
 import '../io.dart';
 import '../util/character.dart';

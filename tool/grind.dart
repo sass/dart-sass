@@ -87,6 +87,8 @@ void main(List<String> args) {
     'NULL',
     'types',
     'NodePackageImporter',
+    'deprecations',
+    'Version',
   };
 
   pkg.githubReleaseNotes.fn = () =>

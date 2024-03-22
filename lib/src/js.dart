@@ -49,13 +49,14 @@ void main() {
   exports.sassNull = sassNull;
   exports.sassTrue = sassTrue;
   exports.sassFalse = sassFalse;
-  exports.deprecations = jsify(deprecations);
   exports.Exception = exceptionClass;
   exports.Logger = LoggerNamespace(
       silent: JSLogger(
           warn: allowInteropNamed('sass.Logger.silent.warn', (_, __) {}),
           debug: allowInteropNamed('sass.Logger.silent.debug', (_, __) {})));
   exports.NodePackageImporter = nodePackageImporterClass;
+  exports.deprecations = jsify(deprecations);
+  exports.Version = versionClass;
 
   exports.info =
       "dart-sass\t${const String.fromEnvironment('version')}\t(Sass Compiler)\t"

@@ -7,6 +7,7 @@ import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart' hide futureToPromise;
 import 'package:term_glyph/term_glyph.dart' as glyph;
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 
 import '../../sass.dart';
 import '../importer/no_op.dart';
@@ -20,6 +21,7 @@ import '../logger/js_to_dart.dart';
 import '../util/nullable.dart';
 import 'compile_options.dart';
 import 'compile_result.dart';
+import 'deprecations.dart' as js show Deprecation;
 import 'exception.dart';
 import 'importer.dart';
 import 'reflection.dart';
@@ -35,6 +37,8 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
   }
   var color = options?.alertColor ?? hasTerminal;
   var ascii = options?.alertAscii ?? glyph.ascii;
+  var logger = JSToDartLogger(options?.logger, Logger.stderr(color: color),
+      ascii: ascii);
   try {
     var result = compileToResult(path,
         color: color,
@@ -44,10 +48,15 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
         verbose: options?.verbose ?? false,
         charset: options?.charset ?? true,
         sourceMap: options?.sourceMap ?? false,
-        logger: JSToDartLogger(options?.logger, Logger.stderr(color: color),
-            ascii: ascii),
+        logger: logger,
         importers: options?.importers?.map(_parseImporter),
-        functions: _parseFunctions(options?.functions).cast());
+        functions: _parseFunctions(options?.functions).cast(),
+        fatalDeprecations: _parseDeprecations(
+            logger, options?.fatalDeprecations, supportVersions: true),
+        silenceDeprecations:
+            _parseDeprecations(logger, options?.silenceDeprecations),
+        futureDeprecations:
+            _parseDeprecations(logger, options?.futureDeprecations));
     return _convertResult(result,
         includeSourceContents: options?.sourceMapIncludeSources ?? false);
   } on SassException catch (error, stackTrace) {
@@ -62,6 +71,8 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
 NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
   var color = options?.alertColor ?? hasTerminal;
   var ascii = options?.alertAscii ?? glyph.ascii;
+  var logger = JSToDartLogger(options?.logger, Logger.stderr(color: color),
+      ascii: ascii);
   try {
     var result = compileStringToResult(text,
         syntax: parseSyntax(options?.syntax),
@@ -73,12 +84,17 @@ NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
         verbose: options?.verbose ?? false,
         charset: options?.charset ?? true,
         sourceMap: options?.sourceMap ?? false,
-        logger: JSToDartLogger(options?.logger, Logger.stderr(color: color),
-            ascii: ascii),
+        logger: logger,
         importers: options?.importers?.map(_parseImporter),
         importer: options?.importer.andThen(_parseImporter) ??
             (options?.url == null ? NoOpImporter() : null),
-        functions: _parseFunctions(options?.functions).cast());
+        functions: _parseFunctions(options?.functions).cast(),
+        fatalDeprecations: _parseDeprecations(
+            logger, options?.fatalDeprecations, supportVersions: true),
+        silenceDeprecations:
+            _parseDeprecations(logger, options?.silenceDeprecations),
+        futureDeprecations:
+            _parseDeprecations(logger, options?.futureDeprecations));
     return _convertResult(result,
         includeSourceContents: options?.sourceMapIncludeSources ?? false);
   } on SassException catch (error, stackTrace) {
@@ -96,6 +112,8 @@ Promise compileAsync(String path, [CompileOptions? options]) {
   }
   var color = options?.alertColor ?? hasTerminal;
   var ascii = options?.alertAscii ?? glyph.ascii;
+  var logger = JSToDartLogger(options?.logger, Logger.stderr(color: color),
+      ascii: ascii);
   return _wrapAsyncSassExceptions(futureToPromise(() async {
     var result = await compileToResultAsync(path,
         color: color,
@@ -105,11 +123,16 @@ Promise compileAsync(String path, [CompileOptions? options]) {
         verbose: options?.verbose ?? false,
         charset: options?.charset ?? true,
         sourceMap: options?.sourceMap ?? false,
-        logger: JSToDartLogger(options?.logger, Logger.stderr(color: color),
-            ascii: ascii),
+        logger: logger,
         importers: options?.importers
             ?.map((importer) => _parseAsyncImporter(importer)),
-        functions: _parseFunctions(options?.functions, asynch: true));
+        functions: _parseFunctions(options?.functions, asynch: true),
+        fatalDeprecations: _parseDeprecations(
+            logger, options?.fatalDeprecations, supportVersions: true),
+        silenceDeprecations:
+            _parseDeprecations(logger, options?.silenceDeprecations),
+        futureDeprecations:
+            _parseDeprecations(logger, options?.futureDeprecations));
     return _convertResult(result,
         includeSourceContents: options?.sourceMapIncludeSources ?? false);
   }()), color: color, ascii: ascii);
@@ -122,6 +145,8 @@ Promise compileAsync(String path, [CompileOptions? options]) {
 Promise compileStringAsync(String text, [CompileStringOptions? options]) {
   var color = options?.alertColor ?? hasTerminal;
   var ascii = options?.alertAscii ?? glyph.ascii;
+  var logger = JSToDartLogger(options?.logger, Logger.stderr(color: color),
+      ascii: ascii);
   return _wrapAsyncSassExceptions(futureToPromise(() async {
     var result = await compileStringToResultAsync(text,
         syntax: parseSyntax(options?.syntax),
@@ -133,14 +158,19 @@ Promise compileStringAsync(String text, [CompileStringOptions? options]) {
         verbose: options?.verbose ?? false,
         charset: options?.charset ?? true,
         sourceMap: options?.sourceMap ?? false,
-        logger: JSToDartLogger(options?.logger, Logger.stderr(color: color),
-            ascii: ascii),
+        logger: logger,
         importers: options?.importers
             ?.map((importer) => _parseAsyncImporter(importer)),
         importer: options?.importer
                 .andThen((importer) => _parseAsyncImporter(importer)) ??
             (options?.url == null ? NoOpImporter() : null),
-        functions: _parseFunctions(options?.functions, asynch: true));
+        functions: _parseFunctions(options?.functions, asynch: true),
+        fatalDeprecations: _parseDeprecations(
+            logger, options?.fatalDeprecations, supportVersions: true),
+        silenceDeprecations:
+            _parseDeprecations(logger, options?.silenceDeprecations),
+        futureDeprecations:
+            _parseDeprecations(logger, options?.futureDeprecations));
     return _convertResult(result,
         includeSourceContents: options?.sourceMapIncludeSources ?? false);
   }()), color: color, ascii: ascii);
@@ -327,6 +357,34 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
     }
   });
   return result;
+}
+
+Iterable<Deprecation>? _parseDeprecations(
+    JSToDartLogger logger, List<Object?>? deprecations,
+    {bool supportVersions = false}) {
+  if (deprecations == null) return null;
+  return () sync* {
+    for (var item in deprecations) {
+      switch (item) {
+        case String id:
+          var deprecation = Deprecation.fromId(id);
+          if (deprecation == null) {
+            logger.warn('Invalid deprecation "$id".');
+          } else {
+            yield deprecation;
+          }
+        case js.Deprecation(:var id):
+          var deprecation = Deprecation.fromId(id);
+          if (deprecation == null) {
+            logger.warn('Invalid deprecation "$id".');
+          } else {
+            yield deprecation;
+          }
+        case Version version when supportVersions:
+          yield* Deprecation.forVersion(version);
+      }
+    }
+  }();
 }
 
 /// The exported `NodePackageImporter` class that can be added to the
