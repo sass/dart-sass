@@ -1,4 +1,7 @@
-## 1.72.1
+## 1.73.0
+
+* Add support for nesting in plain CSS files. This is not processed by Sass at
+  all; it's emitted exactly as-is in the CSS.
 
 * Add linux-riscv64 and windows-arm64 releases.
 
