@@ -71,15 +71,15 @@ class FilesystemImporter extends Importer {
     } else if (url.scheme != '') {
       return null;
     } else if (_loadPath case var loadPath?) {
-      if (_loadPathDeprecated) {
+      resolved = resolveImportPath(p.join(loadPath, p.fromUri(url)));
+
+      if (resolved != null && _loadPathDeprecated) {
         warnForDeprecation(
             "Using the current working directory as an implicit load path is "
             "deprecated. Either add it as an explicit load path or importer, or "
             "load this stylesheet from a different URL.",
             Deprecation.fsImporterCwd);
       }
-
-      resolved = resolveImportPath(p.join(loadPath, p.fromUri(url)));
     } else {
       return null;
     }
