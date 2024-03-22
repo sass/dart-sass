@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:source_span/source_span.dart';
 
 import 'deprecation.dart';
+import 'logger.dart';
 
 /// An interface that exposes information about the current Sass evaluation.
 ///
@@ -17,13 +18,16 @@ abstract interface class EvaluationContext {
   ///
   /// Throws [StateError] if there isn't a Sass stylesheet currently being
   /// evaluated.
-  static EvaluationContext get current {
-    if (Zone.current[#_evaluationContext] case EvaluationContext context) {
-      return context;
-    } else {
-      throw StateError("No Sass stylesheet is currently being evaluated.");
-    }
-  }
+  static EvaluationContext get current =>
+      currentOrNull ??
+      (throw StateError("No Sass stylesheet is currently being evaluated."));
+
+  /// The current evaluation context, or `null` if none exists.
+  static EvaluationContext? get currentOrNull =>
+      switch (Zone.current[#_evaluationContext]) {
+        EvaluationContext context => context,
+        _ => null
+      };
 
   /// Returns the span for the currently executing callable.
   ///
@@ -50,13 +54,20 @@ abstract interface class EvaluationContext {
 /// This may only be called within a custom function or importer callback.
 /// {@category Compile}
 void warn(String message, {bool deprecation = false}) =>
-    EvaluationContext.current
-        .warn(message, deprecation ? Deprecation.userAuthored : null);
+    switch (EvaluationContext.currentOrNull) {
+      var context? =>
+        context.warn(message, deprecation ? Deprecation.userAuthored : null),
+      _ when deprecation => (const Logger.stderr())
+          .warnForDeprecation(Deprecation.userAuthored, message),
+      _ => (const Logger.stderr()).warn(message)
+    };
 
 /// Prints a deprecation warning with [message] of type [deprecation].
-void warnForDeprecation(String message, Deprecation deprecation) {
-  EvaluationContext.current.warn(message, deprecation);
-}
+void warnForDeprecation(String message, Deprecation deprecation) =>
+    switch (EvaluationContext.currentOrNull) {
+      var context? => context.warn(message, deprecation),
+      _ => (const Logger.stderr()).warnForDeprecation(deprecation, message)
+    };
 
 /// Runs [callback] with [context] as [EvaluationContext.current].
 ///
