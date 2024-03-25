@@ -53,7 +53,7 @@ class FilesystemImporter extends Importer {
   /// Historically, this was the best default for supporting `file:` URL loads
   /// when the load path didn't matter. However, adding the current working
   /// directory to the load path wasn't always desirable, so it's no longer
-  /// recommneded. Instead, either use [FilesystemImporter.noLoadPath] if the
+  /// recommended. Instead, either use [FilesystemImporter.noLoadPath] if the
   /// load path doesn't matter, or `FilesystemImporter('.')` to explicitly
   /// preserve the existing behavior.
   @Deprecated(
