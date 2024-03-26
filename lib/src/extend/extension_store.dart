@@ -355,11 +355,6 @@ class ExtensionStore {
           }
         }
       }
-
-      // If [selectors] doesn't contain [extension.extender], for example if it
-      // was replaced due to :not() expansion, we must get rid of the old
-      // version.
-      if (!containsExtension) sources.remove(extension.extender);
     }
 
     return additionalExtensions;

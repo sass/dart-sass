@@ -5,7 +5,7 @@
 import '../util/map.dart';
 import '../util/nullable.dart';
 import '../value.dart';
-import 'dispatcher.dart';
+import 'compilation_dispatcher.dart';
 import 'embedded_sass.pb.dart' as proto;
 import 'embedded_sass.pb.dart' hide Value, ListSeparator, CalculationOperator;
 import 'host_callable.dart';
@@ -18,7 +18,7 @@ import 'utils.dart';
 /// custom function call.
 final class Protofier {
   /// The dispatcher, for invoking deprotofied [Value_HostFunction]s.
-  final Dispatcher _dispatcher;
+  final CompilationDispatcher _dispatcher;
 
   /// The IDs of first-class functions.
   final OpaqueRegistry<SassFunction> _functions;
@@ -53,17 +53,12 @@ final class Protofier {
           ..quoted = value.hasQuotes;
       case SassNumber():
         result.number = _protofyNumber(value);
-      case SassColor(space: ColorSpace.hsl):
-        result.hslColor = Value_HslColor()
-          ..hue = value.channel('hue') * 1.0
-          ..saturation = value.channel('saturation')
-          ..lightness = value.channel('lightness')
-          ..alpha = value.alpha * 1.0;
       case SassColor():
-        result.rgbColor = Value_RgbColor()
-          ..red = value.channel('red').clamp(0, 255).round()
-          ..green = value.channel('green').clamp(0, 255).round()
-          ..blue = value.channel('blue').clamp(0, 255).round()
+        result.color = Value_Color()
+          ..space = value.space.name
+          ..channel1 = value.channel0
+          ..channel2 = value.channel1
+          ..channel3 = value.channel2
           ..alpha = value.alpha * 1.0;
       case SassArgumentList():
         _argumentLists.add(value);
@@ -181,17 +176,85 @@ final class Protofier {
         case Value_Value.number:
           return _deprotofyNumber(value.number);
 
-        case Value_Value.rgbColor:
-          return SassColor.rgb(value.rgbColor.red, value.rgbColor.green,
-              value.rgbColor.blue, value.rgbColor.alpha);
+        case Value_Value.color:
+          var space = ColorSpace.fromName(value.color.space);
+          switch (space) {
+            case ColorSpace.rgb:
+              return SassColor.rgb(value.color.channel1, value.color.channel2,
+                  value.color.channel3, value.color.alpha);
 
-        case Value_Value.hslColor:
-          return SassColor.hsl(value.hslColor.hue, value.hslColor.saturation,
-              value.hslColor.lightness, value.hslColor.alpha);
+            case ColorSpace.hsl:
+              return SassColor.hsl(value.color.channel1, value.color.channel2,
+                  value.color.channel3, value.color.alpha);
 
-        case Value_Value.hwbColor:
-          return SassColor.hwb(value.hwbColor.hue, value.hwbColor.whiteness,
-              value.hwbColor.blackness, value.hwbColor.alpha);
+            case ColorSpace.hwb:
+              return SassColor.hwb(value.color.channel1, value.color.channel2,
+                  value.color.channel3, value.color.alpha);
+
+            case ColorSpace.lab:
+              return SassColor.lab(value.color.channel1, value.color.channel2,
+                  value.color.channel3, value.color.alpha);
+            case ColorSpace.oklab:
+              return SassColor.oklab(value.color.channel1, value.color.channel2,
+                  value.color.channel3, value.color.alpha);
+
+            case ColorSpace.lch:
+              return SassColor.lch(value.color.channel1, value.color.channel2,
+                  value.color.channel3, value.color.alpha);
+            case ColorSpace.oklch:
+              return SassColor.oklch(value.color.channel1, value.color.channel2,
+                  value.color.channel3, value.color.alpha);
+
+            case ColorSpace.srgb:
+              return SassColor.srgb(value.color.channel1, value.color.channel2,
+                  value.color.channel3, value.color.alpha);
+            case ColorSpace.srgbLinear:
+              return SassColor.srgbLinear(
+                  value.color.channel1,
+                  value.color.channel2,
+                  value.color.channel3,
+                  value.color.alpha);
+            case ColorSpace.displayP3:
+              return SassColor.displayP3(
+                  value.color.channel1,
+                  value.color.channel2,
+                  value.color.channel3,
+                  value.color.alpha);
+            case ColorSpace.a98Rgb:
+              return SassColor.a98Rgb(
+                  value.color.channel1,
+                  value.color.channel2,
+                  value.color.channel3,
+                  value.color.alpha);
+            case ColorSpace.prophotoRgb:
+              return SassColor.prophotoRgb(
+                  value.color.channel1,
+                  value.color.channel2,
+                  value.color.channel3,
+                  value.color.alpha);
+            case ColorSpace.rec2020:
+              return SassColor.rec2020(
+                  value.color.channel1,
+                  value.color.channel2,
+                  value.color.channel3,
+                  value.color.alpha);
+
+            case ColorSpace.xyzD50:
+              return SassColor.xyzD50(
+                  value.color.channel1,
+                  value.color.channel2,
+                  value.color.channel3,
+                  value.color.alpha);
+            case ColorSpace.xyzD65:
+              return SassColor.xyzD65(
+                  value.color.channel1,
+                  value.color.channel2,
+                  value.color.channel3,
+                  value.color.alpha);
+
+            default:
+              throw "Unreachable";
+          }
 
         case Value_Value.argumentList:
           if (value.argumentList.id != 0) {
@@ -276,10 +339,8 @@ final class Protofier {
         throw paramsError(error.toString());
       }
 
-      if (value.whichValue() == Value_Value.rgbColor) {
-        name = 'RgbColor.$name';
-      } else if (value.whichValue() == Value_Value.hslColor) {
-        name = 'HslColor.$name';
+      if (value.whichValue() == Value_Value.color) {
+        name = 'Color.$name';
       }
 
       throw paramsError(

@@ -152,6 +152,59 @@
 * Added `InterpolationMethod` and `HueInterpolationMethod` which collectively
   represent the method to use to interpolate two colors.
 
+### JS API
+
+* Modify `SassColor` to accept a new `space` option, with support for all the
+  new color spaces defined in Color Level 4.
+
+* Add `SassColor.space` which returns a color's color space.
+
+* Add `SassColor.channels` and `.channelsOrNull` which returns a list of channel
+  values, with missing channels converted to 0 or exposed as null, respectively.
+
+* Add `SassColor.isLegacy`, `.isInGamut()`, `.channel()`, `.isChannelMissing()`,
+  `.isChannelPowerless()`, `.toSpace()`, `.toGamut()`, `.change()`, and
+  `.interpolate()` which do the same thing as the Sass functions of the
+  corresponding names.
+
+* Deprecate `SassColor.red`, `.green`, `.blue`, `.hue`, `.saturation`,
+  `.lightness`, `.whiteness`, and `.blackness` in favor of
+  `SassColor.channel()`.
+
+### Embedded Sass
+
+* Add `Color` SassScript value, with support for all the new color spaces
+  defined in Color Level 4.
+
+* Remove `RgbColor`, `HslColor` and `HwbColor` SassScript values.
+
+## 1.69.5
+
+### JS API
+
+* Compatibility with Node.js 21.0.0.
+
+## 1.69.4
+
+* No user-visible changes.
+
+## 1.69.3
+
+### Embedded Sass
+
+* Fix TypeScript type locations in `package.json`.
+
+## 1.69.2
+
+### JS API
+
+* Fix a bug where Sass crashed when running in the browser if there was a global
+  variable named `process`.
+
+## 1.69.1
+
+* No user-visible changes.
+
 ## 1.69.0
 
 * Add a `meta.get-mixin()` function that returns a mixin as a first-class Sass

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ba8431368d89d6d8b141fbcca43b0170409af9ba
+// Checksum: 7646dbeb048593cf8c7aed43b7f471f5fc985a36
 //
 // ignore_for_file: unused_import
 
@@ -15,6 +15,7 @@ export 'async_evaluate.dart' show EvaluateResult;
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:cli_pkg/js.dart';
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
@@ -42,7 +43,6 @@ import '../functions/meta.dart' as meta;
 import '../importer.dart';
 import '../importer/legacy_node.dart';
 import '../interpolation_map.dart';
-import '../io.dart';
 import '../logger.dart';
 import '../module.dart';
 import '../module/built_in.dart';
