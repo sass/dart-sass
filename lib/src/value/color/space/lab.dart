@@ -25,7 +25,8 @@ final class LabColorSpace extends ColorSpace {
 
   const LabColorSpace()
       : super('lab', const [
-          LinearChannel('lightness', 0, 100),
+          LinearChannel('lightness', 0, 100,
+              lowerClamped: true, upperClamped: true),
           LinearChannel('a', -125, 125),
           LinearChannel('b', -125, 125)
         ]);

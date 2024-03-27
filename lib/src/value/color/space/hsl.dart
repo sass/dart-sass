@@ -16,15 +16,16 @@ import 'utils.dart';
 @internal
 final class HslColorSpace extends ColorSpace {
   bool get isBoundedInternal => true;
-  bool get isStrictlyBoundedInternal => true;
   bool get isLegacyInternal => true;
   bool get isPolarInternal => true;
 
   const HslColorSpace()
       : super('hsl', const [
           hueChannel,
-          LinearChannel('saturation', 0, 100, requiresPercent: true),
-          LinearChannel('lightness', 0, 100, requiresPercent: true)
+          LinearChannel('saturation', 0, 100,
+              requiresPercent: true, lowerClamped: true),
+          LinearChannel('lightness', 0, 100,
+              requiresPercent: true, lowerClamped: true, upperClamped: true)
         ]);
 
   SassColor convert(ColorSpace dest, double? hue, double? saturation,

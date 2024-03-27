@@ -24,8 +24,9 @@ final class LchColorSpace extends ColorSpace {
 
   const LchColorSpace()
       : super('lch', const [
-          LinearChannel('lightness', 0, 100),
-          LinearChannel('chroma', 0, 150),
+          LinearChannel('lightness', 0, 100,
+              lowerClamped: true, upperClamped: true),
+          LinearChannel('chroma', 0, 150, lowerClamped: true),
           hueChannel
         ]);
 

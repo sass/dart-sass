@@ -38,53 +38,48 @@ final class SrgbColorSpace extends ColorSpace {
         green ??= 0;
         blue ??= 0;
 
-        // Algorithm from https://en.wikipedia.org/wiki/HSL_and_HSV#RGB_to_HSL_and_HSV
+        // Algorithm from https://drafts.csswg.org/css-color-4/#rgb-to-hsl
         var max = math.max(math.max(red, green), blue);
         var min = math.min(math.min(red, green), blue);
         var delta = max - min;
 
-        double? hue;
+        double hue;
         if (max == min) {
           hue = 0;
         } else if (max == red) {
-          hue = (60 * (green - blue) / delta) % 360;
+          hue = 60 * (green - blue) / delta + 360;
         } else if (max == green) {
-          hue = (120 + 60 * (blue - red) / delta) % 360;
+          hue = 60 * (blue - red) / delta + 120;
         } else {
           // max == blue
-          hue = (240 + 60 * (red - green) / delta) % 360;
+          hue = 60 * (red - green) / delta + 240;
         }
 
         if (dest == ColorSpace.hsl) {
-          var lightness = fuzzyClamp(50 * (max + min), 0, 100);
+          var lightness = (min + max) / 2;
 
-          double? saturation;
-          if (lightness == 0 || lightness == 100) {
-            saturation = null;
-          } else if (fuzzyEquals(max, min)) {
-            saturation = 0;
-          } else if (lightness < 50) {
-            saturation = 100 * delta / (max + min);
-          } else {
-            saturation = 100 * delta / (2 - max - min);
+          var saturation = lightness == 0 || lightness == 1
+              ? 0.0
+              : 100 * (max - lightness) / math.min(lightness, 1 - lightness);
+          if (saturation < 0) {
+            hue += 180;
+            saturation = saturation.abs();
           }
-          saturation = saturation
-              .andThen((saturation) => fuzzyClamp(saturation, 0, 100));
 
           return SassColor.forSpaceInternal(
               dest,
-              missingHue || saturation == 0 || saturation == null ? null : hue,
+              missingHue || fuzzyEquals(saturation, 0) ? null : hue % 360,
               missingChroma ? null : saturation,
-              missingLightness ? null : lightness,
+              missingLightness ? null : lightness * 100,
               alpha);
         } else {
-          var whiteness = fuzzyClamp(min * 100, 0, 100);
-          var blackness = fuzzyClamp(100 - max * 100, 0, 100);
+          var whiteness = min * 100;
+          var blackness = 100 - max * 100;
           return SassColor.forSpaceInternal(
               dest,
-              missingHue || fuzzyEquals(whiteness + blackness, 100)
+              missingHue || fuzzyGreaterThanOrEquals(whiteness + blackness, 100)
                   ? null
-                  : hue,
+                  : hue % 360,
               whiteness,
               blackness,
               alpha);

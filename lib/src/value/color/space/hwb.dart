@@ -16,7 +16,6 @@ import 'utils.dart';
 @internal
 final class HwbColorSpace extends ColorSpace {
   bool get isBoundedInternal => true;
-  bool get isStrictlyBoundedInternal => true;
   bool get isLegacyInternal => true;
   bool get isPolarInternal => true;
 

@@ -77,6 +77,14 @@ class LinearChannel extends ColorChannel {
   /// forbids unitless values.
   final bool requiresPercent;
 
+  /// Whether the lower bound of this channel is clamped when the color is
+  /// created using the global function syntax.
+  final bool lowerClamped;
+
+  /// Whether the upper bound of this channel is clamped when the color is
+  /// created using the global function syntax.
+  final bool upperClamped;
+
   /// Creates a linear color channel.
   ///
   /// By default, [ColorChannel.associatedUnit] is set to `%` if and only if
@@ -86,7 +94,10 @@ class LinearChannel extends ColorChannel {
   /// @nodoc
   @internal
   const LinearChannel(String name, this.min, this.max,
-      {this.requiresPercent = false, bool? conventionallyPercent})
+      {this.requiresPercent = false,
+      this.lowerClamped = false,
+      this.upperClamped = false,
+      bool? conventionallyPercent})
       : super(name,
             isPolarAngle: false,
             associatedUnit: (conventionallyPercent ?? (min == 0 && max == 100))

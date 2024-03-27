@@ -589,6 +589,15 @@ final class _SerializeVisitor
         _maybeWriteSlashAlpha(value);
         _buffer.writeCharCode($rparen);
 
+      // case ColorSpace.lab ||
+      //       ColorSpace.oklab ||
+      //       ColorSpace.lch ||
+      //       ColorSpace.oklch when fuzzyInRange(value.channel0, 0, 100) && !value.isChannel1Missing && !value.isChannel2Missing:
+      // case ColorSpace.lch ||
+      //       ColorSpace.oklch when fuzzyLessThan(value.channel1, 0) && !value.isChannel0Missing && !value.isChannel1Missing:
+      //   // color-mix() is currently more widely supported than relative color
+      //   // syntax, so we use it to serialize out-of-gamut
+
       case ColorSpace.lab ||
             ColorSpace.oklab ||
             ColorSpace.lch ||
@@ -643,6 +652,14 @@ final class _SerializeVisitor
   void _writeLegacyColor(SassColor color) {
     var opaque = fuzzyEquals(color.alpha, 1);
 
+    // Out-of-gamut colors can _only_ be represented accurately as HSL, because
+    // only HSL isn't clamped at parse time (except negative saturation which
+    // isn't necessary anyway).
+    if (!color.isInGamut && !_inspect) {
+      _writeHsl(color);
+      return;
+    }
+
     // In compressed mode, emit colors in the shortest representation possible.
     if (_isCompressed) {
       var rgb = color.toSpace(ColorSpace.rgb);
@@ -687,6 +704,9 @@ final class _SerializeVisitor
 
     if (color.space == ColorSpace.hsl) {
       _writeHsl(color);
+      return;
+    } else if (_inspect && color.space == ColorSpace.hwb) {
+      _writeHwb(color);
       return;
     }
 
@@ -807,6 +827,29 @@ final class _SerializeVisitor
 
     if (!opaque) {
       _buffer.write(_commaSeparator);
+      _writeNumber(color.alpha);
+    }
+
+    _buffer.writeCharCode($rparen);
+  }
+
+  /// Writes [value] as an `hwb()` function.
+  ///
+  /// This is only used in inspect mode, and so only supports the new color syntax.
+  void _writeHwb(SassColor color) {
+    var opaque = fuzzyEquals(color.alpha, 1);
+    _buffer.write("hwb(");
+    var hwb = color.toSpace(ColorSpace.hwb);
+    _writeNumber(hwb.channel('hue'));
+    _buffer.writeCharCode($space);
+    _writeNumber(hwb.channel('whiteness'));
+    _buffer.writeCharCode($percent);
+    _buffer.writeCharCode($space);
+    _writeNumber(hwb.channel('blackness'));
+    _buffer.writeCharCode($percent);
+
+    if (!fuzzyEquals(color.alpha, 1)) {
+      _buffer.write(' / ');
       _writeNumber(color.alpha);
     }
 

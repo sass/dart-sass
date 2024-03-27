@@ -121,12 +121,6 @@ abstract base class ColorSpace {
   @internal
   bool get isBoundedInternal;
 
-  /// See [SassApiColorSpace.isStrictlyBounded].
-  ///
-  /// @nodoc
-  @internal
-  bool get isStrictlyBoundedInternal => false;
-
   /// See [SassApiColorSpace.isLegacy].
   ///
   /// @nodoc
@@ -183,8 +177,8 @@ abstract base class ColorSpace {
       convertLinear(dest, channel0, channel1, channel2, alpha);
 
   /// The default implementation of [convert], which always starts with a linear
-  /// transformation from RGB or XYZ channels to a linear destination space,
-  /// which may then further convert to a polar space.
+  /// transformation from RGB or XYZ channels to a linear destination space, and
+  /// may then further convert to a polar space.
   ///
   /// @nodoc
   @internal
@@ -320,15 +314,6 @@ extension SassApiColorSpace on ColorSpace {
 
   /// Whether this color space has a bounded gamut.
   bool get isBounded => isBoundedInternal;
-
-  /// Whether this color space is _strictly_ bounded.
-  ///
-  /// If this is `true`, channel values outside of their bounds are meaningless
-  /// and therefore forbidden, rather than being considered valid but
-  /// out-of-gamut.
-  ///
-  /// This is only `true` if [isBounded] is also `true`.
-  bool get isStrictlyBounded => isStrictlyBoundedInternal;
 
   /// Whether this is a legacy color space.
   bool get isLegacy => isLegacyInternal;
