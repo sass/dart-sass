@@ -5,30 +5,86 @@
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
+import '../deprecation.dart';
+import '../evaluation_context.dart';
 import '../importer.dart';
 import '../io.dart' as io;
 import '../syntax.dart';
 import '../util/nullable.dart';
 import 'utils.dart';
 
-/// An importer that loads files from a load path on the filesystem.
+/// An importer that loads files from a load path on the filesystem, either
+/// relative to the path passed to [FilesystemImporter.new] or absolute `file:`
+/// URLs.
+///
+/// Use [FilesystemImporter.noLoadPath] to _only_ load absolute `file:` URLs and
+/// URLs relative to the current file.
 ///
 /// {@category Importer}
 @sealed
 class FilesystemImporter extends Importer {
   /// The path relative to which this importer looks for files.
-  final String _loadPath;
+  ///
+  /// If this is `null`, this importer will _only_ load absolute `file:` URLs
+  /// and URLs relative to the current file.
+  final String? _loadPath;
+
+  /// Whether loading from files from this importer's [_loadPath] is deprecated.
+  final bool _loadPathDeprecated;
 
   /// Creates an importer that loads files relative to [loadPath].
-  FilesystemImporter(String loadPath) : _loadPath = p.absolute(loadPath);
+  FilesystemImporter(String loadPath)
+      : _loadPath = p.absolute(loadPath),
+        _loadPathDeprecated = false;
 
-  /// Creates an importer relative to the current working directory.
-  static final cwd = FilesystemImporter('.');
+  FilesystemImporter._deprecated(String loadPath)
+      : _loadPath = p.absolute(loadPath),
+        _loadPathDeprecated = true;
+
+  /// Creates an importer that _only_ loads absolute `file:` URLs and URLs
+  /// relative to the current file.
+  FilesystemImporter._noLoadPath()
+      : _loadPath = null,
+        _loadPathDeprecated = false;
+
+  /// A [FilesystemImporter] that loads files relative to the current working
+  /// directory.
+  ///
+  /// Historically, this was the best default for supporting `file:` URL loads
+  /// when the load path didn't matter. However, adding the current working
+  /// directory to the load path wasn't always desirable, so it's no longer
+  /// recommended. Instead, either use [FilesystemImporter.noLoadPath] if the
+  /// load path doesn't matter, or `FilesystemImporter('.')` to explicitly
+  /// preserve the existing behavior.
+  @Deprecated(
+      "Use FilesystemImporter.noLoadPath or FilesystemImporter('.') instead.")
+  static final cwd = FilesystemImporter._deprecated('.');
+
+  /// Creates an importer that _only_ loads absolute `file:` URLsand URLs
+  /// relative to the current file.
+  static final noLoadPath = FilesystemImporter._noLoadPath();
 
   Uri? canonicalize(Uri url) {
-    if (url.scheme != 'file' && url.scheme != '') return null;
-    return resolveImportPath(p.join(_loadPath, p.fromUri(url)))
-        .andThen((resolved) => p.toUri(io.canonicalize(resolved)));
+    String? resolved;
+    if (url.scheme == 'file') {
+      resolved = resolveImportPath(p.fromUri(url));
+    } else if (url.scheme != '') {
+      return null;
+    } else if (_loadPath case var loadPath?) {
+      resolved = resolveImportPath(p.join(loadPath, p.fromUri(url)));
+
+      if (resolved != null && _loadPathDeprecated) {
+        warnForDeprecation(
+            "Using the current working directory as an implicit load path is "
+            "deprecated. Either add it as an explicit load path or importer, or "
+            "load this stylesheet from a different URL.",
+            Deprecation.fsImporterCwd);
+      }
+    } else {
+      return null;
+    }
+
+    return resolved.andThen((resolved) => p.toUri(io.canonicalize(resolved)));
   }
 
   ImporterResult? load(Uri url) {
@@ -53,5 +109,5 @@ class FilesystemImporter extends Importer {
         basename == p.url.withoutExtension(canonicalBasename);
   }
 
-  String toString() => _loadPath;
+  String toString() => _loadPath ?? '<absolute file importer>';
 }

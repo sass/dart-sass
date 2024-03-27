@@ -3,7 +3,30 @@
 * Add support for nesting in plain CSS files. This is not processed by Sass at
   all; it's emitted exactly as-is in the CSS.
 
+* In certain circumstances, the current working directory was unintentionally
+  being made available as a load path. This is now deprecated. Anyone relying on
+  this should explicitly pass in `.` as a load path or `FilesystemImporter('.')`
+  as the current importer.
+
 * Add linux-riscv64 and windows-arm64 releases.
+
+### Command-Line Interface
+
+* Fix a bug where absolute `file:` URLs weren't loaded for files compiled via
+  the command line unless an unrelated load path was also passed.
+
+* Fix a bug where `--update` would always update files that were specified via
+  absolute path unless an unrelated load path was also passed.
+
+### Dart API
+
+* Add `FilesystemImporter.noLoadPath`, which is a `FilesystemImporter` that can
+  load absolute `file:` URLs and resolve URLs relative to the base file but
+  doesn't load relative URLs from a load path.
+
+* `FilesystemImporter.cwd` is now deprecated. Either use
+  `FilesystemImporter.noLoadPath` if you weren't intending to rely on the load
+  path, or `FilesystemImporter('.')` if you were.
 
 ## 1.72.0
 
