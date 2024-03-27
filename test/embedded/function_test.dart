@@ -912,7 +912,7 @@ void main() {
                     ..value = 1
                     ..numerators.addAll(["em", "px", "foo"])),
                 inspect: true),
-            "1em*px*foo");
+            "calc(1em * 1px * 1foo)");
       });
 
       test("with one denominator", () async {
@@ -923,7 +923,7 @@ void main() {
                     ..value = 1
                     ..denominators.add("em")),
                 inspect: true),
-            "1em^-1");
+            "calc(1 / 1em)");
       });
 
       test("with multiple denominators", () async {
@@ -934,7 +934,7 @@ void main() {
                     ..value = 1
                     ..denominators.addAll(["em", "px", "foo"])),
                 inspect: true),
-            "1(em*px*foo)^-1");
+            "calc(1 / 1em / 1px / 1foo)");
       });
 
       test("with numerators and denominators", () async {
@@ -946,7 +946,7 @@ void main() {
                     ..numerators.addAll(["em", "px"])
                     ..denominators.addAll(["s", "foo"])),
                 inspect: true),
-            "1em*px/s*foo");
+            "calc(1em * 1px / 1s / 1foo)");
       });
     });
 

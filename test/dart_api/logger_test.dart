@@ -227,10 +227,6 @@ void main() {
         mustBeCalled();
       }));
     });
-
-    test("throws an error outside a callback", () {
-      expect(() => warn("heck"), throwsStateError);
-    });
   });
 }
 

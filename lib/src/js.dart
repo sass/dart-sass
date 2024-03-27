@@ -5,6 +5,7 @@
 import 'js/exception.dart';
 import 'js/exports.dart';
 import 'js/compile.dart';
+import 'js/compiler.dart';
 import 'js/legacy.dart';
 import 'js/legacy/types.dart';
 import 'js/legacy/value.dart';
@@ -24,6 +25,11 @@ void main() {
   exports.compileAsync = allowInteropNamed('sass.compileAsync', compileAsync);
   exports.compileStringAsync =
       allowInteropNamed('sass.compileStringAsync', compileStringAsync);
+  exports.initCompiler = allowInteropNamed('sass.initCompiler', initCompiler);
+  exports.initAsyncCompiler =
+      allowInteropNamed('sass.initAsyncCompiler', initAsyncCompiler);
+  exports.Compiler = compilerClass;
+  exports.AsyncCompiler = asyncCompilerClass;
   exports.Value = valueClass;
   exports.SassBoolean = booleanClass;
   exports.SassArgumentList = argumentListClass;
@@ -45,6 +51,7 @@ void main() {
       silent: JSLogger(
           warn: allowInteropNamed('sass.Logger.silent.warn', (_, __) {}),
           debug: allowInteropNamed('sass.Logger.silent.debug', (_, __) {})));
+  exports.NodePackageImporter = nodePackageImporterClass;
 
   exports.info =
       "dart-sass\t${const String.fromEnvironment('version')}\t(Sass Compiler)\t"

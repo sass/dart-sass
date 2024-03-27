@@ -13,6 +13,7 @@ import 'package:sass/src/executable/options.dart';
 import 'package:sass/src/executable/repl.dart';
 import 'package:sass/src/executable/watch.dart';
 import 'package:sass/src/import_cache.dart';
+import 'package:sass/src/importer/filesystem.dart';
 import 'package:sass/src/io.dart';
 import 'package:sass/src/logger/deprecation_handling.dart';
 import 'package:sass/src/stylesheet_graph.dart';
@@ -45,6 +46,7 @@ Future<void> main(List<String> args) async {
     }
 
     var graph = StylesheetGraph(ImportCache(
+        importers: [...options.pkgImporters, FilesystemImporter.noLoadPath],
         loadPaths: options.loadPaths,
         // This logger is only used for handling fatal/future deprecations
         // during parsing, and is re-used across parses, so we don't want to

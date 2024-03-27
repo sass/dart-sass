@@ -1,0 +1,309 @@
+name: Test
+
+defaults:
+  run: {shell: bash}
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  format:
+    name: Code formatting
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dart-lang/setup-dart@v1
+    - run: dart format --fix .
+    - run: git diff --exit-code
+
+  static_analysis:
+    name: Static analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/util/initialize
+        with: {github-token: "${{ github.token }}"}
+
+      - name: Analyze Dart
+        run: dart analyze --fatal-warnings ./
+
+  dartdoc:
+    name: Dartdoc
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/util/initialize
+        with: {github-token: "${{ github.token }}"}
+
+      - name: dartdoc sass
+        run: dart run dartdoc --quiet --no-generate-docs
+          --errors ambiguous-doc-reference,broken-link,deprecated
+          --errors unknown-directive,unknown-macro,unresolved-doc-reference
+      - name: dartdoc sass_api
+        run: cd pkg/sass_api && dart run dartdoc --quiet --no-generate-docs
+          --errors ambiguous-doc-reference,broken-link,deprecated
+          --errors unknown-directive,unknown-macro,unresolved-doc-reference
+
+  sass_spec_language:
+    name: "Language Tests | Dart ${{ matrix.dart_channel }} | ${{ matrix.async_label }}"
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        dart_channel: [stable, dev]
+        async_label: [synchronous]
+        async_args: ['']
+        include:
+          - dart_channel: stable
+            async_label: asynchronous
+            async_args: '--cmd-args --async'
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/util/initialize
+        with:
+          dart-sdk: ${{ matrix.dart_channel }}
+          github-token: ${{ github.token }}
+      - uses: ./.github/util/sass-spec
+
+      - name: Run specs
+        run: npm run sass-spec -- --dart .. $extra_args
+        working-directory: sass-spec
+        env: {extra_args: "${{ matrix.async_args }}"}
+
+  sass_spec_js:
+    name: "JS API Tests | Pure JS | Dart ${{ matrix.dart_channel }} | Node ${{ matrix.node-version }} | ${{ matrix.os }}"
+    runs-on: "${{ matrix.os }}"
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        dart_channel: [stable]
+        node-version: ['lts/*']
+        include:
+          # Test older LTS versions
+          - os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-1
+          - os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-2
+          - os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-3
+          # Test LTS version with dart dev channel
+          - os: ubuntu-latest
+            dart_channel: dev
+            node-version: 'lts/*'
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/util/initialize
+        with:
+          dart-sdk: ${{ matrix.dart_channel }}
+          github-token: ${{ github.token }}
+          node-version: ${{ matrix.node-version }}
+      - uses: ./.github/util/sass-spec
+
+      - name: Build JS
+        run: dart run grinder pkg-npm-dev
+
+      - name: Check out Sass specification
+        uses: sass/clone-linked-repo@v1
+        with:
+          repo: sass/sass
+          path: language
+
+      - name: Run tests
+        run: npm run js-api-spec -- --sassSassRepo ../language --sassPackage ../build/npm
+        working-directory: sass-spec
+
+  sass_spec_js_embedded:
+    name: 'JS API Tests | Embedded | Node ${{ matrix.node-version }} | ${{ matrix.os }}'
+    runs-on: ${{ matrix.os }}
+    if: "github.event_name != 'pull_request' || !contains(github.event.pull_request.body, 'skip sass-embedded')"
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: ['lts/*']
+        include:
+          # Test older LTS versions
+          - os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-1
+          - os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-2
+          - os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-3
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/util/initialize
+        with:
+          github-token: ${{ github.token }}
+          node-version: ${{ matrix.node-version }}
+      - uses: ./.github/util/sass-spec
+
+      - name: Check out the embedded host
+        uses: sass/clone-linked-repo@v1
+        with: {repo: sass/embedded-host-node}
+
+      - name: Check out the language repo
+        uses: sass/clone-linked-repo@v1
+        with: {repo: sass/sass, path: build/language}
+
+      - name: Initialize embedded host
+        run: |
+          npm install
+          npm run init -- --compiler-path=.. --language-path=../build/language
+          npm run compile
+          mv {`pwd`/,dist/}lib/src/vendor/dart-sass
+        working-directory: embedded-host-node
+
+      - name: Version info
+        run: |
+          path=embedded-host-node/dist/lib/src/vendor/dart-sass/sass
+          if [[ -f "$path.cmd" ]]; then "./$path.cmd" --version
+          elif [[ -f "$path.bat" ]]; then "./$path.bat" --version
+          elif [[ -f "$path.exe" ]]; then "./$path.exe" --version
+          else "./$path" --version
+          fi
+
+      - name: Run tests
+        run: npm run js-api-spec -- --sassPackage ../embedded-host-node --sassSassRepo ../build/language
+        working-directory: sass-spec
+
+  sass_spec_js_browser:
+    name: "JS API Tests | Browser | Dart ${{ matrix.dart_channel }}"
+
+    strategy:
+      matrix:
+        dart_channel: [stable]
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: browser-actions/setup-chrome@v1
+      - uses: ./.github/util/initialize
+        with:
+          dart-sdk: ${{ matrix.dart_channel }}
+          github-token: ${{ github.token }}
+      - uses: ./.github/util/sass-spec
+
+      - name: Build JS
+        run: dart run grinder pkg-npm-dev
+
+      - name: Install built dependencies
+        run: npm install
+        working-directory: build/npm
+
+      - name: Check out Sass specification
+        uses: sass/clone-linked-repo@v1
+        with:
+          repo: sass/sass
+          path: language
+
+      - name: Run tests
+        run: npm run js-api-spec -- --sassSassRepo ../language --sassPackage ../build/npm --browser
+        working-directory: sass-spec
+        env:
+          CHROME_EXECUTABLE: chrome
+
+  dart_tests:
+    name: "Dart tests | Dart ${{ matrix.dart_channel }} | ${{ matrix.os }}"
+    runs-on: "${{ matrix.os }}"
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        dart_channel: [stable]
+        # TODO(nweiz): Re-enable this when
+        # https://github.com/dart-lang/sdk/issues/52121#issuecomment-1728534228
+        # is addressed.
+        # include: [{os: ubuntu-latest, dart_channel: dev}]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/util/initialize
+        with:
+          dart-sdk: ${{ matrix.dart_channel }}
+          github-token: ${{ github.token }}
+
+      - run: dart run grinder pkg-standalone-dev
+      - name: Run tests
+        run: dart run test -x node
+
+  # Unit tests that use Node.js, defined in test/.
+  node_tests:
+    name: "Node tests | Dart ${{ matrix.dart_channel }} | Node ${{ matrix.node-version }} | ${{ matrix.os }}"
+    runs-on: "${{ matrix.os }}"
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        dart_channel: [stable]
+        node-version: ['lts/*']
+        include:
+          # Test older LTS versions
+          - os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-1
+          - os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-2
+          - os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-3
+          # Test LTS version with dart dev channel
+          - os: ubuntu-latest
+            dart_channel: dev
+            node-version: 'lts/*'
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/util/initialize
+        with:
+          dart-sdk: ${{ matrix.dart_channel }}
+          github-token: ${{ github.token }}
+          node-version: ${{ matrix.node-version }}
+
+      - run: dart run grinder pkg-npm-dev
+      - name: Run tests
+        run: dart run test -t node -j 2
+
+  browser_tests:
+    name: "Browser Tests | Dart ${{ matrix.dart_channel }}"
+
+    strategy:
+      matrix:
+        dart_channel: [stable]
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: browser-actions/setup-chrome@v1
+    - uses: ./.github/util/initialize
+      with:
+        dart-sdk: ${{ matrix.dart_channel }}
+        github-token: ${{ github.token }}
+
+    - run: dart run grinder pkg-npm-dev
+    - name: Run tests
+      run: dart run test -p chrome -j 2
+      env:
+        CHROME_EXECUTABLE: chrome

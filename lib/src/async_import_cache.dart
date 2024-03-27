@@ -104,6 +104,12 @@ final class AsyncImportCache {
       : _importers = const [],
         _logger = logger ?? const Logger.stderr();
 
+  /// Creates an import cache without any globally-available importers, and only
+  /// the passed in importers.
+  AsyncImportCache.only(Iterable<AsyncImporter> importers, {Logger? logger})
+      : _importers = List.unmodifiable(importers),
+        _logger = logger ?? const Logger.stderr();
+
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.
   static List<AsyncImporter> _toImporters(Iterable<AsyncImporter>? importers,

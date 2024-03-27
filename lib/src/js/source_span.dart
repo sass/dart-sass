@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../util/lazy_file_span.dart';
 import '../util/multi_span.dart';
 import '../util/nullable.dart';
 import 'reflection.dart';
@@ -14,8 +15,9 @@ import 'utils.dart';
 void updateSourceSpanPrototype() {
   var span = SourceFile.fromString('').span(0);
   var multiSpan = MultiSpan(span, '', {});
+  var lazySpan = LazyFileSpan(() => span);
 
-  for (var item in [span, multiSpan]) {
+  for (var item in [span, multiSpan, lazySpan]) {
     getJSClass(item).defineGetters({
       'start': (FileSpan span) => span.start,
       'end': (FileSpan span) => span.end,

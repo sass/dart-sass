@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 5178e366228bde7854df12221393857bb3022628
+// Checksum: a9421a2975e79ad591ae32474cd076e1379d0e75
 //
 // ignore_for_file: unused_import
 
@@ -35,7 +35,8 @@ import 'visitor/serialize.dart';
 /// Like [compile] in `lib/sass.dart`, but provides more options to support
 /// the node-sass compatible API and the executable.
 ///
-/// At most one of `importCache` and `nodeImporter` may be provided at once.
+/// If both `importCache` and `nodeImporter` are provided, the importers in
+/// `importCache` will be evaluated before `nodeImporter`.
 CompileResult compile(String path,
     {Syntax? syntax,
     Logger? logger,
@@ -65,7 +66,7 @@ CompileResult compile(String path,
       (syntax == null || syntax == Syntax.forPath(path))) {
     importCache ??= ImportCache.none(logger: logger);
     stylesheet = importCache.importCanonical(
-        FilesystemImporter('.'), p.toUri(canonicalize(path)),
+        FilesystemImporter.cwd, p.toUri(canonicalize(path)),
         originalUrl: p.toUri(path))!;
   } else {
     stylesheet = Stylesheet.parse(
@@ -78,7 +79,7 @@ CompileResult compile(String path,
       logger,
       importCache,
       nodeImporter,
-      FilesystemImporter('.'),
+      FilesystemImporter.cwd,
       functions,
       style,
       useSpaces,
@@ -130,7 +131,7 @@ CompileResult compileString(String source,
       logger,
       importCache,
       nodeImporter,
-      importer ?? (isBrowser ? NoOpImporter() : FilesystemImporter('.')),
+      importer ?? (isBrowser ? NoOpImporter() : FilesystemImporter.cwd),
       functions,
       style,
       useSpaces,
