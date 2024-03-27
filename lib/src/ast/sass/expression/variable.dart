@@ -35,5 +35,5 @@ final class VariableExpression implements Expression, SassReference {
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitVariableExpression(this);
 
-  String toString() => namespace == null ? '\$$name' : '$namespace.\$$name';
+  String toString() => span.text;
 }

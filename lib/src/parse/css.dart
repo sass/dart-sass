@@ -7,7 +7,6 @@ import 'package:string_scanner/string_scanner.dart';
 
 import '../ast/sass.dart';
 import '../functions.dart';
-import '../logger.dart';
 import 'scss.dart';
 
 /// The set of all function names disallowed in plain CSS.
@@ -31,10 +30,11 @@ final _disallowedFunctionNames =
 class CssParser extends ScssParser {
   bool get plainCss => true;
 
-  CssParser(String contents, {Object? url, Logger? logger})
-      : super(contents, url: url, logger: logger);
+  CssParser(super.contents, {super.url, super.logger});
 
-  void silentComment() {
+  bool silentComment() {
+    if (inExpression) return false;
+
     var start = scanner.state;
     super.silentComment();
     error("Silent comments aren't allowed in plain CSS.",

@@ -1,0 +1,39 @@
+name: Build for windows
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: windows-latest
+          - arch: ia32
+            runner: windows-latest
+          - arch: arm64
+            runner: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/util/initialize
+        with: {github-token: "${{ github.token }}"}
+
+      - name: Build
+        run: dart run grinder pkg-standalone-windows-${{ matrix.arch }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-windows-${{ matrix.arch }}
+          path: build/*.zip
+          if-no-files-found: error
+          compression-level: 0

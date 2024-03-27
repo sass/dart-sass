@@ -6,7 +6,6 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:charcode/charcode.dart';
-import 'package:collection/collection.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:string_scanner/string_scanner.dart';
 
@@ -489,13 +488,8 @@ final class _SerializeVisitor
 
   void _writeCalculationValue(Object value) {
     switch (value) {
-      case SassNumber(value: double(isFinite: false), hasComplexUnits: true):
-        if (!_inspect) {
-          throw SassScriptException("$value isn't a valid CSS value.");
-        }
-
-        _writeNumber(value.value);
-        _buffer.write(value.unitString);
+      case SassNumber(hasComplexUnits: true) when !_inspect:
+        throw SassScriptException("$value isn't a valid CSS value.");
 
       case SassNumber(value: double(isFinite: false)):
         switch (value.value) {
@@ -507,12 +501,15 @@ final class _SerializeVisitor
             _buffer.write('NaN');
         }
 
-        if (value.numeratorUnits.firstOrNull case var unit?) {
-          _writeOptionalSpace();
-          _buffer.writeCharCode($asterisk);
-          _writeOptionalSpace();
-          _buffer.writeCharCode($1);
-          _buffer.write(unit);
+        _writeCalculationUnits(value.numeratorUnits, value.denominatorUnits);
+
+      case SassNumber(hasComplexUnits: true):
+        _writeNumber(value.value);
+        if (value.numeratorUnits case [var first, ...var rest]) {
+          _buffer.write(first);
+          _writeCalculationUnits(rest, value.denominatorUnits);
+        } else {
+          _writeCalculationUnits([], value.denominatorUnits);
         }
 
       case Value():
@@ -534,11 +531,33 @@ final class _SerializeVisitor
                 _parenthesizeCalculationRhs(operator, right.operator)) ||
             (operator == CalculationOperator.dividedBy &&
                 right is SassNumber &&
-                !right.value.isFinite &&
-                right.hasUnits);
+                (right.value.isFinite
+                    ? right.hasComplexUnits
+                    : right.hasUnits));
         if (parenthesizeRight) _buffer.writeCharCode($lparen);
         _writeCalculationValue(right);
         if (parenthesizeRight) _buffer.writeCharCode($rparen);
+    }
+  }
+
+  /// Writes the complex numerator and denominator units beyond the first
+  /// numerator unit for a number as they appear in a calculation.
+  void _writeCalculationUnits(
+      List<String> numeratorUnits, List<String> denominatorUnits) {
+    for (var unit in numeratorUnits) {
+      _writeOptionalSpace();
+      _buffer.writeCharCode($asterisk);
+      _writeOptionalSpace();
+      _buffer.writeCharCode($1);
+      _buffer.write(unit);
+    }
+
+    for (var unit in denominatorUnits) {
+      _writeOptionalSpace();
+      _buffer.writeCharCode($slash);
+      _writeOptionalSpace();
+      _buffer.writeCharCode($1);
+      _buffer.write(unit);
     }
   }
 
@@ -970,16 +989,15 @@ final class _SerializeVisitor
       return;
     }
 
-    _writeNumber(value.value);
-
-    if (!_inspect) {
-      if (value.hasComplexUnits) {
+    if (value.hasComplexUnits) {
+      if (!_inspect) {
         throw SassScriptException("$value isn't a valid CSS value.");
       }
 
-      if (value.numeratorUnits case [var first]) _buffer.write(first);
+      visitCalculation(SassCalculation.unsimplified('calc', [value]));
     } else {
-      _buffer.write(value.unitString);
+      _writeNumber(value.value);
+      if (value.numeratorUnits case [var first]) _buffer.write(first);
     }
   }
 
@@ -1267,7 +1285,8 @@ final class _SerializeVisitor
               $fs ||
               $gs ||
               $rs ||
-              $us:
+              $us ||
+              $del:
           _writeEscape(buffer, char, string, i);
 
         case $backslash:

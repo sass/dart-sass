@@ -1,4 +1,4 @@
-## 10.0.0
+## 11.0.0
 
 * **Breaking change:** Remove the `SassApiColor.hasCalculatedRgb` and
   `.hasCalculatedHsl` extension methods. These can now be determined by checking
@@ -48,6 +48,42 @@
 
 * Added `SassNumber.convertValueToUnit()` as a shorthand for
   `SassNumber.convertValue()` with a single numerator.
+
+## 10.0.0
+
+* Remove the `allowPlaceholders` argument from `SelectorList.parse()`. Instead,
+  it now has a more generic `plainCss` argument which tells it to parse the
+  selector in plain CSS mode.
+
+* Rename `SelectorList.resolveParentSelectors` to `SelectorList.nestWithin`.
+
+## 9.5.0
+
+* No user-visible changes.
+
+## 9.4.2
+
+* No user-visible changes.
+
+## 9.4.1
+
+* No user-visible changes.
+
+## 9.4.0
+
+* No user-visible changes.
+
+## 9.3.0
+
+* No user-visible changes.
+
+## 9.2.7
+
+* No user-visible changes.
+
+## 9.2.6
+
+* No user-visible changes.
 
 ## 9.2.5
 

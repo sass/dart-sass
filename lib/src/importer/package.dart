@@ -7,12 +7,6 @@ import 'package:package_config/package_config_types.dart';
 
 import '../importer.dart';
 
-/// A filesystem importer to use when resolving the results of `package:` URLs.
-///
-/// This allows us to avoid duplicating the logic for choosing an extension and
-/// looking for partials.
-final _filesystemImporter = FilesystemImporter('.');
-
 /// An importer that loads stylesheets from `package:` imports.
 ///
 /// {@category Importer}
@@ -29,7 +23,7 @@ class PackageImporter extends Importer {
   PackageImporter(PackageConfig packageConfig) : _packageConfig = packageConfig;
 
   Uri? canonicalize(Uri url) {
-    if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
+    if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);
     if (url.scheme != 'package') return null;
 
     var resolved = _packageConfig.resolve(url);
@@ -39,17 +33,18 @@ class PackageImporter extends Importer {
       throw "Unsupported URL $resolved.";
     }
 
-    return _filesystemImporter.canonicalize(resolved);
+    return FilesystemImporter.cwd.canonicalize(resolved);
   }
 
-  ImporterResult? load(Uri url) => _filesystemImporter.load(url);
+  ImporterResult? load(Uri url) => FilesystemImporter.cwd.load(url);
 
   DateTime modificationTime(Uri url) =>
-      _filesystemImporter.modificationTime(url);
+      FilesystemImporter.cwd.modificationTime(url);
 
   bool couldCanonicalize(Uri url, Uri canonicalUrl) =>
       (url.scheme == 'file' || url.scheme == 'package' || url.scheme == '') &&
-      _filesystemImporter.couldCanonicalize(Uri(path: url.path), canonicalUrl);
+      FilesystemImporter.cwd
+          .couldCanonicalize(Uri(path: url.path), canonicalUrl);
 
   String toString() => "package:...";
 }

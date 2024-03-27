@@ -2,7 +2,7 @@ name: Initialize
 description: Check out Dart Sass and build the embedded protocol buffer.
 inputs:
   github-token: {required: true}
-  node-version: {required: false, default: 18}
+  node-version: {required: false, default: 'lts/*'}
   dart-sdk: {required: false, default: stable}
   architecture: {required: false}
 runs:
@@ -13,7 +13,7 @@ runs:
         sdk: "${{ inputs.dart-sdk }}"
         architecture: "${{ inputs.architecture }}"
 
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
         node-version: "${{ inputs.node-version }}"
 
@@ -23,7 +23,7 @@ runs:
     - run: npm install
       shell: bash
 
-    - uses: bufbuild/buf-setup-action@v1.13.1
+    - uses: bufbuild/buf-setup-action@v1.30.0
       with: {github_token: "${{ inputs.github-token }}"}
 
     - name: Check out the language repo

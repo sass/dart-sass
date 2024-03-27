@@ -3,15 +3,8 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../importer.dart';
-import '../compilation_dispatcher.dart';
 import '../embedded_sass.pb.dart' hide SourceSpan;
 import 'base.dart';
-
-/// A filesystem importer to use for most implementation details of
-/// [FileImporter].
-///
-/// This allows us to avoid duplicating logic between the two importers.
-final _filesystemImporter = FilesystemImporter('.');
 
 /// An importer that asks the host to resolve imports in a simplified,
 /// file-system-centric way.
@@ -19,11 +12,10 @@ final class FileImporter extends ImporterBase {
   /// The host-provided ID of the importer to invoke.
   final int _importerId;
 
-  FileImporter(CompilationDispatcher dispatcher, this._importerId)
-      : super(dispatcher);
+  FileImporter(super.dispatcher, this._importerId);
 
   Uri? canonicalize(Uri url) {
-    if (url.scheme == 'file') return _filesystemImporter.canonicalize(url);
+    if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);
 
     var request = OutboundMessage_FileImportRequest()
       ..importerId = _importerId
@@ -41,7 +33,7 @@ final class FileImporter extends ImporterBase {
           throw 'The file importer must return a file: URL, was "$url"';
         }
 
-        return _filesystemImporter.canonicalize(url);
+        return FilesystemImporter.cwd.canonicalize(url);
 
       case InboundMessage_FileImportResponse_Result.error:
         throw response.error;
@@ -51,7 +43,7 @@ final class FileImporter extends ImporterBase {
     }
   }
 
-  ImporterResult? load(Uri url) => _filesystemImporter.load(url);
+  ImporterResult? load(Uri url) => FilesystemImporter.cwd.load(url);
 
   bool isNonCanonicalScheme(String scheme) => scheme != 'file';
 

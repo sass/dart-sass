@@ -338,9 +338,10 @@ final class _EvaluateVisitor
       Logger? logger,
       bool quietDeps = false,
       bool sourceMap = false})
-      : _importCache = nodeImporter == null
-            ? importCache ?? AsyncImportCache.none(logger: logger)
-            : null,
+      : _importCache = importCache ??
+            (nodeImporter == null
+                ? AsyncImportCache.none(logger: logger)
+                : null),
         _nodeImporter = nodeImporter,
         _logger = logger ?? const Logger.stderr(),
         _quietDeps = quietDeps,
@@ -546,7 +547,8 @@ final class _EvaluateVisitor
             namesInErrors: true);
         _assertConfigurationIsEmpty(configuration, nameInError: true);
       }, url: "sass:meta"),
-      BuiltInCallable.mixin("apply", r"$mixin, $args...", (arguments) async {
+      AsyncBuiltInCallable.mixin("apply", r"$mixin, $args...",
+          (arguments) async {
         var mixin = arguments[0];
         var args = arguments[1] as SassArgumentList;
 
@@ -1707,7 +1709,9 @@ final class _EvaluateVisitor
             return (stylesheet, importer: importer, isDependency: isDependency);
           }
         }
-      } else {
+      }
+
+      if (_nodeImporter != null) {
         if (await _importLikeNode(
                 url, baseUrl ?? _stylesheet.span.sourceUrl, forImport)
             case var result?) {
@@ -2009,16 +2013,32 @@ final class _EvaluateVisitor
     }
 
     var parsedSelector = SelectorList.parse(selectorText,
-            interpolationMap: selectorMap,
-            allowParent: !_stylesheet.plainCss,
-            allowPlaceholder: !_stylesheet.plainCss,
-            logger: _logger)
-        .resolveParentSelectors(_styleRuleIgnoringAtRoot?.originalSelector,
-            implicitParent: !_atRootExcludingStyleRule);
+        interpolationMap: selectorMap,
+        plainCss: _stylesheet.plainCss,
+        logger: _logger);
+
+    var nest = !(_styleRule?.fromPlainCss ?? false);
+    if (nest) {
+      if (_stylesheet.plainCss) {
+        for (var complex in parsedSelector.components) {
+          if (complex.leadingCombinators case [var first, ...]
+              when _stylesheet.plainCss) {
+            throw _exception(
+                "Top-level leading combinators aren't allowed in plain CSS.",
+                first.span);
+          }
+        }
+      }
+
+      parsedSelector = parsedSelector.nestWithin(
+          _styleRuleIgnoringAtRoot?.originalSelector,
+          implicitParent: !_atRootExcludingStyleRule,
+          preserveParentSelectors: _stylesheet.plainCss);
+    }
 
     var selector = _extensionStore.addSelector(parsedSelector, _mediaQueries);
     var rule = ModifiableCssStyleRule(selector, node.span,
-        originalSelector: parsedSelector);
+        originalSelector: parsedSelector, fromPlainCss: _stylesheet.plainCss);
     var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
     _atRootExcludingStyleRule = false;
     await _withParent(rule, () async {
@@ -2028,7 +2048,7 @@ final class _EvaluateVisitor
         }
       });
     },
-        through: (node) => node is CssStyleRule,
+        through: nest ? (node) => node is CssStyleRule : null,
         scopeWhen: node.hasDeclarations);
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 
@@ -2046,13 +2066,15 @@ final class _EvaluateVisitor
               complex.span.trimRight(),
               Deprecation.bogusCombinators);
         } else if (complex.leadingCombinators.isNotEmpty) {
-          _warn(
-              'The selector "${complex.toString().trim()}" is invalid CSS.\n'
-              'This will be an error in Dart Sass 2.0.0.\n'
-              '\n'
-              'More info: https://sass-lang.com/d/bogus-combinators',
-              complex.span.trimRight(),
-              Deprecation.bogusCombinators);
+          if (!_stylesheet.plainCss) {
+            _warn(
+                'The selector "${complex.toString().trim()}" is invalid CSS.\n'
+                'This will be an error in Dart Sass 2.0.0.\n'
+                '\n'
+                'More info: https://sass-lang.com/d/bogus-combinators',
+                complex.span.trimRight(),
+                Deprecation.bogusCombinators);
+          }
         } else {
           _warn(
               'The selector "${complex.toString().trim()}" is only valid for '
@@ -3384,12 +3406,15 @@ final class _EvaluateVisitor
     }
 
     var styleRule = _styleRule;
-    var originalSelector = node.selector.resolveParentSelectors(
-        styleRule?.originalSelector,
-        implicitParent: !_atRootExcludingStyleRule);
+    var nest = !(_styleRule?.fromPlainCss ?? false);
+    var originalSelector = nest
+        ? node.selector.nestWithin(styleRule?.originalSelector,
+            implicitParent: !_atRootExcludingStyleRule,
+            preserveParentSelectors: node.fromPlainCss)
+        : node.selector;
     var selector = _extensionStore.addSelector(originalSelector, _mediaQueries);
     var rule = ModifiableCssStyleRule(selector, node.span,
-        originalSelector: originalSelector);
+        originalSelector: originalSelector, fromPlainCss: node.fromPlainCss);
     var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
     _atRootExcludingStyleRule = false;
     await _withParent(rule, () async {
@@ -3398,7 +3423,7 @@ final class _EvaluateVisitor
           await child.accept(this);
         }
       });
-    }, through: (node) => node is CssStyleRule, scopeWhen: false);
+    }, through: nest ? (node) => node is CssStyleRule : null, scopeWhen: false);
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 
     if (_parent.children case [..., var lastChild] when styleRule == null) {

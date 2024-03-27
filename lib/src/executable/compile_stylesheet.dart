@@ -68,13 +68,13 @@ Future<(int, String, String?)?> compileStylesheet(ExecutableOptions options,
 Future<void> _compileStylesheetWithoutErrorHandling(ExecutableOptions options,
     StylesheetGraph graph, String? source, String? destination,
     {bool ifModified = false}) async {
-  var importer = FilesystemImporter('.');
+  var importer = FilesystemImporter.cwd;
   if (ifModified) {
     try {
       if (source != null &&
           destination != null &&
-          !graph.modifiedSince(
-              p.toUri(source), modificationTime(destination), importer)) {
+          !graph.modifiedSince(p.toUri(p.absolute(source)),
+              modificationTime(destination), importer)) {
         return;
       }
     } on FileSystemException catch (_) {
@@ -95,14 +95,16 @@ Future<void> _compileStylesheetWithoutErrorHandling(ExecutableOptions options,
   try {
     if (options.asynchronous) {
       var importCache = AsyncImportCache(
-          loadPaths: options.loadPaths, logger: options.logger);
+          importers: options.pkgImporters,
+          loadPaths: options.loadPaths,
+          logger: options.logger);
 
       result = source == null
           ? await compileStringAsync(await readStdin(),
               syntax: syntax,
               logger: options.logger,
               importCache: importCache,
-              importer: FilesystemImporter('.'),
+              importer: FilesystemImporter.cwd,
               style: options.style,
               quietDeps: options.quietDeps,
               verbose: options.verbose,
@@ -127,7 +129,7 @@ Future<void> _compileStylesheetWithoutErrorHandling(ExecutableOptions options,
               syntax: syntax,
               logger: options.logger,
               importCache: graph.importCache,
-              importer: FilesystemImporter('.'),
+              importer: FilesystemImporter.cwd,
               style: options.style,
               quietDeps: options.quietDeps,
               verbose: options.verbose,
