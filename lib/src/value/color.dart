@@ -508,9 +508,6 @@ class SassColor extends Value {
 
   /// Like [forSpaceInternal], but doesn't do _any_ pre-processing of any
   /// channels.
-  ///
-  /// @nodoc
-  @internal
   SassColor._forSpace(this._space, this.channel0OrNull, this.channel1OrNull,
       this.channel2OrNull, double? alpha, [this.format])
       : alphaOrNull =

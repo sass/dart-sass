@@ -93,13 +93,12 @@ class LinearChannel extends ColorChannel {
   ///
   /// @nodoc
   @internal
-  const LinearChannel(String name, this.min, this.max,
+  const LinearChannel(super.name, this.min, this.max,
       {this.requiresPercent = false,
       this.lowerClamped = false,
       this.upperClamped = false,
       bool? conventionallyPercent})
-      : super(name,
-            isPolarAngle: false,
+      : super(isPolarAngle: false,
             associatedUnit: (conventionallyPercent ?? (min == 0 && max == 100))
                 ? '%'
                 : null);

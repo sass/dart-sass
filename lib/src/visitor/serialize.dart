@@ -856,7 +856,6 @@ final class _SerializeVisitor
   ///
   /// This is only used in inspect mode, and so only supports the new color syntax.
   void _writeHwb(SassColor color) {
-    var opaque = fuzzyEquals(color.alpha, 1);
     _buffer.write("hwb(");
     var hwb = color.toSpace(ColorSpace.hwb);
     _writeNumber(hwb.channel('hue'));

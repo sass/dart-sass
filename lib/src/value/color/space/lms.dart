@@ -9,7 +9,6 @@ import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 
-import '../../../util/number.dart';
 import '../../color.dart';
 import '../conversions.dart';
 import 'utils.dart';
