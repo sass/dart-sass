@@ -19,26 +19,42 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-class XyzD50ColorSpace extends ColorSpace {
+final class XyzD50ColorSpace extends ColorSpace {
   bool get isBoundedInternal => false;
 
   const XyzD50ColorSpace() : super('xyz-d50', xyzChannels);
 
   SassColor convert(
-      ColorSpace dest, double x, double y, double z, double alpha) {
+      ColorSpace dest, double? x, double? y, double? z, double? alpha,
+      {bool missingLightness = false,
+      bool missingChroma = false,
+      bool missingHue = false,
+      bool missingA = false,
+      bool missingB = false}) {
     switch (dest) {
       case ColorSpace.lab || ColorSpace.lch:
         // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
         // and http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
-        var f0 = _convertComponentToLabF(x / d50[0]);
-        var f1 = _convertComponentToLabF(y / d50[1]);
-        var f2 = _convertComponentToLabF(z / d50[2]);
+        var f0 = _convertComponentToLabF((x ?? 0) / d50[0]);
+        var f1 = _convertComponentToLabF((y ?? 0) / d50[1]);
+        var f2 = _convertComponentToLabF((z ?? 0) / d50[2]);
+        var lightness = missingLightness ? null : (116 * f1) - 16;
+        var a = 500 * (f0 - f1);
+        var b = 200 * (f1 - f2);
 
-        return ColorSpace.lab.convert(
-            dest, (116 * f1) - 16, 500 * (f0 - f1), 200 * (f1 - f2), alpha);
+        return dest == ColorSpace.lab
+            ? SassColor.lab(
+                lightness, missingA ? null : a, missingB ? null : b, alpha)
+            : labToLch(ColorSpace.lch, lightness, a, b, alpha,
+                missingChroma: missingChroma, missingHue: missingHue);
 
       default:
-        return super.convert(dest, x, y, z, alpha);
+        return super.convertLinear(dest, x, y, z, alpha,
+            missingLightness: missingLightness,
+            missingChroma: missingChroma,
+            missingHue: missingHue,
+            missingA: missingA,
+            missingB: missingB);
     }
   }
 

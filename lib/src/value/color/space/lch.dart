@@ -9,6 +9,7 @@ import 'dart:math' as math;
 import 'package:meta/meta.dart';
 
 import '../../color.dart';
+import 'lab.dart';
 import 'utils.dart';
 
 /// The LCH color space.
@@ -17,21 +18,28 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-class LchColorSpace extends ColorSpace {
+final class LchColorSpace extends ColorSpace {
   bool get isBoundedInternal => false;
   bool get isPolarInternal => true;
 
   const LchColorSpace()
       : super('lch', const [
-          LinearChannel('lightness', 0, 100),
-          LinearChannel('chroma', 0, 150),
+          LinearChannel('lightness', 0, 100,
+              lowerClamped: true, upperClamped: true),
+          LinearChannel('chroma', 0, 150, lowerClamped: true),
           hueChannel
         ]);
 
-  SassColor convert(ColorSpace dest, double lightness, double chroma,
-      double hue, double alpha) {
-    var hueRadians = hue * math.pi / 180;
-    return ColorSpace.lab.convert(dest, lightness,
-        chroma * math.cos(hueRadians), chroma * math.sin(hueRadians), alpha);
+  SassColor convert(ColorSpace dest, double? lightness, double? chroma,
+      double? hue, double? alpha) {
+    var hueRadians = (hue ?? 0) * math.pi / 180;
+    return const LabColorSpace().convert(
+        dest,
+        lightness,
+        (chroma ?? 0) * math.cos(hueRadians),
+        (chroma ?? 0) * math.sin(hueRadians),
+        alpha,
+        missingChroma: chroma == null,
+        missingHue: hue == null);
   }
 }

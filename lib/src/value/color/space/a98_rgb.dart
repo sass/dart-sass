@@ -17,7 +17,7 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-class A98RgbColorSpace extends ColorSpace {
+final class A98RgbColorSpace extends ColorSpace {
   bool get isBoundedInternal => true;
 
   const A98RgbColorSpace() : super('a98-rgb', rgbChannels);
