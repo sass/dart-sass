@@ -72,7 +72,7 @@ class SassColor extends Value {
   @internal
   bool get isChannel0Powerless => switch (space) {
         ColorSpace.hsl => fuzzyEquals(channel1, 0),
-        ColorSpace.hwb => fuzzyEquals(channel1 + channel2, 100),
+        ColorSpace.hwb => fuzzyGreaterThanOrEquals(channel1 + channel2, 100),
         _ => false
       };
 
