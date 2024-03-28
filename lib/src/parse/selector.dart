@@ -6,8 +6,6 @@ import 'package:charcode/charcode.dart';
 
 import '../ast/css/value.dart';
 import '../ast/selector.dart';
-import '../interpolation_map.dart';
-import '../logger.dart';
 import '../util/character.dart';
 import '../utils.dart';
 import 'parser.dart';
@@ -33,19 +31,24 @@ class SelectorParser extends Parser {
   /// Whether this parser allows the parent selector `&`.
   final bool _allowParent;
 
-  /// Whether this parser allows placeholder selectors beginning with `%`.
-  final bool _allowPlaceholder;
+  /// Whether to parse the selector as plain CSS.
+  final bool _plainCss;
 
-  SelectorParser(String contents,
-      {Object? url,
-      Logger? logger,
-      InterpolationMap? interpolationMap,
+  /// Creates a parser that parses CSS selectors.
+  ///
+  /// If [allowParent] is `false`, this will throw a [SassFormatException] if
+  /// the selector includes the parent selector `&`.
+  ///
+  /// If [plainCss] is `true`, this will parse the selector as a plain CSS
+  /// selector rather than a Sass selector.
+  SelectorParser(super.contents,
+      {super.url,
+      super.logger,
+      super.interpolationMap,
       bool allowParent = true,
-      bool allowPlaceholder = true})
+      bool plainCss = false})
       : _allowParent = allowParent,
-        _allowPlaceholder = allowPlaceholder,
-        super(contents,
-            url: url, logger: logger, interpolationMap: interpolationMap);
+        _plainCss = plainCss;
 
   SelectorList parse() {
     return wrapSpanFormatException(() {
@@ -169,7 +172,9 @@ class SelectorParser extends Parser {
       }
     }
 
-    if (lastCompound != null) {
+    if (combinators.isNotEmpty && _plainCss) {
+      scanner.error("expected selector.");
+    } else if (lastCompound != null) {
       components.add(ComplexSelectorComponent(
           lastCompound, combinators, spanFrom(componentStart)));
     } else if (combinators.isNotEmpty) {
@@ -188,8 +193,8 @@ class SelectorParser extends Parser {
     var start = scanner.state;
     var components = <SimpleSelector>[_simpleSelector()];
 
-    while (isSimpleSelectorStart(scanner.peekChar())) {
-      components.add(_simpleSelector(allowParent: false));
+    while (_isSimpleSelectorStart(scanner.peekChar())) {
+      components.add(_simpleSelector(allowParent: _plainCss));
     }
 
     return CompoundSelector(components, spanFrom(start));
@@ -211,8 +216,8 @@ class SelectorParser extends Parser {
         return _idSelector();
       case $percent:
         var selector = _placeholderSelector();
-        if (!_allowPlaceholder) {
-          error("Placeholder selectors aren't allowed here.",
+        if (_plainCss) {
+          error("Placeholder selectors aren't allowed in plain CSS.",
               scanner.spanFrom(start));
         }
         return selector;
@@ -344,6 +349,11 @@ class SelectorParser extends Parser {
     var start = scanner.state;
     scanner.expectChar($ampersand);
     var suffix = lookingAtIdentifierBody() ? identifierBody() : null;
+    if (_plainCss && suffix != null) {
+      scanner.error("Parent selectors can't have suffixes in plain CSS.",
+          position: start.position, length: scanner.position - start.position);
+    }
+
     return ParentSelector(spanFrom(start), suffix: suffix);
   }
 
@@ -461,4 +471,12 @@ class SelectorParser extends Parser {
           spanFrom(start));
     }
   }
+
+  // Returns whether [character] can start a simple selector in the middle of a
+  // compound selector.
+  bool _isSimpleSelectorStart(int? character) => switch (character) {
+        $asterisk || $lbracket || $dot || $hash || $percent || $colon => true,
+        $ampersand => _plainCss,
+        _ => false
+      };
 }

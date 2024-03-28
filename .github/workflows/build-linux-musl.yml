@@ -1,0 +1,69 @@
+name: Build for linux-musl
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            platform: linux/amd64
+          - arch: ia32
+            platform: linux/386
+          - arch: arm64
+            platform: linux/arm64
+          # There is a bug in qemu's mremap causing pthread_getattr_np in musl to stuck in a loop on arm.
+          # Unless qemu fixes the bug or we get a real linux-arm runner, we cannot build aot-snapshot
+          # for arm on CI. So, we create a kernel snapshot for arm build in amd64 container instead.
+          # https://gitlab.com/qemu-project/qemu/-/issues/1729
+          - arch: arm
+            platform: linux/amd64 # linux/arm/v7
+          # There is no docker image for riscv64 dart-sdk, build kernel snapshot instead.
+          - arch: riscv64
+            platform: linux/amd64 # linux/riscv64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Compile Protobuf
+        run: |
+          docker run --rm -i \
+                     --volume "$PWD:$PWD" \
+                     --workdir "$PWD" \
+                     docker.io/library/dart <<'EOF'
+          set -e
+          curl -fsSL -H "Authorization: Bearer ${{ github.token }}" "https://github.com/bufbuild/buf/releases/latest/download/buf-$(uname -s)-$(uname -m).tar.gz" | tar -xzC /usr/local --strip-components 1
+          dart pub get
+          dart run grinder protobuf
+          EOF
+
+      - name: Build
+        run: |
+          docker run --rm -i \
+                     --platform ${{ matrix.arch == 'arm' && 'linux/amd64' || matrix.platform }} \
+                     --volume "$PWD:$PWD" \
+                     --workdir "$PWD" \
+                     ghcr.io/dart-musl/dart <<'EOF'
+          set -e
+          dart pub get
+          dart run grinder pkg-standalone-linux-${{ matrix.arch }}-musl
+          EOF
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-linux-musl-${{ matrix.arch }}
+          path: build/*.tar.gz
+          if-no-files-found: error
+          compression-level: 0

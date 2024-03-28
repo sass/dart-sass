@@ -26,7 +26,8 @@ import 'visitor/serialize.dart';
 /// Like [compileAsync] in `lib/sass.dart`, but provides more options to support
 /// the node-sass compatible API and the executable.
 ///
-/// At most one of `importCache` and `nodeImporter` may be provided at once.
+/// If both `importCache` and `nodeImporter` are provided, the importers in
+/// `importCache` will be evaluated before `nodeImporter`.
 Future<CompileResult> compileAsync(String path,
     {Syntax? syntax,
     Logger? logger,
@@ -56,7 +57,7 @@ Future<CompileResult> compileAsync(String path,
       (syntax == null || syntax == Syntax.forPath(path))) {
     importCache ??= AsyncImportCache.none(logger: logger);
     stylesheet = (await importCache.importCanonical(
-        FilesystemImporter('.'), p.toUri(canonicalize(path)),
+        FilesystemImporter.cwd, p.toUri(canonicalize(path)),
         originalUrl: p.toUri(path)))!;
   } else {
     stylesheet = Stylesheet.parse(
@@ -69,7 +70,7 @@ Future<CompileResult> compileAsync(String path,
       logger,
       importCache,
       nodeImporter,
-      FilesystemImporter('.'),
+      FilesystemImporter.cwd,
       functions,
       style,
       useSpaces,
@@ -121,7 +122,7 @@ Future<CompileResult> compileStringAsync(String source,
       logger,
       importCache,
       nodeImporter,
-      importer ?? (isBrowser ? NoOpImporter() : FilesystemImporter('.')),
+      importer ?? (isBrowser ? NoOpImporter() : FilesystemImporter.cwd),
       functions,
       style,
       useSpaces,

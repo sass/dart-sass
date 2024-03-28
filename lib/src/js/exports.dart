@@ -19,9 +19,14 @@ class Exports {
   external set compileStringAsync(Function function);
   external set compile(Function function);
   external set compileAsync(Function function);
+  external set initCompiler(Function function);
+  external set initAsyncCompiler(Function function);
+  external set Compiler(JSClass function);
+  external set AsyncCompiler(JSClass function);
   external set info(String info);
   external set Exception(JSClass function);
   external set Logger(LoggerNamespace namespace);
+  external set NodePackageImporter(JSClass function);
 
   // Value APIs
   external set Value(JSClass function);

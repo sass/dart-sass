@@ -39,7 +39,7 @@ Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
   var sourcesToDestinations = _sourcesToDestinations(options);
   for (var source in sourcesToDestinations.keys) {
     graph.addCanonical(
-        FilesystemImporter('.'), p.toUri(canonicalize(source)), p.toUri(source),
+        FilesystemImporter.cwd, p.toUri(canonicalize(source)), p.toUri(source),
         recanonicalize: false);
   }
   var success = await compileStylesheets(options, graph, sourcesToDestinations,
@@ -130,7 +130,7 @@ final class _Watcher {
         await compileStylesheets(_options, _graph, {path: destination},
             ifModified: true);
     var downstream = _graph.addCanonical(
-        FilesystemImporter('.'), _canonicalize(path), p.toUri(path));
+        FilesystemImporter.cwd, _canonicalize(path), p.toUri(path));
     return await _recompileDownstream(downstream) && success;
   }
 
@@ -144,7 +144,7 @@ final class _Watcher {
       if (_destinationFor(path) case var destination?) _delete(destination);
     }
 
-    var downstream = _graph.remove(FilesystemImporter('.'), url);
+    var downstream = _graph.remove(FilesystemImporter.cwd, url);
     return await _recompileDownstream(downstream);
   }
 

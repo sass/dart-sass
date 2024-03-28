@@ -5,7 +5,7 @@
 import 'dart:js_util';
 import 'dart:typed_data';
 
-import 'package:node_interop/js.dart';
+import 'package:node_interop/node.dart' hide module;
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 
@@ -14,6 +14,7 @@ import '../utils.dart';
 import '../value.dart';
 import 'array.dart';
 import 'function.dart';
+import 'module.dart';
 import 'reflection.dart';
 import 'url.dart';
 
@@ -238,3 +239,23 @@ Syntax parseSyntax(String? syntax) => switch (syntax) {
       'css' => Syntax.css,
       _ => jsThrow(JsError('Unknown syntax "$syntax".'))
     };
+
+/// The path to the Node.js entrypoint, if one can be located.
+String? get entrypointFilename {
+  if (_requireMain?.filename case var filename?) {
+    return filename;
+  } else if (process.argv case [_, String path, ...]) {
+    return module.createRequire(path).resolve(path);
+  } else {
+    return null;
+  }
+}
+
+@JS("require.main")
+external _RequireMain? get _requireMain;
+
+@JS()
+@anonymous
+class _RequireMain {
+  external String? get filename;
+}

@@ -1,0 +1,75 @@
+name: Build for android
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            lib: lib64
+            platform: linux/amd64
+          - arch: ia32
+            lib: lib
+            platform: linux/amd64
+          - arch: arm64
+            lib: lib64
+            platform: linux/arm64
+          - arch: arm
+            lib: lib
+            platform: linux/arm64
+          # There is no docker image for riscv64 dart-sdk, build kernel snapshot instead.
+          - arch: riscv64
+            lib: lib64
+            platform: linux/amd64 # linux/riscv64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          image: tonistiigi/binfmt:master # need qemu >= 7.0.0
+
+      - name: Compile Protobuf
+        run: |
+          docker run --rm -i \
+                     --volume "$PWD:$PWD" \
+                     --workdir "$PWD" \
+                     docker.io/library/dart <<'EOF'
+          set -e
+          curl -fsSL -H "Authorization: Bearer ${{ github.token }}" "https://github.com/bufbuild/buf/releases/latest/download/buf-$(uname -s)-$(uname -m).tar.gz" | tar -xzC /usr/local --strip-components 1
+          dart pub get
+          dart run grinder protobuf
+          EOF
+
+      - name: Build
+        run: |
+          docker run --rm -i \
+                     --platform ${{ matrix.platform }} \
+                     --privileged \
+                     --volume "$PWD:$PWD" \
+                     --workdir "$PWD" \
+                     ghcr.io/dart-android/dart <<'EOF'
+          set -e
+          export DART_SDK=/system/${{ matrix.lib }}/dart
+          export PATH=$DART_SDK/bin:$PATH
+          dart pub get
+          dart run grinder pkg-standalone-android-${{ matrix.arch }}
+          EOF
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-android-${{ matrix.arch }}
+          path: build/*.tar.gz
+          if-no-files-found: error
+          compression-level: 0

@@ -96,7 +96,7 @@ void main() {
     Version.parse(response.protocolVersion); // shouldn't throw
     Version.parse(response.compilerVersion); // shouldn't throw
     Version.parse(response.implementationVersion); // shouldn't throw
-    expect(response.implementationName, equals("Dart Sass"));
+    expect(response.implementationName, equals("dart-sass"));
     await process.close();
   });
 
