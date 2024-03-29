@@ -98,7 +98,8 @@ class LinearChannel extends ColorChannel {
       this.lowerClamped = false,
       this.upperClamped = false,
       bool? conventionallyPercent})
-      : super(isPolarAngle: false,
+      : super(
+            isPolarAngle: false,
             associatedUnit: (conventionallyPercent ?? (min == 0 && max == 100))
                 ? '%'
                 : null);
