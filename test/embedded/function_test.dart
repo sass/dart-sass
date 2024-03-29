@@ -968,17 +968,17 @@ void main() {
 
           test("with red above 255", () async {
             expect(await _deprotofy(_rgb(256, 0, 0, 1.0)),
-                equals('rgb(256, 0, 0)'));
+                equals('hsl(0, 100.7874015748%, 50.1960784314%)'));
           });
 
           test("with green above 255", () async {
             expect(await _deprotofy(_rgb(0, 256, 0, 1.0)),
-                equals('rgb(0, 256, 0)'));
+                equals('hsl(120, 100.7874015748%, 50.1960784314%)'));
           });
 
           test("with blue above 255", () async {
             expect(await _deprotofy(_rgb(0, 0, 256, 1.0)),
-                equals('rgb(0, 0, 256)'));
+                equals('hsl(240, 100.7874015748%, 50.1960784314%)'));
           });
         });
 
