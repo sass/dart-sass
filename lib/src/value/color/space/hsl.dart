@@ -24,8 +24,7 @@ final class HslColorSpace extends ColorSpace {
           hueChannel,
           LinearChannel('saturation', 0, 100,
               requiresPercent: true, lowerClamped: true),
-          LinearChannel('lightness', 0, 100,
-              requiresPercent: true, lowerClamped: true, upperClamped: true)
+          LinearChannel('lightness', 0, 100, requiresPercent: true)
         ]);
 
   SassColor convert(ColorSpace dest, double? hue, double? saturation,
