@@ -552,7 +552,7 @@ abstract class StylesheetParser extends Parser {
   /// Tries parsing nested children of a declaration whose [name] has already
   /// been parsed, and returns `null` if it doesn't have any.
   ///
-  /// If [value] is passed, it's used as the value of the peroperty without
+  /// If [value] is passed, it's used as the value of the property without
   /// nesting.
   Declaration? _tryDeclarationChildren(
       Interpolation name, LineScannerState start,
