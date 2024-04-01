@@ -47,12 +47,6 @@ final JSClass versionClass = () {
     return Version(major, minor, patch);
   });
 
-  jsClass.defineGetters({
-    'major': (Version self) => self.major,
-    'minor': (Version self) => self.minor,
-    'patch': (Version self) => self.patch,
-  });
-
   jsClass.defineStaticMethod(
       'parse', (String version) => Version.parse(version));
 

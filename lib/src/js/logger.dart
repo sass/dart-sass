@@ -5,6 +5,8 @@
 import 'package:js/js.dart';
 import 'package:source_span/source_span.dart';
 
+import 'deprecations.dart';
+
 @JS()
 @anonymous
 class JSLogger {
@@ -20,11 +22,15 @@ class JSLogger {
 @anonymous
 class WarnOptions {
   external bool get deprecation;
+  external Deprecation? get deprecationType;
   external SourceSpan? get span;
   external String? get stack;
 
   external factory WarnOptions(
-      {required bool deprecation, SourceSpan? span, String? stack});
+      {required bool deprecation,
+      Deprecation? deprecationType,
+      SourceSpan? span,
+      String? stack});
 }
 
 @JS()

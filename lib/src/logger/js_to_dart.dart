@@ -7,11 +7,13 @@ import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as glyph;
 
+import '../deprecation.dart';
 import '../logger.dart';
+import '../js/deprecations.dart' show deprecations;
 import '../js/logger.dart';
 
 /// A wrapper around a [JSLogger] that exposes it as a Dart [Logger].
-final class JSToDartLogger implements Logger {
+final class JSToDartLogger implements DeprecationLogger {
   /// The wrapped logger object.
   final JSLogger? _node;
 
@@ -28,14 +30,18 @@ final class JSToDartLogger implements Logger {
       : _ascii = ascii ?? glyph.ascii;
 
   void warn(String message,
-      {FileSpan? span, Trace? trace, bool deprecation = false}) {
+      {FileSpan? span,
+      Trace? trace,
+      bool deprecation = false,
+      Deprecation? deprecationType}) {
     if (_node?.warn case var warn?) {
       warn(
           message,
           WarnOptions(
               span: span ?? (undefined as SourceSpan?),
               stack: trace.toString(),
-              deprecation: deprecation));
+              deprecation: deprecation,
+              deprecationType: deprecations[deprecationType?.id]));
     } else {
       _withAscii(() {
         _fallback.warn(message,

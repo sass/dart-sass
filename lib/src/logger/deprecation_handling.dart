@@ -16,7 +16,7 @@ const _maxRepetitions = 5;
 
 /// A logger that wraps an inner logger to have special handling for
 /// deprecation warnings.
-final class DeprecationHandlingLogger implements Logger {
+final class DeprecationHandlingLogger implements DeprecationLogger {
   /// A map of how many times each deprecation has been emitted by this logger.
   final _warningCounts = <Deprecation, int>{};
 
@@ -81,21 +81,32 @@ final class DeprecationHandlingLogger implements Logger {
   }
 
   void warn(String message,
-      {FileSpan? span, Trace? trace, bool deprecation = false}) {
-    _inner.warn(message, span: span, trace: trace, deprecation: deprecation);
+      {FileSpan? span,
+      Trace? trace,
+      bool deprecation = false,
+      Deprecation? deprecationType}) {
+    if (deprecation && deprecationType != null) {
+      warnForDeprecation(deprecationType, message, span: span, trace: trace);
+    } else {
+      _inner.warn(message, span: span, trace: trace);
+    }
   }
 
   /// Processes a deprecation warning.
   ///
   /// If [deprecation] is in [fatalDeprecations], this shows an error.
   ///
-  /// If it's a future deprecation that hasn't been opted into or its a
+  /// If it's a future deprecation that hasn't been opted into or it's a
   /// deprecation that's already been warned for [_maxReptitions] times and
   /// [limitRepetitions] is true, the warning is dropped.
   ///
   /// Otherwise, this is passed on to [warn].
   void warnForDeprecation(Deprecation deprecation, String message,
       {FileSpan? span, Trace? trace}) {
+    if (deprecation.isFuture && !futureDeprecations.contains(deprecation)) {
+      return;
+    }
+
     if (fatalDeprecations.contains(deprecation)) {
       message += "\n\nThis is only an error because you've set the "
           '$deprecation deprecation to be fatal.\n'
@@ -106,11 +117,6 @@ final class DeprecationHandlingLogger implements Logger {
         _ => SassScriptException(message)
       };
     }
-
-    if (deprecation.isFuture && !futureDeprecations.contains(deprecation)) {
-      return;
-    }
-
     if (silenceDeprecations.contains(deprecation)) return;
 
     if (limitRepetition) {
@@ -119,7 +125,7 @@ final class DeprecationHandlingLogger implements Logger {
       if (count > _maxRepetitions) return;
     }
 
-    warn(message, span: span, trace: trace, deprecation: true);
+    _inner.warnForDeprecation(deprecation, message, span: span, trace: trace);
   }
 
   void debug(String message, SourceSpan span) => _inner.debug(message, span);

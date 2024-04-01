@@ -7,7 +7,6 @@ import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import 'deprecation.dart';
-import 'logger/deprecation_handling.dart';
 import 'logger/stderr.dart';
 
 /// An interface for loggers that print messages produced by Sass stylesheets.
@@ -37,6 +36,27 @@ abstract class Logger {
   void debug(String message, SourceSpan span);
 }
 
+/// A logger interface that also handles deprecation types.
+///
+/// This is only used internally by [DeprecationHandlingLogger] and
+/// [JSToDartLogger]. In Dart Sass 2.0, we can get rid of this and just add
+/// it as a breaking change to [Logger].
+@internal
+abstract class DeprecationLogger implements Logger {
+  /// Emits a warning with the given [message].
+  ///
+  /// If [span] is passed, it's the location in the Sass source that generated
+  /// the warning. If [trace] is passed, it's the Sass stack trace when the
+  /// warning was issued. If [deprecation] is `true`, it indicates that this is
+  /// a deprecation warning with type [deprecationType]. Implementations should
+  /// surface all this information to the end user.
+  void warn(String message,
+      {FileSpan? span,
+      Trace? trace,
+      bool deprecation = false,
+      Deprecation? deprecationType});
+}
+
 /// An extension to add a `warnForDeprecation` method to loggers without
 /// making a breaking API change.
 @internal
@@ -44,8 +64,12 @@ extension WarnForDeprecation on Logger {
   /// Emits a deprecation warning for [deprecation] with the given [message].
   void warnForDeprecation(Deprecation deprecation, String message,
       {FileSpan? span, Trace? trace}) {
-    if (this case DeprecationHandlingLogger self) {
-      self.warnForDeprecation(deprecation, message, span: span, trace: trace);
+    if (this case DeprecationLogger self) {
+      self.warn(message,
+          span: span,
+          trace: trace,
+          deprecation: true,
+          deprecationType: deprecation);
     } else if (!deprecation.isFuture) {
       warn(message, span: span, trace: trace, deprecation: true);
     }

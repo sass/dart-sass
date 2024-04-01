@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
+import '../deprecation.dart';
 import '../logger.dart';
 import '../util/nullable.dart';
 import '../utils.dart';
@@ -14,7 +15,7 @@ import 'embedded_sass.pb.dart' hide SourceSpan;
 import 'utils.dart';
 
 /// A Sass logger that sends log messages as `LogEvent`s.
-final class EmbeddedLogger implements Logger {
+final class EmbeddedLogger implements DeprecationLogger {
   /// The [CompilationDispatcher] to which to send events.
   final CompilationDispatcher _dispatcher;
 
@@ -40,7 +41,10 @@ final class EmbeddedLogger implements Logger {
   }
 
   void warn(String message,
-      {FileSpan? span, Trace? trace, bool deprecation = false}) {
+      {FileSpan? span,
+      Trace? trace,
+      bool deprecation = false,
+      Deprecation? deprecationType}) {
     var formatted = withGlyphs(() {
       var buffer = StringBuffer();
       if (_color) {
@@ -71,6 +75,7 @@ final class EmbeddedLogger implements Logger {
       ..formatted = formatted;
     if (span != null) event.span = protofySpan(span);
     if (trace != null) event.stackTrace = trace.toString();
+    if (deprecationType != null) event.deprecationType = deprecationType.id;
     _dispatcher.sendLog(event);
   }
 }
