@@ -86,7 +86,7 @@ final class DeprecationHandlingLogger implements DeprecationLogger {
       bool deprecation = false,
       Deprecation? deprecationType}) {
     if (deprecation && deprecationType != null) {
-      warnForDeprecation(deprecationType, message, span: span, trace: trace);
+      _handleDeprecation(deprecationType, message, span: span, trace: trace);
     } else {
       _inner.warn(message, span: span, trace: trace);
     }
@@ -101,7 +101,7 @@ final class DeprecationHandlingLogger implements DeprecationLogger {
   /// [limitRepetitions] is true, the warning is dropped.
   ///
   /// Otherwise, this is passed on to [warn].
-  void warnForDeprecation(Deprecation deprecation, String message,
+  void _handleDeprecation(Deprecation deprecation, String message,
       {FileSpan? span, Trace? trace}) {
     if (deprecation.isFuture && !futureDeprecations.contains(deprecation)) {
       return;
@@ -125,7 +125,15 @@ final class DeprecationHandlingLogger implements DeprecationLogger {
       if (count > _maxRepetitions) return;
     }
 
-    _inner.warnForDeprecation(deprecation, message, span: span, trace: trace);
+    if (_inner case DeprecationLogger inner) {
+      inner.warn(message,
+          span: span,
+          trace: trace,
+          deprecation: true,
+          deprecationType: deprecation);
+    } else {
+      _inner.warn(message, span: span, trace: trace, deprecation: true);
+    }
   }
 
   void debug(String message, SourceSpan span) => _inner.debug(message, span);

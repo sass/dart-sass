@@ -16,18 +16,23 @@ const defaultCompilationId = 4321;
 
 /// Returns a (compilation ID, [InboundMessage]) pair that compiles the given
 /// plain CSS string.
-InboundMessage compileString(String css,
-    {int? id,
-    bool? alertColor,
-    bool? alertAscii,
-    Syntax? syntax,
-    OutputStyle? style,
-    String? url,
-    bool? sourceMap,
-    bool? sourceMapIncludeSources,
-    Iterable<InboundMessage_CompileRequest_Importer>? importers,
-    InboundMessage_CompileRequest_Importer? importer,
-    Iterable<String>? functions}) {
+InboundMessage compileString(
+  String css, {
+  int? id,
+  bool? alertColor,
+  bool? alertAscii,
+  Syntax? syntax,
+  OutputStyle? style,
+  String? url,
+  bool? sourceMap,
+  bool? sourceMapIncludeSources,
+  Iterable<InboundMessage_CompileRequest_Importer>? importers,
+  InboundMessage_CompileRequest_Importer? importer,
+  Iterable<String>? functions,
+  Iterable<String>? fatalDeprecations,
+  Iterable<String>? futureDeprecations,
+  Iterable<String>? silenceDeprecations,
+}) {
   var input = InboundMessage_CompileRequest_StringInput()..source = css;
   if (syntax != null) input.syntax = syntax;
   if (url != null) input.url = url;
@@ -43,7 +48,15 @@ InboundMessage compileString(String css,
   if (functions != null) request.globalFunctions.addAll(functions);
   if (alertColor != null) request.alertColor = alertColor;
   if (alertAscii != null) request.alertAscii = alertAscii;
-
+  if (fatalDeprecations != null) {
+    request.fatalDeprecation.addAll(fatalDeprecations);
+  }
+  if (futureDeprecations != null) {
+    request.futureDeprecation.addAll(futureDeprecations);
+  }
+  if (silenceDeprecations != null) {
+    request.silenceDeprecation.addAll(silenceDeprecations);
+  }
   return InboundMessage()..compileRequest = request;
 }
 

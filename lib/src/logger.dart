@@ -7,6 +7,7 @@ import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import 'deprecation.dart';
+import 'logger/deprecation_handling.dart';
 import 'logger/stderr.dart';
 
 /// An interface for loggers that print messages produced by Sass stylesheets.
@@ -64,13 +65,14 @@ extension WarnForDeprecation on Logger {
   /// Emits a deprecation warning for [deprecation] with the given [message].
   void warnForDeprecation(Deprecation deprecation, String message,
       {FileSpan? span, Trace? trace}) {
+    if (deprecation.isFuture && this is! DeprecationHandlingLogger) return;
     if (this case DeprecationLogger self) {
       self.warn(message,
           span: span,
           trace: trace,
           deprecation: true,
           deprecationType: deprecation);
-    } else if (!deprecation.isFuture) {
+    } else {
       warn(message, span: span, trace: trace, deprecation: true);
     }
   }
