@@ -717,7 +717,7 @@ SassColor _updateComponents(List<Value> arguments,
           : _colorInSpace(originalColor, spaceKeyword ?? sassNull);
 
   var oldChannels = color.channels;
-  var channelArgs = List<SassNumber?>.filled(oldChannels.length, null);
+  var channelArgs = List<Value?>.filled(oldChannels.length, null);
   var channelInfo = color.space.channels;
   for (var (name, value) in keywords.pairs) {
     var channelIndex = channelInfo.indexWhere((info) => name == info.name);
@@ -727,14 +727,21 @@ SassColor _updateComponents(List<Value> arguments,
           name);
     }
 
-    channelArgs[channelIndex] = value.assertNumber(name);
+    channelArgs[channelIndex] = value;
   }
 
-  var result = change
-      ? _changeColor(color, channelArgs, alphaArg)
-      : scale
-          ? _scaleColor(color, channelArgs, alphaArg)
-          : _adjustColor(color, channelArgs, alphaArg);
+  SassColor result;
+  if (change) {
+    result = _changeColor(color, channelArgs, alphaArg);
+  } else {
+    var channelNumbers = [
+      for (var i = 0; i < channelInfo.length; i++)
+        channelArgs[i]?.assertNumber(channelInfo[i].name)
+    ];
+    result = scale
+        ? _scaleColor(color, channelNumbers, alphaArg)
+        : _adjustColor(color, channelNumbers, alphaArg);
+  }
 
   return result.toSpace(originalColor.space);
 }
@@ -742,36 +749,53 @@ SassColor _updateComponents(List<Value> arguments,
 /// Returns a copy of [color] with its channel values replaced by those in
 /// [channelArgs] and [alphaArg], if specified.
 SassColor _changeColor(
-    SassColor color, List<SassNumber?> channelArgs, SassNumber? alphaArg) {
-  var latterUnits =
-      color.space == ColorSpace.hsl || color.space == ColorSpace.hwb
-          ? '%'
-          : null;
-  return _colorFromChannels(
-      color.space,
-      channelArgs[0] ?? SassNumber(color.channel0),
-      channelArgs[1] ?? SassNumber(color.channel1, latterUnits),
-      channelArgs[2] ?? SassNumber(color.channel2, latterUnits),
-      alphaArg.andThen((alphaArg) {
-            if (!alphaArg.hasUnits) {
-              return alphaArg.value;
-            } else if (alphaArg.hasUnit('%')) {
-              return alphaArg.value / 100;
-            } else {
-              warnForDeprecation(
-                  "\$alpha: Passing a unit other than % ($alphaArg) is "
-                  "deprecated.\n"
-                  "\n"
-                  "To preserve current behavior: "
-                  "${alphaArg.unitSuggestion('alpha')}\n"
-                  "\n"
-                  "See https://sass-lang.com/d/function-units",
-                  Deprecation.functionUnits);
-              return alphaArg.value;
-            }
-          }) ??
-          color.alpha,
-      clamp: false);
+        SassColor color, List<Value?> channelArgs, SassNumber? alphaArg) =>
+    _colorFromChannels(
+        color.space,
+        _channelForChange(channelArgs[0], color, 0),
+        _channelForChange(channelArgs[1], color, 1),
+        _channelForChange(channelArgs[2], color, 2),
+        alphaArg.andThen((alphaArg) {
+              if (!alphaArg.hasUnits) {
+                return alphaArg.value;
+              } else if (alphaArg.hasUnit('%')) {
+                return alphaArg.value / 100;
+              } else {
+                warnForDeprecation(
+                    "\$alpha: Passing a unit other than % ($alphaArg) is "
+                    "deprecated.\n"
+                    "\n"
+                    "To preserve current behavior: "
+                    "${alphaArg.unitSuggestion('alpha')}\n"
+                    "\n"
+                    "See https://sass-lang.com/d/function-units",
+                    Deprecation.functionUnits);
+                return alphaArg.value;
+              }
+            }) ??
+            color.alpha,
+        clamp: false);
+
+/// Returns the value for a single channel in `color.change()`.
+///
+/// The [channelArg] is the argument passed in by the user, if one exists. If no
+/// argument is passed, the channel at [index] in [color] is used instead.
+SassNumber? _channelForChange(Value? channelArg, SassColor color, int channel) {
+  if (channelArg == null) {
+    return switch (color.channelsOrNull[channel]) {
+      var value? => SassNumber(
+          value,
+          (color.space == ColorSpace.hsl || color.space == ColorSpace.hwb) &&
+                  channel > 0
+              ? '%'
+              : null),
+      _ => null
+    };
+  }
+  if (_isNone(channelArg)) return null;
+  if (channelArg is SassNumber) return channelArg;
+  throw SassScriptException('$channelArg is not a number or unquoted "none".',
+      color.space.channels[channel].name);
 }
 
 /// Returns a copy of [color] with its channel values scaled by the values in
