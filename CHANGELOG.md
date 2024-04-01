@@ -1,3 +1,22 @@
+## 1.74.0
+
+### JS API
+
+* The deprecations API is now available in the JS API! The `compile` methods
+  support the same `fatalDeprecations` and `futureDeprecations` options that
+  were already available in the Dart API and the CLI, as well as a new
+  `silenceDeprecations` option that allows you to silence deprecation warnings
+  of a given type.
+
+### Command-Line Interface
+
+* Add a new `--silence-deprecation` flag to match the new JS API.
+
+### Dart API
+
+* The `compile` methods now take in a `silenceDeprecations` parameter to match
+  the JS API.
+
 ## 1.73.0
 
 * Add support for nesting in plain CSS files. This is not processed by Sass at
