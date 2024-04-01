@@ -73,8 +73,8 @@ Future<void> _compileStylesheetWithoutErrorHandling(ExecutableOptions options,
     try {
       if (source != null &&
           destination != null &&
-          !graph.modifiedSince(
-              p.toUri(source), modificationTime(destination), importer)) {
+          !graph.modifiedSince(p.toUri(p.absolute(source)),
+              modificationTime(destination), importer)) {
         return;
       }
     } on FileSystemException catch (_) {

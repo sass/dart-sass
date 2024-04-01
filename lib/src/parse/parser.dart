@@ -114,8 +114,7 @@ class Parser {
 
     switch (scanner.peekChar(1)) {
       case $slash:
-        silentComment();
-        return true;
+        return silentComment();
       case $asterisk:
         loudComment();
         return true;
@@ -135,12 +134,15 @@ class Parser {
   }
 
   /// Consumes and ignores a silent (Sass-style) comment.
+  ///
+  /// Returns whether the comment was consumed.
   @protected
-  void silentComment() {
+  bool silentComment() {
     scanner.expect("//");
     while (!scanner.isDone && !scanner.peekChar().isNewline) {
       scanner.readChar();
     }
+    return true;
   }
 
   /// Consumes and ignores a loud (CSS-style) comment.

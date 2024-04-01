@@ -52,7 +52,7 @@ final _nest = _function("nest", r"$selectors...", (arguments) {
         first = false;
         return result;
       })
-      .reduce((parent, child) => child.resolveParentSelectors(parent))
+      .reduce((parent, child) => child.nestWithin(parent))
       .asSassList;
 });
 
@@ -83,7 +83,7 @@ final _append = _function("append", r"$selectors...", (arguments) {
         ...rest
       ], span);
     }), span)
-        .resolveParentSelectors(parent);
+        .nestWithin(parent);
   }).asSassList;
 });
 

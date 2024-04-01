@@ -92,16 +92,6 @@ int combineSurrogates(int highSurrogate, int lowSurrogate) =>
     // high/low surrogates.
     0x10000 + ((highSurrogate & 0x3FF) << 10) + (lowSurrogate & 0x3FF);
 
-// Returns whether [character] can start a simple selector other than a type
-// selector.
-bool isSimpleSelectorStart(int? character) =>
-    character == $asterisk ||
-    character == $lbracket ||
-    character == $dot ||
-    character == $hash ||
-    character == $percent ||
-    character == $colon;
-
 /// Returns whether [identifier] is module-private.
 ///
 /// Assumes [identifier] is a valid Sass identifier.

@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
@@ -142,6 +143,18 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await d.file("out.css", "x {y: z}").create();
 
       var sass = await update(["test.scss:out.css"]);
+      expect(sass.stdout, emitsDone);
+      await sass.shouldExit(0);
+
+      await d.file("out.css", "x {y: z}").validate();
+    });
+
+    // Regression test for #2203
+    test("whose sources weren't modified with an absolute path", () async {
+      await d.file("test.scss", "a {b: c}").create();
+      await d.file("out.css", "x {y: z}").create();
+
+      var sass = await update(["${p.absolute(d.path('test.scss'))}:out.css"]);
       expect(sass.stdout, emitsDone);
       await sass.shouldExit(0);
 

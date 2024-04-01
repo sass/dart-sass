@@ -239,7 +239,7 @@ Syntax parseSyntax(String? syntax) => switch (syntax) {
 String? get entrypointFilename {
   if (_requireMain?.filename case var filename?) {
     return filename;
-  } else if (process.argv case [_, String path]) {
+  } else if (process.argv case [_, String path, ...]) {
     return module.createRequire(path).resolve(path);
   } else {
     return null;
