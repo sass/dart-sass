@@ -608,14 +608,35 @@ final class _SerializeVisitor
         _maybeWriteSlashAlpha(value);
         _buffer.writeCharCode($rparen);
 
-      // case ColorSpace.lab ||
-      //       ColorSpace.oklab ||
-      //       ColorSpace.lch ||
-      //       ColorSpace.oklch when fuzzyInRange(value.channel0, 0, 100) && !value.isChannel1Missing && !value.isChannel2Missing:
-      // case ColorSpace.lch ||
-      //       ColorSpace.oklch when fuzzyLessThan(value.channel1, 0) && !value.isChannel0Missing && !value.isChannel1Missing:
-      //   // color-mix() is currently more widely supported than relative color
-      //   // syntax, so we use it to serialize out-of-gamut
+      case ColorSpace.lab ||
+              ColorSpace.oklab ||
+              ColorSpace.lch ||
+              ColorSpace.oklch
+          when !_inspect &&
+              !fuzzyInRange(value.channel0, 0, 100) &&
+              !value.isChannel1Missing &&
+              !value.isChannel2Missing:
+      case ColorSpace.lch || ColorSpace.oklch
+          when !_inspect &&
+              fuzzyLessThan(value.channel1, 0) &&
+              !value.isChannel0Missing &&
+              !value.isChannel1Missing:
+        // color-mix() is currently more widely supported than relative color
+        // syntax, so we use it to serialize out-of-gamut colors in a way that
+        // maintains the color space defined in Sass while (per spec) not
+        // clamping their values. In practice, all browsers clamp out-of-gamut
+        // values, but there's not much we can do about that at time of writing.
+        _buffer.write('color-mix(in ');
+        _buffer.write(value.space);
+        _buffer.write(_commaSeparator);
+        // The XYZ space has no gamut restrictions, so we use it to represent
+        // the out-of-gamut color before converting into the target space.
+        _writeColorFunction(value.toSpace(ColorSpace.xyzD65));
+        _writeOptionalSpace();
+        _buffer.write('100%');
+        _buffer.write(_commaSeparator);
+        _buffer.write(_isCompressed ? 'red' : 'black');
+        _buffer.writeCharCode($rparen);
 
       case ColorSpace.lab ||
             ColorSpace.oklab ||
@@ -624,6 +645,21 @@ final class _SerializeVisitor
         _buffer
           ..write(value.space)
           ..writeCharCode($lparen);
+
+        // color-mix() can't represent out-of-bounds colors with missing
+        // channels, so in this case we use the less-supported but
+        // more-expressive relative color syntax instead. Relative color syntax
+        // never clamps channels.
+        var polar = value.space.channels[2].isPolarAngle;
+        if (!_inspect &&
+            (!fuzzyInRange(value.channel0, 0, 100) ||
+                (polar && fuzzyLessThan(value.channel1, 0)))) {
+          _buffer
+            ..write('from ')
+            ..write(_isCompressed ? 'red' : 'black')
+            ..writeCharCode($space);
+        }
+
         if (!_isCompressed && !value.isChannel0Missing) {
           var max = (value.space.channels[0] as LinearChannel).max;
           _writeNumber(value.channel0 * 100 / max);
@@ -635,22 +671,14 @@ final class _SerializeVisitor
         _writeChannel(value.channel1OrNull);
         _buffer.writeCharCode($space);
         _writeChannel(value.channel2OrNull);
-        if (!_isCompressed &&
-            !value.isChannel2Missing &&
-            value.space.channels[2].isPolarAngle) {
+        if (!_isCompressed && !value.isChannel2Missing && polar) {
           _buffer.write('deg');
         }
         _maybeWriteSlashAlpha(value);
         _buffer.writeCharCode($rparen);
 
       case _:
-        _buffer
-          ..write('color(')
-          ..write(value.space)
-          ..writeCharCode($space);
-        _writeBetween(value.channelsOrNull, ' ', _writeChannel);
-        _maybeWriteSlashAlpha(value);
-        _buffer.writeCharCode($rparen);
+        _writeColorFunction(value);
     }
   }
 
@@ -871,6 +899,26 @@ final class _SerializeVisitor
       _writeNumber(color.alpha);
     }
 
+    _buffer.writeCharCode($rparen);
+  }
+
+  /// Writes [color] using the `color()` function syntax.
+  void _writeColorFunction(SassColor color) {
+    assert(!{
+      ColorSpace.rgb,
+      ColorSpace.hsl,
+      ColorSpace.hwb,
+      ColorSpace.lab,
+      ColorSpace.oklab,
+      ColorSpace.lch,
+      ColorSpace.oklch
+    }.contains(color.space));
+    _buffer
+      ..write('color(')
+      ..write(color.space)
+      ..writeCharCode($space);
+    _writeBetween(color.channelsOrNull, ' ', _writeChannel);
+    _maybeWriteSlashAlpha(color);
     _buffer.writeCharCode($rparen);
   }
 
