@@ -12,10 +12,26 @@
 
 * Add a new `--silence-deprecation` flag to match the new JS API.
 
+* Previously, if a future deprecation was passed to `--fatal-deprecation` but
+  not `--future-deprecation`, it would be treated as fatal despite not being
+  enabled. Both flags are now required to treat a future deprecation as fatal
+  with a warning emitted if `--fatal-deprecation` is passed without
+  `--future-deprecation`, matching the JS API's behavior.
+
 ### Dart API
 
 * The `compile` methods now take in a `silenceDeprecations` parameter to match
   the JS API.
+
+* Add `Deprecation.obsoleteIn` to match the JS API. This is currently null for
+  all deprecations, but will be used once some deprecations become obsolete in
+  Dart Sass 2.0.0.
+
+* Fix a bug where `compileStringToResultAsync` ignored `fatalDeprecations` and
+  `futureDeprecations`.
+
+* The behavior around making future deprecations fatal mentioned in the CLI
+  section above has also been changed in the Dart API.
 
 ## 1.73.0
 
