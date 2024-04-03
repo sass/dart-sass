@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: d157b83599dbc07a80ac6cb5ffdf5dde03b60376
+// Checksum: 4c69411c357aec5d2a8e8e83cf637fc91ef9dbf5
 //
 // ignore_for_file: unused_import
 
@@ -43,30 +43,21 @@ final class ImportCache {
 
   /// The canonicalized URLs for each non-canonical URL.
   ///
-  /// The `forImport` in each key is true when this canonicalization is for an
-  /// `@import` rule. Otherwise, it's for a `@use` or `@forward` rule.
+  /// The map's keys have five parts:
   ///
-  /// This cache isn't used for relative imports, because they depend on the
-  /// specific base importer. That's stored separately in
-  /// [_relativeCanonicalizeCache].
-  final _canonicalizeCache = <(Uri, {bool forImport}), CanonicalizeResult?>{};
-
-  /// The canonicalized URLs for each non-canonical URL that's resolved using a
-  /// relative importer.
-  ///
-  /// The map's keys have four parts:
-  ///
-  /// 1. The URL passed to [canonicalize] (the same as in [_canonicalizeCache]).
+  /// 1. The URL passed to [_canonicalize] (the same as in [_canonicalizeCache]).
   /// 2. Whether the canonicalization is for an `@import` rule.
-  /// 3. The `baseImporter` passed to [canonicalize].
-  /// 4. The `baseUrl` passed to [canonicalize].
+  /// 3. The `importer` passed to [_canonicalize].
+  /// 4. The `baseUrl` passed to [_canonicalize].
+  /// 5. The `resolveUrl` passed to [_canonicalize].
   ///
   /// The map's values are the same as the return value of [canonicalize].
-  final _relativeCanonicalizeCache = <(
+  final _canonicalizeCache = <(
     Uri, {
     bool forImport,
-    Importer baseImporter,
-    Uri? baseUrl
+    Importer importer,
+    Uri? baseUrl,
+    bool resolveUrl
   }),
       CanonicalizeResult?>{};
 
@@ -154,27 +145,31 @@ final class ImportCache {
     }
 
     if (baseImporter != null && url.scheme == '') {
-      var relativeResult = _relativeCanonicalizeCache.putIfAbsent(
+      var relativeResult = _canonicalizeCache.putIfAbsent(
           (
             url,
             forImport: forImport,
-            baseImporter: baseImporter,
-            baseUrl: baseUrl
+            importer: baseImporter,
+            baseUrl: baseUrl,
+            resolveUrl: true
           ),
-          () => _canonicalize(baseImporter, baseUrl?.resolveUri(url) ?? url,
-              baseUrl, forImport));
+          () => _canonicalize(baseImporter, url, baseUrl, forImport,
+              resolveUrl: true));
       if (relativeResult != null) return relativeResult;
     }
 
-    return _canonicalizeCache.putIfAbsent((url, forImport: forImport), () {
-      for (var importer in _importers) {
-        if (_canonicalize(importer, url, baseUrl, forImport) case var result?) {
-          return result;
-        }
-      }
+    for (var importer in _importers) {
+      var relativeResult = _canonicalizeCache.putIfAbsent((
+        url,
+        forImport: forImport,
+        importer: importer,
+        baseUrl: baseUrl,
+        resolveUrl: false
+      ), () => _canonicalize(importer, url, baseUrl, forImport));
+      if (relativeResult != null) return relativeResult;
+    }
 
-      return null;
-    });
+    return null;
   }
 
   /// Calls [importer.canonicalize] and prints a deprecation warning if it
@@ -295,9 +290,7 @@ final class ImportCache {
   /// @nodoc
   @internal
   void clearCanonicalize(Uri url) {
-    _canonicalizeCache.remove((url, forImport: false));
-    _canonicalizeCache.remove((url, forImport: true));
-    _relativeCanonicalizeCache.removeWhere((key, _) => key.$1 == url);
+    _canonicalizeCache.removeWhere((key, _) => key.$1 == url);
   }
 
   /// Clears the cached parse tree for the stylesheet with the given

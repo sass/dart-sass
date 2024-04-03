@@ -40,31 +40,21 @@ final class AsyncImportCache {
 
   /// The canonicalized URLs for each non-canonical URL.
   ///
-  /// The `forImport` in each key is true when this canonicalization is for an
-  /// `@import` rule. Otherwise, it's for a `@use` or `@forward` rule.
+  /// The map's keys have five parts:
   ///
-  /// This cache isn't used for relative imports, because they depend on the
-  /// specific base importer. That's stored separately in
-  /// [_relativeCanonicalizeCache].
-  final _canonicalizeCache =
-      <(Uri, {bool forImport}), AsyncCanonicalizeResult?>{};
-
-  /// The canonicalized URLs for each non-canonical URL that's resolved using a
-  /// relative importer.
-  ///
-  /// The map's keys have four parts:
-  ///
-  /// 1. The URL passed to [canonicalize] (the same as in [_canonicalizeCache]).
+  /// 1. The URL passed to [_canonicalize] (the same as in [_canonicalizeCache]).
   /// 2. Whether the canonicalization is for an `@import` rule.
-  /// 3. The `baseImporter` passed to [canonicalize].
-  /// 4. The `baseUrl` passed to [canonicalize].
+  /// 3. The `importer` passed to [_canonicalize].
+  /// 4. The `baseUrl` passed to [_canonicalize].
+  /// 5. The `resolveUrl` passed to [_canonicalize].
   ///
   /// The map's values are the same as the return value of [canonicalize].
-  final _relativeCanonicalizeCache = <(
+  final _canonicalizeCache = <(
     Uri, {
     bool forImport,
-    AsyncImporter baseImporter,
-    Uri? baseUrl
+    AsyncImporter importer,
+    Uri? baseUrl,
+    bool resolveUrl
   }),
       AsyncCanonicalizeResult?>{};
 
@@ -155,29 +145,34 @@ final class AsyncImportCache {
 
     if (baseImporter != null && url.scheme == '') {
       var relativeResult = await putIfAbsentAsync(
-          _relativeCanonicalizeCache,
+          _canonicalizeCache,
           (
             url,
             forImport: forImport,
-            baseImporter: baseImporter,
-            baseUrl: baseUrl
+            importer: baseImporter,
+            baseUrl: baseUrl,
+            resolveUrl: true
           ),
-          () => _canonicalize(baseImporter, baseUrl?.resolveUri(url) ?? url,
-              baseUrl, forImport));
+          () => _canonicalize(baseImporter, url, baseUrl, forImport,
+              resolveUrl: true));
       if (relativeResult != null) return relativeResult;
     }
 
-    return await putIfAbsentAsync(
-        _canonicalizeCache, (url, forImport: forImport), () async {
-      for (var importer in _importers) {
-        if (await _canonicalize(importer, url, baseUrl, forImport)
-            case var result?) {
-          return result;
-        }
-      }
+    for (var importer in _importers) {
+      var relativeResult = await putIfAbsentAsync(
+          _canonicalizeCache,
+          (
+            url,
+            forImport: forImport,
+            importer: importer,
+            baseUrl: baseUrl,
+            resolveUrl: false
+          ),
+          () => _canonicalize(importer, url, baseUrl, forImport));
+      if (relativeResult != null) return relativeResult;
+    }
 
-      return null;
-    });
+    return null;
   }
 
   /// Calls [importer.canonicalize] and prints a deprecation warning if it
@@ -301,9 +296,7 @@ final class AsyncImportCache {
   /// @nodoc
   @internal
   void clearCanonicalize(Uri url) {
-    _canonicalizeCache.remove((url, forImport: false));
-    _canonicalizeCache.remove((url, forImport: true));
-    _relativeCanonicalizeCache.removeWhere((key, _) => key.$1 == url);
+    _canonicalizeCache.removeWhere((key, _) => key.$1 == url);
   }
 
   /// Clears the cached parse tree for the stylesheet with the given
