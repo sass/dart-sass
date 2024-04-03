@@ -19,9 +19,10 @@ final class RgbColorSpace extends ColorSpace {
 
   const RgbColorSpace()
       : super('rgb', const [
-          LinearChannel('red', 0, 255),
-          LinearChannel('green', 0, 255),
-          LinearChannel('blue', 0, 255)
+          LinearChannel('red', 0, 255, lowerClamped: true, upperClamped: true),
+          LinearChannel('green', 0, 255,
+              lowerClamped: true, upperClamped: true),
+          LinearChannel('blue', 0, 255, lowerClamped: true, upperClamped: true)
         ]);
 
   SassColor convert(ColorSpace dest, double? red, double? green, double? blue,
