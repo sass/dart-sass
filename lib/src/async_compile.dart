@@ -17,7 +17,7 @@ import 'importer/legacy_node.dart';
 import 'importer/no_op.dart';
 import 'io.dart';
 import 'logger.dart';
-import 'logger/deprecation_handling.dart';
+import 'logger/deprecation_processing.dart';
 import 'syntax.dart';
 import 'utils.dart';
 import 'visitor/async_evaluate.dart';
@@ -42,10 +42,12 @@ Future<CompileResult> compileAsync(String path,
     bool verbose = false,
     bool sourceMap = false,
     bool charset = true,
+    Iterable<Deprecation>? silenceDeprecations,
     Iterable<Deprecation>? fatalDeprecations,
     Iterable<Deprecation>? futureDeprecations}) async {
-  DeprecationHandlingLogger deprecationLogger = logger =
-      DeprecationHandlingLogger(logger ?? Logger.stderr(),
+  DeprecationProcessingLogger deprecationLogger = logger =
+      DeprecationProcessingLogger(logger ?? Logger.stderr(),
+          silenceDeprecations: {...?silenceDeprecations},
           fatalDeprecations: {...?fatalDeprecations},
           futureDeprecations: {...?futureDeprecations},
           limitRepetition: !verbose);
@@ -106,10 +108,12 @@ Future<CompileResult> compileStringAsync(String source,
     bool verbose = false,
     bool sourceMap = false,
     bool charset = true,
+    Iterable<Deprecation>? silenceDeprecations,
     Iterable<Deprecation>? fatalDeprecations,
     Iterable<Deprecation>? futureDeprecations}) async {
-  DeprecationHandlingLogger deprecationLogger = logger =
-      DeprecationHandlingLogger(logger ?? Logger.stderr(),
+  DeprecationProcessingLogger deprecationLogger = logger =
+      DeprecationProcessingLogger(logger ?? Logger.stderr(),
+          silenceDeprecations: {...?silenceDeprecations},
           fatalDeprecations: {...?fatalDeprecations},
           futureDeprecations: {...?futureDeprecations},
           limitRepetition: !verbose);

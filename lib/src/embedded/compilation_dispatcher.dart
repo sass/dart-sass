@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:collection/collection.dart';
 import 'package:native_synchronization/mailbox.dart';
 import 'package:path/path.dart' as p;
 import 'package:protobuf/protobuf.dart';
@@ -124,6 +125,21 @@ final class CompilationDispatcher {
         : EmbeddedLogger(this,
             color: request.alertColor, ascii: request.alertAscii);
 
+    sass.Deprecation? deprecationOrWarn(String id) {
+      var deprecation = sass.Deprecation.fromId(id);
+      if (deprecation == null) {
+        logger.warn('Invalid deprecation "$id".');
+      }
+      return deprecation;
+    }
+
+    var fatalDeprecations =
+        request.fatalDeprecation.map(deprecationOrWarn).whereNotNull();
+    var silenceDeprecations =
+        request.silenceDeprecation.map(deprecationOrWarn).whereNotNull();
+    var futureDeprecations =
+        request.futureDeprecation.map(deprecationOrWarn).whereNotNull();
+
     try {
       var importers = request.importers.map((importer) =>
           _decodeImporter(request, importer) ??
@@ -148,6 +164,9 @@ final class CompilationDispatcher {
               url: input.url.isEmpty ? null : input.url,
               quietDeps: request.quietDeps,
               verbose: request.verbose,
+              fatalDeprecations: fatalDeprecations,
+              silenceDeprecations: silenceDeprecations,
+              futureDeprecations: futureDeprecations,
               sourceMap: request.sourceMap,
               charset: request.charset);
 
@@ -165,6 +184,9 @@ final class CompilationDispatcher {
                 style: style,
                 quietDeps: request.quietDeps,
                 verbose: request.verbose,
+                fatalDeprecations: fatalDeprecations,
+                silenceDeprecations: silenceDeprecations,
+                futureDeprecations: futureDeprecations,
                 sourceMap: request.sourceMap,
                 charset: request.charset);
           } on FileSystemException catch (error) {

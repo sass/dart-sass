@@ -2,7 +2,10 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:js/js_util.dart';
+
 import 'js/exception.dart';
+import 'js/deprecations.dart';
 import 'js/exports.dart';
 import 'js/compile.dart';
 import 'js/compiler.dart';
@@ -52,6 +55,8 @@ void main() {
           warn: allowInteropNamed('sass.Logger.silent.warn', (_, __) {}),
           debug: allowInteropNamed('sass.Logger.silent.debug', (_, __) {})));
   exports.NodePackageImporter = nodePackageImporterClass;
+  exports.deprecations = jsify(deprecations);
+  exports.Version = versionClass;
 
   exports.info =
       "dart-sass\t${const String.fromEnvironment('version')}\t(Sass Compiler)\t"

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: a9421a2975e79ad591ae32474cd076e1379d0e75
+// Checksum: ab2c6fa2588988a86abdbe87512134098e01b39e
 //
 // ignore_for_file: unused_import
 
@@ -26,7 +26,7 @@ import 'importer/legacy_node.dart';
 import 'importer/no_op.dart';
 import 'io.dart';
 import 'logger.dart';
-import 'logger/deprecation_handling.dart';
+import 'logger/deprecation_processing.dart';
 import 'syntax.dart';
 import 'utils.dart';
 import 'visitor/evaluate.dart';
@@ -51,10 +51,12 @@ CompileResult compile(String path,
     bool verbose = false,
     bool sourceMap = false,
     bool charset = true,
+    Iterable<Deprecation>? silenceDeprecations,
     Iterable<Deprecation>? fatalDeprecations,
     Iterable<Deprecation>? futureDeprecations}) {
-  DeprecationHandlingLogger deprecationLogger = logger =
-      DeprecationHandlingLogger(logger ?? Logger.stderr(),
+  DeprecationProcessingLogger deprecationLogger = logger =
+      DeprecationProcessingLogger(logger ?? Logger.stderr(),
+          silenceDeprecations: {...?silenceDeprecations},
           fatalDeprecations: {...?fatalDeprecations},
           futureDeprecations: {...?futureDeprecations},
           limitRepetition: !verbose);
@@ -115,10 +117,12 @@ CompileResult compileString(String source,
     bool verbose = false,
     bool sourceMap = false,
     bool charset = true,
+    Iterable<Deprecation>? silenceDeprecations,
     Iterable<Deprecation>? fatalDeprecations,
     Iterable<Deprecation>? futureDeprecations}) {
-  DeprecationHandlingLogger deprecationLogger = logger =
-      DeprecationHandlingLogger(logger ?? Logger.stderr(),
+  DeprecationProcessingLogger deprecationLogger = logger =
+      DeprecationProcessingLogger(logger ?? Logger.stderr(),
+          silenceDeprecations: {...?silenceDeprecations},
           fatalDeprecations: {...?fatalDeprecations},
           futureDeprecations: {...?futureDeprecations},
           limitRepetition: !verbose);

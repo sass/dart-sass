@@ -112,14 +112,28 @@ enum Deprecation {
   /// what version of Dart Sass this deprecation will be live in.
   final bool isFuture;
 
+  /// Underlying version string used by [obsoleteIn].
+  ///
+  /// This is necessary because [Version] doesn't have a constant constructor,
+  /// so we can't use it directly as an enum property.
+  final String? _obsoleteIn;
+
+  /// The Dart Sass version this feature was fully removed in, making the
+  /// deprecation obsolete.
+  ///
+  /// For deprecations that are not yet obsolete, this should be null.
+  Version? get obsoleteIn => _obsoleteIn?.andThen(Version.parse);
+
   /// Constructs a regular deprecation.
   const Deprecation(this.id, {required String? deprecatedIn, this.description})
       : _deprecatedIn = deprecatedIn,
+        _obsoleteIn = null,
         isFuture = false;
 
   /// Constructs a future deprecation.
   const Deprecation.future(this.id, {this.description})
       : _deprecatedIn = null,
+        _obsoleteIn = null,
         isFuture = true;
 
   @override

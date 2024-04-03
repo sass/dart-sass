@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
+import '../deprecation.dart';
 import '../logger.dart';
 import '../util/nullable.dart';
 import '../utils.dart';
@@ -14,7 +15,7 @@ import 'embedded_sass.pb.dart' hide SourceSpan;
 import 'utils.dart';
 
 /// A Sass logger that sends log messages as `LogEvent`s.
-final class EmbeddedLogger implements Logger {
+final class EmbeddedLogger extends LoggerWithDeprecationType {
   /// The [CompilationDispatcher] to which to send events.
   final CompilationDispatcher _dispatcher;
 
@@ -39,16 +40,16 @@ final class EmbeddedLogger implements Logger {
           ': $message\n');
   }
 
-  void warn(String message,
-      {FileSpan? span, Trace? trace, bool deprecation = false}) {
+  void internalWarn(String message,
+      {FileSpan? span, Trace? trace, Deprecation? deprecation}) {
     var formatted = withGlyphs(() {
       var buffer = StringBuffer();
       if (_color) {
         buffer.write('\u001b[33m\u001b[1m');
-        if (deprecation) buffer.write('Deprecation ');
+        if (deprecation != null) buffer.write('Deprecation ');
         buffer.write('Warning\u001b[0m');
       } else {
-        if (deprecation) buffer.write('DEPRECATION ');
+        if (deprecation != null) buffer.write('DEPRECATION ');
         buffer.write('WARNING');
       }
       if (span == null) {
@@ -65,12 +66,14 @@ final class EmbeddedLogger implements Logger {
     }, ascii: _ascii);
 
     var event = OutboundMessage_LogEvent()
-      ..type =
-          deprecation ? LogEventType.DEPRECATION_WARNING : LogEventType.WARNING
+      ..type = deprecation != null
+          ? LogEventType.DEPRECATION_WARNING
+          : LogEventType.WARNING
       ..message = message
       ..formatted = formatted;
     if (span != null) event.span = protofySpan(span);
     if (trace != null) event.stackTrace = trace.toString();
+    if (deprecation != null) event.deprecationType = deprecation.id;
     _dispatcher.sendLog(event);
   }
 }
