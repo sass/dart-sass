@@ -2,15 +2,25 @@
 
 ### JS API
 
-* The deprecations API is now available in the JS API! The `compile` methods
-  support the same `fatalDeprecations` and `futureDeprecations` options that
-  were already available in the Dart API and the CLI, as well as a new
-  `silenceDeprecations` option that allows you to silence deprecation warnings
-  of a given type.
+* Add a new top-level `deprecations` object, which contains various
+  `Deprecation` objects that define the different types of deprecation used by
+  the Sass compiler and can be passed to the options below.
+
+* Add a new `fatalDeprecations` compiler option that causes the compiler to
+  error if any deprecation warnings of the provided types are encountered. You
+  can also pass in a `Version` object to treat all deprecations that were active
+  in that Dart Sass version as fatal.
+
+* Add a new `futureDeprecations` compiler option that allows you to opt-in to
+  certain deprecations early (currently just `import`).
+
+* Add a new `silenceDeprecations` compiler option to ignore any deprecation
+  warnings of the provided types.
 
 ### Command-Line Interface
 
-* Add a new `--silence-deprecation` flag to match the new JS API.
+* Add a new `--silence-deprecation` flag, which causes the compiler to ignore
+  any deprecation warnings of the provided types.
 
 * Previously, if a future deprecation was passed to `--fatal-deprecation` but
   not `--future-deprecation`, it would be treated as fatal despite not being
@@ -20,15 +30,15 @@
 
 ### Dart API
 
-* The `compile` methods now take in a `silenceDeprecations` parameter to match
-  the JS API.
+* The `compile` methods now take in a `silenceDeprecations` parameter, which
+  causes the compiler to ignore any deprecation warnings of the provided types.
 
 * Add `Deprecation.obsoleteIn` to match the JS API. This is currently null for
   all deprecations, but will be used once some deprecations become obsolete in
   Dart Sass 2.0.0.
 
-* Fix a bug where `compileStringToResultAsync` ignored `fatalDeprecations` and
-  `futureDeprecations`.
+* **Potentially breaking bug fix:** Fix a bug where `compileStringToResultAsync`
+  ignored `fatalDeprecations` and `futureDeprecations`.
 
 * The behavior around making future deprecations fatal mentioned in the CLI
   section above has also been changed in the Dart API.

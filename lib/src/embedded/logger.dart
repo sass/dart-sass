@@ -15,7 +15,7 @@ import 'embedded_sass.pb.dart' hide SourceSpan;
 import 'utils.dart';
 
 /// A Sass logger that sends log messages as `LogEvent`s.
-final class EmbeddedLogger implements DeprecationLogger {
+final class EmbeddedLogger extends LoggerWithDeprecationType {
   /// The [CompilationDispatcher] to which to send events.
   final CompilationDispatcher _dispatcher;
 
@@ -40,19 +40,16 @@ final class EmbeddedLogger implements DeprecationLogger {
           ': $message\n');
   }
 
-  void warn(String message,
-      {FileSpan? span,
-      Trace? trace,
-      bool deprecation = false,
-      Deprecation? deprecationType}) {
+  void internalWarn(String message,
+      {FileSpan? span, Trace? trace, Deprecation? deprecation}) {
     var formatted = withGlyphs(() {
       var buffer = StringBuffer();
       if (_color) {
         buffer.write('\u001b[33m\u001b[1m');
-        if (deprecation) buffer.write('Deprecation ');
+        if (deprecation != null) buffer.write('Deprecation ');
         buffer.write('Warning\u001b[0m');
       } else {
-        if (deprecation) buffer.write('DEPRECATION ');
+        if (deprecation != null) buffer.write('DEPRECATION ');
         buffer.write('WARNING');
       }
       if (span == null) {
@@ -69,13 +66,14 @@ final class EmbeddedLogger implements DeprecationLogger {
     }, ascii: _ascii);
 
     var event = OutboundMessage_LogEvent()
-      ..type =
-          deprecation ? LogEventType.DEPRECATION_WARNING : LogEventType.WARNING
+      ..type = deprecation != null
+          ? LogEventType.DEPRECATION_WARNING
+          : LogEventType.WARNING
       ..message = message
       ..formatted = formatted;
     if (span != null) event.span = protofySpan(span);
     if (trace != null) event.stackTrace = trace.toString();
-    if (deprecationType != null) event.deprecationType = deprecationType.id;
+    if (deprecation != null) event.deprecationType = deprecation.id;
     _dispatcher.sendLog(event);
   }
 }

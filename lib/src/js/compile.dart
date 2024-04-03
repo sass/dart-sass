@@ -359,6 +359,11 @@ List<AsyncCallable> _parseFunctions(Object? functions, {bool asynch = false}) {
   return result;
 }
 
+/// Parses a list of [deprecations] from JS into an list of Dart [Deprecation]
+/// objects.
+///
+/// [deprecations] can contain deprecation IDs, JS Deprecation objects, and
+/// (if [supportVersions] is true) [Version]s.
 Iterable<Deprecation>? _parseDeprecations(
     JSToDartLogger logger, List<Object?>? deprecations,
     {bool supportVersions = false}) {

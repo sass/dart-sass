@@ -7,7 +7,7 @@ import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import 'deprecation.dart';
-import 'logger/deprecation_handling.dart';
+import 'logger/deprecation_processing.dart';
 import 'logger/stderr.dart';
 
 /// An interface for loggers that print messages produced by Sass stylesheets.
@@ -37,25 +37,37 @@ abstract class Logger {
   void debug(String message, SourceSpan span);
 }
 
-/// A logger interface that also handles deprecation types.
+/// A base class for loggers that support the [Deprecation] object, rather than
+/// just a boolean flag for whether a warnings is a deprecation warning or not.
 ///
-/// This is only used internally by [DeprecationHandlingLogger] and
-/// [JSToDartLogger]. In Dart Sass 2.0, we can get rid of this and just add
-/// it as a breaking change to [Logger].
+/// In Dart Sass 2.0.0, we will eliminate this interface and change
+/// [Logger.warn]'s signature to match that of [internalWarn]. This is used
+/// in the meantime to provide access to the [Deprecation] object to internal
+/// loggers.
+///
+/// Implementers should override the protected [internalWarn] method instead of
+/// [warn].
 @internal
-abstract class DeprecationLogger implements Logger {
-  /// Emits a warning with the given [message].
+abstract class LoggerWithDeprecationType implements Logger {
+  /// This forwards all calls to [internalWarn].
   ///
-  /// If [span] is passed, it's the location in the Sass source that generated
-  /// the warning. If [trace] is passed, it's the Sass stack trace when the
-  /// warning was issued. If [deprecation] is `true`, it indicates that this is
-  /// a deprecation warning with type [deprecationType]. Implementations should
-  /// surface all this information to the end user.
+  /// For non-user deprecation warnings, the [warnForDeprecation] extension
+  /// method should be called instead.
   void warn(String message,
-      {FileSpan? span,
-      Trace? trace,
-      bool deprecation = false,
-      Deprecation? deprecationType});
+      {FileSpan? span, Trace? trace, bool deprecation = false}) {
+    internalWarn(message,
+        span: span,
+        trace: trace,
+        deprecation: deprecation ? Deprecation.userAuthored : null);
+  }
+
+  /// Equivalent to [Logger.warn], but for internal loggers that support
+  /// the [Deprecation] object.
+  ///
+  /// Subclasses of this logger should override this method instead of [warn].
+  @protected
+  void internalWarn(String message,
+      {FileSpan? span, Trace? trace, Deprecation? deprecation});
 }
 
 /// An extension to add a `warnForDeprecation` method to loggers without
@@ -65,13 +77,10 @@ extension WarnForDeprecation on Logger {
   /// Emits a deprecation warning for [deprecation] with the given [message].
   void warnForDeprecation(Deprecation deprecation, String message,
       {FileSpan? span, Trace? trace}) {
-    if (deprecation.isFuture && this is! DeprecationHandlingLogger) return;
-    if (this case DeprecationLogger self) {
-      self.warn(message,
-          span: span,
-          trace: trace,
-          deprecation: true,
-          deprecationType: deprecation);
+    if (deprecation.isFuture && this is! DeprecationProcessingLogger) return;
+    if (this case LoggerWithDeprecationType self) {
+      self.internalWarn(message,
+          span: span, trace: trace, deprecation: deprecation);
     } else {
       warn(message, span: span, trace: trace, deprecation: true);
     }

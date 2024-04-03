@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:collection/collection.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
@@ -11,12 +12,13 @@ import '../exception.dart';
 import '../logger.dart';
 
 /// The maximum number of repetitions of the same warning
-/// [DeprecationHandlingLogger] will emit before hiding the rest.
+/// [DeprecationProcessingLogger] will emit before hiding the rest.
 const _maxRepetitions = 5;
 
 /// A logger that wraps an inner logger to have special handling for
-/// deprecation warnings.
-final class DeprecationHandlingLogger implements DeprecationLogger {
+/// deprecation warnings, silencing, making fatal, enabling future, and/or
+/// limiting repetition based on its inputs.
+final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
   /// A map of how many times each deprecation has been emitted by this logger.
   final _warningCounts = <Deprecation, int>{};
 
@@ -39,39 +41,47 @@ final class DeprecationHandlingLogger implements DeprecationLogger {
   /// [_maxRepetitions].
   final bool limitRepetition;
 
-  DeprecationHandlingLogger(this._inner,
+  DeprecationProcessingLogger(this._inner,
       {required this.silenceDeprecations,
       required this.fatalDeprecations,
       required this.futureDeprecations,
       this.limitRepetition = true}) {
     for (var deprecation in fatalDeprecations) {
-      if (deprecation.isFuture && !futureDeprecations.contains(deprecation)) {
-        warn('Future $deprecation deprecation must be enabled before it can be '
-            'made fatal.');
-      } else if (deprecation.obsoleteIn != null) {
-        warn('$deprecation deprecation is obsolete, so does not need to be '
-            'made fatal.');
-      } else if (silenceDeprecations.contains(deprecation)) {
-        warn('Ignoring setting to silence $deprecation deprecation, since it '
-            'has also been made fatal.');
+      switch (deprecation) {
+        case Deprecation(isFuture: true)
+            when !futureDeprecations.contains(deprecation):
+          warn('Future $deprecation deprecation must be enabled before it can '
+              'be made fatal.');
+        case Deprecation(obsoleteIn: Version()):
+          warn('$deprecation deprecation is obsolete, so does not need to be '
+              'made fatal.');
+        case _ when silenceDeprecations.contains(deprecation):
+          warn('Ignoring setting to silence $deprecation deprecation, since it '
+              'has also been made fatal.');
+        default:
+        // No warning.
       }
     }
+
     for (var deprecation in silenceDeprecations) {
-      if (deprecation == Deprecation.userAuthored) {
-        warn('User-authored deprecations should not be silenced.');
-      } else if (deprecation.obsoleteIn != null) {
-        warn('$deprecation deprecation is obsolete. If you were previously '
-            'silencing it, your code may now behave in unexpected ways.');
-      } else if (deprecation.isFuture) {
-        if (futureDeprecations.contains(deprecation)) {
+      switch (deprecation) {
+        case Deprecation.userAuthored:
+          warn('User-authored deprecations should not be silenced.');
+        case Deprecation(obsoleteIn: Version()):
+          warn('$deprecation deprecation is obsolete. If you were previously '
+              'silencing it, your code may now behave in unexpected ways.');
+        case Deprecation(isFuture: true)
+            when futureDeprecations.contains(deprecation):
           warn('Conflicting options for future $deprecation deprecation cancel '
               'each other out.');
-        } else {
+        case Deprecation(isFuture: true):
           warn('Future $deprecation deprecation is not yet active, so '
               'silencing it is unnecessary.');
-        }
+        default:
+        // No warning.
       }
     }
+
     for (var deprecation in futureDeprecations) {
       if (!deprecation.isFuture) {
         warn('$deprecation is not a future deprecation, so it does not need to '
@@ -80,13 +90,10 @@ final class DeprecationHandlingLogger implements DeprecationLogger {
     }
   }
 
-  void warn(String message,
-      {FileSpan? span,
-      Trace? trace,
-      bool deprecation = false,
-      Deprecation? deprecationType}) {
-    if (deprecation && deprecationType != null) {
-      _handleDeprecation(deprecationType, message, span: span, trace: trace);
+  void internalWarn(String message,
+      {FileSpan? span, Trace? trace, Deprecation? deprecation}) {
+    if (deprecation != null) {
+      _handleDeprecation(deprecation, message, span: span, trace: trace);
     } else {
       _inner.warn(message, span: span, trace: trace);
     }
@@ -125,12 +132,9 @@ final class DeprecationHandlingLogger implements DeprecationLogger {
       if (count > _maxRepetitions) return;
     }
 
-    if (_inner case DeprecationLogger inner) {
-      inner.warn(message,
-          span: span,
-          trace: trace,
-          deprecation: true,
-          deprecationType: deprecation);
+    if (_inner case LoggerWithDeprecationType inner) {
+      inner.internalWarn(message,
+          span: span, trace: trace, deprecation: deprecation);
     } else {
       _inner.warn(message, span: span, trace: trace, deprecation: true);
     }

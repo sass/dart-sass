@@ -27,17 +27,21 @@ class Deprecation {
 
 final Map<String, Deprecation?> deprecations = {
   for (var deprecation in dart.Deprecation.values)
-    deprecation.id: Deprecation(
-        id: deprecation.id,
-        status: (() => switch (deprecation) {
-              dart.Deprecation(isFuture: true) => 'future',
-              dart.Deprecation(deprecatedIn: null, obsoleteIn: null) => 'user',
-              dart.Deprecation(obsoleteIn: null) => 'active',
-              _ => 'obsolete'
-            })(),
-        description: deprecation.description,
-        deprecatedIn: deprecation.deprecatedIn,
-        obsoleteIn: deprecation.deprecatedIn),
+    // `calc-interp` was never actually used, so we don't want to expose it
+    // in the JS API.
+    if (deprecation != dart.Deprecation.calcInterp)
+      deprecation.id: Deprecation(
+          id: deprecation.id,
+          status: (() => switch (deprecation) {
+                dart.Deprecation(isFuture: true) => 'future',
+                dart.Deprecation(deprecatedIn: null, obsoleteIn: null) =>
+                  'user',
+                dart.Deprecation(obsoleteIn: null) => 'active',
+                _ => 'obsolete'
+              })(),
+          description: deprecation.description,
+          deprecatedIn: deprecation.deprecatedIn,
+          obsoleteIn: deprecation.deprecatedIn),
 };
 
 /// The JavaScript `Version` class.

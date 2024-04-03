@@ -95,9 +95,13 @@ final class ExecutableOptions {
           help: 'Deprecations to ignore.',
           allowedHelp: {
             for (var deprecation in Deprecation.values)
-              if (deprecation.deprecatedIn != null &&
-                  deprecation.description != null)
-                deprecation.id: deprecation.description!,
+              if (deprecation
+                  case Deprecation(
+                    deprecatedIn: Version(),
+                    obsoleteIn: null,
+                    :var description?
+                  ))
+                deprecation.id: description,
           })
       ..addMultiOption('fatal-deprecation',
           help: 'Deprecations to treat as errors. You may also pass a Sass\n'

@@ -13,7 +13,7 @@ import '../js/deprecations.dart' show deprecations;
 import '../js/logger.dart';
 
 /// A wrapper around a [JSLogger] that exposes it as a Dart [Logger].
-final class JSToDartLogger implements DeprecationLogger {
+final class JSToDartLogger extends LoggerWithDeprecationType {
   /// The wrapped logger object.
   final JSLogger? _node;
 
@@ -29,23 +29,20 @@ final class JSToDartLogger implements DeprecationLogger {
   JSToDartLogger(this._node, this._fallback, {bool? ascii})
       : _ascii = ascii ?? glyph.ascii;
 
-  void warn(String message,
-      {FileSpan? span,
-      Trace? trace,
-      bool deprecation = false,
-      Deprecation? deprecationType}) {
+  void internalWarn(String message,
+      {FileSpan? span, Trace? trace, Deprecation? deprecation}) {
     if (_node?.warn case var warn?) {
       warn(
           message,
           WarnOptions(
               span: span ?? (undefined as SourceSpan?),
               stack: trace.toString(),
-              deprecation: deprecation,
-              deprecationType: deprecations[deprecationType?.id]));
+              deprecation: deprecation != null,
+              deprecationType: deprecations[deprecation?.id]));
     } else {
       _withAscii(() {
         _fallback.warn(message,
-            span: span, trace: trace, deprecation: deprecation);
+            span: span, trace: trace, deprecation: deprecation != null);
       });
     }
   }
