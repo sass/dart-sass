@@ -51,8 +51,14 @@ final JSClass versionClass = () {
     return Version(major, minor, patch);
   });
 
-  jsClass.defineStaticMethod(
-      'parse', (String version) => Version.parse(version));
+  jsClass.defineStaticMethod('parse', (String version) {
+    var v = Version.parse(version);
+    if (v.isPreRelease || v.build.isNotEmpty) {
+      throw FormatException(
+          'Build identifiers and prerelease versions not supported.');
+    }
+    return v;
+  });
 
   getJSClass(Version(0, 0, 0)).injectSuperclass(jsClass);
   return jsClass;
