@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:string_scanner/string_scanner.dart';
@@ -207,11 +208,11 @@ int mapHash(Map<Object, Object> map) =>
 ///
 /// By default, the frame's URL is set to `span.sourceUrl`. However, if [url] is
 /// passed, it's used instead.
-Frame frameForSpan(SourceSpan span, String member, {Uri? url}) => Frame(
-    url ?? span.sourceUrl ?? _noSourceUrl,
-    span.start.line + 1,
-    span.start.column + 1,
-    member);
+Frame frameForSpan(SourceSpan span, String member, {Uri? url}) {
+  url ??= span.sourceUrl;
+  return Frame(isRealUrl(url) ? url! : _noSourceUrl, span.start.line + 1,
+      span.start.column + 1, member);
+}
 
 /// Returns the variable name (including the leading `$`) from a [span] that
 /// covers a variable declaration, which includes the variable name as well as
@@ -442,6 +443,15 @@ void attachTrace(Object error, StackTrace trace) {
 /// [defaultTrace] if it was thrown normally.
 StackTrace? getTrace(Object error) =>
     error is String || error is num || error is bool ? null : _traces[error];
+
+/// Returns whether [url] is both non-null and not a fake URL to represent
+/// standard input for the Sass CLI.
+bool isRealUrl(Uri? url) =>
+    url != null &&
+    url != _noSourceUrl &&
+    !(url.scheme == 'file' &&
+        const {'(stdin).sass', '(stdin).scss', '(stdin).css'}
+            .contains(p.url.basename(url.path)));
 
 /// Parses a function signature of the format allowed by Node Sass's functions
 /// option and returns its name and declaration.

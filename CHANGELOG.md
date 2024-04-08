@@ -1,3 +1,23 @@
+## 1.75.0
+
+### JS API
+
+* Passing an `importer` argument without a corresponding canonical `url` to
+  `compileString()` and `compileStringAsync()` will now emit a deprecation named
+  `importer-without-url`. This was always forbidden by the TypeScript types, and
+  so was officially undefined behavior, but the previous behavior (passing
+  relative URLs as-is to the `importer` before passing them to the `importers`
+  list) will be preserved until Dart Sass 2.0.0. See
+  https://sass-lang.com/d/importer-without-url for more information.
+
+### Dart API
+
+* Passing an `importer` argument without a corresponding canonical `url` to
+  `compileStringToResult()`, `compileStringToResultAsync()`, `compileString()`,
+  and `compileStringAsync()` will now emit a deprecation named
+  `importer-without-url`. See https://sass-lang.com/d/importer-without-url for
+  more information.
+
 ## 1.74.1
 
 * No user-visible changes.

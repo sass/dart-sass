@@ -5,6 +5,7 @@
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+import 'package:sass/src/deprecation.dart';
 import 'package:sass/src/embedded/embedded_sass.pb.dart';
 import 'package:sass/src/embedded/utils.dart';
 import 'package:sass/src/util/nullable.dart';
@@ -178,6 +179,15 @@ Future<OutboundMessage_LogEvent> getLogEvent(EmbeddedProcess process) async {
   expect(message.hasLogEvent(), isTrue,
       reason: "Expected $message to have a LogEvent");
   return message.logEvent;
+}
+
+/// Asserts that [process] emits a deprecation warning of the given type.
+Future<void> expectDeprecationMessage(
+    EmbeddedProcess process, Deprecation deprecation) async {
+  var event = await getLogEvent(process);
+  expect(event.type, equals(LogEventType.DEPRECATION_WARNING),
+      reason: "Expected a deprecation warning.");
+  expect(event.deprecationType, equals('importer-without-url'));
 }
 
 /// Asserts that [process] emits a `CompileResponse` with CSS that matches

@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 
+import 'package:sass/src/deprecation.dart';
 import 'package:sass/src/embedded/embedded_sass.pb.dart';
 import 'package:sass/src/embedded/utils.dart';
 
@@ -253,6 +254,8 @@ void main() {
       process.send(compileString("@import 'other'",
           importer: InboundMessage_CompileRequest_Importer()
             ..fileImporterId = 1));
+
+      await expectDeprecationMessage(process, Deprecation.importerWithoutUrl);
 
       var request = await getFileImportRequest(process);
       expect(request.url, equals("other"));

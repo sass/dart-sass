@@ -85,6 +85,8 @@ Future<EvaluateResult> evaluateAsync(Stylesheet stylesheet,
         Logger? logger,
         bool quietDeps = false,
         bool sourceMap = false}) =>
+    // TODO(sass/sass#3831): Throw an ArgumentError here if importer is passed
+    // but stylesheet doesn't have a URL.
     _EvaluateVisitor(
             importCache: importCache,
             nodeImporter: nodeImporter,
@@ -100,28 +102,23 @@ final class AsyncEvaluator {
   /// The visitor that evaluates each expression and statement.
   final _EvaluateVisitor _visitor;
 
-  /// The importer to use to resolve `@use` rules in [_visitor].
-  final AsyncImporter? _importer;
-
   /// Creates an evaluator.
   ///
   /// Arguments are the same as for [evaluateAsync].
   AsyncEvaluator(
       {AsyncImportCache? importCache,
-      AsyncImporter? importer,
       Iterable<AsyncCallable>? functions,
       Logger? logger})
       : _visitor = _EvaluateVisitor(
-            importCache: importCache, functions: functions, logger: logger),
-        _importer = importer;
+            importCache: importCache, functions: functions, logger: logger);
 
-  Future<void> use(UseRule use) => _visitor.runStatement(_importer, use);
+  Future<void> use(UseRule use) => _visitor.runStatement(use);
 
   Future<Value> evaluate(Expression expression) =>
-      _visitor.runExpression(_importer, expression);
+      _visitor.runExpression(expression);
 
   Future<void> setVariable(VariableDeclaration declaration) =>
-      _visitor.runStatement(_importer, declaration);
+      _visitor.runStatement(declaration);
 }
 
 /// A visitor that executes Sass code to produce a CSS tree.
@@ -605,17 +602,15 @@ final class _EvaluateVisitor
     }
   }
 
-  Future<Value> runExpression(AsyncImporter? importer, Expression expression) =>
-      withEvaluationContext(
-          _EvaluationContext(this, expression),
-          () => _withFakeStylesheet(importer, expression,
-              () => _addExceptionTrace(() => expression.accept(this))));
+  Future<Value> runExpression(Expression expression) => withEvaluationContext(
+      _EvaluationContext(this, expression),
+      () => _withFakeStylesheet(
+          expression, () => _addExceptionTrace(() => expression.accept(this))));
 
-  Future<void> runStatement(AsyncImporter? importer, Statement statement) =>
-      withEvaluationContext(
-          _EvaluationContext(this, statement),
-          () => _withFakeStylesheet(importer, statement,
-              () => _addExceptionTrace(() => statement.accept(this))));
+  Future<void> runStatement(Statement statement) => withEvaluationContext(
+      _EvaluationContext(this, statement),
+      () => _withFakeStylesheet(
+          statement, () => _addExceptionTrace(() => statement.accept(this))));
 
   /// Asserts that [value] is not `null` and returns it.
   ///
@@ -627,12 +622,12 @@ final class _EvaluateVisitor
     throw StateError("Can't access $name outside of a module.");
   }
 
-  /// Runs [callback] with [importer] as [_importer] and a fake [_stylesheet]
-  /// with [nodeWithSpan]'s source span.
-  Future<T> _withFakeStylesheet<T>(AsyncImporter? importer,
+  /// Runs [callback] with a fake [_stylesheet] with [nodeWithSpan]'s source
+  /// span.
+  Future<T> _withFakeStylesheet<T>(
       AstNode nodeWithSpan, FutureOr<T> callback()) async {
     var oldImporter = _importer;
-    _importer = importer;
+    _importer = null;
 
     assert(__stylesheet == null);
     _stylesheet = Stylesheet(const [], nodeWithSpan.span);

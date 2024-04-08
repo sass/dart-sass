@@ -47,8 +47,9 @@ final class StderrLogger implements Logger {
 
   void debug(String message, SourceSpan span) {
     var result = StringBuffer();
-    var url =
-        span.start.sourceUrl == null ? '-' : p.prettyUri(span.start.sourceUrl);
+    var url = isRealUrl(span.start.sourceUrl)
+        ? p.prettyUri(span.start.sourceUrl)
+        : '-';
     result.write('$url:${span.start.line + 1} ');
     result.write(color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG');
     result.write(': $message');

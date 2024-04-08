@@ -22,9 +22,8 @@ Future<void> repl(ExecutableOptions options) async {
   var repl = Repl(prompt: '>> ');
   var logger = TrackingLogger(options.logger);
   var evaluator = Evaluator(
-      importer: FilesystemImporter.cwd,
       importCache: ImportCache(
-          importers: options.pkgImporters,
+          importers: [...options.pkgImporters, FilesystemImporter('.')],
           loadPaths: options.loadPaths,
           logger: logger),
       logger: logger);

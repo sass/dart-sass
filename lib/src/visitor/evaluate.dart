@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 05cb957cd0c7698d8ad648f31d862dc91f0daa7b
+// Checksum: 5775f1fcfd2f4d0b22285daebdaa7441b567a593
 //
 // ignore_for_file: unused_import
 
@@ -93,6 +93,8 @@ EvaluateResult evaluate(Stylesheet stylesheet,
         Logger? logger,
         bool quietDeps = false,
         bool sourceMap = false}) =>
+    // TODO(sass/sass#3831): Throw an ArgumentError here if importer is passed
+    // but stylesheet doesn't have a URL.
     _EvaluateVisitor(
             importCache: importCache,
             nodeImporter: nodeImporter,
@@ -108,28 +110,20 @@ final class Evaluator {
   /// The visitor that evaluates each expression and statement.
   final _EvaluateVisitor _visitor;
 
-  /// The importer to use to resolve `@use` rules in [_visitor].
-  final Importer? _importer;
-
   /// Creates an evaluator.
   ///
   /// Arguments are the same as for [evaluate].
   Evaluator(
-      {ImportCache? importCache,
-      Importer? importer,
-      Iterable<Callable>? functions,
-      Logger? logger})
+      {ImportCache? importCache, Iterable<Callable>? functions, Logger? logger})
       : _visitor = _EvaluateVisitor(
-            importCache: importCache, functions: functions, logger: logger),
-        _importer = importer;
+            importCache: importCache, functions: functions, logger: logger);
 
-  void use(UseRule use) => _visitor.runStatement(_importer, use);
+  void use(UseRule use) => _visitor.runStatement(use);
 
-  Value evaluate(Expression expression) =>
-      _visitor.runExpression(_importer, expression);
+  Value evaluate(Expression expression) => _visitor.runExpression(expression);
 
   void setVariable(VariableDeclaration declaration) =>
-      _visitor.runStatement(_importer, declaration);
+      _visitor.runStatement(declaration);
 }
 
 /// A visitor that executes Sass code to produce a CSS tree.
@@ -606,17 +600,15 @@ final class _EvaluateVisitor
     }
   }
 
-  Value runExpression(Importer? importer, Expression expression) =>
-      withEvaluationContext(
-          _EvaluationContext(this, expression),
-          () => _withFakeStylesheet(importer, expression,
-              () => _addExceptionTrace(() => expression.accept(this))));
+  Value runExpression(Expression expression) => withEvaluationContext(
+      _EvaluationContext(this, expression),
+      () => _withFakeStylesheet(
+          expression, () => _addExceptionTrace(() => expression.accept(this))));
 
-  void runStatement(Importer? importer, Statement statement) =>
-      withEvaluationContext(
-          _EvaluationContext(this, statement),
-          () => _withFakeStylesheet(importer, statement,
-              () => _addExceptionTrace(() => statement.accept(this))));
+  void runStatement(Statement statement) => withEvaluationContext(
+      _EvaluationContext(this, statement),
+      () => _withFakeStylesheet(
+          statement, () => _addExceptionTrace(() => statement.accept(this))));
 
   /// Asserts that [value] is not `null` and returns it.
   ///
@@ -628,12 +620,11 @@ final class _EvaluateVisitor
     throw StateError("Can't access $name outside of a module.");
   }
 
-  /// Runs [callback] with [importer] as [_importer] and a fake [_stylesheet]
-  /// with [nodeWithSpan]'s source span.
-  T _withFakeStylesheet<T>(
-      Importer? importer, AstNode nodeWithSpan, T callback()) {
+  /// Runs [callback] with a fake [_stylesheet] with [nodeWithSpan]'s source
+  /// span.
+  T _withFakeStylesheet<T>(AstNode nodeWithSpan, T callback()) {
     var oldImporter = _importer;
-    _importer = importer;
+    _importer = null;
 
     assert(__stylesheet == null);
     _stylesheet = Stylesheet(const [], nodeWithSpan.span);

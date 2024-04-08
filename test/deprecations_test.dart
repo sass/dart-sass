@@ -4,9 +4,12 @@
 
 @TestOn('vm')
 
+import 'package:source_span/source_span.dart';
+import 'package:stack_trace/stack_trace.dart';
 import 'package:test/test.dart';
 
 import 'package:sass/sass.dart';
+import 'package:sass/src/logger.dart';
 
 void main() {
   // Deprecated in all version of Dart Sass
@@ -16,7 +19,7 @@ void main() {
 
   // Deprecated in 1.3.2
   test("elseIf is violated by using @elseif instead of @else if", () {
-    _expectDeprecation("@if false {} @elseif {}", Deprecation.elseif);
+    _expectDeprecation("@if false {} @elseif false {}", Deprecation.elseif);
   });
 
   // Deprecated in 1.7.2
@@ -125,15 +128,65 @@ void main() {
           Deprecation.functionUnits);
     });
   });
+
+  // Deprecated in 1.75.0
+  group(
+      "importerWithoutUrl is violated by passing an importer without a base URL to",
+      () {
+    test("compileString", () {
+      var logger = _DeprecationTrackingLogger();
+      compileString("", importer: FilesystemImporter('.'), logger: logger);
+      expect(logger.deprecations, equals({Deprecation.importerWithoutUrl}));
+    });
+
+    test("compileStringAsync", () async {
+      var logger = _DeprecationTrackingLogger();
+      await compileStringAsync("",
+          importer: FilesystemImporter('.'), logger: logger);
+      expect(logger.deprecations, equals({Deprecation.importerWithoutUrl}));
+    });
+
+    test("compileStringToResult", () {
+      var logger = _DeprecationTrackingLogger();
+      compileStringToResult("",
+          importer: FilesystemImporter('.'), logger: logger);
+      expect(logger.deprecations, equals({Deprecation.importerWithoutUrl}));
+    });
+
+    test("compileStringToResultAsync", () async {
+      var logger = _DeprecationTrackingLogger();
+      await compileStringToResultAsync("",
+          importer: FilesystemImporter('.'), logger: logger);
+      expect(logger.deprecations, equals({Deprecation.importerWithoutUrl}));
+    });
+  });
 }
 
-/// Confirms that [source] will error if [deprecation] is fatal.
-void _expectDeprecation(String source, Deprecation deprecation) {
-  try {
-    compileStringToResult(source, fatalDeprecations: {deprecation});
-  } catch (e) {
-    if (e.toString().contains("$deprecation deprecation to be fatal")) return;
-    fail('Unexpected error: $e');
+/// A logger that tracks which deprecations were emitted by a Sass compilation.
+class _DeprecationTrackingLogger extends LoggerWithDeprecationType {
+  /// The deprecations encountered by this logger during the compilation.
+  final deprecations = <Deprecation>{};
+
+  /// The internal logger to which to delegate non-deprecation messages.
+  final _inner = Logger.stderr();
+
+  @override
+  void internalWarn(String message,
+      {FileSpan? span, Trace? trace, Deprecation? deprecation}) {
+    if (deprecation != null) {
+      deprecations.add(deprecation);
+    } else {
+      _inner.warn(message, span: span, trace: trace);
+    }
   }
-  fail("No error for violating $deprecation.");
+
+  @override
+  void debug(String message, SourceSpan span) => _inner.debug(message, span);
+}
+
+/// Verifies that [source] emits [deprecation] when compiled.
+void _expectDeprecation(String source, Deprecation deprecation) {
+  var logger = _DeprecationTrackingLogger();
+  compileStringToResult(source, logger: logger);
+  expect(logger.deprecations, equals({deprecation}));
 }

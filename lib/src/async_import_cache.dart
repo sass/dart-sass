@@ -154,6 +154,8 @@ final class AsyncImportCache {
     }
 
     if (baseImporter != null && url.scheme == '') {
+      // TODO(sass/sass#3831): Throw an ArgumentError here if baseImporter is
+      // passed without a baseUrl as well.
       var relativeResult = await putIfAbsentAsync(
           _relativeCanonicalizeCache,
           (
@@ -182,17 +184,11 @@ final class AsyncImportCache {
 
   /// Calls [importer.canonicalize] and prints a deprecation warning if it
   /// returns a relative URL.
-  ///
-  /// If [resolveUrl] is `true`, this resolves [url] relative to [baseUrl]
-  /// before passing it to [importer].
   Future<AsyncCanonicalizeResult?> _canonicalize(
-      AsyncImporter importer, Uri url, Uri? baseUrl, bool forImport,
-      {bool resolveUrl = false}) async {
-    var resolved =
-        resolveUrl && baseUrl != null ? baseUrl.resolveUri(url) : url;
+      AsyncImporter importer, Uri url, Uri? baseUrl, bool forImport) async {
     var canonicalize = forImport
-        ? () => inImportRule(() => importer.canonicalize(resolved))
-        : () => importer.canonicalize(resolved);
+        ? () => inImportRule(() => importer.canonicalize(url))
+        : () => importer.canonicalize(url);
 
     var passContainingUrl = baseUrl != null &&
         (url.scheme == '' || await importer.isNonCanonicalScheme(url.scheme));
@@ -203,15 +199,15 @@ final class AsyncImportCache {
     if (result.scheme == '') {
       _logger.warnForDeprecation(
           Deprecation.relativeCanonical,
-          "Importer $importer canonicalized $resolved to $result.\n"
+          "Importer $importer canonicalized $url to $result.\n"
           "Relative canonical URLs are deprecated and will eventually be "
           "disallowed.");
     } else if (await importer.isNonCanonicalScheme(result.scheme)) {
-      throw "Importer $importer canonicalized $resolved to $result, which "
+      throw "Importer $importer canonicalized $url to $result, which "
           "uses a scheme declared as non-canonical.";
     }
 
-    return (importer, result, originalUrl: resolved);
+    return (importer, result, originalUrl: url);
   }
 
   /// Tries to import [url] using one of this cache's importers.

@@ -41,12 +41,8 @@ class StylesheetGraph {
   /// Returns whether the stylesheet at [url] or any of the stylesheets it
   /// imports were modified since [since].
   ///
-  /// If [baseImporter] is non-`null`, this first tries to use [baseImporter] to
-  /// import [url] (resolved relative to [baseUrl] if it's passed).
-  ///
   /// Returns `true` if the import cache can't find a stylesheet at [url].
-  bool modifiedSince(Uri url, DateTime since,
-      [Importer? baseImporter, Uri? baseUrl]) {
+  bool modifiedSince(Uri url, DateTime since) {
     DateTime transitiveModificationTime(StylesheetNode node) {
       return _transitiveModificationTimes.putIfAbsent(node.canonicalUrl, () {
         var latest = node.importer.modificationTime(node.canonicalUrl);
@@ -63,7 +59,7 @@ class StylesheetGraph {
       });
     }
 
-    var node = _add(url, baseImporter, baseUrl);
+    var node = _add(url);
     if (node == null) return true;
     return transitiveModificationTime(node).isAfter(since);
   }
@@ -71,14 +67,10 @@ class StylesheetGraph {
   /// Adds the stylesheet at [url] and all the stylesheets it imports to this
   /// graph and returns its node.
   ///
-  /// If [baseImporter] is non-`null`, this first tries to use [baseImporter] to
-  /// import [url] (resolved relative to [baseUrl] if it's passed).
-  ///
   /// Returns `null` if the import cache can't find a stylesheet at [url].
-  StylesheetNode? _add(Uri url, [Importer? baseImporter, Uri? baseUrl]) {
-    var result = _ignoreErrors(() => importCache.canonicalize(url,
-        baseImporter: baseImporter, baseUrl: baseUrl));
-    if (result case (var importer, var canonicalUrl, :var originalUrl)) {
+  StylesheetNode? _add(Uri url) {
+    if (_ignoreErrors(() => importCache.canonicalize(url))
+        case (var importer, var canonicalUrl, :var originalUrl)) {
       addCanonical(importer, canonicalUrl, originalUrl);
       return nodes[canonicalUrl];
     } else {

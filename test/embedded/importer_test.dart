@@ -8,6 +8,7 @@ import 'package:source_maps/source_maps.dart' as source_maps;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 
+import 'package:sass/src/deprecation.dart';
 import 'package:sass/src/embedded/embedded_sass.pb.dart';
 import 'package:sass/src/embedded/utils.dart';
 
@@ -104,6 +105,13 @@ void main() {
         await process.shouldExit(76);
       });
     });
+  });
+
+  test("emits a deprecation for an importer without a base URL", () async {
+    process.send(compileString('',
+        importer: InboundMessage_CompileRequest_Importer()..importerId = 1));
+    await expectDeprecationMessage(process, Deprecation.importerWithoutUrl);
+    await process.close();
   });
 
   group("canonicalization", () {
@@ -522,7 +530,8 @@ void main() {
 
   test("handles an importer for a string compile request", () async {
     process.send(compileString("@import 'other'",
-        importer: InboundMessage_CompileRequest_Importer()..importerId = 1));
+        importer: InboundMessage_CompileRequest_Importer()..importerId = 1,
+        url: "x:foo/bar.scss"));
     await _canonicalize(process);
 
     var request = await getImportRequest(process);

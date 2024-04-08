@@ -74,6 +74,11 @@ enum Deprecation {
       description:
           'Using the current working directory as an implicit load path.'),
 
+  importerWithoutUrl('importer-without-url',
+      deprecatedIn: '1.75.0',
+      description:
+          'Passing a base importer without a base URL to compileString*.'),
+
   @Deprecated('This deprecation name was never actually used.')
   calcInterp('calc-interp', deprecatedIn: null),
 

@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 /// An enum of syntaxes that Sass can parse.
@@ -26,6 +27,16 @@ enum Syntax {
 
   /// The name of the syntax.
   final String _name;
+
+  /// The file extension used for this syntax, including the period.
+  ///
+  /// :nodoc:
+  @internal
+  String get extension => switch (this) {
+        Syntax.sass => '.sass',
+        Syntax.scss => '.scss',
+        Syntax.css => 'css'
+      };
 
   const Syntax(this._name);
 

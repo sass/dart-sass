@@ -8,7 +8,6 @@ import 'package:stack_trace/stack_trace.dart';
 
 import '../deprecation.dart';
 import '../logger.dart';
-import '../util/nullable.dart';
 import '../utils.dart';
 import 'compilation_dispatcher.dart';
 import 'embedded_sass.pb.dart' hide SourceSpan;
@@ -34,7 +33,9 @@ final class EmbeddedLogger extends LoggerWithDeprecationType {
       ..type = LogEventType.DEBUG
       ..message = message
       ..span = protofySpan(span)
-      ..formatted = (span.start.sourceUrl.andThen(p.prettyUri) ?? '-') +
+      ..formatted = (isRealUrl(span.start.sourceUrl)
+              ? p.prettyUri(span.start.sourceUrl)
+              : '-') +
           ':${span.start.line + 1} ' +
           (_color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG') +
           ': $message\n');

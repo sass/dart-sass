@@ -118,6 +118,16 @@ Future<CompileResult> compileStringAsync(String source,
           futureDeprecations: {...?futureDeprecations},
           limitRepetition: !verbose);
 
+  // Allow NoOpImporter because various first-party callers use that to opt out
+  // of the also-deprecated FilesystemImporter.cwd behavior.
+  if (importer != null && importer is! NoOpImporter && url == null) {
+    logger.warnForDeprecation(
+        Deprecation.importerWithoutUrl,
+        "Passing an importer to compileString* without a canonical URL is "
+        "deprecated and will be an error in future versions of Sass. Use the "
+        "importers argument for non-relative loads.");
+  }
+
   var stylesheet =
       Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
 

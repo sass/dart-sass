@@ -74,7 +74,13 @@ class SourceMapBuffer implements StringBuffer {
       if (entry.target.offset == target.offset) return;
     }
 
-    _entries.add(Entry(source, target, null));
+    _entries.add(Entry(
+        isRealUrl(source.sourceUrl)
+            ? source
+            : SourceLocation(source.offset,
+                sourceUrl: null, line: source.line, column: source.column),
+        target,
+        null));
   }
 
   void clear() =>

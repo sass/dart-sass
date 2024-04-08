@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ab2c6fa2588988a86abdbe87512134098e01b39e
+// Checksum: 7e80ff5e991b0815e71b91b23a869222f12cf90b
 //
 // ignore_for_file: unused_import
 
@@ -126,6 +126,16 @@ CompileResult compileString(String source,
           fatalDeprecations: {...?fatalDeprecations},
           futureDeprecations: {...?futureDeprecations},
           limitRepetition: !verbose);
+
+  // Allow NoOpImporter because various first-party callers use that to opt out
+  // of the also-deprecated FilesystemImporter.cwd behavior.
+  if (importer != null && importer is! NoOpImporter && url == null) {
+    logger.warnForDeprecation(
+        Deprecation.importerWithoutUrl,
+        "Passing an importer to compileString* without a canonical URL is "
+        "deprecated and will be an error in future versions of Sass. Use the "
+        "importers argument for non-relative loads.");
+  }
 
   var stylesheet =
       Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
