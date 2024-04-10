@@ -29,7 +29,7 @@ import 'space/xyz_d65.dart';
 ///
 /// {@category Value}
 @sealed
-abstract class ColorSpace {
+abstract base class ColorSpace {
   /// The legacy RGB color space.
   static const ColorSpace rgb = RgbColorSpace();
 
@@ -121,12 +121,6 @@ abstract class ColorSpace {
   @internal
   bool get isBoundedInternal;
 
-  /// See [SassApiColorSpace.isStrictlyBounded].
-  ///
-  /// @nodoc
-  @internal
-  bool get isStrictlyBoundedInternal => false;
-
   /// See [SassApiColorSpace.isLegacy].
   ///
   /// @nodoc
@@ -178,48 +172,83 @@ abstract class ColorSpace {
   ///
   /// @nodoc
   @internal
-  SassColor convert(ColorSpace dest, double channel0, double channel1,
-      double channel2, double alpha) {
+  SassColor convert(ColorSpace dest, double? channel0, double? channel1,
+          double? channel2, double? alpha) =>
+      convertLinear(dest, channel0, channel1, channel2, alpha);
+
+  /// The default implementation of [convert], which always starts with a linear
+  /// transformation from RGB or XYZ channels to a linear destination space, and
+  /// may then further convert to a polar space.
+  ///
+  /// @nodoc
+  @internal
+  @protected
+  @nonVirtual
+  SassColor convertLinear(
+      ColorSpace dest, double? red, double? green, double? blue, double? alpha,
+      {bool missingLightness = false,
+      bool missingChroma = false,
+      bool missingHue = false,
+      bool missingA = false,
+      bool missingB = false}) {
     var linearDest = switch (dest) {
-      ColorSpace.hsl || ColorSpace.hwb => ColorSpace.srgb,
-      ColorSpace.lab || ColorSpace.lch => ColorSpace.xyzD50,
-      ColorSpace.oklab || ColorSpace.oklch => ColorSpace.lms,
+      ColorSpace.hsl || ColorSpace.hwb => const SrgbColorSpace(),
+      ColorSpace.lab || ColorSpace.lch => const XyzD50ColorSpace(),
+      ColorSpace.oklab || ColorSpace.oklch => const LmsColorSpace(),
       _ => dest
     };
 
-    double transformed0;
-    double transformed1;
-    double transformed2;
+    double? transformedRed;
+    double? transformedGreen;
+    double? transformedBlue;
     if (linearDest == this) {
-      transformed0 = channel0;
-      transformed1 = channel1;
-      transformed2 = channel2;
+      transformedRed = red;
+      transformedGreen = green;
+      transformedBlue = blue;
     } else {
-      var linear0 = toLinear(channel0);
-      var linear1 = toLinear(channel1);
-      var linear2 = toLinear(channel2);
+      var linearRed = toLinear(red ?? 0);
+      var linearGreen = toLinear(green ?? 0);
+      var linearBlue = toLinear(blue ?? 0);
       var matrix = transformationMatrix(linearDest);
 
-      // (matrix * [linear0, linear1, linear2]).map(linearDest.fromLinear)
-      transformed0 = linearDest.fromLinear(
-          matrix[0] * linear0 + matrix[1] * linear1 + matrix[2] * linear2);
-      transformed1 = linearDest.fromLinear(
-          matrix[3] * linear0 + matrix[4] * linear1 + matrix[5] * linear2);
-      transformed2 = linearDest.fromLinear(
-          matrix[6] * linear0 + matrix[7] * linear1 + matrix[8] * linear2);
+      // (matrix * [linearRed, linearGreen, linearBlue]).map(linearDest.fromLinear)
+      transformedRed = linearDest.fromLinear(matrix[0] * linearRed +
+          matrix[1] * linearGreen +
+          matrix[2] * linearBlue);
+      transformedGreen = linearDest.fromLinear(matrix[3] * linearRed +
+          matrix[4] * linearGreen +
+          matrix[5] * linearBlue);
+      transformedBlue = linearDest.fromLinear(matrix[6] * linearRed +
+          matrix[7] * linearGreen +
+          matrix[8] * linearBlue);
     }
 
     return switch (dest) {
-      ColorSpace.hsl ||
-      ColorSpace.hwb ||
-      ColorSpace.lab ||
-      ColorSpace.lch ||
-      ColorSpace.oklab ||
-      ColorSpace.oklch =>
-        linearDest.convert(
-            dest, transformed0, transformed1, transformed2, alpha),
+      ColorSpace.hsl || ColorSpace.hwb => const SrgbColorSpace().convert(
+          dest, transformedRed, transformedGreen, transformedBlue, alpha,
+          missingLightness: missingLightness,
+          missingChroma: missingChroma,
+          missingHue: missingHue),
+      ColorSpace.lab || ColorSpace.lch => const XyzD50ColorSpace().convert(
+          dest, transformedRed, transformedGreen, transformedBlue, alpha,
+          missingLightness: missingLightness,
+          missingChroma: missingChroma,
+          missingHue: missingHue,
+          missingA: missingA,
+          missingB: missingB),
+      ColorSpace.oklab || ColorSpace.oklch => const LmsColorSpace().convert(
+          dest, transformedRed, transformedGreen, transformedBlue, alpha,
+          missingLightness: missingLightness,
+          missingChroma: missingChroma,
+          missingHue: missingHue,
+          missingA: missingA,
+          missingB: missingB),
       _ => SassColor.forSpaceInternal(
-          dest, transformed0, transformed1, transformed2, alpha)
+          dest,
+          red == null ? null : transformedRed,
+          green == null ? null : transformedGreen,
+          blue == null ? null : transformedBlue,
+          alpha)
     };
   }
 
@@ -285,15 +314,6 @@ extension SassApiColorSpace on ColorSpace {
 
   /// Whether this color space has a bounded gamut.
   bool get isBounded => isBoundedInternal;
-
-  /// Whether this color space is _strictly_ bounded.
-  ///
-  /// If this is `true`, channel values outside of their bounds are meaningless
-  /// and therefore forbidden, rather than being considered valid but
-  /// out-of-gamut.
-  ///
-  /// This is only `true` if [isBounded] is also `true`.
-  bool get isStrictlyBounded => isStrictlyBoundedInternal;
 
   /// Whether this is a legacy color space.
   bool get isLegacy => isLegacyInternal;

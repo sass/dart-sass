@@ -7,15 +7,15 @@
 import 'package:meta/meta.dart';
 
 import '../../color.dart';
+import 'srgb.dart';
 import 'utils.dart';
 
 /// The legacy HWB color space.
 ///
 /// @nodoc
 @internal
-class HwbColorSpace extends ColorSpace {
+final class HwbColorSpace extends ColorSpace {
   bool get isBoundedInternal => true;
-  bool get isStrictlyBoundedInternal => true;
   bool get isLegacyInternal => true;
   bool get isPolarInternal => true;
 
@@ -26,12 +26,12 @@ class HwbColorSpace extends ColorSpace {
           LinearChannel('blackness', 0, 100, requiresPercent: true)
         ]);
 
-  SassColor convert(ColorSpace dest, double hue, double whiteness,
-      double blackness, double alpha) {
+  SassColor convert(ColorSpace dest, double? hue, double? whiteness,
+      double? blackness, double? alpha) {
     // From https://www.w3.org/TR/css-color-4/#hwb-to-rgb
-    var scaledHue = hue % 360 / 360;
-    var scaledWhiteness = whiteness / 100;
-    var scaledBlackness = blackness / 100;
+    var scaledHue = (hue ?? 0) % 360 / 360;
+    var scaledWhiteness = (whiteness ?? 0) / 100;
+    var scaledBlackness = (blackness ?? 0) / 100;
 
     var sum = scaledWhiteness + scaledBlackness;
     if (sum > 1) {
@@ -44,7 +44,8 @@ class HwbColorSpace extends ColorSpace {
 
     // Non-null because an in-gamut HSL color is guaranteed to be in-gamut for
     // HWB as well.
-    return ColorSpace.srgb.convert(dest, toRgb(scaledHue + 1 / 3),
-        toRgb(scaledHue), toRgb(scaledHue - 1 / 3), alpha);
+    return const SrgbColorSpace().convert(dest, toRgb(scaledHue + 1 / 3),
+        toRgb(scaledHue), toRgb(scaledHue - 1 / 3), alpha,
+        missingHue: hue == null);
   }
 }

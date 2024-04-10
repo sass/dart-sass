@@ -23,7 +23,7 @@ const _beta = 0.018053968510807;
 ///
 /// @nodoc
 @internal
-class Rec2020ColorSpace extends ColorSpace {
+final class Rec2020ColorSpace extends ColorSpace {
   bool get isBoundedInternal => true;
 
   const Rec2020ColorSpace() : super('rec2020', rgbChannels);

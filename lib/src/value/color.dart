@@ -71,8 +71,8 @@ class SassColor extends Value {
   /// @nodoc
   @internal
   bool get isChannel0Powerless => switch (space) {
-        ColorSpace.hsl => fuzzyEquals(channel1, 0) || fuzzyEquals(channel2, 0),
-        ColorSpace.hwb => fuzzyEquals(channel1 + channel2, 100),
+        ColorSpace.hsl => fuzzyEquals(channel1, 0),
+        ColorSpace.hwb => fuzzyGreaterThanOrEquals(channel1 + channel2, 100),
         _ => false
       };
 
@@ -109,15 +109,7 @@ class SassColor extends Value {
   ///
   /// @nodoc
   @internal
-  bool get isChannel1Powerless => switch (space) {
-        ColorSpace.hsl => fuzzyEquals(channel2, 0),
-        ColorSpace.lab ||
-        ColorSpace.oklab ||
-        ColorSpace.lch ||
-        ColorSpace.oklch =>
-          fuzzyEquals(channel0, 0) || fuzzyEquals(channel0, 100),
-        _ => false
-      };
+  final bool isChannel1Powerless = false;
 
   /// This color's second channel.
   ///
@@ -144,12 +136,7 @@ class SassColor extends Value {
   /// @nodoc
   @internal
   bool get isChannel2Powerless => switch (space) {
-        ColorSpace.lab ||
-        ColorSpace.oklab =>
-          fuzzyEquals(channel0, 0) || fuzzyEquals(channel0, 100),
-        ColorSpace.lch || ColorSpace.oklch => fuzzyEquals(channel0, 0) ||
-            fuzzyEquals(channel0, 100) ||
-            fuzzyEquals(channel1, 0),
+        ColorSpace.lch || ColorSpace.oklch => fuzzyEquals(channel1, 0),
         _ => false
       };
 
@@ -209,22 +196,23 @@ class SassColor extends Value {
 
   /// Whether this color is in-gamut for its color space.
   bool get isInGamut {
-    // Strictly-bounded spaces can't even represent out-of-gamut colors, so
-    // any color that exists must be bounded.
-    if (!space.isBounded || space.isStrictlyBounded) return true;
+    if (!space.isBounded) return true;
 
     // There aren't (currently) any color spaces that are bounded but not
     // STRICTLY bounded, and have polar-angle channels.
-    var channel0Info = space.channels[0] as LinearChannel;
-    var channel1Info = space.channels[1] as LinearChannel;
-    var channel2Info = space.channels[2] as LinearChannel;
-    return fuzzyLessThanOrEquals(channel0, channel0Info.max) &&
-        fuzzyGreaterThanOrEquals(channel0, channel0Info.min) &&
-        fuzzyLessThanOrEquals(channel1, channel1Info.max) &&
-        fuzzyGreaterThanOrEquals(channel1, channel1Info.min) &&
-        fuzzyLessThanOrEquals(channel2, channel2Info.max) &&
-        fuzzyGreaterThanOrEquals(channel2, channel2Info.min);
+    return _isChannelInGamut(channel0, space.channels[0]) &&
+        _isChannelInGamut(channel1, space.channels[1]) &&
+        _isChannelInGamut(channel2, space.channels[2]);
   }
+
+  /// Returns whether [value] is in-gamut for the given [channel].
+  bool _isChannelInGamut(double value, ColorChannel channel) =>
+      switch (channel) {
+        LinearChannel(:var min, :var max) =>
+          fuzzyLessThanOrEquals(value, max) &&
+              fuzzyGreaterThanOrEquals(value, min),
+        _ => true
+      };
 
   /// This color's red channel, between `0` and `255`.
   ///
@@ -285,8 +273,8 @@ class SassColor extends Value {
   @internal
   factory SassColor.rgbInternal(num? red, num? green, num? blue,
           [num? alpha = 1, ColorFormat? format]) =>
-      SassColor.forSpaceInternal(ColorSpace.rgb, red?.toDouble(),
-          green?.toDouble(), blue?.toDouble(), alpha?.toDouble(), format);
+      SassColor._forSpace(ColorSpace.rgb, red?.toDouble(), green?.toDouble(),
+          blue?.toDouble(), alpha?.toDouble(), format);
 
   /// Creates a color in [ColorSpace.hsl].
   ///
@@ -299,14 +287,8 @@ class SassColor extends Value {
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.hsl(num? hue, num? saturation, num? lightness,
           [num? alpha = 1]) =>
-      SassColor.forSpaceInternal(
-          ColorSpace.hsl,
-          _normalizeHue(hue?.toDouble()),
-          saturation.andThen((saturation) =>
-              fuzzyAssertRange(saturation.toDouble(), 0, 100, "saturation")),
-          lightness.andThen((lightness) =>
-              fuzzyAssertRange(lightness.toDouble(), 0, 100, "lightness")),
-          alpha?.toDouble());
+      SassColor.forSpaceInternal(ColorSpace.hsl, hue?.toDouble(),
+          saturation?.toDouble(), lightness?.toDouble(), alpha?.toDouble());
 
   /// Creates a color in [ColorSpace.hwb].
   ///
@@ -319,14 +301,8 @@ class SassColor extends Value {
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.hwb(num? hue, num? whiteness, num? blackness,
           [num? alpha = 1]) =>
-      SassColor.forSpaceInternal(
-          ColorSpace.hwb,
-          _normalizeHue(hue?.toDouble()),
-          whiteness.andThen((whiteness) =>
-              fuzzyAssertRange(whiteness.toDouble(), 0, 100, "whiteness")),
-          blackness.andThen((blackness) =>
-              fuzzyAssertRange(blackness.toDouble(), 0, 100, "blackness")),
-          alpha?.toDouble());
+      SassColor.forSpaceInternal(ColorSpace.hwb, hue?.toDouble(),
+          whiteness?.toDouble(), blackness?.toDouble(), alpha?.toDouble());
 
   /// Creates a color in [ColorSpace.srgb].
   ///
@@ -339,7 +315,7 @@ class SassColor extends Value {
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.srgb(double? red, double? green, double? blue,
           [double? alpha = 1]) =>
-      SassColor.forSpaceInternal(ColorSpace.srgb, red, green, blue, alpha);
+      SassColor._forSpace(ColorSpace.srgb, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.srgbLinear].
   ///
@@ -352,8 +328,7 @@ class SassColor extends Value {
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.srgbLinear(double? red, double? green, double? blue,
           [double? alpha = 1]) =>
-      SassColor.forSpaceInternal(
-          ColorSpace.srgbLinear, red, green, blue, alpha);
+      SassColor._forSpace(ColorSpace.srgbLinear, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.displayP3].
   ///
@@ -366,7 +341,7 @@ class SassColor extends Value {
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.displayP3(double? red, double? green, double? blue,
           [double? alpha = 1]) =>
-      SassColor.forSpaceInternal(ColorSpace.displayP3, red, green, blue, alpha);
+      SassColor._forSpace(ColorSpace.displayP3, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.a98Rgb].
   ///
@@ -379,7 +354,7 @@ class SassColor extends Value {
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.a98Rgb(double? red, double? green, double? blue,
           [double? alpha = 1]) =>
-      SassColor.forSpaceInternal(ColorSpace.a98Rgb, red, green, blue, alpha);
+      SassColor._forSpace(ColorSpace.a98Rgb, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.prophotoRgb].
   ///
@@ -392,8 +367,7 @@ class SassColor extends Value {
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.prophotoRgb(double? red, double? green, double? blue,
           [double? alpha = 1]) =>
-      SassColor.forSpaceInternal(
-          ColorSpace.prophotoRgb, red, green, blue, alpha);
+      SassColor._forSpace(ColorSpace.prophotoRgb, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.rec2020].
   ///
@@ -406,7 +380,7 @@ class SassColor extends Value {
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.rec2020(double? red, double? green, double? blue,
           [double? alpha = 1]) =>
-      SassColor.forSpaceInternal(ColorSpace.rec2020, red, green, blue, alpha);
+      SassColor._forSpace(ColorSpace.rec2020, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.xyzD50].
   ///
@@ -419,7 +393,7 @@ class SassColor extends Value {
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.xyzD50(double? x, double? y, double? z,
           [double? alpha = 1]) =>
-      SassColor.forSpaceInternal(ColorSpace.xyzD50, x, y, z, alpha);
+      SassColor._forSpace(ColorSpace.xyzD50, x, y, z, alpha);
 
   /// Creates a color in [ColorSpace.xyzD65].
   ///
@@ -432,7 +406,7 @@ class SassColor extends Value {
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.xyzD65(double? x, double? y, double? z,
           [double? alpha = 1]) =>
-      SassColor.forSpaceInternal(ColorSpace.xyzD65, x, y, z, alpha);
+      SassColor._forSpace(ColorSpace.xyzD65, x, y, z, alpha);
 
   /// Creates a color in [ColorSpace.lab].
   ///
@@ -445,13 +419,7 @@ class SassColor extends Value {
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.lab(double? lightness, double? a, double? b,
           [double? alpha = 1]) =>
-      SassColor.forSpaceInternal(
-          ColorSpace.lab,
-          lightness.andThen(
-              (lightness) => fuzzyAssertRange(lightness, 0, 100, "lightness")),
-          a,
-          b,
-          alpha);
+      SassColor._forSpace(ColorSpace.lab, lightness, a, b, alpha);
 
   /// Creates a color in [ColorSpace.lch].
   ///
@@ -464,13 +432,7 @@ class SassColor extends Value {
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.lch(double? lightness, double? chroma, double? hue,
           [double? alpha = 1]) =>
-      SassColor.forSpaceInternal(
-          ColorSpace.lch,
-          lightness.andThen(
-              (lightness) => fuzzyAssertRange(lightness, 0, 100, "lightness")),
-          chroma,
-          _normalizeHue(hue),
-          alpha);
+      SassColor.forSpaceInternal(ColorSpace.lch, lightness, chroma, hue, alpha);
 
   /// Creates a color in [ColorSpace.oklab].
   ///
@@ -483,13 +445,7 @@ class SassColor extends Value {
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory SassColor.oklab(double? lightness, double? a, double? b,
           [double? alpha = 1]) =>
-      SassColor.forSpaceInternal(
-          ColorSpace.oklab,
-          lightness.andThen(
-              (lightness) => fuzzyAssertRange(lightness, 0, 100, "lightness")),
-          a,
-          b,
-          alpha);
+      SassColor._forSpace(ColorSpace.oklab, lightness, a, b, alpha);
 
   /// Creates a color in [ColorSpace.oklch].
   ///
@@ -503,12 +459,7 @@ class SassColor extends Value {
   factory SassColor.oklch(double? lightness, double? chroma, double? hue,
           [double? alpha = 1]) =>
       SassColor.forSpaceInternal(
-          ColorSpace.oklch,
-          lightness.andThen(
-              (lightness) => fuzzyAssertRange(lightness, 0, 100, "lightness")),
-          chroma,
-          _normalizeHue(hue),
-          alpha);
+          ColorSpace.oklch, lightness, chroma, hue, alpha);
 
   /// Creates a color in the color space named [space].
   ///
@@ -521,52 +472,47 @@ class SassColor extends Value {
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1` or if
   /// [channels] is the wrong length for [space].
   factory SassColor.forSpace(ColorSpace space, List<double?> channels,
-      [double? alpha = 1]) {
-    if (channels.length != space.channels.length) {
-      throw RangeError.value(channels.length, "channels.length",
-          'must be exactly ${space.channels.length} for color space "$space"');
-    } else {
-      var clampChannel0 = space.channels[0].name == "lightness";
-      var clampChannel12 = space == ColorSpace.hsl || space == ColorSpace.hwb;
-      return SassColor.forSpaceInternal(
-          space,
-          clampChannel0
-              ? channels[0].andThen((value) => fuzzyClamp(
-                  value, 0, (space.channels[0] as LinearChannel).max))
-              : channels[0],
-          clampChannel12
-              ? channels[1].andThen((value) => fuzzyClamp(value, 0, 100))
-              : channels[1],
-          clampChannel12
-              ? channels[2].andThen((value) => fuzzyClamp(value, 0, 100))
-              : channels[2],
-          alpha);
-    }
-  }
+          [double? alpha = 1]) =>
+      channels.length == space.channels.length
+          ? SassColor.forSpaceInternal(
+              space, channels[0], channels[1], channels[2], alpha)
+          : throw RangeError.value(channels.length, "channels.length",
+              'must be exactly ${space.channels.length} for color space "$space"');
 
   /// Like [forSpace], but takes three channels explicitly rather than wrapping
   /// and unwrapping them in an array.
   ///
   /// @nodoc
-  @internal
-  SassColor.forSpaceInternal(this._space, this.channel0OrNull,
-      this.channel1OrNull, this.channel2OrNull, double? alpha, [this.format])
+  factory SassColor.forSpaceInternal(ColorSpace space, double? channel0,
+          double? channel1, double? channel2,
+          [double? alpha = 1]) =>
+      switch (space) {
+        ColorSpace.hsl => SassColor._forSpace(
+            space,
+            _normalizeHue(channel0,
+                invert: channel1 != null && fuzzyLessThan(channel1, 0)),
+            channel1?.abs(),
+            channel2,
+            alpha),
+        ColorSpace.hwb => SassColor._forSpace(space,
+            _normalizeHue(channel0, invert: false), channel1, channel2, alpha),
+        ColorSpace.lch || ColorSpace.oklch => SassColor._forSpace(
+            space,
+            channel0,
+            channel1?.abs(),
+            _normalizeHue(channel2,
+                invert: channel1 != null && fuzzyLessThan(channel1, 0)),
+            alpha),
+        _ => SassColor._forSpace(space, channel0, channel1, channel2, alpha)
+      };
+
+  /// Like [forSpaceInternal], but doesn't do _any_ pre-processing of any
+  /// channels.
+  SassColor._forSpace(this._space, this.channel0OrNull, this.channel1OrNull,
+      this.channel2OrNull, double? alpha, [this.format])
       : alphaOrNull =
             alpha.andThen((alpha) => fuzzyAssertRange(alpha, 0, 1, "alpha")) {
     assert(format == null || _space == ColorSpace.rgb);
-    assert(
-        !(space == ColorSpace.hsl || space == ColorSpace.hwb) ||
-            (fuzzyCheckRange(channel1, 0, 100) != null &&
-                fuzzyCheckRange(channel2, 0, 100) != null),
-        "[BUG] Tried to create "
-        "$_space(${channel0OrNull ?? 'none'}, ${channel1OrNull ?? 'none'}, "
-        "${channel2OrNull ?? 'none'})");
-    assert(
-        space.channels[0].name != "lightness" ||
-            fuzzyCheckRange(channel0, 0, 100) != null,
-        "[BUG] Tried to create "
-        "$_space(${channel0OrNull ?? 'none'}, ${channel1OrNull ?? 'none'}, "
-        "${channel2OrNull ?? 'none'})");
     assert(space != ColorSpace.lms);
 
     _checkChannel(channel0OrNull, space.channels[0].name);
@@ -587,9 +533,11 @@ class SassColor extends Value {
   }
 
   /// If [hue] isn't null, normalizes it to the range `[0, 360)`.
-  static double? _normalizeHue(double? hue) {
+  ///
+  /// If [invert] is true, this returns the hue 180deg offset from the original value.
+  static double? _normalizeHue(double? hue, {required bool invert}) {
     if (hue == null) return hue;
-    return (hue % 360 + 360) % 360;
+    return (hue % 360 + 360 + (invert ? 180 : 0)) % 360;
   }
 
   /// @nodoc
@@ -694,7 +642,8 @@ class SassColor extends Value {
   /// automatic conversions.
   SassColor toSpace(ColorSpace space) => this.space == space
       ? this
-      : this.space.convert(space, channel0, channel1, channel2, alpha);
+      : this.space.convert(
+          space, channel0OrNull, channel1OrNull, channel2OrNull, alpha);
 
   /// Returns a copy of this color that's in-gamut in the current color space.
   SassColor toGamut() {
@@ -904,22 +853,8 @@ class SassColor extends Value {
       }
     }
 
-    return SassColor.forSpaceInternal(
-        this.space,
-        _clampChannelIfNecessary(new0, this.space, 0) ?? channel0OrNull,
-        _clampChannelIfNecessary(new1, this.space, 1) ?? channel1OrNull,
-        _clampChannelIfNecessary(new2, this.space, 2) ?? channel2OrNull,
-        alpha ?? alphaOrNull);
-  }
-
-  /// If [space] is strictly bounded and its [index]th channel isn't polar,
-  /// clamps [value] between its minimum and maximum.
-  double? _clampChannelIfNecessary(double? value, ColorSpace space, int index) {
-    if (value == null) return value;
-    if (!space.isStrictlyBounded) return value;
-    var channel = space.channels[index];
-    if (channel is! LinearChannel) return value;
-    return fuzzyClamp(value, channel.min, channel.max);
+    return SassColor.forSpaceInternal(this.space, new0 ?? channel0OrNull,
+        new1 ?? channel1OrNull, new2 ?? channel2OrNull, alpha ?? alphaOrNull);
   }
 
   /// Returns a color partway between [this] and [other] according to [method],

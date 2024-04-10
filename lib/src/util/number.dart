@@ -93,6 +93,11 @@ double fuzzyClamp(double number, double min, double max) {
   return number;
 }
 
+/// Returns whether [number] is within [min] and [max] inclusive, using fuzzy
+/// equality.
+bool fuzzyInRange(double number, num min, num max) =>
+    fuzzyGreaterThanOrEquals(number, min) && fuzzyLessThanOrEquals(number, max);
+
 /// Returns [number] if it's within [min] and [max], or `null` if it's not.
 ///
 /// If [number] is [fuzzyEquals] to [min] or [max], it's clamped to the

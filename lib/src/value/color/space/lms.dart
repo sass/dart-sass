@@ -9,7 +9,6 @@ import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 
-import '../../../util/number.dart';
 import '../../color.dart';
 import '../conversions.dart';
 import 'utils.dart';
@@ -22,7 +21,7 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-class LmsColorSpace extends ColorSpace {
+final class LmsColorSpace extends ColorSpace {
   bool get isBoundedInternal => false;
 
   const LmsColorSpace()
@@ -32,26 +31,31 @@ class LmsColorSpace extends ColorSpace {
           LinearChannel('short', 0, 1)
         ]);
 
-  SassColor convert(
-      ColorSpace dest, double long, double medium, double short, double alpha) {
+  SassColor convert(ColorSpace dest, double? long, double? medium,
+      double? short, double? alpha,
+      {bool missingLightness = false,
+      bool missingChroma = false,
+      bool missingHue = false,
+      bool missingA = false,
+      bool missingB = false}) {
     switch (dest) {
       case ColorSpace.oklab:
         // Algorithm from https://drafts.csswg.org/css-color-4/#color-conversion-code
-        var longScaled = _cubeRootPreservingSign(long);
-        var mediumScaled = _cubeRootPreservingSign(medium);
-        var shortScaled = _cubeRootPreservingSign(short);
+        var longScaled = _cubeRootPreservingSign(long ?? 0);
+        var mediumScaled = _cubeRootPreservingSign(medium ?? 0);
+        var shortScaled = _cubeRootPreservingSign(short ?? 0);
         var lightness = lmsToOklab[0] * longScaled +
             lmsToOklab[1] * mediumScaled +
             lmsToOklab[2] * shortScaled;
 
         return SassColor.oklab(
-            lightness,
-            fuzzyEquals(lightness, 0)
+            missingLightness ? null : lightness,
+            missingA
                 ? null
                 : lmsToOklab[3] * longScaled +
                     lmsToOklab[4] * mediumScaled +
                     lmsToOklab[5] * shortScaled,
-            fuzzyEquals(lightness, 0)
+            missingB
                 ? null
                 : lmsToOklab[6] * longScaled +
                     lmsToOklab[7] * mediumScaled +
@@ -62,24 +66,33 @@ class LmsColorSpace extends ColorSpace {
         // This is equivalent to converting to OKLab and then to OKLCH, but we
         // do it inline to avoid extra list allocations since we expect
         // conversions to and from OKLCH to be very common.
-        var longScaled = _cubeRootPreservingSign(long);
-        var mediumScaled = _cubeRootPreservingSign(medium);
-        var shortScaled = _cubeRootPreservingSign(short);
+        var longScaled = _cubeRootPreservingSign(long ?? 0);
+        var mediumScaled = _cubeRootPreservingSign(medium ?? 0);
+        var shortScaled = _cubeRootPreservingSign(short ?? 0);
         return labToLch(
             dest,
-            lmsToOklab[0] * longScaled +
-                lmsToOklab[1] * mediumScaled +
-                lmsToOklab[2] * shortScaled,
+            missingLightness
+                ? null
+                : lmsToOklab[0] * longScaled +
+                    lmsToOklab[1] * mediumScaled +
+                    lmsToOklab[2] * shortScaled,
             lmsToOklab[3] * longScaled +
                 lmsToOklab[4] * mediumScaled +
                 lmsToOklab[5] * shortScaled,
             lmsToOklab[6] * longScaled +
                 lmsToOklab[7] * mediumScaled +
                 lmsToOklab[8] * shortScaled,
-            alpha);
+            alpha,
+            missingChroma: missingChroma,
+            missingHue: missingHue);
 
       default:
-        return super.convert(dest, long, medium, short, alpha);
+        return super.convertLinear(dest, long, medium, short, alpha,
+            missingLightness: missingLightness,
+            missingChroma: missingChroma,
+            missingHue: missingHue,
+            missingA: missingA,
+            missingB: missingB);
     }
   }
 
