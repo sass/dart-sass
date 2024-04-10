@@ -475,7 +475,10 @@ final module = BuiltInModule("color", functions: <Callable>[
 
   _function("channel", r"$color, $channel, $space: null", (arguments) {
     var color = _colorInSpace(arguments[0], arguments[2]);
-    var channelName = arguments[1].assertString("channel").text.toLowerCase();
+    var channelName = (arguments[1].assertString("channel")
+          ..assertQuoted("channel"))
+        .text
+        .toLowerCase();
     if (channelName == "alpha") return SassNumber(color.alpha);
 
     var channelIndex = color.space.channels
@@ -512,7 +515,9 @@ final module = BuiltInModule("color", functions: <Callable>[
       r"$color, $channel, $space: null",
       (arguments) => SassBoolean(_colorInSpace(arguments[0], arguments[2])
           .isChannelPowerless(
-              arguments[1].assertString("channel").text.toLowerCase(),
+              (arguments[1].assertString("channel")..assertQuoted("channel"))
+                  .text
+                  .toLowerCase(),
               colorName: "color",
               channelName: "channel"))),
 
