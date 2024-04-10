@@ -213,7 +213,7 @@ String _readAndResolveMarkdown(String path) => File(path)
 
 /// Returns a map from JS type declaration file names to their contnets.
 Map<String, String> _fetchJSTypes() {
-  var languageRepo = _updateLanguageRepo();;
+  var languageRepo = _updateLanguageRepo();
 
   var typeRoot = p.join(languageRepo, 'js-api-doc');
   return {
