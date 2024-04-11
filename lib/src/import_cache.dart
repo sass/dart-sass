@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 29c87299b63412ccb46c526f9b58dfa8c7b9e17b
+// Checksum: 37dd173d676ec6cf201a25b3cca9ac81d92b1433
 //
 // ignore_for_file: unused_import
 
@@ -174,6 +174,12 @@ final class ImportCache {
     var key = (url, forImport: forImport);
     if (_canonicalizeCache.containsKey(key)) return _canonicalizeCache[key];
 
+    // Each indivudal call to a `canonicalize()` override may not be cacheable
+    // (specifically, if it has access to `containingUrl` it's too
+    // context-sensitive to usefully cache). We want to cache a given URL across
+    // the _entire_ importer chain, so we use [cacheable] to track whether _all_
+    // `canonicalize()` calls we've attempted are cacheable. Only if they are do
+    // we store the result in the cache.
     var cacheable = true;
     for (var importer in _importers) {
       switch (_canonicalize(importer, url, baseUrl, forImport)) {

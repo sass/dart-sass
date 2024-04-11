@@ -174,6 +174,12 @@ final class AsyncImportCache {
     var key = (url, forImport: forImport);
     if (_canonicalizeCache.containsKey(key)) return _canonicalizeCache[key];
 
+    // Each indivudal call to a `canonicalize()` override may not be cacheable
+    // (specifically, if it has access to `containingUrl` it's too
+    // context-sensitive to usefully cache). We want to cache a given URL across
+    // the _entire_ importer chain, so we use [cacheable] to track whether _all_
+    // `canonicalize()` calls we've attempted are cacheable. Only if they are do
+    // we store the result in the cache.
     var cacheable = true;
     for (var importer in _importers) {
       switch (await _canonicalize(importer, url, baseUrl, forImport)) {
