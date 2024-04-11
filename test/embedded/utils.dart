@@ -7,6 +7,7 @@ import 'package:test/test.dart';
 
 import 'package:sass/src/embedded/embedded_sass.pb.dart';
 import 'package:sass/src/embedded/utils.dart';
+import 'package:sass/src/util/nullable.dart';
 
 import 'embedded_process.dart';
 
@@ -27,7 +28,10 @@ InboundMessage compileString(String css,
     bool? sourceMapIncludeSources,
     Iterable<InboundMessage_CompileRequest_Importer>? importers,
     InboundMessage_CompileRequest_Importer? importer,
-    Iterable<String>? functions}) {
+    Iterable<String>? functions,
+    Iterable<String>? fatalDeprecations,
+    Iterable<String>? futureDeprecations,
+    Iterable<String>? silenceDeprecations}) {
   var input = InboundMessage_CompileRequest_StringInput()..source = css;
   if (syntax != null) input.syntax = syntax;
   if (url != null) input.url = url;
@@ -43,7 +47,9 @@ InboundMessage compileString(String css,
   if (functions != null) request.globalFunctions.addAll(functions);
   if (alertColor != null) request.alertColor = alertColor;
   if (alertAscii != null) request.alertAscii = alertAscii;
-
+  fatalDeprecations.andThen(request.fatalDeprecation.addAll);
+  futureDeprecations.andThen(request.futureDeprecation.addAll);
+  silenceDeprecations.andThen(request.silenceDeprecation.addAll);
   return InboundMessage()..compileRequest = request;
 }
 

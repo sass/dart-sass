@@ -49,6 +49,18 @@
 * Added `SassNumber.convertValueToUnit()` as a shorthand for
   `SassNumber.convertValue()` with a single numerator.
 
+## 10.2.0
+
+* No user-visible changes.
+
+## 10.1.1
+
+* No user-visible changes.
+
+## 10.1.0
+
+* No user-visible changes.
+
 ## 10.0.0
 
 * Remove the `allowPlaceholders` argument from `SelectorList.parse()`. Instead,
@@ -146,7 +158,7 @@
 
 * All uses of classes from the `tuple` package have been replaced by record
   types.
-  
+
 ## 7.2.2
 
 * No user-visible changes.

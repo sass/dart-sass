@@ -154,64 +154,85 @@ final class AsyncImportCache {
     }
 
     if (baseImporter != null && url.scheme == '') {
-      var relativeResult = await putIfAbsentAsync(
-          _relativeCanonicalizeCache,
-          (
-            url,
-            forImport: forImport,
-            baseImporter: baseImporter,
-            baseUrl: baseUrl
-          ),
-          () => _canonicalize(baseImporter, baseUrl?.resolveUri(url) ?? url,
-              baseUrl, forImport));
+      var relativeResult = await putIfAbsentAsync(_relativeCanonicalizeCache, (
+        url,
+        forImport: forImport,
+        baseImporter: baseImporter,
+        baseUrl: baseUrl
+      ), () async {
+        var (result, cacheable) = await _canonicalize(
+            baseImporter, baseUrl?.resolveUri(url) ?? url, baseUrl, forImport);
+        assert(
+            cacheable,
+            "Relative loads should always be cacheable because they never "
+            "provide access to the containing URL.");
+        return result;
+      });
       if (relativeResult != null) return relativeResult;
     }
 
-    return await putIfAbsentAsync(
-        _canonicalizeCache, (url, forImport: forImport), () async {
-      for (var importer in _importers) {
-        if (await _canonicalize(importer, url, baseUrl, forImport)
-            case var result?) {
-          return result;
-        }
-      }
+    var key = (url, forImport: forImport);
+    if (_canonicalizeCache.containsKey(key)) return _canonicalizeCache[key];
 
-      return null;
-    });
+    // Each indivudal call to a `canonicalize()` override may not be cacheable
+    // (specifically, if it has access to `containingUrl` it's too
+    // context-sensitive to usefully cache). We want to cache a given URL across
+    // the _entire_ importer chain, so we use [cacheable] to track whether _all_
+    // `canonicalize()` calls we've attempted are cacheable. Only if they are do
+    // we store the result in the cache.
+    var cacheable = true;
+    for (var importer in _importers) {
+      switch (await _canonicalize(importer, url, baseUrl, forImport)) {
+        case (var result?, true) when cacheable:
+          _canonicalizeCache[key] = result;
+          return result;
+
+        case (var result?, _):
+          return result;
+
+        case (_, false):
+          cacheable = false;
+      }
+    }
+
+    if (cacheable) _canonicalizeCache[key] = null;
+    return null;
   }
 
   /// Calls [importer.canonicalize] and prints a deprecation warning if it
   /// returns a relative URL.
   ///
-  /// If [resolveUrl] is `true`, this resolves [url] relative to [baseUrl]
-  /// before passing it to [importer].
-  Future<AsyncCanonicalizeResult?> _canonicalize(
-      AsyncImporter importer, Uri url, Uri? baseUrl, bool forImport,
-      {bool resolveUrl = false}) async {
-    var resolved =
-        resolveUrl && baseUrl != null ? baseUrl.resolveUri(url) : url;
+  /// This returns both the result of the call to `canonicalize()` and whether
+  /// that result is cacheable at all.
+  Future<(AsyncCanonicalizeResult?, bool cacheable)> _canonicalize(
+      AsyncImporter importer, Uri url, Uri? baseUrl, bool forImport) async {
     var canonicalize = forImport
-        ? () => inImportRule(() => importer.canonicalize(resolved))
-        : () => importer.canonicalize(resolved);
+        ? () => inImportRule(() => importer.canonicalize(url))
+        : () => importer.canonicalize(url);
 
     var passContainingUrl = baseUrl != null &&
         (url.scheme == '' || await importer.isNonCanonicalScheme(url.scheme));
     var result = await withContainingUrl(
         passContainingUrl ? baseUrl : null, canonicalize);
-    if (result == null) return null;
+
+    // TODO(sass/dart-sass#2208): Determine whether the containing URL was
+    // _actually_ accessed rather than assuming it was.
+    var cacheable = !passContainingUrl || importer is FilesystemImporter;
+
+    if (result == null) return (null, cacheable);
 
     if (result.scheme == '') {
       _logger.warnForDeprecation(
           Deprecation.relativeCanonical,
-          "Importer $importer canonicalized $resolved to $result.\n"
+          "Importer $importer canonicalized $url to $result.\n"
           "Relative canonical URLs are deprecated and will eventually be "
           "disallowed.");
     } else if (await importer.isNonCanonicalScheme(result.scheme)) {
-      throw "Importer $importer canonicalized $resolved to $result, which "
-          "uses a scheme declared as non-canonical.";
+      throw "Importer $importer canonicalized $url to $result, which uses a "
+          "scheme declared as non-canonical.";
     }
 
-    return (importer, result, originalUrl: resolved);
+    return ((importer, result, originalUrl: url), cacheable);
   }
 
   /// Tries to import [url] using one of this cache's importers.

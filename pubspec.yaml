@@ -1,5 +1,5 @@
 name: sass
-version: 1.74.0-dev # TODO: update the color-functions deprecation when this is updated
+version: 1.76.0-dev # TODO: update the color-functions deprecation when this is updated
 description: A Sass implementation in Dart.
 homepage: https://github.com/sass/dart-sass
 

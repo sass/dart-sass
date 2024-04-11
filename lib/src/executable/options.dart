@@ -95,29 +95,10 @@ final class ExecutableOptions {
           help: 'Deprecations to treat as errors. You may also pass a Sass\n'
               'version to include any behavior deprecated in or before it.\n'
               'See https://sass-lang.com/documentation/breaking-changes for \n'
-              'a complete list.',
-          allowedHelp: {
-            for (var deprecation in Deprecation.values)
-              if (deprecation
-                  case Deprecation(
-                    deprecatedIn: _?,
-                    :var id,
-                    :var description?
-                  ))
-                id: description
-          })
+              'a complete list.')
+      ..addMultiOption('silence-deprecation', help: 'Deprecations to ignore.')
       ..addMultiOption('future-deprecation',
-          help: 'Opt in to a deprecation early.',
-          allowedHelp: {
-            for (var deprecation in Deprecation.values)
-              if (deprecation
-                  case Deprecation(
-                    deprecatedIn: null,
-                    :var id,
-                    :var description?
-                  ))
-                id: description
-          });
+          help: 'Opt in to a deprecation early.');
 
     parser
       ..addSeparator(_separator('Other'))
@@ -520,6 +501,12 @@ final class ExecutableOptions {
         ? p.relative(path, from: p.dirname(destination!))
         : p.absolute(path));
   }
+
+  /// The set of deprecations whose warnings should be silenced.
+  Set<Deprecation> get silenceDeprecations => {
+        for (var id in _options['silence-deprecation'] as List<String>)
+          Deprecation.fromId(id) ?? _fail('Invalid deprecation "$id".')
+      };
 
   /// The set of deprecations that cause errors.
   Set<Deprecation> get fatalDeprecations => _fatalDeprecations ??= () {

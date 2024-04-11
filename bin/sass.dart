@@ -15,7 +15,7 @@ import 'package:sass/src/executable/watch.dart';
 import 'package:sass/src/import_cache.dart';
 import 'package:sass/src/importer/filesystem.dart';
 import 'package:sass/src/io.dart';
-import 'package:sass/src/logger/deprecation_handling.dart';
+import 'package:sass/src/logger/deprecation_processing.dart';
 import 'package:sass/src/stylesheet_graph.dart';
 import 'package:sass/src/utils.dart';
 import 'package:sass/src/embedded/executable.dart'
@@ -53,7 +53,8 @@ Future<void> main(List<String> args) async {
         // limit repetition. A separate DeprecationHandlingLogger is created for
         // each compilation, which will limit repetition if verbose is not
         // passed in addition to handling fatal/future deprecations.
-        logger: DeprecationHandlingLogger(options.logger,
+        logger: DeprecationProcessingLogger(options.logger,
+            silenceDeprecations: options.silenceDeprecations,
             fatalDeprecations: options.fatalDeprecations,
             futureDeprecations: options.futureDeprecations,
             limitRepetition: false)));
