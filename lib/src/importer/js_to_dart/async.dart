@@ -20,7 +20,7 @@ import 'utils.dart';
 /// a Dart [AsyncImporter].
 final class JSToDartAsyncImporter extends AsyncImporter {
   /// The wrapped canonicalize function.
-  final Object? Function(String, CanonicalizeContext) _canonicalize;
+  final Object? Function(String, JSCanonicalizeContext) _canonicalize;
 
   /// The wrapped load function.
   final Object? Function(JSUrl) _load;
@@ -39,10 +39,7 @@ final class JSToDartAsyncImporter extends AsyncImporter {
 
   FutureOr<Uri?> canonicalize(Uri url) async {
     var result = wrapJSExceptions(() => _canonicalize(
-        url.toString(),
-        CanonicalizeContext(
-            fromImport: fromImport,
-            containingUrl: containingUrl.andThen(dartToJSUrl))));
+        url.toString(), dartToJSCanonicalizeContext(canonicalizeContext)));
     if (isPromise(result)) result = await promiseToFuture(result as Promise);
     if (result == null) return null;
 

@@ -11,7 +11,6 @@ import 'package:node_interop/util.dart';
 import '../../js/importer.dart';
 import '../../js/url.dart';
 import '../../js/utils.dart';
-import '../../util/nullable.dart';
 import '../async.dart';
 import '../filesystem.dart';
 import '../result.dart';
@@ -21,7 +20,7 @@ import '../utils.dart';
 /// it as a Dart [AsyncImporter].
 final class JSToDartAsyncFileImporter extends AsyncImporter {
   /// The wrapped `findFileUrl` function.
-  final Object? Function(String, CanonicalizeContext) _findFileUrl;
+  final Object? Function(String, JSCanonicalizeContext) _findFileUrl;
 
   JSToDartAsyncFileImporter(this._findFileUrl);
 
@@ -29,10 +28,7 @@ final class JSToDartAsyncFileImporter extends AsyncImporter {
     if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);
 
     var result = wrapJSExceptions(() => _findFileUrl(
-        url.toString(),
-        CanonicalizeContext(
-            fromImport: fromImport,
-            containingUrl: containingUrl.andThen(dartToJSUrl))));
+        url.toString(), dartToJSCanonicalizeContext(canonicalizeContext)));
     if (isPromise(result)) result = await promiseToFuture(result as Promise);
     if (result == null) return null;
     if (!isJSUrl(result)) {

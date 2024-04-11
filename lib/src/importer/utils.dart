@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:path/path.dart' as p;
 
 import '../io.dart';
+import './canonicalize_context.dart';
 
 /// Whether the Sass compiler is currently evaluating an `@import` rule.
 ///
@@ -15,30 +16,35 @@ import '../io.dart';
 /// canonicalization should be identical for `@import` and `@use` rules. It's
 /// admittedly hacky to set this globally, but `@import` will eventually be
 /// removed, at which point we can delete this and have one consistent behavior.
-bool get fromImport => Zone.current[#_inImportRule] as bool? ?? false;
+bool get fromImport =>
+    ((Zone.current[#_canonicalizeContext] as CanonicalizeContext?)
+            ?.fromImport ??
+        false);
 
-/// The URL of the stylesheet that contains the current load.
-Uri? get containingUrl => switch (Zone.current[#_containingUrl]) {
+/// The CanonicalizeContext of the current load.
+CanonicalizeContext get canonicalizeContext =>
+    switch (Zone.current[#_canonicalizeContext]) {
       null => throw StateError(
-          "containingUrl may only be accessed within a call to canonicalize()."),
-      #_none => null,
-      Uri url => url,
+          "canonicalizeContext may only be accessed within a call to canonicalize()."),
+      CanonicalizeContext context => context,
       var value => throw StateError(
-          "Unexpected Zone.current[#_containingUrl] value $value.")
+          "Unexpected Zone.current[#_canonicalizeContext] value $value.")
     };
 
 /// Runs [callback] in a context where [fromImport] returns `true` and
 /// [resolveImportPath] uses `@import` semantics rather than `@use` semantics.
 T inImportRule<T>(T callback()) =>
-    runZoned(callback, zoneValues: {#_inImportRule: true});
+    switch (Zone.current[#_canonicalizeContext]) {
+      null => runZoned(callback,
+          zoneValues: {#_canonicalizeContext: CanonicalizeContext(null, true)}),
+      CanonicalizeContext context => context.withFromImport(true, callback),
+      var value => throw StateError(
+          "Unexpected Zone.current[#_canonicalizeContext] value $value.")
+    };
 
-/// Runs [callback] in a context where [containingUrl] returns [url].
-///
-/// If [when] is `false`, runs [callback] without setting [containingUrl].
-T withContainingUrl<T>(Uri? url, T callback()) =>
-    // Use #_none as a sentinel value so we can distinguish a containing URL
-    // that's set to null from one that's unset at all.
-    runZoned(callback, zoneValues: {#_containingUrl: url ?? #_none});
+/// Runs [callback] in the given context.
+T withCanonicalizeContext<T>(CanonicalizeContext? context, T callback()) =>
+    runZoned(callback, zoneValues: {#_canonicalizeContext: context});
 
 /// Resolves an imported path using the same logic as the filesystem importer.
 ///

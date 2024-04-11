@@ -21,10 +21,12 @@ final class FileImporter extends ImporterBase {
       ..importerId = _importerId
       ..url = url.toString()
       ..fromImport = fromImport;
+    var containingUrl = canonicalizeContext.containingUrlWithoutMarking;
     if (containingUrl case var containingUrl?) {
       request.containingUrl = containingUrl.toString();
     }
     var response = dispatcher.sendFileImportRequest(request);
+    if (!response.containingUrlUnused) canonicalizeContext.containingUrl;
 
     switch (response.whichResult()) {
       case InboundMessage_FileImportResponse_Result.fileUrl:

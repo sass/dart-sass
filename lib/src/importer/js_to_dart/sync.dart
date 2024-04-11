@@ -16,7 +16,7 @@ import 'utils.dart';
 /// [Importer].
 final class JSToDartImporter extends Importer {
   /// The wrapped canonicalize function.
-  final Object? Function(String, CanonicalizeContext) _canonicalize;
+  final Object? Function(String, JSCanonicalizeContext) _canonicalize;
 
   /// The wrapped load function.
   final Object? Function(JSUrl) _load;
@@ -35,10 +35,7 @@ final class JSToDartImporter extends Importer {
 
   Uri? canonicalize(Uri url) {
     var result = wrapJSExceptions(() => _canonicalize(
-        url.toString(),
-        CanonicalizeContext(
-            fromImport: fromImport,
-            containingUrl: containingUrl.andThen(dartToJSUrl))));
+        url.toString(), dartToJSCanonicalizeContext(canonicalizeContext)));
     if (result == null) return null;
     if (isJSUrl(result)) return jsToDartUrl(result as JSUrl);
 
