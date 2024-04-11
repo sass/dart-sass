@@ -336,4 +336,4 @@ String _updateLanguageRepo() =>
             Platform.environment['UPDATE_SASS_PROTOCOL'] != 'false'
         ? cloneOrCheckout("https://github.com/sass/sass.git", "main",
             name: 'language')
-        : 'build/language/sass';
+        : 'build/language';
