@@ -69,14 +69,14 @@ enum Deprecation {
       deprecatedIn: '1.62.3',
       description: 'Passing null as alpha in the ${isJS ? 'JS' : 'Dart'} API.'),
 
-  color4Api('color-4-api',
-      deprecatedIn: '1.70.0',
-      description: 'Methods of interacting with legacy SassColors.'),
-
   fsImporterCwd('fs-importer-cwd',
       deprecatedIn: '1.73.0',
       description:
           'Using the current working directory as an implicit load path.'),
+
+  color4Api('color-4-api',
+      deprecatedIn: '1.76.0',
+      description: 'Methods of interacting with legacy SassColors.'),
 
   colorFunctions('color-functions',
       deprecatedIn: '1.76.0',

@@ -5,6 +5,12 @@
   is now interpreted as a percentage, instead of ignoring the unit. For example,
   `color.change(red, $alpha: 50%)` now returns `rgb(255 0 0 / 0.5)`.
 
+* **Potentially breaking compatibility fix**: Passing large positive or negative
+  values to `color.adjust()` can now cause a color's channels to go outside that
+  color's gamut. In most cases this will currently be clipped by the browser and
+  end up showing the same color as before, but once browsers implement gamut
+  mapping it may produce a different result.
+
 * Add support for CSS Color Level 4 [color spaces]. Each color value now tracks
   its color space along with the values of each channel in that color space.
   There are two general principles to keep in mind when dealing with new color

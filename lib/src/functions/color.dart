@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:collection';
+import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 
@@ -423,11 +424,21 @@ final module = BuiltInModule("color", functions: <Callable>[
       (arguments) => SassString(arguments.first.assertColor("color").space.name,
           quotes: false)),
 
-  _function(
-      "to-space",
-      r"$color, $space",
-      (arguments) =>
-          _colorInSpace(arguments[0], arguments[1].assertString("space"))),
+  _function("to-space", r"$color, $space", (arguments) {
+    var converted = _colorInSpace(arguments[0], arguments[1]);
+    // `color.to-space()` never returns missing channels for legacy color
+    // spaces because they're less compatible and users are probably using a
+    // legacy space because they want a highly compatible color.
+    return converted.isLegacy &&
+            (converted.isChannel0Missing ||
+                converted.isChannel1Missing ||
+                converted.isChannel2Missing ||
+                converted.isAlphaMissing) &&
+            converted.space != (arguments[0] as SassColor).space
+        ? SassColor.forSpaceInternal(converted.space, converted.channel0,
+            converted.channel1, converted.channel2, converted.alpha)
+        : converted;
+  }),
 
   _function("is-legacy", r"$color",
       (arguments) => SassBoolean(arguments[0].assertColor("color").isLegacy)),
@@ -459,7 +470,7 @@ final module = BuiltInModule("color", functions: <Callable>[
             ? ColorSpace.srgb
             : space)
         .toGamut()
-        .toSpace(space);
+        .toSpace(color.space);
   }),
 
   _function("channel", r"$color, $channel, $space: null", (arguments) {
@@ -706,7 +717,7 @@ SassColor _updateComponents(List<Value> arguments,
           : _colorInSpace(originalColor, spaceKeyword ?? sassNull);
 
   var oldChannels = color.channels;
-  var channelArgs = List<SassNumber?>.filled(oldChannels.length, null);
+  var channelArgs = List<Value?>.filled(oldChannels.length, null);
   var channelInfo = color.space.channels;
   for (var (name, value) in keywords.pairs) {
     var channelIndex = channelInfo.indexWhere((info) => name == info.name);
@@ -716,14 +727,21 @@ SassColor _updateComponents(List<Value> arguments,
           name);
     }
 
-    channelArgs[channelIndex] = value.assertNumber(name);
+    channelArgs[channelIndex] = value;
   }
 
-  var result = change
-      ? _changeColor(color, channelArgs, alphaArg)
-      : scale
-          ? _scaleColor(color, channelArgs, alphaArg)
-          : _adjustColor(color, channelArgs, alphaArg);
+  SassColor result;
+  if (change) {
+    result = _changeColor(color, channelArgs, alphaArg);
+  } else {
+    var channelNumbers = [
+      for (var i = 0; i < channelInfo.length; i++)
+        channelArgs[i]?.assertNumber(channelInfo[i].name)
+    ];
+    result = scale
+        ? _scaleColor(color, channelNumbers, alphaArg)
+        : _adjustColor(color, channelNumbers, alphaArg);
+  }
 
   return result.toSpace(originalColor.space);
 }
@@ -731,35 +749,53 @@ SassColor _updateComponents(List<Value> arguments,
 /// Returns a copy of [color] with its channel values replaced by those in
 /// [channelArgs] and [alphaArg], if specified.
 SassColor _changeColor(
-    SassColor color, List<SassNumber?> channelArgs, SassNumber? alphaArg) {
-  var latterUnits =
-      color.space == ColorSpace.hsl || color.space == ColorSpace.hwb
-          ? '%'
-          : null;
-  return _colorFromChannels(
-      color.space,
-      channelArgs[0] ?? SassNumber(color.channel0),
-      channelArgs[1] ?? SassNumber(color.channel1, latterUnits),
-      channelArgs[2] ?? SassNumber(color.channel2, latterUnits),
-      alphaArg.andThen((alphaArg) {
-            if (!alphaArg.hasUnits) {
-              return alphaArg.value;
-            } else if (alphaArg.hasUnit('%')) {
-              return alphaArg.value / 100;
-            } else {
-              warnForDeprecation(
-                  "\$alpha: Passing a unit other than % ($alphaArg) is "
-                  "deprecated.\n"
-                  "\n"
-                  "To preserve current behavior: "
-                  "${alphaArg.unitSuggestion('alpha')}\n"
-                  "\n"
-                  "See https://sass-lang.com/d/function-units",
-                  Deprecation.functionUnits);
-              return alphaArg.value;
-            }
-          }) ??
-          color.alpha);
+        SassColor color, List<Value?> channelArgs, SassNumber? alphaArg) =>
+    _colorFromChannels(
+        color.space,
+        _channelForChange(channelArgs[0], color, 0),
+        _channelForChange(channelArgs[1], color, 1),
+        _channelForChange(channelArgs[2], color, 2),
+        alphaArg.andThen((alphaArg) {
+              if (!alphaArg.hasUnits) {
+                return alphaArg.value;
+              } else if (alphaArg.hasUnit('%')) {
+                return alphaArg.value / 100;
+              } else {
+                warnForDeprecation(
+                    "\$alpha: Passing a unit other than % ($alphaArg) is "
+                    "deprecated.\n"
+                    "\n"
+                    "To preserve current behavior: "
+                    "${alphaArg.unitSuggestion('alpha')}\n"
+                    "\n"
+                    "See https://sass-lang.com/d/function-units",
+                    Deprecation.functionUnits);
+                return alphaArg.value;
+              }
+            }) ??
+            color.alpha,
+        clamp: false);
+
+/// Returns the value for a single channel in `color.change()`.
+///
+/// The [channelArg] is the argument passed in by the user, if one exists. If no
+/// argument is passed, the channel at [index] in [color] is used instead.
+SassNumber? _channelForChange(Value? channelArg, SassColor color, int channel) {
+  if (channelArg == null) {
+    return switch (color.channelsOrNull[channel]) {
+      var value? => SassNumber(
+          value,
+          (color.space == ColorSpace.hsl || color.space == ColorSpace.hwb) &&
+                  channel > 0
+              ? '%'
+              : null),
+      _ => null
+    };
+  }
+  if (_isNone(channelArg)) return null;
+  if (channelArg is SassNumber) return channelArg;
+  throw SassScriptException('$channelArg is not a number or unquoted "none".',
+      color.space.channels[channel].name);
 }
 
 /// Returns a copy of [color] with its channel values scaled by the values in
@@ -852,10 +888,15 @@ double _adjustChannel(ColorSpace space, ColorChannel channel, double oldValue,
       adjustmentArg = SassNumber(adjustmentArg.value);
   }
 
-  var result = oldValue + _channelFromValue(channel, adjustmentArg)!;
-  return space.isStrictlyBounded && channel is LinearChannel
-      ? fuzzyClamp(result, channel.min, channel.max)
-      : result;
+  var result =
+      oldValue + _channelFromValue(channel, adjustmentArg, clamp: false)!;
+  return switch (channel) {
+    LinearChannel(lowerClamped: true, :var min) when result < min =>
+      oldValue < min ? math.max(oldValue, result) : min,
+    LinearChannel(upperClamped: true, :var max) when result > max =>
+      oldValue > max ? math.min(oldValue, result) : max,
+    _ => result
+  };
 }
 
 /// Given a map of arguments passed to [_updateComponents] for a legacy color,
@@ -1311,24 +1352,28 @@ Value? _parseNumberOrNone(String text) {
 
 /// Creates a [SassColor] for the given [space] from the given channel values,
 /// or throws a [SassScriptException] if the channel values are invalid.
+///
+/// If [clamp] is true, this will clamp any clamped channels.
 SassColor _colorFromChannels(ColorSpace space, SassNumber? channel0,
     SassNumber? channel1, SassNumber? channel2, double? alpha,
-    {bool fromRgbFunction = false}) {
+    {bool clamp = true, bool fromRgbFunction = false}) {
   switch (space) {
     case ColorSpace.hsl:
       if (channel1 != null) _checkPercent(channel1, 'saturation');
       if (channel2 != null) _checkPercent(channel2, 'lightness');
       return SassColor.hsl(
           channel0.andThen((channel0) => _angleValue(channel0, 'hue')),
-          channel1?.value.clamp(0, 100).toDouble(),
-          channel2?.value.clamp(0, 100).toDouble(),
+          _channelFromValue(space.channels[1], _forcePercent(channel1),
+              clamp: clamp),
+          _channelFromValue(space.channels[2], _forcePercent(channel2),
+              clamp: clamp),
           alpha);
 
     case ColorSpace.hwb:
       channel1?.assertUnit('%', 'whiteness');
       channel2?.assertUnit('%', 'blackness');
-      var whiteness = channel1?.value.clamp(0, 100).toDouble();
-      var blackness = channel2?.value.clamp(0, 100).toDouble();
+      var whiteness = channel1?.value.toDouble();
+      var blackness = channel2?.value.toDouble();
 
       if (whiteness != null &&
           blackness != null &&
@@ -1346,44 +1391,48 @@ SassColor _colorFromChannels(ColorSpace space, SassNumber? channel0,
 
     case ColorSpace.rgb:
       return SassColor.rgbInternal(
-          _channelFromValue(space.channels[0], channel0),
-          _channelFromValue(space.channels[1], channel1),
-          _channelFromValue(space.channels[2], channel2),
+          _channelFromValue(space.channels[0], channel0, clamp: clamp),
+          _channelFromValue(space.channels[1], channel1, clamp: clamp),
+          _channelFromValue(space.channels[2], channel2, clamp: clamp),
           alpha,
           fromRgbFunction ? ColorFormat.rgbFunction : null);
-
-    case ColorSpace.lab ||
-          ColorSpace.lch ||
-          ColorSpace.oklab ||
-          ColorSpace.oklch:
-      return SassColor.forSpaceInternal(
-          space,
-          _channelFromValue(space.channels[0], channel0).andThen((lightness) =>
-              fuzzyClamp(
-                  lightness, 0, (space.channels[0] as LinearChannel).max)),
-          _channelFromValue(space.channels[1], channel1),
-          _channelFromValue(space.channels[2], channel2),
-          alpha);
 
     default:
       return SassColor.forSpaceInternal(
           space,
-          _channelFromValue(space.channels[0], channel0),
-          _channelFromValue(space.channels[1], channel1),
-          _channelFromValue(space.channels[2], channel2),
+          _channelFromValue(space.channels[0], channel0, clamp: clamp),
+          _channelFromValue(space.channels[1], channel1, clamp: clamp),
+          _channelFromValue(space.channels[2], channel2, clamp: clamp),
           alpha);
   }
 }
 
+/// Returns [number] with unit `'%'` regardless of its original unit.
+SassNumber? _forcePercent(SassNumber? number) => switch (number) {
+      null => null,
+      SassNumber(numeratorUnits: ['%'], denominatorUnits: []) => number,
+      _ => SassNumber(number.value, '%')
+    };
+
 /// Converts a channel value from a [SassNumber] into a [double] according to
 /// [channel].
-double? _channelFromValue(ColorChannel channel, SassNumber? value) =>
+///
+/// If [clamp] is true, this clamps [value] according to [channel]'s clamping
+/// rules.
+double? _channelFromValue(ColorChannel channel, SassNumber? value,
+        {bool clamp = true}) =>
     value.andThen((value) => switch (channel) {
           LinearChannel(requiresPercent: true) when !value.hasUnit('%') =>
             throw SassScriptException(
                 'Expected $value to have unit "%".', channel.name),
-          LinearChannel() =>
+          LinearChannel(lowerClamped: false, upperClamped: false) =>
             _percentageOrUnitless(value, channel.max, channel.name),
+          LinearChannel() when !clamp =>
+            _percentageOrUnitless(value, channel.max, channel.name),
+          LinearChannel(:var lowerClamped, :var upperClamped) =>
+            _percentageOrUnitless(value, channel.max, channel.name).clamp(
+                lowerClamped ? channel.min : double.negativeInfinity,
+                upperClamped ? channel.max : double.infinity),
           _ => value.coerceValueToUnit('deg', channel.name) % 360
         });
 

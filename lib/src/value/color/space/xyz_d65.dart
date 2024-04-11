@@ -16,7 +16,7 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-class XyzD65ColorSpace extends ColorSpace {
+final class XyzD65ColorSpace extends ColorSpace {
   bool get isBoundedInternal => false;
 
   const XyzD65ColorSpace() : super('xyz', xyzChannels);
