@@ -213,8 +213,7 @@ String _readAndResolveMarkdown(String path) => File(path)
 
 /// Returns a map from JS type declaration file names to their contnets.
 Map<String, String> _fetchJSTypes() {
-  var languageRepo =
-      cloneOrCheckout("https://github.com/sass/sass", "main", name: 'language');
+  var languageRepo = _updateLanguageRepo();
 
   var typeRoot = p.join(languageRepo, 'js-api-doc');
   return {
@@ -251,10 +250,7 @@ dart run protoc_plugin "\$@"
     run('chmod', arguments: ['a+x', 'build/protoc-gen-dart']);
   }
 
-  if (Platform.environment['UPDATE_SASS_PROTOCOL'] != 'false') {
-    cloneOrCheckout("https://github.com/sass/sass.git", "main",
-        name: 'language');
-  }
+  _updateLanguageRepo();
 
   await runAsync("buf",
       arguments: ["generate"],
@@ -325,3 +321,19 @@ String _updateHomebrewLanguageRevision(String formula) {
       match.group(0)!.replaceFirst(match.group(1)!, languageRepoRevision) +
       formula.substring(match.end);
 }
+
+/// Clones the main branch of `github.com/sass/sass` and returns the path to the
+/// clone.
+///
+/// If the `UPDATE_SASS_SASS_REPO` environment variable is `false`, this instead
+/// assumes the repo that already exists at `build/language/sass`.
+/// `UPDATE_SASS_PROTOCOL` is also checked as a deprecated alias for
+/// `UPDATE_SASS_SASS_REPO`.
+String _updateLanguageRepo() =>
+    // UPDATE_SASS_PROTOCOL is considered deprecated, because it doesn't apply as
+    // generically to other tasks.
+    Platform.environment['UPDATE_SASS_SASS_REPO'] != 'false' &&
+            Platform.environment['UPDATE_SASS_PROTOCOL'] != 'false'
+        ? cloneOrCheckout("https://github.com/sass/sass.git", "main",
+            name: 'language')
+        : 'build/language';

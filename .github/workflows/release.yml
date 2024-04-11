@@ -70,6 +70,7 @@ jobs:
       - name: Deploy
         run: dart run grinder pkg-npm-deploy
         env:
+          UPDATE_SASS_SASS_REPO: false
           NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
 
   deploy_bazel:
