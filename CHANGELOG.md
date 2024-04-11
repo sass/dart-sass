@@ -1,3 +1,13 @@
+## 1.75.0
+
+* Fix a bug in which stylesheet canonicalization could be cached incorrectly
+  when custom importers or the Node.js package importer made decisions based on
+  the URL of the containing stylesheet.
+
+### JS API
+
+* Allow `importer` to be passed without `url` in `StringOptionsWithImporter`.
+
 ## 1.74.1
 
 * No user-visible changes.
