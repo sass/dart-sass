@@ -59,6 +59,14 @@ final class AsyncImportCache {
   final _perImporterCanonicalizeCache =
       <(AsyncImporter, Uri, {bool forImport}), AsyncCanonicalizeResult?>{};
 
+  /// A map from the keys in [_perImporterCanonicalizeCache] that are generated
+  /// for relative URL loads agains the base importer to the original relative
+  /// URLs what were loaded.
+  ///
+  /// This is used to invalidate the cache when files are changed.
+  final _nonCanonicalRelativeUrls =
+      <(AsyncImporter, Uri, {bool forImport}), Uri>{};
+
   /// The parsed stylesheets for each canonicalized import URL.
   final _importCache = <Uri, Stylesheet?>{};
 
@@ -146,14 +154,16 @@ final class AsyncImportCache {
 
     if (baseImporter != null && url.scheme == '') {
       var resolvedUrl = baseUrl?.resolveUri(url) ?? url;
-      var relativeResult = await putIfAbsentAsync(_perImporterCanonicalizeCache,
-          (baseImporter, resolvedUrl, forImport: forImport), () async {
+      var key = (baseImporter, resolvedUrl, forImport: forImport);
+      var relativeResult =
+          await putIfAbsentAsync(_perImporterCanonicalizeCache, key, () async {
         var (result, cacheable) =
             await _canonicalize(baseImporter, resolvedUrl, baseUrl, forImport);
         assert(
             cacheable,
             "Relative loads should always be cacheable because they never "
             "provide access to the containing URL.");
+        if (baseUrl != null) _nonCanonicalRelativeUrls[key] = url;
         return result;
       });
       if (relativeResult != null) return relativeResult;
@@ -327,7 +337,7 @@ final class AsyncImportCache {
   Uri sourceMapUrl(Uri canonicalUrl) =>
       _resultsCache[canonicalUrl]?.sourceMapUrl ?? canonicalUrl;
 
-  /// Clears the cached canonical version of the given [url].
+  /// Clears the cached canonical version of the given non-canonical [url].
   ///
   /// Has no effect if the canonical version of [url] has not been cached.
   ///
@@ -336,7 +346,8 @@ final class AsyncImportCache {
   void clearCanonicalize(Uri url) {
     _canonicalizeCache.remove((url, forImport: false));
     _canonicalizeCache.remove((url, forImport: true));
-    _perImporterCanonicalizeCache.removeWhere((key, _) => key.$2 == url);
+    _perImporterCanonicalizeCache.removeWhere(
+        (key, _) => key.$2 == url || _nonCanonicalRelativeUrls[key] == url);
   }
 
   /// Clears the cached parse tree for the stylesheet with the given
