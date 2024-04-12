@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 0d8b131cce06d4a2f42d01d06243693d16c8d1de
+// Checksum: 38c8e9f5ef4b26236b7ea3cbbfdde71738bdb7ea
 //
 // ignore_for_file: unused_import
 
@@ -22,6 +22,7 @@ import 'importer/no_op.dart';
 import 'importer/utils.dart';
 import 'io.dart';
 import 'logger.dart';
+import 'util/map.dart';
 import 'util/nullable.dart';
 import 'utils.dart';
 
@@ -170,14 +171,21 @@ final class ImportCache {
     var cacheable = true;
     for (var i = 0; i < _importers.length; i++) {
       var importer = _importers[i];
+      var perImporterKey = (importer, url, forImport: forImport);
+      switch (_perImporterCanonicalizeCache.getOption(perImporterKey)) {
+        case (var result?,):
+          return result;
+        case (null,):
+          continue;
+      }
+
       switch (_canonicalize(importer, url, baseUrl, forImport)) {
         case (var result?, true) when cacheable:
           _canonicalizeCache[key] = result;
           return result;
 
         case (var result, true) when !cacheable:
-          _perImporterCanonicalizeCache[(importer, url, forImport: forImport)] =
-              result;
+          _perImporterCanonicalizeCache[perImporterKey] = result;
           if (result != null) return result;
 
         case (var result, false):
@@ -185,7 +193,7 @@ final class ImportCache {
             // If this is the first uncacheable result, add all previous results
             // to the per-importer cache so we don't have to re-run them for
             // future uses of this importer.
-            for (var j = 0; i < j; j++) {
+            for (var j = 0; j < i; j++) {
               _perImporterCanonicalizeCache[(
                 _importers[j],
                 url,
