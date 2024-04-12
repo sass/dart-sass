@@ -43,30 +43,20 @@ final class AsyncImportCache {
   /// The `forImport` in each key is true when this canonicalization is for an
   /// `@import` rule. Otherwise, it's for a `@use` or `@forward` rule.
   ///
-  /// This cache isn't used for relative imports, because they depend on the
-  /// specific base importer. That's stored separately in
-  /// [_relativeCanonicalizeCache].
+  /// This cache covers loads that go through the entire chain of [_importers],
+  /// but it doesn't cover individual loads or loads in which any importer
+  /// accesses `containingUrl`. See also [_perImporterCanonicalizeCache].
   final _canonicalizeCache =
       <(Uri, {bool forImport}), AsyncCanonicalizeResult?>{};
 
-  /// The canonicalized URLs for each non-canonical URL that's resolved using a
-  /// relative importer.
+  /// Like [_canonicalizeCache] but also includes the specific importer in the
+  /// key.
   ///
-  /// The map's keys have four parts:
-  ///
-  /// 1. The URL passed to [canonicalize] (the same as in [_canonicalizeCache]).
-  /// 2. Whether the canonicalization is for an `@import` rule.
-  /// 3. The `baseImporter` passed to [canonicalize].
-  /// 4. The `baseUrl` passed to [canonicalize].
-  ///
-  /// The map's values are the same as the return value of [canonicalize].
-  final _relativeCanonicalizeCache = <(
-    Uri, {
-    bool forImport,
-    AsyncImporter baseImporter,
-    Uri? baseUrl
-  }),
-      AsyncCanonicalizeResult?>{};
+  /// This is used to cache both relative imports from the base importer and
+  /// individual importer results in the case where some other component of the
+  /// importer chain isn't cacheable.
+  final _perImporterCanonicalizeCache =
+      <(AsyncImporter, Uri, {bool forImport}), AsyncCanonicalizeResult?>{};
 
   /// The parsed stylesheets for each canonicalized import URL.
   final _importCache = <Uri, Stylesheet?>{};
@@ -154,14 +144,11 @@ final class AsyncImportCache {
     }
 
     if (baseImporter != null && url.scheme == '') {
-      var relativeResult = await putIfAbsentAsync(_relativeCanonicalizeCache, (
-        url,
-        forImport: forImport,
-        baseImporter: baseImporter,
-        baseUrl: baseUrl
-      ), () async {
-        var (result, cacheable) = await _canonicalize(
-            baseImporter, baseUrl?.resolveUri(url) ?? url, baseUrl, forImport);
+      var resolvedUrl = baseUrl?.resolveUri(url) ?? url;
+      var relativeResult = await putIfAbsentAsync(_perImporterCanonicalizeCache,
+          (baseImporter, resolvedUrl, forImport: forImport), () async {
+        var (result, cacheable) =
+            await _canonicalize(baseImporter, resolvedUrl, baseUrl, forImport);
         assert(
             cacheable,
             "Relative loads should always be cacheable because they never "
@@ -181,17 +168,34 @@ final class AsyncImportCache {
     // `canonicalize()` calls we've attempted are cacheable. Only if they are do
     // we store the result in the cache.
     var cacheable = true;
-    for (var importer in _importers) {
+    for (var i = 0; i < _importers.length; i++) {
+      var importer = _importers[i];
       switch (await _canonicalize(importer, url, baseUrl, forImport)) {
         case (var result?, true) when cacheable:
           _canonicalizeCache[key] = result;
           return result;
 
-        case (var result?, _):
-          return result;
+        case (var result, true) when !cacheable:
+          _perImporterCanonicalizeCache[(importer, url, forImport: forImport)] =
+              result;
+          if (result != null) return result;
 
-        case (_, false):
-          cacheable = false;
+        case (var result, false):
+          if (cacheable) {
+            // If this is the first uncacheable result, add all previous results
+            // to the per-importer cache so we don't have to re-run them for
+            // future uses of this importer.
+            for (var j = 0; i < j; j++) {
+              _perImporterCanonicalizeCache[(
+                _importers[j],
+                url,
+                forImport: forImport
+              )] = null;
+            }
+            cacheable = false;
+          }
+
+          if (result != null) return result;
       }
     }
 
@@ -324,7 +328,7 @@ final class AsyncImportCache {
   void clearCanonicalize(Uri url) {
     _canonicalizeCache.remove((url, forImport: false));
     _canonicalizeCache.remove((url, forImport: true));
-    _relativeCanonicalizeCache.removeWhere((key, _) => key.$1 == url);
+    _perImporterCanonicalizeCache.removeWhere((key, _) => key.$2 == url);
   }
 
   /// Clears the cached parse tree for the stylesheet with the given
