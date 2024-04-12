@@ -113,6 +113,7 @@ jobs:
 
       - name: Build JS
         run: dart run grinder pkg-npm-dev
+        env: {UPDATE_SASS_SASS_REPO: false}
 
       - name: Check out Sass specification
         uses: sass/clone-linked-repo@v1
@@ -203,6 +204,7 @@ jobs:
 
       - name: Build JS
         run: dart run grinder pkg-npm-dev
+        env: {UPDATE_SASS_SASS_REPO: false}
 
       - name: Install built dependencies
         run: npm install
@@ -282,6 +284,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - run: dart run grinder pkg-npm-dev
+        env: {UPDATE_SASS_SASS_REPO: false}
       - name: Run tests
         run: dart run test -t node -j 2
 
@@ -303,6 +306,7 @@ jobs:
         github-token: ${{ github.token }}
 
     - run: dart run grinder pkg-npm-dev
+      env: {UPDATE_SASS_SASS_REPO: false}
     - name: Run tests
       run: dart run test -p chrome -j 2
       env:

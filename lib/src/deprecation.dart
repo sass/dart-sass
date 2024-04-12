@@ -74,16 +74,16 @@ enum Deprecation {
       description:
           'Using the current working directory as an implicit load path.'),
 
-  @Deprecated('This deprecation name was never actually used.')
-  calcInterp('calc-interp', deprecatedIn: null),
+  color4Api('color-4-api',
+      deprecatedIn: '1.76.0',
+      description: 'Methods of interacting with legacy SassColors.'),
 
   colorFunctions('color-functions',
-      deprecatedIn: '1.74.0',
+      deprecatedIn: '1.76.0',
       description: 'Using global Sass color functions.'),
 
-  color4Api('color-4-api',
-      deprecatedIn: '1.70.0',
-      description: 'Methods of interacting with legacy SassColors.'),
+  @Deprecated('This deprecation name was never actually used.')
+  calcInterp('calc-interp', deprecatedIn: null),
 
   /// Deprecation for `@import` rules.
   import.future('import', description: '@import rules.'),
@@ -120,14 +120,28 @@ enum Deprecation {
   /// what version of Dart Sass this deprecation will be live in.
   final bool isFuture;
 
+  /// Underlying version string used by [obsoleteIn].
+  ///
+  /// This is necessary because [Version] doesn't have a constant constructor,
+  /// so we can't use it directly as an enum property.
+  final String? _obsoleteIn;
+
+  /// The Dart Sass version this feature was fully removed in, making the
+  /// deprecation obsolete.
+  ///
+  /// For deprecations that are not yet obsolete, this should be null.
+  Version? get obsoleteIn => _obsoleteIn?.andThen(Version.parse);
+
   /// Constructs a regular deprecation.
   const Deprecation(this.id, {required String? deprecatedIn, this.description})
       : _deprecatedIn = deprecatedIn,
+        _obsoleteIn = null,
         isFuture = false;
 
   /// Constructs a future deprecation.
   const Deprecation.future(this.id, {this.description})
       : _deprecatedIn = null,
+        _obsoleteIn = null,
         isFuture = true;
 
   @override

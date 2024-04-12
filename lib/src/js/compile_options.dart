@@ -23,6 +23,9 @@ class CompileOptions {
   external JSLogger? get logger;
   external List<Object?>? get importers;
   external Object? get functions;
+  external List<Object?>? get fatalDeprecations;
+  external List<Object?>? get silenceDeprecations;
+  external List<Object?>? get futureDeprecations;
 }
 
 @JS()

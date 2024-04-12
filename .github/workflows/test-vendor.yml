@@ -69,4 +69,4 @@ jobs:
       - run: dart run grinder fetch-bulma
         env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
       - name: Build
-        run: dart bin/sass.dart --quiet build/bulma/bulma.sass build/bulma-output.css
+        run: dart bin/sass.dart --quiet build/bulma/bulma.scss build/bulma-output.css

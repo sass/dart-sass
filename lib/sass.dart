@@ -113,6 +113,7 @@ CompileResult compileToResult(String path,
         bool verbose = false,
         bool sourceMap = false,
         bool charset = true,
+        Iterable<Deprecation>? silenceDeprecations,
         Iterable<Deprecation>? fatalDeprecations,
         Iterable<Deprecation>? futureDeprecations}) =>
     c.compile(path,
@@ -128,6 +129,7 @@ CompileResult compileToResult(String path,
         verbose: verbose,
         sourceMap: sourceMap,
         charset: charset,
+        silenceDeprecations: silenceDeprecations,
         fatalDeprecations: fatalDeprecations,
         futureDeprecations: futureDeprecations);
 
@@ -212,6 +214,7 @@ CompileResult compileStringToResult(String source,
         bool verbose = false,
         bool sourceMap = false,
         bool charset = true,
+        Iterable<Deprecation>? silenceDeprecations,
         Iterable<Deprecation>? fatalDeprecations,
         Iterable<Deprecation>? futureDeprecations}) =>
     c.compileString(source,
@@ -230,6 +233,7 @@ CompileResult compileStringToResult(String source,
         verbose: verbose,
         sourceMap: sourceMap,
         charset: charset,
+        silenceDeprecations: silenceDeprecations,
         fatalDeprecations: fatalDeprecations,
         futureDeprecations: futureDeprecations);
 
@@ -250,6 +254,7 @@ Future<CompileResult> compileToResultAsync(String path,
         bool verbose = false,
         bool sourceMap = false,
         bool charset = true,
+        Iterable<Deprecation>? silenceDeprecations,
         Iterable<Deprecation>? fatalDeprecations,
         Iterable<Deprecation>? futureDeprecations}) =>
     c.compileAsync(path,
@@ -265,6 +270,7 @@ Future<CompileResult> compileToResultAsync(String path,
         verbose: verbose,
         sourceMap: sourceMap,
         charset: charset,
+        silenceDeprecations: silenceDeprecations,
         fatalDeprecations: fatalDeprecations,
         futureDeprecations: futureDeprecations);
 
@@ -290,6 +296,7 @@ Future<CompileResult> compileStringToResultAsync(String source,
         bool verbose = false,
         bool sourceMap = false,
         bool charset = true,
+        Iterable<Deprecation>? silenceDeprecations,
         Iterable<Deprecation>? fatalDeprecations,
         Iterable<Deprecation>? futureDeprecations}) =>
     c.compileStringAsync(source,
@@ -307,7 +314,10 @@ Future<CompileResult> compileStringToResultAsync(String source,
         quietDeps: quietDeps,
         verbose: verbose,
         sourceMap: sourceMap,
-        charset: charset);
+        charset: charset,
+        silenceDeprecations: silenceDeprecations,
+        fatalDeprecations: fatalDeprecations,
+        futureDeprecations: futureDeprecations);
 
 /// Like [compileToResult], but returns [CompileResult.css] rather than
 /// returning [CompileResult] directly.
