@@ -448,11 +448,8 @@ final module = BuiltInModule("color", functions: <Callable>[
       r"$color, $channel",
       (arguments) => SassBoolean(arguments[0]
           .assertColor("color")
-          .isChannelMissing(
-              (arguments[1].assertString("channel")..assertQuoted("channel"))
-                  .text,
-              colorName: "color",
-              channelName: "channel"))),
+          .isChannelMissing(_channelName(arguments[1]),
+              colorName: "color", channelName: "channel"))),
 
   _function(
       "is-in-gamut",
@@ -475,10 +472,7 @@ final module = BuiltInModule("color", functions: <Callable>[
 
   _function("channel", r"$color, $channel, $space: null", (arguments) {
     var color = _colorInSpace(arguments[0], arguments[2]);
-    var channelName = (arguments[1].assertString("channel")
-          ..assertQuoted("channel"))
-        .text
-        .toLowerCase();
+    var channelName = _channelName(arguments[1]);
     if (channelName == "alpha") return SassNumber(color.alpha);
 
     var channelIndex = color.space.channels
@@ -514,12 +508,8 @@ final module = BuiltInModule("color", functions: <Callable>[
       "is-powerless",
       r"$color, $channel, $space: null",
       (arguments) => SassBoolean(_colorInSpace(arguments[0], arguments[2])
-          .isChannelPowerless(
-              (arguments[1].assertString("channel")..assertQuoted("channel"))
-                  .text
-                  .toLowerCase(),
-              colorName: "color",
-              channelName: "channel"))),
+          .isChannelPowerless(_channelName(arguments[1]),
+              colorName: "color", channelName: "channel"))),
 
   _complement,
 
@@ -1514,6 +1504,12 @@ String _suggestScaleAndAdjust(
       SassNumber(adjustment, channel == ColorChannel.alpha ? null : '%');
   return suggestion + "color.adjust(\$color, \$$channelName: $difference)";
 }
+
+/// Asserts that `value` is an unquoted string and throws an error if it's not.
+///
+/// Assumes that `value` comes from a parameter named `$channel`.
+String _channelName(Value value) =>
+    (value.assertString("channel")..assertQuoted("channel")).text.toLowerCase();
 
 /// Like [BuiltInCallable.function], but always sets the URL to
 /// `sass:color`.
