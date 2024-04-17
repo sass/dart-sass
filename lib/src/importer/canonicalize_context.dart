@@ -1,6 +1,8 @@
-// Copyright 2014 Google Inc. Use of this source code is governed by an
+// Copyright 2024 Google Inc. Use of this source code is governed by an
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
+
+import 'dart:async';
 
 import 'package:meta/meta.dart';
 
@@ -25,17 +27,13 @@ final class CanonicalizeContext {
   /// Whether [containingUrl] has been accessed.
   ///
   /// This is used to determine whether canonicalize result is cacheable.
-  ///
-  /// @nodoc
-  @internal
   bool get wasContainingUrlAccessed => _wasContainingUrlAccessed;
   var _wasContainingUrlAccessed = false;
 
   /// Runs [callback] in a context with specificed [fromImport].
-  ///
-  /// @nodoc
-  @internal
   T withFromImport<T>(bool fromImport, T callback()) {
+    assert(Zone.current[#_canonicalizeContext] == this);
+
     var oldFromImport = _fromImport;
     _fromImport = fromImport;
     try {
