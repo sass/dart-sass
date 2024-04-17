@@ -2,20 +2,15 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:js/js.dart';
-
 import '../../importer/canonicalize_context.dart';
-import '../url.dart';
 import '../../util/nullable.dart';
+import '../reflection.dart';
 import '../utils.dart';
 
-@JSExport()
-class JSExportCanonicalizeContext {
-  final CanonicalizeContext _canonicalizeContext;
-
-  bool get fromImport => _canonicalizeContext.fromImport;
-  JSUrl? get containingUrl =>
-      _canonicalizeContext.containingUrl.andThen(dartToJSUrl);
-
-  JSExportCanonicalizeContext(this._canonicalizeContext);
-}
+/// Adds JS members to Dart's `CanonicalizeContext` class.
+void updateCanonicalizeContextPrototype() =>
+    getJSClass(CanonicalizeContext(null, false)).defineGetters({
+      'fromImport': (CanonicalizeContext self) => self.fromImport,
+      'containingUrl': (CanonicalizeContext self) =>
+          self.containingUrl.andThen(dartToJSUrl),
+    });

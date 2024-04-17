@@ -13,7 +13,8 @@ import '../utils.dart';
 final JSClass mixinClass = () {
   var jsClass = createJSClass('sass.SassMixin', (Object self) {
     jsThrow(JsError(
-        'It is not possible to construct a SassMixin through the JavaScript API'));
+        'It is not possible to construct a SassMixin through the JavaScript '
+        'API'));
   });
 
   getJSClass(SassMixin(Callable('f', '', (_) => sassNull)))

@@ -10,13 +10,14 @@ import '../../js/importer.dart';
 import '../../js/url.dart';
 import '../../js/utils.dart';
 import '../../util/nullable.dart';
+import '../canonicalize_context.dart';
 import 'utils.dart';
 
 /// A wrapper for a synchronous JS API importer that exposes it as a Dart
 /// [Importer].
 final class JSToDartImporter extends Importer {
   /// The wrapped canonicalize function.
-  final Object? Function(String, JSCanonicalizeContext) _canonicalize;
+  final Object? Function(String, CanonicalizeContext) _canonicalize;
 
   /// The wrapped load function.
   final Object? Function(JSUrl) _load;
@@ -34,8 +35,8 @@ final class JSToDartImporter extends Importer {
   }
 
   Uri? canonicalize(Uri url) {
-    var result = wrapJSExceptions(() => _canonicalize(
-        url.toString(), dartToJSCanonicalizeContext(canonicalizeContext)));
+    var result = wrapJSExceptions(
+        () => _canonicalize(url.toString(), canonicalizeContext));
     if (result == null) return null;
     if (isJSUrl(result)) return jsToDartUrl(result as JSUrl);
 

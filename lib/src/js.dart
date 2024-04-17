@@ -7,6 +7,7 @@ import 'package:js/js_util.dart';
 import 'js/exception.dart';
 import 'js/deprecations.dart';
 import 'js/exports.dart';
+import 'js/importer/canonicalize_context.dart';
 import 'js/compile.dart';
 import 'js/compiler.dart';
 import 'js/legacy.dart';
@@ -64,6 +65,7 @@ void main() {
       "dart2js\t${const String.fromEnvironment('dart-version')}\t"
       "(Dart Compiler)\t[Dart]";
 
+  updateCanonicalizeContextPrototype();
   updateSourceSpanPrototype();
 
   // Legacy API

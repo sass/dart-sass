@@ -9,14 +9,11 @@ import 'package:node_interop/node.dart' hide module;
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 
-import '../importer/canonicalize_context.dart';
 import '../syntax.dart';
 import '../utils.dart';
 import '../value.dart';
 import 'array.dart';
 import 'function.dart';
-import 'importer.dart';
-import 'importer/canonicalize_context.dart';
 import 'module.dart';
 import 'reflection.dart';
 import 'url.dart';
@@ -199,12 +196,6 @@ Uri jsToDartUrl(JSUrl url) => Uri.parse(url.toString());
 
 /// Converts a Dart [Uri] object to a standard JS `URL` object.
 JSUrl dartToJSUrl(Uri url) => JSUrl(url.toString());
-
-JSCanonicalizeContext dartToJSCanonicalizeContext(
-    CanonicalizeContext canonicalizeContext) {
-  return createDartExport(JSExportCanonicalizeContext(canonicalizeContext))
-      as JSCanonicalizeContext;
-}
 
 /// Creates a JavaScript array containing [iterable].
 ///
