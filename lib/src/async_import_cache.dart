@@ -11,6 +11,7 @@ import 'package:path/path.dart' as p;
 import 'ast/sass.dart';
 import 'deprecation.dart';
 import 'importer.dart';
+import 'importer/canonicalize_context.dart';
 import 'importer/no_op.dart';
 import 'importer/utils.dart';
 import 'io.dart';
@@ -206,18 +207,17 @@ final class AsyncImportCache {
   /// that result is cacheable at all.
   Future<(AsyncCanonicalizeResult?, bool cacheable)> _canonicalize(
       AsyncImporter importer, Uri url, Uri? baseUrl, bool forImport) async {
-    var canonicalize = forImport
-        ? () => inImportRule(() => importer.canonicalize(url))
-        : () => importer.canonicalize(url);
-
     var passContainingUrl = baseUrl != null &&
         (url.scheme == '' || await importer.isNonCanonicalScheme(url.scheme));
-    var result = await withContainingUrl(
-        passContainingUrl ? baseUrl : null, canonicalize);
 
-    // TODO(sass/dart-sass#2208): Determine whether the containing URL was
-    // _actually_ accessed rather than assuming it was.
-    var cacheable = !passContainingUrl || importer is FilesystemImporter;
+    var canonicalizeContext =
+        CanonicalizeContext(passContainingUrl ? baseUrl : null, forImport);
+
+    var result = await withCanonicalizeContext(
+        canonicalizeContext, () => importer.canonicalize(url));
+
+    var cacheable =
+        !passContainingUrl || !canonicalizeContext.wasContainingUrlAccessed;
 
     if (result == null) return (null, cacheable);
 
