@@ -83,16 +83,6 @@ int fuzzyRound(num number) {
   }
 }
 
-/// Returns [number], clamped to be within [min] and [max].
-///
-/// If [number] is [fuzzyEquals] to [min] or [max], it's clamped to the
-/// appropriate value.
-double fuzzyClamp(double number, double min, double max) {
-  if (fuzzyLessThanOrEquals(number, min)) return min;
-  if (fuzzyGreaterThanOrEquals(number, max)) return max;
-  return number;
-}
-
 /// Returns whether [number] is within [min] and [max] inclusive, using fuzzy
 /// equality.
 bool fuzzyInRange(double number, num min, num max) =>
