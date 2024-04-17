@@ -6,10 +6,9 @@ import 'package:cli_pkg/js.dart';
 import 'package:node_interop/js.dart';
 
 import '../../importer.dart';
-import '../../js/importer.dart';
 import '../../js/url.dart';
 import '../../js/utils.dart';
-import '../../util/nullable.dart';
+import '../canonicalize_context.dart';
 import '../utils.dart';
 
 /// A wrapper for a potentially-asynchronous JS API file importer that exposes
@@ -23,11 +22,8 @@ final class JSToDartFileImporter extends Importer {
   Uri? canonicalize(Uri url) {
     if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);
 
-    var result = wrapJSExceptions(() => _findFileUrl(
-        url.toString(),
-        CanonicalizeContext(
-            fromImport: fromImport,
-            containingUrl: containingUrl.andThen(dartToJSUrl))));
+    var result = wrapJSExceptions(
+        () => _findFileUrl(url.toString(), canonicalizeContext));
     if (result == null) return null;
 
     if (isPromise(result)) {
