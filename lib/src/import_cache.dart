@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 36bc42050cf2eb3a43f36376c4f06c1708eee777
+// Checksum: 4362e28e5cd425786c235d2a6a2bb60539403799
 //
 // ignore_for_file: unused_import
 
@@ -23,6 +23,7 @@ import 'importer/no_op.dart';
 import 'importer/utils.dart';
 import 'io.dart';
 import 'logger.dart';
+import 'util/map.dart';
 import 'util/nullable.dart';
 import 'utils.dart';
 
@@ -47,29 +48,26 @@ final class ImportCache {
   /// The `forImport` in each key is true when this canonicalization is for an
   /// `@import` rule. Otherwise, it's for a `@use` or `@forward` rule.
   ///
-  /// This cache isn't used for relative imports, because they depend on the
-  /// specific base importer. That's stored separately in
-  /// [_relativeCanonicalizeCache].
+  /// This cache covers loads that go through the entire chain of [_importers],
+  /// but it doesn't cover individual loads or loads in which any importer
+  /// accesses `containingUrl`. See also [_perImporterCanonicalizeCache].
   final _canonicalizeCache = <(Uri, {bool forImport}), CanonicalizeResult?>{};
 
-  /// The canonicalized URLs for each non-canonical URL that's resolved using a
-  /// relative importer.
+  /// Like [_canonicalizeCache] but also includes the specific importer in the
+  /// key.
   ///
-  /// The map's keys have four parts:
+  /// This is used to cache both relative imports from the base importer and
+  /// individual importer results in the case where some other component of the
+  /// importer chain isn't cacheable.
+  final _perImporterCanonicalizeCache =
+      <(Importer, Uri, {bool forImport}), CanonicalizeResult?>{};
+
+  /// A map from the keys in [_perImporterCanonicalizeCache] that are generated
+  /// for relative URL loads agains the base importer to the original relative
+  /// URLs what were loaded.
   ///
-  /// 1. The URL passed to [canonicalize] (the same as in [_canonicalizeCache]).
-  /// 2. Whether the canonicalization is for an `@import` rule.
-  /// 3. The `baseImporter` passed to [canonicalize].
-  /// 4. The `baseUrl` passed to [canonicalize].
-  ///
-  /// The map's values are the same as the return value of [canonicalize].
-  final _relativeCanonicalizeCache = <(
-    Uri, {
-    bool forImport,
-    Importer baseImporter,
-    Uri? baseUrl
-  }),
-      CanonicalizeResult?>{};
+  /// This is used to invalidate the cache when files are changed.
+  final _nonCanonicalRelativeUrls = <(Importer, Uri, {bool forImport}), Uri>{};
 
   /// The parsed stylesheets for each canonicalized import URL.
   final _importCache = <Uri, Stylesheet?>{};
@@ -155,18 +153,16 @@ final class ImportCache {
     }
 
     if (baseImporter != null && url.scheme == '') {
-      var relativeResult = _relativeCanonicalizeCache.putIfAbsent((
-        url,
-        forImport: forImport,
-        baseImporter: baseImporter,
-        baseUrl: baseUrl
-      ), () {
-        var (result, cacheable) = _canonicalize(
-            baseImporter, baseUrl?.resolveUri(url) ?? url, baseUrl, forImport);
+      var resolvedUrl = baseUrl?.resolveUri(url) ?? url;
+      var key = (baseImporter, resolvedUrl, forImport: forImport);
+      var relativeResult = _perImporterCanonicalizeCache.putIfAbsent(key, () {
+        var (result, cacheable) =
+            _canonicalize(baseImporter, resolvedUrl, baseUrl, forImport);
         assert(
             cacheable,
             "Relative loads should always be cacheable because they never "
             "provide access to the containing URL.");
+        if (baseUrl != null) _nonCanonicalRelativeUrls[key] = url;
         return result;
       });
       if (relativeResult != null) return relativeResult;
@@ -182,17 +178,41 @@ final class ImportCache {
     // `canonicalize()` calls we've attempted are cacheable. Only if they are do
     // we store the result in the cache.
     var cacheable = true;
-    for (var importer in _importers) {
+    for (var i = 0; i < _importers.length; i++) {
+      var importer = _importers[i];
+      var perImporterKey = (importer, url, forImport: forImport);
+      switch (_perImporterCanonicalizeCache.getOption(perImporterKey)) {
+        case (var result?,):
+          return result;
+        case (null,):
+          continue;
+      }
+
       switch (_canonicalize(importer, url, baseUrl, forImport)) {
         case (var result?, true) when cacheable:
           _canonicalizeCache[key] = result;
           return result;
 
-        case (var result?, _):
-          return result;
+        case (var result, true) when !cacheable:
+          _perImporterCanonicalizeCache[perImporterKey] = result;
+          if (result != null) return result;
 
-        case (_, false):
-          cacheable = false;
+        case (var result, false):
+          if (cacheable) {
+            // If this is the first uncacheable result, add all previous results
+            // to the per-importer cache so we don't have to re-run them for
+            // future uses of this importer.
+            for (var j = 0; j < i; j++) {
+              _perImporterCanonicalizeCache[(
+                _importers[j],
+                url,
+                forImport: forImport
+              )] = null;
+            }
+            cacheable = false;
+          }
+
+          if (result != null) return result;
       }
     }
 
@@ -312,7 +332,7 @@ final class ImportCache {
   Uri sourceMapUrl(Uri canonicalUrl) =>
       _resultsCache[canonicalUrl]?.sourceMapUrl ?? canonicalUrl;
 
-  /// Clears the cached canonical version of the given [url].
+  /// Clears the cached canonical version of the given non-canonical [url].
   ///
   /// Has no effect if the canonical version of [url] has not been cached.
   ///
@@ -321,7 +341,8 @@ final class ImportCache {
   void clearCanonicalize(Uri url) {
     _canonicalizeCache.remove((url, forImport: false));
     _canonicalizeCache.remove((url, forImport: true));
-    _relativeCanonicalizeCache.removeWhere((key, _) => key.$1 == url);
+    _perImporterCanonicalizeCache.removeWhere(
+        (key, _) => key.$2 == url || _nonCanonicalRelativeUrls[key] == url);
   }
 
   /// Clears the cached parse tree for the stylesheet with the given
