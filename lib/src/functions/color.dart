@@ -475,12 +475,7 @@ final module = BuiltInModule("color", functions: <Callable>[
         (arguments[2].assertString("method")..assertUnquoted("method")).text);
     if (!space.isBounded) return color;
 
-    return color
-        .toSpace(space == ColorSpace.hsl || space == ColorSpace.hwb
-            ? ColorSpace.srgb
-            : space)
-        .toGamut(method)
-        .toSpace(color.space);
+    return color.toSpace(space).toGamut(method).toSpace(color.space);
   }),
 
   _function("channel", r"$color, $channel, $space: null", (arguments) {
