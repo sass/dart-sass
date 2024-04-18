@@ -29,7 +29,7 @@ abstract base class GamutMapMethod {
   /// formula and the [local-MINDE] improvement.
   ///
   /// [the original Color Level 4 candidate recommendation]: https://www.w3.org/TR/2024/CRD-css-color-4-20240213/#css-gamut-mapping
-  /// [the original Color Level 4 candidate recommendation]: https://www.w3.org/TR/2024/CRD-css-color-4-20240213/#color-difference-OK
+  /// [deltaEOK]: https://www.w3.org/TR/2024/CRD-css-color-4-20240213/#color-difference-OK
   /// [local-MINDE]: https://www.w3.org/TR/2024/CRD-css-color-4-20240213/#GM-chroma-local-MINDE
   static const GamutMapMethod localMinde = LocalMindeGamutMap();
 
