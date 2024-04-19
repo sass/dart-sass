@@ -87,9 +87,11 @@ final JSClass colorClass = () {
     'toSpace': (SassColor self, String space) => _toSpace(self, space),
     'isInGamut': (SassColor self, [String? space]) =>
         _toSpace(self, space).isInGamut,
-    'toGamut': (SassColor self, [String? space]) {
+    'toGamut': (SassColor self, _ToGamutOptions options) {
       var originalSpace = self.space;
-      return _toSpace(self, space).toGamut().toSpace(originalSpace);
+      return _toSpace(self, options.space)
+          .toGamut(GamutMapMethod.fromName(options.method))
+          .toSpace(originalSpace);
     },
     'channel': (SassColor self, String channel, [_ChannelOptions? options]) =>
         _toSpace(self, options?.space).channel(channel),
@@ -460,12 +462,19 @@ class _ConstructionOptions extends _Channels {
 @JS()
 @anonymous
 class _ChannelOptions {
-  String? space;
+  external String? get space;
+}
+
+@JS()
+@anonymous
+class _ToGamutOptions {
+  external String? get space;
+  external String get method;
 }
 
 @JS()
 @anonymous
 class _InterpolationOptions {
-  external double? weight;
-  external String? method;
+  external double? get weight;
+  external String? get method;
 }

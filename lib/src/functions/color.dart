@@ -457,17 +457,25 @@ final module = BuiltInModule("color", functions: <Callable>[
       (arguments) =>
           SassBoolean(_colorInSpace(arguments[0], arguments[1]).isInGamut)),
 
-  _function("to-gamut", r"$color, $space: null", (arguments) {
+  _function("to-gamut", r"$color, $space: null, $method: null", (arguments) {
     var color = arguments[0].assertColor("color");
     var space = _spaceOrDefault(color, arguments[1], "space");
+    if (arguments[2] == sassNull) {
+      throw SassScriptException(
+          "color.to-gamut() requires a \$method argument for forwards-"
+              "compatibility with changes in the CSS spec. Suggestion:\n"
+              "\n"
+              "\$method: local-minde",
+          "method");
+    }
+
+    // Assign this before checking [space.isBounded] so that invalid method
+    // names consistently produce errors.
+    var method = GamutMapMethod.fromName(
+        (arguments[2].assertString("method")..assertUnquoted("method")).text);
     if (!space.isBounded) return color;
 
-    return color
-        .toSpace(space == ColorSpace.hsl || space == ColorSpace.hwb
-            ? ColorSpace.srgb
-            : space)
-        .toGamut()
-        .toSpace(color.space);
+    return color.toSpace(space).toGamut(method).toSpace(color.space);
   }),
 
   _function("channel", r"$color, $channel, $space: null", (arguments) {
@@ -671,8 +679,10 @@ final _change = _function("change", r"$color, $kwargs...",
     (arguments) => _updateComponents(arguments, change: true));
 
 final _ieHexStr = _function("ie-hex-str", r"$color", (arguments) {
-  var color =
-      arguments[0].assertColor("color").toSpace(ColorSpace.rgb).toGamut();
+  var color = arguments[0]
+      .assertColor("color")
+      .toSpace(ColorSpace.rgb)
+      .toGamut(GamutMapMethod.localMinde);
   String hexString(double component) =>
       fuzzyRound(component).toRadixString(16).padLeft(2, '0').toUpperCase();
   return SassString(
@@ -841,11 +851,9 @@ SassColor _adjustColor(
             channelArgs[2]),
         // The color space doesn't matter for alpha, as long as it's not
         // strictly bounded.
-        fuzzyClamp(
-            _adjustChannel(
-                ColorSpace.lab, ColorChannel.alpha, color.alpha, alphaArg),
-            0,
-            1));
+        _adjustChannel(
+                ColorSpace.lab, ColorChannel.alpha, color.alpha, alphaArg)
+            .clamp(0, 1));
 
 /// Returns [oldValue] adjusted by [adjustmentArg] according to the definition
 /// in [space]'s [channel].

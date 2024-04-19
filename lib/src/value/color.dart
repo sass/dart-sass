@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:math' as math;
-
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
@@ -14,6 +12,7 @@ import '../util/number.dart';
 import '../value.dart';
 import '../visitor/interface/value.dart';
 
+export 'color/gamut_map_method.dart';
 export 'color/interpolation_method.dart';
 export 'color/channel.dart';
 export 'color/space.dart';
@@ -646,71 +645,8 @@ class SassColor extends Value {
           space, channel0OrNull, channel1OrNull, channel2OrNull, alpha);
 
   /// Returns a copy of this color that's in-gamut in the current color space.
-  SassColor toGamut() {
-    if (isInGamut) return this;
-
-    // Algorithm from https://www.w3.org/TR/css-color-4/#css-gamut-mapping-algorithm
-    var originOklch = toSpace(ColorSpace.oklch);
-
-    if (fuzzyGreaterThanOrEquals(originOklch.channel0, 1)) {
-      return space == ColorSpace.rgb
-          ? SassColor.rgb(255, 255, 255, alphaOrNull)
-          : SassColor.forSpaceInternal(space, 1, 1, 1, alphaOrNull);
-    } else if (fuzzyLessThanOrEquals(originOklch.channel0, 0)) {
-      return SassColor.forSpaceInternal(space, 0, 0, 0, alphaOrNull);
-    }
-
-    // Always target RGB for legacy colors because HSL and HWB can't even
-    // represent out-of-gamut colors.
-    var targetSpace = isLegacy ? ColorSpace.rgb : space;
-
-    var min = 0.0;
-    var max = originOklch.channel1;
-    while (true) {
-      var chroma = (min + max) / 2;
-      // Never null because [targetSpace] can't be HSL or HWB.
-      var current = ColorSpace.oklch.convert(targetSpace, originOklch.channel0,
-          chroma, originOklch.channel2, originOklch.alpha);
-      if (current.isInGamut) {
-        min = chroma;
-        continue;
-      }
-
-      var clipped = _clip(current);
-      if (_deltaEOK(clipped, current) < 0.02) return clipped;
-      max = chroma;
-    }
-  }
-
-  /// Returns [current] clipped into its space's gamut.
-  SassColor _clip(SassColor current) {
-    assert(!current.isInGamut);
-    assert(current.space == space);
-
-    return space == ColorSpace.rgb
-        ? SassColor.rgb(
-            fuzzyClamp(current.channel0, 0, 255),
-            fuzzyClamp(current.channel1, 0, 255),
-            fuzzyClamp(current.channel2, 0, 255),
-            current.alphaOrNull)
-        : SassColor.forSpaceInternal(
-            space,
-            fuzzyClamp(current.channel0, 0, 1),
-            fuzzyClamp(current.channel1, 0, 1),
-            fuzzyClamp(current.channel2, 0, 1),
-            current.alphaOrNull);
-  }
-
-  /// Returns the ΔEOK measure between [color1] and [color2].
-  double _deltaEOK(SassColor color1, SassColor color2) {
-    // Algorithm from https://www.w3.org/TR/css-color-4/#color-difference-OK
-    var lab1 = color1.toSpace(ColorSpace.oklab);
-    var lab2 = color2.toSpace(ColorSpace.oklab);
-
-    return math.sqrt(math.pow(lab1.channel0 - lab2.channel0, 2) +
-        math.pow(lab1.channel1 - lab2.channel1, 2) +
-        math.pow(lab1.channel2 - lab2.channel2, 2));
-  }
+  SassColor toGamut(GamutMapMethod method) =>
+      isInGamut ? this : method.map(this);
 
   /// Changes one or more of this color's RGB channels and returns the result.
   @Deprecated('Use changeChannels() instead.')
