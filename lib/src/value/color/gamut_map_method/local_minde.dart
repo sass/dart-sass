@@ -55,12 +55,15 @@ final class LocalMindeGamutMap extends GamutMapMethod {
       // just store it in that space to begin with.
       var current =
           ColorSpace.oklch.convert(color.space, lightness, chroma, hue, alpha);
-      if (current.isInGamut) {
-        // This behavior is unclear in the spec, and specifically returning the
-        // _last_ clipped value seems strange. But it's currently my best guess
-        // as to the intended behavior. See
-        // https://github.com/w3c/csswg-drafts/issues/10226.
-        if (!minInGamut) break;
+
+      // Per [this comment], the intention of the algorithm is to fall through
+      // this clause if `minInGamut = false` without checking
+      // `current.isInGamut` at all, even though that's unclear from the
+      // pseudocode. `minInGamut = false` *should* imply `current.isInGamut =
+      // false`.
+      //
+      // [this comment]: https://github.com/w3c/csswg-drafts/issues/10226#issuecomment-2065534713
+      if (minInGamut && current.isInGamut) {
         min = chroma;
         continue;
       }
