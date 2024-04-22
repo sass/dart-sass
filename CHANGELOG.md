@@ -1,3 +1,7 @@
+## 1.75.1
+
+* Throw errors for misplaced statements in keyframe blocks.
+
 ## 1.75.0
 
 * Fix a bug in which stylesheet canonicalization could be cached incorrectly
