@@ -608,12 +608,14 @@ final class _SerializeVisitor
         _maybeWriteSlashAlpha(value);
         _buffer.writeCharCode($rparen);
 
-      case ColorSpace.lab ||
-              ColorSpace.oklab ||
-              ColorSpace.lch ||
-              ColorSpace.oklch
+      case ColorSpace.lab || ColorSpace.lch
           when !_inspect &&
               !fuzzyInRange(value.channel0, 0, 100) &&
+              !value.isChannel1Missing &&
+              !value.isChannel2Missing:
+      case ColorSpace.oklab || ColorSpace.oklch
+          when !_inspect &&
+              !fuzzyInRange(value.channel0, 0, 1) &&
               !value.isChannel1Missing &&
               !value.isChannel2Missing:
       case ColorSpace.lch || ColorSpace.oklch

@@ -33,12 +33,11 @@ final class LocalMindeGamutMap extends GamutMapMethod {
     var alpha = originOklch.alphaOrNull;
 
     if (fuzzyGreaterThanOrEquals(lightness ?? 0, 1)) {
-      return color.space == ColorSpace.rgb
-          ? SassColor.rgb(255, 255, 255, color.alphaOrNull)
+      return color.isLegacy
+          ? SassColor.rgb(255, 255, 255, color.alphaOrNull).toSpace(color.space)
           : SassColor.forSpaceInternal(color.space, 1, 1, 1, color.alphaOrNull);
     } else if (fuzzyLessThanOrEquals(lightness ?? 0, 0)) {
-      return SassColor.forSpaceInternal(
-          color.space, 0, 0, 0, color.alphaOrNull);
+      return SassColor.rgb(0, 0, 0, color.alphaOrNull).toSpace(color.space);
     }
 
     var clipped = color.toGamut(GamutMapMethod.clip);
