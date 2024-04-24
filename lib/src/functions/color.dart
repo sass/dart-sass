@@ -1517,7 +1517,7 @@ String _suggestScaleAndAdjust(
 ///
 /// Assumes that `value` comes from a parameter named `$channel`.
 String _channelName(Value value) =>
-    (value.assertString("channel")..assertQuoted("channel")).text.toLowerCase();
+    (value.assertString("channel")..assertQuoted("channel")).text;
 
 /// Like [BuiltInCallable.function], but always sets the URL to
 /// `sass:color`.
