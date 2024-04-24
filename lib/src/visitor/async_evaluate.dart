@@ -1324,6 +1324,9 @@ final class _EvaluateVisitor
     if (_declarationName != null) {
       throw _exception(
           "At-rules may not be used within nested declarations.", node.span);
+    } else if (_inKeyframes && _parent is CssKeyframeBlock) {
+      throw _exception(
+          "At-rules may not be used within keyframe blocks.", node.span);
     }
 
     var name = await _interpolationToValue(node.name);
@@ -1895,6 +1898,9 @@ final class _EvaluateVisitor
     if (_declarationName != null) {
       throw _exception(
           "Media rules may not be used within nested declarations.", node.span);
+    } else if (_inKeyframes && _parent is CssKeyframeBlock) {
+      throw _exception(
+          "At-rules may not be used within keyframe blocks.", node.span);
     }
 
     var queries = await _visitMediaQueries(node.query);
@@ -1985,6 +1991,9 @@ final class _EvaluateVisitor
     if (_declarationName != null) {
       throw _exception(
           "Style rules may not be used within nested declarations.", node.span);
+    } else if (_inKeyframes && _parent is CssKeyframeBlock) {
+      throw _exception(
+          "Style rules may not be used within keyframe blocks.", node.span);
     }
 
     var (selectorText, selectorMap) =
@@ -2112,6 +2121,9 @@ final class _EvaluateVisitor
       throw _exception(
           "Supports rules may not be used within nested declarations.",
           node.span);
+    } else if (_inKeyframes && _parent is CssKeyframeBlock) {
+      throw _exception(
+          "At-rules may not be used within keyframe blocks.", node.span);
     }
 
     var condition = CssValue(
@@ -3270,6 +3282,9 @@ final class _EvaluateVisitor
     if (_declarationName != null) {
       throw _exception(
           "At-rules may not be used within nested declarations.", node.span);
+    } else if (_inKeyframes && _parent is CssKeyframeBlock) {
+      throw _exception(
+          "At-rules may not be used within keyframe blocks.", node.span);
     }
 
     if (node.isChildless) {
@@ -3353,6 +3368,9 @@ final class _EvaluateVisitor
     if (_declarationName != null) {
       throw _exception(
           "Media rules may not be used within nested declarations.", node.span);
+    } else if (_inKeyframes && _parent is CssKeyframeBlock) {
+      throw _exception(
+          "At-rules may not be used within keyframe blocks.", node.span);
     }
 
     var mergedQueries = _mediaQueries.andThen(
@@ -3401,6 +3419,9 @@ final class _EvaluateVisitor
     if (_declarationName != null) {
       throw _exception(
           "Style rules may not be used within nested declarations.", node.span);
+    } else if (_inKeyframes && _parent is CssKeyframeBlock) {
+      throw _exception(
+          "Style rules may not be used within keyframe blocks.", node.span);
     }
 
     var styleRule = _styleRule;
