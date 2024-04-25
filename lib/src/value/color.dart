@@ -566,7 +566,6 @@ class SassColor extends Value {
   /// for this color and [channelName] is the argument name for [channel]
   /// (without the `$`). These are used for error reporting.
   double channel(String channel, {String? colorName, String? channelName}) {
-    channel = channel.toLowerCase();
     var channels = space.channels;
     if (channel == channels[0].name) return channel0;
     if (channel == channels[1].name) return channel1;
@@ -586,7 +585,6 @@ class SassColor extends Value {
   /// (without the `$`). These are used for error reporting.
   bool isChannelMissing(String channel,
       {String? colorName, String? channelName}) {
-    channel = channel.toLowerCase();
     var channels = space.channels;
     if (channel == channels[0].name) return isChannel0Missing;
     if (channel == channels[1].name) return isChannel1Missing;
@@ -606,7 +604,6 @@ class SassColor extends Value {
   /// (without the `$`). These are used for error reporting.
   bool isChannelPowerless(String channel,
       {String? colorName, String? channelName}) {
-    channel = channel.toLowerCase();
     var channels = space.channels;
     if (channel == channels[0].name) return isChannel0Powerless;
     if (channel == channels[1].name) return isChannel1Powerless;
@@ -767,7 +764,7 @@ class SassColor extends Value {
     }
 
     for (var entry in newValues.entries) {
-      var channel = entry.key.toLowerCase();
+      var channel = entry.key;
       if (channel == channels[0].name) {
         setChannel0(entry.value);
       } else if (channel == channels[1].name) {
