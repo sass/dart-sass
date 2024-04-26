@@ -846,7 +846,19 @@ abstract class StylesheetParser extends Parser {
   FunctionRule _functionRule(LineScannerState start) {
     var precedingComment = lastSilentComment;
     lastSilentComment = null;
+    var beforeName = scanner.state;
     var name = identifier(normalize: true);
+
+    if (name.startsWith('--')) {
+      logger.warnForDeprecation(
+          Deprecation.cssFunctionMixin,
+          'Sass @function names beginning with -- are deprecated for forward-'
+          'compatibility with plain CSS mixins.\n'
+          '\n'
+          'For details, see https://sass-lang.com/d/css-function-mixin',
+          span: scanner.spanFrom(beforeName));
+    }
+
     whitespace();
     var arguments = _argumentDeclaration();
 
@@ -1261,7 +1273,19 @@ abstract class StylesheetParser extends Parser {
   MixinRule _mixinRule(LineScannerState start) {
     var precedingComment = lastSilentComment;
     lastSilentComment = null;
+    var beforeName = scanner.state;
     var name = identifier(normalize: true);
+
+    if (name.startsWith('--')) {
+      logger.warnForDeprecation(
+          Deprecation.cssFunctionMixin,
+          'Sass @mixin names beginning with -- are deprecated for forward-'
+          'compatibility with plain CSS mixins.\n'
+          '\n'
+          'For details, see https://sass-lang.com/d/css-function-mixin',
+          span: scanner.spanFrom(beforeName));
+    }
+
     whitespace();
     var arguments = scanner.peekChar() == $lparen
         ? _argumentDeclaration()

@@ -74,6 +74,10 @@ enum Deprecation {
       description:
           'Using the current working directory as an implicit load path.'),
 
+  cssFunctionMixin('css-function-mixin',
+      deprecatedIn: '1.76.0',
+      description: 'Function and mixin names beginning with --.'),
+
   @Deprecated('This deprecation name was never actually used.')
   calcInterp('calc-interp', deprecatedIn: null),
 

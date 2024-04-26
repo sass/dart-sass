@@ -1,6 +1,10 @@
-## 1.75.1
+## 1.76.0
 
 * Throw errors for misplaced statements in keyframe blocks.
+
+* Mixins and functions whose names begin with `--` are now deprecated for
+  forwards-compatibility with the in-progress CSS functions and mixins spec.
+  This deprecation is named `css-function-mixin`.
 
 ## 1.75.0
 
