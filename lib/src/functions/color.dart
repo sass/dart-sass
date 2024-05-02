@@ -764,7 +764,8 @@ SassColor _changeColor(
               if (!alphaArg.hasUnits) {
                 return alphaArg.valueInRange(0, 1, "alpha");
               } else if (alphaArg.hasUnit('%')) {
-                return alphaArg.valueInRangeWithUnit(0, 100, "alpha", "%") / 100;
+                return alphaArg.valueInRangeWithUnit(0, 100, "alpha", "%") /
+                    100;
               } else {
                 warnForDeprecation(
                     "\$alpha: Passing a unit other than % ($alphaArg) is "
