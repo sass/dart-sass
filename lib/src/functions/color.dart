@@ -762,9 +762,9 @@ SassColor _changeColor(
         _channelForChange(channelArgs[2], color, 2),
         alphaArg.andThen((alphaArg) {
               if (!alphaArg.hasUnits) {
-                return alphaArg.value;
+                return alphaArg.valueInRange(0, 1, "alpha");
               } else if (alphaArg.hasUnit('%')) {
-                return alphaArg.value / 100;
+                return alphaArg.valueInRangeWithUnit(0, 100, "alpha", "%") / 100;
               } else {
                 warnForDeprecation(
                     "\$alpha: Passing a unit other than % ($alphaArg) is "
@@ -775,7 +775,7 @@ SassColor _changeColor(
                     "\n"
                     "See https://sass-lang.com/d/function-units",
                     Deprecation.functionUnits);
-                return alphaArg.value;
+                return alphaArg.valueInRange(0, 1, "alpha");
               }
             }) ??
             color.alpha,
