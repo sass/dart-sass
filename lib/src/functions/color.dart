@@ -504,12 +504,37 @@ final module = BuiltInModule("color", functions: <Callable>[
     var color1 = arguments[0].assertColor('color1');
     var color2 = arguments[1].assertColor('color2');
 
-    // Convert both colors into the same space to compare them. Usually we
-    // just use color1's space, but since HSL and HWB can't represent
-    // out-of-gamut colors we use RGB for all legacy color spaces.
-    var targetSpace = color1.isLegacy ? ColorSpace.rgb : color1.space;
-    return SassBoolean(
-        color1.toSpace(targetSpace) == color2.toSpace(targetSpace));
+    /// Converts [color] to the xyz-d65 space without any mising channels.
+    SassColor toXyzNoMissing(SassColor color) => switch (color) {
+          SassColor(space: ColorSpace.xyzD65, hasMissingChannel: false) =>
+            color,
+          SassColor(
+            space: ColorSpace.xyzD65,
+            :var channel0,
+            :var channel1,
+            :var channel2,
+            :var alpha
+          ) =>
+            SassColor.xyzD65(channel0, channel1, channel2, alpha),
+          SassColor(
+            :var space,
+            :var channel0,
+            :var channel1,
+            :var channel2,
+            :var alpha
+          ) =>
+            space.convert(
+                ColorSpace.xyzD65, channel0, channel1, channel2, alpha)
+        };
+
+    return SassBoolean(color1.space == color2.space
+        ? fuzzyEquals(color1.channel0, color2.channel0) &&
+            fuzzyEquals(color1.channel1, color2.channel1) &&
+            fuzzyEquals(color1.channel2, color2.channel2) &&
+            fuzzyEquals(color1.alpha, color2.alpha)
+        // Use [ColorSpace.convert] manually so that we can convert missing
+        // channels to 0 without having to create new intermediate color objects.
+        : toXyzNoMissing(color1) == toXyzNoMissing(color2));
   }),
 
   _function(

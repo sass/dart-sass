@@ -213,6 +213,16 @@ class SassColor extends Value {
         _ => true
       };
 
+  /// Whether this color has any missing channels.
+  ///
+  /// @nodoc
+  @internal
+  bool get hasMissingChannel =>
+      isChannel0Missing ||
+      isChannel1Missing ||
+      isChannel2Missing ||
+      isAlphaMissing;
+
   /// This color's red channel, between `0` and `255`.
   ///
   /// **Note:** This is rounded to the nearest integer, which may be lossy. Use
@@ -953,21 +963,21 @@ class SassColor extends Value {
 
     if (isLegacy) {
       if (!other.isLegacy) return false;
-      if (!fuzzyEquals(alpha, other.alpha)) return false;
-      if (space == ColorSpace.rgb && other.space == ColorSpace.rgb) {
-        return fuzzyEquals(channel0, other.channel0) &&
-            fuzzyEquals(channel1, other.channel1) &&
-            fuzzyEquals(channel2, other.channel2);
+      if (!fuzzyEqualsNullable(alphaOrNull, other.alphaOrNull)) return false;
+      if (space == other.space) {
+        return fuzzyEqualsNullable(channel0OrNull, other.channel0OrNull) &&
+            fuzzyEqualsNullable(channel1OrNull, other.channel1OrNull) &&
+            fuzzyEqualsNullable(channel2OrNull, other.channel2OrNull);
       } else {
         return toSpace(ColorSpace.rgb) == other.toSpace(ColorSpace.rgb);
       }
     }
 
     return space == other.space &&
-        fuzzyEquals(channel0, other.channel0) &&
-        fuzzyEquals(channel1, other.channel1) &&
-        fuzzyEquals(channel2, other.channel2) &&
-        fuzzyEquals(alpha, other.alpha);
+        fuzzyEqualsNullable(channel0OrNull, other.channel0OrNull) &&
+        fuzzyEqualsNullable(channel1OrNull, other.channel1OrNull) &&
+        fuzzyEqualsNullable(channel2OrNull, other.channel2OrNull) &&
+        fuzzyEqualsNullable(alphaOrNull, other.alphaOrNull);
   }
 
   int get hashCode {
