@@ -1,3 +1,8 @@
+## 1.78.0
+
+* The `meta.feature-exists` function is now deprecated. This deprecation is
+  named `feature-exists`.
+
 ## 1.77.0
 
 * *Don't* throw errors for at-rules in keyframe blocks.
