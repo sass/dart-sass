@@ -711,7 +711,7 @@ SassColor _updateComponents(List<Value> arguments,
   var spaceKeyword = keywords.remove("space")?.assertString("space")
     ?..assertUnquoted("space");
 
-  var alphaArg = keywords.remove('alpha')?.assertNumber('alpha');
+  var alphaArg = keywords.remove('alpha');
 
   // For backwards-compatibility, we allow legacy colors to modify channels in
   // any legacy color space.
@@ -743,9 +743,10 @@ SassColor _updateComponents(List<Value> arguments,
       for (var i = 0; i < channelInfo.length; i++)
         channelArgs[i]?.assertNumber(channelInfo[i].name)
     ];
+    var alphaNumber = alphaArg?.assertNumber("alpha");
     result = scale
-        ? _scaleColor(color, channelNumbers, alphaArg)
-        : _adjustColor(color, channelNumbers, alphaArg);
+        ? _scaleColor(color, channelNumbers, alphaNumber)
+        : _adjustColor(color, channelNumbers, alphaNumber);
   }
 
   return result.toSpace(originalColor.space);
@@ -754,32 +755,33 @@ SassColor _updateComponents(List<Value> arguments,
 /// Returns a copy of [color] with its channel values replaced by those in
 /// [channelArgs] and [alphaArg], if specified.
 SassColor _changeColor(
-        SassColor color, List<Value?> channelArgs, SassNumber? alphaArg) =>
+        SassColor color, List<Value?> channelArgs, Value? alphaArg) =>
     _colorFromChannels(
         color.space,
         _channelForChange(channelArgs[0], color, 0),
         _channelForChange(channelArgs[1], color, 1),
         _channelForChange(channelArgs[2], color, 2),
-        alphaArg.andThen((alphaArg) {
-              if (!alphaArg.hasUnits) {
-                return alphaArg.valueInRange(0, 1, "alpha");
-              } else if (alphaArg.hasUnit('%')) {
-                return alphaArg.valueInRangeWithUnit(0, 100, "alpha", "%") /
-                    100;
-              } else {
-                warnForDeprecation(
-                    "\$alpha: Passing a unit other than % ($alphaArg) is "
-                    "deprecated.\n"
-                    "\n"
-                    "To preserve current behavior: "
-                    "${alphaArg.unitSuggestion('alpha')}\n"
-                    "\n"
-                    "See https://sass-lang.com/d/function-units",
-                    Deprecation.functionUnits);
-                return alphaArg.valueInRange(0, 1, "alpha");
-              }
-            }) ??
-            color.alpha,
+        switch (alphaArg) {
+          null => color.alpha,
+          _ when _isNone(alphaArg) => null,
+          SassNumber(hasUnits: false) => alphaArg.valueInRange(0, 1, "alpha"),
+          SassNumber() when alphaArg.hasUnit('%') =>
+            alphaArg.valueInRangeWithUnit(0, 100, "alpha", "%") / 100,
+          SassNumber() => () {
+              warnForDeprecation(
+                  "\$alpha: Passing a unit other than % ($alphaArg) is "
+                  "deprecated.\n"
+                  "\n"
+                  "To preserve current behavior: "
+                  "${alphaArg.unitSuggestion('alpha')}\n"
+                  "\n"
+                  "See https://sass-lang.com/d/function-units",
+                  Deprecation.functionUnits);
+              return alphaArg.valueInRange(0, 1, "alpha");
+            }(),
+          _ => throw SassScriptException(
+              '$alphaArg is not a number or unquoted "none".', 'alpha')
+        },
         clamp: false);
 
 /// Returns the value for a single channel in `color.change()`.
