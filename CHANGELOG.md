@@ -1,3 +1,7 @@
+## 1.77.0
+
+* *Don't* throw errors for at-rules in keyframe blocks.
+
 ## 1.76.0
 
 * Throw errors for misplaced statements in keyframe blocks.

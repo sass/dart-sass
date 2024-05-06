@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 135bf44f65efcbebb4a55b38ada86c754fcdb86b
+// Checksum: 7788c21fd8c721992490ac01d0ef4783dddf3f1f
 //
 // ignore_for_file: unused_import
 
@@ -1321,9 +1321,6 @@ final class _EvaluateVisitor
     if (_declarationName != null) {
       throw _exception(
           "At-rules may not be used within nested declarations.", node.span);
-    } else if (_inKeyframes && _parent is CssKeyframeBlock) {
-      throw _exception(
-          "At-rules may not be used within keyframe blocks.", node.span);
     }
 
     var name = _interpolationToValue(node.name);
@@ -1890,9 +1887,6 @@ final class _EvaluateVisitor
     if (_declarationName != null) {
       throw _exception(
           "Media rules may not be used within nested declarations.", node.span);
-    } else if (_inKeyframes && _parent is CssKeyframeBlock) {
-      throw _exception(
-          "At-rules may not be used within keyframe blocks.", node.span);
     }
 
     var queries = _visitMediaQueries(node.query);
@@ -2111,9 +2105,6 @@ final class _EvaluateVisitor
       throw _exception(
           "Supports rules may not be used within nested declarations.",
           node.span);
-    } else if (_inKeyframes && _parent is CssKeyframeBlock) {
-      throw _exception(
-          "At-rules may not be used within keyframe blocks.", node.span);
     }
 
     var condition =
@@ -3252,9 +3243,6 @@ final class _EvaluateVisitor
     if (_declarationName != null) {
       throw _exception(
           "At-rules may not be used within nested declarations.", node.span);
-    } else if (_inKeyframes && _parent is CssKeyframeBlock) {
-      throw _exception(
-          "At-rules may not be used within keyframe blocks.", node.span);
     }
 
     if (node.isChildless) {
@@ -3338,9 +3326,6 @@ final class _EvaluateVisitor
     if (_declarationName != null) {
       throw _exception(
           "Media rules may not be used within nested declarations.", node.span);
-    } else if (_inKeyframes && _parent is CssKeyframeBlock) {
-      throw _exception(
-          "At-rules may not be used within keyframe blocks.", node.span);
     }
 
     var mergedQueries = _mediaQueries.andThen(
