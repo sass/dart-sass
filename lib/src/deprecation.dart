@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 309e4f1f008f08379b824ab6094e13df2e18e187
+  // Checksum: dd5c6aa0f1431fa9fc88bb71a96f832adbc165f5
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -94,6 +94,10 @@ enum Deprecation {
   mixedDecls('mixed-decls',
       deprecatedIn: '1.77.7',
       description: 'Declarations after or between nested rules.'),
+
+  /// Deprecation for meta.feature-exists
+  featureExists('feature-exists',
+      deprecatedIn: '1.78.0', description: 'meta.feature-exists'),
 
   /// Deprecation for @import rules.
   import.future('import', description: '@import rules.'),

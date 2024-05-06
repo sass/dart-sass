@@ -1,5 +1,8 @@
 ## 1.78.0
 
+* The `meta.feature-exists` function is now deprecated. This deprecation is
+  named `feature-exists`.
+
 ### JS API
 
 * Fix a bug where accessing `SourceSpan.url` would crash when a relative URL was
