@@ -523,6 +523,9 @@ final module = BuiltInModule("color", functions: <Callable>[
             :var channel2,
             :var alpha
           ) =>
+            // Use [ColorSpace.convert] manually so that we can convert missing
+            // channels to 0 without having to create new intermediate color
+            // objects.
             space.convert(
                 ColorSpace.xyzD65, channel0, channel1, channel2, alpha)
         };
@@ -532,8 +535,6 @@ final module = BuiltInModule("color", functions: <Callable>[
             fuzzyEquals(color1.channel1, color2.channel1) &&
             fuzzyEquals(color1.channel2, color2.channel2) &&
             fuzzyEquals(color1.alpha, color2.alpha)
-        // Use [ColorSpace.convert] manually so that we can convert missing
-        // channels to 0 without having to create new intermediate color objects.
         : toXyzNoMissing(color1) == toXyzNoMissing(color2));
   }),
 
