@@ -78,6 +78,10 @@ enum Deprecation {
       deprecatedIn: '1.76.0',
       description: 'Function and mixin names beginning with --.'),
 
+  featureExists('feature-exists',
+      deprecatedIn: '1.78.0',
+      description: 'Using the meta.feature-exists() function.'),
+
   @Deprecated('This deprecation name was never actually used.')
   calcInterp('calc-interp', deprecatedIn: null),
 
