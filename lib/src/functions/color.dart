@@ -1270,15 +1270,18 @@ Value _parseChannels(String functionName, Value input,
         channels = componentList;
       }
 
-      for (var channel in channels) {
+      for (var i = 0; i < channels.length; i++) {
+        var channel = channels[i];
         if (!channel.isSpecialNumber &&
             channel is! SassNumber &&
             !_isNone(channel)) {
-          var channelName =
-              space?.channels[channels.indexOf(channel)].name ?? 'channel';
+          var channelName = space?.channels
+                  .elementAtOrNull(i)
+                  ?.name
+                  .andThen((name) => '$name channel') ??
+              'channel ${i + 1}';
           throw SassScriptException(
-              'Expected $channelName channel to be a number, was $channel.',
-              name);
+              'Expected $channelName to be a number, was $channel.', name);
         }
       }
 
@@ -1353,15 +1356,11 @@ Value _parseChannels(String functionName, Value input,
       [...var initial, SassString(hasQuotes: false, :var text)] => switch (
             text.split('/')) {
           [_] => (input, null),
-          [var channel3 && 'none', var alpha] ||
-          [var channel3, var alpha && 'none'] =>
-            switch ((_parseNumberOrNone(channel3), _parseNumberOrNone(alpha))) {
-              (var channel3Value?, var alphaValue?) => (
-                  SassList([...initial, channel3Value], ListSeparator.space),
-                  alphaValue
-                ),
-              _ => null
-            },
+          [var channel3, var alpha] => (
+              SassList([...initial, _parseNumberOrString(channel3)],
+                  ListSeparator.space),
+              _parseNumberOrString(alpha)
+            ),
           _ => null
         },
       [...var initial, SassNumber(asSlash: (var before, var after))] => (
@@ -1371,15 +1370,12 @@ Value _parseChannels(String functionName, Value input,
       _ => (input, null)
     };
 
-/// Parses [text] as either a Sass number or the unquoted Sass string "none".
-///
-/// If neither matches, returns null.
-Value? _parseNumberOrNone(String text) {
-  if (text == 'none') return SassString('none', quotes: false);
+/// Parses [text] as either a Sass number or an unquoted Sass string.
+Value _parseNumberOrString(String text) {
   try {
     return ScssParser(text).parseNumber();
   } on SassFormatException {
-    return null;
+    return SassString(text, quotes: false);
   }
 }
 
