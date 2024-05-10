@@ -1,3 +1,7 @@
+## 1.77.1
+
+* Fix a crash that could come up with importers in certain contexts.
+
 ## 1.77.0
 
 * *Don't* throw errors for at-rules in keyframe blocks.
