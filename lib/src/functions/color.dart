@@ -630,10 +630,11 @@ Value _invert(List<Value> arguments, {bool global = false}) {
     _checkPercent(weightNumber, "weight");
     var rgb = color.toSpace(ColorSpace.rgb);
     return _mixLegacy(
-        SassColor.rgb(255.0 - rgb.channel0, 255.0 - rgb.channel1,
-            255.0 - rgb.channel2, color.alphaOrNull),
-        color,
-        weightNumber);
+            SassColor.rgb(255.0 - rgb.channel0, 255.0 - rgb.channel1,
+                255.0 - rgb.channel2, color.alphaOrNull),
+            color,
+            weightNumber)
+        .toSpace(color.space);
   }
 
   var space = ColorSpace.fromName(
@@ -668,7 +669,7 @@ Value _invert(List<Value> arguments, {bool global = false}) {
     _ => throw UnsupportedError("Unknown color space $space.")
   };
 
-  if (fuzzyEquals(weight, 1)) return inverted;
+  if (fuzzyEquals(weight, 1)) return inverted.toSpace(color.space);
   return color.interpolate(inverted, InterpolationMethod(space),
       weight: 1 - weight);
 }
@@ -1144,10 +1145,10 @@ SassColor _mixLegacy(SassColor color1, SassColor color2, SassNumber weight) {
   var weight2 = 1 - weight1;
 
   return SassColor.rgb(
-      fuzzyRound(rgb1.channel0 * weight1 + rgb2.channel0 * weight2),
-      fuzzyRound(color1.green * weight1 + color2.green * weight2),
-      fuzzyRound(color1.blue * weight1 + color2.blue * weight2),
-      color1.alpha * weightScale + color2.alpha * (1 - weightScale));
+      rgb1.channel0 * weight1 + rgb2.channel0 * weight2,
+      rgb1.channel1 * weight1 + rgb2.channel1 * weight2,
+      rgb1.channel2 * weight1 + rgb2.channel2 * weight2,
+      rgb1.alpha * weightScale + rgb2.alpha * (1 - weightScale));
 }
 
 /// The definition of the `opacify()` and `fade-in()` functions.
