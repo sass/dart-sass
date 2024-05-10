@@ -1360,10 +1360,7 @@ Value _parseChannels(String functionName, Value input,
                   ListSeparator.space),
               _parseNumberOrString(alpha)
             ),
-          var components => throw SassScriptException(
-              "Only 2 slash-separated elements allowed, but ${components.length} "
-              "${pluralize('was', components.length, plural: 'were')} passed.",
-              name)
+          _ => null
         },
       [...var initial, SassNumber(asSlash: (var before, var after))] => (
           SassList([...initial, before], ListSeparator.space),
