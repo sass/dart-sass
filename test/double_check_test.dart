@@ -114,6 +114,17 @@ void main() {
         expect(pkgPubspec.environment!["sdk"],
             equals(sassPubspec.environment!["sdk"]));
       });
+
+      test("matches dartdoc version", () {
+        // TODO(nweiz): Just use equals() once dart-lang/pubspec_parse#127 lands
+        // and is released.
+        var sassDep = sassPubspec.devDependencies["dartdoc"];
+        var pkgDep = pkgPubspec.devDependencies["dartdoc"];
+        expect(pkgDep, isA<HostedDependency>());
+        expect(sassDep, isA<HostedDependency>());
+        expect((pkgDep as HostedDependency).version,
+            equals((sassDep as HostedDependency).version));
+      });
     });
   }
 }

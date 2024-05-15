@@ -12,6 +12,7 @@ import '../exception.dart';
 import '../executable/options.dart';
 import '../import_cache.dart';
 import '../importer/filesystem.dart';
+import '../logger/deprecation_processing.dart';
 import '../logger/tracking.dart';
 import '../parse/parser.dart';
 import '../utils.dart';
@@ -20,7 +21,12 @@ import '../visitor/evaluate.dart';
 /// Runs an interactive SassScript shell according to [options].
 Future<void> repl(ExecutableOptions options) async {
   var repl = Repl(prompt: '>> ');
-  var logger = TrackingLogger(options.logger);
+  var trackingLogger = TrackingLogger(options.logger);
+  var logger = DeprecationProcessingLogger(trackingLogger,
+      silenceDeprecations: options.silenceDeprecations,
+      fatalDeprecations: options.fatalDeprecations,
+      futureDeprecations: options.futureDeprecations,
+      limitRepetition: !options.verbose);
   var evaluator = Evaluator(
       importer: FilesystemImporter.cwd,
       importCache: ImportCache(
@@ -46,8 +52,8 @@ Future<void> repl(ExecutableOptions options) async {
         print(evaluator.evaluate(Expression.parse(line, logger: logger)));
       }
     } on SassException catch (error, stackTrace) {
-      _logError(
-          error, getTrace(error) ?? stackTrace, line, repl, options, logger);
+      _logError(error, getTrace(error) ?? stackTrace, line, repl, options,
+          trackingLogger);
     }
   }
 }
