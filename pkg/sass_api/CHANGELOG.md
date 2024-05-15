@@ -1,3 +1,7 @@
+## 10.4.2
+
+* No user-visible changes.
+
 ## 10.4.1
 
 * No user-visible changes.
