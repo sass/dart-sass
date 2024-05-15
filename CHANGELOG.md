@@ -1,3 +1,10 @@
+## 1.77.2
+
+* Don't emit deprecation warnings for functions and mixins beginning with `__`.
+
+* Allow user-defined functions whose names begin with `_` and otherwise look
+  like vendor-prefixed functions with special CSS syntax.
+
 ## 1.77.1
 
 * Fix a crash that could come up with importers in certain contexts.

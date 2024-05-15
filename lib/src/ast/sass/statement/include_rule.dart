@@ -25,6 +25,10 @@ final class IncludeRule
   /// hyphens.
   final String name;
 
+  /// The original name of the mixin being invoked, without underscores
+  /// converted to hyphens.
+  final String originalName;
+
   /// The arguments to pass to the mixin.
   final ArgumentInvocation arguments;
 
@@ -55,8 +59,9 @@ final class IncludeRule
     return startSpan.initialIdentifier();
   }
 
-  IncludeRule(this.name, this.arguments, this.span,
-      {this.namespace, this.content});
+  IncludeRule(this.originalName, this.arguments, this.span,
+      {this.namespace, this.content})
+      : name = originalName.replaceAll('_', '-');
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIncludeRule(this);
 
