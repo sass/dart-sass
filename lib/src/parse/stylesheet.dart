@@ -847,7 +847,7 @@ abstract class StylesheetParser extends Parser {
     var precedingComment = lastSilentComment;
     lastSilentComment = null;
     var beforeName = scanner.state;
-    var name = identifier(normalize: true);
+    var name = identifier();
 
     if (name.startsWith('--')) {
       logger.warnForDeprecation(
@@ -1221,8 +1221,6 @@ abstract class StylesheetParser extends Parser {
     if (scanner.scanChar($dot)) {
       namespace = name;
       name = _publicIdentifier();
-    } else {
-      name = name.replaceAll("_", "-");
     }
 
     whitespace();
@@ -1274,7 +1272,7 @@ abstract class StylesheetParser extends Parser {
     var precedingComment = lastSilentComment;
     lastSilentComment = null;
     var beforeName = scanner.state;
-    var name = identifier(normalize: true);
+    var name = identifier();
 
     if (name.startsWith('--')) {
       logger.warnForDeprecation(
@@ -3457,7 +3455,7 @@ abstract class StylesheetParser extends Parser {
   /// Like [identifier], but rejects identifiers that begin with `_` or `-`.
   String _publicIdentifier() {
     var start = scanner.state;
-    var result = identifier(normalize: true);
+    var result = identifier();
     _assertPublic(result, () => scanner.spanFrom(start));
     return result;
   }
