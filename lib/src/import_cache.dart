@@ -16,7 +16,7 @@ import 'package:package_config/package_config_types.dart';
 import 'package:path/path.dart' as p;
 
 import 'ast/sass.dart';
-import 'deprecation.dart';
+import 'deprecation.g.dart';
 import 'importer.dart';
 import 'importer/canonicalize_context.dart';
 import 'importer/no_op.dart';

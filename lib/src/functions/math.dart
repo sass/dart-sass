@@ -8,7 +8,7 @@ import 'dart:math' as math;
 import 'package:collection/collection.dart';
 
 import '../callable.dart';
-import '../deprecation.dart';
+import '../deprecation.g.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';

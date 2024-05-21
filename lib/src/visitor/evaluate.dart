@@ -33,7 +33,7 @@ import '../callable.dart';
 import '../color_names.dart';
 import '../configuration.dart';
 import '../configured_value.dart';
-import '../deprecation.dart';
+import '../deprecation.g.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../extend/extension_store.dart';

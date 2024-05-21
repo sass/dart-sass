@@ -10,7 +10,7 @@ import 'package:string_scanner/string_scanner.dart';
 
 import '../ast/sass.dart';
 import '../color_names.dart';
-import '../deprecation.dart';
+import '../deprecation.g.dart';
 import '../exception.dart';
 import '../interpolation_buffer.dart';
 import '../logger.dart';
@@ -235,7 +235,7 @@ abstract class StylesheetParser extends Parser {
         case 'default':
           if (guarded) {
             logger.warnForDeprecation(
-                Deprecation.duplicateVariableFlags,
+                Deprecation.duplicateVarFlags,
                 '!default should only be written once for each variable.\n'
                 'This will be an error in Dart Sass 2.0.0.',
                 span: scanner.spanFrom(flagStart));
@@ -248,7 +248,7 @@ abstract class StylesheetParser extends Parser {
                 scanner.spanFrom(flagStart));
           } else if (global) {
             logger.warnForDeprecation(
-                Deprecation.duplicateVariableFlags,
+                Deprecation.duplicateVarFlags,
                 '!global should only be written once for each variable.\n'
                 'This will be an error in Dart Sass 2.0.0.',
                 span: scanner.spanFrom(flagStart));

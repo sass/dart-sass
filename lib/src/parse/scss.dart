@@ -5,7 +5,7 @@
 import 'package:charcode/charcode.dart';
 
 import '../ast/sass.dart';
-import '../deprecation.dart';
+import '../deprecation.g.dart';
 import '../interpolation_buffer.dart';
 import '../logger.dart';
 import '../util/character.dart';

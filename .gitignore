@@ -15,5 +15,6 @@ node_modules/
 /doc/api
 /pkg/*/doc/api
 
-# Generated protocol buffer files.
+# Generated Dart files.
 *.pb*.dart
+*.g.dart

@@ -5,7 +5,7 @@
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
-import '../deprecation.dart';
+import '../deprecation.g.dart';
 import '../evaluation_context.dart';
 import '../importer.dart';
 import '../io.dart' as io;

@@ -20,7 +20,7 @@ import 'ast/sass.dart';
 import 'import_cache.dart';
 import 'callable.dart';
 import 'compile_result.dart';
-import 'deprecation.dart';
+import 'deprecation.g.dart';
 import 'importer.dart';
 import 'importer/legacy_node.dart';
 import 'importer/no_op.dart';

@@ -8,7 +8,7 @@ import 'package:cli_pkg/js.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
-import '../deprecation.dart';
+import '../deprecation.g.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../util/number.dart';

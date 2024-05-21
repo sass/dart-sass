@@ -13,7 +13,7 @@ import 'src/async_import_cache.dart';
 import 'src/callable.dart';
 import 'src/compile.dart' as c;
 import 'src/compile_result.dart';
-import 'src/deprecation.dart';
+import 'src/deprecation.g.dart';
 import 'src/exception.dart';
 import 'src/import_cache.dart';
 import 'src/importer.dart';
@@ -25,7 +25,7 @@ import 'src/visitor/serialize.dart';
 
 export 'src/callable.dart' show Callable, AsyncCallable;
 export 'src/compile_result.dart';
-export 'src/deprecation.dart';
+export 'src/deprecation.g.dart';
 export 'src/exception.dart' show SassException;
 export 'src/importer.dart';
 export 'src/logger.dart' show Logger;
