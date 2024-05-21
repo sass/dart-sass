@@ -1,3 +1,11 @@
+## 1.77.3
+
+### Dart API
+
+* `Deprecation.duplicateVariableFlags` has been deprecated and replaced with
+`Deprecation.duplicateVarFlags` to make it consistent with the
+`duplicate-var-flags` name used on the command line and in the JS API.
+
 ## 1.77.2
 
 * Don't emit deprecation warnings for functions and mixins beginning with `__`.
