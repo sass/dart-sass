@@ -106,6 +106,12 @@ final global = UnmodifiableListView([
     var color = arguments[0].assertColor("color");
     var degrees = _angleValue(arguments[1], "degrees");
 
+    if (!color.isLegacy) {
+      throw SassScriptException(
+          "adjust-hue() is only supported for legacy colors. Please use "
+          "color.adjust() instead with an explicit \$space argument.");
+    }
+
     var suggestedValue = SassNumber(degrees, 'deg');
     warnForDeprecation(
         "adjust-hue() is deprecated. Suggestion:\n"
@@ -121,6 +127,12 @@ final global = UnmodifiableListView([
   _function("lighten", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
+    if (!color.isLegacy) {
+      throw SassScriptException(
+          "lighten() is only supported for legacy colors. Please use "
+          "color.adjust() instead with an explicit \$space argument.");
+    }
+
     var result = color.changeHsl(
         lightness: (color.lightness + amount.valueInRange(0, 100, "amount"))
             .clamp(0, 100));
@@ -137,6 +149,12 @@ final global = UnmodifiableListView([
   _function("darken", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
+    if (!color.isLegacy) {
+      throw SassScriptException(
+          "darken() is only supported for legacy colors. Please use "
+          "color.adjust() instead with an explicit \$space argument.");
+    }
+
     var result = color.changeHsl(
         lightness: (color.lightness - amount.valueInRange(0, 100, "amount"))
             .clamp(0, 100));
@@ -162,6 +180,12 @@ final global = UnmodifiableListView([
     r"$color, $amount": (arguments) {
       var color = arguments[0].assertColor("color");
       var amount = arguments[1].assertNumber("amount");
+      if (!color.isLegacy) {
+        throw SassScriptException(
+            "saturate() is only supported for legacy colors. Please use "
+            "color.adjust() instead with an explicit \$space argument.");
+      }
+
       var result = color.changeHsl(
           saturation: (color.saturation + amount.valueInRange(0, 100, "amount"))
               .clamp(0, 100));
@@ -179,6 +203,12 @@ final global = UnmodifiableListView([
   _function("desaturate", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
+    if (!color.isLegacy) {
+      throw SassScriptException(
+          "desaturate() is only supported for legacy colors. Please use "
+          "color.adjust() instead with an explicit \$space argument.");
+    }
+
     var result = color.changeHsl(
         saturation: (color.saturation - amount.valueInRange(0, 100, "amount"))
             .clamp(0, 100));
@@ -203,18 +233,16 @@ final global = UnmodifiableListView([
       (arguments) => _transparentize("fade-out", arguments)),
 
   BuiltInCallable.overloadedFunction("alpha", {
-    r"$color": (arguments) {
-      var argument = arguments[0];
-      if (argument is SassString &&
-          !argument.hasQuotes &&
-          argument.text.contains(_microsoftFilterStart)) {
-        // Support the proprietary Microsoft alpha() function.
-        return _functionString("alpha", arguments);
-      }
-
-      var color = argument.assertColor("color");
-      return SassNumber(color.alpha);
-    },
+    r"$color": (arguments) => switch (arguments[0]) {
+          // Support the proprietary Microsoft alpha() function.
+          SassString(hasQuotes: false, :var text)
+              when text.contains(_microsoftFilterStart) =>
+            _functionString("alpha", arguments),
+          SassColor(isLegacy: false) => throw SassScriptException(
+              "alpha() is only supported for legacy colors. Please use "
+              "color.channel() instead."),
+          var argument => SassNumber(argument.assertColor("color").alpha)
+        },
     r"$args...": (arguments) {
       var argList = arguments[0].asList;
       if (argList.isNotEmpty &&
@@ -364,21 +392,26 @@ final module = BuiltInModule("color", functions: <Callable>[
 
   BuiltInCallable.overloadedFunction("alpha", {
     r"$color": (arguments) {
-      var argument = arguments[0];
-      if (argument is SassString &&
-          !argument.hasQuotes &&
-          argument.text.contains(_microsoftFilterStart)) {
-        var result = _functionString("alpha", arguments);
-        warnForDeprecation(
-            "Using color.alpha() for a Microsoft filter is deprecated.\n"
-            "\n"
-            "Recommendation: $result",
-            Deprecation.colorModuleCompat);
-        return result;
-      }
+      switch (arguments[0]) {
+        // Support the proprietary Microsoft alpha() function.
+        case SassString(hasQuotes: false, :var text)
+            when text.contains(_microsoftFilterStart):
+          var result = _functionString("alpha", arguments);
+          warnForDeprecation(
+              "Using color.alpha() for a Microsoft filter is deprecated.\n"
+              "\n"
+              "Recommendation: $result",
+              Deprecation.colorModuleCompat);
+          return result;
 
-      var color = argument.assertColor("color");
-      return SassNumber(color.alpha);
+        case SassColor(isLegacy: false):
+          throw SassScriptException(
+              "color.alpha() is only supported for legacy colors. Please use "
+              "color.channel() instead.");
+
+        case var argument:
+          return SassNumber(argument.assertColor("color").alpha);
+      }
     },
     r"$args...": (arguments) {
       if (arguments[0].asList.every((argument) =>
@@ -1155,6 +1188,12 @@ SassColor _mixLegacy(SassColor color1, SassColor color2, SassNumber weight) {
 SassColor _opacify(String name, List<Value> arguments) {
   var color = arguments[0].assertColor("color");
   var amount = arguments[1].assertNumber("amount");
+  if (!color.isLegacy) {
+    throw SassScriptException(
+        "$name() is only supported for legacy colors. Please use "
+        "color.adjust() instead with an explicit \$space argument.");
+  }
+
   var result = color.changeAlpha(
       (color.alpha + amount.valueInRangeWithUnit(0, 1, "amount", ""))
           .clamp(0, 1));
@@ -1172,6 +1211,12 @@ SassColor _opacify(String name, List<Value> arguments) {
 SassColor _transparentize(String name, List<Value> arguments) {
   var color = arguments[0].assertColor("color");
   var amount = arguments[1].assertNumber("amount");
+  if (!color.isLegacy) {
+    throw SassScriptException(
+        "$name() is only supported for legacy colors. Please use "
+        "color.adjust() instead with an explicit \$space argument.");
+  }
+
   var result = color.changeAlpha(
       (color.alpha - amount.valueInRangeWithUnit(0, 1, "amount", ""))
           .clamp(0, 1));
