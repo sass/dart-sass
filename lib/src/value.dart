@@ -5,7 +5,7 @@
 import 'package:meta/meta.dart';
 
 import 'ast/selector.dart';
-import 'deprecation.g.dart';
+import 'deprecation.dart';
 import 'evaluation_context.dart';
 import 'exception.dart';
 import 'utils.dart';

@@ -19,8 +19,10 @@ export 'grind/bazel.dart';
 export 'grind/benchmark.dart';
 export 'grind/double_check.dart';
 export 'grind/frameworks.dart';
+export 'grind/generate_deprecations.dart';
 export 'grind/subpackages.dart';
 export 'grind/synchronize.dart';
+export 'grind/utils.dart';
 
 void main(List<String> args) {
   pkg.humanName.value = "Dart Sass";
@@ -128,7 +130,7 @@ void main(List<String> args) {
 }
 
 @DefaultTask('Compile async code and reformat.')
-@Depends(format, synchronize)
+@Depends(format, synchronize, deprecations)
 void all() {}
 
 @Task('Run the Dart formatter.')
@@ -261,12 +263,6 @@ dart run protoc_plugin "\$@"
       }));
 }
 
-@Task('Generate deprecation.g.dart from the list in the language repo.')
-@Depends(updateLanguageRepo)
-Future<void> deprecations() async {
-  updateDeprecationFile(File('build/language/spec/deprecations.yaml'));
-}
-
 /// After building the NPM package, add default exports to
 /// `build/npm/sass.node.mjs`.
 ///
@@ -326,21 +322,4 @@ String _updateHomebrewLanguageRevision(String formula) {
   return formula.substring(0, match.start) +
       match.group(0)!.replaceFirst(match.group(1)!, languageRepoRevision) +
       formula.substring(match.end);
-}
-
-/// Clones the main branch of `github.com/sass/sass`.
-///
-/// If the `UPDATE_SASS_SASS_REPO` environment variable is `false`, this instead
-/// assumes the repo that already exists at `build/language/sass`.
-/// `UPDATE_SASS_PROTOCOL` is also checked as a deprecated alias for
-/// `UPDATE_SASS_SASS_REPO`.
-@Task('Clones the main branch of `github.com/sass/sass` if necessary.')
-void updateLanguageRepo() {
-  // UPDATE_SASS_PROTOCOL is considered deprecated, because it doesn't apply as
-  // generically to other tasks.
-  if (Platform.environment['UPDATE_SASS_SASS_REPO'] != 'false' &&
-      Platform.environment['UPDATE_SASS_PROTOCOL'] != 'false') {
-    cloneOrCheckout("https://github.com/sass/sass.git", "main",
-        name: 'language');
-  }
 }

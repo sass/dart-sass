@@ -6,7 +6,7 @@ import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
-import 'deprecation.g.dart';
+import 'deprecation.dart';
 import 'logger/deprecation_processing.dart';
 import 'logger/stderr.dart';
 

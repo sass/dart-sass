@@ -5,7 +5,7 @@
 import 'package:js/js.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import '../deprecation.g.dart' as dart show Deprecation;
+import '../deprecation.dart' as dart show Deprecation;
 import 'reflection.dart';
 
 @JS()

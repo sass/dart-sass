@@ -6,7 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
-import '../deprecation.g.dart';
+import '../deprecation.dart';
 import '../logger.dart';
 import '../util/nullable.dart';
 import '../utils.dart';

@@ -11,7 +11,7 @@ import 'ast/sass.dart';
 import 'async_import_cache.dart';
 import 'callable.dart';
 import 'compile_result.dart';
-import 'deprecation.g.dart';
+import 'deprecation.dart';
 import 'importer.dart';
 import 'importer/legacy_node.dart';
 import 'importer/no_op.dart';

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 3be7e7faec493a34d3570bba5107c399f99304b7
+// Checksum: 116b8079719577ac6e4dad4aebe403282136e611
 //
 // ignore_for_file: unused_import
 
@@ -33,7 +33,7 @@ import '../callable.dart';
 import '../color_names.dart';
 import '../configuration.dart';
 import '../configured_value.dart';
-import '../deprecation.g.dart';
+import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../extend/extension_store.dart';

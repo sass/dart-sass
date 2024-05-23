@@ -7,7 +7,7 @@ import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as glyph;
 
-import '../deprecation.g.dart';
+import '../deprecation.dart';
 import '../logger.dart';
 import '../js/deprecations.dart' show deprecations;
 import '../js/logger.dart';

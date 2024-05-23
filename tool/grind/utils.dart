@@ -100,3 +100,20 @@ void afterTask(String taskName, FutureOr<void> callback()) {
     await callback();
   });
 }
+
+/// Clones the main branch of `github.com/sass/sass`.
+///
+/// If the `UPDATE_SASS_SASS_REPO` environment variable is `false`, this instead
+/// assumes the repo that already exists at `build/language/sass`.
+/// `UPDATE_SASS_PROTOCOL` is also checked as a deprecated alias for
+/// `UPDATE_SASS_SASS_REPO`.
+@Task('Clones the main branch of `github.com/sass/sass` if necessary.')
+void updateLanguageRepo() {
+  // UPDATE_SASS_PROTOCOL is considered deprecated, because it doesn't apply as
+  // generically to other tasks.
+  if (Platform.environment['UPDATE_SASS_SASS_REPO'] != 'false' &&
+      Platform.environment['UPDATE_SASS_PROTOCOL'] != 'false') {
+    cloneOrCheckout("https://github.com/sass/sass.git", "main",
+        name: 'language');
+  }
+}

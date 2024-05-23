@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 92f7f488217e46e701434f0cbd9f6f066675c354
+// Checksum: 4362e28e5cd425786c235d2a6a2bb60539403799
 //
 // ignore_for_file: unused_import
 
@@ -16,7 +16,7 @@ import 'package:package_config/package_config_types.dart';
 import 'package:path/path.dart' as p;
 
 import 'ast/sass.dart';
-import 'deprecation.g.dart';
+import 'deprecation.dart';
 import 'importer.dart';
 import 'importer/canonicalize_context.dart';
 import 'importer/no_op.dart';

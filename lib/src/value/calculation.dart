@@ -7,7 +7,7 @@ import 'dart:math' as math;
 import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
 
-import '../deprecation.g.dart';
+import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../callable.dart';

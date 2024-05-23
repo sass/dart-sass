@@ -7,11 +7,20 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:grinder/grinder.dart';
 import 'package:yaml/yaml.dart';
 
-void updateDeprecationFile(File yamlFile) {
+import 'utils.dart';
+
+const yamlPath = 'build/language/spec/deprecations.yaml';
+const dartPath = 'lib/src/deprecation.dart';
+
+@Task('Generate deprecation.g.dart from the list in the language repo.')
+@Depends(updateLanguageRepo)
+void deprecations() {
+  var yamlFile = File(yamlPath);
   var yamlText = yamlFile.readAsStringSync();
-  var data = loadYaml(yamlText) as Map;
+  var data = loadYaml(yamlText, sourceUrl: yamlFile.uri) as Map;
   var template =
       File('tool/grind/deprecation.dart.template').readAsStringSync();
   var buffer = StringBuffer();
@@ -61,6 +70,5 @@ void updateDeprecationFile(File yamlFile) {
 // See tool/grind/generate_deprecations.dart for details.
 //
 // Checksum: ${sha1.convert(utf8.encode(yamlText))}''');
-  File('lib/src/deprecation.g.dart')
-      .writeAsStringSync(DartFormatter().format(code));
+  File(dartPath).writeAsStringSync(DartFormatter().format(code));
 }

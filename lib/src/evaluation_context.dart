@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:source_span/source_span.dart';
 
-import 'deprecation.g.dart';
+import 'deprecation.dart';
 import 'logger.dart';
 
 /// An interface that exposes information about the current Sass evaluation.

@@ -7,7 +7,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
-import '../deprecation.g.dart';
+import '../deprecation.dart';
 import '../exception.dart';
 import '../logger.dart';
 

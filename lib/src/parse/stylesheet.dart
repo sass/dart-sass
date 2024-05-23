@@ -10,7 +10,7 @@ import 'package:string_scanner/string_scanner.dart';
 
 import '../ast/sass.dart';
 import '../color_names.dart';
-import '../deprecation.g.dart';
+import '../deprecation.dart';
 import '../exception.dart';
 import '../interpolation_buffer.dart';
 import '../logger.dart';
