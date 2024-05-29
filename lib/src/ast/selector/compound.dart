@@ -42,6 +42,18 @@ final class CompoundSelector extends Selector {
   SimpleSelector? get singleSimple =>
       components.length == 1 ? components.first : null;
 
+  /// Whether any simple selector in this contains a selector that requires
+  /// complex non-local reasoning to determine whether it's a super- or
+  /// sub-selector.
+  ///
+  /// This includes both pseudo-elements and pseudo-selectors that take
+  /// selectors as arguments.
+  ///
+  /// #nodoc
+  @internal
+  late final bool hasComplicatedSuperselectorSemantics = components
+      .any((component) => component.hasComplicatedSuperselectorSemantics);
+
   CompoundSelector(Iterable<SimpleSelector> components, super.span)
       : components = List.unmodifiable(components) {
     if (this.components.isEmpty) {

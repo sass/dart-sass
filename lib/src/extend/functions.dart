@@ -646,24 +646,28 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
     var component1 = complex1[i1];
     if (component1.combinators.length > 1) return false;
     if (remaining1 == 1) {
-      var parents = complex2.sublist(i2, complex2.length - 1);
-      if (parents.any((parent) => parent.combinators.length > 1)) return false;
-
-      return compoundIsSuperselector(
-          component1.selector, complex2.last.selector,
-          parents: parents);
+      if (complex2.any((parent) => parent.combinators.length > 1)) {
+        return false;
+      } else {
+        return compoundIsSuperselector(
+            component1.selector, complex2.last.selector,
+            parents: component1.selector.hasComplicatedSuperselectorSemantics
+                ? complex2.sublist(i2, complex2.length - 1)
+                : null);
+      }
     }
 
     // Find the first index [endOfSubselector] in [complex2] such that
     // `complex2.sublist(i2, endOfSubselector + 1)` is a subselector of
     // [component1.selector].
     var endOfSubselector = i2;
-    List<ComplexSelectorComponent>? parents;
     while (true) {
       var component2 = complex2[endOfSubselector];
       if (component2.combinators.length > 1) return false;
       if (compoundIsSuperselector(component1.selector, component2.selector,
-          parents: parents)) {
+          parents: component1.selector.hasComplicatedSuperselectorSemantics
+              ? complex2.sublist(i2, endOfSubselector)
+              : null)) {
         break;
       }
 
@@ -675,13 +679,10 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
         // to match.
         return false;
       }
-
-      parents ??= [];
-      parents.add(component2);
     }
 
     if (!_compatibleWithPreviousCombinator(
-        previousCombinator, parents ?? const [])) {
+        previousCombinator, complex2.take(endOfSubselector).skip(i2))) {
       return false;
     }
 
@@ -717,8 +718,8 @@ bool complexIsSuperselector(List<ComplexSelectorComponent> complex1,
 /// Returns whether [parents] are valid intersitial components between one
 /// complex superselector and another, given that the earlier complex
 /// superselector had the combinator [previous].
-bool _compatibleWithPreviousCombinator(
-    CssValue<Combinator>? previous, List<ComplexSelectorComponent> parents) {
+bool _compatibleWithPreviousCombinator(CssValue<Combinator>? previous,
+    Iterable<ComplexSelectorComponent> parents) {
   if (parents.isEmpty) return true;
   if (previous == null) return true;
 
@@ -754,6 +755,15 @@ bool _isSupercombinator(
 bool compoundIsSuperselector(
     CompoundSelector compound1, CompoundSelector compound2,
     {Iterable<ComplexSelectorComponent>? parents}) {
+  if (!compound1.hasComplicatedSuperselectorSemantics &&
+      !compound2.hasComplicatedSuperselectorSemantics) {
+    if (compound1.components.length > compound2.components.length) return false;
+    return compound1.components
+        .every((simple1) => compound2.components.any(simple1.isSuperselector));
+  }
+
+  //print("compoundIsSuperselector($compound1, $compound2, parents: $parents)");
+
   // Pseudo elements effectively change the target of a compound selector rather
   // than narrowing the set of elements to which it applies like other
   // selectors. As such, if either selector has a pseudo element, they both must

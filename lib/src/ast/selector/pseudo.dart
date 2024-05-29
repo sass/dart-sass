@@ -67,6 +67,10 @@ final class PseudoSelector extends SimpleSelector {
   bool get isHostContext =>
       isClass && name == 'host-context' && selector != null;
 
+  @internal
+  bool get hasComplicatedSuperselectorSemantics =>
+      isElement || selector != null;
+
   /// The non-selector argument passed to this selector.
   ///
   /// This is `null` if there's no argument. If [argument] and [selector] are
