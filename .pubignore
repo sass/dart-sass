@@ -1,5 +1,5 @@
 # This should be identical to .gitignore except that it doesn't exclude
-# generated protobuf files.
+# generated Dart files.
 
 .buildlog
 .DS_Store
