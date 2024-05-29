@@ -18,30 +18,32 @@ import '../tool/grind/synchronize.dart' as synchronize;
 
 /// Tests that double-check that everything in the repo looks sensible.
 void main() {
-  group("synchronized file is up-to-date:", () {
-    synchronize.sources.forEach((sourcePath, targetPath) {
-      test(targetPath, () {
-        if (File(targetPath).readAsStringSync() !=
-            synchronize.synchronizeFile(sourcePath)) {
-          fail("$targetPath is out-of-date.\n"
-              "Run `dart run grinder` to update it.");
-        }
+  group("up-to-date generated", () {
+    group("synchronized file:", () {
+      synchronize.sources.forEach((sourcePath, targetPath) {
+        test(targetPath, () {
+          if (File(targetPath).readAsStringSync() !=
+              synchronize.synchronizeFile(sourcePath)) {
+            fail("$targetPath is out-of-date.\n"
+                "Run `dart run grinder` to update it.");
+          }
+        });
       });
+    });
+
+    test("deprecations", () {
+      var inputText = File(deprecations.yamlPath).readAsStringSync();
+      var outputText = File(deprecations.dartPath).readAsStringSync();
+      var checksum = sha1.convert(utf8.encode(inputText));
+      if (!outputText.contains('// Checksum: $checksum')) {
+        fail('${deprecations.dartPath} is out-of-date.\n'
+            'Run `dart run grinder` to update it.');
+      }
     });
   },
       // Windows sees different bytes than other OSes, possibly because of
       // newline normalization issues.
       testOn: "!windows");
-
-  test("deprecations are up-to-date", () {
-    var inputText = File(deprecations.yamlPath).readAsStringSync();
-    var outputText = File(deprecations.dartPath).readAsStringSync();
-    var checksum = sha1.convert(utf8.encode(inputText));
-    if (!outputText.contains('// Checksum: $checksum')) {
-      fail('${deprecations.dartPath} is out-of-date.\n'
-          'Run `dart run grinder` to update it.');
-    }
-  }, testOn: "!windows");
 
   for (var package in [
     ".",
