@@ -1849,6 +1849,18 @@ final class _EvaluateVisitor
   Future<Value?> visitIncludeRule(IncludeRule node) async {
     var mixin = _addExceptionSpan(node,
         () => _environment.getMixin(node.name, namespace: node.namespace));
+    if (node.originalName.startsWith('--') &&
+        mixin is UserDefinedCallable &&
+        !mixin.declaration.originalName.startsWith('--')) {
+      _warn(
+          'Sass @mixin names beginning with -- are deprecated for forward-'
+          'compatibility with plain CSS mixins.\n'
+          '\n'
+          'For details, see https://sass-lang.com/d/css-function-mixin',
+          node.nameSpan,
+          Deprecation.cssFunctionMixin);
+    }
+
     var contentCallable = node.content.andThen((content) => UserDefinedCallable(
         content, _environment.closure(),
         inDependency: _inDependency));
@@ -1981,6 +1993,9 @@ final class _EvaluateVisitor
     if (_declarationName != null) {
       throw _exception(
           "Style rules may not be used within nested declarations.", node.span);
+    } else if (_inKeyframes && _parent is CssKeyframeBlock) {
+      throw _exception(
+          "Style rules may not be used within keyframe blocks.", node.span);
     }
 
     var (selectorText, selectorMap) =
@@ -2501,6 +2516,19 @@ final class _EvaluateVisitor
 
       function = (_stylesheet.plainCss ? null : _builtInFunctions[node.name]) ??
           PlainCssCallable(node.originalName);
+    }
+
+    if (node.originalName.startsWith('--') &&
+        function is UserDefinedCallable &&
+        !function.declaration.originalName.startsWith('--')) {
+      _warn(
+        'Sass @function names beginning with -- are deprecated for forward-'
+        'compatibility with plain CSS functions.\n'
+        '\n'
+        'For details, see https://sass-lang.com/d/css-function-mixin',
+        node.nameSpan,
+        Deprecation.cssFunctionMixin,
+      );
     }
 
     var oldInFunction = _inFunction;
@@ -3392,6 +3420,9 @@ final class _EvaluateVisitor
     if (_declarationName != null) {
       throw _exception(
           "Style rules may not be used within nested declarations.", node.span);
+    } else if (_inKeyframes && _parent is CssKeyframeBlock) {
+      throw _exception(
+          "Style rules may not be used within keyframe blocks.", node.span);
     }
 
     var styleRule = _styleRule;

@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 
+import 'canonicalize_context.dart';
 import 'result.dart';
 import 'utils.dart' as utils;
 
@@ -54,7 +55,19 @@ abstract class AsyncImporter {
   /// Outside of that context, its value is undefined and subject to change.
   @protected
   @nonVirtual
-  Uri? get containingUrl => utils.containingUrl;
+  Uri? get containingUrl => utils.canonicalizeContext.containingUrl;
+
+  /// The canonicalize context of the stylesheet that caused the current
+  /// [canonicalize] invocation.
+  ///
+  /// Subclasses should only access this from within calls to [canonicalize].
+  /// Outside of that context, its value is undefined and subject to change.
+  ///
+  /// @nodoc
+  @internal
+  @protected
+  @nonVirtual
+  CanonicalizeContext get canonicalizeContext => utils.canonicalizeContext;
 
   /// If [url] is recognized by this importer, returns its canonical format.
   ///

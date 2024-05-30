@@ -4,6 +4,7 @@
 
 import 'package:js/js.dart';
 
+import '../importer/canonicalize_context.dart';
 import 'url.dart';
 
 @JS()
@@ -13,15 +14,6 @@ class JSImporter {
   external Object? Function(JSUrl)? get load;
   external Object? Function(String, CanonicalizeContext)? get findFileUrl;
   external Object? get nonCanonicalScheme;
-}
-
-@JS()
-@anonymous
-class CanonicalizeContext {
-  external bool get fromImport;
-  external JSUrl? get containingUrl;
-
-  external factory CanonicalizeContext({bool fromImport, JSUrl? containingUrl});
 }
 
 @JS()
