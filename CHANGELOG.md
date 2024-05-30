@@ -1,3 +1,13 @@
+## 1.77.4
+
+### Embedded Sass
+
+* Support passing `Version` input for `fatalDeprecations` as string over
+  embedded protocol.
+
+* Fix a bug in the JS Embedded Host where `Version` could be incorrectly accepted
+  as input for `silenceDeprecations` and `futureDeprecations` in pure JS.
+
 ## 1.77.3
 
 ### Dart API
