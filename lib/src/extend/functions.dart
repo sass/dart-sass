@@ -762,8 +762,6 @@ bool compoundIsSuperselector(
         .every((simple1) => compound2.components.any(simple1.isSuperselector));
   }
 
-  //print("compoundIsSuperselector($compound1, $compound2, parents: $parents)");
-
   // Pseudo elements effectively change the target of a compound selector rather
   // than narrowing the set of elements to which it applies like other
   // selectors. As such, if either selector has a pseudo element, they both must
