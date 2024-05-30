@@ -18,6 +18,9 @@ abstract base class CallableDeclaration
   /// The name of this callable, with underscores converted to hyphens.
   final String name;
 
+  /// The callable's original name, without underscores converted to hyphens.
+  final String originalName;
+
   /// The comment immediately preceding this declaration.
   final SilentComment? comment;
 
@@ -26,8 +29,9 @@ abstract base class CallableDeclaration
 
   final FileSpan span;
 
-  CallableDeclaration(
-      this.name, this.arguments, Iterable<Statement> children, this.span,
+  CallableDeclaration(this.originalName, this.arguments,
+      Iterable<Statement> children, this.span,
       {this.comment})
-      : super(List.unmodifiable(children));
+      : name = originalName.replaceAll('_', '-'),
+        super(List.unmodifiable(children));
 }

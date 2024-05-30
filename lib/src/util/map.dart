@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'option.dart';
+
 extension MapExtensions<K, V> on Map<K, V> {
   /// If [this] doesn't contain the given [key], sets that key to [value] and
   /// returns it.
@@ -16,4 +18,8 @@ extension MapExtensions<K, V> on Map<K, V> {
   // TODO(nweiz): Remove this once dart-lang/collection#289 is released.
   /// Like [Map.entries], but returns each entry as a record.
   Iterable<(K, V)> get pairs => entries.map((e) => (e.key, e.value));
+
+  /// Returns an option that contains the value at [key] if one exists and null
+  /// otherwise.
+  Option<V> getOption(K key) => containsKey(key) ? (this[key] as V,) : null;
 }

@@ -240,7 +240,7 @@ abstract class StylesheetParser extends Parser {
         case 'default':
           if (guarded) {
             logger.warnForDeprecation(
-                Deprecation.duplicateVariableFlags,
+                Deprecation.duplicateVarFlags,
                 '!default should only be written once for each variable.\n'
                 'This will be an error in Dart Sass 2.0.0.',
                 span: scanner.spanFrom(flagStart));
@@ -253,7 +253,7 @@ abstract class StylesheetParser extends Parser {
                 scanner.spanFrom(flagStart));
           } else if (global) {
             logger.warnForDeprecation(
-                Deprecation.duplicateVariableFlags,
+                Deprecation.duplicateVarFlags,
                 '!global should only be written once for each variable.\n'
                 'This will be an error in Dart Sass 2.0.0.',
                 span: scanner.spanFrom(flagStart));
@@ -851,7 +851,19 @@ abstract class StylesheetParser extends Parser {
   FunctionRule _functionRule(LineScannerState start) {
     var precedingComment = lastSilentComment;
     lastSilentComment = null;
-    var name = identifier(normalize: true);
+    var beforeName = scanner.state;
+    var name = identifier();
+
+    if (name.startsWith('--')) {
+      logger.warnForDeprecation(
+          Deprecation.cssFunctionMixin,
+          'Sass @function names beginning with -- are deprecated for forward-'
+          'compatibility with plain CSS mixins.\n'
+          '\n'
+          'For details, see https://sass-lang.com/d/css-function-mixin',
+          span: scanner.spanFrom(beforeName));
+    }
+
     whitespace();
     var arguments = _argumentDeclaration();
 
@@ -1214,8 +1226,6 @@ abstract class StylesheetParser extends Parser {
     if (scanner.scanChar($dot)) {
       namespace = name;
       name = _publicIdentifier();
-    } else {
-      name = name.replaceAll("_", "-");
     }
 
     whitespace();
@@ -1266,7 +1276,19 @@ abstract class StylesheetParser extends Parser {
   MixinRule _mixinRule(LineScannerState start) {
     var precedingComment = lastSilentComment;
     lastSilentComment = null;
-    var name = identifier(normalize: true);
+    var beforeName = scanner.state;
+    var name = identifier();
+
+    if (name.startsWith('--')) {
+      logger.warnForDeprecation(
+          Deprecation.cssFunctionMixin,
+          'Sass @mixin names beginning with -- are deprecated for forward-'
+          'compatibility with plain CSS mixins.\n'
+          '\n'
+          'For details, see https://sass-lang.com/d/css-function-mixin',
+          span: scanner.spanFrom(beforeName));
+    }
+
     whitespace();
     var arguments = scanner.peekChar() == $lparen
         ? _argumentDeclaration()
@@ -3438,7 +3460,7 @@ abstract class StylesheetParser extends Parser {
   /// Like [identifier], but rejects identifiers that begin with `_` or `-`.
   String _publicIdentifier() {
     var start = scanner.state;
-    var result = identifier(normalize: true);
+    var result = identifier();
     _assertPublic(result, () => scanner.spanFrom(start));
     return result;
   }
