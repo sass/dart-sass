@@ -42,6 +42,7 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun**.
 * [Compatibility Policy](#compatibility-policy)
   * [Browser Compatibility](#browser-compatibility)
   * [Node.js Compatibility](#nodejs-compatibility)
+  * [Invalid CSS](#invalid-css)
 * [Embedded Dart Sass](#embedded-dart-sass)
   * [Usage](#usage)
 * [Behavioral Differences from Ruby Sass](#behavioral-differences-from-ruby-sass)
@@ -404,6 +405,18 @@ Node.js release page][]. Once a Node.js version is out of LTS, Dart Sass
 considers itself free to break support if necessary.
 
 [the Node.js release page]: https://nodejs.org/en/about/previous-releases
+
+### Invalid CSS
+
+Changes to the behavior of Sass stylesheets that produce invalid CSS output are
+_not_ considered breaking changes. Such changes are almost always necessary when
+adding support for new CSS features, and delaying all such features until a new
+major version would be unduly burdensome for most users.
+
+For example, when Sass began parsing `calc()` expressions, the invalid
+expression `calc(1 +)` became a Sass error where before it was passed through
+as-is. This was not considered a breaking change, because `calc(1 +)` was never
+valid CSS to begin with.
 
 ## Embedded Dart Sass
 

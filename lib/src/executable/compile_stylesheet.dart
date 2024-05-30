@@ -110,6 +110,7 @@ Future<void> _compileStylesheetWithoutErrorHandling(ExecutableOptions options,
               verbose: options.verbose,
               sourceMap: options.emitSourceMap,
               charset: options.charset,
+              silenceDeprecations: options.silenceDeprecations,
               fatalDeprecations: options.fatalDeprecations,
               futureDeprecations: options.futureDeprecations)
           : await compileAsync(source,
@@ -121,6 +122,7 @@ Future<void> _compileStylesheetWithoutErrorHandling(ExecutableOptions options,
               verbose: options.verbose,
               sourceMap: options.emitSourceMap,
               charset: options.charset,
+              silenceDeprecations: options.silenceDeprecations,
               fatalDeprecations: options.fatalDeprecations,
               futureDeprecations: options.futureDeprecations);
     } else {
@@ -135,6 +137,7 @@ Future<void> _compileStylesheetWithoutErrorHandling(ExecutableOptions options,
               verbose: options.verbose,
               sourceMap: options.emitSourceMap,
               charset: options.charset,
+              silenceDeprecations: options.silenceDeprecations,
               fatalDeprecations: options.fatalDeprecations,
               futureDeprecations: options.futureDeprecations)
           : compile(source,
@@ -146,6 +149,7 @@ Future<void> _compileStylesheetWithoutErrorHandling(ExecutableOptions options,
               verbose: options.verbose,
               sourceMap: options.emitSourceMap,
               charset: options.charset,
+              silenceDeprecations: options.silenceDeprecations,
               fatalDeprecations: options.fatalDeprecations,
               futureDeprecations: options.futureDeprecations);
     }

@@ -13,6 +13,7 @@ import '../../js/url.dart';
 import '../../js/utils.dart';
 import '../../util/nullable.dart';
 import '../async.dart';
+import '../canonicalize_context.dart';
 import '../result.dart';
 import 'utils.dart';
 
@@ -38,11 +39,8 @@ final class JSToDartAsyncImporter extends AsyncImporter {
   }
 
   FutureOr<Uri?> canonicalize(Uri url) async {
-    var result = wrapJSExceptions(() => _canonicalize(
-        url.toString(),
-        CanonicalizeContext(
-            fromImport: fromImport,
-            containingUrl: containingUrl.andThen(dartToJSUrl))));
+    var result = wrapJSExceptions(
+        () => _canonicalize(url.toString(), canonicalizeContext));
     if (isPromise(result)) result = await promiseToFuture(result as Promise);
     if (result == null) return null;
 

@@ -23,6 +23,12 @@ final class FunctionExpression
   /// without a namespace.
   final String? namespace;
 
+  /// The name of the function being invoked, with underscores converted to
+  /// hyphens.
+  ///
+  /// If this function is a plain CSS function, use [originalName] instead.
+  final String name;
+
   /// The name of the function being invoked, with underscores left as-is.
   final String originalName;
 
@@ -30,12 +36,6 @@ final class FunctionExpression
   final ArgumentInvocation arguments;
 
   final FileSpan span;
-
-  /// The name of the function being invoked, with underscores converted to
-  /// hyphens.
-  ///
-  /// If this function is a plain CSS function, use [originalName] instead.
-  String get name => originalName.replaceAll('_', '-');
 
   FileSpan get nameSpan {
     if (namespace == null) return span.initialIdentifier();
@@ -46,7 +46,8 @@ final class FunctionExpression
       namespace == null ? null : span.initialIdentifier();
 
   FunctionExpression(this.originalName, this.arguments, this.span,
-      {this.namespace});
+      {this.namespace})
+      : name = originalName.replaceAll('_', '-');
 
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitFunctionExpression(this);

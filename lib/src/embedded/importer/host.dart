@@ -35,10 +35,12 @@ final class HostImporter extends ImporterBase {
       ..importerId = _importerId
       ..url = url.toString()
       ..fromImport = fromImport;
-    if (containingUrl case var containingUrl?) {
+    if (canonicalizeContext.containingUrlWithoutMarking
+        case var containingUrl?) {
       request.containingUrl = containingUrl.toString();
     }
     var response = dispatcher.sendCanonicalizeRequest(request);
+    if (!response.containingUrlUnused) canonicalizeContext.containingUrl;
 
     return switch (response.whichResult()) {
       InboundMessage_CanonicalizeResponse_Result.url =>
