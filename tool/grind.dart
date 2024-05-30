@@ -11,6 +11,7 @@ import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
+import 'grind/generate_deprecations.dart';
 import 'grind/synchronize.dart';
 import 'grind/utils.dart';
 
@@ -18,8 +19,10 @@ export 'grind/bazel.dart';
 export 'grind/benchmark.dart';
 export 'grind/double_check.dart';
 export 'grind/frameworks.dart';
+export 'grind/generate_deprecations.dart';
 export 'grind/subpackages.dart';
 export 'grind/synchronize.dart';
+export 'grind/utils.dart';
 
 void main(List<String> args) {
   pkg.humanName.value = "Dart Sass";
@@ -127,7 +130,7 @@ void main(List<String> args) {
 }
 
 @DefaultTask('Compile async code and reformat.')
-@Depends(format, synchronize)
+@Depends(format, synchronize, deprecations)
 void all() {}
 
 @Task('Run the Dart formatter.')
@@ -140,7 +143,7 @@ void npmInstall() =>
     run(Platform.isWindows ? "npm.cmd" : "npm", arguments: ["install"]);
 
 @Task('Runs the tasks that are required for running tests.')
-@Depends(format, synchronize, protobuf, "pkg-npm-dev", npmInstall,
+@Depends(format, synchronize, protobuf, deprecations, "pkg-npm-dev", npmInstall,
     "pkg-standalone-dev")
 void beforeTest() {}
 
@@ -213,9 +216,9 @@ String _readAndResolveMarkdown(String path) => File(path)
 
 /// Returns a map from JS type declaration file names to their contnets.
 Map<String, String> _fetchJSTypes() {
-  var languageRepo = _updateLanguageRepo();
+  updateLanguageRepo();
 
-  var typeRoot = p.join(languageRepo, 'js-api-doc');
+  var typeRoot = p.join('build/language', 'js-api-doc');
   return {
     for (var entry in Directory(typeRoot).listSync(recursive: true))
       if (entry is File && entry.path.endsWith('.d.ts'))
@@ -231,6 +234,7 @@ void _matchError(Match match, String message, {Object? url}) {
 }
 
 @Task('Compile the protocol buffer definition to a Dart library.')
+@Depends(updateLanguageRepo)
 Future<void> protobuf() async {
   Directory('build').createSync(recursive: true);
 
@@ -249,8 +253,6 @@ dart run protoc_plugin "\$@"
 ''');
     run('chmod', arguments: ['a+x', 'build/protoc-gen-dart']);
   }
-
-  _updateLanguageRepo();
 
   await runAsync("buf",
       arguments: ["generate"],
@@ -321,19 +323,3 @@ String _updateHomebrewLanguageRevision(String formula) {
       match.group(0)!.replaceFirst(match.group(1)!, languageRepoRevision) +
       formula.substring(match.end);
 }
-
-/// Clones the main branch of `github.com/sass/sass` and returns the path to the
-/// clone.
-///
-/// If the `UPDATE_SASS_SASS_REPO` environment variable is `false`, this instead
-/// assumes the repo that already exists at `build/language/sass`.
-/// `UPDATE_SASS_PROTOCOL` is also checked as a deprecated alias for
-/// `UPDATE_SASS_SASS_REPO`.
-String _updateLanguageRepo() =>
-    // UPDATE_SASS_PROTOCOL is considered deprecated, because it doesn't apply as
-    // generically to other tasks.
-    Platform.environment['UPDATE_SASS_SASS_REPO'] != 'false' &&
-            Platform.environment['UPDATE_SASS_PROTOCOL'] != 'false'
-        ? cloneOrCheckout("https://github.com/sass/sass.git", "main",
-            name: 'language')
-        : 'build/language';

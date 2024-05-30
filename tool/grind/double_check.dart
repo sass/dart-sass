@@ -5,12 +5,11 @@
 import 'dart:io';
 
 import 'package:cli_pkg/cli_pkg.dart' as pkg;
+import 'package:collection/collection.dart';
 import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_api_client/pub_api_client.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
-
-import 'package:sass/src/utils.dart';
 
 import 'utils.dart';
 
@@ -21,7 +20,7 @@ Future<void> doubleCheckBeforeRelease() async {
     fail("GITHUB_REF $ref is different than pubspec version ${pkg.version}.");
   }
 
-  if (listEquals(pkg.version.preRelease, ["dev"])) {
+  if (const ListEquality<Object?>().equals(pkg.version.preRelease, ["dev"])) {
     fail("${pkg.version} is a dev release.");
   }
 

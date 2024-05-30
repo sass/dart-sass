@@ -7,24 +7,38 @@
 import 'dart:io';
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
 
+import '../tool/grind/generate_deprecations.dart' as deprecations;
 import '../tool/grind/synchronize.dart' as synchronize;
 
 /// Tests that double-check that everything in the repo looks sensible.
 void main() {
-  group("synchronized file is up-to-date:", () {
-    synchronize.sources.forEach((sourcePath, targetPath) {
-      test(targetPath, () {
-        if (File(targetPath).readAsStringSync() !=
-            synchronize.synchronizeFile(sourcePath)) {
-          fail("$targetPath is out-of-date.\n"
-              "Run `dart pub run grinder` to update it.");
-        }
+  group("up-to-date generated", () {
+    group("synchronized file:", () {
+      synchronize.sources.forEach((sourcePath, targetPath) {
+        test(targetPath, () {
+          if (File(targetPath).readAsStringSync() !=
+              synchronize.synchronizeFile(sourcePath)) {
+            fail("$targetPath is out-of-date.\n"
+                "Run `dart run grinder` to update it.");
+          }
+        });
       });
+    });
+
+    test("deprecations", () {
+      var inputText = File(deprecations.yamlPath).readAsStringSync();
+      var outputText = File(deprecations.dartPath).readAsStringSync();
+      var checksum = sha1.convert(utf8.encode(inputText));
+      if (!outputText.contains('// Checksum: $checksum')) {
+        fail('${deprecations.dartPath} is out-of-date.\n'
+            'Run `dart run grinder` to update it.');
+      }
     });
   },
       // Windows sees different bytes than other OSes, possibly because of
@@ -116,14 +130,8 @@ void main() {
       });
 
       test("matches dartdoc version", () {
-        // TODO(nweiz): Just use equals() once dart-lang/pubspec_parse#127 lands
-        // and is released.
-        var sassDep = sassPubspec.devDependencies["dartdoc"];
-        var pkgDep = pkgPubspec.devDependencies["dartdoc"];
-        expect(pkgDep, isA<HostedDependency>());
-        expect(sassDep, isA<HostedDependency>());
-        expect((pkgDep as HostedDependency).version,
-            equals((sassDep as HostedDependency).version));
+        expect(sassPubspec.devDependencies["dartdoc"],
+            equals(pkgPubspec.devDependencies["dartdoc"]));
       });
     });
   }
