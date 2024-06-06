@@ -5,6 +5,10 @@
   is now interpreted as a percentage, instead of ignoring the unit. For example,
   `color.change(red, $alpha: 50%)` now returns `rgb(255 0 0 / 0.5)`.
 
+* **Potentially breaking compatibility fix**: Sass no longer rounds RGB channels
+  to the nearest integer. This means that, for example, `rgb(0 0 1) != rgb(0 0
+  0.6)`. This matches the latest version of the CSS spec and browser behavior.
+
 * **Potentially breaking compatibility fix**: Passing large positive or negative
   values to `color.adjust()` can now cause a color's channels to go outside that
   color's gamut. In most cases this will currently be clipped by the browser and
