@@ -130,7 +130,7 @@ void main(List<String> args) {
 }
 
 @DefaultTask('Compile async code and reformat.')
-@Depends(format, synchronize, deprecations)
+@Depends(format, synchronize, deprecations, protobuf)
 void all() {}
 
 @Task('Run the Dart formatter.')
