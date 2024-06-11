@@ -22,10 +22,8 @@ jobs:
             platform: linux/arm/v7
           - arch: arm64
             platform: linux/arm64
-          # There is no docker image for riscv64 dart-sdk, build kernel snapshot instead.
-          # https://github.com/dart-lang/dart-docker/issues/96#issuecomment-1669860829
           - arch: riscv64
-            platform: linux/amd64 # linux/riscv64
+            platform: linux/riscv64
 
     steps:
       - uses: actions/checkout@v4
@@ -46,6 +44,7 @@ jobs:
           EOF
 
       - name: Build
+        if: matrix.arch != 'riscv64'
         run: |
           docker run --rm -i \
             --platform ${{ matrix.platform }} \
@@ -53,6 +52,35 @@ jobs:
             --workdir "$PWD" \
           docker.io/library/dart:latest <<'EOF'
           set -e
+          dart pub get
+          dart run grinder pkg-standalone-linux-${{ matrix.arch }}
+          EOF
+
+      # https://github.com/dart-lang/dart-docker/issues/96#issuecomment-1669860829
+      # There is no official riscv64 dart container image yet, build on debian:unstable instead.
+      # The setup is adopted from: https://github.com/dart-lang/dart-docker/blob/main/Dockerfile-debian.template
+      - name: Build riscv64
+        if: matrix.arch == 'riscv64'
+        run: |
+          DART_CHANNEL=stable
+          DART_VERSION=$(curl -fsSL https://storage.googleapis.com/dart-archive/channels/$DART_CHANNEL/release/latest/VERSION | yq .version)
+          curl -fsSLO https://storage.googleapis.com/dart-archive/channels/$DART_CHANNEL/release/$DART_VERSION/sdk/dartsdk-linux-${{ matrix.arch }}-release.zip
+
+          docker run --rm -i \
+            --platform ${{ matrix.platform }} \
+            --volume "$PWD:$PWD" \
+            --workdir "$PWD" \
+          docker.io/library/debian:unstable-slim <<'EOF'
+          set -e
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates curl dnsutils git openssh-client unzip
+
+          export DART_SDK=/usr/lib/dart
+          export PATH=$DART_SDK/bin:/root/.pub-cache/bin:$PATH
+
+          SDK="dartsdk-linux-${{ matrix.arch }}-release.zip"
+          unzip "$SDK" && mv dart-sdk "$DART_SDK" && rm "$SDK"
+
           dart pub get
           dart run grinder pkg-standalone-linux-${{ matrix.arch }}
           EOF
