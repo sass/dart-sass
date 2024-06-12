@@ -8,25 +8,26 @@ jobs:
   build:
     name: Build
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
 
     strategy:
       fail-fast: false
       matrix:
         include:
           - arch: x64
+            runner: ubuntu-latest
             platform: linux/amd64
           - arch: ia32
+            runner: ubuntu-latest
             platform: linux/386
           - arch: arm64
+            runner: linux-arm64
             platform: linux/arm64
-          # There is a bug in qemu's mremap causing pthread_getattr_np in musl to stuck in a loop on arm.
-          # Unless qemu fixes the bug or we get a real linux-arm runner, we cannot build aot-snapshot
-          # for arm on CI. So, we create a kernel snapshot for arm build in amd64 container instead.
-          # https://gitlab.com/qemu-project/qemu/-/issues/1729
           - arch: arm
-            platform: linux/amd64 # linux/arm/v7
+            runner: linux-arm64
+            platform: linux/arm/v7
           - arch: riscv64
+            runner: ubuntu-latest
             platform: linux/riscv64
 
     steps:

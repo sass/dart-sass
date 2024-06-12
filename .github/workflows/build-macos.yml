@@ -17,7 +17,7 @@ jobs:
           - arch: x64
             runner: macos-13
           - arch: arm64
-            runner: macos-14
+            runner: macos-latest
 
     steps:
       - uses: actions/checkout@v4
