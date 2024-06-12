@@ -8,7 +8,7 @@ jobs:
   build:
     name: Build
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
 
     strategy:
       fail-fast: false
@@ -16,19 +16,24 @@ jobs:
         include:
           - arch: x64
             lib: lib64
+            runner: ubuntu-latest
             platform: linux/amd64
           - arch: ia32
             lib: lib
+            runner: ubuntu-latest
             platform: linux/amd64
           - arch: arm64
             lib: lib64
+            runner: linux-arm64
             platform: linux/arm64
           - arch: arm
             lib: lib
+            runner: linux-arm64
             platform: linux/arm64
           # There is no docker image for riscv64 dart-sdk, build kernel snapshot instead.
           - arch: riscv64
             lib: lib64
+            runner: ubuntu-latest
             platform: linux/amd64 # linux/riscv64
 
     steps:
