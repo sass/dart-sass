@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../argument_declaration.dart';
@@ -29,8 +30,14 @@ abstract base class CallableDeclaration
 
   final FileSpan span;
 
+  /// :nodoc:
+  @internal
+  final FileLocation afterTrailing;
+
+  /// :nodoc:
+  @internal
   CallableDeclaration(this.originalName, this.arguments,
-      Iterable<Statement> children, this.span,
+      Iterable<Statement> children, this.span, this.afterTrailing,
       {this.comment})
       : name = originalName.replaceAll('_', '-'),
         super(List.unmodifiable(children));

@@ -72,10 +72,8 @@ class ScssParser extends StylesheetParser {
           switch (scanner.peekChar(1)) {
             case $slash:
               children.add(_silentComment());
-              whitespaceWithoutComments();
             case $asterisk:
               children.add(_loudComment());
-              whitespaceWithoutComments();
             default:
               children.add(child());
           }
@@ -106,10 +104,8 @@ class ScssParser extends StylesheetParser {
           switch (scanner.peekChar(1)) {
             case $slash:
               statements.add(_silentComment());
-              whitespaceWithoutComments();
             case $asterisk:
               statements.add(_loudComment());
-              whitespaceWithoutComments();
             default:
               if (statement() case var child?) statements.add(child);
           }
@@ -125,7 +121,8 @@ class ScssParser extends StylesheetParser {
     return statements;
   }
 
-  /// Consumes a statement-level silent comment block.
+  /// Consumes a statement-level silent comment block and any trailing
+  /// whitespace.
   SilentComment _silentComment() {
     var start = scanner.state;
     scanner.expect("//");
@@ -141,8 +138,10 @@ class ScssParser extends StylesheetParser {
           scanner.spanFrom(start));
     }
 
-    return lastSilentComment = SilentComment(
-        scanner.substring(start.position), scanner.spanFrom(start));
+    var text = scanner.substring(start.position);
+    var span = scanner.spanFrom(start);
+    whitespaceWithoutComments();
+    return lastSilentComment = SilentComment.internal(text, span, scanner.location);
   }
 
   /// Consumes a statement-level loud comment block.
@@ -166,7 +165,9 @@ class ScssParser extends StylesheetParser {
           if (scanner.peekChar() != $slash) continue loop;
 
           buffer.writeCharCode(scanner.readChar());
-          return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
+          var text = buffer.interpolation(scanner.spanFrom(start));
+          whitespaceWithoutComments();
+          return LoudComment.internal(text, scanner.location);
 
         case $cr:
           scanner.readChar();

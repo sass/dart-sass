@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -15,7 +16,13 @@ import 'callable_declaration.dart';
 final class ContentBlock extends CallableDeclaration {
   ContentBlock(ArgumentDeclaration arguments, Iterable<Statement> children,
       FileSpan span)
-      : super("@content", arguments, children, span);
+      : super("@content", arguments, children, span, span.end);
+
+  /// :nodoc:
+  @internal
+  ContentBlock.internal(ArgumentDeclaration arguments, Iterable<Statement> children,
+      FileSpan span, FileLocation afterTrailing)
+      : super("@content", arguments, children, span, afterTrailing);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitContentBlock(this);
 

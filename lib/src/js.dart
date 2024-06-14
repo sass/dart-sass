@@ -14,6 +14,7 @@ import 'js/legacy.dart';
 import 'js/legacy/types.dart';
 import 'js/legacy/value.dart';
 import 'js/logger.dart';
+import 'js/parser.dart';
 import 'js/source_span.dart';
 import 'js/utils.dart';
 import 'js/value.dart';
@@ -58,6 +59,7 @@ void main() {
   exports.NodePackageImporter = nodePackageImporterClass;
   exports.deprecations = jsify(deprecations);
   exports.Version = versionClass;
+  exports.loadParserExports_ = allowInterop(loadParserExports);
 
   exports.info =
       "dart-sass\t${const String.fromEnvironment('version')}\t(Sass Compiler)\t"

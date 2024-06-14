@@ -35,7 +35,17 @@ final class IfRule implements Statement {
 
   final FileSpan span;
 
+  /// :nodoc:
+  @internal
+  final FileLocation afterTrailing;
+
   IfRule(Iterable<IfClause> clauses, this.span, {this.lastClause})
+      : clauses = List.unmodifiable(clauses),
+        afterTrailing = span.end;
+
+  /// :nodoc:
+  @internal
+  IfRule.internal(Iterable<IfClause> clauses, this.span, this.afterTrailing, {this.lastClause})
       : clauses = List.unmodifiable(clauses);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIfRule(this);
@@ -62,14 +72,19 @@ sealed class IfRuleClause {
 
   /// Whether any of [children] is a variable, function, or mixin declaration.
   ///
-  /// @nodoc
+  /// :nodoc:
   @internal
   final bool hasDeclarations;
 
-  IfRuleClause(Iterable<Statement> children)
-      : this._(List.unmodifiable(children));
+  /// The span that covers this specific conditional clause.
+  final FileSpan span;
 
-  IfRuleClause._(this.children)
+  /// :nodoc:
+  @internal
+  IfRuleClause(Iterable<Statement> children, FileSpan span)
+      : this._(List.unmodifiable(children), span);
+
+  IfRuleClause._(this.children, this.span)
       : hasDeclarations = children.any((child) => switch (child) {
               VariableDeclaration() || FunctionRule() || MixinRule() => true,
               ImportRule(:var imports) =>
@@ -85,7 +100,7 @@ final class IfClause extends IfRuleClause {
   /// The expression to evaluate to determine whether to run this rule.
   final Expression expression;
 
-  IfClause(this.expression, Iterable<Statement> children) : super(children);
+  IfClause(this.expression, super.children, super.span);
 
   String toString() => "@if $expression {${children.join(' ')}}";
 }
@@ -94,7 +109,7 @@ final class IfClause extends IfRuleClause {
 ///
 /// {@category AST}
 final class ElseClause extends IfRuleClause {
-  ElseClause(super.children);
+  ElseClause(super.children, super.span);
 
   String toString() => "@else {${children.join(' ')}}";
 }

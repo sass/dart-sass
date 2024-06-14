@@ -381,8 +381,9 @@ abstract class StylesheetParser extends Parser {
     var name = nameBuffer.interpolation(scanner.spanFrom(start, beforeColon));
     if (name.initialPlain.startsWith('--')) {
       var value = StringExpression(_interpolatedDeclarationValue());
+      var afterTrailing = scanner.location;
       expectStatementSeparator("custom property");
-      return Declaration(name, value, scanner.spanFrom(start));
+      return Declaration(name, value, scanner.spanFrom(start), afterTrailing);
     }
 
     if (scanner.scanChar($colon)) {
@@ -435,8 +436,9 @@ abstract class StylesheetParser extends Parser {
     if (_tryDeclarationChildren(name, start, value: value) case var nested?) {
       return nested;
     } else {
+      var afterTrailing = scanner.location;
       expectStatementSeparator();
-      return Declaration(name, value, scanner.spanFrom(start));
+      return Declaration(name, value, scanner.spanFrom(start), afterTrailing);
     }
   }
 
@@ -533,8 +535,9 @@ abstract class StylesheetParser extends Parser {
 
     if (parseCustomProperties && name.initialPlain.startsWith('--')) {
       var value = StringExpression(_interpolatedDeclarationValue());
+      var afterTrailing = scanner.location;
       expectStatementSeparator("custom property");
-      return Declaration(name, value, scanner.spanFrom(start));
+      return Declaration.internal(name, value, scanner.spanFrom(start), afterTrailing);
     }
 
     whitespace();
@@ -544,8 +547,9 @@ abstract class StylesheetParser extends Parser {
     if (_tryDeclarationChildren(name, start, value: value) case var nested?) {
       return nested;
     } else {
+      var afterTrailing = scanner.location;
       expectStatementSeparator();
-      return Declaration(name, value, scanner.spanFrom(start));
+      return Declaration.internal(name, value, scanner.spanFrom(start), afterTrailing);
     }
   }
 
@@ -565,7 +569,7 @@ abstract class StylesheetParser extends Parser {
         _declarationChild,
         start,
         (children, span) =>
-            Declaration.nested(name, children, span, value: value));
+            Declaration.nestedInternal(name, children, span, scanner.location, value: value));
   }
 
   /// Consumes a statement that's allowed within a declaration.
@@ -728,10 +732,10 @@ abstract class StylesheetParser extends Parser {
       var query = _atRootQuery();
       whitespace();
       return _withChildren(_statement, start,
-          (children, span) => AtRootRule(children, span, query: query));
+          (children, span) => AtRootRule.internal(children, span, scanner.location, query: query));
     } else if (lookingAtChildren()) {
       return _withChildren(
-          _statement, start, (children, span) => AtRootRule(children, span));
+          _statement, start, (children, span) => AtRootRule.internal(children, span, scanner.location));
     } else {
       var child = _styleRule();
       return AtRootRule([child], scanner.spanFrom(start));
@@ -770,13 +774,15 @@ abstract class StylesheetParser extends Parser {
           scanner.spanFrom(start));
     }
 
+    var beforeWhitespace = scanner.location;
     whitespace();
     var arguments = scanner.peekChar() == $lparen
         ? _argumentInvocation(mixin: true)
-        : ArgumentInvocation.empty(scanner.emptySpan);
+        : ArgumentInvocation.empty(location.pointSpan);
 
+    var afterTrailing = scanner.location;
     expectStatementSeparator("@content rule");
-    return ContentRule(arguments, scanner.spanFrom(start));
+    return ContentRule.internal(arguments, afterTrailing, scanner.spanFrom(start));
   }
 
   /// Consumes a `@debug` rule.
@@ -785,7 +791,7 @@ abstract class StylesheetParser extends Parser {
   DebugRule _debugRule(LineScannerState start) {
     var value = _expression();
     expectStatementSeparator("@debug rule");
-    return DebugRule(value, scanner.spanFrom(start));
+    return DebugRule.internal(value, scanner.spanFrom(start));
   }
 
   /// Consumes an `@each` rule.
@@ -811,7 +817,7 @@ abstract class StylesheetParser extends Parser {
 
     return _withChildren(child, start, (children, span) {
       _inControlDirective = wasInControlDirective;
-      return EachRule(variables, list, children, span);
+      return EachRule.internal(variables, list, children, span, scanner.location);
     });
   }
 
@@ -820,8 +826,9 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   ErrorRule _errorRule(LineScannerState start) {
     var value = _expression();
+    var afterTrailing = scanner.location;
     expectStatementSeparator("@error rule");
-    return ErrorRule(value, scanner.spanFrom(start));
+    return ErrorRule.internal(value, scanner.spanFrom(start), afterTrailing);
   }
 
   /// Consumes an `@extend` rule.
@@ -836,8 +843,9 @@ abstract class StylesheetParser extends Parser {
     var value = almostAnyValue();
     var optional = scanner.scanChar($exclamation);
     if (optional) expectIdentifier("optional");
+    var afterTrailing = location;
     expectStatementSeparator("@extend rule");
-    return ExtendRule(value, scanner.spanFrom(start), optional: optional);
+    return ExtendRule(value, scanner.spanFrom(start), location, optional: optional);
   }
 
   /// Consumes a function declaration.
@@ -886,7 +894,7 @@ abstract class StylesheetParser extends Parser {
     return _withChildren(
         _functionChild,
         start,
-        (children, span) => FunctionRule(name, arguments, children, span,
+        (children, span) => FunctionRule.internal(name, arguments, children, span, scanner.location,
             comment: precedingComment));
   }
 
@@ -923,7 +931,7 @@ abstract class StylesheetParser extends Parser {
 
     return _withChildren(child, start, (children, span) {
       _inControlDirective = wasInControlDirective;
-      return ForRule(variable, from, to, children, span,
+      return ForRule.internal(variable, from, to, children, span, scanner.location,
           exclusive: exclusive!); // dart-lang/sdk#45348
     });
   }
@@ -955,6 +963,7 @@ abstract class StylesheetParser extends Parser {
 
     var configuration = _configuration(allowGuarded: true);
 
+    var afterTrailing = scanner.location;
     expectStatementSeparator("@forward rule");
     var span = scanner.spanFrom(start);
     if (!_isUseAllowed) {
@@ -962,15 +971,15 @@ abstract class StylesheetParser extends Parser {
     }
 
     if (shownMixinsAndFunctions != null) {
-      return ForwardRule.show(
-          url, shownMixinsAndFunctions, shownVariables!, span,
+      return ForwardRule.showInternal(
+          url, shownMixinsAndFunctions, shownVariables!, span, afterTrailing,
           prefix: prefix, configuration: configuration);
     } else if (hiddenMixinsAndFunctions != null) {
-      return ForwardRule.hide(
-          url, hiddenMixinsAndFunctions, hiddenVariables!, span,
+      return ForwardRule.hideInternal(
+          url, hiddenMixinsAndFunctions, hiddenVariables!, span, afterTrailing,
           prefix: prefix, configuration: configuration);
     } else {
-      return ForwardRule(url, span,
+      return ForwardRule.internal(url, span,afterTrailing,
           prefix: prefix, configuration: configuration);
     }
   }
@@ -1013,13 +1022,15 @@ abstract class StylesheetParser extends Parser {
     var clauses = [IfClause(condition, children)];
     ElseClause? lastClause;
 
-    while (scanElse(ifIndentation)) {
+    while (true) {
+      var beforeElse = scanner.location;
+      if (!scanElse(ifIndentation)) break;
       whitespace();
       if (scanIdentifier("if")) {
         whitespace();
-        clauses.add(IfClause(_expression(), this.children(child)));
+        clauses.add(IfClause(_expression(), this.children(child), scanner.spanFrom(beforeElse)));
       } else {
-        lastClause = ElseClause(this.children(child));
+        lastClause = ElseClause(this.children(child), scanner.spanFrom(beforeElse));
         break;
       }
     }
@@ -1027,7 +1038,7 @@ abstract class StylesheetParser extends Parser {
 
     var span = scanner.spanFrom(start);
     whitespaceWithoutComments();
-    return IfRule(clauses, span, lastClause: lastClause);
+    return IfRule.internal(clauses, span, scanner.location, lastClause: lastClause);
   }
 
   /// Consumes an `@import` rule.
@@ -1053,9 +1064,10 @@ abstract class StylesheetParser extends Parser {
       imports.add(argument);
       whitespace();
     } while (scanner.scanChar($comma));
+    var afterTrailing = scanner.location;
     expectStatementSeparator("@import rule");
 
-    return ImportRule(imports, scanner.spanFrom(start));
+    return ImportRule(imports, scanner.spanFrom(start), afterTrailing);
   }
 
   /// Consumes an argument to an `@import` rule.
@@ -1236,6 +1248,7 @@ abstract class StylesheetParser extends Parser {
       whitespace();
     }
 
+    FileLocation afterTrailing;
     ContentBlock? content;
     if (contentArguments != null || lookingAtChildren()) {
       var contentArguments_ =
@@ -1243,15 +1256,17 @@ abstract class StylesheetParser extends Parser {
       var wasInContentBlock = _inContentBlock;
       _inContentBlock = true;
       content = _withChildren(_statement, start,
-          (children, span) => ContentBlock(contentArguments_, children, span));
+          (children, span) => ContentBlock.internal(contentArguments_, children, span, scanner.location));
+        afterTrailing = content.afterTrailing;
       _inContentBlock = wasInContentBlock;
     } else {
+      afterTrailing = scanner.location;
       expectStatementSeparator();
     }
 
     var span =
         scanner.spanFrom(start, start).expand((content ?? arguments).span);
-    return IncludeRule(name, arguments, span,
+    return IncludeRule.internal(name, arguments, span, afterTrailing,
         namespace: namespace, content: content);
   }
 
@@ -1262,7 +1277,7 @@ abstract class StylesheetParser extends Parser {
   MediaRule mediaRule(LineScannerState start) {
     var query = _mediaQueryList();
     return _withChildren(_statement, start,
-        (children, span) => MediaRule(query, children, span));
+        (children, span) => MediaRule.internal(query, children, span, scanner.location));
   }
 
   /// Consumes a mixin declaration.
@@ -1385,7 +1400,7 @@ abstract class StylesheetParser extends Parser {
             span: span);
       }
 
-      return AtRule(name, span, value: value, children: children);
+      return AtRule.internal(name, span, scanner.location, value: value, children: children);
     });
   }
 
@@ -1551,10 +1566,11 @@ abstract class StylesheetParser extends Parser {
           _statement,
           start,
           (children, span) =>
-              AtRule(name, span, value: value, children: children));
+              AtRule.internal(name, span, scanner.location, value: value, children: children));
     } else {
+      var afterTrailing = scanner.location;
       expectStatementSeparator();
-      rule = AtRule(name, scanner.spanFrom(start), value: value);
+      rule = AtRule.internal(name, scanner.spanFrom(start), afterTrailing, value: value);
     }
 
     _inUnknownAtRule = wasInUnknownAtRule;

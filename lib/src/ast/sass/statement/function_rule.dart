@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../util/span.dart';
@@ -18,8 +19,13 @@ final class FunctionRule extends CallableDeclaration
     implements SassDeclaration {
   FileSpan get nameSpan => span.withoutInitialAtRule().initialIdentifier();
 
-  FunctionRule(super.name, super.arguments, super.children, super.span,
-      {super.comment});
+  FunctionRule(String name, ArgumentDeclaration arguments, Iterable<Statement> children, FileSpan span,
+      {SilentComment? comment}) : super(name, arguments, children, span, span.end, comment: comment);
+
+  /// :nodoc:
+  @internal
+  FunctionRule.internal(String name, ArgumentDeclaration arguments, Iterable<Statement> children, FileSpan span, FileLocation afterTrailing,
+      {SilentComment? comment}) : super(name, arguments, children, span, afterTrailing, comment: comment);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitFunctionRule(this);
 

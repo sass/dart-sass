@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -29,8 +30,21 @@ final class ForRule extends ParentStatement<List<Statement>> {
 
   final FileSpan span;
 
+  /// :nodoc:
+  @internal
+  final FileLocation afterTrailing;
+
   ForRule(this.variable, this.from, this.to, Iterable<Statement> children,
       this.span,
+      {bool exclusive = true})
+      : isExclusive = exclusive,
+      afterTrailing = span.end,
+        super(List.unmodifiable(children));
+
+  /// :nodoc:
+  @internal
+  ForRule.internal(this.variable, this.from, this.to, Iterable<Statement> children,
+      this.span, this.afterTrailing,
       {bool exclusive = true})
       : isExclusive = exclusive,
         super(List.unmodifiable(children));

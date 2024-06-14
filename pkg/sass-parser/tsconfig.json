@@ -1,0 +1,17 @@
+{
+  "extends": "./node_modules/gts/tsconfig-google.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "outDir": "dist",
+    "resolveJsonModule": true,
+    "rootDir": ".",
+    "useUnknownInCatchVariables": false,
+    "declaration": true
+  },
+  "include": [
+    "*.ts",
+    "lib/**/*.ts",
+    "tool/**/*.ts",
+    "test/**/*.ts"
+  ]
+}

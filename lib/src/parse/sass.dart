@@ -270,7 +270,9 @@ class SassParser extends StylesheetParser {
     }
     if (!buffer.trailingString.trimRight().endsWith("*/")) buffer.write(" */");
 
-    return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
+    var text = buffer.interpolation(scanner.spanFrom(start));
+    whitespaceWithoutComments();
+    return LoudComment(text, scanner.location);
   }
 
   void whitespaceWithoutComments() {

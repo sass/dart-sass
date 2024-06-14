@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../util/span.dart';
@@ -74,10 +75,36 @@ final class ForwardRule implements Statement, SassDependency {
 
   final FileSpan span;
 
+  /// :nodoc:
+  @internal
+  final FileLocation afterTrailing;
+
   FileSpan get urlSpan => span.withoutInitialAtRule().initialQuoted();
 
   /// Creates a `@forward` rule that allows all members to be accessed.
-  ForwardRule(this.url, this.span,
+  ForwardRule(Url url, FileSpan span,
+      {String? prefix, Iterable<ConfiguredVariable>? configuration})
+      : this.internal(url, span, span.end, prefix: prefix, configuration: configuration);
+
+  /// Creates a `@forward` rule that allows only members included in
+  /// [shownMixinsAndFunctions] and [shownVariables] to be accessed.
+  ForwardRule.show(this.url, Iterable<String> shownMixinsAndFunctions,
+      Iterable<String> shownVariables, this.span,
+      {this.prefix, Iterable<ConfiguredVariable>? configuration})
+      : this.showInternal(url, shownMixinsAndFunctions, shownVariables, span, span.end, prefix: prefix, configuration: configuration);
+
+  /// Creates a `@forward` rule that allows only members not included in
+  /// [hiddenMixinsAndFunctions] and [hiddenVariables] to be accessed.
+  ForwardRule.hide(this.url, Iterable<String> hiddenMixinsAndFunctions,
+      Iterable<String> hiddenVariables, this.span,
+      {this.prefix, Iterable<ConfiguredVariable>? configuration})
+      : this.showInternal(url, hiddenMixinsAndFunctions, hiddenVariables, span, span.end, prefix: prefix, configuration: configuration);
+
+  /// Creates a `@forward` rule that allows all members to be accessed.
+  ///
+  /// :nodoc:
+  @internal
+  ForwardRule.internal(this.url, this.span, this.afterTrailing,
       {this.prefix, Iterable<ConfiguredVariable>? configuration})
       : shownMixinsAndFunctions = null,
         shownVariables = null,
@@ -88,8 +115,11 @@ final class ForwardRule implements Statement, SassDependency {
 
   /// Creates a `@forward` rule that allows only members included in
   /// [shownMixinsAndFunctions] and [shownVariables] to be accessed.
-  ForwardRule.show(this.url, Iterable<String> shownMixinsAndFunctions,
-      Iterable<String> shownVariables, this.span,
+  ///
+  /// :nodoc:
+  @internal
+  ForwardRule.showInternal(this.url, Iterable<String> shownMixinsAndFunctions,
+      Iterable<String> shownVariables, this.span,this.afterTrailing,
       {this.prefix, Iterable<ConfiguredVariable>? configuration})
       : shownMixinsAndFunctions =
             UnmodifiableSetView(Set.of(shownMixinsAndFunctions)),
@@ -101,8 +131,11 @@ final class ForwardRule implements Statement, SassDependency {
 
   /// Creates a `@forward` rule that allows only members not included in
   /// [hiddenMixinsAndFunctions] and [hiddenVariables] to be accessed.
-  ForwardRule.hide(this.url, Iterable<String> hiddenMixinsAndFunctions,
-      Iterable<String> hiddenVariables, this.span,
+  ///
+  /// :nodoc:
+  @internal
+  ForwardRule.hideInternal(this.url, Iterable<String> hiddenMixinsAndFunctions,
+      Iterable<String> hiddenVariables, this.span,this.afterTrailing,
       {this.prefix, Iterable<ConfiguredVariable>? configuration})
       : shownMixinsAndFunctions = null,
         shownVariables = null,

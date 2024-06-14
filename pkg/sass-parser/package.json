@@ -1,0 +1,42 @@
+{
+  "name": "sass-parser",
+  "version": "0.1.0",
+  "description": "A PostCSS-compatibe wrapper of the official Sass parser",
+  "repository": "sass/sass",
+  "author": "Google Inc.",
+  "license": "MIT",
+  "exports": {
+    "types": "./dist/types/index.d.ts",
+    "default": "./dist/lib/index.js"
+  },
+  "main": "dist/lib/index.js",
+  "types": "dist/types/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "init": "ts-node ./tool/init.ts",
+    "check": "npm-run-all check:gts check:tsc",
+    "check:gts": "gts check",
+    "check:tsc": "tsc --noEmit",
+    "clean": "gts clean",
+    "compile": "tsc -p tsconfig.build.json",
+    "fix": "gts fix",
+    "test": "jest"
+  },
+  "dependencies": {
+    "postcss": "^8.4.0",
+    "sass": "1.77.5"
+  },
+  "devDependencies": {
+    "gts": "^5.0.0",
+    "jest": "^29.4.1",
+    "npm-run-all": "^4.1.5",
+    "ts-jest": "^29.0.5",
+    "ts-node": "^10.2.1",
+    "typescript": "^5.0.2"
+  }
+}
