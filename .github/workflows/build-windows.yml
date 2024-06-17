@@ -19,7 +19,8 @@ jobs:
           - arch: ia32
             runner: windows-latest
           - arch: arm64
-            runner: windows-arm64
+            # TODO: switch the following to windows-arm64, blocked by https://github.com/dart-lang/setup-dart/issues/118
+            runner: windows-latest # windows-arm64
 
     steps:
       - uses: actions/checkout@v4

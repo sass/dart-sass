@@ -19,7 +19,7 @@ jobs:
             platform: linux/amd64
           - arch: ia32
             runner: ubuntu-latest
-            platform: linux/386
+            platform: linux/amd64
           - arch: arm64
             runner: linux-arm64
             platform: linux/arm64
@@ -51,7 +51,7 @@ jobs:
       - name: Build
         run: |
           docker run --rm -i \
-                     --platform ${{ matrix.arch == 'arm' && 'linux/amd64' || matrix.platform }} \
+                     --platform ${{ matrix.platform }} \
                      --volume "$PWD:$PWD" \
                      --workdir "$PWD" \
                      ghcr.io/dart-musl/dart <<'EOF'

@@ -19,7 +19,7 @@ jobs:
             platform: linux/amd64
           - arch: ia32
             runner: ubuntu-latest
-            platform: linux/386
+            platform: linux/amd64
           - arch: arm64
             runner: linux-arm64
             platform: linux/arm64
