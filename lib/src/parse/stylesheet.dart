@@ -770,10 +770,15 @@ abstract class StylesheetParser extends Parser {
           scanner.spanFrom(start));
     }
 
+    var beforeWhitespace = scanner.location;
     whitespace();
-    var arguments = scanner.peekChar() == $lparen
-        ? _argumentInvocation(mixin: true)
-        : ArgumentInvocation.empty(scanner.emptySpan);
+    ArgumentInvocation arguments;
+    if (scanner.peekChar() == $lparen) {
+      arguments = _argumentInvocation(mixin: true);
+      whitespace();
+    } else {
+      arguments = ArgumentInvocation.empty(beforeWhitespace.pointSpan());
+    }
 
     expectStatementSeparator("@content rule");
     return ContentRule(arguments, scanner.spanFrom(start));
@@ -835,7 +840,10 @@ abstract class StylesheetParser extends Parser {
 
     var value = almostAnyValue();
     var optional = scanner.scanChar($exclamation);
-    if (optional) expectIdentifier("optional");
+    if (optional) {
+      expectIdentifier("optional");
+      whitespace();
+    }
     expectStatementSeparator("@extend rule");
     return ExtendRule(value, scanner.spanFrom(start), optional: optional);
   }
@@ -954,6 +962,7 @@ abstract class StylesheetParser extends Parser {
     }
 
     var configuration = _configuration(allowGuarded: true);
+    whitespace();
 
     expectStatementSeparator("@forward rule");
     var span = scanner.spanFrom(start);
@@ -1419,8 +1428,7 @@ abstract class StylesheetParser extends Parser {
     var namespace = _useNamespace(url, start);
     whitespace();
     var configuration = _configuration();
-
-    expectStatementSeparator("@use rule");
+    whitespace();
 
     var span = scanner.spanFrom(start);
     if (!_isUseAllowed) {
