@@ -1,3 +1,10 @@
+## 1.77.7
+
+* **Potentially breaking bug fix:** `//` in certain places such as unknown
+  at-rule values was being preserved in the CSS output, leading to potentially
+  invalid CSS. It's now properly parsed as a silent comment and omitted from the
+  CSS output.
+
 ## 1.77.6
 
 * Fix a few cases where comments and occasionally even whitespace wasn't allowed
