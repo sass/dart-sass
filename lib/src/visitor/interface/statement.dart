@@ -28,6 +28,7 @@ abstract interface class StatementVisitor<T> {
   T visitLoudComment(LoudComment node);
   T visitMediaRule(MediaRule node);
   T visitMixinRule(MixinRule node);
+  T visitNestRule(NestRule node);
   T visitReturnRule(ReturnRule node);
   T visitSilentComment(SilentComment node);
   T visitStyleRule(StyleRule node);
