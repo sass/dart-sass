@@ -133,7 +133,8 @@ class Parser {
     whitespace();
   }
 
-  /// Consumes and ignores a silent (Sass-style) comment.
+  /// Consumes and ignores a single silent (Sass-style) comment, not including
+  /// the trailing newline.
   ///
   /// Returns whether the comment was consumed.
   @protected
