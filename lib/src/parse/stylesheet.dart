@@ -1405,10 +1405,17 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a `@return` rule.
   ///
   /// [start] should point before the `@`.
+  @protected
   NestRule nestRule(LineScannerState start) {
     whitespace();
-    return _withChildren(
-        _statement, start, (children, span) => NestRule(children, span));
+    var wasInUnknownAtRule = _inUnknownAtRule;
+    _inUnknownAtRule = true;
+    try {
+      return _withChildren(
+          _statement, start, (children, span) => NestRule(children, span));
+    } finally {
+      _inUnknownAtRule = wasInUnknownAtRule;
+    }
   }
 
   /// Consumes a `@return` rule.

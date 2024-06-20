@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 779c244329c3373db98017fefa2dd997cff05904
+// Checksum: e1e8310eb9afa8042569f8a706341ae983fd78ee
 //
 // ignore_for_file: unused_import
 
@@ -1195,7 +1195,8 @@ final class _EvaluateVisitor
           "upcoming\n"
           "version. To keep the existing behavior, move the declaration above "
           "the nested\n"
-          "rule. To opt into the new behavior, wrap the declaration in `& {}`.",
+          "rule. To opt into the new behavior, wrap the declaration in `@nest "
+          "{}`.",
           MultiSpan(node.span, 'declaration', {sibling.span: 'nested rule'}),
           Deprecation.mixedDecls);
     }

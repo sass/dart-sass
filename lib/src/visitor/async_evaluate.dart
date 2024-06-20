@@ -1197,7 +1197,8 @@ final class _EvaluateVisitor
           "upcoming\n"
           "version. To keep the existing behavior, move the declaration above "
           "the nested\n"
-          "rule. To opt into the new behavior, wrap the declaration in `& {}`.",
+          "rule. To opt into the new behavior, wrap the declaration in `@nest "
+          "{}`.",
           MultiSpan(node.span, 'declaration', {sibling.span: 'nested rule'}),
           Deprecation.mixedDecls);
     }
