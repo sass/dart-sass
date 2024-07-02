@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 22d9bdbe92eb39b3c0d6d64ebe1879a431c0037e
+  // Checksum: 309e4f1f008f08379b824ab6094e13df2e18e187
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -89,6 +89,11 @@ enum Deprecation {
   cssFunctionMixin('css-function-mixin',
       deprecatedIn: '1.76.0',
       description: 'Function and mixin names beginning with --.'),
+
+  /// Deprecation for declarations after or between nested rules.
+  mixedDecls('mixed-decls',
+      deprecatedIn: '1.77.7',
+      description: 'Declarations after or between nested rules.'),
 
   /// Deprecation for @import rules.
   import.future('import', description: '@import rules.'),
