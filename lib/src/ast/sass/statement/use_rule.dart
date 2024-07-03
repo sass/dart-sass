@@ -32,14 +32,22 @@ final class UseRule extends Statement implements SassDependency {
 
   final FileSpan span;
 
+  /// @nodoc
+  @internal
+  final FileLocation afterTrailing;
+
   FileSpan get urlSpan => span.withoutInitialAtRule().initialQuoted();
 
-  UseRule(
-    this.url,
-    this.namespace,
-    this.span, {
-    Iterable<ConfiguredVariable>? configuration,
-  }) : configuration = configuration == null
+  UseRule(Uri url, String? namespace, FileSpan span,
+      {Iterable<ConfiguredVariable>? configuration})
+      : this.internal(url, namespace, span, span.end,
+            configuration: configuration);
+
+  /// @nodoc
+  @internal
+  UseRule.internal(this.url, this.namespace, this.span, this.afterTrailing,
+      {Iterable<ConfiguredVariable>? configuration})
+      : configuration = configuration == null
             ? const []
             : List<ConfiguredVariable>.unmodifiable(configuration) {
     for (var variable in this.configuration) {

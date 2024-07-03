@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
@@ -35,7 +36,15 @@ final class SilentComment extends Statement {
 
   final FileSpan span;
 
-  SilentComment(this.text, this.span);
+  /// @nodoc
+  @internal
+  final FileLocation afterTrailing;
+
+  SilentComment(this.text, this.span) : afterTrailing = span.end;
+
+  /// @nodoc
+  @internal
+  SilentComment.internal(this.text, this.span, this.afterTrailing);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitSilentComment(this);
 

@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -25,7 +26,18 @@ final class ExtendRule extends Statement {
 
   final FileSpan span;
 
+  /// @nodoc
+  @internal
+  final FileLocation afterTrailing;
+
   ExtendRule(this.selector, this.span, {bool optional = false})
+      : isOptional = optional,
+        afterTrailing = span.end;
+
+  /// @nodoc
+  @internal
+  ExtendRule.internal(this.selector, this.span, this.afterTrailing,
+      {bool optional = false})
       : isOptional = optional;
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitExtendRule(this);

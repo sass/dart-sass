@@ -28,6 +28,10 @@ final class Declaration extends ParentStatement {
 
   final FileSpan span;
 
+  /// @nodoc
+  @internal
+  final FileLocation afterTrailing;
+
   /// Returns whether this is a CSS Custom Property declaration.
   ///
   /// Note that this can return `false` for declarations that will ultimately be
@@ -41,7 +45,9 @@ final class Declaration extends ParentStatement {
   bool get isCustomProperty => name.initialPlain.startsWith('--');
 
   /// Creates a declaration with no children.
-  Declaration(this.name, this.value, this.span) : super(null);
+  Declaration(this.name, this.value, this.span)
+      : afterTrailing = span.end,
+        super(null);
 
   /// Creates a declaration with children.
   ///
@@ -51,7 +57,26 @@ final class Declaration extends ParentStatement {
     Iterable<Statement> children,
     this.span, {
     this.value,
-  }) : super(List.unmodifiable(children));
+  })  : afterTrailing = span.end,
+        super(List.unmodifiable(children));
+
+  /// Creates a declaration with no children.
+  ///
+  /// @nodoc
+  @internal
+  Declaration.internal(this.name, this.value, this.span, this.afterTrailing)
+      : super(null);
+
+  /// Creates a declaration with children.
+  ///
+  /// For these declarations, a value is optional.
+  ///
+  /// :nodoc
+  @internal
+  Declaration.nestedInternal(
+      this.name, Iterable<Statement> children, this.span, this.afterTrailing,
+      {this.value})
+      : super(List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitDeclaration(this);
 

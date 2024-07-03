@@ -46,6 +46,10 @@ final class VariableDeclaration extends Statement implements SassDeclaration {
 
   final FileSpan span;
 
+  /// @nodoc
+  @internal
+  final FileLocation afterTrailing;
+
   /// The variable name as written in the document, without underscores
   /// converted to hyphens and including the leading `$`.
   ///
@@ -62,15 +66,23 @@ final class VariableDeclaration extends Statement implements SassDeclaration {
   FileSpan? get namespaceSpan =>
       namespace == null ? null : span.initialIdentifier();
 
-  VariableDeclaration(
-    this.name,
-    this.expression,
-    this.span, {
-    this.namespace,
-    bool guarded = false,
-    bool global = false,
-    this.comment,
-  })  : isGuarded = guarded,
+  VariableDeclaration(String name, Expression expression, FileSpan span,
+      {String? namespace,
+      bool guarded = false,
+      bool global = false,
+      SilentComment? comment})
+      : this.internal(name, expression, span, span.end,
+            namespace: namespace,
+            guarded: guarded,
+            global: global,
+            comment: comment);
+
+  /// @nodoc
+  @internal
+  VariableDeclaration.internal(
+      this.name, this.expression, this.span, this.afterTrailing,
+      {this.namespace, bool guarded = false, bool global = false, this.comment})
+      : isGuarded = guarded,
         isGlobal = global {
     if (namespace != null && global) {
       throw ArgumentError(

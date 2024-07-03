@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -17,7 +18,17 @@ final class ImportRule extends Statement {
 
   final FileSpan span;
 
+  /// @nodoc
+  @internal
+  final FileLocation afterTrailing;
+
   ImportRule(Iterable<Import> imports, this.span)
+      : imports = List.unmodifiable(imports),
+        afterTrailing = span.end;
+
+  /// @nodoc
+  @internal
+  ImportRule.internal(Iterable<Import> imports, this.span, this.afterTrailing)
       : imports = List.unmodifiable(imports);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitImportRule(this);

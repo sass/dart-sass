@@ -35,7 +35,18 @@ final class IfRule extends Statement {
 
   final FileSpan span;
 
+  /// @nodoc
+  @internal
+  final FileLocation afterTrailing;
+
   IfRule(Iterable<IfClause> clauses, this.span, {this.lastClause})
+      : clauses = List.unmodifiable(clauses),
+        afterTrailing = span.end;
+
+  /// @nodoc
+  @internal
+  IfRule.internal(Iterable<IfClause> clauses, this.span, this.afterTrailing,
+      {this.lastClause})
       : clauses = List.unmodifiable(clauses);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIfRule(this);
@@ -68,19 +79,31 @@ sealed class IfRuleClause {
   @internal
   final bool hasDeclarations;
 
-  IfRuleClause(Iterable<Statement> children)
-      : this._(List.unmodifiable(children));
+  /// The span that covers this specific conditional clause.
+  final FileSpan span;
 
-  IfRuleClause._(this.children)
-      : hasDeclarations = children.any(
-          (child) => switch (child) {
-            VariableDeclaration() || FunctionRule() || MixinRule() => true,
-            ImportRule(:var imports) => imports.any(
-                (import) => import is DynamicImport,
-              ),
-            _ => false,
-          },
-        );
+  /// The location after any trailing whitespace and comments following this
+  /// clause that aren't parsed as their own statements.
+  ///
+  /// This is used to generate PostCSS "raws", strings that are used to
+  /// reconstruct or modify the exact formatting of the original stylesheet.
+  ///
+  /// :nodoc:
+  @internal
+  final FileLocation afterTrailing;
+
+  /// @nodoc
+  @internal
+  IfRuleClause(Iterable<Statement> children, FileSpan span, [FileLocation? afterTrailing])
+      : this._(List.unmodifiable(children), span, afterTrailing ?? span.end);
+
+  IfRuleClause._(this.children, this.span, this.afterTrailing)
+      : hasDeclarations = children.any((child) => switch (child) {
+              VariableDeclaration() || FunctionRule() || MixinRule() => true,
+              ImportRule(:var imports) =>
+                imports.any((import) => import is DynamicImport),
+              _ => false
+            });
 }
 
 /// An `@if` or `@else if` clause in an `@if` rule.
@@ -90,7 +113,11 @@ final class IfClause extends IfRuleClause {
   /// The expression to evaluate to determine whether to run this rule.
   final Expression expression;
 
-  IfClause(this.expression, Iterable<Statement> children) : super(children);
+  IfClause(this.expression, super.children, super.span);
+
+  /// :nodoc:
+  @internal
+  IfClause.internal(this.expression, super.children, super.span, super.afterTrailing);
 
   String toString() => "@if $expression {${children.join(' ')}}";
 }
@@ -99,7 +126,11 @@ final class IfClause extends IfRuleClause {
 ///
 /// {@category AST}
 final class ElseClause extends IfRuleClause {
-  ElseClause(super.children);
+  ElseClause(super.children, super.span);
+
+  /// :nodoc:
+  @internal
+  ElseClause.internal(super.children, super.span, super.afterTrailing);
 
   String toString() => "@else {${children.join(' ')}}";
 }

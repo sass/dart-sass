@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -19,7 +20,15 @@ final class ReturnRule extends Statement {
 
   final FileSpan span;
 
-  ReturnRule(this.expression, this.span);
+  /// @nodoc
+  @internal
+  final FileLocation afterTrailing;
+
+  ReturnRule(this.expression, this.span) : afterTrailing = span.end;
+
+  /// @nodoc
+  @internal
+  ReturnRule.internal(this.expression, this.span, this.afterTrailing);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitReturnRule(this);
 

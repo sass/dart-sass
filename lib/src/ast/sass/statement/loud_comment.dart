@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -17,7 +18,15 @@ final class LoudComment extends Statement {
 
   FileSpan get span => text.span;
 
-  LoudComment(this.text);
+  /// @nodoc
+  @internal
+  final FileLocation afterTrailing;
+
+  LoudComment(this.text) : afterTrailing = text.span.end;
+
+  /// @nodoc
+  @internal
+  LoudComment.internal(this.text, this.afterTrailing);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitLoudComment(this);
 

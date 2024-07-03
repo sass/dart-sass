@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -21,7 +22,19 @@ final class AtRootRule extends ParentStatement<List<Statement>> {
 
   final FileSpan span;
 
+  /// @nodoc
+  @internal
+  final FileLocation afterTrailing;
+
   AtRootRule(Iterable<Statement> children, this.span, {this.query})
+      : afterTrailing = span.end,
+        super(List.unmodifiable(children));
+
+  /// @nodoc
+  @internal
+  AtRootRule.internal(
+      Iterable<Statement> children, this.span, this.afterTrailing,
+      {this.query})
       : super(List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitAtRootRule(this);

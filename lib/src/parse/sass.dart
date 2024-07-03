@@ -318,7 +318,9 @@ class SassParser extends StylesheetParser {
       _readIndentation();
     }
 
-    return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
+    var text = buffer.interpolation(scanner.spanFrom(start));
+    whitespaceWithoutComments(consumeNewlines: false);
+    return LoudComment.internal(text, scanner.location);
   }
 
   void whitespaceWithoutComments({required bool consumeNewlines}) {

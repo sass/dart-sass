@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -19,7 +20,15 @@ final class WarnRule extends Statement {
 
   final FileSpan span;
 
-  WarnRule(this.expression, this.span);
+  /// @nodoc
+  @internal
+  final FileLocation afterTrailing;
+
+  WarnRule(this.expression, this.span) : afterTrailing = span.end;
+
+  /// @nodoc
+  @internal
+  WarnRule.internal(this.expression, this.span, this.afterTrailing);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitWarnRule(this);
 

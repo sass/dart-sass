@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -22,7 +23,15 @@ final class ContentRule extends Statement {
 
   final FileSpan span;
 
-  ContentRule(this.arguments, this.span);
+  /// @nodoc
+  @internal
+  final FileLocation afterTrailing;
+
+  ContentRule(this.arguments, this.span) : afterTrailing = span.end;
+
+  /// @nodoc
+  @internal
+  ContentRule.internal(this.arguments, this.span, this.afterTrailing);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitContentRule(this);
 

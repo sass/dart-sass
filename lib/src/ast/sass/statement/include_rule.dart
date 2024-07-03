@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../util/span.dart';
@@ -38,6 +39,10 @@ final class IncludeRule extends Statement
 
   final FileSpan span;
 
+  /// @nodoc
+  @internal
+  final FileLocation afterTrailing;
+
   /// Returns this include's span, without its content block (if it has one).
   FileSpan get spanWithoutContent => content == null
       ? span
@@ -59,13 +64,17 @@ final class IncludeRule extends Statement
     return startSpan.initialIdentifier();
   }
 
-  IncludeRule(
-    this.originalName,
-    this.arguments,
-    this.span, {
-    this.namespace,
-    this.content,
-  }) : name = originalName.replaceAll('_', '-');
+  IncludeRule(this.originalName, this.arguments, this.span,
+      {this.namespace, this.content})
+      : name = originalName.replaceAll('_', '-'),
+        afterTrailing = span.end;
+
+  /// @nodoc
+  @internal
+  IncludeRule.internal(
+      this.originalName, this.arguments, this.span, this.afterTrailing,
+      {this.namespace, this.content})
+      : name = originalName.replaceAll('_', '-');
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIncludeRule(this);
 

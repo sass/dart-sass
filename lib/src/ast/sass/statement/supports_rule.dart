@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -18,7 +19,18 @@ final class SupportsRule extends ParentStatement<List<Statement>> {
 
   final FileSpan span;
 
+  /// @nodoc
+  @internal
+  final FileLocation afterTrailing;
+
   SupportsRule(this.condition, Iterable<Statement> children, this.span)
+      : afterTrailing = span.end,
+        super(List.unmodifiable(children));
+
+  /// @nodoc
+  @internal
+  SupportsRule.internal(this.condition, Iterable<Statement> children, this.span,
+      this.afterTrailing)
       : super(List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitSupportsRule(this);

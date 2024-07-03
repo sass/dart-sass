@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
@@ -21,7 +22,18 @@ final class WhileRule extends ParentStatement<List<Statement>> {
 
   final FileSpan span;
 
+  /// @nodoc
+  @internal
+  final FileLocation afterTrailing;
+
   WhileRule(this.condition, Iterable<Statement> children, this.span)
+      : afterTrailing = span.end,
+        super(List<Statement>.unmodifiable(children));
+
+  /// @nodoc
+  @internal
+  WhileRule.internal(this.condition, Iterable<Statement> children, this.span,
+      this.afterTrailing)
       : super(List<Statement>.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitWhileRule(this);
