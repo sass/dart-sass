@@ -70,7 +70,6 @@ class CssParser extends ScssParser {
       "media" => mediaRule(start),
       "-moz-document" => mozDocumentRule(start, name),
       "supports" => supportsRule(start),
-      var name? when name.toLowerCase() == "nest" => nestRule(start),
       _ => unknownAtRule(start, name)
     };
   }

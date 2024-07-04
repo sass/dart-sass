@@ -54,7 +54,6 @@ export 'sass/statement/include_rule.dart';
 export 'sass/statement/loud_comment.dart';
 export 'sass/statement/media_rule.dart';
 export 'sass/statement/mixin_rule.dart';
-export 'sass/statement/nest_rule.dart';
 export 'sass/statement/parent.dart';
 export 'sass/statement/return_rule.dart';
 export 'sass/statement/silent_comment.dart';

@@ -61,8 +61,6 @@ mixin StatementSearchVisitor<T> implements StatementVisitor<T?> {
 
   T? visitMixinRule(MixinRule node) => visitCallableDeclaration(node);
 
-  T? visitNestRule(NestRule node) => visitChildren(node.children);
-
   T? visitReturnRule(ReturnRule node) => null;
 
   T? visitSilentComment(SilentComment node) => null;

@@ -71,8 +71,6 @@ mixin RecursiveStatementVisitor implements StatementVisitor<void> {
 
   void visitMixinRule(MixinRule node) => visitCallableDeclaration(node);
 
-  void visitNestRule(NestRule node) => visitChildren(node.children);
-
   void visitReturnRule(ReturnRule node) {}
 
   void visitSilentComment(SilentComment node) {}

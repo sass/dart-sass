@@ -649,8 +649,6 @@ abstract class StylesheetParser extends Parser {
         return _warnRule(start);
       case "while":
         return _whileRule(start, child);
-      case var name? when name.toLowerCase() == "nest":
-        return nestRule(start);
       default:
         return unknownAtRule(start, name);
     }
@@ -1400,22 +1398,6 @@ abstract class StylesheetParser extends Parser {
 
       return AtRule(name, span, value: value, children: children);
     });
-  }
-
-  /// Consumes a `@return` rule.
-  ///
-  /// [start] should point before the `@`.
-  @protected
-  NestRule nestRule(LineScannerState start) {
-    whitespace();
-    var wasInUnknownAtRule = _inUnknownAtRule;
-    _inUnknownAtRule = true;
-    try {
-      return _withChildren(
-          _statement, start, (children, span) => NestRule(children, span));
-    } finally {
-      _inUnknownAtRule = wasInUnknownAtRule;
-    }
   }
 
   /// Consumes a `@return` rule.

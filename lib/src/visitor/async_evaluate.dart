@@ -1197,8 +1197,10 @@ final class _EvaluateVisitor
           "upcoming\n"
           "version. To keep the existing behavior, move the declaration above "
           "the nested\n"
-          "rule. To opt into the new behavior, wrap the declaration in `@nest "
-          "{}`.",
+          "rule. To opt into the new behavior, wrap the declaration in `& "
+          "{}`.\n"
+          "\n"
+          "More info: https://sass-lang.com/d/mixed-decls",
           MultiSpan(node.span, 'declaration', {sibling.span: 'nested rule'}),
           Deprecation.mixedDecls);
     }
@@ -1895,53 +1897,6 @@ final class _EvaluateVisitor
   Future<Value?> visitMixinRule(MixinRule node) async {
     _environment.setMixin(UserDefinedCallable(node, _environment.closure(),
         inDependency: _inDependency));
-    return null;
-  }
-
-  Future<Value?> visitNestRule(NestRule node) async {
-    if (_declarationName != null) {
-      throw _exception(
-          "At-rules may not be used within nested declarations.", node.span);
-    } else if (_inKeyframes) {
-      throw _exception(
-          "@nest may not be used within a keyframe block.", node.span);
-    }
-
-    var wasInUnknownAtRule = _inUnknownAtRule;
-    var oldAtRootExcludingStyleRule = _atRootExcludingStyleRule;
-    _inUnknownAtRule = true;
-    _atRootExcludingStyleRule = false;
-    if (_styleRule case var styleRule?) {
-      if (_stylesheet.plainCss) {
-        for (var child in node.children) {
-          await child.accept(this);
-        }
-      } else {
-        var newStyleRule = styleRule.copyWithoutChildren();
-        await _withParent(newStyleRule, () async {
-          await _withStyleRule(newStyleRule, () async {
-            for (var child in node.children) {
-              await child.accept(this);
-            }
-          });
-        },
-            through: (node) => node is CssStyleRule,
-            scopeWhen: node.hasDeclarations);
-
-        _warnForBogusCombinators(newStyleRule);
-      }
-    } else {
-      await _withParent(
-          ModifiableCssAtRule(CssValue("nest", node.span), node.span),
-          () async {
-        for (var child in node.children) {
-          await child.accept(this);
-        }
-      }, scopeWhen: node.hasDeclarations);
-    }
-    _inUnknownAtRule = wasInUnknownAtRule;
-    _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
-
     return null;
   }
 
