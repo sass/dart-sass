@@ -18,8 +18,9 @@ jobs:
             runner: windows-latest
           - arch: ia32
             runner: windows-latest
-          - arch: arm64
-            runner: windows-arm64
+          # https://github.com/orgs/community/discussions/131594
+          # - arch: arm64
+          #   runner: windows-arm64
 
     steps:
       - uses: actions/checkout@v4
