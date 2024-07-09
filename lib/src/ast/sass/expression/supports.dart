@@ -14,7 +14,7 @@ import '../supports_condition.dart';
 /// doesn't include the function name wrapping the condition.
 ///
 /// {@category AST}
-final class SupportsExpression implements Expression {
+final class SupportsExpression extends Expression {
   /// The condition itself.
   final SupportsCondition condition;
 

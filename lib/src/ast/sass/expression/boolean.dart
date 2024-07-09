@@ -10,7 +10,7 @@ import '../expression.dart';
 /// A boolean literal, `true` or `false`.
 ///
 /// {@category AST}
-final class BooleanExpression implements Expression {
+final class BooleanExpression extends Expression {
   /// The value of this expression.
   final bool value;
 

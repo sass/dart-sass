@@ -311,3 +311,78 @@ jobs:
       run: dart run test -p chrome -j 2
       env:
         CHROME_EXECUTABLE: chrome
+
+  sass-parser/tests:
+    name: "sass-parser Tests | Dart ${{ matrix.dart_channel }} | Node ${{ matrix.node-version }}"
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        dart_channel: [stable]
+        node-version: ['lts/*']
+        include:
+          # Test older LTS versions
+          - os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-1
+          - os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-2
+          - os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-3
+          # Test LTS version with dart dev channel
+          - os: ubuntu-latest
+            dart_channel: dev
+            node-version: 'lts/*'
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/util/initialize
+        with:
+          dart-sdk: ${{ matrix.dart_channel }}
+          github-token: ${{ github.token }}
+          node-version: ${{ matrix.node-version }}
+
+      - run: dart run grinder pkg-npm-dev
+        env: {UPDATE_SASS_SASS_REPO: false}
+      - run: npm link
+        working-directory: build/npm
+      - run: npm ci
+        working-directory: pkg/sass-parser/
+      - run: npm link sass
+        working-directory: pkg/sass-parser/
+      - name: Run tests
+        run: npm test
+        working-directory: pkg/sass-parser/
+
+  sass-parser/static_analysis:
+    name: "sass-parser Static Analysis"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 'lts/*'}
+      - run: npm ci
+        working-directory: pkg/sass-parser/
+      - name: Run static analysis
+        run: npm run check
+        working-directory: pkg/sass-parser/
+
+  # TODO - postcss/postcss#1958: Enable this once PostCSS doesn't have TypeDoc
+  # warnings.
+
+  # sass-parser/typedoc:
+  #   name: "sass-parser Typedoc"
+  #   runs-on: ubuntu-latest
+  #
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with: {node-version: 'lts/*'}
+  #     - run: npm ci
+  #       working-directory: pkg/sass-parser/
+  #     - run: npm run typedoc
+  #       working-directory: pkg/sass-parser/

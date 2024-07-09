@@ -92,6 +92,7 @@ void main(List<String> args) {
     'NodePackageImporter',
     'deprecations',
     'Version',
+    'parser_',
   };
 
   pkg.githubReleaseNotes.fn = () =>

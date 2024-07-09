@@ -5,10 +5,13 @@
 import '../../visitor/interface/statement.dart';
 import 'node.dart';
 
+// Note: despite not defining any methods here, this hsa to be a concrete class
+// so we can expose its accept() function to the JS parser.
+
 /// A statement in a Sass syntax tree.
 ///
 /// {@category AST}
-abstract interface class Statement implements SassNode {
+abstract class Statement implements SassNode {
   /// Calls the appropriate visit method on [visitor].
   T accept<T>(StatementVisitor<T> visitor);
 }

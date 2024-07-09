@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
 import '../util/lazy_file_span.dart';
@@ -21,7 +22,10 @@ void updateSourceSpanPrototype() {
     getJSClass(item).defineGetters({
       'start': (FileSpan span) => span.start,
       'end': (FileSpan span) => span.end,
-      'url': (FileSpan span) => span.sourceUrl.andThen(dartToJSUrl),
+      // TODO(nweiz): Make this a string that preserves relative URLs in Dart
+      // Sass 2.0.0.
+      'url': (FileSpan span) => span.sourceUrl.andThen((url) => dartToJSUrl(
+          url.scheme == '' ? p.toUri(p.absolute(p.fromUri(url))) : url)),
       'text': (FileSpan span) => span.text,
       'context': (FileSpan span) => span.context,
     });
