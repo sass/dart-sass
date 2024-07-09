@@ -211,7 +211,7 @@ abstract class Value {
   SassString assertString([String? name]) =>
       throw SassScriptException("$this is not a string.", name);
 
-  /// Throws a [SassScriptException] if [this] isn't a list of the sort commonly
+  /// Throws a [SassScriptException] if `this` isn't a list of the sort commonly
   /// used in plain CSS expression syntax: space-separated and unbracketed.
   ///
   /// If [allowSlash] is `true`, this allows slash-separated lists as well.

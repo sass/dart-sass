@@ -787,12 +787,12 @@ class SassColor extends Value {
         new1 ?? channel1OrNull, new2 ?? channel2OrNull, alpha ?? alphaOrNull);
   }
 
-  /// Returns a color partway between [this] and [other] according to [method],
+  /// Returns a color partway between `this` and [other] according to [method],
   /// as defined by the CSS Color 4 [color interpolation] procedure.
   ///
   /// [color interpolation]: https://www.w3.org/TR/css-color-4/#interpolation
   ///
-  /// The [weight] is a number between 0 and 1 that indicates how much of [this]
+  /// The [weight] is a number between 0 and 1 that indicates how much of `this`
   /// should be in the resulting color. It defaults to 0.5.
   ///
   /// If [legacyMissing] is false, this will convert missing channels in legacy
