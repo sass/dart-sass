@@ -24,6 +24,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # See: https://github.com/orgs/community/discussions/131594
+      # The composite action requires bash which is not available on windows-arm64 runner.
+      # - uses: ./.github/util/initialize
+      #   with: {github-token: "${{ github.token }}"}
+
       - uses: dart-lang/setup-dart@v1
 
       - uses: bufbuild/buf-setup-action@v1.30.0
