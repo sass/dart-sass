@@ -790,7 +790,7 @@ final class AsyncEnvironment {
     return Configuration.implicit(configuration);
   }
 
-  /// Returns a module that represents the top-level members defined in [this],
+  /// Returns a module that represents the top-level members defined in `this`,
   /// that contains [css] and [preModuleComments] as its CSS, which can be
   /// extended using [extensionStore].
   Module toModule(
@@ -802,7 +802,7 @@ final class AsyncEnvironment {
         forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)));
   }
 
-  /// Returns a module with the same members and upstream modules as [this], but
+  /// Returns a module with the same members and upstream modules as `this`, but
   /// an empty stylesheet and extension store.
   ///
   /// This is used when resolving imports, since they need to inject forwarded

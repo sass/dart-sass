@@ -23,7 +23,7 @@ final class StringExpression implements Expression {
   /// included.
   final Interpolation text;
 
-  /// Whether [this] has quotes.
+  /// Whether `this` has quotes.
   final bool hasQuotes;
 
   FileSpan get span => text.span;

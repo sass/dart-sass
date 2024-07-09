@@ -84,10 +84,10 @@ extension SpanExtensions on FileSpan {
     return subspan(scanner.position).trimLeft();
   }
 
-  /// Whether [this] FileSpan contains the [target] FileSpan.
+  /// Whether this [FileSpan] contains the [target] FileSpan.
   ///
   /// Validates the FileSpans to be in the same file and for the [target] to be
-  /// within [this] FileSpan inclusive range [start,end].
+  /// within this [FileSpan]'s inclusive range `[start,end]`.
   bool contains(FileSpan target) =>
       file.url == target.file.url &&
       start.offset <= target.start.offset &&
