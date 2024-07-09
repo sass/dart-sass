@@ -13,7 +13,7 @@ import '../statement.dart';
 /// This exits from the current function body with a return value.
 ///
 /// {@category AST}
-final class ReturnRule implements Statement {
+final class ReturnRule extends Statement {
   /// The value to return from this function.
   final Expression expression;
 

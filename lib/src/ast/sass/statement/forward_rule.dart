@@ -15,7 +15,7 @@ import '../statement.dart';
 /// A `@forward` rule.
 ///
 /// {@category AST}
-final class ForwardRule implements Statement, SassDependency {
+final class ForwardRule extends Statement implements SassDependency {
   /// The URI of the module to forward.
   ///
   /// If this is relative, it's relative to the containing file.

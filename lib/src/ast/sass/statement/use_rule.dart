@@ -18,7 +18,7 @@ import '../statement.dart';
 /// A `@use` rule.
 ///
 /// {@category AST}
-final class UseRule implements Statement, SassDependency {
+final class UseRule extends Statement implements SassDependency {
   /// The URI of the module to use.
   ///
   /// If this is relative, it's relative to the containing file.

@@ -18,7 +18,7 @@ import 'variable_declaration.dart';
 ///
 /// {@category AST}
 abstract base class ParentStatement<T extends List<Statement>?>
-    implements Statement {
+    extends Statement {
   /// The child statements of this statement.
   final T children;
 

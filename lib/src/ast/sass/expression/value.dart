@@ -14,7 +14,7 @@ import '../expression.dart';
 /// constructed dynamically, as for the `call()` function.
 ///
 /// {@category AST}
-final class ValueExpression implements Expression {
+final class ValueExpression extends Expression {
   /// The embedded value.
   final Value value;
 

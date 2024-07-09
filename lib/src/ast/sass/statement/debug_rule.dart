@@ -13,7 +13,7 @@ import '../statement.dart';
 /// This prints a Sass value for debugging purposes.
 ///
 /// {@category AST}
-final class DebugRule implements Statement {
+final class DebugRule extends Statement {
   /// The expression to print.
   final Expression expression;
 

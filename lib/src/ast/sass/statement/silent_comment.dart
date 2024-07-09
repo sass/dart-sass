@@ -11,7 +11,7 @@ import '../statement.dart';
 /// A silent Sass-style comment.
 ///
 /// {@category AST}
-final class SilentComment implements Statement {
+final class SilentComment extends Statement {
   /// The text of this comment, including comment characters.
   final String text;
 

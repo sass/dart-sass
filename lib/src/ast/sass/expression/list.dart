@@ -13,7 +13,7 @@ import 'unary_operation.dart';
 /// A list literal.
 ///
 /// {@category AST}
-final class ListExpression implements Expression {
+final class ListExpression extends Expression {
   /// The elements of this list.
   final List<Expression> contents;
 

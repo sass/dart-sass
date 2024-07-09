@@ -14,7 +14,7 @@ import '../statement.dart';
 /// caller.
 ///
 /// {@category AST}
-final class ContentRule implements Statement {
+final class ContentRule extends Statement {
   /// The arguments pass to this `@content` rule.
   ///
   /// This will be an empty invocation if `@content` has no arguments.

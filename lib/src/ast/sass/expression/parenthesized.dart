@@ -10,7 +10,7 @@ import '../expression.dart';
 /// An expression wrapped in parentheses.
 ///
 /// {@category AST}
-final class ParenthesizedExpression implements Expression {
+final class ParenthesizedExpression extends Expression {
   /// The internal expression.
   final Expression expression;
 

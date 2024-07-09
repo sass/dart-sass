@@ -11,7 +11,7 @@ import '../expression.dart';
 /// A color literal.
 ///
 /// {@category AST}
-final class ColorExpression implements Expression {
+final class ColorExpression extends Expression {
   /// The value of this color.
   final SassColor value;
 

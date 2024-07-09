@@ -20,7 +20,7 @@ import 'variable_declaration.dart';
 /// This conditionally executes a block of code.
 ///
 /// {@category AST}
-final class IfRule implements Statement {
+final class IfRule extends Statement {
   /// The `@if` and `@else if` clauses.
   ///
   /// The first clause whose expression evaluates to `true` will have its

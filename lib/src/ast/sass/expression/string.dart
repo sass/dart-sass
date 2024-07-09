@@ -16,11 +16,12 @@ import '../interpolation.dart';
 /// A string literal.
 ///
 /// {@category AST}
-final class StringExpression implements Expression {
+final class StringExpression extends Expression {
   /// Interpolation that, when evaluated, produces the contents of this string.
   ///
-  /// Unlike [asInterpolation], escapes are resolved and quotes are not
-  /// included.
+  /// If this is a quoted string, escapes are resolved and quotes are not
+  /// included in this text (unlike [asInterpolation]). If it's an unquoted
+  /// string, escapes are *not* resolved.
   final Interpolation text;
 
   /// Whether `this` has quotes.
