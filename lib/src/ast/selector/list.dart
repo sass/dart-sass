@@ -96,9 +96,9 @@ final class SelectorList extends Selector {
     return contents.isEmpty ? null : SelectorList(contents, span);
   }
 
-  /// Returns a new selector list that represents [this] nested within [parent].
+  /// Returns a new selector list that represents `this` nested within [parent].
   ///
-  /// By default, this replaces [ParentSelector]s in [this] with [parent]. If
+  /// By default, this replaces [ParentSelector]s in `this` with [parent]. If
   /// [preserveParentSelectors] is true, this instead preserves those selectors
   /// as parent selectors.
   ///

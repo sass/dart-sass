@@ -385,7 +385,7 @@ class StylesheetNode {
     _upstreamImports = newUpstreamImports;
   }
 
-  /// Removes [this] as an upstream and downstream node from all the nodes that
+  /// Removes `this` as an upstream and downstream node from all the nodes that
   /// import it and that it imports.
   void _remove() {
     for (var node in {...upstream.values, ...upstreamImports.values}) {

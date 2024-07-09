@@ -17,7 +17,7 @@ abstract base class ModifiableCssNode extends CssNode {
   ModifiableCssParentNode? get parent => _parent;
   ModifiableCssParentNode? _parent;
 
-  /// The index of [this] in `parent.children`.
+  /// The index of `this` in `parent.children`.
   ///
   /// This makes [remove] more efficient.
   int? _indexInParent;
@@ -33,7 +33,7 @@ abstract base class ModifiableCssNode extends CssNode {
 
   T accept<T>(ModifiableCssVisitor<T> visitor);
 
-  /// Removes [this] from [parent]'s child list.
+  /// Removes `this` from [parent]'s child list.
   ///
   /// Throws a [StateError] if [parent] is `null`.
   void remove() {
@@ -65,10 +65,10 @@ abstract base class ModifiableCssParentNode extends ModifiableCssNode
       : _children = children,
         children = UnmodifiableListView(children);
 
-  /// Returns whether [this] is equal to [other], ignoring their child nodes.
+  /// Returns whether `this` is equal to [other], ignoring their child nodes.
   bool equalsIgnoringChildren(ModifiableCssNode other);
 
-  /// Returns a copy of [this] with an empty [children] list.
+  /// Returns a copy of `this` with an empty [children] list.
   ///
   /// This is *not* a deep copy. If other parts of this node are modifiable,
   /// they are shared between the new and old nodes.

@@ -58,7 +58,7 @@ final class ListExpression implements Expression {
     return buffer.toString();
   }
 
-  /// Returns whether [expression], contained in [this], needs parentheses when
+  /// Returns whether [expression], contained in `this`, needs parentheses when
   /// printed as Sass source.
   bool _elementNeedsParens(Expression expression) => switch (expression) {
         ListExpression(

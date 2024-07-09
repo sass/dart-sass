@@ -190,7 +190,7 @@ abstract class SassNumber extends Value {
 
   /// The value of this number.
   ///
-  /// Note that Sass stores all numbers as [double]s even if if [this]
+  /// Note that Sass stores all numbers as [double]s even if if `this`
   /// represents an integer from Sass's perspective. Use [isInt] to determine
   /// whether this is an integer, [asInt] to get its integer value, or
   /// [assertInt] to do both at once.
@@ -209,14 +209,14 @@ abstract class SassNumber extends Value {
   /// This number's denominator units.
   List<String> get denominatorUnits;
 
-  /// Whether [this] has any units.
+  /// Whether `this` has any units.
   ///
   /// If a function expects a number to have no units, it should use
   /// [assertNoUnits]. If it expects the number to have a particular unit, it
   /// should use [assertUnit].
   bool get hasUnits;
 
-  /// Whether [this] has more than one numerator unit, or any denominator units.
+  /// Whether `this` has more than one numerator unit, or any denominator units.
   ///
   /// This is `true` for numbers whose units make them unrepresentable as CSS
   /// lengths.
@@ -229,7 +229,7 @@ abstract class SassNumber extends Value {
   @internal
   final (SassNumber, SassNumber)? asSlash;
 
-  /// Whether [this] is an integer, according to [fuzzyEquals].
+  /// Whether `this` is an integer, according to [fuzzyEquals].
   ///
   /// The [int] value can be accessed using [asInt] or [assertInt]. Note that
   /// this may return `false` for very large doubles even though they may be
@@ -237,7 +237,7 @@ abstract class SassNumber extends Value {
   /// representation for integers that large.
   bool get isInt => fuzzyIsInt(value);
 
-  /// If [this] is an integer according to [isInt], returns [value] as an [int].
+  /// If `this` is an integer according to [isInt], returns [value] as an [int].
   ///
   /// Otherwise, returns `null`.
   int? get asInt => fuzzyAsInt(value);
@@ -304,20 +304,20 @@ abstract class SassNumber extends Value {
 
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitNumber(this);
 
-  /// Returns a number with the same units as [this] but with [value] as its
+  /// Returns a number with the same units as `this` but with [value] as its
   /// value.
   ///
   /// @nodoc
   @protected
   SassNumber withValue(num value);
 
-  /// Returns a copy of [this] without [asSlash] set.
+  /// Returns a copy of `this` without [asSlash] set.
   ///
   /// @nodoc
   @internal
   SassNumber withoutSlash() => asSlash == null ? this : withValue(value);
 
-  /// Returns a copy of [this] with [asSlash] set to a pair containing
+  /// Returns a copy of `this` with [asSlash] set to a pair containing
   /// [numerator] and [denominator].
   ///
   /// @nodoc
@@ -365,10 +365,10 @@ abstract class SassNumber extends Value {
         "Expected $this to be within $min$unit and $max$unit.", name);
   }
 
-  /// Returns whether [this] has [unit] as its only unit (and as a numerator).
+  /// Returns whether `this` has [unit] as its only unit (and as a numerator).
   bool hasUnit(String unit);
 
-  /// Returns whether [this] has units that are compatible with [other].
+  /// Returns whether `this` has units that are compatible with [other].
   ///
   /// Unlike [isComparableTo], unitless numbers are only considered compatible
   /// with other unitless numbers.
@@ -378,17 +378,17 @@ abstract class SassNumber extends Value {
     return isComparableTo(other);
   }
 
-  /// Returns whether [this] has units that are possibly-compatible with
+  /// Returns whether `this` has units that are possibly-compatible with
   /// [other], as defined by the Sass spec.
   @internal
   bool hasPossiblyCompatibleUnits(SassNumber other);
 
-  /// Returns whether [this] can be coerced to the given [unit].
+  /// Returns whether `this` can be coerced to the given [unit].
   ///
   /// This always returns `true` for a unitless number.
   bool compatibleWithUnit(String unit);
 
-  /// Throws a [SassScriptException] unless [this] has [unit] as its only unit
+  /// Throws a [SassScriptException] unless `this` has [unit] as its only unit
   /// (and as a numerator).
   ///
   /// If this came from a function argument, [name] is the argument name
@@ -398,7 +398,7 @@ abstract class SassNumber extends Value {
     throw SassScriptException('Expected $this to have unit "$unit".', name);
   }
 
-  /// Throws a [SassScriptException] unless [this] has no units.
+  /// Throws a [SassScriptException] unless `this` has no units.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
@@ -571,7 +571,7 @@ abstract class SassNumber extends Value {
   ///
   /// If [other] is passed, it should be the number from which [newNumerators]
   /// and [newDenominators] are derived. The [name] and [otherName] are the Sass
-  /// function parameter names of [this] and [other], respectively, used for
+  /// function parameter names of `this` and [other], respectively, used for
   /// error reporting.
   double _coerceOrConvertValue(
       List<String> newNumerators, List<String> newDenominators,
@@ -775,7 +775,7 @@ abstract class SassNumber extends Value {
       return operation(value, other.coerceValueToMatch(this));
     } on SassScriptException {
       // If the conversion fails, re-run it in the other direction. This will
-      // generate an error message that prints [this] before [other], which is
+      // generate an error message that prints `this` before [other], which is
       // more readable.
       coerceValueToMatch(other);
       rethrow; // This should be unreachable.

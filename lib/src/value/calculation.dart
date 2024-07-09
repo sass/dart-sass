@@ -906,13 +906,13 @@ enum CalculationOperator {
   /// The division operator.
   dividedBy('divided by', '/', 2);
 
-  /// The English name of [this].
+  /// The English name of `this`.
   final String name;
 
-  /// The CSS syntax for [this].
+  /// The CSS syntax for `this`.
   final String operator;
 
-  /// The precedence of [this].
+  /// The precedence of `this`.
   ///
   /// An operator with higher precedence binds tighter.
   ///
