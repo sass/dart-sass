@@ -100,7 +100,7 @@ abstract class Value {
   @internal
   bool get isVar => false;
 
-  /// Returns Dart's `null` value if this is [sassNull], and returns [this]
+  /// Returns Dart's `null` value if this is [sassNull], and returns `this`
   /// otherwise.
   Value? get realNull => this;
 
@@ -148,7 +148,7 @@ abstract class Value {
     return index < 0 ? lengthAsList + index : index - 1;
   }
 
-  /// Throws a [SassScriptException] if [this] isn't a boolean.
+  /// Throws a [SassScriptException] if `this` isn't a boolean.
   ///
   /// Note that generally, functions should use [isTruthy] rather than requiring
   /// a literal boolean.
@@ -158,53 +158,53 @@ abstract class Value {
   SassBoolean assertBoolean([String? name]) =>
       throw SassScriptException("$this is not a boolean.", name);
 
-  /// Throws a [SassScriptException] if [this] isn't a calculation.
+  /// Throws a [SassScriptException] if `this` isn't a calculation.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   SassCalculation assertCalculation([String? name]) =>
       throw SassScriptException("$this is not a calculation.", name);
 
-  /// Throws a [SassScriptException] if [this] isn't a color.
+  /// Throws a [SassScriptException] if `this` isn't a color.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   SassColor assertColor([String? name]) =>
       throw SassScriptException("$this is not a color.", name);
 
-  /// Throws a [SassScriptException] if [this] isn't a function reference.
+  /// Throws a [SassScriptException] if `this` isn't a function reference.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   SassFunction assertFunction([String? name]) =>
       throw SassScriptException("$this is not a function reference.", name);
 
-  /// Throws a [SassScriptException] if [this] isn't a mixin reference.
+  /// Throws a [SassScriptException] if `this` isn't a mixin reference.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   SassMixin assertMixin([String? name]) =>
       throw SassScriptException("$this is not a mixin reference.", name);
 
-  /// Throws a [SassScriptException] if [this] isn't a map.
+  /// Throws a [SassScriptException] if `this` isn't a map.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   SassMap assertMap([String? name]) =>
       throw SassScriptException("$this is not a map.", name);
 
-  /// Returns [this] as a [SassMap] if it is one (including empty lists, which
+  /// Returns `this` as a [SassMap] if it is one (including empty lists, which
   /// count as empty maps) or returns `null` if it's not.
   SassMap? tryMap() => null;
 
-  /// Throws a [SassScriptException] if [this] isn't a number.
+  /// Throws a [SassScriptException] if `this` isn't a number.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   SassNumber assertNumber([String? name]) =>
       throw SassScriptException("$this is not a number.", name);
 
-  /// Throws a [SassScriptException] if [this] isn't a string.
+  /// Throws a [SassScriptException] if `this` isn't a string.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
@@ -214,7 +214,7 @@ abstract class Value {
   /// Converts a `selector-parse()`-style input into a string that can be
   /// parsed.
   ///
-  /// Throws a [SassScriptException] if [this] isn't a type or a structure that
+  /// Throws a [SassScriptException] if `this` isn't a type or a structure that
   /// can be parsed as a selector.
   String _selectorString([String? name]) {
     if (_selectorStringOrNull() case var string?) return string;
@@ -228,7 +228,7 @@ abstract class Value {
   /// Converts a `selector-parse()`-style input into a string that can be
   /// parsed.
   ///
-  /// Returns `null` if [this] isn't a type or a structure that can be parsed as
+  /// Returns `null` if `this` isn't a type or a structure that can be parsed as
   /// a selector.
   String? _selectorStringOrNull() {
     var self = this;
@@ -370,7 +370,7 @@ abstract class Value {
   @internal
   Value unaryNot() => sassFalse;
 
-  /// Returns a copy of [this] without [SassNumber.asSlash] set.
+  /// Returns a copy of `this` without [SassNumber.asSlash] set.
   ///
   /// If this isn't a [SassNumber], returns it as-is.
   ///
@@ -378,9 +378,9 @@ abstract class Value {
   @internal
   Value withoutSlash() => this;
 
-  /// Returns a valid CSS representation of [this].
+  /// Returns a valid CSS representation of `this`.
   ///
-  /// Throws a [SassScriptException] if [this] can't be represented in plain
+  /// Throws a [SassScriptException] if `this` can't be represented in plain
   /// CSS. Use [toString] instead to get a string representation even if this
   /// isn't valid CSS.
   //
@@ -389,11 +389,11 @@ abstract class Value {
   String toCssString({@internal bool quote = true}) =>
       serializeValue(this, quote: quote);
 
-  /// Returns a string representation of [this].
+  /// Returns a string representation of `this`.
   ///
   /// Note that this is equivalent to calling `inspect()` on the value, and thus
   /// won't reflect the user's output settings. [toCssString] should be used
-  /// instead to convert [this] to CSS.
+  /// instead to convert `this` to CSS.
   String toString() => serializeValue(this, inspect: true);
 }
 
@@ -404,7 +404,7 @@ abstract class Value {
 ///
 /// {@category Value}
 extension SassApiValue on Value {
-  /// Parses [this] as a selector list, in the same manner as the
+  /// Parses `this` as a selector list, in the same manner as the
   /// `selector-parse()` function.
   ///
   /// Throws a [SassScriptException] if this isn't a type that can be parsed as a
@@ -428,7 +428,7 @@ extension SassApiValue on Value {
     }
   }
 
-  /// Parses [this] as a simple selector, in the same manner as the
+  /// Parses `this` as a simple selector, in the same manner as the
   /// `selector-parse()` function.
   ///
   /// Throws a [SassScriptException] if this isn't a type that can be parsed as a
@@ -453,7 +453,7 @@ extension SassApiValue on Value {
     }
   }
 
-  /// Parses [this] as a compound selector, in the same manner as the
+  /// Parses `this` as a compound selector, in the same manner as the
   /// `selector-parse()` function.
   ///
   /// Throws a [SassScriptException] if this isn't a type that can be parsed as a
@@ -478,7 +478,7 @@ extension SassApiValue on Value {
     }
   }
 
-  /// Parses [this] as a complex selector, in the same manner as the
+  /// Parses `this` as a complex selector, in the same manner as the
   /// `selector-parse()` function.
   ///
   /// Throws a [SassScriptException] if this isn't a type that can be parsed as a

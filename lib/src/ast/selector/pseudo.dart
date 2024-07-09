@@ -174,7 +174,7 @@ final class PseudoSelector extends SimpleSelector {
     for (var simple in compound) {
       if (simple case PseudoSelector(isElement: true)) {
         // A given compound selector may only contain one pseudo element. If
-        // [compound] has a different one than [this], unification fails.
+        // [compound] has a different one than `this`, unification fails.
         if (isElement) return null;
 
         // Otherwise, this is a pseudo selector and should come before pseudo

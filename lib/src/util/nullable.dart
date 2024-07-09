@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 extension NullableExtension<T> on T? {
-  /// If [this] is `null`, returns `null`. Otherwise, runs [fn] and returns its
+  /// If `this` is `null`, returns `null`. Otherwise, runs [fn] and returns its
   /// result.
   ///
   /// Based on Rust's `Option.and_then`.

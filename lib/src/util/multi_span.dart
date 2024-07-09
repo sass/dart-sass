@@ -70,7 +70,7 @@ class MultiSpan implements FileSpan {
           primaryColor: primaryColor,
           secondaryColor: secondaryColor);
 
-  /// Returns a copy of [this] with [newPrimary] as its primary span.
+  /// Returns a copy of `this` with [newPrimary] as its primary span.
   MultiSpan _withPrimary(FileSpan newPrimary) =>
       MultiSpan._(newPrimary, primaryLabel, secondarySpans);
 }

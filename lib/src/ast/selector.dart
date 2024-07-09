@@ -83,7 +83,7 @@ abstract base class Selector implements AstNode {
 
   Selector(this.span);
 
-  /// Prints a warning if [this] is a bogus selector.
+  /// Prints a warning if `this` is a bogus selector.
   ///
   /// This may only be called from within a custom Sass function. This will
   /// throw a [SassException] in Dart Sass 2.0.0.

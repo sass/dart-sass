@@ -63,10 +63,10 @@ enum UnaryOperator {
   /// The boolean negation operator, `not`.
   not('not', 'not');
 
-  /// The English name of [this].
+  /// The English name of `this`.
   final String name;
 
-  /// The Sass syntax for [this].
+  /// The Sass syntax for `this`.
   final String operator;
 
   const UnaryOperator(this.name, this.operator);

@@ -61,7 +61,7 @@ final class AtRootQuery {
           {Object? url, Logger? logger, InterpolationMap? interpolationMap}) =>
       AtRootQueryParser(contents, url: url, logger: logger).parse();
 
-  /// Returns whether [this] excludes [node].
+  /// Returns whether `this` excludes [node].
   ///
   /// @nodoc
   @internal
@@ -76,6 +76,6 @@ final class AtRootQuery {
     };
   }
 
-  /// Returns whether [this] excludes an at-rule with the given [name].
+  /// Returns whether `this` excludes an at-rule with the given [name].
   bool excludesName(String name) => (_all || names.contains(name)) != include;
 }
