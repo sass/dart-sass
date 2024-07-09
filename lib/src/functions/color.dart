@@ -134,8 +134,8 @@ final global = UnmodifiableListView([
     }
 
     var result = color.changeHsl(
-        lightness: (color.lightness + amount.valueInRange(0, 100, "amount"))
-            .clamp(0, 100));
+        lightness: clampLikeCss(
+            color.lightness + amount.valueInRange(0, 100, "amount"), 0, 100));
 
     warnForDeprecation(
         "lighten() is deprecated. "
@@ -156,8 +156,8 @@ final global = UnmodifiableListView([
     }
 
     var result = color.changeHsl(
-        lightness: (color.lightness - amount.valueInRange(0, 100, "amount"))
-            .clamp(0, 100));
+        lightness: clampLikeCss(
+            color.lightness - amount.valueInRange(0, 100, "amount"), 0, 100));
 
     warnForDeprecation(
         "darken() is deprecated. "
@@ -187,8 +187,10 @@ final global = UnmodifiableListView([
       }
 
       var result = color.changeHsl(
-          saturation: (color.saturation + amount.valueInRange(0, 100, "amount"))
-              .clamp(0, 100));
+          saturation: clampLikeCss(
+              color.saturation + amount.valueInRange(0, 100, "amount"),
+              0,
+              100));
 
       warnForDeprecation(
           "saturate() is deprecated. "
@@ -210,8 +212,8 @@ final global = UnmodifiableListView([
     }
 
     var result = color.changeHsl(
-        saturation: (color.saturation - amount.valueInRange(0, 100, "amount"))
-            .clamp(0, 100));
+        saturation: clampLikeCss(
+            color.saturation - amount.valueInRange(0, 100, "amount"), 0, 100));
 
     warnForDeprecation(
         "desaturate() is deprecated. "
@@ -947,7 +949,7 @@ SassColor _adjustColor(
         // The color space doesn't matter for alpha, as long as it's not
         // strictly bounded.
         _adjustChannel(color, ColorChannel.alpha, color.alphaOrNull, alphaArg)
-            ?.clamp(0, 1));
+            .andThen((alpha) => clampLikeCss(alpha, 0, 1)));
 
 /// Returns [oldValue] adjusted by [adjustmentArg] according to the definition
 /// in [color]'s space's [channel].
@@ -1062,9 +1064,10 @@ Value _rgb(String name, List<Value> arguments) {
       arguments[0].assertNumber("red"),
       arguments[1].assertNumber("green"),
       arguments[2].assertNumber("blue"),
-      alpha.andThen((alpha) =>
-              _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")
-                  .clamp(0, 1)) ??
+      alpha.andThen((alpha) => clampLikeCss(
+              _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha"),
+              0,
+              1)) ??
           1,
       fromRgbFunction: true);
 }
@@ -1100,8 +1103,8 @@ Value _rgbTwoArg(String name, List<Value> arguments) {
   }
 
   var alpha = arguments[1].assertNumber("alpha");
-  return color
-      .changeAlpha(_percentageOrUnitless(alpha, 1, "alpha").clamp(0, 1));
+  return color.changeAlpha(
+      clampLikeCss(_percentageOrUnitless(alpha, 1, "alpha"), 0, 1));
 }
 
 /// The implementation of the three- and four-argument `hsl()` and `hsla()`
@@ -1120,9 +1123,10 @@ Value _hsl(String name, List<Value> arguments) {
       arguments[0].assertNumber("hue"),
       arguments[1].assertNumber("saturation"),
       arguments[2].assertNumber("lightness"),
-      alpha.andThen((alpha) =>
-              _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")
-                  .clamp(0, 1)) ??
+      alpha.andThen((alpha) => clampLikeCss(
+              _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha"),
+              0,
+              1)) ??
           1);
 }
 
@@ -1235,9 +1239,8 @@ SassColor _opacify(String name, List<Value> arguments) {
         "color.adjust() instead with an explicit \$space argument.");
   }
 
-  var result = color.changeAlpha(
-      (color.alpha + amount.valueInRangeWithUnit(0, 1, "amount", ""))
-          .clamp(0, 1));
+  var result = color.changeAlpha(clampLikeCss(
+      (color.alpha + amount.valueInRangeWithUnit(0, 1, "amount", "")), 0, 1));
 
   warnForDeprecation(
       "$name() is deprecated. "
@@ -1258,9 +1261,8 @@ SassColor _transparentize(String name, List<Value> arguments) {
         "color.adjust() instead with an explicit \$space argument.");
   }
 
-  var result = color.changeAlpha(
-      (color.alpha - amount.valueInRangeWithUnit(0, 1, "amount", ""))
-          .clamp(0, 1));
+  var result = color.changeAlpha(clampLikeCss(
+      (color.alpha - amount.valueInRangeWithUnit(0, 1, "amount", "")), 0, 1));
 
   warnForDeprecation(
       "$name() is deprecated. "
@@ -1390,8 +1392,10 @@ Value _parseChannels(String functionName, Value input,
   var alpha = switch (alphaValue) {
     null => 1.0,
     SassString(hasQuotes: false, text: 'none') => null,
-    _ => _percentageOrUnitless(alphaValue.assertNumber(name), 1, 'alpha')
-        .clamp(0, 1)
+    _ => clampLikeCss(
+            _percentageOrUnitless(alphaValue.assertNumber(name), 1, 'alpha'),
+            0,
+            1)
         .toDouble()
   };
 
@@ -1549,10 +1553,10 @@ double? _channelFromValue(ColorChannel channel, SassNumber? value,
             _percentageOrUnitless(value, channel.max, channel.name),
           LinearChannel() when !clamp =>
             _percentageOrUnitless(value, channel.max, channel.name),
-          LinearChannel(:var lowerClamped, :var upperClamped) =>
-            _percentageOrUnitless(value, channel.max, channel.name).clamp(
-                lowerClamped ? channel.min : double.negativeInfinity,
-                upperClamped ? channel.max : double.infinity),
+          LinearChannel(:var lowerClamped, :var upperClamped) => clampLikeCss(
+              _percentageOrUnitless(value, channel.max, channel.name),
+              lowerClamped ? channel.min : double.negativeInfinity,
+              upperClamped ? channel.max : double.infinity),
           _ => value.coerceValueToUnit('deg', channel.name) % 360
         });
 

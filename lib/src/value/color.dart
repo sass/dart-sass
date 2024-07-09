@@ -523,22 +523,6 @@ class SassColor extends Value {
             alpha.andThen((alpha) => fuzzyAssertRange(alpha, 0, 1, "alpha")) {
     assert(format == null || _space == ColorSpace.rgb);
     assert(space != ColorSpace.lms);
-
-    _checkChannel(channel0OrNull, space.channels[0].name);
-    _checkChannel(channel1OrNull, space.channels[1].name);
-    _checkChannel(channel2OrNull, space.channels[2].name);
-  }
-
-  /// Throws a [RangeError] if [channel] isn't a finite number.
-  void _checkChannel(double? channel, String name) {
-    switch (channel) {
-      case null:
-        return;
-      case double(isNaN: true):
-        throw RangeError.value(channel, name, 'must be a number.');
-      case double(isFinite: false):
-        throw RangeError.value(channel, name, 'must be finite.');
-    }
   }
 
   /// If [hue] isn't null, normalizes it to the range `[0, 360)`.

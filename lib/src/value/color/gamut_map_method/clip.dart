@@ -4,6 +4,7 @@
 
 import 'package:meta/meta.dart';
 
+import '../../../util/number.dart';
 import '../../color.dart';
 
 /// Gamut mapping by clipping individual channels.
@@ -24,7 +25,7 @@ final class ClipGamutMap extends GamutMapMethod {
   double? _clampChannel(double? value, ColorChannel channel) => value == null
       ? null
       : switch (channel) {
-          LinearChannel(:var min, :var max) => value.clamp(min, max),
+          LinearChannel(:var min, :var max) => clampLikeCss(value, min, max),
           _ => value
         };
 }
