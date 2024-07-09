@@ -1,5 +1,11 @@
 ## 1.77.7
 
+* Declarations that appear after nested rules are deprecated, because the
+  semantics Sass has historically used are different from the semantics
+  specified by CSS. In the future, Sass will adopt the standard CSS semantics.
+
+  See [the Sass website](https://sass-lang.com/d/mixed-decls) for details.
+
 * **Potentially breaking bug fix:** `//` in certain places such as unknown
   at-rule values was being preserved in the CSS output, leading to potentially
   invalid CSS. It's now properly parsed as a silent comment and omitted from the
