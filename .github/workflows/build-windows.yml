@@ -24,8 +24,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./.github/util/initialize
-        with: {github-token: "${{ github.token }}"}
+      # See: https://github.com/orgs/community/discussions/131594
+      # The composite action requires bash which is not available on windows-arm64 runner.
+      # - uses: ./.github/util/initialize
+      #   with: {github-token: "${{ github.token }}"}
+
+      - uses: dart-lang/setup-dart@v1
+
+      - uses: bufbuild/buf-setup-action@v1.30.0
+        with: {github_token: "${{ github.token }}"}
+
+      - name: Install Dependencies
+        run: dart pub get
+
+      - name: Compile Protobuf
+        run: dart run grinder protobuf
 
       - name: Build
         run: dart run grinder pkg-standalone-windows-${{ matrix.arch }}
