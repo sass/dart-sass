@@ -1,3 +1,7 @@
+## 1.77.8
+
+* No user-visible changes.
+
 ## 1.77.7
 
 * Declarations that appear after nested rules are deprecated, because the
