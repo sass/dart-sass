@@ -64,8 +64,12 @@ final class CompilationDispatcher {
   /// Listens for incoming `CompileRequests` and runs their compilations.
   void listen() {
     do {
-      var packet = _mailbox.take();
-      if (packet.isEmpty) break;
+      Uint8List packet;
+      try {
+        packet = _mailbox.take();
+      } on StateError catch (_) {
+        break;
+      }
 
       try {
         var (compilationId, messageBuffer) = parsePacket(packet);
@@ -322,12 +326,14 @@ final class CompilationDispatcher {
     message.id = _outboundRequestId;
     _send(message);
 
-    var packet = _mailbox.take();
-    if (packet.isEmpty) {
+    Uint8List packet;
+    try {
+      packet = _mailbox.take();
+    } on StateError catch (_) {
       // Compiler is shutting down, throw without calling `_handleError` as we
       // don't want to report this as an actual error.
       _requestError = true;
-      throw StateError('Compiler is shutting down.');
+      rethrow;
     }
 
     try {
