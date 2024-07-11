@@ -18,9 +18,11 @@ jobs:
             runner: windows-latest
           - arch: ia32
             runner: windows-latest
-          # https://github.com/orgs/community/discussions/131594
-          # - arch: arm64
-          #   runner: windows-arm64
+          - arch: arm64
+            # This should be windows-arm64, but it's broken by several issues:
+            # https://github.com/orgs/community/discussions/131594
+            # https://github.com/orgs/community/discussions/131754
+            runner: windows-latest
 
     steps:
       - uses: actions/checkout@v4
