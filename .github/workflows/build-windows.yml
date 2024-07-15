@@ -34,7 +34,7 @@ jobs:
 
       - uses: dart-lang/setup-dart@v1
 
-      - uses: bufbuild/buf-setup-action@v1.30.0
+      - uses: bufbuild/buf-setup-action@v1.34.0
         with: {github_token: "${{ github.token }}"}
 
       - name: Install Dependencies
