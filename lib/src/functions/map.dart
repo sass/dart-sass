@@ -15,12 +15,12 @@ import '../value.dart';
 
 /// The global definitions of Sass map functions.
 final global = UnmodifiableListView([
-  _get.withName("map-get"),
-  _merge.withName("map-merge"),
-  _remove.withName("map-remove"),
-  _keys.withName("map-keys"),
-  _values.withName("map-values"),
-  _hasKey.withName("map-has-key")
+  _get.withDeprecationWarning('map').withName("map-get"),
+  _merge.withDeprecationWarning('map').withName("map-merge"),
+  _remove.withDeprecationWarning('map').withName("map-remove"),
+  _keys.withDeprecationWarning('map').withName("map-keys"),
+  _values.withDeprecationWarning('map').withName("map-values"),
+  _hasKey.withDeprecationWarning('map').withName("map-has-key")
 ]);
 
 /// The Sass map module.

@@ -20,19 +20,18 @@ final _features = {
   "custom-property"
 };
 
-/// The global definitions of Sass introspection functions.
-final global = UnmodifiableListView([
-  // This is only a partial list of meta functions. The rest are defined in the
-  // evaluator, because they need access to context that's only available at
-  // runtime.
+/// Sass introspection functions that exist as both global functions and in the
+/// `sass:meta` module that do not require access to context that's only
+/// available at runtime.
+///
+/// Additional functions are defined in the evaluator.
+final _shared = UnmodifiableListView([
   _function("feature-exists", r"$feature", (arguments) {
     var feature = arguments[0].assertString("feature");
     return SassBoolean(_features.contains(feature.text));
   }),
-
   _function("inspect", r"$value",
       (arguments) => SassString(arguments.first.toString(), quotes: false)),
-
   _function(
       "type-of",
       r"$value",
@@ -52,7 +51,6 @@ final global = UnmodifiableListView([
             _ => throw "[BUG] Unknown value type ${arguments[0]}"
           },
           quotes: false)),
-
   _function("keywords", r"$args", (arguments) {
     if (arguments[0] case SassArgumentList(:var keywords)) {
       return SassMap({
@@ -65,9 +63,14 @@ final global = UnmodifiableListView([
   })
 ]);
 
-/// The definitions of Sass introspection functions that are only available from
-/// the `sass:meta` module, not as global functions.
-final local = UnmodifiableListView([
+/// The global definitions of Sass introspection functions.
+final global = UnmodifiableListView(
+    [for (var function in _shared) function.withDeprecationWarning('meta')]);
+
+/// The versions of Sass introspection functions defined in the `sass:meta`
+/// module.
+final moduleFunctions = UnmodifiableListView([
+  ..._shared,
   _function("calc-name", r"$calc", (arguments) {
     var calculation = arguments[0].assertCalculation("calc");
     return SassString(calculation.name);
