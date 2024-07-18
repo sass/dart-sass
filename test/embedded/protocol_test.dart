@@ -67,7 +67,7 @@ void main() {
     });
 
     test("caused by duplicate compilation IDs", () async {
-      process.send(compileString("@import 'other'", importers: [
+      process.send(compileString("@use 'other'", importers: [
         InboundMessage_CompileRequest_Importer()..importerId = 1
       ]));
       await getCanonicalizeRequest(process);

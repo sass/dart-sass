@@ -110,7 +110,7 @@ void sharedTests(
 
   group("can import files", () {
     test("relative to the entrypoint", () async {
-      await d.file("test.scss", "@import 'dir/test'").create();
+      await d.file("test.scss", "@use 'dir/test'").create();
 
       await d.dir("dir", [d.file("test.scss", "a {b: 1 + 2}")]).create();
 
@@ -119,7 +119,7 @@ void sharedTests(
     });
 
     test("from the load path", () async {
-      await d.file("test.scss", "@import 'test2'").create();
+      await d.file("test.scss", "@use 'test2'").create();
 
       await d.dir("dir", [d.file("test2.scss", "a {b: c}")]).create();
 
@@ -129,8 +129,8 @@ void sharedTests(
 
     test("from SASS_PATH", () async {
       await d.file("test.scss", """
-        @import 'test2';
-        @import 'test3';
+        @use 'test2';
+        @use 'test3';
       """).create();
 
       await d.dir("dir2", [d.file("test2.scss", "a {b: c}")]).create();
@@ -145,12 +145,12 @@ void sharedTests(
     // Regression test for #369
     test("from within a directory, relative to a file on the load path",
         () async {
-      await d.dir(
-          "dir1", [d.file("test.scss", "@import 'subdir/test2'")]).create();
+      await d
+          .dir("dir1", [d.file("test.scss", "@use 'subdir/test2'")]).create();
 
       await d.dir("dir2", [
         d.dir("subdir", [
-          d.file("test2.scss", "@import 'test3'"),
+          d.file("test2.scss", "@use 'test3'"),
           d.file("test3.scss", "a {b: c}")
         ])
       ]).create();
@@ -160,7 +160,7 @@ void sharedTests(
     });
 
     test("relative in preference to from the load path", () async {
-      await d.file("test.scss", "@import 'test2'").create();
+      await d.file("test.scss", "@use 'test2'").create();
       await d.file("test2.scss", "x {y: z}").create();
 
       await d.dir("dir", [d.file("test2.scss", "a {b: c}")]).create();
@@ -170,7 +170,7 @@ void sharedTests(
     });
 
     test("in load path order", () async {
-      await d.file("test.scss", "@import 'test2'").create();
+      await d.file("test.scss", "@use 'test2'").create();
 
       await d.dir("dir1", [d.file("test2.scss", "a {b: c}")]).create();
       await d.dir("dir2", [d.file("test2.scss", "x {y: z}")]).create();
@@ -181,7 +181,7 @@ void sharedTests(
     });
 
     test("from the load path in preference to from SASS_PATH", () async {
-      await d.file("test.scss", "@import 'test2'").create();
+      await d.file("test.scss", "@use 'test2'").create();
 
       await d.dir("dir1", [d.file("test2.scss", "a {b: c}")]).create();
       await d.dir("dir2", [d.file("test2.scss", "x {y: z}")]).create();
@@ -192,7 +192,7 @@ void sharedTests(
     });
 
     test("in SASS_PATH order", () async {
-      await d.file("test.scss", "@import 'test2'").create();
+      await d.file("test.scss", "@use 'test2'").create();
 
       await d.dir("dir1", [d.file("test2.scss", "a {b: c}")]).create();
       await d.dir("dir2", [d.file("test2.scss", "x {y: z}")]).create();
@@ -224,6 +224,8 @@ void sharedTests(
         "grandparent",
         "--load-path",
         "grandparent/parent",
+        "--silence-deprecation",
+        "import",
         "test.scss"
       ], equalsIgnoringWhitespace("a { b: c; } a { b: c; }"));
     });
@@ -240,8 +242,13 @@ void sharedTests(
         d.file("_library.import.scss", "a { b: import-only }")
       ]).create();
 
-      await expectCompiles(["--load-path", "load-path", "test.scss"],
-          equalsIgnoringWhitespace("a { b: regular; } a { b: import-only; }"));
+      await expectCompiles([
+        "--load-path",
+        "load-path",
+        "--silence-deprecation",
+        "import",
+        "test.scss"
+      ], equalsIgnoringWhitespace("a { b: regular; } a { b: import-only; }"));
     });
   });
 
@@ -487,7 +494,14 @@ void sharedTests(
         await d.file("test.scss", "@import 'other'").create();
         await d.dir("dir", [d.file("_other.scss", "#{blue} {x: y}")]).create();
 
-        var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
+        var sass = await runSass([
+          "--quiet-deps",
+          "-I",
+          "dir",
+          "--silence-deprecation",
+          "import",
+          "test.scss"
+        ]);
         expect(sass.stderr, emitsDone);
         await sass.shouldExit(0);
       });
@@ -501,7 +515,14 @@ void sharedTests(
           """)
         ]).create();
 
-        var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
+        var sass = await runSass([
+          "--quiet-deps",
+          "-I",
+          "dir",
+          "--silence-deprecation",
+          "import",
+          "test.scss"
+        ]);
         expect(sass.stderr, emitsDone);
         await sass.shouldExit(0);
       });
@@ -877,7 +898,8 @@ void sharedTests(
       expect(sass.stdout, emitsDone);
       await sass.shouldExit(65);
     });
-  });
+    // Skipping while no future deprecations exist
+  }, skip: true);
 
   test("doesn't unassign variables", () async {
     // This is a regression test for one of the strangest errors I've ever
@@ -896,7 +918,8 @@ void sharedTests(
     await d.file("_midstream.scss", "@forward 'upstream'").create();
     await d.file("_upstream.scss", r"$c: g").create();
 
-    var sass = await runSass(["input.scss", "output.css"]);
+    var sass = await runSass(
+        ["--silence-deprecation", "import", "input.scss", "output.css"]);
     await sass.shouldExit(0);
 
     await d.file("output.css", equalsIgnoringWhitespace("""

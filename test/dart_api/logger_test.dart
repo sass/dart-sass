@@ -193,7 +193,7 @@ void main() {
 
     test("from an importer", () {
       var mustBeCalled = expectAsync0(() {});
-      compileString("@import 'foo';", importers: [
+      compileString("@use 'foo';", importers: [
         TestImporter((url) => Uri.parse("u:$url"), (url) {
           warn("heck");
           return ImporterResult("", indented: false);
@@ -203,11 +203,11 @@ void main() {
         expect(message, equals("heck"));
 
         expect(span!.start.line, equals(0));
-        expect(span.start.column, equals(8));
+        expect(span.start.column, equals(0));
         expect(span.end.line, equals(0));
-        expect(span.end.column, equals(13));
+        expect(span.end.column, equals(10));
 
-        expect(trace!.frames.first.member, equals('@import'));
+        expect(trace!.frames.first.member, equals('@use'));
         expect(deprecation, isFalse);
         mustBeCalled();
       }));

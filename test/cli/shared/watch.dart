@@ -208,7 +208,8 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             await d.file("_other.scss", "a {b: c}").create();
             await d.file("test.scss", "@import 'other'").create();
 
-            var sass = await watch(["test.scss:out.css"]);
+            var sass = await watch(
+                ["--silence-deprecation", "import", "test.scss:out.css"]);
             await expectLater(
                 sass.stdout, emits(endsWith('Compiled test.scss to out.css.')));
             await expectLater(sass.stdout, _watchingForChanges);
@@ -361,7 +362,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           // Regression test for #550
           test("with an error that's later fixed", () async {
             await d.file("_other.scss", "a {b: c}").create();
-            await d.file("test.scss", "@import 'other'").create();
+            await d.file("test.scss", "@use 'other'").create();
 
             var sass = await watch(["test.scss:out.css"]);
             await expectLater(
@@ -373,7 +374,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             await expectLater(
                 sass.stderr, emits('Error: Expected expression.'));
             await expectLater(
-                sass.stderr, emitsThrough(contains('test.scss 1:9')));
+                sass.stderr, emitsThrough(contains('test.scss 1:1')));
             await tickIfPoll();
 
             await d.file("_other.scss", "q {r: s}").create();
@@ -466,7 +467,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         group("when its dependency is deleted", () {
           test("and updates the output", () async {
             await d.file("_other.scss", "a {b: c}").create();
-            await d.file("test.scss", "@import 'other'").create();
+            await d.file("test.scss", "@use 'other'").create();
 
             var sass = await watch(["test.scss:out.css"]);
             await expectLater(
@@ -478,7 +479,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             d.file("_other.scss").io.deleteSync();
             await expectLater(sass.stderr, emits(message));
             await expectLater(
-                sass.stderr, emitsThrough(contains('test.scss 1:9')));
+                sass.stderr, emitsThrough(contains('test.scss 1:1')));
             await sass.kill();
 
             await d.file("out.css", contains(message)).validate();
@@ -486,7 +487,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
           test("but another is available", () async {
             await d.file("_other.scss", "a {b: c}").create();
-            await d.file("test.scss", "@import 'other'").create();
+            await d.file("test.scss", "@use 'other'").create();
             await d.dir("dir", [d.file("_other.scss", "x {y: z}")]).create();
 
             var sass = await watch(["-I", "dir", "test.scss:out.css"]);
@@ -508,7 +509,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           test("which resolves a conflict", () async {
             await d.file("_other.scss", "a {b: c}").create();
             await d.file("_other.sass", "x\n  y: z").create();
-            await d.file("test.scss", "@import 'other'").create();
+            await d.file("test.scss", "@use 'other'").create();
 
             var sass = await watch(["test.scss:out.css"]);
             await expectLater(sass.stderr,
@@ -530,13 +531,13 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         group("when a dependency is added", () {
           group("that was missing", () {
             test("relative to the file", () async {
-              await d.file("test.scss", "@import 'other'").create();
+              await d.file("test.scss", "@use 'other'").create();
 
               var sass = await watch(["test.scss:out.css"]);
               await expectLater(sass.stderr,
                   emits("Error: Can't find stylesheet to import."));
               await expectLater(
-                  sass.stderr, emitsThrough(contains("test.scss 1:9")));
+                  sass.stderr, emitsThrough(contains("test.scss 1:1")));
               await expectLater(sass.stdout, _watchingForChanges);
               await tickIfPoll();
 
@@ -551,14 +552,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             });
 
             test("on a load path", () async {
-              await d.file("test.scss", "@import 'other'").create();
+              await d.file("test.scss", "@use 'other'").create();
               await d.dir("dir").create();
 
               var sass = await watch(["-I", "dir", "test.scss:out.css"]);
               await expectLater(sass.stderr,
                   emits("Error: Can't find stylesheet to import."));
               await expectLater(
-                  sass.stderr, emitsThrough(contains("test.scss 1:9")));
+                  sass.stderr, emitsThrough(contains("test.scss 1:1")));
               await expectLater(sass.stdout, _watchingForChanges);
               await tickIfPoll();
 
@@ -573,14 +574,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             });
 
             test("on a load path that was created", () async {
-              await d.dir(
-                  "dir1", [d.file("test.scss", "@import 'other'")]).create();
+              await d
+                  .dir("dir1", [d.file("test.scss", "@use 'other'")]).create();
 
               var sass = await watch(["-I", "dir2", "dir1:out"]);
               await expectLater(sass.stderr,
                   emits("Error: Can't find stylesheet to import."));
               await expectLater(sass.stderr,
-                  emitsThrough(contains("${p.join('dir1', 'test.scss')} 1:9")));
+                  emitsThrough(contains("${p.join('dir1', 'test.scss')} 1:1")));
               await expectLater(sass.stdout, _watchingForChanges);
               await tickIfPoll();
 
@@ -597,7 +598,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
           test("that conflicts with the previous dependency", () async {
             await d.file("_other.scss", "a {b: c}").create();
-            await d.file("test.scss", "@import 'other'").create();
+            await d.file("test.scss", "@use 'other'").create();
 
             var sass = await watch(["test.scss:out.css"]);
             await expectLater(
@@ -615,7 +616,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
           group("that overrides the previous dependency", () {
             test("on an import path", () async {
-              await d.file("test.scss", "@import 'other'").create();
+              await d.file("test.scss", "@use 'other'").create();
               await d.dir("dir2", [d.file("_other.scss", "a {b: c}")]).create();
               await d.dir("dir1").create();
 
@@ -637,7 +638,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             });
 
             test("because it's relative", () async {
-              await d.file("test.scss", "@import 'other'").create();
+              await d.file("test.scss", "@use 'other'").create();
               await d.dir("dir", [d.file("_other.scss", "a {b: c}")]).create();
 
               var sass = await watch(["-I", "dir", "test.scss:out.css"]);
@@ -657,7 +658,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             });
 
             test("because it's not an index", () async {
-              await d.file("test.scss", "@import 'other'").create();
+              await d.file("test.scss", "@use 'other'").create();
               await d
                   .dir("other", [d.file("_index.scss", "a {b: c}")]).create();
 
@@ -755,7 +756,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         test(
             "when a potential dependency that's not actually imported is added",
             () async {
-          await d.file("test.scss", "@import 'other'").create();
+          await d.file("test.scss", "@use 'other'").create();
           await d.file("_other.scss", "a {b: c}").create();
           await d.dir("dir").create();
 

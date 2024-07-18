@@ -24,7 +24,7 @@ void main() {
     late OutboundMessage_FileImportRequest request;
 
     setUp(() async {
-      process.send(compileString("@import 'other'", importers: [
+      process.send(compileString("@use 'other'", importers: [
         InboundMessage_CompileRequest_Importer()..fileImporterId = 1
       ]));
 
@@ -63,7 +63,7 @@ void main() {
     late OutboundMessage_FileImportRequest request;
 
     setUp(() async {
-      process.send(compileString("@import 'other'", importers: [
+      process.send(compileString("@use 'other'", importers: [
         InboundMessage_CompileRequest_Importer()..fileImporterId = 1
       ]));
 
@@ -77,7 +77,7 @@ void main() {
             ..id = request.id
             ..fileUrl = ""));
 
-        await _expectImportError(
+        await _expectUseError(
             process, 'The file importer must return an absolute URL, was ""');
         await process.close();
       });
@@ -88,7 +88,7 @@ void main() {
             ..id = request.id
             ..fileUrl = "foo"));
 
-        await _expectImportError(process,
+        await _expectUseError(process,
             'The file importer must return an absolute URL, was "foo"');
         await process.close();
       });
@@ -99,7 +99,7 @@ void main() {
             ..id = request.id
             ..fileUrl = "other:foo"));
 
-        await _expectImportError(process,
+        await _expectUseError(process,
             'The file importer must return a file: URL, was "other:foo"');
         await process.close();
       });
@@ -111,8 +111,7 @@ void main() {
     var importerId = 5679;
     late OutboundMessage_FileImportRequest request;
     setUp(() async {
-      process.send(
-          compileString("@import 'other'", id: compilationId, importers: [
+      process.send(compileString("@use 'other'", id: compilationId, importers: [
         InboundMessage_CompileRequest_Importer()..fileImporterId = importerId
       ]));
       request = await getFileImportRequest(process);
@@ -129,13 +128,13 @@ void main() {
     });
 
     test("whether the import came from an @import", () async {
-      expect(request.fromImport, isTrue);
+      expect(request.fromImport, isFalse);
       await process.kill();
     });
   });
 
   test("errors cause compilation to fail", () async {
-    process.send(compileString("@import 'other'", importers: [
+    process.send(compileString("@use 'other'", importers: [
       InboundMessage_CompileRequest_Importer()..fileImporterId = 1
     ]));
 
@@ -147,13 +146,13 @@ void main() {
 
     var failure = await getCompileFailure(process);
     expect(failure.message, equals('oh no'));
-    expect(failure.span.text, equals("'other'"));
-    expect(failure.stackTrace, equals('- 1:9  root stylesheet\n'));
+    expect(failure.span.text, equals("@use 'other'"));
+    expect(failure.stackTrace, equals('- 1:1  root stylesheet\n'));
     await process.close();
   });
 
   test("null results count as not found", () async {
-    process.send(compileString("@import 'other'", importers: [
+    process.send(compileString("@use 'other'", importers: [
       InboundMessage_CompileRequest_Importer()..fileImporterId = 1
     ]));
 
@@ -164,13 +163,13 @@ void main() {
 
     var failure = await getCompileFailure(process);
     expect(failure.message, equals("Can't find stylesheet to import."));
-    expect(failure.span.text, equals("'other'"));
+    expect(failure.span.text, equals("@use 'other'"));
     await process.close();
   });
 
   group("attempts importers in order", () {
     test("with multiple file importers", () async {
-      process.send(compileString("@import 'other'", importers: [
+      process.send(compileString("@use 'other'", importers: [
         for (var i = 0; i < 10; i++)
           InboundMessage_CompileRequest_Importer()..fileImporterId = i
       ]));
@@ -187,7 +186,7 @@ void main() {
     });
 
     test("with a mixture of file and normal importers", () async {
-      process.send(compileString("@import 'other'", importers: [
+      process.send(compileString("@use 'other'", importers: [
         for (var i = 0; i < 10; i++)
           if (i % 2 == 0)
             InboundMessage_CompileRequest_Importer()..fileImporterId = i
@@ -217,9 +216,9 @@ void main() {
 
   test("tries resolved URL as a relative path first", () async {
     await d.file("upstream.scss", "a {b: c}").create();
-    await d.file("midstream.scss", "@import 'upstream';").create();
+    await d.file("midstream.scss", "@use 'upstream';").create();
 
-    process.send(compileString("@import 'midstream'", importers: [
+    process.send(compileString("@use 'midstream'", importers: [
       for (var i = 0; i < 10; i++)
         InboundMessage_CompileRequest_Importer()..fileImporterId = i
     ]));
@@ -250,7 +249,7 @@ void main() {
     });
 
     test("without a base URL", () async {
-      process.send(compileString("@import 'other'",
+      process.send(compileString("@use 'other'",
           importer: InboundMessage_CompileRequest_Importer()
             ..fileImporterId = 1));
 
@@ -267,7 +266,7 @@ void main() {
     });
 
     test("with a base URL", () async {
-      process.send(compileString("@import 'other'",
+      process.send(compileString("@use 'other'",
           url: p.toUri(d.path("input")).toString(),
           importer: InboundMessage_CompileRequest_Importer()
             ..fileImporterId = 1));
@@ -280,8 +279,8 @@ void main() {
 
 /// Asserts that [process] emits a [CompileFailure] result with the given
 /// [message] on its protobuf stream and causes the compilation to fail.
-Future<void> _expectImportError(EmbeddedProcess process, Object message) async {
+Future<void> _expectUseError(EmbeddedProcess process, Object message) async {
   var failure = await getCompileFailure(process);
   expect(failure.message, equals(message));
-  expect(failure.span.text, equals("'other'"));
+  expect(failure.span.text, equals("@use 'other'"));
 }
