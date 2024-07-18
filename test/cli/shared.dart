@@ -658,12 +658,15 @@ void sharedTests(
   group("with a bunch of deprecation warnings", () {
     setUp(() async {
       await d.file("test.scss", r"""
-      $_: call("inspect", null);
-      $_: call("rgb", 0, 0, 0);
-      $_: call("nth", null, 1);
-      $_: call("join", null, null);
-      $_: call("if", true, 1, 2);
-      $_: call("hsl", 0, 100%, 100%);
+      @use "sass:list";
+      @use "sass:meta";
+
+      $_: meta.call("inspect", null);
+      $_: meta.call("rgb", 0, 0, 0);
+      $_: meta.call("nth", null, 1);
+      $_: meta.call("join", null, null);
+      $_: meta.call("if", true, 1, 2);
+      $_: meta.call("hsl", 0, 100%, 100%);
 
       $_: 1/2;
       $_: 1/3;
