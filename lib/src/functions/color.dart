@@ -106,6 +106,12 @@ final global = UnmodifiableListView([
     var color = arguments[0].assertColor("color");
     var degrees = _angleValue(arguments[1], "degrees");
 
+    if (!color.isLegacy) {
+      throw SassScriptException(
+          "adjust-hue() is only supported for legacy colors. Please use "
+          "color.adjust() instead with an explicit \$space argument.");
+    }
+
     var suggestedValue = SassNumber(degrees, 'deg');
     warnForDeprecation(
         "adjust-hue() is deprecated. Suggestion:\n"
@@ -121,9 +127,15 @@ final global = UnmodifiableListView([
   _function("lighten", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
+    if (!color.isLegacy) {
+      throw SassScriptException(
+          "lighten() is only supported for legacy colors. Please use "
+          "color.adjust() instead with an explicit \$space argument.");
+    }
+
     var result = color.changeHsl(
-        lightness: (color.lightness + amount.valueInRange(0, 100, "amount"))
-            .clamp(0, 100));
+        lightness: clampLikeCss(
+            color.lightness + amount.valueInRange(0, 100, "amount"), 0, 100));
 
     warnForDeprecation(
         "lighten() is deprecated. "
@@ -137,9 +149,15 @@ final global = UnmodifiableListView([
   _function("darken", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
+    if (!color.isLegacy) {
+      throw SassScriptException(
+          "darken() is only supported for legacy colors. Please use "
+          "color.adjust() instead with an explicit \$space argument.");
+    }
+
     var result = color.changeHsl(
-        lightness: (color.lightness - amount.valueInRange(0, 100, "amount"))
-            .clamp(0, 100));
+        lightness: clampLikeCss(
+            color.lightness - amount.valueInRange(0, 100, "amount"), 0, 100));
 
     warnForDeprecation(
         "darken() is deprecated. "
@@ -162,9 +180,17 @@ final global = UnmodifiableListView([
     r"$color, $amount": (arguments) {
       var color = arguments[0].assertColor("color");
       var amount = arguments[1].assertNumber("amount");
+      if (!color.isLegacy) {
+        throw SassScriptException(
+            "saturate() is only supported for legacy colors. Please use "
+            "color.adjust() instead with an explicit \$space argument.");
+      }
+
       var result = color.changeHsl(
-          saturation: (color.saturation + amount.valueInRange(0, 100, "amount"))
-              .clamp(0, 100));
+          saturation: clampLikeCss(
+              color.saturation + amount.valueInRange(0, 100, "amount"),
+              0,
+              100));
 
       warnForDeprecation(
           "saturate() is deprecated. "
@@ -179,9 +205,15 @@ final global = UnmodifiableListView([
   _function("desaturate", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
     var amount = arguments[1].assertNumber("amount");
+    if (!color.isLegacy) {
+      throw SassScriptException(
+          "desaturate() is only supported for legacy colors. Please use "
+          "color.adjust() instead with an explicit \$space argument.");
+    }
+
     var result = color.changeHsl(
-        saturation: (color.saturation - amount.valueInRange(0, 100, "amount"))
-            .clamp(0, 100));
+        saturation: clampLikeCss(
+            color.saturation - amount.valueInRange(0, 100, "amount"), 0, 100));
 
     warnForDeprecation(
         "desaturate() is deprecated. "
@@ -203,18 +235,16 @@ final global = UnmodifiableListView([
       (arguments) => _transparentize("fade-out", arguments)),
 
   BuiltInCallable.overloadedFunction("alpha", {
-    r"$color": (arguments) {
-      var argument = arguments[0];
-      if (argument is SassString &&
-          !argument.hasQuotes &&
-          argument.text.contains(_microsoftFilterStart)) {
-        // Support the proprietary Microsoft alpha() function.
-        return _functionString("alpha", arguments);
-      }
-
-      var color = argument.assertColor("color");
-      return SassNumber(color.alpha);
-    },
+    r"$color": (arguments) => switch (arguments[0]) {
+          // Support the proprietary Microsoft alpha() function.
+          SassString(hasQuotes: false, :var text)
+              when text.contains(_microsoftFilterStart) =>
+            _functionString("alpha", arguments),
+          SassColor(isLegacy: false) => throw SassScriptException(
+              "alpha() is only supported for legacy colors. Please use "
+              "color.channel() instead."),
+          var argument => SassNumber(argument.assertColor("color").alpha)
+        },
     r"$args...": (arguments) {
       var argList = arguments[0].asList;
       if (argList.isNotEmpty &&
@@ -364,21 +394,26 @@ final module = BuiltInModule("color", functions: <Callable>[
 
   BuiltInCallable.overloadedFunction("alpha", {
     r"$color": (arguments) {
-      var argument = arguments[0];
-      if (argument is SassString &&
-          !argument.hasQuotes &&
-          argument.text.contains(_microsoftFilterStart)) {
-        var result = _functionString("alpha", arguments);
-        warnForDeprecation(
-            "Using color.alpha() for a Microsoft filter is deprecated.\n"
-            "\n"
-            "Recommendation: $result",
-            Deprecation.colorModuleCompat);
-        return result;
-      }
+      switch (arguments[0]) {
+        // Support the proprietary Microsoft alpha() function.
+        case SassString(hasQuotes: false, :var text)
+            when text.contains(_microsoftFilterStart):
+          var result = _functionString("alpha", arguments);
+          warnForDeprecation(
+              "Using color.alpha() for a Microsoft filter is deprecated.\n"
+              "\n"
+              "Recommendation: $result",
+              Deprecation.colorModuleCompat);
+          return result;
 
-      var color = argument.assertColor("color");
-      return SassNumber(color.alpha);
+        case SassColor(isLegacy: false):
+          throw SassScriptException(
+              "color.alpha() is only supported for legacy colors. Please use "
+              "color.channel() instead.");
+
+        case var argument:
+          return SassNumber(argument.assertColor("color").alpha);
+      }
     },
     r"$args...": (arguments) {
       if (arguments[0].asList.every((argument) =>
@@ -424,21 +459,14 @@ final module = BuiltInModule("color", functions: <Callable>[
       (arguments) => SassString(arguments.first.assertColor("color").space.name,
           quotes: false)),
 
-  _function("to-space", r"$color, $space", (arguments) {
-    var converted = _colorInSpace(arguments[0], arguments[1]);
-    // `color.to-space()` never returns missing channels for legacy color
-    // spaces because they're less compatible and users are probably using a
-    // legacy space because they want a highly compatible color.
-    return converted.isLegacy &&
-            (converted.isChannel0Missing ||
-                converted.isChannel1Missing ||
-                converted.isChannel2Missing ||
-                converted.isAlphaMissing) &&
-            converted.space != (arguments[0] as SassColor).space
-        ? SassColor.forSpaceInternal(converted.space, converted.channel0,
-            converted.channel1, converted.channel2, converted.alpha)
-        : converted;
-  }),
+  // `color.to-space()` never returns missing channels for legacy color spaces
+  // because they're less compatible and users are probably using a legacy space
+  // because they want a highly compatible color.
+  _function(
+      "to-space",
+      r"$color, $space",
+      (arguments) =>
+          _colorInSpace(arguments[0], arguments[1], legacyMissing: false)),
 
   _function("is-legacy", r"$color",
       (arguments) => SassBoolean(arguments[0].assertColor("color").isLegacy)),
@@ -475,7 +503,10 @@ final module = BuiltInModule("color", functions: <Callable>[
         (arguments[2].assertString("method")..assertUnquoted("method")).text);
     if (!space.isBounded) return color;
 
-    return color.toSpace(space).toGamut(method).toSpace(color.space);
+    return color
+        .toSpace(space)
+        .toGamut(method)
+        .toSpace(color.space, legacyMissing: false);
   }),
 
   _function("channel", r"$color, $channel, $space: null", (arguments) {
@@ -562,7 +593,8 @@ final _mix = _function("mix", r"$color1, $color2, $weight: 50%, $method: null",
   if (arguments[3] != sassNull) {
     return color1.interpolate(
         color2, InterpolationMethod.fromValue(arguments[3], "method"),
-        weight: weight.valueInRangeWithUnit(0, 100, "weight", "%") / 100);
+        weight: weight.valueInRangeWithUnit(0, 100, "weight", "%") / 100,
+        legacyMissing: false);
   }
 
   _checkPercent(weight, "weight");
@@ -597,9 +629,24 @@ final _complement =
         "Color space $space doesn't have a hue channel.", 'space');
   }
 
-  var inSpace = color.toSpace(space);
-  return inSpace.changeChannels({'hue': inSpace.channel('hue') + 180}).toSpace(
-      color.space);
+  var colorInSpace =
+      color.toSpace(space, legacyMissing: arguments[1] != sassNull);
+  return (space.isLegacy
+          ? SassColor.forSpaceInternal(
+              space,
+              _adjustChannel(colorInSpace, space.channels[0],
+                  colorInSpace.channel0OrNull, SassNumber(180)),
+              colorInSpace.channel1OrNull,
+              colorInSpace.channel2OrNull,
+              colorInSpace.alphaOrNull)
+          : SassColor.forSpaceInternal(
+              space,
+              colorInSpace.channel0OrNull,
+              colorInSpace.channel1OrNull,
+              _adjustChannel(colorInSpace, space.channels[2],
+                  colorInSpace.channel2OrNull, SassNumber(180)),
+              colorInSpace.alphaOrNull))
+      .toSpace(color.space, legacyMissing: false);
 });
 
 /// The implementation of the `invert()` function.
@@ -629,9 +676,13 @@ Value _invert(List<Value> arguments, {bool global = false}) {
 
     _checkPercent(weightNumber, "weight");
     var rgb = color.toSpace(ColorSpace.rgb);
+    var [channel0, channel1, channel2] = ColorSpace.rgb.channels;
     return _mixLegacy(
-            SassColor.rgb(255.0 - rgb.channel0, 255.0 - rgb.channel1,
-                255.0 - rgb.channel2, color.alphaOrNull),
+            SassColor.rgb(
+                _invertChannel(rgb, channel0, rgb.channel0OrNull),
+                _invertChannel(rgb, channel1, rgb.channel1OrNull),
+                _invertChannel(rgb, channel2, rgb.channel2OrNull),
+                color.alphaOrNull),
             color,
             weightNumber)
         .toSpace(color.space);
@@ -645,38 +696,46 @@ Value _invert(List<Value> arguments, {bool global = false}) {
 
   var inSpace = color.toSpace(space);
   var inverted = switch (space) {
-    ColorSpace.hwb => SassColor.hwb((inSpace.channel0 + 180) % 360,
-        inSpace.channel2, inSpace.channel1, inSpace.alpha),
-    ColorSpace.hsl => SassColor.hsl((inSpace.channel0 + 180) % 360,
-        inSpace.channel1, 100 - inSpace.channel2, inSpace.alpha),
-    ColorSpace.lch => SassColor.lch(100 - inSpace.channel0, inSpace.channel1,
-        (inSpace.channel2 + 180) % 360, inSpace.alpha),
-    ColorSpace.oklch => SassColor.oklch(1 - inSpace.channel0, inSpace.channel1,
-        (inSpace.channel2 + 180) % 360, inSpace.alpha),
-    ColorSpace(
-      channels: [
-        LinearChannel channel0,
-        LinearChannel channel1,
-        LinearChannel channel2
-      ]
-    ) =>
+    ColorSpace.hwb => SassColor.hwb(
+        _invertChannel(inSpace, space.channels[0], inSpace.channel0OrNull),
+        inSpace.channel2OrNull,
+        inSpace.channel1OrNull,
+        inSpace.alpha),
+    ColorSpace.hsl ||
+    ColorSpace.lch ||
+    ColorSpace.oklch =>
       SassColor.forSpaceInternal(
           space,
-          _invertChannel(channel0, inSpace.channel0),
-          _invertChannel(channel1, inSpace.channel1),
-          _invertChannel(channel2, inSpace.channel2),
+          _invertChannel(inSpace, space.channels[0], inSpace.channel0OrNull),
+          inSpace.channel1OrNull,
+          _invertChannel(inSpace, space.channels[2], inSpace.channel2OrNull),
+          inSpace.alpha),
+    ColorSpace(channels: [var channel0, var channel1, var channel2]) =>
+      SassColor.forSpaceInternal(
+          space,
+          _invertChannel(inSpace, channel0, inSpace.channel0OrNull),
+          _invertChannel(inSpace, channel1, inSpace.channel1OrNull),
+          _invertChannel(inSpace, channel2, inSpace.channel2OrNull),
           inSpace.alpha),
     _ => throw UnsupportedError("Unknown color space $space.")
   };
 
-  if (fuzzyEquals(weight, 1)) return inverted.toSpace(color.space);
-  return color.interpolate(inverted, InterpolationMethod(space),
-      weight: 1 - weight);
+  return fuzzyEquals(weight, 1)
+      ? inverted.toSpace(color.space, legacyMissing: false)
+      : color.interpolate(inverted, InterpolationMethod(space),
+          weight: 1 - weight, legacyMissing: false);
 }
 
 /// Returns the inverse of the given [value] in a linear color channel.
-double _invertChannel(LinearChannel channel, double value) =>
-    channel.min < 0 ? -value : channel.max - value;
+double _invertChannel(SassColor color, ColorChannel channel, double? value) {
+  if (value == null) _missingChannelError(color, channel.name);
+  return switch (channel) {
+    LinearChannel(min: < 0) => -value,
+    LinearChannel(min: 0, :var max) => max - value,
+    ColorChannel(isPolarAngle: true) => (value + 180) % 360,
+    _ => throw UnsupportedError("Unknown channel $channel.")
+  };
+}
 
 /// The implementation of the `grayscale()` function, without any logic for the
 /// plain-CSS `grayscale()` syntax.
@@ -685,11 +744,12 @@ Value _grayscale(Value colorArg) {
 
   if (color.isLegacy) {
     var hsl = color.toSpace(ColorSpace.hsl);
-    return SassColor.hsl(hsl.channel0, 0, hsl.channel2, hsl.alpha)
-        .toSpace(color.space);
+    return SassColor.hsl(hsl.channel0OrNull, 0, hsl.channel2OrNull, hsl.alpha)
+        .toSpace(color.space, legacyMissing: false);
   } else {
     var oklch = color.toSpace(ColorSpace.oklch);
-    return SassColor.oklch(oklch.channel0, 0, oklch.channel2, oklch.alpha)
+    return SassColor.oklch(
+            oklch.channel0OrNull, 0, oklch.channel2OrNull, oklch.alpha)
         .toSpace(color.space);
   }
 }
@@ -741,12 +801,14 @@ SassColor _updateComponents(List<Value> arguments,
   var alphaArg = keywords.remove('alpha');
 
   // For backwards-compatibility, we allow legacy colors to modify channels in
-  // any legacy color space.
-  var color =
-      spaceKeyword == null && originalColor.isLegacy && keywords.isNotEmpty
-          ? _sniffLegacyColorSpace(keywords).andThen(originalColor.toSpace) ??
-              originalColor
-          : _colorInSpace(originalColor, spaceKeyword ?? sassNull);
+  // any legacy color space and we their powerless channels as 0.
+  var color = spaceKeyword == null &&
+          originalColor.isLegacy &&
+          keywords.isNotEmpty
+      ? _sniffLegacyColorSpace(keywords).andThen(
+              (space) => originalColor.toSpace(space, legacyMissing: false)) ??
+          originalColor
+      : _colorInSpace(originalColor, spaceKeyword ?? sassNull);
 
   var oldChannels = color.channels;
   var channelArgs = List<Value?>.filled(oldChannels.length, null);
@@ -776,7 +838,7 @@ SassColor _updateComponents(List<Value> arguments,
         : _adjustColor(color, channelNumbers, alphaNumber);
   }
 
-  return result.toSpace(originalColor.space);
+  return result.toSpace(originalColor.space, legacyMissing: false);
 }
 
 /// Returns a copy of [color] with its channel values replaced by those in
@@ -839,19 +901,24 @@ SassColor _scaleColor(
         SassColor color, List<SassNumber?> channelArgs, SassNumber? alphaArg) =>
     SassColor.forSpaceInternal(
         color.space,
-        _scaleChannel(color.space.channels[0], color.channel0, channelArgs[0]),
-        _scaleChannel(color.space.channels[1], color.channel1, channelArgs[1]),
-        _scaleChannel(color.space.channels[2], color.channel2, channelArgs[2]),
-        _scaleChannel(ColorChannel.alpha, color.alpha, alphaArg));
+        _scaleChannel(color, color.space.channels[0], color.channel0OrNull,
+            channelArgs[0]),
+        _scaleChannel(color, color.space.channels[1], color.channel1OrNull,
+            channelArgs[1]),
+        _scaleChannel(color, color.space.channels[2], color.channel2OrNull,
+            channelArgs[2]),
+        _scaleChannel(color, ColorChannel.alpha, color.alphaOrNull, alphaArg));
 
 /// Returns [oldValue] scaled by [factorArg] according to the definition in
 /// [channel].
-double _scaleChannel(
-    ColorChannel channel, double oldValue, SassNumber? factorArg) {
+double? _scaleChannel(SassColor color, ColorChannel channel, double? oldValue,
+    SassNumber? factorArg) {
   if (factorArg == null) return oldValue;
   if (channel is! LinearChannel) {
     throw SassScriptException("Channel isn't scalable.", channel.name);
   }
+
+  if (oldValue == null) _missingChannelError(color, channel.name);
 
   var factor = (factorArg..assertUnit('%', channel.name))
           .valueInRangeWithUnit(-100, 100, channel.name, '%') /
@@ -873,32 +940,33 @@ SassColor _adjustColor(
         SassColor color, List<SassNumber?> channelArgs, SassNumber? alphaArg) =>
     SassColor.forSpaceInternal(
         color.space,
-        _adjustChannel(color.space, color.space.channels[0], color.channel0,
+        _adjustChannel(color, color.space.channels[0], color.channel0OrNull,
             channelArgs[0]),
-        _adjustChannel(color.space, color.space.channels[1], color.channel1,
+        _adjustChannel(color, color.space.channels[1], color.channel1OrNull,
             channelArgs[1]),
-        _adjustChannel(color.space, color.space.channels[2], color.channel2,
+        _adjustChannel(color, color.space.channels[2], color.channel2OrNull,
             channelArgs[2]),
         // The color space doesn't matter for alpha, as long as it's not
         // strictly bounded.
-        _adjustChannel(
-                ColorSpace.lab, ColorChannel.alpha, color.alpha, alphaArg)
-            .clamp(0, 1));
+        _adjustChannel(color, ColorChannel.alpha, color.alphaOrNull, alphaArg)
+            .andThen((alpha) => clampLikeCss(alpha, 0, 1)));
 
 /// Returns [oldValue] adjusted by [adjustmentArg] according to the definition
-/// in [space]'s [channel].
-double _adjustChannel(ColorSpace space, ColorChannel channel, double oldValue,
+/// in [color]'s space's [channel].
+double? _adjustChannel(SassColor color, ColorChannel channel, double? oldValue,
     SassNumber? adjustmentArg) {
   if (adjustmentArg == null) return oldValue;
 
-  switch ((space, channel)) {
-    case (ColorSpace.hsl || ColorSpace.hwb, _) when channel is! LinearChannel:
+  if (oldValue == null) _missingChannelError(color, channel.name);
+
+  switch ((color.space, channel)) {
+    case (ColorSpace.hsl || ColorSpace.hwb, ColorChannel(isPolarAngle: true)):
       // `_channelFromValue` expects all hue values to be compatible with `deg`,
       // but we're still in the deprecation period where we allow non-`deg`
       // values for HSL and HWB so we have to handle that ahead-of-time.
       adjustmentArg = SassNumber(_angleValue(adjustmentArg, 'hue'));
 
-    case (ColorSpace.hsl, LinearChannel()):
+    case (ColorSpace.hsl, LinearChannel(name: 'saturation' || 'lightness')):
       // `_channelFromValue` expects lightness/saturation to be `%`, but we're
       // still in the deprecation period where we allow non-`%` values so we
       // have to handle that ahead-of-time.
@@ -996,9 +1064,10 @@ Value _rgb(String name, List<Value> arguments) {
       arguments[0].assertNumber("red"),
       arguments[1].assertNumber("green"),
       arguments[2].assertNumber("blue"),
-      alpha.andThen((alpha) =>
-              _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")
-                  .clamp(0, 1)) ??
+      alpha.andThen((alpha) => clampLikeCss(
+              _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha"),
+              0,
+              1)) ??
           1,
       fromRgbFunction: true);
 }
@@ -1014,6 +1083,14 @@ Value _rgbTwoArg(String name, List<Value> arguments) {
   }
 
   var color = first.assertColor("color");
+  if (!color.isLegacy) {
+    throw SassScriptException(
+        'Expected $color to be in the legacy RGB, HSL, or HWB color space.\n'
+        '\n'
+        'Recommendation: color.change($color, \$alpha: $second)',
+        name);
+  }
+
   color.assertLegacy("color");
   color = color.toSpace(ColorSpace.rgb);
   if (second.isSpecialNumber) {
@@ -1026,8 +1103,8 @@ Value _rgbTwoArg(String name, List<Value> arguments) {
   }
 
   var alpha = arguments[1].assertNumber("alpha");
-  return color
-      .changeAlpha(_percentageOrUnitless(alpha, 1, "alpha").clamp(0, 1));
+  return color.changeAlpha(
+      clampLikeCss(_percentageOrUnitless(alpha, 1, "alpha"), 0, 1));
 }
 
 /// The implementation of the three- and four-argument `hsl()` and `hsla()`
@@ -1046,9 +1123,10 @@ Value _hsl(String name, List<Value> arguments) {
       arguments[0].assertNumber("hue"),
       arguments[1].assertNumber("saturation"),
       arguments[2].assertNumber("lightness"),
-      alpha.andThen((alpha) =>
-              _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha")
-                  .clamp(0, 1)) ??
+      alpha.andThen((alpha) => clampLikeCss(
+              _percentageOrUnitless(alpha.assertNumber("alpha"), 1, "alpha"),
+              0,
+              1)) ??
           1);
 }
 
@@ -1155,9 +1233,14 @@ SassColor _mixLegacy(SassColor color1, SassColor color2, SassNumber weight) {
 SassColor _opacify(String name, List<Value> arguments) {
   var color = arguments[0].assertColor("color");
   var amount = arguments[1].assertNumber("amount");
-  var result = color.changeAlpha(
-      (color.alpha + amount.valueInRangeWithUnit(0, 1, "amount", ""))
-          .clamp(0, 1));
+  if (!color.isLegacy) {
+    throw SassScriptException(
+        "$name() is only supported for legacy colors. Please use "
+        "color.adjust() instead with an explicit \$space argument.");
+  }
+
+  var result = color.changeAlpha(clampLikeCss(
+      (color.alpha + amount.valueInRangeWithUnit(0, 1, "amount", "")), 0, 1));
 
   warnForDeprecation(
       "$name() is deprecated. "
@@ -1172,9 +1255,14 @@ SassColor _opacify(String name, List<Value> arguments) {
 SassColor _transparentize(String name, List<Value> arguments) {
   var color = arguments[0].assertColor("color");
   var amount = arguments[1].assertNumber("amount");
-  var result = color.changeAlpha(
-      (color.alpha - amount.valueInRangeWithUnit(0, 1, "amount", ""))
-          .clamp(0, 1));
+  if (!color.isLegacy) {
+    throw SassScriptException(
+        "$name() is only supported for legacy colors. Please use "
+        "color.adjust() instead with an explicit \$space argument.");
+  }
+
+  var result = color.changeAlpha(clampLikeCss(
+      (color.alpha - amount.valueInRangeWithUnit(0, 1, "amount", "")), 0, 1));
 
   warnForDeprecation(
       "$name() is deprecated. "
@@ -1188,17 +1276,22 @@ SassColor _transparentize(String name, List<Value> arguments) {
 /// Returns the [colorUntyped] as a [SassColor] in the color space specified by
 /// [spaceUntyped].
 ///
+/// If [legacyMissing] is false, this will convert missing channels in legacy
+/// color spaces to zero if a conversion occurs.
+///
 /// Throws a [SassScriptException] if either argument isn't the expected type or
 /// if [spaceUntyped] isn't the name of a color space. If [spaceUntyped] is
 /// `sassNull`, it defaults to the color's existing space.
-SassColor _colorInSpace(Value colorUntyped, Value spaceUntyped) {
+SassColor _colorInSpace(Value colorUntyped, Value spaceUntyped,
+    {bool legacyMissing = true}) {
   var color = colorUntyped.assertColor("color");
   if (spaceUntyped == sassNull) return color;
 
-  var space = ColorSpace.fromName(
-      (spaceUntyped.assertString("space")..assertUnquoted("space")).text,
-      "space");
-  return color.space == space ? color : color.toSpace(space);
+  return color.toSpace(
+      ColorSpace.fromName(
+          (spaceUntyped.assertString("space")..assertUnquoted("space")).text,
+          "space"),
+      legacyMissing: legacyMissing);
 }
 
 /// Returns the color space named by [space], or throws a [SassScriptException]
@@ -1299,8 +1392,10 @@ Value _parseChannels(String functionName, Value input,
   var alpha = switch (alphaValue) {
     null => 1.0,
     SassString(hasQuotes: false, text: 'none') => null,
-    _ => _percentageOrUnitless(alphaValue.assertNumber(name), 1, 'alpha')
-        .clamp(0, 1)
+    _ => clampLikeCss(
+            _percentageOrUnitless(alphaValue.assertNumber(name), 1, 'alpha'),
+            0,
+            1)
         .toDouble()
   };
 
@@ -1458,10 +1553,10 @@ double? _channelFromValue(ColorChannel channel, SassNumber? value,
             _percentageOrUnitless(value, channel.max, channel.name),
           LinearChannel() when !clamp =>
             _percentageOrUnitless(value, channel.max, channel.name),
-          LinearChannel(:var lowerClamped, :var upperClamped) =>
-            _percentageOrUnitless(value, channel.max, channel.name).clamp(
-                lowerClamped ? channel.min : double.negativeInfinity,
-                upperClamped ? channel.max : double.infinity),
+          LinearChannel(:var lowerClamped, :var upperClamped) => clampLikeCss(
+              _percentageOrUnitless(value, channel.max, channel.name),
+              lowerClamped ? channel.min : double.negativeInfinity,
+              upperClamped ? channel.max : double.infinity),
           _ => value.coerceValueToUnit('deg', channel.name) % 360
         });
 
@@ -1538,6 +1633,15 @@ String _suggestScaleAndAdjust(
       SassNumber(adjustment, channel == ColorChannel.alpha ? null : '%');
   return suggestion + "color.adjust(\$color, \$$channelName: $difference)";
 }
+
+/// Throws an error indicating that a missing channel named [name] can't be
+/// modified.
+Never _missingChannelError(SassColor color, String channel) =>
+    throw SassScriptException(
+        "Because the CSS working group is still deciding on the best behavior, "
+        "Sass doesn't currently support modifying missing channels (color: "
+        "$color).",
+        channel);
 
 /// Asserts that `value` is an unquoted string and throws an error if it's not.
 ///

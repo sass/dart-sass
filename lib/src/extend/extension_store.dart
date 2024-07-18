@@ -386,12 +386,12 @@ class ExtensionStore {
     }
   }
 
-  /// Extends [this] with all the extensions in [extensions].
+  /// Extends `this` with all the extensions in [extensions].
   ///
-  /// These extensions will extend all selectors already in [this], but they
+  /// These extensions will extend all selectors already in `this`, but they
   /// will *not* extend other extensions from [extensionStores].
   void addExtensions(Iterable<ExtensionStore> extensionStores) {
-    // Extensions already in [this] whose extenders are extended by
+    // Extensions already in `this` whose extenders are extended by
     // [extensions], and thus which need to be updated.
     List<Extension>? extensionsToExtend;
 
@@ -973,8 +973,8 @@ class ExtensionStore {
     return specificity;
   }
 
-  /// Returns a copy of [this] that extends new selectors, as well as a map
-  /// (with reference equality) from the selectors extended by [this] to the
+  /// Returns a copy of `this` that extends new selectors, as well as a map
+  /// (with reference equality) from the selectors extended by `this` to the
   /// selectors extended by the new [ExtensionStore].
   (ExtensionStore, Map<SelectorList, Box<SelectorList>>) clone() {
     var newSelectors = <SimpleSelector, Set<ModifiableBox<SelectorList>>>{};

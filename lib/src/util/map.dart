@@ -5,7 +5,7 @@
 import 'option.dart';
 
 extension MapExtensions<K, V> on Map<K, V> {
-  /// If [this] doesn't contain the given [key], sets that key to [value] and
+  /// If `this` doesn't contain the given [key], sets that key to [value] and
   /// returns it.
   ///
   /// Otherwise, calls [merge] with the existing value and [value] and sets

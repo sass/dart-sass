@@ -49,7 +49,7 @@ abstract base class SimpleSelector extends Selector {
               url: url, logger: logger, allowParent: allowParent)
           .parseSimpleSelector();
 
-  /// Returns a new [SimpleSelector] based on [this], as though it had been
+  /// Returns a new [SimpleSelector] based on `this`, as though it had been
   /// written with [suffix] at the end.
   ///
   /// Assumes [suffix] is a valid identifier suffix. If this wouldn't produce a

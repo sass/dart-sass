@@ -523,22 +523,6 @@ class SassColor extends Value {
             alpha.andThen((alpha) => fuzzyAssertRange(alpha, 0, 1, "alpha")) {
     assert(format == null || _space == ColorSpace.rgb);
     assert(space != ColorSpace.lms);
-
-    _checkChannel(channel0OrNull, space.channels[0].name);
-    _checkChannel(channel1OrNull, space.channels[1].name);
-    _checkChannel(channel2OrNull, space.channels[2].name);
-  }
-
-  /// Throws a [RangeError] if [channel] isn't a finite number.
-  void _checkChannel(double? channel, String name) {
-    switch (channel) {
-      case null:
-        return;
-      case double(isNaN: true):
-        throw RangeError.value(channel, name, 'must be a number.');
-      case double(isFinite: false):
-        throw RangeError.value(channel, name, 'must be finite.');
-    }
   }
 
   /// If [hue] isn't null, normalizes it to the range `[0, 360)`.
@@ -640,16 +624,24 @@ class SassColor extends Value {
 
   /// Converts this color to [space].
   ///
-  /// If this came from a function argument, [name] is the argument name for
-  /// this color (without the `$`). It's used for error reporting.
-  ///
-  /// This currently can't produce an error, but it will likely do so in the
-  /// future when Sass adds support for color spaces that don't support
-  /// automatic conversions.
-  SassColor toSpace(ColorSpace space) => this.space == space
-      ? this
-      : this.space.convert(
-          space, channel0OrNull, channel1OrNull, channel2OrNull, alpha);
+  /// If [legacyMissing] is false, this will convert missing channels in
+  /// legacy color spaces to zero if a conversion occurs.
+  SassColor toSpace(ColorSpace space, {bool legacyMissing = true}) {
+    if (this.space == space) return this;
+
+    var converted = this
+        .space
+        .convert(space, channel0OrNull, channel1OrNull, channel2OrNull, alpha);
+    return !legacyMissing &&
+            converted.isLegacy &&
+            (converted.isChannel0Missing ||
+                converted.isChannel1Missing ||
+                converted.isChannel2Missing ||
+                converted.isAlphaMissing)
+        ? SassColor.forSpaceInternal(converted.space, converted.channel0,
+            converted.channel1, converted.channel2, converted.alpha)
+        : converted;
+  }
 
   /// Returns a copy of this color that's in-gamut in the current color space.
   SassColor toGamut(GamutMapMethod method) =>
@@ -724,12 +716,7 @@ class SassColor extends Value {
   /// name (without the `$`). This is used for error reporting.
   SassColor changeChannels(Map<String, double> newValues,
       {ColorSpace? space, String? colorName}) {
-    if (newValues.isEmpty) {
-      // If space conversion produces an error, we still want to expose that
-      // error even if there's nothing to change.
-      if (space != null && space != this.space) toSpace(space);
-      return this;
-    }
+    if (newValues.isEmpty) return this;
 
     if (space != null && space != this.space) {
       return toSpace(space)
@@ -800,15 +787,18 @@ class SassColor extends Value {
         new1 ?? channel1OrNull, new2 ?? channel2OrNull, alpha ?? alphaOrNull);
   }
 
-  /// Returns a color partway between [this] and [other] according to [method],
+  /// Returns a color partway between `this` and [other] according to [method],
   /// as defined by the CSS Color 4 [color interpolation] procedure.
   ///
   /// [color interpolation]: https://www.w3.org/TR/css-color-4/#interpolation
   ///
-  /// The [weight] is a number between 0 and 1 that indicates how much of [this]
+  /// The [weight] is a number between 0 and 1 that indicates how much of `this`
   /// should be in the resulting color. It defaults to 0.5.
+  ///
+  /// If [legacyMissing] is false, this will convert missing channels in legacy
+  /// color spaces to zero if a conversion occurs.
   SassColor interpolate(SassColor other, InterpolationMethod method,
-      {double? weight}) {
+      {double? weight, bool legacyMissing = true}) {
     weight ??= 0.5;
 
     if (fuzzyEquals(weight, 0)) return other;
@@ -877,7 +867,7 @@ class SassColor extends Value {
       _ => SassColor.forSpaceInternal(
           method.space, mixed0, mixed1, mixed2, mixedAlpha)
     }
-        .toSpace(space);
+        .toSpace(space, legacyMissing: legacyMissing);
   }
 
   /// Returns whether [output], which was converted to its color space from

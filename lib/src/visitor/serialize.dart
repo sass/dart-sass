@@ -597,14 +597,11 @@ final class _SerializeVisitor
         _buffer
           ..write(value.space)
           ..writeCharCode($lparen);
-        _writeChannel(value.channel0OrNull);
-        if (!_isCompressed && !value.isChannel0Missing) _buffer.write('deg');
+        _writeChannel(value.channel0OrNull, _isCompressed ? null : 'deg');
         _buffer.writeCharCode($space);
-        _writeChannel(value.channel1OrNull);
-        if (!value.isChannel1Missing) _buffer.writeCharCode($percent);
+        _writeChannel(value.channel1OrNull, '%');
         _buffer.writeCharCode($space);
-        _writeChannel(value.channel2OrNull);
-        if (!value.isChannel2Missing) _buffer.writeCharCode($percent);
+        _writeChannel(value.channel2OrNull, '%');
         _maybeWriteSlashAlpha(value);
         _buffer.writeCharCode($rparen);
 
@@ -672,10 +669,8 @@ final class _SerializeVisitor
         _buffer.writeCharCode($space);
         _writeChannel(value.channel1OrNull);
         _buffer.writeCharCode($space);
-        _writeChannel(value.channel2OrNull);
-        if (!_isCompressed && !value.isChannel2Missing && polar) {
-          _buffer.write('deg');
-        }
+        _writeChannel(
+            value.channel2OrNull, polar && !_isCompressed ? 'deg' : null);
         _maybeWriteSlashAlpha(value);
         _buffer.writeCharCode($rparen);
 
@@ -685,11 +680,14 @@ final class _SerializeVisitor
   }
 
   /// Writes a [channel] which may be missing.
-  void _writeChannel(double? channel) {
+  void _writeChannel(double? channel, [String? unit]) {
     if (channel == null) {
       _buffer.write('none');
-    } else {
+    } else if (channel.isFinite) {
       _writeNumber(channel);
+      if (unit != null) _buffer.write(unit);
+    } else {
+      visitNumber(SassNumber(channel, unit));
     }
   }
 
@@ -866,13 +864,11 @@ final class _SerializeVisitor
     var opaque = fuzzyEquals(color.alpha, 1);
     var hsl = color.toSpace(ColorSpace.hsl);
     _buffer.write(opaque ? "hsl(" : "hsla(");
-    _writeNumber(hsl.channel('hue'));
+    _writeChannel(hsl.channel('hue'));
     _buffer.write(_commaSeparator);
-    _writeNumber(hsl.channel('saturation'));
-    _buffer.writeCharCode($percent);
+    _writeChannel(hsl.channel('saturation'), '%');
     _buffer.write(_commaSeparator);
-    _writeNumber(hsl.channel('lightness'));
-    _buffer.writeCharCode($percent);
+    _writeChannel(hsl.channel('lightness'), '%');
 
     if (!opaque) {
       _buffer.write(_commaSeparator);
@@ -948,11 +944,7 @@ final class _SerializeVisitor
     _writeOptionalSpace();
     _buffer.writeCharCode($slash);
     _writeOptionalSpace();
-    if (color.isAlphaMissing) {
-      _buffer.write('none');
-    } else {
-      _writeNumber(color.alpha);
-    }
+    _writeChannel(color.alphaOrNull);
   }
 
   void visitFunction(SassFunction function) {

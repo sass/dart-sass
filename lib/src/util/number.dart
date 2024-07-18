@@ -140,6 +140,12 @@ double moduloLikeSass(double num1, double num2) {
   return result == 0 ? 0 : result + num2;
 }
 
+//// Returns [num] clamped between [lowerBound] and [upperBound], with `NaN`
+//// preferring the lower bound (unlike Dart for which it prefers the upper
+//// bound).
+double clampLikeCss(double number, double lowerBound, double upperBound) =>
+    number.isNaN ? lowerBound : number.clamp(lowerBound, upperBound);
+
 /// Returns the square root of [number].
 SassNumber sqrt(SassNumber number) {
   number.assertNoUnits("number");

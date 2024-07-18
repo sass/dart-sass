@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f7172be68e0a19c4dc2d2ad04fc32a843a98a6bd
+// Checksum: e1beeae58a4d5b97cd7d4f01c7d46b0586b508b9
 //
 // ignore_for_file: unused_import
 
@@ -796,7 +796,7 @@ final class Environment {
     return Configuration.implicit(configuration);
   }
 
-  /// Returns a module that represents the top-level members defined in [this],
+  /// Returns a module that represents the top-level members defined in `this`,
   /// that contains [css] and [preModuleComments] as its CSS, which can be
   /// extended using [extensionStore].
   Module<Callable> toModule(
@@ -808,7 +808,7 @@ final class Environment {
         forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)));
   }
 
-  /// Returns a module with the same members and upstream modules as [this], but
+  /// Returns a module with the same members and upstream modules as `this`, but
   /// an empty stylesheet and extension store.
   ///
   /// This is used when resolving imports, since they need to inject forwarded

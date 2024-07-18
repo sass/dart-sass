@@ -153,13 +153,13 @@ enum BinaryOperator {
   /// The modulo operator, `%`.
   modulo('modulo', '%', 6);
 
-  /// The English name of [this].
+  /// The English name of `this`.
   final String name;
 
-  /// The Sass syntax for [this].
+  /// The Sass syntax for `this`.
   final String operator;
 
-  /// The precedence of [this].
+  /// The precedence of `this`.
   ///
   /// An operator with higher precedence binds tighter.
   final int precedence;
