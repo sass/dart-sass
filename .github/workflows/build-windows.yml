@@ -19,10 +19,7 @@ jobs:
           - arch: ia32
             runner: windows-latest
           - arch: arm64
-            # This should be windows-arm64, but it's broken by several issues:
-            # https://github.com/orgs/community/discussions/131594
-            # https://github.com/orgs/community/discussions/131754
-            runner: windows-latest
+            runner: windows-arm64
 
     steps:
       - uses: actions/checkout@v4
@@ -37,8 +34,13 @@ jobs:
       - uses: bufbuild/buf-setup-action@v1.30.0
         with: {github_token: "${{ github.token }}"}
 
+      # See: https://github.com/dart-lang/sdk/issues/52266
+      - name: Setup Root CA
+        shell: pwsh
+        run: Invoke-WebRequest https://pub.dev
+
       - name: Install Dependencies
-        run: dart pub get --verbose
+        run: dart pub get
 
       - name: Compile Protobuf
         run: dart run grinder protobuf
