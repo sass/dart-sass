@@ -44,6 +44,8 @@ runs:
     - uses: bufbuild/buf-setup-action@v1.30.0
       with: {github_token: "${{ inputs.github-token }}"}
 
+    # This composite action requires bash, but bash is not available on windows-arm64 runner.
+    # Avoid running this composite action on non-PR, so that we can release on windows-arm64.
     - name: Check out the language repo
       if: github.event_name == 'pull_request'
       uses: sass/clone-linked-repo@v1
