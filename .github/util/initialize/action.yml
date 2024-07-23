@@ -20,18 +20,18 @@ runs:
     # See: https://github.com/dart-lang/sdk/issues/52266
     - run: Invoke-WebRequest https://pub.dev
       if: runner.os == 'Windows'
-      shell: pwsh
+      shell: powershell
 
     # See: https://github.com/orgs/community/discussions/131594
     # The composite action requires an explict shell, but bash is not available on windows-arm64 runner.
-    # For the following commands conditionally use bash or pwsh based on the runner.os:
+    # For the following commands conditionally use bash or powershell based on the runner.os:
     - run: dart pub get
       if: runner.os != 'Windows'
       shell: bash
 
     - run: dart pub get
       if: runner.os == 'Windows'
-      shell: pwsh
+      shell: powershell
 
     - run: npm install
       if: runner.os != 'Windows'
@@ -39,7 +39,7 @@ runs:
 
     - run: npm install
       if: runner.os == 'Windows'
-      shell: pwsh
+      shell: powershell
 
     - uses: bufbuild/buf-setup-action@v1.30.0
       with: {github_token: "${{ inputs.github-token }}"}
@@ -63,4 +63,4 @@ runs:
       run: dart run grinder protobuf
       env:
         UPDATE_SASS_SASS_REPO: ${{ github.event_name == 'pull_request' && 'false' || 'true' }}
-      shell: pwsh
+      shell: powershell
