@@ -41,7 +41,7 @@ runs:
       if: runner.os == 'Windows'
       shell: powershell
 
-    - uses: bufbuild/buf-setup-action@v1.30.0
+    - uses: bufbuild/buf-setup-action@v1.35.1
       with: {github_token: "${{ inputs.github-token }}"}
 
     # This composite action requires bash, but bash is not available on windows-arm64 runner.
