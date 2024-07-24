@@ -7,7 +7,6 @@ updates:
   - package-ecosystem: "github-actions"
     directories:
       - "/"
-      - "/.github/util/initialize/"
-      - "/.github/util/sass-spec/"
+      - "/.github/util/*/"
     schedule:
       interval: "weekly"
