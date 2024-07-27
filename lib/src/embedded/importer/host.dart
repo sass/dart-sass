@@ -19,8 +19,12 @@ final class HostImporter extends ImporterBase {
   /// [canonicalize].
   final Set<String> _nonCanonicalSchemes;
 
-  HostImporter(
-      super.dispatcher, this._importerId, Iterable<String> nonCanonicalSchemes)
+  /// Invert the meaning of [_nonCanonicalSchemes] to treat the schemes in the
+  /// set as canonical and other schemes not in the set as non-canonical.
+  final bool _invertNonCanonicalScheme;
+
+  HostImporter(super.dispatcher, this._importerId,
+      Iterable<String> nonCanonicalSchemes, this._invertNonCanonicalScheme)
       : _nonCanonicalSchemes = Set.unmodifiable(nonCanonicalSchemes) {
     for (var scheme in _nonCanonicalSchemes) {
       if (isValidUrlScheme(scheme)) continue;
@@ -68,7 +72,7 @@ final class HostImporter extends ImporterBase {
   }
 
   bool isNonCanonicalScheme(String scheme) =>
-      _nonCanonicalSchemes.contains(scheme);
+      _invertNonCanonicalScheme ^ _nonCanonicalSchemes.contains(scheme);
 
   String toString() => "HostImporter";
 }
