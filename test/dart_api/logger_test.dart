@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('vm')
+library;
 
 import 'package:test/test.dart';
 import 'package:source_span/source_span.dart';

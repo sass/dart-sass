@@ -5,6 +5,7 @@
 // OS X's modification time reporting is flaky, so we skip these tests on it.
 @TestOn('vm && !mac-os')
 @Tags(['node'])
+library;
 
 import 'package:test/test.dart';
 

@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('vm')
+library;
 
 import 'package:sass/src/ast/sass.dart';
 import 'package:test/test.dart';

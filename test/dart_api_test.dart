@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('vm')
+library;
 
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;

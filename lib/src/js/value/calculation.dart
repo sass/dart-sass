@@ -55,15 +55,10 @@ final JSClass calculationClass = () {
       if ((value == null && !_isValidClampArg(min)) ||
           (max == null && ![min, value].any(_isValidClampArg))) {
         jsThrow(JsError('Expected at least one SassString or '
-            'CalculationInterpolation in `${[
-          min,
-          value,
-          max
-        ].whereNotNull()}`'));
+            'CalculationInterpolation in `${[min, value, max].nonNulls}`'));
       }
-      [min, value, max].whereNotNull().forEach(_assertCalculationValue);
-      return SassCalculation.unsimplified(
-          'clamp', [min, value, max].whereNotNull());
+      [min, value, max].nonNulls.forEach(_assertCalculationValue);
+      return SassCalculation.unsimplified('clamp', [min, value, max].nonNulls);
     }
   });
 

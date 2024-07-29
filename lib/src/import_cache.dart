@@ -313,8 +313,7 @@ final class ImportCache {
       // If multiple original URLs canonicalize to the same thing, choose the
       // shortest one.
       minBy<Uri, int>(
-              _canonicalizeCache.values
-                  .whereNotNull()
+              _canonicalizeCache.values.nonNulls
                   .where((result) => result.$2 == canonicalUrl)
                   .map((result) => result.originalUrl),
               (url) => url.path.length)
