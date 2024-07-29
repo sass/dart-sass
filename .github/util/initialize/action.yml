@@ -26,20 +26,10 @@ runs:
     # The composite action requires an explict shell, but bash is not available on windows-arm64 runner.
     # For the following commands conditionally use bash or powershell based on the runner.os:
     - run: dart pub get
-      if: runner.os != 'Windows'
-      shell: bash
-
-    - run: dart pub get
-      if: runner.os == 'Windows'
-      shell: powershell
+      shell: ${{ runner.os == 'Windows' && 'powershell' || 'bash' }}
 
     - run: npm install
-      if: runner.os != 'Windows'
-      shell: bash
-
-    - run: npm install
-      if: runner.os == 'Windows'
-      shell: powershell
+      shell: ${{ runner.os == 'Windows' && 'powershell' || 'bash' }}
 
     - uses: bufbuild/buf-setup-action@v1.35.1
       with: {github_token: "${{ inputs.github-token }}"}
@@ -59,13 +49,6 @@ runs:
       with: {repository: sass/sass, path: build/language}
 
     - name: Generate Dart from protobuf
-      if: runner.os != 'Windows'
       run: dart run grinder protobuf
       env: {UPDATE_SASS_SASS_REPO: false}
-      shell: bash
-
-    - name: Generate Dart from protobuf
-      if: runner.os == 'Windows'
-      run: dart run grinder protobuf
-      env: {UPDATE_SASS_SASS_REPO: false}
-      shell: powershell
+      shell: ${{ runner.os == 'Windows' && 'powershell' || 'bash' }}
