@@ -916,4 +916,4 @@ Iterable<SelectorList> _selectorPseudoArgs(
         .whereType<PseudoSelector>()
         .where((pseudo) => pseudo.isClass == isClass && pseudo.name == name)
         .map((pseudo) => pseudo.selector)
-        .whereNotNull();
+        .nonNulls;

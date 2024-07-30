@@ -7,6 +7,7 @@
 // implementation-specific to verify in sass-spec.
 
 @TestOn('vm')
+library;
 
 import 'package:test/test.dart';
 
