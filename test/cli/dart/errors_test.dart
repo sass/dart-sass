@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('vm')
+library;
 
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
