@@ -26,7 +26,8 @@ Future<void> repl(ExecutableOptions options) async {
       silenceDeprecations: options.silenceDeprecations,
       fatalDeprecations: options.fatalDeprecations,
       futureDeprecations: options.futureDeprecations,
-      limitRepetition: !options.verbose);
+      limitRepetition: !options.verbose)
+    ..validate();
   var evaluator = Evaluator(
       importer: FilesystemImporter.cwd,
       importCache: ImportCache(

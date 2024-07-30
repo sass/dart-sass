@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f70eea612e1613ef93bad353803ad9479cda04aa
+// Checksum: c2dc36bb6719b068f9d6d202e2db3404d8ec4db7
 //
 // ignore_for_file: unused_import
 
@@ -23,6 +23,7 @@ import 'importer/no_op.dart';
 import 'importer/utils.dart';
 import 'io.dart';
 import 'logger.dart';
+import 'logger/deprecation_processing.dart';
 import 'util/map.dart';
 import 'util/nullable.dart';
 import 'utils.dart';
@@ -96,20 +97,40 @@ final class ImportCache {
       {Iterable<Importer>? importers,
       Iterable<String>? loadPaths,
       PackageConfig? packageConfig,
-      Logger? logger})
+      Logger? logger,
+      Set<Deprecation>? fatalDeprecations,
+      Set<Deprecation>? futureDeprecations,
+      Set<Deprecation>? silenceDeprecations})
       : _importers = _toImporters(importers, loadPaths, packageConfig),
-        _logger = logger ?? const Logger.stderr();
+        _logger = _makeLogger(logger,
+            fatalDeprecations: fatalDeprecations,
+            futureDeprecations: futureDeprecations,
+            silenceDeprecations: silenceDeprecations);
 
   /// Creates an import cache without any globally-available importers.
-  ImportCache.none({Logger? logger})
+  ImportCache.none(
+      {Logger? logger,
+      Set<Deprecation>? fatalDeprecations,
+      Set<Deprecation>? futureDeprecations,
+      Set<Deprecation>? silenceDeprecations})
       : _importers = const [],
-        _logger = logger ?? const Logger.stderr();
+        _logger = _makeLogger(logger,
+            fatalDeprecations: fatalDeprecations,
+            futureDeprecations: futureDeprecations,
+            silenceDeprecations: silenceDeprecations);
 
   /// Creates an import cache without any globally-available importers, and only
   /// the passed in importers.
-  ImportCache.only(Iterable<Importer> importers, {Logger? logger})
+  ImportCache.only(Iterable<Importer> importers,
+      {Logger? logger,
+      Set<Deprecation>? fatalDeprecations,
+      Set<Deprecation>? futureDeprecations,
+      Set<Deprecation>? silenceDeprecations})
       : _importers = List.unmodifiable(importers),
-        _logger = logger ?? const Logger.stderr();
+        _logger = _makeLogger(logger,
+            fatalDeprecations: fatalDeprecations,
+            futureDeprecations: futureDeprecations,
+            silenceDeprecations: silenceDeprecations);
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.
@@ -127,6 +148,24 @@ final class ImportCache {
       if (packageConfig != null) PackageImporter(packageConfig)
     ];
   }
+
+  /// Wraps [logger] to support deprecation options, unless [logger] is already
+  /// a [DeprecationProcessingLogger].
+  static DeprecationProcessingLogger _makeLogger(Logger? logger,
+          {Set<Deprecation>? fatalDeprecations,
+          Set<Deprecation>? futureDeprecations,
+          Set<Deprecation>? silenceDeprecations}) =>
+      switch (logger) {
+        DeprecationProcessingLogger logger => logger,
+        _ => DeprecationProcessingLogger(logger ?? const Logger.stderr(),
+            fatalDeprecations: fatalDeprecations ?? const {},
+            futureDeprecations: futureDeprecations ?? const {},
+            silenceDeprecations: silenceDeprecations ?? const {},
+            // This wrapper may be used for multiple compilations, so we don't
+            // limit repetition to make sure warnings are emitted with each
+            // compilation.
+            limitRepetition: false),
+      };
 
   /// Canonicalizes [url] according to one of this cache's importers.
   ///

@@ -6,6 +6,7 @@ import 'package:cli_pkg/js.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import 'logger.dart';
 import 'util/nullable.dart';
 
 /// A deprecated feature in the language.

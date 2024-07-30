@@ -45,12 +45,13 @@ Future<CompileResult> compileAsync(String path,
     Iterable<Deprecation>? silenceDeprecations,
     Iterable<Deprecation>? fatalDeprecations,
     Iterable<Deprecation>? futureDeprecations}) async {
-  DeprecationProcessingLogger deprecationLogger = logger =
-      DeprecationProcessingLogger(logger ?? Logger.stderr(),
+  DeprecationProcessingLogger deprecationLogger =
+      logger = DeprecationProcessingLogger(logger ?? Logger.stderr(),
           silenceDeprecations: {...?silenceDeprecations},
           fatalDeprecations: {...?fatalDeprecations},
           futureDeprecations: {...?futureDeprecations},
-          limitRepetition: !verbose);
+          limitRepetition: !verbose)
+        ..validate();
 
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
@@ -111,12 +112,13 @@ Future<CompileResult> compileStringAsync(String source,
     Iterable<Deprecation>? silenceDeprecations,
     Iterable<Deprecation>? fatalDeprecations,
     Iterable<Deprecation>? futureDeprecations}) async {
-  DeprecationProcessingLogger deprecationLogger = logger =
-      DeprecationProcessingLogger(logger ?? Logger.stderr(),
+  DeprecationProcessingLogger deprecationLogger =
+      logger = DeprecationProcessingLogger(logger ?? Logger.stderr(),
           silenceDeprecations: {...?silenceDeprecations},
           fatalDeprecations: {...?fatalDeprecations},
           futureDeprecations: {...?futureDeprecations},
-          limitRepetition: !verbose);
+          limitRepetition: !verbose)
+        ..validate();
 
   var stylesheet =
       Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);

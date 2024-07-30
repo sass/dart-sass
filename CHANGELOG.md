@@ -1,3 +1,18 @@
+## 1.78.0
+
+### JS API
+
+* Backport the deprecation options (`fatalDeprecations`, `futureDeprecations`,
+  and `silenceDeprecations`) to the legacy JS API. The legacy JS API is itself
+  deprecated, and you should move off of it if possible, but this will allow
+  users of bundlers and other tools that are still using the legacy API to
+  still control deprecation warnings.
+
+### Embedded Sass
+
+* Fix a bug where parse-time deprecation warnings could not be controlled by
+  the deprecation options in some circumstances.
+
 ## 1.77.8
 
 * No user-visible changes.

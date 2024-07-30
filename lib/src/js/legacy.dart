@@ -27,6 +27,7 @@ import '../util/nullable.dart';
 import '../utils.dart';
 import '../value.dart';
 import '../visitor/serialize.dart';
+import 'deprecations.dart';
 import 'function.dart';
 import 'legacy/render_context.dart';
 import 'legacy/render_options.dart';
@@ -76,6 +77,8 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
   CompileResult result;
 
   var file = options.file.andThen(p.absolute);
+  var logger =
+      JSToDartLogger(options.logger, Logger.stderr(color: hasTerminal));
   if (options.data case var data?) {
     result = await compileStringAsync(data,
         nodeImporter: _parseImporter(options, start),
@@ -88,11 +91,16 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
         lineFeed: _parseLineFeed(options.linefeed),
         url: file == null ? 'stdin' : p.toUri(file).toString(),
         quietDeps: options.quietDeps ?? false,
+        fatalDeprecations: parseDeprecations(logger, options.fatalDeprecations,
+            supportVersions: true),
+        futureDeprecations:
+            parseDeprecations(logger, options.futureDeprecations),
+        silenceDeprecations:
+            parseDeprecations(logger, options.silenceDeprecations),
         verbose: options.verbose ?? false,
         charset: options.charset ?? true,
         sourceMap: _enableSourceMaps(options),
-        logger:
-            JSToDartLogger(options.logger, Logger.stderr(color: hasTerminal)));
+        logger: logger);
   } else if (file != null) {
     result = await compileAsync(file,
         nodeImporter: _parseImporter(options, start),
@@ -104,11 +112,16 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
         indentWidth: _parseIndentWidth(options.indentWidth),
         lineFeed: _parseLineFeed(options.linefeed),
         quietDeps: options.quietDeps ?? false,
+        fatalDeprecations: parseDeprecations(logger, options.fatalDeprecations,
+            supportVersions: true),
+        futureDeprecations:
+            parseDeprecations(logger, options.futureDeprecations),
+        silenceDeprecations:
+            parseDeprecations(logger, options.silenceDeprecations),
         verbose: options.verbose ?? false,
         charset: options.charset ?? true,
         sourceMap: _enableSourceMaps(options),
-        logger:
-            JSToDartLogger(options.logger, Logger.stderr(color: hasTerminal)));
+        logger: logger);
   } else {
     throw ArgumentError("Either options.data or options.file must be set.");
   }
@@ -131,6 +144,8 @@ RenderResult renderSync(RenderOptions options) {
     CompileResult result;
 
     var file = options.file.andThen(p.absolute);
+    var logger =
+        JSToDartLogger(options.logger, Logger.stderr(color: hasTerminal));
     if (options.data case var data?) {
       result = compileString(data,
           nodeImporter: _parseImporter(options, start),
@@ -143,11 +158,16 @@ RenderResult renderSync(RenderOptions options) {
           lineFeed: _parseLineFeed(options.linefeed),
           url: file == null ? 'stdin' : p.toUri(file).toString(),
           quietDeps: options.quietDeps ?? false,
+          fatalDeprecations: parseDeprecations(
+              logger, options.fatalDeprecations, supportVersions: true),
+          futureDeprecations:
+              parseDeprecations(logger, options.futureDeprecations),
+          silenceDeprecations:
+              parseDeprecations(logger, options.silenceDeprecations),
           verbose: options.verbose ?? false,
           charset: options.charset ?? true,
           sourceMap: _enableSourceMaps(options),
-          logger: JSToDartLogger(
-              options.logger, Logger.stderr(color: hasTerminal)));
+          logger: logger);
     } else if (file != null) {
       result = compile(file,
           nodeImporter: _parseImporter(options, start),
@@ -159,11 +179,16 @@ RenderResult renderSync(RenderOptions options) {
           indentWidth: _parseIndentWidth(options.indentWidth),
           lineFeed: _parseLineFeed(options.linefeed),
           quietDeps: options.quietDeps ?? false,
+          fatalDeprecations: parseDeprecations(
+              logger, options.fatalDeprecations, supportVersions: true),
+          futureDeprecations:
+              parseDeprecations(logger, options.futureDeprecations),
+          silenceDeprecations:
+              parseDeprecations(logger, options.silenceDeprecations),
           verbose: options.verbose ?? false,
           charset: options.charset ?? true,
           sourceMap: _enableSourceMaps(options),
-          logger: JSToDartLogger(
-              options.logger, Logger.stderr(color: hasTerminal)));
+          logger: logger);
     } else {
       throw ArgumentError("Either options.data or options.file must be set.");
     }

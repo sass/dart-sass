@@ -30,6 +30,9 @@ class RenderOptions {
   external bool? get sourceMapEmbed;
   external String? get sourceMapRoot;
   external bool? get quietDeps;
+  external List<Object /*Deprecation|String|Version*/ >? get fatalDeprecations;
+  external List<Object /*Deprecation|String*/ >? get futureDeprecations;
+  external List<Object /*Deprecation|String*/ >? get silenceDeprecations;
   external bool? get verbose;
   external bool? get charset;
   external JSLogger? get logger;
@@ -54,6 +57,9 @@ class RenderOptions {
       bool? sourceMapEmbed,
       String? sourceMapRoot,
       bool? quietDeps,
+      List<Object>? fatalDeprecations,
+      List<Object>? futureDeprecations,
+      List<Object>? silenceDeprecations,
       bool? verbose,
       bool? charset,
       JSLogger? logger});
