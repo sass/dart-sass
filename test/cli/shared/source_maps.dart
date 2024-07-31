@@ -43,7 +43,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   group("with multiple sources", () {
     setUp(() async {
       await d.file("test.scss", """
-      @import 'dir/other';
+      @use 'dir/other';
       x {y: z}
     """).create();
       await d.dir("dir", [d.file("other.scss", "a {b: 1 + 2}")]).create();
@@ -96,7 +96,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     });
 
     test("when imported with the same case", () async {
-      await d.file("importer.scss", "@import 'TeSt.scss'").create();
+      await d.file("importer.scss", "@use 'TeSt.scss'").create();
       await (await runSass(["importer.scss", "out.css"])).shouldExit(0);
       expect(_readJson("out.css.map"), containsPair("sources", ["TeSt.scss"]));
     });
@@ -109,7 +109,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     }, testOn: "windows");
 
     test("when imported with a different case", () async {
-      await d.file("importer.scss", "@import 'test.scss'").create();
+      await d.file("importer.scss", "@use 'test.scss'").create();
       await (await runSass(["importer.scss", "out.css"])).shouldExit(0);
       expect(_readJson("out.css.map"), containsPair("sources", ["TeSt.scss"]));
     }, testOn: "windows");

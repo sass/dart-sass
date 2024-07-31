@@ -11,7 +11,8 @@ import 'utils.dart';
 import 'value.dart';
 
 export 'callable/async.dart';
-export 'callable/async_built_in.dart' show AsyncBuiltInCallable;
+export 'callable/async_built_in.dart'
+    show AsyncBuiltInCallable, warnForGlobalBuiltIn;
 export 'callable/built_in.dart' show BuiltInCallable;
 export 'callable/plain_css.dart';
 export 'callable/user_defined.dart';

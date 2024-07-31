@@ -23,7 +23,8 @@ final _microsoftFilterStart = RegExp(r'^[a-zA-Z]+\s*=');
 /// The global definitions of Sass color functions.
 final global = UnmodifiableListView([
   // ### RGB
-  _red, _green, _blue, _mix,
+  _red.withDeprecationWarning('color'), _green.withDeprecationWarning('color'),
+  _blue.withDeprecationWarning('color'), _mix.withDeprecationWarning('color'),
 
   BuiltInCallable.overloadedFunction("rgb", {
     r"$red, $green, $blue, $alpha": (arguments) => _rgb("rgb", arguments),
@@ -66,10 +67,13 @@ final global = UnmodifiableListView([
         red: 255 - color.red, green: 255 - color.green, blue: 255 - color.blue);
 
     return _mixColors(inverse, color, weight);
-  }),
+  }).withDeprecationWarning('color'),
 
   // ### HSL
-  _hue, _saturation, _lightness, _complement,
+  _hue.withDeprecationWarning('color'),
+  _saturation.withDeprecationWarning('color'),
+  _lightness.withDeprecationWarning('color'),
+  _complement.withDeprecationWarning('color'),
 
   BuiltInCallable.overloadedFunction("hsl", {
     r"$hue, $saturation, $lightness, $alpha": (arguments) =>
@@ -116,7 +120,7 @@ final global = UnmodifiableListView([
       // Use the native CSS `grayscale` filter function.
       return _functionString('grayscale', arguments);
     }
-
+    warnForGlobalBuiltIn('color', 'grayscale');
     var color = arguments[0].assertColor("color");
     return color.changeHsl(saturation: 0);
   }),
@@ -125,7 +129,7 @@ final global = UnmodifiableListView([
     var color = arguments[0].assertColor("color");
     var degrees = _angleValue(arguments[1], "degrees");
     return color.changeHsl(hue: color.hue + degrees);
-  }),
+  }).withDeprecationWarning('color', 'adjust'),
 
   _function("lighten", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
@@ -133,7 +137,7 @@ final global = UnmodifiableListView([
     return color.changeHsl(
         lightness: (color.lightness + amount.valueInRange(0, 100, "amount"))
             .clamp(0, 100));
-  }),
+  }).withDeprecationWarning('color', 'adjust'),
 
   _function("darken", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
@@ -141,7 +145,7 @@ final global = UnmodifiableListView([
     return color.changeHsl(
         lightness: (color.lightness - amount.valueInRange(0, 100, "amount"))
             .clamp(0, 100));
-  }),
+  }).withDeprecationWarning('color', 'adjust'),
 
   BuiltInCallable.overloadedFunction("saturate", {
     r"$amount": (arguments) {
@@ -153,6 +157,7 @@ final global = UnmodifiableListView([
       return SassString("saturate(${number.toCssString()})", quotes: false);
     },
     r"$color, $amount": (arguments) {
+      warnForGlobalBuiltIn('color', 'adjust');
       var color = arguments[0].assertColor("color");
       var amount = arguments[1].assertNumber("amount");
       return color.changeHsl(
@@ -167,13 +172,17 @@ final global = UnmodifiableListView([
     return color.changeHsl(
         saturation: (color.saturation - amount.valueInRange(0, 100, "amount"))
             .clamp(0, 100));
-  }),
+  }).withDeprecationWarning('color', 'adjust'),
 
   // ### Opacity
-  _function("opacify", r"$color, $amount", _opacify),
-  _function("fade-in", r"$color, $amount", _opacify),
-  _function("transparentize", r"$color, $amount", _transparentize),
-  _function("fade-out", r"$color, $amount", _transparentize),
+  _function("opacify", r"$color, $amount", _opacify)
+      .withDeprecationWarning('color', 'adjust'),
+  _function("fade-in", r"$color, $amount", _opacify)
+      .withDeprecationWarning('color', 'adjust'),
+  _function("transparentize", r"$color, $amount", _transparentize)
+      .withDeprecationWarning('color', 'adjust'),
+  _function("fade-out", r"$color, $amount", _transparentize)
+      .withDeprecationWarning('color', 'adjust'),
 
   BuiltInCallable.overloadedFunction("alpha", {
     r"$color": (arguments) {
@@ -184,6 +193,7 @@ final global = UnmodifiableListView([
         // Support the proprietary Microsoft alpha() function.
         return _functionString("alpha", arguments);
       }
+      warnForGlobalBuiltIn('color', 'alpha');
 
       var color = argument.assertColor("color");
       return SassNumber(color.alpha);
@@ -215,15 +225,16 @@ final global = UnmodifiableListView([
       return _functionString("opacity", arguments);
     }
 
+    warnForGlobalBuiltIn('color', 'opacity');
     var color = arguments[0].assertColor("color");
     return SassNumber(color.alpha);
   }),
 
   // ### Miscellaneous
   _ieHexStr,
-  _adjust.withName("adjust-color"),
-  _scale.withName("scale-color"),
-  _change.withName("change-color")
+  _adjust.withDeprecationWarning('color').withName("adjust-color"),
+  _scale.withDeprecationWarning('color').withName("scale-color"),
+  _change.withDeprecationWarning('color').withName("change-color")
 ]);
 
 /// The Sass color module.

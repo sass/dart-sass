@@ -13,8 +13,15 @@ import '../value.dart';
 
 /// The global definitions of Sass list functions.
 final global = UnmodifiableListView([
-  _length, _nth, _setNth, _join, _append, _zip, _index, _isBracketed, //
-  _separator.withName("list-separator")
+  _length.withDeprecationWarning('list'),
+  _nth.withDeprecationWarning('list'),
+  _setNth.withDeprecationWarning('list'),
+  _join.withDeprecationWarning('list'),
+  _append.withDeprecationWarning('list'),
+  _zip.withDeprecationWarning('list'),
+  _index.withDeprecationWarning('list'),
+  _isBracketed.withDeprecationWarning('list'),
+  _separator.withDeprecationWarning('list').withName("list-separator")
 ]);
 
 /// The Sass list module.

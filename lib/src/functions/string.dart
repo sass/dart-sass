@@ -22,11 +22,15 @@ var _previousUniqueId = _random.nextInt(math.pow(36, 6) as int);
 
 /// The global definitions of Sass string functions.
 final global = UnmodifiableListView([
-  _unquote, _quote, _toUpperCase, _toLowerCase, _uniqueId, //
-  _length.withName("str-length"),
-  _insert.withName("str-insert"),
-  _index.withName("str-index"),
-  _slice.withName("str-slice")
+  _unquote.withDeprecationWarning('string'),
+  _quote.withDeprecationWarning('string'),
+  _toUpperCase.withDeprecationWarning('string'),
+  _toLowerCase.withDeprecationWarning('string'),
+  _uniqueId.withDeprecationWarning('string'),
+  _length.withDeprecationWarning('string').withName("str-length"),
+  _insert.withDeprecationWarning('string').withName("str-insert"),
+  _index.withDeprecationWarning('string').withName("str-index"),
+  _slice.withDeprecationWarning('string').withName("str-slice")
 ]);
 
 /// The Sass string module.

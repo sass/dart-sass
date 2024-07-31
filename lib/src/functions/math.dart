@@ -30,15 +30,23 @@ final global = UnmodifiableListView([
           "To emit a CSS abs() now: abs(#{$number})\n"
           "More info: https://sass-lang.com/d/abs-percent",
           Deprecation.absPercent);
+    } else {
+      warnForGlobalBuiltIn('math', 'abs');
     }
     return SassNumber.withUnits(number.value.abs(),
         numeratorUnits: number.numeratorUnits,
         denominatorUnits: number.denominatorUnits);
   }),
-
-  _ceil, _floor, _max, _min, _percentage, _randomFunction, _round, _unit, //
-  _compatible.withName("comparable"),
-  _isUnitless.withName("unitless"),
+  _ceil.withDeprecationWarning('math'),
+  _floor.withDeprecationWarning('math'),
+  _max.withDeprecationWarning('math'),
+  _min.withDeprecationWarning('math'),
+  _percentage.withDeprecationWarning('math'),
+  _randomFunction.withDeprecationWarning('math'),
+  _round.withDeprecationWarning('math'),
+  _unit.withDeprecationWarning('math'),
+  _compatible.withDeprecationWarning('math').withName("comparable"),
+  _isUnitless.withDeprecationWarning('math').withName("unitless"),
 ]);
 
 /// The Sass math module.

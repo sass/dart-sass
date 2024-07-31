@@ -16,14 +16,14 @@ import '../value.dart';
 
 /// The global definitions of Sass selector functions.
 final global = UnmodifiableListView([
-  _isSuperselector,
-  _simpleSelectors,
-  _parse.withName("selector-parse"),
-  _nest.withName("selector-nest"),
-  _append.withName("selector-append"),
-  _extend.withName("selector-extend"),
-  _replace.withName("selector-replace"),
-  _unify.withName("selector-unify")
+  _isSuperselector.withDeprecationWarning('selector'),
+  _simpleSelectors.withDeprecationWarning('selector'),
+  _parse.withDeprecationWarning('selector').withName("selector-parse"),
+  _nest.withDeprecationWarning('selector').withName("selector-nest"),
+  _append.withDeprecationWarning('selector').withName("selector-append"),
+  _extend.withDeprecationWarning('selector').withName("selector-extend"),
+  _replace.withDeprecationWarning('selector').withName("selector-replace"),
+  _unify.withDeprecationWarning('selector').withName("selector-unify")
 ]);
 
 /// The Sass selector module.
