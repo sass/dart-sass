@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
 import '../util/lazy_file_span.dart';
@@ -21,7 +22,8 @@ void updateSourceSpanPrototype() {
     getJSClass(item).defineGetters({
       'start': (FileSpan span) => span.start,
       'end': (FileSpan span) => span.end,
-      'url': (FileSpan span) => span.sourceUrl.andThen(dartToJSUrl),
+      'url': (FileSpan span) => span.sourceUrl.andThen((url) => dartToJSUrl(
+          url.scheme == '' ? p.toUri(p.absolute(p.fromUri(url))) : url)),
       'text': (FileSpan span) => span.text,
       'context': (FileSpan span) => span.context,
     });
