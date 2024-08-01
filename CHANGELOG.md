@@ -1,3 +1,10 @@
+## 1.78.0
+
+### Embedded Sass
+
+* Fix an edge case where the Dart VM could hang when shutting down when requests
+  were in flight.
+
 ## 1.77.8
 
 * No user-visible changes.
