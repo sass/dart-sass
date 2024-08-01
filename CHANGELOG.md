@@ -1,3 +1,13 @@
+## 1.78.0
+
+### Embedded Sass
+
+* Explicitly expose a `sass` executable from the `sass-embedded` npm package.
+  This was intended to be included in 1.63.0, but due to the way
+  platform-specific dependency executables are installed it did not work as
+  intended. Now users can run `npx sass` for local installs or just `sass` when
+  `sass-embedded` is installed globally.
+
 ## 1.77.8
 
 * No user-visible changes.
