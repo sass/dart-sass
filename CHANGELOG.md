@@ -8,6 +8,9 @@
   intended. Now users can run `npx sass` for local installs or just `sass` when
   `sass-embedded` is installed globally.
 
+* Fix an edge case where the Dart VM could hang when shutting down when requests
+  were in flight.
+
 ## 1.77.8
 
 * No user-visible changes.
