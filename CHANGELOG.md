@@ -2,6 +2,12 @@
 
 ### Embedded Sass
 
+* Explicitly expose a `sass` executable from the `sass-embedded` npm package.
+  This was intended to be included in 1.63.0, but due to the way
+  platform-specific dependency executables are installed it did not work as
+  intended. Now users can run `npx sass` for local installs or just `sass` when
+  `sass-embedded` is installed globally.
+
 * Fix an edge case where the Dart VM could hang when shutting down when requests
   were in flight.
 
