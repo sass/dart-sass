@@ -4,6 +4,7 @@
 
 import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
@@ -59,9 +60,26 @@ class Parser {
   @protected
   Parser(String contents,
       {Object? url, Logger? logger, InterpolationMap? interpolationMap})
-      : scanner = SpanScanner(contents, sourceUrl: url),
+      : scanner =
+            SpanScanner(contents, sourceUrl: _canonicalizeIfRelative(url)),
         logger = logger ?? const Logger.stderr(),
         _interpolationMap = interpolationMap;
+
+  /// If [url] is a relative (possibly String-serialized) URL, canonicalizes it
+  /// as a path and returns it as a URL.
+  static Uri? _canonicalizeIfRelative(Object? urlOrString) {
+    var url = switch (urlOrString) {
+      null => null,
+      Uri() => urlOrString,
+      String() => Uri.parse(urlOrString),
+      _ => throw ArgumentError("url $urlOrString must be a Uri or a String")
+    };
+
+    return switch (url) {
+      Uri(scheme: '') => p.toUri(canonicalize(p.fromUri(url))),
+      _ => url
+    };
+  }
 
   String _parseIdentifier() {
     return wrapSpanFormatException(() {
