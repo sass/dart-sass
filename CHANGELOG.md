@@ -8,6 +8,9 @@
   intended. Now users can run `npx sass` for local installs or just `sass` when
   `sass-embedded` is installed globally.
 
+* Add linux-riscv64, linux-musl-riscv64, and android-riscv64 support for
+  `sass-embedded` npm package.
+
 * Fix an edge case where the Dart VM could hang when shutting down when requests
   were in flight.
 
