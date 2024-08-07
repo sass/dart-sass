@@ -257,8 +257,8 @@ final class CompilationDispatcher {
         return sass.FilesystemImporter(importer.path);
 
       case InboundMessage_CompileRequest_Importer_Importer.importerId:
-        return HostImporter(
-            this, importer.importerId, importer.nonCanonicalScheme);
+        return HostImporter(this, importer.importerId,
+            importer.nonCanonicalScheme, importer.invertNonCanonicalScheme);
 
       case InboundMessage_CompileRequest_Importer_Importer.fileImporterId:
         _checkNoNonCanonicalScheme(importer);
