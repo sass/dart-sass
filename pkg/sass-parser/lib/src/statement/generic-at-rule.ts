@@ -4,22 +4,18 @@ import type {AtRuleRaws as PostcssAtRuleRaws} from 'postcss/lib/at-rule';
 import {Interpolation} from '../interpolation';
 import {LazySource} from '../lazy-source';
 import type * as sassInternal from '../sass-internal';
-import {Root} from './root';
-import {Rule} from './rule';
 import * as utils from '../utils';
 import {
   AtRule,
   ChildNode,
-  ChildProps,
-  Comment,
   ContainerProps,
-  Declaration,
   NewNode,
   Statement,
   StatementWithChildren,
   appendInternalChildren,
   normalize,
 } from '.';
+import {_AtRule} from './at-rule-internal';
 import {interceptIsClean} from './intercept-is-clean';
 import * as sassParser from '../..';
 
@@ -57,7 +53,10 @@ export type GenericAtRuleProps = ContainerProps & {
  *
  * @category Statement
  */
-export class GenericAtRule extends postcss.AtRule implements Statement {
+export class GenericAtRule
+  extends _AtRule<Partial<GenericAtRuleProps>>
+  implements Statement
+{
   readonly sassType = 'atrule' as const;
   declare parent: StatementWithChildren | undefined;
   declare raws: GenericAtRuleRaws;
@@ -167,85 +166,9 @@ export class GenericAtRule extends postcss.AtRule implements Statement {
     return result;
   }
 
-  // Override the PostCSS container types to constrain them to Sass types only.
-  // Unfortunately, there's no way to abstract this out, because anything
-  // mixin-like returns an intersection type which doesn't actually override
-  // parent methods. See microsoft/TypeScript#59394.
-
   /** @hidden */
   normalize(node: NewNode, sample?: postcss.Node): ChildNode[] {
     return normalize(this, node, sample);
-  }
-
-  declare nodes: ChildNode[];
-  declare after: (newNode: NewNode) => this;
-  declare append: (...nodes: NewNode[]) => this;
-  declare assign: (overrides: Partial<GenericAtRuleProps>) => this;
-  declare before: (newNode: NewNode) => this;
-  declare cloneAfter: (overrides?: Partial<GenericAtRuleProps>) => this;
-  declare cloneBefore: (overrides?: Partial<GenericAtRuleProps>) => this;
-  declare each: (
-    callback: (node: ChildNode, index: number) => false | void
-  ) => false | undefined;
-  declare every: (
-    condition: (node: ChildNode, index: number, nodes: ChildNode[]) => boolean
-  ) => boolean;
-  declare index: (child: ChildNode | number) => number;
-  declare insertAfter: (oldNode: ChildNode | number, newNode: NewNode) => this;
-  declare insertBefore: (oldNode: ChildNode | number, newNode: NewNode) => this;
-  declare next: () => ChildNode | undefined;
-  declare prepend: (...nodes: NewNode[]) => this;
-  declare prev: () => ChildNode | undefined;
-  declare push: (child: ChildNode) => this;
-  declare removeChild: (child: ChildNode | number) => this;
-  declare replaceWith: (
-    ...nodes: (postcss.Node | postcss.Node[] | ChildProps | ChildProps[])[]
-  ) => this;
-  declare root: () => Root;
-  declare some: (
-    condition: (node: ChildNode, index: number, nodes: ChildNode[]) => boolean
-  ) => boolean;
-  declare walk: (
-    callback: (node: ChildNode, index: number) => false | void
-  ) => false | undefined;
-  declare walkAtRules: {
-    (
-      nameFilter: RegExp | string,
-      callback: (atRule: AtRule, index: number) => false | void
-    ): false | undefined;
-    (
-      callback: (atRule: AtRule, index: number) => false | void
-    ): false | undefined;
-  };
-  declare walkComments: {
-    (
-      callback: (comment: Comment, indexed: number) => false | void
-    ): false | undefined;
-    (
-      callback: (comment: Comment, indexed: number) => false | void
-    ): false | undefined;
-  };
-  declare walkDecls: {
-    (
-      propFilter: RegExp | string,
-      callback: (decl: Declaration, index: number) => false | void
-    ): false | undefined;
-    (
-      callback: (decl: Declaration, index: number) => false | void
-    ): false | undefined;
-  };
-  declare walkRules: {
-    (
-      selectorFilter: RegExp | string,
-      callback: (rule: Rule, index: number) => false | void
-    ): false | undefined;
-    (callback: (rule: Rule, index: number) => false | void): false | undefined;
-  };
-  get first(): ChildNode | undefined {
-    return super.first as ChildNode | undefined;
-  }
-  get last(): ChildNode | undefined {
-    return super.last as ChildNode | undefined;
   }
 }
 
