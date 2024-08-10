@@ -14,7 +14,9 @@ import {AtRule, ChildNode, ChildProps, Comment, Declaration, NewNode} from '.';
  *
  * @hidden
  */
-export class _AtRule<Props extends Partial<postcss.AtRuleProps>> extends postcss.AtRule {
+export class _AtRule<
+  Props extends Partial<postcss.AtRuleProps>,
+> extends postcss.AtRule {
   declare nodes: ChildNode[];
 
   // Override the PostCSS container types to constrain them to Sass types only.
