@@ -312,7 +312,7 @@ jobs:
       env:
         CHROME_EXECUTABLE: chrome
 
-  sass-parser/tests:
+  sass_parser_tests:
     name: "sass-parser Tests | Dart ${{ matrix.dart_channel }} | Node ${{ matrix.node-version }}"
     runs-on: ubuntu-latest
 
@@ -357,7 +357,7 @@ jobs:
         run: npm test
         working-directory: pkg/sass-parser/
 
-  sass-parser/static_analysis:
+  sass_parser_static_analysis:
     name: "sass-parser Static Analysis"
     runs-on: ubuntu-latest
 
@@ -374,7 +374,7 @@ jobs:
   # TODO - postcss/postcss#1958: Enable this once PostCSS doesn't have TypeDoc
   # warnings.
 
-  # sass-parser/typedoc:
+  # sass_parser_typedoc:
   #   name: "sass-parser Typedoc"
   #   runs-on: ubuntu-latest
   #
