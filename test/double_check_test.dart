@@ -102,7 +102,8 @@ void main() {
       sassPubspec = Pubspec.parse(File("pubspec.yaml").readAsStringSync(),
           sourceUrl: Uri.parse("pubspec.yaml"));
       packageJson =
-          json.decode(File("pkg/sass-parser/package.json").readAsStringSync());
+          json.decode(File("pkg/sass-parser/package.json").readAsStringSync())
+              as Map<String, Object?>;
     });
 
     test(

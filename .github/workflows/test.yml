@@ -349,7 +349,7 @@ jobs:
         env: {UPDATE_SASS_SASS_REPO: false}
       - run: npm link
         working-directory: build/npm
-      - run: npm ci
+      - run: npm install
         working-directory: pkg/sass-parser/
       - run: npm link sass
         working-directory: pkg/sass-parser/
@@ -365,7 +365,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: {node-version: 'lts/*'}
-      - run: npm ci
+      - run: npm install
         working-directory: pkg/sass-parser/
       - name: Run static analysis
         run: npm run check
@@ -382,7 +382,7 @@ jobs:
   #     - uses: actions/checkout@v4
   #     - uses: actions/setup-node@v4
   #       with: {node-version: 'lts/*'}
-  #     - run: npm ci
+  #     - run: npm install
   #       working-directory: pkg/sass-parser/
   #     - run: npm run typedoc
   #       working-directory: pkg/sass-parser/
