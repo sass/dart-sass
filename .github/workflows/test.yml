@@ -323,15 +323,12 @@ jobs:
         node-version: ['lts/*']
         include:
           # Test older LTS versions
+          # 
+          # TODO: Test on lts/-2 and lts/-3 once they support
+          # `structuredClone()` (that is, once they're v18 or later).
           - os: ubuntu-latest
             dart_channel: stable
             node-version: lts/-1
-          - os: ubuntu-latest
-            dart_channel: stable
-            node-version: lts/-2
-          - os: ubuntu-latest
-            dart_channel: stable
-            node-version: lts/-3
           # Test LTS version with dart dev channel
           - os: ubuntu-latest
             dart_channel: dev

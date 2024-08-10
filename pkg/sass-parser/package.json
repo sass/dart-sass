@@ -15,7 +15,7 @@
     "dist/**/*"
   ],
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "scripts": {
     "init": "ts-node ./tool/init.ts",
