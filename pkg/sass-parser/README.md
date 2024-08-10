@@ -150,8 +150,8 @@ All statement-level [AST] nodes produced by `sass-parser`—style rules, at-rule
 declarations, statement-level comments, and the root node—extend the
 corresponding PostCSS node types ([`Rule`], [`AtRule`], [`Declaration`],
 [`Comment`], and [`Root`]). However, `sass-parser` has multiple subclasses for
-many of its PostCSS superclasses. For example, `sassParser.Declaration` extends
-`postcss.Declaration`, but so does `sassParser.VariableDeclaration`. The
+many of its PostCSS superclasses. For example, `sassParser.PropertyDeclaration`
+extends `postcss.Declaration`, but so does `sassParser.VariableDeclaration`. The
 different `sass-parser` node types may be distinguished using the
 `sassParser.Node.sassType` field.
 
