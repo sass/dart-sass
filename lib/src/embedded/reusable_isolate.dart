@@ -122,10 +122,8 @@ class ReusableIsolate {
     _receivePort.close();
 
     // If the isolate is blocking on [Mailbox.take], it won't even process a
-    // kill event, so we send an empty message to make sure it wakes up.
-    try {
-      _mailbox.put(Uint8List(0));
-    } on StateError catch (_) {}
+    // kill event, so we closed the mailbox to nofity and wake it up.
+    _mailbox.close();
   }
 }
 

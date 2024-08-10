@@ -2,6 +2,10 @@
 
 * Remove the `CallableDeclaration()` constructor.
 
+## 10.4.8
+
+* No user-visible changes.
+
 ## 10.4.7
 
 * No user-visible changes.

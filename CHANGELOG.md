@@ -1,6 +1,18 @@
-## 1.77.8
+## 1.78.0
 
-* No user-visible changes.
+### Embedded Sass
+
+* Explicitly expose a `sass` executable from the `sass-embedded` npm package.
+  This was intended to be included in 1.63.0, but due to the way
+  platform-specific dependency executables are installed it did not work as
+  intended. Now users can run `npx sass` for local installs or just `sass` when
+  `sass-embedded` is installed globally.
+
+* Add linux-riscv64, linux-musl-riscv64, and android-riscv64 support for the
+  `sass-embedded` npm package.
+
+* Fix an edge case where the Dart VM could hang when shutting down when requests
+  were in flight.
 
 ## 1.77.7
 
