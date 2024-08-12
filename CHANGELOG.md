@@ -1,5 +1,10 @@
 ## 1.78.0
 
+### JS API
+
+* Fix a bug where accessing `SourceSpan.url` would crash when a relative URL was
+  passed to the Sass API.
+
 ### Embedded Sass
 
 * Explicitly expose a `sass` executable from the `sass-embedded` npm package.
