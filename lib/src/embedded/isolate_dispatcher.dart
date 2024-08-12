@@ -27,7 +27,7 @@ class IsolateDispatcher {
   /// All isolates that have been spawned to dispatch to.
   ///
   /// Only used for cleaning up the process when the underlying channel closes.
-  final _allIsolates = <Future<ReusableIsolate>>[];
+  final _allIsolates = StreamController<ReusableIsolate>();
 
   /// The isolates that aren't currently running compilations
   final _inactiveIsolates = <ReusableIsolate>{};
@@ -87,10 +87,8 @@ class IsolateDispatcher {
       }
     }, onError: (Object error, StackTrace stackTrace) {
       _handleError(error, stackTrace);
-    }, onDone: () async {
-      for (var isolate in _allIsolates) {
-        (await isolate).kill();
-      }
+    }, onDone: () {
+      _allIsolates.stream.listen((isolate) => isolate.kill());
     });
   }
 
@@ -106,8 +104,8 @@ class IsolateDispatcher {
       _inactiveIsolates.remove(isolate);
     } else {
       var future = ReusableIsolate.spawn(_isolateMain);
-      _allIsolates.add(future);
       isolate = await future;
+      _allIsolates.add(isolate);
     }
 
     _activeIsolates[compilationId] = isolate;
