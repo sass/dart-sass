@@ -42,7 +42,7 @@ class CssParser extends ScssParser {
   }
 
   Statement atRule(Statement child(), {bool root = false}) {
-    // NOTE: this logic is largely duplicated in CssParser.atRule. Most changes
+    // NOTE: this logic is largely duplicated in StylesheetParser.atRule. Most changes
     // here should be mirrored there.
 
     var start = scanner.state;
@@ -65,7 +65,7 @@ class CssParser extends ScssParser {
       "return" ||
       "warn" ||
       "while" =>
-        _forbiddenAtRoot(start),
+        _forbiddenAtRule(start),
       "import" => _cssImportRule(start),
       "media" => mediaRule(start),
       "-moz-document" => mozDocumentRule(start, name),
@@ -75,7 +75,7 @@ class CssParser extends ScssParser {
   }
 
   /// Throws an error for a forbidden at-rule.
-  Never _forbiddenAtRoot(LineScannerState start) {
+  Never _forbiddenAtRule(LineScannerState start) {
     almostAnyValue();
     error("This at-rule isn't allowed in plain CSS.", scanner.spanFrom(start));
   }

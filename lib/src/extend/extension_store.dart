@@ -901,13 +901,6 @@ class ExtensionStore {
   // document, and thus should never be trimmed.
   List<ComplexSelector> _trim(List<ComplexSelector> selectors,
       bool isOriginal(ComplexSelector complex)) {
-    // Avoid truly horrific quadratic behavior.
-    //
-    // TODO(nweiz): I think there may be a way to get perfect trimming without
-    // going quadratic by building some sort of trie-like data structure that
-    // can be used to look up superselectors.
-    if (selectors.length > 100) return selectors;
-
     // This is n² on the sequences, but only comparing between separate
     // sequences should limit the quadratic behavior. We iterate from last to
     // first and reverse the result so that, if two selectors are identical, we

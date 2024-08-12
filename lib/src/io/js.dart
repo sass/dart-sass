@@ -105,9 +105,9 @@ Future<String> readStdin() async {
   process.stdin.on('data', allowInterop(([Object? chunk]) {
     sink.add(chunk as List<int>);
   }));
-  process.stdin.on('end', allowInterop(([Object? _]) {
+  process.stdin.on('end', allowInterop(([Object? arg]) {
     // Callback for 'end' receives no args.
-    assert(_ == null);
+    assert(arg == null);
     sink.close();
   }));
   process.stdin.on('error', allowInterop(([Object? e]) {
