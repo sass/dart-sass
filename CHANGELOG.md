@@ -14,6 +14,9 @@
 * Fix an edge case where the Dart VM could hang when shutting down when requests
   were in flight.
 
+* Fix a race condition where the embedded host could fail to shut down if it was
+  closed around the same time a new compilation was started.
+
 ## 1.77.8
 
 * No user-visible changes.
