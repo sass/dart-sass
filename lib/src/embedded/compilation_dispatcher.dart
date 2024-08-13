@@ -7,10 +7,10 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:collection/collection.dart';
 import 'package:native_synchronization/mailbox.dart';
 import 'package:path/path.dart' as p;
 import 'package:protobuf/protobuf.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:sass/sass.dart' as sass;
 import 'package:sass/src/importer/node_package.dart' as npi;
 
@@ -64,8 +64,12 @@ final class CompilationDispatcher {
   /// Listens for incoming `CompileRequests` and runs their compilations.
   void listen() {
     do {
-      var packet = _mailbox.take();
-      if (packet.isEmpty) break;
+      Uint8List packet;
+      try {
+        packet = _mailbox.take();
+      } on StateError catch (_) {
+        break;
+      }
 
       try {
         var (compilationId, messageBuffer) = parsePacket(packet);
@@ -125,20 +129,34 @@ final class CompilationDispatcher {
         : EmbeddedLogger(this,
             color: request.alertColor, ascii: request.alertAscii);
 
-    sass.Deprecation? deprecationOrWarn(String id) {
-      var deprecation = sass.Deprecation.fromId(id);
-      if (deprecation == null) {
-        logger.warn('Invalid deprecation "$id".');
-      }
-      return deprecation;
+    Iterable<sass.Deprecation>? parseDeprecationsOrWarn(
+        Iterable<String> deprecations,
+        {bool supportVersions = false}) {
+      return () sync* {
+        for (var item in deprecations) {
+          var deprecation = sass.Deprecation.fromId(item);
+          if (deprecation == null) {
+            if (supportVersions) {
+              try {
+                yield* sass.Deprecation.forVersion(Version.parse(item));
+              } on FormatException {
+                logger.warn('Invalid deprecation id or version "$item".');
+              }
+            } else {
+              logger.warn('Invalid deprecation id "$item".');
+            }
+          } else {
+            yield deprecation;
+          }
+        }
+      }();
     }
 
-    var fatalDeprecations =
-        request.fatalDeprecation.map(deprecationOrWarn).whereNotNull();
+    var fatalDeprecations = parseDeprecationsOrWarn(request.fatalDeprecation,
+        supportVersions: true);
     var silenceDeprecations =
-        request.silenceDeprecation.map(deprecationOrWarn).whereNotNull();
-    var futureDeprecations =
-        request.futureDeprecation.map(deprecationOrWarn).whereNotNull();
+        parseDeprecationsOrWarn(request.silenceDeprecation);
+    var futureDeprecations = parseDeprecationsOrWarn(request.futureDeprecation);
 
     try {
       var importers = request.importers.map((importer) =>
@@ -308,12 +326,14 @@ final class CompilationDispatcher {
     message.id = _outboundRequestId;
     _send(message);
 
-    var packet = _mailbox.take();
-    if (packet.isEmpty) {
+    Uint8List packet;
+    try {
+      packet = _mailbox.take();
+    } on StateError catch (_) {
       // Compiler is shutting down, throw without calling `_handleError` as we
       // don't want to report this as an actual error.
       _requestError = true;
-      throw StateError('Compiler is shutting down.');
+      rethrow;
     }
 
     try {

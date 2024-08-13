@@ -4,6 +4,7 @@
 
 @Skip("TODO(nweiz): Update these for the new Color API")
 @TestOn('vm')
+library;
 
 import 'package:test/test.dart';
 

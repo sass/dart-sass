@@ -34,6 +34,16 @@ abstract base class SimpleSelector extends Selector {
   /// sequence will contain 1000 simple selectors.
   int get specificity => 1000;
 
+  /// Whether this requires complex non-local reasoning to determine whether
+  /// it's a super- or sub-selector.
+  ///
+  /// This includes both pseudo-elements and pseudo-selectors that take
+  /// selectors as arguments.
+  ///
+  /// #nodoc
+  @internal
+  bool get hasComplicatedSuperselectorSemantics => false;
+
   SimpleSelector(super.span);
 
   /// Parses a simple selector from [contents].

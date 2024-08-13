@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 4362e28e5cd425786c235d2a6a2bb60539403799
+// Checksum: f70eea612e1613ef93bad353803ad9479cda04aa
 //
 // ignore_for_file: unused_import
 
@@ -313,8 +313,7 @@ final class ImportCache {
       // If multiple original URLs canonicalize to the same thing, choose the
       // shortest one.
       minBy<Uri, int>(
-              _canonicalizeCache.values
-                  .whereNotNull()
+              _canonicalizeCache.values.nonNulls
                   .where((result) => result.$2 == canonicalUrl)
                   .map((result) => result.originalUrl),
               (url) => url.path.length)

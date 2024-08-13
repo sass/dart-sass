@@ -1191,6 +1191,22 @@ final class _EvaluateVisitor
           node.span);
     }
 
+    if (_parent.parent!.children.last case var sibling
+        when _parent != sibling) {
+      _warn(
+          "Sass's behavior for declarations that appear after nested\n"
+          "rules will be changing to match the behavior specified by CSS in an "
+          "upcoming\n"
+          "version. To keep the existing behavior, move the declaration above "
+          "the nested\n"
+          "rule. To opt into the new behavior, wrap the declaration in `& "
+          "{}`.\n"
+          "\n"
+          "More info: https://sass-lang.com/d/mixed-decls",
+          MultiSpan(node.span, 'declaration', {sibling.span: 'nested rule'}),
+          Deprecation.mixedDecls);
+    }
+
     var name = await _interpolationToValue(node.name, warnForColor: true);
     if (_declarationName case var declarationName?) {
       name = CssValue("$declarationName-${name.value}", name.span);
@@ -2061,8 +2077,20 @@ final class _EvaluateVisitor
         scopeWhen: node.hasDeclarations);
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 
+    _warnForBogusCombinators(rule);
+
+    if (_styleRule == null && _parent.children.isNotEmpty) {
+      var lastChild = _parent.children.last;
+      lastChild.isGroupEnd = true;
+    }
+
+    return null;
+  }
+
+  /// Emits deprecation warnings for any bogus combinators in [rule].
+  void _warnForBogusCombinators(CssStyleRule rule) {
     if (!rule.isInvisibleOtherThanBogusCombinators) {
-      for (var complex in parsedSelector.components) {
+      for (var complex in rule.selector.components) {
         if (!complex.isBogus) continue;
 
         if (complex.isUseless) {
@@ -2106,13 +2134,6 @@ final class _EvaluateVisitor
         }
       }
     }
-
-    if (_styleRule == null && _parent.children.isNotEmpty) {
-      var lastChild = _parent.children.last;
-      lastChild.isGroupEnd = true;
-    }
-
-    return null;
   }
 
   Future<Value?> visitSupportsRule(SupportsRule node) async {

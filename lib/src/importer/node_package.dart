@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:cli_pkg/js.dart';
-import 'package:collection/collection.dart';
 import 'package:sass/src/util/map.dart';
 import 'package:sass/src/util/nullable.dart';
 
@@ -239,7 +238,7 @@ class NodePackageImporter extends Importer {
 
           return null;
         })
-        .whereNotNull()
+        .nonNulls
         .toList();
 
     return switch (matches) {

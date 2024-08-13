@@ -49,6 +49,30 @@
 * Added `SassNumber.convertValueToUnit()` as a shorthand for
   `SassNumber.convertValue()` with a single numerator.
 
+## 10.5.0
+
+* No user-visible changes.
+
+## 10.4.8
+
+* No user-visible changes.
+
+## 10.4.7
+
+* No user-visible changes.
+
+## 10.4.6
+
+* No user-visible changes.
+
+## 10.4.5
+
+* No user-visible changes.
+
+## 10.4.4
+
+* No user-visible changes.
+
 ## 10.4.3
 
 * No user-visible changes.

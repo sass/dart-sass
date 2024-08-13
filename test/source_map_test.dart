@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('vm')
+library;
 
 import 'package:charcode/charcode.dart';
 import 'package:source_maps/source_maps.dart';

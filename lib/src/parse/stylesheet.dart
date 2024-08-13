@@ -385,7 +385,8 @@ abstract class StylesheetParser extends Parser {
     // Parse custom properties as declarations no matter what.
     var name = nameBuffer.interpolation(scanner.spanFrom(start, beforeColon));
     if (name.initialPlain.startsWith('--')) {
-      var value = StringExpression(_interpolatedDeclarationValue());
+      var value = StringExpression(
+          _interpolatedDeclarationValue(silentComments: false));
       expectStatementSeparator("custom property");
       return Declaration(name, value, scanner.spanFrom(start));
     }
@@ -537,7 +538,8 @@ abstract class StylesheetParser extends Parser {
     scanner.expectChar($colon);
 
     if (parseCustomProperties && name.initialPlain.startsWith('--')) {
-      var value = StringExpression(_interpolatedDeclarationValue());
+      var value = StringExpression(
+          _interpolatedDeclarationValue(silentComments: false));
       expectStatementSeparator("custom property");
       return Declaration(name, value, scanner.spanFrom(start));
     }
@@ -775,10 +777,15 @@ abstract class StylesheetParser extends Parser {
           scanner.spanFrom(start));
     }
 
+    var beforeWhitespace = scanner.location;
     whitespace();
-    var arguments = scanner.peekChar() == $lparen
-        ? _argumentInvocation(mixin: true)
-        : ArgumentInvocation.empty(scanner.emptySpan);
+    ArgumentInvocation arguments;
+    if (scanner.peekChar() == $lparen) {
+      arguments = _argumentInvocation(mixin: true);
+      whitespace();
+    } else {
+      arguments = ArgumentInvocation.empty(beforeWhitespace.pointSpan());
+    }
 
     expectStatementSeparator("@content rule");
     return ContentRule(arguments, scanner.spanFrom(start));
@@ -840,7 +847,10 @@ abstract class StylesheetParser extends Parser {
 
     var value = almostAnyValue();
     var optional = scanner.scanChar($exclamation);
-    if (optional) expectIdentifier("optional");
+    if (optional) {
+      expectIdentifier("optional");
+      whitespace();
+    }
     expectStatementSeparator("@extend rule");
     return ExtendRule(value, scanner.spanFrom(start), optional: optional);
   }
@@ -959,6 +969,7 @@ abstract class StylesheetParser extends Parser {
     }
 
     var configuration = _configuration(allowGuarded: true);
+    whitespace();
 
     expectStatementSeparator("@forward rule");
     var span = scanner.spanFrom(start);
@@ -1424,8 +1435,7 @@ abstract class StylesheetParser extends Parser {
     var namespace = _useNamespace(url, start);
     whitespace();
     var configuration = _configuration();
-
-    expectStatementSeparator("@use rule");
+    whitespace();
 
     var span = scanner.spanFrom(start);
     if (!_isUseAllowed) {
@@ -1547,7 +1557,7 @@ abstract class StylesheetParser extends Parser {
 
     Interpolation? value;
     if (scanner.peekChar() != $exclamation && !atEndOfStatement()) {
-      value = almostAnyValue();
+      value = _interpolatedDeclarationValue(allowOpenBrace: false);
     }
 
     AtRule rule;
@@ -1572,7 +1582,7 @@ abstract class StylesheetParser extends Parser {
   /// This declares a return type of [Statement] so that it can be returned
   /// within case statements.
   Statement _disallowedAtRule(LineScannerState start) {
-    almostAnyValue();
+    _interpolatedDeclarationValue(allowEmpty: true, allowOpenBrace: false);
     error("This at-rule is not allowed here.", scanner.spanFrom(start));
   }
 
@@ -2745,12 +2755,10 @@ abstract class StylesheetParser extends Parser {
   ///
   /// Differences from [_interpolatedDeclarationValue] include:
   ///
-  /// * This does not balance brackets.
+  /// * This always stops at curly braces.
   ///
   /// * This does not interpret backslashes, since the text is expected to be
   ///   re-parsed.
-  ///
-  /// * This supports Sass-style single-line comments.
   ///
   /// * This does not compress adjacent whitespace characters.
   @protected
@@ -2770,11 +2778,21 @@ abstract class StylesheetParser extends Parser {
           buffer.addInterpolation(interpolatedString().asInterpolation());
 
         case $slash:
-          var commentStart = scanner.position;
-          if (scanComment()) {
-            if (!omitComments) buffer.write(scanner.substring(commentStart));
-          } else {
-            buffer.writeCharCode(scanner.readChar());
+          switch (scanner.peekChar(1)) {
+            case $asterisk when !omitComments:
+              buffer.write(rawText(loudComment));
+
+            case $asterisk:
+              loudComment();
+
+            case $slash when !omitComments:
+              buffer.write(rawText(silentComment));
+
+            case $slash:
+              silentComment();
+
+            case _:
+              buffer.writeCharCode(scanner.readChar());
           }
 
         case $hash when scanner.peekChar(1) == $lbrace:
@@ -2791,12 +2809,17 @@ abstract class StylesheetParser extends Parser {
 
         case $u || $U:
           var beforeUrl = scanner.state;
-          if (!scanIdentifier("url")) {
-            buffer.writeCharCode(scanner.readChar());
+          var identifier = this.identifier();
+          if (identifier != "url" &&
+              // This isn't actually a standard CSS feature, but it was
+              // supported by the old `@document` rule so we continue to support
+              // it for backwards-compatibility.
+              identifier != "url-prefix") {
+            buffer.write(identifier);
             continue loop;
           }
 
-          if (_tryUrlContents(beforeUrl) case var contents?) {
+          if (_tryUrlContents(beforeUrl, name: identifier) case var contents?) {
             buffer.addInterpolation(contents);
           } else {
             scanner.state = beforeUrl;
@@ -2827,11 +2850,19 @@ abstract class StylesheetParser extends Parser {
   ///
   /// If [allowColon] is `false`, this stops at top-level colons.
   ///
+  /// If [allowOpenBrace] is `false`, this stops at top-level colons.
+  ///
+  /// If [silentComments] is `true`, this will parse silent comments as
+  /// comments. Otherwise, it will preserve two adjacent slashes and emit them
+  /// to CSS.
+  ///
   /// Unlike [declarationValue], this allows interpolation.
   Interpolation _interpolatedDeclarationValue(
       {bool allowEmpty = false,
       bool allowSemicolon = false,
-      bool allowColon = true}) {
+      bool allowColon = true,
+      bool allowOpenBrace = true,
+      bool silentComments = true}) {
     // NOTE: this logic is largely duplicated in Parser.declarationValue. Most
     // changes here should be mirrored there.
 
@@ -2851,7 +2882,22 @@ abstract class StylesheetParser extends Parser {
           buffer.addInterpolation(interpolatedString().asInterpolation());
           wroteNewline = false;
 
-        case $slash when scanner.peekChar(1) == $asterisk:
+        case $slash:
+          switch (scanner.peekChar(1)) {
+            case $asterisk:
+              buffer.write(rawText(loudComment));
+              wroteNewline = false;
+
+            case $slash when silentComments:
+              silentComment();
+              wroteNewline = false;
+
+            case _:
+              buffer.writeCharCode(scanner.readChar());
+              wroteNewline = false;
+          }
+
+        case $slash when silentComments && scanner.peekChar(1) == $slash:
           buffer.write(rawText(loudComment));
           wroteNewline = false;
 
@@ -2879,6 +2925,9 @@ abstract class StylesheetParser extends Parser {
           scanner.readChar();
           wroteNewline = true;
 
+        case $lbrace when !allowOpenBrace:
+          break loop;
+
         case $lparen || $lbrace || $lbracket:
           var bracket = scanner.readChar();
           buffer.writeCharCode(bracket);
@@ -2904,13 +2953,18 @@ abstract class StylesheetParser extends Parser {
 
         case $u || $U:
           var beforeUrl = scanner.state;
-          if (!scanIdentifier("url")) {
-            buffer.writeCharCode(scanner.readChar());
+          var identifier = this.identifier();
+          if (identifier != "url" &&
+              // This isn't actually a standard CSS feature, but it was
+              // supported by the old `@document` rule so we continue to support
+              // it for backwards-compatibility.
+              identifier != "url-prefix") {
+            buffer.write(identifier);
             wroteNewline = false;
             continue loop;
           }
 
-          if (_tryUrlContents(beforeUrl) case var contents?) {
+          if (_tryUrlContents(beforeUrl, name: identifier) case var contents?) {
             buffer.addInterpolation(contents);
           } else {
             scanner.state = beforeUrl;
