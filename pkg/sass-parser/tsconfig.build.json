@@ -1,4 +1,4 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["*.ts", "**/*.test.ts"]
+  "exclude": ["*.ts", "**/*.test.ts", "test/**/*.ts"]
 }
