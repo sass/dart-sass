@@ -26,12 +26,20 @@ import * as sassParser from '../..';
 /**
  * The set of raws supported by {@link GenericAtRule}.
  *
- * Sass doesn't support PostCSS's `params` raws, since the param interpolation
- * is lexed and made directly available to the caller.
+ * Sass doesn't support PostCSS's `params` raws, since
+ * {@link GenericAtRule.paramInterpolation} has its own raws.
  *
  * @category Statement
  */
-export type GenericAtRuleRaws = Omit<PostcssAtRuleRaws, 'params'>;
+export interface GenericAtRuleRaws extends Omit<PostcssAtRuleRaws, 'params'> {
+  /**
+   * Whether to collapse the nesting for an `@at-root` with no params that
+   * contains only a single style rule.
+   *
+   * This is ignored for rules that don't meet all of those criteria.
+   */
+  atRootShorthand?: boolean;
+}
 
 /**
  * The initializer properties for {@link GenericAtRule}.

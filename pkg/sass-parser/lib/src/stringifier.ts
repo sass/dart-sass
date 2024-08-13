@@ -68,6 +68,24 @@ export class Stringifier extends PostCssStringifier {
   }
 
   private atrule(node: GenericAtRule, semicolon: boolean): void {
+    // In the @at-root shorthand, stringify `@at-root {.foo {...}}` as
+    // `@at-root .foo {...}`.
+    if (
+      node.raws.atRootShorthand &&
+      node.name === 'at-root' &&
+      node.paramsInterpolation === undefined &&
+      node.nodes.length === 1 &&
+      node.nodes[0].sassType === 'rule'
+    ) {
+      this.block(
+        node.nodes[0],
+        '@at-root' +
+          (node.raws.afterName ?? ' ') +
+          node.nodes[0].selectorInterpolation
+      );
+      return;
+    }
+
     const start =
       `@${node.nameInterpolation}` +
       (node.raws.afterName ?? (node.paramsInterpolation ? ' ' : '')) +

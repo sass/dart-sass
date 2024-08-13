@@ -4,6 +4,8 @@
 
 import * as postcss from 'postcss';
 
+import {Interpolation} from '../interpolation';
+import {LazySource} from '../lazy-source';
 import {Node, NodeProps} from '../node';
 import * as sassInternal from '../sass-internal';
 import {GenericAtRule, GenericAtRuleProps} from './generic-at-rule';
@@ -93,6 +95,17 @@ export interface Statement extends postcss.Node, Node {
 
 /** The visitor to use to convert internal Sass nodes to JS. */
 const visitor = sassInternal.createStatementVisitor<Statement>({
+  visitAtRootRule: inner => {
+    const rule = new GenericAtRule({
+      name: 'at-root',
+      paramsInterpolation: inner.query
+        ? new Interpolation(undefined, inner.query)
+        : undefined,
+      source: new LazySource(inner),
+    });
+    appendInternalChildren(rule, inner.children);
+    return rule;
+  },
   visitAtRule: inner => new GenericAtRule(undefined, inner),
   visitStyleRule: inner => new Rule(undefined, inner),
 });
@@ -196,7 +209,7 @@ export function normalize(
     ) {
       result.push(new Rule(node));
     } else if ('name' in node || 'nameInterpolation' in node) {
-      result.push(new GenericAtRule(node));
+      result.push(new GenericAtRule(node as GenericAtRuleProps));
     } else {
       result.push(...postcssNormalizeAndConvertToSass(self, node, sample));
     }
