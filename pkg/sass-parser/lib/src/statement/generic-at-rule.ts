@@ -72,6 +72,7 @@ export class GenericAtRule
   readonly sassType = 'atrule' as const;
   declare parent: StatementWithChildren | undefined;
   declare raws: GenericAtRuleRaws;
+  declare nodes: ChildNode[];
 
   get name(): string {
     return this.nameInterpolation.toString();

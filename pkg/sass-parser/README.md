@@ -246,3 +246,14 @@ const sassParser = require('sass-parser');
 const root = new sassParser.Root();
 root.append('content: "hello, world!"');
 ```
+
+### Known Incompatibilities
+
+There are a few cases where an operation that's valid in PostCSS won't work with
+`sass-parser`:
+
+* Trying to convert a Sass-specific at-rule like `@if` or `@mixin` into a
+  different at-rule by changing its name is not supported.
+
+* Trying to add child nodes to a Sass statement that doesn't support children
+  like `@use` or `@error` is not supported.

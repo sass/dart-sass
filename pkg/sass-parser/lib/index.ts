@@ -34,6 +34,11 @@ export {
   NewNodeForInterpolation,
 } from './src/interpolation';
 export {
+  DebugRule,
+  DebugRuleProps,
+  DebugRuleRaws,
+} from './src/statement/debug-rule';
+export {
   GenericAtRule,
   GenericAtRuleProps,
   GenericAtRuleRaws,

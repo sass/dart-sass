@@ -29,6 +29,7 @@
 import * as postcss from 'postcss';
 
 import {AnyStatement} from './statement';
+import {DebugRule} from './statement/debug-rule';
 import {GenericAtRule} from './statement/generic-at-rule';
 import {Rule} from './statement/rule';
 
@@ -65,6 +66,17 @@ export class Stringifier extends PostCssStringifier {
         semicolon: boolean
       ) => void
     )(statement, semicolon);
+  }
+
+  private ['debug-rule'](node: DebugRule, semicolon: boolean): void {
+    this.builder(
+      '@debug' +
+        (node.raws.afterName ?? ' ') +
+        node.debugExpression +
+        (node.raws.between ?? '') +
+        (semicolon ? ';' : ''),
+      node
+    );
   }
 
   private atrule(node: GenericAtRule, semicolon: boolean): void {

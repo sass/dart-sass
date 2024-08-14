@@ -9,6 +9,7 @@ import {LazySource} from '../lazy-source';
 import {Node, NodeProps} from '../node';
 import * as sassInternal from '../sass-internal';
 import {GenericAtRule, GenericAtRuleProps} from './generic-at-rule';
+import {DebugRule, DebugRuleProps} from './debug-rule';
 import {Root} from './root';
 import {Rule, RuleProps} from './rule';
 
@@ -32,14 +33,14 @@ export type AnyStatement = Root | Rule | GenericAtRule;
  *
  * @category Statement
  */
-export type StatementType = 'root' | 'rule' | 'atrule';
+export type StatementType = 'root' | 'rule' | 'atrule' | 'debug-rule';
 
 /**
  * All Sass statements that are also at-rules.
  *
  * @category Statement
  */
-export type AtRule = GenericAtRule;
+export type AtRule = DebugRule | GenericAtRule;
 
 /**
  * All Sass statements that are valid children of other statements.
@@ -57,7 +58,11 @@ export type ChildNode = Rule | AtRule;
  *
  * @category Statement
  */
-export type ChildProps = postcss.ChildProps | RuleProps | GenericAtRuleProps;
+export type ChildProps =
+  | postcss.ChildProps
+  | DebugRuleProps
+  | GenericAtRuleProps
+  | RuleProps;
 
 /**
  * The Sass eqivalent of PostCSS's `ContainerProps`.
@@ -107,6 +112,7 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
     return rule;
   },
   visitAtRule: inner => new GenericAtRule(undefined, inner),
+  visitDebugRule: inner => new DebugRule(undefined, inner),
   visitStyleRule: inner => new Rule(undefined, inner),
 });
 
@@ -210,6 +216,8 @@ export function normalize(
       result.push(new Rule(node));
     } else if ('name' in node || 'nameInterpolation' in node) {
       result.push(new GenericAtRule(node as GenericAtRuleProps));
+    } else if ('debugExpression' in node) {
+      result.push(new DebugRule(node));
     } else {
       result.push(...postcssNormalizeAndConvertToSass(self, node, sample));
     }

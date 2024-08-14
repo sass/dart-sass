@@ -15,8 +15,6 @@ import {AtRule, ChildNode, Comment, Declaration, NewNode} from '.';
  * @hidden
  */
 export class _AtRule<Props> extends postcss.AtRule {
-  declare nodes: ChildNode[];
-
   // Override the PostCSS container types to constrain them to Sass types only.
   // Unfortunately, there's no way to abstract this out, because anything
   // mixin-like returns an intersection type which doesn't actually override
