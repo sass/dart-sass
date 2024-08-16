@@ -60,7 +60,7 @@ class FilesystemImporter extends Importer {
       "Use FilesystemImporter.noLoadPath or FilesystemImporter('.') instead.")
   static final cwd = FilesystemImporter._deprecated('.');
 
-  /// Creates an importer that _only_ loads absolute `file:` URLsand URLs
+  /// Creates an importer that _only_ loads absolute `file:` URLs and URLs
   /// relative to the current file.
   static final noLoadPath = FilesystemImporter._noLoadPath();
 
