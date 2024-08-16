@@ -1,5 +1,8 @@
 ## 1.78.0
 
+* Fix a crash when using `@at-root` without any queries or children in the
+  indented syntax.
+
 ### JS API
 
 * Fix a bug where accessing `SourceSpan.url` would crash when a relative URL was

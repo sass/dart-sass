@@ -731,7 +731,7 @@ abstract class StylesheetParser extends Parser {
       whitespace();
       return _withChildren(_statement, start,
           (children, span) => AtRootRule(children, span, query: query));
-    } else if (lookingAtChildren()) {
+    } else if (lookingAtChildren() || (indented && atEndOfStatement())) {
       return _withChildren(
           _statement, start, (children, span) => AtRootRule(children, span));
     } else {
