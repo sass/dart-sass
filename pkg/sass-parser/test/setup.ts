@@ -18,7 +18,7 @@ declare global {
     interface AsymmetricMatchers {
       /**
        * Asserts that the object being matched has a property named {@link
-       * property} whose value is a {@link Interpolation}, that that
+       * property} whose value is an {@link Interpolation}, that that
        * interpolation's value is {@link value}, and that the interpolation's
        * parent is the object being tested.
        */

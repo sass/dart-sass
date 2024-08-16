@@ -35,7 +35,7 @@ class ParserExports {
   external set createExpressionVisitor(Function function);
 }
 
-/// Loads and etrurns all the exports needed for the `sass-parser` package.
+/// Loads and returns all the exports needed for the `sass-parser` package.
 ParserExports loadParserExports() {
   _updateAstPrototypes();
   return ParserExports(
@@ -48,7 +48,7 @@ ParserExports loadParserExports() {
 
 /// Modifies the prototypes of the Sass AST classes to provide access to JS.
 ///
-/// This API is not intended to be used directly to end users and is subject to
+/// This API is not intended to be used directly by end users and is subject to
 /// breaking changes without notice. Instead, it's wrapped by the `sass-parser`
 /// package which exposes a PostCSS-style API.
 void _updateAstPrototypes() {

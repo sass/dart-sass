@@ -68,7 +68,6 @@ export class BinaryOperationExpression extends Expression {
    * Note that different operators have different precedence. It's the caller's
    * responsibility to ensure that operations are parenthesized appropriately to
    * guarantee that they're processed in AST order.
-   *
    */
   get operator(): BinaryOperator {
     return this._operator;
