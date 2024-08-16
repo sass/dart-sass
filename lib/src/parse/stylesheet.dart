@@ -2892,10 +2892,6 @@ abstract class StylesheetParser extends Parser {
               wroteNewline = false;
           }
 
-        case $slash when silentComments && scanner.peekChar(1) == $slash:
-          buffer.write(rawText(loudComment));
-          wroteNewline = false;
-
         // Add a full interpolated identifier to handle cases like "#{...}--1",
         // since "--1" isn't a valid identifier on its own.
         case $hash when scanner.peekChar(1) == $lbrace:
