@@ -1,5 +1,10 @@
 ## 1.78.0
 
+### JS API
+
+* Fix a bug where accessing `SourceSpan.url` would crash when a relative URL was
+  passed to the Sass API.
+
 ### Embedded Sass
 
 * Explicitly expose a `sass` executable from the `sass-embedded` npm package.
@@ -13,6 +18,9 @@
 
 * Fix an edge case where the Dart VM could hang when shutting down when requests
   were in flight.
+
+* Fix a race condition where the embedded host could fail to shut down if it was
+  closed around the same time a new compilation was started.
 
 ## 1.77.8
 

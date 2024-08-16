@@ -2845,7 +2845,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// If [allowColon] is `false`, this stops at top-level colons.
   ///
-  /// If [allowOpenBrace] is `false`, this stops at top-level colons.
+  /// If [allowOpenBrace] is `false`, this stops at opening curly braces.
   ///
   /// If [silentComments] is `true`, this will parse silent comments as
   /// comments. Otherwise, it will preserve two adjacent slashes and emit them
