@@ -27,7 +27,7 @@ class IsolateDispatcher {
   /// All isolates that have been spawned to dispatch to.
   ///
   /// Only used for cleaning up the process when the underlying channel closes.
-  final _allIsolates = StreamController<ReusableIsolate>();
+  final _allIsolates = StreamController<ReusableIsolate>(sync: true);
 
   /// The isolates that aren't currently running compilations
   final _inactiveIsolates = <ReusableIsolate>{};
@@ -43,6 +43,9 @@ class IsolateDispatcher {
   /// See https://github.com/sass/dart-sass/pull/2019
   final _isolatePool = Pool(sizeOf<IntPtr>() <= 4 ? 7 : 15);
 
+  /// Whether the stdin has been closed or not.
+  bool _closed = false;
+
   IsolateDispatcher(this._channel);
 
   void listen() {
@@ -56,6 +59,12 @@ class IsolateDispatcher {
         if (compilationId != 0) {
           var isolate = await _activeIsolates.putIfAbsent(
               compilationId, () => _getIsolate(compilationId!));
+
+          // The shutdown may have started by the time the isolate is spawned
+          if (_closed) {
+            return;
+          }
+
           try {
             isolate.send(packet);
             return;
@@ -88,6 +97,7 @@ class IsolateDispatcher {
     }, onError: (Object error, StackTrace stackTrace) {
       _handleError(error, stackTrace);
     }, onDone: () {
+      _closed = true;
       _allIsolates.stream.listen((isolate) => isolate.kill());
     });
   }

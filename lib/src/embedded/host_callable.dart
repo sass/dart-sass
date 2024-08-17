@@ -53,7 +53,6 @@ Callable hostCallable(
       }
     } on ProtocolError catch (error, stackTrace) {
       dispatcher.sendError(handleError(error, stackTrace));
-      throw error.message;
     }
   });
   return callable;

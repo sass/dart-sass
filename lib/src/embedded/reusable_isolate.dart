@@ -118,12 +118,11 @@ class ReusableIsolate {
 
   /// Shuts down the isolate.
   void kill() {
-    _isolate.kill();
-    _receivePort.close();
-
     // If the isolate is blocking on [Mailbox.take], it won't even process a
     // kill event, so we closed the mailbox to nofity and wake it up.
     _mailbox.close();
+    _isolate.kill(priority: Isolate.immediate);
+    _receivePort.close();
   }
 }
 
