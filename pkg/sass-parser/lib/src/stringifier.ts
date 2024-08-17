@@ -30,6 +30,7 @@ import * as postcss from 'postcss';
 
 import {AnyStatement} from './statement';
 import {DebugRule} from './statement/debug-rule';
+import {EachRule} from './statement/each-rule';
 import {GenericAtRule} from './statement/generic-at-rule';
 import {Rule} from './statement/rule';
 
@@ -76,6 +77,16 @@ export class Stringifier extends PostCssStringifier {
         (node.raws.between ?? '') +
         (semicolon ? ';' : ''),
       node
+    );
+  }
+
+  private ['each-rule'](node: EachRule): void {
+    this.block(
+      node,
+      '@each' +
+        (node.raws.afterName ?? ' ') +
+        node.params +
+        (node.raws.between ?? '')
     );
   }
 

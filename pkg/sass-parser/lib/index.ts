@@ -38,6 +38,7 @@ export {
   DebugRuleProps,
   DebugRuleRaws,
 } from './src/statement/debug-rule';
+export {EachRule, EachRuleProps, EachRuleRaws} from './src/statement/each-rule';
 export {
   GenericAtRule,
   GenericAtRuleProps,

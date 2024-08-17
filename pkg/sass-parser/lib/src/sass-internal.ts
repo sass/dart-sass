@@ -80,6 +80,11 @@ declare namespace SassInternal {
     readonly expression: Expression;
   }
 
+  class EachRule extends ParentStatement<Statement[]> {
+    readonly variables: string[];
+    readonly list: Expression;
+  }
+
   class Stylesheet extends ParentStatement<Statement[]> {}
 
   class StyleRule extends ParentStatement<Statement[]> {
@@ -118,6 +123,7 @@ export type ParentStatement<T extends Statement[] | null> =
 export type AtRootRule = SassInternal.AtRootRule;
 export type AtRule = SassInternal.AtRule;
 export type DebugRule = SassInternal.DebugRule;
+export type EachRule = SassInternal.EachRule;
 export type Stylesheet = SassInternal.Stylesheet;
 export type StyleRule = SassInternal.StyleRule;
 export type Interpolation = SassInternal.Interpolation;
@@ -129,6 +135,7 @@ export interface StatementVisitorObject<T> {
   visitAtRootRule(node: AtRootRule): T;
   visitAtRule(node: AtRule): T;
   visitDebugRule(node: DebugRule): T;
+  visitEachRule(node: EachRule): T;
   visitStyleRule(node: StyleRule): T;
 }
 

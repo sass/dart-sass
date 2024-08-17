@@ -10,6 +10,7 @@ import {Node, NodeProps} from '../node';
 import * as sassInternal from '../sass-internal';
 import {GenericAtRule, GenericAtRuleProps} from './generic-at-rule';
 import {DebugRule, DebugRuleProps} from './debug-rule';
+import {EachRule, EachRuleProps} from './each-rule';
 import {Root} from './root';
 import {Rule, RuleProps} from './rule';
 
@@ -33,14 +34,19 @@ export type AnyStatement = Root | Rule | GenericAtRule;
  *
  * @category Statement
  */
-export type StatementType = 'root' | 'rule' | 'atrule' | 'debug-rule';
+export type StatementType =
+  | 'root'
+  | 'rule'
+  | 'atrule'
+  | 'debug-rule'
+  | 'each-rule';
 
 /**
  * All Sass statements that are also at-rules.
  *
  * @category Statement
  */
-export type AtRule = DebugRule | GenericAtRule;
+export type AtRule = DebugRule | EachRule | GenericAtRule;
 
 /**
  * All Sass statements that are valid children of other statements.
@@ -61,6 +67,7 @@ export type ChildNode = Rule | AtRule;
 export type ChildProps =
   | postcss.ChildProps
   | DebugRuleProps
+  | EachRuleProps
   | GenericAtRuleProps
   | RuleProps;
 
@@ -113,6 +120,7 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
   },
   visitAtRule: inner => new GenericAtRule(undefined, inner),
   visitDebugRule: inner => new DebugRule(undefined, inner),
+  visitEachRule: inner => new EachRule(undefined, inner),
   visitStyleRule: inner => new Rule(undefined, inner),
 });
 
@@ -218,6 +226,8 @@ export function normalize(
       result.push(new GenericAtRule(node as GenericAtRuleProps));
     } else if ('debugExpression' in node) {
       result.push(new DebugRule(node));
+    } else if ('eachExpression' in node) {
+      result.push(new EachRule(node));
     } else {
       result.push(...postcssNormalizeAndConvertToSass(self, node, sample));
     }
