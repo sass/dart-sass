@@ -40,6 +40,11 @@ export {
 } from './src/statement/debug-rule';
 export {EachRule, EachRuleProps, EachRuleRaws} from './src/statement/each-rule';
 export {
+  ErrorRule,
+  ErrorRuleProps,
+  ErrorRuleRaws,
+} from './src/statement/error-rule';
+export {
   GenericAtRule,
   GenericAtRuleProps,
   GenericAtRuleRaws,

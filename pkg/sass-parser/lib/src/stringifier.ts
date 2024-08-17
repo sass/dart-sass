@@ -31,6 +31,7 @@ import * as postcss from 'postcss';
 import {AnyStatement} from './statement';
 import {DebugRule} from './statement/debug-rule';
 import {EachRule} from './statement/each-rule';
+import {ErrorRule} from './statement/error-rule';
 import {GenericAtRule} from './statement/generic-at-rule';
 import {Rule} from './statement/rule';
 
@@ -87,6 +88,17 @@ export class Stringifier extends PostCssStringifier {
         (node.raws.afterName ?? ' ') +
         node.params +
         (node.raws.between ?? '')
+    );
+  }
+
+  private ['error-rule'](node: ErrorRule, semicolon: boolean): void {
+    this.builder(
+      '@error' +
+        (node.raws.afterName ?? ' ') +
+        node.errorExpression +
+        (node.raws.between ?? '') +
+        (semicolon ? ';' : ''),
+      node
     );
   }
 
