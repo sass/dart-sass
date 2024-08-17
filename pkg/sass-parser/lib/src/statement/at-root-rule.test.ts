@@ -12,7 +12,7 @@ describe('an @at-root rule', () => {
       () => void (node = scss.parse('@at-root {}').nodes[0] as GenericAtRule)
     );
 
-    it('has a name', () => expect(node.name.toString()).toBe('at-root'));
+    it('has a name', () => expect(node.name).toBe('at-root'));
 
     it('has no paramsInterpolation', () =>
       expect(node.paramsInterpolation).toBeUndefined());
@@ -27,7 +27,7 @@ describe('an @at-root rule', () => {
           .nodes[0] as GenericAtRule)
     );
 
-    it('has a name', () => expect(node.name.toString()).toBe('at-root'));
+    it('has a name', () => expect(node.name).toBe('at-root'));
 
     it('has a paramsInterpolation', () =>
       expect(node).toHaveInterpolation('paramsInterpolation', '(with: rule)'));
@@ -44,7 +44,7 @@ describe('an @at-root rule', () => {
           .nodes[0] as GenericAtRule)
     );
 
-    it('has a name', () => expect(node.name.toString()).toBe('at-root'));
+    it('has a name', () => expect(node.name).toBe('at-root'));
 
     it('has a paramsInterpolation', () => {
       const params = node.paramsInterpolation!;
@@ -63,7 +63,7 @@ describe('an @at-root rule', () => {
         void (node = scss.parse('@at-root .foo {}').nodes[0] as GenericAtRule)
     );
 
-    it('has a name', () => expect(node.name.toString()).toBe('at-root'));
+    it('has a name', () => expect(node.name).toBe('at-root'));
 
     it('has no paramsInterpolation', () =>
       expect(node.paramsInterpolation).toBeUndefined());

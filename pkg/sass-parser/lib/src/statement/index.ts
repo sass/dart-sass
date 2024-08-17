@@ -125,6 +125,15 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
   visitDebugRule: inner => new DebugRule(undefined, inner),
   visitErrorRule: inner => new ErrorRule(undefined, inner),
   visitEachRule: inner => new EachRule(undefined, inner),
+  visitExtendRule: inner => {
+    const paramsInterpolation = new Interpolation(undefined, inner.selector);
+    if (inner.isOptional) paramsInterpolation.append('!optional');
+    return new GenericAtRule({
+      name: 'extend',
+      paramsInterpolation,
+      source: new LazySource(inner),
+    });
+  },
   visitStyleRule: inner => new Rule(undefined, inner),
 });
 

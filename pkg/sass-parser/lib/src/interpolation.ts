@@ -112,9 +112,8 @@ export class Interpolation extends Node {
    */
   get asPlain(): string | null {
     if (this.nodes.length === 0) return '';
-    if (this.nodes.length !== 1) return null;
-    if (typeof this.nodes[0] !== 'string') return null;
-    return this.nodes[0] as string;
+    if (this.nodes.some(node => typeof node !== 'string')) return null;
+    return this.nodes.join('');
   }
 
   /**
