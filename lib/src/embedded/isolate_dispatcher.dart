@@ -115,25 +115,43 @@ class IsolateDispatcher {
     } else {
       var future = ReusableIsolate.spawn(_isolateMain);
       isolate = await future;
+      isolate.receivePort.listen((message) {
+        assert(isolate.borrowed,
+            "Shouldn't receive a message before being borrowed.");
+
+        var fullBuffer = message as Uint8List;
+
+        // The first byte of messages from isolates indicates whether the entire
+        // compilation is finished (1) or if it encountered an error (2). Sending
+        // this as part of the message buffer rather than a separate message
+        // avoids a race condition where the host might send a new compilation
+        // request with the same ID as one that just finished before the
+        // [IsolateDispatcher] receives word that the isolate with that ID is
+        // done. See sass/dart-sass#2004.
+        var category = fullBuffer[0];
+        var packet = Uint8List.sublistView(fullBuffer, 1);
+
+        switch (category) {
+          case 0:
+            _channel.sink.add(packet);
+          case 1:
+            _activeIsolates.remove(compilationId);
+            _inactiveIsolates.add(isolate);
+            _channel.sink.add(packet);
+            isolate.release();
+          case 2:
+            _activeIsolates.remove(compilationId);
+            _channel.sink.add(packet);
+            _channel.sink.close();
+            isolate.release();
+        }
+      }, onError: (Object error, StackTrace stackTrace) {
+        _handleError(error, stackTrace);
+      });
       _allIsolates.add(isolate);
     }
 
-    isolate.checkOut().listen(_channel.sink.add,
-        onError: (Object error, StackTrace stackTrace) {
-      if (error is ProtocolError) {
-        // Protocol errors have already been through [_handleError] in the child
-        // isolate, so we just send them as-is and close out the underlying
-        // channel.
-        sendError(compilationId, error);
-        _channel.sink.close();
-      } else {
-        _handleError(error, stackTrace);
-      }
-    }, onDone: () {
-      _activeIsolates.remove(compilationId);
-      _inactiveIsolates.add(isolate);
-      resource.release();
-    });
+    isolate.borrow(resource);
 
     return isolate;
   }
