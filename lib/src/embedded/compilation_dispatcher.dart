@@ -283,8 +283,7 @@ final class CompilationDispatcher {
   ///
   /// This is used during compilation by other classes like host callable.
   Never sendError(ProtocolError error) {
-    Isolate.exit(
-        _sendPort, _serializePacket((OutboundMessage()..error = error)));
+    Isolate.exit(_sendPort, _serializePacket(OutboundMessage()..error = error));
   }
 
   InboundMessage_CanonicalizeResponse sendCanonicalizeRequest(

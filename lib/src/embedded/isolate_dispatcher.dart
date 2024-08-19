@@ -44,8 +44,8 @@ class IsolateDispatcher {
   /// See https://github.com/sass/dart-sass/pull/2019
   final _isolatePool = Pool(sizeOf<IntPtr>() <= 4 ? 7 : 15);
 
-  /// Whether the stdin has been closed or not.
-  bool _closed = false;
+  /// Whether [_channel] has been closed or not.
+  var _closed = false;
 
   IsolateDispatcher(this._channel);
 
@@ -62,9 +62,7 @@ class IsolateDispatcher {
               compilationId, () => _getIsolate(compilationId!));
 
           // The shutdown may have started by the time the isolate is spawned
-          if (_closed) {
-            return;
-          }
+          if (_closed) return;
 
           try {
             isolate.send(packet);
