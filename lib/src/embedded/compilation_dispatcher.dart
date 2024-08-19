@@ -58,15 +58,8 @@ final class CompilationDispatcher {
   /// Listens for incoming `CompileRequests` and runs their compilations.
   void listen() {
     while (true) {
-      Uint8List packet;
       try {
-        packet = _mailbox.take();
-      } on StateError catch (_) {
-        Isolate.exit();
-      }
-
-      try {
-        var (compilationId, messageBuffer) = parsePacket(packet);
+        var (compilationId, messageBuffer) = parsePacket(_receive());
 
         _compilationId = compilationId;
         _compilationIdVarint = serializeVarint(compilationId);
@@ -311,16 +304,9 @@ final class CompilationDispatcher {
     message.id = _outboundRequestId;
     _send(message);
 
-    Uint8List packet;
-    try {
-      packet = _mailbox.take();
-    } on StateError catch (_) {
-      Isolate.exit();
-    }
-
     try {
       var messageBuffer =
-          Uint8List.sublistView(packet, _compilationIdVarint.length);
+          Uint8List.sublistView(_receive(), _compilationIdVarint.length);
 
       InboundMessage message;
       try {
@@ -393,5 +379,15 @@ final class CompilationDispatcher {
     packet.setAll(1, _compilationIdVarint);
     protobufWriter.writeTo(packet, 1 + _compilationIdVarint.length);
     return packet;
+  }
+
+  /// Receive a packet from the host.
+  Uint8List _receive() {
+    try {
+      return _mailbox.take();
+    } on StateError catch (_) {
+      // [_mailbox] has been closed, exit the current isolate
+      Isolate.exit();
+    }
   }
 }
