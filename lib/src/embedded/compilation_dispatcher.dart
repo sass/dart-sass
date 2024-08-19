@@ -386,7 +386,8 @@ final class CompilationDispatcher {
     try {
       return _mailbox.take();
     } on StateError catch (_) {
-      // [_mailbox] has been closed, exit the current isolate
+      // The [_mailbox] has been closed, exit the current isolate immediately
+      // to avoid bubble the error up as [SassException] during [_sendRequest].
       Isolate.exit();
     }
   }
