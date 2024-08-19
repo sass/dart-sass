@@ -115,8 +115,10 @@ class IsolateDispatcher {
       var future = ReusableIsolate.spawn(_isolateMain);
       isolate = await future;
       isolate.receivePort.listen((message) {
-        assert(isolate.borrowed,
-            "Shouldn't receive a message before being borrowed.");
+        if (!isolate.borrowed) {
+          throw StateError(
+              "Shouldn't receive a message before being borrowed.");
+        }
 
         var fullBuffer = message as Uint8List;
 

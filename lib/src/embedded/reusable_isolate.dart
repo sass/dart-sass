@@ -53,13 +53,17 @@ class ReusableIsolate {
 
   /// Request this isolate as part of a pool and mark it as in use.
   void borrow(PoolResource resource) {
-    assert(!borrowed, 'ReusableIsolate has already been borrowed.');
+    if (borrowed) {
+      throw StateError('ReusableIsolate has already been borrowed.');
+    }
     _resource = resource;
   }
 
   /// Release this isolate from the pool.
   void release() {
-    assert(borrowed, 'ReusableIsolate has not been borrowed.');
+    if (!borrowed) {
+      throw StateError('ReusableIsolate has not been borrowed.');
+    }
     _resource!.release();
     _resource = null;
   }
@@ -70,7 +74,9 @@ class ReusableIsolate {
   /// out, or if a second message is sent before the isolate has processed the
   /// first one.
   void send(Uint8List message) {
-    assert(borrowed, 'Cannot send a message before being borrowed');
+    if (!borrowed) {
+      throw StateError('Cannot send a message before being borrowed');
+    }
     _mailbox.put(message);
   }
 
