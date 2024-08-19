@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:ffi';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
@@ -140,10 +141,8 @@ class IsolateDispatcher {
             _channel.sink.add(packet);
             isolate.release();
           case 2:
-            _activeIsolates.remove(compilationId);
             _channel.sink.add(packet);
-            _channel.sink.close();
-            isolate.release();
+            exit(exitCode);
         }
       }, onError: (Object error, StackTrace stackTrace) {
         _handleError(error, stackTrace);
