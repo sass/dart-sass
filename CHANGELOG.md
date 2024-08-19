@@ -3,6 +3,9 @@
 * The `meta.feature-exists` function is now deprecated. This deprecation is
   named `feature-exists`.
 
+* Fix a crash when using `@at-root` without any queries or children in the
+  indented syntax.
+
 ### JS API
 
 * Fix a bug where accessing `SourceSpan.url` would crash when a relative URL was
