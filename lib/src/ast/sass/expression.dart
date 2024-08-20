@@ -13,7 +13,7 @@ import '../../value.dart';
 import '../../visitor/interface/expression.dart';
 import '../sass.dart';
 
-// Note: despite not defining any methods here, this hsa to be a concrete class
+// Note: despite not defining any methods here, this has to be a concrete class
 // so we can expose its accept() function to the JS parser.
 
 /// A SassScript expression in a Sass syntax tree.

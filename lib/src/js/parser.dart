@@ -52,7 +52,7 @@ ParserExports loadParserExports() {
 /// breaking changes without notice. Instead, it's wrapped by the `sass-parser`
 /// package which exposes a PostCSS-style API.
 void _updateAstPrototypes() {
-  // We don't need explicit getters for field names, becuase dart2js preserves
+  // We don't need explicit getters for field names, because dart2js preserves
   // them as-is, so we actually need to expose very little to JS manually.
   var file = SourceFile.fromString('');
   getJSClass(file).defineMethod('getText',

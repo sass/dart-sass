@@ -5,7 +5,7 @@
 import '../../visitor/interface/statement.dart';
 import 'node.dart';
 
-// Note: despite not defining any methods here, this hsa to be a concrete class
+// Note: despite not defining any methods here, this has to be a concrete class
 // so we can expose its accept() function to the JS parser.
 
 /// A statement in a Sass syntax tree.
