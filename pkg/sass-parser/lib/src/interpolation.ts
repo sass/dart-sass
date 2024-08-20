@@ -19,13 +19,13 @@ import * as utils from './utils';
  */
 export type NewNodeForInterpolation =
   | Interpolation
-  | Interpolation[]
+  | ReadonlyArray<Interpolation>
   | Expression
-  | Expression[]
+  | ReadonlyArray<Expression>
   | ExpressionProps
-  | ExpressionProps[]
+  | ReadonlyArray<ExpressionProps>
   | string
-  | string[]
+  | ReadonlyArray<string>
   | undefined;
 
 /**
@@ -34,7 +34,7 @@ export type NewNodeForInterpolation =
  * @category Expression
  */
 export interface InterpolationProps {
-  nodes: NewNodeForInterpolation[];
+  nodes: ReadonlyArray<NewNodeForInterpolation>;
   raws?: InterpolationRaws;
 }
 
@@ -404,7 +404,7 @@ export class Interpolation extends Node {
 
   /** Like {@link _normalize}, but also flattens a list of nodes. */
   private _normalizeList(
-    nodes: NewNodeForInterpolation[]
+    nodes: ReadonlyArray<NewNodeForInterpolation>
   ): (Expression | string)[] {
     const result: Array<string | Expression> = [];
     for (const node of nodes) {

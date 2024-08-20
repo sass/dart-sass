@@ -73,14 +73,6 @@ declare abstract class Node
 
   constructor(defaults?: object);
 
-  after(
-    newNode:
-      | postcss.Node
-      | postcss.ChildProps
-      | postcss.Node[]
-      | string
-      | undefined
-  ): this;
   assign(overrides: object): this;
   cleanRaws(keepBetween?: boolean): void;
   error(

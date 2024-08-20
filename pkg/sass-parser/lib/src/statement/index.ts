@@ -115,11 +115,11 @@ export function appendInternalChildren(
  */
 export type NewNode =
   | ChildProps
-  | ChildProps[]
+  | ReadonlyArray<ChildProps>
   | postcss.Node
-  | postcss.Node[]
+  | ReadonlyArray<postcss.Node>
   | string
-  | string[]
+  | ReadonlyArray<string>
   | undefined;
 
 /** PostCSS's built-in normalize function. */

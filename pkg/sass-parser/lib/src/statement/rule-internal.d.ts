@@ -43,7 +43,12 @@ export class _Rule extends postcss.Rule {
   push(child: ChildNode): this;
   removeChild(child: ChildNode | number): this;
   replaceWith(
-    ...nodes: (postcss.Node | postcss.Node[] | ChildProps | ChildProps[])[]
+    ...nodes: (
+      | postcss.Node
+      | ReadonlyArray<postcss.Node>
+      | ChildProps
+      | ReadonlyArray<ChildProps>
+    )[]
   ): this;
   root(): Root;
   some(
