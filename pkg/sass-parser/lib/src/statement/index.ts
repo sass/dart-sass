@@ -12,6 +12,7 @@ import {GenericAtRule, GenericAtRuleProps} from './generic-at-rule';
 import {DebugRule, DebugRuleProps} from './debug-rule';
 import {EachRule, EachRuleProps} from './each-rule';
 import {ErrorRule, ErrorRuleProps} from './error-rule';
+import {ForRule, ForRuleProps} from './for-rule';
 import {Root} from './root';
 import {Rule, RuleProps} from './rule';
 
@@ -41,6 +42,7 @@ export type StatementType =
   | 'atrule'
   | 'debug-rule'
   | 'each-rule'
+  | 'for-rule'
   | 'error-rule';
 
 /**
@@ -48,7 +50,7 @@ export type StatementType =
  *
  * @category Statement
  */
-export type AtRule = DebugRule | EachRule | ErrorRule | GenericAtRule;
+export type AtRule = DebugRule | EachRule | ErrorRule | ForRule | GenericAtRule;
 
 /**
  * All Sass statements that are valid children of other statements.
@@ -71,6 +73,7 @@ export type ChildProps =
   | DebugRuleProps
   | EachRuleProps
   | ErrorRuleProps
+  | ForRuleProps
   | GenericAtRuleProps
   | RuleProps;
 
@@ -125,6 +128,7 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
   visitDebugRule: inner => new DebugRule(undefined, inner),
   visitErrorRule: inner => new ErrorRule(undefined, inner),
   visitEachRule: inner => new EachRule(undefined, inner),
+  visitForRule: inner => new ForRule(undefined, inner),
   visitExtendRule: inner => {
     const paramsInterpolation = new Interpolation(undefined, inner.selector);
     if (inner.isOptional) paramsInterpolation.append('!optional');
@@ -241,6 +245,8 @@ export function normalize(
       result.push(new DebugRule(node));
     } else if ('eachExpression' in node) {
       result.push(new EachRule(node));
+    } else if ('fromExpression' in node) {
+      result.push(new ForRule(node));
     } else if ('errorExpression' in node) {
       result.push(new ErrorRule(node));
     } else {

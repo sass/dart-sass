@@ -94,6 +94,13 @@ declare namespace SassInternal {
     readonly isOptional: boolean;
   }
 
+  class ForRule extends ParentStatement<Statement[]> {
+    readonly variable: string;
+    readonly from: Expression;
+    readonly to: Expression;
+    readonly isExclusive: boolean;
+  }
+
   class Stylesheet extends ParentStatement<Statement[]> {}
 
   class StyleRule extends ParentStatement<Statement[]> {
@@ -135,6 +142,7 @@ export type DebugRule = SassInternal.DebugRule;
 export type EachRule = SassInternal.EachRule;
 export type ErrorRule = SassInternal.ErrorRule;
 export type ExtendRule = SassInternal.ExtendRule;
+export type ForRule = SassInternal.ForRule;
 export type Stylesheet = SassInternal.Stylesheet;
 export type StyleRule = SassInternal.StyleRule;
 export type Interpolation = SassInternal.Interpolation;
@@ -149,6 +157,7 @@ export interface StatementVisitorObject<T> {
   visitEachRule(node: EachRule): T;
   visitErrorRule(node: ErrorRule): T;
   visitExtendRule(node: ExtendRule): T;
+  visitForRule(node: ForRule): T;
   visitStyleRule(node: StyleRule): T;
 }
 

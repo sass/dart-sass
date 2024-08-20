@@ -44,6 +44,7 @@ export {
   ErrorRuleProps,
   ErrorRuleRaws,
 } from './src/statement/error-rule';
+export {ForRule, ForRuleProps, ForRuleRaws} from './src/statement/for-rule';
 export {
   GenericAtRule,
   GenericAtRuleProps,

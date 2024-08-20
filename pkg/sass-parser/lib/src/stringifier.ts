@@ -102,6 +102,16 @@ export class Stringifier extends PostCssStringifier {
     );
   }
 
+  private ['for-rule'](node: EachRule): void {
+    this.block(
+      node,
+      '@for' +
+        (node.raws.afterName ?? ' ') +
+        node.params +
+        (node.raws.between ?? '')
+    );
+  }
+
   private atrule(node: GenericAtRule, semicolon: boolean): void {
     // In the @at-root shorthand, stringify `@at-root {.foo {...}}` as
     // `@at-root .foo {...}`.
