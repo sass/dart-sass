@@ -8,7 +8,6 @@ import 'dart:typed_data';
 
 import 'package:native_synchronization/mailbox.dart';
 import 'package:native_synchronization/sendable.dart';
-import 'package:pool/pool.dart';
 
 /// The entrypoint for a [ReusableIsolate].
 ///
@@ -31,51 +30,53 @@ class ReusableIsolate {
 
   /// The [ReceivePort] that receives messages from the wrapped isolate.
   final ReceivePort _receivePort;
-  ReceivePort get receivePort => _receivePort;
 
-  /// The [PoolResource] used to track whether this isolate is being used.
-  PoolResource? _resource;
+  /// The subscription to [_receivePort].
+  final StreamSubscription<dynamic> _subscription;
 
-  ReusableIsolate._(this._isolate, this._mailbox, this._receivePort);
+  /// Whether the current isolate has been borrowed.
+  bool _borrowed = false;
+
+  ReusableIsolate._(this._isolate, this._mailbox, this._receivePort,
+      {Function? onError})
+      : _subscription = _receivePort.listen(_defaultOnData, onError: onError);
 
   /// Spawns a [ReusableIsolate] that runs the given [entryPoint].
-  static Future<ReusableIsolate> spawn(
-      ReusableIsolateEntryPoint entryPoint) async {
+  static Future<ReusableIsolate> spawn(ReusableIsolateEntryPoint entryPoint,
+      {Function? onError}) async {
     var mailbox = Mailbox();
     var receivePort = ReceivePort();
     var isolate = await Isolate.spawn(
         _isolateMain, (entryPoint, mailbox.asSendable, receivePort.sendPort));
-    return ReusableIsolate._(isolate, mailbox, receivePort);
+    return ReusableIsolate._(isolate, mailbox, receivePort, onError: onError);
   }
 
-  /// Whether this isolate is in use
-  bool get borrowed => _resource != null;
-
-  /// Request this isolate as part of a pool and mark it as in use.
-  void borrow(PoolResource resource) {
-    if (borrowed) {
+  /// Subscribe to messages from [_receivePort].
+  void borrow(void onData(dynamic event)?) {
+    if (_borrowed) {
       throw StateError('ReusableIsolate has already been borrowed.');
     }
-    _resource = resource;
+    _borrowed = true;
+    _subscription.onData(onData);
   }
 
-  /// Release this isolate from the pool.
+  /// Unsubscribe to messages from [_receivePort].
   void release() {
-    if (!borrowed) {
+    if (!_borrowed) {
       throw StateError('ReusableIsolate has not been borrowed.');
     }
-    _resource!.release();
-    _resource = null;
+    _borrowed = false;
+    _subscription.onData(_defaultOnData);
   }
 
   /// Sends [message] to the isolate.
   ///
-  /// Throws a [StateError] if this is called while the isolate isn't checked
-  /// out, or if a second message is sent before the isolate has processed the
-  /// first one.
+  /// Throws a [StateError] if this is called while the isolate isn't borrowed,
+  /// or if a second message is sent before the isolate has processed the first
+  /// one.
   void send(Uint8List message) {
-    if (!borrowed) {
-      throw StateError('Cannot send a message before being borrowed');
+    if (!_borrowed) {
+      throw StateError('Cannot send a message before being borrowed.');
     }
     _mailbox.put(message);
   }
@@ -88,6 +89,12 @@ class ReusableIsolate {
     _isolate.kill(priority: Isolate.immediate);
     _receivePort.close();
   }
+}
+
+/// The default handler for data events from the wrapped isolate when it's not
+/// borrowed.
+void _defaultOnData(dynamic _) {
+  throw StateError("Shouldn't receive a message before being borrowed.");
 }
 
 void _isolateMain(

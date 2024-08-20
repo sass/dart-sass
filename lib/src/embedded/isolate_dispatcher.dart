@@ -112,45 +112,41 @@ class IsolateDispatcher {
       isolate = _inactiveIsolates.first;
       _inactiveIsolates.remove(isolate);
     } else {
-      var future = ReusableIsolate.spawn(_isolateMain);
-      isolate = await future;
-      isolate.receivePort.listen((message) {
-        if (!isolate.borrowed) {
-          throw StateError(
-              "Shouldn't receive a message before being borrowed.");
-        }
-
-        var fullBuffer = message as Uint8List;
-
-        // The first byte of messages from isolates indicates whether the entire
-        // compilation is finished (1) or if it encountered an error (2). Sending
-        // this as part of the message buffer rather than a separate message
-        // avoids a race condition where the host might send a new compilation
-        // request with the same ID as one that just finished before the
-        // [IsolateDispatcher] receives word that the isolate with that ID is
-        // done. See sass/dart-sass#2004.
-        var category = fullBuffer[0];
-        var packet = Uint8List.sublistView(fullBuffer, 1);
-
-        switch (category) {
-          case 0:
-            _channel.sink.add(packet);
-          case 1:
-            _activeIsolates.remove(compilationId);
-            _inactiveIsolates.add(isolate);
-            _channel.sink.add(packet);
-            isolate.release();
-          case 2:
-            _channel.sink.add(packet);
-            exit(exitCode);
-        }
-      }, onError: (Object error, StackTrace stackTrace) {
+      var future = ReusableIsolate.spawn(_isolateMain,
+          onError: (Object error, StackTrace stackTrace) {
         _handleError(error, stackTrace);
       });
+      isolate = await future;
       _allIsolates.add(isolate);
     }
 
-    isolate.borrow(resource);
+    isolate.borrow((message) {
+      var fullBuffer = message as Uint8List;
+
+      // The first byte of messages from isolates indicates whether the entire
+      // compilation is finished (1) or if it encountered an error (2). Sending
+      // this as part of the message buffer rather than a separate message
+      // avoids a race condition where the host might send a new compilation
+      // request with the same ID as one that just finished before the
+      // [IsolateDispatcher] receives word that the isolate with that ID is
+      // done. See sass/dart-sass#2004.
+      var category = fullBuffer[0];
+      var packet = Uint8List.sublistView(fullBuffer, 1);
+
+      switch (category) {
+        case 0:
+          _channel.sink.add(packet);
+        case 1:
+          _activeIsolates.remove(compilationId);
+          isolate.release();
+          _inactiveIsolates.add(isolate);
+          resource.release();
+          _channel.sink.add(packet);
+        case 2:
+          _channel.sink.add(packet);
+          exit(exitCode);
+      }
+    });
 
     return isolate;
   }
