@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:ffi';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
@@ -27,7 +28,7 @@ class IsolateDispatcher {
   /// All isolates that have been spawned to dispatch to.
   ///
   /// Only used for cleaning up the process when the underlying channel closes.
-  final _allIsolates = StreamController<ReusableIsolate>();
+  final _allIsolates = StreamController<ReusableIsolate>(sync: true);
 
   /// The isolates that aren't currently running compilations
   final _inactiveIsolates = <ReusableIsolate>{};
@@ -43,6 +44,9 @@ class IsolateDispatcher {
   /// See https://github.com/sass/dart-sass/pull/2019
   final _isolatePool = Pool(sizeOf<IntPtr>() <= 4 ? 7 : 15);
 
+  /// Whether [_channel] has been closed or not.
+  var _closed = false;
+
   IsolateDispatcher(this._channel);
 
   void listen() {
@@ -56,6 +60,10 @@ class IsolateDispatcher {
         if (compilationId != 0) {
           var isolate = await _activeIsolates.putIfAbsent(
               compilationId, () => _getIsolate(compilationId!));
+
+          // The shutdown may have started by the time the isolate is spawned
+          if (_closed) return;
+
           try {
             isolate.send(packet);
             return;
@@ -88,6 +96,7 @@ class IsolateDispatcher {
     }, onError: (Object error, StackTrace stackTrace) {
       _handleError(error, stackTrace);
     }, onDone: () {
+      _closed = true;
       _allIsolates.stream.listen((isolate) => isolate.kill());
     });
   }
@@ -103,26 +112,40 @@ class IsolateDispatcher {
       isolate = _inactiveIsolates.first;
       _inactiveIsolates.remove(isolate);
     } else {
-      var future = ReusableIsolate.spawn(_isolateMain);
+      var future = ReusableIsolate.spawn(_isolateMain,
+          onError: (Object error, StackTrace stackTrace) {
+        _handleError(error, stackTrace);
+      });
       isolate = await future;
       _allIsolates.add(isolate);
     }
 
-    isolate.checkOut().listen(_channel.sink.add,
-        onError: (Object error, StackTrace stackTrace) {
-      if (error is ProtocolError) {
-        // Protocol errors have already been through [_handleError] in the child
-        // isolate, so we just send them as-is and close out the underlying
-        // channel.
-        sendError(compilationId, error);
-        _channel.sink.close();
-      } else {
-        _handleError(error, stackTrace);
+    isolate.borrow((message) {
+      var fullBuffer = message as Uint8List;
+
+      // The first byte of messages from isolates indicates whether the entire
+      // compilation is finished (1) or if it encountered an error (2). Sending
+      // this as part of the message buffer rather than a separate message
+      // avoids a race condition where the host might send a new compilation
+      // request with the same ID as one that just finished before the
+      // [IsolateDispatcher] receives word that the isolate with that ID is
+      // done. See sass/dart-sass#2004.
+      var category = fullBuffer[0];
+      var packet = Uint8List.sublistView(fullBuffer, 1);
+
+      switch (category) {
+        case 0:
+          _channel.sink.add(packet);
+        case 1:
+          _activeIsolates.remove(compilationId);
+          isolate.release();
+          _inactiveIsolates.add(isolate);
+          resource.release();
+          _channel.sink.add(packet);
+        case 2:
+          _channel.sink.add(packet);
+          exit(exitCode);
       }
-    }, onDone: () {
-      _activeIsolates.remove(compilationId);
-      _inactiveIsolates.add(isolate);
-      resource.release();
     });
 
     return isolate;
