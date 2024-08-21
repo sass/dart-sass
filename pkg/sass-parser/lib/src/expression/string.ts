@@ -115,7 +115,7 @@ export class StringExpression extends Expression {
         // The Dart Sass AST preserves string escapes for unquoted strings
         // because they serve a dual purpose at runtime of representing
         // identifiers (which may contain escape codes) and being a catch-all
-        // represenetation for unquoted non-identifier values such as `url()`s.
+        // representation for unquoted non-identifier values such as `url()`s.
         // As such, escapes in unquoted strings are represented literally.
         result +=
           raw?.value === element
