@@ -201,7 +201,7 @@ files, you'll need to pass a [custom importer] to [`compileString()`] or
 
 [`compile()`]: https://sass-lang.com/documentation/js-api/functions/compile
 [`compileAsync()`]: https://sass-lang.com/documentation/js-api/functions/compileAsync
-[custom importer]: https://sass-lang.com/documentation/js-api/interfaces/StringOptionsWithImporter#importer
+[custom importer]: https://sass-lang.com/documentation/js-api/interfaces/stringoptions/#importer
 [`compileString()`]: https://sass-lang.com/documentation/js-api/functions/compileString
 [`compileStringAsync()`]: https://sass-lang.com/documentation/js-api/functions/compileStringAsync
 [legacy API]: #legacy-javascript-api
