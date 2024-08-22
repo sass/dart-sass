@@ -34,6 +34,11 @@ export {
   NewNodeForInterpolation,
 } from './src/interpolation';
 export {
+  CssComment,
+  CssCommentProps,
+  CssCommentRaws,
+} from './src/statement/css-comment';
+export {
   DebugRule,
   DebugRuleProps,
   DebugRuleRaws,

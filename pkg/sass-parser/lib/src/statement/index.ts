@@ -8,6 +8,7 @@ import {Interpolation} from '../interpolation';
 import {LazySource} from '../lazy-source';
 import {Node, NodeProps} from '../node';
 import * as sassInternal from '../sass-internal';
+import {CssComment, CssCommentProps} from './css-comment';
 import {GenericAtRule, GenericAtRuleProps} from './generic-at-rule';
 import {DebugRule, DebugRuleProps} from './debug-rule';
 import {EachRule, EachRuleProps} from './each-rule';
@@ -18,14 +19,14 @@ import {Rule, RuleProps} from './rule';
 
 // TODO: Replace this with the corresponding Sass types once they're
 // implemented.
-export {Comment, Declaration} from 'postcss';
+export {Declaration} from 'postcss';
 
 /**
  * The union type of all Sass statements.
  *
  * @category Statement
  */
-export type AnyStatement = Root | Rule | GenericAtRule;
+export type AnyStatement = Comment | Root | Rule | GenericAtRule;
 
 /**
  * Sass statement types.
@@ -40,6 +41,7 @@ export type StatementType =
   | 'root'
   | 'rule'
   | 'atrule'
+  | 'comment'
   | 'debug-rule'
   | 'each-rule'
   | 'for-rule'
@@ -53,13 +55,20 @@ export type StatementType =
 export type AtRule = DebugRule | EachRule | ErrorRule | ForRule | GenericAtRule;
 
 /**
+ * All Sass statements that are comments.
+ *
+ * @category Statement
+ */
+export type Comment = CssComment;
+
+/**
  * All Sass statements that are valid children of other statements.
  *
  * The Sass equivalent of PostCSS's `ChildNode`.
  *
  * @category Statement
  */
-export type ChildNode = Rule | AtRule;
+export type ChildNode = Rule | AtRule | Comment;
 
 /**
  * The properties that can be used to construct {@link ChildNode}s.
@@ -70,6 +79,7 @@ export type ChildNode = Rule | AtRule;
  */
 export type ChildProps =
   | postcss.ChildProps
+  | CssCommentProps
   | DebugRuleProps
   | EachRuleProps
   | ErrorRuleProps
@@ -138,6 +148,7 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
       source: new LazySource(inner),
     });
   },
+  visitLoudComment: inner => new CssComment(undefined, inner),
   visitStyleRule: inner => new Rule(undefined, inner),
 });
 
@@ -249,6 +260,8 @@ export function normalize(
       result.push(new ForRule(node));
     } else if ('errorExpression' in node) {
       result.push(new ErrorRule(node));
+    } else if ('text' in node || 'textInterpolation' in node) {
+      result.push(new CssComment(node as CssCommentProps));
     } else {
       result.push(...postcssNormalizeAndConvertToSass(self, node, sample));
     }

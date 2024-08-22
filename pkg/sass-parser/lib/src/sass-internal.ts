@@ -101,6 +101,10 @@ declare namespace SassInternal {
     readonly isExclusive: boolean;
   }
 
+  class LoudComment extends Statement {
+    readonly text: Interpolation;
+  }
+
   class Stylesheet extends ParentStatement<Statement[]> {}
 
   class StyleRule extends ParentStatement<Statement[]> {
@@ -143,6 +147,7 @@ export type EachRule = SassInternal.EachRule;
 export type ErrorRule = SassInternal.ErrorRule;
 export type ExtendRule = SassInternal.ExtendRule;
 export type ForRule = SassInternal.ForRule;
+export type LoudComment = SassInternal.LoudComment;
 export type Stylesheet = SassInternal.Stylesheet;
 export type StyleRule = SassInternal.StyleRule;
 export type Interpolation = SassInternal.Interpolation;
@@ -158,6 +163,7 @@ export interface StatementVisitorObject<T> {
   visitErrorRule(node: ErrorRule): T;
   visitExtendRule(node: ExtendRule): T;
   visitForRule(node: ForRule): T;
+  visitLoudComment(node: LoudComment): T;
   visitStyleRule(node: StyleRule): T;
 }
 
