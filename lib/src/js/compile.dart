@@ -7,7 +7,6 @@ import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart' hide futureToPromise;
 import 'package:term_glyph/term_glyph.dart' as glyph;
 import 'package:path/path.dart' as p;
-import 'package:pub_semver/pub_semver.dart';
 
 import '../../sass.dart' hide Deprecation;
 import '../importer/no_op.dart';

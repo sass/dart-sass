@@ -15,7 +15,6 @@ import 'package:sass/src/executable/watch.dart';
 import 'package:sass/src/import_cache.dart';
 import 'package:sass/src/importer/filesystem.dart';
 import 'package:sass/src/io.dart';
-import 'package:sass/src/logger/deprecation_processing.dart';
 import 'package:sass/src/stylesheet_graph.dart';
 import 'package:sass/src/utils.dart';
 import 'package:sass/src/embedded/executable.dart'
