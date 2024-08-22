@@ -15,8 +15,8 @@ import '../interpolation.dart';
 /// This is always a plain CSS function.
 ///
 /// {@category AST}
-final class InterpolatedFunctionExpression
-    implements Expression, CallableInvocation {
+final class InterpolatedFunctionExpression extends Expression
+    implements CallableInvocation {
   /// The name of the function being invoked.
   final Interpolation name;
 

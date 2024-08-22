@@ -13,7 +13,7 @@ import '../statement.dart';
 /// This gives one selector all the styling of another.
 ///
 /// {@category AST}
-final class ExtendRule implements Statement {
+final class ExtendRule extends Statement {
   /// The interpolation for the selector that will be extended.
   final Interpolation selector;
 

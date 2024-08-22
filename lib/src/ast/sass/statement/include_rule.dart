@@ -15,8 +15,8 @@ import 'content_block.dart';
 /// A mixin invocation.
 ///
 /// {@category AST}
-final class IncludeRule
-    implements Statement, CallableInvocation, SassReference {
+final class IncludeRule extends Statement
+    implements CallableInvocation, SassReference {
   /// The namespace of the mixin being invoked, or `null` if it's invoked
   /// without a namespace.
   final String? namespace;
