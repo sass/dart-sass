@@ -46,13 +46,13 @@ Future<void> main(List<String> args) async {
     }
 
     var graph = StylesheetGraph(ImportCache(
-      importers: [...options.pkgImporters, FilesystemImporter.noLoadPath],
-      loadPaths: options.loadPaths,
-      logger: options.logger,
-      silenceDeprecations: options.silenceDeprecations,
-      fatalDeprecations: options.fatalDeprecations,
-      futureDeprecations: options.futureDeprecations,
-    ));
+        importers: [...options.pkgImporters, FilesystemImporter.noLoadPath],
+        loadPaths: options.loadPaths,
+        logger: ImportCache.wrapLogger(
+            options.logger,
+            options.silenceDeprecations,
+            options.fatalDeprecations,
+            options.futureDeprecations)));
     if (options.watch) {
       await watch(options, graph);
       return;

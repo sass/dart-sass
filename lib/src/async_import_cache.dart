@@ -101,10 +101,7 @@ final class AsyncImportCache {
       Set<Deprecation>? futureDeprecations,
       Set<Deprecation>? silenceDeprecations})
       : _importers = _toImporters(importers, loadPaths, packageConfig),
-        _logger = _makeLogger(logger,
-            fatalDeprecations: fatalDeprecations,
-            futureDeprecations: futureDeprecations,
-            silenceDeprecations: silenceDeprecations);
+        _logger = logger ?? Logger.stderr();
 
   /// Creates an import cache without any globally-available importers.
   AsyncImportCache.none(
@@ -113,10 +110,7 @@ final class AsyncImportCache {
       Set<Deprecation>? futureDeprecations,
       Set<Deprecation>? silenceDeprecations})
       : _importers = const [],
-        _logger = _makeLogger(logger,
-            fatalDeprecations: fatalDeprecations,
-            futureDeprecations: futureDeprecations,
-            silenceDeprecations: silenceDeprecations);
+        _logger = logger ?? Logger.stderr();
 
   /// Creates an import cache without any globally-available importers, and only
   /// the passed in importers.
@@ -126,10 +120,7 @@ final class AsyncImportCache {
       Set<Deprecation>? futureDeprecations,
       Set<Deprecation>? silenceDeprecations})
       : _importers = List.unmodifiable(importers),
-        _logger = _makeLogger(logger,
-            fatalDeprecations: fatalDeprecations,
-            futureDeprecations: futureDeprecations,
-            silenceDeprecations: silenceDeprecations);
+        _logger = logger ?? Logger.stderr();
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.
@@ -147,24 +138,6 @@ final class AsyncImportCache {
       if (packageConfig != null) PackageImporter(packageConfig)
     ];
   }
-
-  /// Wraps [logger] to support deprecation options, unless [logger] is already
-  /// a [DeprecationProcessingLogger].
-  static DeprecationProcessingLogger _makeLogger(Logger? logger,
-          {Set<Deprecation>? fatalDeprecations,
-          Set<Deprecation>? futureDeprecations,
-          Set<Deprecation>? silenceDeprecations}) =>
-      switch (logger) {
-        DeprecationProcessingLogger logger => logger,
-        _ => DeprecationProcessingLogger(logger ?? const Logger.stderr(),
-            fatalDeprecations: fatalDeprecations ?? const {},
-            futureDeprecations: futureDeprecations ?? const {},
-            silenceDeprecations: silenceDeprecations ?? const {},
-            // This wrapper may be used for multiple compilations, so we don't
-            // limit repetition to make sure warnings are emitted with each
-            // compilation.
-            limitRepetition: false),
-      };
 
   /// Canonicalizes [url] according to one of this cache's importers.
   ///
@@ -398,5 +371,26 @@ final class AsyncImportCache {
   void clearImport(Uri canonicalUrl) {
     _resultsCache.remove(canonicalUrl);
     _importCache.remove(canonicalUrl);
+  }
+
+  /// Wraps [logger] to process deprecations within an ImportCache.
+  ///
+  /// This wrapped logger will handle the deprecation options, but will not
+  /// limit repetition, as it can be re-used across parses. A logger passed to
+  /// an ImportCache or AsyncImportCache should generally be wrapped here first,
+  /// unless it's already been wrapped to process deprecations, in which case
+  /// this method has no effect.
+  static DeprecationProcessingLogger wrapLogger(
+      Logger? logger,
+      Iterable<Deprecation>? silenceDeprecations,
+      Iterable<Deprecation>? fatalDeprecations,
+      Iterable<Deprecation>? futureDeprecations,
+      {bool color = false}) {
+    if (logger is DeprecationProcessingLogger) return logger;
+    return DeprecationProcessingLogger(logger ?? Logger.stderr(color: color),
+        silenceDeprecations: {...?silenceDeprecations},
+        fatalDeprecations: {...?fatalDeprecations},
+        futureDeprecations: {...?futureDeprecations},
+        limitRepetition: false);
   }
 }
