@@ -1,5 +1,11 @@
 ## 1.78.0
 
+* The `meta.feature-exists` function is now deprecated. This deprecation is
+  named `feature-exists`.
+
+* Fix a crash when using `@at-root` without any queries or children in the
+  indented syntax.
+
 ### JS API
 
 * Backport the deprecation options (`fatalDeprecations`, `futureDeprecations`,
@@ -8,7 +14,25 @@
   users of bundlers and other tools that are still using the legacy API to
   still control deprecation warnings.
 
+* Fix a bug where accessing `SourceSpan.url` would crash when a relative URL was
+  passed to the Sass API.
+
 ### Embedded Sass
+
+* Explicitly expose a `sass` executable from the `sass-embedded` npm package.
+  This was intended to be included in 1.63.0, but due to the way
+  platform-specific dependency executables are installed it did not work as
+  intended. Now users can run `npx sass` for local installs or just `sass` when
+  `sass-embedded` is installed globally.
+
+* Add linux-riscv64, linux-musl-riscv64, and android-riscv64 support for the
+  `sass-embedded` npm package.
+
+* Fix an edge case where the Dart VM could hang when shutting down when requests
+  were in flight.
+
+* Fix a race condition where the embedded host could fail to shut down if it was
+  closed around the same time a new compilation was started.
 
 * Fix a bug where parse-time deprecation warnings could not be controlled by
   the deprecation options in some circumstances.

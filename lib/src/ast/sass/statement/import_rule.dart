@@ -11,7 +11,7 @@ import '../statement.dart';
 /// An `@import` rule.
 ///
 /// {@category AST}
-final class ImportRule implements Statement {
+final class ImportRule extends Statement {
   /// The imports imported by this statement.
   final List<Import> imports;
 

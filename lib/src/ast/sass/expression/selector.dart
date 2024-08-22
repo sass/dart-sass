@@ -10,7 +10,7 @@ import '../expression.dart';
 /// A parent selector reference, `&`.
 ///
 /// {@category AST}
-final class SelectorExpression implements Expression {
+final class SelectorExpression extends Expression {
   final FileSpan span;
 
   SelectorExpression(this.span);

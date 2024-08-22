@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a binary operation toJSON 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@#{foo + bar}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "left": <foo>,
+  "operator": "+",
+  "raws": {},
+  "right": <bar>,
+  "sassType": "binary-operation",
+  "source": <1:4-1:13 in 0>,
+}
+`;

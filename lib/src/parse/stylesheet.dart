@@ -731,7 +731,7 @@ abstract class StylesheetParser extends Parser {
       whitespace();
       return _withChildren(_statement, start,
           (children, span) => AtRootRule(children, span, query: query));
-    } else if (lookingAtChildren()) {
+    } else if (lookingAtChildren() || (indented && atEndOfStatement())) {
       return _withChildren(
           _statement, start, (children, span) => AtRootRule(children, span));
     } else {
@@ -2845,7 +2845,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// If [allowColon] is `false`, this stops at top-level colons.
   ///
-  /// If [allowOpenBrace] is `false`, this stops at top-level colons.
+  /// If [allowOpenBrace] is `false`, this stops at opening curly braces.
   ///
   /// If [silentComments] is `true`, this will parse silent comments as
   /// comments. Otherwise, it will preserve two adjacent slashes and emit them
@@ -2891,10 +2891,6 @@ abstract class StylesheetParser extends Parser {
               buffer.writeCharCode(scanner.readChar());
               wroteNewline = false;
           }
-
-        case $slash when silentComments && scanner.peekChar(1) == $slash:
-          buffer.write(rawText(loudComment));
-          wroteNewline = false;
 
         // Add a full interpolated identifier to handle cases like "#{...}--1",
         // since "--1" isn't a valid identifier on its own.

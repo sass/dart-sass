@@ -12,7 +12,7 @@ import '../reference.dart';
 /// A Sass variable.
 ///
 /// {@category AST}
-final class VariableExpression implements Expression, SassReference {
+final class VariableExpression extends Expression implements SassReference {
   /// The namespace of the variable being referenced, or `null` if it's
   /// referenced without a namespace.
   final String? namespace;

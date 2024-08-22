@@ -55,6 +55,9 @@ class Exports {
   external set NULL(value.Value sassNull);
   external set TRUE(value.SassBoolean sassTrue);
   external set FALSE(value.SassBoolean sassFalse);
+
+  // `sass-parser` APIs
+  external set loadParserExports_(Function function);
 }
 
 @JS()
