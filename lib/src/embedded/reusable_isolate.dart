@@ -13,11 +13,11 @@ import 'package:native_synchronization/sendable.dart';
 ///
 /// This must be a static global function. It's run when the isolate is spawned,
 /// and is passed a [Mailbox] that receives messages from [ReusableIsolate.send]
-/// and a [SendPort] that sends messages to the stream returned by
-/// [ReusableIsolate.checkOut].
+/// and a [SendPort] that sends messages to the [ReceivePort] listened by
+/// [ReusableIsolate.borrow].
 ///
-/// If the [sendPort] sends a message before [ReusableIsolate.checkOut] is
-/// called, this will throw an unhandled [StateError].
+/// If the [sendPort] sends a message before [ReusableIsolate.borrow] is called,
+/// this will throw an unhandled [StateError].
 typedef ReusableIsolateEntryPoint = FutureOr<void> Function(
     Mailbox mailbox, SendPort sink);
 
