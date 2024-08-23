@@ -34,6 +34,7 @@ import {EachRule} from './statement/each-rule';
 import {ErrorRule} from './statement/error-rule';
 import {GenericAtRule} from './statement/generic-at-rule';
 import {Rule} from './statement/rule';
+import {SassComment} from './statement/sass-comment';
 
 const PostCssStringifier = require('postcss/lib/stringifier');
 
@@ -147,5 +148,36 @@ export class Stringifier extends PostCssStringifier {
 
   private rule(node: Rule): void {
     this.block(node, node.selectorInterpolation.toString());
+  }
+
+  private ['sass-comment'](node: SassComment): void {
+    const before = node.raws.before ?? '';
+    const left = node.raws.left ?? ' ';
+    let text = node.text
+      .split('\n')
+      .map(
+        (line, i) =>
+          before +
+          (node.raws.beforeLines?.[i] ?? '') +
+          '//' +
+          (/[^ \t]/.test(line) ? left : '') +
+          line
+      )
+      .join('\n');
+
+    // Ensure that a Sass-style comment always has a newline after it unless
+    // it's the last node in the document.
+    const next = node.next();
+    if (next && !this.raw(next, 'before').startsWith('\n')) {
+      text += '\n';
+    } else if (
+      !next &&
+      node.parent &&
+      !this.raw(node.parent, 'after').startsWith('\n')
+    ) {
+      text += '\n';
+    }
+
+    this.builder(text, node);
   }
 }

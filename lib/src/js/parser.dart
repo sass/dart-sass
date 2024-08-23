@@ -57,6 +57,8 @@ void _updateAstPrototypes() {
   var file = SourceFile.fromString('');
   getJSClass(file).defineMethod('getText',
       (SourceFile self, int start, [int? end]) => self.getText(start, end));
+  getJSClass(file)
+      .defineGetter('codeUnits', (SourceFile self) => self.codeUnits);
   var interpolation = Interpolation(const [], bogusSpan);
   getJSClass(interpolation)
       .defineGetter('asPlain', (Interpolation self) => self.asPlain);

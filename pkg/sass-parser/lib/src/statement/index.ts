@@ -9,6 +9,7 @@ import {LazySource} from '../lazy-source';
 import {Node, NodeProps} from '../node';
 import * as sassInternal from '../sass-internal';
 import {CssComment, CssCommentProps} from './css-comment';
+import {SassComment, SassCommentChildProps} from './sass-comment';
 import {GenericAtRule, GenericAtRuleProps} from './generic-at-rule';
 import {DebugRule, DebugRuleProps} from './debug-rule';
 import {EachRule, EachRuleProps} from './each-rule';
@@ -45,7 +46,8 @@ export type StatementType =
   | 'debug-rule'
   | 'each-rule'
   | 'for-rule'
-  | 'error-rule';
+  | 'error-rule'
+  | 'sass-comment';
 
 /**
  * All Sass statements that are also at-rules.
@@ -59,7 +61,7 @@ export type AtRule = DebugRule | EachRule | ErrorRule | ForRule | GenericAtRule;
  *
  * @category Statement
  */
-export type Comment = CssComment;
+export type Comment = CssComment | SassComment;
 
 /**
  * All Sass statements that are valid children of other statements.
@@ -85,7 +87,8 @@ export type ChildProps =
   | ErrorRuleProps
   | ForRuleProps
   | GenericAtRuleProps
-  | RuleProps;
+  | RuleProps
+  | SassCommentChildProps;
 
 /**
  * The Sass eqivalent of PostCSS's `ContainerProps`.
@@ -158,6 +161,7 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
     appendInternalChildren(rule, inner.children);
     return rule;
   },
+  visitSilentComment: inner => new SassComment(undefined, inner),
   visitStyleRule: inner => new Rule(undefined, inner),
 });
 
@@ -271,6 +275,8 @@ export function normalize(
       result.push(new ErrorRule(node));
     } else if ('text' in node || 'textInterpolation' in node) {
       result.push(new CssComment(node as CssCommentProps));
+    } else if ('silentText' in node) {
+      result.push(new SassComment(node));
     } else {
       result.push(...postcssNormalizeAndConvertToSass(self, node, sample));
     }
