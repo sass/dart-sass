@@ -98,7 +98,31 @@ export class GenericAtRule
   private _nameInterpolation?: Interpolation;
 
   get params(): string {
-    return this.paramsInterpolation?.toString() ?? '';
+    if (this.name !== 'media' || !this.paramsInterpolation) {
+      return this.paramsInterpolation?.toString() ?? '';
+    }
+
+    // @media has special parsing in Sass, and allows raw expressions within
+    // parens.
+    let result = '';
+    const rawText = this.paramsInterpolation.raws.text;
+    const rawExpressions = this.paramsInterpolation.raws.expressions;
+    for (let i = 0; i < this.paramsInterpolation.nodes.length; i++) {
+      const element = this.paramsInterpolation.nodes[i];
+      if (typeof element === 'string') {
+        const raw = rawText?.[i];
+        result += raw?.value === element ? raw.raw : element;
+      } else {
+        if (result.match(/(\([ \t\n\f\r]*|(:|[<>]?=)[ \t\n\f\r]*)$/)) {
+          result += element;
+        } else {
+          const raw = rawExpressions?.[i];
+          result +=
+            '#{' + (raw?.before ?? '') + element + (raw?.after ?? '') + '}';
+        }
+      }
+    }
+    return result;
   }
   set params(value: string | number | undefined) {
     this.paramsInterpolation = value === '' ? undefined : value?.toString();

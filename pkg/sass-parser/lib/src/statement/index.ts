@@ -149,6 +149,15 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
     });
   },
   visitLoudComment: inner => new CssComment(undefined, inner),
+  visitMediaRule: inner => {
+    const rule = new GenericAtRule({
+      name: 'media',
+      paramsInterpolation: new Interpolation(undefined, inner.query),
+      source: new LazySource(inner),
+    });
+    appendInternalChildren(rule, inner.children);
+    return rule;
+  },
   visitStyleRule: inner => new Rule(undefined, inner),
 });
 

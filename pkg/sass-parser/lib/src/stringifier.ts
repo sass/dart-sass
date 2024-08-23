@@ -134,7 +134,7 @@ export class Stringifier extends PostCssStringifier {
     const start =
       `@${node.nameInterpolation}` +
       (node.raws.afterName ?? (node.paramsInterpolation ? ' ' : '')) +
-      (node.paramsInterpolation ?? '');
+      node.params;
     if (node.nodes) {
       this.block(node, start);
     } else {

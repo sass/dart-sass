@@ -105,6 +105,10 @@ declare namespace SassInternal {
     readonly text: Interpolation;
   }
 
+  class MediaRule extends ParentStatement<Statement[]> {
+    readonly query: Interpolation;
+  }
+
   class Stylesheet extends ParentStatement<Statement[]> {}
 
   class StyleRule extends ParentStatement<Statement[]> {
@@ -148,6 +152,7 @@ export type ErrorRule = SassInternal.ErrorRule;
 export type ExtendRule = SassInternal.ExtendRule;
 export type ForRule = SassInternal.ForRule;
 export type LoudComment = SassInternal.LoudComment;
+export type MediaRule = SassInternal.MediaRule;
 export type Stylesheet = SassInternal.Stylesheet;
 export type StyleRule = SassInternal.StyleRule;
 export type Interpolation = SassInternal.Interpolation;
@@ -164,6 +169,7 @@ export interface StatementVisitorObject<T> {
   visitExtendRule(node: ExtendRule): T;
   visitForRule(node: ForRule): T;
   visitLoudComment(node: LoudComment): T;
+  visitMediaRule(node: MediaRule): T;
   visitStyleRule(node: StyleRule): T;
 }
 
