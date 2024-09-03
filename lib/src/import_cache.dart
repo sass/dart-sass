@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: cdd9cdf006c53b05ca31fb2d14e49844c7101d4f
+// Checksum: e043f2a3dafb741a6f053a7c1785b1c9959242f5
 //
 // ignore_for_file: unused_import
 
@@ -97,29 +97,18 @@ final class ImportCache {
       {Iterable<Importer>? importers,
       Iterable<String>? loadPaths,
       PackageConfig? packageConfig,
-      Logger? logger,
-      Set<Deprecation>? fatalDeprecations,
-      Set<Deprecation>? futureDeprecations,
-      Set<Deprecation>? silenceDeprecations})
+      Logger? logger})
       : _importers = _toImporters(importers, loadPaths, packageConfig),
         _logger = logger ?? Logger.stderr();
 
   /// Creates an import cache without any globally-available importers.
-  ImportCache.none(
-      {Logger? logger,
-      Set<Deprecation>? fatalDeprecations,
-      Set<Deprecation>? futureDeprecations,
-      Set<Deprecation>? silenceDeprecations})
+  ImportCache.none({Logger? logger})
       : _importers = const [],
         _logger = logger ?? Logger.stderr();
 
   /// Creates an import cache without any globally-available importers, and only
   /// the passed in importers.
-  ImportCache.only(Iterable<Importer> importers,
-      {Logger? logger,
-      Set<Deprecation>? fatalDeprecations,
-      Set<Deprecation>? futureDeprecations,
-      Set<Deprecation>? silenceDeprecations})
+  ImportCache.only(Iterable<Importer> importers, {Logger? logger})
       : _importers = List.unmodifiable(importers),
         _logger = logger ?? Logger.stderr();
 

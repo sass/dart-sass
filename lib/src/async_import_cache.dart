@@ -96,29 +96,18 @@ final class AsyncImportCache {
       {Iterable<AsyncImporter>? importers,
       Iterable<String>? loadPaths,
       PackageConfig? packageConfig,
-      Logger? logger,
-      Set<Deprecation>? fatalDeprecations,
-      Set<Deprecation>? futureDeprecations,
-      Set<Deprecation>? silenceDeprecations})
+      Logger? logger})
       : _importers = _toImporters(importers, loadPaths, packageConfig),
         _logger = logger ?? Logger.stderr();
 
   /// Creates an import cache without any globally-available importers.
-  AsyncImportCache.none(
-      {Logger? logger,
-      Set<Deprecation>? fatalDeprecations,
-      Set<Deprecation>? futureDeprecations,
-      Set<Deprecation>? silenceDeprecations})
+  AsyncImportCache.none({Logger? logger})
       : _importers = const [],
         _logger = logger ?? Logger.stderr();
 
   /// Creates an import cache without any globally-available importers, and only
   /// the passed in importers.
-  AsyncImportCache.only(Iterable<AsyncImporter> importers,
-      {Logger? logger,
-      Set<Deprecation>? fatalDeprecations,
-      Set<Deprecation>? futureDeprecations,
-      Set<Deprecation>? silenceDeprecations})
+  AsyncImportCache.only(Iterable<AsyncImporter> importers, {Logger? logger})
       : _importers = List.unmodifiable(importers),
         _logger = logger ?? Logger.stderr();
 
