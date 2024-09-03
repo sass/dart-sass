@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:cli_pkg/cli_pkg.dart' as pkg;
 import 'package:collection/collection.dart';
 import 'package:grinder/grinder.dart';
-import 'package:path/path.dart' as p;
 import 'package:pub_api_client/pub_api_client.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 
@@ -36,8 +35,10 @@ Future<void> doubleCheckBeforeRelease() async {
       ".",
       ...Directory("pkg").listSync().map((entry) => entry.path)
     ]) {
-      var pubspec = Pubspec.parse(File("$dir/pubspec.yaml").readAsStringSync(),
-          sourceUrl: p.toUri("$dir/pubspec.yaml"));
+      var pubspecFile = File("$dir/pubspec.yaml");
+      if (!pubspecFile.existsSync()) continue;
+      var pubspec = Pubspec.parse(pubspecFile.readAsStringSync(),
+          sourceUrl: pubspecFile.uri);
 
       var package = await client.packageInfo(pubspec.name);
       if (pubspec.version == package.latestPubspec.version) {
