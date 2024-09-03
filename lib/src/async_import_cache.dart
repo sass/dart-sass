@@ -16,6 +16,7 @@ import 'importer/no_op.dart';
 import 'importer/utils.dart';
 import 'io.dart';
 import 'logger.dart';
+import 'logger/deprecation_processing.dart';
 import 'util/map.dart';
 import 'util/nullable.dart';
 import 'utils.dart';
@@ -97,18 +98,18 @@ final class AsyncImportCache {
       PackageConfig? packageConfig,
       Logger? logger})
       : _importers = _toImporters(importers, loadPaths, packageConfig),
-        _logger = logger ?? const Logger.stderr();
+        _logger = logger ?? Logger.stderr();
 
   /// Creates an import cache without any globally-available importers.
   AsyncImportCache.none({Logger? logger})
       : _importers = const [],
-        _logger = logger ?? const Logger.stderr();
+        _logger = logger ?? Logger.stderr();
 
   /// Creates an import cache without any globally-available importers, and only
   /// the passed in importers.
   AsyncImportCache.only(Iterable<AsyncImporter> importers, {Logger? logger})
       : _importers = List.unmodifiable(importers),
-        _logger = logger ?? const Logger.stderr();
+        _logger = logger ?? Logger.stderr();
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.
@@ -359,5 +360,26 @@ final class AsyncImportCache {
   void clearImport(Uri canonicalUrl) {
     _resultsCache.remove(canonicalUrl);
     _importCache.remove(canonicalUrl);
+  }
+
+  /// Wraps [logger] to process deprecations within an ImportCache.
+  ///
+  /// This wrapped logger will handle the deprecation options, but will not
+  /// limit repetition, as it can be re-used across parses. A logger passed to
+  /// an ImportCache or AsyncImportCache should generally be wrapped here first,
+  /// unless it's already been wrapped to process deprecations, in which case
+  /// this method has no effect.
+  static DeprecationProcessingLogger wrapLogger(
+      Logger? logger,
+      Iterable<Deprecation>? silenceDeprecations,
+      Iterable<Deprecation>? fatalDeprecations,
+      Iterable<Deprecation>? futureDeprecations,
+      {bool color = false}) {
+    if (logger is DeprecationProcessingLogger) return logger;
+    return DeprecationProcessingLogger(logger ?? Logger.stderr(color: color),
+        silenceDeprecations: {...?silenceDeprecations},
+        fatalDeprecations: {...?fatalDeprecations},
+        futureDeprecations: {...?futureDeprecations},
+        limitRepetition: false);
   }
 }

@@ -97,7 +97,11 @@ Future<void> _compileStylesheetWithoutErrorHandling(ExecutableOptions options,
       var importCache = AsyncImportCache(
           importers: options.pkgImporters,
           loadPaths: options.loadPaths,
-          logger: options.logger);
+          logger: AsyncImportCache.wrapLogger(
+              options.logger,
+              options.silenceDeprecations,
+              options.fatalDeprecations,
+              options.futureDeprecations));
 
       result = source == null
           ? await compileStringAsync(await readStdin(),

@@ -8,6 +8,12 @@
 
 ### JS API
 
+* Backport the deprecation options (`fatalDeprecations`, `futureDeprecations`,
+  and `silenceDeprecations`) to the legacy JS API. The legacy JS API is itself
+  deprecated, and you should move off of it if possible, but this will allow
+  users of bundlers and other tools that are still using the legacy API to
+  still control deprecation warnings.
+
 * Fix a bug where accessing `SourceSpan.url` would crash when a relative URL was
   passed to the Sass API.
 
@@ -27,6 +33,9 @@
 
 * Fix a race condition where the embedded host could fail to shut down if it was
   closed around the same time a new compilation was started.
+
+* Fix a bug where parse-time deprecation warnings could not be controlled by
+  the deprecation options in some circumstances.
 
 ## 1.77.8
 
