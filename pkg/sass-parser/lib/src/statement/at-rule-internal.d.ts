@@ -15,7 +15,7 @@ import {AtRule, ChildNode, ChildProps, Comment, Declaration, NewNode} from '.';
  * @hidden
  */
 export class _AtRule<
-  Props extends Partial<postcss.AtRuleProps>,
+  Props
 > extends postcss.AtRule {
   declare nodes: ChildNode[];
 
@@ -36,21 +36,13 @@ export class _AtRule<
   every(
     condition: (node: ChildNode, index: number, nodes: ChildNode[]) => boolean
   ): boolean;
-  index(child: ChildNode | number): number;
-  insertAfter(oldNode: ChildNode | number, newNode: NewNode): this;
-  insertBefore(oldNode: ChildNode | number, newNode: NewNode): this;
+  insertAfter(oldNode: postcss.ChildNode | number, newNode: NewNode): this;
+  insertBefore(oldNode: postcss.ChildNode | number, newNode: NewNode): this;
   next(): ChildNode | undefined;
   prepend(...nodes: NewNode[]): this;
   prev(): ChildNode | undefined;
-  push(child: ChildNode): this;
-  removeChild(child: ChildNode | number): this;
   replaceWith(
-    ...nodes: (
-      | postcss.Node
-      | ReadonlyArray<postcss.Node>
-      | ChildProps
-      | ReadonlyArray<ChildProps>
-    )[]
+    ...nodes: NewNode[]
   ): this;
   root(): Root;
   some(

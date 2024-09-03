@@ -63,7 +63,7 @@ export type ChildProps = postcss.ChildProps | RuleProps | GenericAtRuleProps;
  * @category Statement
  */
 export interface ContainerProps extends NodeProps {
-  nodes?: (postcss.Node | ChildProps)[];
+  nodes?: ReadonlyArray<postcss.Node | ChildProps>;
 }
 
 /**
@@ -71,7 +71,7 @@ export interface ContainerProps extends NodeProps {
  *
  * @category Statement
  */
-export type StatementWithChildren = postcss.Container<ChildNode> & {
+export type StatementWithChildren = postcss.Container<postcss.ChildNode> & {
   nodes: ChildNode[];
 } & Statement;
 
@@ -123,7 +123,11 @@ export type NewNode =
   | undefined;
 
 /** PostCSS's built-in normalize function. */
-const postcssNormalize = postcss.Container.prototype.normalize;
+const postcssNormalize = postcss.Container.prototype["normalize"] as (
+  nodes: postcss.NewChild,
+  sample: postcss.Node | undefined,
+  type?: 'prepend' | false
+) => postcss.ChildNode[];
 
 /**
  * A wrapper around {@link postcssNormalize} that converts the results to the
