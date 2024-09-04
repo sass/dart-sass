@@ -312,63 +312,61 @@ jobs:
       env:
         CHROME_EXECUTABLE: chrome
 
-  # TODO - sass/dart-sass#2329: Re-enable once these errors are resolved.
+  sass_parser_tests:
+    name: "sass-parser Tests | Dart ${{ matrix.dart_channel }} | Node ${{ matrix.node-version }}"
+    runs-on: ubuntu-latest
 
-  # sass_parser_tests:
-  #   name: "sass-parser Tests | Dart ${{ matrix.dart_channel }} | Node ${{ matrix.node-version }}"
-  #   runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dart_channel: [stable]
+        node-version: ['lts/*']
+        include:
+          # Test older LTS versions
+          # 
+          # TODO: Test on lts/-2 and lts/-3 once they support
+          # `structuredClone()` (that is, once they're v18 or later).
+          - os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-1
+          # Test LTS version with dart dev channel
+          - os: ubuntu-latest
+            dart_channel: dev
+            node-version: 'lts/*'
 
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       dart_channel: [stable]
-  #       node-version: ['lts/*']
-  #       include:
-  #         # Test older LTS versions
-  #         #
-  #         # TODO: Test on lts/-2 and lts/-3 once they support
-  #         # `structuredClone()` (that is, once they're v18 or later).
-  #         - os: ubuntu-latest
-  #           dart_channel: stable
-  #           node-version: lts/-1
-  #         # Test LTS version with dart dev channel
-  #         - os: ubuntu-latest
-  #           dart_channel: dev
-  #           node-version: 'lts/*'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/util/initialize
+        with:
+          dart-sdk: ${{ matrix.dart_channel }}
+          github-token: ${{ github.token }}
+          node-version: ${{ matrix.node-version }}
 
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: ./.github/util/initialize
-  #       with:
-  #         dart-sdk: ${{ matrix.dart_channel }}
-  #         github-token: ${{ github.token }}
-  #         node-version: ${{ matrix.node-version }}
+      - run: dart run grinder pkg-npm-dev
+        env: {UPDATE_SASS_SASS_REPO: false}
+      - run: npm link
+        working-directory: build/npm
+      - run: npm install
+        working-directory: pkg/sass-parser/
+      - run: npm link sass
+        working-directory: pkg/sass-parser/
+      - name: Run tests
+        run: npm test
+        working-directory: pkg/sass-parser/
 
-  #     - run: dart run grinder pkg-npm-dev
-  #       env: {UPDATE_SASS_SASS_REPO: false}
-  #     - run: npm link
-  #       working-directory: build/npm
-  #     - run: npm install
-  #       working-directory: pkg/sass-parser/
-  #     - run: npm link sass
-  #       working-directory: pkg/sass-parser/
-  #     - name: Run tests
-  #       run: npm test
-  #       working-directory: pkg/sass-parser/
+  sass_parser_static_analysis:
+    name: "sass-parser Static Analysis"
+    runs-on: ubuntu-latest
 
-  # sass_parser_static_analysis:
-  #   name: "sass-parser Static Analysis"
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-node@v4
-  #       with: {node-version: 'lts/*'}
-  #     - run: npm install
-  #       working-directory: pkg/sass-parser/
-  #     - name: Run static analysis
-  #       run: npm run check
-  #       working-directory: pkg/sass-parser/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 'lts/*'}
+      - run: npm install
+        working-directory: pkg/sass-parser/
+      - name: Run static analysis
+        run: npm run check
+        working-directory: pkg/sass-parser/
 
   # TODO - postcss/postcss#1958: Enable this once PostCSS doesn't have TypeDoc
   # warnings.

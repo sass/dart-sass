@@ -6,7 +6,7 @@ import * as postcss from 'postcss';
 
 import {Rule, RuleProps} from './rule';
 import {Root} from './root';
-import {AtRule, ChildNode, ChildProps, Comment, Declaration, NewNode} from '.';
+import {AtRule, ChildNode, Comment, Declaration, NewNode} from '.';
 
 /**
  * A fake intermediate class to convince TypeScript to use Sass types for
@@ -34,22 +34,12 @@ export class _Rule extends postcss.Rule {
   every(
     condition: (node: ChildNode, index: number, nodes: ChildNode[]) => boolean
   ): boolean;
-  index(child: ChildNode | number): number;
-  insertAfter(oldNode: ChildNode | number, newNode: NewNode): this;
-  insertBefore(oldNode: ChildNode | number, newNode: NewNode): this;
+  insertAfter(oldNode: postcss.ChildNode | number, newNode: NewNode): this;
+  insertBefore(oldNode: postcss.ChildNode | number, newNode: NewNode): this;
   next(): ChildNode | undefined;
   prepend(...nodes: NewNode[]): this;
   prev(): ChildNode | undefined;
-  push(child: ChildNode): this;
-  removeChild(child: ChildNode | number): this;
-  replaceWith(
-    ...nodes: (
-      | postcss.Node
-      | ReadonlyArray<postcss.Node>
-      | ChildProps
-      | ReadonlyArray<ChildProps>
-    )[]
-  ): this;
+  replaceWith(...nodes: NewNode[]): this;
   root(): Root;
   some(
     condition: (node: ChildNode, index: number, nodes: ChildNode[]) => boolean
