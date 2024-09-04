@@ -6,7 +6,7 @@ import * as postcss from 'postcss';
 
 import {Rule} from './rule';
 import {Root, RootProps} from './root';
-import {AtRule, ChildNode, ChildProps, Comment, Declaration, NewNode} from '.';
+import {AtRule, ChildNode, Comment, Declaration, NewNode} from '.';
 
 /**
  * A fake intermediate class to convince TypeScript to use Sass types for
@@ -39,9 +39,7 @@ export class _Root extends postcss.Root {
   next(): ChildNode | undefined;
   prepend(...nodes: NewNode[]): this;
   prev(): ChildNode | undefined;
-  replaceWith(
-    ...nodes: NewNode[]
-  ): this;
+  replaceWith(...nodes: NewNode[]): this;
   root(): Root;
   some(
     condition: (node: ChildNode, index: number, nodes: ChildNode[]) => boolean

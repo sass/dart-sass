@@ -6,7 +6,7 @@ import * as postcss from 'postcss';
 
 import {Rule} from './rule';
 import {Root} from './root';
-import {AtRule, ChildNode, ChildProps, Comment, Declaration, NewNode} from '.';
+import {AtRule, ChildNode, Comment, Declaration, NewNode} from '.';
 
 /**
  * A fake intermediate class to convince TypeScript to use Sass types for
@@ -14,9 +14,7 @@ import {AtRule, ChildNode, ChildProps, Comment, Declaration, NewNode} from '.';
  *
  * @hidden
  */
-export class _AtRule<
-  Props
-> extends postcss.AtRule {
+export class _AtRule<Props> extends postcss.AtRule {
   declare nodes: ChildNode[];
 
   // Override the PostCSS container types to constrain them to Sass types only.
@@ -41,9 +39,7 @@ export class _AtRule<
   next(): ChildNode | undefined;
   prepend(...nodes: NewNode[]): this;
   prev(): ChildNode | undefined;
-  replaceWith(
-    ...nodes: NewNode[]
-  ): this;
+  replaceWith(...nodes: NewNode[]): this;
   root(): Root;
   some(
     condition: (node: ChildNode, index: number, nodes: ChildNode[]) => boolean

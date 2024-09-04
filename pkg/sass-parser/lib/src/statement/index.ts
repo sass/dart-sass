@@ -123,7 +123,7 @@ export type NewNode =
   | undefined;
 
 /** PostCSS's built-in normalize function. */
-const postcssNormalize = postcss.Container.prototype["normalize"] as (
+const postcssNormalize = postcss.Container.prototype['normalize'] as (
   nodes: postcss.NewChild,
   sample: postcss.Node | undefined,
   type?: 'prepend' | false
