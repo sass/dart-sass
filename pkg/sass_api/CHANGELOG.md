@@ -1,9 +1,11 @@
-## 11.0.0
-
-* Remove the `CallableDeclaration()` constructor.
+## 11.1.0
 
 * Loud comments in the Sass syntax no longer automatically inject ` */` to the
   end when parsed.
+
+## 11.0.0
+
+* Remove the `CallableDeclaration()` constructor.
 
 ## 10.4.8
 

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 2ab69d23a3b34cb54ddd74e2e854614dda582174
+// Checksum: 548c4265a8e0aecca7a24fd52561ef17f29f34d2
 //
 // ignore_for_file: unused_import
 
@@ -577,14 +577,21 @@ final class _EvaluateVisitor
     ];
 
     var metaModule = BuiltInModule("meta",
-        functions: [...meta.global, ...meta.local, ...metaFunctions],
+        functions: [...meta.moduleFunctions, ...metaFunctions],
         mixins: metaMixins);
 
     for (var module in [...coreModules, metaModule]) {
       _builtInModules[module.url] = module;
     }
 
-    functions = [...?functions, ...globalFunctions, ...metaFunctions];
+    functions = [
+      ...?functions,
+      ...globalFunctions,
+      ...[
+        for (var function in metaFunctions)
+          function.withDeprecationWarning('meta')
+      ]
+    ];
     for (var function in functions) {
       _builtInFunctions[function.name.replaceAll("_", "-")] = function;
     }
