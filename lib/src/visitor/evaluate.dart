@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ebf292c26dcfdd7f61fd70ce3dc9e0be2b6708b3
+// Checksum: 2ab69d23a3b34cb54ddd74e2e854614dda582174
 //
 // ignore_for_file: unused_import
 
@@ -1903,8 +1903,10 @@ final class _EvaluateVisitor
       _endOfImports++;
     }
 
-    _parent.addChild(
-        ModifiableCssComment(_performInterpolation(node.text), node.span));
+    var text = _performInterpolation(node.text);
+    // Indented syntax doesn't require */
+    if (!text.endsWith("*/")) text += " */";
+    _parent.addChild(ModifiableCssComment(text, node.span));
     return null;
   }
 

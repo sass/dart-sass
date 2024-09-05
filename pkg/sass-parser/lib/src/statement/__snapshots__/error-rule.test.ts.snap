@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a @error rule toJSON 1`] = `
+{
+  "errorExpression": <foo>,
+  "inputs": [
+    {
+      "css": "@error foo",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "error",
+  "params": "foo",
+  "raws": {},
+  "sassType": "error-rule",
+  "source": <1:1-1:11 in 0>,
+  "type": "atrule",
+}
+`;

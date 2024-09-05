@@ -4,22 +4,29 @@
 
 import * as postcss from 'postcss';
 
+import {Interpolation} from '../interpolation';
+import {LazySource} from '../lazy-source';
 import {Node, NodeProps} from '../node';
 import * as sassInternal from '../sass-internal';
+import {CssComment, CssCommentProps} from './css-comment';
 import {GenericAtRule, GenericAtRuleProps} from './generic-at-rule';
+import {DebugRule, DebugRuleProps} from './debug-rule';
+import {EachRule, EachRuleProps} from './each-rule';
+import {ErrorRule, ErrorRuleProps} from './error-rule';
+import {ForRule, ForRuleProps} from './for-rule';
 import {Root} from './root';
 import {Rule, RuleProps} from './rule';
 
 // TODO: Replace this with the corresponding Sass types once they're
 // implemented.
-export {Comment, Declaration} from 'postcss';
+export {Declaration} from 'postcss';
 
 /**
  * The union type of all Sass statements.
  *
  * @category Statement
  */
-export type AnyStatement = Root | Rule | GenericAtRule;
+export type AnyStatement = Comment | Root | Rule | GenericAtRule;
 
 /**
  * Sass statement types.
@@ -30,14 +37,29 @@ export type AnyStatement = Root | Rule | GenericAtRule;
  *
  * @category Statement
  */
-export type StatementType = 'root' | 'rule' | 'atrule';
+export type StatementType =
+  | 'root'
+  | 'rule'
+  | 'atrule'
+  | 'comment'
+  | 'debug-rule'
+  | 'each-rule'
+  | 'for-rule'
+  | 'error-rule';
 
 /**
  * All Sass statements that are also at-rules.
  *
  * @category Statement
  */
-export type AtRule = GenericAtRule;
+export type AtRule = DebugRule | EachRule | ErrorRule | ForRule | GenericAtRule;
+
+/**
+ * All Sass statements that are comments.
+ *
+ * @category Statement
+ */
+export type Comment = CssComment;
 
 /**
  * All Sass statements that are valid children of other statements.
@@ -46,7 +68,7 @@ export type AtRule = GenericAtRule;
  *
  * @category Statement
  */
-export type ChildNode = Rule | AtRule;
+export type ChildNode = Rule | AtRule | Comment;
 
 /**
  * The properties that can be used to construct {@link ChildNode}s.
@@ -55,7 +77,15 @@ export type ChildNode = Rule | AtRule;
  *
  * @category Statement
  */
-export type ChildProps = postcss.ChildProps | RuleProps | GenericAtRuleProps;
+export type ChildProps =
+  | postcss.ChildProps
+  | CssCommentProps
+  | DebugRuleProps
+  | EachRuleProps
+  | ErrorRuleProps
+  | ForRuleProps
+  | GenericAtRuleProps
+  | RuleProps;
 
 /**
  * The Sass eqivalent of PostCSS's `ContainerProps`.
@@ -93,7 +123,32 @@ export interface Statement extends postcss.Node, Node {
 
 /** The visitor to use to convert internal Sass nodes to JS. */
 const visitor = sassInternal.createStatementVisitor<Statement>({
+  visitAtRootRule: inner => {
+    const rule = new GenericAtRule({
+      name: 'at-root',
+      paramsInterpolation: inner.query
+        ? new Interpolation(undefined, inner.query)
+        : undefined,
+      source: new LazySource(inner),
+    });
+    appendInternalChildren(rule, inner.children);
+    return rule;
+  },
   visitAtRule: inner => new GenericAtRule(undefined, inner),
+  visitDebugRule: inner => new DebugRule(undefined, inner),
+  visitErrorRule: inner => new ErrorRule(undefined, inner),
+  visitEachRule: inner => new EachRule(undefined, inner),
+  visitForRule: inner => new ForRule(undefined, inner),
+  visitExtendRule: inner => {
+    const paramsInterpolation = new Interpolation(undefined, inner.selector);
+    if (inner.isOptional) paramsInterpolation.append('!optional');
+    return new GenericAtRule({
+      name: 'extend',
+      paramsInterpolation,
+      source: new LazySource(inner),
+    });
+  },
+  visitLoudComment: inner => new CssComment(undefined, inner),
   visitStyleRule: inner => new Rule(undefined, inner),
 });
 
@@ -196,7 +251,17 @@ export function normalize(
     ) {
       result.push(new Rule(node));
     } else if ('name' in node || 'nameInterpolation' in node) {
-      result.push(new GenericAtRule(node));
+      result.push(new GenericAtRule(node as GenericAtRuleProps));
+    } else if ('debugExpression' in node) {
+      result.push(new DebugRule(node));
+    } else if ('eachExpression' in node) {
+      result.push(new EachRule(node));
+    } else if ('fromExpression' in node) {
+      result.push(new ForRule(node));
+    } else if ('errorExpression' in node) {
+      result.push(new ErrorRule(node));
+    } else if ('text' in node || 'textInterpolation' in node) {
+      result.push(new CssComment(node as CssCommentProps));
     } else {
       result.push(...postcssNormalizeAndConvertToSass(self, node, sample));
     }

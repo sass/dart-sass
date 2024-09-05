@@ -748,12 +748,12 @@ abstract class StylesheetParser extends Parser {
     buffer.writeCharCode($lparen);
     whitespace();
 
-    buffer.add(_expression());
+    _addOrInject(buffer, _expression());
     if (scanner.scanChar($colon)) {
       whitespace();
       buffer.writeCharCode($colon);
       buffer.writeCharCode($space);
-      buffer.add(_expression());
+      _addOrInject(buffer, _expression());
     }
 
     scanner.expectChar($rparen);
@@ -3517,6 +3517,16 @@ abstract class StylesheetParser extends Parser {
     if (!isPrivate(identifier)) return;
     error("Private members can't be accessed from outside their modules.",
         span());
+  }
+
+  /// Adds [expression] to [buffer], or if it's an unquoted string adds the
+  /// interpolation it contains instead.
+  void _addOrInject(InterpolationBuffer buffer, Expression expression) {
+    if (expression is StringExpression && !expression.hasQuotes) {
+      buffer.addInterpolation(expression.text);
+    } else {
+      buffer.add(expression);
+    }
   }
 
   // ## Abstract Methods

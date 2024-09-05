@@ -66,9 +66,43 @@ declare namespace SassInternal {
     readonly children: T;
   }
 
+  class AtRootRule extends ParentStatement<Statement[]> {
+    readonly name: Interpolation;
+    readonly query?: Interpolation;
+  }
+
   class AtRule extends ParentStatement<Statement[]> {
     readonly name: Interpolation;
     readonly value?: Interpolation;
+  }
+
+  class DebugRule extends Statement {
+    readonly expression: Expression;
+  }
+
+  class EachRule extends ParentStatement<Statement[]> {
+    readonly variables: string[];
+    readonly list: Expression;
+  }
+
+  class ErrorRule extends Statement {
+    readonly expression: Expression;
+  }
+
+  class ExtendRule extends Statement {
+    readonly selector: Interpolation;
+    readonly isOptional: boolean;
+  }
+
+  class ForRule extends ParentStatement<Statement[]> {
+    readonly variable: string;
+    readonly from: Expression;
+    readonly to: Expression;
+    readonly isExclusive: boolean;
+  }
+
+  class LoudComment extends Statement {
+    readonly text: Interpolation;
   }
 
   class Stylesheet extends ParentStatement<Statement[]> {}
@@ -106,7 +140,14 @@ export type SassNode = SassInternal.SassNode;
 export type Statement = SassInternal.Statement;
 export type ParentStatement<T extends Statement[] | null> =
   SassInternal.ParentStatement<T>;
+export type AtRootRule = SassInternal.AtRootRule;
 export type AtRule = SassInternal.AtRule;
+export type DebugRule = SassInternal.DebugRule;
+export type EachRule = SassInternal.EachRule;
+export type ErrorRule = SassInternal.ErrorRule;
+export type ExtendRule = SassInternal.ExtendRule;
+export type ForRule = SassInternal.ForRule;
+export type LoudComment = SassInternal.LoudComment;
 export type Stylesheet = SassInternal.Stylesheet;
 export type StyleRule = SassInternal.StyleRule;
 export type Interpolation = SassInternal.Interpolation;
@@ -115,7 +156,14 @@ export type BinaryOperationExpression = SassInternal.BinaryOperationExpression;
 export type StringExpression = SassInternal.StringExpression;
 
 export interface StatementVisitorObject<T> {
+  visitAtRootRule(node: AtRootRule): T;
   visitAtRule(node: AtRule): T;
+  visitDebugRule(node: DebugRule): T;
+  visitEachRule(node: EachRule): T;
+  visitErrorRule(node: ErrorRule): T;
+  visitExtendRule(node: ExtendRule): T;
+  visitForRule(node: ForRule): T;
+  visitLoudComment(node: LoudComment): T;
   visitStyleRule(node: StyleRule): T;
 }
 

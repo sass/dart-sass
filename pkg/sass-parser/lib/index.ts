@@ -34,6 +34,23 @@ export {
   NewNodeForInterpolation,
 } from './src/interpolation';
 export {
+  CssComment,
+  CssCommentProps,
+  CssCommentRaws,
+} from './src/statement/css-comment';
+export {
+  DebugRule,
+  DebugRuleProps,
+  DebugRuleRaws,
+} from './src/statement/debug-rule';
+export {EachRule, EachRuleProps, EachRuleRaws} from './src/statement/each-rule';
+export {
+  ErrorRule,
+  ErrorRuleProps,
+  ErrorRuleRaws,
+} from './src/statement/error-rule';
+export {ForRule, ForRuleProps, ForRuleRaws} from './src/statement/for-rule';
+export {
   GenericAtRule,
   GenericAtRuleProps,
   GenericAtRuleRaws,

@@ -29,6 +29,9 @@
 import * as postcss from 'postcss';
 
 import {AnyStatement} from './statement';
+import {DebugRule} from './statement/debug-rule';
+import {EachRule} from './statement/each-rule';
+import {ErrorRule} from './statement/error-rule';
 import {GenericAtRule} from './statement/generic-at-rule';
 import {Rule} from './statement/rule';
 
@@ -67,7 +70,67 @@ export class Stringifier extends PostCssStringifier {
     )(statement, semicolon);
   }
 
+  private ['debug-rule'](node: DebugRule, semicolon: boolean): void {
+    this.builder(
+      '@debug' +
+        (node.raws.afterName ?? ' ') +
+        node.debugExpression +
+        (node.raws.between ?? '') +
+        (semicolon ? ';' : ''),
+      node
+    );
+  }
+
+  private ['each-rule'](node: EachRule): void {
+    this.block(
+      node,
+      '@each' +
+        (node.raws.afterName ?? ' ') +
+        node.params +
+        (node.raws.between ?? '')
+    );
+  }
+
+  private ['error-rule'](node: ErrorRule, semicolon: boolean): void {
+    this.builder(
+      '@error' +
+        (node.raws.afterName ?? ' ') +
+        node.errorExpression +
+        (node.raws.between ?? '') +
+        (semicolon ? ';' : ''),
+      node
+    );
+  }
+
+  private ['for-rule'](node: EachRule): void {
+    this.block(
+      node,
+      '@for' +
+        (node.raws.afterName ?? ' ') +
+        node.params +
+        (node.raws.between ?? '')
+    );
+  }
+
   private atrule(node: GenericAtRule, semicolon: boolean): void {
+    // In the @at-root shorthand, stringify `@at-root {.foo {...}}` as
+    // `@at-root .foo {...}`.
+    if (
+      node.raws.atRootShorthand &&
+      node.name === 'at-root' &&
+      node.paramsInterpolation === undefined &&
+      node.nodes.length === 1 &&
+      node.nodes[0].sassType === 'rule'
+    ) {
+      this.block(
+        node.nodes[0],
+        '@at-root' +
+          (node.raws.afterName ?? ' ') +
+          node.nodes[0].selectorInterpolation
+      );
+      return;
+    }
+
     const start =
       `@${node.nameInterpolation}` +
       (node.raws.afterName ?? (node.paramsInterpolation ? ' ' : '')) +
