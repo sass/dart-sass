@@ -1,0 +1,10 @@
+{
+  "name": "sass-analysis",
+  "version": "0.0.0",
+  "description": "Shared static analysis options for Sass team packages.",
+  "dependencies": {
+    "eslint-plugin-import": "^2.30.0",
+    "gts": "^5.0.0",
+    "jsonc-parser": "^3.3.1"
+  }
+}

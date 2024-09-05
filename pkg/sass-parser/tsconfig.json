@@ -1,5 +1,5 @@
 {
-  "extends": "./node_modules/gts/tsconfig-google.json",
+  "extends": "./node_modules/sass-analysis/tsconfig.json",
   "compilerOptions": {
     "lib": ["es2022"],
     "allowJs": true,
