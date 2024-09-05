@@ -4,7 +4,7 @@
   `--future-deprecation` flag or the `futureDeprecations` option in the JS or
   Dart API. This emits warnings when any global built-in functions that are
   now available in `sass:` modules are called. It will become active by default
-  in an upcoming release alongside the `import` deprecation.
+  in an upcoming release alongside the `@import` deprecation.
 
 ## 1.78.0
 
