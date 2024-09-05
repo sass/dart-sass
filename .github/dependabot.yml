@@ -1,7 +1,9 @@
 version: 2
 updates:
   - package-ecosystem: "pub"
-    directory: "/"
+    directories:
+      - "/"
+      - "/analysis"
     schedule:
       interval: "weekly"
   - package-ecosystem: "github-actions"
@@ -13,6 +15,7 @@ updates:
   - package-ecosystem: "npm"
     directories:
       - "/"
+      - "/analysis"
       - "/package"
       - "/pkg/sass-parser"
     ignore:

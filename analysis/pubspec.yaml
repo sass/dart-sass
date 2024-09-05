@@ -1,7 +1,7 @@
 name: sass_analysis
 version: 0.0.0
 description: Shared analysis options for Sass team packages.
-homepage: https://github.com/sass/dart-sass/tree/master/analysis
+homepage: https://github.com/sass/dart-sass/tree/main/analysis
 
 publish_to: none
 

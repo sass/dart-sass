@@ -27,12 +27,11 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import * as postcss from 'postcss';
+import PostCssStringifier from 'postcss/lib/stringifier';
 
 import {AnyStatement} from './statement';
 import {GenericAtRule} from './statement/generic-at-rule';
 import {Rule} from './statement/rule';
-
-const PostCssStringifier = require('postcss/lib/stringifier');
 
 /**
  * A visitor that stringifies Sass statements.
@@ -67,7 +66,7 @@ export class Stringifier extends PostCssStringifier {
     )(statement, semicolon);
   }
 
-  private atrule(node: GenericAtRule, semicolon: boolean): void {
+  atrule(node: GenericAtRule, semicolon: boolean): void {
     const start =
       `@${node.nameInterpolation}` +
       (node.raws.afterName ?? (node.paramsInterpolation ? ' ' : '')) +
@@ -82,7 +81,7 @@ export class Stringifier extends PostCssStringifier {
     }
   }
 
-  private rule(node: Rule): void {
+  rule(node: Rule): void {
     this.block(node, node.selectorInterpolation.toString());
   }
 }

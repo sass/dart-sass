@@ -1,14 +1,3 @@
 {
-  "extends": "./node_modules/gts/",
-  "rules": {
-    "@typescript-eslint/explicit-function-return-type": [
-      "error",
-      {"allowExpressions": true}
-    ],
-    "func-style": ["error", "declaration"],
-    "prefer-const": ["error", {"destructuring": "all"}],
-    // It would be nice to sort import declaration order as well, but that's not
-    // autofixable and it's not worth the effort of handling manually.
-    "sort-imports": ["error", {"ignoreDeclarationSort": true}],
-  }
+  "extends": "./node_modules/sass-analysis/"
 }
