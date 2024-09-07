@@ -20,6 +20,8 @@ export interface SourceFile {
   /** Node-only extension that we use to avoid re-creating inputs. */
   _postcssInput?: postcss.Input;
 
+  readonly codeUnits: number[];
+
   getText(start: number, end?: number): string;
 }
 
@@ -105,6 +107,14 @@ declare namespace SassInternal {
     readonly text: Interpolation;
   }
 
+  class MediaRule extends ParentStatement<Statement[]> {
+    readonly query: Interpolation;
+  }
+
+  class SilentComment extends Statement {
+    readonly text: string;
+  }
+
   class Stylesheet extends ParentStatement<Statement[]> {}
 
   class StyleRule extends ParentStatement<Statement[]> {
@@ -148,6 +158,8 @@ export type ErrorRule = SassInternal.ErrorRule;
 export type ExtendRule = SassInternal.ExtendRule;
 export type ForRule = SassInternal.ForRule;
 export type LoudComment = SassInternal.LoudComment;
+export type MediaRule = SassInternal.MediaRule;
+export type SilentComment = SassInternal.SilentComment;
 export type Stylesheet = SassInternal.Stylesheet;
 export type StyleRule = SassInternal.StyleRule;
 export type Interpolation = SassInternal.Interpolation;
@@ -164,6 +176,8 @@ export interface StatementVisitorObject<T> {
   visitExtendRule(node: ExtendRule): T;
   visitForRule(node: ForRule): T;
   visitLoudComment(node: LoudComment): T;
+  visitMediaRule(node: MediaRule): T;
+  visitSilentComment(node: SilentComment): T;
   visitStyleRule(node: StyleRule): T;
 }
 

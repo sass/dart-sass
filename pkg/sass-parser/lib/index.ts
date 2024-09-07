@@ -58,6 +58,11 @@ export {
 export {Root, RootProps, RootRaws} from './src/statement/root';
 export {Rule, RuleProps, RuleRaws} from './src/statement/rule';
 export {
+  SassComment,
+  SassCommentProps,
+  SassCommentRaws,
+} from './src/statement/sass-comment';
+export {
   AnyStatement,
   AtRule,
   ChildNode,

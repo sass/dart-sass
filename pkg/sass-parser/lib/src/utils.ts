@@ -191,3 +191,29 @@ function toJsonField(
     return value;
   }
 }
+
+/**
+ * Returns the longest string (of code units) that's an initial substring of
+ * every string in
+ * {@link strings}.
+ */
+export function longestCommonInitialSubstring(strings: string[]): string {
+  let candidate: string | undefined;
+  for (const string of strings) {
+    if (candidate === undefined) {
+      candidate = string;
+    } else {
+      for (let i = 0; i < candidate.length && i < string.length; i++) {
+        if (candidate.charCodeAt(i) !== string.charCodeAt(i)) {
+          candidate = candidate.substring(0, i);
+          break;
+        }
+      }
+      candidate = candidate.substring(
+        0,
+        Math.min(candidate.length, string.length)
+      );
+    }
+  }
+  return candidate ?? '';
+}
