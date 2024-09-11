@@ -134,6 +134,11 @@ jobs:
           version: 'lts/*'
           check-latest: true
           registry-url: 'https://registry.npmjs.org'
+
+        # The repo package has a file dependency, but the released version needs
+        # a real dependency on the released version of Sass.
+      - run: npm install sass@${{ steps.version.outputs.version }}
+
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: '${{ secrets.NPM_TOKEN }}'
