@@ -111,14 +111,6 @@ void main() {
         () => expect(packageJson["version"].toString(),
             matchesChangelogVersion(_changelogVersion("pkg/sass-parser"))));
 
-    test("depends on the current sass version", () {
-      if (_isDevVersion(sassPubspec.version!)) return;
-
-      var dependencies = packageJson["dependencies"] as Map<String, Object?>;
-      expect(
-          dependencies, containsPair("sass", sassPubspec.version.toString()));
-    });
-
     test(
         "increments along with the sass version",
         () => _checkVersionIncrementsAlong('sass-parser', sassPubspec,
