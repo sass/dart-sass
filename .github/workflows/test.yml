@@ -344,11 +344,7 @@ jobs:
 
       - run: dart run grinder pkg-npm-dev
         env: {UPDATE_SASS_SASS_REPO: false}
-      - run: npm link
-        working-directory: build/npm
       - run: npm install
-        working-directory: pkg/sass-parser/
-      - run: npm link sass
         working-directory: pkg/sass-parser/
       - name: Run tests
         run: npm test
@@ -362,6 +358,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: {node-version: 'lts/*'}
+      - uses: ./.github/util/initialize
+        with: {github-token: "${{ github.token }}"}
+
+      - run: dart run grinder pkg-npm-dev
+        env: {UPDATE_SASS_SASS_REPO: false}
+      - run: npm install
+        working-directory: build/npm/
       - run: npm install
         working-directory: pkg/sass-parser/
       - name: Run static analysis
