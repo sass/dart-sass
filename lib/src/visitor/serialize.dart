@@ -1212,7 +1212,7 @@ final class _SerializeVisitor
     if (negative) textIndex++;
     while (true) {
       if (textIndex == text.length) {
-        // If we get here, [text] has no decmial point. It definitely doesn't
+        // If we get here, [text] has no decimal point. It definitely doesn't
         // need to be rounded; we can write it as-is.
         buffer.write(text);
         return;

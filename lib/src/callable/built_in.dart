@@ -123,4 +123,20 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// Returns a copy of this callable with the given [name].
   BuiltInCallable withName(String name) =>
       BuiltInCallable._(name, _overloads, acceptsContent);
+
+  /// Returns a copy of this callable that emits a deprecation warning.
+  BuiltInCallable withDeprecationWarning(String module, [String? newName]) =>
+      BuiltInCallable._(
+          name,
+          [
+            for (var (declaration, function) in _overloads)
+              (
+                declaration,
+                (args) {
+                  warnForGlobalBuiltIn(module, newName ?? name);
+                  return function(args);
+                }
+              )
+          ],
+          acceptsContent);
 }

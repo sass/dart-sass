@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ab2c6fa2588988a86abdbe87512134098e01b39e
+// Checksum: 69b31749dc94c7f717e9d395327e4209c4d3feb0
 //
 // ignore_for_file: unused_import
 
@@ -54,12 +54,13 @@ CompileResult compile(String path,
     Iterable<Deprecation>? silenceDeprecations,
     Iterable<Deprecation>? fatalDeprecations,
     Iterable<Deprecation>? futureDeprecations}) {
-  DeprecationProcessingLogger deprecationLogger = logger =
-      DeprecationProcessingLogger(logger ?? Logger.stderr(),
+  DeprecationProcessingLogger deprecationLogger =
+      logger = DeprecationProcessingLogger(logger ?? Logger.stderr(),
           silenceDeprecations: {...?silenceDeprecations},
           fatalDeprecations: {...?fatalDeprecations},
           futureDeprecations: {...?futureDeprecations},
-          limitRepetition: !verbose);
+          limitRepetition: !verbose)
+        ..validate();
 
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
@@ -120,12 +121,13 @@ CompileResult compileString(String source,
     Iterable<Deprecation>? silenceDeprecations,
     Iterable<Deprecation>? fatalDeprecations,
     Iterable<Deprecation>? futureDeprecations}) {
-  DeprecationProcessingLogger deprecationLogger = logger =
-      DeprecationProcessingLogger(logger ?? Logger.stderr(),
+  DeprecationProcessingLogger deprecationLogger =
+      logger = DeprecationProcessingLogger(logger ?? Logger.stderr(),
           silenceDeprecations: {...?silenceDeprecations},
           fatalDeprecations: {...?fatalDeprecations},
           futureDeprecations: {...?futureDeprecations},
-          limitRepetition: !verbose);
+          limitRepetition: !verbose)
+        ..validate();
 
   var stylesheet =
       Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);

@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a @debug rule toJSON 1`] = `
+{
+  "debugExpression": <foo>,
+  "inputs": [
+    {
+      "css": "@debug foo",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "debug",
+  "params": "foo",
+  "raws": {},
+  "sassType": "debug-rule",
+  "source": <1:1-1:11 in 0>,
+  "type": "atrule",
+}
+`;

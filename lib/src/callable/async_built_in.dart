@@ -5,6 +5,8 @@
 import 'dart:async';
 
 import '../ast/sass.dart';
+import '../deprecation.dart';
+import '../evaluation_context.dart';
 import '../value.dart';
 import 'async.dart';
 
@@ -83,4 +85,22 @@ class AsyncBuiltInCallable implements AsyncCallable {
   (ArgumentDeclaration, Callback) callbackFor(
           int positional, Set<String> names) =>
       (_arguments, _callback);
+
+  /// Returns a copy of this callable that emits a deprecation warning.
+  AsyncBuiltInCallable withDeprecationWarning(String module,
+          [String? newName]) =>
+      AsyncBuiltInCallable.parsed(name, _arguments, (args) {
+        warnForGlobalBuiltIn(module, newName ?? name);
+        return _callback(args);
+      }, acceptsContent: acceptsContent);
+}
+
+/// Emits a deprecation warning for a global built-in function that is now
+/// available as function [name] in built-in module [module].
+void warnForGlobalBuiltIn(String module, String name) {
+  warnForDeprecation(
+      'Global built-in functions will be deprecated in the future.\n'
+      'Remove the --future-deprecation=global-builtin flag to silence this '
+      'warning for now.',
+      Deprecation.globalBuiltin);
 }

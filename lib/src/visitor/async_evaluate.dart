@@ -576,14 +576,21 @@ final class _EvaluateVisitor
     ];
 
     var metaModule = BuiltInModule("meta",
-        functions: [...meta.global, ...meta.local, ...metaFunctions],
+        functions: [...meta.moduleFunctions, ...metaFunctions],
         mixins: metaMixins);
 
     for (var module in [...coreModules, metaModule]) {
       _builtInModules[module.url] = module;
     }
 
-    functions = [...?functions, ...globalFunctions, ...metaFunctions];
+    functions = [
+      ...?functions,
+      ...globalFunctions,
+      ...[
+        for (var function in metaFunctions)
+          function.withDeprecationWarning('meta')
+      ]
+    ];
     for (var function in functions) {
       _builtInFunctions[function.name.replaceAll("_", "-")] = function;
     }
@@ -1907,8 +1914,10 @@ final class _EvaluateVisitor
       _endOfImports++;
     }
 
-    _parent.addChild(ModifiableCssComment(
-        await _performInterpolation(node.text), node.span));
+    var text = await _performInterpolation(node.text);
+    // Indented syntax doesn't require */
+    if (!text.endsWith("*/")) text += " */";
+    _parent.addChild(ModifiableCssComment(text, node.span));
     return null;
   }
 

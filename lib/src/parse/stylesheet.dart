@@ -736,7 +736,7 @@ abstract class StylesheetParser extends Parser {
       whitespace();
       return _withChildren(_statement, start,
           (children, span) => AtRootRule(children, span, query: query));
-    } else if (lookingAtChildren()) {
+    } else if (lookingAtChildren() || (indented && atEndOfStatement())) {
       return _withChildren(
           _statement, start, (children, span) => AtRootRule(children, span));
     } else {
@@ -753,12 +753,12 @@ abstract class StylesheetParser extends Parser {
     buffer.writeCharCode($lparen);
     whitespace();
 
-    buffer.add(_expression());
+    _addOrInject(buffer, _expression());
     if (scanner.scanChar($colon)) {
       whitespace();
       buffer.writeCharCode($colon);
       buffer.writeCharCode($space);
-      buffer.add(_expression());
+      _addOrInject(buffer, _expression());
     }
 
     scanner.expectChar($rparen);
@@ -2850,7 +2850,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// If [allowColon] is `false`, this stops at top-level colons.
   ///
-  /// If [allowOpenBrace] is `false`, this stops at top-level colons.
+  /// If [allowOpenBrace] is `false`, this stops at opening curly braces.
   ///
   /// If [silentComments] is `true`, this will parse silent comments as
   /// comments. Otherwise, it will preserve two adjacent slashes and emit them
@@ -2896,10 +2896,6 @@ abstract class StylesheetParser extends Parser {
               buffer.writeCharCode(scanner.readChar());
               wroteNewline = false;
           }
-
-        case $slash when silentComments && scanner.peekChar(1) == $slash:
-          buffer.write(rawText(loudComment));
-          wroteNewline = false;
 
         // Add a full interpolated identifier to handle cases like "#{...}--1",
         // since "--1" isn't a valid identifier on its own.
@@ -3526,6 +3522,16 @@ abstract class StylesheetParser extends Parser {
     if (!isPrivate(identifier)) return;
     error("Private members can't be accessed from outside their modules.",
         span());
+  }
+
+  /// Adds [expression] to [buffer], or if it's an unquoted string adds the
+  /// interpolation it contains instead.
+  void _addOrInject(InterpolationBuffer buffer, Expression expression) {
+    if (expression is StringExpression && !expression.hasQuotes) {
+      buffer.addInterpolation(expression.text);
+    } else {
+      buffer.add(expression);
+    }
   }
 
   // ## Abstract Methods

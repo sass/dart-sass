@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a string expression toJSON 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@#{"foo"}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "quotes": true,
+  "raws": {},
+  "sassType": "string",
+  "source": <1:4-1:9 in 0>,
+  "text": <foo>,
+}
+`;

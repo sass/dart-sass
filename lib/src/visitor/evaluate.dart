@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: b40f3e7568d9e987dde6633424073afdc6a69349
+// Checksum: de25b9055a73f1c7ebe7a707139e6c789a2866dd
 //
 // ignore_for_file: unused_import
 
@@ -578,14 +578,21 @@ final class _EvaluateVisitor
     ];
 
     var metaModule = BuiltInModule("meta",
-        functions: [...meta.global, ...meta.local, ...metaFunctions],
+        functions: [...meta.moduleFunctions, ...metaFunctions],
         mixins: metaMixins);
 
     for (var module in [...coreModules, metaModule]) {
       _builtInModules[module.url] = module;
     }
 
-    functions = [...?functions, ...globalFunctions, ...metaFunctions];
+    functions = [
+      ...?functions,
+      ...globalFunctions,
+      ...[
+        for (var function in metaFunctions)
+          function.withDeprecationWarning('meta')
+      ]
+    ];
     for (var function in functions) {
       _builtInFunctions[function.name.replaceAll("_", "-")] = function;
     }
@@ -1899,8 +1906,10 @@ final class _EvaluateVisitor
       _endOfImports++;
     }
 
-    _parent.addChild(
-        ModifiableCssComment(_performInterpolation(node.text), node.span));
+    var text = _performInterpolation(node.text);
+    // Indented syntax doesn't require */
+    if (!text.endsWith("*/")) text += " */";
+    _parent.addChild(ModifiableCssComment(text, node.span));
     return null;
   }
 

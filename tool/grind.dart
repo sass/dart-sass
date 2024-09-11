@@ -20,7 +20,7 @@ export 'grind/benchmark.dart';
 export 'grind/double_check.dart';
 export 'grind/frameworks.dart';
 export 'grind/generate_deprecations.dart';
-export 'grind/subpackages.dart';
+export 'grind/sass_api.dart';
 export 'grind/synchronize.dart';
 export 'grind/utils.dart';
 
@@ -92,6 +92,7 @@ void main(List<String> args) {
     'NodePackageImporter',
     'deprecations',
     'Version',
+    'parser_',
   };
 
   pkg.githubReleaseNotes.fn = () =>

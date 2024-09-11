@@ -14,7 +14,7 @@ import 'list.dart';
 /// A binary operator, as in `1 + 2` or `$this and $other`.
 ///
 /// {@category AST}
-final class BinaryOperationExpression implements Expression {
+final class BinaryOperationExpression extends Expression {
   /// The operator being invoked.
   final BinaryOperator operator;
 
@@ -111,6 +111,9 @@ final class BinaryOperationExpression implements Expression {
 ///
 /// {@category AST}
 enum BinaryOperator {
+  // Note: When updating these operators, also update
+  // pkg/sass-parser/lib/src/expression/binary-operation.ts.
+
   /// The Microsoft equals operator, `=`.
   singleEquals('single equals', '=', 0),
 

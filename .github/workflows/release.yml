@@ -102,8 +102,8 @@ jobs:
         run: dart run grinder protobuf pkg-pub-deploy
         env: {PUB_CREDENTIALS: "${{ secrets.PUB_CREDENTIALS }}"}
 
-  deploy_sub_packages:
-    name: Deploy Sub-Packages
+  deploy_sass_api:
+    name: Deploy sass_api
     runs-on: ubuntu-latest
     needs: [deploy_pub]
 
@@ -113,11 +113,37 @@ jobs:
         with: {github-token: "${{ github.token }}"}
 
       - name: Deploy
-        run: dart run grinder deploy-sub-packages
+        run: dart run grinder deploy-sass-api
         env:
           PUB_CREDENTIALS: "${{ secrets.PUB_CREDENTIALS }}"
           GH_TOKEN: "${{ secrets.GH_TOKEN }}"
           GH_USER: sassbot
+
+  deploy_sass_parser:
+    name: Deploy sass-parser
+    runs-on: ubuntu-latest
+    needs: [deploy_npm]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+      # Set up .npmrc file to publish to npm
+      - uses: actions/setup-node@v4
+        with:
+          version: 'lts/*'
+          check-latest: true
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: '${{ secrets.NPM_TOKEN }}'
+
+      - name: Get version
+        id: version
+        run: |
+          echo "version=$(jq .version pkg/sass-parser/package.json)" | tee --append "$GITHUB_OUTPUT"
+      - run: git tag sass-parser/${{ steps.version.outputs.version }}
+      - run: git push --tag
 
   deploy_homebrew:
     name: Deploy Homebrew
