@@ -11,7 +11,7 @@ import '../statement.dart';
 /// A loud CSS-style comment.
 ///
 /// {@category AST}
-final class LoudComment implements Statement {
+final class LoudComment extends Statement {
   /// The interpolated text of this comment, including comment characters.
   final Interpolation text;
 

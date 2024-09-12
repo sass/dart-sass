@@ -10,7 +10,7 @@ import '../expression.dart';
 /// A null literal.
 ///
 /// {@category AST}
-final class NullExpression implements Expression {
+final class NullExpression extends Expression {
   final FileSpan span;
 
   NullExpression(this.span);

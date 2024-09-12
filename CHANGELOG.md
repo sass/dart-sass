@@ -125,6 +125,12 @@
     `darken()`, `transaprentize()`, `fade-out()`, `opacify()`, and `fade-in()`
     functions should be replaced by `color.adjust()` or `color.scale()`.
 
+* Add a `global-builtin` future deprecation, which can be opted-into with the
+  `--future-deprecation` flag or the `futureDeprecations` option in the JS or
+  Dart API. This emits warnings when any global built-in functions that are
+  now available in `sass:` modules are called. It will become active by default
+  in an upcoming release alongside the `@import` deprecation.
+
 ### Dart API
 
 * Added a `ColorSpace` class which represents the various color spaces defined
@@ -190,6 +196,23 @@
 
 ## 1.78.0
 
+* The `meta.feature-exists` function is now deprecated. This deprecation is
+  named `feature-exists`.
+
+* Fix a crash when using `@at-root` without any queries or children in the
+  indented syntax.
+
+### JS API
+
+* Backport the deprecation options (`fatalDeprecations`, `futureDeprecations`,
+  and `silenceDeprecations`) to the legacy JS API. The legacy JS API is itself
+  deprecated, and you should move off of it if possible, but this will allow
+  users of bundlers and other tools that are still using the legacy API to
+  still control deprecation warnings.
+
+* Fix a bug where accessing `SourceSpan.url` would crash when a relative URL was
+  passed to the Sass API.
+
 ### Embedded Sass
 
 * Explicitly expose a `sass` executable from the `sass-embedded` npm package.
@@ -203,6 +226,12 @@
 
 * Fix an edge case where the Dart VM could hang when shutting down when requests
   were in flight.
+
+* Fix a race condition where the embedded host could fail to shut down if it was
+  closed around the same time a new compilation was started.
+
+* Fix a bug where parse-time deprecation warnings could not be controlled by
+  the deprecation options in some circumstances.
 
 ## 1.77.8
 

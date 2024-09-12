@@ -17,8 +17,8 @@ import '../reference.dart';
 /// interpolation.
 ///
 /// {@category AST}
-final class FunctionExpression
-    implements Expression, CallableInvocation, SassReference {
+final class FunctionExpression extends Expression
+    implements CallableInvocation, SassReference {
   /// The namespace of the function being invoked, or `null` if it's invoked
   /// without a namespace.
   final String? namespace;

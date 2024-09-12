@@ -1,0 +1,82 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a generic @-rule toJSON with a child 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@foo {@bar}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "foo",
+  "nameInterpolation": <foo>,
+  "nodes": [
+    <@bar;>,
+  ],
+  "params": "",
+  "raws": {},
+  "sassType": "atrule",
+  "source": <1:1-1:12 in 0>,
+  "type": "atrule",
+}
+`;
+
+exports[`a generic @-rule toJSON with empty children 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@foo {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "foo",
+  "nameInterpolation": <foo>,
+  "nodes": [],
+  "params": "",
+  "raws": {},
+  "sassType": "atrule",
+  "source": <1:1-1:8 in 0>,
+  "type": "atrule",
+}
+`;
+
+exports[`a generic @-rule toJSON with params 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@foo bar",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "foo",
+  "nameInterpolation": <foo>,
+  "params": "bar",
+  "paramsInterpolation": <bar>,
+  "raws": {},
+  "sassType": "atrule",
+  "source": <1:1-1:9 in 0>,
+  "type": "atrule",
+}
+`;
+
+exports[`a generic @-rule toJSON without params 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@foo",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "foo",
+  "nameInterpolation": <foo>,
+  "params": "",
+  "raws": {},
+  "sassType": "atrule",
+  "source": <1:1-1:5 in 0>,
+  "type": "atrule",
+}
+`;

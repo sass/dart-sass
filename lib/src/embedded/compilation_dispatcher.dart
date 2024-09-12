@@ -51,28 +51,15 @@ final class CompilationDispatcher {
   /// This is used in outgoing messages.
   late Uint8List _compilationIdVarint;
 
-  /// Whether we detected a [ProtocolError] while parsing an incoming response.
-  ///
-  /// If we have, we don't want to send the final compilation result because
-  /// it'll just be a wrapper around the error.
-  var _requestError = false;
-
   /// Creates a [CompilationDispatcher] that receives encoded protocol buffers
   /// through [_mailbox] and sends them through [_sendPort].
   CompilationDispatcher(this._mailbox, this._sendPort);
 
   /// Listens for incoming `CompileRequests` and runs their compilations.
   void listen() {
-    do {
-      Uint8List packet;
+    while (true) {
       try {
-        packet = _mailbox.take();
-      } on StateError catch (_) {
-        break;
-      }
-
-      try {
-        var (compilationId, messageBuffer) = parsePacket(packet);
+        var (compilationId, messageBuffer) = parsePacket(_receive());
 
         _compilationId = compilationId;
         _compilationIdVarint = serializeVarint(compilationId);
@@ -88,9 +75,7 @@ final class CompilationDispatcher {
           case InboundMessage_Message.compileRequest:
             var request = message.compileRequest;
             var response = _compile(request);
-            if (!_requestError) {
-              _send(OutboundMessage()..compileResponse = response);
-            }
+            _send(OutboundMessage()..compileResponse = response);
 
           case InboundMessage_Message.versionRequest:
             throw paramsError("VersionRequest must have compilation ID 0.");
@@ -113,7 +98,7 @@ final class CompilationDispatcher {
       } catch (error, stackTrace) {
         _handleError(error, stackTrace);
       }
-    } while (!_requestError);
+    }
   }
 
   OutboundMessage_CompileResponse _compile(
@@ -287,19 +272,12 @@ final class CompilationDispatcher {
   void sendLog(OutboundMessage_LogEvent event) =>
       _send(OutboundMessage()..logEvent = event);
 
-  /// Sends [error] to the host.
+  /// Sends [error] to the host and exit.
   ///
   /// This is used during compilation by other classes like host callable.
-  /// Therefore it must set _requestError = true to prevent sending a CompileFailure after
-  /// sending a ProtocolError.
-  void sendError(ProtocolError error) {
-    _sendError(error);
-    _requestError = true;
+  Never sendError(ProtocolError error) {
+    Isolate.exit(_sendPort, _serializePacket(OutboundMessage()..error = error));
   }
-
-  /// Sends [error] to the host.
-  void _sendError(ProtocolError error) =>
-      _send(OutboundMessage()..error = error);
 
   InboundMessage_CanonicalizeResponse sendCanonicalizeRequest(
           OutboundMessage_CanonicalizeRequest request) =>
@@ -326,19 +304,9 @@ final class CompilationDispatcher {
     message.id = _outboundRequestId;
     _send(message);
 
-    Uint8List packet;
-    try {
-      packet = _mailbox.take();
-    } on StateError catch (_) {
-      // Compiler is shutting down, throw without calling `_handleError` as we
-      // don't want to report this as an actual error.
-      _requestError = true;
-      rethrow;
-    }
-
     try {
       var messageBuffer =
-          Uint8List.sublistView(packet, _compilationIdVarint.length);
+          Uint8List.sublistView(_receive(), _compilationIdVarint.length);
 
       InboundMessage message;
       try {
@@ -376,8 +344,6 @@ final class CompilationDispatcher {
       return response;
     } catch (error, stackTrace) {
       _handleError(error, stackTrace);
-      _requestError = true;
-      rethrow;
     }
   }
 
@@ -385,12 +351,17 @@ final class CompilationDispatcher {
   ///
   /// The [messageId] indicate the IDs of the message being responded to, if
   /// available.
-  void _handleError(Object error, StackTrace stackTrace, {int? messageId}) {
-    _sendError(handleError(error, stackTrace, messageId: messageId));
+  Never _handleError(Object error, StackTrace stackTrace, {int? messageId}) {
+    sendError(handleError(error, stackTrace, messageId: messageId));
   }
 
   /// Sends [message] to the host with the given [wireId].
   void _send(OutboundMessage message) {
+    _sendPort.send(_serializePacket(message));
+  }
+
+  /// Serialize [message] to [Uint8List].
+  Uint8List _serializePacket(OutboundMessage message) {
     var protobufWriter = CodedBufferWriter();
     message.writeToCodedBufferWriter(protobufWriter);
 
@@ -407,6 +378,17 @@ final class CompilationDispatcher {
     };
     packet.setAll(1, _compilationIdVarint);
     protobufWriter.writeTo(packet, 1 + _compilationIdVarint.length);
-    _sendPort.send(packet);
+    return packet;
+  }
+
+  /// Receive a packet from the host.
+  Uint8List _receive() {
+    try {
+      return _mailbox.take();
+    } on StateError catch (_) {
+      // The [_mailbox] has been closed, exit the current isolate immediately
+      // to avoid bubble the error up as [SassException] during [_sendRequest].
+      Isolate.exit();
+    }
   }
 }

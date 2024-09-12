@@ -3,7 +3,7 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun**.
 <table>
   <tr>
     <td>
-      <img width="118px" alt="Sass logo" src="https://rawgit.com/sass/sass-site/master/source/assets/img/logos/logo.svg" />
+      <img width="118px" alt="Sass logo" src="https://rawgit.com/sass/sass-site/main/source/assets/img/logos/logo.svg" />
     </td>
     <td valign="middle">
       <a href="https://www.npmjs.com/package/sass"><img width="100%" alt="npm statistics" src="https://nodei.co/npm/sass.png?downloads=true"></a>
@@ -14,6 +14,8 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun**.
       <a href="https://github.com/sass/dart-sass/actions"><img alt="GitHub actions build status" src="https://github.com/sass/dart-sass/workflows/CI/badge.svg"></a>
     </td>
     <td>
+      <a href="https://front-end.social/@sass"><img alt="@sass@front-end.social on Fediverse" src="https://img.shields.io/mastodon/follow/110159358073946175?domain=https%3A%2F%2Ffront-end.social"></a>
+      <br>
       <a href="https://twitter.com/SassCSS"><img alt="@SassCSS on Twitter" src="https://img.shields.io/twitter/follow/SassCSS?label=%40SassCSS&style=social"></a>
       <br>
       <a href="https://stackoverflow.com/questions/tagged/sass"><img alt="stackoverflow" src="https://img.shields.io/stackexchange/stackoverflow/t/sass?label=Sass%20questions&logo=stackoverflow&style=social"></a>
@@ -201,7 +203,7 @@ files, you'll need to pass a [custom importer] to [`compileString()`] or
 
 [`compile()`]: https://sass-lang.com/documentation/js-api/functions/compile
 [`compileAsync()`]: https://sass-lang.com/documentation/js-api/functions/compileAsync
-[custom importer]: https://sass-lang.com/documentation/js-api/interfaces/StringOptionsWithImporter#importer
+[custom importer]: https://sass-lang.com/documentation/js-api/interfaces/stringoptions/#importer
 [`compileString()`]: https://sass-lang.com/documentation/js-api/functions/compileString
 [`compileStringAsync()`]: https://sass-lang.com/documentation/js-api/functions/compileStringAsync
 [legacy API]: #legacy-javascript-api

@@ -10,7 +10,7 @@ import '../expression.dart';
 /// A map literal.
 ///
 /// {@category AST}
-final class MapExpression implements Expression {
+final class MapExpression extends Expression {
   /// The pairs in this map.
   ///
   /// This is a list of pairs rather than a map because a map may have two keys

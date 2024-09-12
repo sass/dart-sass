@@ -13,7 +13,7 @@ import '../statement.dart';
 /// This prints a Sass value—usually a string—to warn the user of something.
 ///
 /// {@category AST}
-final class WarnRule implements Statement {
+final class WarnRule extends Statement {
   /// The expression to print.
   final Expression expression;
 

@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
@@ -31,10 +30,13 @@ const _specialCommaSpaces = {ColorSpace.rgb, ColorSpace.hsl};
 /// The global definitions of Sass color functions.
 final global = UnmodifiableListView([
   // ### RGB
-  _channelFunction("red", (color) => color.red, global: true),
-  _channelFunction("green", (color) => color.green, global: true),
-  _channelFunction("blue", (color) => color.blue, global: true),
-  _mix,
+  _channelFunction("red", (color) => color.red, global: true)
+      .withDeprecationWarning("color"),
+  _channelFunction("green", (color) => color.green, global: true)
+      .withDeprecationWarning("color"),
+  _channelFunction("blue", (color) => color.blue, global: true)
+      .withDeprecationWarning("color"),
+  _mix.withDeprecationWarning("color"),
 
   BuiltInCallable.overloadedFunction("rgb", {
     r"$red, $green, $blue, $alpha": (arguments) => _rgb("rgb", arguments),
@@ -53,14 +55,18 @@ final global = UnmodifiableListView([
   }),
 
   _function("invert", r"$color, $weight: 100%, $space: null",
-      (arguments) => _invert(arguments, global: true)),
+          (arguments) => _invert(arguments, global: true))
+      .withDeprecationWarning("color"),
 
   // ### HSL
-  _channelFunction("hue", (color) => color.hue, unit: 'deg', global: true),
+  _channelFunction("hue", (color) => color.hue, unit: 'deg', global: true)
+      .withDeprecationWarning("color"),
   _channelFunction("saturation", (color) => color.saturation,
-      unit: '%', global: true),
+          unit: '%', global: true)
+      .withDeprecationWarning("color"),
   _channelFunction("lightness", (color) => color.lightness,
-      unit: '%', global: true),
+          unit: '%', global: true)
+      .withDeprecationWarning("color"),
 
   BuiltInCallable.overloadedFunction("hsl", {
     r"$hue, $saturation, $lightness, $alpha": (arguments) =>
@@ -94,13 +100,16 @@ final global = UnmodifiableListView([
         space: ColorSpace.hsl, name: 'channels')
   }),
 
-  _function(
-      "grayscale",
-      r"$color",
-      (arguments) => arguments[0] is SassNumber || arguments[0].isSpecialNumber
-          // Use the native CSS `grayscale` filter function.
-          ? _functionString('grayscale', arguments)
-          : _grayscale(arguments[0])),
+  _function("grayscale", r"$color", (arguments) {
+    if (arguments[0] is SassNumber || arguments[0].isSpecialNumber) {
+      // Use the native CSS `grayscale` filter function.
+      return _functionString('grayscale', arguments);
+    } else {
+      warnForGlobalBuiltIn('color', 'grayscale');
+
+      return _grayscale(arguments[0]);
+    }
+  }),
 
   _function("adjust-hue", r"$color, $degrees", (arguments) {
     var color = arguments[0].assertColor("color");
@@ -122,7 +131,7 @@ final global = UnmodifiableListView([
         Deprecation.colorFunctions);
 
     return color.changeHsl(hue: color.hue + degrees);
-  }),
+  }).withDeprecationWarning('color', 'adjust'),
 
   _function("lighten", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
@@ -144,7 +153,7 @@ final global = UnmodifiableListView([
         "More info: https://sass-lang.com/d/color-functions",
         Deprecation.colorFunctions);
     return result;
-  }),
+  }).withDeprecationWarning('color', 'adjust'),
 
   _function("darken", r"$color, $amount", (arguments) {
     var color = arguments[0].assertColor("color");
@@ -166,7 +175,7 @@ final global = UnmodifiableListView([
         "More info: https://sass-lang.com/d/color-functions",
         Deprecation.colorFunctions);
     return result;
-  }),
+  }).withDeprecationWarning('color', 'adjust'),
 
   BuiltInCallable.overloadedFunction("saturate", {
     r"$amount": (arguments) {
@@ -178,6 +187,7 @@ final global = UnmodifiableListView([
       return SassString("saturate(${number.toCssString()})", quotes: false);
     },
     r"$color, $amount": (arguments) {
+      warnForGlobalBuiltIn('color', 'adjust');
       var color = arguments[0].assertColor("color");
       var amount = arguments[1].assertNumber("amount");
       if (!color.isLegacy) {
@@ -222,29 +232,38 @@ final global = UnmodifiableListView([
         "More info: https://sass-lang.com/d/color-functions",
         Deprecation.colorFunctions);
     return result;
-  }),
+  }).withDeprecationWarning('color', 'adjust'),
 
   // ### Opacity
   _function("opacify", r"$color, $amount",
-      (arguments) => _opacify("opacify", arguments)),
+          (arguments) => _opacify("opacify", arguments))
+      .withDeprecationWarning('color', 'adjust'),
   _function("fade-in", r"$color, $amount",
-      (arguments) => _opacify("fade-in", arguments)),
+          (arguments) => _opacify("fade-in", arguments))
+      .withDeprecationWarning('color', 'adjust'),
   _function("transparentize", r"$color, $amount",
-      (arguments) => _transparentize("transparentize", arguments)),
+          (arguments) => _transparentize("transparentize", arguments))
+      .withDeprecationWarning('color', 'adjust'),
   _function("fade-out", r"$color, $amount",
-      (arguments) => _transparentize("fade-out", arguments)),
+          (arguments) => _transparentize("fade-out", arguments))
+      .withDeprecationWarning('color', 'adjust'),
 
   BuiltInCallable.overloadedFunction("alpha", {
-    r"$color": (arguments) => switch (arguments[0]) {
-          // Support the proprietary Microsoft alpha() function.
-          SassString(hasQuotes: false, :var text)
-              when text.contains(_microsoftFilterStart) =>
-            _functionString("alpha", arguments),
-          SassColor(isLegacy: false) => throw SassScriptException(
+    r"$color": (arguments) {
+      switch (arguments[0]) {
+        // Support the proprietary Microsoft alpha() function.
+        case SassString(hasQuotes: false, :var text)
+            when text.contains(_microsoftFilterStart):
+          return _functionString("alpha", arguments);
+        case SassColor(isLegacy: false):
+          throw SassScriptException(
               "alpha() is only supported for legacy colors. Please use "
-              "color.channel() instead."),
-          var argument => SassNumber(argument.assertColor("color").alpha)
-        },
+              "color.channel() instead.");
+        case var argument:
+          warnForGlobalBuiltIn('color', 'alpha');
+          return SassNumber(argument.assertColor("color").alpha);
+      }
+    },
     r"$args...": (arguments) {
       var argList = arguments[0].asList;
       if (argList.isNotEmpty &&
@@ -272,6 +291,7 @@ final global = UnmodifiableListView([
       return _functionString("opacity", arguments);
     }
 
+    warnForGlobalBuiltIn('color', 'opacity');
     var color = arguments[0].assertColor("color");
     return SassNumber(color.alpha);
   }),
@@ -314,13 +334,13 @@ final global = UnmodifiableListView([
       (arguments) => _parseChannels("oklch", arguments[0],
           space: ColorSpace.oklch, name: 'channels')),
 
-  _complement,
+  _complement.withDeprecationWarning("color"),
 
   // ### Miscellaneous
   _ieHexStr,
-  _adjust.withName("adjust-color"),
-  _scale.withName("scale-color"),
-  _change.withName("change-color")
+  _adjust.withDeprecationWarning('color').withName("adjust-color"),
+  _scale.withDeprecationWarning('color').withName("scale-color"),
+  _change.withDeprecationWarning('color').withName("change-color")
 ]);
 
 /// The Sass color module.

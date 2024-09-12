@@ -1,4 +1,4 @@
-## 11.0.0
+## 12.0.0
 
 * **Breaking change:** Remove the `SassApiColor.hasCalculatedRgb` and
   `.hasCalculatedHsl` extension methods. These can now be determined by checking
@@ -49,9 +49,14 @@
 * Added `SassNumber.convertValueToUnit()` as a shorthand for
   `SassNumber.convertValue()` with a single numerator.
 
-## 10.5.0
+## 11.1.0
 
-* No user-visible changes.
+* Loud comments in the Sass syntax no longer automatically inject ` */` to the
+  end when parsed.
+
+## 11.0.0
+
+* Remove the `CallableDeclaration()` constructor.
 
 ## 10.4.8
 

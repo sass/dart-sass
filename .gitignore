@@ -12,8 +12,10 @@ pubspec.lock
 package-lock.json
 /benchmark/source
 node_modules/
+dist/
 /doc/api
 /pkg/*/doc/api
+/pkg/sass-parser/doc
 
 # Generated protocol buffer files.
 *.pb*.dart

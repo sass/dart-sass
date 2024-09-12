@@ -45,7 +45,10 @@ final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
       {required this.silenceDeprecations,
       required this.fatalDeprecations,
       required this.futureDeprecations,
-      this.limitRepetition = true}) {
+      this.limitRepetition = true});
+
+  /// Warns if any of the deprecations options are incompatible or unnecessary.
+  void validate() {
     for (var deprecation in fatalDeprecations) {
       switch (deprecation) {
         case Deprecation(isFuture: true)

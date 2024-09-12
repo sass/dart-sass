@@ -13,7 +13,7 @@ import '../statement.dart';
 /// This emits an error and stops execution.
 ///
 /// {@category AST}
-final class ErrorRule implements Statement {
+final class ErrorRule extends Statement {
   /// The expression to evaluate for the error message.
   final Expression expression;
 

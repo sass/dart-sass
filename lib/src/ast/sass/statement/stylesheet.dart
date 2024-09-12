@@ -91,8 +91,6 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
           return Stylesheet.parseScss(contents, url: url, logger: logger);
         case Syntax.css:
           return Stylesheet.parseCss(contents, url: url, logger: logger);
-        default:
-          throw ArgumentError("Unknown syntax $syntax.");
       }
     } on SassException catch (error, stackTrace) {
       var url = error.span.sourceUrl;
