@@ -12,6 +12,7 @@ import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../util/map.dart';
 import '../value.dart';
+import '../visitor/serialize.dart';
 
 /// Feature names supported by Dart sass.
 final _features = {
@@ -39,8 +40,13 @@ final _shared = UnmodifiableListView([
     var feature = arguments[0].assertString("feature");
     return SassBoolean(_features.contains(feature.text));
   }),
-  _function("inspect", r"$value",
-      (arguments) => SassString(arguments.first.toString(), quotes: false)),
+
+  _function(
+      "inspect",
+      r"$value",
+      (arguments) => SassString(serializeValue(arguments.first, inspect: true),
+          quotes: false)),
+
   _function(
       "type-of",
       r"$value",

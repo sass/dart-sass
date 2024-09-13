@@ -93,6 +93,11 @@ class SingleUnitSassNumber extends SassNumber {
       // Call this to generate a consistent error message.
       super.coerceValueToMatch(other, name, otherName);
 
+  double convertValueToUnit(String unit, [String? name]) =>
+      _coerceValueToUnit(unit) ??
+      // Call this to generate a consistent error message.
+      super.convertValueToUnit(unit, name);
+
   SassNumber convertToMatch(SassNumber other,
           [String? name, String? otherName]) =>
       (other is SingleUnitSassNumber ? _coerceToUnit(other._unit) : null) ??

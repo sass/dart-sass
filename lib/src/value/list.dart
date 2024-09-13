@@ -58,6 +58,18 @@ class SassList extends Value {
     }
   }
 
+  /// Add parentheses to the debug information for lists to help make the list
+  /// bounds clear.
+  String toString() {
+    if (hasBrackets ||
+        lengthAsList == 0 ||
+        (lengthAsList == 1 && separator == ListSeparator.comma)) {
+      return super.toString();
+    }
+
+    return "(${super.toString()})";
+  }
+
   /// @nodoc
   @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitList(this);
