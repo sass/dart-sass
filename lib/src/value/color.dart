@@ -83,6 +83,7 @@ class SassColor extends Value {
   /// [missing]: https://www.w3.org/TR/css-color-4/#missing
   ///
   /// @nodoc
+  @internal
   final double? channel0OrNull;
 
   /// This color's second channel.
@@ -118,6 +119,7 @@ class SassColor extends Value {
   /// [missing]: https://www.w3.org/TR/css-color-4/#missing
   ///
   /// @nodoc
+  @internal
   final double? channel1OrNull;
 
   /// Returns whether this color's third channel is [missing].
@@ -156,6 +158,7 @@ class SassColor extends Value {
   /// [missing]: https://www.w3.org/TR/css-color-4/#missing
   ///
   /// @nodoc
+  @internal
   final double? channel2OrNull;
 
   /// The format in which this color was originally written and should be
@@ -624,8 +627,9 @@ class SassColor extends Value {
 
   /// Converts this color to [space].
   ///
-  /// If [legacyMissing] is false, this will convert missing channels in
-  /// legacy color spaces to zero if a conversion occurs.
+  /// If [legacyMissing] is false, this will convert missing channels in legacy
+  /// color spaces to zero if a conversion occurs. Otherwise, they remain
+  /// missing after the conversion.
   SassColor toSpace(ColorSpace space, {bool legacyMissing = true}) {
     if (this.space == space) return this;
 
