@@ -179,6 +179,7 @@ Future<CompileResult> _compileStylesheet(
       useSpaces: useSpaces,
       indentWidth: indentWidth,
       lineFeed: lineFeed,
+      logger: logger,
       sourceMap: sourceMap,
       charset: charset);
 

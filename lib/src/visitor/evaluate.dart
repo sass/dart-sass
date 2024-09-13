@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: de25b9055a73f1c7ebe7a707139e6c789a2866dd
+// Checksum: ca67afd2df1c970eb887d4a24c7fe838c2aaec60
 //
 // ignore_for_file: unused_import
 
@@ -1196,20 +1196,43 @@ final class _EvaluateVisitor
           node.span);
     }
 
-    if (_parent.parent!.children.last case var sibling
-        when _parent != sibling) {
-      _warn(
-          "Sass's behavior for declarations that appear after nested\n"
-          "rules will be changing to match the behavior specified by CSS in an "
-          "upcoming\n"
-          "version. To keep the existing behavior, move the declaration above "
-          "the nested\n"
-          "rule. To opt into the new behavior, wrap the declaration in `& "
-          "{}`.\n"
-          "\n"
-          "More info: https://sass-lang.com/d/mixed-decls",
-          MultiSpan(node.span, 'declaration', {sibling.span: 'nested rule'}),
-          Deprecation.mixedDecls);
+    var siblings = _parent.parent!.children;
+    var interleavedRules = <CssStyleRule>[];
+    if (siblings.last != _parent &&
+        // Reproduce this condition from [_warn] so that we don't add anything to
+        // [interleavedRules] for declarations in dependencies.
+        !(_quietDeps &&
+            (_inDependency || (_currentCallable?.inDependency ?? false)))) {
+      loop:
+      for (var sibling in siblings.skip(siblings.indexOf(_parent) + 1)) {
+        switch (sibling) {
+          case CssComment():
+            continue loop;
+
+          case CssStyleRule rule:
+            interleavedRules.add(rule);
+
+          case _:
+            // Always warn for siblings that aren't style rules, because they
+            // add no specificity and they're nested in the same parent as this
+            // declaration.
+            _warn(
+                "Sass's behavior for declarations that appear after nested\n"
+                "rules will be changing to match the behavior specified by CSS "
+                "in an upcoming\n"
+                "version. To keep the existing behavior, move the declaration "
+                "above the nested\n"
+                "rule. To opt into the new behavior, wrap the declaration in "
+                "`& {}`.\n"
+                "\n"
+                "More info: https://sass-lang.com/d/mixed-decls",
+                MultiSpan(
+                    node.span, 'declaration', {sibling.span: 'nested rule'}),
+                Deprecation.mixedDecls);
+            interleavedRules.clear();
+            break;
+        }
+      }
     }
 
     var name = _interpolationToValue(node.name, warnForColor: true);
@@ -1225,6 +1248,8 @@ final class _EvaluateVisitor
         _parent.addChild(ModifiableCssDeclaration(
             name, CssValue(value, expression.span), node.span,
             parsedAsCustomProperty: node.isCustomProperty,
+            interleavedRules: interleavedRules,
+            trace: interleavedRules.isEmpty ? null : _stackTrace(node.span),
             valueSpanForMap:
                 _sourceMap ? node.value.andThen(_expressionNode)?.span : null));
       } else if (name.value.startsWith('--')) {

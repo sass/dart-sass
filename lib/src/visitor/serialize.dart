@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:charcode/charcode.dart';
+import 'package:collection/collection.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:string_scanner/string_scanner.dart';
 
@@ -13,10 +14,13 @@ import '../ast/css.dart';
 import '../ast/node.dart';
 import '../ast/selector.dart';
 import '../color_names.dart';
+import '../deprecation.dart';
 import '../exception.dart';
+import '../logger.dart';
 import '../parse/parser.dart';
 import '../utils.dart';
 import '../util/character.dart';
+import '../util/multi_span.dart';
 import '../util/no_source_map_buffer.dart';
 import '../util/nullable.dart';
 import '../util/number.dart';
@@ -48,6 +52,7 @@ SerializeResult serialize(CssNode node,
     bool useSpaces = true,
     int? indentWidth,
     LineFeed? lineFeed,
+    Logger? logger,
     bool sourceMap = false,
     bool charset = true}) {
   indentWidth ??= 2;
@@ -57,6 +62,7 @@ SerializeResult serialize(CssNode node,
       useSpaces: useSpaces,
       indentWidth: indentWidth,
       lineFeed: lineFeed,
+      logger: logger,
       sourceMap: sourceMap);
   node.accept(visitor);
   var css = visitor._buffer.toString();
@@ -128,6 +134,12 @@ final class _SerializeVisitor
   /// The characters to use for a line feed.
   final LineFeed _lineFeed;
 
+  /// The logger to use to print warnings.
+  ///
+  /// This should only be used for statement-level serialization. It's not
+  /// guaranteed to be the main user-provided logger for expressions.
+  final Logger _logger;
+
   /// Whether we're emitting compressed output.
   bool get _isCompressed => _style == OutputStyle.compressed;
 
@@ -138,6 +150,7 @@ final class _SerializeVisitor
       bool useSpaces = true,
       int? indentWidth,
       LineFeed? lineFeed,
+      Logger? logger,
       bool sourceMap = true})
       : _buffer = sourceMap ? SourceMapBuffer() : NoSourceMapBuffer(),
         _style = style ?? OutputStyle.expanded,
@@ -145,7 +158,8 @@ final class _SerializeVisitor
         _quote = quote,
         _indentCharacter = useSpaces ? $space : $tab,
         _indentWidth = indentWidth ?? 2,
-        _lineFeed = lineFeed ?? LineFeed.lf {
+        _lineFeed = lineFeed ?? LineFeed.lf,
+        _logger = logger ?? const Logger.stderr() {
     RangeError.checkValueInInterval(_indentWidth, 0, 10, "indentWidth");
   }
 
@@ -329,6 +343,33 @@ final class _SerializeVisitor
   }
 
   void visitCssDeclaration(CssDeclaration node) {
+    if (node.interleavedRules.isNotEmpty) {
+      var declSpecificities = _specificities(node.parent!);
+      for (var rule in node.interleavedRules) {
+        var ruleSpecificities = _specificities(rule);
+
+        // If the declaration can never match with the same specificity as one
+        // of its sibling rules, then ordering will never matter and there's no
+        // need to warn about the declaration being re-ordered.
+        if (!declSpecificities.any(ruleSpecificities.contains)) continue;
+
+        _logger.warnForDeprecation(
+            Deprecation.mixedDecls,
+            "Sass's behavior for declarations that appear after nested\n"
+            "rules will be changing to match the behavior specified by CSS in an "
+            "upcoming\n"
+            "version. To keep the existing behavior, move the declaration above "
+            "the nested\n"
+            "rule. To opt into the new behavior, wrap the declaration in `& "
+            "{}`.\n"
+            "\n"
+            "More info: https://sass-lang.com/d/mixed-decls",
+            span:
+                MultiSpan(node.span, 'declaration', {rule.span: 'nested rule'}),
+            trace: node.trace);
+      }
+    }
+
     _writeIndentation();
 
     _write(node.name);
@@ -360,6 +401,22 @@ final class _SerializeVisitor
         throwWithTrace(
             SassException(error.message, node.value.span), error, stackTrace);
       }
+    }
+  }
+
+  /// Returns the set of possible specificities which which [node] might match.
+  Set<int> _specificities(CssParentNode node) {
+    if (node case CssStyleRule rule) {
+      // Plain CSS style rule nesting implicitly wraps parent selectors in
+      // `:is()`, so they all match with the highest specificity among any of
+      // them.
+      var parent = node.parent.andThen(_specificities)?.max ?? 0;
+      return {
+        for (var selector in rule.selector.components)
+          parent + selector.specificity
+      };
+    } else {
+      return node.parent.andThen(_specificities) ?? const {0};
     }
   }
 

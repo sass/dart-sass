@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 02482100b0a8b4621fe9a70bac549a37f04891f8
+// Checksum: 4141eec2214ef480b6fdf07e5090202cdea3eb89
 //
 // ignore_for_file: unused_import
 
@@ -188,6 +188,7 @@ CompileResult _compileStylesheet(
       useSpaces: useSpaces,
       indentWidth: indentWidth,
       lineFeed: lineFeed,
+      logger: logger,
       sourceMap: sourceMap,
       charset: charset);
 
