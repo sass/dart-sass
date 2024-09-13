@@ -170,6 +170,12 @@
 
 ### JS API
 
+* While the legacy API has been deprecated since we released the modern API, we
+  now emit warnings when the legacy API is used to make sure users are aware
+  that it will be removed in Dart Sass 2.0.0. In the meantime, you can silence
+  these warnings by passing `legacy-js-api` in `silenceDeprecations` when using
+  the legacy API.
+
 * Modify `SassColor` to accept a new `space` option, with support for all the
   new color spaces defined in Color Level 4.
 

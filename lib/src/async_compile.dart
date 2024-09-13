@@ -159,6 +159,12 @@ Future<CompileResult> _compileStylesheet(
     bool quietDeps,
     bool sourceMap,
     bool charset) async {
+  if (nodeImporter != null) {
+    logger?.warnForDeprecation(
+        Deprecation.legacyJsApi,
+        'The legacy JS API is deprecated and will be removed in '
+        'Dart Sass 2.0.0.');
+  }
   var evaluateResult = await evaluateAsync(stylesheet,
       importCache: importCache,
       nodeImporter: nodeImporter,

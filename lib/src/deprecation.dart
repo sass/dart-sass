@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 5470e7252641d3eaa7093b072b52e423c3b77375
+  // Checksum: 0243e0f7ee85127d6e1bda5c08e363509959e758
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -108,6 +108,10 @@ enum Deprecation {
   colorFunctions('color-functions',
       deprecatedIn: '1.79.0',
       description: 'Using global color functions instead of sass:color.'),
+
+  /// Deprecation for legacy JS API.
+  legacyJsApi('legacy-js-api',
+      deprecatedIn: '1.79.0', description: 'Legacy JS API.'),
 
   /// Deprecation for @import rules.
   import.future('import', description: '@import rules.'),
