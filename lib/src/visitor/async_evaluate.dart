@@ -51,6 +51,7 @@ import 'interface/css.dart';
 import 'interface/expression.dart';
 import 'interface/modifiable_css.dart';
 import 'interface/statement.dart';
+import 'serialize.dart';
 
 /// A function that takes a callback with no arguments.
 typedef _ScopeCallback = Future<void> Function(
@@ -1181,7 +1182,8 @@ final class _EvaluateVisitor
   Future<Value?> visitDebugRule(DebugRule node) async {
     var value = await node.expression.accept(this);
     _logger.debug(
-        value is SassString ? value.text : value.toString(), node.span);
+        value is SassString ? value.text : serializeValue(value, inspect: true),
+        node.span);
     return null;
   }
 
@@ -1753,13 +1755,7 @@ final class _EvaluateVisitor
     } on ArgumentError catch (error, stackTrace) {
       throwWithTrace(_exception(error.toString()), error, stackTrace);
     } catch (error, stackTrace) {
-      String? message;
-      try {
-        message = (error as dynamic).message as String;
-      } catch (_) {
-        message = error.toString();
-      }
-      throwWithTrace(_exception(message), error, stackTrace);
+      throwWithTrace(_exception(_getErrorMessage(error)), error, stackTrace);
     } finally {
       _importSpan = null;
     }
@@ -3073,13 +3069,8 @@ final class _EvaluateVisitor
     } on SassException {
       rethrow;
     } catch (error, stackTrace) {
-      String? message;
-      try {
-        message = (error as dynamic).message as String;
-      } catch (_) {
-        message = error.toString();
-      }
-      throwWithTrace(_exception(message, nodeWithSpan.span), error, stackTrace);
+      throwWithTrace(_exception(_getErrorMessage(error), nodeWithSpan.span),
+          error, stackTrace);
     }
     _callableNode = oldCallableNode;
 
@@ -3923,6 +3914,18 @@ final class _EvaluateVisitor
           SassRuntimeException(error.message, nodeWithSpan.span, _stackTrace()),
           error,
           stackTrace);
+    }
+  }
+
+  /// Returns the best human-readable message for [error].
+  String _getErrorMessage(Object error) {
+    // Built-in Dart Error objects often require their full toString()s for
+    // full context.
+    if (error is Error) return error.toString();
+    try {
+      return (error as dynamic).message as String;
+    } catch (_) {
+      return error.toString();
     }
   }
 }

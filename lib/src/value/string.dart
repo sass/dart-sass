@@ -121,6 +121,30 @@ class SassString extends Value {
   /// Creates a string with the given [text].
   SassString(this._text, {bool quotes = true}) : _hasQuotes = quotes;
 
+  /// Throws a [SassScriptException] if this is an unquoted string.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
+  ///
+  /// @nodoc
+  @internal
+  void assertQuoted([String? name]) {
+    if (hasQuotes) return;
+    throw SassScriptException('Expected $this to be a quoted string.', name);
+  }
+
+  /// Throws a [SassScriptException] if this is a quoted string.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
+  ///
+  /// @nodoc
+  @internal
+  void assertUnquoted([String? name]) {
+    if (!hasQuotes) return;
+    throw SassScriptException('Expected $this to be an unquoted string.', name);
+  }
+
   /// Converts [sassIndex] into a Dart-style index into [text].
   ///
   /// Sass indexes are one-based, while Dart indexes are zero-based. Sass

@@ -1,3 +1,54 @@
+## 12.0.0
+
+* **Breaking change:** Remove the `SassApiColor.hasCalculatedRgb` and
+  `.hasCalculatedHsl` extension methods. These can now be determined by checking
+  if `SassColor.space` is `KnownColorSpace.rgb` or `KnownColorSpace.hsl`,
+  respectively.
+
+* Added a `ColorSpace` class which represents the various color spaces defined
+  in the CSS spec.
+
+* Added `SassColor.space` which returns a color's color space.
+
+* Added `SassColor.channels` and `.channelsOrNull` which returns a list
+  of channel values, with missing channels converted to 0 or exposed as null,
+  respectively.
+
+* Added `SassColor.isLegacy`, `.isInGamut`, `.channel()`, `.isChannelMissing()`,
+  `.isChannelPowerless()`, `.toSpace()`, `.toGamut()`, `.changeChannels()`, and
+  `.interpolate()` which do the same thing as the Sass functions of the
+  corresponding names.
+
+* `SassColor.rgb()` now allows out-of-bounds and non-integer arguments.
+
+* `SassColor.hsl()` and `.hwb()` now allow out-of-bounds arguments.
+
+* Added `SassColor.hwb()`, `.srgb()`, `.srgbLinear()`, `.displayP3()`,
+  `.a98Rgb()`, `.prophotoRgb()`, `.rec2020()`, `.xyzD50()`, `.xyzD65()`,
+  `.lab()`, `.lch()`, `.oklab()`, `.oklch()`, and `.forSpace()` constructors.
+
+* Deprecated `SassColor.red`, `.green`, `.blue`, `.hue`, `.saturation`,
+  `.lightness`, `.whiteness`, and `.blackness` in favor of
+  `SassColor.channel()`.
+
+* Deprecated `SassColor.changeRgb()`, `.changeHsl()`, and `.changeHwb()` in
+  favor of `SassColor.changeChannels()`.
+
+* Added `SassNumber.convertValueToUnit()` as a shorthand for
+  `SassNumber.convertValue()` with a single numerator.
+
+* Added `InterpolationMethod` and `HueInterpolationMethod` which collectively
+  represent the method to use to interpolate two colors.
+
+* Added the `SassApiColorSpace` extension to expose additional members of
+  `ColorSpace`.
+
+* Added the `ColorChannel` class to represent information about a single channel
+  of a color space.
+
+* Added `SassNumber.convertValueToUnit()` as a shorthand for
+  `SassNumber.convertValue()` with a single numerator.
+
 ## 11.1.0
 
 * Loud comments in the Sass syntax no longer automatically inject ` */` to the
@@ -297,8 +348,6 @@
 * No user-visible changes.
 
 ## 4.0.0
-
-### Dart API
 
 * **Breaking change:** The first argument to `NumberExpression()` is now a
   `double` rather than a `num`.

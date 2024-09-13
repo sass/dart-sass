@@ -30,6 +30,17 @@ bool fuzzyEquals(num number1, num number2) {
           (number2 * _inverseEpsilon).round();
 }
 
+/// Like [fuzzyEquals], but allows null values for [number1] and [number2].
+///
+/// null values are only equal to one another.
+bool fuzzyEqualsNullable(num? number1, num? number2) {
+  if (number1 == number2) return true;
+  if (number1 == null || number2 == null) return false;
+  return (number1 - number2).abs() <= _epsilon &&
+      (number1 * _inverseEpsilon).round() ==
+          (number2 * _inverseEpsilon).round();
+}
+
 /// Returns a hash code for [number] that matches [fuzzyEquals].
 int fuzzyHashCode(double number) {
   if (!number.isFinite) return number.hashCode;
@@ -83,6 +94,11 @@ int fuzzyRound(num number) {
   }
 }
 
+/// Returns whether [number] is within [min] and [max] inclusive, using fuzzy
+/// equality.
+bool fuzzyInRange(double number, num min, num max) =>
+    fuzzyGreaterThanOrEquals(number, min) && fuzzyLessThanOrEquals(number, max);
+
 /// Returns [number] if it's within [min] and [max], or `null` if it's not.
 ///
 /// If [number] is [fuzzyEquals] to [min] or [max], it's clamped to the
@@ -123,6 +139,12 @@ double moduloLikeSass(double num1, double num2) {
   var result = num1 % num2;
   return result == 0 ? 0 : result + num2;
 }
+
+//// Returns [num] clamped between [lowerBound] and [upperBound], with `NaN`
+//// preferring the lower bound (unlike Dart for which it prefers the upper
+//// bound).
+double clampLikeCss(double number, double lowerBound, double upperBound) =>
+    number.isNaN ? lowerBound : number.clamp(lowerBound, upperBound);
 
 /// Returns the square root of [number].
 SassNumber sqrt(SassNumber number) {

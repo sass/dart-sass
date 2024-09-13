@@ -28,6 +28,11 @@ bool isUndefined(Object? value) => _isUndefined.call(value) as bool;
 
 final _isUndefined = JSFunction("value", "return value === undefined;");
 
+/// Returns whether or not [value] is the JS `null` value.
+bool isNull(Object? value) => _isNull.call(value) as bool;
+
+final _isNull = JSFunction("value", "return value === null;");
+
 @JS("Error")
 external JSClass get jsErrorClass;
 

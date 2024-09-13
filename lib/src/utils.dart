@@ -155,6 +155,9 @@ List<T> flattenVertically<T>(Iterable<Iterable<T>> iterable) {
   return result;
 }
 
+/// Returns [value] if it's a [T] or null otherwise.
+T? castOrNull<T>(Object? value) => value is T ? value : null;
+
 /// Converts [codepointIndex] to a code unit index, relative to [string].
 ///
 /// A codepoint index is the index in pure Unicode codepoints; a code unit index
