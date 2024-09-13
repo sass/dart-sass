@@ -15,6 +15,10 @@ import 'style_rule.dart';
 /// A statement in a plain CSS syntax tree.
 @sealed
 abstract class CssNode implements AstNode {
+  /// The node that contains this, or `null` for the root [CssStylesheet] node.
+  @internal
+  CssParentNode? get parent;
+
   /// Whether this was generated from the last node in a nested Sass tree that
   /// got flattened during evaluation.
   bool get isGroupEnd;
