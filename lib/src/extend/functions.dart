@@ -12,6 +12,7 @@
 library;
 
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
@@ -36,7 +37,7 @@ List<ComplexSelector>? unifyComplex(
     List<ComplexSelector> complexes, FileSpan span) {
   if (complexes.length == 1) return complexes;
 
-  List<SimpleSelector>? unifiedBase;
+  CompoundSelector? unifiedBase;
   CssValue<Combinator>? leadingCombinator;
   CssValue<Combinator>? trailingCombinator;
   for (var complex in complexes) {
@@ -67,12 +68,10 @@ List<ComplexSelector>? unifyComplex(
     }
 
     if (unifiedBase == null) {
-      unifiedBase = base.selector.components;
+      unifiedBase = base.selector;
     } else {
-      for (var simple in base.selector.components) {
-        unifiedBase = simple.unify(unifiedBase!); // dart-lang/sdk#45348
-        if (unifiedBase == null) return null;
-      }
+      unifiedBase = unifyCompound(unifiedBase, base.selector);
+      if (unifiedBase == null) return null;
     }
   }
 
@@ -87,7 +86,7 @@ List<ComplexSelector>? unifyComplex(
   var base = ComplexSelector(
       leadingCombinator == null ? const [] : [leadingCombinator],
       [
-        ComplexSelectorComponent(CompoundSelector(unifiedBase!, span),
+        ComplexSelectorComponent(unifiedBase!,
             trailingCombinator == null ? const [] : [trailingCombinator], span)
       ],
       span,
@@ -108,15 +107,43 @@ List<ComplexSelector>? unifyComplex(
 ///
 /// The [span] will be used for the new unified selector.
 ///
+/// This function ensures that the relative order of pseudo-classes (`:`) and
+/// pseudo-elements (`::`) within each input selector is preserved in the
+/// resulting combined selector.
+///
+/// This function enforces a general rule that pseudo-classes (`:`) should come
+/// before pseudo-elements (`::`), but it won't change their order if they were
+/// originally interleaved within a single input selector. This prevents
+/// unintended changes to the selector's meaning. For example, unifying
+/// `::foo:bar` and `:baz` results in `:baz::foo:bar`. `:baz` is a pseudo-class,
+/// so it is moved before the pseudo-class `::foo`. Meanwhile, `:bar` is not
+/// moved before `::foo` because it appeared after `::foo` in the original
+/// selector.
+///
 /// If no such selector can be produced, returns `null`.
 CompoundSelector? unifyCompound(
     CompoundSelector compound1, CompoundSelector compound2) {
-  var result = compound2.components;
-  for (var simple in compound1.components) {
-    var unified = simple.unify(result);
-    if (unified == null) return null;
-    result = unified;
+  // The compound selectors are split at pseudo-elements (::) to ensure that
+  // pseudo-classes (:) aren't moved across pseudo-element boundaries.
+  var compoundParts1 = compound1.components
+      .splitAfter((simple) => simple is PseudoSelector && simple.isElement);
+  var compoundParts2 = compound2.components
+      .splitAfter((simple) => simple is PseudoSelector && simple.isElement);
+  var result = <SimpleSelector>[];
+  for (var [components1, components2]
+      in IterableZip([compoundParts1, compoundParts2])) {
+    var resultPart = [...components1];
+    for (var simple in components2) {
+      var unified = simple.unify(resultPart);
+      if (unified == null) return null;
+      resultPart = unified;
+    }
+    result.addAll(resultPart);
   }
+
+  var minLength = min(compoundParts1.length, compoundParts2.length);
+  result.addAll(compoundParts1.skip(minLength).flattened);
+  result.addAll(compoundParts2.skip(minLength).flattened);
 
   return CompoundSelector(result, compound1.span);
 }
