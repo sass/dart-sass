@@ -42,7 +42,7 @@ class ColorChannel {
   /// [analogous]: https://www.w3.org/TR/css-color-4/#interpolation-missing
   bool isAnalogous(ColorChannel other) => switch ((name, other.name)) {
         ("red" || "x", "red" || "x") ||
-        ("green" || "y", "gren" || "y") ||
+        ("green" || "y", "green" || "y") ||
         ("blue" || "z", "blue" || "z") ||
         ("chroma" || "saturation", "chroma" || "saturation") ||
         ("lightness", "lightness") ||
