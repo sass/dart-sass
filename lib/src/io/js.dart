@@ -252,8 +252,7 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) {
   if (!isNodeJs) {
     throw UnsupportedError("watchDir() is only supported on Node.js");
   }
-  var watcher = chokidar.watch(
-      path, ChokidarOptions(disableGlobbing: true, usePolling: poll));
+  var watcher = chokidar.watch(path, ChokidarOptions(usePolling: poll));
 
   // Don't assign the controller until after the ready event fires. Otherwise,
   // Chokidar will give us a bunch of add events for files that already exist.
