@@ -325,6 +325,8 @@ final class CompilationDispatcher {
         InboundMessage_Message.compileRequest => throw paramsError(
             "A CompileRequest with compilation ID $_compilationId is already "
             "active."),
+        InboundMessage_Message.evaluateRequest =>
+          throw paramsError("EvaluateRequest must have compilation ID 0."),
         InboundMessage_Message.versionRequest =>
           throw paramsError("VersionRequest must have compilation ID 0."),
         InboundMessage_Message.notSet =>

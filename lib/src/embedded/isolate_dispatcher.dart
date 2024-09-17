@@ -15,6 +15,7 @@ import 'package:stream_channel/stream_channel.dart';
 
 import 'compilation_dispatcher.dart';
 import 'embedded_sass.pb.dart';
+import 'evaluate.dart';
 import 'reusable_isolate.dart';
 import 'util/proto_extensions.dart';
 import 'utils.dart';
@@ -79,16 +80,20 @@ class IsolateDispatcher {
           throw parseError(error.message);
         }
 
-        if (message.whichMessage() case var type
-            when type != InboundMessage_Message.versionRequest) {
-          throw paramsError(
-              "Only VersionRequest may have wire ID 0, was $type.");
+        switch (message.whichMessage()) {
+          case InboundMessage_Message.evaluateRequest:
+            var request = message.evaluateRequest;
+            var response = evaluate(request);
+            _send(0, OutboundMessage()..evaluateResponse = response);
+          case InboundMessage_Message.versionRequest:
+            var request = message.versionRequest;
+            var response = versionResponse();
+            response.id = request.id;
+            _send(0, OutboundMessage()..versionResponse = response);
+          default:
+            throw paramsError(
+                "Only EvaluateRequest or VersionRequest may have wire ID 0, was ${message.whichMessage()}.");
         }
-
-        var request = message.versionRequest;
-        var response = versionResponse();
-        response.id = request.id;
-        _send(0, OutboundMessage()..versionResponse = response);
       } catch (error, stackTrace) {
         _handleError(error, stackTrace,
             compilationId: compilationId, messageId: message?.id);

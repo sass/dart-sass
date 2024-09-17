@@ -14,35 +14,8 @@ import 'utils.dart';
 
 /// A class that converts Sass [Value] objects into [Value] protobufs.
 ///
-/// A given [Protofier] instance is valid only within the scope of a single
-/// custom function call.
-final class Protofier {
-  /// The dispatcher, for invoking deprotofied [Value_HostFunction]s.
-  final CompilationDispatcher _dispatcher;
-
-  /// The IDs of first-class functions.
-  final OpaqueRegistry<SassFunction> _functions;
-
-  /// The IDs of first-class mixins.
-  final OpaqueRegistry<SassMixin> _mixins;
-
-  /// Any argument lists transitively contained in [value].
-  ///
-  /// The IDs of the [Value_ArgumentList] protobufs are always one greater than
-  /// the index of the corresponding list in this array (since 0 is reserved for
-  /// argument lists created by the host).
-  final _argumentLists = <SassArgumentList>[];
-
-  /// Creates a [Protofier] that's valid within the scope of a single custom
-  /// function call.
-  ///
-  /// The [functions] tracks the IDs of first-class functions so that the host
-  /// can pass them back to the compiler.
-  ///
-  /// Similarly, the [mixins] tracks the IDs of first-class mixins so that the
-  /// host can pass them back to the compiler.
-  Protofier(this._dispatcher, this._functions, this._mixins);
-
+/// [StatelessProtofier] does not support types that require a compilation state.
+class StatelessProtofier {
   /// Converts [value] to its protocol buffer representation.
   proto.Value protofy(Value value) {
     var result = proto.Value();
@@ -61,9 +34,7 @@ final class Protofier {
           ..channel3 = value.channel2
           ..alpha = value.alpha * 1.0;
       case SassArgumentList():
-        _argumentLists.add(value);
         result.argumentList = Value_ArgumentList()
-          ..id = _argumentLists.length
           ..separator = _protofySeparator(value.separator)
           ..keywords.addAll({
             for (var (key, value) in value.keywordsWithoutMarking.pairs)
@@ -84,18 +55,13 @@ final class Protofier {
         }
       case SassCalculation():
         result.calculation = _protofyCalculation(value);
-      case SassFunction():
-        result.compilerFunction =
-            Value_CompilerFunction(id: _functions.getId(value));
-      case SassMixin():
-        result.compilerMixin = Value_CompilerMixin(id: _mixins.getId(value));
       case sassTrue:
         result.singleton = SingletonValue.TRUE;
       case sassFalse:
         result.singleton = SingletonValue.FALSE;
       case sassNull:
         result.singleton = SingletonValue.NULL;
-      case _:
+      default:
         throw "Unknown Value $value";
     }
     return result;
@@ -154,18 +120,8 @@ final class Protofier {
         CalculationOperator.dividedBy => proto.CalculationOperator.DIVIDE
       };
 
-  /// Converts [response]'s return value to its Sass representation.
-  Value deprotofyResponse(InboundMessage_FunctionCallResponse response) {
-    for (var id in response.accessedArgumentLists) {
-      // Mark the `keywords` field as accessed.
-      _argumentListForId(id).keywords;
-    }
-
-    return _deprotofy(response.success);
-  }
-
   /// Converts [value] to its Sass representation.
-  Value _deprotofy(proto.Value value) {
+  Value deprotofy(proto.Value value) {
     try {
       switch (value.whichValue()) {
         case Value_Value.string:
@@ -258,7 +214,8 @@ final class Protofier {
 
         case Value_Value.argumentList:
           if (value.argumentList.id != 0) {
-            return _argumentListForId(value.argumentList.id);
+            throw paramsError(
+                "ArgumentList without a compilation context must have id 0");
           }
 
           var separator = _deprotofySeparator(value.argumentList.separator);
@@ -270,10 +227,10 @@ final class Protofier {
           }
 
           return SassArgumentList(
-              value.argumentList.contents.map(_deprotofy),
+              value.argumentList.contents.map(deprotofy),
               {
                 for (var (name, value) in value.argumentList.keywords.pairs)
-                  name: _deprotofy(value)
+                  name: deprotofy(value)
               },
               separator);
 
@@ -291,7 +248,7 @@ final class Protofier {
                 "$length elements");
           }
 
-          return SassList(value.list.contents.map(_deprotofy), separator,
+          return SassList(value.list.contents.map(deprotofy), separator,
               brackets: value.list.hasBrackets);
 
         case Value_Value.map:
@@ -299,25 +256,8 @@ final class Protofier {
               ? const SassMap.empty()
               : SassMap({
                   for (var Value_Map_Entry(:key, :value) in value.map.entries)
-                    _deprotofy(key): _deprotofy(value)
+                    deprotofy(key): deprotofy(value)
                 });
-
-        case Value_Value.compilerFunction:
-          var id = value.compilerFunction.id;
-          if (_functions[id] case var function?) return function;
-          throw paramsError(
-              "CompilerFunction.id $id doesn't match any known functions");
-
-        case Value_Value.hostFunction:
-          return SassFunction(hostCallable(
-              _dispatcher, _functions, _mixins, value.hostFunction.signature,
-              id: value.hostFunction.id));
-
-        case Value_Value.compilerMixin:
-          var id = value.compilerMixin.id;
-          if (_mixins[id] case var mixin?) return mixin;
-          throw paramsError(
-              "CompilerMixin.id $id doesn't match any known mixins");
 
         case Value_Value.calculation:
           return _deprotofyCalculation(value.calculation);
@@ -332,6 +272,9 @@ final class Protofier {
 
         case Value_Value.notSet:
           throw mandatoryError("Value.value");
+
+        default:
+          throw "Unknown Value $value";
       }
     } on RangeError catch (error) {
       var name = error.name;
@@ -354,20 +297,6 @@ final class Protofier {
       SassNumber.withUnits(number.value,
           numeratorUnits: number.numerators,
           denominatorUnits: number.denominators);
-
-  /// Returns the argument list in [_argumentLists] that corresponds to [id].
-  SassArgumentList _argumentListForId(int id) {
-    if (id < 1) {
-      throw paramsError(
-          "Value.ArgumentList.id $id can't be marked as accessed");
-    } else if (id > _argumentLists.length) {
-      throw paramsError(
-          "Value.ArgumentList.id $id doesn't match any known argument "
-          "lists");
-    } else {
-      return _argumentLists[id - 1];
-    }
-  }
 
   /// Converts [separator] to its Sass representation.
   ListSeparator _deprotofySeparator(proto.ListSeparator separator) =>
@@ -441,4 +370,107 @@ final class Protofier {
         proto.CalculationOperator.DIVIDE => CalculationOperator.dividedBy,
         _ => throw "Unknown CalculationOperator $operator"
       };
+}
+
+/// A class that converts Sass [Value] objects into [Value] protobufs.
+///
+/// A given [Protofier] instance is valid only within the scope of a single
+/// custom function call.
+final class Protofier extends StatelessProtofier {
+  /// The dispatcher, for invoking deprotofied [Value_HostFunction]s.
+  final CompilationDispatcher _dispatcher;
+
+  /// The IDs of first-class functions.
+  final OpaqueRegistry<SassFunction> _functions;
+
+  /// The IDs of first-class mixins.
+  final OpaqueRegistry<SassMixin> _mixins;
+
+  /// Any argument lists transitively contained in [value].
+  ///
+  /// The IDs of the [Value_ArgumentList] protobufs are always one greater than
+  /// the index of the corresponding list in this array (since 0 is reserved for
+  /// argument lists created by the host).
+  final _argumentLists = <SassArgumentList>[];
+
+  /// Creates a [Protofier] that's valid within the scope of a single custom
+  /// function call.
+  ///
+  /// The [functions] tracks the IDs of first-class functions so that the host
+  /// can pass them back to the compiler.
+  ///
+  /// Similarly, the [mixins] tracks the IDs of first-class mixins so that the
+  /// host can pass them back to the compiler.
+  Protofier(this._dispatcher, this._functions, this._mixins);
+
+  /// Converts [value] to its protocol buffer representation.
+  proto.Value protofy(Value value) {
+    switch (value) {
+      case SassArgumentList():
+        var result = super.protofy(value);
+        _argumentLists.add(value);
+        result.argumentList.id = _argumentLists.length;
+        return result;
+      case SassFunction():
+        return proto.Value()
+          ..compilerFunction =
+              Value_CompilerFunction(id: _functions.getId(value));
+      case SassMixin():
+        return proto.Value()
+          ..compilerMixin = Value_CompilerMixin(id: _mixins.getId(value));
+      default:
+        return super.protofy(value);
+    }
+  }
+
+  /// Converts [value] to its Sass representation.
+  Value deprotofy(proto.Value value) {
+    switch (value.whichValue()) {
+      case Value_Value.argumentList:
+        if (value.argumentList.id != 0) {
+          return _argumentListForId(value.argumentList.id);
+        }
+        return super.deprotofy(value);
+      case Value_Value.compilerFunction:
+        var id = value.compilerFunction.id;
+        if (_functions[id] case var function?) return function;
+        throw paramsError(
+            "CompilerFunction.id $id doesn't match any known functions");
+      case Value_Value.hostFunction:
+        return SassFunction(hostCallable(
+            _dispatcher, _functions, _mixins, value.hostFunction.signature,
+            id: value.hostFunction.id));
+      case Value_Value.compilerMixin:
+        var id = value.compilerMixin.id;
+        if (_mixins[id] case var mixin?) return mixin;
+        throw paramsError(
+            "CompilerMixin.id $id doesn't match any known mixins");
+      default:
+        return super.deprotofy(value);
+    }
+  }
+
+  /// Converts [response]'s return value to its Sass representation.
+  Value deprotofyResponse(InboundMessage_FunctionCallResponse response) {
+    for (var id in response.accessedArgumentLists) {
+      // Mark the `keywords` field as accessed.
+      _argumentListForId(id).keywords;
+    }
+
+    return deprotofy(response.success);
+  }
+
+  /// Returns the argument list in [_argumentLists] that corresponds to [id].
+  SassArgumentList _argumentListForId(int id) {
+    if (id < 1) {
+      throw paramsError(
+          "Value.ArgumentList.id $id can't be marked as accessed");
+    } else if (id > _argumentLists.length) {
+      throw paramsError(
+          "Value.ArgumentList.id $id doesn't match any known argument "
+          "lists");
+    } else {
+      return _argumentLists[id - 1];
+    }
+  }
 }
