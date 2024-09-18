@@ -1,5 +1,8 @@
 ## 1.79.4
 
+* `selector.unify()` now preserves the original order of pseudo-classes and
+  pseudo-elements within individual selectors when combining them.
+
 ### JS API
 
 * Fix a bug where passing `green` or `blue` to `color.change()` for legacy
