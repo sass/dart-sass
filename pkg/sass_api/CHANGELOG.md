@@ -1,3 +1,7 @@
+## 12.0.1
+
+* No user-visible changes.
+
 ## 12.0.0
 
 * **Breaking change:** Remove the `SassApiColor.hasCalculatedRgb` and

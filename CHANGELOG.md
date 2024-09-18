@@ -1,3 +1,7 @@
+## 1.79.1
+
+* No user-visible changes.
+
 ## 1.79.0
 
 * **Breaking change**: Passing a number with unit `%` to the `$alpha` parameter
