@@ -105,7 +105,7 @@ List<ComplexSelector>? unifyComplex(
 /// Returns a [CompoundSelector] that matches only elements that are matched by
 /// both [compound1] and [compound2].
 ///
-/// The [span] will be used for the new unified selector.
+/// The [compound1]'s `span` will be used for the new unified selector.
 ///
 /// This function ensures that the relative order of pseudo-classes (`:`) and
 /// pseudo-elements (`::`) within each input selector is preserved in the
@@ -123,29 +123,45 @@ List<ComplexSelector>? unifyComplex(
 /// If no such selector can be produced, returns `null`.
 CompoundSelector? unifyCompound(
     CompoundSelector compound1, CompoundSelector compound2) {
-  // The compound selectors are split at pseudo-elements (::) to ensure that
-  // pseudo-classes (:) aren't moved across pseudo-element boundaries.
-  var compoundParts1 = compound1.components
-      .splitAfter((simple) => simple is PseudoSelector && simple.isElement);
-  var compoundParts2 = compound2.components
-      .splitAfter((simple) => simple is PseudoSelector && simple.isElement);
   var result = <SimpleSelector>[];
-  for (var [components1, components2]
-      in IterableZip([compoundParts1, compoundParts2])) {
-    var resultPart = [...components1];
-    for (var simple in components2) {
-      var unified = simple.unify(resultPart);
-      if (unified == null) return null;
-      resultPart = unified;
-    }
-    result.addAll(resultPart);
+  var pseudoResult = <SimpleSelector>[];
+  var pseudoElementFound = false;
+
+  // Compound selectors may not contain more than one pseudo-element selectors.
+  if (compound1.components
+          .followedBy(compound2.components)
+          .whereType<PseudoSelector>()
+          .where((pseudo) => pseudo.isElement)
+          .toSet()
+          .length >
+      1) {
+    return null;
   }
 
-  var minLength = min(compoundParts1.length, compoundParts2.length);
-  result.addAll(compoundParts1.skip(minLength).flattened);
-  result.addAll(compoundParts2.skip(minLength).flattened);
+  for (var simple in [...compound1.components, null, ...compound2.components]) {
+    // The relative order of pseudo selectors is preserved only in the original
+    // selector. We use `null` as a signal to know when we transition from the
+    // first components into the second components.
+    if (simple == null) {
+      pseudoElementFound = false;
+      continue;
+    }
 
-  return CompoundSelector(result, compound1.span);
+    // All pseudo-classes are unified separately after a pseudo-element to
+    // preserve their relative order with the pseudo-element.
+    if (pseudoElementFound && simple is PseudoSelector) {
+      var unified = simple.unify(pseudoResult);
+      if (unified == null) return null;
+      pseudoResult = unified;
+    } else {
+      pseudoElementFound |= simple is PseudoSelector && simple.isElement;
+      var unified = simple.unify(result);
+      if (unified == null) return null;
+      result = unified;
+    }
+  }
+
+  return CompoundSelector([...result, ...pseudoResult], compound1.span);
 }
 
 /// Returns a [SimpleSelector] that matches only elements that are matched by
