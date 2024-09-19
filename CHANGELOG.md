@@ -1,7 +1,16 @@
 ## 1.79.4
 
-* `selector.unify()` now preserves the original order of pseudo-classes and
-  pseudo-elements within individual selectors when combining them.
+* Changes to how `selector.unify()` and `@extend` combine selectors:
+
+    * The relative order of pseudo-classes (like `:hover`) and pseudo-elements
+      (like `::before`) within each original selector is now preserved when
+      they're combined.
+
+    * Pseudo selectors are now consistently placed at the end of the combined
+      selector, regardless of which selector they came from. Previously, this
+      reordering only applied to pseudo-selectors in the second selector.
+
+    * Prioritizes components from the first selector in the output.
 
 ### JS API
 
