@@ -30,11 +30,12 @@ const _specialCommaSpaces = {ColorSpace.rgb, ColorSpace.hsl};
 /// The global definitions of Sass color functions.
 final global = UnmodifiableListView([
   // ### RGB
-  _channelFunction("red", (color) => color.red, global: true)
+  _channelFunction("red", ColorSpace.rgb, (color) => color.red, global: true)
       .withDeprecationWarning("color"),
-  _channelFunction("green", (color) => color.green, global: true)
+  _channelFunction("green", ColorSpace.rgb, (color) => color.green,
+          global: true)
       .withDeprecationWarning("color"),
-  _channelFunction("blue", (color) => color.blue, global: true)
+  _channelFunction("blue", ColorSpace.rgb, (color) => color.blue, global: true)
       .withDeprecationWarning("color"),
   _mix.withDeprecationWarning("color"),
 
@@ -59,12 +60,13 @@ final global = UnmodifiableListView([
       .withDeprecationWarning("color"),
 
   // ### HSL
-  _channelFunction("hue", (color) => color.hue, unit: 'deg', global: true)
+  _channelFunction("hue", ColorSpace.hsl, (color) => color.hue,
+          unit: 'deg', global: true)
       .withDeprecationWarning("color"),
-  _channelFunction("saturation", (color) => color.saturation,
+  _channelFunction("saturation", ColorSpace.hsl, (color) => color.saturation,
           unit: '%', global: true)
       .withDeprecationWarning("color"),
-  _channelFunction("lightness", (color) => color.lightness,
+  _channelFunction("lightness", ColorSpace.hsl, (color) => color.lightness,
           unit: '%', global: true)
       .withDeprecationWarning("color"),
 
@@ -346,9 +348,9 @@ final global = UnmodifiableListView([
 /// The Sass color module.
 final module = BuiltInModule("color", functions: <Callable>[
   // ### RGB
-  _channelFunction("red", (color) => color.red),
-  _channelFunction("green", (color) => color.green),
-  _channelFunction("blue", (color) => color.blue),
+  _channelFunction("red", ColorSpace.rgb, (color) => color.red),
+  _channelFunction("green", ColorSpace.rgb, (color) => color.green),
+  _channelFunction("blue", ColorSpace.rgb, (color) => color.blue),
   _mix,
 
   _function("invert", r"$color, $weight: 100%, $space: null", (arguments) {
@@ -365,9 +367,11 @@ final module = BuiltInModule("color", functions: <Callable>[
   }),
 
   // ### HSL
-  _channelFunction("hue", (color) => color.hue, unit: 'deg'),
-  _channelFunction("saturation", (color) => color.saturation, unit: '%'),
-  _channelFunction("lightness", (color) => color.lightness, unit: '%'),
+  _channelFunction("hue", ColorSpace.hsl, (color) => color.hue, unit: 'deg'),
+  _channelFunction("saturation", ColorSpace.hsl, (color) => color.saturation,
+      unit: '%'),
+  _channelFunction("lightness", ColorSpace.hsl, (color) => color.lightness,
+      unit: '%'),
   _removedColorFunction("adjust-hue", "hue"),
   _removedColorFunction("lighten", "lightness"),
   _removedColorFunction("darken", "lightness", negative: true),
@@ -403,8 +407,10 @@ final module = BuiltInModule("color", functions: <Callable>[
         space: ColorSpace.hwb, name: 'channels')
   }),
 
-  _channelFunction("whiteness", (color) => color.whiteness, unit: '%'),
-  _channelFunction("blackness", (color) => color.blackness, unit: '%'),
+  _channelFunction("whiteness", ColorSpace.hwb, (color) => color.whiteness,
+      unit: '%'),
+  _channelFunction("blackness", ColorSpace.hwb, (color) => color.blackness,
+      unit: '%'),
 
   // ### Opacity
   _removedColorFunction("opacify", "alpha"),
@@ -1593,7 +1599,7 @@ bool _isNone(Value value) =>
 /// If [unit] is passed, the channel is returned with that unit. The [global]
 /// parameter indicates whether this was called using the legacy global syntax.
 BuiltInCallable _channelFunction(
-    String name, num Function(SassColor color) getter,
+    String name, ColorSpace space, num Function(SassColor color) getter,
     {String? unit, bool global = false}) {
   return _function(name, r"$color", (arguments) {
     var result = SassNumber(getter(arguments.first.assertColor("color")), unit);
@@ -1601,7 +1607,7 @@ BuiltInCallable _channelFunction(
     warnForDeprecation(
         "${global ? '' : 'color.'}$name() is deprecated. Suggestion:\n"
         "\n"
-        'color.channel(\$color, $name)\n'
+        'color.channel(\$color, $name, \$space: $space)\n'
         "\n"
         "More info: https://sass-lang.com/d/color-functions",
         Deprecation.colorFunctions);
