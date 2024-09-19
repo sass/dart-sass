@@ -4,6 +4,11 @@
   `color.green()`, `color.blue()`, `color.hue()`, `color.saturation()`,
   `color.lightness()`, `color.whiteness()`, and `color.blackness()`.
 
+* Update deprecation warnings for the legacy JS API to include a link to
+  [relevant documentation].
+
+[relevant documentation]: https://sass-lang.com/d/legacy-js-api
+
 ## 1.79.1
 
 * No user-visible changes.

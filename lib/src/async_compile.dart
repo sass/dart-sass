@@ -163,7 +163,8 @@ Future<CompileResult> _compileStylesheet(
     logger?.warnForDeprecation(
         Deprecation.legacyJsApi,
         'The legacy JS API is deprecated and will be removed in '
-        'Dart Sass 2.0.0.');
+        'Dart Sass 2.0.0.\n\n'
+        'More info: https://sass-lang.com/d/legacy-js-api');
   }
   var evaluateResult = await evaluateAsync(stylesheet,
       importCache: importCache,
