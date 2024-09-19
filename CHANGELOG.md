@@ -1,3 +1,9 @@
+## 1.79.2
+
+* Add a `$space` parameter to the suggested replacement for `color.red()`,
+  `color.green()`, `color.blue()`, `color.hue()`, `color.saturation()`,
+  `color.lightness()`, `color.whiteness()`, and `color.blackness()`.
+
 ## 1.79.1
 
 * No user-visible changes.
