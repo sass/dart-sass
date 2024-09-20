@@ -1607,7 +1607,7 @@ BuiltInCallable _channelFunction(
     warnForDeprecation(
         "${global ? '' : 'color.'}$name() is deprecated. Suggestion:\n"
         "\n"
-        'color.channel(\$color, $name, \$space: $space)\n'
+        'color.channel(\$color, \"$name\", \$space: $space)\n'
         "\n"
         "More info: https://sass-lang.com/d/color-functions",
         Deprecation.colorFunctions);
