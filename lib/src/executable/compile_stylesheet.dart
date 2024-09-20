@@ -16,6 +16,7 @@ import '../importer/filesystem.dart';
 import '../io.dart';
 import '../stylesheet_graph.dart';
 import '../syntax.dart';
+import '../util/random.dart' show setRandomSeed;
 import '../utils.dart';
 import '../visitor/serialize.dart';
 import 'options.dart';
@@ -68,6 +69,7 @@ Future<(int, String, String?)?> compileStylesheet(ExecutableOptions options,
 Future<void> _compileStylesheetWithoutErrorHandling(ExecutableOptions options,
     StylesheetGraph graph, String? source, String? destination,
     {bool ifModified = false}) async {
+  setRandomSeed(options.seed);
   var importer = FilesystemImporter.cwd;
   if (ifModified) {
     try {

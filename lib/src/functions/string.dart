@@ -11,14 +11,12 @@ import '../callable.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
 import '../util/character.dart';
+import '../util/random.dart' show random;
 import '../utils.dart';
 import '../value.dart';
 
-/// The random number generator for unique IDs.
-final _random = math.Random();
-
 // We use base-36 so we can use the (26-character) alphabet and all digits.
-var _previousUniqueId = _random.nextInt(math.pow(36, 6) as int);
+var _previousUniqueId = random.nextInt(math.pow(36, 6) as int);
 
 /// The global definitions of Sass string functions.
 final global = UnmodifiableListView([
@@ -182,7 +180,7 @@ final _toLowerCase = _function("to-lower-case", r"$string", (arguments) {
 
 final _uniqueId = _function("unique-id", "", (arguments) {
   // Make it difficult to guess the next ID by randomizing the increase.
-  _previousUniqueId += _random.nextInt(36) + 1;
+  _previousUniqueId += random.nextInt(36) + 1;
   if (_previousUniqueId > math.pow(36, 6)) {
     _previousUniqueId %= math.pow(36, 6) as int;
   }

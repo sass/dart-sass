@@ -1,7 +1,6 @@
 // Copyright 2018 Google Inc. Use of this source code is governed by an
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
-
 import 'package:args/args.dart';
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
@@ -66,6 +65,10 @@ final class ExecutableOptions {
       ..addFlag('error-css',
           help: 'When an error occurs, emit a stylesheet describing it.\n'
               'Defaults to true when compiling to a file.',
+          defaultsTo: null)
+      ..addOption('random-seed',
+          help: 'Seed the random functions.',
+          valueHelp: 'INT',
           defaultsTo: null)
       ..addFlag('update',
           help: 'Only compile out-of-date stylesheets.', negatable: false);
@@ -190,6 +193,11 @@ final class ExecutableOptions {
 
   /// Whether to emit all repetitive deprecation warnings.
   bool get verbose => _options['verbose'] as bool;
+
+  /// The seed to use for random functions
+  int? get seed => _options['random-seed'] == null
+      ? null
+      : int.parse(_options['random-seed'] as String);
 
   /// The logger to use to emit messages from Sass.
   Logger get logger => quiet ? Logger.quiet : Logger.stderr(color: color);

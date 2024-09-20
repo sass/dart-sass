@@ -13,6 +13,7 @@ import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
 import '../util/number.dart';
+import '../util/random.dart' show random;
 import '../value.dart';
 
 /// The global definitions of Sass math functions.
@@ -215,10 +216,8 @@ final _percentage = _function("percentage", r"$number", (arguments) {
   return SassNumber(number.value * 100, '%');
 });
 
-final _random = math.Random();
-
 final _randomFunction = _function("random", r"$limit: null", (arguments) {
-  if (arguments[0] == sassNull) return SassNumber(_random.nextDouble());
+  if (arguments[0] == sassNull) return SassNumber(random.nextDouble());
   var limit = arguments[0].assertNumber("limit");
 
   if (limit.hasUnits) {
@@ -240,7 +239,7 @@ final _randomFunction = _function("random", r"$limit: null", (arguments) {
   if (limitScalar < 1) {
     throw SassScriptException("\$limit: Must be greater than 0, was $limit.");
   }
-  return SassNumber(_random.nextInt(limitScalar) + 1);
+  return SassNumber(random.nextInt(limitScalar) + 1);
 });
 
 final _div = _function("div", r"$number1, $number2", (arguments) {
