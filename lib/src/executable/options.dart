@@ -69,6 +69,7 @@ final class ExecutableOptions {
       ..addOption('random-seed',
           help: 'Seed the random functions.',
           valueHelp: 'INT',
+          hide: true,
           defaultsTo: null)
       ..addFlag('update',
           help: 'Only compile out-of-date stylesheets.', negatable: false);

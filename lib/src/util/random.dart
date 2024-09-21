@@ -1,8 +1,6 @@
 import 'dart:math' show Random;
 
-export 'dart:math' show Random;
-
-late Random _random;
+Random _random = Random();
 
 Random get random => _random;
 
