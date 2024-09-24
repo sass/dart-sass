@@ -1,3 +1,9 @@
+## 1.79.4
+
+### Embedded Sass
+
+* Properly pass missing color channel values to and from custom functions.
+
 ## 1.79.3
 
 * Update the `$channel` parameter in the suggested replacement for

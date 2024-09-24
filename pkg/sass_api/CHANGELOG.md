@@ -1,3 +1,7 @@
+## 12.0.4
+
+* No user-visible changes.
+
 ## 12.0.3
 
 * No user-visible changes.
