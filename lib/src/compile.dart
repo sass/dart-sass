@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 4141eec2214ef480b6fdf07e5090202cdea3eb89
+// Checksum: 42c9e2008d449ba4b73b3b92a64cf4d51253837d
 //
 // ignore_for_file: unused_import
 
@@ -172,7 +172,8 @@ CompileResult _compileStylesheet(
     logger?.warnForDeprecation(
         Deprecation.legacyJsApi,
         'The legacy JS API is deprecated and will be removed in '
-        'Dart Sass 2.0.0.');
+        'Dart Sass 2.0.0.\n\n'
+        'More info: https://sass-lang.com/d/legacy-js-api');
   }
   var evaluateResult = evaluate(stylesheet,
       importCache: importCache,
