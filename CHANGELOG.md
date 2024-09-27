@@ -10,8 +10,6 @@
       selector, regardless of which selector they came from. Previously, this
       reordering only applied to pseudo-selectors in the second selector.
 
-    * Prioritizes components from the first selector in the output.
-
 ### JS API
 
 * Fix a bug where passing `green` or `blue` to `color.change()` for legacy
