@@ -122,30 +122,11 @@ List<ComplexSelector>? unifyComplex(
 /// If no such selector can be produced, returns `null`.
 CompoundSelector? unifyCompound(
     CompoundSelector compound1, CompoundSelector compound2) {
-  var result = <SimpleSelector>[];
+  var result = compound1.components;
   var pseudoResult = <SimpleSelector>[];
   var pseudoElementFound = false;
 
-  // Compound selectors may not contain more than one pseudo-element selectors.
-  if (compound1.components
-          .followedBy(compound2.components)
-          .whereType<PseudoSelector>()
-          .where((pseudo) => pseudo.isElement)
-          .toSet()
-          .length >
-      1) {
-    return null;
-  }
-
-  for (var simple in [...compound1.components, null, ...compound2.components]) {
-    // The relative order of pseudo selectors is preserved only in the original
-    // selector. We use `null` as a signal to know when we transition from the
-    // first components into the second components.
-    if (simple == null) {
-      pseudoElementFound = false;
-      continue;
-    }
-
+  for (var simple in compound2.components) {
     // All pseudo-classes are unified separately after a pseudo-element to
     // preserve their relative order with the pseudo-element.
     if (pseudoElementFound && simple is PseudoSelector) {
