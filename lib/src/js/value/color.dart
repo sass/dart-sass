@@ -307,11 +307,11 @@ final JSClass colorClass = () {
 
       return changedColor.toSpace(self.space);
     },
-    'interpolate':
-        (SassColor self, SassColor color2, _InterpolationOptions options) {
+    'interpolate': (SassColor self, SassColor color2,
+        [_InterpolationOptions? options]) {
       InterpolationMethod interpolationMethod;
 
-      if (options.method case var method?) {
+      if (options?.method case var method?) {
         var hue = HueInterpolationMethod.values.byName(method);
         interpolationMethod = InterpolationMethod(self.space, hue);
       } else if (!self.space.isPolar) {
@@ -322,7 +322,7 @@ final JSClass colorClass = () {
       }
 
       return self.interpolate(color2, interpolationMethod,
-          weight: options.weight);
+          weight: options?.weight);
     }
   });
 
