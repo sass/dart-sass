@@ -1,3 +1,10 @@
+## 1.79.4
+
+### JS API
+
+* Fix a bug where passing `green` or `blue` to `color.change()` for legacy
+  colors would fail.
+
 ## 1.79.3
 
 * Update the `$channel` parameter in the suggested replacement for

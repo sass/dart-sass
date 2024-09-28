@@ -116,7 +116,9 @@ final JSClass colorClass = () {
             hasProperty(options, 'saturation') ||
             hasProperty(options, 'lightness')) {
           space = ColorSpace.hsl;
-        } else if (hasProperty(options, 'red')) {
+        } else if (hasProperty(options, 'red') ||
+            hasProperty(options, 'green') ||
+            hasProperty(options, 'blue')) {
           space = ColorSpace.rgb;
         }
         if (space != self.space) {
