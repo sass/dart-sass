@@ -32,7 +32,7 @@ final class TypeSelector extends SimpleSelector {
   /// @nodoc
   @internal
   List<SimpleSelector>? unify(List<SimpleSelector> compound) {
-    if (compound.first case UniversalSelector() || TypeSelector()) {
+    if (compound.firstOrNull case UniversalSelector() || TypeSelector()) {
       var unified = unifyUniversalAndElement(this, compound.first);
       if (unified == null) return null;
       return [unified, ...compound.skip(1)];
