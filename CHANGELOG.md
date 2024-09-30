@@ -1,4 +1,4 @@
-## 1.79.4
+## 1.79.5
 
 * Changes to how `selector.unify()` and `@extend` combine selectors:
 
@@ -9,6 +9,8 @@
     * Pseudo selectors are now consistently placed at the end of the combined
       selector, regardless of which selector they came from. Previously, this
       reordering only applied to pseudo-selectors in the second selector.
+
+## 1.79.4
 
 ### JS API
 
