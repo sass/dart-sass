@@ -52,7 +52,7 @@ double hueToRgb(double m1, double m2, double hue) {
 double srgbAndDisplayP3ToLinear(double channel) {
   // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
   var abs = channel.abs();
-  return abs < 0.04045
+  return abs <= 0.04045
       ? channel / 12.92
       : channel.sign * math.pow((abs + 0.055) / 1.055, 2.4);
 }
