@@ -10,6 +10,10 @@
       selector, regardless of which selector they came from. Previously, this
       reordering only applied to pseudo-selectors in the second selector.
 
+### Embedded Sass
+
+* Properly pass missing color channel values to and from custom functions.
+
 ## 1.79.4
 
 ### JS API
