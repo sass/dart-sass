@@ -10,6 +10,11 @@
       selector, regardless of which selector they came from. Previously, this
       reordering only applied to pseudo-selectors in the second selector.
 
+### JS API
+
+* Fix `SassColor.interpolate()` to allow an undefined `options` parameter, as
+  the types indicate.
+
 ### Embedded Sass
 
 * Properly pass missing color channel values to and from custom functions.
