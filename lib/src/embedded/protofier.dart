@@ -54,12 +54,12 @@ final class Protofier {
       case SassNumber():
         result.number = _protofyNumber(value);
       case SassColor():
-        result.color = Value_Color()
-          ..space = value.space.name
-          ..channel1 = value.channel0
-          ..channel2 = value.channel1
-          ..channel3 = value.channel2
-          ..alpha = value.alpha * 1.0;
+        result.color = Value_Color(
+            space: value.space.name,
+            channel1: value.channel0OrNull,
+            channel2: value.channel1OrNull,
+            channel3: value.channel2OrNull,
+            alpha: value.alphaOrNull);
       case SassArgumentList():
         _argumentLists.add(value);
         result.argumentList = Value_ArgumentList()
@@ -178,79 +178,50 @@ final class Protofier {
 
         case Value_Value.color:
           var space = ColorSpace.fromName(value.color.space);
+          var channel1 =
+              value.color.hasChannel1() ? value.color.channel1 : null;
+          var channel2 =
+              value.color.hasChannel2() ? value.color.channel2 : null;
+          var channel3 =
+              value.color.hasChannel3() ? value.color.channel3 : null;
+          var alpha = value.color.hasAlpha() ? value.color.alpha : null;
           switch (space) {
             case ColorSpace.rgb:
-              return SassColor.rgb(value.color.channel1, value.color.channel2,
-                  value.color.channel3, value.color.alpha);
+              return SassColor.rgb(channel1, channel2, channel3, alpha);
 
             case ColorSpace.hsl:
-              return SassColor.hsl(value.color.channel1, value.color.channel2,
-                  value.color.channel3, value.color.alpha);
+              return SassColor.hsl(channel1, channel2, channel3, alpha);
 
             case ColorSpace.hwb:
-              return SassColor.hwb(value.color.channel1, value.color.channel2,
-                  value.color.channel3, value.color.alpha);
+              return SassColor.hwb(channel1, channel2, channel3, alpha);
 
             case ColorSpace.lab:
-              return SassColor.lab(value.color.channel1, value.color.channel2,
-                  value.color.channel3, value.color.alpha);
+              return SassColor.lab(channel1, channel2, channel3, alpha);
             case ColorSpace.oklab:
-              return SassColor.oklab(value.color.channel1, value.color.channel2,
-                  value.color.channel3, value.color.alpha);
+              return SassColor.oklab(channel1, channel2, channel3, alpha);
 
             case ColorSpace.lch:
-              return SassColor.lch(value.color.channel1, value.color.channel2,
-                  value.color.channel3, value.color.alpha);
+              return SassColor.lch(channel1, channel2, channel3, alpha);
             case ColorSpace.oklch:
-              return SassColor.oklch(value.color.channel1, value.color.channel2,
-                  value.color.channel3, value.color.alpha);
+              return SassColor.oklch(channel1, channel2, channel3, alpha);
 
             case ColorSpace.srgb:
-              return SassColor.srgb(value.color.channel1, value.color.channel2,
-                  value.color.channel3, value.color.alpha);
+              return SassColor.srgb(channel1, channel2, channel3, alpha);
             case ColorSpace.srgbLinear:
-              return SassColor.srgbLinear(
-                  value.color.channel1,
-                  value.color.channel2,
-                  value.color.channel3,
-                  value.color.alpha);
+              return SassColor.srgbLinear(channel1, channel2, channel3, alpha);
             case ColorSpace.displayP3:
-              return SassColor.displayP3(
-                  value.color.channel1,
-                  value.color.channel2,
-                  value.color.channel3,
-                  value.color.alpha);
+              return SassColor.displayP3(channel1, channel2, channel3, alpha);
             case ColorSpace.a98Rgb:
-              return SassColor.a98Rgb(
-                  value.color.channel1,
-                  value.color.channel2,
-                  value.color.channel3,
-                  value.color.alpha);
+              return SassColor.a98Rgb(channel1, channel2, channel3, alpha);
             case ColorSpace.prophotoRgb:
-              return SassColor.prophotoRgb(
-                  value.color.channel1,
-                  value.color.channel2,
-                  value.color.channel3,
-                  value.color.alpha);
+              return SassColor.prophotoRgb(channel1, channel2, channel3, alpha);
             case ColorSpace.rec2020:
-              return SassColor.rec2020(
-                  value.color.channel1,
-                  value.color.channel2,
-                  value.color.channel3,
-                  value.color.alpha);
+              return SassColor.rec2020(channel1, channel2, channel3, alpha);
 
             case ColorSpace.xyzD50:
-              return SassColor.xyzD50(
-                  value.color.channel1,
-                  value.color.channel2,
-                  value.color.channel3,
-                  value.color.alpha);
+              return SassColor.xyzD50(channel1, channel2, channel3, alpha);
             case ColorSpace.xyzD65:
-              return SassColor.xyzD65(
-                  value.color.channel1,
-                  value.color.channel2,
-                  value.color.channel3,
-                  value.color.alpha);
+              return SassColor.xyzD65(channel1, channel2, channel3, alpha);
 
             default:
               throw "Unreachable";
