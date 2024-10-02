@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a boolean expression toJSON 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@#{true}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "raws": {},
+  "sassType": "boolean",
+  "source": <1:4-1:8 in 0>,
+  "value": true,
+}
+`;

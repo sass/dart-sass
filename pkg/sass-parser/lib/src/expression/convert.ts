@@ -7,12 +7,14 @@ import * as sassInternal from '../sass-internal';
 import {BinaryOperationExpression} from './binary-operation';
 import {StringExpression} from './string';
 import {Expression} from '.';
+import {BooleanExpression} from './boolean';
 
 /** The visitor to use to convert internal Sass nodes to JS. */
 const visitor = sassInternal.createExpressionVisitor<Expression>({
   visitBinaryOperationExpression: inner =>
     new BinaryOperationExpression(undefined, inner),
   visitStringExpression: inner => new StringExpression(undefined, inner),
+  visitBooleanExpression: inner => new BooleanExpression(undefined, inner),
 });
 
 /** Converts an internal expression AST node into an external one. */
