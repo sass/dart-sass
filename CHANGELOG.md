@@ -10,6 +10,9 @@
       selector, regardless of which selector they came from. Previously, this
       reordering only applied to pseudo-selectors in the second selector.
 
+* Fix a slight inaccuracy case when converting to `srgb-linear` and
+  `display-p3`.
+
 ### JS API
 
 * Fix `SassColor.interpolate()` to allow an undefined `options` parameter, as
