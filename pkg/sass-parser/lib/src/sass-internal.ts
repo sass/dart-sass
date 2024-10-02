@@ -186,6 +186,10 @@ declare namespace SassInternal {
     readonly text: Interpolation;
     readonly hasQuotes: boolean;
   }
+
+  class BooleanExpression extends Expression {
+    readonly value: boolean;
+  }
 }
 
 const sassInternal = (
@@ -213,6 +217,7 @@ export type Interpolation = SassInternal.Interpolation;
 export type Expression = SassInternal.Expression;
 export type BinaryOperationExpression = SassInternal.BinaryOperationExpression;
 export type StringExpression = SassInternal.StringExpression;
+export type BooleanExpression = SassInternal.BooleanExpression;
 
 export interface StatementVisitorObject<T> {
   visitAtRootRule(node: AtRootRule): T;
@@ -232,6 +237,7 @@ export interface StatementVisitorObject<T> {
 export interface ExpressionVisitorObject<T> {
   visitBinaryOperationExpression(node: BinaryOperationExpression): T;
   visitStringExpression(node: StringExpression): T;
+  visitBooleanExpression(node: BooleanExpression): T;
 }
 
 export const parse = sassInternal.parse;
