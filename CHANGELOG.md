@@ -13,9 +13,8 @@
 * Fix a slight inaccuracy case when converting to `srgb-linear` and
   `display-p3`.
 
-* **Potentially breaking bug fix:** `math.unit()` now joins denominator units
-  with a division operator (`/`) instead of a multiplication operator (`*`). For
-  example, `px/em/em` instead of `px/em*em`.
+* **Potentially breaking bug fix:** `math.unit()` now wraps multiple denominator
+  units in parentheses. For example, `px/(em*em)` instead of `px/em*em`.
 
 ### JS API
 
