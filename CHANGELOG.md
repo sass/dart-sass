@@ -2,13 +2,16 @@
 
 * Changes to how `selector.unify()` and `@extend` combine selectors:
 
-    * The relative order of pseudo-classes (like `:hover`) and pseudo-elements
-      (like `::before`) within each original selector is now preserved when
-      they're combined.
+  * The relative order of pseudo-classes (like `:hover`) and pseudo-elements
+    (like `::before`) within each original selector is now preserved when
+    they're combined.
 
-    * Pseudo selectors are now consistently placed at the end of the combined
-      selector, regardless of which selector they came from. Previously, this
-      reordering only applied to pseudo-selectors in the second selector.
+  * Pseudo selectors are now consistently placed at the end of the combined
+    selector, regardless of which selector they came from. Previously, this
+    reordering only applied to pseudo-selectors in the second selector.
+
+* Tweak the color transformation matrices for OKLab and OKLCH to match the
+  newer, more accurate values in the CSS spec.
 
 ### JS API
 
