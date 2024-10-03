@@ -8,6 +8,7 @@ import {BinaryOperationExpression} from './binary-operation';
 import {StringExpression} from './string';
 import {Expression} from '.';
 import {BooleanExpression} from './boolean';
+import {NumberExpression} from './number';
 
 /** The visitor to use to convert internal Sass nodes to JS. */
 const visitor = sassInternal.createExpressionVisitor<Expression>({
@@ -15,6 +16,7 @@ const visitor = sassInternal.createExpressionVisitor<Expression>({
     new BinaryOperationExpression(undefined, inner),
   visitStringExpression: inner => new StringExpression(undefined, inner),
   visitBooleanExpression: inner => new BooleanExpression(undefined, inner),
+  visitNumberExpression: inner => new NumberExpression(undefined, inner),
 });
 
 /** Converts an internal expression AST node into an external one. */

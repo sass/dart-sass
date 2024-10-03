@@ -33,6 +33,11 @@ export {
   BooleanExpressionRaws,
 } from './src/expression/boolean';
 export {
+  NumberExpression,
+  NumberExpressionProps,
+  NumberExpressionRaws,
+} from './src/expression/number';
+export {
   Interpolation,
   InterpolationProps,
   InterpolationRaws,
