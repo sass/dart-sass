@@ -6,11 +6,16 @@ import {BinaryOperationExpression} from './binary-operation';
 import {Expression, ExpressionProps} from '.';
 import {StringExpression} from './string';
 import {BooleanExpression} from './boolean';
+import {NumberExpression} from './number';
 
 /** Constructs an expression from {@link ExpressionProps}. */
 export function fromProps(props: ExpressionProps): Expression {
   if ('text' in props) return new StringExpression(props);
   if ('left' in props) return new BinaryOperationExpression(props);
-  if ('value' in props) return new BooleanExpression(props);
+  if ('value' in props) {
+    if (typeof props.value === 'boolean') return new BooleanExpression(props);
+    if (typeof props.value === 'number') return new NumberExpression(props);
+  }
+
   throw new Error(`Unknown node type: ${props}`);
 }

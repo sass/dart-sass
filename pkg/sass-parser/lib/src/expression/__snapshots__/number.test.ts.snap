@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a number expression toJSON 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@#{123%}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "raws": {},
+  "sassType": "number",
+  "source": <1:4-1:8 in 0>,
+  "unit": "%",
+  "value": 123,
+}
+`;
