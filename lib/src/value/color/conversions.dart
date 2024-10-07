@@ -13,7 +13,7 @@ const d50 = [0.3457 / 0.3585, 1.00000, (1.0 - 0.3457 - 0.3585) / 0.3585];
 
 /// The transformation matrix for converting LMS colors to OKLab.
 ///
-/// Note that this can't be directly multiplied with [d65XyzToLms]; see Color
+/// Note that this can't be directly multiplied with [xyzD65ToLms]; see Color
 /// Level 4 spec for details on how to convert between XYZ and OKLab.
 final lmsToOklab = Float64List.fromList([
   00.21045426830931400, 00.79361777470230540, -0.00407204301161930, //
@@ -23,7 +23,7 @@ final lmsToOklab = Float64List.fromList([
 
 /// The transformation matrix for converting OKLab colors to LMS.
 ///
-/// Note that this can't be directly multiplied with [lmsToD65Xyz]; see Color
+/// Note that this can't be directly multiplied with [lmsToXyzD65]; see Color
 /// Level 4 spec for details on how to convert between XYZ and OKLab.
 final oklabToLms = Float64List.fromList([
   01.00000000000000020, 00.39633777737617490, 00.21580375730991360, //
