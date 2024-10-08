@@ -121,6 +121,57 @@ declare namespace SassInternal {
     readonly selector: Interpolation;
   }
 
+  class SupportsRule extends ParentStatement<Statement[]> {
+    readonly condition: SupportsCondition;
+  }
+
+  type SupportsCondition =
+    | SupportsAnything
+    | SupportsDeclaration
+    | SupportsInterpolation
+    | SupportsNegation
+    | SupportsOperation;
+
+  class SupportsAnything extends SassNode {
+    readonly contents: Interpolation;
+
+    toInterpolation(): Interpolation;
+  }
+
+  class SupportsDeclaration extends SassNode {
+    readonly name: Interpolation;
+    readonly value: Interpolation;
+
+    toInterpolation(): Interpolation;
+  }
+
+  class SupportsFunction extends SassNode {
+    readonly name: Interpolation;
+    readonly arguments: Interpolation;
+
+    toInterpolation(): Interpolation;
+  }
+
+  class SupportsInterpolation extends SassNode {
+    readonly expression: Expression;
+
+    toInterpolation(): Interpolation;
+  }
+
+  class SupportsNegation extends SassNode {
+    readonly condition: SupportsCondition;
+
+    toInterpolation(): Interpolation;
+  }
+
+  class SupportsOperation extends SassNode {
+    readonly left: SupportsCondition;
+    readonly right: SupportsCondition;
+    readonly operator: 'and' | 'or';
+
+    toInterpolation(): Interpolation;
+  }
+
   class Expression extends SassNode {
     accept<T>(visitor: ExpressionVisitor<T>): T;
   }
@@ -162,6 +213,7 @@ export type MediaRule = SassInternal.MediaRule;
 export type SilentComment = SassInternal.SilentComment;
 export type Stylesheet = SassInternal.Stylesheet;
 export type StyleRule = SassInternal.StyleRule;
+export type SupportsRule = SassInternal.SupportsRule;
 export type Interpolation = SassInternal.Interpolation;
 export type Expression = SassInternal.Expression;
 export type BinaryOperationExpression = SassInternal.BinaryOperationExpression;
@@ -179,6 +231,7 @@ export interface StatementVisitorObject<T> {
   visitMediaRule(node: MediaRule): T;
   visitSilentComment(node: SilentComment): T;
   visitStyleRule(node: StyleRule): T;
+  visitSupportsRule(node: SupportsRule): T;
 }
 
 export interface ExpressionVisitorObject<T> {

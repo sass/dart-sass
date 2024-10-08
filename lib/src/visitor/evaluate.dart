@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ca67afd2df1c970eb887d4a24c7fe838c2aaec60
+// Checksum: 6f39aea0955dc6ea8669496ea2270387b61b8aa7
 //
 // ignore_for_file: unused_import
 
@@ -2517,6 +2517,8 @@ final class _EvaluateVisitor
         throw _exception("Undefined function.", node.span);
       }
 
+      // Note that the list of calculation functions is also tracked in
+      // lib/src/visitor/is_plain_css_safe.dart.
       switch (node.name.toLowerCase()) {
         case "min" || "max" || "round" || "abs"
             when node.arguments.named.isEmpty &&
@@ -3593,7 +3595,7 @@ final class _EvaluateVisitor
       if (warnForColor && namesByColor.containsKey(result)) {
         var alternative = BinaryOperationExpression(
             BinaryOperator.plus,
-            StringExpression(Interpolation([""], interpolation.span),
+            StringExpression(Interpolation.plain("", interpolation.span),
                 quotes: true),
             expression);
         _warn(

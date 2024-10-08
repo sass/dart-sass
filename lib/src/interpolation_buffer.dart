@@ -20,6 +20,12 @@ final class InterpolationBuffer implements StringSink {
   /// This contains [String]s and [Expression]s.
   final _contents = <Object>[];
 
+  /// The spans of the expressions in [_contents].
+  ///
+  /// These spans cover from the beginning to the end of `#{}`, rather than just
+  /// the expressions themselves.
+  final _spans = <FileSpan?>[];
+
   /// Returns whether this buffer has no contents.
   bool get isEmpty => _contents.isEmpty && _text.isEmpty;
 
@@ -39,9 +45,12 @@ final class InterpolationBuffer implements StringSink {
   void writeln([Object? obj = '']) => _text.writeln(obj);
 
   /// Adds [expression] to this buffer.
-  void add(Expression expression) {
+  ///
+  /// The [span] should cover from the beginning of `#{` through `}`.
+  void add(Expression expression, FileSpan span) {
     _flushText();
     _contents.add(expression);
+    _spans.add(span);
   }
 
   /// Adds the contents of [interpolation] to this buffer.
@@ -49,28 +58,37 @@ final class InterpolationBuffer implements StringSink {
     if (interpolation.contents.isEmpty) return;
 
     Iterable<Object> toAdd = interpolation.contents;
+    Iterable<FileSpan?> spansToAdd = interpolation.spans;
     if (interpolation.contents case [String first, ...var rest]) {
       _text.write(first);
       toAdd = rest;
+      assert(interpolation.spans.first == null);
+      spansToAdd = interpolation.spans.skip(1);
     }
 
     _flushText();
     _contents.addAll(toAdd);
-    if (_contents.last is String) _text.write(_contents.removeLast());
+    _spans.addAll(spansToAdd);
+    if (_contents.last is String) {
+      _text.write(_contents.removeLast());
+      var lastSpan = _spans.removeLast();
+      assert(lastSpan == null);
+    }
   }
 
   /// Flushes [_text] to [_contents] if necessary.
   void _flushText() {
     if (_text.isEmpty) return;
     _contents.add(_text.toString());
+    _spans.add(null);
     _text.clear();
   }
 
   /// Creates an [Interpolation] with the given [span] from the contents of this
   /// buffer.
   Interpolation interpolation(FileSpan span) {
-    return Interpolation(
-        [..._contents, if (_text.isNotEmpty) _text.toString()], span);
+    return Interpolation([..._contents, if (_text.isNotEmpty) _text.toString()],
+        [..._spans, if (_text.isNotEmpty) null], span);
   }
 
   String toString() {
