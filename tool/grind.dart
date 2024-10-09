@@ -34,6 +34,7 @@ void main(List<String> args) {
   pkg.homebrewFormula.value = "Formula/sass.rb";
   pkg.homebrewEditFormula.value = _updateHomebrewLanguageRevision;
   pkg.jsRequires.value = [
+    pkg.JSRequire("@parcel/watcher", target: pkg.JSRequireTarget.cli),
     pkg.JSRequire("immutable", target: pkg.JSRequireTarget.all),
     pkg.JSRequire("chokidar", target: pkg.JSRequireTarget.cli),
     pkg.JSRequire("readline", target: pkg.JSRequireTarget.cli),
