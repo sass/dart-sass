@@ -13,6 +13,13 @@
 * Fix a slight inaccuracy case when converting to `srgb-linear` and
   `display-p3`.
 
+### Command-Line Interface
+
+* Use `@parcel/watcher` to watch the filesystem when running from JavaScript and
+  not using `--poll`. This should mitigate more frequent failures users have
+  been seeing since version 4.0.0 of Chokidar, our previous watching tool, was
+  released.
+
 ### JS API
 
 * Fix `SassColor.interpolate()` to allow an undefined `options` parameter, as
