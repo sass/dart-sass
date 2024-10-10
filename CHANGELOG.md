@@ -13,6 +13,9 @@
 * Fix a slight inaccuracy case when converting to `srgb-linear` and
   `display-p3`.
 
+* **Potentially breaking bug fix:** `math.unit()` now wraps multiple denominator
+  units in parentheses. For example, `px/(em*em)` instead of `px/em*em`.
+
 ### JS API
 
 * Fix `SassColor.interpolate()` to allow an undefined `options` parameter, as

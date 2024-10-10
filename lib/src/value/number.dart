@@ -852,7 +852,8 @@ abstract class SassNumber extends Value {
         ([], [var denominator]) => "$denominator^-1",
         ([], _) => "(${denominators.join('*')})^-1",
         (_, []) => numerators.join("*"),
-        _ => "${numerators.join("*")}/${denominators.join("*")}"
+        (_, [var denominator]) => "${numerators.join("*")}/$denominator",
+        _ => "${numerators.join("*")}/(${denominators.join("*")})",
       };
 
   bool operator ==(Object other) {
