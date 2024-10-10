@@ -89,7 +89,7 @@ final class Interpolation implements SassNode {
       var isString = this.contents[i] is String;
       if (!isString && this.contents[i] is! Expression) {
         throw ArgumentError.value(this.contents, "contents",
-            "May only contains Strings or Expressions.");
+            "May only contain Strings or Expressions.");
       } else if (isString) {
         if (i != 0 && this.contents[i - 1] is String) {
           throw ArgumentError.value(
