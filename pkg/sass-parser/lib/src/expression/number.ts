@@ -25,8 +25,16 @@ export interface NumberExpressionProps {
  *
  * @category Expression
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-interface -- No raws for a number expression yet.
-export interface NumberExpressionRaws {}
+export interface NumberExpressionRaws {
+  /**
+   * The raw string representation of the number.
+   *
+   * Numbers can be represented with or without leading and trailing zeroes, and
+   * use scientific notation. For example, the following number representations
+   * have the same value: `1e3`, `1000`, `01000.0`.
+   */
+  value?: string;
+}
 
 /**
  * An expression representing a number literal in Sass.
@@ -90,7 +98,7 @@ export class NumberExpression extends Expression {
 
   /** @hidden */
   toString(): string {
-    return this.value + (this.unit ?? '');
+    return (this.raws?.value ?? this.value) + (this.unit ?? '');
   }
 
   /** @hidden */
