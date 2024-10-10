@@ -9,7 +9,20 @@ import {Root} from './src/statement/root';
 import * as sassInternal from './src/sass-internal';
 import {Stringifier} from './src/stringifier';
 
+export {
+  Configuration,
+  ConfigurationProps,
+  ConfigurationRaws,
+} from './src/configuration';
+export {
+  ConfiguredVariable,
+  ConfiguredVariableObjectProps,
+  ConfiguredVariableValueProps,
+  ConfiguredVariableProps,
+  ConfiguredVariableRaws,
+} from './src/configured-variable';
 export {AnyNode, Node, NodeProps, NodeType} from './src/node';
+export {RawWithValue} from './src/raw-with-value';
 export {
   AnyExpression,
   Expression,
@@ -62,6 +75,7 @@ export {
   SassCommentProps,
   SassCommentRaws,
 } from './src/statement/sass-comment';
+export {UseRule, UseRuleProps, UseRuleRaws} from './src/statement/use-rule';
 export {
   AnyStatement,
   AtRule,

@@ -35,6 +35,13 @@ declare namespace SassInternal {
     logger?: sass.Logger
   ): Stylesheet;
 
+  function parseIdentifier(
+    identifier: string,
+    logger?: sass.Logger
+  ): string | null;
+
+  function toCssIdentifier(text: string): string;
+
   class StatementVisitor<T> {
     private _fakePropertyToMakeThisAUniqueType1: T;
   }
@@ -172,6 +179,18 @@ declare namespace SassInternal {
     toInterpolation(): Interpolation;
   }
 
+  class UseRule extends Statement {
+    readonly url: Object;
+    readonly namespace: string | null;
+    readonly configuration: ConfiguredVariable[];
+  }
+
+  class ConfiguredVariable extends SassNode {
+    readonly name: string;
+    readonly expression: Expression;
+    readonly isGuarded: boolean;
+  }
+
   class Expression extends SassNode {
     accept<T>(visitor: ExpressionVisitor<T>): T;
   }
@@ -214,6 +233,8 @@ export type SilentComment = SassInternal.SilentComment;
 export type Stylesheet = SassInternal.Stylesheet;
 export type StyleRule = SassInternal.StyleRule;
 export type SupportsRule = SassInternal.SupportsRule;
+export type UseRule = SassInternal.UseRule;
+export type ConfiguredVariable = SassInternal.ConfiguredVariable;
 export type Interpolation = SassInternal.Interpolation;
 export type Expression = SassInternal.Expression;
 export type BinaryOperationExpression = SassInternal.BinaryOperationExpression;
@@ -232,6 +253,7 @@ export interface StatementVisitorObject<T> {
   visitSilentComment(node: SilentComment): T;
   visitStyleRule(node: StyleRule): T;
   visitSupportsRule(node: SupportsRule): T;
+  visitUseRule(node: UseRule): T;
 }
 
 export interface ExpressionVisitorObject<T> {
@@ -240,5 +262,7 @@ export interface ExpressionVisitorObject<T> {
 }
 
 export const parse = sassInternal.parse;
+export const parseIdentifier = sassInternal.parseIdentifier;
+export const toCssIdentifier = sassInternal.toCssIdentifier;
 export const createStatementVisitor = sassInternal.createStatementVisitor;
 export const createExpressionVisitor = sassInternal.createExpressionVisitor;

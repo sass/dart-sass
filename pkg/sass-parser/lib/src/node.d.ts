@@ -18,7 +18,12 @@ export type AnyNode = AnyStatement | AnyExpression | Interpolation;
  * alongside `Node.type` to disambiguate between the wide range of nodes that
  * Sass parses as distinct types.
  */
-export type NodeType = StatementType | ExpressionType | 'interpolation';
+export type NodeType =
+  | StatementType
+  | ExpressionType
+  | 'interpolation'
+  | 'configuration'
+  | 'configured-variable';
 
 /** The constructor properties shared by all Sass AST nodes. */
 export type NodeProps = postcss.NodeProps;

@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a configured variable toJSON 1`] = `
+{
+  "guarded": false,
+  "inputs": [
+    {
+      "css": "@use "foo" with ($baz: "qux")",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "baz",
+  "raws": {},
+  "sassType": "configured-variable",
+  "source": <1:18-1:29 in 0>,
+  "value": <"qux">,
+}
+`;
