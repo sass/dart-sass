@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import {Value} from 'sass';
 import {NumberExpression} from '../..';
 import * as utils from '../../../test/utils';
 
@@ -109,13 +110,22 @@ describe('a number expression', () => {
   });
 
   describe('stringifies', () => {
-    it('unitless', () => {
-      expect(utils.parseExpression('123').toString()).toBe('123');
-    });
+    it('unitless', () =>
+      expect(utils.parseExpression('123').toString()).toBe('123'));
 
-    it('with a unit', () => {
-      expect(utils.parseExpression('123px').toString()).toBe('123px');
-    });
+    it('with a unit', () =>
+      expect(utils.parseExpression('123px').toString()).toBe('123px'));
+
+    it('floating-point number', () =>
+      expect(utils.parseExpression('3.14').toString()).toBe('3.14'));
+
+    it('respects raws', () =>
+      expect(
+        new NumberExpression({
+          value: 123,
+          raws: {value: '0123.0'},
+        }).toString()
+      ).toBe('0123.0'));
   });
 
   describe('clone', () => {
@@ -123,6 +133,8 @@ describe('a number expression', () => {
 
     beforeEach(() => {
       original = utils.parseExpression('123');
+      // TODO: remove this once raws are properly parsed.
+      original.raws.value = '0123.0';
     });
 
     describe('with no overrides', () => {
@@ -135,7 +147,7 @@ describe('a number expression', () => {
 
         it('unit', () => expect(clone.unit).toBeNull());
 
-        it('raws', () => expect(clone.raws).toEqual({}));
+        it('raws', () => expect(clone.raws).toEqual({value: '0123.0'}));
 
         it('source', () => expect(clone.source).toBe(original.source));
       });
@@ -164,10 +176,14 @@ describe('a number expression', () => {
 
       describe('raws', () => {
         it('defined', () =>
-          expect(original.clone({raws: {}}).raws).toEqual({}));
+          expect(original.clone({raws: {value: '1e3'}}).raws).toEqual({
+            value: '1e3',
+          }));
 
         it('undefined', () =>
-          expect(original.clone({raws: undefined}).raws).toEqual({}));
+          expect(original.clone({raws: undefined}).raws).toEqual({
+            value: '0123.0',
+          }));
       });
     });
   });
