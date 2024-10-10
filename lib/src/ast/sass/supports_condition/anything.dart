@@ -3,7 +3,10 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:source_span/source_span.dart';
+import 'package:meta/meta.dart';
 
+import '../../../interpolation_buffer.dart';
+import '../../../util/span.dart';
 import '../interpolation.dart';
 import '../supports_condition.dart';
 
@@ -18,6 +21,18 @@ final class SupportsAnything implements SupportsCondition {
   final FileSpan span;
 
   SupportsAnything(this.contents, this.span);
+
+  /// @nodoc
+  @internal
+  Interpolation toInterpolation() => (InterpolationBuffer()
+        ..write(span.before(contents.span).text)
+        ..addInterpolation(contents)
+        ..write(span.after(contents.span).text))
+      .interpolation(span);
+
+  /// @nodoc
+  @internal
+  SupportsAnything withSpan(FileSpan span) => SupportsAnything(contents, span);
 
   String toString() => "($contents)";
 }

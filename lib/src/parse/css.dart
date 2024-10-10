@@ -86,17 +86,15 @@ class CssParser extends ScssParser {
   ImportRule _cssImportRule(LineScannerState start) {
     var urlStart = scanner.state;
     var url = switch (scanner.peekChar()) {
-      $u || $U => dynamicUrl(),
+      $u || $U => dynamicUrl() as StringExpression,
       _ => StringExpression(interpolatedString().asInterpolation(static: true))
     };
-    var urlSpan = scanner.spanFrom(urlStart);
 
     whitespace();
     var modifiers = tryImportModifiers();
     expectStatementSeparator("@import rule");
     return ImportRule([
-      StaticImport(Interpolation([url], urlSpan), scanner.spanFrom(urlStart),
-          modifiers: modifiers)
+      StaticImport(url.text, scanner.spanFrom(urlStart), modifiers: modifiers)
     ], scanner.spanFrom(start));
   }
 

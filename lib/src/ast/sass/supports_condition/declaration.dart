@@ -5,8 +5,11 @@
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
+import '../../../interpolation_buffer.dart';
+import '../../../util/span.dart';
 import '../expression.dart';
 import '../expression/string.dart';
+import '../interpolation.dart';
 import '../supports_condition.dart';
 
 /// A condition that selects for browsers where a given declaration is
@@ -39,6 +42,33 @@ final class SupportsDeclaration implements SupportsCondition {
       };
 
   SupportsDeclaration(this.name, this.value, this.span);
+
+  /// @nodoc
+  @internal
+  Interpolation toInterpolation() {
+    var buffer = InterpolationBuffer();
+    buffer.write(span.before(name.span).text);
+    if (name case StringExpression(hasQuotes: false, :var text)) {
+      buffer.addInterpolation(text);
+    } else {
+      buffer.add(name, name.span);
+    }
+
+    buffer.write(name.span.between(value.span).text);
+    if (value.sourceInterpolation case var interpolation?) {
+      buffer.addInterpolation(interpolation);
+    } else {
+      buffer.add(value, value.span);
+    }
+
+    buffer.write(span.after(value.span).text);
+    return buffer.interpolation(span);
+  }
+
+  /// @nodoc
+  @internal
+  SupportsDeclaration withSpan(FileSpan span) =>
+      SupportsDeclaration(name, value, span);
 
   String toString() => "($name: $value)";
 }

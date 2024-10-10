@@ -155,7 +155,8 @@ class ScssParser extends StylesheetParser {
       switch (scanner.peekChar()) {
         case $hash:
           if (scanner.peekChar(1) == $lbrace) {
-            buffer.add(singleInterpolation());
+            var (expression, span) = singleInterpolation();
+            buffer.add(expression, span);
           } else {
             buffer.writeCharCode(scanner.readChar());
           }

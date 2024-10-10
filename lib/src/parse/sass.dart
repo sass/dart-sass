@@ -98,7 +98,7 @@ class SassParser extends StylesheetParser {
       // Serialize [url] as a Sass string because [StaticImport] expects it to
       // include quotes.
       return StaticImport(
-          Interpolation([SassString(url).toString()], span), span);
+          Interpolation.plain(SassString(url).toString(), span), span);
     } else {
       try {
         return DynamicImport(parseImportUrl(url), span);
@@ -247,7 +247,8 @@ class SassParser extends StylesheetParser {
 
           case $hash:
             if (scanner.peekChar(1) == $lbrace) {
-              buffer.add(singleInterpolation());
+              var (expression, span) = singleInterpolation();
+              buffer.add(expression, span);
             } else {
               buffer.writeCharCode(scanner.readChar());
             }

@@ -84,6 +84,50 @@ extension SpanExtensions on FileSpan {
     return subspan(scanner.position).trimLeft();
   }
 
+  /// Returns a span covering the text after this span and before [other].
+  ///
+  /// Throws an [ArgumentError] if [other.start] isn't on or after `this.end` in
+  /// the same file.
+  FileSpan between(FileSpan other) {
+    if (sourceUrl != other.sourceUrl) {
+      throw ArgumentError("$this and $other are in different files.");
+    } else if (end.offset > other.start.offset) {
+      throw ArgumentError("$this isn't before $other.");
+    }
+
+    return file.span(end.offset, other.start.offset);
+  }
+
+  /// Returns a span covering the text from the beginning of this span to the
+  /// beginning of [inner].
+  ///
+  /// Throws an [ArgumentError] if [inner] isn't fully within this span.
+  FileSpan before(FileSpan inner) {
+    if (sourceUrl != inner.sourceUrl) {
+      throw ArgumentError("$this and $inner are in different files.");
+    } else if (inner.start.offset < start.offset ||
+        inner.end.offset > end.offset) {
+      throw ArgumentError("$inner isn't inside $this.");
+    }
+
+    return file.span(start.offset, inner.start.offset);
+  }
+
+  /// Returns a span covering the text from the end of [inner] to the end of
+  /// this span.
+  ///
+  /// Throws an [ArgumentError] if [inner] isn't fully within this span.
+  FileSpan after(FileSpan inner) {
+    if (sourceUrl != inner.sourceUrl) {
+      throw ArgumentError("$this and $inner are in different files.");
+    } else if (inner.start.offset < start.offset ||
+        inner.end.offset > end.offset) {
+      throw ArgumentError("$inner isn't inside $this.");
+    }
+
+    return file.span(inner.end.offset, end.offset);
+  }
+
   /// Whether this [FileSpan] contains the [target] FileSpan.
   ///
   /// Validates the FileSpans to be in the same file and for the [target] to be

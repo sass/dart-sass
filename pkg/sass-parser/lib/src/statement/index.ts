@@ -163,6 +163,18 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
   },
   visitSilentComment: inner => new SassComment(undefined, inner),
   visitStyleRule: inner => new Rule(undefined, inner),
+  visitSupportsRule: inner => {
+    const rule = new GenericAtRule({
+      name: 'supports',
+      paramsInterpolation: new Interpolation(
+        undefined,
+        inner.condition.toInterpolation()
+      ),
+      source: new LazySource(inner),
+    });
+    appendInternalChildren(rule, inner.children);
+    return rule;
+  },
 });
 
 /** Appends parsed versions of `internal`'s children to `container`. */

@@ -12,6 +12,16 @@ import 'jest-extended';
 
 import {Interpolation, StringExpression} from '../lib';
 
+/**
+ * Like {@link MatcherContext.printReceived}, but with special handling for AST
+ * nodes.
+ */
+function printValue(self: MatcherContext, value: unknown): string {
+  return value instanceof postcss.Node
+    ? value.toString()
+    : self.utils.printReceived(value);
+}
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
@@ -58,7 +68,8 @@ function toHaveInterpolation(
   if (typeof actual !== 'object' || !actual || !(property in actual)) {
     return {
       message: () =>
-        `expected ${this.utils.printReceived(
+        `expected ${printValue(
+          this,
           actual
         )} to have a property ${this.utils.printExpected(property)}`,
       pass: false,
@@ -67,15 +78,14 @@ function toHaveInterpolation(
 
   const actualValue = (actual as Record<string, unknown>)[property];
   const message = (): string =>
-    `expected (${this.utils.printReceived(
-      actual
-    )}).${property} ${this.utils.printReceived(
+    `expected (${printValue(this, actual)}).${property} ${printValue(
+      this,
       actualValue
     )} to be an Interpolation with value ${this.utils.printExpected(value)}`;
 
   if (
     !(actualValue instanceof Interpolation) ||
-    actualValue.asPlain !== value
+    actualValue.toString() !== value
   ) {
     return {
       message,
@@ -86,9 +96,8 @@ function toHaveInterpolation(
   if (actualValue.parent !== actual) {
     return {
       message: () =>
-        `expected (${this.utils.printReceived(
-          actual
-        )}).${property} ${this.utils.printReceived(
+        `expected (${printValue(this, actual)}).${property} ${printValue(
+          this,
           actualValue
         )} to have the correct parent`,
       pass: false,
@@ -129,7 +138,8 @@ function toHaveStringExpression(
   if (typeof actual !== 'object' || !actual || !(property in actual)) {
     return {
       message: () =>
-        `expected ${this.utils.printReceived(
+        `expected ${printValue(
+          this,
           actual
         )} to have a property ${this.utils.printExpected(property)}`,
       pass: false,
@@ -140,12 +150,13 @@ function toHaveStringExpression(
   if (index !== null) actualValue = (actualValue as unknown[])[index];
 
   const message = (): string => {
-    let message = `expected (${this.utils.printReceived(actual)}).${property}`;
+    let message = `expected (${printValue(this, actual)}).${property}`;
     if (index !== null) message += `[${index}]`;
 
     return (
       message +
-      ` ${this.utils.printReceived(
+      ` ${printValue(
+        this,
         actualValue
       )} to be a StringExpression with value ${this.utils.printExpected(value)}`
     );
@@ -164,9 +175,8 @@ function toHaveStringExpression(
   if (actualValue.parent !== actual) {
     return {
       message: () =>
-        `expected (${this.utils.printReceived(
-          actual
-        )}).${property} ${this.utils.printReceived(
+        `expected (${printValue(this, actual)}).${property} ${printValue(
+          this,
           actualValue
         )} to have the correct parent`,
       pass: false,
