@@ -1,3 +1,17 @@
+## 13.0.0
+
+* The `Interpolation()` constructor now takes an additional `List<FileSpan?>`
+  spans argument which cover the `#{}` for expression elements.
+
+* Added a new `Interpolation.plain()` constructor for interpolations that only
+  contain a single plain-text string.
+
+* Added `Interpolation.spanForElement()` which returns the span that covers a
+  single element of `contents`.
+
+* `InterpolationBuffer.add()` now takes a `FileSpan` that covers the `#{}`
+  around the expression.
+
 ## 12.0.5
 
 * No user-visible changes.

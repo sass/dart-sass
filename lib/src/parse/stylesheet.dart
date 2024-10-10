@@ -1084,7 +1084,10 @@ abstract class StylesheetParser extends Parser {
       var url = dynamicUrl();
       whitespace();
       var modifiers = tryImportModifiers();
-      return StaticImport(Interpolation([url], scanner.spanFrom(start)),
+      return StaticImport(
+          url is StringExpression
+              ? url.text
+              : Interpolation([url], [url.span], url.span),
           scanner.spanFrom(start),
           modifiers: modifiers);
     }
@@ -1095,7 +1098,7 @@ abstract class StylesheetParser extends Parser {
     var modifiers = tryImportModifiers();
     if (isPlainImportUrl(url) || modifiers != null) {
       return StaticImport(
-          Interpolation([urlSpan.text], urlSpan), scanner.spanFrom(start),
+          Interpolation.plain(urlSpan.text, urlSpan), scanner.spanFrom(start),
           modifiers: modifiers);
     } else {
       try {
@@ -1158,7 +1161,7 @@ abstract class StylesheetParser extends Parser {
           if (name == "supports") {
             var query = _importSupportsQuery();
             if (query is! SupportsDeclaration) buffer.writeCharCode($lparen);
-            buffer.add(SupportsExpression(query));
+            buffer.add(SupportsExpression(query), query.span);
             if (query is! SupportsDeclaration) buffer.writeCharCode($rparen);
           } else {
             buffer.writeCharCode($lparen);
@@ -1203,7 +1206,8 @@ abstract class StylesheetParser extends Parser {
       var start = scanner.state;
       var name = _expression();
       scanner.expectChar($colon);
-      return _supportsDeclarationValue(name, start);
+      return SupportsDeclaration(
+          name, _supportsDeclarationValue(name), scanner.spanFrom(start));
     }
   }
 
@@ -1337,7 +1341,8 @@ abstract class StylesheetParser extends Parser {
     var needsDeprecationWarning = false;
     while (true) {
       if (scanner.peekChar() == $hash) {
-        buffer.add(singleInterpolation());
+        var (expression, span) = singleInterpolation();
+        buffer.add(expression, span);
         needsDeprecationWarning = true;
       } else {
         var identifierStart = scanner.state;
@@ -2542,7 +2547,8 @@ abstract class StylesheetParser extends Parser {
             buffer.writeCharCode(escapeCharacter());
           }
         case $hash when scanner.peekChar(1) == $lbrace:
-          buffer.add(singleInterpolation());
+          var (expression, span) = singleInterpolation();
+          buffer.add(expression, span);
         case _:
           buffer.writeCharCode(scanner.readChar());
       }
@@ -2705,7 +2711,8 @@ abstract class StylesheetParser extends Parser {
         case $backslash:
           buffer.write(escape());
         case $hash when scanner.peekChar(1) == $lbrace:
-          buffer.add(singleInterpolation());
+          var (expression, span) = singleInterpolation();
+          buffer.add(expression, span);
         case $exclamation ||
               $percent ||
               $ampersand ||
@@ -2740,7 +2747,7 @@ abstract class StylesheetParser extends Parser {
     }
 
     return InterpolatedFunctionExpression(
-        Interpolation(["url"], scanner.spanFrom(start)),
+        Interpolation.plain("url", scanner.spanFrom(start)),
         _argumentInvocation(),
         scanner.spanFrom(start));
   }
@@ -3010,7 +3017,8 @@ abstract class StylesheetParser extends Parser {
       case $backslash:
         buffer.write(escape(identifierStart: true));
       case $hash when scanner.peekChar(1) == $lbrace:
-        buffer.add(singleInterpolation());
+        var (expression, span) = singleInterpolation();
+        buffer.add(expression, span);
       case _:
         scanner.error("Expected identifier.");
     }
@@ -3032,28 +3040,30 @@ abstract class StylesheetParser extends Parser {
         case $backslash:
           buffer.write(escape());
         case $hash when scanner.peekChar(1) == $lbrace:
-          buffer.add(singleInterpolation());
+          var (expression, span) = singleInterpolation();
+          buffer.add(expression, span);
         case _:
           break loop;
       }
     }
   }
 
-  /// Consumes interpolation.
+  /// Consumes interpolation and returns it along with the span covering the
+  /// `#{}`.
   @protected
-  Expression singleInterpolation() {
+  (Expression, FileSpan span) singleInterpolation() {
     var start = scanner.state;
     scanner.expect('#{');
     whitespace();
     var contents = _expression();
     scanner.expectChar($rbrace);
+    var span = scanner.spanFrom(start);
 
     if (plainCss) {
-      error(
-          "Interpolation isn't allowed in plain CSS.", scanner.spanFrom(start));
+      error("Interpolation isn't allowed in plain CSS.", span);
     }
 
-    return contents;
+    return (contents, span);
   }
 
   // ## Media Queries
@@ -3165,9 +3175,8 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a `MediaOrInterp` expression and writes it to [buffer].
   void _mediaOrInterp(InterpolationBuffer buffer) {
     if (scanner.peekChar() == $hash) {
-      var interpolation = singleInterpolation();
-      buffer
-          .addInterpolation(Interpolation([interpolation], interpolation.span));
+      var (expression, span) = singleInterpolation();
+      buffer.add(expression, span);
     } else {
       _mediaInParens(buffer);
     }
@@ -3196,12 +3205,14 @@ abstract class StylesheetParser extends Parser {
       expectWhitespace();
       _mediaOrInterp(buffer);
     } else {
-      buffer.add(_expressionUntilComparison());
+      var expressionBefore = _expressionUntilComparison();
+      buffer.add(expressionBefore, expressionBefore.span);
       if (scanner.scanChar($colon)) {
         whitespace();
         buffer.writeCharCode($colon);
         buffer.writeCharCode($space);
-        buffer.add(_expression());
+        var expressionAfter = _expression();
+        buffer.add(expressionAfter, expressionAfter.span);
       } else {
         var next = scanner.peekChar();
         if (next case $langle || $rangle || $equal) {
@@ -3213,7 +3224,8 @@ abstract class StylesheetParser extends Parser {
           buffer.writeCharCode($space);
 
           whitespace();
-          buffer.add(_expressionUntilComparison());
+          var expressionMiddle = _expressionUntilComparison();
+          buffer.add(expressionMiddle, expressionMiddle.span);
 
           // dart-lang/sdk#45356
           if (next case $langle || $rangle when scanner.scanChar(next!)) {
@@ -3223,7 +3235,8 @@ abstract class StylesheetParser extends Parser {
             buffer.writeCharCode($space);
 
             whitespace();
-            buffer.add(_expressionUntilComparison());
+            var expressionAfter = _expressionUntilComparison();
+            buffer.add(expressionAfter, expressionAfter.span);
           }
         }
       }
@@ -3308,7 +3321,7 @@ abstract class StylesheetParser extends Parser {
     } else if (scanner.peekChar() == $lparen) {
       var condition = _supportsCondition();
       scanner.expectChar($rparen);
-      return condition;
+      return condition.withSpan(scanner.spanFrom(start));
     }
 
     // Unfortunately, we may have to backtrack here. The grammar is:
@@ -3338,7 +3351,7 @@ abstract class StylesheetParser extends Parser {
       var identifier = interpolatedIdentifier();
       if (_trySupportsOperation(identifier, nameStart) case var operation?) {
         scanner.expectChar($rparen);
-        return operation;
+        return operation.withSpan(scanner.spanFrom(start));
       }
 
       // If parsing an expression fails, try to parse an
@@ -3356,24 +3369,21 @@ abstract class StylesheetParser extends Parser {
       return SupportsAnything(contents, scanner.spanFrom(start));
     }
 
-    var declaration = _supportsDeclarationValue(name, start);
+    var value = _supportsDeclarationValue(name);
     scanner.expectChar($rparen);
-    return declaration;
+    return SupportsDeclaration(name, value, scanner.spanFrom(start));
   }
 
   /// Parses and returns the right-hand side of a declaration in a supports
   /// query.
-  SupportsDeclaration _supportsDeclarationValue(
-      Expression name, LineScannerState start) {
-    Expression value;
+  Expression _supportsDeclarationValue(Expression name) {
     if (name case StringExpression(hasQuotes: false, :var text)
         when text.initialPlain.startsWith("--")) {
-      value = StringExpression(_interpolatedDeclarationValue());
+      return StringExpression(_interpolatedDeclarationValue());
     } else {
       whitespace();
-      value = _expression();
+      return _expression();
     }
-    return SupportsDeclaration(name, value, scanner.spanFrom(start));
   }
 
   /// If [interpolation] is followed by `"and"` or `"or"`, parse it as a supports operation.
@@ -3530,7 +3540,7 @@ abstract class StylesheetParser extends Parser {
     if (expression is StringExpression && !expression.hasQuotes) {
       buffer.addInterpolation(expression.text);
     } else {
-      buffer.add(expression);
+      buffer.add(expression, expression.span);
     }
   }
 

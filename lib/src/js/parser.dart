@@ -35,6 +35,14 @@ class ParserExports {
   external set createExpressionVisitor(Function function);
 }
 
+/// An empty interpolation, used to initialize empty AST entries to modify their
+/// prototypes.
+final _interpolation = Interpolation(const [], const [], bogusSpan);
+
+/// An expression used to initialize empty AST entries to modify their
+/// prototypes.
+final _expression = NullExpression(bogusSpan);
+
 /// Loads and returns all the exports needed for the `sass-parser` package.
 ParserExports loadParserExports() {
   _updateAstPrototypes();
@@ -59,26 +67,46 @@ void _updateAstPrototypes() {
       (SourceFile self, int start, [int? end]) => self.getText(start, end));
   getJSClass(file)
       .defineGetter('codeUnits', (SourceFile self) => self.codeUnits);
-  var interpolation = Interpolation(const [], bogusSpan);
-  getJSClass(interpolation)
+  getJSClass(_interpolation)
       .defineGetter('asPlain', (Interpolation self) => self.asPlain);
-  getJSClass(ExtendRule(interpolation, bogusSpan)).superclass.defineMethod(
+  getJSClass(ExtendRule(_interpolation, bogusSpan)).superclass.defineMethod(
       'accept',
       (Statement self, StatementVisitor<Object?> visitor) =>
           self.accept(visitor));
-  var string = StringExpression(interpolation);
+  var string = StringExpression(_interpolation);
   getJSClass(string).superclass.defineMethod(
       'accept',
       (Expression self, ExpressionVisitor<Object?> visitor) =>
           self.accept(visitor));
 
+  _addSupportsConditionToInterpolation();
+
   for (var node in [
     string,
     BinaryOperationExpression(BinaryOperator.plus, string, string),
-    SupportsExpression(SupportsAnything(interpolation, bogusSpan)),
-    LoudComment(interpolation)
+    SupportsExpression(SupportsAnything(_interpolation, bogusSpan)),
+    LoudComment(_interpolation)
   ]) {
     getJSClass(node).defineGetter('span', (SassNode self) => self.span);
+  }
+}
+
+/// Updates the prototypes of [SupportsCondition] AST types to support
+/// converting them to an [Interpolation] for the JS API.
+///
+/// Works around sass/sass#3935.
+void _addSupportsConditionToInterpolation() {
+  var anything = SupportsAnything(_interpolation, bogusSpan);
+  for (var node in [
+    anything,
+    SupportsDeclaration(_expression, _expression, bogusSpan),
+    SupportsFunction(_interpolation, _interpolation, bogusSpan),
+    SupportsInterpolation(_expression, bogusSpan),
+    SupportsNegation(anything, bogusSpan),
+    SupportsOperation(anything, anything, "and", bogusSpan)
+  ]) {
+    getJSClass(node).defineMethod(
+        'toInterpolation', (SupportsCondition self) => self.toInterpolation());
   }
 }
 

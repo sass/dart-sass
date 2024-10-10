@@ -2541,6 +2541,8 @@ final class _EvaluateVisitor
         throw _exception("Undefined function.", node.span);
       }
 
+      // Note that the list of calculation functions is also tracked in
+      // lib/src/visitor/is_plain_css_safe.dart.
       switch (node.name.toLowerCase()) {
         case "min" || "max" || "round" || "abs"
             when node.arguments.named.isEmpty &&
@@ -3628,7 +3630,7 @@ final class _EvaluateVisitor
       if (warnForColor && namesByColor.containsKey(result)) {
         var alternative = BinaryOperationExpression(
             BinaryOperator.plus,
-            StringExpression(Interpolation([""], interpolation.span),
+            StringExpression(Interpolation.plain("", interpolation.span),
                 quotes: true),
             expression);
         _warn(

@@ -128,5 +128,6 @@ mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
       Interpolation(
           interpolation.contents
               .map((node) => node is Expression ? node.accept(this) : node),
+          interpolation.spans,
           interpolation.span);
 }
