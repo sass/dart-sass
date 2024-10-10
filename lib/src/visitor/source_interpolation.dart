@@ -12,7 +12,8 @@ import 'interface/expression.dart';
 ///
 /// This should be used through [Expression.asInterpolation].
 class SourceInterpolationVisitor implements ExpressionVisitor<void> {
-  /// The buffer added to each time this visitor visits an expression.
+  /// The buffer to which content is added each time this visitor visits an
+  /// expression.
   ///
   /// This is set to null if the visitor encounters a node that's not valid CSS
   /// with interpolations.
