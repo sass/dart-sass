@@ -108,8 +108,8 @@ export class NumberExpression extends Expression {
 
   /** @hidden */
   toString(): string {
-    if (this.raws?.raw != null && this.raws?.value === this.value) {
-      return this.raws.raw + (this.unit ?? '');
+    if (this.raws?.value === this.value) {
+      return (this.raws.raw ?? this.value) + (this.unit ?? '');
     }
     return this.value + (this.unit ?? '');
   }
