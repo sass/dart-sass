@@ -33,7 +33,17 @@ export interface NumberExpressionRaws {
    * use scientific notation. For example, the following number representations
    * have the same value: `1e3`, `1000`, `01000.0`.
    */
-  value?: string;
+  raw?: string;
+
+  /**
+   * The numeric value for the raw string that represents the number.
+   *
+   * This `value` is compared with {@link NumberExpression.value}. If they
+   * match, then the {@link raw} string is output when stringifying the
+   * expression. Otherwise, the {@link raw} string is ignored, and the
+   * {@link NumberExpression.value} is output.
+   */
+  value?: number;
 }
 
 /**
@@ -98,7 +108,10 @@ export class NumberExpression extends Expression {
 
   /** @hidden */
   toString(): string {
-    return (this.raws?.value ?? this.value) + (this.unit ?? '');
+    if (this.raws?.raw != null && this.raws?.value === this.value) {
+      return this.raws.raw + (this.unit ?? '');
+    }
+    return this.value + (this.unit ?? '');
   }
 
   /** @hidden */
