@@ -134,6 +134,22 @@ describe('a number expression', () => {
             raws: {raw: 'hello', value: 234},
           }).toString()
         ).toBe('123'));
+
+      it('with a the same value as the expression but undefined format', () =>
+        expect(
+          new NumberExpression({
+            value: 123,
+            raws: {raw: undefined, value: 123},
+          }).toString()
+        ).toBe('123'));
+
+      it('with a the same value as the expression but falsy format', () =>
+        expect(
+          new NumberExpression({
+            value: 123,
+            raws: {raw: '', value: 123},
+          }).toString()
+        ).toBe(''));
     });
   });
 
