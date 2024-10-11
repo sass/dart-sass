@@ -1,3 +1,8 @@
+## 13.0.1
+
+* Fix a bug where `LoudComment`s parsed from the indented syntax would include
+  whitespace after the closing `*/`.
+
 ## 13.0.0
 
 * The `Interpolation()` constructor now takes an additional `List<FileSpan?>`
