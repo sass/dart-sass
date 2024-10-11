@@ -5,7 +5,6 @@
 ## 0.2.5
 
 * Add support for parsing the `@supports` rule.
-* Add `BooleanExpression` and `NumberExpression`.
 
 ## 0.2.4
 
