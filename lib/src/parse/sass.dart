@@ -272,7 +272,7 @@ class SassParser extends StylesheetParser {
                 whitespace();
               }
 
-              if (!scanner.peekChar().isNewline) {
+              if (!scanner.isDone && !scanner.peekChar().isNewline) {
                 var errorStart = scanner.state;
                 while (!scanner.isDone && !scanner.peekChar().isNewline) {
                   scanner.readChar();
