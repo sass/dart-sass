@@ -217,7 +217,6 @@ class SassParser extends StylesheetParser {
     scanner.expect("/*");
 
     var first = true;
-    var closed = false;
     var buffer = InterpolationBuffer()..write("/*");
     var parentIndentation = currentIndentation;
     while (true) {
@@ -264,25 +263,25 @@ class SassParser extends StylesheetParser {
 
               // For backwards compatibility, allow additional comments after
               // the initial comment is closed.
-                while (scanner.peekChar().isNewline && _peekIndentation() > parentIndentation) {
-                  while (_lookingAtDoubleNewline()) {
-                    _expectNewline();
-                  }
-                  _readIndentation();
-                  whitespace();
+              while (scanner.peekChar().isNewline &&
+                  _peekIndentation() > parentIndentation) {
+                while (_lookingAtDoubleNewline()) {
+                  _expectNewline();
                 }
+                _readIndentation();
+                whitespace();
+              }
 
               if (!scanner.peekChar().isNewline) {
                 var errorStart = scanner.state;
                 while (!scanner.isDone && !scanner.peekChar().isNewline) {
                   scanner.readChar();
                 }
-                throw new MultiSpanSassFormatException(
-                  "Unexpected text after end of comment",
-                  scanner.spanFrom(errorStart),
-                  "extra text",
-                  {span: "comment"}
-                );
+                throw MultiSpanSassFormatException(
+                    "Unexpected text after end of comment",
+                    scanner.spanFrom(errorStart),
+                    "extra text",
+                    {span: "comment"});
               } else {
                 return LoudComment(buffer.interpolation(span));
               }

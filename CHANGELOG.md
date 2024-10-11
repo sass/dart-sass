@@ -3,7 +3,7 @@
 * Fix a bug where Sass would add an extra `*/` after loud comments with
   whitespace after an explicit `*/` in the indented syntax.
 
-* **Potentially breaking bug fxi:** Adding text after an explicit `*/` in the
+* **Potentially breaking bug fix:** Adding text after an explicit `*/` in the
   indented syntax is now an error, rather than silently generating invalid CSS.
 
 ## 1.79.5
