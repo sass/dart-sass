@@ -1,3 +1,7 @@
+## 0.2.6
+
+* No user-visible changes.
+
 ## 0.2.5
 
 * Add support for parsing the `@supports` rule.

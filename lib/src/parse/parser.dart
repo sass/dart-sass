@@ -719,14 +719,6 @@ class Parser {
 
         throwWithTrace(map.mapException(error), error, stackTrace);
       }
-    } on SourceSpanFormatException catch (error, stackTrace) {
-      var span = error.span as FileSpan;
-      if (startsWithIgnoreCase(error.message, "expected")) {
-        span = _adjustExceptionSpan(span);
-      }
-
-      throwWithTrace(
-          SassFormatException(error.message, span), error, stackTrace);
     } on MultiSourceSpanFormatException catch (error, stackTrace) {
       var span = error.span as FileSpan;
       var secondarySpans = error.secondarySpans.cast<FileSpan, String>();
@@ -743,6 +735,14 @@ class Parser {
               error.message, span, error.primaryLabel, secondarySpans),
           error,
           stackTrace);
+    } on SourceSpanFormatException catch (error, stackTrace) {
+      var span = error.span as FileSpan;
+      if (startsWithIgnoreCase(error.message, "expected")) {
+        span = _adjustExceptionSpan(span);
+      }
+
+      throwWithTrace(
+          SassFormatException(error.message, span), error, stackTrace);
     }
   }
 
