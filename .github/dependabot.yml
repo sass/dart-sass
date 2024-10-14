@@ -16,6 +16,6 @@ updates:
       - "/package"
       - "/pkg/sass-parser"
     ignore:
-      dependency-name: "sass"
+      - dependency-name: "sass"
     schedule:
       interval: "weekly"
