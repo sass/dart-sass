@@ -4,7 +4,7 @@
   are available within built-in modules. See [the Sass blog post] for more
   details on the deprecation process.
 
-[the Sass blog]: https://sass-lang.com/blog/import-is-deprecated/
+[the Sass blog post]: https://sass-lang.com/blog/import-is-deprecated/
 
 ## 1.79.6
 
