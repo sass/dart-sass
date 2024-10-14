@@ -6,6 +6,10 @@
 * **Potentially breaking bug fix:** Adding text after an explicit `*/` in the
   indented syntax is now an error, rather than silently generating invalid CSS.
 
+### Embedded Host
+
+* Properly export the `SassBoolean` type.
+
 ## 1.79.5
 
 * Changes to how `selector.unify()` and `@extend` combine selectors:
