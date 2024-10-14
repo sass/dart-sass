@@ -20,7 +20,7 @@ export 'grind/benchmark.dart';
 export 'grind/double_check.dart';
 export 'grind/frameworks.dart';
 export 'grind/generate_deprecations.dart';
-export 'grind/subpackages.dart';
+export 'grind/sass_api.dart';
 export 'grind/synchronize.dart';
 export 'grind/utils.dart';
 
@@ -34,6 +34,7 @@ void main(List<String> args) {
   pkg.homebrewFormula.value = "Formula/sass.rb";
   pkg.homebrewEditFormula.value = _updateHomebrewLanguageRevision;
   pkg.jsRequires.value = [
+    pkg.JSRequire("@parcel/watcher", target: pkg.JSRequireTarget.cli),
     pkg.JSRequire("immutable", target: pkg.JSRequireTarget.all),
     pkg.JSRequire("chokidar", target: pkg.JSRequireTarget.cli),
     pkg.JSRequire("readline", target: pkg.JSRequireTarget.cli),
@@ -92,6 +93,7 @@ void main(List<String> args) {
     'NodePackageImporter',
     'deprecations',
     'Version',
+    'parser_',
   };
 
   pkg.githubReleaseNotes.fn = () =>
@@ -214,7 +216,7 @@ String _readAndResolveMarkdown(String path) => File(path)
       return included.substring(headerMatch.end, sectionEnd).trim();
     });
 
-/// Returns a map from JS type declaration file names to their contnets.
+/// Returns a map from JS type declaration file names to their contents.
 Map<String, String> _fetchJSTypes() {
   updateLanguageRepo();
 

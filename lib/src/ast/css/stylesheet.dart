@@ -13,6 +13,7 @@ import 'node.dart';
 ///
 /// This is the root plain CSS node. It contains top-level statements.
 class CssStylesheet extends CssParentNode {
+  CssParentNode? get parent => null;
   final List<CssNode> children;
   final FileSpan span;
   bool get isGroupEnd => false;

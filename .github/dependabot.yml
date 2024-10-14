@@ -5,6 +5,17 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "github-actions"
-    directory: "/"
+    directories:
+      - "/"
+      - "/.github/util/*/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directories:
+      - "/"
+      - "/package"
+      - "/pkg/sass-parser"
+    ignore:
+      dependency-name: "sass"
     schedule:
       interval: "weekly"

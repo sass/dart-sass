@@ -13,7 +13,7 @@ import 'list.dart';
 /// A unary operator, as in `+$var` or `not fn()`.
 ///
 /// {@category AST}
-final class UnaryOperationExpression implements Expression {
+final class UnaryOperationExpression extends Expression {
   /// The operator being invoked.
   final UnaryOperator operator;
 

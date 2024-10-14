@@ -8,8 +8,11 @@ import 'package:collection/collection.dart';
 
 import '../ast/sass/statement/mixin_rule.dart';
 import '../callable.dart';
+import '../deprecation.dart';
+import '../evaluation_context.dart';
 import '../util/map.dart';
 import '../value.dart';
+import '../visitor/serialize.dart';
 
 /// Feature names supported by Dart sass.
 final _features = {
@@ -26,12 +29,24 @@ final _features = {
 ///
 /// Additional functions are defined in the evaluator.
 final _shared = UnmodifiableListView([
+  // This is only a partial list of meta functions. The rest are defined in the
+  // evaluator, because they need access to context that's only available at
+  // runtime.
   _function("feature-exists", r"$feature", (arguments) {
+    warnForDeprecation(
+        "The feature-exists() function is deprecated.\n\n"
+        "More info: https://sass-lang.com/d/feature-exists",
+        Deprecation.featureExists);
     var feature = arguments[0].assertString("feature");
     return SassBoolean(_features.contains(feature.text));
   }),
-  _function("inspect", r"$value",
-      (arguments) => SassString(arguments.first.toString(), quotes: false)),
+
+  _function(
+      "inspect",
+      r"$value",
+      (arguments) => SassString(serializeValue(arguments.first, inspect: true),
+          quotes: false)),
+
   _function(
       "type-of",
       r"$value",

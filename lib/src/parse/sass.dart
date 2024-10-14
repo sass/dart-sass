@@ -6,6 +6,7 @@ import 'package:charcode/charcode.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 import '../ast/sass.dart';
+import '../exception.dart';
 import '../interpolation_buffer.dart';
 import '../util/character.dart';
 import '../value.dart';
@@ -98,7 +99,7 @@ class SassParser extends StylesheetParser {
       // Serialize [url] as a Sass string because [StaticImport] expects it to
       // include quotes.
       return StaticImport(
-          Interpolation([SassString(url).toString()], span), span);
+          Interpolation.plain(SassString(url).toString(), span), span);
     } else {
       try {
         return DynamicImport(parseImportUrl(url), span);
@@ -247,7 +248,43 @@ class SassParser extends StylesheetParser {
 
           case $hash:
             if (scanner.peekChar(1) == $lbrace) {
-              buffer.add(singleInterpolation());
+              var (expression, span) = singleInterpolation();
+              buffer.add(expression, span);
+            } else {
+              buffer.writeCharCode(scanner.readChar());
+            }
+
+          case $asterisk:
+            if (scanner.peekChar(1) == $slash) {
+              buffer.writeCharCode(scanner.readChar());
+              buffer.writeCharCode(scanner.readChar());
+              var span = scanner.spanFrom(start);
+              whitespace();
+
+              // For backwards compatibility, allow additional comments after
+              // the initial comment is closed.
+              while (scanner.peekChar().isNewline &&
+                  _peekIndentation() > parentIndentation) {
+                while (_lookingAtDoubleNewline()) {
+                  _expectNewline();
+                }
+                _readIndentation();
+                whitespace();
+              }
+
+              if (!scanner.isDone && !scanner.peekChar().isNewline) {
+                var errorStart = scanner.state;
+                while (!scanner.isDone && !scanner.peekChar().isNewline) {
+                  scanner.readChar();
+                }
+                throw MultiSpanSassFormatException(
+                    "Unexpected text after end of comment",
+                    scanner.spanFrom(errorStart),
+                    "extra text",
+                    {span: "comment"});
+              } else {
+                return LoudComment(buffer.interpolation(span));
+              }
             } else {
               buffer.writeCharCode(scanner.readChar());
             }
@@ -268,7 +305,6 @@ class SassParser extends StylesheetParser {
 
       _readIndentation();
     }
-    if (!buffer.trailingString.trimRight().endsWith("*/")) buffer.write(" */");
 
     return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
   }

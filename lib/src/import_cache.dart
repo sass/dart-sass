@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 4362e28e5cd425786c235d2a6a2bb60539403799
+// Checksum: e043f2a3dafb741a6f053a7c1785b1c9959242f5
 //
 // ignore_for_file: unused_import
 
@@ -23,6 +23,7 @@ import 'importer/no_op.dart';
 import 'importer/utils.dart';
 import 'io.dart';
 import 'logger.dart';
+import 'logger/deprecation_processing.dart';
 import 'util/map.dart';
 import 'util/nullable.dart';
 import 'utils.dart';
@@ -63,7 +64,7 @@ final class ImportCache {
       <(Importer, Uri, {bool forImport}), CanonicalizeResult?>{};
 
   /// A map from the keys in [_perImporterCanonicalizeCache] that are generated
-  /// for relative URL loads agains the base importer to the original relative
+  /// for relative URL loads against the base importer to the original relative
   /// URLs what were loaded.
   ///
   /// This is used to invalidate the cache when files are changed.
@@ -98,18 +99,18 @@ final class ImportCache {
       PackageConfig? packageConfig,
       Logger? logger})
       : _importers = _toImporters(importers, loadPaths, packageConfig),
-        _logger = logger ?? const Logger.stderr();
+        _logger = logger ?? Logger.stderr();
 
   /// Creates an import cache without any globally-available importers.
   ImportCache.none({Logger? logger})
       : _importers = const [],
-        _logger = logger ?? const Logger.stderr();
+        _logger = logger ?? Logger.stderr();
 
   /// Creates an import cache without any globally-available importers, and only
   /// the passed in importers.
   ImportCache.only(Iterable<Importer> importers, {Logger? logger})
       : _importers = List.unmodifiable(importers),
-        _logger = logger ?? const Logger.stderr();
+        _logger = logger ?? Logger.stderr();
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.
@@ -171,11 +172,11 @@ final class ImportCache {
     var key = (url, forImport: forImport);
     if (_canonicalizeCache.containsKey(key)) return _canonicalizeCache[key];
 
-    // Each indivudal call to a `canonicalize()` override may not be cacheable
+    // Each individual call to a `canonicalize()` override may not be cacheable
     // (specifically, if it has access to `containingUrl` it's too
     // context-sensitive to usefully cache). We want to cache a given URL across
     // the _entire_ importer chain, so we use [cacheable] to track whether _all_
-    // `canonicalize()` calls we've attempted are cacheable. Only if they are do
+    // `canonicalize()` calls we've attempted are cacheable. Only if they are, do
     // we store the result in the cache.
     var cacheable = true;
     for (var i = 0; i < _importers.length; i++) {
@@ -313,8 +314,7 @@ final class ImportCache {
       // If multiple original URLs canonicalize to the same thing, choose the
       // shortest one.
       minBy<Uri, int>(
-              _canonicalizeCache.values
-                  .whereNotNull()
+              _canonicalizeCache.values.nonNulls
                   .where((result) => result.$2 == canonicalUrl)
                   .map((result) => result.originalUrl),
               (url) => url.path.length)
@@ -355,5 +355,26 @@ final class ImportCache {
   void clearImport(Uri canonicalUrl) {
     _resultsCache.remove(canonicalUrl);
     _importCache.remove(canonicalUrl);
+  }
+
+  /// Wraps [logger] to process deprecations within an ImportCache.
+  ///
+  /// This wrapped logger will handle the deprecation options, but will not
+  /// limit repetition, as it can be re-used across parses. A logger passed to
+  /// an ImportCache or AsyncImportCache should generally be wrapped here first,
+  /// unless it's already been wrapped to process deprecations, in which case
+  /// this method has no effect.
+  static DeprecationProcessingLogger wrapLogger(
+      Logger? logger,
+      Iterable<Deprecation>? silenceDeprecations,
+      Iterable<Deprecation>? fatalDeprecations,
+      Iterable<Deprecation>? futureDeprecations,
+      {bool color = false}) {
+    if (logger is DeprecationProcessingLogger) return logger;
+    return DeprecationProcessingLogger(logger ?? Logger.stderr(color: color),
+        silenceDeprecations: {...?silenceDeprecations},
+        fatalDeprecations: {...?fatalDeprecations},
+        futureDeprecations: {...?futureDeprecations},
+        limitRepetition: false);
   }
 }

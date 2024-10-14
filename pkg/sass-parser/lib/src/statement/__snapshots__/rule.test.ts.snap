@@ -1,0 +1,41 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a style rule toJSON with a child 1`] = `
+{
+  "inputs": [
+    {
+      "css": ".foo {@bar}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "nodes": [
+    <@bar;>,
+  ],
+  "raws": {},
+  "sassType": "rule",
+  "selector": ".foo ",
+  "selectorInterpolation": <.foo >,
+  "source": <1:1-1:12 in 0>,
+  "type": "rule",
+}
+`;
+
+exports[`a style rule toJSON with empty children 1`] = `
+{
+  "inputs": [
+    {
+      "css": ".foo {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "nodes": [],
+  "raws": {},
+  "sassType": "rule",
+  "selector": ".foo ",
+  "selectorInterpolation": <.foo >,
+  "source": <1:1-1:8 in 0>,
+  "type": "rule",
+}
+`;

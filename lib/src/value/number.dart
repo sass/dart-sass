@@ -428,8 +428,7 @@ abstract class SassNumber extends Value {
   /// [newDenominators].
   ///
   /// Throws a [SassScriptException] if this number's units aren't compatible
-  /// with [other]'s units, or if either number is unitless but the other is
-  /// not.
+  /// with [newNumerators] and [newDenominators] or if this number is unitless.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
@@ -437,6 +436,10 @@ abstract class SassNumber extends Value {
           [String? name]) =>
       _coerceOrConvertValue(newNumerators, newDenominators,
           coerceUnitless: false, name: name);
+
+  /// A shorthand for [convertValue] with only one numerator unit.
+  double convertValueToUnit(String unit, [String? name]) =>
+      convertValue([unit], [], name);
 
   /// Returns a copy of this number, converted to the same units as [other].
   ///
@@ -849,7 +852,8 @@ abstract class SassNumber extends Value {
         ([], [var denominator]) => "$denominator^-1",
         ([], _) => "(${denominators.join('*')})^-1",
         (_, []) => numerators.join("*"),
-        _ => "${numerators.join("*")}/${denominators.join("*")}"
+        (_, [var denominator]) => "${numerators.join("*")}/$denominator",
+        _ => "${numerators.join("*")}/(${denominators.join("*")})",
       };
 
   bool operator ==(Object other) {

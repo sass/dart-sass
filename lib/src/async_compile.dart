@@ -45,12 +45,13 @@ Future<CompileResult> compileAsync(String path,
     Iterable<Deprecation>? silenceDeprecations,
     Iterable<Deprecation>? fatalDeprecations,
     Iterable<Deprecation>? futureDeprecations}) async {
-  DeprecationProcessingLogger deprecationLogger = logger =
-      DeprecationProcessingLogger(logger ?? Logger.stderr(),
+  DeprecationProcessingLogger deprecationLogger =
+      logger = DeprecationProcessingLogger(logger ?? Logger.stderr(),
           silenceDeprecations: {...?silenceDeprecations},
           fatalDeprecations: {...?fatalDeprecations},
           futureDeprecations: {...?futureDeprecations},
-          limitRepetition: !verbose);
+          limitRepetition: !verbose)
+        ..validate();
 
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
@@ -111,12 +112,13 @@ Future<CompileResult> compileStringAsync(String source,
     Iterable<Deprecation>? silenceDeprecations,
     Iterable<Deprecation>? fatalDeprecations,
     Iterable<Deprecation>? futureDeprecations}) async {
-  DeprecationProcessingLogger deprecationLogger = logger =
-      DeprecationProcessingLogger(logger ?? Logger.stderr(),
+  DeprecationProcessingLogger deprecationLogger =
+      logger = DeprecationProcessingLogger(logger ?? Logger.stderr(),
           silenceDeprecations: {...?silenceDeprecations},
           fatalDeprecations: {...?fatalDeprecations},
           futureDeprecations: {...?futureDeprecations},
-          limitRepetition: !verbose);
+          limitRepetition: !verbose)
+        ..validate();
 
   var stylesheet =
       Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
@@ -157,6 +159,13 @@ Future<CompileResult> _compileStylesheet(
     bool quietDeps,
     bool sourceMap,
     bool charset) async {
+  if (nodeImporter != null) {
+    logger?.warnForDeprecation(
+        Deprecation.legacyJsApi,
+        'The legacy JS API is deprecated and will be removed in '
+        'Dart Sass 2.0.0.\n\n'
+        'More info: https://sass-lang.com/d/legacy-js-api');
+  }
   var evaluateResult = await evaluateAsync(stylesheet,
       importCache: importCache,
       nodeImporter: nodeImporter,
@@ -171,6 +180,7 @@ Future<CompileResult> _compileStylesheet(
       useSpaces: useSpaces,
       indentWidth: indentWidth,
       lineFeed: lineFeed,
+      logger: logger,
       sourceMap: sourceMap,
       charset: charset);
 

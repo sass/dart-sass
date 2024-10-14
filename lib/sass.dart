@@ -31,7 +31,12 @@ export 'src/importer.dart';
 export 'src/logger.dart' show Logger;
 export 'src/syntax.dart';
 export 'src/value.dart'
-    hide ColorFormat, SassApiColor, SassApiValue, SpanColorFormat;
+    hide
+        ColorChannel,
+        ColorFormat,
+        LinearChannel,
+        SassApiColorSpace,
+        SpanColorFormat;
 export 'src/visitor/serialize.dart' show OutputStyle;
 export 'src/evaluation_context.dart' show warn;
 
@@ -115,7 +120,9 @@ CompileResult compileToResult(String path,
         logger: logger,
         importCache: ImportCache(
             importers: importers,
-            logger: logger ?? Logger.stderr(color: color),
+            logger: ImportCache.wrapLogger(logger, silenceDeprecations,
+                fatalDeprecations, futureDeprecations,
+                color: color),
             loadPaths: loadPaths,
             packageConfig: packageConfig),
         functions: functions,
@@ -217,7 +224,9 @@ CompileResult compileStringToResult(String source,
         logger: logger,
         importCache: ImportCache(
             importers: importers,
-            logger: logger ?? Logger.stderr(color: color),
+            logger: ImportCache.wrapLogger(logger, silenceDeprecations,
+                fatalDeprecations, futureDeprecations,
+                color: color),
             packageConfig: packageConfig,
             loadPaths: loadPaths),
         functions: functions,
@@ -256,7 +265,9 @@ Future<CompileResult> compileToResultAsync(String path,
         logger: logger,
         importCache: AsyncImportCache(
             importers: importers,
-            logger: logger ?? Logger.stderr(color: color),
+            logger: AsyncImportCache.wrapLogger(logger, silenceDeprecations,
+                fatalDeprecations, futureDeprecations,
+                color: color),
             loadPaths: loadPaths,
             packageConfig: packageConfig),
         functions: functions,
@@ -299,7 +310,9 @@ Future<CompileResult> compileStringToResultAsync(String source,
         logger: logger,
         importCache: AsyncImportCache(
             importers: importers,
-            logger: logger ?? Logger.stderr(color: color),
+            logger: AsyncImportCache.wrapLogger(logger, silenceDeprecations,
+                fatalDeprecations, futureDeprecations,
+                color: color),
             packageConfig: packageConfig,
             loadPaths: loadPaths),
         functions: functions,

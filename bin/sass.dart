@@ -15,7 +15,6 @@ import 'package:sass/src/executable/watch.dart';
 import 'package:sass/src/import_cache.dart';
 import 'package:sass/src/importer/filesystem.dart';
 import 'package:sass/src/io.dart';
-import 'package:sass/src/logger/deprecation_processing.dart';
 import 'package:sass/src/stylesheet_graph.dart';
 import 'package:sass/src/utils.dart';
 import 'package:sass/src/embedded/executable.dart'
@@ -48,16 +47,11 @@ Future<void> main(List<String> args) async {
     var graph = StylesheetGraph(ImportCache(
         importers: [...options.pkgImporters, FilesystemImporter.noLoadPath],
         loadPaths: options.loadPaths,
-        // This logger is only used for handling fatal/future deprecations
-        // during parsing, and is re-used across parses, so we don't want to
-        // limit repetition. A separate DeprecationHandlingLogger is created for
-        // each compilation, which will limit repetition if verbose is not
-        // passed in addition to handling fatal/future deprecations.
-        logger: DeprecationProcessingLogger(options.logger,
-            silenceDeprecations: options.silenceDeprecations,
-            fatalDeprecations: options.fatalDeprecations,
-            futureDeprecations: options.futureDeprecations,
-            limitRepetition: false)));
+        logger: ImportCache.wrapLogger(
+            options.logger,
+            options.silenceDeprecations,
+            options.fatalDeprecations,
+            options.futureDeprecations)));
     if (options.watch) {
       await watch(options, graph);
       return;

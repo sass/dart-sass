@@ -19,29 +19,13 @@ jobs:
           - arch: ia32
             runner: windows-latest
           - arch: arm64
-            # This should be windows-arm64, but it's broken by several issues:
-            # https://github.com/orgs/community/discussions/131594
-            # https://github.com/orgs/community/discussions/131754
-            runner: windows-latest
+            runner: windows-arm64
 
     steps:
       - uses: actions/checkout@v4
 
-      # See: https://github.com/orgs/community/discussions/131594
-      # The composite action requires bash which is not available on windows-arm64 runner.
-      # - uses: ./.github/util/initialize
-      #   with: {github-token: "${{ github.token }}"}
-
-      - uses: dart-lang/setup-dart@v1
-
-      - uses: bufbuild/buf-setup-action@v1.30.0
-        with: {github_token: "${{ github.token }}"}
-
-      - name: Install Dependencies
-        run: dart pub get --verbose
-
-      - name: Compile Protobuf
-        run: dart run grinder protobuf
+      - uses: ./.github/util/initialize
+        with: {github-token: "${{ github.token }}"}
 
       - name: Build
         run: dart run grinder pkg-standalone-windows-${{ matrix.arch }}

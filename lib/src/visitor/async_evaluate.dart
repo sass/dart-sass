@@ -51,6 +51,7 @@ import 'interface/css.dart';
 import 'interface/expression.dart';
 import 'interface/modifiable_css.dart';
 import 'interface/statement.dart';
+import 'serialize.dart';
 
 /// A function that takes a callback with no arguments.
 typedef _ScopeCallback = Future<void> Function(
@@ -1181,7 +1182,8 @@ final class _EvaluateVisitor
   Future<Value?> visitDebugRule(DebugRule node) async {
     var value = await node.expression.accept(this);
     _logger.debug(
-        value is SassString ? value.text : value.toString(), node.span);
+        value is SassString ? value.text : serializeValue(value, inspect: true),
+        node.span);
     return null;
   }
 
@@ -1196,20 +1198,43 @@ final class _EvaluateVisitor
           node.span);
     }
 
-    if (_parent.parent!.children.last case var sibling
-        when _parent != sibling) {
-      _warn(
-          "Sass's behavior for declarations that appear after nested\n"
-          "rules will be changing to match the behavior specified by CSS in an "
-          "upcoming\n"
-          "version. To keep the existing behavior, move the declaration above "
-          "the nested\n"
-          "rule. To opt into the new behavior, wrap the declaration in `& "
-          "{}`.\n"
-          "\n"
-          "More info: https://sass-lang.com/d/mixed-decls",
-          MultiSpan(node.span, 'declaration', {sibling.span: 'nested rule'}),
-          Deprecation.mixedDecls);
+    var siblings = _parent.parent!.children;
+    var interleavedRules = <CssStyleRule>[];
+    if (siblings.last != _parent &&
+        // Reproduce this condition from [_warn] so that we don't add anything to
+        // [interleavedRules] for declarations in dependencies.
+        !(_quietDeps &&
+            (_inDependency || (_currentCallable?.inDependency ?? false)))) {
+      loop:
+      for (var sibling in siblings.skip(siblings.indexOf(_parent) + 1)) {
+        switch (sibling) {
+          case CssComment():
+            continue loop;
+
+          case CssStyleRule rule:
+            interleavedRules.add(rule);
+
+          case _:
+            // Always warn for siblings that aren't style rules, because they
+            // add no specificity and they're nested in the same parent as this
+            // declaration.
+            _warn(
+                "Sass's behavior for declarations that appear after nested\n"
+                "rules will be changing to match the behavior specified by CSS "
+                "in an upcoming\n"
+                "version. To keep the existing behavior, move the declaration "
+                "above the nested\n"
+                "rule. To opt into the new behavior, wrap the declaration in "
+                "`& {}`.\n"
+                "\n"
+                "More info: https://sass-lang.com/d/mixed-decls",
+                MultiSpan(
+                    node.span, 'declaration', {sibling.span: 'nested rule'}),
+                Deprecation.mixedDecls);
+            interleavedRules.clear();
+            break;
+        }
+      }
     }
 
     var name = await _interpolationToValue(node.name, warnForColor: true);
@@ -1225,6 +1250,8 @@ final class _EvaluateVisitor
         _parent.addChild(ModifiableCssDeclaration(
             name, CssValue(value, expression.span), node.span,
             parsedAsCustomProperty: node.isCustomProperty,
+            interleavedRules: interleavedRules,
+            trace: interleavedRules.isEmpty ? null : _stackTrace(node.span),
             valueSpanForMap:
                 _sourceMap ? node.value.andThen(_expressionNode)?.span : null));
       } else if (name.value.startsWith('--')) {
@@ -1753,13 +1780,7 @@ final class _EvaluateVisitor
     } on ArgumentError catch (error, stackTrace) {
       throwWithTrace(_exception(error.toString()), error, stackTrace);
     } catch (error, stackTrace) {
-      String? message;
-      try {
-        message = (error as dynamic).message as String;
-      } catch (_) {
-        message = error.toString();
-      }
-      throwWithTrace(_exception(message), error, stackTrace);
+      throwWithTrace(_exception(_getErrorMessage(error)), error, stackTrace);
     } finally {
       _importSpan = null;
     }
@@ -1918,8 +1939,10 @@ final class _EvaluateVisitor
       _endOfImports++;
     }
 
-    _parent.addChild(ModifiableCssComment(
-        await _performInterpolation(node.text), node.span));
+    var text = await _performInterpolation(node.text);
+    // Indented syntax doesn't require */
+    if (!text.endsWith("*/")) text += " */";
+    _parent.addChild(ModifiableCssComment(text, node.span));
     return null;
   }
 
@@ -2518,6 +2541,8 @@ final class _EvaluateVisitor
         throw _exception("Undefined function.", node.span);
       }
 
+      // Note that the list of calculation functions is also tracked in
+      // lib/src/visitor/is_plain_css_safe.dart.
       switch (node.name.toLowerCase()) {
         case "min" || "max" || "round" || "abs"
             when node.arguments.named.isEmpty &&
@@ -3071,13 +3096,8 @@ final class _EvaluateVisitor
     } on SassException {
       rethrow;
     } catch (error, stackTrace) {
-      String? message;
-      try {
-        message = (error as dynamic).message as String;
-      } catch (_) {
-        message = error.toString();
-      }
-      throwWithTrace(_exception(message, nodeWithSpan.span), error, stackTrace);
+      throwWithTrace(_exception(_getErrorMessage(error), nodeWithSpan.span),
+          error, stackTrace);
     }
     _callableNode = oldCallableNode;
 
@@ -3610,7 +3630,7 @@ final class _EvaluateVisitor
       if (warnForColor && namesByColor.containsKey(result)) {
         var alternative = BinaryOperationExpression(
             BinaryOperator.plus,
-            StringExpression(Interpolation([""], interpolation.span),
+            StringExpression(Interpolation.plain("", interpolation.span),
                 quotes: true),
             expression);
         _warn(
@@ -3921,6 +3941,18 @@ final class _EvaluateVisitor
           SassRuntimeException(error.message, nodeWithSpan.span, _stackTrace()),
           error,
           stackTrace);
+    }
+  }
+
+  /// Returns the best human-readable message for [error].
+  String _getErrorMessage(Object error) {
+    // Built-in Dart Error objects often require their full toString()s for
+    // full context.
+    if (error is Error) return error.toString();
+    try {
+      return (error as dynamic).message as String;
+    } catch (_) {
+      return error.toString();
     }
   }
 }

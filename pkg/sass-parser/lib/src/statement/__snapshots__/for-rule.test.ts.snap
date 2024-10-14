@@ -1,0 +1,24 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`an @for rule toJSON 1`] = `
+{
+  "fromExpression": <bar>,
+  "inputs": [
+    {
+      "css": "@for $foo from bar to baz {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "for",
+  "nodes": [],
+  "params": "$foo from bar to baz",
+  "raws": {},
+  "sassType": "for-rule",
+  "source": <1:1-1:29 in 0>,
+  "to": "to",
+  "toExpression": <baz>,
+  "type": "atrule",
+  "variable": "foo",
+}
+`;

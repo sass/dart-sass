@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a CSS-style comment toJSON 1`] = `
+{
+  "inputs": [
+    {
+      "css": "/* foo */",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "raws": {
+    "closed": true,
+    "left": " ",
+    "right": " ",
+  },
+  "sassType": "comment",
+  "source": <1:1-1:10 in 0>,
+  "text": "foo",
+  "textInterpolation": <foo>,
+  "type": "comment",
+}
+`;

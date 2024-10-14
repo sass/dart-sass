@@ -16,11 +16,12 @@ import '../interpolation.dart';
 /// A string literal.
 ///
 /// {@category AST}
-final class StringExpression implements Expression {
+final class StringExpression extends Expression {
   /// Interpolation that, when evaluated, produces the contents of this string.
   ///
-  /// Unlike [asInterpolation], escapes are resolved and quotes are not
-  /// included.
+  /// If this is a quoted string, escapes are resolved and quotes are not
+  /// included in this text (unlike [asInterpolation]). If it's an unquoted
+  /// string, escapes are *not* resolved.
   final Interpolation text;
 
   /// Whether `this` has quotes.
@@ -43,7 +44,7 @@ final class StringExpression implements Expression {
 
   /// Returns a string expression with no interpolation.
   StringExpression.plain(String text, FileSpan span, {bool quotes = false})
-      : text = Interpolation([text], span),
+      : text = Interpolation.plain(text, span),
         hasQuotes = quotes;
 
   T accept<T>(ExpressionVisitor<T> visitor) =>
@@ -63,11 +64,12 @@ final class StringExpression implements Expression {
     quote ??= _bestQuote(text.contents.whereType<String>());
     var buffer = InterpolationBuffer();
     buffer.writeCharCode(quote);
-    for (var value in text.contents) {
+    for (var i = 0; i < text.contents.length; i++) {
+      var value = text.contents[i];
       assert(value is Expression || value is String);
       switch (value) {
         case Expression():
-          buffer.add(value);
+          buffer.add(value, text.spanForElement(i));
         case String():
           _quoteInnerText(value, quote, buffer, static: static);
       }

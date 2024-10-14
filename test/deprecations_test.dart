@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 @TestOn('vm')
+library;
 
 import 'package:test/test.dart';
 
@@ -96,12 +97,6 @@ void main() {
 
     test("a saturation/lightness with no unit", () {
       _expectDeprecation("a {b: hsl(10deg, 0%, 0)}", Deprecation.functionUnits);
-    });
-
-    test("an alpha value with a percent unit", () {
-      _expectDeprecation(
-          r"@use 'sass:color'; a {b: color.change(red, $alpha: 1%)}",
-          Deprecation.functionUnits);
     });
 
     test("an alpha value with a non-percent unit", () {

@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`an @each rule toJSON 1`] = `
+{
+  "eachExpression": <baz>,
+  "inputs": [
+    {
+      "css": "@each $foo, $bar in baz {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "each",
+  "nodes": [],
+  "params": "$foo, $bar in baz",
+  "raws": {},
+  "sassType": "each-rule",
+  "source": <1:1-1:27 in 0>,
+  "type": "atrule",
+  "variables": [
+    "foo",
+    "bar",
+  ],
+}
+`;

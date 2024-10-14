@@ -35,6 +35,8 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+        with:
+          image: tonistiigi/binfmt:master
 
       - name: Compile Protobuf
         run: |

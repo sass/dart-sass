@@ -11,7 +11,7 @@ import '../expression.dart';
 /// A number literal.
 ///
 /// {@category AST}
-final class NumberExpression implements Expression {
+final class NumberExpression extends Expression {
   /// The numeric value.
   final double value;
 

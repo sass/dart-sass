@@ -2,8 +2,12 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
+import '../../../interpolation_buffer.dart';
+import '../../../util/span.dart';
+import '../interpolation.dart';
 import '../supports_condition.dart';
 import 'negation.dart';
 
@@ -31,6 +35,21 @@ final class SupportsOperation implements SupportsCondition {
           operator, 'operator', 'may only be "and" or "or".');
     }
   }
+
+  /// @nodoc
+  @internal
+  Interpolation toInterpolation() => (InterpolationBuffer()
+        ..write(span.before(left.span).text)
+        ..addInterpolation(left.toInterpolation())
+        ..write(left.span.between(right.span).text)
+        ..addInterpolation(right.toInterpolation())
+        ..write(span.after(right.span).text))
+      .interpolation(span);
+
+  /// @nodoc
+  @internal
+  SupportsOperation withSpan(FileSpan span) =>
+      SupportsOperation(left, right, operator, span);
 
   String toString() =>
       "${_parenthesize(left)} $operator ${_parenthesize(right)}";

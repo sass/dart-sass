@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ab2c6fa2588988a86abdbe87512134098e01b39e
+// Checksum: 42c9e2008d449ba4b73b3b92a64cf4d51253837d
 //
 // ignore_for_file: unused_import
 
@@ -54,12 +54,13 @@ CompileResult compile(String path,
     Iterable<Deprecation>? silenceDeprecations,
     Iterable<Deprecation>? fatalDeprecations,
     Iterable<Deprecation>? futureDeprecations}) {
-  DeprecationProcessingLogger deprecationLogger = logger =
-      DeprecationProcessingLogger(logger ?? Logger.stderr(),
+  DeprecationProcessingLogger deprecationLogger =
+      logger = DeprecationProcessingLogger(logger ?? Logger.stderr(),
           silenceDeprecations: {...?silenceDeprecations},
           fatalDeprecations: {...?fatalDeprecations},
           futureDeprecations: {...?futureDeprecations},
-          limitRepetition: !verbose);
+          limitRepetition: !verbose)
+        ..validate();
 
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
@@ -120,12 +121,13 @@ CompileResult compileString(String source,
     Iterable<Deprecation>? silenceDeprecations,
     Iterable<Deprecation>? fatalDeprecations,
     Iterable<Deprecation>? futureDeprecations}) {
-  DeprecationProcessingLogger deprecationLogger = logger =
-      DeprecationProcessingLogger(logger ?? Logger.stderr(),
+  DeprecationProcessingLogger deprecationLogger =
+      logger = DeprecationProcessingLogger(logger ?? Logger.stderr(),
           silenceDeprecations: {...?silenceDeprecations},
           fatalDeprecations: {...?fatalDeprecations},
           futureDeprecations: {...?futureDeprecations},
-          limitRepetition: !verbose);
+          limitRepetition: !verbose)
+        ..validate();
 
   var stylesheet =
       Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
@@ -166,6 +168,13 @@ CompileResult _compileStylesheet(
     bool quietDeps,
     bool sourceMap,
     bool charset) {
+  if (nodeImporter != null) {
+    logger?.warnForDeprecation(
+        Deprecation.legacyJsApi,
+        'The legacy JS API is deprecated and will be removed in '
+        'Dart Sass 2.0.0.\n\n'
+        'More info: https://sass-lang.com/d/legacy-js-api');
+  }
   var evaluateResult = evaluate(stylesheet,
       importCache: importCache,
       nodeImporter: nodeImporter,
@@ -180,6 +189,7 @@ CompileResult _compileStylesheet(
       useSpaces: useSpaces,
       indentWidth: indentWidth,
       lineFeed: lineFeed,
+      logger: logger,
       sourceMap: sourceMap,
       charset: charset);
 

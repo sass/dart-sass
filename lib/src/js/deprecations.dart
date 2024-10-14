@@ -6,6 +6,7 @@ import 'package:js/js.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../deprecation.dart' as dart show Deprecation;
+import '../logger/js_to_dart.dart';
 import 'reflection.dart';
 
 @JS()
@@ -43,6 +44,39 @@ final Map<String, Deprecation?> deprecations = {
           deprecatedIn: deprecation.deprecatedIn,
           obsoleteIn: deprecation.deprecatedIn),
 };
+
+/// Parses a list of [deprecations] from JS into an list of Dart [Deprecation]
+/// objects.
+///
+/// [deprecations] can contain deprecation IDs, JS Deprecation objects, and
+/// (if [supportVersions] is true) [Version]s.
+Iterable<dart.Deprecation>? parseDeprecations(
+    JSToDartLogger logger, List<Object?>? deprecations,
+    {bool supportVersions = false}) {
+  if (deprecations == null) return null;
+  return () sync* {
+    for (var item in deprecations) {
+      switch (item) {
+        case String id:
+          var deprecation = dart.Deprecation.fromId(id);
+          if (deprecation == null) {
+            logger.warn('Invalid deprecation "$id".');
+          } else {
+            yield deprecation;
+          }
+        case Deprecation(:var id):
+          var deprecation = dart.Deprecation.fromId(id);
+          if (deprecation == null) {
+            logger.warn('Invalid deprecation "$id".');
+          } else {
+            yield deprecation;
+          }
+        case Version version when supportVersions:
+          yield* dart.Deprecation.forVersion(version);
+      }
+    }
+  }();
+}
 
 /// The JavaScript `Version` class.
 final JSClass versionClass = () {

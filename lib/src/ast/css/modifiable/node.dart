@@ -13,7 +13,6 @@ import '../node.dart';
 /// modification should only be done within the evaluation step, so the
 /// unmodifiable types are used elsewhere to enforce that constraint.
 abstract base class ModifiableCssNode extends CssNode {
-  /// The node that contains this, or `null` for the root [CssStylesheet] node.
   ModifiableCssParentNode? get parent => _parent;
   ModifiableCssParentNode? _parent;
 

@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 89166027dc458357cbea646fd77fa44d9d7461cb
+  // Checksum: 47c97f7824eb25d7f1e64e3230938b88330d40b4
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -95,12 +95,30 @@ enum Deprecation {
       deprecatedIn: '1.77.7',
       description: 'Declarations after or between nested rules.'),
 
+  /// Deprecation for meta.feature-exists
+  featureExists('feature-exists',
+      deprecatedIn: '1.78.0', description: 'meta.feature-exists'),
+
+  /// Deprecation for certain uses of built-in sass:color functions.
+  color4Api('color-4-api',
+      deprecatedIn: '1.79.0',
+      description: 'Certain uses of built-in sass:color functions.'),
+
+  /// Deprecation for using global color functions instead of sass:color.
+  colorFunctions('color-functions',
+      deprecatedIn: '1.79.0',
+      description: 'Using global color functions instead of sass:color.'),
+
+  /// Deprecation for legacy JS API.
+  legacyJsApi('legacy-js-api',
+      deprecatedIn: '1.79.0', description: 'Legacy JS API.'),
+
   /// Deprecation for @import rules.
-  import('import', deprecatedIn: '1.78.0', description: '@import rules.'),
+  import('import', deprecatedIn: '1.80.0', description: '@import rules.'),
 
   /// Deprecation for global built-in functions that are available in sass: modules.
   globalBuiltin('global-builtin',
-      deprecatedIn: '1.78.0',
+      deprecatedIn: '1.80.0',
       description:
           'Global built-in functions that are available in sass: modules.'),
 

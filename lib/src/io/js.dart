@@ -16,6 +16,7 @@ import 'package:watcher/watcher.dart';
 
 import '../exception.dart';
 import '../js/chokidar.dart';
+import '../js/parcel_watcher.dart';
 
 @JS('process')
 external final Process? _nodeJsProcess; // process is null in the browser
@@ -105,9 +106,9 @@ Future<String> readStdin() async {
   process.stdin.on('data', allowInterop(([Object? chunk]) {
     sink.add(chunk as List<int>);
   }));
-  process.stdin.on('end', allowInterop(([Object? _]) {
+  process.stdin.on('end', allowInterop(([Object? arg]) {
     // Callback for 'end' receives no args.
-    assert(_ == null);
+    assert(arg == null);
     sink.close();
   }));
   process.stdin.on('error', allowInterop(([Object? e]) {
@@ -248,40 +249,65 @@ int get exitCode => _process?.exitCode ?? 0;
 
 set exitCode(int code) => _process?.exitCode = code;
 
-Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) {
+Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
   if (!isNodeJs) {
     throw UnsupportedError("watchDir() is only supported on Node.js");
   }
-  var watcher = chokidar.watch(
-      path, ChokidarOptions(disableGlobbing: true, usePolling: poll));
 
   // Don't assign the controller until after the ready event fires. Otherwise,
   // Chokidar will give us a bunch of add events for files that already exist.
   StreamController<WatchEvent>? controller;
-  watcher
-    ..on(
-        'add',
-        allowInterop((String path, [void _]) =>
-            controller?.add(WatchEvent(ChangeType.ADD, path))))
-    ..on(
-        'change',
-        allowInterop((String path, [void _]) =>
-            controller?.add(WatchEvent(ChangeType.MODIFY, path))))
-    ..on(
-        'unlink',
-        allowInterop((String path) =>
-            controller?.add(WatchEvent(ChangeType.REMOVE, path))))
-    ..on('error', allowInterop((Object error) => controller?.addError(error)));
+  if (poll) {
+    var watcher = chokidar.watch(path, ChokidarOptions(usePolling: true));
+    watcher
+      ..on(
+          'add',
+          allowInterop((String path, [void _]) =>
+              controller?.add(WatchEvent(ChangeType.ADD, path))))
+      ..on(
+          'change',
+          allowInterop((String path, [void _]) =>
+              controller?.add(WatchEvent(ChangeType.MODIFY, path))))
+      ..on(
+          'unlink',
+          allowInterop((String path) =>
+              controller?.add(WatchEvent(ChangeType.REMOVE, path))))
+      ..on(
+          'error', allowInterop((Object error) => controller?.addError(error)));
 
-  var completer = Completer<Stream<WatchEvent>>();
-  watcher.on('ready', allowInterop(() {
-    // dart-lang/sdk#45348
-    var stream = (controller = StreamController<WatchEvent>(onCancel: () {
-      watcher.close();
+    var completer = Completer<Stream<WatchEvent>>();
+    watcher.on('ready', allowInterop(() {
+      // dart-lang/sdk#45348
+      var stream = (controller = StreamController<WatchEvent>(onCancel: () {
+        watcher.close();
+      }))
+          .stream;
+      completer.complete(stream);
+    }));
+
+    return completer.future;
+  } else {
+    var subscription = await ParcelWatcher.subscribeFuture(path,
+        (Object? error, List<ParcelWatcherEvent> events) {
+      if (error != null) {
+        controller?.addError(error);
+      } else {
+        for (var event in events) {
+          switch (event.type) {
+            case 'create':
+              controller?.add(WatchEvent(ChangeType.ADD, event.path));
+            case 'update':
+              controller?.add(WatchEvent(ChangeType.MODIFY, event.path));
+            case 'delete':
+              controller?.add(WatchEvent(ChangeType.REMOVE, event.path));
+          }
+        }
+      }
+    });
+
+    return (controller = StreamController<WatchEvent>(onCancel: () {
+      subscription.unsubscribe();
     }))
         .stream;
-    completer.complete(stream);
-  }));
-
-  return completer.future;
+  }
 }

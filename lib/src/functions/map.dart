@@ -61,7 +61,15 @@ final _set = BuiltInCallable.overloadedFunction("set", {
         throw SassScriptException("Expected \$args to contain a value.");
       case [...var keys, var value]:
         return _modify(map, keys, (_) => value);
-      default:
+      default: // ignore: unreachable_switch_default
+        // This code is unreachable, and the compiler knows it (hence the
+        // `unreachable_switch_default` warning being ignored above). However,
+        // due to architectural limitations in the Dart front end, the compiler
+        // doesn't understand that the code is unreachable until late in the
+        // compilation process (after flow analysis). So this `default` clause
+        // must be kept around to avoid flow analysis incorrectly concluding
+        // that the function fails to return. See
+        // https://github.com/dart-lang/language/issues/2977 for details.
         throw '[BUG] Unreachable code';
     }
   },
@@ -87,7 +95,15 @@ final _merge = BuiltInCallable.overloadedFunction("merge", {
           if (nestedMap == null) return map2;
           return SassMap({...nestedMap.contents, ...map2.contents});
         });
-      default:
+      default: // ignore: unreachable_switch_default
+        // This code is unreachable, and the compiler knows it (hence the
+        // `unreachable_switch_default` warning being ignored above). However,
+        // due to architectural limitations in the Dart front end, the compiler
+        // doesn't understand that the code is unreachable until late in the
+        // compilation process (after flow analysis). So this `default` clause
+        // must be kept around to avoid flow analysis incorrectly concluding
+        // that the function fails to return. See
+        // https://github.com/dart-lang/language/issues/2977 for details.
         throw '[BUG] Unreachable code';
     }
   },
