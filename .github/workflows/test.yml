@@ -312,6 +312,7 @@ jobs:
       run: dart run test -p chrome -j 2
       env:
         CHROME_EXECUTABLE: chrome
+        # See https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md#option-3_the-safest-way
         CHROME_DEVEL_SANDBOX: /opt/google/chrome/chrome-sandbox
 
   sass_parser_tests:
