@@ -304,9 +304,10 @@ jobs:
       with:
         dart-sdk: ${{ matrix.dart_channel }}
         github-token: ${{ github.token }}
-
+    
     - run: dart run grinder pkg-npm-dev
       env: {UPDATE_SASS_SASS_REPO: false}
+    - run: sudo chmod 4755 /opt/google/chrome/chrome-sandbox
     - name: Run tests
       run: dart run test -p chrome -j 2
       env:
