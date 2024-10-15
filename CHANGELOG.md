@@ -6,6 +6,11 @@
 
 [the Sass blog post]: https://sass-lang.com/blog/import-is-deprecated/
 
+### Embedded Host
+
+* Fix an error that would sometimes occur when deprecation warnings were
+  emitted when using a custom importer with the legacy API.
+
 ## 1.79.6
 
 * Fix a bug where Sass would add an extra `*/` after loud comments with
