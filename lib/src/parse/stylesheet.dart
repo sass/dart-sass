@@ -1057,10 +1057,9 @@ abstract class StylesheetParser extends Parser {
       if (argument is DynamicImport) {
         logger.warnForDeprecation(
             Deprecation.import,
-            'Sass @import rules are deprecated '
-            'and will be removed in Dart Sass 3.0.0.\n\n'
-            'More info and automated migrator: '
-            'https://sass-lang.com/d/import',
+            'Sass @import rules are deprecated and will be removed in Dart '
+            'Sass 3.0.0.\n\n'
+            'More info and automated migrator: https://sass-lang.com/d/import',
             span: argument.span);
       }
       if ((_inControlDirective || _inMixin) && argument is DynamicImport) {
