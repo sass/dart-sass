@@ -17,7 +17,7 @@
 
 ## 0.2.6
 
-* No user-visible changes.
+* Add `BooleanExpression` and `NumberExpression`.
 
 ## 0.2.5
 
