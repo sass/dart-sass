@@ -1,3 +1,7 @@
+## 1.79.7
+
+* No user-visible changes.
+
 ## 1.79.6
 
 * Fix a bug where Sass would add an extra `*/` after loud comments with
