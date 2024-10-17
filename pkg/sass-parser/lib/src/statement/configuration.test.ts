@@ -101,7 +101,9 @@ describe('a configuration map', () => {
         'variables array',
         () =>
           new Configuration({
-            variables: [{variable: 'bar', expression: {text: 'baz', quotes: true}}],
+            variables: [
+              {variable: 'bar', expression: {text: 'baz', quotes: true}},
+            ],
           })
       );
 

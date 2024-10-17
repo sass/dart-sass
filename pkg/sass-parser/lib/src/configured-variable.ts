@@ -126,10 +126,7 @@ export class ConfiguredVariable extends Node {
   ) {
     if (Array.isArray(defaults!)) {
       const [variable, rest] = defaults;
-      if (
-        'sassType' in rest ||
-        !('expression' in rest)
-      ) {
+      if ('sassType' in rest || !('expression' in rest)) {
         defaults = {variable, expression: rest as Expression | ExpressionProps};
       } else {
         defaults = {variable, ...rest};

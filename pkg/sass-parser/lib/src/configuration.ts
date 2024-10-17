@@ -6,8 +6,8 @@ import * as postcss from 'postcss';
 
 import {
   ConfiguredVariable,
-  ConfiguredVariableProps,
   ConfiguredVariableExpressionProps,
+  ConfiguredVariableProps,
 } from './configured-variable';
 import {LazySource} from './lazy-source';
 import {Node} from './node';
