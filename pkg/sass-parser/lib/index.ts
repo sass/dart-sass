@@ -96,6 +96,11 @@ export {
   StatementType,
   StatementWithChildren,
 } from './src/statement';
+export {
+  VariableDeclaration,
+  VariableDeclarationProps,
+  VariableDeclarationRaws,
+} from './src/statement/variable-declaration';
 
 /** Options that can be passed to the Sass parsers to control their behavior. */
 export type SassParserOptions = Pick<postcss.ProcessOptions, 'from' | 'map'>;

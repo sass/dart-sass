@@ -1,3 +1,7 @@
+## 0.4.2-dev
+
+* Add support for parsing variable declarations.
+
 ## 0.4.1
 
 * Add `BooleanExpression` and `NumberExpression`.
