@@ -320,6 +320,20 @@ describe('a configuration map', () => {
             },
           }).toString()
         ).toBe('($foo: "bar", $baz: "bang"  /**/)'));
+
+      it('with afterValue and a guard', () =>
+        expect(
+          new Configuration({
+            variables: {
+              foo: {text: 'bar', quotes: true},
+              baz: {
+                value: {text: 'bang', quotes: true},
+                raws: {afterValue: '/**/'},
+                guarded: true,
+              },
+            },
+          }).toString()
+        ).toBe('($foo: "bar", $baz: "bang" !default/**/)'));
     });
   });
 

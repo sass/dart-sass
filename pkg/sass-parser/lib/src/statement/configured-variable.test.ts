@@ -214,6 +214,115 @@ describe('a configured variable', () => {
     expect(node.guarded).toBe(true);
   });
 
+  describe('stringifies', () => {
+    describe('to SCSS', () => {
+      describe('with default raws', () => {
+        it('unguarded', () =>
+          expect(
+            new ConfiguredVariable({
+              name: 'foo',
+              value: {text: 'bar', quotes: true},
+            }).toString()
+          ).toBe('$foo: "bar"'));
+
+        it('guarded', () =>
+          expect(
+            new ConfiguredVariable({
+              name: 'foo',
+              value: {text: 'bar', quotes: true},
+              guarded: true,
+            }).toString()
+          ).toBe('$foo: "bar" !default'));
+
+        it('with a non-identifier name', () =>
+          expect(
+            new ConfiguredVariable({
+              name: 'f o',
+              value: {text: 'bar', quotes: true},
+            }).toString()
+          ).toBe('$f\\20o: "bar"'));
+      });
+
+      // raws.before is only used as part of a Configuration
+      it('ignores before', () =>
+        expect(
+          new ConfiguredVariable({
+            name: 'foo',
+            value: {text: 'bar', quotes: true},
+            raws: {before: '/**/'},
+          }).toString()
+        ).toBe('$foo: "bar"'));
+
+      it('with matching name', () =>
+        expect(
+          new ConfiguredVariable({
+            name: 'foo',
+            value: {text: 'bar', quotes: true},
+            raws: {name: {raw: 'f\\6fo', value: 'foo'}},
+          }).toString()
+        ).toBe('$f\\6fo: "bar"'));
+
+      it('with non-matching name', () =>
+        expect(
+          new ConfiguredVariable({
+            name: 'foo',
+            value: {text: 'bar', quotes: true},
+            raws: {name: {raw: 'f\\41o', value: 'fao'}},
+          }).toString()
+        ).toBe('$foo: "bar"'));
+
+      it('with between', () =>
+        expect(
+          new ConfiguredVariable({
+            name: 'foo',
+            value: {text: 'bar', quotes: true},
+            raws: {between: ' : '},
+          }).toString()
+        ).toBe('$foo : "bar"'));
+
+      it('with beforeGuard and a guard', () =>
+        expect(
+          new ConfiguredVariable({
+            name: 'foo',
+            value: {text: 'bar', quotes: true},
+            guarded: true,
+            raws: {beforeGuard: '/**/'},
+          }).toString()
+        ).toBe('$foo: "bar"/**/!default'));
+
+      it('with beforeGuard and no guard', () =>
+        expect(
+          new ConfiguredVariable({
+            name: 'foo',
+            value: {text: 'bar', quotes: true},
+            raws: {beforeGuard: '/**/'},
+          }).toString()
+        ).toBe('$foo: "bar"'));
+
+      // raws.before is only used as part of a Configuration
+      describe('ignores afterValue', () => {
+        it('with no guard', () =>
+          expect(
+            new ConfiguredVariable({
+              name: 'foo',
+              value: {text: 'bar', quotes: true},
+              raws: {afterValue: '/**/'},
+            }).toString()
+          ).toBe('$foo: "bar"'));
+
+        it('with a guard', () =>
+          expect(
+            new ConfiguredVariable({
+              name: 'foo',
+              value: {text: 'bar', quotes: true},
+              guarded: true,
+              raws: {afterValue: '/**/'},
+            }).toString()
+          ).toBe('$foo: "bar" !default'));
+      });
+    });
+  });
+
   describe('clone()', () => {
     let original: ConfiguredVariable;
     beforeEach(() => {

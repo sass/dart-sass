@@ -10,7 +10,8 @@ import {Expression, ExpressionProps} from './expression';
 import {fromProps} from './expression/from-props';
 import {LazySource} from './lazy-source';
 import {Node} from './node';
-import type * as sassInternal from './sass-internal';
+import * as sassInternal from './sass-internal';
+import {RawWithValue} from './raw-with-value';
 import * as utils from './utils';
 
 /**
@@ -21,6 +22,14 @@ import * as utils from './utils';
 export interface ConfiguredVariableRaws {
   /** The whitespace before the variable name. */
   before?: string;
+
+  /**
+   * The variable's name, not including the `$`.
+   *
+   * This may be different than {@link ConfiguredVariable.name} if the name
+   * contains escape codes.
+   */
+  name?: RawWithValue<string>;
 
   /** The whitespace and colon between the variable name and value. */
   between?: string;
@@ -155,7 +164,12 @@ export class ConfiguredVariable extends Node {
   /** @hidden */
   toString(): string {
     return (
-      `$${this.name}${this.raws.between ?? ': '}${this.value}` +
+      '$' +
+      (this.raws.name?.value === this.name
+        ? this.raws.name.raw
+        : sassInternal.toCssIdentifier(this.name)) +
+      (this.raws.between ?? ': ') +
+      this.value +
       (this.guarded ? `${this.raws.beforeGuard ?? ' '}!default` : '')
     );
   }
