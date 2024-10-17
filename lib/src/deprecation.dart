@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 0243e0f7ee85127d6e1bda5c08e363509959e758
+  // Checksum: 47c97f7824eb25d7f1e64e3230938b88330d40b4
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -114,10 +114,11 @@ enum Deprecation {
       deprecatedIn: '1.79.0', description: 'Legacy JS API.'),
 
   /// Deprecation for @import rules.
-  import.future('import', description: '@import rules.'),
+  import('import', deprecatedIn: '1.80.0', description: '@import rules.'),
 
   /// Deprecation for global built-in functions that are available in sass: modules.
-  globalBuiltin.future('global-builtin',
+  globalBuiltin('global-builtin',
+      deprecatedIn: '1.80.0',
       description:
           'Global built-in functions that are available in sass: modules.'),
 

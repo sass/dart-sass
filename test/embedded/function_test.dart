@@ -210,7 +210,7 @@ void main() {
         @use "sass:math";
         @use "sass:meta";
 
-        a {b: call(foo(meta.get-function("abs", $module: "math")), -1)}
+        a {b: meta.call(foo(meta.get-function("abs", $module: "math")), -1)}
       """, functions: [r"foo($arg)"]));
 
       var request = await getFunctionCallRequest(_process);
@@ -226,8 +226,11 @@ void main() {
     });
 
     test("defined in the host", () async {
-      _process.send(
-          compileString("a {b: call(foo(), true)}", functions: [r"foo()"]));
+      _process.send(compileString("""
+        @use "sass:meta";
+
+        a {b: meta.call(foo(), true)}
+      """, functions: [r"foo()"]));
 
       var hostFunctionId = 5678;
       var request = await getFunctionCallRequest(_process);
@@ -254,9 +257,11 @@ void main() {
 
     test("defined in the host and passed to and from the host", () async {
       _process.send(compileString(r"""
+            @use "sass:meta";
+
             $function: get-host-function();
             $function: round-trip($function);
-            a {b: call($function, true)}
+            a {b: meta.call($function, true)}
           """, functions: [r"get-host-function()", r"round-trip($function)"]));
 
       var hostFunctionId = 5678;
@@ -311,7 +316,7 @@ void main() {
 
       group("unquoted", () {
         test("and empty", () async {
-          var value = (await _protofy('unquote("")')).string;
+          var value = (await _protofy('string.unquote("")')).string;
           expect(value.text, isEmpty);
           expect(value.quoted, isFalse);
         });
@@ -1750,8 +1755,9 @@ void main() {
       group("reports a compilation error for a function with a signature", () {
         Future<void> expectSignatureError(
             String signature, Object message) async {
-          _process.send(
-              compileString("a {b: inspect(foo())}", functions: [r"foo()"]));
+          _process.send(compileString(
+              "@use 'sass:meta';\na {b: meta.inspect(foo())}",
+              functions: [r"foo()"]));
 
           var request = await getFunctionCallRequest(_process);
           expect(request.arguments, isEmpty);
@@ -1805,6 +1811,7 @@ Future<Value> _protofy(String sassScript) async {
 @use 'sass:map';
 @use 'sass:math';
 @use 'sass:meta';
+@use 'sass:string';
 
 @function capture-args(\$args...) {
   \$_: meta.keywords(\$args);
@@ -1838,7 +1845,9 @@ void _testSerializationAndRoundTrip(Value value, String expected,
 /// `meta.inspect()` function.
 Future<String> _deprotofy(Value value, {bool inspect = false}) async {
   _process.send(compileString(
-      inspect ? "a {b: inspect(foo())}" : "a {b: foo()}",
+      inspect
+          ? "@use 'sass:meta';\na {b: meta.inspect(foo())}"
+          : "a {b: foo()}",
       functions: [r"foo()"]));
 
   var request = await getFunctionCallRequest(_process);

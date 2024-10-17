@@ -29,7 +29,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         var sass = await runSass(["--silence-deprecation=import", "test.scss"]);
         expect(sass.stderr, emits(contains("Future import deprecation")));
         await sass.shouldExit(0);
-      });
+      }, skip: true);
 
       test("for an active future deprecation", () async {
         var sass = await runSass([
@@ -39,7 +39,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         ]);
         expect(sass.stderr, emits(contains("Conflicting options for future")));
         await sass.shouldExit(0);
-      });
+      }, skip: true);
 
       test("in watch mode", () async {
         var sass = await runSass([
@@ -183,7 +183,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         var sass = await runSass(["--fatal-deprecation=import", "test.scss"]);
         expect(sass.stderr, emits(contains("Future import deprecation")));
         await sass.shouldExit(0);
-      });
+      }, skip: true);
 
       test("for a silent deprecation", () async {
         var sass = await runSass([
@@ -493,5 +493,6 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         });
       });
     });
-  });
+    // Skipping while no future deprecations exist
+  }, skip: true);
 }
