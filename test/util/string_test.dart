@@ -77,8 +77,7 @@ void main() {
 
         group("at the very beginning that's", () {
           for (var (name, (char, escape)) in chars.pairs) {
-            test(
-                name, () => expect(char.toCssIdentifier(), equals('$escape')));
+            test(name, () => expect(char.toCssIdentifier(), equals('$escape')));
           }
         });
 
@@ -106,10 +105,8 @@ void main() {
 
         group("after a double hyphen that's", () {
           for (var (name, (char, escape)) in chars.pairs) {
-            test(
-                name,
-                () =>
-                    expect('--$char'.toCssIdentifier(), equals('--$escape')));
+            test(name,
+                () => expect('--$char'.toCssIdentifier(), equals('--$escape')));
           }
         });
       });
@@ -171,8 +168,8 @@ void main() {
     });
 
     group('doesn\'t add a space between an escape and', () {
-      test('the end of the string',
-          () => expect(' '.toCssIdentifier(), '\\20'));
+      test(
+          'the end of the string', () => expect(' '.toCssIdentifier(), '\\20'));
 
       test('a lowercase non-hex letter',
           () => expect(' g'.toCssIdentifier(), '\\20g'));
