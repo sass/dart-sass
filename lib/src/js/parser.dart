@@ -10,11 +10,14 @@ import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
 import '../ast/sass.dart';
+import '../exception.dart';
 import '../logger.dart';
 import '../logger/js_to_dart.dart';
+import '../parse/parser.dart';
 import '../syntax.dart';
 import '../util/nullable.dart';
 import '../util/span.dart';
+import '../util/string.dart';
 import '../visitor/interface/expression.dart';
 import '../visitor/interface/statement.dart';
 import 'logger.dart';
@@ -27,10 +30,14 @@ import 'visitor/statement.dart';
 class ParserExports {
   external factory ParserExports(
       {required Function parse,
+      required Function parseIdentifier,
+      required Function toCssIdentifier,
       required Function createExpressionVisitor,
       required Function createStatementVisitor});
 
   external set parse(Function function);
+  external set parseIdentifier(Function function);
+  external set toCssIdentifier(Function function);
   external set createStatementVisitor(Function function);
   external set createExpressionVisitor(Function function);
 }
@@ -48,6 +55,8 @@ ParserExports loadParserExports() {
   _updateAstPrototypes();
   return ParserExports(
       parse: allowInterop(_parse),
+      parseIdentifier: allowInterop(_parseIdentifier),
+      toCssIdentifier: allowInterop(_toCssIdentifier),
       createExpressionVisitor: allowInterop(
           (JSExpressionVisitorObject inner) => JSExpressionVisitor(inner)),
       createStatementVisitor: allowInterop(
@@ -122,3 +131,19 @@ Stylesheet _parse(String css, String syntax, String? path, JSLogger? logger) =>
         },
         url: path.andThen(p.toUri),
         logger: JSToDartLogger(logger, Logger.stderr()));
+
+/// A JavaScript-friendly method to parse an identifier to its semantic value.
+///
+/// Returns null if [identifier] isn't a valid identifier.
+String? _parseIdentifier(String identifier, [JSLogger? logger]) {
+  try {
+    return Parser.parseIdentifier(identifier,
+        logger: JSToDartLogger(logger, Logger.stderr()));
+  } on SassFormatException {
+    return null;
+  }
+}
+
+/// A JavaScript-friendly method to convert text to a valid CSS identifier with
+/// the same contents.
+String _toCssIdentifier(String text) => text.toCssIdentifier();

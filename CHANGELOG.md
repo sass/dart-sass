@@ -1,3 +1,7 @@
+## 1.80.1
+
+* No user-visible changes.
+
 ## 1.80.0
 
 * `@import` is now officially deprecated, as are global built-in functions that

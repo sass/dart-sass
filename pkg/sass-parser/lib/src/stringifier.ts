@@ -35,6 +35,7 @@ import {ErrorRule} from './statement/error-rule';
 import {GenericAtRule} from './statement/generic-at-rule';
 import {Rule} from './statement/rule';
 import {SassComment} from './statement/sass-comment';
+import {UseRule} from './statement/use-rule';
 
 const PostCssStringifier = require('postcss/lib/stringifier');
 
@@ -72,45 +73,19 @@ export class Stringifier extends PostCssStringifier {
   }
 
   private ['debug-rule'](node: DebugRule, semicolon: boolean): void {
-    this.builder(
-      '@debug' +
-        (node.raws.afterName ?? ' ') +
-        node.debugExpression +
-        (node.raws.between ?? '') +
-        (semicolon ? ';' : ''),
-      node
-    );
+    this.sassAtRule(node, semicolon);
   }
 
   private ['each-rule'](node: EachRule): void {
-    this.block(
-      node,
-      '@each' +
-        (node.raws.afterName ?? ' ') +
-        node.params +
-        (node.raws.between ?? '')
-    );
+    this.sassAtRule(node);
   }
 
   private ['error-rule'](node: ErrorRule, semicolon: boolean): void {
-    this.builder(
-      '@error' +
-        (node.raws.afterName ?? ' ') +
-        node.errorExpression +
-        (node.raws.between ?? '') +
-        (semicolon ? ';' : ''),
-      node
-    );
+    this.sassAtRule(node, semicolon);
   }
 
   private ['for-rule'](node: EachRule): void {
-    this.block(
-      node,
-      '@for' +
-        (node.raws.afterName ?? ' ') +
-        node.params +
-        (node.raws.between ?? '')
-    );
+    this.sassAtRule(node);
   }
 
   private atrule(node: GenericAtRule, semicolon: boolean): void {
@@ -179,5 +154,24 @@ export class Stringifier extends PostCssStringifier {
     }
 
     this.builder(text, node);
+  }
+
+  private ['use-rule'](node: UseRule, semicolon: boolean): void {
+    this.sassAtRule(node, semicolon);
+  }
+
+  /** Helper method for non-generic Sass at-rules. */
+  private sassAtRule(node: postcss.AtRule, semicolon?: boolean): void {
+    const start =
+      '@' +
+      node.name +
+      (node.raws.afterName ?? ' ') +
+      node.params +
+      (node.raws.between ?? '');
+    if (node.nodes) {
+      this.block(node, start);
+    } else {
+      this.builder(start + (semicolon ? ';' : ''), node);
+    }
   }
 }
