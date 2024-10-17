@@ -16,8 +16,8 @@ import 'test_importer.dart';
 import '../utils.dart';
 
 void main() {
-  test("uses an importer to resolve an @import", () {
-    var css = compileString('@import "orange";', importers: [
+  test("uses an importer to resolve a @use", () {
+    var css = compileString('@use "orange";', importers: [
       TestImporter((url) => Uri.parse("u:$url"), (url) {
         var color = url.path;
         return ImporterResult('.$color {color: $color}', indented: false);
@@ -28,7 +28,7 @@ void main() {
   });
 
   test("passes the canonicalized URL to the importer", () {
-    var css = compileString('@import "orange";', importers: [
+    var css = compileString('@use "orange";', importers: [
       TestImporter((url) => Uri.parse('u:blue'), (url) {
         var color = url.path;
         return ImporterResult('.$color {color: $color}', indented: false);
@@ -63,7 +63,7 @@ void main() {
 
   test("resolves URLs relative to the pre-canonicalized URL", () {
     var times = 0;
-    var css = compileString('@import "foo:bar/baz";',
+    var css = compileString('@use "foo:bar/baz";',
         importers: [
           TestImporter(
               expectAsync1((url) {
@@ -95,7 +95,7 @@ void main() {
   group("the imported URL", () {
     // Regression test for #1137.
     test("isn't changed if it's root-relative", () {
-      compileString('@import "/orange";', importers: [
+      compileString('@use "/orange";', importers: [
         TestImporter(expectAsync1((url) {
           expect(url, equals(Uri.parse("/orange")));
           return Uri.parse("u:$url");
@@ -116,7 +116,7 @@ void main() {
   group("the containing URL", () {
     test("is null for a potentially canonical scheme", () {
       late TestImporter importer;
-      compileString('@import "u:orange";',
+      compileString('@use "u:orange";',
           importers: [
             importer = TestImporter(expectAsync1((url) {
               expect(importer.publicContainingUrl, isNull);
@@ -128,7 +128,7 @@ void main() {
 
     test("throws an error outside canonicalize", () {
       late TestImporter importer;
-      compileString('@import "orange";', importers: [
+      compileString('@use "orange";', importers: [
         importer =
             TestImporter((url) => Uri.parse("u:$url"), expectAsync1((url) {
           expect(() => importer.publicContainingUrl, throwsStateError);
@@ -140,7 +140,7 @@ void main() {
     group("for a non-canonical scheme", () {
       test("is set to the original URL", () {
         late TestImporter importer;
-        compileString('@import "u:orange";',
+        compileString('@use "u:orange";',
             importers: [
               importer = TestImporter(expectAsync1((url) {
                 expect(importer.publicContainingUrl,
@@ -154,7 +154,7 @@ void main() {
 
       test("is null if the original URL is null", () {
         late TestImporter importer;
-        compileString('@import "u:orange";', importers: [
+        compileString('@use "u:orange";', importers: [
           importer = TestImporter(expectAsync1((url) {
             expect(importer.publicContainingUrl, isNull);
             return url.replace(scheme: 'x');
@@ -167,7 +167,7 @@ void main() {
     group("for a schemeless load", () {
       test("is set to the original URL", () {
         late TestImporter importer;
-        compileString('@import "orange";',
+        compileString('@use "orange";',
             importers: [
               importer = TestImporter(expectAsync1((url) {
                 expect(importer.publicContainingUrl,
@@ -180,7 +180,7 @@ void main() {
 
       test("is null if the original URL is null", () {
         late TestImporter importer;
-        compileString('@import "orange";', importers: [
+        compileString('@use "orange";', importers: [
           importer = TestImporter(expectAsync1((url) {
             expect(importer.publicContainingUrl, isNull);
             return Uri.parse("u:$url");
@@ -194,7 +194,7 @@ void main() {
       "throws an error if the importer returns a canonical URL with a "
       "non-canonical scheme", () {
     expect(
-        () => compileString('@import "orange";', importers: [
+        () => compileString('@use "orange";', importers: [
               TestImporter(expectAsync1((url) => Uri.parse("u:$url")),
                   (_) => ImporterResult('', indented: false),
                   nonCanonicalSchemes: {'u'})
@@ -207,7 +207,7 @@ void main() {
   });
 
   test("uses an importer's source map URL", () {
-    var result = compileStringToResult('@import "orange";',
+    var result = compileStringToResult('@use "orange";',
         importers: [
           TestImporter((url) => Uri.parse("u:$url"), (url) {
             var color = url.path;
@@ -221,7 +221,7 @@ void main() {
   });
 
   test("uses a data: source map URL if the importer doesn't provide one", () {
-    var result = compileStringToResult('@import "orange";',
+    var result = compileStringToResult('@use "orange";',
         importers: [
           TestImporter((url) => Uri.parse("u:$url"), (url) {
             var color = url.path;
@@ -238,7 +238,7 @@ void main() {
 
   test("wraps an error in canonicalize()", () {
     expect(() {
-      compileString('@import "orange";', importers: [
+      compileString('@use "orange";', importers: [
         TestImporter((url) {
           throw "this import is bad actually";
         }, expectNever1)
@@ -253,7 +253,7 @@ void main() {
 
   test("wraps an error in load()", () {
     expect(() {
-      compileString('@import "orange";', importers: [
+      compileString('@use "orange";', importers: [
         TestImporter((url) => Uri.parse("u:$url"), (url) {
           throw "this import is bad actually";
         })
@@ -268,7 +268,7 @@ void main() {
 
   test("prefers .message to .toString() for an importer error", () {
     expect(() {
-      compileString('@import "orange";', importers: [
+      compileString('@use "orange";', importers: [
         TestImporter((url) => Uri.parse("u:$url"), (url) {
           throw FormatException("bad format somehow");
         })
@@ -284,7 +284,7 @@ void main() {
 
   test("avoids importer when only load() returns null", () {
     expect(() {
-      compileString('@import "orange";', importers: [
+      compileString('@use "orange";', importers: [
         TestImporter((url) => Uri.parse("u:$url"), (url) => null)
       ]);
     }, throwsA(predicate((error) {
@@ -297,7 +297,7 @@ void main() {
 
   group("compileString()'s importer option", () {
     test("loads relative imports from the entrypoint", () {
-      var css = compileString('@import "orange";',
+      var css = compileString('@use "orange";',
           importer: TestImporter((url) => Uri.parse("u:$url"), (url) {
             var color = url.path;
             return ImporterResult('.$color {color: $color}', indented: false);
@@ -307,7 +307,7 @@ void main() {
     });
 
     test("loads imports relative to the entrypoint's URL", () {
-      var css = compileString('@import "baz/qux";',
+      var css = compileString('@use "baz/qux";',
           importer: TestImporter((url) => url.resolve("bang"), (url) {
             return ImporterResult('a {result: "${url.path}"}', indented: false);
           }),
@@ -317,7 +317,7 @@ void main() {
     });
 
     test("doesn't load absolute imports", () {
-      var css = compileString('@import "u:orange";',
+      var css = compileString('@use "u:orange";',
           importer: TestImporter((_) => throw "Should not be called",
               (_) => throw "Should not be called"),
           importers: [
@@ -331,13 +331,13 @@ void main() {
     });
 
     test("doesn't load from other importers", () {
-      var css = compileString('@import "u:midstream";',
+      var css = compileString('@use "u:midstream";',
           importer: TestImporter((_) => throw "Should not be called",
               (_) => throw "Should not be called"),
           importers: [
             TestImporter((url) => url, (url) {
               if (url.path == "midstream") {
-                return ImporterResult("@import 'orange';", indented: false);
+                return ImporterResult("@use 'orange';", indented: false);
               } else {
                 var color = url.path;
                 return ImporterResult('.$color {color: $color}',

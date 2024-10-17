@@ -1,6 +1,19 @@
-## 1.79.7
+## 1.80.1
 
 * No user-visible changes.
+
+## 1.80.0
+
+* `@import` is now officially deprecated, as are global built-in functions that
+  are available within built-in modules. See [the Sass blog post] for more
+  details on the deprecation process.
+
+[the Sass blog post]: https://sass-lang.com/blog/import-is-deprecated/
+
+### Embedded Host
+
+* Fix an error that would sometimes occur when deprecation warnings were
+  emitted when using a custom importer with the legacy API.
 
 ## 1.79.6
 

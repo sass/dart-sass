@@ -99,8 +99,9 @@ class AsyncBuiltInCallable implements AsyncCallable {
 /// available as function [name] in built-in module [module].
 void warnForGlobalBuiltIn(String module, String name) {
   warnForDeprecation(
-      'Global built-in functions will be deprecated in the future.\n'
-      'Remove the --future-deprecation=global-builtin flag to silence this '
-      'warning for now.',
+      'Global built-in functions are deprecated and will be removed in Dart '
+      'Sass 3.0.0.\n'
+      'Use $module.$name instead.\n\n'
+      'More info and automated migrator: https://sass-lang.com/d/import',
       Deprecation.globalBuiltin);
 }

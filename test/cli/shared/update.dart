@@ -43,7 +43,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
     test("whose source was transitively modified", () async {
       await d.file("other.scss", "a {b: c}").create();
-      await d.file("test.scss", "@import 'other'").create();
+      await d.file("test.scss", "@use 'other'").create();
 
       var sass = await update(["test.scss:out.css"]);
       expect(sass.stdout, emits(endsWith('Compiled test.scss to out.css.')));
@@ -177,26 +177,26 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     });
 
     test("with a missing import", () async {
-      await d.file("test.scss", "@import 'other'").create();
+      await d.file("test.scss", "@use 'other'").create();
 
       var message = "Error: Can't find stylesheet to import.";
       var sass = await update(["test.scss:out.css"]);
       expect(sass.stderr, emits(message));
-      expect(sass.stderr, emitsThrough(contains("test.scss 1:9")));
+      expect(sass.stderr, emitsThrough(contains("test.scss 1:1")));
       await sass.shouldExit(65);
 
       await d.file("out.css", contains(message)).validate();
     });
 
     test("with a conflicting import", () async {
-      await d.file("test.scss", "@import 'other'").create();
+      await d.file("test.scss", "@use 'other'").create();
       await d.file("other.scss", "a {b: c}").create();
       await d.file("_other.scss", "x {y: z}").create();
 
       var message = "Error: It's not clear which file to import. Found:";
       var sass = await update(["test.scss:out.css"]);
       expect(sass.stderr, emits(message));
-      expect(sass.stderr, emitsThrough(contains("test.scss 1:9")));
+      expect(sass.stderr, emitsThrough(contains("test.scss 1:1")));
       await sass.shouldExit(65);
 
       await d.file("out.css", contains(message)).validate();
@@ -257,7 +257,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     });
 
     test("when an import is removed", () async {
-      await d.file("test.scss", "@import 'other'").create();
+      await d.file("test.scss", "@use 'other'").create();
       await d.file("_other.scss", "a {b: c}").create();
       await (await update(["test.scss:out.css"])).shouldExit(0);
       await d.file("out.css", anything).validate();
@@ -266,7 +266,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       d.file("_other.scss").io.deleteSync();
       var sass = await update(["test.scss:out.css"]);
       expect(sass.stderr, emits(message));
-      expect(sass.stderr, emitsThrough(contains("test.scss 1:9")));
+      expect(sass.stderr, emitsThrough(contains("test.scss 1:1")));
       await sass.shouldExit(65);
 
       await d.file("out.css", contains(message)).validate();

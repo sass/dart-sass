@@ -21,7 +21,7 @@ void main() {
   group("importers", () {
     test("is used to resolve imports", () async {
       await d.dir("subdir", [d.file("subtest.scss", "a {b: c}")]).create();
-      await d.file("test.scss", '@import "subtest.scss";').create();
+      await d.file("test.scss", '@use "subtest.scss";').create();
 
       var css = compile(d.path("test.scss"),
           importers: [FilesystemImporter(d.path('subdir'))]);
@@ -33,7 +33,7 @@ void main() {
           .dir("first", [d.file("other.scss", "a {b: from-first}")]).create();
       await d
           .dir("second", [d.file("other.scss", "a {b: from-second}")]).create();
-      await d.file("test.scss", '@import "other";').create();
+      await d.file("test.scss", '@use "other";').create();
 
       var css = compile(d.path("test.scss"), importers: [
         FilesystemImporter(d.path('first')),
@@ -46,7 +46,7 @@ void main() {
   group("loadPaths", () {
     test("is used to import file: URLs", () async {
       await d.dir("subdir", [d.file("subtest.scss", "a {b: c}")]).create();
-      await d.file("test.scss", '@import "subtest.scss";').create();
+      await d.file("test.scss", '@use "subtest.scss";').create();
 
       var css = compile(d.path("test.scss"), loadPaths: [d.path('subdir')]);
       expect(css, equals("a {\n  b: c;\n}"));
@@ -54,7 +54,7 @@ void main() {
 
     test("can import partials", () async {
       await d.dir("subdir", [d.file("_subtest.scss", "a {b: c}")]).create();
-      await d.file("test.scss", '@import "subtest.scss";').create();
+      await d.file("test.scss", '@use "subtest.scss";').create();
 
       var css = compile(d.path("test.scss"), loadPaths: [d.path('subdir')]);
       expect(css, equals("a {\n  b: c;\n}"));
@@ -62,7 +62,7 @@ void main() {
 
     test("adds a .scss extension", () async {
       await d.dir("subdir", [d.file("subtest.scss", "a {b: c}")]).create();
-      await d.file("test.scss", '@import "subtest";').create();
+      await d.file("test.scss", '@use "subtest";').create();
 
       var css = compile(d.path("test.scss"), loadPaths: [d.path('subdir')]);
       expect(css, equals("a {\n  b: c;\n}"));
@@ -70,7 +70,7 @@ void main() {
 
     test("adds a .sass extension", () async {
       await d.dir("subdir", [d.file("subtest.sass", "a\n  b: c")]).create();
-      await d.file("test.scss", '@import "subtest";').create();
+      await d.file("test.scss", '@use "subtest";').create();
 
       var css = compile(d.path("test.scss"), loadPaths: [d.path('subdir')]);
       expect(css, equals("a {\n  b: c;\n}"));
@@ -81,7 +81,7 @@ void main() {
           .dir("first", [d.file("other.scss", "a {b: from-first}")]).create();
       await d
           .dir("second", [d.file("other.scss", "a {b: from-second}")]).create();
-      await d.file("test.scss", '@import "other";').create();
+      await d.file("test.scss", '@use "other";').create();
 
       var css = compile(d.path("test.scss"),
           loadPaths: [d.path('first'), d.path('second')]);
@@ -93,9 +93,7 @@ void main() {
     test("is used to import package: URLs", () async {
       await d.dir("subdir", [d.file("test.scss", "a {b: 1 + 2}")]).create();
 
-      await d
-          .file("test.scss", '@import "package:fake_package/test";')
-          .create();
+      await d.file("test.scss", '@use "package:fake_package/test";').create();
       var config =
           PackageConfig([Package('fake_package', p.toUri(d.path('subdir/')))]);
 
@@ -105,13 +103,11 @@ void main() {
 
     test("can resolve relative paths in a package", () async {
       await d.dir("subdir", [
-        d.file("test.scss", "@import 'other'"),
+        d.file("test.scss", "@use 'other'"),
         d.file("_other.scss", "a {b: 1 + 2}"),
       ]).create();
 
-      await d
-          .file("test.scss", '@import "package:fake_package/test";')
-          .create();
+      await d.file("test.scss", '@use "package:fake_package/test";').create();
       var config =
           PackageConfig([Package('fake_package', p.toUri(d.path('subdir/')))]);
 
@@ -121,7 +117,7 @@ void main() {
 
     test("doesn't import a package URL from a missing package", () async {
       await d
-          .file("test.scss", '@import "package:fake_package/test_aux";')
+          .file("test.scss", '@use "package:fake_package/test_aux";')
           .create();
 
       expect(
@@ -135,7 +131,7 @@ void main() {
       await d.dir(
           "subdir", [d.file("other.scss", "a {b: from-load-path}")]).create();
       await d.file("other.scss", "a {b: from-relative}").create();
-      await d.file("test.scss", '@import "other";').create();
+      await d.file("test.scss", '@use "other";').create();
 
       var css = compile(d.path("test.scss"),
           importers: [FilesystemImporter(d.path('subdir'))]);
@@ -150,7 +146,7 @@ void main() {
       await d
           .dir("other", [d.file("other.scss", "a {b: from-other}")]).create();
 
-      var css = compileString('@import "other";',
+      var css = compileString('@use "other";',
           importer: FilesystemImporter(d.path('original')),
           url: p.toUri(d.path('original/test.scss')),
           importers: [FilesystemImporter(d.path('other'))]);
@@ -158,7 +154,7 @@ void main() {
     });
 
     test("importer order is preserved for absolute imports", () {
-      var css = compileString('@import "second:other";', importers: [
+      var css = compileString('@use "second:other";', importers: [
         TestImporter((url) => url.scheme == 'first' ? url : null,
             (url) => ImporterResult('a {from: first}', indented: false)),
         // This importer should only be invoked once, because when the
@@ -167,7 +163,7 @@ void main() {
         TestImporter(
             expectAsync1((url) => url.scheme == 'second' ? url : null,
                 count: 1),
-            (url) => ImporterResult('@import "first:other";', indented: false)),
+            (url) => ImporterResult('@use "first:other";', indented: false)),
       ]);
       expect(css, equals("a {\n  from: first;\n}"));
     });
@@ -177,7 +173,7 @@ void main() {
           [d.file("other.scss", "a {b: from-load-path}")]).create();
       await d.dir(
           "importer", [d.file("other.scss", "a {b: from-importer}")]).create();
-      await d.file("test.scss", '@import "other";').create();
+      await d.file("test.scss", '@use "other";').create();
 
       var css = compile(d.path("test.scss"),
           importers: [FilesystemImporter(d.path('importer'))],
@@ -190,9 +186,7 @@ void main() {
           [d.file("other.scss", "a {b: from-package-config}")]).create();
       await d.dir(
           "importer", [d.file("other.scss", "a {b: from-importer}")]).create();
-      await d
-          .file("test.scss", '@import "package:fake_package/other";')
-          .create();
+      await d.file("test.scss", '@use "package:fake_package/other";').create();
 
       var css = compile(d.path("test.scss"),
           importers: [
@@ -269,7 +263,8 @@ a {
     test("contains a URL loaded via @import", () async {
       await d.file("_other.scss", "a {b: c}").create();
       await d.file("input.scss", "@import 'other';").create();
-      var result = compileToResult(d.path('input.scss'));
+      var result = compileToResult(d.path('input.scss'),
+          silenceDeprecations: [Deprecation.import]);
       expect(result.loadedUrls, contains(p.toUri(d.path('_other.scss'))));
     });
 
@@ -306,7 +301,8 @@ a {
         @use 'sass:meta';
         @include meta.load-css('venus');
       """).create();
-      var result = compileToResult(d.path('mercury.scss'));
+      var result = compileToResult(d.path('mercury.scss'),
+          silenceDeprecations: [Deprecation.import]);
       expect(
           result.loadedUrls,
           unorderedEquals([

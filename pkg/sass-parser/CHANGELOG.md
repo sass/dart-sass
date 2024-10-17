@@ -1,6 +1,10 @@
-## 0.2.7
+## 0.3.1
 
 * Add support for parsing the `@use` rule.
+
+## 0.3.0
+
+* No user-visible changes.
 
 ## 0.2.6
 
