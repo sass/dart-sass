@@ -131,7 +131,7 @@ jobs:
       # Set up .npmrc file to publish to npm
       - uses: actions/setup-node@v4
         with:
-          version: 'lts/*'
+          node-version: 'lts/*'
           check-latest: true
           registry-url: 'https://registry.npmjs.org'
 
