@@ -1,6 +1,6 @@
 {
   "name": "sass-parser",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A PostCSS-compatible wrapper of the official Sass parser",
   "repository": "sass/sass",
   "author": "Google Inc.",

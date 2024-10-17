@@ -1,3 +1,7 @@
+## 1.80.1
+
+* Fix a bug where repeated deprecation warnings were not automatically limited.
+
 ## 1.80.0
 
 * `@import` is now officially deprecated, as are global built-in functions that

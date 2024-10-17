@@ -380,6 +380,9 @@ final class AsyncImportCache {
         silenceDeprecations: {...?silenceDeprecations},
         fatalDeprecations: {...?fatalDeprecations},
         futureDeprecations: {...?futureDeprecations},
-        limitRepetition: false);
+        // TODO - sass/dart-sass#2390: We should limit repetition within a given
+        // compilation while allowing it across different compilations (such as
+        // with `--watch`).
+        limitRepetition: true);
   }
 }

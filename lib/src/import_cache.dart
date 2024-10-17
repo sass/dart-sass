@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: e043f2a3dafb741a6f053a7c1785b1c9959242f5
+// Checksum: f459089f21fcbfca2d073ba73a5bcf4e98ecab1b
 //
 // ignore_for_file: unused_import
 
@@ -375,6 +375,9 @@ final class ImportCache {
         silenceDeprecations: {...?silenceDeprecations},
         fatalDeprecations: {...?fatalDeprecations},
         futureDeprecations: {...?futureDeprecations},
-        limitRepetition: false);
+        // TODO - sass/dart-sass#2390: We should limit repetition within a given
+        // compilation while allowing it across different compilations (such as
+        // with `--watch`).
+        limitRepetition: true);
   }
 }

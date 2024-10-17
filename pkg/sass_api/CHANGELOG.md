@@ -1,6 +1,14 @@
+## 13.1.1
+
+* Make `AsyncImporterCache.wrapLogger()` and `ImporterCache.wrapLogger()` always
+  limit the repetition of deprecations. this is unlikely to be the long-term
+  behavior, but it's necessary to avoid flooding users with deprecations in the
+  short term.
+
 ## 13.1.0
 
-* No user-visible changes.
+* Add `AsyncImporterCache.wrapLogger()` and `ImporterCache.wrapLogger()`
+  methods, which wrap a given logger to apply deprecation options to it.
 
 ## 13.0.1
 
