@@ -5,7 +5,6 @@
 import 'package:meta/meta.dart';
 
 import '../../extend/functions.dart';
-import '../../logger.dart';
 import '../../parse/selector.dart';
 import '../../utils.dart';
 import '../../visitor/interface/selector.dart';
@@ -69,9 +68,8 @@ final class CompoundSelector extends Selector {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory CompoundSelector.parse(String contents,
-          {Object? url, Logger? logger, bool allowParent = true}) =>
-      SelectorParser(contents,
-              url: url, logger: logger, allowParent: allowParent)
+          {Object? url, bool allowParent = true}) =>
+      SelectorParser(contents, url: url, allowParent: allowParent)
           .parseCompoundSelector();
 
   T accept<T>(SelectorVisitor<T> visitor) =>

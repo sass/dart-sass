@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 42c9e2008d449ba4b73b3b92a64cf4d51253837d
+// Checksum: 9dcf6641342288ad16f44b134ad9a555b4e1e992
 //
 // ignore_for_file: unused_import
 
@@ -67,14 +67,14 @@ CompileResult compile(String path,
   Stylesheet? stylesheet;
   if (nodeImporter == null &&
       (syntax == null || syntax == Syntax.forPath(path))) {
-    importCache ??= ImportCache.none(logger: logger);
+    importCache ??= ImportCache.none();
     stylesheet = importCache.importCanonical(
         FilesystemImporter.cwd, p.toUri(canonicalize(path)),
         originalUrl: p.toUri(path))!;
   } else {
     stylesheet = Stylesheet.parse(
         readFile(path), syntax ?? Syntax.forPath(path),
-        url: p.toUri(path), logger: logger);
+        url: p.toUri(path));
   }
 
   var result = _compileStylesheet(
@@ -129,8 +129,7 @@ CompileResult compileString(String source,
           limitRepetition: !verbose)
         ..validate();
 
-  var stylesheet =
-      Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
+  var stylesheet = Stylesheet.parse(source, syntax ?? Syntax.scss, url: url);
 
   var result = _compileStylesheet(
       stylesheet,

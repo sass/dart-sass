@@ -13,7 +13,6 @@ import '../color_names.dart';
 import '../deprecation.dart';
 import '../exception.dart';
 import '../interpolation_buffer.dart';
-import '../logger.dart';
 import '../util/character.dart';
 import '../utils.dart';
 import '../util/nullable.dart';
@@ -70,11 +69,16 @@ abstract class StylesheetParser extends Parser {
   /// the same set of variable names no matter how it's evaluated.
   final _globalVariables = <String, VariableDeclaration>{};
 
+  /// Warnings discovered while parsing that should be emitted during
+  /// evaluation once a proper logger is available.
+  @protected
+  final warnings = <ParseTimeWarning>[];
+
   /// The silent comment this parser encountered previously.
   @protected
   SilentComment? lastSilentComment;
 
-  StylesheetParser(super.contents, {super.url, super.logger});
+  StylesheetParser(super.contents, {super.url});
 
   // ## Statements
 
@@ -103,7 +107,7 @@ abstract class StylesheetParser extends Parser {
               NullExpression(declaration.expression.span), declaration.span,
               guarded: true)));
 
-      return Stylesheet.internal(statements, scanner.spanFrom(start),
+      return Stylesheet.internal(statements, scanner.spanFrom(start), warnings,
           plainCss: plainCss);
     });
   }
@@ -239,11 +243,13 @@ abstract class StylesheetParser extends Parser {
       switch (identifier()) {
         case 'default':
           if (guarded) {
-            logger.warnForDeprecation(
-                Deprecation.duplicateVarFlags,
-                '!default should only be written once for each variable.\n'
-                'This will be an error in Dart Sass 2.0.0.',
-                span: scanner.spanFrom(flagStart));
+            warnings.add((
+              deprecation: Deprecation.duplicateVarFlags,
+              message:
+                  '!default should only be written once for each variable.\n'
+                  'This will be an error in Dart Sass 2.0.0.',
+              span: scanner.spanFrom(flagStart)
+            ));
           }
           guarded = true;
 
@@ -252,11 +258,13 @@ abstract class StylesheetParser extends Parser {
             error("!global isn't allowed for variables in other modules.",
                 scanner.spanFrom(flagStart));
           } else if (global) {
-            logger.warnForDeprecation(
-                Deprecation.duplicateVarFlags,
-                '!global should only be written once for each variable.\n'
-                'This will be an error in Dart Sass 2.0.0.',
-                span: scanner.spanFrom(flagStart));
+            warnings.add((
+              deprecation: Deprecation.duplicateVarFlags,
+              message:
+                  '!global should only be written once for each variable.\n'
+                  'This will be an error in Dart Sass 2.0.0.',
+              span: scanner.spanFrom(flagStart)
+            ));
           }
           global = true;
 
@@ -493,8 +501,12 @@ abstract class StylesheetParser extends Parser {
 
     return _withChildren(_statement, start, (children, span) {
       if (indented && children.isEmpty) {
-        warn("This selector doesn't have any properties and won't be rendered.",
-            interpolation.span);
+        warnings.add((
+          deprecation: null,
+          message: "This selector doesn't have any properties and won't be "
+              "rendered.",
+          span: interpolation.span
+        ));
       }
 
       _inStyleRule = wasInStyleRule;
@@ -865,13 +877,15 @@ abstract class StylesheetParser extends Parser {
     var name = identifier();
 
     if (name.startsWith('--')) {
-      logger.warnForDeprecation(
-          Deprecation.cssFunctionMixin,
-          'Sass @function names beginning with -- are deprecated for forward-'
-          'compatibility with plain CSS mixins.\n'
-          '\n'
-          'For details, see https://sass-lang.com/d/css-function-mixin',
-          span: scanner.spanFrom(beforeName));
+      warnings.add((
+        deprecation: Deprecation.cssFunctionMixin,
+        message:
+            'Sass @function names beginning with -- are deprecated for forward-'
+            'compatibility with plain CSS mixins.\n'
+            '\n'
+            'For details, see https://sass-lang.com/d/css-function-mixin',
+        span: scanner.spanFrom(beforeName)
+      ));
     }
 
     whitespace();
@@ -1055,12 +1069,15 @@ abstract class StylesheetParser extends Parser {
       whitespace();
       var argument = importArgument();
       if (argument is DynamicImport) {
-        logger.warnForDeprecation(
-            Deprecation.import,
-            'Sass @import rules are deprecated and will be removed in Dart '
-            'Sass 3.0.0.\n\n'
-            'More info and automated migrator: https://sass-lang.com/d/import',
-            span: argument.span);
+        warnings.add((
+          deprecation: Deprecation.import,
+          message:
+              'Sass @import rules are deprecated and will be removed in Dart '
+              'Sass 3.0.0.\n\n'
+              'More info and automated migrator: '
+              'https://sass-lang.com/d/import',
+          span: argument.span
+        ));
       }
       if ((_inControlDirective || _inMixin) && argument is DynamicImport) {
         _disallowedAtRule(start);
@@ -1295,13 +1312,15 @@ abstract class StylesheetParser extends Parser {
     var name = identifier();
 
     if (name.startsWith('--')) {
-      logger.warnForDeprecation(
-          Deprecation.cssFunctionMixin,
-          'Sass @mixin names beginning with -- are deprecated for forward-'
-          'compatibility with plain CSS mixins.\n'
-          '\n'
-          'For details, see https://sass-lang.com/d/css-function-mixin',
-          span: scanner.spanFrom(beforeName));
+      warnings.add((
+        deprecation: Deprecation.cssFunctionMixin,
+        message:
+            'Sass @mixin names beginning with -- are deprecated for forward-'
+            'compatibility with plain CSS mixins.\n'
+            '\n'
+            'For details, see https://sass-lang.com/d/css-function-mixin',
+        span: scanner.spanFrom(beforeName)
+      ));
     }
 
     whitespace();
@@ -1397,13 +1416,15 @@ abstract class StylesheetParser extends Parser {
     var value = buffer.interpolation(scanner.spanFrom(valueStart));
     return _withChildren(_statement, start, (children, span) {
       if (needsDeprecationWarning) {
-        logger.warnForDeprecation(
-            Deprecation.mozDocument,
-            "@-moz-document is deprecated and support will be removed in Dart "
-            "Sass 2.0.0.\n"
-            "\n"
-            "For details, see https://sass-lang.com/d/moz-document.",
-            span: span);
+        warnings.add((
+          deprecation: Deprecation.mozDocument,
+          message:
+              "@-moz-document is deprecated and support will be removed in "
+              "Dart Sass 2.0.0.\n"
+              "\n"
+              "For details, see https://sass-lang.com/d/moz-document.",
+          span: span
+        ));
       }
 
       return AtRule(name, span, value: value, children: children);
@@ -1466,7 +1487,7 @@ abstract class StylesheetParser extends Parser {
     var namespace = basename.substring(
         basename.startsWith("_") ? 1 : 0, dot == -1 ? basename.length : dot);
     try {
-      return Parser.parseIdentifier(namespace, logger: logger);
+      return Parser.parseIdentifier(namespace);
     } on SassFormatException {
       error(
           'The default namespace "$namespace" is not a valid Sass identifier.\n'
@@ -1803,25 +1824,26 @@ abstract class StylesheetParser extends Parser {
                       right.span.start.offset - 1, right.span.start.offset) ==
                   operator.operator &&
               scanner.string.codeUnitAt(left.span.end.offset).isWhitespace) {
-            logger.warnForDeprecation(
-                Deprecation.strictUnary,
-                "This operation is parsed as:\n"
-                "\n"
-                "    $left ${operator.operator} $right\n"
-                "\n"
-                "but you may have intended it to mean:\n"
-                "\n"
-                "    $left (${operator.operator}$right)\n"
-                "\n"
-                "Add a space after ${operator.operator} to clarify that it's "
-                "meant to be a binary operation, or wrap\n"
-                "it in parentheses to make it a unary operation. This will be "
-                "an error in future\n"
-                "versions of Sass.\n"
-                "\n"
-                "More info and automated migrator: "
-                "https://sass-lang.com/d/strict-unary",
-                span: singleExpression_!.span);
+            warnings.add((
+              deprecation: Deprecation.strictUnary,
+              message: "This operation is parsed as:\n"
+                  "\n"
+                  "    $left ${operator.operator} $right\n"
+                  "\n"
+                  "but you may have intended it to mean:\n"
+                  "\n"
+                  "    $left (${operator.operator}$right)\n"
+                  "\n"
+                  "Add a space after ${operator.operator} to clarify that it's "
+                  "meant to be a binary operation, or wrap\n"
+                  "it in parentheses to make it a unary operation. This will be "
+                  "an error in future\n"
+                  "versions of Sass.\n"
+                  "\n"
+                  "More info and automated migrator: "
+                  "https://sass-lang.com/d/strict-unary",
+              span: singleExpression_!.span
+            ));
           }
         }
       }
@@ -2506,10 +2528,12 @@ abstract class StylesheetParser extends Parser {
     scanner.expectChar($ampersand);
 
     if (scanner.scanChar($ampersand)) {
-      warn(
-          'In Sass, "&&" means two copies of the parent selector. You '
-          'probably want to use "and" instead.',
-          scanner.spanFrom(start));
+      warnings.add((
+        deprecation: null,
+        message: 'In Sass, "&&" means two copies of the parent selector. You '
+            'probably want to use "and" instead.',
+        span: scanner.spanFrom(start)
+      ));
       scanner.position--;
     }
 

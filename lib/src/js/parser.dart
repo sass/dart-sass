@@ -10,14 +10,11 @@ import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
 import '../ast/sass.dart';
-import '../logger.dart';
-import '../logger/js_to_dart.dart';
 import '../syntax.dart';
 import '../util/nullable.dart';
 import '../util/span.dart';
 import '../visitor/interface/expression.dart';
 import '../visitor/interface/statement.dart';
-import 'logger.dart';
 import 'reflection.dart';
 import 'visitor/expression.dart';
 import 'visitor/statement.dart';
@@ -111,14 +108,12 @@ void _addSupportsConditionToInterpolation() {
 }
 
 /// A JavaScript-friendly method to parse a stylesheet.
-Stylesheet _parse(String css, String syntax, String? path, JSLogger? logger) =>
-    Stylesheet.parse(
-        css,
-        switch (syntax) {
-          'scss' => Syntax.scss,
-          'sass' => Syntax.sass,
-          'css' => Syntax.css,
-          _ => throw UnsupportedError('Unknown syntax "$syntax"')
-        },
-        url: path.andThen(p.toUri),
-        logger: JSToDartLogger(logger, Logger.stderr()));
+Stylesheet _parse(String css, String syntax, String? path) => Stylesheet.parse(
+    css,
+    switch (syntax) {
+      'scss' => Syntax.scss,
+      'sass' => Syntax.sass,
+      'css' => Syntax.css,
+      _ => throw UnsupportedError('Unknown syntax "$syntax"')
+    },
+    url: path.andThen(p.toUri));
