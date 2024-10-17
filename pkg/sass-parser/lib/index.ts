@@ -28,6 +28,16 @@ export {
   StringExpressionRaws,
 } from './src/expression/string';
 export {
+  BooleanExpression,
+  BooleanExpressionProps,
+  BooleanExpressionRaws,
+} from './src/expression/boolean';
+export {
+  NumberExpression,
+  NumberExpressionProps,
+  NumberExpressionRaws,
+} from './src/expression/number';
+export {
   Interpolation,
   InterpolationProps,
   InterpolationRaws,
