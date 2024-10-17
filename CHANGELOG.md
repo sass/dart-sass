@@ -1,3 +1,8 @@
+## 1.80.2
+
+* Fix a bug where deprecation warnings were incorrectly emitted for the
+  plain-CSS `invert()` function.
+
 ## 1.80.1
 
 * Fix a bug where repeated deprecation warnings were not automatically limited.

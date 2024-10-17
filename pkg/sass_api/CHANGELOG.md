@@ -1,3 +1,7 @@
+## 13.1.2
+
+* No user-visible changes.
+
 ## 13.1.1
 
 * Make `AsyncImporterCache.wrapLogger()` and `ImporterCache.wrapLogger()` always

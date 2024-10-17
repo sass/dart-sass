@@ -55,9 +55,12 @@ final global = UnmodifiableListView([
         space: ColorSpace.rgb, name: 'channels')
   }),
 
-  _function("invert", r"$color, $weight: 100%, $space: null",
-          (arguments) => _invert(arguments, global: true))
-      .withDeprecationWarning("color"),
+  _function("invert", r"$color, $weight: 100%, $space: null", (arguments) {
+    if (arguments[0] is! SassNumber && !arguments[0].isSpecialNumber) {
+      warnForGlobalBuiltIn("color", "invert");
+    }
+    return _invert(arguments, global: true);
+  }),
 
   // ### HSL
   _channelFunction("hue", ColorSpace.hsl, (color) => color.hue,
