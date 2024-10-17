@@ -17,7 +17,7 @@ export {
 export {
   ConfiguredVariable,
   ConfiguredVariableObjectProps,
-  ConfiguredVariableValueProps,
+  ConfiguredVariableExpressionProps,
   ConfiguredVariableProps,
   ConfiguredVariableRaws,
 } from './src/configured-variable';

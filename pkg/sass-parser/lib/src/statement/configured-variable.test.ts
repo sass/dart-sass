@@ -25,10 +25,10 @@ describe('a configured variable', () => {
         it('has a sassType', () =>
           expect(node.sassType.toString()).toBe('configured-variable'));
 
-        it('has a name', () => expect(node.name).toBe('foo'));
+        it('has a name', () => expect(node.variable).toBe('foo'));
 
         it('has a value', () =>
-          expect(node).toHaveStringExpression('value', 'bar'));
+          expect(node).toHaveStringExpression('expression', 'bar'));
 
         it("isn't guarded", () => expect(node.guarded).toBe(false));
       });
@@ -120,10 +120,10 @@ describe('a configured variable', () => {
         it('has a sassType', () =>
           expect(node.sassType.toString()).toBe('configured-variable'));
 
-        it('has a name', () => expect(node.name).toBe('foo'));
+        it('has a name', () => expect(node.variable).toBe('foo'));
 
         it('has a value', () =>
-          expect(node).toHaveStringExpression('value', 'bar'));
+          expect(node).toHaveStringExpression('expression', 'bar'));
 
         it('is guarded', () => expect(node.guarded).toBe(true));
       });
@@ -196,17 +196,16 @@ describe('a configured variable', () => {
     });
   });
 
-  it('assigned a new name', () => {
-    node.name = 'baz';
-    expect(node.name).toBe('baz');
+  it('assigned a new variable', () => {
+    node.variable = 'baz';
+    expect(node.variable).toBe('baz');
   });
 
-  it('assigned a new value', () => {
-    const old = node.value;
-    node.value = {text: 'baz', quotes: true};
+  it('assigned a new expression', () => {
+    const old = node.expression;
+    node.expression = {text: 'baz', quotes: true};
     expect(old.parent).toBeUndefined();
-    expect(node).toHaveStringExpression('value', 'baz');
-    expect(node.value.parent).toBe(node);
+    expect(node).toHaveStringExpression('expression', 'baz');
   });
 
   it('assigned a new guarded', () => {
@@ -337,9 +336,9 @@ describe('a configured variable', () => {
       beforeEach(() => void (clone = original.clone()));
 
       describe('has the same properties:', () => {
-        it('name', () => expect(clone.name).toBe('foo'));
+        it('variable', () => expect(clone.variable).toBe('foo'));
 
-        it('value', () => expect(clone).toHaveStringExpression('value', 'bar'));
+        it('expression', () => expect(clone).toHaveStringExpression('expression', 'bar'));
 
         it('guarded', () => expect(clone.guarded).toBe(false));
       });
@@ -366,23 +365,23 @@ describe('a configured variable', () => {
           }));
       });
 
-      describe('name', () => {
+      describe('variable', () => {
         it('defined', () =>
-          expect(original.clone({name: 'baz'}).name).toBe('baz'));
+          expect(original.clone({name: 'baz'}).variable).toBe('baz'));
 
         it('undefined', () =>
-          expect(original.clone({name: undefined}).name).toBe('foo'));
+          expect(original.clone({name: undefined}).variable).toBe('foo'));
       });
 
-      describe('value', () => {
+      describe('expression', () => {
         it('defined', () =>
           expect(
-            original.clone({value: {text: 'baz', quotes: true}})
-          ).toHaveStringExpression('value', 'baz'));
+            original.clone({expression: {text: 'baz', quotes: true}})
+          ).toHaveStringExpression('expression', 'baz'));
 
         it('undefined', () =>
-          expect(original.clone({value: undefined})).toHaveStringExpression(
-            'value',
+          expect(original.clone({expression: undefined})).toHaveStringExpression(
+            'expression',
             'bar'
           ));
       });

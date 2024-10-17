@@ -26,10 +26,10 @@ export interface ConfiguredVariableRaws {
   /**
    * The variable's name, not including the `$`.
    *
-   * This may be different than {@link ConfiguredVariable.name} if the name
-   * contains escape codes.
+   * This may be different than {@link ConfiguredVariable.variable} if the name
+   * contains escape codes or underscores.
    */
-  name?: RawWithValue<string>;
+  variable?: RawWithValue<string>;
 
   /** The whitespace and colon between the variable name and value. */
   between?: string;
@@ -55,8 +55,8 @@ export interface ConfiguredVariableRaws {
  */
 export interface ConfiguredVariableObjectProps {
   raws?: ConfiguredVariableRaws;
-  name: string;
-  value: Expression | ExpressionProps;
+  variable: string;
+  expression: Expression | ExpressionProps;
   guarded?: boolean;
 }
 
@@ -69,10 +69,10 @@ export interface ConfiguredVariableObjectProps {
  * Passing in an {@link Expression} or {@link ExpressionProps} directly always
  * creates an unguarded {@link ConfiguredVariable}.
  */
-export type ConfiguredVariableValueProps =
+export type ConfiguredVariableExpressionProps =
   | Expression
   | ExpressionProps
-  | Omit<ConfiguredVariableObjectProps, 'name'>;
+  | Omit<ConfiguredVariableObjectProps, 'variable'>;
 
 /**
  * The initializer properties for {@link ConfiguredVariable}.
@@ -81,7 +81,7 @@ export type ConfiguredVariableValueProps =
  */
 export type ConfiguredVariableProps =
   | ConfiguredVariableObjectProps
-  | [string, ConfiguredVariableValueProps];
+  | [string, ConfiguredVariableExpressionProps];
 
 /**
  * A single variable configured for the `with` clause of a `@use` or `@forward`
@@ -94,20 +94,25 @@ export class ConfiguredVariable extends Node {
   declare raws: ConfiguredVariableRaws;
   declare parent: Configuration | undefined;
 
-  /** The variable name, not including `$`. */
-  name!: string;
+  /**
+   * The variable name, not including `$`.
+   *
+   * This is the parsed and normalized value, with underscores converted to
+   * hyphens and escapes resolved to the characters they represent.
+   */
+  variable!: string;
 
-  /** The expresison whose value is iterated over. */
-  get value(): Expression {
-    return this._value!;
+  /** The expresison whose value the variable is assigned. */
+  get expression(): Expression {
+    return this._expression!;
   }
-  set value(value: Expression | ExpressionProps) {
-    if (this._value) this._value.parent = undefined;
+  set expression(value: Expression | ExpressionProps) {
+    if (this._expression) this._expression.parent = undefined;
     if (!('sassType' in value)) value = fromProps(value);
     if (value) value.parent = this;
-    this._value = value;
+    this._expression = value;
   }
-  private _value!: Expression;
+  private _expression!: Expression;
 
   /** Whether this has a `!default` guard. */
   guarded!: boolean;
@@ -120,23 +125,22 @@ export class ConfiguredVariable extends Node {
     inner?: sassInternal.ConfiguredVariable
   ) {
     if (Array.isArray(defaults!)) {
-      const [name, rest] = defaults;
+      const [variable, rest] = defaults;
       if (
         'sassType' in rest ||
-        !('value' in rest) ||
-        typeof rest.value !== 'object'
+        !('expression' in rest)
       ) {
-        defaults = {name, value: rest as Expression | ExpressionProps};
+        defaults = {variable, expression: rest as Expression | ExpressionProps};
       } else {
-        defaults = {name, ...rest};
+        defaults = {variable, ...rest};
       }
     }
     super(defaults);
 
     if (inner) {
       this.source = new LazySource(inner!);
-      this.name = inner!.name;
-      this.value = convertExpression(inner.expression);
+      this.variable = inner!.name;
+      this.expression = convertExpression(inner.expression);
       this.guarded = inner.isGuarded;
     } else {
       this.guarded ??= false;
@@ -148,8 +152,8 @@ export class ConfiguredVariable extends Node {
   clone(overrides?: Partial<ConfiguredVariableObjectProps>): this {
     return utils.cloneNode(this, overrides, [
       'raws',
-      'name',
-      'value',
+      'variable',
+      'expression',
       'guarded',
     ]);
   }
@@ -158,24 +162,24 @@ export class ConfiguredVariable extends Node {
   /** @hidden */
   toJSON(_: string, inputs: Map<postcss.Input, number>): object;
   toJSON(_?: string, inputs?: Map<postcss.Input, number>): object {
-    return utils.toJSON(this, ['name', 'value', 'guarded'], inputs);
+    return utils.toJSON(this, ['variable', 'expression', 'guarded'], inputs);
   }
 
   /** @hidden */
   toString(): string {
     return (
       '$' +
-      (this.raws.name?.value === this.name
-        ? this.raws.name.raw
-        : sassInternal.toCssIdentifier(this.name)) +
+      (this.raws.variable?.value === this.variable
+        ? this.raws.variable.raw
+        : sassInternal.toCssIdentifier(this.variable)) +
       (this.raws.between ?? ': ') +
-      this.value +
+      this.expression +
       (this.guarded ? `${this.raws.beforeGuard ?? ' '}!default` : '')
     );
   }
 
   /** @hidden */
   get nonStatementChildren(): ReadonlyArray<Expression> {
-    return [this.value];
+    return [this.expression];
   }
 }

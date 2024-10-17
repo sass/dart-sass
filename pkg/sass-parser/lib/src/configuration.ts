@@ -7,7 +7,7 @@ import * as postcss from 'postcss';
 import {
   ConfiguredVariable,
   ConfiguredVariableProps,
-  ConfiguredVariableValueProps,
+  ConfiguredVariableExpressionProps,
 } from './configured-variable';
 import {LazySource} from './lazy-source';
 import {Node} from './node';
@@ -39,7 +39,7 @@ export interface ConfigurationRaws {
 export interface ConfigurationProps {
   raws?: ConfigurationRaws;
   variables:
-    | Record<string, ConfiguredVariableValueProps>
+    | Record<string, ConfiguredVariableExpressionProps>
     | Array<ConfiguredVariable | ConfiguredVariableProps>;
 }
 
@@ -100,9 +100,9 @@ export class Configuration extends Node {
     const realVariable =
       'sassType' in variable ? variable : new ConfiguredVariable(variable);
     realVariable.parent = this;
-    const old = this._variables.get(realVariable.name);
+    const old = this._variables.get(realVariable.variable);
     if (old) old.parent = undefined;
-    this._variables.set(realVariable.name, realVariable);
+    this._variables.set(realVariable.variable, realVariable);
     return this;
   }
 
@@ -137,11 +137,11 @@ export class Configuration extends Node {
   }
 
   /**
-   * Sets the value for the variable named {@link key}. This fully overrides the
-   * previous value, so all previous raws and guarded state are discarded.
+   * Sets the variable named {@link key}. This fully overrides the previous
+   * value, so all previous raws and guarded state are discarded.
    */
-  set(key: string, value: ConfiguredVariableValueProps): this {
-    const variable = new ConfiguredVariable([key, value]);
+  set(key: string, expression: ConfiguredVariableExpressionProps): this {
+    const variable = new ConfiguredVariable([key, expression]);
     variable.parent = this;
     const old = this._variables.get(key);
     if (old) old.parent = undefined;
