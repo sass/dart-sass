@@ -78,14 +78,14 @@ void main() {
         group("at the very beginning that's", () {
           for (var (name, (char, escape)) in chars.pairs) {
             test(
-                name, () => expect(char.toCssIdentifier(), equals('$escape ')));
+                name, () => expect(char.toCssIdentifier(), equals('$escape')));
           }
         });
 
         group("after a single hyphen that's", () {
           for (var (name, (char, escape)) in chars.pairs) {
             test(name,
-                () => expect('-$char'.toCssIdentifier(), equals('-$escape ')));
+                () => expect('-$char'.toCssIdentifier(), equals('-$escape')));
           }
         });
       });
@@ -100,7 +100,7 @@ void main() {
         group("after a name start that's", () {
           for (var (name, (char, escape)) in chars.pairs) {
             test(name,
-                () => expect('a$char'.toCssIdentifier(), equals('a$escape ')));
+                () => expect('a$char'.toCssIdentifier(), equals('a$escape')));
           }
         });
 
@@ -109,7 +109,7 @@ void main() {
             test(
                 name,
                 () =>
-                    expect('--$char'.toCssIdentifier(), equals('--$escape ')));
+                    expect('--$char'.toCssIdentifier(), equals('--$escape')));
           }
         });
       });
@@ -168,12 +168,12 @@ void main() {
 
       test('an uppercase hex letter',
           () => expect(' B'.toCssIdentifier(), '\\20 B'));
-
-      test('before the end of the string',
-          () => expect(' '.toCssIdentifier(), '\\20 '));
     });
 
     group('doesn\'t add a space between an escape and', () {
+      test('the end of the string',
+          () => expect(' '.toCssIdentifier(), '\\20'));
+
       test('a lowercase non-hex letter',
           () => expect(' g'.toCssIdentifier(), '\\20g'));
 
@@ -185,7 +185,7 @@ void main() {
       test('a non-ascii character',
           () => expect(' ä'.toCssIdentifier(), '\\20ä'));
 
-      test('another escape', () => expect('  '.toCssIdentifier(), '\\20\\20 '));
+      test('another escape', () => expect('  '.toCssIdentifier(), '\\20\\20'));
     });
   });
 }

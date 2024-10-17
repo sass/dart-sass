@@ -20,7 +20,7 @@ extension StringExtension on String {
     void writeEscape(int character) {
       buffer.writeCharCode($backslash);
       buffer.write(character.toRadixString(16));
-      if (scanner.peekChar() case int(isHex: true) || null) {
+      if (scanner.peekChar() case int(isHex: true)) {
         buffer.writeCharCode($space);
       }
     }
@@ -39,35 +39,7 @@ extension StringExtension on String {
       }
     }
 
-    void consumeBody() {
-      loop:
-      while (true) {
-        switch (scanner.peekChar()) {
-          case null:
-            break loop;
-
-          case 0:
-            scanner
-                .error("The U+0000 can't be represented as a CSS identifier.");
-
-          case int character when character.isHighSurrogate:
-            consumeSurrogatePair(character);
-
-          case int(isLowSurrogate: true):
-            scanner.error(
-                "An individual surrogate can't be represented as a CSS "
-                "identifier.",
-                length: 1);
-
-          case int(isName: true, isPrivateUseBMP: false):
-            buffer.writeCharCode(scanner.readChar());
-
-          case _:
-            writeEscape(scanner.readChar());
-        }
-      }
-    }
-
+    var doubleDash = false;
     if (scanner.scanChar($dash)) {
       if (scanner.isDone) return '\\2d';
 
@@ -75,36 +47,62 @@ extension StringExtension on String {
 
       if (scanner.scanChar($dash)) {
         buffer.writeCharCode($dash);
-        consumeBody();
-        return buffer.toString();
+        doubleDash = true;
       }
     }
 
-    switch (scanner.peekChar()) {
-      case null:
-        scanner.error(
-            "The empty string can't be represented as a CSS identifier.");
+    if (!doubleDash) {
+      switch (scanner.peekChar()) {
+        case null:
+          scanner.error(
+              "The empty string can't be represented as a CSS identifier.");
 
-      case 0:
-        scanner.error("The U+0000 can't be represented as a CSS identifier.");
+        case 0:
+          scanner.error("The U+0000 can't be represented as a CSS identifier.");
 
-      case int character when character.isHighSurrogate:
-        consumeSurrogatePair(character);
+        case int character when character.isHighSurrogate:
+          consumeSurrogatePair(character);
 
-      case int(isLowSurrogate: true):
-        scanner.error(
-            "An individual surrogate can't be represented as a CSS "
-            "identifier.",
-            length: 1);
+        case int(isLowSurrogate: true):
+          scanner.error(
+              "An individual surrogate can't be represented as a CSS "
+              "identifier.",
+              length: 1);
 
-      case int(isNameStart: true, isPrivateUseBMP: false):
-        buffer.writeCharCode(scanner.readChar());
+        case int(isNameStart: true, isPrivateUseBMP: false):
+          buffer.writeCharCode(scanner.readChar());
 
-      case _:
-        writeEscape(scanner.readChar());
+        case _:
+          writeEscape(scanner.readChar());
+      }
     }
 
-    consumeBody();
+    loop:
+    while (true) {
+      switch (scanner.peekChar()) {
+        case null:
+          break loop;
+
+        case 0:
+          scanner.error("The U+0000 can't be represented as a CSS identifier.");
+
+        case int character when character.isHighSurrogate:
+          consumeSurrogatePair(character);
+
+        case int(isLowSurrogate: true):
+          scanner.error(
+              "An individual surrogate can't be represented as a CSS "
+              "identifier.",
+              length: 1);
+
+        case int(isName: true, isPrivateUseBMP: false):
+          buffer.writeCharCode(scanner.readChar());
+
+        case _:
+          writeEscape(scanner.readChar());
+      }
+    }
+
     return buffer.toString();
   }
 }
