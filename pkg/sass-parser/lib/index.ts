@@ -75,8 +75,7 @@ export {
 } from './src/statement';
 
 /** Options that can be passed to the Sass parsers to control their behavior. */
-export interface SassParserOptions
-  extends Pick<postcss.ProcessOptions, 'from' | 'map'>{}
+export type SassParserOptions = Pick<postcss.ProcessOptions, 'from' | 'map'>;
 
 /** A PostCSS syntax for parsing a particular Sass syntax. */
 export interface Syntax extends postcss.Syntax<postcss.Root> {

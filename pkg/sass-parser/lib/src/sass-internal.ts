@@ -28,11 +28,7 @@ export interface SourceFile {
 // There may be a better way to declare this, but I can't figure it out.
 // eslint-disable-next-line @typescript-eslint/no-namespace
 declare namespace SassInternal {
-  function parse(
-    css: string,
-    syntax: Syntax,
-    path?: string,
-  ): Stylesheet;
+  function parse(css: string, syntax: Syntax, path?: string): Stylesheet;
 
   class StatementVisitor<T> {
     private _fakePropertyToMakeThisAUniqueType1: T;
