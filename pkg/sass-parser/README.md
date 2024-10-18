@@ -257,3 +257,17 @@ There are a few cases where an operation that's valid in PostCSS won't work with
 
 * Trying to add child nodes to a Sass statement that doesn't support children
   like `@use` or `@error` is not supported.
+
+## Contributing
+
+Before sending out a pull request, please run the following commands from the
+`pkg/sass-parser` directory:
+
+* `npm run check` - Runs `eslint`, and then tries to compile the package with
+  `tsc`.
+
+* `npm run test` - Runs all the tests in the package.
+
+Note: You should run `dart run grinder before-test` from the `dart-sass`
+directory beforehand to ensure you're running `sass-parser` against the latest
+version of `dart-sass` JavaScript API.
