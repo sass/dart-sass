@@ -1,3 +1,7 @@
+## 1.80.4
+
+* No user-visible changes.
+
 ## 1.80.3
 
 * Improve consistency of how warnings are emitted by different parts of the
