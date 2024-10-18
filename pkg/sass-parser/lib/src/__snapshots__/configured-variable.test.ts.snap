@@ -14,6 +14,6 @@ exports[`a configured variable toJSON 1`] = `
   "raws": {},
   "sassType": "configured-variable",
   "source": <1:18-1:29 in 0>,
-  "variable": "baz",
+  "variableName": "baz",
 }
 `;

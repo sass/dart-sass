@@ -100,9 +100,9 @@ export class Configuration extends Node {
     const realVariable =
       'sassType' in variable ? variable : new ConfiguredVariable(variable);
     realVariable.parent = this;
-    const old = this._variables.get(realVariable.variable);
+    const old = this._variables.get(realVariable.variableName);
     if (old) old.parent = undefined;
-    this._variables.set(realVariable.variable, realVariable);
+    this._variables.set(realVariable.variableName, realVariable);
     return this;
   }
 

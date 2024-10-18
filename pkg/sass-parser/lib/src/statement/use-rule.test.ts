@@ -133,7 +133,7 @@ describe('a @use rule', () => {
           expect(node.configuration.size).toBe(1);
           expect(node.configuration.parent).toBe(node);
           const variables = [...node.configuration.variables()];
-          expect(variables[0].variable).toBe('baz');
+          expect(variables[0].variableName).toBe('baz');
           expect(variables[0]).toHaveStringExpression('expression', 'qux');
         });
 
@@ -416,7 +416,7 @@ describe('a @use rule', () => {
           expect(clone.configuration.size).toBe(1);
           expect(clone.configuration.parent).toBe(clone);
           const variables = [...clone.configuration.variables()];
-          expect(variables[0].variable).toBe('baz');
+          expect(variables[0].variableName).toBe('baz');
           expect(variables[0]).toHaveStringExpression('expression', 'qux');
         });
 
@@ -534,7 +534,7 @@ describe('a @use rule', () => {
             expect(clone.configuration.size).toBe(1);
             expect(clone.configuration.parent).toBe(clone);
             const variables = [...clone.configuration.variables()];
-            expect(variables[0].variable).toBe('baz');
+            expect(variables[0].variableName).toBe('baz');
             expect(variables[0]).toHaveStringExpression('expression', 'qux');
           });
 

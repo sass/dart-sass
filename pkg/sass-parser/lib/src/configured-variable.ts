@@ -29,7 +29,7 @@ export interface ConfiguredVariableRaws {
    * This may be different than {@link ConfiguredVariable.variable} if the name
    * contains escape codes or underscores.
    */
-  variable?: RawWithValue<string>;
+  variableName?: RawWithValue<string>;
 
   /** The whitespace and colon between the variable name and value. */
   between?: string;
@@ -55,7 +55,7 @@ export interface ConfiguredVariableRaws {
  */
 export interface ConfiguredVariableObjectProps {
   raws?: ConfiguredVariableRaws;
-  variable: string;
+  variableName: string;
   expression: Expression | ExpressionProps;
   guarded?: boolean;
 }
@@ -72,7 +72,7 @@ export interface ConfiguredVariableObjectProps {
 export type ConfiguredVariableExpressionProps =
   | Expression
   | ExpressionProps
-  | Omit<ConfiguredVariableObjectProps, 'variable'>;
+  | Omit<ConfiguredVariableObjectProps, 'variableName'>;
 
 /**
  * The initializer properties for {@link ConfiguredVariable}.
@@ -100,7 +100,7 @@ export class ConfiguredVariable extends Node {
    * This is the parsed and normalized value, with underscores converted to
    * hyphens and escapes resolved to the characters they represent.
    */
-  variable!: string;
+  variableName!: string;
 
   /** The expresison whose value the variable is assigned. */
   get expression(): Expression {
@@ -125,31 +125,33 @@ export class ConfiguredVariable extends Node {
     inner?: sassInternal.ConfiguredVariable
   ) {
     if (Array.isArray(defaults!)) {
-      const [variable, rest] = defaults;
+      const [variableName, rest] = defaults;
       if ('sassType' in rest || !('expression' in rest)) {
-        defaults = {variable, expression: rest as Expression | ExpressionProps};
+        defaults = {
+          variableName,
+          expression: rest as Expression | ExpressionProps,
+        };
       } else {
-        defaults = {variable, ...rest};
+        defaults = {variableName, ...rest};
       }
     }
     super(defaults);
+    this.raws ??= {};
 
     if (inner) {
-      this.source = new LazySource(inner!);
-      this.variable = inner!.name;
+      this.source = new LazySource(inner);
+      this.variableName = inner.name;
       this.expression = convertExpression(inner.expression);
       this.guarded = inner.isGuarded;
     } else {
       this.guarded ??= false;
     }
-
-    this.raws ??= {};
   }
 
   clone(overrides?: Partial<ConfiguredVariableObjectProps>): this {
     return utils.cloneNode(this, overrides, [
       'raws',
-      'variable',
+      'variableName',
       'expression',
       'guarded',
     ]);
@@ -159,16 +161,20 @@ export class ConfiguredVariable extends Node {
   /** @hidden */
   toJSON(_: string, inputs: Map<postcss.Input, number>): object;
   toJSON(_?: string, inputs?: Map<postcss.Input, number>): object {
-    return utils.toJSON(this, ['variable', 'expression', 'guarded'], inputs);
+    return utils.toJSON(
+      this,
+      ['variableName', 'expression', 'guarded'],
+      inputs
+    );
   }
 
   /** @hidden */
   toString(): string {
     return (
       '$' +
-      (this.raws.variable?.value === this.variable
-        ? this.raws.variable.raw
-        : sassInternal.toCssIdentifier(this.variable)) +
+      (this.raws.variableName?.value === this.variableName
+        ? this.raws.variableName.raw
+        : sassInternal.toCssIdentifier(this.variableName)) +
       (this.raws.between ?? ': ') +
       this.expression +
       (this.guarded ? `${this.raws.beforeGuard ?? ' '}!default` : '')

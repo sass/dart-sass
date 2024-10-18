@@ -9,7 +9,7 @@ import {
   UseRule,
   sass,
   scss,
-} from '../..';
+} from '..';
 
 describe('a configuration map', () => {
   let node: Configuration;
@@ -76,7 +76,7 @@ describe('a configuration map', () => {
         it('contains the variable', () => {
           expect(node.size).toBe(1);
           const variable = [...node.variables()][0];
-          expect(variable.variable).toEqual('bar');
+          expect(variable.variableName).toEqual('bar');
           expect(variable).toHaveStringExpression('expression', 'baz');
         });
       });
@@ -102,7 +102,7 @@ describe('a configuration map', () => {
         () =>
           new Configuration({
             variables: [
-              {variable: 'bar', expression: {text: 'baz', quotes: true}},
+              {variableName: 'bar', expression: {text: 'baz', quotes: true}},
             ],
           })
       );
@@ -126,7 +126,7 @@ describe('a configuration map', () => {
   describe('add()', () => {
     test('with a ConfiguredVariable', () => {
       const variable = new ConfiguredVariable({
-        variable: 'foo',
+        variableName: 'foo',
         expression: {text: 'bar', quotes: true},
       });
       expect(node.add(variable)).toBe(node);
@@ -136,20 +136,20 @@ describe('a configuration map', () => {
     });
 
     test('with a ConfiguredVariableProps', () => {
-      node.add({variable: 'foo', expression: {text: 'bar', quotes: true}});
+      node.add({variableName: 'foo', expression: {text: 'bar', quotes: true}});
       expect(node.size).toBe(1);
       const variable = node.get('foo');
-      expect(variable?.variable).toBe('foo');
+      expect(variable?.variableName).toBe('foo');
       expect(variable).toHaveStringExpression('expression', 'bar');
       expect(variable?.parent).toBe(node);
     });
 
     test('overwrites on old variable', () => {
-      node.add({variable: 'foo', expression: {text: 'old', quotes: true}});
+      node.add({variableName: 'foo', expression: {text: 'old', quotes: true}});
       const old = node.get('foo');
       expect(old?.parent).toBe(node);
 
-      node.add({variable: 'foo', expression: {text: 'new', quotes: true}});
+      node.add({variableName: 'foo', expression: {text: 'new', quotes: true}});
       expect(node.size).toBe(1);
       expect(old?.parent).toBeUndefined();
       expect(node.get('foo')).toHaveStringExpression('expression', 'new');
@@ -157,8 +157,8 @@ describe('a configuration map', () => {
   });
 
   test('clear() removes all variables', () => {
-    node.add({variable: 'foo', expression: {text: 'bar', quotes: true}});
-    node.add({variable: 'baz', expression: {text: 'bang', quotes: true}});
+    node.add({variableName: 'foo', expression: {text: 'bar', quotes: true}});
+    node.add({variableName: 'baz', expression: {text: 'bang', quotes: true}});
     const foo = node.get('foo');
     const bar = node.get('bar');
     node.clear();
@@ -171,8 +171,8 @@ describe('a configuration map', () => {
 
   describe('delete()', () => {
     beforeEach(() => {
-      node.add({variable: 'foo', expression: {text: 'bar', quotes: true}});
-      node.add({variable: 'baz', expression: {text: 'bang', quotes: true}});
+      node.add({variableName: 'foo', expression: {text: 'bar', quotes: true}});
+      node.add({variableName: 'baz', expression: {text: 'bang', quotes: true}});
     });
 
     test('removes a matching variable', () => {
@@ -191,12 +191,12 @@ describe('a configuration map', () => {
 
   describe('get()', () => {
     beforeEach(() => {
-      node.add({variable: 'foo', expression: {text: 'bar', quotes: true}});
+      node.add({variableName: 'foo', expression: {text: 'bar', quotes: true}});
     });
 
     test('returns a variable in the configuration', () => {
       const variable = node.get('foo');
-      expect(variable?.variable).toBe('foo');
+      expect(variable?.variableName).toBe('foo');
       expect(variable).toHaveStringExpression('expression', 'bar');
     });
 
@@ -207,7 +207,7 @@ describe('a configuration map', () => {
 
   describe('has()', () => {
     beforeEach(() => {
-      node.add({variable: 'foo', expression: {text: 'bar', quotes: true}});
+      node.add({variableName: 'foo', expression: {text: 'bar', quotes: true}});
     });
 
     test('returns true for a variable in the configuration', () =>
@@ -219,7 +219,7 @@ describe('a configuration map', () => {
 
   describe('set()', () => {
     beforeEach(() => {
-      node.add({variable: 'foo', expression: {text: 'bar', quotes: true}});
+      node.add({variableName: 'foo', expression: {text: 'bar', quotes: true}});
     });
 
     describe('adds a new variable', () => {
@@ -232,7 +232,7 @@ describe('a configuration map', () => {
           expect(node.size).toBe(2);
           const variable = node.get('baz');
           expect(variable?.parent).toBe(node);
-          expect(variable?.variable).toBe('baz');
+          expect(variable?.variableName).toBe('baz');
           expect(variable).toHaveStringExpression('expression', 'bang');
         });
       }
@@ -358,10 +358,10 @@ describe('a configuration map', () => {
         it('variables', () => {
           expect(clone.size).toBe(2);
           const variables = [...clone.variables()];
-          expect(variables[0]?.variable).toBe('foo');
+          expect(variables[0]?.variableName).toBe('foo');
           expect(variables[0]?.parent).toBe(clone);
           expect(variables[0]).toHaveStringExpression('expression', 'bar');
-          expect(variables[1]?.variable).toBe('baz');
+          expect(variables[1]?.variableName).toBe('baz');
           expect(variables[1]?.parent).toBe(clone);
           expect(variables[1]).toHaveStringExpression('expression', 'bang');
         });
@@ -398,7 +398,7 @@ describe('a configuration map', () => {
           });
           expect(clone.size).toBe(1);
           const variables = [...clone.variables()];
-          expect(variables[0]?.variable).toBe('zip');
+          expect(variables[0]?.variableName).toBe('zip');
           expect(variables[0]?.parent).toBe(clone);
           expect(variables[0]).toHaveStringExpression('expression', 'zap');
         });
@@ -407,10 +407,10 @@ describe('a configuration map', () => {
           const clone = original.clone({variables: undefined});
           expect(clone.size).toBe(2);
           const variables = [...clone.variables()];
-          expect(variables[0]?.variable).toBe('foo');
+          expect(variables[0]?.variableName).toBe('foo');
           expect(variables[0]?.parent).toBe(clone);
           expect(variables[0]).toHaveStringExpression('expression', 'bar');
-          expect(variables[1]?.variable).toBe('baz');
+          expect(variables[1]?.variableName).toBe('baz');
           expect(variables[1]?.parent).toBe(clone);
           expect(variables[1]).toHaveStringExpression('expression', 'bang');
         });
