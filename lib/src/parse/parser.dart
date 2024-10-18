@@ -10,7 +10,6 @@ import 'package:string_scanner/string_scanner.dart';
 import '../exception.dart';
 import '../interpolation_map.dart';
 import '../io.dart';
-import '../logger.dart';
 import '../util/character.dart';
 import '../util/lazy_file_span.dart';
 import '../util/map.dart';
@@ -25,10 +24,6 @@ class Parser {
   /// The scanner that scans through the text being parsed.
   final SpanScanner scanner;
 
-  /// The logger to use when emitting warnings.
-  @protected
-  final Logger logger;
-
   /// A map used to map source spans in the text being parsed back to their
   /// original locations in the source file, if this isn't being parsed directly
   /// from source.
@@ -37,13 +32,12 @@ class Parser {
   /// Parses [text] as a CSS identifier and returns the result.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  static String parseIdentifier(String text, {Logger? logger}) =>
-      Parser(text, logger: logger)._parseIdentifier();
+  static String parseIdentifier(String text) => Parser(text)._parseIdentifier();
 
   /// Returns whether [text] is a valid CSS identifier.
-  static bool isIdentifier(String text, {Logger? logger}) {
+  static bool isIdentifier(String text) {
     try {
-      parseIdentifier(text, logger: logger);
+      parseIdentifier(text);
       return true;
     } on SassFormatException {
       return false;
@@ -53,14 +47,12 @@ class Parser {
   /// Returns whether [text] starts like a variable declaration.
   ///
   /// Ignores everything after the `:`.
-  static bool isVariableDeclarationLike(String text, {Logger? logger}) =>
-      Parser(text, logger: logger)._isVariableDeclarationLike();
+  static bool isVariableDeclarationLike(String text) =>
+      Parser(text)._isVariableDeclarationLike();
 
   @protected
-  Parser(String contents,
-      {Object? url, Logger? logger, InterpolationMap? interpolationMap})
+  Parser(String contents, {Object? url, InterpolationMap? interpolationMap})
       : scanner = SpanScanner(contents, sourceUrl: url),
-        logger = logger ?? const Logger.stderr(),
         _interpolationMap = interpolationMap;
 
   String _parseIdentifier() {
@@ -661,10 +653,6 @@ class Parser {
         ? span
         : LazyFileSpan(() => _interpolationMap!.mapSpan(span));
   }
-
-  /// Prints a warning to standard error, associated with [span].
-  @protected
-  void warn(String message, FileSpan span) => logger.warn(message, span: span);
 
   /// Throws an error associated with [span].
   ///

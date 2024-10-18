@@ -6,7 +6,6 @@ import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../exception.dart';
-import '../../../logger.dart';
 import '../../../parse/scss.dart';
 import '../../../util/span.dart';
 import '../../../visitor/interface/statement.dart';
@@ -56,8 +55,8 @@ final class UseRule extends Statement implements SassDependency {
   ///
   /// @nodoc
   @internal
-  factory UseRule.parse(String contents, {Object? url, Logger? logger}) =>
-      ScssParser(contents, url: url, logger: logger).parseUseRule();
+  factory UseRule.parse(String contents, {Object? url}) =>
+      ScssParser(contents, url: url).parseUseRule().$1;
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitUseRule(this);
 

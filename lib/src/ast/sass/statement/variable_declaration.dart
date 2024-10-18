@@ -6,7 +6,6 @@ import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../exception.dart';
-import '../../../logger.dart';
 import '../../../parse/scss.dart';
 import '../../../utils.dart';
 import '../../../util/span.dart';
@@ -81,9 +80,8 @@ final class VariableDeclaration extends Statement implements SassDeclaration {
   ///
   /// @nodoc
   @internal
-  factory VariableDeclaration.parse(String contents,
-          {Object? url, Logger? logger}) =>
-      ScssParser(contents, url: url, logger: logger).parseVariableDeclaration();
+  factory VariableDeclaration.parse(String contents, {Object? url}) =>
+      ScssParser(contents, url: url).parseVariableDeclaration().$1;
 
   T accept<T>(StatementVisitor<T> visitor) =>
       visitor.visitVariableDeclaration(this);

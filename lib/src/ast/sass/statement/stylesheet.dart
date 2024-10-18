@@ -7,8 +7,8 @@ import 'dart:collection';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
+import '../../../deprecation.dart';
 import '../../../exception.dart';
-import '../../../logger.dart';
 import '../../../parse/css.dart';
 import '../../../parse/sass.dart';
 import '../../../parse/scss.dart';
@@ -46,16 +46,25 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   List<ForwardRule> get forwards => UnmodifiableListView(_forwards);
   final _forwards = <ForwardRule>[];
 
+  /// List of warnings discovered while parsing this stylesheet, to be emitted
+  /// during evaluation once we have a proper logger to use.
+  ///
+  /// @nodoc
+  @internal
+  final List<ParseTimeWarning> parseTimeWarnings;
+
   Stylesheet(Iterable<Statement> children, FileSpan span)
-      : this.internal(children, span);
+      : this.internal(children, span, []);
 
   /// A separate internal constructor that allows [plainCss] to be set.
   ///
   /// @nodoc
   @internal
   Stylesheet.internal(Iterable<Statement> children, this.span,
+      List<ParseTimeWarning> parseTimeWarnings,
       {this.plainCss = false})
-      : super(List.unmodifiable(children)) {
+      : parseTimeWarnings = UnmodifiableListView(parseTimeWarnings),
+        super(List.unmodifiable(children)) {
     loop:
     for (var child in this.children) {
       switch (child) {
@@ -81,16 +90,15 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parse(String contents, Syntax syntax,
-      {Object? url, Logger? logger}) {
+  factory Stylesheet.parse(String contents, Syntax syntax, {Object? url}) {
     try {
       switch (syntax) {
         case Syntax.sass:
-          return Stylesheet.parseSass(contents, url: url, logger: logger);
+          return Stylesheet.parseSass(contents, url: url);
         case Syntax.scss:
-          return Stylesheet.parseScss(contents, url: url, logger: logger);
+          return Stylesheet.parseScss(contents, url: url);
         case Syntax.css:
-          return Stylesheet.parseCss(contents, url: url, logger: logger);
+          return Stylesheet.parseCss(contents, url: url);
       }
     } on SassException catch (error, stackTrace) {
       var url = error.span.sourceUrl;
@@ -106,28 +114,33 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseSass(String contents,
-          {Object? url, Logger? logger}) =>
-      SassParser(contents, url: url, logger: logger).parse();
+  factory Stylesheet.parseSass(String contents, {Object? url}) =>
+      SassParser(contents, url: url).parse();
 
   /// Parses an SCSS stylesheet from [contents].
   ///
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseScss(String contents,
-          {Object? url, Logger? logger}) =>
-      ScssParser(contents, url: url, logger: logger).parse();
+  factory Stylesheet.parseScss(String contents, {Object? url}) =>
+      ScssParser(contents, url: url).parse();
 
   /// Parses a plain CSS stylesheet from [contents].
   ///
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseCss(String contents, {Object? url, Logger? logger}) =>
-      CssParser(contents, url: url, logger: logger).parse();
+  factory Stylesheet.parseCss(String contents, {Object? url}) =>
+      CssParser(contents, url: url).parse();
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitStylesheet(this);
 
   String toString() => children.join(" ");
 }
+
+/// Record type for a warning discovered while parsing a stylesheet.
+typedef ParseTimeWarning = ({
+  Deprecation? deprecation,
+  FileSpan span,
+  String message
+});

@@ -44,14 +44,14 @@ Future<void> main(List<String> args) async {
       return;
     }
 
+    // Eagerly check these so that we fail here and don't hang in watch mode.
+    options.silenceDeprecations;
+    options.futureDeprecations;
+    options.fatalDeprecations;
+
     var graph = StylesheetGraph(ImportCache(
         importers: [...options.pkgImporters, FilesystemImporter.noLoadPath],
-        loadPaths: options.loadPaths,
-        logger: ImportCache.wrapLogger(
-            options.logger,
-            options.silenceDeprecations,
-            options.fatalDeprecations,
-            options.futureDeprecations)));
+        loadPaths: options.loadPaths));
     if (options.watch) {
       await watch(options, graph);
       return;

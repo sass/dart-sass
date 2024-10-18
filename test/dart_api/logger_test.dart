@@ -76,7 +76,7 @@ void main() {
     });
   });
 
-  test("with a parser warning passes the message and span", () {
+  test("with a parser warning passes the message, span, and trace", () {
     var mustBeCalled = expectAsync0(() {});
     compileString('a {b: c && d}', logger:
         _TestLogger.withWarn((message, {span, trace, deprecation = false}) {
@@ -87,7 +87,7 @@ void main() {
       expect(span.end.line, equals(0));
       expect(span.end.column, equals(10));
 
-      expect(trace, isNull);
+      expect(trace!.frames.first.member, equals('root stylesheet'));
       expect(deprecation, isFalse);
       mustBeCalled();
     }));

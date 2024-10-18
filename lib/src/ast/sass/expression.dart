@@ -5,7 +5,6 @@
 import 'package:meta/meta.dart';
 
 import '../../exception.dart';
-import '../../logger.dart';
 import '../../parse/scss.dart';
 import '../../visitor/interface/expression.dart';
 import '../../visitor/is_calculation_safe.dart';
@@ -50,6 +49,6 @@ abstract class Expression implements SassNode {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Expression.parse(String contents, {Object? url, Logger? logger}) =>
-      ScssParser(contents, url: url, logger: logger).parseExpression();
+  factory Expression.parse(String contents, {Object? url}) =>
+      ScssParser(contents, url: url).parseExpression().$1;
 }

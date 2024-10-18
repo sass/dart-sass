@@ -75,11 +75,7 @@ export {
 } from './src/statement';
 
 /** Options that can be passed to the Sass parsers to control their behavior. */
-export interface SassParserOptions
-  extends Pick<postcss.ProcessOptions, 'from' | 'map'> {
-  /** The logger that's used to log messages encountered during parsing. */
-  logger?: sassApi.Logger;
-}
+export type SassParserOptions = Pick<postcss.ProcessOptions, 'from' | 'map'>;
 
 /** A PostCSS syntax for parsing a particular Sass syntax. */
 export interface Syntax extends postcss.Syntax<postcss.Root> {
@@ -105,7 +101,7 @@ class _Syntax implements Syntax {
 
     return new Root(
       undefined,
-      sassInternal.parse(css.toString(), this.#syntax, opts?.from, opts?.logger)
+      sassInternal.parse(css.toString(), this.#syntax, opts?.from)
     );
   }
 
