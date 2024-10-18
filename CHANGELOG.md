@@ -1,3 +1,7 @@
+## 1.80.4
+
+* No user-visible changes.
+
 ## 1.80.3
 
 * Fix a bug where `@import url("...")` would crash in plain CSS files.

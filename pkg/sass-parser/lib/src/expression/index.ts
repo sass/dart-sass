@@ -7,6 +7,8 @@ import type {
   BinaryOperationExpression,
   BinaryOperationExpressionProps,
 } from './binary-operation';
+import {BooleanExpression, BooleanExpressionProps} from './boolean';
+import {NumberExpression, NumberExpressionProps} from './number';
 import type {StringExpression, StringExpressionProps} from './string';
 
 /**
@@ -14,14 +16,22 @@ import type {StringExpression, StringExpressionProps} from './string';
  *
  * @category Expression
  */
-export type AnyExpression = BinaryOperationExpression | StringExpression;
+export type AnyExpression =
+  | BinaryOperationExpression
+  | StringExpression
+  | BooleanExpression
+  | NumberExpression;
 
 /**
  * Sass expression types.
  *
  * @category Expression
  */
-export type ExpressionType = 'binary-operation' | 'string';
+export type ExpressionType =
+  | 'binary-operation'
+  | 'string'
+  | 'boolean'
+  | 'number';
 
 /**
  * The union type of all properties that can be used to construct Sass
@@ -31,7 +41,9 @@ export type ExpressionType = 'binary-operation' | 'string';
  */
 export type ExpressionProps =
   | BinaryOperationExpressionProps
-  | StringExpressionProps;
+  | StringExpressionProps
+  | BooleanExpressionProps
+  | NumberExpressionProps;
 
 /**
  * The superclass of Sass expression nodes.
