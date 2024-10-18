@@ -267,3 +267,7 @@ Before sending out a pull request, please run the following commands from the
   `tsc`.
 
 * `npm run test` - Runs all the tests in the package.
+
+Note: You should run `dart run grinder before-test` from the `dart-sass`
+directory beforehand to ensure you're running `sass-parser` against the latest
+version of `dart-sass` JavaScript API.
