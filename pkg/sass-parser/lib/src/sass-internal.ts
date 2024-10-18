@@ -32,7 +32,6 @@ declare namespace SassInternal {
     css: string,
     syntax: Syntax,
     path?: string,
-    logger?: sass.Logger
   ): Stylesheet;
 
   class StatementVisitor<T> {

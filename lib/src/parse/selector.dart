@@ -43,7 +43,6 @@ class SelectorParser extends Parser {
   /// selector rather than a Sass selector.
   SelectorParser(super.contents,
       {super.url,
-      super.logger,
       super.interpolationMap,
       bool allowParent = true,
       bool plainCss = false})

@@ -339,9 +339,7 @@ final class _EvaluateVisitor
       bool quietDeps = false,
       bool sourceMap = false})
       : _importCache = importCache ??
-            (nodeImporter == null
-                ? AsyncImportCache.none(logger: logger)
-                : null),
+            (nodeImporter == null ? AsyncImportCache.none() : null),
         _nodeImporter = nodeImporter,
         _logger = logger ?? const Logger.stderr(),
         _quietDeps = quietDeps,
@@ -1001,6 +999,9 @@ final class _EvaluateVisitor
   // ## Statements
 
   Future<Value?> visitStylesheet(Stylesheet node) async {
+    for (var warning in node.parseTimeWarnings) {
+      _warn(warning.message, warning.span, warning.deprecation);
+    }
     for (var child in node.children) {
       await child.accept(this);
     }
@@ -1012,8 +1013,7 @@ final class _EvaluateVisitor
     if (node.query case var unparsedQuery?) {
       var (resolved, map) =
           await _performInterpolationWithMap(unparsedQuery, warnForColor: true);
-      query =
-          AtRootQuery.parse(resolved, interpolationMap: map, logger: _logger);
+      query = AtRootQuery.parse(resolved, interpolationMap: map);
     }
 
     var parent = _parent;
@@ -1340,7 +1340,7 @@ final class _EvaluateVisitor
         await _performInterpolationWithMap(node.selector, warnForColor: true);
 
     var list = SelectorList.parse(trimAscii(targetText, excludeEscape: true),
-        interpolationMap: targetMap, logger: _logger, allowParent: false);
+        interpolationMap: targetMap, allowParent: false);
 
     for (var complex in list.components) {
       var compound = complex.singleCompound;
@@ -1745,6 +1745,13 @@ final class _EvaluateVisitor
         if (await importCache.canonicalize(Uri.parse(url),
                 baseImporter: _importer, baseUrl: baseUrl, forImport: forImport)
             case (var importer, var canonicalUrl, :var originalUrl)) {
+          if (canonicalUrl.scheme == '') {
+            _logger.warnForDeprecation(
+                Deprecation.relativeCanonical,
+                "Importer $importer canonicalized $url to $canonicalUrl.\n"
+                "Relative canonical URLs are deprecated and will eventually be "
+                "disallowed.");
+          }
           // Make sure we record the canonical URL as "loaded" even if the
           // actual load fails, because watchers should watch it to see if it
           // changes in a way that allows the load to succeed.
@@ -1752,7 +1759,7 @@ final class _EvaluateVisitor
 
           var isDependency = _inDependency || importer != _importer;
           if (await importCache.importCanonical(importer, canonicalUrl,
-                  originalUrl: originalUrl, quiet: _quietDeps && isDependency)
+                  originalUrl: originalUrl)
               case var stylesheet?) {
             return (stylesheet, importer: importer, isDependency: isDependency);
           }
@@ -1806,8 +1813,7 @@ final class _EvaluateVisitor
     return (
       Stylesheet.parse(
           contents, url.startsWith('file') ? Syntax.forPath(url) : Syntax.scss,
-          url: url,
-          logger: _quietDeps && isDependency ? Logger.quiet : _logger),
+          url: url),
       importer: null,
       isDependency: isDependency
     );
@@ -2002,8 +2008,7 @@ final class _EvaluateVisitor
       Interpolation interpolation) async {
     var (resolved, map) =
         await _performInterpolationWithMap(interpolation, warnForColor: true);
-    return CssMediaQuery.parseList(resolved,
-        logger: _logger, interpolationMap: map);
+    return CssMediaQuery.parseList(resolved, interpolationMap: map);
   }
 
   /// Returns a list of queries that selects for contexts that match both
@@ -2055,9 +2060,9 @@ final class _EvaluateVisitor
       // NOTE: this logic is largely duplicated in [visitCssKeyframeBlock]. Most
       // changes here should be mirrored there.
 
-      var parsedSelector = KeyframeSelectorParser(selectorText,
-              logger: _logger, interpolationMap: selectorMap)
-          .parse();
+      var parsedSelector =
+          KeyframeSelectorParser(selectorText, interpolationMap: selectorMap)
+              .parse();
       var rule = ModifiableCssKeyframeBlock(
           CssValue(List.unmodifiable(parsedSelector), node.selector.span),
           node.span);
@@ -2072,9 +2077,7 @@ final class _EvaluateVisitor
     }
 
     var parsedSelector = SelectorList.parse(selectorText,
-        interpolationMap: selectorMap,
-        plainCss: _stylesheet.plainCss,
-        logger: _logger);
+        interpolationMap: selectorMap, plainCss: _stylesheet.plainCss);
 
     var nest = !(_styleRule?.fromPlainCss ?? false);
     if (nest) {

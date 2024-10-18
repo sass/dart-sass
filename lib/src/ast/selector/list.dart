@@ -7,7 +7,6 @@ import 'package:meta/meta.dart';
 import '../../exception.dart';
 import '../../extend/functions.dart';
 import '../../interpolation_map.dart';
-import '../../logger.dart';
 import '../../parse/selector.dart';
 import '../../utils.dart';
 import '../../util/iterable.dart';
@@ -68,13 +67,11 @@ final class SelectorList extends Selector {
   /// Throws a [SassFormatException] if parsing fails.
   factory SelectorList.parse(String contents,
           {Object? url,
-          Logger? logger,
           InterpolationMap? interpolationMap,
           bool allowParent = true,
           bool plainCss = false}) =>
       SelectorParser(contents,
               url: url,
-              logger: logger,
               interpolationMap: interpolationMap,
               allowParent: allowParent,
               plainCss: plainCss)

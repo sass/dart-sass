@@ -1,3 +1,8 @@
+## 0.4.0
+
+* **Breaking change:** Warnings are no longer emitted during parsing, so the
+  `logger` option has been removed from `SassParserOptions`.
+
 ## 0.3.2
 
 * No user-visible changes.

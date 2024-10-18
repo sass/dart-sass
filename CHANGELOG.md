@@ -1,3 +1,10 @@
+## 1.80.3
+
+* Improve consistency of how warnings are emitted by different parts of the
+  compiler. This should result in minimal user-visible changes, but different
+  types of warnings should now respond more reliably to flags like `--quiet`,
+  `--verbose`, and `--silence-deprecation`.
+
 ## 1.80.2
 
 * Fix a bug where deprecation warnings were incorrectly emitted for the

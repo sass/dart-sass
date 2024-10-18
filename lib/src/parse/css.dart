@@ -30,7 +30,7 @@ final _disallowedFunctionNames =
 class CssParser extends ScssParser {
   bool get plainCss => true;
 
-  CssParser(super.contents, {super.url, super.logger});
+  CssParser(super.contents, {super.url});
 
   bool silentComment() {
     if (inExpression) return false;

@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import '../../interpolation_map.dart';
-import '../../logger.dart';
 import '../../parse/media_query.dart';
 import '../../utils.dart';
 
@@ -44,9 +43,8 @@ final class CssMediaQuery {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   static List<CssMediaQuery> parseList(String contents,
-          {Object? url, Logger? logger, InterpolationMap? interpolationMap}) =>
-      MediaQueryParser(contents,
-              url: url, logger: logger, interpolationMap: interpolationMap)
+          {Object? url, InterpolationMap? interpolationMap}) =>
+      MediaQueryParser(contents, url: url, interpolationMap: interpolationMap)
           .parse();
 
   /// Creates a media query specifies a type and, optionally, conditions.

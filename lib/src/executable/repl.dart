@@ -31,26 +31,24 @@ Future<void> repl(ExecutableOptions options) async {
   var evaluator = Evaluator(
       importer: FilesystemImporter.cwd,
       importCache: ImportCache(
-          importers: options.pkgImporters,
-          loadPaths: options.loadPaths,
-          logger: logger),
+          importers: options.pkgImporters, loadPaths: options.loadPaths),
       logger: logger);
   await for (String line in repl.runAsync()) {
     if (line.trim().isEmpty) continue;
     try {
       if (line.startsWith("@")) {
-        evaluator.use(UseRule.parse(line, logger: logger));
+        evaluator.use(UseRule.parse(line));
         continue;
       }
 
       if (Parser.isVariableDeclarationLike(line)) {
-        var declaration = VariableDeclaration.parse(line, logger: logger);
+        var declaration = VariableDeclaration.parse(line);
         evaluator.setVariable(declaration);
         print(evaluator.evaluate(VariableExpression(
             declaration.name, declaration.span,
             namespace: declaration.namespace)));
       } else {
-        print(evaluator.evaluate(Expression.parse(line, logger: logger)));
+        print(evaluator.evaluate(Expression.parse(line)));
       }
     } on SassException catch (error, stackTrace) {
       _logError(error, getTrace(error) ?? stackTrace, line, repl, options,

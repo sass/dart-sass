@@ -5,7 +5,6 @@
 import 'package:meta/meta.dart';
 
 import '../../exception.dart';
-import '../../logger.dart';
 import '../../parse/selector.dart';
 import '../selector.dart';
 
@@ -54,9 +53,8 @@ abstract base class SimpleSelector extends Selector {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory SimpleSelector.parse(String contents,
-          {Object? url, Logger? logger, bool allowParent = true}) =>
-      SelectorParser(contents,
-              url: url, logger: logger, allowParent: allowParent)
+          {Object? url, bool allowParent = true}) =>
+      SelectorParser(contents, url: url, allowParent: allowParent)
           .parseSimpleSelector();
 
   /// Returns a new [SimpleSelector] based on `this`, as though it had been

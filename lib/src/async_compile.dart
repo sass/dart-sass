@@ -58,14 +58,14 @@ Future<CompileResult> compileAsync(String path,
   Stylesheet? stylesheet;
   if (nodeImporter == null &&
       (syntax == null || syntax == Syntax.forPath(path))) {
-    importCache ??= AsyncImportCache.none(logger: logger);
+    importCache ??= AsyncImportCache.none();
     stylesheet = (await importCache.importCanonical(
         FilesystemImporter.cwd, p.toUri(canonicalize(path)),
         originalUrl: p.toUri(path)))!;
   } else {
     stylesheet = Stylesheet.parse(
         readFile(path), syntax ?? Syntax.forPath(path),
-        url: p.toUri(path), logger: logger);
+        url: p.toUri(path));
   }
 
   var result = await _compileStylesheet(
@@ -120,8 +120,7 @@ Future<CompileResult> compileStringAsync(String source,
           limitRepetition: !verbose)
         ..validate();
 
-  var stylesheet =
-      Stylesheet.parse(source, syntax ?? Syntax.scss, url: url, logger: logger);
+  var stylesheet = Stylesheet.parse(source, syntax ?? Syntax.scss, url: url);
 
   var result = await _compileStylesheet(
       stylesheet,

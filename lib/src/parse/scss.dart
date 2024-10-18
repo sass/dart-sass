@@ -7,7 +7,6 @@ import 'package:charcode/charcode.dart';
 import '../ast/sass.dart';
 import '../deprecation.dart';
 import '../interpolation_buffer.dart';
-import '../logger.dart';
 import '../util/character.dart';
 import 'stylesheet.dart';
 
@@ -16,7 +15,7 @@ class ScssParser extends StylesheetParser {
   bool get indented => false;
   int get currentIndentation => 0;
 
-  ScssParser(super.contents, {super.url, super.logger});
+  ScssParser(super.contents, {super.url});
 
   Interpolation styleRuleSelector() => almostAnyValue();
 
@@ -44,13 +43,15 @@ class ScssParser extends StylesheetParser {
     if (scanner.scanChar($at)) {
       if (scanIdentifier('else', caseSensitive: true)) return true;
       if (scanIdentifier('elseif', caseSensitive: true)) {
-        logger.warnForDeprecation(
-            Deprecation.elseif,
-            '@elseif is deprecated and will not be supported in future Sass '
-            'versions.\n'
-            '\n'
-            'Recommendation: @else if',
-            span: scanner.spanFrom(beforeAt));
+        warnings.add((
+          deprecation: Deprecation.elseif,
+          message:
+              '@elseif is deprecated and will not be supported in future Sass '
+              'versions.\n'
+              '\n'
+              'Recommendation: @else if',
+          span: scanner.spanFrom(beforeAt)
+        ));
         scanner.position -= 2;
         return true;
       }

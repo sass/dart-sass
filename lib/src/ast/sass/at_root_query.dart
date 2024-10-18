@@ -7,7 +7,6 @@ import 'package:collection/collection.dart';
 
 import '../../exception.dart';
 import '../../interpolation_map.dart';
-import '../../logger.dart';
 import '../../parse/at_root_query.dart';
 import '../css.dart';
 
@@ -58,8 +57,8 @@ final class AtRootQuery {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory AtRootQuery.parse(String contents,
-          {Object? url, Logger? logger, InterpolationMap? interpolationMap}) =>
-      AtRootQueryParser(contents, url: url, logger: logger).parse();
+          {Object? url, InterpolationMap? interpolationMap}) =>
+      AtRootQueryParser(contents, url: url).parse();
 
   /// Returns whether `this` excludes [node].
   ///
