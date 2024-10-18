@@ -118,7 +118,7 @@ describe('a number expression', () => {
         expect(
           new NumberExpression({
             value: 123,
-            raws: {number: {raw: 'hello', value: 123}},
+            raws: {value: {raw: 'hello', value: 123}},
           }).toString()
         ).toBe('hello'));
 
@@ -126,25 +126,9 @@ describe('a number expression', () => {
         expect(
           new NumberExpression({
             value: 123,
-            raws: {number: {raw: 'hello', value: 234}},
+            raws: {value: {raw: 'hello', value: 234}},
           }).toString()
         ).toBe('123'));
-
-      it('with a the same value as the expression but undefined format', () =>
-        expect(
-          new NumberExpression({
-            value: 123,
-            raws: {number: {raw: undefined, value: 123}},
-          }).toString()
-        ).toBe('123'));
-
-      it('with a the same value as the expression but falsy format', () =>
-        expect(
-          new NumberExpression({
-            value: 123,
-            raws: {number: {raw: '', value: 123}},
-          }).toString()
-        ).toBe(''));
     });
   });
 
@@ -154,7 +138,7 @@ describe('a number expression', () => {
     beforeEach(() => {
       original = utils.parseExpression('123');
       // TODO: remove this once raws are properly parsed.
-      original.raws.number = {raw: '0123.0'};
+      original.raws.value = {raw: '0123.0', value: 123};
     });
 
     describe('with no overrides', () => {
@@ -167,7 +151,8 @@ describe('a number expression', () => {
 
         it('unit', () => expect(clone.unit).toBeNull());
 
-        it('raws', () => expect(clone.raws).toEqual({number: {raw: '0123.0'}}));
+        it('raws', () =>
+          expect(clone.raws).toEqual({value: {raw: '0123.0', value: 123}}));
 
         it('source', () => expect(clone.source).toBe(original.source));
       });
@@ -194,13 +179,15 @@ describe('a number expression', () => {
 
       describe('raws', () => {
         it('defined', () =>
-          expect(original.clone({raws: {number: {raw: '1e3'}}}).raws).toEqual({
-            number: {raw: '1e3'},
+          expect(
+            original.clone({raws: {value: {raw: '1e3', value: 1e3}}}).raws
+          ).toEqual({
+            value: {raw: '1e3', value: 1e3},
           }));
 
         it('undefined', () =>
           expect(original.clone({raws: undefined}).raws).toEqual({
-            number: {raw: '0123.0'},
+            value: {raw: '0123.0', value: 123},
           }));
       });
     });

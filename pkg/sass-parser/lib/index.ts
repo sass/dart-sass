@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import * as postcss from 'postcss';
-import * as sassApi from 'sass';
 
 import {Root} from './src/statement/root';
 import * as sassInternal from './src/sass-internal';
