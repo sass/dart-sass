@@ -368,12 +368,13 @@ void main() {
         var logEvent = await getLogEvent(process);
         expect(
             logEvent.formatted,
-            equals('WARNING on line 1, column 13: \n'
-                'In Sass, "&&" means two copies of the parent selector. You probably want to use "and" instead.\n'
+            equals('WARNING: In Sass, "&&" means two copies of the parent '
+                'selector. You probably want to use "and" instead.\n\n'
                 '  ,\n'
                 '1 | a {@debug a && b}\n'
                 '  |             ^^\n'
-                '  \'\n'));
+                '  \'\n'
+                '    - 1:13  root stylesheet\n'));
         await process.kill();
       });
     });
@@ -394,7 +395,7 @@ void main() {
       expect(logEvent.span.start, equals(location(12, 0, 12)));
       expect(logEvent.span.end, equals(location(19, 0, 19)));
       expect(logEvent.span.context, equals("@if true {} @elseif true {}"));
-      expect(logEvent.stackTrace, isEmpty);
+      expect(logEvent.stackTrace, "- 1:13  root stylesheet\n");
       await process.kill();
     });
 

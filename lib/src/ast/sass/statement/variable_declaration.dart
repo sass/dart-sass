@@ -81,7 +81,7 @@ final class VariableDeclaration extends Statement implements SassDeclaration {
   /// @nodoc
   @internal
   factory VariableDeclaration.parse(String contents, {Object? url}) =>
-      ScssParser(contents, url: url).parseVariableDeclaration();
+      ScssParser(contents, url: url).parseVariableDeclaration().node;
 
   T accept<T>(StatementVisitor<T> visitor) =>
       visitor.visitVariableDeclaration(this);

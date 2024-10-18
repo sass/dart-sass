@@ -123,25 +123,32 @@ abstract class StylesheetParser extends Parser {
         return arguments;
       });
 
-  Expression parseExpression() => _parseSingleProduction(_expression);
+  ({Expression node, List<ParseTimeWarning> warnings}) parseExpression() =>
+      (node: _parseSingleProduction(_expression), warnings: warnings);
 
   SassNumber parseNumber() {
     var expression = _parseSingleProduction(_number);
     return SassNumber(expression.value, expression.unit);
   }
 
-  VariableDeclaration parseVariableDeclaration() =>
-      _parseSingleProduction(() => lookingAtIdentifier()
-          ? _variableDeclarationWithNamespace()
-          : variableDeclarationWithoutNamespace());
+  ({VariableDeclaration node, List<ParseTimeWarning> warnings})
+      parseVariableDeclaration() => (
+            node: _parseSingleProduction(() => lookingAtIdentifier()
+                ? _variableDeclarationWithNamespace()
+                : variableDeclarationWithoutNamespace()),
+            warnings: warnings
+          );
 
-  UseRule parseUseRule() => _parseSingleProduction(() {
-        var start = scanner.state;
-        scanner.expectChar($at, name: "@-rule");
-        expectIdentifier("use");
-        whitespace();
-        return _useRule(start);
-      });
+  ({UseRule node, List<ParseTimeWarning> warnings}) parseUseRule() => (
+        node: _parseSingleProduction(() {
+          var start = scanner.state;
+          scanner.expectChar($at, name: "@-rule");
+          expectIdentifier("use");
+          whitespace();
+          return _useRule(start);
+        }),
+        warnings: warnings
+      );
 
   /// Parses and returns [production] as the entire contents of [scanner].
   T _parseSingleProduction<T>(T production()) {
