@@ -1,3 +1,7 @@
+## 0.4.1
+
+* Add `BooleanExpression` and `NumberExpression`.
+
 ## 0.4.0
 
 * **Breaking change:** Warnings are no longer emitted during parsing, so the
@@ -17,7 +21,7 @@
 
 ## 0.2.6
 
-* Add `BooleanExpression` and `NumberExpression`.
+* No user-visible changes.
 
 ## 0.2.5
 
