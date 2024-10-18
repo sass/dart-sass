@@ -49,20 +49,20 @@ Future<void> repl(ExecutableOptions options) async {
     if (line.trim().isEmpty) continue;
     try {
       if (line.startsWith("@")) {
-        var (:node, :warnings) = ScssParser(line).parseUseRule();
+        var (node, warnings) = ScssParser(line).parseUseRule();
         warnings.forEach(warn);
         evaluator.use(node);
         continue;
       }
 
       if (Parser.isVariableDeclarationLike(line)) {
-        var (:node, :warnings) = ScssParser(line).parseVariableDeclaration();
+        var (node, warnings) = ScssParser(line).parseVariableDeclaration();
         warnings.forEach(warn);
         evaluator.setVariable(node);
         print(evaluator.evaluate(VariableExpression(node.name, node.span,
             namespace: node.namespace)));
       } else {
-        var (:node, :warnings) = ScssParser(line).parseExpression();
+        var (node, warnings) = ScssParser(line).parseExpression();
         warnings.forEach(warn);
         print(evaluator.evaluate(node));
       }

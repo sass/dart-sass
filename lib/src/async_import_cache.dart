@@ -233,6 +233,9 @@ final class AsyncImportCache {
 
     if (result == null) return (null, cacheable);
 
+    // Relative canonical URLs (empty scheme) should throw an error starting in
+    // Dart Sass 2.0.0, but for now, they only emit a deprecation warning in
+    // the evaluator.
     if (result.scheme != '' &&
         await importer.isNonCanonicalScheme(result.scheme)) {
       throw "Importer $importer canonicalized $url to $result, which uses a "

@@ -56,7 +56,7 @@ final class UseRule extends Statement implements SassDependency {
   /// @nodoc
   @internal
   factory UseRule.parse(String contents, {Object? url}) =>
-      ScssParser(contents, url: url).parseUseRule().node;
+      ScssParser(contents, url: url).parseUseRule().$1;
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitUseRule(this);
 
