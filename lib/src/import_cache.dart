@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 87fc9a16bcea4b555191a5bb9ea05dbb99b019d9
+// Checksum: 4d09da97db4e59518d193f58963897d36ef4db00
 //
 // ignore_for_file: unused_import
 
@@ -231,6 +231,9 @@ final class ImportCache {
 
     if (result == null) return (null, cacheable);
 
+    // Relative canonical URLs (empty scheme) should throw an error starting in
+    // Dart Sass 2.0.0, but for now, they only emit a deprecation warning in
+    // the evaluator.
     if (result.scheme != '' && importer.isNonCanonicalScheme(result.scheme)) {
       throw "Importer $importer canonicalized $url to $result, which uses a "
           "scheme declared as non-canonical.";
