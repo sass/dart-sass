@@ -34,7 +34,7 @@ export interface NumberExpressionRaws {
    * have the same value: `1e3`, `1000`, `01000.0`.
    */
   // TODO: Replace with RawWithValue<T> when #2389 lands.
-  value: {raw?: string; value?: number};
+  number?: {raw?: string; value?: number};
 }
 
 /**
@@ -99,8 +99,8 @@ export class NumberExpression extends Expression {
 
   /** @hidden */
   toString(): string {
-    if (this.raws?.value === this.value) {
-      return (this.raws.raw ?? this.value) + (this.unit ?? '');
+    if (this.raws?.number?.value === this.value) {
+      return (this.raws.number.raw ?? this.value) + (this.unit ?? '');
     }
     return this.value + (this.unit ?? '');
   }
