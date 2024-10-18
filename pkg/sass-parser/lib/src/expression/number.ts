@@ -33,17 +33,8 @@ export interface NumberExpressionRaws {
    * use scientific notation. For example, the following number representations
    * have the same value: `1e3`, `1000`, `01000.0`.
    */
-  raw?: string;
-
-  /**
-   * The numeric value for the raw string that represents the number.
-   *
-   * This `value` is compared with {@link NumberExpression.value}. If they
-   * match, then the {@link raw} string is output when stringifying the
-   * expression. Otherwise, the {@link raw} string is ignored, and the
-   * {@link NumberExpression.value} is output.
-   */
-  value?: number;
+  // TODO: Replace with RawWithValue<T> when #2389 lands.
+  value: {raw?: string; value?: number};
 }
 
 /**

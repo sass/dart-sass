@@ -26,16 +26,11 @@ describe('a boolean expression', () => {
 
     describeNode(
       'constructed manually',
-      () =>
-        new BooleanExpression({
-          value: true,
-        })
+      () => new BooleanExpression({value: true})
     );
 
     describeNode('constructed from ExpressionProps', () =>
-      utils.fromExpressionProps({
-        value: true,
-      })
+      utils.fromExpressionProps({value: true})
     );
   });
 
@@ -57,26 +52,18 @@ describe('a boolean expression', () => {
 
     describeNode(
       'constructed manually',
-      () =>
-        new BooleanExpression({
-          value: false,
-        })
+      () => new BooleanExpression({value: false})
     );
 
     describeNode('constructed from ExpressionProps', () =>
-      utils.fromExpressionProps({
-        value: false,
-      })
+      utils.fromExpressionProps({value: false})
     );
   });
 
-  describe('assigned new', () => {
-    beforeEach(() => void (node = utils.parseExpression('true')));
-
-    it('value', () => {
-      node.value = false;
-      expect(node.value).toBe(false);
-    });
+  it('assigned new value', () => {
+    node = utils.parseExpression('true');
+    node.value = false;
+    expect(node.value).toBe(false);
   });
 
   describe('stringifies', () => {
@@ -109,9 +96,7 @@ describe('a boolean expression', () => {
         it('source', () => expect(clone.source).toBe(original.source));
       });
 
-      describe('creates a new', () => {
-        it('self', () => expect(clone).not.toBe(original));
-      });
+      it('creates a new self', () => expect(clone).not.toBe(original));
     });
 
     describe('overrides', () => {

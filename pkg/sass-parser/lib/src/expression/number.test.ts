@@ -28,16 +28,11 @@ describe('a number expression', () => {
 
     describeNode(
       'constructed manually',
-      () =>
-        new NumberExpression({
-          value: 123,
-        })
+      () => new NumberExpression({value: 123})
     );
 
     describeNode('constructed from ExpressionProps', () =>
-      utils.fromExpressionProps({
-        value: 123,
-      })
+      utils.fromExpressionProps({value: 123})
     );
   });
 
@@ -177,9 +172,7 @@ describe('a number expression', () => {
         it('source', () => expect(clone.source).toBe(original.source));
       });
 
-      describe('creates a new', () => {
-        it('self', () => expect(clone).not.toBe(original));
-      });
+      it('creates a new self', () => expect(clone).not.toBe(original));
     });
 
     describe('overrides', () => {
