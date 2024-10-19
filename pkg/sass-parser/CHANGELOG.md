@@ -1,6 +1,21 @@
-## 0.3.1
+## 0.4.1
+
+* Add `BooleanExpression` and `NumberExpression`.
 
 * Add support for parsing the `@use` rule.
+
+## 0.4.0
+
+* **Breaking change:** Warnings are no longer emitted during parsing, so the
+  `logger` option has been removed from `SassParserOptions`.
+
+## 0.3.2
+
+* No user-visible changes.
+
+## 0.3.1
+
+* No user-visible changes.
 
 ## 0.3.0
 

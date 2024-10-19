@@ -9,14 +9,11 @@ import 'package:package_config/package_config_types.dart';
 import 'package:path/path.dart' as p;
 
 import 'ast/sass.dart';
-import 'deprecation.dart';
 import 'importer.dart';
 import 'importer/canonicalize_context.dart';
 import 'importer/no_op.dart';
 import 'importer/utils.dart';
 import 'io.dart';
-import 'logger.dart';
-import 'logger/deprecation_processing.dart';
 import 'util/map.dart';
 import 'util/nullable.dart';
 import 'utils.dart';
@@ -37,9 +34,6 @@ typedef AsyncCanonicalizeResult = (
 final class AsyncImportCache {
   /// The importers to use when loading new Sass files.
   final List<AsyncImporter> _importers;
-
-  /// The logger to use to emit warnings when parsing stylesheets.
-  final Logger _logger;
 
   /// The canonicalized URLs for each non-canonical URL.
   ///
@@ -95,21 +89,16 @@ final class AsyncImportCache {
   AsyncImportCache(
       {Iterable<AsyncImporter>? importers,
       Iterable<String>? loadPaths,
-      PackageConfig? packageConfig,
-      Logger? logger})
-      : _importers = _toImporters(importers, loadPaths, packageConfig),
-        _logger = logger ?? Logger.stderr();
+      PackageConfig? packageConfig})
+      : _importers = _toImporters(importers, loadPaths, packageConfig);
 
   /// Creates an import cache without any globally-available importers.
-  AsyncImportCache.none({Logger? logger})
-      : _importers = const [],
-        _logger = logger ?? Logger.stderr();
+  AsyncImportCache.none() : _importers = const [];
 
   /// Creates an import cache without any globally-available importers, and only
   /// the passed in importers.
-  AsyncImportCache.only(Iterable<AsyncImporter> importers, {Logger? logger})
-      : _importers = List.unmodifiable(importers),
-        _logger = logger ?? Logger.stderr();
+  AsyncImportCache.only(Iterable<AsyncImporter> importers)
+      : _importers = List.unmodifiable(importers);
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.
@@ -244,13 +233,11 @@ final class AsyncImportCache {
 
     if (result == null) return (null, cacheable);
 
-    if (result.scheme == '') {
-      _logger.warnForDeprecation(
-          Deprecation.relativeCanonical,
-          "Importer $importer canonicalized $url to $result.\n"
-          "Relative canonical URLs are deprecated and will eventually be "
-          "disallowed.");
-    } else if (await importer.isNonCanonicalScheme(result.scheme)) {
+    // Relative canonical URLs (empty scheme) should throw an error starting in
+    // Dart Sass 2.0.0, but for now, they only emit a deprecation warning in
+    // the evaluator.
+    if (result.scheme != '' &&
+        await importer.isNonCanonicalScheme(result.scheme)) {
       throw "Importer $importer canonicalized $url to $result, which uses a "
           "scheme declared as non-canonical.";
     }
@@ -291,12 +278,9 @@ final class AsyncImportCache {
   /// into [canonicalUrl]. It's used to resolve a relative canonical URL, which
   /// importers may return for legacy reasons.
   ///
-  /// If [quiet] is `true`, this will disable logging warnings when parsing the
-  /// newly imported stylesheet.
-  ///
   /// Caches the result of the import and uses cached results if possible.
   Future<Stylesheet?> importCanonical(AsyncImporter importer, Uri canonicalUrl,
-      {Uri? originalUrl, bool quiet = false}) async {
+      {Uri? originalUrl}) async {
     return await putIfAbsentAsync(_importCache, canonicalUrl, () async {
       var result = await importer.load(canonicalUrl);
       if (result == null) return null;
@@ -307,8 +291,7 @@ final class AsyncImportCache {
           // relative to [originalUrl].
           url: originalUrl == null
               ? canonicalUrl
-              : originalUrl.resolveUri(canonicalUrl),
-          logger: quiet ? Logger.quiet : _logger);
+              : originalUrl.resolveUri(canonicalUrl));
     });
   }
 
@@ -360,26 +343,5 @@ final class AsyncImportCache {
   void clearImport(Uri canonicalUrl) {
     _resultsCache.remove(canonicalUrl);
     _importCache.remove(canonicalUrl);
-  }
-
-  /// Wraps [logger] to process deprecations within an ImportCache.
-  ///
-  /// This wrapped logger will handle the deprecation options, but will not
-  /// limit repetition, as it can be re-used across parses. A logger passed to
-  /// an ImportCache or AsyncImportCache should generally be wrapped here first,
-  /// unless it's already been wrapped to process deprecations, in which case
-  /// this method has no effect.
-  static DeprecationProcessingLogger wrapLogger(
-      Logger? logger,
-      Iterable<Deprecation>? silenceDeprecations,
-      Iterable<Deprecation>? fatalDeprecations,
-      Iterable<Deprecation>? futureDeprecations,
-      {bool color = false}) {
-    if (logger is DeprecationProcessingLogger) return logger;
-    return DeprecationProcessingLogger(logger ?? Logger.stderr(color: color),
-        silenceDeprecations: {...?silenceDeprecations},
-        fatalDeprecations: {...?fatalDeprecations},
-        futureDeprecations: {...?futureDeprecations},
-        limitRepetition: false);
   }
 }

@@ -28,12 +28,7 @@ export interface SourceFile {
 // There may be a better way to declare this, but I can't figure it out.
 // eslint-disable-next-line @typescript-eslint/no-namespace
 declare namespace SassInternal {
-  function parse(
-    css: string,
-    syntax: Syntax,
-    path?: string,
-    logger?: sass.Logger
-  ): Stylesheet;
+  function parse(css: string, syntax: Syntax, path?: string): Stylesheet;
 
   function parseIdentifier(
     identifier: string,
@@ -210,6 +205,15 @@ declare namespace SassInternal {
     readonly text: Interpolation;
     readonly hasQuotes: boolean;
   }
+
+  class BooleanExpression extends Expression {
+    readonly value: boolean;
+  }
+
+  class NumberExpression extends Expression {
+    readonly value: number;
+    readonly unit: string;
+  }
 }
 
 const sassInternal = (
@@ -239,6 +243,8 @@ export type Interpolation = SassInternal.Interpolation;
 export type Expression = SassInternal.Expression;
 export type BinaryOperationExpression = SassInternal.BinaryOperationExpression;
 export type StringExpression = SassInternal.StringExpression;
+export type BooleanExpression = SassInternal.BooleanExpression;
+export type NumberExpression = SassInternal.NumberExpression;
 
 export interface StatementVisitorObject<T> {
   visitAtRootRule(node: AtRootRule): T;
@@ -259,6 +265,8 @@ export interface StatementVisitorObject<T> {
 export interface ExpressionVisitorObject<T> {
   visitBinaryOperationExpression(node: BinaryOperationExpression): T;
   visitStringExpression(node: StringExpression): T;
+  visitBooleanExpression(node: BooleanExpression): T;
+  visitNumberExpression(node: NumberExpression): T;
 }
 
 export const parse = sassInternal.parse;

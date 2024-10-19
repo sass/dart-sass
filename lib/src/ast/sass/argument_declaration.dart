@@ -5,7 +5,6 @@
 import 'package:source_span/source_span.dart';
 
 import '../../exception.dart';
-import '../../logger.dart';
 import '../../parse/scss.dart';
 import '../../util/character.dart';
 import '../../util/span.dart';
@@ -71,9 +70,8 @@ final class ArgumentDeclaration implements SassNode {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory ArgumentDeclaration.parse(String contents,
-          {Object? url, Logger? logger}) =>
-      ScssParser(contents, url: url, logger: logger).parseArgumentDeclaration();
+  factory ArgumentDeclaration.parse(String contents, {Object? url}) =>
+      ScssParser(contents, url: url).parseArgumentDeclaration();
 
   /// Throws a [SassScriptException] if [positional] and [names] aren't valid
   /// for this argument declaration.

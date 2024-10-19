@@ -7,7 +7,6 @@ library sass;
 
 // ignore_for_file: implementation_imports
 
-import 'package:sass/sass.dart';
 import 'package:sass/src/parse/parser.dart';
 
 export 'package:sass/sass.dart';
@@ -36,11 +35,9 @@ export 'package:sass/src/visitor/statement_search.dart';
 /// Throws a [SassFormatException] if parsing fails.
 ///
 /// {@category Parsing}
-String parseIdentifier(String text) =>
-    Parser.parseIdentifier(text, logger: Logger.quiet);
+String parseIdentifier(String text) => Parser.parseIdentifier(text);
 
 /// Returns whether [text] is a valid CSS identifier.
 ///
 /// {@category Parsing}
-bool isIdentifier(String text) =>
-    Parser.isIdentifier(text, logger: Logger.quiet);
+bool isIdentifier(String text) => Parser.isIdentifier(text);

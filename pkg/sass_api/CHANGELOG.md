@@ -1,10 +1,41 @@
-## 13.1.1
+## 14.0.1
 
 * No user-visible changes.
+
+## 14.0.0
+
+* **Breaking change:** Warnings are no longer emitted during parsing, so the
+  `logger` parameter has been removed from the following:
+
+  * `ArgumentDeclaration.parse()`, `ComplexSelector.parse()`,
+    `CompoundSelector.parse()`, `Expression.parse()`, `SelectorList.parse()`,
+    and `SimpleSelector.parse()`.
+
+  * `Stylesheet.parse()`, `Stylesheet.parseCss()`, `Stylesheet.parseSass()`,
+    and `Stylesheet.parseScss()`.
+
+  * The `AsyncImportCache` and `ImportCache` constructors.
+
+  Additionally, the `quiet` parameter has been removed from
+  `AsyncImportCache.importCanonical()` and `ImportCache.importCanonical()`, and
+  `AsyncImportCache.wrapLogger()` and `ImportCache.wrapLogger()` have been
+  removed entirely.
+
+## 13.1.2
+
+* No user-visible changes.
+
+## 13.1.1
+
+* Make `AsyncImportCache.wrapLogger()` and `ImportCache.wrapLogger()` always
+  limit the repetition of deprecations. this is unlikely to be the long-term
+  behavior, but it's necessary to avoid flooding users with deprecations in the
+  short term.
 
 ## 13.1.0
 
-* No user-visible changes.
+* Add `AsyncImportCache.wrapLogger()` and `ImportCache.wrapLogger()` methods,
+  which wrap a given logger to apply deprecation options to it.
 
 ## 13.0.1
 

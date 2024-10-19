@@ -14,7 +14,9 @@ import '../import_cache.dart';
 import '../importer/filesystem.dart';
 import '../logger/deprecation_processing.dart';
 import '../logger/tracking.dart';
+import '../logger.dart';
 import '../parse/parser.dart';
+import '../parse/scss.dart';
 import '../utils.dart';
 import '../visitor/evaluate.dart';
 
@@ -28,29 +30,41 @@ Future<void> repl(ExecutableOptions options) async {
       futureDeprecations: options.futureDeprecations,
       limitRepetition: !options.verbose)
     ..validate();
+
+  void warn(ParseTimeWarning warning) {
+    switch (warning) {
+      case (:var message, :var span, :var deprecation?):
+        logger.warnForDeprecation(deprecation, message, span: span);
+      case (:var message, :var span, deprecation: null):
+        logger.warn(message, span: span);
+    }
+  }
+
   var evaluator = Evaluator(
       importer: FilesystemImporter.cwd,
       importCache: ImportCache(
-          importers: options.pkgImporters,
-          loadPaths: options.loadPaths,
-          logger: logger),
+          importers: options.pkgImporters, loadPaths: options.loadPaths),
       logger: logger);
   await for (String line in repl.runAsync()) {
     if (line.trim().isEmpty) continue;
     try {
       if (line.startsWith("@")) {
-        evaluator.use(UseRule.parse(line, logger: logger));
+        var (node, warnings) = ScssParser(line).parseUseRule();
+        warnings.forEach(warn);
+        evaluator.use(node);
         continue;
       }
 
       if (Parser.isVariableDeclarationLike(line)) {
-        var declaration = VariableDeclaration.parse(line, logger: logger);
-        evaluator.setVariable(declaration);
-        print(evaluator.evaluate(VariableExpression(
-            declaration.name, declaration.span,
-            namespace: declaration.namespace)));
+        var (node, warnings) = ScssParser(line).parseVariableDeclaration();
+        warnings.forEach(warn);
+        evaluator.setVariable(node);
+        print(evaluator.evaluate(VariableExpression(node.name, node.span,
+            namespace: node.namespace)));
       } else {
-        print(evaluator.evaluate(Expression.parse(line, logger: logger)));
+        var (node, warnings) = ScssParser(line).parseExpression();
+        warnings.forEach(warn);
+        print(evaluator.evaluate(node));
       }
     } on SassException catch (error, stackTrace) {
       _logError(error, getTrace(error) ?? stackTrace, line, repl, options,

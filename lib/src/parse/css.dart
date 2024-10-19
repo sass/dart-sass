@@ -7,6 +7,7 @@ import 'package:string_scanner/string_scanner.dart';
 
 import '../ast/sass.dart';
 import '../functions.dart';
+import '../interpolation_buffer.dart';
 import 'scss.dart';
 
 /// The set of all function names disallowed in plain CSS.
@@ -30,7 +31,7 @@ final _disallowedFunctionNames =
 class CssParser extends ScssParser {
   bool get plainCss => true;
 
-  CssParser(super.contents, {super.url, super.logger});
+  CssParser(super.contents, {super.url});
 
   bool silentComment() {
     if (inExpression) return false;
@@ -86,16 +87,38 @@ class CssParser extends ScssParser {
   ImportRule _cssImportRule(LineScannerState start) {
     var urlStart = scanner.state;
     var url = switch (scanner.peekChar()) {
-      $u || $U => dynamicUrl() as StringExpression,
+      $u || $U => switch (dynamicUrl()) {
+          StringExpression string => string.text,
+          InterpolatedFunctionExpression(
+            :var name,
+            arguments: ArgumentInvocation(
+              positional: [StringExpression string],
+              named: Map(isEmpty: true),
+              rest: null,
+              keywordRest: null,
+            ),
+            :var span
+          ) =>
+            (InterpolationBuffer()
+                  ..addInterpolation(name)
+                  ..writeCharCode($lparen)
+                  ..addInterpolation(string.asInterpolation())
+                  ..writeCharCode($rparen))
+                .interpolation(span),
+          // This shouldn't be reachable.
+          var expression =>
+            error("Unsupported plain CSS import.", expression.span)
+        },
       _ => StringExpression(interpolatedString().asInterpolation(static: true))
+          .text
     };
 
     whitespace();
     var modifiers = tryImportModifiers();
     expectStatementSeparator("@import rule");
-    return ImportRule([
-      StaticImport(url.text, scanner.spanFrom(urlStart), modifiers: modifiers)
-    ], scanner.spanFrom(start));
+    return ImportRule(
+        [StaticImport(url, scanner.spanFrom(urlStart), modifiers: modifiers)],
+        scanner.spanFrom(start));
   }
 
   ParenthesizedExpression parentheses() {

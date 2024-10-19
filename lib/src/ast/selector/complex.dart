@@ -6,7 +6,6 @@ import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../extend/functions.dart';
-import '../../logger.dart';
 import '../../parse/selector.dart';
 import '../../utils.dart';
 import '../../visitor/interface/selector.dart';
@@ -88,9 +87,8 @@ final class ComplexSelector extends Selector {
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory ComplexSelector.parse(String contents,
-          {Object? url, Logger? logger, bool allowParent = true}) =>
-      SelectorParser(contents,
-              url: url, logger: logger, allowParent: allowParent)
+          {Object? url, bool allowParent = true}) =>
+      SelectorParser(contents, url: url, allowParent: allowParent)
           .parseComplexSelector();
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitComplexSelector(this);

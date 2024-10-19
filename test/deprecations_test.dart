@@ -17,7 +17,7 @@ void main() {
 
   // Deprecated in 1.3.2
   test("elseIf is violated by using @elseif instead of @else if", () {
-    _expectDeprecation("@if false {} @elseif {}", Deprecation.elseif);
+    _expectDeprecation("@if false {} @elseif false {}", Deprecation.elseif);
   });
 
   // Deprecated in 1.7.2

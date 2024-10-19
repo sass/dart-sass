@@ -1,6 +1,24 @@
-## 1.80.1
+## 1.80.4
 
 * No user-visible changes.
+
+## 1.80.3
+
+* Fix a bug where `@import url("...")` would crash in plain CSS files.
+
+* Improve consistency of how warnings are emitted by different parts of the
+  compiler. This should result in minimal user-visible changes, but different
+  types of warnings should now respond more reliably to flags like `--quiet`,
+  `--verbose`, and `--silence-deprecation`.
+
+## 1.80.2
+
+* Fix a bug where deprecation warnings were incorrectly emitted for the
+  plain-CSS `invert()` function.
+
+## 1.80.1
+
+* Fix a bug where repeated deprecation warnings were not automatically limited.
 
 ## 1.80.0
 
