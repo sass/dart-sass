@@ -81,7 +81,7 @@ export class UseRule
   declare useUrl: string;
 
   /**
-   * This rule's namespae, or `null` if the members can be accessed without a
+   * This rule's namespace, or `null` if the members can be accessed without a
    * namespace.
    *
    * Note that this is the _semantic_ namespace for the rule, so it's set even
