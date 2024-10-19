@@ -10,7 +10,9 @@ import 'package:charcode/charcode.dart';
 /// lowercase equivalents.
 const _asciiCaseBit = 0x20;
 
-/// The highest character allowed in a
+/// The highest character allowed in CSS.
+///
+/// See https://drafts.csswg.org/css-syntax-3/#maximum-allowed-code-point
 const maxAllowedCharacter = 0x10FFFF;
 
 // Define these checks as extension getters so they can be used in pattern
