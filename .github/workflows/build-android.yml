@@ -8,7 +8,7 @@ jobs:
   build:
     name: Build
 
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
@@ -16,23 +16,18 @@ jobs:
         include:
           - arch: x64
             lib: lib64
-            runner: ubuntu-latest
             platform: linux/amd64
           - arch: ia32
             lib: lib
-            runner: ubuntu-latest
             platform: linux/amd64
           - arch: arm64
             lib: lib64
-            runner: linux-arm64
             platform: linux/arm64
           - arch: arm
             lib: lib
-            runner: linux-arm64
             platform: linux/arm64
           - arch: riscv64
             lib: lib64
-            runner: ubuntu-latest
             platform: linux/riscv64
 
     steps:
