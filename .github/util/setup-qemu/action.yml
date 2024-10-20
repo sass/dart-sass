@@ -1,0 +1,7 @@
+name: Set up QEMU
+description: Install QEMU static binaries
+runs:
+  using: composite
+  steps:
+    - run: docker run --privileged --rm registry.fedoraproject.org/fedora-minimal /bin/sh -c "microdnf install --assumeyes --nodocs --setopt=install_weak_deps=False qemu-user-static systemd-udev && mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc && /usr/lib/systemd/systemd-binfmt --unregister && /usr/lib/systemd/systemd-binfmt"
+      shell: ${{ runner.os == 'Windows' && 'powershell' || 'bash' }}
