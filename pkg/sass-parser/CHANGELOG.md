@@ -2,6 +2,8 @@
 
 * Add `BooleanExpression` and `NumberExpression`.
 
+* Add support for parsing the `@use` rule.
+
 ## 0.4.0
 
 * **Breaking change:** Warnings are no longer emitted during parsing, so the

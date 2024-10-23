@@ -9,6 +9,7 @@ import {fromProps} from './expression/from-props';
 import {Expression, ExpressionProps} from './expression';
 import {LazySource} from './lazy-source';
 import {Node} from './node';
+import {RawWithValue} from './raw-with-value';
 import type * as sassInternal from './sass-internal';
 import * as utils from './utils';
 
@@ -48,13 +49,10 @@ export interface InterpolationRaws {
    * The text written in the stylesheet for the plain-text portions of the
    * interpolation, without any interpretation of escape sequences.
    *
-   * `raw` is the value of the raw itself, and `value` is the parsed value
-   * that's required to be in the interpolation in order for this raw to be used.
-   *
    * Any indices for which {@link Interpolation.nodes} doesn't contain a string
    * are ignored.
    */
-  text?: Array<{raw: string; value: string} | undefined>;
+  text?: Array<RawWithValue<string> | undefined>;
 
   /**
    * The whitespace before and after each interpolated expression.

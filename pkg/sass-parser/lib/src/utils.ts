@@ -173,10 +173,10 @@ function toJsonField(
 ): unknown {
   if (typeof value !== 'object' || value === null) {
     return value;
-  } else if (Array.isArray(value)) {
-    return value.map((element, i) =>
-      toJsonField(i.toString(), element, inputs)
-    );
+  } else if (Symbol.iterator in value) {
+    return (
+      Array.isArray(value) ? value : [...(value as IterableIterator<unknown>)]
+    ).map((element, i) => toJsonField(i.toString(), element, inputs));
   } else if ('toJSON' in value) {
     if ('sassType' in value) {
       return (

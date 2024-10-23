@@ -17,6 +17,7 @@ import {ErrorRule, ErrorRuleProps} from './error-rule';
 import {ForRule, ForRuleProps} from './for-rule';
 import {Root} from './root';
 import {Rule, RuleProps} from './rule';
+import {UseRule, UseRuleProps} from './use-rule';
 
 // TODO: Replace this with the corresponding Sass types once they're
 // implemented.
@@ -47,6 +48,7 @@ export type StatementType =
   | 'each-rule'
   | 'for-rule'
   | 'error-rule'
+  | 'use-rule'
   | 'sass-comment';
 
 /**
@@ -54,7 +56,13 @@ export type StatementType =
  *
  * @category Statement
  */
-export type AtRule = DebugRule | EachRule | ErrorRule | ForRule | GenericAtRule;
+export type AtRule =
+  | DebugRule
+  | EachRule
+  | ErrorRule
+  | ForRule
+  | GenericAtRule
+  | UseRule;
 
 /**
  * All Sass statements that are comments.
@@ -88,7 +96,8 @@ export type ChildProps =
   | ForRuleProps
   | GenericAtRuleProps
   | RuleProps
-  | SassCommentChildProps;
+  | SassCommentChildProps
+  | UseRuleProps;
 
 /**
  * The Sass eqivalent of PostCSS's `ContainerProps`.
@@ -175,6 +184,7 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
     appendInternalChildren(rule, inner.children);
     return rule;
   },
+  visitUseRule: inner => new UseRule(undefined, inner),
 });
 
 /** Appends parsed versions of `internal`'s children to `container`. */
@@ -289,6 +299,8 @@ export function normalize(
       result.push(new CssComment(node as CssCommentProps));
     } else if ('silentText' in node) {
       result.push(new SassComment(node));
+    } else if ('useUrl' in node) {
+      result.push(new UseRule(node));
     } else {
       result.push(...postcssNormalizeAndConvertToSass(self, node, sample));
     }

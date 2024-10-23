@@ -10,6 +10,11 @@ import 'package:charcode/charcode.dart';
 /// lowercase equivalents.
 const _asciiCaseBit = 0x20;
 
+/// The highest character allowed in CSS.
+///
+/// See https://drafts.csswg.org/css-syntax-3/#maximum-allowed-code-point
+const maxAllowedCharacter = 0x10FFFF;
+
 // Define these checks as extension getters so they can be used in pattern
 // matches.
 extension CharacterExtension on int {
@@ -34,6 +39,12 @@ extension CharacterExtension on int {
       // A character is a high surrogate exactly if it matches 0b110110XXXXXXXXXX.
       // 0x36 == 0b110110.
       this >> 10 == 0x36;
+
+  /// Returns whether [character] is the end of a UTF-16 surrogate pair.
+  bool get isLowSurrogate =>
+      // A character is a high surrogate exactly if it matches 0b110111XXXXXXXXXX.
+      // 0x36 == 0b110111.
+      this >> 10 == 0x37;
 
   /// Returns whether [character] is a Unicode private-use code point in the Basic
   /// Multilingual Plane.
