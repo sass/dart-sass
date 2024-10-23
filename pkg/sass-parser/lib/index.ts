@@ -101,6 +101,7 @@ export {
   VariableDeclarationProps,
   VariableDeclarationRaws,
 } from './src/statement/variable-declaration';
+export {WarnRule, WarnRuleProps, WarnRuleRaws} from './src/statement/warn-rule';
 
 /** Options that can be passed to the Sass parsers to control their behavior. */
 export type SassParserOptions = Pick<postcss.ProcessOptions, 'from' | 'map'>;

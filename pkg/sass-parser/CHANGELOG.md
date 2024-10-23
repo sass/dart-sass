@@ -2,6 +2,8 @@
 
 * Add support for parsing variable declarations.
 
+* Add support for parsing the `@warn` rule.
+
 ## 0.4.1
 
 * Add `BooleanExpression` and `NumberExpression`.

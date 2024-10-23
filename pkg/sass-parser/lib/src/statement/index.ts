@@ -22,6 +22,7 @@ import {
   VariableDeclaration,
   VariableDeclarationProps,
 } from './variable-declaration';
+import {WarnRule, WarnRuleProps} from './warn-rule';
 
 // TODO: Replace this with the corresponding Sass types once they're
 // implemented.
@@ -54,7 +55,8 @@ export type StatementType =
   | 'error-rule'
   | 'use-rule'
   | 'sass-comment'
-  | 'variable-declaration';
+  | 'variable-declaration'
+  | 'warn-rule';
 
 /**
  * All Sass statements that are also at-rules.
@@ -67,7 +69,8 @@ export type AtRule =
   | ErrorRule
   | ForRule
   | GenericAtRule
-  | UseRule;
+  | UseRule
+  | WarnRule;
 
 /**
  * All Sass statements that are comments.
@@ -103,7 +106,8 @@ export type ChildProps =
   | RuleProps
   | SassCommentChildProps
   | UseRuleProps
-  | VariableDeclarationProps;
+  | VariableDeclarationProps
+  | WarnRuleProps;
 
 /**
  * The Sass eqivalent of PostCSS's `ContainerProps`.
@@ -192,6 +196,7 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
   },
   visitUseRule: inner => new UseRule(undefined, inner),
   visitVariableDeclaration: inner => new VariableDeclaration(undefined, inner),
+  visitWarnRule: inner => new WarnRule(undefined, inner),
 });
 
 /** Appends parsed versions of `internal`'s children to `container`. */
@@ -310,6 +315,8 @@ export function normalize(
       result.push(new UseRule(node));
     } else if ('variableName' in node) {
       result.push(new VariableDeclaration(node));
+    } else if ('warnExpression' in node) {
+      result.push(new WarnRule(node));
     } else {
       result.push(...postcssNormalizeAndConvertToSass(self, node, sample));
     }
