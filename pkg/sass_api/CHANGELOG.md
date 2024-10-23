@@ -1,6 +1,7 @@
-## 14.0.1
+## 14.1.0
 
-* No user-visible changes.
+* Add `Expression.isCalculationSafe`, which returns true when this expression
+  can safely be used in a calcuation.
 
 ## 14.0.0
 
