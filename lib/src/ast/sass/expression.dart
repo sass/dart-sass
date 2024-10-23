@@ -26,9 +26,6 @@ abstract class Expression implements SassNode {
   Expression();
 
   /// Whether this expression can be used in a calculation context.
-  ///
-  /// @nodoc
-  @internal
   bool get isCalculationSafe => accept(const IsCalculationSafeVisitor());
 
   /// If this expression is valid interpolated plain CSS, returns the equivalent
