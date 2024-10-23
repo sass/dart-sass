@@ -11,6 +11,7 @@ import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
+import 'grind/bump_version.dart';
 import 'grind/generate_deprecations.dart';
 import 'grind/synchronize.dart';
 import 'grind/utils.dart';
@@ -124,6 +125,8 @@ void main(List<String> args) {
   };
 
   pkg.addAllTasks();
+
+  addBumpVersionTasks();
 
   afterTask("pkg-npm-dev", _addDefaultExport);
   afterTask("pkg-npm-release", _addDefaultExport);
