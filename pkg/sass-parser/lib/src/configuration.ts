@@ -117,7 +117,7 @@ export class Configuration extends Node {
   /**
    * Removes the variable named {@link name} from this configuration.
    *
-   * Returns whether thee variable was removed.
+   * Returns whether the variable was removed.
    */
   delete(key: string): boolean {
     const old = this._variables.get(key);
