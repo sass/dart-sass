@@ -8,76 +8,111 @@ jobs:
   build:
     name: Build
 
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
         include:
-          - arch: x64
-            runner: ubuntu-latest
+          - image: docker.io/library/dart
             platform: linux/amd64
-          - arch: ia32
-            runner: ubuntu-latest
+            target: linux-x64
+          - image: docker.io/library/dart
             platform: linux/amd64
-          - arch: arm64
-            runner: linux-arm64
+            target: linux-ia32
+          - image: docker.io/library/dart
             platform: linux/arm64
-          - arch: arm
-            runner: linux-arm64
+            target: linux-arm64
+          - image: docker.io/library/dart
             platform: linux/arm/v7
-          - arch: riscv64
-            runner: ubuntu-latest
+            target: linux-arm
+          - image: docker.io/library/debian:unstable-slim
             platform: linux/riscv64
+            target: linux-riscv64
+          - image: ghcr.io/dart-musl/dart
+            platform: linux/amd64
+            target: linux-x64-musl
+          - image: ghcr.io/dart-musl/dart
+            platform: linux/amd64
+            target: linux-ia32-musl
+          - image: ghcr.io/dart-musl/dart
+            platform: linux/arm64
+            target: linux-arm64-musl
+          - image: ghcr.io/dart-musl/dart
+            platform: linux/arm/v7
+            target: linux-arm-musl
+          - image: ghcr.io/dart-musl/dart
+            platform: linux/riscv64
+            target: linux-riscv64-musl
+          - image: ghcr.io/dart-android/dart
+            platform: linux/amd64
+            target: android-x64
+          - image: ghcr.io/dart-android/dart
+            platform: linux/amd64
+            target: android-ia32
+          - image: ghcr.io/dart-android/dart
+            platform: linux/arm64
+            target: android-arm64
+          - image: ghcr.io/dart-android/dart
+            platform: linux/arm64
+            target: android-arm
+          - image: ghcr.io/dart-android/dart
+            platform: linux/riscv64
+            target: android-riscv64
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          image: tonistiigi/binfmt:master
+      - uses: ./.github/util/initialize
+        with: {github-token: "${{ github.token }}"}
 
-      - name: Compile Protobuf
+      - name: Set up QEMU
+        run: docker run --privileged --rm registry.fedoraproject.org/fedora-minimal /bin/sh -c "microdnf install --assumeyes --nodocs --setopt=install_weak_deps=False qemu-user-static systemd-udev && mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc && /usr/lib/systemd/systemd-binfmt --unregister && /usr/lib/systemd/systemd-binfmt"
+
+      - name: Build
+        if: matrix.image != 'ghcr.io/dart-android/dart' && matrix.image != 'docker.io/library/debian:unstable-slim'
         run: |
           docker run --rm -i \
+                     --platform ${{ matrix.platform }} \
                      --volume "$PWD:$PWD" \
                      --workdir "$PWD" \
-                     docker.io/library/dart <<'EOF'
+                     ${{ matrix.image }} <<'EOF'
           set -e
-          curl -fsSL -H "Authorization: Bearer ${{ github.token }}" "https://github.com/bufbuild/buf/releases/latest/download/buf-$(uname -s)-$(uname -m).tar.gz" | tar -xzC /usr/local --strip-components 1
           dart pub get
-          dart run grinder protobuf
+          dart run grinder pkg-standalone-${{ matrix.target }}
           EOF
 
       - name: Build
-        if: matrix.arch != 'riscv64'
+        if: matrix.image == 'ghcr.io/dart-android/dart'
         run: |
           docker run --rm -i \
-            --platform ${{ matrix.platform }} \
-            --volume "$PWD:$PWD" \
-            --workdir "$PWD" \
-          docker.io/library/dart:latest <<'EOF'
+                     --privileged \
+                     --platform ${{ matrix.platform }} \
+                     --volume "$PWD:$PWD" \
+                     --workdir "$PWD" \
+                     ${{ matrix.image }} <<'EOF'
           set -e
+          export DART_SDK=/system/${{ endsWith(matrix.target, '64') && 'lib64' || 'lib' }}/dart
+          export PATH=$DART_SDK/bin:$PATH
           dart pub get
-          dart run grinder pkg-standalone-linux-${{ matrix.arch }}
+          dart run grinder pkg-standalone-${{ matrix.target }}
           EOF
 
       # https://github.com/dart-lang/dart-docker/issues/96#issuecomment-1669860829
       # There is no official riscv64 dart container image yet, build on debian:unstable instead.
       # The setup is adopted from: https://github.com/dart-lang/dart-docker/blob/main/Dockerfile-debian.template
-      - name: Build riscv64
-        if: matrix.arch == 'riscv64'
+      - name: Build
+        if: matrix.image == 'docker.io/library/debian:unstable-slim'
         run: |
           DART_CHANNEL=stable
           DART_VERSION=$(curl -fsSL https://storage.googleapis.com/dart-archive/channels/$DART_CHANNEL/release/latest/VERSION | yq .version)
-          curl -fsSLO https://storage.googleapis.com/dart-archive/channels/$DART_CHANNEL/release/$DART_VERSION/sdk/dartsdk-linux-${{ matrix.arch }}-release.zip
+          curl -fsSLO "https://storage.googleapis.com/dart-archive/channels/$DART_CHANNEL/release/$DART_VERSION/sdk/dartsdk-${{ matrix.target }}-release.zip"
 
           docker run --rm -i \
-            --platform ${{ matrix.platform }} \
-            --volume "$PWD:$PWD" \
-            --workdir "$PWD" \
-          docker.io/library/debian:unstable-slim <<'EOF'
+                     --platform ${{ matrix.platform }} \
+                     --volume "$PWD:$PWD" \
+                     --workdir "$PWD" \
+                     ${{ matrix.image }} <<'EOF'
           set -e
           apt-get update
           apt-get install -y --no-install-recommends ca-certificates curl dnsutils git openssh-client unzip
@@ -85,17 +120,17 @@ jobs:
           export DART_SDK=/usr/lib/dart
           export PATH=$DART_SDK/bin:/root/.pub-cache/bin:$PATH
 
-          SDK="dartsdk-linux-${{ matrix.arch }}-release.zip"
+          SDK="dartsdk-${{ matrix.target }}-release.zip"
           unzip "$SDK" && mv dart-sdk "$DART_SDK" && rm "$SDK"
 
           dart pub get
-          dart run grinder pkg-standalone-linux-${{ matrix.arch }}
+          dart run grinder pkg-standalone-${{ matrix.target }}
           EOF
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: build-linux-${{ matrix.arch }}
+          name: build-${{ matrix.target }}
           path: build/*.tar.gz
           if-no-files-found: error
           compression-level: 0

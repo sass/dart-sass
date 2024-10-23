@@ -4,16 +4,8 @@ on:
   workflow_call:
 
 jobs:
-  build_android:
-    uses: ./.github/workflows/build-android.yml
-    secrets: inherit
-
   build_linux:
     uses: ./.github/workflows/build-linux.yml
-    secrets: inherit
-
-  build_linux_musl:
-    uses: ./.github/workflows/build-linux-musl.yml
     secrets: inherit
 
   build_macos:
@@ -27,7 +19,7 @@ jobs:
   release_github:
     name: Release Github
     runs-on: ubuntu-latest
-    needs: [build_android, build_linux, build_linux_musl, build_macos, build_windows]
+    needs: [build_linux, build_macos, build_windows]
 
     steps:
       - uses: actions/checkout@v4
