@@ -12,7 +12,7 @@ import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
 /// A regular expression that matches a version in a pubspec.
-final _pubspecVersionRegExp = new RegExp(r'^version: (.*)$', multiLine: true);
+final _pubspecVersionRegExp = RegExp(r'^version: (.*)$', multiLine: true);
 
 /// Adds grinder tasks for bumping package versions.
 void addBumpVersionTasks() {
