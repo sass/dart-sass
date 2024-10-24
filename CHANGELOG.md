@@ -1,3 +1,10 @@
+## 1.80.5
+
+### Embedded Host
+
+* Don't produce phantom `@import` deprecations when using an importer with the
+  legacy API.
+
 ## 1.80.4
 
 * No user-visible changes.
