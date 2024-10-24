@@ -54,6 +54,22 @@ void _bumpVersion(bool patch, bool dev) {
         pre: dev ? "dev" : null);
   }
 
+  /// Adds a "No user-visible changes" entry for [version] to the changelog in
+  /// [dir].
+  void addChangelogEntry(String dir, Version version) {
+    var path = p.join(dir, "CHANGELOG.md");
+    var text = File(path).readAsStringSync();
+    if (!dev && text.startsWith("## ${version}-dev\n")) {
+      File(path).writeAsStringSync(
+          text.replaceFirst("## ${version}-dev\n", "## ${version}\n"));
+    } else if (text.startsWith("## ${version}\n")) {
+      return;
+    } else {
+      File(path).writeAsStringSync(
+          "## ${version}\n\n* No user-visible changes.\n\n$text");
+    }
+  }
+
   // Bumps the current version of [pubspec] to the next [patch] version, with
   // `-dev` if [dev] is true.
   void bumpDartVersion(String path) {
@@ -63,6 +79,7 @@ void _bumpVersion(bool patch, bool dev) {
         pubspec.nodes["version"]!.span);
     File(path).writeAsStringSync(
         text.replaceFirst(_pubspecVersionRegExp, 'version: $version'));
+    addChangelogEntry(p.dirname(path), version);
   }
 
   bumpDartVersion('pubspec.yaml');
@@ -78,4 +95,5 @@ void _bumpVersion(bool patch, bool dev) {
   File(packageJsonPath).writeAsStringSync(JsonEncoder.withIndent("  ")
           .convert({...packageJson, "version": version.toString()}) +
       "\n");
+  addChangelogEntry("pkg/sass-parser", version);
 }
