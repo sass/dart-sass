@@ -192,6 +192,10 @@ declare namespace SassInternal {
     readonly expression: Expression;
   }
 
+  class WhileRule extends ParentStatement<Statement[]> {
+    readonly condition: Expression;
+  }
+
   class ConfiguredVariable extends SassNode {
     readonly name: string;
     readonly expression: Expression;
@@ -252,6 +256,7 @@ export type SupportsRule = SassInternal.SupportsRule;
 export type UseRule = SassInternal.UseRule;
 export type VariableDeclaration = SassInternal.VariableDeclaration;
 export type WarnRule = SassInternal.WarnRule;
+export type WhileRule = SassInternal.WhileRule;
 export type ConfiguredVariable = SassInternal.ConfiguredVariable;
 export type Interpolation = SassInternal.Interpolation;
 export type Expression = SassInternal.Expression;
@@ -276,6 +281,7 @@ export interface StatementVisitorObject<T> {
   visitUseRule(node: UseRule): T;
   visitVariableDeclaration(node: VariableDeclaration): T;
   visitWarnRule(node: WarnRule): T;
+  visitWhileRule(node: WhileRule): T;
 }
 
 export interface ExpressionVisitorObject<T> {
