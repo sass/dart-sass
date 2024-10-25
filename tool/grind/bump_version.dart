@@ -62,14 +62,14 @@ void _bumpVersion(bool patch, bool dev) {
   void addChangelogEntry(String dir, Version version) {
     var path = p.join(dir, "CHANGELOG.md");
     var text = File(path).readAsStringSync();
-    if (!dev && text.startsWith("## ${version}-dev\n")) {
+    if (!dev && text.startsWith("## $version-dev\n")) {
       File(path).writeAsStringSync(
-          text.replaceFirst("## ${version}-dev\n", "## ${version}\n"));
-    } else if (text.startsWith("## ${version}\n")) {
+          text.replaceFirst("## $version-dev\n", "## $version\n"));
+    } else if (text.startsWith("## $version\n")) {
       return;
     } else {
       File(path).writeAsStringSync(
-          "## ${version}\n\n* No user-visible changes.\n\n$text");
+          "## $version\n\n* No user-visible changes.\n\n$text");
     }
   }
 
