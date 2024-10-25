@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a @warn rule toJSON 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@warn foo",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "warn",
+  "params": "foo",
+  "raws": {},
+  "sassType": "warn-rule",
+  "source": <1:1-1:10 in 0>,
+  "type": "atrule",
+  "warnExpression": <foo>,
+}
+`;

@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a variable declaration toJSON 1`] = `
+{
+  "expression": <"bar">,
+  "global": false,
+  "guarded": false,
+  "inputs": [
+    {
+      "css": "baz.$foo: "bar"",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "namespace": "baz",
+  "raws": {},
+  "sassType": "variable-declaration",
+  "source": <1:1-1:16 in 0>,
+  "type": "decl",
+  "variableName": "foo",
+}
+`;

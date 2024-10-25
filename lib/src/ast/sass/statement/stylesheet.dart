@@ -53,6 +53,11 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   @internal
   final List<ParseTimeWarning> parseTimeWarnings;
 
+  /// The set of (normalized) global variable names defined by this stylesheet
+  /// to the spans where they're defined.
+  @internal
+  final Map<String, FileSpan> globalVariables;
+
   Stylesheet(Iterable<Statement> children, FileSpan span)
       : this.internal(children, span, []);
 
@@ -62,8 +67,11 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   @internal
   Stylesheet.internal(Iterable<Statement> children, this.span,
       List<ParseTimeWarning> parseTimeWarnings,
-      {this.plainCss = false})
+      {this.plainCss = false, Map<String, FileSpan>? globalVariables})
       : parseTimeWarnings = UnmodifiableListView(parseTimeWarnings),
+        globalVariables = globalVariables == null
+            ? const {}
+            : Map.unmodifiable(globalVariables),
         super(List.unmodifiable(children)) {
     loop:
     for (var child in this.children) {

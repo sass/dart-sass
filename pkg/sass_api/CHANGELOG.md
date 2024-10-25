@@ -1,3 +1,7 @@
+## 14.1.1-dev
+
+* No user-visible changes.
+
 ## 14.1.0
 
 * Add `Expression.isCalculationSafe`, which returns true when this expression

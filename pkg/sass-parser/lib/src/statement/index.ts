@@ -18,6 +18,11 @@ import {ForRule, ForRuleProps} from './for-rule';
 import {Root} from './root';
 import {Rule, RuleProps} from './rule';
 import {UseRule, UseRuleProps} from './use-rule';
+import {
+  VariableDeclaration,
+  VariableDeclarationProps,
+} from './variable-declaration';
+import {WarnRule, WarnRuleProps} from './warn-rule';
 
 // TODO: Replace this with the corresponding Sass types once they're
 // implemented.
@@ -28,7 +33,7 @@ export {Declaration} from 'postcss';
  *
  * @category Statement
  */
-export type AnyStatement = Comment | Root | Rule | GenericAtRule;
+export type AnyStatement = Comment | Root | Rule | AtRule | VariableDeclaration;
 
 /**
  * Sass statement types.
@@ -49,7 +54,9 @@ export type StatementType =
   | 'for-rule'
   | 'error-rule'
   | 'use-rule'
-  | 'sass-comment';
+  | 'sass-comment'
+  | 'variable-declaration'
+  | 'warn-rule';
 
 /**
  * All Sass statements that are also at-rules.
@@ -62,7 +69,8 @@ export type AtRule =
   | ErrorRule
   | ForRule
   | GenericAtRule
-  | UseRule;
+  | UseRule
+  | WarnRule;
 
 /**
  * All Sass statements that are comments.
@@ -78,7 +86,7 @@ export type Comment = CssComment | SassComment;
  *
  * @category Statement
  */
-export type ChildNode = Rule | AtRule | Comment;
+export type ChildNode = Rule | AtRule | Comment | VariableDeclaration;
 
 /**
  * The properties that can be used to construct {@link ChildNode}s.
@@ -97,7 +105,9 @@ export type ChildProps =
   | GenericAtRuleProps
   | RuleProps
   | SassCommentChildProps
-  | UseRuleProps;
+  | UseRuleProps
+  | VariableDeclarationProps
+  | WarnRuleProps;
 
 /**
  * The Sass eqivalent of PostCSS's `ContainerProps`.
@@ -185,6 +195,8 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
     return rule;
   },
   visitUseRule: inner => new UseRule(undefined, inner),
+  visitVariableDeclaration: inner => new VariableDeclaration(undefined, inner),
+  visitWarnRule: inner => new WarnRule(undefined, inner),
 });
 
 /** Appends parsed versions of `internal`'s children to `container`. */
@@ -301,6 +313,10 @@ export function normalize(
       result.push(new SassComment(node));
     } else if ('useUrl' in node) {
       result.push(new UseRule(node));
+    } else if ('variableName' in node) {
+      result.push(new VariableDeclaration(node));
+    } else if ('warnExpression' in node) {
+      result.push(new WarnRule(node));
     } else {
       result.push(...postcssNormalizeAndConvertToSass(self, node, sample));
     }

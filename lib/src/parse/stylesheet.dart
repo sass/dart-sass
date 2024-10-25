@@ -61,13 +61,13 @@ abstract class StylesheetParser extends Parser {
   var _inExpression = false;
 
   /// A map from all variable names that are assigned with `!global` in the
-  /// current stylesheet to the nodes where they're defined.
+  /// current stylesheet to the spans where they're defined.
   ///
   /// These are collected at parse time because they affect the variables
   /// exposed by the module generated for this stylesheet, *even if they aren't
   /// evaluated*. This allows us to ensure that the stylesheet always exposes
   /// the same set of variable names no matter how it's evaluated.
-  final _globalVariables = <String, VariableDeclaration>{};
+  final _globalVariables = <String, FileSpan>{};
 
   /// Warnings discovered while parsing that should be emitted during
   /// evaluation once a proper logger is available.
@@ -100,15 +100,8 @@ abstract class StylesheetParser extends Parser {
       });
       scanner.expectDone();
 
-      /// Ensure that all global variable assignments produce a variable in this
-      /// stylesheet, even if they aren't evaluated. See sass/language#50.
-      statements.addAll(_globalVariables.values.map((declaration) =>
-          VariableDeclaration(declaration.name,
-              NullExpression(declaration.expression.span), declaration.span,
-              guarded: true)));
-
       return Stylesheet.internal(statements, scanner.spanFrom(start), warnings,
-          plainCss: plainCss);
+          plainCss: plainCss, globalVariables: _globalVariables);
     });
   }
 
@@ -288,7 +281,7 @@ abstract class StylesheetParser extends Parser {
         guarded: guarded,
         global: global,
         comment: precedingComment);
-    if (global) _globalVariables.putIfAbsent(name, () => declaration);
+    if (global) _globalVariables.putIfAbsent(name, () => declaration.span);
     return declaration;
   }
 

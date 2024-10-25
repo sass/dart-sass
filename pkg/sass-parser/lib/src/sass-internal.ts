@@ -180,6 +180,18 @@ declare namespace SassInternal {
     readonly configuration: ConfiguredVariable[];
   }
 
+  class VariableDeclaration extends Statement {
+    readonly namespace: string | null;
+    readonly name: string;
+    readonly expression: Expression;
+    readonly isGuarded: boolean;
+    readonly isGlobal: boolean;
+  }
+
+  class WarnRule extends Statement {
+    readonly expression: Expression;
+  }
+
   class ConfiguredVariable extends SassNode {
     readonly name: string;
     readonly expression: Expression;
@@ -238,6 +250,8 @@ export type Stylesheet = SassInternal.Stylesheet;
 export type StyleRule = SassInternal.StyleRule;
 export type SupportsRule = SassInternal.SupportsRule;
 export type UseRule = SassInternal.UseRule;
+export type VariableDeclaration = SassInternal.VariableDeclaration;
+export type WarnRule = SassInternal.WarnRule;
 export type ConfiguredVariable = SassInternal.ConfiguredVariable;
 export type Interpolation = SassInternal.Interpolation;
 export type Expression = SassInternal.Expression;
@@ -260,6 +274,8 @@ export interface StatementVisitorObject<T> {
   visitStyleRule(node: StyleRule): T;
   visitSupportsRule(node: SupportsRule): T;
   visitUseRule(node: UseRule): T;
+  visitVariableDeclaration(node: VariableDeclaration): T;
+  visitWarnRule(node: WarnRule): T;
 }
 
 export interface ExpressionVisitorObject<T> {
