@@ -77,7 +77,7 @@ void main() {
 
         group("at the very beginning that's", () {
           for (var (name, (char, escape)) in chars.pairs) {
-            test(name, () => expect(char.toCssIdentifier(), equals('$escape')));
+            test(name, () => expect(char.toCssIdentifier(), equals(escape)));
           }
         });
 

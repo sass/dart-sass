@@ -1,6 +1,8 @@
 ## 0.4.2
 
-* No user-visible changes.
+* Add support for parsing variable declarations.
+
+* Add support for parsing the `@warn` rule.
 
 ## 0.4.1
 

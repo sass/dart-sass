@@ -36,6 +36,7 @@ import {GenericAtRule} from './statement/generic-at-rule';
 import {Rule} from './statement/rule';
 import {SassComment} from './statement/sass-comment';
 import {UseRule} from './statement/use-rule';
+import {WarnRule} from './statement/warn-rule';
 
 const PostCssStringifier = require('postcss/lib/stringifier');
 
@@ -157,6 +158,10 @@ export class Stringifier extends PostCssStringifier {
   }
 
   private ['use-rule'](node: UseRule, semicolon: boolean): void {
+    this.sassAtRule(node, semicolon);
+  }
+
+  private ['warn-rule'](node: WarnRule, semicolon: boolean): void {
     this.sassAtRule(node, semicolon);
   }
 

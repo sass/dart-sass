@@ -1005,6 +1005,14 @@ final class _EvaluateVisitor
     for (var child in node.children) {
       await child.accept(this);
     }
+
+    // Make sure all global variables declared in a module always appear in the
+    // module's definition, even if their assignments aren't reached.
+    for (var (name, span) in node.globalVariables.pairs) {
+      visitVariableDeclaration(
+          VariableDeclaration(name, NullExpression(span), span, guarded: true));
+    }
+
     return null;
   }
 

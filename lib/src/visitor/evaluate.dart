@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: e7260fedcd4f374ba517a93d038c3c53586c9622
+// Checksum: 396c8f169d95c601598b8c3be1f4b948ca22effa
 //
 // ignore_for_file: unused_import
 
@@ -1005,6 +1005,14 @@ final class _EvaluateVisitor
     for (var child in node.children) {
       child.accept(this);
     }
+
+    // Make sure all global variables declared in a module always appear in the
+    // module's definition, even if their assignments aren't reached.
+    for (var (name, span) in node.globalVariables.pairs) {
+      visitVariableDeclaration(
+          VariableDeclaration(name, NullExpression(span), span, guarded: true));
+    }
+
     return null;
   }
 
