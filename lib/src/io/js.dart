@@ -257,8 +257,8 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
   // Don't assign the controller until after the ready event fires. Otherwise,
   // Chokidar will give us a bunch of add events for files that already exist.
   StreamController<WatchEvent>? controller;
-  if (poll) {
-    var watcher = chokidar.watch(path, ChokidarOptions(usePolling: true));
+  if (poll || parcelWatcher == null) {
+    var watcher = chokidar.watch(path, ChokidarOptions(usePolling: poll));
     watcher
       ..on(
           'add',
@@ -287,7 +287,7 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
 
     return completer.future;
   } else {
-    var subscription = await ParcelWatcher.subscribeFuture(path,
+    var subscription = await parcelWatcher!.subscribe(path,
         (Object? error, List<ParcelWatcherEvent> events) {
       if (error != null) {
         controller?.addError(error);
