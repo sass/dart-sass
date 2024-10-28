@@ -24,12 +24,12 @@ describe('a @warn rule', () => {
 
   describeNode(
     'parsed as SCSS',
-    () => scss.parse('@warn foo').nodes[0] as WarnRule
+    () => scss.parse('@warn foo').nodes[0] as WarnRule,
   );
 
   describeNode(
     'parsed as Sass',
-    () => sass.parse('@warn foo').nodes[0] as WarnRule
+    () => sass.parse('@warn foo').nodes[0] as WarnRule,
   );
 
   describeNode(
@@ -37,13 +37,13 @@ describe('a @warn rule', () => {
     () =>
       new WarnRule({
         warnExpression: {text: 'foo'},
-      })
+      }),
   );
 
   describeNode('constructed from ChildProps', () =>
     utils.fromChildProps({
       warnExpression: {text: 'foo'},
-    })
+    }),
   );
 
   it('throws an error when assigned a new name', () =>
@@ -51,7 +51,7 @@ describe('a @warn rule', () => {
       () =>
         (new WarnRule({
           warnExpression: {text: 'foo'},
-        }).name = 'bar')
+        }).name = 'bar'),
     ).toThrow());
 
   describe('assigned a new expression', () => {
@@ -106,7 +106,7 @@ describe('a @warn rule', () => {
         expect(
           new WarnRule({
             warnExpression: {text: 'foo'},
-          }).toString()
+          }).toString(),
         ).toBe('@warn foo;'));
 
       it('with afterName', () =>
@@ -114,7 +114,7 @@ describe('a @warn rule', () => {
           new WarnRule({
             warnExpression: {text: 'foo'},
             raws: {afterName: '/**/'},
-          }).toString()
+          }).toString(),
         ).toBe('@warn/**/foo;'));
 
       it('with between', () =>
@@ -122,7 +122,7 @@ describe('a @warn rule', () => {
           new WarnRule({
             warnExpression: {text: 'foo'},
             raws: {between: '/**/'},
-          }).toString()
+          }).toString(),
         ).toBe('@warn foo/**/;'));
     });
   });

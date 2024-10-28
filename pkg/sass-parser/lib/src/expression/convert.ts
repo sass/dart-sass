@@ -21,7 +21,7 @@ const visitor = sassInternal.createExpressionVisitor<Expression>({
 
 /** Converts an internal expression AST node into an external one. */
 export function convertExpression(
-  expression: sassInternal.Expression
+  expression: sassInternal.Expression,
 ): Expression {
   return expression.accept(visitor);
 }

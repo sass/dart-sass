@@ -24,17 +24,17 @@ describe('a CSS-style comment', () => {
 
   describeNode(
     'parsed as SCSS',
-    () => scss.parse('/* foo */').nodes[0] as CssComment
+    () => scss.parse('/* foo */').nodes[0] as CssComment,
   );
 
   describeNode(
     'parsed as CSS',
-    () => css.parse('/* foo */').nodes[0] as CssComment
+    () => css.parse('/* foo */').nodes[0] as CssComment,
   );
 
   describeNode(
     'parsed as Sass',
-    () => sass.parse('/* foo').nodes[0] as CssComment
+    () => sass.parse('/* foo').nodes[0] as CssComment,
   );
 
   describe('constructed manually', () => {
@@ -43,7 +43,7 @@ describe('a CSS-style comment', () => {
       () =>
         new CssComment({
           textInterpolation: new Interpolation({nodes: ['foo']}),
-        })
+        }),
     );
 
     describeNode('with a text string', () => new CssComment({text: 'foo'}));
@@ -53,11 +53,11 @@ describe('a CSS-style comment', () => {
     describeNode('with an interpolation', () =>
       utils.fromChildProps({
         textInterpolation: new Interpolation({nodes: ['foo']}),
-      })
+      }),
     );
 
     describeNode('with a text string', () =>
-      utils.fromChildProps({text: 'foo'})
+      utils.fromChildProps({text: 'foo'}),
     );
   });
 
@@ -72,7 +72,7 @@ describe('a CSS-style comment', () => {
 
       it('with whitespace before and after interpolation', () =>
         expect(
-          (scss.parse('/* #{foo} */').nodes[0] as CssComment).raws
+          (scss.parse('/* #{foo} */').nodes[0] as CssComment).raws,
         ).toEqual({left: ' ', right: ' ', closed: true}));
 
       it('without whitespace before and after text', () =>
@@ -162,7 +162,7 @@ describe('a CSS-style comment', () => {
           new CssComment({
             text: 'foo',
             raws: {left: '\n'},
-          }).toString()
+          }).toString(),
         ).toBe('/*\nfoo */'));
 
       it('with right', () =>
@@ -170,14 +170,14 @@ describe('a CSS-style comment', () => {
           new CssComment({
             text: 'foo',
             raws: {right: '\n'},
-          }).toString()
+          }).toString(),
         ).toBe('/* foo\n*/'));
 
       it('with before', () =>
         expect(
           new Root({
             nodes: [new CssComment({text: 'foo', raws: {before: '/**/'}})],
-          }).toString()
+          }).toString(),
         ).toBe('/**//* foo */'));
     });
   });
@@ -219,7 +219,7 @@ describe('a CSS-style comment', () => {
   describe('clone', () => {
     let original: CssComment;
     beforeEach(
-      () => void (original = scss.parse('/* foo */').nodes[0] as CssComment)
+      () => void (original = scss.parse('/* foo */').nodes[0] as CssComment),
     );
 
     describe('with no overrides', () => {

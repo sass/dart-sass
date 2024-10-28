@@ -82,10 +82,10 @@ declare abstract class Node
   cleanRaws(keepBetween?: boolean): void;
   error(
     message: string,
-    options?: postcss.NodeErrorOptions
+    options?: postcss.NodeErrorOptions,
   ): postcss.CssSyntaxError;
   positionBy(
-    opts?: Pick<postcss.WarningOptions, 'index' | 'word'>
+    opts?: Pick<postcss.WarningOptions, 'index' | 'word'>,
   ): postcss.Position;
   positionInside(index: number): postcss.Position;
   rangeBy(opts?: Pick<postcss.WarningOptions, 'endIndex' | 'index' | 'word'>): {
@@ -98,6 +98,6 @@ declare abstract class Node
   warn(
     result: postcss.Result,
     message: string,
-    options?: postcss.WarningOptions
+    options?: postcss.WarningOptions,
   ): postcss.Warning;
 }

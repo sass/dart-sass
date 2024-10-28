@@ -57,7 +57,7 @@ function toHaveInterpolation(
   this: MatcherContext,
   actual: unknown,
   property: unknown,
-  value: unknown
+  value: unknown,
 ): ExpectationResult {
   if (typeof property !== 'string') {
     throw new TypeError(`Property ${property} must be a string.`);
@@ -70,7 +70,7 @@ function toHaveInterpolation(
       message: () =>
         `expected ${printValue(
           this,
-          actual
+          actual,
         )} to have a property ${this.utils.printExpected(property)}`,
       pass: false,
     };
@@ -80,7 +80,7 @@ function toHaveInterpolation(
   const message = (): string =>
     `expected (${printValue(this, actual)}).${property} ${printValue(
       this,
-      actualValue
+      actualValue,
     )} to be an Interpolation with value ${this.utils.printExpected(value)}`;
 
   if (
@@ -98,7 +98,7 @@ function toHaveInterpolation(
       message: () =>
         `expected (${printValue(this, actual)}).${property} ${printValue(
           this,
-          actualValue
+          actualValue,
         )} to have the correct parent`,
       pass: false,
     };
@@ -113,14 +113,14 @@ function toHaveStringExpression(
   this: MatcherContext,
   actual: unknown,
   propertyOrIndex: unknown,
-  value: unknown
+  value: unknown,
 ): ExpectationResult {
   if (
     typeof propertyOrIndex !== 'string' &&
     typeof propertyOrIndex !== 'number'
   ) {
     throw new TypeError(
-      `Property ${propertyOrIndex} must be a string or number.`
+      `Property ${propertyOrIndex} must be a string or number.`,
     );
   } else if (typeof value !== 'string') {
     throw new TypeError(`Value ${value} must be a string.`);
@@ -140,7 +140,7 @@ function toHaveStringExpression(
       message: () =>
         `expected ${printValue(
           this,
-          actual
+          actual,
         )} to have a property ${this.utils.printExpected(property)}`,
       pass: false,
     };
@@ -157,7 +157,7 @@ function toHaveStringExpression(
       message +
       ` ${printValue(
         this,
-        actualValue
+        actualValue,
       )} to be a StringExpression with value ${this.utils.printExpected(value)}`
     );
   };
@@ -177,7 +177,7 @@ function toHaveStringExpression(
       message: () =>
         `expected (${printValue(this, actual)}).${property} ${printValue(
           this,
-          actualValue
+          actualValue,
         )} to have the correct parent`,
       pass: false,
     };
@@ -202,7 +202,7 @@ expect.addSnapshotSerializer({
     indentation: string,
     depth: number,
     refs: pretty.Refs,
-    printer: pretty.Printer
+    printer: pretty.Printer,
   ): string {
     if (depth !== 0) return `<${value}>`;
 
@@ -285,7 +285,7 @@ function tersePosition(position: JsonPosition): string {
   if (position.offset !== position.column - 1) {
     throw new Error(
       'Expected offset to be 1 less than column. Column is ' +
-        `${position.column} and offset is ${position.offset}.`
+        `${position.column} and offset is ${position.offset}.`,
     );
   }
 

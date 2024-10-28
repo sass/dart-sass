@@ -109,7 +109,7 @@ export class BinaryOperationExpression extends Expression {
   constructor(_: undefined, inner: sassInternal.BinaryOperationExpression);
   constructor(
     defaults?: object,
-    inner?: sassInternal.BinaryOperationExpression
+    inner?: sassInternal.BinaryOperationExpression,
   ) {
     super(defaults);
     if (inner) {
