@@ -2,15 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-@TestOn('vm')
-library;
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:async/async.dart';
-import 'package:cli_pkg/testing.dart' as pkg;
 import 'package:test/test.dart';
 
 import 'package:sass/src/embedded/embedded_sass.pb.dart';
@@ -87,21 +83,18 @@ class EmbeddedProcess {
   /// If [forwardOutput] is `true`, the process's [outbound] messages and
   /// [stderr] will be printed to the console as they appear. This is only
   /// intended to be set temporarily to help when debugging test failures.
-  static Future<EmbeddedProcess> start({
-    String? workingDirectory,
-    Map<String, String>? environment,
-    bool includeParentEnvironment = true,
-    bool runInShell = false,
-    bool forwardOutput = false,
-  }) async {
-    var process = await Process.start(
-      pkg.executableRunner("sass"),
-      [...pkg.executableArgs("sass"), "--embedded"],
-      workingDirectory: workingDirectory,
-      environment: environment,
-      includeParentEnvironment: includeParentEnvironment,
-      runInShell: runInShell,
-    );
+
+  static Future<EmbeddedProcess> start(String command, List<String> args,
+      {String? workingDirectory,
+      Map<String, String>? environment,
+      bool includeParentEnvironment = true,
+      bool runInShell = false,
+      bool forwardOutput = false}) async {
+    var process = await Process.start(command, args,
+        workingDirectory: workingDirectory,
+        environment: environment,
+        includeParentEnvironment: includeParentEnvironment,
+        runInShell: runInShell);
 
     return EmbeddedProcess._(process, forwardOutput: forwardOutput);
   }

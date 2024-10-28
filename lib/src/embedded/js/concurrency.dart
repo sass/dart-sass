@@ -4,7 +4,6 @@
 
 import 'dart:js_interop';
 
-
 @JS('os.cpus')
 external JSArray _cpus();
 
