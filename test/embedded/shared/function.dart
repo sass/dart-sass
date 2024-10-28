@@ -2,9 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-@TestOn('vm')
-library;
-
 import 'package:test/test.dart';
 
 import 'package:sass/src/embedded/embedded_sass.pb.dart';
@@ -19,9 +16,9 @@ final _null = Value()..singleton = SingletonValue.NULL;
 
 late EmbeddedProcess _process;
 
-void main() {
+void sharedTests(Future<EmbeddedProcess> runSassEmbedded()) async {
   setUp(() async {
-    _process = await EmbeddedProcess.start();
+    _process = await runSassEmbedded();
   });
 
   group("emits a compile failure for a custom function with a signature", () {
