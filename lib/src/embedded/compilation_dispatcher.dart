@@ -3,17 +3,16 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:convert';
-import 'dart:io';
-import 'dart:isolate';
+import 'dart:isolate' if (dart.library.js) 'js/isolate.dart';
 import 'dart:typed_data';
 
-import 'package:native_synchronization/mailbox.dart';
 import 'package:path/path.dart' as p;
 import 'package:protobuf/protobuf.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:sass/sass.dart' as sass;
 import 'package:sass/src/importer/node_package.dart' as npi;
 
+import '../io.dart' show FileSystemException;
 import '../logger.dart';
 import '../value/function.dart';
 import '../value/mixin.dart';
@@ -23,6 +22,7 @@ import 'host_callable.dart';
 import 'importer/file.dart';
 import 'importer/host.dart';
 import 'logger.dart';
+import 'sync_receive_port.dart';
 import 'util/proto_extensions.dart';
 import 'utils.dart';
 
@@ -35,8 +35,8 @@ final _outboundRequestId = 0;
 /// A class that dispatches messages to and from the host for a single
 /// compilation.
 final class CompilationDispatcher {
-  /// The mailbox for receiving messages from the host.
-  final Mailbox _mailbox;
+  /// The synchronous receive port for receiving messages from the host.
+  final SyncReceivePort _receivePort;
 
   /// The send port for sending messages to the host.
   final SendPort _sendPort;
@@ -52,8 +52,8 @@ final class CompilationDispatcher {
   late Uint8List _compilationIdVarint;
 
   /// Creates a [CompilationDispatcher] that receives encoded protocol buffers
-  /// through [_mailbox] and sends them through [_sendPort].
-  CompilationDispatcher(this._mailbox, this._sendPort);
+  /// through [_receivePort] and sends them through [_sendPort].
+  CompilationDispatcher(this._receivePort, this._sendPort);
 
   /// Listens for incoming `CompileRequests` and runs their compilations.
   void listen() {
@@ -427,9 +427,9 @@ final class CompilationDispatcher {
   /// Receive a packet from the host.
   Uint8List _receive() {
     try {
-      return _mailbox.take();
+      return _receivePort.receive();
     } on StateError catch (_) {
-      // The [_mailbox] has been closed, exit the current isolate immediately
+      // The [SyncReceivePort] has been closed, exit the current isolate immediately
       // to avoid bubble the error up as [SassException] during [_sendRequest].
       Isolate.exit();
     }
