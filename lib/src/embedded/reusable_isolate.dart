@@ -9,6 +9,8 @@ import 'dart:typed_data';
 import 'package:native_synchronization/mailbox.dart';
 import 'package:native_synchronization/sendable.dart';
 
+import 'sync_receive_port.dart';
+
 /// The entrypoint for a [ReusableIsolate].
 ///
 /// This must be a static global function. It's run when the isolate is spawned,
@@ -19,7 +21,7 @@ import 'package:native_synchronization/sendable.dart';
 /// If the [sendPort] sends a message before [ReusableIsolate.borrow] is called,
 /// this will throw an unhandled [StateError].
 typedef ReusableIsolateEntryPoint = FutureOr<void> Function(
-    Mailbox mailbox, SendPort sink);
+    SyncReceivePort receivePort, SendPort sendPort);
 
 class ReusableIsolate {
   /// The wrapped isolate.
@@ -109,5 +111,5 @@ void _isolateMain(
   (ReusableIsolateEntryPoint, Sendable<Mailbox>, SendPort) message,
 ) {
   var (entryPoint, sendableMailbox, sendPort) = message;
-  entryPoint(sendableMailbox.materialize(), sendPort);
+  entryPoint(MailboxSyncReceivePort(sendableMailbox.materialize()), sendPort);
 }

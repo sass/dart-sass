@@ -3,19 +3,17 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
-import 'dart:ffi';
-import 'dart:io';
-import 'dart:isolate';
+import 'dart:io' if (dart.library.js) 'js/io.dart';
 import 'dart:typed_data';
 
-import 'package:native_synchronization/mailbox.dart';
 import 'package:pool/pool.dart';
 import 'package:protobuf/protobuf.dart';
 import 'package:stream_channel/stream_channel.dart';
 
-import 'compilation_dispatcher.dart';
+import 'concurrency.dart' if (dart.library.js) 'js/concurrency.dart';
 import 'embedded_sass.pb.dart';
-import 'reusable_isolate.dart';
+import 'isolate_main.dart' if (dart.library.js) 'js/isolate_main.dart';
+import 'reusable_isolate.dart' if (dart.library.js) 'js/reusable_isolate.dart';
 import 'util/proto_extensions.dart';
 import 'utils.dart';
 
@@ -24,6 +22,10 @@ import 'utils.dart';
 class IsolateDispatcher {
   /// The channel of encoded protocol buffers, connected to the host.
   final StreamChannel<Uint8List> _channel;
+
+  /// Whether to wait for all worker isolates to exit before exiting the main
+  /// isolate or not.
+  final bool _gracefulShutdown;
 
   /// All isolates that have been spawned to dispatch to.
   ///
@@ -38,16 +40,13 @@ class IsolateDispatcher {
 
   /// A pool controlling how many isolates (and thus concurrent compilations)
   /// may be live at once.
-  ///
-  /// More than MaxMutatorThreadCount isolates in the same isolate group
-  /// can deadlock the Dart VM.
-  /// See https://github.com/sass/dart-sass/pull/2019
-  final _isolatePool = Pool(sizeOf<IntPtr>() <= 4 ? 7 : 15);
+  final _isolatePool = Pool(concurrencyLimit);
 
   /// Whether [_channel] has been closed or not.
   var _closed = false;
 
-  IsolateDispatcher(this._channel);
+  IsolateDispatcher(this._channel, {bool gracefulShutdown = true})
+      : _gracefulShutdown = gracefulShutdown;
 
   void listen() {
     _channel.stream.listen(
@@ -107,8 +106,12 @@ class IsolateDispatcher {
         _handleError(error, stackTrace);
       },
       onDone: () {
-        _closed = true;
-        _allIsolates.stream.listen((isolate) => isolate.kill());
+        if (_gracefulShutdown) {
+          _closed = true;
+          _allIsolates.stream.listen((isolate) => isolate.kill());
+        } else {
+          exit(exitCode);
+        }
       },
     );
   }
@@ -125,7 +128,7 @@ class IsolateDispatcher {
       _inactiveIsolates.remove(isolate);
     } else {
       var future = ReusableIsolate.spawn(
-        _isolateMain,
+        isolateMain,
         onError: (Object error, StackTrace stackTrace) {
           _handleError(error, stackTrace);
         },
@@ -158,7 +161,11 @@ class IsolateDispatcher {
           _channel.sink.add(packet);
         case 2:
           _channel.sink.add(packet);
-          exit(exitCode);
+          if (_gracefulShutdown) {
+            _channel.sink.close();
+          } else {
+            exit(exitCode);
+          }
       }
     });
 
@@ -188,7 +195,11 @@ class IsolateDispatcher {
       compilationId ?? errorId,
       handleError(error, stackTrace, messageId: messageId),
     );
-    _channel.sink.close();
+    if (_gracefulShutdown) {
+      _channel.sink.close();
+    } else {
+      exit(exitCode);
+    }
   }
 
   /// Sends [message] to the host.
@@ -198,8 +209,4 @@ class IsolateDispatcher {
   /// Sends [error] to the host.
   void sendError(int compilationId, ProtocolError error) =>
       _send(compilationId, OutboundMessage()..error = error);
-}
-
-void _isolateMain(Mailbox mailbox, SendPort sendPort) {
-  CompilationDispatcher(mailbox, sendPort).listen();
 }
