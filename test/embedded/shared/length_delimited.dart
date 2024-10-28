@@ -2,9 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-@TestOn('vm')
-library;
-
 import 'dart:async';
 import 'dart:typed_data';
 
@@ -13,7 +10,7 @@ import 'package:sass/src/embedded/util/length_delimited_transformer.dart';
 import 'package:async/async.dart';
 import 'package:test/test.dart';
 
-void main() {
+void sharedTests() {
   group("encoder", () {
     late Sink<List<int>> sink;
     late Stream<List<int>> stream;
