@@ -128,24 +128,40 @@ jobs:
         working-directory: sass-spec
 
   sass_spec_js_embedded:
-    name: 'JS API Tests | Embedded | Node ${{ matrix.node-version }} | ${{ matrix.os }}'
+    name: "JS API Tests | Embedded ${{ matrix.js && 'Pure JS' || 'Dart' }} | Node ${{ matrix.node-version }} | ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     if: "github.event_name != 'pull_request' || !contains(github.event.pull_request.body, 'skip sass-embedded')"
 
     strategy:
       fail-fast: false
       matrix:
+        js: [true, false]
         os: [ubuntu-latest, windows-latest, macos-latest]
         node-version: ['lts/*']
         include:
           # Test older LTS versions
-          - os: ubuntu-latest
+          - js: true
+            os: ubuntu-latest
             dart_channel: stable
             node-version: lts/-1
-          - os: ubuntu-latest
+          - js: true
+            os: ubuntu-latest
             dart_channel: stable
             node-version: lts/-2
-          - os: ubuntu-latest
+          - js: true
+            os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-3
+          - js: false
+            os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-1
+          - js: false
+            os: ubuntu-latest
+            dart_channel: stable
+            node-version: lts/-2
+          - js: false
+            os: ubuntu-latest
             dart_channel: stable
             node-version: lts/-3
 
@@ -168,7 +184,7 @@ jobs:
       - name: Initialize embedded host
         run: |
           npm install
-          npm run init -- --compiler-path=.. --language-path=../build/language
+          npm run init -- --compiler-path=.. --language-path=../build/language --compiler-js=${{ matrix.js && 'true' || 'false' }}
           npm run compile
         working-directory: embedded-host-node
 
