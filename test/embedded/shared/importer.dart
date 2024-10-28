@@ -2,9 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-@TestOn('vm')
-library;
-
 import 'package:source_maps/source_maps.dart' as source_maps;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
@@ -15,10 +12,10 @@ import 'package:sass/src/embedded/utils.dart';
 import 'embedded_process.dart';
 import 'utils.dart';
 
-void main() {
+void sharedTests(Future<EmbeddedProcess> runSassEmbedded()) {
   late EmbeddedProcess process;
   setUp(() async {
-    process = await EmbeddedProcess.start();
+    process = await runSassEmbedded();
   });
 
   group("emits a protocol error", () {
