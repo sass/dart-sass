@@ -1,4 +1,4 @@
-## 0.4.2-dev
+## 0.4.2
 
 * Add support for parsing variable declarations.
 
