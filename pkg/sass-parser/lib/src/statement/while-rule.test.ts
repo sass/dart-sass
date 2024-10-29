@@ -8,97 +8,96 @@ import * as utils from '../../../test/utils';
 describe('a @while rule', () => {
   let node: WhileRule;
   describe('with empty children', () => {
-  function describeNode(description: string, create: () => WhileRule): void {
-    describe(description, () => {
-      beforeEach(() => void (node = create()));
+    function describeNode(description: string, create: () => WhileRule): void {
+      describe(description, () => {
+        beforeEach(() => void (node = create()));
 
-      it('has a name', () => expect(node.name.toString()).toBe('while'));
+        it('has a name', () => expect(node.name.toString()).toBe('while'));
 
-      it('has an expression', () =>
-        expect(node).toHaveStringExpression('whileCondition', 'foo'));
+        it('has an expression', () =>
+          expect(node).toHaveStringExpression('whileCondition', 'foo'));
 
-      it('has matching params', () => expect(node.params).toBe('foo'));
+        it('has matching params', () => expect(node.params).toBe('foo'));
 
-      it('has empty nodes', () => expect(node.nodes).toEqual([]));
-    });
-  }
+        it('has empty nodes', () => expect(node.nodes).toEqual([]));
+      });
+    }
 
-  describeNode(
-    'parsed as SCSS',
-    () => scss.parse('@while foo {}').nodes[0] as WhileRule
-  );
+    describeNode(
+      'parsed as SCSS',
+      () => scss.parse('@while foo {}').nodes[0] as WhileRule
+    );
 
-  describeNode(
-    'parsed as Sass',
-    () => sass.parse('@while foo').nodes[0] as WhileRule
-  );
+    describeNode(
+      'parsed as Sass',
+      () => sass.parse('@while foo').nodes[0] as WhileRule
+    );
 
-  describeNode(
-    'constructed manually',
-    () =>
-      new WhileRule({
+    describeNode(
+      'constructed manually',
+      () =>
+        new WhileRule({
+          whileCondition: {text: 'foo'},
+        })
+    );
+
+    describeNode('constructed from ChildProps', () =>
+      utils.fromChildProps({
         whileCondition: {text: 'foo'},
       })
-  );
-
-  describeNode('constructed from ChildProps', () =>
-    utils.fromChildProps({
-      whileCondition: {text: 'foo'},
-    })
-  );
+    );
   });
 
   describe('with a child', () => {
-  function describeNode(description: string, create: () => WhileRule): void {
-    describe(description, () => {
-      beforeEach(() => void (node = create()));
+    function describeNode(description: string, create: () => WhileRule): void {
+      describe(description, () => {
+        beforeEach(() => void (node = create()));
 
-      it('has a name', () => expect(node.name.toString()).toBe('while'));
+        it('has a name', () => expect(node.name.toString()).toBe('while'));
 
-      it('has an expression', () =>
-        expect(node).toHaveStringExpression('whileCondition', 'foo'));
+        it('has an expression', () =>
+          expect(node).toHaveStringExpression('whileCondition', 'foo'));
 
-      it('has matching params', () => expect(node.params).toBe('foo'));
+        it('has matching params', () => expect(node.params).toBe('foo'));
 
         it('has a child node', () => {
           expect(node.nodes).toHaveLength(1);
           expect(node.nodes[0]).toBeInstanceOf(GenericAtRule);
           expect(node.nodes[0]).toHaveProperty('name', 'child');
         });
-    });
-  }
+      });
+    }
 
-  describeNode(
-    'parsed as SCSS',
-    () => scss.parse('@while foo {@child}').nodes[0] as WhileRule
-  );
+    describeNode(
+      'parsed as SCSS',
+      () => scss.parse('@while foo {@child}').nodes[0] as WhileRule
+    );
 
-  describeNode(
-    'parsed as Sass',
-    () => sass.parse('@while foo\n  @child').nodes[0] as WhileRule
-  );
+    describeNode(
+      'parsed as Sass',
+      () => sass.parse('@while foo\n  @child').nodes[0] as WhileRule
+    );
 
-  describeNode(
-    'constructed manually',
-    () =>
-      new WhileRule({
+    describeNode(
+      'constructed manually',
+      () =>
+        new WhileRule({
+          whileCondition: {text: 'foo'},
+          nodes: [{name: 'child'}],
+        })
+    );
+
+    describeNode('constructed from ChildProps', () =>
+      utils.fromChildProps({
         whileCondition: {text: 'foo'},
         nodes: [{name: 'child'}],
       })
-  );
-
-  describeNode('constructed from ChildProps', () =>
-    utils.fromChildProps({
-      whileCondition: {text: 'foo'},
-      nodes: [{name: 'child'}],
-    })
-  );
+    );
   });
 
   describe('throws an error when assigned a new', () => {
     beforeEach(
-      () =>
-        void (node = new WhileRule({whileCondition: {text: 'foo'}}))
+      () => void (node = new WhileRule({whileCondition: {text: 'foo'}}))
     );
 
     it('name', () => expect(() => (node.name = 'bar')).toThrow());

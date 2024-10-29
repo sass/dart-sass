@@ -100,11 +100,7 @@ export class WhileRule
   }
 
   clone(overrides?: Partial<WhileRuleProps>): this {
-    return utils.cloneNode(
-      this,
-      overrides,
-      ['raws', 'whileCondition']
-    );
+    return utils.cloneNode(this, overrides, ['raws', 'whileCondition']);
   }
 
   toJSON(): object;

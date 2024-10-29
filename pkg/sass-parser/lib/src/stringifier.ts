@@ -172,16 +172,14 @@ export class Stringifier extends PostCssStringifier {
 
   /** Helper method for non-generic Sass at-rules. */
   private sassAtRule(node: postcss.AtRule, semicolon?: boolean): void {
-    const start =
-      '@' +
-      node.name +
-      (node.raws.afterName ?? ' ') +
-      node.params;
+    const start = '@' + node.name + (node.raws.afterName ?? ' ') + node.params;
     if (node.nodes) {
       this.block(node, start);
     } else {
-      this.builder(start +
-      (node.raws.between ?? '') + (semicolon ? ';' : ''), node);
+      this.builder(
+        start + (node.raws.between ?? '') + (semicolon ? ';' : ''),
+        node
+      );
     }
   }
 }
