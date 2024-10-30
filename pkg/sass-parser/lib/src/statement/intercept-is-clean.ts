@@ -13,7 +13,7 @@ import type {Statement} from '.';
  * clean as well.
  */
 export function interceptIsClean<T extends Statement>(
-  klass: utils.Constructor<T>
+  klass: utils.Constructor<T>,
 ): void {
   Object.defineProperty(klass as typeof klass & {_isClean: boolean}, isClean, {
     get(): boolean {

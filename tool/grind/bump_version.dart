@@ -14,6 +14,9 @@ import 'package:yaml/yaml.dart';
 /// A regular expression that matches a version in a pubspec.
 final _pubspecVersionRegExp = RegExp(r'^version: (.*)$', multiLine: true);
 
+/// A regular expression that matches a Sass dependency version in a pubspec.
+final _sassVersionRegExp = RegExp(r'^( +)sass: (\d.*)$', multiLine: true);
+
 /// Adds grinder tasks for bumping package versions.
 void addBumpVersionTasks() {
   for (var patch in [false, true]) {
@@ -59,31 +62,46 @@ void _bumpVersion(bool patch, bool dev) {
   void addChangelogEntry(String dir, Version version) {
     var path = p.join(dir, "CHANGELOG.md");
     var text = File(path).readAsStringSync();
-    if (!dev && text.startsWith("## ${version}-dev\n")) {
+    if (!dev && text.startsWith("## $version-dev\n")) {
       File(path).writeAsStringSync(
-          text.replaceFirst("## ${version}-dev\n", "## ${version}\n"));
-    } else if (text.startsWith("## ${version}\n")) {
+          text.replaceFirst("## $version-dev\n", "## $version\n"));
+    } else if (text.startsWith("## $version\n")) {
       return;
     } else {
       File(path).writeAsStringSync(
-          "## ${version}\n\n* No user-visible changes.\n\n$text");
+          "## $version\n\n* No user-visible changes.\n\n$text");
     }
   }
 
   // Bumps the current version of [pubspec] to the next [patch] version, with
   // `-dev` if [dev] is true.
-  void bumpDartVersion(String path) {
+  //
+  // If [sassVersion] is passed, this bumps the `sass` dependency to that version.
+  //
+  // Returns the new version of this package.
+  Version bumpDartVersion(String path, [Version? sassVersion]) {
     var text = File(path).readAsStringSync();
     var pubspec = loadYaml(text, sourceUrl: p.toUri(path)) as YamlMap;
     var version = chooseNextVersion(Version.parse(pubspec["version"] as String),
         pubspec.nodes["version"]!.span);
-    File(path).writeAsStringSync(
-        text.replaceFirst(_pubspecVersionRegExp, 'version: $version'));
+
+    text = text.replaceFirst(_pubspecVersionRegExp, 'version: $version');
+    if (sassVersion != null) {
+      // Don't depend on a prerelease version, depend on its released
+      // equivalent.
+      var sassDependencyVersion =
+          Version(sassVersion.major, sassVersion.minor, sassVersion.patch);
+      text = text.replaceFirstMapped(_sassVersionRegExp,
+          (match) => '${match[1]}sass: $sassDependencyVersion');
+    }
+
+    File(path).writeAsStringSync(text);
     addChangelogEntry(p.dirname(path), version);
+    return version;
   }
 
-  bumpDartVersion('pubspec.yaml');
-  bumpDartVersion('pkg/sass_api/pubspec.yaml');
+  var sassVersion = bumpDartVersion('pubspec.yaml');
+  bumpDartVersion('pkg/sass_api/pubspec.yaml', sassVersion);
 
   var packageJsonPath = 'pkg/sass-parser/package.json';
   var packageJsonText = File(packageJsonPath).readAsStringSync();

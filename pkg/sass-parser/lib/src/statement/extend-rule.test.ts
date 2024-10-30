@@ -11,7 +11,7 @@ describe('an @extend rule', () => {
     beforeEach(
       () =>
         void (node = (scss.parse('.foo {@extend .bar}').nodes[0] as Rule)
-          .nodes[0] as GenericAtRule)
+          .nodes[0] as GenericAtRule),
     );
 
     it('has a name', () => expect(node.name).toBe('extend'));
@@ -26,7 +26,7 @@ describe('an @extend rule', () => {
     beforeEach(
       () =>
         void (node = (scss.parse('.foo {@extend .#{bar}}').nodes[0] as Rule)
-          .nodes[0] as GenericAtRule)
+          .nodes[0] as GenericAtRule),
     );
 
     it('has a name', () => expect(node.name).toBe('extend'));
@@ -45,7 +45,7 @@ describe('an @extend rule', () => {
       () =>
         void (node = (
           scss.parse('.foo {@extend .bar !optional}').nodes[0] as Rule
-        ).nodes[0] as GenericAtRule)
+        ).nodes[0] as GenericAtRule),
     );
 
     it('has a name', () => expect(node.name).toBe('extend'));
@@ -53,7 +53,7 @@ describe('an @extend rule', () => {
     it('has a paramsInterpolation', () =>
       expect(node).toHaveInterpolation(
         'paramsInterpolation',
-        '.bar !optional'
+        '.bar !optional',
       ));
 
     it('has matching params', () => expect(node.params).toBe('.bar !optional'));

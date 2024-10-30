@@ -29,7 +29,7 @@ export function fromChildProps<T extends ChildNode>(props: ChildProps): T {
 
 /** Constructs a new expression from {@link props}. */
 export function fromExpressionProps<T extends Expression>(
-  props: ExpressionProps
+  props: ExpressionProps,
 ): T {
   return new Interpolation({nodes: [props]}).nodes[0] as T;
 }

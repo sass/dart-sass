@@ -136,7 +136,7 @@ export class GenericAtRule
     return this._paramsInterpolation;
   }
   set paramsInterpolation(
-    paramsInterpolation: Interpolation | string | undefined
+    paramsInterpolation: Interpolation | string | undefined,
   ) {
     if (this._paramsInterpolation) this._paramsInterpolation.parent = undefined;
     if (typeof paramsInterpolation === 'string') {
@@ -173,7 +173,7 @@ export class GenericAtRule
         'nameInterpolation',
         {name: 'paramsInterpolation', explicitUndefined: true},
       ],
-      ['name', {name: 'params', explicitUndefined: true}]
+      ['name', {name: 'params', explicitUndefined: true}],
     );
   }
 
@@ -184,14 +184,14 @@ export class GenericAtRule
     return utils.toJSON(
       this,
       ['name', 'nameInterpolation', 'params', 'paramsInterpolation', 'nodes'],
-      inputs
+      inputs,
     );
   }
 
   /** @hidden */
   toString(
     stringifier: postcss.Stringifier | postcss.Syntax = sassParser.scss
-      .stringify
+      .stringify,
   ): string {
     return super.toString(stringifier);
   }

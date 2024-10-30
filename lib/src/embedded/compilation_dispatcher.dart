@@ -145,7 +145,7 @@ final class CompilationDispatcher {
 
     try {
       var importers = request.importers.map((importer) =>
-          _decodeImporter(request, importer) ??
+          _decodeImporter(importer) ??
           (throw mandatoryError("Importer.importer")));
 
       var globalFunctions = request.globalFunctions
@@ -159,7 +159,7 @@ final class CompilationDispatcher {
               color: request.alertColor,
               logger: logger,
               importers: importers,
-              importer: _decodeImporter(request, input.importer) ??
+              importer: _decodeImporter(input.importer) ??
                   (input.url.startsWith("file:") ? null : sass.Importer.noOp),
               functions: globalFunctions,
               syntax: syntaxToSyntax(input.syntax),
@@ -234,7 +234,7 @@ final class CompilationDispatcher {
   }
 
   /// Converts [importer] into a [sass.Importer].
-  sass.Importer? _decodeImporter(InboundMessage_CompileRequest request,
+  sass.Importer? _decodeImporter(
       InboundMessage_CompileRequest_Importer importer) {
     switch (importer.whichImporter()) {
       case InboundMessage_CompileRequest_Importer_Importer.path:
@@ -249,13 +249,13 @@ final class CompilationDispatcher {
         _checkNoNonCanonicalScheme(importer);
         return FileImporter(this, importer.fileImporterId);
 
-      case InboundMessage_CompileRequest_Importer_Importer.notSet:
-        _checkNoNonCanonicalScheme(importer);
-        return null;
-
       case InboundMessage_CompileRequest_Importer_Importer.nodePackageImporter:
         return npi.NodePackageImporter(
             importer.nodePackageImporter.entryPointDirectory);
+
+      case InboundMessage_CompileRequest_Importer_Importer.notSet:
+        _checkNoNonCanonicalScheme(importer);
+        return null;
     }
   }
 

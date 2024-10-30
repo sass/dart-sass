@@ -36,12 +36,12 @@ describe('a @use rule', () => {
 
     describeNode(
       'parsed as SCSS',
-      () => scss.parse('@use "foo"').nodes[0] as UseRule
+      () => scss.parse('@use "foo"').nodes[0] as UseRule,
     );
 
     describeNode(
       'parsed as Sass',
-      () => sass.parse('@use "foo"').nodes[0] as UseRule
+      () => sass.parse('@use "foo"').nodes[0] as UseRule,
     );
 
     describeNode(
@@ -49,13 +49,13 @@ describe('a @use rule', () => {
       () =>
         new UseRule({
           useUrl: 'foo',
-        })
+        }),
     );
 
     describeNode('constructed from ChildProps', () =>
       utils.fromChildProps({
         useUrl: 'foo',
-      })
+      }),
     );
   });
 
@@ -88,12 +88,12 @@ describe('a @use rule', () => {
 
     describeNode(
       'parsed as SCSS',
-      () => scss.parse('@use "foo" as *').nodes[0] as UseRule
+      () => scss.parse('@use "foo" as *').nodes[0] as UseRule,
     );
 
     describeNode(
       'parsed as Sass',
-      () => sass.parse('@use "foo" as *').nodes[0] as UseRule
+      () => sass.parse('@use "foo" as *').nodes[0] as UseRule,
     );
 
     describeNode(
@@ -102,14 +102,14 @@ describe('a @use rule', () => {
         new UseRule({
           useUrl: 'foo',
           namespace: null,
-        })
+        }),
     );
 
     describeNode('constructed from ChildProps', () =>
       utils.fromChildProps({
         useUrl: 'foo',
         namespace: null,
-      })
+      }),
     );
   });
 
@@ -147,13 +147,13 @@ describe('a @use rule', () => {
     describeNode(
       'parsed as SCSS',
       () =>
-        scss.parse('@use "foo" as bar with ($baz: "qux")').nodes[0] as UseRule
+        scss.parse('@use "foo" as bar with ($baz: "qux")').nodes[0] as UseRule,
     );
 
     describeNode(
       'parsed as Sass',
       () =>
-        sass.parse('@use "foo" as bar with ($baz: "qux")').nodes[0] as UseRule
+        sass.parse('@use "foo" as bar with ($baz: "qux")').nodes[0] as UseRule,
     );
 
     describeNode(
@@ -165,7 +165,7 @@ describe('a @use rule', () => {
           configuration: {
             variables: {baz: {text: 'qux', quotes: true}},
           },
-        })
+        }),
     );
 
     describeNode('constructed from ChildProps', () =>
@@ -175,7 +175,7 @@ describe('a @use rule', () => {
         configuration: {
           variables: {baz: {text: 'qux', quotes: true}},
         },
-      })
+      }),
     );
   });
 
@@ -216,12 +216,12 @@ describe('a @use rule', () => {
     describe('is null for', () => {
       it('a URL without a pathname', () =>
         expect(
-          new UseRule({useUrl: 'https://example.org'}).defaultNamespace
+          new UseRule({useUrl: 'https://example.org'}).defaultNamespace,
         ).toBeNull());
 
       it('a URL with a slash pathname', () =>
         expect(
-          new UseRule({useUrl: 'https://example.org/'}).defaultNamespace
+          new UseRule({useUrl: 'https://example.org/'}).defaultNamespace,
         ).toBeNull());
 
       it('a basename that starts with .', () =>
@@ -239,7 +239,7 @@ describe('a @use rule', () => {
 
     it('the basename', () =>
       expect(new UseRule({useUrl: 'foo/bar/baz'}).defaultNamespace).toBe(
-        'baz'
+        'baz',
       ));
 
     it('without an extension', () =>
@@ -247,17 +247,18 @@ describe('a @use rule', () => {
 
     it('the basename of an HTTP URL', () =>
       expect(
-        new UseRule({useUrl: 'http://example.org/foo/bar/baz'}).defaultNamespace
+        new UseRule({useUrl: 'http://example.org/foo/bar/baz'})
+          .defaultNamespace,
       ).toBe('baz'));
 
     it('the basename of a file: URL', () =>
       expect(
-        new UseRule({useUrl: 'file:///foo/bar/baz'}).defaultNamespace
+        new UseRule({useUrl: 'file:///foo/bar/baz'}).defaultNamespace,
       ).toBe('baz'));
 
     it('the basename of an unknown scheme URL', () =>
       expect(new UseRule({useUrl: 'foo:bar/bar/qux'}).defaultNamespace).toBe(
-        'qux'
+        'qux',
       ));
 
     it('a sass: URL', () =>
@@ -272,7 +273,7 @@ describe('a @use rule', () => {
             new UseRule({
               useUrl: 'foo',
               namespace: 'bar',
-            }).toString()
+            }).toString(),
           ).toBe('@use "foo" as bar;'));
 
         it('with a non-identifier namespace', () =>
@@ -280,7 +281,7 @@ describe('a @use rule', () => {
             new UseRule({
               useUrl: 'foo',
               namespace: ' ',
-            }).toString()
+            }).toString(),
           ).toBe('@use "foo" as \\20;'));
 
         it('with no namespace', () =>
@@ -288,7 +289,7 @@ describe('a @use rule', () => {
             new UseRule({
               useUrl: 'foo',
               namespace: null,
-            }).toString()
+            }).toString(),
           ).toBe('@use "foo" as *;'));
 
         it('with configuration', () =>
@@ -298,7 +299,7 @@ describe('a @use rule', () => {
               configuration: {
                 variables: {bar: {text: 'baz', quotes: true}},
               },
-            }).toString()
+            }).toString(),
           ).toBe('@use "foo" with ($bar: "baz");'));
       });
 
@@ -308,7 +309,7 @@ describe('a @use rule', () => {
             new UseRule({
               useUrl: 'foo',
               raws: {url: {raw: "'foo'", value: 'foo'}},
-            }).toString()
+            }).toString(),
           ).toBe("@use 'foo';"));
 
         it("that doesn't match", () =>
@@ -316,7 +317,7 @@ describe('a @use rule', () => {
             new UseRule({
               useUrl: 'foo',
               raws: {url: {raw: "'bar'", value: 'bar'}},
-            }).toString()
+            }).toString(),
           ).toBe('@use "foo";'));
       });
 
@@ -326,7 +327,7 @@ describe('a @use rule', () => {
             new UseRule({
               useUrl: 'foo',
               raws: {namespace: {raw: '  as  foo', value: 'foo'}},
-            }).toString()
+            }).toString(),
           ).toBe('@use "foo"  as  foo;'));
 
         it('that matches null', () =>
@@ -335,7 +336,7 @@ describe('a @use rule', () => {
               useUrl: 'foo',
               namespace: null,
               raws: {namespace: {raw: '  as  *', value: null}},
-            }).toString()
+            }).toString(),
           ).toBe('@use "foo"  as  *;'));
 
         it("that doesn't match", () =>
@@ -343,7 +344,7 @@ describe('a @use rule', () => {
             new UseRule({
               useUrl: 'foo',
               raws: {url: {raw: '  as  bar', value: 'bar'}},
-            }).toString()
+            }).toString(),
           ).toBe('@use "foo";'));
       });
 
@@ -356,7 +357,7 @@ describe('a @use rule', () => {
                 variables: {bar: {text: 'baz', quotes: true}},
               },
               raws: {beforeWith: '/**/'},
-            }).toString()
+            }).toString(),
           ).toBe('@use "foo"/**/with ($bar: "baz");'));
 
         it('and no configuration', () =>
@@ -364,7 +365,7 @@ describe('a @use rule', () => {
             new UseRule({
               useUrl: 'foo',
               raws: {beforeWith: '/**/'},
-            }).toString()
+            }).toString(),
           ).toBe('@use "foo";'));
       });
 
@@ -377,7 +378,7 @@ describe('a @use rule', () => {
                 variables: {bar: {text: 'baz', quotes: true}},
               },
               raws: {afterWith: '/**/'},
-            }).toString()
+            }).toString(),
           ).toBe('@use "foo" with/**/($bar: "baz");'));
 
         it('and no configuration', () =>
@@ -385,7 +386,7 @@ describe('a @use rule', () => {
             new UseRule({
               useUrl: 'foo',
               raws: {afterWith: '/**/'},
-            }).toString()
+            }).toString(),
           ).toBe('@use "foo";'));
       });
     });
@@ -548,6 +549,6 @@ describe('a @use rule', () => {
   // Can't JSON-serialize this until we implement Configuration.source.span
   it.skip('toJSON', () =>
     expect(
-      scss.parse('@use "foo" as bar with ($baz: "qux")').nodes[0]
+      scss.parse('@use "foo" as bar with ($baz: "qux")').nodes[0],
     ).toMatchSnapshot());
 });
