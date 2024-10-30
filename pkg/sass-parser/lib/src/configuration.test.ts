@@ -18,7 +18,7 @@ describe('a configuration map', () => {
   describe('empty', () => {
     function describeNode(
       description: string,
-      create: () => Configuration,
+      create: () => Configuration
     ): void {
       describe(description, () => {
         beforeEach(() => (node = create()));
@@ -35,12 +35,12 @@ describe('a configuration map', () => {
 
     describeNode(
       'parsed as SCSS',
-      () => (scss.parse('@use "foo"').nodes[0] as UseRule).configuration,
+      () => (scss.parse('@use "foo"').nodes[0] as UseRule).configuration
     );
 
     describeNode(
       'parsed as Sass',
-      () => (sass.parse('@use "foo"').nodes[0] as UseRule).configuration,
+      () => (sass.parse('@use "foo"').nodes[0] as UseRule).configuration
     );
 
     describe('constructed manually', () => {
@@ -50,7 +50,7 @@ describe('a configuration map', () => {
 
       describeNode(
         'variables record',
-        () => new Configuration({variables: {}}),
+        () => new Configuration({variables: {}})
       );
     });
 
@@ -58,14 +58,14 @@ describe('a configuration map', () => {
       'constructed from props',
       () =>
         new UseRule({useUrl: 'foo', configuration: {variables: []}})
-          .configuration,
+          .configuration
     );
   });
 
   describe('with a variable', () => {
     function describeNode(
       description: string,
-      create: () => Configuration,
+      create: () => Configuration
     ): void {
       describe(description, () => {
         beforeEach(() => (node = create()));
@@ -86,14 +86,14 @@ describe('a configuration map', () => {
       'parsed as SCSS',
       () =>
         (scss.parse('@use "foo" with ($bar: "baz")').nodes[0] as UseRule)
-          .configuration,
+          .configuration
     );
 
     describeNode(
       'parsed as Sass',
       () =>
         (sass.parse('@use "foo" with ($bar: "baz")').nodes[0] as UseRule)
-          .configuration,
+          .configuration
     );
 
     describe('constructed manually', () => {
@@ -104,13 +104,12 @@ describe('a configuration map', () => {
             variables: [
               {variableName: 'bar', expression: {text: 'baz', quotes: true}},
             ],
-          }),
+          })
       );
 
       describeNode(
         'variables record',
-        () =>
-          new Configuration({variables: {bar: {text: 'baz', quotes: true}}}),
+        () => new Configuration({variables: {bar: {text: 'baz', quotes: true}}})
       );
     });
 
@@ -120,7 +119,7 @@ describe('a configuration map', () => {
         new UseRule({
           useUrl: 'foo',
           configuration: {variables: {bar: {text: 'baz', quotes: true}}},
-        }).configuration,
+        }).configuration
     );
   });
 
@@ -226,7 +225,7 @@ describe('a configuration map', () => {
     describe('adds a new variable', () => {
       function describeVariable(
         description: string,
-        create: () => Configuration,
+        create: () => Configuration
       ): void {
         it(description, () => {
           expect(create()).toBe(node);
@@ -239,15 +238,15 @@ describe('a configuration map', () => {
       }
 
       describeVariable('with Expression', () =>
-        node.set('baz', new StringExpression({text: 'bang', quotes: true})),
+        node.set('baz', new StringExpression({text: 'bang', quotes: true}))
       );
 
       describeVariable('with ExpressionProps', () =>
-        node.set('baz', {text: 'bang', quotes: true}),
+        node.set('baz', {text: 'bang', quotes: true})
       );
 
       describeVariable('with ConfiguredVariableObjectProps', () =>
-        node.set('baz', {expression: {text: 'bang', quotes: true}}),
+        node.set('baz', {expression: {text: 'bang', quotes: true}})
       );
     });
 
@@ -270,7 +269,7 @@ describe('a configuration map', () => {
                 foo: {text: 'bar', quotes: true},
                 baz: {text: 'bang', quotes: true},
               },
-            }).toString(),
+            }).toString()
           ).toBe('($foo: "bar", $baz: "bang")'));
       });
 
@@ -282,7 +281,7 @@ describe('a configuration map', () => {
               foo: {text: 'bar', quotes: true},
               baz: {text: 'bang', quotes: true},
             },
-          }).toString(),
+          }).toString()
         ).toBe('($foo: "bar", $baz: "bang",)'));
 
       it('with comma: true and afterValue', () =>
@@ -296,7 +295,7 @@ describe('a configuration map', () => {
                 raws: {afterValue: '/**/'},
               },
             },
-          }).toString(),
+          }).toString()
         ).toBe('($foo: "bar", $baz: "bang"/**/,)'));
 
       it('with after', () =>
@@ -307,7 +306,7 @@ describe('a configuration map', () => {
               foo: {text: 'bar', quotes: true},
               baz: {text: 'bang', quotes: true},
             },
-          }).toString(),
+          }).toString()
         ).toBe('($foo: "bar", $baz: "bang"/**/)'));
 
       it('with after and afterValue', () =>
@@ -321,7 +320,7 @@ describe('a configuration map', () => {
                 raws: {afterValue: '  '},
               },
             },
-          }).toString(),
+          }).toString()
         ).toBe('($foo: "bar", $baz: "bang"  /**/)'));
 
       it('with afterValue and a guard', () =>
@@ -335,7 +334,7 @@ describe('a configuration map', () => {
                 guarded: true,
               },
             },
-          }).toString(),
+          }).toString()
         ).toBe('($foo: "bar", $baz: "bang" !default/**/)'));
     });
   });
@@ -423,6 +422,6 @@ describe('a configuration map', () => {
   it.skip('toJSON', () =>
     expect(
       (scss.parse('@use "foo" with ($baz: "qux")').nodes[0] as UseRule)
-        .configuration,
+        .configuration
     ).toMatchSnapshot());
 });

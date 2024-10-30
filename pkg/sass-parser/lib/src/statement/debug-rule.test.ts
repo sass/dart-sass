@@ -24,12 +24,12 @@ describe('a @debug rule', () => {
 
   describeNode(
     'parsed as SCSS',
-    () => scss.parse('@debug foo').nodes[0] as DebugRule,
+    () => scss.parse('@debug foo').nodes[0] as DebugRule
   );
 
   describeNode(
     'parsed as Sass',
-    () => sass.parse('@debug foo').nodes[0] as DebugRule,
+    () => sass.parse('@debug foo').nodes[0] as DebugRule
   );
 
   describeNode(
@@ -37,13 +37,13 @@ describe('a @debug rule', () => {
     () =>
       new DebugRule({
         debugExpression: {text: 'foo'},
-      }),
+      })
   );
 
   describeNode('constructed from ChildProps', () =>
     utils.fromChildProps({
       debugExpression: {text: 'foo'},
-    }),
+    })
   );
 
   it('throws an error when assigned a new name', () =>
@@ -51,7 +51,7 @@ describe('a @debug rule', () => {
       () =>
         (new DebugRule({
           debugExpression: {text: 'foo'},
-        }).name = 'bar'),
+        }).name = 'bar')
     ).toThrow());
 
   describe('assigned a new expression', () => {
@@ -106,7 +106,7 @@ describe('a @debug rule', () => {
         expect(
           new DebugRule({
             debugExpression: {text: 'foo'},
-          }).toString(),
+          }).toString()
         ).toBe('@debug foo;'));
 
       it('with afterName', () =>
@@ -114,7 +114,7 @@ describe('a @debug rule', () => {
           new DebugRule({
             debugExpression: {text: 'foo'},
             raws: {afterName: '/**/'},
-          }).toString(),
+          }).toString()
         ).toBe('@debug/**/foo;'));
 
       it('with between', () =>
@@ -122,7 +122,7 @@ describe('a @debug rule', () => {
           new DebugRule({
             debugExpression: {text: 'foo'},
             raws: {between: '/**/'},
-          }).toString(),
+          }).toString()
         ).toBe('@debug foo/**/;'));
     });
   });

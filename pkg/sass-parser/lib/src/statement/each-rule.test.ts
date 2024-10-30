@@ -29,12 +29,12 @@ describe('an @each rule', () => {
 
     describeNode(
       'parsed as SCSS',
-      () => scss.parse('@each $foo, $bar in baz {}').nodes[0] as EachRule,
+      () => scss.parse('@each $foo, $bar in baz {}').nodes[0] as EachRule
     );
 
     describeNode(
       'parsed as Sass',
-      () => sass.parse('@each $foo, $bar in baz').nodes[0] as EachRule,
+      () => sass.parse('@each $foo, $bar in baz').nodes[0] as EachRule
     );
 
     describeNode(
@@ -43,14 +43,14 @@ describe('an @each rule', () => {
         new EachRule({
           variables: ['foo', 'bar'],
           eachExpression: {text: 'baz'},
-        }),
+        })
     );
 
     describeNode('constructed from ChildProps', () =>
       utils.fromChildProps({
         variables: ['foo', 'bar'],
         eachExpression: {text: 'baz'},
-      }),
+      })
     );
   });
 
@@ -80,13 +80,12 @@ describe('an @each rule', () => {
 
     describeNode(
       'parsed as SCSS',
-      () => scss.parse('@each $foo, $bar in baz {@child}').nodes[0] as EachRule,
+      () => scss.parse('@each $foo, $bar in baz {@child}').nodes[0] as EachRule
     );
 
     describeNode(
       'parsed as Sass',
-      () =>
-        sass.parse('@each $foo, $bar in baz\n  @child').nodes[0] as EachRule,
+      () => sass.parse('@each $foo, $bar in baz\n  @child').nodes[0] as EachRule
     );
 
     describeNode(
@@ -96,7 +95,7 @@ describe('an @each rule', () => {
           variables: ['foo', 'bar'],
           eachExpression: {text: 'baz'},
           nodes: [{name: 'child'}],
-        }),
+        })
     );
 
     describeNode('constructed from ChildProps', () =>
@@ -104,7 +103,7 @@ describe('an @each rule', () => {
         variables: ['foo', 'bar'],
         eachExpression: {text: 'baz'},
         nodes: [{name: 'child'}],
-      }),
+      })
     );
   });
 
@@ -114,7 +113,7 @@ describe('an @each rule', () => {
         void (node = new EachRule({
           variables: ['foo', 'bar'],
           eachExpression: {text: 'baz'},
-        })),
+        }))
     );
 
     it('name', () => expect(() => (node.name = 'qux')).toThrow());
@@ -159,7 +158,7 @@ describe('an @each rule', () => {
           new EachRule({
             variables: ['foo', 'bar'],
             eachExpression: {text: 'baz'},
-          }).toString(),
+          }).toString()
         ).toBe('@each $foo, $bar in baz {}'));
 
       it('with afterName', () =>
@@ -168,7 +167,7 @@ describe('an @each rule', () => {
             variables: ['foo', 'bar'],
             eachExpression: {text: 'baz'},
             raws: {afterName: '/**/'},
-          }).toString(),
+          }).toString()
         ).toBe('@each/**/$foo, $bar in baz {}'));
 
       it('with afterVariables', () =>
@@ -177,7 +176,7 @@ describe('an @each rule', () => {
             variables: ['foo', 'bar'],
             eachExpression: {text: 'baz'},
             raws: {afterVariables: ['/**/,', '/* */']},
-          }).toString(),
+          }).toString()
         ).toBe('@each $foo/**/,$bar/* */in baz {}'));
 
       it('with afterIn', () =>
@@ -186,7 +185,7 @@ describe('an @each rule', () => {
             variables: ['foo', 'bar'],
             eachExpression: {text: 'baz'},
             raws: {afterIn: '/**/'},
-          }).toString(),
+          }).toString()
         ).toBe('@each $foo, $bar in/**/baz {}'));
     });
   });
@@ -298,6 +297,6 @@ describe('an @each rule', () => {
 
   it('toJSON', () =>
     expect(
-      scss.parse('@each $foo, $bar in baz {}').nodes[0],
+      scss.parse('@each $foo, $bar in baz {}').nodes[0]
     ).toMatchSnapshot());
 });

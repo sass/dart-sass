@@ -27,10 +27,10 @@ export class _AtRule<Props> extends postcss.AtRule {
   cloneAfter(overrides?: Partial<Props>): this;
   cloneBefore(overrides?: Partial<Props>): this;
   each(
-    callback: (node: ChildNode, index: number) => false | void,
+    callback: (node: ChildNode, index: number) => false | void
   ): false | undefined;
   every(
-    condition: (node: ChildNode, index: number, nodes: ChildNode[]) => boolean,
+    condition: (node: ChildNode, index: number, nodes: ChildNode[]) => boolean
   ): boolean;
   insertAfter(oldNode: postcss.ChildNode | number, newNode: NewNode): this;
   insertBefore(oldNode: postcss.ChildNode | number, newNode: NewNode): this;
@@ -40,37 +40,37 @@ export class _AtRule<Props> extends postcss.AtRule {
   replaceWith(...nodes: NewNode[]): this;
   root(): Root;
   some(
-    condition: (node: ChildNode, index: number, nodes: ChildNode[]) => boolean,
+    condition: (node: ChildNode, index: number, nodes: ChildNode[]) => boolean
   ): boolean;
   walk(
-    callback: (node: ChildNode, index: number) => false | void,
+    callback: (node: ChildNode, index: number) => false | void
   ): false | undefined;
   walkAtRules(
     nameFilter: RegExp | string,
-    callback: (atRule: AtRule, index: number) => false | void,
+    callback: (atRule: AtRule, index: number) => false | void
   ): false | undefined;
   walkAtRules(
-    callback: (atRule: AtRule, index: number) => false | void,
+    callback: (atRule: AtRule, index: number) => false | void
   ): false | undefined;
   walkComments(
-    callback: (comment: Comment, indexed: number) => false | void,
+    callback: (comment: Comment, indexed: number) => false | void
   ): false | undefined;
   walkComments(
-    callback: (comment: Comment, indexed: number) => false | void,
+    callback: (comment: Comment, indexed: number) => false | void
   ): false | undefined;
   walkDecls(
     propFilter: RegExp | string,
-    callback: (decl: Declaration, index: number) => false | void,
+    callback: (decl: Declaration, index: number) => false | void
   ): false | undefined;
   walkDecls(
-    callback: (decl: Declaration, index: number) => false | void,
+    callback: (decl: Declaration, index: number) => false | void
   ): false | undefined;
   walkRules(
     selectorFilter: RegExp | string,
-    callback: (rule: Rule, index: number) => false | void,
+    callback: (rule: Rule, index: number) => false | void
   ): false | undefined;
   walkRules(
-    callback: (rule: Rule, index: number) => false | void,
+    callback: (rule: Rule, index: number) => false | void
   ): false | undefined;
   get first(): ChildNode | undefined;
   get last(): ChildNode | undefined;

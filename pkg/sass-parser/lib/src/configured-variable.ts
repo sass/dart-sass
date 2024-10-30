@@ -122,7 +122,7 @@ export class ConfiguredVariable extends Node {
   constructor(_: undefined, inner: sassInternal.ConfiguredVariable);
   constructor(
     defaults?: ConfiguredVariableProps,
-    inner?: sassInternal.ConfiguredVariable,
+    inner?: sassInternal.ConfiguredVariable
   ) {
     if (Array.isArray(defaults!)) {
       const [variableName, rest] = defaults;
@@ -164,7 +164,7 @@ export class ConfiguredVariable extends Node {
     return utils.toJSON(
       this,
       ['variableName', 'expression', 'guarded'],
-      inputs,
+      inputs
     );
   }
 

@@ -97,7 +97,7 @@ export class WarnRule
       this,
       overrides,
       ['raws', 'warnExpression'],
-      [{name: 'params', explicitUndefined: true}],
+      [{name: 'params', explicitUndefined: true}]
     );
   }
 
@@ -108,14 +108,14 @@ export class WarnRule
     return utils.toJSON(
       this,
       ['name', 'warnExpression', 'params', 'nodes'],
-      inputs,
+      inputs
     );
   }
 
   /** @hidden */
   toString(
     stringifier: postcss.Stringifier | postcss.Syntax = sassParser.scss
-      .stringify,
+      .stringify
   ): string {
     return super.toString(stringifier);
   }

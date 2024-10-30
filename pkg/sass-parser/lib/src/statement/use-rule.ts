@@ -101,7 +101,7 @@ export class UseRule
     const basename = url.pathname.split('/').at(-1)!;
     const dot = basename.indexOf('.');
     return sassInternal.parseIdentifier(
-      dot === -1 ? basename : basename.substring(0, dot),
+      dot === -1 ? basename : basename.substring(0, dot)
     );
   }
 
@@ -188,14 +188,14 @@ export class UseRule
     return utils.toJSON(
       this,
       ['useUrl', 'namespace', 'configuration', 'params'],
-      inputs,
+      inputs
     );
   }
 
   /** @hidden */
   toString(
     stringifier: postcss.Stringifier | postcss.Syntax = sassParser.scss
-      .stringify,
+      .stringify
   ): string {
     return super.toString(stringifier);
   }

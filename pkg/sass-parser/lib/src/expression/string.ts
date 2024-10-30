@@ -104,7 +104,7 @@ export class StringExpression extends Expression {
 
   /** @hidden */
   toString(): string {
-    const quote = this.quotes ? (this.raws.quotes ?? '"') : '';
+    const quote = this.quotes ? this.raws.quotes ?? '"' : '';
     let result = quote;
     const rawText = this.text.raws.text;
     const rawExpressions = this.text.raws.expressions;

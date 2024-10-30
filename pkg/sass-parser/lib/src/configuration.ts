@@ -66,7 +66,7 @@ export class Configuration extends Node {
   constructor(_: undefined, inner: sassInternal.ConfiguredVariable[]);
   constructor(
     defaults?: ConfigurationProps,
-    inner?: sassInternal.ConfiguredVariable[],
+    inner?: sassInternal.ConfiguredVariable[]
   ) {
     super({});
     this.raws = defaults?.raws ?? {};

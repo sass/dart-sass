@@ -69,7 +69,7 @@ export class Root extends _Root implements Statement {
 
   toString(
     stringifier: postcss.Stringifier | postcss.Syntax = sassParser.scss
-      .stringify,
+      .stringify
   ): string {
     return super.toString(stringifier);
   }

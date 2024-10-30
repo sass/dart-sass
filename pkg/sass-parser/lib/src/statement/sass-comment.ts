@@ -136,17 +136,17 @@ export class SassComment
       }
       lineInfo[0].before = inner.span.file.getText(
         i + 1,
-        inner.span.start.offset,
+        inner.span.start.offset
       );
 
       const before = (this.raws.before = utils.longestCommonInitialSubstring(
-        lineInfo.map(info => info.before),
+        lineInfo.map(info => info.before)
       ));
       this.raws.beforeLines = lineInfo.map(info =>
-        info.before.substring(before.length),
+        info.before.substring(before.length)
       );
       const left = (this.raws.left = utils.longestCommonInitialSubstring(
-        lineInfo.map(info => info.left).filter(left => left !== null),
+        lineInfo.map(info => info.left).filter(left => left !== null)
       ));
       this.text = lineInfo
         .map(info => (info.left?.substring(left.length) ?? '') + info.text)
@@ -168,7 +168,7 @@ export class SassComment
   /** @hidden */
   toString(
     stringifier: postcss.Stringifier | postcss.Syntax = sassParser.scss
-      .stringify,
+      .stringify
   ): string {
     return super.toString(stringifier);
   }

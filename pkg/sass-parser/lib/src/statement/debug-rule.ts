@@ -97,7 +97,7 @@ export class DebugRule
       this,
       overrides,
       ['raws', 'debugExpression'],
-      [{name: 'params', explicitUndefined: true}],
+      [{name: 'params', explicitUndefined: true}]
     );
   }
 
@@ -108,14 +108,14 @@ export class DebugRule
     return utils.toJSON(
       this,
       ['name', 'debugExpression', 'params', 'nodes'],
-      inputs,
+      inputs
     );
   }
 
   /** @hidden */
   toString(
     stringifier: postcss.Stringifier | postcss.Syntax = sassParser.scss
-      .stringify,
+      .stringify
   ): string {
     return super.toString(stringifier);
   }

@@ -10,7 +10,7 @@ describe('a string expression', () => {
   describe('quoted', () => {
     function describeNode(
       description: string,
-      create: () => StringExpression,
+      create: () => StringExpression
     ): void {
       describe(description, () => {
         beforeEach(() => void (node = create()));
@@ -32,7 +32,7 @@ describe('a string expression', () => {
           new StringExpression({
             quotes: true,
             text: new Interpolation({nodes: ['foo']}),
-          }),
+          })
       );
 
       describeNode(
@@ -41,7 +41,7 @@ describe('a string expression', () => {
           new StringExpression({
             quotes: true,
             text: 'foo',
-          }),
+          })
       );
     });
 
@@ -50,14 +50,14 @@ describe('a string expression', () => {
         utils.fromExpressionProps({
           quotes: true,
           text: new Interpolation({nodes: ['foo']}),
-        }),
+        })
       );
 
       describeNode('with string text', () =>
         utils.fromExpressionProps({
           quotes: true,
           text: 'foo',
-        }),
+        })
       );
     });
   });
@@ -65,7 +65,7 @@ describe('a string expression', () => {
   describe('unquoted', () => {
     function describeNode(
       description: string,
-      create: () => StringExpression,
+      create: () => StringExpression
     ): void {
       describe(description, () => {
         beforeEach(() => void (node = create()));
@@ -86,7 +86,7 @@ describe('a string expression', () => {
         () =>
           new StringExpression({
             text: new Interpolation({nodes: ['foo']}),
-          }),
+          })
       );
 
       describeNode(
@@ -95,7 +95,7 @@ describe('a string expression', () => {
           new StringExpression({
             quotes: false,
             text: 'foo',
-          }),
+          })
       );
 
       describeNode(
@@ -103,7 +103,7 @@ describe('a string expression', () => {
         () =>
           new StringExpression({
             text: 'foo',
-          }),
+          })
       );
     });
 
@@ -111,20 +111,20 @@ describe('a string expression', () => {
       describeNode('with explicit text', () =>
         utils.fromExpressionProps({
           text: new Interpolation({nodes: ['foo']}),
-        }),
+        })
       );
 
       describeNode('with explicit quotes', () =>
         utils.fromExpressionProps({
           quotes: false,
           text: 'foo',
-        }),
+        })
       );
 
       describeNode('with string text', () =>
         utils.fromExpressionProps({
           text: 'foo',
-        }),
+        })
       );
     });
   });
@@ -210,17 +210,17 @@ describe('a string expression', () => {
 
       it('with internal unprintable', () =>
         expect(
-          new StringExpression({quotes: true, text: '\x00'}).toString(),
+          new StringExpression({quotes: true, text: '\x00'}).toString()
         ).toBe('"\\0 "'));
 
       it('with internal newline', () =>
         expect(
-          new StringExpression({quotes: true, text: '\x0A'}).toString(),
+          new StringExpression({quotes: true, text: '\x0A'}).toString()
         ).toBe('"\\a "'));
 
       it('with internal backslash', () =>
         expect(
-          new StringExpression({quotes: true, text: '\\'}).toString(),
+          new StringExpression({quotes: true, text: '\\'}).toString()
         ).toBe('"\\\\"'));
 
       it('respects interpolation raws', () =>
@@ -231,7 +231,7 @@ describe('a string expression', () => {
               nodes: ['foo'],
               raws: {text: [{raw: 'f\\6f o', value: 'foo'}]},
             }),
-          }).toString(),
+          }).toString()
         ).toBe('"f\\6f o"'));
     });
 
@@ -255,7 +255,7 @@ describe('a string expression', () => {
               nodes: ['foo'],
               raws: {text: [{raw: 'f\\6f o', value: 'foo'}]},
             }),
-          }).toString(),
+          }).toString()
         ).toBe('f\\6f o'));
     });
   });
@@ -304,13 +304,13 @@ describe('a string expression', () => {
         it('defined', () =>
           expect(original.clone({text: 'zip'})).toHaveInterpolation(
             'text',
-            'zip',
+            'zip'
           ));
 
         it('undefined', () =>
           expect(original.clone({text: undefined})).toHaveInterpolation(
             'text',
-            'foo',
+            'foo'
           ));
       });
 

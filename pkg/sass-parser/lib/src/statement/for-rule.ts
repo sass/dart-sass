@@ -174,14 +174,14 @@ export class ForRule
         'params',
         'nodes',
       ],
-      inputs,
+      inputs
     );
   }
 
   /** @hidden */
   toString(
     stringifier: postcss.Stringifier | postcss.Syntax = sassParser.scss
-      .stringify,
+      .stringify
   ): string {
     return super.toString(stringifier);
   }

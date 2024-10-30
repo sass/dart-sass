@@ -104,7 +104,7 @@ export class Rule extends _Rule implements Statement {
       this,
       overrides,
       ['nodes', 'raws', 'selectorInterpolation'],
-      ['selector', 'selectors'],
+      ['selector', 'selectors']
     );
   }
 
@@ -115,14 +115,14 @@ export class Rule extends _Rule implements Statement {
     return utils.toJSON(
       this,
       ['selector', 'selectorInterpolation', 'nodes'],
-      inputs,
+      inputs
     );
   }
 
   /** @hidden */
   toString(
     stringifier: postcss.Stringifier | postcss.Syntax = sassParser.scss
-      .stringify,
+      .stringify
   ): string {
     return super.toString(stringifier);
   }

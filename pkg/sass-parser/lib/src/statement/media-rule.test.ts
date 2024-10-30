@@ -10,7 +10,7 @@ describe('a @media rule', () => {
   describe('with no interpolation', () => {
     beforeEach(
       () =>
-        void (node = scss.parse('@media screen {}').nodes[0] as GenericAtRule),
+        void (node = scss.parse('@media screen {}').nodes[0] as GenericAtRule)
     );
 
     it('has a name', () => expect(node.name).toBe('media'));
@@ -27,7 +27,7 @@ describe('a @media rule', () => {
     beforeEach(
       () =>
         void (node = scss.parse('@media (hover: #{hover}) {}')
-          .nodes[0] as GenericAtRule),
+          .nodes[0] as GenericAtRule)
     );
 
     it('has a name', () => expect(node.name).toBe('media'));
@@ -40,7 +40,7 @@ describe('a @media rule', () => {
       expect(params.nodes[3]).toBeInstanceOf(StringExpression);
       expect((params.nodes[3] as StringExpression).text).toHaveStringExpression(
         0,
-        'hover',
+        'hover'
       );
       expect(params.nodes[4]).toBe(')');
     });
@@ -55,7 +55,7 @@ describe('a @media rule', () => {
     it('to SCSS', () =>
       expect(
         (node = scss.parse('@media #{screen} and (hover: #{hover}) {@foo}')
-          .nodes[0] as GenericAtRule).toString(),
+          .nodes[0] as GenericAtRule).toString()
       ).toBe('@media #{screen}  and (hover: #{hover}) {\n    @foo\n}'));
   });
 });

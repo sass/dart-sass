@@ -11,7 +11,7 @@ describe('a @supports rule', () => {
     beforeEach(
       () =>
         void (node = scss.parse('@supports ( foo $&#{bar} baz) {}')
-          .nodes[0] as GenericAtRule),
+          .nodes[0] as GenericAtRule)
     );
 
     it('has a name', () => expect(node.name).toBe('supports'));
@@ -35,7 +35,7 @@ describe('a @supports rule', () => {
       beforeEach(
         () =>
           void (node = scss.parse('@supports ( foo : bar, #abc, []) {}')
-            .nodes[0] as GenericAtRule),
+            .nodes[0] as GenericAtRule)
       );
 
       it('has a name', () => expect(node.name).toBe('supports'));
@@ -43,7 +43,7 @@ describe('a @supports rule', () => {
       it('has a paramsInterpolation', () =>
         expect(node).toHaveInterpolation(
           'paramsInterpolation',
-          '( foo : bar, #abc, [])',
+          '( foo : bar, #abc, [])'
         ));
 
       it('has matching params', () =>
@@ -58,7 +58,7 @@ describe('a @supports rule', () => {
       beforeEach(
         () =>
           void (node = scss.parse('@supports ($foo: $bar) {}')
-            .nodes[0] as GenericAtRule),
+            .nodes[0] as GenericAtRule)
       );
 
       it('has a name', () => expect(node.name).toBe('supports'));
@@ -66,7 +66,7 @@ describe('a @supports rule', () => {
       it('has a paramsInterpolation', () =>
         expect(node).toHaveInterpolation(
           'paramsInterpolation',
-          '(#{$foo}: #{$bar})',
+          '(#{$foo}: #{$bar})'
         ));
 
       it('has matching params', () => expect(node.params).toBe('($foo: $bar)'));
@@ -79,7 +79,7 @@ describe('a @supports rule', () => {
       beforeEach(
         () =>
           void (node = scss.parse('@supports (#{"foo"}: #{"bar"}) {}')
-            .nodes[0] as GenericAtRule),
+            .nodes[0] as GenericAtRule)
       );
 
       it('has a name', () => expect(node.name).toBe('supports'));
@@ -87,7 +87,7 @@ describe('a @supports rule', () => {
       it('has a paramsInterpolation', () =>
         expect(node).toHaveInterpolation(
           'paramsInterpolation',
-          '(#{"foo"}: #{"bar"})',
+          '(#{"foo"}: #{"bar"})'
         ));
 
       it('has matching params', () =>
@@ -102,7 +102,7 @@ describe('a @supports rule', () => {
     beforeEach(
       () =>
         void (node = scss.parse('@supports foo#{"bar"}(baz &*^ #{"bang"}) {}')
-          .nodes[0] as GenericAtRule),
+          .nodes[0] as GenericAtRule)
     );
 
     it('has a name', () => expect(node.name).toBe('supports'));
@@ -110,7 +110,7 @@ describe('a @supports rule', () => {
     it('has a paramsInterpolation', () =>
       expect(node).toHaveInterpolation(
         'paramsInterpolation',
-        'foo#{"bar"}(baz &*^ #{"bang"})',
+        'foo#{"bar"}(baz &*^ #{"bang"})'
       ));
 
     it('has matching params', () =>
@@ -118,7 +118,7 @@ describe('a @supports rule', () => {
 
     it('stringifies to SCSS', () =>
       expect(node.toString()).toBe(
-        '@supports foo#{"bar"}(baz &*^ #{"bang"}) {}',
+        '@supports foo#{"bar"}(baz &*^ #{"bang"}) {}'
       ));
   });
 
@@ -126,7 +126,7 @@ describe('a @supports rule', () => {
     beforeEach(
       () =>
         void (node = scss.parse('@supports #{"bar"} {}')
-          .nodes[0] as GenericAtRule),
+          .nodes[0] as GenericAtRule)
     );
 
     it('has a name', () => expect(node.name).toBe('supports'));
@@ -145,7 +145,7 @@ describe('a @supports rule', () => {
       beforeEach(
         () =>
           void (node = scss.parse('@supports not #{"bar"} {}')
-            .nodes[0] as GenericAtRule),
+            .nodes[0] as GenericAtRule)
       );
 
       it('has a name', () => expect(node.name).toBe('supports'));
@@ -153,7 +153,7 @@ describe('a @supports rule', () => {
       it('has a paramsInterpolation', () =>
         expect(node).toHaveInterpolation(
           'paramsInterpolation',
-          'not #{"bar"}',
+          'not #{"bar"}'
         ));
 
       it('has matching params', () => expect(node.params).toBe('not #{"bar"}'));
@@ -166,7 +166,7 @@ describe('a @supports rule', () => {
       beforeEach(
         () =>
           void (node = scss.parse('@supports not/**/#{"bar"} {}')
-            .nodes[0] as GenericAtRule),
+            .nodes[0] as GenericAtRule)
       );
 
       it('has a name', () => expect(node.name).toBe('supports'));
@@ -174,7 +174,7 @@ describe('a @supports rule', () => {
       it('has a paramsInterpolation', () =>
         expect(node).toHaveInterpolation(
           'paramsInterpolation',
-          'not/**/#{"bar"}',
+          'not/**/#{"bar"}'
         ));
 
       it('has matching params', () =>
@@ -189,7 +189,7 @@ describe('a @supports rule', () => {
     beforeEach(
       () =>
         void (node = scss.parse('@supports (#{"foo"} or #{"bar"}) {}')
-          .nodes[0] as GenericAtRule),
+          .nodes[0] as GenericAtRule)
     );
 
     it('has a name', () => expect(node.name).toBe('supports'));
@@ -197,7 +197,7 @@ describe('a @supports rule', () => {
     it('has a paramsInterpolation', () =>
       expect(node).toHaveInterpolation(
         'paramsInterpolation',
-        '(#{"foo"} or #{"bar"})',
+        '(#{"foo"} or #{"bar"})'
       ));
 
     it('has matching params', () =>

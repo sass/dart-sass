@@ -63,13 +63,13 @@ export class Stringifier extends PostCssStringifier {
     if (!this[statement.sassType]) {
       throw new Error(
         `Unknown AST node type ${statement.sassType}. ` +
-          'Maybe you need to change PostCSS stringifier.',
+          'Maybe you need to change PostCSS stringifier.'
       );
     }
     (
       this[statement.sassType] as (
         node: AnyStatement,
-        semicolon: boolean,
+        semicolon: boolean
       ) => void
     )(statement, semicolon);
   }
@@ -104,7 +104,7 @@ export class Stringifier extends PostCssStringifier {
         node.nodes[0],
         '@at-root' +
           (node.raws.afterName ?? ' ') +
-          node.nodes[0].selectorInterpolation,
+          node.nodes[0].selectorInterpolation
       );
       return;
     }
@@ -118,7 +118,7 @@ export class Stringifier extends PostCssStringifier {
     } else {
       this.builder(
         start + (node.raws.between ?? '') + (semicolon ? ';' : ''),
-        node,
+        node
       );
     }
   }
@@ -138,7 +138,7 @@ export class Stringifier extends PostCssStringifier {
           (node.raws.beforeLines?.[i] ?? '') +
           '//' +
           (/[^ \t]/.test(line) ? left : '') +
-          line,
+          line
       )
       .join('\n');
 

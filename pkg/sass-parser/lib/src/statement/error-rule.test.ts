@@ -24,12 +24,12 @@ describe('a @error rule', () => {
 
   describeNode(
     'parsed as SCSS',
-    () => scss.parse('@error foo').nodes[0] as ErrorRule,
+    () => scss.parse('@error foo').nodes[0] as ErrorRule
   );
 
   describeNode(
     'parsed as Sass',
-    () => sass.parse('@error foo').nodes[0] as ErrorRule,
+    () => sass.parse('@error foo').nodes[0] as ErrorRule
   );
 
   describeNode(
@@ -37,13 +37,13 @@ describe('a @error rule', () => {
     () =>
       new ErrorRule({
         errorExpression: {text: 'foo'},
-      }),
+      })
   );
 
   describeNode('constructed from ChildProps', () =>
     utils.fromChildProps({
       errorExpression: {text: 'foo'},
-    }),
+    })
   );
 
   it('throws an error when assigned a new name', () =>
@@ -51,7 +51,7 @@ describe('a @error rule', () => {
       () =>
         (new ErrorRule({
           errorExpression: {text: 'foo'},
-        }).name = 'bar'),
+        }).name = 'bar')
     ).toThrow());
 
   describe('assigned a new expression', () => {
@@ -106,7 +106,7 @@ describe('a @error rule', () => {
         expect(
           new ErrorRule({
             errorExpression: {text: 'foo'},
-          }).toString(),
+          }).toString()
         ).toBe('@error foo;'));
 
       it('with afterName', () =>
@@ -114,7 +114,7 @@ describe('a @error rule', () => {
           new ErrorRule({
             errorExpression: {text: 'foo'},
             raws: {afterName: '/**/'},
-          }).toString(),
+          }).toString()
         ).toBe('@error/**/foo;'));
 
       it('with between', () =>
@@ -122,7 +122,7 @@ describe('a @error rule', () => {
           new ErrorRule({
             errorExpression: {text: 'foo'},
             raws: {between: '/**/'},
-          }).toString(),
+          }).toString()
         ).toBe('@error foo/**/;'));
     });
   });

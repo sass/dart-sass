@@ -11,7 +11,7 @@ describe('a boolean expression', () => {
   describe('true', () => {
     function describeNode(
       description: string,
-      create: () => BooleanExpression,
+      create: () => BooleanExpression
     ): void {
       describe(description, () => {
         beforeEach(() => void (node = create()));
@@ -26,18 +26,18 @@ describe('a boolean expression', () => {
 
     describeNode(
       'constructed manually',
-      () => new BooleanExpression({value: true}),
+      () => new BooleanExpression({value: true})
     );
 
     describeNode('constructed from ExpressionProps', () =>
-      utils.fromExpressionProps({value: true}),
+      utils.fromExpressionProps({value: true})
     );
   });
 
   describe('false', () => {
     function describeNode(
       description: string,
-      create: () => BooleanExpression,
+      create: () => BooleanExpression
     ): void {
       describe(description, () => {
         beforeEach(() => void (node = create()));
@@ -52,11 +52,11 @@ describe('a boolean expression', () => {
 
     describeNode(
       'constructed manually',
-      () => new BooleanExpression({value: false}),
+      () => new BooleanExpression({value: false})
     );
 
     describeNode('constructed from ExpressionProps', () =>
-      utils.fromExpressionProps({value: false}),
+      utils.fromExpressionProps({value: false})
     );
   });
 

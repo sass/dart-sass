@@ -9,7 +9,7 @@ describe('a binary operation', () => {
   let node: BinaryOperationExpression;
   function describeNode(
     description: string,
-    create: () => BinaryOperationExpression,
+    create: () => BinaryOperationExpression
   ): void {
     describe(description, () => {
       beforeEach(() => void (node = create()));
@@ -36,7 +36,7 @@ describe('a binary operation', () => {
         operator: '+',
         left: {text: 'foo'},
         right: {text: 'bar'},
-      }),
+      })
   );
 
   describeNode('constructed from ExpressionProps', () =>
@@ -44,7 +44,7 @@ describe('a binary operation', () => {
       operator: '+',
       left: {text: 'foo'},
       right: {text: 'bar'},
-    }),
+    })
   );
 
   describe('assigned new', () => {
@@ -158,13 +158,13 @@ describe('a binary operation', () => {
         it('defined', () =>
           expect(original.clone({left: {text: 'zip'}})).toHaveStringExpression(
             'left',
-            'zip',
+            'zip'
           ));
 
         it('undefined', () =>
           expect(original.clone({left: undefined})).toHaveStringExpression(
             'left',
-            'foo',
+            'foo'
           ));
       });
 
@@ -172,13 +172,13 @@ describe('a binary operation', () => {
         it('defined', () =>
           expect(original.clone({right: {text: 'zip'}})).toHaveStringExpression(
             'right',
-            'zip',
+            'zip'
           ));
 
         it('undefined', () =>
           expect(original.clone({right: undefined})).toHaveStringExpression(
             'right',
-            'bar',
+            'bar'
           ));
       });
 

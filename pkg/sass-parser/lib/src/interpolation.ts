@@ -132,7 +132,7 @@ export class Interpolation extends Node {
       this._nodes = [];
       for (const child of inner.contents) {
         this.append(
-          typeof child === 'string' ? child : convertExpression(child),
+          typeof child === 'string' ? child : convertExpression(child)
         );
       }
     }
@@ -176,7 +176,7 @@ export class Interpolation extends Node {
    * @return Returns `false` if any call to `callback` returned false
    */
   each(
-    callback: (node: string | Expression, index: number) => false | void,
+    callback: (node: string | Expression, index: number) => false | void
   ): false | undefined {
     const iterator = {index: 0};
     this.#iterators.push(iterator);
@@ -201,8 +201,8 @@ export class Interpolation extends Node {
     condition: (
       node: string | Expression,
       index: number,
-      nodes: ReadonlyArray<string | Expression>,
-    ) => boolean,
+      nodes: ReadonlyArray<string | Expression>
+    ) => boolean
   ): boolean {
     return this.nodes.every(condition);
   }
@@ -225,7 +225,7 @@ export class Interpolation extends Node {
    */
   insertAfter(
     oldNode: string | Expression | number,
-    newNode: NewNodeForInterpolation,
+    newNode: NewNodeForInterpolation
   ): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
     const index = this.index(oldNode);
@@ -248,7 +248,7 @@ export class Interpolation extends Node {
    */
   insertBefore(
     oldNode: string | Expression | number,
-    newNode: NewNodeForInterpolation,
+    newNode: NewNodeForInterpolation
   ): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
     const index = this.index(oldNode);
@@ -320,8 +320,8 @@ export class Interpolation extends Node {
     condition: (
       node: string | Expression,
       index: number,
-      nodes: ReadonlyArray<string | Expression>,
-    ) => boolean,
+      nodes: ReadonlyArray<string | Expression>
+    ) => boolean
   ): boolean {
     return this.nodes.some(condition);
   }
@@ -401,7 +401,7 @@ export class Interpolation extends Node {
 
   /** Like {@link _normalize}, but also flattens a list of nodes. */
   private _normalizeList(
-    nodes: ReadonlyArray<NewNodeForInterpolation>,
+    nodes: ReadonlyArray<NewNodeForInterpolation>
   ): (Expression | string)[] {
     const result: Array<string | Expression> = [];
     for (const node of nodes) {
@@ -413,7 +413,7 @@ export class Interpolation extends Node {
   /** @hidden */
   get nonStatementChildren(): ReadonlyArray<Expression> {
     return this.nodes.filter(
-      (node): node is Expression => typeof node !== 'string',
+      (node): node is Expression => typeof node !== 'string'
     );
   }
 }

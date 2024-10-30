@@ -54,7 +54,7 @@ export class LazySource implements postcss.Source {
     const spanUrl = this.#inner.span.url;
     sourceFile._postcssInput = new postcss.Input(
       sourceFile.getText(0),
-      spanUrl ? {from: url.fileURLToPath(spanUrl)} : undefined,
+      spanUrl ? {from: url.fileURLToPath(spanUrl)} : undefined
     );
     return sourceFile._postcssInput;
   }

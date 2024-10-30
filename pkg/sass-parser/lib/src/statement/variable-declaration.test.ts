@@ -12,13 +12,13 @@ describe('a variable declaration', () => {
       void (node = new VariableDeclaration({
         variableName: 'foo',
         expression: {text: 'bar'},
-      })),
+      }))
   );
 
   describe('with no namespace and no flags', () => {
     function describeNode(
       description: string,
-      create: () => VariableDeclaration,
+      create: () => VariableDeclaration
     ): void {
       describe(description, () => {
         beforeEach(() => (node = create()));
@@ -45,12 +45,12 @@ describe('a variable declaration', () => {
 
     describeNode(
       'parsed as SCSS',
-      () => scss.parse('$foo: bar').nodes[0] as VariableDeclaration,
+      () => scss.parse('$foo: bar').nodes[0] as VariableDeclaration
     );
 
     describeNode(
       'parsed as Sass',
-      () => sass.parse('$foo: bar').nodes[0] as VariableDeclaration,
+      () => sass.parse('$foo: bar').nodes[0] as VariableDeclaration
     );
 
     describe('constructed manually', () => {
@@ -60,7 +60,7 @@ describe('a variable declaration', () => {
           new VariableDeclaration({
             variableName: 'foo',
             expression: new StringExpression({text: 'bar'}),
-          }),
+          })
       );
 
       describeNode(
@@ -69,7 +69,7 @@ describe('a variable declaration', () => {
           new VariableDeclaration({
             variableName: 'foo',
             expression: {text: 'bar'},
-          }),
+          })
       );
 
       describeNode(
@@ -78,19 +78,19 @@ describe('a variable declaration', () => {
           new VariableDeclaration({
             variableName: 'foo',
             value: 'bar',
-          }),
+          })
       );
     });
 
     describeNode('constructed from ChildProps', () =>
-      utils.fromChildProps({variableName: 'foo', expression: {text: 'bar'}}),
+      utils.fromChildProps({variableName: 'foo', expression: {text: 'bar'}})
     );
   });
 
   describe('with a namespace', () => {
     function describeNode(
       description: string,
-      create: () => VariableDeclaration,
+      create: () => VariableDeclaration
     ): void {
       describe(description, () => {
         beforeEach(() => (node = create()));
@@ -117,12 +117,12 @@ describe('a variable declaration', () => {
 
     describeNode(
       'parsed as SCSS',
-      () => scss.parse('baz.$foo: "bar"').nodes[0] as VariableDeclaration,
+      () => scss.parse('baz.$foo: "bar"').nodes[0] as VariableDeclaration
     );
 
     describeNode(
       'parsed as Sass',
-      () => sass.parse('baz.$foo: "bar"').nodes[0] as VariableDeclaration,
+      () => sass.parse('baz.$foo: "bar"').nodes[0] as VariableDeclaration
     );
 
     describeNode(
@@ -132,7 +132,7 @@ describe('a variable declaration', () => {
           namespace: 'baz',
           variableName: 'foo',
           expression: new StringExpression({text: 'bar', quotes: true}),
-        }),
+        })
     );
 
     describeNode('constructed from ChildProps', () =>
@@ -140,14 +140,14 @@ describe('a variable declaration', () => {
         namespace: 'baz',
         variableName: 'foo',
         expression: {text: 'bar', quotes: true},
-      }),
+      })
     );
   });
 
   describe('guarded', () => {
     function describeNode(
       description: string,
-      create: () => VariableDeclaration,
+      create: () => VariableDeclaration
     ): void {
       describe(description, () => {
         beforeEach(() => (node = create()));
@@ -174,12 +174,12 @@ describe('a variable declaration', () => {
 
     describeNode(
       'parsed as SCSS',
-      () => scss.parse('$foo: "bar" !default').nodes[0] as VariableDeclaration,
+      () => scss.parse('$foo: "bar" !default').nodes[0] as VariableDeclaration
     );
 
     describeNode(
       'parsed as Sass',
-      () => sass.parse('$foo: "bar" !default').nodes[0] as VariableDeclaration,
+      () => sass.parse('$foo: "bar" !default').nodes[0] as VariableDeclaration
     );
 
     describeNode(
@@ -189,7 +189,7 @@ describe('a variable declaration', () => {
           variableName: 'foo',
           expression: new StringExpression({text: 'bar', quotes: true}),
           guarded: true,
-        }),
+        })
     );
 
     describeNode('constructed from ChildProps', () =>
@@ -197,14 +197,14 @@ describe('a variable declaration', () => {
         variableName: 'foo',
         expression: {text: 'bar', quotes: true},
         guarded: true,
-      }),
+      })
     );
   });
 
   describe('global', () => {
     function describeNode(
       description: string,
-      create: () => VariableDeclaration,
+      create: () => VariableDeclaration
     ): void {
       describe(description, () => {
         beforeEach(() => (node = create()));
@@ -231,12 +231,12 @@ describe('a variable declaration', () => {
 
     describeNode(
       'parsed as SCSS',
-      () => scss.parse('$foo: "bar" !global').nodes[0] as VariableDeclaration,
+      () => scss.parse('$foo: "bar" !global').nodes[0] as VariableDeclaration
     );
 
     describeNode(
       'parsed as Sass',
-      () => sass.parse('$foo: "bar" !global').nodes[0] as VariableDeclaration,
+      () => sass.parse('$foo: "bar" !global').nodes[0] as VariableDeclaration
     );
 
     describeNode(
@@ -246,7 +246,7 @@ describe('a variable declaration', () => {
           variableName: 'foo',
           expression: new StringExpression({text: 'bar', quotes: true}),
           global: true,
-        }),
+        })
     );
 
     describeNode('constructed from ChildProps', () =>
@@ -254,7 +254,7 @@ describe('a variable declaration', () => {
         variableName: 'foo',
         expression: {text: 'bar', quotes: true},
         global: true,
-      }),
+      })
     );
   });
 
@@ -302,7 +302,7 @@ describe('a variable declaration', () => {
             new VariableDeclaration({
               variableName: 'foo',
               expression: {text: 'bar'},
-            }).toString(),
+            }).toString()
           ).toBe('$foo: bar'));
 
         describe('with a namespace', () => {
@@ -312,7 +312,7 @@ describe('a variable declaration', () => {
                 namespace: 'baz',
                 variableName: 'foo',
                 expression: {text: 'bar'},
-              }).toString(),
+              }).toString()
             ).toBe('baz.$foo: bar'));
 
           it("that's not an identifier", () =>
@@ -321,7 +321,7 @@ describe('a variable declaration', () => {
                 namespace: 'b z',
                 variableName: 'foo',
                 expression: {text: 'bar'},
-              }).toString(),
+              }).toString()
             ).toBe('b\\20z.$foo: bar'));
         });
 
@@ -330,7 +330,7 @@ describe('a variable declaration', () => {
             new VariableDeclaration({
               variableName: 'f o',
               expression: {text: 'bar'},
-            }).toString(),
+            }).toString()
           ).toBe('$f\\20o: bar'));
 
         it('global', () =>
@@ -339,7 +339,7 @@ describe('a variable declaration', () => {
               variableName: 'foo',
               expression: {text: 'bar'},
               global: true,
-            }).toString(),
+            }).toString()
           ).toBe('$foo: bar !global'));
 
         it('guarded', () =>
@@ -348,7 +348,7 @@ describe('a variable declaration', () => {
               variableName: 'foo',
               expression: {text: 'bar'},
               guarded: true,
-            }).toString(),
+            }).toString()
           ).toBe('$foo: bar !default'));
 
         it('with both flags', () =>
@@ -358,7 +358,7 @@ describe('a variable declaration', () => {
               expression: {text: 'bar'},
               global: true,
               guarded: true,
-            }).toString(),
+            }).toString()
           ).toBe('$foo: bar !default !global'));
       });
 
@@ -370,7 +370,7 @@ describe('a variable declaration', () => {
               variableName: 'foo',
               expression: {text: 'bar'},
               raws: {namespace: {raw: 'b\\41z', value: 'baz'}},
-            }).toString(),
+            }).toString()
           ).toBe('b\\41z.$foo: bar'));
 
         it("that doesn't match", () =>
@@ -380,7 +380,7 @@ describe('a variable declaration', () => {
               variableName: 'foo',
               expression: {text: 'bar'},
               raws: {namespace: {raw: 'z\\41p', value: 'zap'}},
-            }).toString(),
+            }).toString()
           ).toBe('baz.$foo: bar'));
       });
 
@@ -391,7 +391,7 @@ describe('a variable declaration', () => {
               variableName: 'foo',
               expression: {text: 'bar'},
               raws: {variableName: {raw: 'f\\f3o', value: 'foo'}},
-            }).toString(),
+            }).toString()
           ).toBe('$f\\f3o: bar'));
 
         it("that doesn't match", () =>
@@ -400,7 +400,7 @@ describe('a variable declaration', () => {
               variableName: 'foo',
               expression: {text: 'bar'},
               raws: {namespace: {raw: 'z\\41p', value: 'zap'}},
-            }).toString(),
+            }).toString()
           ).toBe('$foo: bar'));
       });
 
@@ -410,7 +410,7 @@ describe('a variable declaration', () => {
             variableName: 'foo',
             expression: {text: 'bar'},
             raws: {between: '/**/:'},
-          }).toString(),
+          }).toString()
         ).toBe('$foo/**/:bar'));
 
       describe('with a flags raw', () => {
@@ -426,7 +426,7 @@ describe('a variable declaration', () => {
                   value: {guarded: true, global: false},
                 },
               },
-            }).toString(),
+            }).toString()
           ).toBe('$foo: bar/**/!default'));
 
         it('that matches only one', () =>
@@ -441,7 +441,7 @@ describe('a variable declaration', () => {
                   value: {guarded: true, global: true},
                 },
               },
-            }).toString(),
+            }).toString()
           ).toBe('$foo: bar !default'));
 
         it('that matches neither', () =>
@@ -456,7 +456,7 @@ describe('a variable declaration', () => {
                   value: {guarded: false, global: true},
                 },
               },
-            }).toString(),
+            }).toString()
           ).toBe('$foo: bar !default'));
       });
 
@@ -467,7 +467,7 @@ describe('a variable declaration', () => {
               variableName: 'foo',
               expression: {text: 'bar'},
               raws: {afterValue: '/**/'},
-            }).toString(),
+            }).toString()
           ).toBe('$foo: bar/**/'));
 
         it('with flags', () =>
@@ -477,7 +477,7 @@ describe('a variable declaration', () => {
               expression: {text: 'bar'},
               global: true,
               raws: {afterValue: '/**/'},
-            }).toString(),
+            }).toString()
           ).toBe('$foo: bar !global/**/'));
       });
     });
@@ -587,12 +587,12 @@ describe('a variable declaration', () => {
       describe('expression', () => {
         it('defined changes expression', () =>
           expect(
-            original.clone({expression: {text: 'zap'}}),
+            original.clone({expression: {text: 'zap'}})
           ).toHaveStringExpression('expression', 'zap'));
 
         it('undefined preserves expression', () =>
           expect(
-            original.clone({expression: undefined}),
+            original.clone({expression: undefined})
           ).toHaveStringExpression('expression', 'bar'));
       });
 

@@ -32,7 +32,7 @@ declare namespace SassInternal {
 
   function parseIdentifier(
     identifier: string,
-    logger?: sass.Logger,
+    logger?: sass.Logger
   ): string | null;
 
   function toCssIdentifier(text: string): string;
@@ -42,7 +42,7 @@ declare namespace SassInternal {
   }
 
   function createStatementVisitor<T>(
-    inner: StatementVisitorObject<T>,
+    inner: StatementVisitorObject<T>
   ): StatementVisitor<T>;
 
   class ExpressionVisitor<T> {
@@ -50,7 +50,7 @@ declare namespace SassInternal {
   }
 
   function createExpressionVisitor<T>(
-    inner: ExpressionVisitorObject<T>,
+    inner: ExpressionVisitorObject<T>
   ): ExpressionVisitor<T>;
 
   class SassNode {
