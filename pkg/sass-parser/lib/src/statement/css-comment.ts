@@ -125,7 +125,7 @@ export class CssComment
       this.textInterpolation = new Interpolation();
       for (const child of nodes) {
         this.textInterpolation.append(
-          typeof child === 'string' ? child : convertExpression(child)
+          typeof child === 'string' ? child : convertExpression(child),
         );
       }
     }
@@ -136,7 +136,7 @@ export class CssComment
       this,
       overrides,
       ['raws', 'textInterpolation'],
-      ['text']
+      ['text'],
     );
   }
 
@@ -150,7 +150,7 @@ export class CssComment
   /** @hidden */
   toString(
     stringifier: postcss.Stringifier | postcss.Syntax = sassParser.scss
-      .stringify
+      .stringify,
   ): string {
     return super.toString(stringifier);
   }

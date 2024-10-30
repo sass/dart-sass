@@ -130,7 +130,7 @@ class _Syntax implements Syntax {
 
     return new Root(
       undefined,
-      sassInternal.parse(css.toString(), this.#syntax, opts?.from)
+      sassInternal.parse(css.toString(), this.#syntax, opts?.from),
     );
   }
 

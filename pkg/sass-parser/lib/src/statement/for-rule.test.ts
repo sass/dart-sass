@@ -33,12 +33,12 @@ describe('an @for rule', () => {
 
     describeNode(
       'parsed as SCSS',
-      () => scss.parse('@for $foo from bar through baz {}').nodes[0] as ForRule
+      () => scss.parse('@for $foo from bar through baz {}').nodes[0] as ForRule,
     );
 
     describeNode(
       'parsed as Sass',
-      () => sass.parse('@for $foo from bar through baz').nodes[0] as ForRule
+      () => sass.parse('@for $foo from bar through baz').nodes[0] as ForRule,
     );
 
     describeNode(
@@ -49,7 +49,7 @@ describe('an @for rule', () => {
           to: 'through',
           fromExpression: {text: 'bar'},
           toExpression: {text: 'baz'},
-        })
+        }),
     );
 
     describeNode('constructed from ChildProps', () =>
@@ -58,7 +58,7 @@ describe('an @for rule', () => {
         to: 'through',
         fromExpression: {text: 'bar'},
         toExpression: {text: 'baz'},
-      })
+      }),
     );
   });
 
@@ -94,14 +94,14 @@ describe('an @for rule', () => {
       'parsed as SCSS',
       () =>
         scss.parse('@for $foo from bar through baz {@child}')
-          .nodes[0] as ForRule
+          .nodes[0] as ForRule,
     );
 
     describeNode(
       'parsed as Sass',
       () =>
         sass.parse('@for $foo from bar through baz\n  @child')
-          .nodes[0] as ForRule
+          .nodes[0] as ForRule,
     );
 
     describeNode(
@@ -113,7 +113,7 @@ describe('an @for rule', () => {
           fromExpression: {text: 'bar'},
           toExpression: {text: 'baz'},
           nodes: [{name: 'child'}],
-        })
+        }),
     );
 
     describeNode('constructed from ChildProps', () =>
@@ -123,7 +123,7 @@ describe('an @for rule', () => {
         fromExpression: {text: 'bar'},
         toExpression: {text: 'baz'},
         nodes: [{name: 'child'}],
-      })
+      }),
     );
   });
 
@@ -134,7 +134,7 @@ describe('an @for rule', () => {
           variable: 'foo',
           fromExpression: {text: 'bar'},
           toExpression: {text: 'baz'},
-        }))
+        })),
     );
 
     it('name', () => expect(() => (node.name = 'qux')).toThrow());
@@ -209,7 +209,7 @@ describe('an @for rule', () => {
             variable: 'foo',
             fromExpression: {text: 'bar'},
             toExpression: {text: 'baz'},
-          }).toString()
+          }).toString(),
         ).toBe('@for $foo from bar to baz {}'));
 
       it('with afterName', () =>
@@ -219,7 +219,7 @@ describe('an @for rule', () => {
             fromExpression: {text: 'bar'},
             toExpression: {text: 'baz'},
             raws: {afterName: '/**/'},
-          }).toString()
+          }).toString(),
         ).toBe('@for/**/$foo from bar to baz {}'));
 
       it('with afterVariable', () =>
@@ -229,7 +229,7 @@ describe('an @for rule', () => {
             fromExpression: {text: 'bar'},
             toExpression: {text: 'baz'},
             raws: {afterVariable: '/**/'},
-          }).toString()
+          }).toString(),
         ).toBe('@for $foo/**/from bar to baz {}'));
 
       it('with afterFrom', () =>
@@ -239,7 +239,7 @@ describe('an @for rule', () => {
             fromExpression: {text: 'bar'},
             toExpression: {text: 'baz'},
             raws: {afterFrom: '/**/'},
-          }).toString()
+          }).toString(),
         ).toBe('@for $foo from/**/bar to baz {}'));
 
       it('with afterFromExpression', () =>
@@ -249,7 +249,7 @@ describe('an @for rule', () => {
             fromExpression: {text: 'bar'},
             toExpression: {text: 'baz'},
             raws: {afterFromExpression: '/**/'},
-          }).toString()
+          }).toString(),
         ).toBe('@for $foo from bar/**/to baz {}'));
 
       it('with afterTo', () =>
@@ -259,7 +259,7 @@ describe('an @for rule', () => {
             fromExpression: {text: 'bar'},
             toExpression: {text: 'baz'},
             raws: {afterTo: '/**/'},
-          }).toString()
+          }).toString(),
         ).toBe('@for $foo from bar to/**/baz {}'));
     });
   });
@@ -432,6 +432,6 @@ describe('an @for rule', () => {
 
   it('toJSON', () =>
     expect(
-      scss.parse('@for $foo from bar to baz {}').nodes[0]
+      scss.parse('@for $foo from bar to baz {}').nodes[0],
     ).toMatchSnapshot());
 });

@@ -27,7 +27,7 @@ describe('a style rule', () => {
 
     describeNode(
       'parsed as SCSS',
-      () => scss.parse('.foo {}').nodes[0] as Rule
+      () => scss.parse('.foo {}').nodes[0] as Rule,
     );
 
     describeNode('parsed as CSS', () => css.parse('.foo {}').nodes[0] as Rule);
@@ -51,12 +51,12 @@ describe('a style rule', () => {
         () =>
           new Rule({
             selectorInterpolation: new Interpolation({nodes: ['.foo ']}),
-          })
+          }),
       );
 
       describeNode(
         'with a selector string',
-        () => new Rule({selector: '.foo '})
+        () => new Rule({selector: '.foo '}),
       );
     });
 
@@ -64,11 +64,11 @@ describe('a style rule', () => {
       describeNode('with an interpolation', () =>
         utils.fromChildProps({
           selectorInterpolation: new Interpolation({nodes: ['.foo ']}),
-        })
+        }),
       );
 
       describeNode('with a selector string', () =>
-        utils.fromChildProps({selector: '.foo '})
+        utils.fromChildProps({selector: '.foo '}),
       );
     });
   });
@@ -93,12 +93,12 @@ describe('a style rule', () => {
 
     describeNode(
       'parsed as SCSS',
-      () => scss.parse('.foo {@bar}').nodes[0] as Rule
+      () => scss.parse('.foo {@bar}').nodes[0] as Rule,
     );
 
     describeNode(
       'parsed as CSS',
-      () => css.parse('.foo {@bar}').nodes[0] as Rule
+      () => css.parse('.foo {@bar}').nodes[0] as Rule,
     );
 
     describe('parsed as Sass', () => {
@@ -125,12 +125,12 @@ describe('a style rule', () => {
           new Rule({
             selectorInterpolation: new Interpolation({nodes: ['.foo ']}),
             nodes: [{name: 'bar'}],
-          })
+          }),
       );
 
       describeNode(
         'with a selector string',
-        () => new Rule({selector: '.foo ', nodes: [{name: 'bar'}]})
+        () => new Rule({selector: '.foo ', nodes: [{name: 'bar'}]}),
       );
     });
 
@@ -139,11 +139,11 @@ describe('a style rule', () => {
         utils.fromChildProps({
           selectorInterpolation: new Interpolation({nodes: ['.foo ']}),
           nodes: [{name: 'bar'}],
-        })
+        }),
       );
 
       describeNode('with a selector string', () =>
-        utils.fromChildProps({selector: '.foo ', nodes: [{name: 'bar'}]})
+        utils.fromChildProps({selector: '.foo ', nodes: [{name: 'bar'}]}),
       );
     });
   });
@@ -190,7 +190,10 @@ describe('a style rule', () => {
 
         it('with a child', () =>
           expect(
-            new Rule({selector: '.foo', nodes: [{selector: '.bar'}]}).toString()
+            new Rule({
+              selector: '.foo',
+              nodes: [{selector: '.bar'}],
+            }).toString(),
           ).toBe('.foo {\n    .bar {}\n}'));
       });
 
@@ -199,13 +202,13 @@ describe('a style rule', () => {
           new Rule({
             selector: '.foo',
             raws: {between: '/**/'},
-          }).toString()
+          }).toString(),
         ).toBe('.foo/**/{}'));
 
       describe('with after', () => {
         it('with no children', () =>
           expect(
-            new Rule({selector: '.foo', raws: {after: '/**/'}}).toString()
+            new Rule({selector: '.foo', raws: {after: '/**/'}}).toString(),
           ).toBe('.foo {/**/}'));
 
         it('with a child', () =>
@@ -214,7 +217,7 @@ describe('a style rule', () => {
               selector: '.foo',
               nodes: [{selector: '.bar'}],
               raws: {after: '/**/'},
-            }).toString()
+            }).toString(),
           ).toBe('.foo {\n    .bar {}/**/}'));
       });
 
@@ -222,7 +225,7 @@ describe('a style rule', () => {
         expect(
           new Root({
             nodes: [new Rule({selector: '.foo', raws: {before: '/**/'}})],
-          }).toString()
+          }).toString(),
         ).toBe('/**/.foo {}'));
     });
   });
@@ -300,7 +303,7 @@ describe('a style rule', () => {
           it('preserves selectorInterpolation', () =>
             expect(clone).toHaveInterpolation(
               'selectorInterpolation',
-              '.foo '
+              '.foo ',
             ));
         });
       });
@@ -331,7 +334,7 @@ describe('a style rule', () => {
           it('preserves selectorInterpolation', () =>
             expect(clone).toHaveInterpolation(
               'selectorInterpolation',
-              '.foo '
+              '.foo ',
             ));
         });
       });

@@ -9,7 +9,7 @@ describe('an @at-root rule', () => {
 
   describe('with no params', () => {
     beforeEach(
-      () => void (node = scss.parse('@at-root {}').nodes[0] as GenericAtRule)
+      () => void (node = scss.parse('@at-root {}').nodes[0] as GenericAtRule),
     );
 
     it('has a name', () => expect(node.name).toBe('at-root'));
@@ -24,7 +24,7 @@ describe('an @at-root rule', () => {
     beforeEach(
       () =>
         void (node = scss.parse('@at-root (with: rule) {}')
-          .nodes[0] as GenericAtRule)
+          .nodes[0] as GenericAtRule),
     );
 
     it('has a name', () => expect(node.name).toBe('at-root'));
@@ -41,7 +41,7 @@ describe('an @at-root rule', () => {
     beforeEach(
       () =>
         void (node = scss.parse('@at-root (with: #{rule}) {}')
-          .nodes[0] as GenericAtRule)
+          .nodes[0] as GenericAtRule),
     );
 
     it('has a name', () => expect(node.name).toBe('at-root'));
@@ -60,7 +60,7 @@ describe('an @at-root rule', () => {
   describe('with style rule shorthand', () => {
     beforeEach(
       () =>
-        void (node = scss.parse('@at-root .foo {}').nodes[0] as GenericAtRule)
+        void (node = scss.parse('@at-root .foo {}').nodes[0] as GenericAtRule),
     );
 
     it('has a name', () => expect(node.name).toBe('at-root'));
@@ -85,7 +85,7 @@ describe('an @at-root rule', () => {
             name: 'at-root',
             nodes: [{selector: '.foo'}],
             raws: {atRootShorthand: false},
-          }).toString()
+          }).toString(),
         ).toBe('@at-root {\n    .foo {}\n}'));
 
       describe('with atRootShorthand: true', () => {
@@ -95,7 +95,7 @@ describe('an @at-root rule', () => {
               name: 'at-root',
               nodes: [{selector: '.foo'}],
               raws: {atRootShorthand: true},
-            }).toString()
+            }).toString(),
           ).toBe('@at-root .foo {}'));
 
         it('with no params and multiple children', () =>
@@ -104,7 +104,7 @@ describe('an @at-root rule', () => {
               name: 'at-root',
               nodes: [{selector: '.foo'}, {selector: '.bar'}],
               raws: {atRootShorthand: true},
-            }).toString()
+            }).toString(),
           ).toBe('@at-root {\n    .foo {}\n    .bar {}\n}'));
 
         it('with no params and a non-style-rule child', () =>
@@ -113,7 +113,7 @@ describe('an @at-root rule', () => {
               name: 'at-root',
               nodes: [{name: 'foo'}],
               raws: {atRootShorthand: true},
-            }).toString()
+            }).toString(),
           ).toBe('@at-root {\n    @foo\n}'));
 
         it('with params and only a style rule child', () =>
@@ -123,7 +123,7 @@ describe('an @at-root rule', () => {
               params: '(with: rule)',
               nodes: [{selector: '.foo'}],
               raws: {atRootShorthand: true},
-            }).toString()
+            }).toString(),
           ).toBe('@at-root (with: rule) {\n    .foo {}\n}'));
 
         it("that's not @at-root", () =>
@@ -132,7 +132,7 @@ describe('an @at-root rule', () => {
               name: 'at-wrong',
               nodes: [{selector: '.foo'}],
               raws: {atRootShorthand: true},
-            }).toString()
+            }).toString(),
           ).toBe('@at-wrong {\n    .foo {}\n}'));
       });
     });

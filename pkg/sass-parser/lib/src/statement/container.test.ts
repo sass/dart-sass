@@ -37,12 +37,12 @@ describe('a container node', () => {
       expect(root.nodes[0]).toBeInstanceOf(Rule);
       expect(root.nodes[0]).toHaveInterpolation(
         'selectorInterpolation',
-        '.foo'
+        '.foo',
       );
       expect(root.nodes[1]).toBeInstanceOf(Rule);
       expect(root.nodes[1]).toHaveInterpolation(
         'selectorInterpolation',
-        '.bar'
+        '.bar',
       );
       expect(root.nodes[0].parent).toBe(root);
       expect(root.nodes[1].parent).toBe(root);
@@ -56,7 +56,7 @@ describe('a container node', () => {
       expect(root.nodes[0]).toBeInstanceOf(Rule);
       expect(root.nodes[0]).toHaveInterpolation(
         'selectorInterpolation',
-        '.foo'
+        '.foo',
       );
       expect(root.nodes[0].parent).toBe(root);
       expect(root.nodes[0].source).toBe(node.source);
@@ -81,12 +81,12 @@ describe('a container node', () => {
       expect(root.nodes[0]).toBeInstanceOf(Rule);
       expect(root.nodes[0]).toHaveInterpolation(
         'selectorInterpolation',
-        '.foo'
+        '.foo',
       );
       expect(root.nodes[1]).toBeInstanceOf(Rule);
       expect(root.nodes[1]).toHaveInterpolation(
         'selectorInterpolation',
-        '.bar'
+        '.bar',
       );
       expect(root.nodes[0].parent).toBe(root);
       expect(root.nodes[1].parent).toBe(root);
@@ -102,12 +102,12 @@ describe('a container node', () => {
       expect(root.nodes[0]).toBeInstanceOf(Rule);
       expect(root.nodes[0]).toHaveInterpolation(
         'selectorInterpolation',
-        '.foo'
+        '.foo',
       );
       expect(root.nodes[1]).toBeInstanceOf(Rule);
       expect(root.nodes[1]).toHaveInterpolation(
         'selectorInterpolation',
-        '.bar'
+        '.bar',
       );
       expect(root.nodes[0].parent).toBe(root);
       expect(root.nodes[1].parent).toBe(root);
@@ -120,7 +120,7 @@ describe('a container node', () => {
       expect(root.nodes[0]).toBeInstanceOf(Rule);
       expect(root.nodes[0]).toHaveInterpolation(
         'selectorInterpolation',
-        '.foo'
+        '.foo',
       );
       expect(root.nodes[0].parent).toBe(root);
     });
@@ -130,7 +130,7 @@ describe('a container node', () => {
       expect(root.nodes[0]).toBeInstanceOf(Rule);
       expect(root.nodes[0]).toHaveInterpolation(
         'selectorInterpolation',
-        '.foo'
+        '.foo',
       );
       expect(root.nodes[0].parent).toBe(root);
     });
@@ -138,17 +138,17 @@ describe('a container node', () => {
     it('a list of properties', () => {
       root.append(
         {selectorInterpolation: '.foo'},
-        {selectorInterpolation: '.bar'}
+        {selectorInterpolation: '.bar'},
       );
       expect(root.nodes[0]).toBeInstanceOf(Rule);
       expect(root.nodes[0]).toHaveInterpolation(
         'selectorInterpolation',
-        '.foo'
+        '.foo',
       );
       expect(root.nodes[1]).toBeInstanceOf(Rule);
       expect(root.nodes[1]).toHaveInterpolation(
         'selectorInterpolation',
-        '.bar'
+        '.bar',
       );
       expect(root.nodes[0].parent).toBe(root);
       expect(root.nodes[1].parent).toBe(root);
@@ -159,7 +159,7 @@ describe('a container node', () => {
       expect(root.nodes[0]).toBeInstanceOf(Rule);
       expect(root.nodes[0]).toHaveInterpolation(
         'selectorInterpolation',
-        '.foo'
+        '.foo',
       );
       expect(root.nodes[0].parent).toBe(root);
     });
@@ -169,12 +169,12 @@ describe('a container node', () => {
       expect(root.nodes[0]).toBeInstanceOf(Rule);
       expect(root.nodes[0]).toHaveInterpolation(
         'selectorInterpolation',
-        '.foo'
+        '.foo',
       );
       expect(root.nodes[1]).toBeInstanceOf(Rule);
       expect(root.nodes[1]).toHaveInterpolation(
         'selectorInterpolation',
-        '.bar'
+        '.bar',
       );
       expect(root.nodes[0].parent).toBe(root);
       expect(root.nodes[1].parent).toBe(root);

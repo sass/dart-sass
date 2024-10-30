@@ -1,3 +1,7 @@
+## 0.4.3-dev
+
+* No user-visible changes.
+
 ## 0.4.2
 
 * Add support for parsing variable declarations.
