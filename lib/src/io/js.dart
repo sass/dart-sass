@@ -257,7 +257,30 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
   // Don't assign the controller until after the ready event fires. Otherwise,
   // Chokidar will give us a bunch of add events for files that already exist.
   StreamController<WatchEvent>? controller;
-  if (poll || parcelWatcher == null) {
+  if (parcelWatcher case var parcel? when !poll) {
+    var subscription = await parcel.subscribe(path,
+        (Object? error, List<ParcelWatcherEvent> events) {
+      if (error != null) {
+        controller?.addError(error);
+      } else {
+        for (var event in events) {
+          switch (event.type) {
+            case 'create':
+              controller?.add(WatchEvent(ChangeType.ADD, event.path));
+            case 'update':
+              controller?.add(WatchEvent(ChangeType.MODIFY, event.path));
+            case 'delete':
+              controller?.add(WatchEvent(ChangeType.REMOVE, event.path));
+          }
+        }
+      }
+    });
+
+    return (controller = StreamController<WatchEvent>(onCancel: () {
+      subscription.unsubscribe();
+    }))
+        .stream;
+  } else {
     var watcher = chokidar.watch(path, ChokidarOptions(usePolling: poll));
     watcher
       ..on(
@@ -286,28 +309,5 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
     }));
 
     return completer.future;
-  } else {
-    var subscription = await parcelWatcher!.subscribe(path,
-        (Object? error, List<ParcelWatcherEvent> events) {
-      if (error != null) {
-        controller?.addError(error);
-      } else {
-        for (var event in events) {
-          switch (event.type) {
-            case 'create':
-              controller?.add(WatchEvent(ChangeType.ADD, event.path));
-            case 'update':
-              controller?.add(WatchEvent(ChangeType.MODIFY, event.path));
-            case 'delete':
-              controller?.add(WatchEvent(ChangeType.REMOVE, event.path));
-          }
-        }
-      }
-    });
-
-    return (controller = StreamController<WatchEvent>(onCancel: () {
-      subscription.unsubscribe();
-    }))
-        .stream;
   }
 }
