@@ -24,21 +24,21 @@ describe('a Sass-style comment', () => {
 
   describeNode(
     'parsed as SCSS',
-    () => scss.parse('// foo\n// bar').nodes[0] as SassComment
+    () => scss.parse('// foo\n// bar').nodes[0] as SassComment,
   );
 
   describeNode(
     'parsed as Sass',
-    () => sass.parse('// foo\n// bar').nodes[0] as SassComment
+    () => sass.parse('// foo\n// bar').nodes[0] as SassComment,
   );
 
   describeNode(
     'constructed manually',
-    () => new SassComment({text: 'foo\nbar'})
+    () => new SassComment({text: 'foo\nbar'}),
   );
 
   describeNode('constructed from ChildProps', () =>
-    utils.fromChildProps({silentText: 'foo\nbar'})
+    utils.fromChildProps({silentText: 'foo\nbar'}),
   );
 
   describe('parses raws', () => {
@@ -217,7 +217,7 @@ describe('a Sass-style comment', () => {
     describe('to SCSS', () => {
       it('with default raws', () =>
         expect(new SassComment({text: 'foo\nbar'}).toString()).toBe(
-          '// foo\n// bar'
+          '// foo\n// bar',
         ));
 
       it('with left', () =>
@@ -225,7 +225,7 @@ describe('a Sass-style comment', () => {
           new SassComment({
             text: 'foo\nbar',
             raws: {left: '\t'},
-          }).toString()
+          }).toString(),
         ).toBe('//\tfoo\n//\tbar'));
 
       it('with left and an empty line', () =>
@@ -233,7 +233,7 @@ describe('a Sass-style comment', () => {
           new SassComment({
             text: 'foo\n\nbar',
             raws: {left: '\t'},
-          }).toString()
+          }).toString(),
         ).toBe('//\tfoo\n//\n//\tbar'));
 
       it('with left and a whitespace-only line', () =>
@@ -241,7 +241,7 @@ describe('a Sass-style comment', () => {
           new SassComment({
             text: 'foo\n \nbar',
             raws: {left: '\t'},
-          }).toString()
+          }).toString(),
         ).toBe('//\tfoo\n// \n//\tbar'));
 
       it('with before', () =>
@@ -249,7 +249,7 @@ describe('a Sass-style comment', () => {
           new SassComment({
             text: 'foo\nbar',
             raws: {before: '\t'},
-          }).toString()
+          }).toString(),
         ).toBe('\t// foo\n\t// bar'));
 
       it('with beforeLines', () =>
@@ -261,7 +261,7 @@ describe('a Sass-style comment', () => {
                 raws: {beforeLines: [' ', '\t']},
               }),
             ],
-          }).toString()
+          }).toString(),
         ).toBe(' // foo\n\t// bar'));
 
       describe('with a following sibling', () => {
@@ -269,7 +269,7 @@ describe('a Sass-style comment', () => {
           expect(
             new Root({
               nodes: [{silentText: 'foo\nbar'}, {name: 'baz'}],
-            }).toString()
+            }).toString(),
           ).toBe('// foo\n// bar\n@baz'));
 
         it('with before with newline', () =>
@@ -279,7 +279,7 @@ describe('a Sass-style comment', () => {
                 {silentText: 'foo\nbar'},
                 {name: 'baz', raws: {before: '\n  '}},
               ],
-            }).toString()
+            }).toString(),
           ).toBe('// foo\n// bar\n  @baz'));
 
         it('with before without newline', () =>
@@ -289,7 +289,7 @@ describe('a Sass-style comment', () => {
                 {silentText: 'foo\nbar'},
                 {name: 'baz', raws: {before: '  '}},
               ],
-            }).toString()
+            }).toString(),
           ).toBe('// foo\n// bar\n  @baz'));
       });
 
@@ -299,7 +299,7 @@ describe('a Sass-style comment', () => {
             new Rule({
               selector: '.zip',
               nodes: [{silentText: 'foo\nbar'}],
-            }).toString()
+            }).toString(),
           ).toBe('.zip {\n    // foo\n// bar\n}'));
 
         it('with after with newline', () =>
@@ -308,7 +308,7 @@ describe('a Sass-style comment', () => {
               selector: '.zip',
               nodes: [{silentText: 'foo\nbar'}],
               raws: {after: '\n  '},
-            }).toString()
+            }).toString(),
           ).toBe('.zip {\n    // foo\n// bar\n  }'));
 
         it('with after without newline', () =>
@@ -317,7 +317,7 @@ describe('a Sass-style comment', () => {
               selector: '.zip',
               nodes: [{silentText: 'foo\nbar'}],
               raws: {after: '  '},
-            }).toString()
+            }).toString(),
           ).toBe('.zip {\n    // foo\n// bar\n  }'));
       });
     });
@@ -358,7 +358,7 @@ describe('a Sass-style comment', () => {
   describe('clone', () => {
     let original: SassComment;
     beforeEach(
-      () => void (original = scss.parse('// foo').nodes[0] as SassComment)
+      () => void (original = scss.parse('// foo').nodes[0] as SassComment),
     );
 
     describe('with no overrides', () => {

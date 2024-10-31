@@ -33,7 +33,7 @@ type ClonableField<Name extends string> = Name | ExplicitClonableField<Name>;
 
 /** Makes a {@link ClonableField} explicit. */
 function parseClonableField<Name extends string>(
-  field: ClonableField<Name>
+  field: ClonableField<Name>,
 ): ExplicitClonableField<Name> {
   return typeof field === 'string' ? {name: field} : field;
 }
@@ -50,7 +50,7 @@ export function cloneNode<T extends Pick<postcss.Node, 'source'>>(
   node: T,
   overrides: Record<string, unknown> | undefined,
   constructorFields: ClonableField<keyof T & string>[],
-  assignedFields?: ClonableField<keyof T & string>[]
+  assignedFields?: ClonableField<keyof T & string>[],
 ): T {
   // We have to do these casts because the actual `...Prop` types that get
   // passed in and used for the constructor aren't actually subtypes of
@@ -124,7 +124,7 @@ function maybeClone<T>(value: T): T {
 export function toJSON<T extends Node>(
   node: T,
   fields: (keyof T & string)[],
-  inputs?: Map<postcss.Input, number>
+  inputs?: Map<postcss.Input, number>,
 ): object {
   // Only include the inputs field at the top level.
   const includeInputs = !inputs;
@@ -169,7 +169,7 @@ export function toJSON<T extends Node>(
 function toJsonField(
   field: string,
   value: unknown,
-  inputs: Map<postcss.Input, number>
+  inputs: Map<postcss.Input, number>,
 ): unknown {
   if (typeof value !== 'object' || value === null) {
     return value;
@@ -211,7 +211,7 @@ export function longestCommonInitialSubstring(strings: string[]): string {
       }
       candidate = candidate.substring(
         0,
-        Math.min(candidate.length, string.length)
+        Math.min(candidate.length, string.length),
       );
     }
   }

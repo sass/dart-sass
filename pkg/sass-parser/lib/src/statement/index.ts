@@ -191,7 +191,7 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
       name: 'supports',
       paramsInterpolation: new Interpolation(
         undefined,
-        inner.condition.toInterpolation()
+        inner.condition.toInterpolation(),
       ),
       source: new LazySource(inner),
     });
@@ -207,7 +207,7 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
 /** Appends parsed versions of `internal`'s children to `container`. */
 export function appendInternalChildren(
   container: postcss.Container,
-  children: sassInternal.Statement[] | null
+  children: sassInternal.Statement[] | null,
 ): void {
   // Make sure `container` knows it has a block.
   if (children?.length === 0) container.append(undefined);
@@ -233,7 +233,7 @@ export type NewNode =
 const postcssNormalize = postcss.Container.prototype['normalize'] as (
   nodes: postcss.NewChild,
   sample: postcss.Node | undefined,
-  type?: 'prepend' | false
+  type?: 'prepend' | false,
 ) => postcss.ChildNode[];
 
 /**
@@ -243,7 +243,7 @@ const postcssNormalize = postcss.Container.prototype['normalize'] as (
 function postcssNormalizeAndConvertToSass(
   self: StatementWithChildren,
   node: string | postcss.ChildProps | postcss.Node,
-  sample: postcss.Node | undefined
+  sample: postcss.Node | undefined,
 ): ChildNode[] {
   return postcssNormalize.call(self, node, sample).map(postcssNode => {
     // postcssNormalize sets the parent to the Sass node, but we don't want to
@@ -278,7 +278,7 @@ function postcssNormalizeAndConvertToSass(
 export function normalize(
   self: StatementWithChildren,
   node: NewNode,
-  sample?: postcss.Node
+  sample?: postcss.Node,
 ): ChildNode[] {
   if (node === undefined) return [];
   const nodes = Array.isArray(node) ? node : [node];

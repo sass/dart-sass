@@ -97,7 +97,7 @@ export class ErrorRule
       this,
       overrides,
       ['raws', 'errorExpression'],
-      [{name: 'params', explicitUndefined: true}]
+      [{name: 'params', explicitUndefined: true}],
     );
   }
 
@@ -108,14 +108,14 @@ export class ErrorRule
     return utils.toJSON(
       this,
       ['name', 'errorExpression', 'params', 'nodes'],
-      inputs
+      inputs,
     );
   }
 
   /** @hidden */
   toString(
     stringifier: postcss.Stringifier | postcss.Syntax = sassParser.scss
-      .stringify
+      .stringify,
   ): string {
     return super.toString(stringifier);
   }

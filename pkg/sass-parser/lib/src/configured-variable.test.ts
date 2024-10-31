@@ -11,13 +11,13 @@ describe('a configured variable', () => {
       void (node = new ConfiguredVariable({
         variableName: 'foo',
         expression: {text: 'bar', quotes: true},
-      }))
+      })),
   );
 
   describe('unguarded', () => {
     function describeNode(
       description: string,
-      create: () => ConfiguredVariable
+      create: () => ConfiguredVariable,
     ): void {
       describe(description, () => {
         beforeEach(() => (node = create()));
@@ -39,7 +39,7 @@ describe('a configured variable', () => {
       () =>
         (
           scss.parse('@use "baz" with ($foo: "bar")').nodes[0] as UseRule
-        ).configuration.get('foo')!
+        ).configuration.get('foo')!,
     );
 
     describeNode(
@@ -47,7 +47,7 @@ describe('a configured variable', () => {
       () =>
         (
           sass.parse('@use "baz" with ($foo: "bar")').nodes[0] as UseRule
-        ).configuration.get('foo')!
+        ).configuration.get('foo')!,
     );
 
     describe('constructed manually', () => {
@@ -58,12 +58,12 @@ describe('a configured variable', () => {
             new ConfiguredVariable([
               'foo',
               new StringExpression({text: 'bar', quotes: true}),
-            ])
+            ]),
         );
 
         describeNode(
           'with ExpressionProps',
-          () => new ConfiguredVariable(['foo', {text: 'bar', quotes: true}])
+          () => new ConfiguredVariable(['foo', {text: 'bar', quotes: true}]),
         );
 
         describe('with an object', () => {
@@ -73,7 +73,7 @@ describe('a configured variable', () => {
               new ConfiguredVariable([
                 'foo',
                 {expression: new StringExpression({text: 'bar', quotes: true})},
-              ])
+              ]),
           );
 
           describeNode(
@@ -82,7 +82,7 @@ describe('a configured variable', () => {
               new ConfiguredVariable([
                 'foo',
                 {expression: {text: 'bar', quotes: true}},
-              ])
+              ]),
           );
         });
       });
@@ -94,7 +94,7 @@ describe('a configured variable', () => {
             new ConfiguredVariable({
               variableName: 'foo',
               expression: new StringExpression({text: 'bar', quotes: true}),
-            })
+            }),
         );
 
         describeNode(
@@ -103,7 +103,7 @@ describe('a configured variable', () => {
             new ConfiguredVariable({
               variableName: 'foo',
               expression: {text: 'bar', quotes: true},
-            })
+            }),
         );
       });
     });
@@ -112,7 +112,7 @@ describe('a configured variable', () => {
   describe('guarded', () => {
     function describeNode(
       description: string,
-      create: () => ConfiguredVariable
+      create: () => ConfiguredVariable,
     ): void {
       describe(description, () => {
         beforeEach(() => (node = create()));
@@ -159,7 +159,7 @@ describe('a configured variable', () => {
                 expression: new StringExpression({text: 'bar', quotes: true}),
                 guarded: true,
               },
-            ])
+            ]),
         );
 
         describeNode(
@@ -168,7 +168,7 @@ describe('a configured variable', () => {
             new ConfiguredVariable([
               'foo',
               {expression: {text: 'bar', quotes: true}, guarded: true},
-            ])
+            ]),
         );
       });
 
@@ -180,7 +180,7 @@ describe('a configured variable', () => {
               variableName: 'foo',
               expression: new StringExpression({text: 'bar', quotes: true}),
               guarded: true,
-            })
+            }),
         );
 
         describeNode(
@@ -190,7 +190,7 @@ describe('a configured variable', () => {
               variableName: 'foo',
               expression: {text: 'bar', quotes: true},
               guarded: true,
-            })
+            }),
         );
       });
     });
@@ -221,7 +221,7 @@ describe('a configured variable', () => {
             new ConfiguredVariable({
               variableName: 'foo',
               expression: {text: 'bar', quotes: true},
-            }).toString()
+            }).toString(),
           ).toBe('$foo: "bar"'));
 
         it('guarded', () =>
@@ -230,7 +230,7 @@ describe('a configured variable', () => {
               variableName: 'foo',
               expression: {text: 'bar', quotes: true},
               guarded: true,
-            }).toString()
+            }).toString(),
           ).toBe('$foo: "bar" !default'));
 
         it('with a non-identifier name', () =>
@@ -238,7 +238,7 @@ describe('a configured variable', () => {
             new ConfiguredVariable({
               variableName: 'f o',
               expression: {text: 'bar', quotes: true},
-            }).toString()
+            }).toString(),
           ).toBe('$f\\20o: "bar"'));
       });
 
@@ -249,7 +249,7 @@ describe('a configured variable', () => {
             variableName: 'foo',
             expression: {text: 'bar', quotes: true},
             raws: {before: '/**/'},
-          }).toString()
+          }).toString(),
         ).toBe('$foo: "bar"'));
 
       it('with matching name', () =>
@@ -258,7 +258,7 @@ describe('a configured variable', () => {
             variableName: 'foo',
             expression: {text: 'bar', quotes: true},
             raws: {variableName: {raw: 'f\\6fo', value: 'foo'}},
-          }).toString()
+          }).toString(),
         ).toBe('$f\\6fo: "bar"'));
 
       it('with non-matching name', () =>
@@ -267,7 +267,7 @@ describe('a configured variable', () => {
             variableName: 'foo',
             expression: {text: 'bar', quotes: true},
             raws: {variableName: {raw: 'f\\41o', value: 'fao'}},
-          }).toString()
+          }).toString(),
         ).toBe('$foo: "bar"'));
 
       it('with between', () =>
@@ -276,7 +276,7 @@ describe('a configured variable', () => {
             variableName: 'foo',
             expression: {text: 'bar', quotes: true},
             raws: {between: ' : '},
-          }).toString()
+          }).toString(),
         ).toBe('$foo : "bar"'));
 
       it('with beforeGuard and a guard', () =>
@@ -286,7 +286,7 @@ describe('a configured variable', () => {
             expression: {text: 'bar', quotes: true},
             guarded: true,
             raws: {beforeGuard: '/**/'},
-          }).toString()
+          }).toString(),
         ).toBe('$foo: "bar"/**/!default'));
 
       it('with beforeGuard and no guard', () =>
@@ -295,7 +295,7 @@ describe('a configured variable', () => {
             variableName: 'foo',
             expression: {text: 'bar', quotes: true},
             raws: {beforeGuard: '/**/'},
-          }).toString()
+          }).toString(),
         ).toBe('$foo: "bar"'));
 
       // raws.before is only used as part of a Configuration
@@ -306,7 +306,7 @@ describe('a configured variable', () => {
               variableName: 'foo',
               expression: {text: 'bar', quotes: true},
               raws: {afterValue: '/**/'},
-            }).toString()
+            }).toString(),
           ).toBe('$foo: "bar"'));
 
         it('with a guard', () =>
@@ -316,7 +316,7 @@ describe('a configured variable', () => {
               expression: {text: 'bar', quotes: true},
               guarded: true,
               raws: {afterValue: '/**/'},
-            }).toString()
+            }).toString(),
           ).toBe('$foo: "bar" !default'));
       });
     });
@@ -369,24 +369,24 @@ describe('a configured variable', () => {
       describe('variableName', () => {
         it('defined', () =>
           expect(original.clone({variableName: 'baz'}).variableName).toBe(
-            'baz'
+            'baz',
           ));
 
         it('undefined', () =>
           expect(original.clone({variableName: undefined}).variableName).toBe(
-            'foo'
+            'foo',
           ));
       });
 
       describe('expression', () => {
         it('defined', () =>
           expect(
-            original.clone({expression: {text: 'baz', quotes: true}})
+            original.clone({expression: {text: 'baz', quotes: true}}),
           ).toHaveStringExpression('expression', 'baz'));
 
         it('undefined', () =>
           expect(
-            original.clone({expression: undefined})
+            original.clone({expression: undefined}),
           ).toHaveStringExpression('expression', 'bar'));
       });
 
@@ -404,6 +404,6 @@ describe('a configured variable', () => {
     expect(
       (
         scss.parse('@use "foo" with ($baz: "qux")').nodes[0] as UseRule
-      ).configuration.get('baz')
+      ).configuration.get('baz'),
     ).toMatchSnapshot());
 });

@@ -48,7 +48,7 @@ describe('a root node', () => {
 
     describeNode(
       'constructed manually',
-      () => new Root({nodes: [{name: 'foo'}]})
+      () => new Root({nodes: [{name: 'foo'}]}),
     );
   });
 
@@ -70,7 +70,7 @@ describe('a root node', () => {
             new Root({
               nodes: [{name: 'foo'}],
               raws: {after: '/**/'},
-            }).toString()
+            }).toString(),
           ).toBe('@foo/**/'));
       });
 
@@ -83,7 +83,7 @@ describe('a root node', () => {
             new Root({
               nodes: [{name: 'foo'}],
               raws: {semicolon: true},
-            }).toString()
+            }).toString(),
           ).toBe('@foo;'));
       });
     });

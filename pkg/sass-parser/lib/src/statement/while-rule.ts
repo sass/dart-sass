@@ -110,14 +110,14 @@ export class WhileRule
     return utils.toJSON(
       this,
       ['name', 'whileCondition', 'params', 'nodes'],
-      inputs
+      inputs,
     );
   }
 
   /** @hidden */
   toString(
     stringifier: postcss.Stringifier | postcss.Syntax = sassParser.scss
-      .stringify
+      .stringify,
   ): string {
     return super.toString(stringifier);
   }

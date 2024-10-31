@@ -11,7 +11,7 @@ describe('a number expression', () => {
   describe('unitless', () => {
     function describeNode(
       description: string,
-      create: () => NumberExpression
+      create: () => NumberExpression,
     ): void {
       describe(description, () => {
         beforeEach(() => void (node = create()));
@@ -28,18 +28,18 @@ describe('a number expression', () => {
 
     describeNode(
       'constructed manually',
-      () => new NumberExpression({value: 123})
+      () => new NumberExpression({value: 123}),
     );
 
     describeNode('constructed from ExpressionProps', () =>
-      utils.fromExpressionProps({value: 123})
+      utils.fromExpressionProps({value: 123}),
     );
   });
 
   describe('with a unit', () => {
     function describeNode(
       description: string,
-      create: () => NumberExpression
+      create: () => NumberExpression,
     ): void {
       describe(description, () => {
         beforeEach(() => void (node = create()));
@@ -60,14 +60,14 @@ describe('a number expression', () => {
         new NumberExpression({
           value: 123,
           unit: 'px',
-        })
+        }),
     );
 
     describeNode('constructed from ExpressionProps', () =>
       utils.fromExpressionProps({
         value: 123,
         unit: 'px',
-      })
+      }),
     );
   });
 
@@ -119,7 +119,7 @@ describe('a number expression', () => {
           new NumberExpression({
             value: 123,
             raws: {value: {raw: 'hello', value: 123}},
-          }).toString()
+          }).toString(),
         ).toBe('hello'));
 
       it('with a different raw value than the expression', () =>
@@ -127,7 +127,7 @@ describe('a number expression', () => {
           new NumberExpression({
             value: 123,
             raws: {value: {raw: 'hello', value: 234}},
-          }).toString()
+          }).toString(),
         ).toBe('123'));
     });
   });
@@ -180,7 +180,7 @@ describe('a number expression', () => {
       describe('raws', () => {
         it('defined', () =>
           expect(
-            original.clone({raws: {value: {raw: '1e3', value: 1e3}}}).raws
+            original.clone({raws: {value: {raw: '1e3', value: 1e3}}}).raws,
           ).toEqual({
             value: {raw: '1e3', value: 1e3},
           }));

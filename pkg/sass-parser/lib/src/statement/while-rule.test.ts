@@ -25,12 +25,12 @@ describe('a @while rule', () => {
 
     describeNode(
       'parsed as SCSS',
-      () => scss.parse('@while foo {}').nodes[0] as WhileRule
+      () => scss.parse('@while foo {}').nodes[0] as WhileRule,
     );
 
     describeNode(
       'parsed as Sass',
-      () => sass.parse('@while foo').nodes[0] as WhileRule
+      () => sass.parse('@while foo').nodes[0] as WhileRule,
     );
 
     describeNode(
@@ -38,13 +38,13 @@ describe('a @while rule', () => {
       () =>
         new WhileRule({
           whileCondition: {text: 'foo'},
-        })
+        }),
     );
 
     describeNode('constructed from ChildProps', () =>
       utils.fromChildProps({
         whileCondition: {text: 'foo'},
-      })
+      }),
     );
   });
 
@@ -70,12 +70,12 @@ describe('a @while rule', () => {
 
     describeNode(
       'parsed as SCSS',
-      () => scss.parse('@while foo {@child}').nodes[0] as WhileRule
+      () => scss.parse('@while foo {@child}').nodes[0] as WhileRule,
     );
 
     describeNode(
       'parsed as Sass',
-      () => sass.parse('@while foo\n  @child').nodes[0] as WhileRule
+      () => sass.parse('@while foo\n  @child').nodes[0] as WhileRule,
     );
 
     describeNode(
@@ -84,20 +84,20 @@ describe('a @while rule', () => {
         new WhileRule({
           whileCondition: {text: 'foo'},
           nodes: [{name: 'child'}],
-        })
+        }),
     );
 
     describeNode('constructed from ChildProps', () =>
       utils.fromChildProps({
         whileCondition: {text: 'foo'},
         nodes: [{name: 'child'}],
-      })
+      }),
     );
   });
 
   describe('throws an error when assigned a new', () => {
     beforeEach(
-      () => void (node = new WhileRule({whileCondition: {text: 'foo'}}))
+      () => void (node = new WhileRule({whileCondition: {text: 'foo'}})),
     );
 
     it('name', () => expect(() => (node.name = 'bar')).toThrow());
@@ -140,7 +140,7 @@ describe('a @while rule', () => {
         expect(
           new WhileRule({
             whileCondition: {text: 'foo'},
-          }).toString()
+          }).toString(),
         ).toBe('@while foo {}'));
 
       it('with afterName', () =>
@@ -148,7 +148,7 @@ describe('a @while rule', () => {
           new WhileRule({
             whileCondition: {text: 'foo'},
             raws: {afterName: '/**/'},
-          }).toString()
+          }).toString(),
         ).toBe('@while/**/foo {}'));
 
       it('with between', () =>
@@ -156,7 +156,7 @@ describe('a @while rule', () => {
           new WhileRule({
             whileCondition: {text: 'foo'},
             raws: {between: '/**/'},
-          }).toString()
+          }).toString(),
         ).toBe('@while foo/**/{}'));
     });
   });

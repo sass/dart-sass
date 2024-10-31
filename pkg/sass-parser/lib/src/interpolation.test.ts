@@ -18,7 +18,7 @@ describe('an interpolation', () => {
   describe('empty', () => {
     function describeNode(
       description: string,
-      create: () => Interpolation
+      create: () => Interpolation,
     ): void {
       describe(description, () => {
         beforeEach(() => void (node = create()));
@@ -42,7 +42,7 @@ describe('an interpolation', () => {
   describe('with no expressions', () => {
     function describeNode(
       description: string,
-      create: () => Interpolation
+      create: () => Interpolation,
     ): void {
       describe(description, () => {
         beforeEach(() => void (node = create()));
@@ -63,24 +63,24 @@ describe('an interpolation', () => {
 
     describeNode(
       'parsed as SCSS',
-      () => (scss.parse('@foo').nodes[0] as GenericAtRule).nameInterpolation
+      () => (scss.parse('@foo').nodes[0] as GenericAtRule).nameInterpolation,
     );
 
     describeNode(
       'parsed as CSS',
-      () => (css.parse('@foo').nodes[0] as GenericAtRule).nameInterpolation
+      () => (css.parse('@foo').nodes[0] as GenericAtRule).nameInterpolation,
     );
 
     describeNode(
       'constructed manually',
-      () => new Interpolation({nodes: ['foo']})
+      () => new Interpolation({nodes: ['foo']}),
     );
   });
 
   describe('with only an expression', () => {
     function describeNode(
       description: string,
-      create: () => Interpolation
+      create: () => Interpolation,
     ): void {
       describe(description, () => {
         beforeEach(() => void (node = create()));
@@ -99,19 +99,19 @@ describe('an interpolation', () => {
 
     describeNode(
       'parsed as SCSS',
-      () => (scss.parse('@#{foo}').nodes[0] as GenericAtRule).nameInterpolation
+      () => (scss.parse('@#{foo}').nodes[0] as GenericAtRule).nameInterpolation,
     );
 
     describeNode(
       'constructed manually',
-      () => new Interpolation({nodes: [{text: 'foo'}]})
+      () => new Interpolation({nodes: [{text: 'foo'}]}),
     );
   });
 
   describe('with mixed text and expressions', () => {
     function describeNode(
       description: string,
-      create: () => Interpolation
+      create: () => Interpolation,
     ): void {
       describe(description, () => {
         beforeEach(() => void (node = create()));
@@ -136,12 +136,12 @@ describe('an interpolation', () => {
       'parsed as SCSS',
       () =>
         (scss.parse('@foo#{bar}baz').nodes[0] as GenericAtRule)
-          .nameInterpolation
+          .nameInterpolation,
     );
 
     describeNode(
       'constructed manually',
-      () => new Interpolation({nodes: ['foo', {text: 'bar'}, 'baz']})
+      () => new Interpolation({nodes: ['foo', {text: 'bar'}, 'baz']}),
     );
   });
 
@@ -246,7 +246,7 @@ describe('an interpolation', () => {
 
   describe('every', () => {
     beforeEach(
-      () => void (node = new Interpolation({nodes: ['foo', 'bar', 'baz']}))
+      () => void (node = new Interpolation({nodes: ['foo', 'bar', 'baz']})),
     );
 
     it('returns true if the callback returns true for all elements', () =>
@@ -261,7 +261,7 @@ describe('an interpolation', () => {
       () =>
         void (node = new Interpolation({
           nodes: ['foo', 'bar', {text: 'baz'}, 'bar'],
-        }))
+        })),
     );
 
     it('returns the first index of a given string', () =>
@@ -275,7 +275,7 @@ describe('an interpolation', () => {
 
   describe('insertAfter', () => {
     beforeEach(
-      () => void (node = new Interpolation({nodes: ['foo', 'bar', 'baz']}))
+      () => void (node = new Interpolation({nodes: ['foo', 'bar', 'baz']})),
     );
 
     it('inserts a node after the given element', () => {
@@ -300,12 +300,12 @@ describe('an interpolation', () => {
 
     it('inserts before an iterator', () =>
       testEachMutation(['foo', 'bar', ['baz', 5]], 1, () =>
-        node.insertAfter(0, ['qux', 'qax', 'qix'])
+        node.insertAfter(0, ['qux', 'qax', 'qix']),
       ));
 
     it('inserts after an iterator', () =>
       testEachMutation(['foo', 'bar', 'qux', 'qax', 'qix', 'baz'], 1, () =>
-        node.insertAfter(1, ['qux', 'qax', 'qix'])
+        node.insertAfter(1, ['qux', 'qax', 'qix']),
       ));
 
     it('returns itself', () =>
@@ -314,7 +314,7 @@ describe('an interpolation', () => {
 
   describe('insertBefore', () => {
     beforeEach(
-      () => void (node = new Interpolation({nodes: ['foo', 'bar', 'baz']}))
+      () => void (node = new Interpolation({nodes: ['foo', 'bar', 'baz']})),
     );
 
     it('inserts a node before the given element', () => {
@@ -339,12 +339,12 @@ describe('an interpolation', () => {
 
     it('inserts before an iterator', () =>
       testEachMutation(['foo', 'bar', ['baz', 5]], 1, () =>
-        node.insertBefore(1, ['qux', 'qax', 'qix'])
+        node.insertBefore(1, ['qux', 'qax', 'qix']),
       ));
 
     it('inserts after an iterator', () =>
       testEachMutation(['foo', 'bar', 'qux', 'qax', 'qix', 'baz'], 1, () =>
-        node.insertBefore(2, ['qux', 'qax', 'qix'])
+        node.insertBefore(2, ['qux', 'qax', 'qix']),
       ));
 
     it('returns itself', () =>
@@ -353,7 +353,7 @@ describe('an interpolation', () => {
 
   describe('prepend', () => {
     beforeEach(
-      () => void (node = new Interpolation({nodes: ['foo', 'bar', 'baz']}))
+      () => void (node = new Interpolation({nodes: ['foo', 'bar', 'baz']})),
     );
 
     it('inserts one node', () => {
@@ -368,7 +368,7 @@ describe('an interpolation', () => {
 
     it('inserts before an iterator', () =>
       testEachMutation(['foo', 'bar', ['baz', 5]], 1, () =>
-        node.prepend('qux', 'qax', 'qix')
+        node.prepend('qux', 'qax', 'qix'),
       ));
 
     it('returns itself', () => expect(node.prepend('qux')).toBe(node));
@@ -391,7 +391,7 @@ describe('an interpolation', () => {
   describe('removeAll', () => {
     beforeEach(
       () =>
-        void (node = new Interpolation({nodes: ['foo', {text: 'bar'}, 'baz']}))
+        void (node = new Interpolation({nodes: ['foo', {text: 'bar'}, 'baz']})),
     );
 
     it('removes all nodes', () => {
@@ -414,7 +414,7 @@ describe('an interpolation', () => {
   describe('removeChild', () => {
     beforeEach(
       () =>
-        void (node = new Interpolation({nodes: ['foo', {text: 'bar'}, 'baz']}))
+        void (node = new Interpolation({nodes: ['foo', {text: 'bar'}, 'baz']})),
     );
 
     it('removes a matching node', () => {
@@ -436,7 +436,7 @@ describe('an interpolation', () => {
 
     it('removes a node before the iterator', () =>
       testEachMutation(['foo', node.nodes[1], ['baz', 1]], 1, () =>
-        node.removeChild(1)
+        node.removeChild(1),
       ));
 
     it('removes a node after the iterator', () =>
@@ -447,7 +447,7 @@ describe('an interpolation', () => {
 
   describe('some', () => {
     beforeEach(
-      () => void (node = new Interpolation({nodes: ['foo', 'bar', 'baz']}))
+      () => void (node = new Interpolation({nodes: ['foo', 'bar', 'baz']})),
     );
 
     it('returns false if the callback returns false for all elements', () =>
@@ -460,7 +460,7 @@ describe('an interpolation', () => {
   describe('first', () => {
     it('returns the first element', () =>
       expect(new Interpolation({nodes: ['foo', 'bar', 'baz']}).first).toBe(
-        'foo'
+        'foo',
       ));
 
     it('returns undefined for an empty interpolation', () =>
@@ -470,7 +470,7 @@ describe('an interpolation', () => {
   describe('last', () => {
     it('returns the last element', () =>
       expect(new Interpolation({nodes: ['foo', 'bar', 'baz']}).last).toBe(
-        'baz'
+        'baz',
       ));
 
     it('returns undefined for an empty interpolation', () =>
@@ -482,22 +482,22 @@ describe('an interpolation', () => {
 
     it('with only text', () =>
       expect(new Interpolation({nodes: ['foo', 'bar', 'baz']}).toString()).toBe(
-        'foobarbaz'
+        'foobarbaz',
       ));
 
     it('with only expressions', () =>
       expect(
-        new Interpolation({nodes: [{text: 'foo'}, {text: 'bar'}]}).toString()
+        new Interpolation({nodes: [{text: 'foo'}, {text: 'bar'}]}).toString(),
       ).toBe('#{foo}#{bar}'));
 
     it('with mixed text and expressions', () =>
       expect(
-        new Interpolation({nodes: ['foo', {text: 'bar'}, 'baz']}).toString()
+        new Interpolation({nodes: ['foo', {text: 'bar'}, 'baz']}).toString(),
       ).toBe('foo#{bar}baz'));
 
     describe('with text', () => {
       beforeEach(
-        () => void (node = new Interpolation({nodes: ['foo', 'bar', 'baz']}))
+        () => void (node = new Interpolation({nodes: ['foo', 'bar', 'baz']})),
       );
 
       it('take precedence when the value matches', () => {
@@ -516,7 +516,7 @@ describe('an interpolation', () => {
         () =>
           void (node = new Interpolation({
             nodes: [{text: 'foo'}, {text: 'bar'}],
-          }))
+          })),
       );
 
       it('with before', () => {
@@ -538,7 +538,7 @@ describe('an interpolation', () => {
         void (original = new Interpolation({
           nodes: ['foo', {text: 'bar'}, 'baz'],
           raws: {expressions: [{before: '  '}]},
-        }))
+        })),
     );
 
     describe('with no overrides', () => {
@@ -578,7 +578,7 @@ describe('an interpolation', () => {
       describe('raws', () => {
         it('defined', () =>
           expect(
-            original.clone({raws: {expressions: [{after: '  '}]}}).raws
+            original.clone({raws: {expressions: [{after: '  '}]}}).raws,
           ).toEqual({expressions: [{after: '  '}]}));
 
         it('undefined', () =>
@@ -605,7 +605,7 @@ describe('an interpolation', () => {
 
   it('toJSON', () =>
     expect(
-      (scss.parse('@foo#{bar}baz').nodes[0] as GenericAtRule).nameInterpolation
+      (scss.parse('@foo#{bar}baz').nodes[0] as GenericAtRule).nameInterpolation,
     ).toMatchSnapshot());
 });
 
@@ -620,7 +620,7 @@ describe('an interpolation', () => {
 function testEachMutation(
   elements: ([string | Expression, number] | string | Expression)[],
   indexToModify: number,
-  modify: () => void
+  modify: () => void,
 ): void {
   const fn: EachFn = jest.fn((child, i) => {
     if (i === indexToModify) modify();

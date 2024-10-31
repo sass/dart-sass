@@ -162,7 +162,7 @@ export class VariableDeclaration
   constructor(_: undefined, inner: sassInternal.VariableDeclaration);
   constructor(
     defaults?: VariableDeclarationProps,
-    inner?: sassInternal.VariableDeclaration
+    inner?: sassInternal.VariableDeclaration,
   ) {
     super(defaults as unknown as postcss.DeclarationProps);
     this.raws ??= {};
@@ -192,7 +192,7 @@ export class VariableDeclaration
         'guarded',
         'global',
       ],
-      ['value']
+      ['value'],
     );
   }
 
@@ -203,7 +203,7 @@ export class VariableDeclaration
     return utils.toJSON(
       this,
       ['namespace', 'variableName', 'expression', 'guarded', 'global'],
-      inputs
+      inputs,
     );
   }
 
