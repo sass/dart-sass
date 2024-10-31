@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a @while rule toJSON 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@while foo {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "while",
+  "nodes": [],
+  "params": "foo",
+  "raws": {},
+  "sassType": "while-rule",
+  "source": <1:1-1:14 in 0>,
+  "type": "atrule",
+  "whileCondition": <foo>,
+}
+`;

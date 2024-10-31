@@ -1,6 +1,6 @@
 ## 0.4.3-dev
 
-* No user-visible changes.
+* Add support for parsing the `@while` rule.
 
 ## 0.4.2
 

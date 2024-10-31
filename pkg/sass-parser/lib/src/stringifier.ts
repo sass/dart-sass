@@ -37,6 +37,7 @@ import {Rule} from './statement/rule';
 import {SassComment} from './statement/sass-comment';
 import {UseRule} from './statement/use-rule';
 import {WarnRule} from './statement/warn-rule';
+import {WhileRule} from './statement/while-rule';
 
 const PostCssStringifier = require('postcss/lib/stringifier');
 
@@ -165,18 +166,20 @@ export class Stringifier extends PostCssStringifier {
     this.sassAtRule(node, semicolon);
   }
 
+  private ['while-rule'](node: WhileRule): void {
+    this.sassAtRule(node);
+  }
+
   /** Helper method for non-generic Sass at-rules. */
   private sassAtRule(node: postcss.AtRule, semicolon?: boolean): void {
-    const start =
-      '@' +
-      node.name +
-      (node.raws.afterName ?? ' ') +
-      node.params +
-      (node.raws.between ?? '');
+    const start = '@' + node.name + (node.raws.afterName ?? ' ') + node.params;
     if (node.nodes) {
       this.block(node, start);
     } else {
-      this.builder(start + (semicolon ? ';' : ''), node);
+      this.builder(
+        start + (node.raws.between ?? '') + (semicolon ? ';' : ''),
+        node,
+      );
     }
   }
 }
