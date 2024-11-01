@@ -1,6 +1,9 @@
-## 1.80.6-dev
+## 1.80.6
 
-* No user-visible changes.
+### Command-Line Interface
+
+* Make `@parcel/watcher` an optional dependency so this can still be installed
+  on operating systems where it's unavailable.
 
 ## 1.80.5
 

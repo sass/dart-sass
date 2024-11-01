@@ -1,4 +1,4 @@
-## 0.4.3-dev
+## 0.4.3
 
 * Add support for parsing the `@while` rule.
 
