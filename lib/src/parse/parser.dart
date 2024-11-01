@@ -651,7 +651,7 @@ class Parser {
     var span = scanner.spanFrom(state);
     return _interpolationMap == null
         ? span
-        : LazyFileSpan(() => _interpolationMap!.mapSpan(span));
+        : LazyFileSpan(() => _interpolationMap.mapSpan(span));
   }
 
   /// Throws an error associated with [span].

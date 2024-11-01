@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 396c8f169d95c601598b8c3be1f4b948ca22effa
+// Checksum: 3986f5db33dd220dcd971a39e8587ca4e52d9a3f
 //
 // ignore_for_file: unused_import
 
@@ -1808,7 +1808,7 @@ final class _EvaluateVisitor
     if (result != null) {
       isDependency = _inDependency;
     } else {
-      result = _nodeImporter!.load(originalUrl, previous, forImport);
+      result = _nodeImporter.load(originalUrl, previous, forImport);
       if (result == null) return null;
       isDependency = true;
     }

@@ -1812,7 +1812,7 @@ final class _EvaluateVisitor
     if (result != null) {
       isDependency = _inDependency;
     } else {
-      result = await _nodeImporter!.loadAsync(originalUrl, previous, forImport);
+      result = await _nodeImporter.loadAsync(originalUrl, previous, forImport);
       if (result == null) return null;
       isDependency = true;
     }

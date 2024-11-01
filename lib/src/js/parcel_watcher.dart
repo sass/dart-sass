@@ -2,17 +2,15 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:js/js.dart';
-import 'package:node_interop/js.dart';
-import 'package:node_interop/util.dart';
+import 'dart:js_interop';
 
 @JS()
-class ParcelWatcherSubscription {
+extension type ParcelWatcherSubscription(JSObject _) implements JSObject {
   external void unsubscribe();
 }
 
 @JS()
-class ParcelWatcherEvent {
+extension type ParcelWatcherEvent(JSObject _) implements JSObject {
   external String get type;
   external String get path;
 }
@@ -20,25 +18,32 @@ class ParcelWatcherEvent {
 /// The @parcel/watcher module.
 ///
 /// See [the docs on npm](https://www.npmjs.com/package/@parcel/watcher).
-@JS('parcel_watcher')
-class ParcelWatcher {
-  external static Promise subscribe(String path, Function callback);
-  static Future<ParcelWatcherSubscription> subscribeFuture(String path,
+@JS()
+extension type ParcelWatcher(JSObject _) implements JSObject {
+  @JS('subscribe')
+  external JSPromise<ParcelWatcherSubscription> _subscribe(
+      String path, JSFunction callback);
+  Future<ParcelWatcherSubscription> subscribe(String path,
           void Function(Object? error, List<ParcelWatcherEvent>) callback) =>
-      promiseToFuture(
-          subscribe(path, allowInterop((Object? error, List<dynamic> events) {
-        callback(error, events.cast<ParcelWatcherEvent>());
-      })));
+      _subscribe(
+              path,
+              (JSObject? error, JSArray<ParcelWatcherEvent> events) {
+                callback(error, events.toDart);
+              }.toJS)
+          .toDart;
 
-  external static Promise getEventsSince(String path, String snapshotPath);
-  static Future<List<ParcelWatcherEvent>> getEventsSinceFuture(
-      String path, String snapshotPath) async {
-    List<dynamic> events =
-        await promiseToFuture(getEventsSince(path, snapshotPath));
-    return events.cast<ParcelWatcherEvent>();
-  }
+  @JS('getEventsSince')
+  external JSPromise<JSArray<ParcelWatcherEvent>> _getEventsSince(
+      String path, String snapshotPath);
+  Future<List<ParcelWatcherEvent>> getEventsSince(
+          String path, String snapshotPath) async =>
+      (await _getEventsSince(path, snapshotPath).toDart).toDart;
 
-  external static Promise writeSnapshot(String path, String snapshotPath);
-  static Future<void> writeSnapshotFuture(String path, String snapshotPath) =>
-      promiseToFuture(writeSnapshot(path, snapshotPath));
+  @JS('writeSnapshot')
+  external JSPromise<JSAny> _writeSnapshot(String path, String snapshotPath);
+  Future<void> writeSnapshot(String path, String snapshotPath) =>
+      _writeSnapshot(path, snapshotPath).toDart;
 }
+
+@JS('parcel_watcher')
+external ParcelWatcher? get parcelWatcher;
