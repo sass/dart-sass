@@ -20,12 +20,6 @@ void main() {
     _expectDeprecation("@if false {} @elseif false {}", Deprecation.elseif);
   });
 
-  // Deprecated in 1.7.2
-  test("mozDocument is violated by most @-moz-document rules", () {
-    _expectDeprecation(
-        "@-moz-document url-prefix(foo) {}", Deprecation.mozDocument);
-  });
-
   // Deprecated in 1.17.2
   test("newGlobal is violated by declaring a new variable with !global", () {
     _expectDeprecation(r"a {$foo: bar !global;}", Deprecation.newGlobal);

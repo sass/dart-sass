@@ -42,7 +42,7 @@ final Map<String, Deprecation?> deprecations = {
               })(),
           description: deprecation.description,
           deprecatedIn: deprecation.deprecatedIn,
-          obsoleteIn: deprecation.deprecatedIn),
+          obsoleteIn: deprecation.obsoleteIn),
 };
 
 /// Parses a list of [deprecations] from JS into an list of Dart [Deprecation]

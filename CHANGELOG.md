@@ -1,3 +1,9 @@
+## 2.0.0
+
+* **Breaking change:** The `@-moz-document` rule no longer has any special
+  parsing associated with it. It is now parsed like any other unknown plain CSS
+  at-rule, where Sass features are only allowed within `#{}` interpolation.
+
 ## 1.80.6
 
 ### Command-Line Interface

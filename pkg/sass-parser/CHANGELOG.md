@@ -1,3 +1,7 @@
+## 0.5.0
+
+* No user-visible changes.
+
 ## 0.4.3
 
 * Add support for parsing the `@while` rule.
