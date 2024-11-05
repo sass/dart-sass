@@ -69,7 +69,6 @@ class CssParser extends ScssParser {
         _forbiddenAtRule(start),
       "import" => _cssImportRule(start),
       "media" => mediaRule(start),
-      "-moz-document" => mozDocumentRule(start, name),
       "supports" => supportsRule(start),
       _ => unknownAtRule(start, name)
     };

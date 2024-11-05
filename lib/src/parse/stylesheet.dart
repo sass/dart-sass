@@ -651,8 +651,6 @@ abstract class StylesheetParser extends Parser {
         return mediaRule(start);
       case "mixin":
         return _mixinRule(start);
-      case "-moz-document":
-        return mozDocumentRule(start, name);
       case "return":
         return _disallowedAtRule(start);
       case "supports":
@@ -1342,91 +1340,6 @@ abstract class StylesheetParser extends Parser {
       _inMixin = false;
       return MixinRule(name, arguments, children, span,
           comment: precedingComment);
-    });
-  }
-
-  /// Consumes a `@moz-document` rule.
-  ///
-  /// Gecko's `@-moz-document` diverges from [the specification][] allows the
-  /// `url-prefix` and `domain` functions to omit quotation marks, contrary to
-  /// the standard.
-  ///
-  /// [the specification]: http://www.w3.org/TR/css3-conditional/
-  @protected
-  AtRule mozDocumentRule(LineScannerState start, Interpolation name) {
-    var valueStart = scanner.state;
-    var buffer = InterpolationBuffer();
-    var needsDeprecationWarning = false;
-    while (true) {
-      if (scanner.peekChar() == $hash) {
-        var (expression, span) = singleInterpolation();
-        buffer.add(expression, span);
-        needsDeprecationWarning = true;
-      } else {
-        var identifierStart = scanner.state;
-        var identifier = this.identifier();
-        switch (identifier) {
-          case "url" || "url-prefix" || "domain":
-            if (_tryUrlContents(identifierStart, name: identifier)
-                case var contents?) {
-              buffer.addInterpolation(contents);
-            } else {
-              scanner.expectChar($lparen);
-              whitespace();
-              var argument = interpolatedString();
-              scanner.expectChar($rparen);
-
-              buffer
-                ..write(identifier)
-                ..writeCharCode($lparen)
-                ..addInterpolation(argument.asInterpolation())
-                ..writeCharCode($rparen);
-            }
-
-            // A url-prefix with no argument, or with an empty string as an
-            // argument, is not (yet) deprecated.
-            var trailing = buffer.trailingString;
-            if (!trailing.endsWith("url-prefix()") &&
-                !trailing.endsWith("url-prefix('')") &&
-                !trailing.endsWith('url-prefix("")')) {
-              needsDeprecationWarning = true;
-            }
-
-          case "regexp":
-            buffer.write("regexp(");
-            scanner.expectChar($lparen);
-            buffer.addInterpolation(interpolatedString().asInterpolation());
-            scanner.expectChar($rparen);
-            buffer.writeCharCode($rparen);
-            needsDeprecationWarning = true;
-
-          default:
-            error("Invalid function name.", scanner.spanFrom(identifierStart));
-        }
-      }
-
-      whitespace();
-      if (!scanner.scanChar($comma)) break;
-
-      buffer.writeCharCode($comma);
-      buffer.write(rawText(whitespace));
-    }
-
-    var value = buffer.interpolation(scanner.spanFrom(valueStart));
-    return _withChildren(_statement, start, (children, span) {
-      if (needsDeprecationWarning) {
-        warnings.add((
-          deprecation: Deprecation.mozDocument,
-          message:
-              "@-moz-document is deprecated and support will be removed in "
-              "Dart Sass 2.0.0.\n"
-              "\n"
-              "For details, see https://sass-lang.com/d/moz-document.",
-          span: span
-        ));
-      }
-
-      return AtRule(name, span, value: value, children: children);
     });
   }
 
