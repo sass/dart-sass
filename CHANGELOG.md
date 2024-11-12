@@ -1,3 +1,10 @@
+## 1.80.7
+
+### Embedded Host
+
+* Don't treat `0` as `undefined` for the `green` and `blue` channels in the
+  `LegacyColor` constructor.
+
 ## 1.80.6
 
 ### Command-Line Interface
