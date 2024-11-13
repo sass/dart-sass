@@ -1,3 +1,7 @@
+## 0.4.5
+
+* No user-visible changes.
+
 ## 0.4.4
 
 * No user-visible changes.

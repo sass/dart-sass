@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 3986f5db33dd220dcd971a39e8587ca4e52d9a3f
+// Checksum: fbffa0dbe5a1af846dc83752457d39fb2984d280
 //
 // ignore_for_file: unused_import
 
@@ -2533,12 +2533,12 @@ final class _EvaluateVisitor
       // Note that the list of calculation functions is also tracked in
       // lib/src/visitor/is_plain_css_safe.dart.
       switch (node.name.toLowerCase()) {
-        case "min" || "max" || "round" || "abs"
+        case ("min" || "max" || "round" || "abs") && var name
             when node.arguments.named.isEmpty &&
                 node.arguments.rest == null &&
                 node.arguments.positional
                     .every((argument) => argument.isCalculationSafe):
-          return _visitCalculation(node, inLegacySassFunction: true);
+          return _visitCalculation(node, inLegacySassFunction: name);
 
         case "calc" ||
               "clamp" ||
@@ -2585,8 +2585,15 @@ final class _EvaluateVisitor
     return result;
   }
 
+  /// Evaluates [node] as a calculation.
+  ///
+  /// If [inLegacySassFunction] isn't null, this allows unitless numbers to be
+  /// added and subtracted with numbers with units, for backwards-compatibility
+  /// with the old global `min()`, `max()`, `round()`, and `abs()` functions.
+  /// The parameter is the name of the function, which is used for reporting
+  /// deprecation warnings.
   Value _visitCalculation(FunctionExpression node,
-      {bool inLegacySassFunction = false}) {
+      {String? inLegacySassFunction}) {
     if (node.arguments.named.isNotEmpty) {
       throw _exception(
           "Keyword arguments can't be used with calculations.", node.span);
@@ -2634,8 +2641,12 @@ final class _EvaluateVisitor
           SassCalculation.mod(arguments[0], arguments.elementAtOrNull(1)),
         "rem" =>
           SassCalculation.rem(arguments[0], arguments.elementAtOrNull(1)),
-        "round" => SassCalculation.round(arguments[0],
-            arguments.elementAtOrNull(1), arguments.elementAtOrNull(2)),
+        "round" => SassCalculation.roundInternal(arguments[0],
+            arguments.elementAtOrNull(1), arguments.elementAtOrNull(2),
+            span: node.span,
+            inLegacySassFunction: inLegacySassFunction,
+            warn: (message, [deprecation]) =>
+                _warn(message, node.span, deprecation)),
         "clamp" => SassCalculation.clamp(arguments[0],
             arguments.elementAtOrNull(1), arguments.elementAtOrNull(2)),
         _ => throw UnsupportedError('Unknown calculation name "${node.name}".')
@@ -2731,11 +2742,13 @@ final class _EvaluateVisitor
 
   /// Evaluates [node] as a component of a calculation.
   ///
-  /// If [inLegacySassFunction] is `true`, this allows unitless numbers to be added and
-  /// subtracted with numbers with units, for backwards-compatibility with the
-  /// old global `min()`, `max()`, `round()`, and `abs()` functions.
+  /// If [inLegacySassFunction] isn't null, this allows unitless numbers to be
+  /// added and subtracted with numbers with units, for backwards-compatibility
+  /// with the old global `min()`, `max()`, `round()`, and `abs()` functions.
+  /// The parameter is the name of the function, which is used for reporting
+  /// deprecation warnings.
   Object _visitCalculationExpression(Expression node,
-      {required bool inLegacySassFunction}) {
+      {required String? inLegacySassFunction}) {
     switch (node) {
       case ParenthesizedExpression(expression: var inner):
         var result = _visitCalculationExpression(inner,
@@ -2766,7 +2779,9 @@ final class _EvaluateVisitor
                 _visitCalculationExpression(right,
                     inLegacySassFunction: inLegacySassFunction),
                 inLegacySassFunction: inLegacySassFunction,
-                simplify: !_inSupportsDeclaration));
+                simplify: !_inSupportsDeclaration,
+                warn: (message, [deprecation]) =>
+                    _warn(message, node.span, deprecation)));
 
       case NumberExpression() ||
             VariableExpression() ||
