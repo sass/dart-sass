@@ -283,6 +283,10 @@ describe('a @forward rule', () => {
 
         it('has an empty prefix', () => expect(node.prefix).toBe(''));
 
+        it('has no show', () => expect(node.show).toBeUndefined());
+
+        it('has no hide', () => expect(node.hide).toBeUndefined());
+
         it('has a configuration', () => {
           expect(node.configuration.size).toBe(1);
           expect(node.configuration.parent).toBe(node);

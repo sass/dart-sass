@@ -116,11 +116,11 @@ declare namespace SassInternal {
 
   class ForwardRule extends Statement {
     readonly url: Object;
-    readonly shownMixinsAndFunctions: DartSet<string> | null;
-    readonly shownVariables: DartSet<string> | null;
-    readonly hiddenMixinsAndFunctions: DartSet<string> | null;
-    readonly hiddenVariables: DartSet<string> | null;
-    readonly prefix: string | null;
+    readonly shownMixinsAndFunctions?: DartSet<string>;
+    readonly shownVariables?: DartSet<string>;
+    readonly hiddenMixinsAndFunctions?: DartSet<string>;
+    readonly hiddenVariables?: DartSet<string>;
+    readonly prefix?: string;
     readonly configuration: ConfiguredVariable[];
   }
 
