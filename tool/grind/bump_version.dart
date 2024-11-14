@@ -36,11 +36,7 @@ void _bumpVersion(bool patch, bool dev) {
   // Returns the version to which to bump [version].
   Version chooseNextVersion(Version version, SourceSpan span) {
     if (dev) {
-      if (patch
-          ? version.preRelease.isNotEmpty
-          : version.patch == 0 ||
-              version.preRelease.length != 1 ||
-              version.preRelease.first != "dev") {
+      if (version.preRelease.isNotEmpty && (patch || version.patch == 0)) {
         fail(span.message("Version is already pre-release", color: true));
       }
     } else if (version.preRelease.length == 1 &&

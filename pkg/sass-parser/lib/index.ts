@@ -73,6 +73,13 @@ export {
 } from './src/statement/error-rule';
 export {ForRule, ForRuleProps, ForRuleRaws} from './src/statement/for-rule';
 export {
+  ForwardMemberList,
+  ForwardMemberProps,
+  ForwardRule,
+  ForwardRuleProps,
+  ForwardRuleRaws,
+} from './src/statement/forward-rule';
+export {
   GenericAtRule,
   GenericAtRuleProps,
   GenericAtRuleRaws,

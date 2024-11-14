@@ -19,6 +19,7 @@ import '../util/string.dart';
 import '../visitor/interface/expression.dart';
 import '../visitor/interface/statement.dart';
 import 'reflection.dart';
+import 'set.dart';
 import 'visitor/expression.dart';
 import 'visitor/statement.dart';
 
@@ -30,13 +31,15 @@ class ParserExports {
       required Function parseIdentifier,
       required Function toCssIdentifier,
       required Function createExpressionVisitor,
-      required Function createStatementVisitor});
+      required Function createStatementVisitor,
+      required Function setToJS});
 
   external set parse(Function function);
   external set parseIdentifier(Function function);
   external set toCssIdentifier(Function function);
   external set createStatementVisitor(Function function);
   external set createExpressionVisitor(Function function);
+  external set setToJS(Function function);
 }
 
 /// An empty interpolation, used to initialize empty AST entries to modify their
@@ -57,7 +60,8 @@ ParserExports loadParserExports() {
       createExpressionVisitor: allowInterop(
           (JSExpressionVisitorObject inner) => JSExpressionVisitor(inner)),
       createStatementVisitor: allowInterop(
-          (JSStatementVisitorObject inner) => JSStatementVisitor(inner)));
+          (JSStatementVisitorObject inner) => JSStatementVisitor(inner)),
+      setToJS: allowInterop((Set<Object?> set) => JSSet([...set])));
 }
 
 /// Modifies the prototypes of the Sass AST classes to provide access to JS.
