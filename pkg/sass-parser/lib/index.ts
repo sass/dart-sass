@@ -20,6 +20,7 @@ export {
   ConfiguredVariableProps,
   ConfiguredVariableRaws,
 } from './src/configured-variable';
+export {Container} from './src/container';
 export {AnyNode, Node, NodeProps, NodeType} from './src/node';
 export {RawWithValue} from './src/raw-with-value';
 export {
@@ -56,6 +57,20 @@ export {
   NewNodeForInterpolation,
 } from './src/interpolation';
 export {
+  NewParameters,
+  ParameterListObjectProps,
+  ParameterListProps,
+  ParameterListRaws,
+  ParameterList,
+} from './src/parameter-list';
+export {
+  ParameterObjectProps,
+  ParameterRaws,
+  ParameterExpressionProps,
+  ParameterProps,
+  Parameter,
+} from './src/parameter';
+export {
   CssComment,
   CssCommentProps,
   CssCommentRaws,
@@ -79,6 +94,11 @@ export {
   ForwardRuleProps,
   ForwardRuleRaws,
 } from './src/statement/forward-rule';
+export {
+  FunctionRuleRaws,
+  FunctionRuleProps,
+  FunctionRule,
+} from './src/statement/function-rule';
 export {
   GenericAtRule,
   GenericAtRuleProps,

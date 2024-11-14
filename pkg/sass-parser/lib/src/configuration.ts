@@ -44,6 +44,9 @@ export interface ConfigurationProps {
     | Array<ConfiguredVariable | ConfiguredVariableProps>;
 }
 
+// TODO: This should probably implement a similar interface to `ParameterList`
+// as well as or instead of its current map-like interface.
+
 /**
  * A configuration map for a `@use` or `@forward` rule.
  *

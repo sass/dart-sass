@@ -430,7 +430,7 @@ describe('an interpolation', () => {
 
     it("removes a node's parents", () => {
       const string = node.nodes[1];
-      node.removeAll();
+      node.removeChild(1);
       expect(string).toHaveProperty('parent', undefined);
     });
 

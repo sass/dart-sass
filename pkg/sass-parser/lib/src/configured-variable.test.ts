@@ -298,7 +298,7 @@ describe('a configured variable', () => {
           }).toString(),
         ).toBe('$foo: "bar"'));
 
-      // raws.before is only used as part of a Configuration
+      // raws.after is only used as part of a Configuration
       describe('ignores after', () => {
         it('with no guard', () =>
           expect(
