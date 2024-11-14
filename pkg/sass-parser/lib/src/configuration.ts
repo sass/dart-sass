@@ -101,9 +101,9 @@ export class Configuration extends Node {
     const realVariable =
       'sassType' in variable ? variable : new ConfiguredVariable(variable);
     realVariable.parent = this;
-    const old = this._variables.get(realVariable.variableName);
+    const old = this._variables.get(realVariable.name);
     if (old) old.parent = undefined;
-    this._variables.set(realVariable.variableName, realVariable);
+    this._variables.set(realVariable.name, realVariable);
     return this;
   }
 
@@ -189,7 +189,7 @@ export class Configuration extends Node {
         result += variable.raws.before ?? ' ';
       }
       result += variable.toString();
-      result += variable.raws.afterValue ?? '';
+      result += variable.raws.after ?? '';
     }
     return result + `${this.raws.comma ? ',' : ''}${this.raws.after ?? ''})`;
   }
