@@ -217,3 +217,16 @@ export function longestCommonInitialSubstring(strings: string[]): string {
   }
   return candidate ?? '';
 }
+
+/**
+ * Returns whether {@link set1} and {@link set2} contain the same elements,
+ * regardless of order.
+ */
+export function setsEqual<T>(set1: Set<T>, set2: Set<T>): boolean {
+  if (set1 === set2) return true;
+  if (set1.size !== set2.size) return false;
+  for (const element of set1) {
+    if (!set2.has(element)) return false;
+  }
+  return true;
+}

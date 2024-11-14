@@ -13,6 +13,7 @@ import {LazySource} from './lazy-source';
 import {Node} from './node';
 import type * as sassInternal from './sass-internal';
 import * as utils from './utils';
+import {ForwardRule} from './statement/forward-rule';
 import {UseRule} from './statement/use-rule';
 
 /**
@@ -51,7 +52,7 @@ export interface ConfigurationProps {
 export class Configuration extends Node {
   readonly sassType = 'configuration' as const;
   declare raws: ConfigurationRaws;
-  declare parent: UseRule | undefined; // TODO: forward as well
+  declare parent: ForwardRule | UseRule | undefined;
 
   /** The underlying map from variable names to their values. */
   private _variables: Map<string, ConfiguredVariable> = new Map();

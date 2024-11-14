@@ -25,6 +25,13 @@ export interface SourceFile {
   getText(start: number, end?: number): string;
 }
 
+export interface DartSet<T> {
+  _type: T;
+
+  // A brand to make this function as a nominal type.
+  _unique: 'DartSet';
+}
+
 // There may be a better way to declare this, but I can't figure it out.
 // eslint-disable-next-line @typescript-eslint/no-namespace
 declare namespace SassInternal {
@@ -36,6 +43,8 @@ declare namespace SassInternal {
   ): string | null;
 
   function toCssIdentifier(text: string): string;
+
+  function setToJS<T>(set: DartSet<T>): Set<T>;
 
   class StatementVisitor<T> {
     private _fakePropertyToMakeThisAUniqueType1: T;
@@ -103,6 +112,16 @@ declare namespace SassInternal {
     readonly from: Expression;
     readonly to: Expression;
     readonly isExclusive: boolean;
+  }
+
+  class ForwardRule extends Statement {
+    readonly url: Object;
+    readonly shownMixinsAndFunctions: DartSet<string> | null;
+    readonly shownVariables: DartSet<string> | null;
+    readonly hiddenMixinsAndFunctions: DartSet<string> | null;
+    readonly hiddenVariables: DartSet<string> | null;
+    readonly prefix: string | null;
+    readonly configuration: ConfiguredVariable[];
   }
 
   class LoudComment extends Statement {
@@ -247,6 +266,7 @@ export type EachRule = SassInternal.EachRule;
 export type ErrorRule = SassInternal.ErrorRule;
 export type ExtendRule = SassInternal.ExtendRule;
 export type ForRule = SassInternal.ForRule;
+export type ForwardRule = SassInternal.ForwardRule;
 export type LoudComment = SassInternal.LoudComment;
 export type MediaRule = SassInternal.MediaRule;
 export type SilentComment = SassInternal.SilentComment;
@@ -273,6 +293,7 @@ export interface StatementVisitorObject<T> {
   visitErrorRule(node: ErrorRule): T;
   visitExtendRule(node: ExtendRule): T;
   visitForRule(node: ForRule): T;
+  visitForwardRule(node: ForwardRule): T;
   visitLoudComment(node: LoudComment): T;
   visitMediaRule(node: MediaRule): T;
   visitSilentComment(node: SilentComment): T;
@@ -296,3 +317,4 @@ export const parseIdentifier = sassInternal.parseIdentifier;
 export const toCssIdentifier = sassInternal.toCssIdentifier;
 export const createStatementVisitor = sassInternal.createStatementVisitor;
 export const createExpressionVisitor = sassInternal.createExpressionVisitor;
+export const setToJS = sassInternal.setToJS;
