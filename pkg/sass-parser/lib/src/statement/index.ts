@@ -15,6 +15,7 @@ import {DebugRule, DebugRuleProps} from './debug-rule';
 import {EachRule, EachRuleProps} from './each-rule';
 import {ErrorRule, ErrorRuleProps} from './error-rule';
 import {ForRule, ForRuleProps} from './for-rule';
+import {ForwardRule, ForwardRuleProps} from './forward-rule';
 import {Root} from './root';
 import {Rule, RuleProps} from './rule';
 import {UseRule, UseRuleProps} from './use-rule';
@@ -53,6 +54,7 @@ export type StatementType =
   | 'debug-rule'
   | 'each-rule'
   | 'for-rule'
+  | 'forward-rule'
   | 'error-rule'
   | 'use-rule'
   | 'sass-comment'
@@ -70,6 +72,7 @@ export type AtRule =
   | EachRule
   | ErrorRule
   | ForRule
+  | ForwardRule
   | GenericAtRule
   | UseRule
   | WarnRule
@@ -105,6 +108,7 @@ export type ChildProps =
   | EachRuleProps
   | ErrorRuleProps
   | ForRuleProps
+  | ForwardRuleProps
   | GenericAtRuleProps
   | RuleProps
   | SassCommentChildProps
@@ -165,6 +169,7 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
   visitErrorRule: inner => new ErrorRule(undefined, inner),
   visitEachRule: inner => new EachRule(undefined, inner),
   visitForRule: inner => new ForRule(undefined, inner),
+  visitForwardRule: inner => new ForwardRule(undefined, inner),
   visitExtendRule: inner => {
     const paramsInterpolation = new Interpolation(undefined, inner.selector);
     if (inner.isOptional) paramsInterpolation.append('!optional');
@@ -310,6 +315,8 @@ export function normalize(
       result.push(new EachRule(node));
     } else if ('fromExpression' in node) {
       result.push(new ForRule(node));
+    } else if ('forwardUrl' in node) {
+      result.push(new ForwardRule(node));
     } else if ('errorExpression' in node) {
       result.push(new ErrorRule(node));
     } else if ('text' in node || 'textInterpolation' in node) {

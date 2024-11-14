@@ -1,6 +1,6 @@
 ## 0.4.5
 
-* No user-visible changes.
+* Add support for parsing the `@forward` rule.
 
 ## 0.4.4
 
