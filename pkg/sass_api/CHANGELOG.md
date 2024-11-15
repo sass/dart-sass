@@ -1,4 +1,4 @@
-## 14.2.0-dev
+## 14.2.0
 
 * No user-visible changes.
 

@@ -1,4 +1,4 @@
-## 0.4.5-dev
+## 0.4.5
 
 * Add support for parsing the `@forward` rule.
 

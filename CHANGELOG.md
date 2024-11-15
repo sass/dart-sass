@@ -1,6 +1,10 @@
-## 1.81.0-dev
+## 1.81.0
 
-* No user-visible changes.
+* Fix a few cases where deprecation warnings weren't being emitted for global
+  built-in functions whose names overlap with CSS calculations.
+
+* Add support for the CSS `round()` calculation with a single argument, as long
+  as that argument might be a unitless number.
 
 ## 1.80.7
 
