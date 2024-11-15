@@ -2,7 +2,14 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import {ConfiguredVariable, StringExpression, UseRule, sass, scss} from '..';
+import {
+  ConfiguredVariable,
+  ForwardRule,
+  StringExpression,
+  UseRule,
+  sass,
+  scss,
+} from '..';
 
 describe('a configured variable', () => {
   let node: ConfiguredVariable;
@@ -129,24 +136,23 @@ describe('a configured variable', () => {
       });
     }
 
-    // We can re-enable these once ForwardRule exists.
-    // describeNode(
-    //   'parsed as SCSS',
-    //   () =>
-    //     (
-    //       scss.parse('@forward "baz" with ($foo: "bar" !default)')
-    //         .nodes[0] as ForwardRule
-    //     ).configuration.get('foo')!
-    // );
-    //
-    // describeNode(
-    //   'parsed as Sass',
-    //   () =>
-    //     (
-    //       sass.parse('@forward "baz" with ($foo: "bar" !default)')
-    //         .nodes[0] as ForwardRule
-    //     ).configuration.get('foo')!
-    // );
+    describeNode(
+      'parsed as SCSS',
+      () =>
+        (
+          scss.parse('@forward "baz" with ($foo: "bar" !default)')
+            .nodes[0] as ForwardRule
+        ).configuration.get('foo')!,
+    );
+
+    describeNode(
+      'parsed as Sass',
+      () =>
+        (
+          sass.parse('@forward "baz" with ($foo: "bar" !default)')
+            .nodes[0] as ForwardRule
+        ).configuration.get('foo')!,
+    );
 
     describe('constructed manually', () => {
       describe('with an array', () => {
