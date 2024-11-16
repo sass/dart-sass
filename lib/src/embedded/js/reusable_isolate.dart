@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:js_interop';
 import 'dart:typed_data';
 
-import 'io.dart';
 import 'js.dart';
 import 'sync_message_port.dart';
 import 'worker_threads.dart';
@@ -46,14 +45,6 @@ class ReusableIsolate {
             workerData: channel.port2,
             transferList: [channel.port2].toJS,
             argv: argv));
-    worker.once(
-        'exit',
-        (int code) {
-          // Worker exit code 1 means it is killed by worker.terminate()
-          if (code > exitCode && code != 1) {
-            exitCode = code;
-          }
-        }.toJS);
     var controller = StreamController<dynamic>(sync: true);
     var sendPort = SyncMessagePort(channel.port1);
     var receivePort = channel.port1;
