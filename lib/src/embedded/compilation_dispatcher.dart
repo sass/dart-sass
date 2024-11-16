@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:convert';
+import 'dart:io' if (dart.library.js) 'js/io.dart';
 import 'dart:isolate' if (dart.library.js) 'js/isolate.dart';
 import 'dart:typed_data';
 
@@ -366,14 +367,14 @@ final class CompilationDispatcher {
     message.writeToCodedBufferWriter(protobufWriter);
 
     // Add one additional byte to the beginning to indicate whether or not the
-    // compilation has finished (1) or encountered a fatal error (2), so the
-    // [IsolateDispatcher] knows whether to treat this isolate as inactive or
-    // close out entirely.
+    // compilation has finished (1) or encountered a fatal error (exitCode), so
+    // the [IsolateDispatcher] knows whether to treat this isolate as inactive
+    // or close out entirely.
     var packet = Uint8List(
         1 + _compilationIdVarint.length + protobufWriter.lengthInBytes);
     packet[0] = switch (message.whichMessage()) {
       OutboundMessage_Message.compileResponse => 1,
-      OutboundMessage_Message.error => 2,
+      OutboundMessage_Message.error => exitCode,
       _ => 0
     };
     packet.setAll(1, _compilationIdVarint);
