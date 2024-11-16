@@ -141,11 +141,11 @@ class IsolateDispatcher {
       var fullBuffer = message as Uint8List;
 
       // The first byte of messages from isolates indicates whether the entire
-      // compilation is finished (1) or if it encountered an error (2). Sending
-      // this as part of the message buffer rather than a separate message
-      // avoids a race condition where the host might send a new compilation
-      // request with the same ID as one that just finished before the
-      // [IsolateDispatcher] receives word that the isolate with that ID is
+      // compilation is finished (1) or if it encountered an error (exitCode).
+      // Sending this as part of the message buffer rather than a separate
+      // message avoids a race condition where the host might send a new
+      // compilation request with the same ID as one that just finished before
+      // the [IsolateDispatcher] receives word that the isolate with that ID is
       // done. See sass/dart-sass#2004.
       var category = fullBuffer[0];
       var packet = Uint8List.sublistView(fullBuffer, 1);
@@ -159,8 +159,9 @@ class IsolateDispatcher {
           _inactiveIsolates.add(isolate);
           resource.release();
           _channel.sink.add(packet);
-        case 2:
+        default:
           _channel.sink.add(packet);
+          exitCode = category;
           if (_gracefulShutdown) {
             _channel.sink.close();
           } else {
