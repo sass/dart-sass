@@ -34,14 +34,27 @@ export type NewNodeForInterpolation =
   | undefined;
 
 /**
- * The initializer properties for {@link Interpolation}
+ * The initializer properties for {@link Interpolation} passed as an options
+ * object.
  *
  * @category Expression
  */
-export interface InterpolationProps {
+export interface InterpolationObjectProps {
   nodes: ReadonlyArray<NewNodeForInterpolation>;
   raws?: InterpolationRaws;
 }
+
+/**
+ * The initializer properties for {@link Interpolation} passed.
+ *
+ * A plain string is interpreted as a plain-text interpolation.
+ *
+ * @category Expression
+ */
+export type InterpolationProps =
+  | InterpolationObjectProps
+  | ReadonlyArray<NewNodeForInterpolation>
+  | string;
 
 /**
  * Raws indicating how to precisely serialize an {@link Interpolation} node.
@@ -131,8 +144,14 @@ export class Interpolation
   constructor(defaults?: InterpolationProps);
   /** @hidden */
   constructor(_: undefined, inner: sassInternal.Interpolation);
-  constructor(defaults?: object, inner?: sassInternal.Interpolation) {
-    super(defaults);
+  constructor(defaults?: object | string, inner?: sassInternal.Interpolation) {
+    super(
+      typeof defaults === 'string'
+        ? {nodes: [defaults]}
+        : Array.isArray(defaults)
+          ? {nodes: defaults}
+          : defaults,
+    );
     if (inner) {
       this.source = new LazySource(inner);
       // TODO: set lazy raws here to use when stringifying
@@ -146,7 +165,7 @@ export class Interpolation
     if (this._nodes === undefined) this._nodes = [];
   }
 
-  clone(overrides?: Partial<InterpolationProps>): this {
+  clone(overrides?: Partial<InterpolationObjectProps>): this {
     return utils.cloneNode(this, overrides, ['nodes', 'raws']);
   }
 

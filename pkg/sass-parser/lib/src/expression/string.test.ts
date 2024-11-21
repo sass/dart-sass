@@ -25,41 +25,14 @@ describe('a string expression', () => {
 
     describeNode('parsed', () => utils.parseExpression('"foo"'));
 
-    describe('constructed manually', () => {
-      describeNode(
-        'with explicit text',
-        () =>
-          new StringExpression({
-            quotes: true,
-            text: new Interpolation({nodes: ['foo']}),
-          }),
-      );
+    describeNode(
+      'constructed manually',
+      () => new StringExpression({quotes: true, text: 'foo'}),
+    );
 
-      describeNode(
-        'with string text',
-        () =>
-          new StringExpression({
-            quotes: true,
-            text: 'foo',
-          }),
-      );
-    });
-
-    describe('constructed from ExpressionProps', () => {
-      describeNode('with explicit text', () =>
-        utils.fromExpressionProps({
-          quotes: true,
-          text: new Interpolation({nodes: ['foo']}),
-        }),
-      );
-
-      describeNode('with string text', () =>
-        utils.fromExpressionProps({
-          quotes: true,
-          text: 'foo',
-        }),
-      );
-    });
+    describeNode('constructed from ExpressionProps', () =>
+      utils.fromExpressionProps({quotes: true, text: 'foo'}),
+    );
   });
 
   describe('unquoted', () => {
@@ -82,28 +55,13 @@ describe('a string expression', () => {
 
     describe('constructed manually', () => {
       describeNode(
-        'with explicit text',
-        () =>
-          new StringExpression({
-            text: new Interpolation({nodes: ['foo']}),
-          }),
-      );
-
-      describeNode(
         'with explicit quotes',
-        () =>
-          new StringExpression({
-            quotes: false,
-            text: 'foo',
-          }),
+        () => new StringExpression({quotes: false, text: 'foo'}),
       );
 
       describeNode(
-        'with string text',
-        () =>
-          new StringExpression({
-            text: 'foo',
-          }),
+        'with default quotes',
+        () => new StringExpression({text: 'foo'}),
       );
     });
 
@@ -122,9 +80,7 @@ describe('a string expression', () => {
       );
 
       describeNode('with string text', () =>
-        utils.fromExpressionProps({
-          text: 'foo',
-        }),
+        utils.fromExpressionProps({text: 'foo'}),
       );
     });
   });
@@ -145,7 +101,7 @@ describe('a string expression', () => {
       });
 
       it('assigns text explicitly', () => {
-        const text = new Interpolation({nodes: ['zip']});
+        const text = new Interpolation('zip');
         node.text = text;
         expect(node.text).toBe(text);
         expect(node).toHaveInterpolation('text', 'zip');

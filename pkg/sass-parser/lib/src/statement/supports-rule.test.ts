@@ -40,11 +40,12 @@ describe('a @supports rule', () => {
 
       it('has a name', () => expect(node.name).toBe('supports'));
 
-      it('has a paramsInterpolation', () =>
+      it('has a paramsInterpolation', () => {
         expect(node).toHaveInterpolation(
           'paramsInterpolation',
           '( foo : bar, #abc, [])',
-        ));
+        );
+      });
 
       it('has matching params', () =>
         expect(node.params).toBe('( foo : bar, #abc, [])'));
