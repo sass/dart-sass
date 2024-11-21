@@ -4,7 +4,7 @@
 
 import * as postcss from 'postcss';
 
-import {Interpolation} from '../interpolation';
+import {Interpolation, InterpolationProps} from '../interpolation';
 import {LazySource} from '../lazy-source';
 import type * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
@@ -16,7 +16,7 @@ import {Expression} from '.';
  * @category Expression
  */
 export interface StringExpressionProps {
-  text: Interpolation | string;
+  text: Interpolation | InterpolationProps;
   quotes?: boolean;
   raws?: StringExpressionRaws;
 }
@@ -48,10 +48,11 @@ export class StringExpression extends Expression {
   get text(): Interpolation {
     return this._text;
   }
-  set text(text: Interpolation | string) {
+  set text(value: Interpolation | InterpolationProps) {
     // TODO - postcss/postcss#1957: Mark this as dirty
     if (this._text) this._text.parent = undefined;
-    if (typeof text === 'string') text = new Interpolation({nodes: [text]});
+    const text =
+      value instanceof Interpolation ? value : new Interpolation(value);
     text.parent = this;
     this._text = text;
   }

@@ -71,10 +71,32 @@ describe('an interpolation', () => {
       () => (css.parse('@foo').nodes[0] as GenericAtRule).nameInterpolation,
     );
 
-    describeNode(
-      'constructed manually',
-      () => new Interpolation({nodes: ['foo']}),
-    );
+    describe('constructed manually', () => {
+      describeNode('with an object', () => new Interpolation({nodes: ['foo']}));
+
+      describeNode('with an array', () => new Interpolation(['foo']));
+
+      describeNode('with a string', () => new Interpolation('foo'));
+    });
+
+    describe('constructed from properties', () => {
+      describeNode(
+        'with an object',
+        () =>
+          new GenericAtRule({nameInterpolation: {nodes: ['foo']}})
+            .nameInterpolation,
+      );
+
+      describeNode(
+        'with an array',
+        () => new GenericAtRule({nameInterpolation: ['foo']}).nameInterpolation,
+      );
+
+      describeNode(
+        'with a string',
+        () => new GenericAtRule({nameInterpolation: 'foo'}).nameInterpolation,
+      );
+    });
   });
 
   describe('with only an expression', () => {
@@ -102,10 +124,30 @@ describe('an interpolation', () => {
       () => (scss.parse('@#{foo}').nodes[0] as GenericAtRule).nameInterpolation,
     );
 
-    describeNode(
-      'constructed manually',
-      () => new Interpolation({nodes: [{text: 'foo'}]}),
-    );
+    describe('constructed manually', () => {
+      describeNode(
+        'with an object',
+        () => new Interpolation({nodes: [{text: 'foo'}]}),
+      );
+
+      describeNode('with an array', () => new Interpolation([{text: 'foo'}]));
+    });
+
+    describe('constructed from properties', () => {
+      describeNode(
+        'with an object',
+        () =>
+          new GenericAtRule({nameInterpolation: {nodes: [{text: 'foo'}]}})
+            .nameInterpolation,
+      );
+
+      describeNode(
+        'with an array',
+        () =>
+          new GenericAtRule({nameInterpolation: [{text: 'foo'}]})
+            .nameInterpolation,
+      );
+    });
   });
 
   describe('with mixed text and expressions', () => {
@@ -139,10 +181,34 @@ describe('an interpolation', () => {
           .nameInterpolation,
     );
 
-    describeNode(
-      'constructed manually',
-      () => new Interpolation({nodes: ['foo', {text: 'bar'}, 'baz']}),
-    );
+    describe('constructed manually', () => {
+      describeNode(
+        'with an object',
+        () => new Interpolation({nodes: ['foo', {text: 'bar'}, 'baz']}),
+      );
+
+      describeNode(
+        'with an array',
+        () => new Interpolation(['foo', {text: 'bar'}, 'baz']),
+      );
+    });
+
+    describe('constructed from properties', () => {
+      describeNode(
+        'with an object',
+        () =>
+          new GenericAtRule({
+            nameInterpolation: {nodes: ['foo', {text: 'bar'}, 'baz']},
+          }).nameInterpolation,
+      );
+
+      describeNode(
+        'with an array',
+        () =>
+          new GenericAtRule({nameInterpolation: ['foo', {text: 'bar'}, 'baz']})
+            .nameInterpolation,
+      );
+    });
   });
 
   describe('can add', () => {
