@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a @mixin rule toJSON 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@mixin foo($bar) {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "mixinName": "foo",
+  "name": "mixin",
+  "nodes": [],
+  "parameters": <($bar)>,
+  "raws": {},
+  "sassType": "mixin-rule",
+  "source": <1:1-1:20 in 0>,
+  "type": "atrule",
+}
+`;

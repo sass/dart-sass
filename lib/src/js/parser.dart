@@ -93,7 +93,8 @@ void _updateAstPrototypes() {
       .defineGetter('arguments', (ArgumentDeclaration self) => self.arguments);
   var function = FunctionRule('a', arguments, [], bogusSpan);
   getJSClass(function)
-      .defineGetter('arguments', (FunctionRule self) => self.arguments);
+      .superclass
+      .defineGetter('arguments', (CallableDeclaration self) => self.arguments);
 
   _addSupportsConditionToInterpolation();
 

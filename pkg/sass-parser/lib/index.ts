@@ -104,6 +104,16 @@ export {
   GenericAtRuleProps,
   GenericAtRuleRaws,
 } from './src/statement/generic-at-rule';
+export {
+  MixinRule,
+  MixinRuleProps,
+  MixinRuleRaws,
+} from './src/statement/mixin-rule';
+export {
+  ReturnRule,
+  ReturnRuleProps,
+  ReturnRuleRaws,
+} from './src/statement/return-rule';
 export {Root, RootProps, RootRaws} from './src/statement/root';
 export {Rule, RuleProps, RuleRaws} from './src/statement/rule';
 export {
