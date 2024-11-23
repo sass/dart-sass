@@ -15,6 +15,8 @@ describe('a @function rule', () => {
       describe(description, () => {
         beforeEach(() => void (node = create()));
 
+        it('has a sassType', () => expect(node.sassType).toBe('function-rule'));
+
         it('has a name', () => expect(node.name.toString()).toBe('function'));
 
         it('has a function name', () =>
@@ -56,6 +58,8 @@ describe('a @function rule', () => {
     ): void {
       describe(description, () => {
         beforeEach(() => void (node = create()));
+
+        it('has a sassType', () => expect(node.sassType).toBe('function-rule'));
 
         it('has a name', () => expect(node.name.toString()).toBe('function'));
 
