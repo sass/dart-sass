@@ -1812,7 +1812,7 @@ final class _EvaluateVisitor
     if (result != null) {
       isDependency = _inDependency;
     } else {
-      result = await _nodeImporter!.loadAsync(originalUrl, previous, forImport);
+      result = await _nodeImporter.loadAsync(originalUrl, previous, forImport);
       if (result == null) return null;
       isDependency = true;
     }
@@ -2555,12 +2555,12 @@ final class _EvaluateVisitor
       // Note that the list of calculation functions is also tracked in
       // lib/src/visitor/is_plain_css_safe.dart.
       switch (node.name.toLowerCase()) {
-        case "min" || "max" || "round" || "abs"
+        case ("min" || "max" || "round" || "abs") && var name
             when node.arguments.named.isEmpty &&
                 node.arguments.rest == null &&
                 node.arguments.positional
                     .every((argument) => argument.isCalculationSafe):
-          return await _visitCalculation(node, inLegacySassFunction: true);
+          return await _visitCalculation(node, inLegacySassFunction: name);
 
         case "calc" ||
               "clamp" ||
@@ -2607,8 +2607,15 @@ final class _EvaluateVisitor
     return result;
   }
 
+  /// Evaluates [node] as a calculation.
+  ///
+  /// If [inLegacySassFunction] isn't null, this allows unitless numbers to be
+  /// added and subtracted with numbers with units, for backwards-compatibility
+  /// with the old global `min()`, `max()`, `round()`, and `abs()` functions.
+  /// The parameter is the name of the function, which is used for reporting
+  /// deprecation warnings.
   Future<Value> _visitCalculation(FunctionExpression node,
-      {bool inLegacySassFunction = false}) async {
+      {String? inLegacySassFunction}) async {
     if (node.arguments.named.isNotEmpty) {
       throw _exception(
           "Keyword arguments can't be used with calculations.", node.span);
@@ -2656,8 +2663,12 @@ final class _EvaluateVisitor
           SassCalculation.mod(arguments[0], arguments.elementAtOrNull(1)),
         "rem" =>
           SassCalculation.rem(arguments[0], arguments.elementAtOrNull(1)),
-        "round" => SassCalculation.round(arguments[0],
-            arguments.elementAtOrNull(1), arguments.elementAtOrNull(2)),
+        "round" => SassCalculation.roundInternal(arguments[0],
+            arguments.elementAtOrNull(1), arguments.elementAtOrNull(2),
+            span: node.span,
+            inLegacySassFunction: inLegacySassFunction,
+            warn: (message, [deprecation]) =>
+                _warn(message, node.span, deprecation)),
         "clamp" => SassCalculation.clamp(arguments[0],
             arguments.elementAtOrNull(1), arguments.elementAtOrNull(2)),
         _ => throw UnsupportedError('Unknown calculation name "${node.name}".')
@@ -2753,11 +2764,13 @@ final class _EvaluateVisitor
 
   /// Evaluates [node] as a component of a calculation.
   ///
-  /// If [inLegacySassFunction] is `true`, this allows unitless numbers to be added and
-  /// subtracted with numbers with units, for backwards-compatibility with the
-  /// old global `min()`, `max()`, `round()`, and `abs()` functions.
+  /// If [inLegacySassFunction] isn't null, this allows unitless numbers to be
+  /// added and subtracted with numbers with units, for backwards-compatibility
+  /// with the old global `min()`, `max()`, `round()`, and `abs()` functions.
+  /// The parameter is the name of the function, which is used for reporting
+  /// deprecation warnings.
   Future<Object> _visitCalculationExpression(Expression node,
-      {required bool inLegacySassFunction}) async {
+      {required String? inLegacySassFunction}) async {
     switch (node) {
       case ParenthesizedExpression(expression: var inner):
         var result = await _visitCalculationExpression(inner,
@@ -2788,7 +2801,9 @@ final class _EvaluateVisitor
                 await _visitCalculationExpression(right,
                     inLegacySassFunction: inLegacySassFunction),
                 inLegacySassFunction: inLegacySassFunction,
-                simplify: !_inSupportsDeclaration));
+                simplify: !_inSupportsDeclaration,
+                warn: (message, [deprecation]) =>
+                    _warn(message, node.span, deprecation)));
 
       case NumberExpression() ||
             VariableExpression() ||

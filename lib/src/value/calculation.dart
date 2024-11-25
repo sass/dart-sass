@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
+import 'package:source_span/source_span.dart';
 
 import '../deprecation.dart';
 import '../evaluation_context.dart';
@@ -482,13 +483,47 @@ final class SassCalculation extends Value {
   /// This may be passed fewer than two arguments, but only if one of the
   /// arguments is an unquoted `var()` string.
   static Value round(Object strategyOrNumber,
-      [Object? numberOrStep, Object? step]) {
+          [Object? numberOrStep, Object? step]) =>
+      roundInternal(strategyOrNumber, numberOrStep, step,
+          span: null, inLegacySassFunction: null, warn: null);
+
+  /// Like [round], but with the internal-only [inLegacySassFunction] and
+  /// [warn] parameters.
+  ///
+  /// If [inLegacySassFunction] isn't null, this allows unitless numbers to be
+  /// added and subtracted with numbers with units, for backwards-compatibility
+  /// with the old global `min()` and `max()` functions. This emits a
+  /// deprecation warning using the string as the function's name.
+  ///
+  /// If [simplify] is `false`, no simplification will be done.
+  ///
+  /// The [warn] callback is used to surface deprecation warnings.
+  ///
+  /// @nodoc
+  @internal
+  static Value roundInternal(
+      Object strategyOrNumber, Object? numberOrStep, Object? step,
+      {required FileSpan? span,
+      required String? inLegacySassFunction,
+      required void Function(String message, [Deprecation? deprecation])?
+          warn}) {
     switch ((
       _simplify(strategyOrNumber),
       numberOrStep.andThen(_simplify),
       step.andThen(_simplify)
     )) {
-      case (SassNumber number, null, null):
+      case (SassNumber(hasUnits: false) && var number, null, null):
+        return SassNumber(number.value.round());
+
+      case (SassNumber number, null, null) when inLegacySassFunction != null:
+        warn!(
+            "In future versions of Sass, round() will be interpreted as a CSS "
+            "round() calculation. This requires an explicit modulus when "
+            "rounding numbers with units. If you want to use the Sass "
+            "function, call math.round() instead.\n"
+            "\n"
+            "See https://sass-lang.com/d/import",
+            Deprecation.globalBuiltin);
         return _matchUnits(number.value.round().toDouble(), number);
 
       case (SassNumber number, SassNumber step, null)
@@ -542,12 +577,8 @@ final class SassCalculation extends Value {
         throw SassScriptException(
             "Number to round and step arguments are required.");
 
-      case (SassString rest, null, null):
-        return SassCalculation._("round", [rest]);
-
       case (var number, null, null):
-        throw SassScriptException(
-            "Single argument $number expected to be simplifiable.");
+        return SassCalculation._("round", [number]);
 
       case (var number, var step?, null):
         return SassCalculation._("round", [number, step]);
@@ -584,32 +615,54 @@ final class SassCalculation extends Value {
   static Object operate(
           CalculationOperator operator, Object left, Object right) =>
       operateInternal(operator, left, right,
-          inLegacySassFunction: false, simplify: true);
+          inLegacySassFunction: null, simplify: true, warn: null);
 
-  /// Like [operate], but with the internal-only [inLegacySassFunction] parameter.
+  /// Like [operate], but with the internal-only [inLegacySassFunction] and
+  /// [warn] parameters.
   ///
-  /// If [inLegacySassFunction] is `true`, this allows unitless numbers to be added and
-  /// subtracted with numbers with units, for backwards-compatibility with the
-  /// old global `min()` and `max()` functions.
+  /// If [inLegacySassFunction] isn't null, this allows unitless numbers to be
+  /// added and subtracted with numbers with units, for backwards-compatibility
+  /// with the old global `min()` and `max()` functions. This emits a
+  /// deprecation warning using the string as the function's name.
   ///
   /// If [simplify] is `false`, no simplification will be done.
+  ///
+  /// The [warn] callback is used to surface deprecation warnings.
+  ///
+  /// @nodoc
   @internal
   static Object operateInternal(
       CalculationOperator operator, Object left, Object right,
-      {required bool inLegacySassFunction, required bool simplify}) {
+      {required String? inLegacySassFunction,
+      required bool simplify,
+      required void Function(String message, [Deprecation? deprecation])?
+          warn}) {
     if (!simplify) return CalculationOperation._(operator, left, right);
     left = _simplify(left);
     right = _simplify(right);
 
     if (operator case CalculationOperator.plus || CalculationOperator.minus) {
-      if (left is SassNumber &&
-          right is SassNumber &&
-          (inLegacySassFunction
-              ? left.isComparableTo(right)
-              : left.hasCompatibleUnits(right))) {
-        return operator == CalculationOperator.plus
-            ? left.plus(right)
-            : left.minus(right);
+      if (left is SassNumber && right is SassNumber) {
+        var compatible = left.hasCompatibleUnits(right);
+        if (!compatible &&
+            inLegacySassFunction != null &&
+            left.isComparableTo(right)) {
+          warn!(
+              "In future versions of Sass, $inLegacySassFunction() will be "
+              "interpreted as the CSS $inLegacySassFunction() calculation. "
+              "This doesn't allow unitless numbers to be mixed with numbers "
+              "with units. If you want to use the Sass function, call "
+              "math.$inLegacySassFunction() instead.\n"
+              "\n"
+              "See https://sass-lang.com/d/import",
+              Deprecation.globalBuiltin);
+          compatible = true;
+        }
+        if (compatible) {
+          return operator == CalculationOperator.plus
+              ? left.plus(right)
+              : left.minus(right);
+        }
       }
 
       _verifyCompatibleNumbers([left, right]);

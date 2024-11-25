@@ -88,7 +88,7 @@ final JSClass calculationOperationClass = () {
     _assertCalculationValue(left);
     _assertCalculationValue(right);
     return SassCalculation.operateInternal(operator, left, right,
-        inLegacySassFunction: false, simplify: false);
+        inLegacySassFunction: null, simplify: false, warn: null);
   });
 
   jsClass.defineMethods({
@@ -104,7 +104,7 @@ final JSClass calculationOperationClass = () {
 
   getJSClass(SassCalculation.operateInternal(
           CalculationOperator.plus, SassNumber(1), SassNumber(1),
-          inLegacySassFunction: false, simplify: false))
+          inLegacySassFunction: null, simplify: false, warn: null))
       .injectSuperclass(jsClass);
   return jsClass;
 }();

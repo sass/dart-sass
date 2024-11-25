@@ -161,12 +161,23 @@ void _checkVersionIncrementsAlong(
   // because we don't have access to the prior version.
   if (sassVersion.patch != 0) return;
 
+  var pkgMajor = pkgVersion.major;
+  var pkgMinor = pkgVersion.minor;
+  var pkgPatch = pkgVersion.patch;
+  if (pkgMajor == 0) {
+    // Before 1.0.0, the semantics of each version number are moved up by one
+    // place.
+    pkgMajor = pkgMinor;
+    pkgMinor = pkgPatch;
+    pkgPatch = 0;
+  }
+
   if (sassVersion.minor != 0) {
-    expect(pkgVersion.patch, equals(0),
+    expect(pkgPatch, equals(0),
         reason: "sass minor version was incremented, $pkgName must increment "
             "at least its minor version");
   } else {
-    expect(pkgVersion.minor, equals(0),
+    expect(pkgMinor, equals(0),
         reason: "sass major version was incremented, $pkgName must increment "
             "at its major version as well");
   }

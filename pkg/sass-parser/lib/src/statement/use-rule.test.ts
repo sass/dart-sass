@@ -127,9 +127,10 @@ describe('a @use rule', () => {
 
         it('has a url', () => expect(node.useUrl).toBe('foo'));
 
-        it('has an explicit', () => expect(node.namespace).toBe('bar'));
+        it('has an explicit namespace', () =>
+          expect(node.namespace).toBe('bar'));
 
-        it('has an empty configuration', () => {
+        it('has a configuration', () => {
           expect(node.configuration.size).toBe(1);
           expect(node.configuration.parent).toBe(node);
           const variables = [...node.configuration.variables()];
@@ -409,7 +410,7 @@ describe('a @use rule', () => {
         it('params', () =>
           expect(clone.params).toBe('"foo" as bar  with ($baz: "qux")'));
 
-        it('url', () => expect(clone.useUrl).toBe('foo'));
+        it('useUrl', () => expect(clone.useUrl).toBe('foo'));
 
         it('namespace', () => expect(clone.namespace).toBe('bar'));
 

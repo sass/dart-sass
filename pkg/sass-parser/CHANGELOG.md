@@ -1,4 +1,12 @@
-## 0.4.3-dev
+## 0.4.5
+
+* Add support for parsing the `@forward` rule.
+
+## 0.4.4
+
+* No user-visible changes.
+
+## 0.4.3
 
 * Add support for parsing the `@while` rule.
 

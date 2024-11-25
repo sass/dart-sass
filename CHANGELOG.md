@@ -1,6 +1,24 @@
-## 1.80.6-dev
+## 1.81.0
 
-* No user-visible changes.
+* Fix a few cases where deprecation warnings weren't being emitted for global
+  built-in functions whose names overlap with CSS calculations.
+
+* Add support for the CSS `round()` calculation with a single argument, as long
+  as that argument might be a unitless number.
+
+## 1.80.7
+
+### Embedded Host
+
+* Don't treat `0` as `undefined` for the `green` and `blue` channels in the
+  `LegacyColor` constructor.
+
+## 1.80.6
+
+### Command-Line Interface
+
+* Make `@parcel/watcher` an optional dependency so this can still be installed
+  on operating systems where it's unavailable.
 
 ## 1.80.5
 

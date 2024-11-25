@@ -6,7 +6,6 @@ import * as postcss from 'postcss';
 import type {AtRuleRaws} from 'postcss/lib/at-rule';
 
 import {Configuration, ConfigurationProps} from '../configuration';
-import {Expression} from '../expression';
 import {StringExpression} from '../expression/string';
 import {LazySource} from '../lazy-source';
 import {RawWithValue} from '../raw-with-value';
@@ -23,7 +22,7 @@ import * as sassParser from '../..';
  * @category Statement
  */
 export interface UseRuleRaws extends Omit<AtRuleRaws, 'params'> {
-  /** The representation of {@link UseRule.url}. */
+  /** The representation of {@link UseRule.useUrl}. */
   url?: RawWithValue<string>;
 
   /**
@@ -201,8 +200,8 @@ export class UseRule
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
-    return [...Object.values(this.configuration)];
+  get nonStatementChildren(): ReadonlyArray<Configuration> {
+    return [this.configuration];
   }
 }
 
