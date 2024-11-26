@@ -1,3 +1,10 @@
+## 1.81.1
+
+### Command-Line Interface
+
+* Improve `--watch` mode reliability when making multiple changes at once, such
+  as checking out a different Git branch.
+
 ## 1.81.0
 
 * Fix a few cases where deprecation warnings weren't being emitted for global

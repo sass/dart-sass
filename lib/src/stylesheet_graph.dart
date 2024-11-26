@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'ast/sass.dart';
 import 'import_cache.dart';
 import 'importer.dart';
+import 'io.dart';
 import 'util/map.dart';
 import 'util/nullable.dart';
 import 'visitor/find_dependencies.dart';
@@ -169,6 +170,33 @@ class StylesheetGraph {
     return true;
   }
 
+  /// Re-parses all stylesheets in the graph that have been modified on disk
+  /// since their last known in-memory modification.
+  ///
+  /// This guards against situations where a recompilation is triggered before
+  /// the graph is manually informed of all changes, such as when `--poll` runs
+  /// slowly or native file system notifications aren't comprehensive.
+  void reloadAllModified() {
+    // Copy to a list because [reload] can modify [_nodes].
+    for (var node in [..._nodes.values]) {
+      var modified = false;
+      try {
+        var loadTime = importCache.loadTime(node.canonicalUrl);
+        modified = loadTime != null &&
+            node.importer.modificationTime(node.canonicalUrl).isAfter(loadTime);
+      } on FileSystemException catch (_) {
+        // If the file no longer exists, treat that as a modification.
+        modified = true;
+      }
+
+      if (modified) {
+        if (!reload(node.canonicalUrl)) {
+          remove(node.importer, node.canonicalUrl);
+        }
+      }
+    }
+  }
+
   /// Removes the stylesheet at [canonicalUrl] (loaded by [importer]) from the
   /// stylesheet graph.
   ///
@@ -204,6 +232,7 @@ class StylesheetGraph {
   /// Returns all nodes whose imports were changed.
   Set<StylesheetNode> _recanonicalizeImports(
       Importer importer, Uri canonicalUrl) {
+    importCache.clearCanonicalize(canonicalUrl);
     var changed = <StylesheetNode>{};
     for (var node in nodes.values) {
       var newUpstream = _recanonicalizeImportsForNode(
@@ -242,7 +271,6 @@ class StylesheetGraph {
     var newMap = <Uri, StylesheetNode?>{};
     for (var (url, upstream) in map.pairs) {
       if (!importer.couldCanonicalize(url, canonicalUrl)) continue;
-      importCache.clearCanonicalize(url);
 
       // If the import produces a different canonicalized URL than it did
       // before, it changed and the stylesheet needs to be recompiled.
