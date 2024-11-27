@@ -609,7 +609,7 @@ abstract class StylesheetParser extends Parser {
     var start = scanner.state;
     scanner.expectChar($at, name: "@-rule");
     var name = interpolatedIdentifier();
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     // We want to set [_isUseAllowed] to `false` *unless* we're parsing
     // `@charset`, `@forward`, or `@use`. To avoid double-comparing the rule
@@ -826,9 +826,9 @@ abstract class StylesheetParser extends Parser {
       variables.add(variableName());
       whitespace();
     }
-
+    whitespace(consumeNewlines: true);
     expectIdentifier("in");
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     var list = _expression();
 
