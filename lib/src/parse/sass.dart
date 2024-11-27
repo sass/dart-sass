@@ -337,7 +337,8 @@ class SassParser extends StylesheetParser {
 
   /// Expect and consume a single newline.
   ///
-  ///
+  /// If [canEndInSemicolon] is true, this will also consume a `;` before the
+  /// newline if present.
   void _expectNewline({bool canEndInSemicolon = false}) {
     switch (scanner.peekChar()) {
       case $semicolon
@@ -351,7 +352,8 @@ class SassParser extends StylesheetParser {
         if (scanner.peekChar() == $lf) scanner.readChar();
         return;
       case $semicolon:
-        scanner.error("semicolons aren't allowed in the indented syntax.");
+        scanner.error(
+            "multiple statements on one line are not supported in the indented syntax.");
       case $cr:
         scanner.readChar();
         if (scanner.peekChar() == $lf) scanner.readChar();
