@@ -78,7 +78,7 @@ export interface ForwardRuleRaws extends Omit<AtRuleRaws, 'params'> {
   afterWith?: string;
 }
 
-/** The initilaizer properties for {@link ForwardMemberList}. */
+/** The initializer properties for {@link ForwardMemberList}. */
 export interface ForwardMemberProps {
   mixinsAndFunctions?: Iterable<string>;
   variables?: Iterable<string>;
@@ -229,7 +229,7 @@ export class ForwardRule
         : new Configuration(configuration);
     this._configuration.parent = this;
   }
-  private _configuration!: Configuration;
+  private declare _configuration: Configuration;
 
   constructor(defaults: ForwardRuleProps);
   /** @hidden */

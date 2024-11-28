@@ -78,7 +78,7 @@ export class CssComment
     textInterpolation.parent = this;
     this._textInterpolation = textInterpolation;
   }
-  private _textInterpolation?: Interpolation;
+  private declare _textInterpolation?: Interpolation;
 
   constructor(defaults: CssCommentProps);
   /** @hidden */

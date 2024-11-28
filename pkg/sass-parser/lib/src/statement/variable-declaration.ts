@@ -106,7 +106,7 @@ export class VariableDeclaration
     if (value) value.parent = this;
     this._expression = value;
   }
-  private _expression!: Expression;
+  private declare _expression: Expression;
 
   /** Whether the variable has a `!default` flag. */
   declare guarded: boolean;

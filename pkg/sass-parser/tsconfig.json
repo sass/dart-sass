@@ -7,13 +7,7 @@
     "resolveJsonModule": true,
     "rootDir": ".",
     "useUnknownInCatchVariables": false,
-    "useDefineForClassFields": false,
     "declaration": true
   },
-  "include": [
-    "*.ts",
-    "lib/**/*.ts",
-    "tool/**/*.ts",
-    "test/**/*.ts"
-  ]
+  "include": ["*.ts", "lib/**/*.ts", "tool/**/*.ts", "test/**/*.ts"]
 }

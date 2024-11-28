@@ -78,7 +78,7 @@ export class DebugRule
     if (debugExpression) debugExpression.parent = this;
     this._debugExpression = debugExpression;
   }
-  private _debugExpression?: Expression;
+  private declare _debugExpression?: Expression;
 
   constructor(defaults: DebugRuleProps);
   /** @hidden */

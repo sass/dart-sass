@@ -83,7 +83,7 @@ export class WhileRule
     if (whileCondition) whileCondition.parent = this;
     this._whileCondition = whileCondition;
   }
-  private _whileCondition?: Expression;
+  private declare _whileCondition?: Expression;
 
   constructor(defaults: WhileRuleProps);
   /** @hidden */

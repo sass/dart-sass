@@ -54,7 +54,7 @@ export class NumberExpression extends Expression {
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._value = value;
   }
-  private _value!: number;
+  private declare _value: number;
 
   /** The denominator units of this number. */
   get unit(): string | null {
@@ -64,7 +64,7 @@ export class NumberExpression extends Expression {
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._unit = unit;
   }
-  private _unit!: string | null;
+  private declare _unit: string | null;
 
   /** Whether the number is unitless. */
   isUnitless(): boolean {

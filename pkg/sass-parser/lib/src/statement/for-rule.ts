@@ -114,7 +114,7 @@ export class ForRule
     if (fromExpression) fromExpression.parent = this;
     this._fromExpression = fromExpression;
   }
-  private _fromExpression?: Expression;
+  private declare _fromExpression?: Expression;
 
   /** The expresison whose value is the ending point of the iteration. */
   get toExpression(): Expression {
@@ -128,7 +128,7 @@ export class ForRule
     if (toExpression) toExpression.parent = this;
     this._toExpression = toExpression;
   }
-  private _toExpression?: Expression;
+  private declare _toExpression?: Expression;
 
   constructor(defaults: ForRuleProps);
   /** @hidden */
