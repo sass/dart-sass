@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 3986f5db33dd220dcd971a39e8587ca4e52d9a3f
+// Checksum: 548cd03b7304ce5b91c26a6e160b995b514b6d80
 //
 // ignore_for_file: unused_import
 
@@ -1331,16 +1331,12 @@ final class _EvaluateVisitor
 
     for (var complex in styleRule.originalSelector.components) {
       if (!complex.isBogus) continue;
-      _warn(
-          'The selector "${complex.toString().trim()}" is invalid CSS and ' +
-              (complex.isUseless ? "can't" : "shouldn't") +
-              ' be an extender.\n'
-                  'This will be an error in Dart Sass 2.0.0.\n'
-                  '\n'
-                  'More info: https://sass-lang.com/d/bogus-combinators',
-          MultiSpan(complex.span.trimRight(), 'invalid selector',
-              {node.span: '@extend rule'}),
-          Deprecation.bogusCombinators);
+      throw MultiSpanSassRuntimeException(
+          "This selector is invalid CSS and can't be an extender.",
+          complex.span.trimRight(),
+          'invalid selector',
+          {node.span: '@extend rule'},
+          _stackTrace(complex.span));
     }
 
     var (targetText, targetMap) =
@@ -1864,7 +1860,8 @@ final class _EvaluateVisitor
               nodeWithSpanWithoutContent.span,
               "invocation",
               {overload.spanWithName: "declaration"},
-              _stackTrace(nodeWithSpanWithoutContent.span));
+              _stackTrace(nodeWithSpanWithoutContent.span),
+              _stackTrace());
         }
       case BuiltInCallable():
         _environment.withContent(contentCallable, () {
@@ -1882,7 +1879,8 @@ final class _EvaluateVisitor
             nodeWithSpanWithoutContent.span,
             "invocation",
             {mixin.declaration.arguments.spanWithName: "declaration"},
-            _stackTrace(nodeWithSpanWithoutContent.span));
+            _stackTrace(nodeWithSpanWithoutContent.span),
+            _stackTrace());
 
       case UserDefinedCallable<Environment>():
         _runUserDefinedCallable(arguments, mixin, nodeWithSpanWithoutContent,
@@ -2114,7 +2112,7 @@ final class _EvaluateVisitor
         scopeWhen: node.hasDeclarations);
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 
-    _warnForBogusCombinators(rule);
+    _checkBogusCombinators(rule);
 
     if (_styleRule == null && _parent.children.isNotEmpty) {
       var lastChild = _parent.children.last;
@@ -2124,50 +2122,31 @@ final class _EvaluateVisitor
     return null;
   }
 
-  /// Emits deprecation warnings for any bogus combinators in [rule].
-  void _warnForBogusCombinators(CssStyleRule rule) {
+  /// Throw errors for any bogus combinators in [rule].
+  void _checkBogusCombinators(CssStyleRule rule) {
     if (!rule.isInvisibleOtherThanBogusCombinators) {
       for (var complex in rule.selector.components) {
         if (!complex.isBogus) continue;
 
-        if (complex.isUseless) {
-          _warn(
-              'The selector "${complex.toString().trim()}" is invalid CSS. It '
-              'will be omitted from the generated CSS.\n'
-              'This will be an error in Dart Sass 2.0.0.\n'
-              '\n'
-              'More info: https://sass-lang.com/d/bogus-combinators',
-              complex.span.trimRight(),
-              Deprecation.bogusCombinators);
-        } else if (complex.leadingCombinators.isNotEmpty) {
+        if (complex.leadingCombinators.isNotEmpty) {
           if (!_stylesheet.plainCss) {
-            _warn(
-                'The selector "${complex.toString().trim()}" is invalid CSS.\n'
-                'This will be an error in Dart Sass 2.0.0.\n'
-                '\n'
-                'More info: https://sass-lang.com/d/bogus-combinators',
-                complex.span.trimRight(),
-                Deprecation.bogusCombinators);
+            throw SassRuntimeException(
+                'The selector is invalid CSS.', complex.span.trimRight());
           }
         } else {
-          _warn(
-              'The selector "${complex.toString().trim()}" is only valid for '
-                      "nesting and shouldn't\n"
-                      'have children other than style rules.' +
-                  (complex.isBogusOtherThanLeadingCombinator
-                      ? ' It will be omitted from the generated CSS.'
-                      : '') +
-                  '\n'
-                      'This will be an error in Dart Sass 2.0.0.\n'
-                      '\n'
-                      'More info: https://sass-lang.com/d/bogus-combinators',
-              MultiSpan(complex.span.trimRight(), 'invalid selector', {
+          throw MultiSpanSassRuntimeException(
+              "This selector is only valid for nesting and shouldn't have "
+                  "children other than\n"
+                  ' style rules.',
+              complex.span.trimRight(),
+              'invalid selector',
+              {
                 rule.children.first.span: "this is not a style rule" +
                     (rule.children.every((child) => child is CssComment)
                         ? '\n(try converting to a //-style comment)'
                         : '')
-              }),
-              Deprecation.bogusCombinators);
+              },
+              _stackTrace(complex.span));
         }
       }
     }
