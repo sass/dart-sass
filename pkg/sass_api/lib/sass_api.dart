@@ -16,6 +16,7 @@ export 'package:sass/src/ast/selector.dart';
 export 'package:sass/src/async_import_cache.dart';
 export 'package:sass/src/exception.dart' show SassFormatException;
 export 'package:sass/src/import_cache.dart';
+export 'package:sass/src/importer/node_package.dart';
 export 'package:sass/src/interpolation_map.dart';
 export 'package:sass/src/value.dart' hide ColorFormat, SpanColorFormat;
 export 'package:sass/src/visitor/find_dependencies.dart';
