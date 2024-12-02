@@ -126,8 +126,8 @@ class Parser {
     if (scanner.isDone || !(scanner.peekChar().isWhitespace || scanComment())) {
       scanner.error("Expected whitespace.");
     }
-
-    whitespace();
+    // TODO: Does this need to by dynamic by context?
+    whitespace(consumeNewlines: false);
   }
 
   /// Consumes and ignores a single silent (Sass-style) comment, not including

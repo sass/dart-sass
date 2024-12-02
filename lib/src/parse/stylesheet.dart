@@ -1394,7 +1394,7 @@ abstract class StylesheetParser extends Parser {
               buffer.addInterpolation(contents);
             } else {
               scanner.expectChar($lparen);
-              whitespace();
+              whitespace(consumeNewlines: false);
               var argument = interpolatedString();
               scanner.expectChar($rparen);
 
@@ -1427,7 +1427,7 @@ abstract class StylesheetParser extends Parser {
         }
       }
 
-      whitespace();
+      whitespace(consumeNewlines: false);
       if (!scanner.scanChar($comma)) break;
 
       buffer.writeCharCode($comma);
@@ -3118,9 +3118,9 @@ abstract class StylesheetParser extends Parser {
     var start = scanner.state;
     var buffer = InterpolationBuffer();
     while (true) {
-      whitespace();
+      whitespace(consumeNewlines: false);
       _mediaQuery(buffer);
-      whitespace();
+      whitespace(consumeNewlines: false);
       if (!scanner.scanChar($comma)) break;
       buffer.writeCharCode($comma);
       buffer.writeCharCode($space);
@@ -3131,9 +3131,10 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a single media query.
   void _mediaQuery(InterpolationBuffer buffer) {
     // This is somewhat duplicated in MediaQueryParser._mediaQuery.
+    // TODO: Do we need to duplicate the whitespace handling there?
     if (scanner.peekChar() == $lparen) {
       _mediaInParens(buffer);
-      whitespace();
+      whitespace(consumeNewlines: false);
       if (scanIdentifier("and")) {
         buffer.write(" and ");
         expectWhitespace();
@@ -3159,7 +3160,7 @@ abstract class StylesheetParser extends Parser {
       }
     }
 
-    whitespace();
+    whitespace(consumeNewlines: false);
     buffer.addInterpolation(identifier1);
     if (!_lookingAtInterpolatedIdentifier()) {
       // For example, "@media screen {".
@@ -3174,7 +3175,7 @@ abstract class StylesheetParser extends Parser {
       // For example, "@media screen and ..."
       buffer.write(" and ");
     } else {
-      whitespace();
+      whitespace(consumeNewlines: false);
       buffer.addInterpolation(identifier2);
       if (scanIdentifier("and")) {
         // For example, "@media only screen and ..."
