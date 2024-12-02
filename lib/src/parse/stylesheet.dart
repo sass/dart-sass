@@ -649,7 +649,7 @@ abstract class StylesheetParser extends Parser {
         if (!root) _disallowedAtRule(start);
         return _forwardRule(start);
       case "function":
-        whitespace();
+        whitespace(consumeNewlines: true);
         return _functionRule(start);
       case "if":
         whitespace();
@@ -670,7 +670,7 @@ abstract class StylesheetParser extends Parser {
         whitespace(consumeNewlines: false);
         return mozDocumentRule(start, name);
       case "return":
-        whitespace();
+        whitespace(consumeNewlines: false);
         return _disallowedAtRule(start);
       case "supports":
         whitespace(consumeNewlines: false);
@@ -909,7 +909,7 @@ abstract class StylesheetParser extends Parser {
       ));
     }
 
-    whitespace();
+    whitespace(consumeNewlines: false);
     var arguments = _argumentDeclaration();
 
     if (_inMixin || _inContentBlock) {
@@ -1456,6 +1456,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   ReturnRule _returnRule(LineScannerState start) {
+    whitespace(consumeNewlines: true);
     var value = _expression();
     expectStatementSeparator("@return rule");
     return ReturnRule(value, scanner.spanFrom(start));
@@ -1467,7 +1468,7 @@ abstract class StylesheetParser extends Parser {
   @protected
   SupportsRule supportsRule(LineScannerState start) {
     var condition = _supportsCondition();
-    whitespace();
+    whitespace(consumeNewlines: false);
     return _withChildren(_statement, start,
         (children, span) => SupportsRule(condition, children, span));
   }
