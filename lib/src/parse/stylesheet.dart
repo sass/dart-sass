@@ -655,7 +655,7 @@ abstract class StylesheetParser extends Parser {
         whitespace();
         return _ifRule(start, child);
       case "import":
-        whitespace();
+        whitespace(consumeNewlines: false);
         return _importRule(start);
       case "include":
         whitespace();
@@ -1087,7 +1087,7 @@ abstract class StylesheetParser extends Parser {
   ImportRule _importRule(LineScannerState start) {
     var imports = <Import>[];
     do {
-      whitespace();
+      whitespace(consumeNewlines: false);
       var argument = importArgument();
       if (argument is DynamicImport) {
         warnings.add((
@@ -1105,7 +1105,7 @@ abstract class StylesheetParser extends Parser {
       }
 
       imports.add(argument);
-      whitespace();
+      whitespace(consumeNewlines: false);
     } while (scanner.scanChar($comma));
     expectStatementSeparator("@import rule");
 
@@ -1120,7 +1120,7 @@ abstract class StylesheetParser extends Parser {
     var start = scanner.state;
     if (scanner.peekChar() case $u || $U) {
       var url = dynamicUrl();
-      whitespace();
+      whitespace(consumeNewlines: false);
       var modifiers = tryImportModifiers();
       return StaticImport(
           url is StringExpression
@@ -1132,7 +1132,7 @@ abstract class StylesheetParser extends Parser {
 
     var url = string();
     var urlSpan = scanner.spanFrom(start);
-    whitespace();
+    whitespace(consumeNewlines: false);
     var modifiers = tryImportModifiers();
     if (isPlainImportUrl(url) || modifiers != null) {
       return StaticImport(
