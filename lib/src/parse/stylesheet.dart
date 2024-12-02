@@ -658,13 +658,13 @@ abstract class StylesheetParser extends Parser {
         whitespace(consumeNewlines: false);
         return _importRule(start);
       case "include":
-        whitespace();
+        whitespace(consumeNewlines: true);
         return _includeRule(start);
       case "media":
         whitespace();
         return mediaRule(start);
       case "mixin":
-        whitespace();
+        whitespace(consumeNewlines: true);
         return _mixinRule(start);
       case "-moz-document":
         whitespace();
@@ -1281,17 +1281,17 @@ abstract class StylesheetParser extends Parser {
       name = _publicIdentifier();
     }
 
-    whitespace();
+    whitespace(consumeNewlines: false);
     var arguments = scanner.peekChar() == $lparen
         ? _argumentInvocation(mixin: true)
         : ArgumentInvocation.empty(scanner.emptySpan);
-    whitespace();
+    whitespace(consumeNewlines: false);
 
     ArgumentDeclaration? contentArguments;
     if (scanIdentifier("using")) {
-      whitespace();
+      whitespace(consumeNewlines: true);
       contentArguments = _argumentDeclaration();
-      whitespace();
+      whitespace(consumeNewlines: false);
     }
 
     ContentBlock? content;
@@ -1344,7 +1344,7 @@ abstract class StylesheetParser extends Parser {
       ));
     }
 
-    whitespace();
+    whitespace(consumeNewlines: false);
     var arguments = scanner.peekChar() == $lparen
         ? _argumentDeclaration()
         : ArgumentDeclaration.empty(scanner.emptySpan);
@@ -1357,7 +1357,7 @@ abstract class StylesheetParser extends Parser {
           scanner.spanFrom(start));
     }
 
-    whitespace();
+    whitespace(consumeNewlines: false);
     _inMixin = true;
 
     return _withChildren(_statement, start, (children, span) {
