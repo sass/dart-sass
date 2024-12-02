@@ -644,7 +644,7 @@ abstract class StylesheetParser extends Parser {
         whitespace(consumeNewlines: true);
         return _forRule(start, child);
       case "forward":
-        whitespace();
+        whitespace(consumeNewlines: true);
         _isUseAllowed = wasUseAllowed;
         if (!root) _disallowedAtRule(start);
         return _forwardRule(start);
@@ -661,22 +661,22 @@ abstract class StylesheetParser extends Parser {
         whitespace(consumeNewlines: true);
         return _includeRule(start);
       case "media":
-        whitespace();
+        whitespace(consumeNewlines: false);
         return mediaRule(start);
       case "mixin":
         whitespace(consumeNewlines: true);
         return _mixinRule(start);
       case "-moz-document":
-        whitespace();
+        whitespace(consumeNewlines: false);
         return mozDocumentRule(start, name);
       case "return":
         whitespace();
         return _disallowedAtRule(start);
       case "supports":
-        whitespace();
+        whitespace(consumeNewlines: false);
         return supportsRule(start);
       case "use":
-        whitespace();
+        whitespace(consumeNewlines: true);
         _isUseAllowed = wasUseAllowed;
         if (!root) _disallowedAtRule(start);
         return _useRule(start);
@@ -987,10 +987,10 @@ abstract class StylesheetParser extends Parser {
 
     String? prefix;
     if (scanIdentifier("as")) {
-      whitespace();
+      whitespace(consumeNewlines: true);
       prefix = identifier(normalize: true);
       scanner.expectChar($asterisk);
-      whitespace();
+      whitespace(consumeNewlines: false);
     }
 
     Set<String>? shownMixinsAndFunctions;
@@ -1004,7 +1004,7 @@ abstract class StylesheetParser extends Parser {
     }
 
     var configuration = _configuration(allowGuarded: true);
-    whitespace();
+    whitespace(consumeNewlines: false);
 
     expectStatementSeparator("@forward rule");
     var span = scanner.spanFrom(start);
@@ -1477,12 +1477,12 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   UseRule _useRule(LineScannerState start) {
     var url = _urlString();
-    whitespace();
+    whitespace(consumeNewlines: false);
 
     var namespace = _useNamespace(url, start);
-    whitespace();
+    whitespace(consumeNewlines: false);
     var configuration = _configuration();
-    whitespace();
+    whitespace(consumeNewlines: false);
 
     var span = scanner.spanFrom(start);
     if (!_isUseAllowed) {
@@ -1499,7 +1499,7 @@ abstract class StylesheetParser extends Parser {
   /// Returns `null` to indicate a `@use` rule without a URL.
   String? _useNamespace(Uri url, LineScannerState start) {
     if (scanIdentifier("as")) {
-      whitespace();
+      whitespace(consumeNewlines: true);
       return scanner.scanChar($asterisk) ? null : identifier();
     }
 
@@ -1530,17 +1530,19 @@ abstract class StylesheetParser extends Parser {
 
     var variableNames = <String>{};
     var configuration = <ConfiguredVariable>[];
-    whitespace();
+    whitespace(consumeNewlines: true);
     scanner.expectChar($lparen);
 
     while (true) {
-      whitespace();
+      whitespace(consumeNewlines: true);
 
       var variableStart = scanner.state;
       var name = variableName();
-      whitespace();
+      whitespace(consumeNewlines: true);
       scanner.expectChar($colon);
-      whitespace();
+      whitespace(consumeNewlines: true);
+      // TODO: This doesn't handle newlines, prevents tests in
+      // spec/directives/use|forward/whitespace/ from passing
       var expression = expressionUntilComma();
 
       var guarded = false;
@@ -1548,7 +1550,7 @@ abstract class StylesheetParser extends Parser {
       if (allowGuarded && scanner.scanChar($exclamation)) {
         if (identifier() == 'default') {
           guarded = true;
-          whitespace();
+          whitespace(consumeNewlines: true);
         } else {
           error("Invalid flag name.", scanner.spanFrom(flagStart));
         }
@@ -1563,7 +1565,7 @@ abstract class StylesheetParser extends Parser {
           .add(ConfiguredVariable(name, expression, span, guarded: guarded));
 
       if (!scanner.scanChar($comma)) break;
-      whitespace();
+      whitespace(consumeNewlines: true);
       if (!_lookingAtExpression()) break;
     }
 
