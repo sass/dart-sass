@@ -619,10 +619,11 @@ abstract class StylesheetParser extends Parser {
 
     switch (name.asPlain) {
       case "at-root":
-        whitespace();
+        whitespace(consumeNewlines: false);
         return _atRootRule(start);
       case "content":
-        whitespace();
+        // TODO: _contentRule consumes whitespace- is this needed?
+        whitespace(consumeNewlines: false);
         return _contentRule(start);
       case "debug":
         whitespace(consumeNewlines: false);
@@ -637,7 +638,7 @@ abstract class StylesheetParser extends Parser {
         whitespace(consumeNewlines: false);
         return _errorRule(start);
       case "extend":
-        whitespace();
+        whitespace(consumeNewlines: true);
         return _extendRule(start);
       case "for":
         whitespace(consumeNewlines: true);
@@ -810,11 +811,11 @@ abstract class StylesheetParser extends Parser {
     }
 
     var beforeWhitespace = scanner.location;
-    whitespace();
+    whitespace(consumeNewlines: false);
     ArgumentInvocation arguments;
     if (scanner.peekChar() == $lparen) {
       arguments = _argumentInvocation(mixin: true);
-      whitespace();
+      whitespace(consumeNewlines: false);
     } else {
       arguments = ArgumentInvocation.empty(beforeWhitespace.pointSpan());
     }
@@ -881,7 +882,7 @@ abstract class StylesheetParser extends Parser {
     var optional = scanner.scanChar($exclamation);
     if (optional) {
       expectIdentifier("optional");
-      whitespace();
+      whitespace(consumeNewlines: false);
     }
     expectStatementSeparator("@extend rule");
     return ExtendRule(value, scanner.spanFrom(start), optional: optional);
