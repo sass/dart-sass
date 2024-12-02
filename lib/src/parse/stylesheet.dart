@@ -609,7 +609,6 @@ abstract class StylesheetParser extends Parser {
     var start = scanner.state;
     scanner.expectChar($at, name: "@-rule");
     var name = interpolatedIdentifier();
-    whitespace(consumeNewlines: true);
 
     // We want to set [_isUseAllowed] to `false` *unless* we're parsing
     // `@charset`, `@forward`, or `@use`. To avoid double-comparing the rule
@@ -620,52 +619,74 @@ abstract class StylesheetParser extends Parser {
 
     switch (name.asPlain) {
       case "at-root":
+        whitespace();
         return _atRootRule(start);
       case "content":
+        whitespace();
         return _contentRule(start);
       case "debug":
+        whitespace(consumeNewlines: false);
         return _debugRule(start);
       case "each":
+        whitespace(consumeNewlines: true);
         return _eachRule(start, child);
       case "else":
+        whitespace();
         return _disallowedAtRule(start);
       case "error":
+        whitespace(consumeNewlines: false);
         return _errorRule(start);
       case "extend":
+        whitespace();
         return _extendRule(start);
       case "for":
+        whitespace(consumeNewlines: true);
         return _forRule(start, child);
       case "forward":
+        whitespace();
         _isUseAllowed = wasUseAllowed;
         if (!root) _disallowedAtRule(start);
         return _forwardRule(start);
       case "function":
+        whitespace();
         return _functionRule(start);
       case "if":
+        whitespace();
         return _ifRule(start, child);
       case "import":
+        whitespace();
         return _importRule(start);
       case "include":
+        whitespace();
         return _includeRule(start);
       case "media":
+        whitespace();
         return mediaRule(start);
       case "mixin":
+        whitespace();
         return _mixinRule(start);
       case "-moz-document":
+        whitespace();
         return mozDocumentRule(start, name);
       case "return":
+        whitespace();
         return _disallowedAtRule(start);
       case "supports":
+        whitespace();
         return supportsRule(start);
       case "use":
+        whitespace();
         _isUseAllowed = wasUseAllowed;
         if (!root) _disallowedAtRule(start);
         return _useRule(start);
       case "warn":
+        whitespace(consumeNewlines: false);
         return _warnRule(start);
       case "while":
+        whitespace();
         return _whileRule(start, child);
       default:
+        whitespace();
         return unknownAtRule(start, name);
     }
   }
@@ -926,10 +947,10 @@ abstract class StylesheetParser extends Parser {
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
     var variable = variableName();
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     expectIdentifier("from");
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     bool? exclusive;
     var from = _expression(until: () {
@@ -946,7 +967,7 @@ abstract class StylesheetParser extends Parser {
     });
     if (exclusive == null) scanner.error('Expected "to" or "through".');
 
-    whitespace();
+    whitespace(consumeNewlines: true);
     var to = _expression();
 
     return _withChildren(child, start, (children, span) {
