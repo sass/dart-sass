@@ -1,6 +1,6 @@
 {
   "name": "sass-parser",
-  "version": "0.4.6-dev",
+  "version": "0.4.7-dev",
   "description": "A PostCSS-compatible wrapper of the official Sass parser",
   "repository": "sass/sass",
   "author": "Google Inc.",
@@ -45,7 +45,7 @@
     "rimraf": "^6.0.1",
     "ts-jest": "^29.0.5",
     "ts-node": "^10.2.1",
-    "typedoc": "^0.26.5",
+    "typedoc": "^0.27.2",
     "typescript": "^5.0.2"
   }
 }

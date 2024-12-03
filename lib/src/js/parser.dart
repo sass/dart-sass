@@ -88,6 +88,12 @@ void _updateAstPrototypes() {
       'accept',
       (Expression self, ExpressionVisitor<Object?> visitor) =>
           self.accept(visitor));
+  var arguments = ArgumentDeclaration([], bogusSpan);
+  getJSClass(arguments)
+      .defineGetter('arguments', (ArgumentDeclaration self) => self.arguments);
+  var function = FunctionRule('a', arguments, [], bogusSpan);
+  getJSClass(function)
+      .defineGetter('arguments', (FunctionRule self) => self.arguments);
 
   _addSupportsConditionToInterpolation();
 

@@ -7,6 +7,10 @@
 
 * Add a `SassCalculation.calcSize()` function.
 
+## 1.81.1
+
+* No user-visible changes.
+
 ## 1.81.0
 
 * Fix a few cases where deprecation warnings weren't being emitted for global

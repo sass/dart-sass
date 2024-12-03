@@ -23,7 +23,9 @@ export type NodeType =
   | ExpressionType
   | 'interpolation'
   | 'configuration'
-  | 'configured-variable';
+  | 'configured-variable'
+  | 'parameter'
+  | 'parameter-list';
 
 /** The constructor properties shared by all Sass AST nodes. */
 export type NodeProps = postcss.NodeProps;

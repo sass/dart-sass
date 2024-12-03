@@ -1,6 +1,11 @@
-## 14.3.0-dev
+## 14.4.0-dev
 
 * No user-visible changes.
+
+## 14.3.0
+
+* Add `NodePackageImporter`, which loads `pkg:` URLs from `node_modules` within
+  the provided `entryPointDirectory`.
 
 ## 14.2.0
 
@@ -21,7 +26,7 @@
 ## 14.1.0
 
 * Add `Expression.isCalculationSafe`, which returns true when this expression
-  can safely be used in a calcuation.
+  can safely be used in a calculation.
 
 ## 14.0.0
 
