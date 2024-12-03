@@ -687,7 +687,7 @@ abstract class StylesheetParser extends Parser {
         whitespace(consumeNewlines: true);
         return _whileRule(start, child);
       default:
-        whitespace();
+        whitespace(consumeNewlines: false);
         return unknownAtRule(start, name);
     }
   }
@@ -784,18 +784,20 @@ abstract class StylesheetParser extends Parser {
     var buffer = InterpolationBuffer();
     scanner.expectChar($lparen);
     buffer.writeCharCode($lparen);
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     _addOrInject(buffer, _expression());
+    // TODO: _expression here needs to be able to consume newlines.
     if (scanner.scanChar($colon)) {
-      whitespace();
+      whitespace(consumeNewlines: true);
       buffer.writeCharCode($colon);
       buffer.writeCharCode($space);
+      // TODO: _expression here needs to be able to consume newlines.
       _addOrInject(buffer, _expression());
     }
 
     scanner.expectChar($rparen);
-    whitespace();
+    whitespace(consumeNewlines: false);
     buffer.writeCharCode($rparen);
 
     return buffer.interpolation(scanner.spanFrom(start));
