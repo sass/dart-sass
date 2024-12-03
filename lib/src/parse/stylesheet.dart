@@ -684,7 +684,7 @@ abstract class StylesheetParser extends Parser {
         whitespace(consumeNewlines: false);
         return _warnRule(start);
       case "while":
-        whitespace();
+        whitespace(consumeNewlines: true);
         return _whileRule(start, child);
       default:
         whitespace();
