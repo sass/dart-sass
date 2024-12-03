@@ -4,6 +4,7 @@
 
 import * as postcss from 'postcss';
 
+import {Container} from '../container';
 import {Interpolation} from '../interpolation';
 import {LazySource} from '../lazy-source';
 import {Node, NodeProps} from '../node';
@@ -16,6 +17,7 @@ import {EachRule, EachRuleProps} from './each-rule';
 import {ErrorRule, ErrorRuleProps} from './error-rule';
 import {ForRule, ForRuleProps} from './for-rule';
 import {ForwardRule, ForwardRuleProps} from './forward-rule';
+import {FunctionRule, FunctionRuleProps} from './function-rule';
 import {Root} from './root';
 import {Rule, RuleProps} from './rule';
 import {UseRule, UseRuleProps} from './use-rule';
@@ -55,6 +57,7 @@ export type StatementType =
   | 'each-rule'
   | 'for-rule'
   | 'forward-rule'
+  | 'function-rule'
   | 'error-rule'
   | 'use-rule'
   | 'sass-comment'
@@ -73,6 +76,7 @@ export type AtRule =
   | ErrorRule
   | ForRule
   | ForwardRule
+  | FunctionRule
   | GenericAtRule
   | UseRule
   | WarnRule
@@ -109,6 +113,7 @@ export type ChildProps =
   | ErrorRuleProps
   | ForRuleProps
   | ForwardRuleProps
+  | FunctionRuleProps
   | GenericAtRuleProps
   | RuleProps
   | SassCommentChildProps
@@ -131,9 +136,9 @@ export interface ContainerProps extends NodeProps {
  *
  * @category Statement
  */
-export type StatementWithChildren = postcss.Container<postcss.ChildNode> & {
-  nodes: ChildNode[];
-} & Statement;
+export type StatementWithChildren = postcss.Container<postcss.ChildNode> &
+  Container<ChildNode, NewNode> &
+  Statement;
 
 /**
  * A statement in a Sass stylesheet.
@@ -170,6 +175,7 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
   visitEachRule: inner => new EachRule(undefined, inner),
   visitForRule: inner => new ForRule(undefined, inner),
   visitForwardRule: inner => new ForwardRule(undefined, inner),
+  visitFunctionRule: inner => new FunctionRule(undefined, inner),
   visitExtendRule: inner => {
     const paramsInterpolation = new Interpolation(undefined, inner.selector);
     if (inner.isOptional) paramsInterpolation.append('!optional');
@@ -317,6 +323,8 @@ export function normalize(
       result.push(new ForRule(node));
     } else if ('forwardUrl' in node) {
       result.push(new ForwardRule(node));
+    } else if ('functionName' in node) {
+      result.push(new FunctionRule(node));
     } else if ('errorExpression' in node) {
       result.push(new ErrorRule(node));
     } else if ('text' in node || 'textInterpolation' in node) {
