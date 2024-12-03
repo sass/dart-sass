@@ -66,6 +66,16 @@ declare namespace SassInternal {
     readonly span: FileSpan;
   }
 
+  class ArgumentDeclaration extends SassNode {
+    readonly arguments: Argument[];
+    readonly restArgument?: string;
+  }
+
+  class Argument extends SassNode {
+    readonly name: string;
+    readonly defaultValue?: Expression;
+  }
+
   class Interpolation extends SassNode {
     contents: (string | Expression)[];
     get asPlain(): string | undefined;
@@ -122,6 +132,11 @@ declare namespace SassInternal {
     readonly hiddenVariables?: DartSet<string>;
     readonly prefix?: string;
     readonly configuration: ConfiguredVariable[];
+  }
+
+  class FunctionRule extends ParentStatement<Statement[]> {
+    readonly name: string;
+    readonly arguments: ArgumentDeclaration;
   }
 
   class LoudComment extends Statement {
@@ -267,6 +282,7 @@ export type ErrorRule = SassInternal.ErrorRule;
 export type ExtendRule = SassInternal.ExtendRule;
 export type ForRule = SassInternal.ForRule;
 export type ForwardRule = SassInternal.ForwardRule;
+export type FunctionRule = SassInternal.FunctionRule;
 export type LoudComment = SassInternal.LoudComment;
 export type MediaRule = SassInternal.MediaRule;
 export type SilentComment = SassInternal.SilentComment;
@@ -277,6 +293,8 @@ export type UseRule = SassInternal.UseRule;
 export type VariableDeclaration = SassInternal.VariableDeclaration;
 export type WarnRule = SassInternal.WarnRule;
 export type WhileRule = SassInternal.WhileRule;
+export type Argument = SassInternal.Argument;
+export type ArgumentDeclaration = SassInternal.ArgumentDeclaration;
 export type ConfiguredVariable = SassInternal.ConfiguredVariable;
 export type Interpolation = SassInternal.Interpolation;
 export type Expression = SassInternal.Expression;
@@ -294,6 +312,7 @@ export interface StatementVisitorObject<T> {
   visitExtendRule(node: ExtendRule): T;
   visitForRule(node: ForRule): T;
   visitForwardRule(node: ForwardRule): T;
+  visitFunctionRule(node: FunctionRule): T;
   visitLoudComment(node: LoudComment): T;
   visitMediaRule(node: MediaRule): T;
   visitSilentComment(node: SilentComment): T;

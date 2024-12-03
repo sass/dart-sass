@@ -291,7 +291,7 @@ describe('a @forward rule', () => {
           expect(node.configuration.size).toBe(1);
           expect(node.configuration.parent).toBe(node);
           const variables = [...node.configuration.variables()];
-          expect(variables[0].variableName).toBe('baz');
+          expect(variables[0].name).toBe('baz');
           expect(variables[0]).toHaveStringExpression('expression', 'qux');
         });
 
@@ -714,7 +714,7 @@ describe('a @forward rule', () => {
           expect(clone.configuration.size).toBe(1);
           expect(clone.configuration.parent).toBe(clone);
           const variables = [...clone.configuration.variables()];
-          expect(variables[0].variableName).toBe('zip');
+          expect(variables[0].name).toBe('zip');
           expect(variables[0]).toHaveStringExpression('expression', 'zap');
         });
 
@@ -912,7 +912,7 @@ describe('a @forward rule', () => {
             expect(clone.configuration.size).toBe(1);
             expect(clone.configuration.parent).toBe(clone);
             const variables = [...clone.configuration.variables()];
-            expect(variables[0].variableName).toBe('zip');
+            expect(variables[0].name).toBe('zip');
             expect(variables[0]).toHaveStringExpression('expression', 'zap');
           });
 
