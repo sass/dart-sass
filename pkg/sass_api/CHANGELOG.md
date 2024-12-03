@@ -1,4 +1,4 @@
-## 14.2.1
+## 14.3.0
 
 * Add `NodePackageImporter`, which loads `pkg:` URLs from `node_modules` within
   the provided `entryPointDirectory`.
