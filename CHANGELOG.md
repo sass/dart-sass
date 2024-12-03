@@ -1,3 +1,12 @@
+## 1.82.0-dev
+
+* Parse the `calc-size()` function as a calculation now that it's supported in
+  some browsers.
+
+### Dart API
+
+* Add a `SassCalculation.calcSize()` function.
+
 ## 1.81.1
 
 * No user-visible changes.

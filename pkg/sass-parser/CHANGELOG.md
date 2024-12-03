@@ -1,3 +1,7 @@
+## 0.4.7-dev
+
+* No user-visible changes.
+
 ## 0.4.6
 
 * No user-visible changes.

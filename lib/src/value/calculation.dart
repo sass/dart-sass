@@ -604,6 +604,21 @@ final class SassCalculation extends Value {
     }
   }
 
+  /// Creates an `calc-size()` calculation with the given [basis] and [value].
+  ///
+  /// The [basis] and [value] must be either a [SassNumber], a
+  /// [SassCalculation], an unquoted [SassString], or a [CalculationOperation].
+  ///
+  /// This automatically simplifies the calculation. It throws an exception if
+  /// it can determine that the calculation will definitely produce invalid CSS.
+  static SassCalculation calcSize(Object basis, Object? value) {
+    var args = [basis, if (value != null) value];
+    _verifyLength(args, 2);
+    basis = _simplify(basis);
+    value = value.andThen(_simplify);
+    return SassCalculation._("calc-size", [basis, if (value != null) value]);
+  }
+
   /// Creates and simplifies a [CalculationOperation] with the given [operator],
   /// [left], and [right].
   ///
