@@ -632,7 +632,7 @@ abstract class StylesheetParser extends Parser {
         whitespace(consumeNewlines: true);
         return _eachRule(start, child);
       case "else":
-        whitespace();
+        whitespace(consumeNewlines: false);
         return _disallowedAtRule(start);
       case "error":
         whitespace(consumeNewlines: false);
@@ -652,7 +652,7 @@ abstract class StylesheetParser extends Parser {
         whitespace(consumeNewlines: true);
         return _functionRule(start);
       case "if":
-        whitespace();
+        whitespace(consumeNewlines: true);
         return _ifRule(start, child);
       case "import":
         whitespace(consumeNewlines: false);
@@ -1065,9 +1065,9 @@ abstract class StylesheetParser extends Parser {
     ElseClause? lastClause;
 
     while (scanElse(ifIndentation)) {
-      whitespace();
+      whitespace(consumeNewlines: true);
       if (scanIdentifier("if")) {
-        whitespace();
+        whitespace(consumeNewlines: true);
         clauses.add(IfClause(_expression(), this.children(child)));
       } else {
         lastClause = ElseClause(this.children(child));
@@ -1960,7 +1960,7 @@ abstract class StylesheetParser extends Parser {
 
     loop:
     while (true) {
-      whitespace();
+      whitespace(consumeNewlines: false);
       if (until != null && until()) break;
 
       switch (scanner.peekChar()) {
