@@ -1,4 +1,9 @@
-## 1.82.0-dev
+## 1.82.0
+
+### Command-Line Interface
+
+* Improve `--watch` mode reliability when making multiple changes at once, such
+  as checking out a different Git branch.
 
 * Parse the `calc-size()` function as a calculation now that it's supported in
   some browsers.
