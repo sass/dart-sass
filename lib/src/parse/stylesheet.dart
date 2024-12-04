@@ -178,6 +178,8 @@ abstract class StylesheetParser extends Parser {
         return atRule(() => _statement(), root: root);
 
       case $plus:
+        // TODO: newlines not supported because of `lookingAtIdentifier`.
+        // This means it doesn't behave the same as = mixin syntax below.
         if (!indented || !lookingAtIdentifier(1)) return _styleRule();
         _isUseAllowed = false;
         var start = scanner.state;
@@ -189,7 +191,7 @@ abstract class StylesheetParser extends Parser {
         _isUseAllowed = false;
         var start = scanner.state;
         scanner.readChar();
-        whitespace();
+        whitespace(consumeNewlines: true);
         return _mixinRule(start);
 
       case $rbrace:
