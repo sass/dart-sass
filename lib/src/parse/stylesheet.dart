@@ -231,9 +231,9 @@ abstract class StylesheetParser extends Parser {
           scanner.spanFrom(start));
     }
 
-    whitespace();
+    whitespace(consumeNewlines: true);
     scanner.expectChar($colon);
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     var value = _expression();
 
@@ -273,7 +273,7 @@ abstract class StylesheetParser extends Parser {
           error("Invalid flag name.", scanner.spanFrom(flagStart));
       }
 
-      whitespace();
+      whitespace(consumeNewlines: false);
       flagStart = scanner.state;
     }
 
