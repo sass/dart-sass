@@ -621,75 +621,52 @@ abstract class StylesheetParser extends Parser {
 
     switch (name.asPlain) {
       case "at-root":
-        whitespace(consumeNewlines: false);
         return _atRootRule(start);
       case "content":
-        // TODO: _contentRule consumes whitespace- is this needed?
-        whitespace(consumeNewlines: false);
         return _contentRule(start);
       case "debug":
-        whitespace(consumeNewlines: false);
         return _debugRule(start);
       case "each":
-        whitespace(consumeNewlines: true);
         return _eachRule(start, child);
       case "else":
-        whitespace(consumeNewlines: false);
         return _disallowedAtRule(start);
       case "error":
-        whitespace(consumeNewlines: false);
         return _errorRule(start);
       case "extend":
-        whitespace(consumeNewlines: true);
         return _extendRule(start);
       case "for":
-        whitespace(consumeNewlines: true);
         return _forRule(start, child);
       case "forward":
-        whitespace(consumeNewlines: true);
         _isUseAllowed = wasUseAllowed;
         if (!root) _disallowedAtRule(start);
         return _forwardRule(start);
       case "function":
-        whitespace(consumeNewlines: true);
         return _functionRule(start);
       case "if":
-        whitespace(consumeNewlines: true);
         return _ifRule(start, child);
       case "import":
-        whitespace(consumeNewlines: false);
         return _importRule(start);
       case "include":
-        whitespace(consumeNewlines: true);
         return _includeRule(start);
       case "media":
-        whitespace(consumeNewlines: false);
         return mediaRule(start);
       case "mixin":
-        whitespace(consumeNewlines: true);
         return _mixinRule(start);
       case "-moz-document":
-        whitespace(consumeNewlines: false);
         return mozDocumentRule(start, name);
       case "return":
-        whitespace(consumeNewlines: false);
         return _disallowedAtRule(start);
       case "supports":
-        whitespace(consumeNewlines: false);
         return supportsRule(start);
       case "use":
-        whitespace(consumeNewlines: true);
         _isUseAllowed = wasUseAllowed;
         if (!root) _disallowedAtRule(start);
         return _useRule(start);
       case "warn":
-        whitespace(consumeNewlines: false);
         return _warnRule(start);
       case "while":
-        whitespace(consumeNewlines: true);
         return _whileRule(start, child);
       default:
-        whitespace(consumeNewlines: false);
         return unknownAtRule(start, name);
     }
   }
@@ -758,7 +735,6 @@ abstract class StylesheetParser extends Parser {
   String _plainAtRuleName() {
     scanner.expectChar($at, name: "@-rule");
     var name = identifier();
-    whitespace();
     return name;
   }
 
@@ -766,6 +742,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   AtRootRule _atRootRule(LineScannerState start) {
+    whitespace(consumeNewlines: false);
     if (scanner.peekChar() == $lparen) {
       var query = _atRootQuery();
       whitespace();
@@ -832,6 +809,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   DebugRule _debugRule(LineScannerState start) {
+    whitespace(consumeNewlines: false);
     var value = _expression();
     expectStatementSeparator("@debug rule");
     return DebugRule(value, scanner.spanFrom(start));
@@ -842,6 +820,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`. [child] is called to consume any
   /// children that are specifically allowed in the caller's context.
   EachRule _eachRule(LineScannerState start, Statement child()) {
+    whitespace(consumeNewlines: true);
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
 
@@ -868,6 +847,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   ErrorRule _errorRule(LineScannerState start) {
+    whitespace(consumeNewlines: false);
     var value = _expression();
     expectStatementSeparator("@error rule");
     return ErrorRule(value, scanner.spanFrom(start));
@@ -877,6 +857,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   ExtendRule _extendRule(LineScannerState start) {
+    whitespace(consumeNewlines: true);
     if (!_inStyleRule && !_inMixin && !_inContentBlock) {
       error("@extend may only be used within style rules.",
           scanner.spanFrom(start));
@@ -896,6 +877,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   FunctionRule _functionRule(LineScannerState start) {
+    whitespace(consumeNewlines: true);
     var precedingComment = lastSilentComment;
     lastSilentComment = null;
     var beforeName = scanner.state;
@@ -949,6 +931,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`. [child] is called to consume any
   /// children that are specifically allowed in the caller's context.
   ForRule _forRule(LineScannerState start, Statement child()) {
+    whitespace(consumeNewlines: true);
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
     var variable = variableName();
@@ -986,6 +969,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   ForwardRule _forwardRule(LineScannerState start) {
+    whitespace(consumeNewlines: true);
     var url = _urlString();
     whitespace();
 
@@ -1058,6 +1042,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`. [child] is called to consume any
   /// children that are specifically allowed in the caller's context.
   IfRule _ifRule(LineScannerState start, Statement child()) {
+    whitespace(consumeNewlines: true);
     var ifIndentation = currentIndentation;
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
@@ -1278,6 +1263,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   IncludeRule _includeRule(LineScannerState start) {
+    whitespace(consumeNewlines: true);
     String? namespace;
     var name = identifier();
     if (scanner.scanChar($dot)) {
@@ -1322,6 +1308,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   @protected
   MediaRule mediaRule(LineScannerState start) {
+    whitespace(consumeNewlines: false);
     var query = _mediaQueryList();
     return _withChildren(_statement, start,
         (children, span) => MediaRule(query, children, span));
@@ -1331,6 +1318,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   MixinRule _mixinRule(LineScannerState start) {
+    whitespace(consumeNewlines: true);
     var precedingComment = lastSilentComment;
     lastSilentComment = null;
     var beforeName = scanner.state;
@@ -1380,6 +1368,7 @@ abstract class StylesheetParser extends Parser {
   /// [the specification]: http://www.w3.org/TR/css3-conditional/
   @protected
   AtRule mozDocumentRule(LineScannerState start, Interpolation name) {
+    whitespace(consumeNewlines: false);
     var valueStart = scanner.state;
     var buffer = InterpolationBuffer();
     var needsDeprecationWarning = false;
@@ -1471,6 +1460,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   @protected
   SupportsRule supportsRule(LineScannerState start) {
+    whitespace(consumeNewlines: false);
     var condition = _supportsCondition();
     whitespace(consumeNewlines: false);
     return _withChildren(_statement, start,
@@ -1481,6 +1471,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   UseRule _useRule(LineScannerState start) {
+    whitespace(consumeNewlines: true);
     var url = _urlString();
     whitespace(consumeNewlines: false);
 
@@ -1582,6 +1573,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   WarnRule _warnRule(LineScannerState start) {
+    whitespace(consumeNewlines: false);
     var value = _expression();
     expectStatementSeparator("@warn rule");
     return WarnRule(value, scanner.spanFrom(start));
@@ -1592,6 +1584,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`. [child] is called to consume any
   /// children that are specifically allowed in the caller's context.
   WhileRule _whileRule(LineScannerState start, Statement child()) {
+    whitespace(consumeNewlines: true);
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
     var condition = _expression();
@@ -1608,6 +1601,8 @@ abstract class StylesheetParser extends Parser {
   AtRule unknownAtRule(LineScannerState start, Interpolation name) {
     var wasInUnknownAtRule = _inUnknownAtRule;
     _inUnknownAtRule = true;
+
+    whitespace(consumeNewlines: false);
 
     Interpolation? value;
     if (scanner.peekChar() != $exclamation && !atEndOfStatement()) {
@@ -1636,6 +1631,7 @@ abstract class StylesheetParser extends Parser {
   /// This declares a return type of [Statement] so that it can be returned
   /// within case statements.
   Statement _disallowedAtRule(LineScannerState start) {
+    whitespace(consumeNewlines: false);
     _interpolatedDeclarationValue(allowEmpty: true, allowOpenBrace: false);
     error("This at-rule is not allowed here.", scanner.spanFrom(start));
   }
