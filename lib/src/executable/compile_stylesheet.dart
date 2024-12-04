@@ -124,6 +124,10 @@ Future<void> _compileStylesheetWithoutErrorHandling(ExecutableOptions options,
               fatalDeprecations: options.fatalDeprecations,
               futureDeprecations: options.futureDeprecations);
     } else {
+      // Double-check that all modified files (according to mtime) are actually
+      // reloaded in the graph so we don't end up with stale ASTs.
+      graph.reloadAllModified();
+
       result = source == null
           ? compileString(await readStdin(),
               syntax: syntax,

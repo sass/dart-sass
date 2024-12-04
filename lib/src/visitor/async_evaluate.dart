@@ -2456,7 +2456,8 @@ final class _EvaluateVisitor
       (node.namespace == null &&
           const {
             "calc", "clamp", "hypot", "sin", "cos", "tan", "asin", "acos", //
-            "atan", "sqrt", "exp", "sign", "mod", "rem", "atan2", "pow", "log"
+            "atan", "sqrt", "exp", "sign", "mod", "rem", "atan2", "pow", //
+            "log", "calc-size"
           }.contains(node.name.toLowerCase()) &&
           _environment.getFunction(node.name) == null);
 
@@ -2578,7 +2579,8 @@ final class _EvaluateVisitor
               "rem" ||
               "atan2" ||
               "pow" ||
-              "log":
+              "log" ||
+              "calc-size":
           return await _visitCalculation(node);
       }
 
@@ -2671,6 +2673,8 @@ final class _EvaluateVisitor
                 _warn(message, node.span, deprecation)),
         "clamp" => SassCalculation.clamp(arguments[0],
             arguments.elementAtOrNull(1), arguments.elementAtOrNull(2)),
+        "calc-size" =>
+          SassCalculation.calcSize(arguments[0], arguments.elementAtOrNull(1)),
         _ => throw UnsupportedError('Unknown calculation name "${node.name}".')
       };
     } on SassScriptException catch (error, stackTrace) {
@@ -2718,7 +2722,7 @@ final class _EvaluateVisitor
         check(1);
       case "min" || "max" || "hypot":
         check();
-      case "pow" || "atan2" || "log" || "mod" || "rem":
+      case "pow" || "atan2" || "log" || "mod" || "rem" || "calc-size":
         check(2);
       case "round" || "clamp":
         check(3);

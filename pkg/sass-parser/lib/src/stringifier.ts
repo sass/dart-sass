@@ -34,6 +34,7 @@ import {EachRule} from './statement/each-rule';
 import {ErrorRule} from './statement/error-rule';
 import {ForRule} from './statement/for-rule';
 import {ForwardRule} from './statement/forward-rule';
+import {FunctionRule} from './statement/function-rule';
 import {GenericAtRule} from './statement/generic-at-rule';
 import {Rule} from './statement/rule';
 import {SassComment} from './statement/sass-comment';
@@ -93,6 +94,10 @@ export class Stringifier extends PostCssStringifier {
   }
 
   private ['forward-rule'](node: ForwardRule, semicolon: boolean): void {
+    this.sassAtRule(node, semicolon);
+  }
+
+  private ['function-rule'](node: FunctionRule, semicolon: boolean): void {
     this.sassAtRule(node, semicolon);
   }
 

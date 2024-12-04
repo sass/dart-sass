@@ -1,3 +1,21 @@
+## 1.82.0
+
+### Command-Line Interface
+
+* Improve `--watch` mode reliability when making multiple changes at once, such
+  as checking out a different Git branch.
+
+* Parse the `calc-size()` function as a calculation now that it's supported in
+  some browsers.
+
+### Dart API
+
+* Add a `SassCalculation.calcSize()` function.
+
+## 1.81.1
+
+* No user-visible changes.
+
 ## 1.81.0
 
 * Fix a few cases where deprecation warnings weren't being emitted for global

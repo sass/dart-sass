@@ -62,6 +62,10 @@ final class _Watcher {
   /// The graph of stylesheets being compiled.
   final StylesheetGraph _graph;
 
+  /// A map from source paths to destinations that need to be recompiled once
+  /// the current batch of events has been processed.
+  final Map<String, String> _toRecompile = {};
+
   _Watcher(this._options, this._graph);
 
   /// Deletes the file at [path] and prints a message about it.
@@ -82,32 +86,39 @@ final class _Watcher {
   ///
   /// Returns a future that will only complete if an unexpected error occurs.
   Future<void> watch(MultiDirWatcher watcher) async {
-    await for (var event in _debounceEvents(watcher.events)) {
-      var extension = p.extension(event.path);
-      if (extension != '.sass' && extension != '.scss' && extension != '.css') {
-        continue;
+    await for (var batch in _debounceEvents(watcher.events)) {
+      for (var event in batch) {
+        var extension = p.extension(event.path);
+        if (extension != '.sass' &&
+            extension != '.scss' &&
+            extension != '.css') {
+          continue;
+        }
+
+        switch (event.type) {
+          case ChangeType.MODIFY:
+            _handleModify(event.path);
+
+          case ChangeType.ADD:
+            _handleAdd(event.path);
+
+          case ChangeType.REMOVE:
+            _handleRemove(event.path);
+        }
       }
 
-      switch (event.type) {
-        case ChangeType.MODIFY:
-          var success = await _handleModify(event.path);
-          if (!success && _options.stopOnError) return;
-
-        case ChangeType.ADD:
-          var success = await _handleAdd(event.path);
-          if (!success && _options.stopOnError) return;
-
-        case ChangeType.REMOVE:
-          var success = await _handleRemove(event.path);
-          if (!success && _options.stopOnError) return;
-      }
+      var toRecompile = {..._toRecompile};
+      _toRecompile.clear();
+      var success = await compileStylesheets(_options, _graph, toRecompile,
+          ifModified: true);
+      if (!success && _options.stopOnError) return;
     }
   }
 
   /// Handles a modify event for the stylesheet at [path].
   ///
   /// Returns whether all necessary recompilations succeeded.
-  Future<bool> _handleModify(String path) async {
+  void _handleModify(String path) {
     var url = _canonicalize(path);
 
     // It's important to access the node ahead-of-time because it's possible
@@ -115,29 +126,27 @@ final class _Watcher {
     // from the graph.
     if (_graph.nodes[url] case var node?) {
       _graph.reload(url);
-      return await _recompileDownstream([node]);
+      _recompileDownstream([node]);
     } else {
-      return _handleAdd(path);
+      _handleAdd(path);
     }
   }
 
   /// Handles an add event for the stylesheet at [url].
   ///
   /// Returns whether all necessary recompilations succeeded.
-  Future<bool> _handleAdd(String path) async {
+  void _handleAdd(String path) {
     var destination = _destinationFor(path);
-    var success = destination == null ||
-        await compileStylesheets(_options, _graph, {path: destination},
-            ifModified: true);
+    if (destination != null) _toRecompile[path] = destination;
     var downstream = _graph.addCanonical(
         FilesystemImporter.cwd, _canonicalize(path), p.toUri(path));
-    return await _recompileDownstream(downstream) && success;
+    _recompileDownstream(downstream);
   }
 
   /// Handles a remove event for the stylesheet at [url].
   ///
   /// Returns whether all necessary recompilations succeeded.
-  Future<bool> _handleRemove(String path) async {
+  void _handleRemove(String path) async {
     var url = _canonicalize(path);
 
     if (_graph.nodes.containsKey(url)) {
@@ -145,7 +154,7 @@ final class _Watcher {
     }
 
     var downstream = _graph.remove(FilesystemImporter.cwd, url);
-    return await _recompileDownstream(downstream);
+    _recompileDownstream(downstream);
   }
 
   /// Returns the canonical URL for the stylesheet path [path].
@@ -154,9 +163,10 @@ final class _Watcher {
   /// Combine [WatchEvent]s that happen in quick succession.
   ///
   /// Otherwise, if a file is erased and then rewritten, we can end up reading
-  /// the intermediate erased version.
-  Stream<WatchEvent> _debounceEvents(Stream<WatchEvent> events) {
-    return events.debounceBuffer(Duration(milliseconds: 25)).expand((buffer) {
+  /// the intermediate erased version. This returns a stream of batches of
+  /// events that all happened in succession.
+  Stream<List<WatchEvent>> _debounceEvents(Stream<WatchEvent> events) {
+    return events.debounceBuffer(Duration(milliseconds: 25)).map((buffer) {
       var typeForPath = p.PathMap<ChangeType>();
       for (var event in buffer) {
         var oldType = typeForPath[event.path];
@@ -175,32 +185,20 @@ final class _Watcher {
     });
   }
 
-  /// Recompiles [nodes] and everything that transitively imports them, if
-  /// necessary.
-  ///
-  /// Returns whether all recompilations succeeded.
-  Future<bool> _recompileDownstream(Iterable<StylesheetNode> nodes) async {
+  /// Marks [nodes] and everything that transitively imports them for
+  /// recompilation, if necessary.
+  void _recompileDownstream(Iterable<StylesheetNode> nodes) {
     var seen = <StylesheetNode>{};
-    var allSucceeded = true;
     while (nodes.isNotEmpty) {
       nodes = [
         for (var node in nodes)
           if (seen.add(node)) node
       ];
 
-      var sourcesToDestinations = _sourceEntrypointsToDestinations(nodes);
-      if (sourcesToDestinations.isNotEmpty) {
-        var success = await compileStylesheets(
-            _options, _graph, sourcesToDestinations,
-            ifModified: true);
-        if (!success && _options.stopOnError) return false;
-
-        allSucceeded = allSucceeded && success;
-      }
+      _toRecompile.addAll(_sourceEntrypointsToDestinations(nodes));
 
       nodes = [for (var node in nodes) ...node.downstream];
     }
-    return allSucceeded;
   }
 
   /// Returns a sourcesToDestinations mapping for nodes that are entrypoints.

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 4d09da97db4e59518d193f58963897d36ef4db00
+// Checksum: 65a7c538299527be3240f0625a7c1cd4f8cd6824
 //
 // ignore_for_file: unused_import
 
@@ -69,6 +69,10 @@ final class ImportCache {
 
   /// The import results for each canonicalized import URL.
   final _resultsCache = <Uri, ImporterResult>{};
+
+  /// A map from canonical URLs to the most recent time at which those URLs were
+  /// loaded from their importers.
+  final _loadTimes = <Uri, DateTime>{};
 
   /// Creates an import cache that resolves imports using [importers].
   ///
@@ -276,9 +280,11 @@ final class ImportCache {
   Stylesheet? importCanonical(Importer importer, Uri canonicalUrl,
       {Uri? originalUrl}) {
     return _importCache.putIfAbsent(canonicalUrl, () {
+      var loadTime = DateTime.now();
       var result = importer.load(canonicalUrl);
       if (result == null) return null;
 
+      _loadTimes[canonicalUrl] = loadTime;
       _resultsCache[canonicalUrl] = result;
       return Stylesheet.parse(result.contents, result.syntax,
           // For backwards-compatibility, relative canonical URLs are resolved
@@ -314,17 +320,31 @@ final class ImportCache {
   Uri sourceMapUrl(Uri canonicalUrl) =>
       _resultsCache[canonicalUrl]?.sourceMapUrl ?? canonicalUrl;
 
-  /// Clears the cached canonical version of the given non-canonical [url].
-  ///
-  /// Has no effect if the canonical version of [url] has not been cached.
+  /// Returns the most recent time the stylesheet at [canonicalUrl] was loaded
+  /// from its importer, or `null` if it has never been loaded.
+  @internal
+  DateTime? loadTime(Uri canonicalUrl) => _loadTimes[canonicalUrl];
+
+  /// Clears all cached canonicalizations that could potentially produce
+  /// [canonicalUrl].
   ///
   /// @nodoc
   @internal
-  void clearCanonicalize(Uri url) {
-    _canonicalizeCache.remove((url, forImport: false));
-    _canonicalizeCache.remove((url, forImport: true));
-    _perImporterCanonicalizeCache.removeWhere(
-        (key, _) => key.$2 == url || _nonCanonicalRelativeUrls[key] == url);
+  void clearCanonicalize(Uri canonicalUrl) {
+    for (var key in [..._canonicalizeCache.keys]) {
+      for (var importer in _importers) {
+        if (importer.couldCanonicalize(key.$1, canonicalUrl)) {
+          _canonicalizeCache.remove(key);
+          break;
+        }
+      }
+    }
+
+    for (var key in [..._perImporterCanonicalizeCache.keys]) {
+      if (key.$1.couldCanonicalize(key.$2, canonicalUrl)) {
+        _perImporterCanonicalizeCache.remove(key);
+      }
+    }
   }
 
   /// Clears the cached parse tree for the stylesheet with the given
