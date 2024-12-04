@@ -91,7 +91,7 @@ abstract class StylesheetParser extends Parser {
         // Handle this specially so that [atRule] always returns a non-nullable
         // Statement.
         if (scanner.scan('@charset')) {
-          whitespace();
+          whitespace(consumeNewlines: true);
           string();
           return null;
         }
@@ -1642,23 +1642,23 @@ abstract class StylesheetParser extends Parser {
   ArgumentDeclaration _argumentDeclaration() {
     var start = scanner.state;
     scanner.expectChar($lparen);
-    whitespace();
+    whitespace(consumeNewlines: true);
     var arguments = <Argument>[];
     var named = <String>{};
     String? restArgument;
     while (scanner.peekChar() == $dollar) {
       var variableStart = scanner.state;
       var name = variableName();
-      whitespace();
+      whitespace(consumeNewlines: true);
 
       Expression? defaultValue;
       if (scanner.scanChar($colon)) {
-        whitespace();
+        whitespace(consumeNewlines: true);
         defaultValue = expressionUntilComma();
       } else if (scanner.scanChar($dot)) {
         scanner.expectChar($dot);
         scanner.expectChar($dot);
-        whitespace();
+        whitespace(consumeNewlines: true);
         restArgument = name;
         break;
       }
@@ -1670,7 +1670,7 @@ abstract class StylesheetParser extends Parser {
       }
 
       if (!scanner.scanChar($comma)) break;
-      whitespace();
+      whitespace(consumeNewlines: true);
     }
     scanner.expectChar($rparen);
     return ArgumentDeclaration(arguments, scanner.spanFrom(start),
