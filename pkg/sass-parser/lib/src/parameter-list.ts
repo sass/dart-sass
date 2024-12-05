@@ -97,7 +97,7 @@ export class ParameterList
     // This *should* only ever be called by the superclass constructor.
     this._nodes = nodes;
   }
-  private _nodes?: Array<Parameter>;
+  private declare _nodes?: Array<Parameter>;
 
   /**
    * The name of the rest parameter (such as `args` in `...$args`) in this
