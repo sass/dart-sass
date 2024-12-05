@@ -766,14 +766,12 @@ abstract class StylesheetParser extends Parser {
     buffer.writeCharCode($lparen);
     whitespace(consumeNewlines: true);
 
-    _addOrInject(buffer, _expression());
-    // TODO: _expression here needs to be able to consume newlines.
+    _addOrInject(buffer, _expression(consumeNewlines: true));
     if (scanner.scanChar($colon)) {
       whitespace(consumeNewlines: true);
       buffer.writeCharCode($colon);
       buffer.writeCharCode($space);
-      // TODO: _expression here needs to be able to consume newlines.
-      _addOrInject(buffer, _expression());
+      _addOrInject(buffer, _expression(consumeNewlines: true));
     }
 
     scanner.expectChar($rparen);
@@ -942,18 +940,20 @@ abstract class StylesheetParser extends Parser {
     whitespace(consumeNewlines: true);
 
     bool? exclusive;
-    var from = _expression(until: () {
-      if (!lookingAtIdentifier()) return false;
-      if (scanIdentifier("to")) {
-        exclusive = true;
-        return true;
-      } else if (scanIdentifier("through")) {
-        exclusive = false;
-        return true;
-      } else {
-        return false;
-      }
-    });
+    var from = _expression(
+        consumeNewlines: true,
+        until: () {
+          if (!lookingAtIdentifier()) return false;
+          if (scanIdentifier("to")) {
+            exclusive = true;
+            return true;
+          } else if (scanIdentifier("through")) {
+            exclusive = false;
+            return true;
+          } else {
+            return false;
+          }
+        });
     if (exclusive == null) scanner.error('Expected "to" or "through".');
 
     whitespace(consumeNewlines: true);
@@ -1201,9 +1201,9 @@ abstract class StylesheetParser extends Parser {
           }
 
           scanner.expectChar($rparen);
-          whitespace();
+          whitespace(consumeNewlines: false);
         } else {
-          whitespace();
+          whitespace(consumeNewlines: true);
           if (scanner.scanChar($comma)) {
             buffer.write(", ");
             buffer.addInterpolation(_mediaQueryList());
@@ -1224,7 +1224,7 @@ abstract class StylesheetParser extends Parser {
   /// (but not the function name or parentheses).
   SupportsCondition _importSupportsQuery() {
     if (scanIdentifier("not")) {
-      whitespace();
+      whitespace(consumeNewlines: true);
       var start = scanner.state;
       return SupportsNegation(
           _supportsConditionInParens(), scanner.spanFrom(start));
@@ -1540,9 +1540,8 @@ abstract class StylesheetParser extends Parser {
       whitespace(consumeNewlines: true);
       scanner.expectChar($colon);
       whitespace(consumeNewlines: true);
-      // TODO: This doesn't handle newlines, prevents tests in
-      // spec/directives/use|forward/whitespace/ from passing
-      var expression = expressionUntilComma();
+
+      var expression = expressionUntilComma(consumeNewlines: true);
 
       var guarded = false;
       var flagStart = scanner.state;
@@ -1758,7 +1757,10 @@ abstract class StylesheetParser extends Parser {
   /// expression.
   @protected
   Expression _expression(
-      {bool bracketList = false, bool singleEquals = false, bool until()?}) {
+      {bool bracketList = false,
+      bool singleEquals = false,
+      bool until()?,
+      bool consumeNewlines = false}) {
     if (until != null && until()) scanner.error("Expected expression.");
 
     LineScannerState? beforeBracket;
@@ -1961,11 +1963,13 @@ abstract class StylesheetParser extends Parser {
       spaceExpressions_ = null;
     }
 
-    var consumeNewlines = bracketList || _inParentheses;
-
     loop:
     while (true) {
-      whitespace(consumeNewlines: consumeNewlines);
+      whitespace(
+          consumeNewlines: consumeNewlines ||
+              bracketList ||
+              _inParentheses ||
+              wasInExpression);
       if (until != null && until()) break;
 
       switch (scanner.peekChar()) {
@@ -2159,8 +2163,12 @@ abstract class StylesheetParser extends Parser {
   ///
   /// If [singleEquals] is true, this will allow the Microsoft-style `=`
   /// operator at the top level.
-  Expression expressionUntilComma({bool singleEquals = false}) => _expression(
-      singleEquals: singleEquals, until: () => scanner.peekChar() == $comma);
+  Expression expressionUntilComma(
+          {bool singleEquals = false, bool consumeNewlines = false}) =>
+      _expression(
+          singleEquals: singleEquals,
+          consumeNewlines: consumeNewlines,
+          until: () => scanner.peekChar() == $comma);
 
   /// Whether [expression] is allowed as an operand of a `/` expression that
   /// produces a potentially slash-separated number.
@@ -3107,8 +3115,8 @@ abstract class StylesheetParser extends Parser {
   (Expression, FileSpan span) singleInterpolation() {
     var start = scanner.state;
     scanner.expect('#{');
-    whitespace();
-    var contents = _expression();
+    whitespace(consumeNewlines: true);
+    var contents = _expression(consumeNewlines: true);
     scanner.expectChar($rbrace);
     var span = scanner.spanFrom(start);
 
