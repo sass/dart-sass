@@ -114,6 +114,7 @@ export class Stringifier extends PostCssStringifier {
       node.raws.atRootShorthand &&
       node.name === 'at-root' &&
       node.paramsInterpolation === undefined &&
+      node.nodes &&
       node.nodes.length === 1 &&
       node.nodes[0].sassType === 'rule'
     ) {
