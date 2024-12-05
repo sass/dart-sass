@@ -78,7 +78,7 @@ export class ErrorRule
     if (errorExpression) errorExpression.parent = this;
     this._errorExpression = errorExpression;
   }
-  private _errorExpression?: Expression;
+  private declare _errorExpression?: Expression;
 
   constructor(defaults: ErrorRuleProps);
   /** @hidden */

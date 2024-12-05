@@ -100,7 +100,7 @@ export class ConfiguredVariable extends Node {
    * This is the parsed and normalized value, with underscores converted to
    * hyphens and escapes resolved to the characters they represent.
    */
-  name!: string;
+  declare name: string;
 
   /** The expresison whose value the variable is assigned. */
   get expression(): Expression {
@@ -112,10 +112,10 @@ export class ConfiguredVariable extends Node {
     if (value) value.parent = this;
     this._expression = value;
   }
-  private _expression!: Expression;
+  private declare _expression: Expression;
 
   /** Whether this has a `!default` guard. */
-  guarded!: boolean;
+  declare guarded: boolean;
 
   constructor(defaults: ConfiguredVariableProps);
   /** @hidden */
