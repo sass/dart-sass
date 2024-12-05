@@ -2373,7 +2373,7 @@ abstract class StylesheetParser extends Parser {
 
     var start = scanner.state;
     scanner.readChar();
-    whitespace();
+    whitespace(consumeNewlines: true);
     expectIdentifier("important");
     return StringExpression.plain("!important", scanner.spanFrom(start));
   }
@@ -2389,7 +2389,7 @@ abstract class StylesheetParser extends Parser {
           position: scanner.position - 1, length: 1);
     }
 
-    whitespace();
+    whitespace(consumeNewlines: true);
     var operand = _singleExpression();
     return UnaryOperationExpression(operator, operand, scanner.spanFrom(start));
   }
