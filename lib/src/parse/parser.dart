@@ -75,7 +75,7 @@ class Parser {
 
   /// Consumes whitespace, including any comments.
   ///
-  /// Set `consumeNewlines` to true when a statement could not end, so newlines
+  /// Set [consumeNewlines] to true when a statement could not end, so newlines
   /// can be consumed. Only used in the indented syntax.
   ///
   /// TODO: Bikeshed the variable name
@@ -121,13 +121,15 @@ class Parser {
   }
 
   /// Like [whitespace], but throws an error if no whitespace is consumed.
+  ///
+  /// If [consumeNewlines] is true, consuming whitespace in the indented syntax
+  /// will include newlines.
   @protected
-  void expectWhitespace() {
+  void expectWhitespace({bool consumeNewlines = false}) {
     if (scanner.isDone || !(scanner.peekChar().isWhitespace || scanComment())) {
       scanner.error("Expected whitespace.");
     }
-    // TODO: Does this need to by dynamic by context?
-    whitespace(consumeNewlines: false);
+    whitespace(consumeNewlines: consumeNewlines);
   }
 
   /// Consumes and ignores a single silent (Sass-style) comment, not including

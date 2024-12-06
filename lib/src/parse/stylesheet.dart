@@ -3255,32 +3255,32 @@ abstract class StylesheetParser extends Parser {
   void _mediaInParens(InterpolationBuffer buffer) {
     scanner.expectChar($lparen, name: "media condition in parentheses");
     buffer.writeCharCode($lparen);
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     if (scanner.peekChar() == $lparen) {
       _mediaInParens(buffer);
-      whitespace();
+      whitespace(consumeNewlines: true);
       if (scanIdentifier("and")) {
         buffer.write(" and ");
-        expectWhitespace();
+        expectWhitespace(consumeNewlines: true);
         _mediaLogicSequence(buffer, "and");
       } else if (scanIdentifier("or")) {
         buffer.write(" or ");
-        expectWhitespace();
+        expectWhitespace(consumeNewlines: true);
         _mediaLogicSequence(buffer, "or");
       }
     } else if (scanIdentifier("not")) {
       buffer.write("not ");
-      expectWhitespace();
+      expectWhitespace(consumeNewlines: true);
       _mediaOrInterp(buffer);
     } else {
       var expressionBefore = _expressionUntilComparison();
       buffer.add(expressionBefore, expressionBefore.span);
       if (scanner.scanChar($colon)) {
-        whitespace();
+        whitespace(consumeNewlines: true);
         buffer.writeCharCode($colon);
         buffer.writeCharCode($space);
-        var expressionAfter = _expression();
+        var expressionAfter = _expression(consumeNewlines: true);
         buffer.add(expressionAfter, expressionAfter.span);
       } else {
         var next = scanner.peekChar();
@@ -3292,7 +3292,7 @@ abstract class StylesheetParser extends Parser {
           }
           buffer.writeCharCode($space);
 
-          whitespace();
+          whitespace(consumeNewlines: true);
           var expressionMiddle = _expressionUntilComparison();
           buffer.add(expressionMiddle, expressionMiddle.span);
 
@@ -3303,7 +3303,7 @@ abstract class StylesheetParser extends Parser {
             if (scanner.scanChar($equal)) buffer.writeCharCode($equal);
             buffer.writeCharCode($space);
 
-            whitespace();
+            whitespace(consumeNewlines: true);
             var expressionAfter = _expressionUntilComparison();
             buffer.add(expressionAfter, expressionAfter.span);
           }
@@ -3312,13 +3312,14 @@ abstract class StylesheetParser extends Parser {
     }
 
     scanner.expectChar($rparen);
-    whitespace();
+    whitespace(consumeNewlines: false);
     buffer.writeCharCode($rparen);
   }
 
   /// Consumes an expression until it reaches a top-level `<`, `>`, or a `=`
   /// that's not `==`.
   Expression _expressionUntilComparison() => _expression(
+      consumeNewlines: true,
       until: () => switch (scanner.peekChar()) {
             $equal => scanner.peekChar(1) != $equal,
             $langle || $rangle => true,
