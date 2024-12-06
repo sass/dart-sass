@@ -151,7 +151,7 @@ export class UseRule
         : new Configuration(configuration);
     this._configuration.parent = this;
   }
-  private _configuration!: Configuration;
+  private declare _configuration: Configuration;
 
   constructor(defaults: UseRuleProps);
   /** @hidden */

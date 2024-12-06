@@ -36,6 +36,8 @@ import {ForRule} from './statement/for-rule';
 import {ForwardRule} from './statement/forward-rule';
 import {FunctionRule} from './statement/function-rule';
 import {GenericAtRule} from './statement/generic-at-rule';
+import {MixinRule} from './statement/mixin-rule';
+import {ReturnRule} from './statement/return-rule';
 import {Rule} from './statement/rule';
 import {SassComment} from './statement/sass-comment';
 import {UseRule} from './statement/use-rule';
@@ -101,6 +103,10 @@ export class Stringifier extends PostCssStringifier {
     this.sassAtRule(node, semicolon);
   }
 
+  private ['mixin-rule'](node: MixinRule, semicolon: boolean): void {
+    this.sassAtRule(node, semicolon);
+  }
+
   private atrule(node: GenericAtRule, semicolon: boolean): void {
     // In the @at-root shorthand, stringify `@at-root {.foo {...}}` as
     // `@at-root .foo {...}`.
@@ -132,6 +138,10 @@ export class Stringifier extends PostCssStringifier {
         node,
       );
     }
+  }
+
+  private ['return-rule'](node: ReturnRule, semicolon: boolean): void {
+    this.sassAtRule(node, semicolon);
   }
 
   private rule(node: Rule): void {

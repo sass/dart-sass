@@ -1,3 +1,9 @@
+## 0.4.8-dev
+
+Add support for parsing the `@mixin` rule.
+
+Add support for parsing the `@return` rule.
+
 ## 0.4.7
 
 * No user-visible changes.

@@ -147,6 +147,15 @@ declare namespace SassInternal {
     readonly query: Interpolation;
   }
 
+  class MixinRule extends ParentStatement<Statement[]> {
+    readonly name: string;
+    readonly arguments: ArgumentDeclaration;
+  }
+
+  class ReturnRule extends Statement {
+    readonly expression: Expression;
+  }
+
   class SilentComment extends Statement {
     readonly text: string;
   }
@@ -285,6 +294,8 @@ export type ForwardRule = SassInternal.ForwardRule;
 export type FunctionRule = SassInternal.FunctionRule;
 export type LoudComment = SassInternal.LoudComment;
 export type MediaRule = SassInternal.MediaRule;
+export type MixinRule = SassInternal.MixinRule;
+export type ReturnRule = SassInternal.ReturnRule;
 export type SilentComment = SassInternal.SilentComment;
 export type Stylesheet = SassInternal.Stylesheet;
 export type StyleRule = SassInternal.StyleRule;
@@ -315,6 +326,8 @@ export interface StatementVisitorObject<T> {
   visitFunctionRule(node: FunctionRule): T;
   visitLoudComment(node: LoudComment): T;
   visitMediaRule(node: MediaRule): T;
+  visitMixinRule(node: MixinRule): T;
+  visitReturnRule(node: ReturnRule): T;
   visitSilentComment(node: SilentComment): T;
   visitStyleRule(node: StyleRule): T;
   visitSupportsRule(node: SupportsRule): T;

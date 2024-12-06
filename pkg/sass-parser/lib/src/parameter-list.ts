@@ -31,7 +31,7 @@ export type NewParameters =
  * @category Statement
  */
 export interface ParameterListObjectProps {
-  nodes?: ReadonlyArray<ParameterProps>;
+  nodes?: ReadonlyArray<NewParameters>;
   restParameter?: string;
   raws?: ParameterListRaws;
 }
@@ -43,7 +43,7 @@ export interface ParameterListObjectProps {
  */
 export type ParameterListProps =
   | ParameterListObjectProps
-  | ReadonlyArray<ParameterProps>;
+  | ReadonlyArray<NewParameters>;
 
 /**
  * Raws indicating how to precisely serialize a {@link ParameterList} node.
@@ -97,7 +97,7 @@ export class ParameterList
     // This *should* only ever be called by the superclass constructor.
     this._nodes = nodes;
   }
-  private _nodes?: Array<Parameter>;
+  private declare _nodes?: Array<Parameter>;
 
   /**
    * The name of the rest parameter (such as `args` in `...$args`) in this

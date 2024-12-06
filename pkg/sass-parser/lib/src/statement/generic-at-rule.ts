@@ -5,7 +5,7 @@
 import * as postcss from 'postcss';
 import type {AtRuleRaws as PostcssAtRuleRaws} from 'postcss/lib/at-rule';
 
-import {Interpolation} from '../interpolation';
+import {Interpolation, InterpolationProps} from '../interpolation';
 import {LazySource} from '../lazy-source';
 import type * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
@@ -49,11 +49,11 @@ export interface GenericAtRuleRaws extends Omit<PostcssAtRuleRaws, 'params'> {
 export type GenericAtRuleProps = ContainerProps & {
   raws?: GenericAtRuleRaws;
 } & (
-    | {nameInterpolation: Interpolation | string; name?: never}
+    | {nameInterpolation: Interpolation | InterpolationProps; name?: never}
     | {name: string; nameInterpolation?: never}
   ) &
   (
-    | {paramsInterpolation?: Interpolation | string; params?: never}
+    | {paramsInterpolation?: Interpolation | InterpolationProps; params?: never}
     | {params?: string | number; paramsInterpolation?: never}
   );
 
@@ -87,15 +87,14 @@ export class GenericAtRule
   get nameInterpolation(): Interpolation {
     return this._nameInterpolation!;
   }
-  set nameInterpolation(nameInterpolation: Interpolation | string) {
+  set nameInterpolation(value: Interpolation | InterpolationProps) {
     if (this._nameInterpolation) this._nameInterpolation.parent = undefined;
-    if (typeof nameInterpolation === 'string') {
-      nameInterpolation = new Interpolation({nodes: [nameInterpolation]});
-    }
+    const nameInterpolation =
+      value instanceof Interpolation ? value : new Interpolation(value);
     nameInterpolation.parent = this;
     this._nameInterpolation = nameInterpolation;
   }
-  private _nameInterpolation?: Interpolation;
+  private declare _nameInterpolation?: Interpolation;
 
   get params(): string {
     if (this.name !== 'media' || !this.paramsInterpolation) {
@@ -136,16 +135,19 @@ export class GenericAtRule
     return this._paramsInterpolation;
   }
   set paramsInterpolation(
-    paramsInterpolation: Interpolation | string | undefined,
+    value: Interpolation | InterpolationProps | undefined,
   ) {
     if (this._paramsInterpolation) this._paramsInterpolation.parent = undefined;
-    if (typeof paramsInterpolation === 'string') {
-      paramsInterpolation = new Interpolation({nodes: [paramsInterpolation]});
+    if (value === undefined) {
+      this._paramsInterpolation = undefined;
+    } else {
+      const paramsInterpolation =
+        value instanceof Interpolation ? value : new Interpolation(value);
+      paramsInterpolation.parent = this;
+      this._paramsInterpolation = paramsInterpolation;
     }
-    if (paramsInterpolation) paramsInterpolation.parent = this;
-    this._paramsInterpolation = paramsInterpolation;
   }
-  private _paramsInterpolation: Interpolation | undefined;
+  private declare _paramsInterpolation: Interpolation | undefined;
 
   constructor(defaults: GenericAtRuleProps);
   /** @hidden */

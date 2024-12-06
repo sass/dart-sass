@@ -17,86 +17,86 @@ import {interceptIsClean} from './intercept-is-clean';
 import * as sassParser from '../..';
 
 /**
- * The set of raws supported by {@link ErrorRule}.
+ * The set of raws supported by {@link ReturnRule}.
  *
  * @category Statement
  */
-export type ErrorRuleRaws = Pick<
+export type ReturnRuleRaws = Pick<
   PostcssAtRuleRaws,
   'afterName' | 'before' | 'between'
 >;
 
 /**
- * The initializer properties for {@link ErrorRule}.
+ * The initializer properties for {@link ReturnRule}.
  *
  * @category Statement
  */
-export type ErrorRuleProps = postcss.NodeProps & {
-  raws?: ErrorRuleRaws;
-  errorExpression: Expression | ExpressionProps;
+export type ReturnRuleProps = postcss.NodeProps & {
+  raws?: ReturnRuleRaws;
+  returnExpression: Expression | ExpressionProps;
 };
 
 /**
- * An `@error` rule. Extends [`postcss.AtRule`].
+ * A `@return` rule. Extends [`postcss.AtRule`].
  *
  * [`postcss.AtRule`]: https://postcss.org/api/#atrule
  *
  * @category Statement
  */
-export class ErrorRule
-  extends _AtRule<Partial<ErrorRuleProps>>
+export class ReturnRule
+  extends _AtRule<Partial<ReturnRuleProps>>
   implements Statement
 {
-  readonly sassType = 'error-rule' as const;
+  readonly sassType = 'return-rule' as const;
   declare parent: StatementWithChildren | undefined;
-  declare raws: ErrorRuleRaws;
+  declare raws: ReturnRuleRaws;
   declare readonly nodes: undefined;
 
   get name(): string {
-    return 'error';
+    return 'return';
   }
   set name(value: string) {
-    throw new Error("ErrorRule.name can't be overwritten.");
+    throw new Error("ReturnRule.name can't be overwritten.");
   }
 
   get params(): string {
-    return this.errorExpression.toString();
+    return this.returnExpression.toString();
   }
   set params(value: string | number | undefined) {
-    this.errorExpression = {text: value?.toString() ?? ''};
+    this.returnExpression = {text: value?.toString() ?? ''};
   }
 
-  /** The expresison whose value is thrown when the error rule is executed. */
-  get errorExpression(): Expression {
-    return this._errorExpression!;
+  /** The expresison whose value is emitted when the return rule is executed. */
+  get returnExpression(): Expression {
+    return this._returnExpression!;
   }
-  set errorExpression(errorExpression: Expression | ExpressionProps) {
-    if (this._errorExpression) this._errorExpression.parent = undefined;
-    if (!('sassType' in errorExpression)) {
-      errorExpression = fromProps(errorExpression);
+  set returnExpression(returnExpression: Expression | ExpressionProps) {
+    if (this._returnExpression) this._returnExpression.parent = undefined;
+    if (!('sassType' in returnExpression)) {
+      returnExpression = fromProps(returnExpression);
     }
-    if (errorExpression) errorExpression.parent = this;
-    this._errorExpression = errorExpression;
+    if (returnExpression) returnExpression.parent = this;
+    this._returnExpression = returnExpression;
   }
-  private declare _errorExpression?: Expression;
+  private _returnExpression?: Expression;
 
-  constructor(defaults: ErrorRuleProps);
+  constructor(defaults: ReturnRuleProps);
   /** @hidden */
-  constructor(_: undefined, inner: sassInternal.ErrorRule);
-  constructor(defaults?: ErrorRuleProps, inner?: sassInternal.ErrorRule) {
+  constructor(_: undefined, inner: sassInternal.ReturnRule);
+  constructor(defaults?: ReturnRuleProps, inner?: sassInternal.ReturnRule) {
     super(defaults as unknown as postcss.AtRuleProps);
 
     if (inner) {
       this.source = new LazySource(inner);
-      this.errorExpression = convertExpression(inner.expression);
+      this.returnExpression = convertExpression(inner.expression);
     }
   }
 
-  clone(overrides?: Partial<ErrorRuleProps>): this {
+  clone(overrides?: Partial<ReturnRuleProps>): this {
     return utils.cloneNode(
       this,
       overrides,
-      ['raws', 'errorExpression'],
+      ['raws', 'returnExpression'],
       [{name: 'params', explicitUndefined: true}],
     );
   }
@@ -107,7 +107,7 @@ export class ErrorRule
   toJSON(_?: string, inputs?: Map<postcss.Input, number>): object {
     return utils.toJSON(
       this,
-      ['name', 'errorExpression', 'params', 'nodes'],
+      ['name', 'returnExpression', 'params', 'nodes'],
       inputs,
     );
   }
@@ -122,8 +122,8 @@ export class ErrorRule
 
   /** @hidden */
   get nonStatementChildren(): ReadonlyArray<Expression> {
-    return [this.errorExpression];
+    return [this.returnExpression];
   }
 }
 
-interceptIsClean(ErrorRule);
+interceptIsClean(ReturnRule);
