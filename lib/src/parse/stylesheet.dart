@@ -108,10 +108,12 @@ abstract class StylesheetParser extends Parser {
   ArgumentDeclaration parseArgumentDeclaration() => _parseSingleProduction(() {
         scanner.expectChar($at, name: "@-rule");
         identifier();
-        whitespace();
+        // TODO: No tests
+        whitespace(consumeNewlines: true);
         identifier();
         var arguments = _argumentDeclaration();
-        whitespace();
+        // TODO: No tests
+        whitespace(consumeNewlines: true);
         scanner.expectChar($lbrace);
         return arguments;
       });
@@ -136,7 +138,8 @@ abstract class StylesheetParser extends Parser {
           var start = scanner.state;
           scanner.expectChar($at, name: "@-rule");
           expectIdentifier("use");
-          whitespace();
+          // TODO: No tests
+          whitespace(consumeNewlines: true);
           return _useRule(start);
         }),
         warnings
@@ -1755,6 +1758,9 @@ abstract class StylesheetParser extends Parser {
   /// If [until] is passed, it's called each time the expression could end and
   /// still be a valid expression. When it returns `true`, this returns the
   /// expression.
+  ///
+  /// If [consumeNewlines] is true, consuming whitespace in the indented syntax
+  /// will include newlines.
   @protected
   Expression _expression(
       {bool bracketList = false,
