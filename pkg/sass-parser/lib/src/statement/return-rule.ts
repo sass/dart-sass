@@ -78,7 +78,7 @@ export class ReturnRule
     if (returnExpression) returnExpression.parent = this;
     this._returnExpression = returnExpression;
   }
-  private _returnExpression?: Expression;
+  declare _returnExpression?: Expression;
 
   constructor(defaults: ReturnRuleProps);
   /** @hidden */
