@@ -550,7 +550,7 @@ abstract class StylesheetParser extends Parser {
       name = interpolatedIdentifier();
     }
 
-    whitespace();
+    whitespace(consumeNewlines: false);
     scanner.expectChar($colon);
 
     if (parseCustomProperties && name.initialPlain.startsWith('--')) {
@@ -560,7 +560,7 @@ abstract class StylesheetParser extends Parser {
       return Declaration(name, value, scanner.spanFrom(start));
     }
 
-    whitespace();
+    whitespace(consumeNewlines: false);
     if (_tryDeclarationChildren(name, start) case var nested?) return nested;
 
     var value = _expression();
@@ -1695,7 +1695,7 @@ abstract class StylesheetParser extends Parser {
       {bool mixin = false, bool allowEmptySecondArg = false}) {
     var start = scanner.state;
     scanner.expectChar($lparen);
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     var positional = <Expression>[];
     var named = <String, Expression>{};
@@ -1703,10 +1703,10 @@ abstract class StylesheetParser extends Parser {
     Expression? keywordRest;
     while (_lookingAtExpression()) {
       var expression = expressionUntilComma(singleEquals: !mixin);
-      whitespace();
+      whitespace(consumeNewlines: true);
 
       if (expression is VariableExpression && scanner.scanChar($colon)) {
-        whitespace();
+        whitespace(consumeNewlines: true);
         if (named.containsKey(expression.name)) {
           error("Duplicate argument.", expression.span);
         }
@@ -1718,7 +1718,7 @@ abstract class StylesheetParser extends Parser {
           rest = expression;
         } else {
           keywordRest = expression;
-          whitespace();
+          whitespace(consumeNewlines: true);
           break;
         }
       } else if (named.isNotEmpty) {
@@ -1728,9 +1728,9 @@ abstract class StylesheetParser extends Parser {
         positional.add(expression);
       }
 
-      whitespace();
+      whitespace(consumeNewlines: true);
       if (!scanner.scanChar($comma)) break;
-      whitespace();
+      whitespace(consumeNewlines: true);
 
       if (allowEmptySecondArg &&
           positional.length == 1 &&
