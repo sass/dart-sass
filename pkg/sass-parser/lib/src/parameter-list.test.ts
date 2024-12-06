@@ -20,9 +20,6 @@ describe('a parameter list', () => {
           expect(node.sassType).toBe('parameter-list'));
 
         it('has no nodes', () => expect(node.nodes).toHaveLength(0));
-
-        it('has no rest parameter', () =>
-          expect(node.restParameter).toBeUndefined());
       });
     }
 
@@ -80,9 +77,6 @@ describe('a parameter list', () => {
           expect(node.nodes[0].defaultValue).toBeUndefined();
           expect(node.nodes[0].parent).toBe(node);
         });
-
-        it('has no rest parameter', () =>
-          expect(node.restParameter).toBeUndefined());
       });
     }
 
@@ -165,9 +159,6 @@ describe('a parameter list', () => {
           expect(node.nodes[0]).toHaveStringExpression('defaultValue', 'bar');
           expect(node.nodes[0]).toHaveProperty('parent', node);
         });
-
-        it('has no rest parameter', () =>
-          expect(node.restParameter).toBeUndefined());
       });
     }
 
@@ -251,58 +242,6 @@ describe('a parameter list', () => {
           }).parameters,
       );
     });
-  });
-
-  describe('with a rest parameter', () => {
-    function describeNode(
-      description: string,
-      create: () => ParameterList,
-    ): void {
-      describe(description, () => {
-        beforeEach(() => void (node = create()));
-
-        it('has a sassType', () =>
-          expect(node.sassType).toBe('parameter-list'));
-
-        it('has no nodes', () => expect(node.nodes).toHaveLength(0));
-
-        it('has a rest parameter', () =>
-          expect(node.restParameter).toBe('foo'));
-      });
-    }
-
-    describeNode(
-      'parsed as SCSS',
-      () =>
-        (scss.parse('@function x($foo...) {}').nodes[0] as FunctionRule)
-          .parameters,
-    );
-
-    describeNode(
-      'parsed as Sass',
-      () =>
-        (sass.parse('@function x($foo...)').nodes[0] as FunctionRule)
-          .parameters,
-    );
-
-    describeNode(
-      'constructed manually',
-      () => new ParameterList({restParameter: 'foo'}),
-    );
-
-    describeNode(
-      'constructed from properties',
-      () =>
-        new FunctionRule({
-          functionName: 'x',
-          parameters: {restParameter: 'foo'},
-        }).parameters,
-    );
-  });
-
-  it('assigned a new rest parameter', () => {
-    node.restParameter = 'qux';
-    expect(node.restParameter).toBe('qux');
   });
 
   describe('can add', () => {
@@ -683,16 +622,9 @@ describe('a parameter list', () => {
   });
 
   describe('stringifies', () => {
-    describe('with no nodes or rest parameter', () => {
+    describe('with no nodes', () => {
       it('with default raws', () =>
         expect(new ParameterList().toString()).toBe('()'));
-
-      it('ignores restParameter', () =>
-        expect(
-          new ParameterList({
-            raws: {restParameter: {value: 'foo', raw: 'foo'}},
-          }).toString(),
-        ).toBe('()'));
 
       it('ignores comma', () =>
         expect(new ParameterList({raws: {comma: true}}).toString()).toBe('()'));
@@ -708,22 +640,6 @@ describe('a parameter list', () => {
         expect(new ParameterList(['foo', 'bar', 'baz']).toString()).toBe(
           '($foo, $bar, $baz)',
         ));
-
-      it('ignores beforeRestParameter', () =>
-        expect(
-          new ParameterList({
-            nodes: ['foo', 'bar', 'baz'],
-            raws: {beforeRestParameter: '/**/'},
-          }).toString(),
-        ).toBe('($foo, $bar, $baz)'));
-
-      it('ignores restParameter', () =>
-        expect(
-          new ParameterList({
-            nodes: ['foo', 'bar', 'baz'],
-            raws: {restParameter: {value: 'foo', raw: 'foo'}},
-          }).toString(),
-        ).toBe('($foo, $bar, $baz)'));
 
       it('with comma: true', () =>
         expect(
@@ -788,77 +704,6 @@ describe('a parameter list', () => {
           ).toBe('($foo, $bar, $baz  ,)'));
       });
     });
-
-    describe('with restParameter', () => {
-      it('with default raws', () =>
-        expect(new ParameterList({restParameter: 'foo'}).toString()).toBe(
-          '($foo...)',
-        ));
-
-      it("that's not an identifier", () =>
-        expect(new ParameterList({restParameter: 'f o'}).toString()).toBe(
-          '($f\\20o...)',
-        ));
-
-      it('with parameters', () =>
-        expect(
-          new ParameterList({
-            nodes: ['foo', 'bar'],
-            restParameter: 'baz',
-          }).toString(),
-        ).toBe('($foo, $bar, $baz...)'));
-
-      describe('with beforeRestParameter', () => {
-        it('with no parameters', () =>
-          expect(
-            new ParameterList({
-              restParameter: 'foo',
-              raws: {beforeRestParameter: '/**/'},
-            }).toString(),
-          ).toBe('(/**/$foo...)'));
-
-        it('with parameters', () =>
-          expect(
-            new ParameterList({
-              nodes: ['foo', 'bar'],
-              restParameter: 'baz',
-              raws: {beforeRestParameter: '/**/'},
-            }).toString(),
-          ).toBe('($foo, $bar,/**/$baz...)'));
-      });
-
-      it('with matching restParameter', () =>
-        expect(
-          new ParameterList({
-            restParameter: 'foo',
-            raws: {restParameter: {value: 'foo', raw: 'f\\6fo'}},
-          }).toString(),
-        ).toBe('($f\\6fo...)'));
-
-      it('with non-matching restParameter', () =>
-        expect(
-          new ParameterList({
-            restParameter: 'foo',
-            raws: {restParameter: {value: 'bar', raw: 'b\\61r'}},
-          }).toString(),
-        ).toBe('($foo...)'));
-
-      it('ignores comma', () =>
-        expect(
-          new ParameterList({
-            restParameter: 'foo',
-            raws: {comma: true},
-          }).toString(),
-        ).toBe('($foo...)'));
-
-      it('with after', () =>
-        expect(
-          new ParameterList({
-            restParameter: 'foo',
-            raws: {after: '/**/'},
-          }).toString(),
-        ).toBe('($foo.../**/)'));
-    });
   });
 
   describe('clone', () => {
@@ -867,7 +712,6 @@ describe('a parameter list', () => {
       () =>
         void (original = new ParameterList({
           nodes: ['foo', 'bar'],
-          restParameter: 'baz',
           raws: {after: '  '},
         })),
     );
@@ -882,10 +726,7 @@ describe('a parameter list', () => {
           expect(clone.nodes[0].parent).toBe(clone);
           expect(clone.nodes[1].name).toBe('bar');
           expect(clone.nodes[1].parent).toBe(clone);
-          expect(clone.restParameter).toBe('baz');
         });
-
-        it('restParameter', () => expect(clone.restParameter).toBe('baz'));
 
         it('raws', () => expect(clone.raws).toEqual({after: '  '}));
 
@@ -931,18 +772,6 @@ describe('a parameter list', () => {
           expect(clone.nodes[0].name).toBe('foo');
           expect(clone.nodes[1].name).toBe('bar');
         });
-      });
-
-      describe('restParameter', () => {
-        it('defined', () =>
-          expect(original.clone({restParameter: 'qux'}).restParameter).toBe(
-            'qux',
-          ));
-
-        it('undefined', () =>
-          expect(
-            original.clone({restParameter: undefined}).restParameter,
-          ).toBeUndefined());
       });
     });
   });

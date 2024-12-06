@@ -33,6 +33,8 @@ describe('a parameter', () => {
 
         it('has no default value', () =>
           expect(node.defaultValue).toBeUndefined());
+
+        it('is not a rest parameter', () => expect(node.rest).toBe(false));
       });
     }
 
@@ -81,6 +83,8 @@ describe('a parameter', () => {
 
         it('has a default value', () =>
           expect(node).toHaveStringExpression('defaultValue', 'bar'));
+
+        it('is not a rest parameter', () => expect(node.rest).toBe(false));
       });
     }
 
@@ -218,16 +222,89 @@ describe('a parameter', () => {
     });
   });
 
+  describe('as a rest parameter', () => {
+    function describeNode(description: string, create: () => Parameter): void {
+      describe(description, () => {
+        beforeEach(() => (node = create()));
+
+        it('has a sassType', () =>
+          expect(node.sassType.toString()).toBe('parameter'));
+
+        it('has a name', () => expect(node.name).toBe('foo'));
+
+        it('has no default value', () =>
+          expect(node.defaultValue).toBeUndefined());
+
+        it('is a rest parameter', () => expect(node.rest).toBe(true));
+      });
+    }
+
+    describeNode(
+      'parsed as SCSS',
+      () =>
+        (scss.parse('@function a($foo...) {}').nodes[0] as FunctionRule)
+          .parameters.nodes[0],
+    );
+
+    describeNode(
+      'parsed as Sass',
+      () =>
+        (sass.parse('@function a($foo...)').nodes[0] as FunctionRule).parameters
+          .nodes[0],
+    );
+
+    describeNode(
+      'constructed manually',
+      () => new Parameter({name: 'foo', rest: true}),
+    );
+
+    describeNode(
+      'constructed from properties',
+      () => new ParameterList({nodes: [{name: 'foo', rest: true}]}).nodes[0],
+    );
+  });
+
   it('assigned a new name', () => {
     node.name = 'baz';
     expect(node.name).toBe('baz');
   });
 
-  it('assigned a new default', () => {
-    const old = node.defaultValue!;
-    node.defaultValue = {text: 'baz', quotes: true};
-    expect(old.parent).toBeUndefined();
-    expect(node).toHaveStringExpression('defaultValue', 'baz');
+  describe('assigned a new default', () => {
+    it('updates the default', () => {
+      const old = node.defaultValue!;
+      node.defaultValue = {text: 'baz'};
+      expect(old.parent).toBeUndefined();
+      expect(node).toHaveStringExpression('defaultValue', 'baz');
+    });
+
+    it('sets rest to false', () => {
+      node.rest = true;
+      node.defaultValue = {text: 'baz'};
+      expect(node.rest).toBe(false);
+    });
+
+    it('leaves rest alone if defaultValue is undefined', () => {
+      node.rest = true;
+      node.defaultValue = undefined;
+      expect(node.rest).toBe(true);
+    });
+  });
+
+  describe('assigned rest = true', () => {
+    it('updates the value of rest', () => {
+      node.rest = true;
+      expect(node.rest).toBe(true);
+    });
+
+    it('sets defaultValue to undefined', () => {
+      node.rest = true;
+      expect(node.defaultValue).toBe(undefined);
+    });
+
+    it('leaves defaultValue alone if rest is false', () => {
+      node.rest = false;
+      expect(node).toHaveStringExpression('defaultValue', 'bar');
+    });
   });
 
   describe('stringifies', () => {
@@ -240,6 +317,11 @@ describe('a parameter', () => {
           expect(
             new Parameter(['foo', {text: 'bar', quotes: true}]).toString(),
           ).toBe('$foo: "bar"'));
+
+        it('with rest', () =>
+          expect(new Parameter(['foo', {rest: true}]).toString()).toBe(
+            '$foo...',
+          ));
 
         it('with a non-identifier name', () =>
           expect(new Parameter('f o').toString()).toBe('$f\\20o'));
@@ -287,6 +369,23 @@ describe('a parameter', () => {
           }).toString(),
         ).toBe('$foo'));
 
+      it('with beforeRest', () =>
+        expect(
+          new Parameter({
+            name: 'foo',
+            rest: true,
+            raws: {beforeRest: '/**/'},
+          }).toString(),
+        ).toBe('$foo/**/...'));
+
+      it('ignores beforeRest with rest = false', () =>
+        expect(
+          new Parameter({
+            name: 'foo',
+            raws: {beforeRest: '/**/'},
+          }).toString(),
+        ).toBe('$foo'));
+
       // raws.before is only used as part of a Configuration
       describe('ignores after', () => {
         it('with no default', () =>
@@ -305,6 +404,15 @@ describe('a parameter', () => {
               raws: {after: '/**/'},
             }).toString(),
           ).toBe('$foo: "bar"'));
+
+        it('with rest = true', () =>
+          expect(
+            new Parameter({
+              name: 'foo',
+              rest: true,
+              raws: {after: '/**/'},
+            }).toString(),
+          ).toBe('$foo...'));
       });
     });
   });
@@ -327,6 +435,8 @@ describe('a parameter', () => {
 
         it('defaultValue', () =>
           expect(clone).toHaveStringExpression('defaultValue', 'bar'));
+
+        it('rest', () => expect(clone.rest).toBe(false));
       });
 
       describe('creates a new', () => {
@@ -370,6 +480,14 @@ describe('a parameter', () => {
             original.clone({defaultValue: undefined}).defaultValue,
           ).toBeUndefined());
       });
+
+      describe('rest', () => {
+        it('defined', () =>
+          expect(original.clone({rest: true}).rest).toBe(true));
+
+        it('undefined', () =>
+          expect(original.clone({rest: undefined}).rest).toBe(false));
+      });
     });
   });
 
@@ -384,6 +502,12 @@ describe('a parameter', () => {
       expect(
         (scss.parse('@function x($baz) {}').nodes[0] as FunctionRule).parameters
           .nodes[0],
+      ).toMatchSnapshot());
+
+    it('with rest = true', () =>
+      expect(
+        (scss.parse('@function x($baz...) {}').nodes[0] as FunctionRule)
+          .parameters.nodes[0],
       ).toMatchSnapshot());
   });
 });
