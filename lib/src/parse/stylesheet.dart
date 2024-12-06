@@ -2936,7 +2936,8 @@ abstract class StylesheetParser extends Parser {
       bool allowSemicolon = false,
       bool allowColon = true,
       bool allowOpenBrace = true,
-      bool silentComments = true}) {
+      bool silentComments = true,
+      bool consumeNewlines = false}) {
     // NOTE: this logic is largely duplicated in Parser.declarationValue. Most
     // changes here should be mirrored there.
 
@@ -2986,7 +2987,7 @@ abstract class StylesheetParser extends Parser {
         case $space || $tab:
           buffer.writeCharCode(scanner.readChar());
 
-        case $lf || $cr || $ff when indented:
+        case $lf || $cr || $ff when indented && !consumeNewlines:
           break loop;
 
         case $lf || $cr || $ff:
@@ -3330,13 +3331,13 @@ abstract class StylesheetParser extends Parser {
   SupportsCondition _supportsCondition() {
     var start = scanner.state;
     if (scanIdentifier("not")) {
-      whitespace();
+      whitespace(consumeNewlines: true);
       return SupportsNegation(
           _supportsConditionInParens(), scanner.spanFrom(start));
     }
 
     var condition = _supportsConditionInParens();
-    whitespace();
+    whitespace(consumeNewlines: false);
     String? operator;
     while (lookingAtIdentifier()) {
       if (operator != null) {
@@ -3348,11 +3349,11 @@ abstract class StylesheetParser extends Parser {
         operator = "and";
       }
 
-      whitespace();
+      whitespace(consumeNewlines: true);
       var right = _supportsConditionInParens();
       condition = SupportsOperation(
           condition, right, operator, scanner.spanFrom(start));
-      whitespace();
+      whitespace(consumeNewlines: false);
     }
     return condition;
   }
@@ -3369,7 +3370,7 @@ abstract class StylesheetParser extends Parser {
 
       if (scanner.scanChar($lparen)) {
         var arguments = _interpolatedDeclarationValue(
-            allowEmpty: true, allowSemicolon: true);
+            allowEmpty: true, allowSemicolon: true, consumeNewlines: true);
         scanner.expectChar($rparen);
         return SupportsFunction(identifier, arguments, scanner.spanFrom(start));
       } else if (identifier.contents case [Expression expression]) {
@@ -3380,9 +3381,9 @@ abstract class StylesheetParser extends Parser {
     }
 
     scanner.expectChar($lparen);
-    whitespace();
+    whitespace(consumeNewlines: true);
     if (scanIdentifier("not")) {
-      whitespace();
+      whitespace(consumeNewlines: true);
       var condition = _supportsConditionInParens();
       scanner.expectChar($rparen);
       return SupportsNegation(condition, scanner.spanFrom(start));
@@ -3410,7 +3411,7 @@ abstract class StylesheetParser extends Parser {
     var nameStart = scanner.state;
     var wasInParentheses = _inParentheses;
     try {
-      name = _expression();
+      name = _expression(consumeNewlines: true);
       scanner.expectChar($colon);
     } on FormatException catch (_) {
       scanner.state = nameStart;
@@ -3429,7 +3430,10 @@ abstract class StylesheetParser extends Parser {
       var contents = (InterpolationBuffer()
             ..addInterpolation(identifier)
             ..addInterpolation(_interpolatedDeclarationValue(
-                allowEmpty: true, allowSemicolon: true, allowColon: false)))
+                allowEmpty: true,
+                allowSemicolon: true,
+                allowColon: false,
+                consumeNewlines: true)))
           .interpolation(scanner.spanFrom(nameStart));
       if (scanner.peekChar() == $colon) rethrow;
 
@@ -3449,8 +3453,8 @@ abstract class StylesheetParser extends Parser {
         when text.initialPlain.startsWith("--")) {
       return StringExpression(_interpolatedDeclarationValue());
     } else {
-      whitespace();
-      return _expression();
+      whitespace(consumeNewlines: true);
+      return _expression(consumeNewlines: true);
     }
   }
 
@@ -3464,7 +3468,7 @@ abstract class StylesheetParser extends Parser {
     if (expression is! Expression) return null;
 
     var beforeWhitespace = scanner.state;
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     SupportsOperation? operation;
     String? operator;
@@ -3480,14 +3484,14 @@ abstract class StylesheetParser extends Parser {
         return null;
       }
 
-      whitespace();
+      whitespace(consumeNewlines: true);
       var right = _supportsConditionInParens();
       operation = SupportsOperation(
           operation ?? SupportsInterpolation(expression, interpolation.span),
           right,
           operator,
           scanner.spanFrom(start));
-      whitespace();
+      whitespace(consumeNewlines: true);
     }
 
     return operation;
