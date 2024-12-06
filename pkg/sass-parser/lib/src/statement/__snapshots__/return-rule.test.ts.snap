@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a @return rule toJSON 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@function x() {@return foo}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "return",
+  "params": "foo",
+  "raws": {},
+  "returnExpression": <foo>,
+  "sassType": "return-rule",
+  "source": <1:16-1:27 in 0>,
+  "type": "atrule",
+}
+`;

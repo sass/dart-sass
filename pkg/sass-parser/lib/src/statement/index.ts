@@ -18,6 +18,8 @@ import {ErrorRule, ErrorRuleProps} from './error-rule';
 import {ForRule, ForRuleProps} from './for-rule';
 import {ForwardRule, ForwardRuleProps} from './forward-rule';
 import {FunctionRule, FunctionRuleProps} from './function-rule';
+import {MixinRule, MixinRuleProps} from './mixin-rule';
+import {ReturnRule, ReturnRuleProps} from './return-rule';
 import {Root} from './root';
 import {Rule, RuleProps} from './rule';
 import {UseRule, UseRuleProps} from './use-rule';
@@ -55,12 +57,14 @@ export type StatementType =
   | 'comment'
   | 'debug-rule'
   | 'each-rule'
+  | 'error-rule'
   | 'for-rule'
   | 'forward-rule'
   | 'function-rule'
-  | 'error-rule'
-  | 'use-rule'
+  | 'mixin-rule'
+  | 'return-rule'
   | 'sass-comment'
+  | 'use-rule'
   | 'variable-declaration'
   | 'warn-rule'
   | 'while-rule';
@@ -78,6 +82,8 @@ export type AtRule =
   | ForwardRule
   | FunctionRule
   | GenericAtRule
+  | MixinRule
+  | ReturnRule
   | UseRule
   | WarnRule
   | WhileRule;
@@ -115,6 +121,8 @@ export type ChildProps =
   | ForwardRuleProps
   | FunctionRuleProps
   | GenericAtRuleProps
+  | MixinRuleProps
+  | ReturnRuleProps
   | RuleProps
   | SassCommentChildProps
   | UseRuleProps
@@ -195,6 +203,8 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
     appendInternalChildren(rule, inner.children);
     return rule;
   },
+  visitMixinRule: inner => new MixinRule(undefined, inner),
+  visitReturnRule: inner => new ReturnRule(undefined, inner),
   visitSilentComment: inner => new SassComment(undefined, inner),
   visitStyleRule: inner => new Rule(undefined, inner),
   visitSupportsRule: inner => {
@@ -319,18 +329,22 @@ export function normalize(
       result.push(new DebugRule(node));
     } else if ('eachExpression' in node) {
       result.push(new EachRule(node));
+    } else if ('errorExpression' in node) {
+      result.push(new ErrorRule(node));
     } else if ('fromExpression' in node) {
       result.push(new ForRule(node));
     } else if ('forwardUrl' in node) {
       result.push(new ForwardRule(node));
     } else if ('functionName' in node) {
       result.push(new FunctionRule(node));
-    } else if ('errorExpression' in node) {
-      result.push(new ErrorRule(node));
-    } else if ('text' in node || 'textInterpolation' in node) {
-      result.push(new CssComment(node as CssCommentProps));
+    } else if ('mixinName' in node) {
+      result.push(new MixinRule(node));
+    } else if ('returnExpression' in node) {
+      result.push(new ReturnRule(node));
     } else if ('silentText' in node) {
       result.push(new SassComment(node));
+    } else if ('text' in node || 'textInterpolation' in node) {
+      result.push(new CssComment(node as CssCommentProps));
     } else if ('useUrl' in node) {
       result.push(new UseRule(node));
     } else if ('variableName' in node) {

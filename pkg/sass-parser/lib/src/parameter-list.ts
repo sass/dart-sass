@@ -31,7 +31,7 @@ export type NewParameters =
  * @category Statement
  */
 export interface ParameterListObjectProps {
-  nodes?: ReadonlyArray<ParameterProps>;
+  nodes?: ReadonlyArray<NewParameters>;
   restParameter?: string;
   raws?: ParameterListRaws;
 }
@@ -43,7 +43,7 @@ export interface ParameterListObjectProps {
  */
 export type ParameterListProps =
   | ParameterListObjectProps
-  | ReadonlyArray<ParameterProps>;
+  | ReadonlyArray<NewParameters>;
 
 /**
  * Raws indicating how to precisely serialize a {@link ParameterList} node.

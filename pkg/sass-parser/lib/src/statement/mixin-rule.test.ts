@@ -2,23 +2,20 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import {FunctionRule, ParameterList, ReturnRule, sass, scss} from '../..';
+import {GenericAtRule, MixinRule, ParameterList, sass, scss} from '../..';
 import * as utils from '../../../test/utils';
 
-describe('a @function rule', () => {
-  let node: FunctionRule;
+describe('a @mixin rule', () => {
+  let node: MixinRule;
   describe('with empty children', () => {
-    function describeNode(
-      description: string,
-      create: () => FunctionRule,
-    ): void {
+    function describeNode(description: string, create: () => MixinRule): void {
       describe(description, () => {
         beforeEach(() => void (node = create()));
 
-        it('has a name', () => expect(node.name.toString()).toBe('function'));
+        it('has a name', () => expect(node.name.toString()).toBe('mixin'));
 
-        it('has a function name', () =>
-          expect(node.functionName.toString()).toBe('foo'));
+        it('has a mixin name', () =>
+          expect(node.mixinName.toString()).toBe('foo'));
 
         it('has a parameter', () =>
           expect(node.parameters.nodes[0].name).toEqual('bar'));
@@ -31,36 +28,33 @@ describe('a @function rule', () => {
 
     describeNode(
       'parsed as SCSS',
-      () => scss.parse('@function foo($bar) {}').nodes[0] as FunctionRule,
+      () => scss.parse('@mixin foo($bar) {}').nodes[0] as MixinRule,
     );
 
     describeNode(
       'parsed as Sass',
-      () => sass.parse('@function foo($bar)').nodes[0] as FunctionRule,
+      () => sass.parse('@mixin foo($bar)').nodes[0] as MixinRule,
     );
 
     describeNode(
       'constructed manually',
-      () => new FunctionRule({functionName: 'foo', parameters: ['bar']}),
+      () => new MixinRule({mixinName: 'foo', parameters: ['bar']}),
     );
 
     describeNode('constructed from ChildProps', () =>
-      utils.fromChildProps({functionName: 'foo', parameters: ['bar']}),
+      utils.fromChildProps({mixinName: 'foo', parameters: ['bar']}),
     );
   });
 
   describe('with a child', () => {
-    function describeNode(
-      description: string,
-      create: () => FunctionRule,
-    ): void {
+    function describeNode(description: string, create: () => MixinRule): void {
       describe(description, () => {
         beforeEach(() => void (node = create()));
 
-        it('has a name', () => expect(node.name.toString()).toBe('function'));
+        it('has a name', () => expect(node.name.toString()).toBe('mixin'));
 
-        it('has a function name', () =>
-          expect(node.functionName.toString()).toBe('foo'));
+        it('has a mixin name', () =>
+          expect(node.mixinName.toString()).toBe('foo'));
 
         it('has a parameter', () =>
           expect(node.parameters.nodes[0].name).toEqual('bar'));
@@ -69,44 +63,37 @@ describe('a @function rule', () => {
 
         it('has a child node', () => {
           expect(node.nodes).toHaveLength(1);
-          expect(node.nodes[0]).toBeInstanceOf(ReturnRule);
-          expect(node.nodes[0]).toHaveStringExpression(
-            'returnExpression',
-            'baz',
-          );
+          expect(node.nodes[0]).toBeInstanceOf(GenericAtRule);
+          expect(node.nodes[0]).toHaveInterpolation('nameInterpolation', 'baz');
         });
       });
     }
 
     describeNode(
       'parsed as SCSS',
-      () =>
-        scss.parse('@function foo($bar) {@return "baz"}')
-          .nodes[0] as FunctionRule,
+      () => scss.parse('@mixin foo($bar) {@baz}').nodes[0] as MixinRule,
     );
 
     describeNode(
       'parsed as Sass',
-      () =>
-        sass.parse('@function foo($bar)\n  @return "baz"')
-          .nodes[0] as FunctionRule,
+      () => sass.parse('@mixin foo($bar)\n  @baz').nodes[0] as MixinRule,
     );
 
     describeNode(
       'constructed manually',
       () =>
-        new FunctionRule({
-          functionName: 'foo',
+        new MixinRule({
+          mixinName: 'foo',
           parameters: ['bar'],
-          nodes: [{returnExpression: {text: 'baz'}}],
+          nodes: [{nameInterpolation: 'baz'}],
         }),
     );
 
     describeNode('constructed from ChildProps', () =>
       utils.fromChildProps({
-        functionName: 'foo',
+        mixinName: 'foo',
         parameters: ['bar'],
-        nodes: [{returnExpression: {text: 'baz'}}],
+        nodes: [{nameInterpolation: 'baz'}],
       }),
     );
   });
@@ -114,8 +101,7 @@ describe('a @function rule', () => {
   describe('throws an error when assigned a new', () => {
     beforeEach(
       () =>
-        void (node = scss.parse('@function foo($bar) {}')
-          .nodes[0] as FunctionRule),
+        void (node = scss.parse('@mixin foo($bar) {}').nodes[0] as MixinRule),
     );
 
     it('name', () => expect(() => (node.name = 'qux')).toThrow());
@@ -126,8 +112,7 @@ describe('a @function rule', () => {
   describe('assigned new parameters', () => {
     beforeEach(
       () =>
-        void (node = scss.parse('@function foo($bar) {}')
-          .nodes[0] as FunctionRule),
+        void (node = scss.parse('@mixin foo($bar) {}').nodes[0] as MixinRule),
     );
 
     it("removes the old parameters' parent", () => {
@@ -159,65 +144,65 @@ describe('a @function rule', () => {
     describe('to SCSS', () => {
       it('with default raws', () =>
         expect(
-          new FunctionRule({
-            functionName: 'foo',
+          new MixinRule({
+            mixinName: 'foo',
             parameters: ['bar'],
           }).toString(),
-        ).toBe('@function foo($bar) {}'));
+        ).toBe('@mixin foo($bar) {}'));
 
       it('with a non-identifier name', () =>
         expect(
-          new FunctionRule({
-            functionName: 'f o',
+          new MixinRule({
+            mixinName: 'f o',
             parameters: ['bar'],
           }).toString(),
-        ).toBe('@function f\\20o($bar) {}'));
+        ).toBe('@mixin f\\20o($bar) {}'));
 
       it('with afterName', () =>
         expect(
-          new FunctionRule({
-            functionName: 'foo',
+          new MixinRule({
+            mixinName: 'foo',
             parameters: ['bar'],
             raws: {afterName: '/**/'},
           }).toString(),
-        ).toBe('@function/**/foo($bar) {}'));
+        ).toBe('@mixin/**/foo($bar) {}'));
 
-      it('with matching functionName', () =>
+      it('with matching mixinName', () =>
         expect(
-          new FunctionRule({
-            functionName: 'foo',
+          new MixinRule({
+            mixinName: 'foo',
             parameters: ['bar'],
-            raws: {functionName: {value: 'foo', raw: 'f\\6fo'}},
+            raws: {mixinName: {value: 'foo', raw: 'f\\6fo'}},
           }).toString(),
-        ).toBe('@function f\\6fo($bar) {}'));
+        ).toBe('@mixin f\\6fo($bar) {}'));
 
-      it('with non-matching functionName', () =>
+      it('with non-matching mixinName', () =>
         expect(
-          new FunctionRule({
-            functionName: 'foo',
+          new MixinRule({
+            mixinName: 'foo',
             parameters: ['bar'],
-            raws: {functionName: {value: 'fao', raw: 'f\\41o'}},
+            raws: {mixinName: {value: 'fao', raw: 'f\\41o'}},
           }).toString(),
-        ).toBe('@function foo($bar) {}'));
+        ).toBe('@mixin foo($bar) {}'));
     });
   });
 
   describe('clone', () => {
-    let original: FunctionRule;
+    let original: MixinRule;
     beforeEach(() => {
-      original = scss.parse('@function foo($bar) {}').nodes[0] as FunctionRule;
+      original = scss.parse('@mixin foo($bar) {}').nodes[0] as MixinRule;
       // TODO: remove this once raws are properly parsed
       original.raws.between = '  ';
     });
 
     describe('with no overrides', () => {
-      let clone: FunctionRule;
+      let clone: MixinRule;
       beforeEach(() => void (clone = original.clone()));
 
       describe('has the same properties:', () => {
         it('params', () => expect(clone.params).toBe('foo($bar)'));
 
-        it('functionName', () => expect(clone.functionName).toBe('foo'));
+        it('mixinName', () => expect(clone.mixinName).toBe('foo'));
 
         it('parameters', () => {
           expect(clone.parameters.nodes[0].name).toBe('bar');
@@ -251,35 +236,34 @@ describe('a @function rule', () => {
           }));
       });
 
-      describe('functionName', () => {
+      describe('mixinName', () => {
         describe('defined', () => {
-          let clone: FunctionRule;
+          let clone: MixinRule;
           beforeEach(() => {
-            clone = original.clone({functionName: 'baz'});
+            clone = original.clone({mixinName: 'baz'});
           });
 
           it('changes params', () => expect(clone.params).toBe('baz($bar)'));
 
-          it('changes functionName', () =>
-            expect(clone.functionName).toEqual('baz'));
+          it('changes mixinName', () => expect(clone.mixinName).toEqual('baz'));
         });
 
         describe('undefined', () => {
-          let clone: FunctionRule;
+          let clone: MixinRule;
           beforeEach(() => {
-            clone = original.clone({functionName: undefined});
+            clone = original.clone({mixinName: undefined});
           });
 
           it('preserves params', () => expect(clone.params).toBe('foo($bar)'));
 
-          it('preserves functionName', () =>
-            expect(clone.functionName).toEqual('foo'));
+          it('preserves mixinName', () =>
+            expect(clone.mixinName).toEqual('foo'));
         });
       });
 
       describe('parameters', () => {
         describe('defined', () => {
-          let clone: FunctionRule;
+          let clone: MixinRule;
           beforeEach(() => {
             clone = original.clone({parameters: ['baz']});
           });
@@ -293,7 +277,7 @@ describe('a @function rule', () => {
         });
 
         describe('undefined', () => {
-          let clone: FunctionRule;
+          let clone: MixinRule;
           beforeEach(() => {
             clone = original.clone({parameters: undefined});
           });
@@ -308,5 +292,5 @@ describe('a @function rule', () => {
   });
 
   it('toJSON', () =>
-    expect(scss.parse('@function foo($bar) {}').nodes[0]).toMatchSnapshot());
+    expect(scss.parse('@mixin foo($bar) {}').nodes[0]).toMatchSnapshot());
 });
