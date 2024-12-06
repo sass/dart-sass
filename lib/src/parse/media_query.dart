@@ -16,9 +16,9 @@ class MediaQueryParser extends Parser {
     return wrapSpanFormatException(() {
       var queries = <CssMediaQuery>[];
       do {
-        whitespace();
+        whitespace(consumeNewlines: true);
         queries.add(_mediaQuery());
-        whitespace();
+        whitespace(consumeNewlines: true);
       } while (scanner.scanChar($comma));
       scanner.expectDone();
       return queries;
@@ -30,7 +30,7 @@ class MediaQueryParser extends Parser {
     // This is somewhat duplicated in StylesheetParser._mediaQuery.
     if (scanner.peekChar() == $lparen) {
       var conditions = [_mediaInParens()];
-      whitespace();
+      whitespace(consumeNewlines: true);
 
       var conjunction = true;
       if (scanIdentifier("and")) {
@@ -57,7 +57,7 @@ class MediaQueryParser extends Parser {
       }
     }
 
-    whitespace();
+    whitespace(consumeNewlines: true);
     if (!lookingAtIdentifier()) {
       // For example, "@media screen {"
       return CssMediaQuery.type(identifier1);
@@ -70,7 +70,7 @@ class MediaQueryParser extends Parser {
       // For example, "@media screen and ..."
       type = identifier1;
     } else {
-      whitespace();
+      whitespace(consumeNewlines: true);
       modifier = identifier1;
       type = identifier2;
       if (scanIdentifier("and")) {
@@ -102,7 +102,7 @@ class MediaQueryParser extends Parser {
     var result = <String>[];
     while (true) {
       result.add(_mediaInParens());
-      whitespace();
+      whitespace(consumeNewlines: true);
 
       if (!scanIdentifier(operator)) return result;
       expectWhitespace();

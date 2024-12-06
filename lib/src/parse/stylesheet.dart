@@ -748,8 +748,6 @@ abstract class StylesheetParser extends Parser {
     whitespace(consumeNewlines: false);
     if (scanner.peekChar() == $lparen) {
       var query = _atRootQuery();
-      // TODO- This can be removed, as it is redundant with one in _atRootQuery
-      // whitespace();
       return _withChildren(_statement, start,
           (children, span) => AtRootRule(children, span, query: query));
     } else if (lookingAtChildren() || (indented && atEndOfStatement())) {
@@ -2638,7 +2636,7 @@ abstract class StylesheetParser extends Parser {
         return IfExpression(
             invocation, identifier.span.expand(invocation.span));
       } else if (plain == "not") {
-        whitespace();
+        whitespace(consumeNewlines: true);
         var expression = _singleExpression();
         return UnaryOperationExpression(UnaryOperator.not, expression,
             identifier.span.expand(expression.span));
@@ -3230,10 +3228,10 @@ abstract class StylesheetParser extends Parser {
   void _mediaLogicSequence(InterpolationBuffer buffer, String operator) {
     while (true) {
       _mediaOrInterp(buffer);
-      whitespace();
+      whitespace(consumeNewlines: false);
 
       if (!scanIdentifier(operator)) return;
-      expectWhitespace();
+      expectWhitespace(consumeNewlines: false);
 
       buffer.writeCharCode($space);
       buffer.write(operator);

@@ -67,7 +67,7 @@ class Parser {
     if (!scanner.scanChar($dollar)) return false;
     if (!lookingAtIdentifier()) return false;
     identifier();
-    whitespace();
+    whitespace(consumeNewlines: false);
     return scanner.scanChar($colon);
   }
 
@@ -393,7 +393,7 @@ class Parser {
       return null;
     }
 
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
     // backtrack and re-parse as a function expression.
@@ -414,7 +414,7 @@ class Parser {
               >= 0x0080:
           buffer.writeCharCode(scanner.readChar());
         case int(isWhitespace: true):
-          whitespace();
+          whitespace(consumeNewlines: true);
           if (scanner.peekChar() != $rparen) break loop;
         case $rparen:
           buffer.writeCharCode(scanner.readChar());

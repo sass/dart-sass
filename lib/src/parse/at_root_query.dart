@@ -14,17 +14,18 @@ class AtRootQueryParser extends Parser {
   AtRootQuery parse() {
     return wrapSpanFormatException(() {
       scanner.expectChar($lparen);
-      whitespace();
+      // TODO: No tests
+      whitespace(consumeNewlines: true);
       var include = scanIdentifier("with");
       if (!include) expectIdentifier("without", name: '"with" or "without"');
-      whitespace();
+      whitespace(consumeNewlines: true);
       scanner.expectChar($colon);
-      whitespace();
+      whitespace(consumeNewlines: true);
 
       var atRules = <String>{};
       do {
         atRules.add(identifier().toLowerCase());
-        whitespace();
+        whitespace(consumeNewlines: true);
       } while (lookingAtIdentifier());
       scanner.expectChar($rparen);
       scanner.expectDone();
