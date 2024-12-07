@@ -32,10 +32,16 @@ export interface ParameterRaws {
   name?: RawWithValue<string>;
 
   /**
-   * The whitespace and colon between the parameter name and default value. This
-   * is ignored unless the parameter has a default value.
+   * The whitespace and colon between the parameter name and default value, if
+   * it has one.
    */
   between?: string;
+
+  /**
+   * The whitespace between the parameter name and the `...`, if {@link
+   * Parameter.rest} is true.
+   */
+  beforeRest?: string;
 
   /**
    * The space symbols between the end of the parameter (after the default value
@@ -51,11 +57,19 @@ export interface ParameterRaws {
  *
  * @category Statement
  */
-export interface ParameterObjectProps {
+export type ParameterObjectProps = {
   raws?: ParameterRaws;
   name: string;
-  defaultValue?: Expression | ExpressionProps;
-}
+} & (
+  | {
+      defaultValue?: Expression | ExpressionProps;
+      rest?: never;
+    }
+  | {
+      defaultValue?: never;
+      rest?: boolean;
+    }
+);
 
 /**
  * Properties used to initialize a {@link Parameter} without an explicit name.
@@ -97,7 +111,11 @@ export class Parameter extends Node {
    */
   declare name: string;
 
-  /** The expression that provides the default value for the parameter. */
+  /**
+   * The expression that provides the default value for the parameter.
+   *
+   * Setting this to a value automatically sets {@link rest} to `false`.
+   */
   get defaultValue(): Expression | undefined {
     return this._defaultValue!;
   }
@@ -106,12 +124,28 @@ export class Parameter extends Node {
     if (!value) {
       this._defaultValue = undefined;
     } else {
+      this._rest = false;
       if (!('sassType' in value)) value = fromProps(value);
       if (value) value.parent = this;
       this._defaultValue = value;
     }
   }
   private declare _defaultValue?: Expression;
+
+  /**
+   * Whether this is a rest parameter (indicated by `...` in Sass).
+   *
+   * Setting this to true automatically sets {@link defaultValue} to
+   * `undefined`.
+   */
+  get rest(): boolean {
+    return this._rest ?? false;
+  }
+  set rest(value: boolean) {
+    if (value) this.defaultValue = undefined;
+    this._rest = value;
+  }
+  private declare _rest?: boolean;
 
   constructor(defaults: ParameterProps);
   /** @hidden */
@@ -120,14 +154,17 @@ export class Parameter extends Node {
     if (typeof defaults === 'string') {
       defaults = {name: defaults};
     } else if (Array.isArray(defaults)) {
-      const [name, rest] = defaults;
-      if ('sassType' in rest || !('defaultValue' in rest)) {
+      const [name, props] = defaults;
+      if (
+        'sassType' in props ||
+        !('defaultValue' in props || 'rest' in props)
+      ) {
         defaults = {
           name,
-          defaultValue: rest as Expression | ExpressionProps,
+          defaultValue: props as Expression | ExpressionProps,
         };
       } else {
-        defaults = {name, ...rest};
+        defaults = {name, ...props} as ParameterObjectProps;
       }
     }
     super(defaults);
@@ -147,6 +184,7 @@ export class Parameter extends Node {
       'raws',
       'name',
       {name: 'defaultValue', explicitUndefined: true},
+      'rest',
     ]);
   }
 
@@ -154,7 +192,7 @@ export class Parameter extends Node {
   /** @hidden */
   toJSON(_: string, inputs: Map<postcss.Input, number>): object;
   toJSON(_?: string, inputs?: Map<postcss.Input, number>): object {
-    return utils.toJSON(this, ['name', 'defaultValue'], inputs);
+    return utils.toJSON(this, ['name', 'defaultValue', 'rest'], inputs);
   }
 
   /** @hidden */
@@ -164,7 +202,10 @@ export class Parameter extends Node {
       (this.raws.name?.value === this.name
         ? this.raws.name.raw
         : sassInternal.toCssIdentifier(this.name)) +
-      (this.defaultValue ? (this.raws.between ?? ': ') + this.defaultValue : '')
+      (this.defaultValue
+        ? (this.raws.between ?? ': ') + this.defaultValue
+        : '') +
+      (this.rest ? (this.raws.beforeRest ?? '') + '...' : '')
     );
   }
 
