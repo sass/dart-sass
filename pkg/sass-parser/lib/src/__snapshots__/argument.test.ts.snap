@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a argument toJSON with a name 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@include x($baz: qux)",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "baz",
+  "raws": {},
+  "rest": false,
+  "sassType": "argument",
+  "value": <qux>,
+}
+`;
+
+exports[`a argument toJSON with no name 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@include x(qux)",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "raws": {},
+  "rest": false,
+  "sassType": "argument",
+  "value": <qux>,
+}
+`;
+
+exports[`a argument toJSON with rest 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@include x(qux...)",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "raws": {},
+  "rest": true,
+  "sassType": "argument",
+  "value": <qux>,
+}
+`;
