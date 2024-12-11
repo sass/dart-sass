@@ -91,7 +91,7 @@ final class CompilationDispatcher {
           case InboundMessage_Message.notSet:
             throw parseError("InboundMessage.message is not set.");
 
-          default:
+          default: // ignore: unreachable_switch_default
             throw parseError(
                 "Unknown message type: ${message.toDebugString()}");
         }
