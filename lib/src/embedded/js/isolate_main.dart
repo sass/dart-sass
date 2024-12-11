@@ -10,5 +10,5 @@ import 'js.dart';
 external JSArray<JSAny?> get _argv;
 
 (String, JSArray<JSString>) isolateMain() {
-  return (_argv[1]! as String, _argv.slice(2) as JSArray<JSString>);
+  return ((_argv[1]! as JSString).toDart, _argv.slice(2) as JSArray<JSString>);
 }
