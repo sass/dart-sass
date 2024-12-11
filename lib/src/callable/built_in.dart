@@ -109,7 +109,9 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
         // If two overloads have the same mismatch distance, favor the overload
         // that has more arguments.
         if (mismatchDistance.abs() == minMismatchDistance.abs() &&
-            mismatchDistance < 0) continue;
+            mismatchDistance < 0) {
+          continue;
+        }
       }
 
       minMismatchDistance = mismatchDistance;
