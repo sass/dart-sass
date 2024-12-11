@@ -9,6 +9,20 @@ import * as sassInternal from './src/sass-internal';
 import {Stringifier} from './src/stringifier';
 
 export {
+  Argument,
+  ArgumentExpressionProps,
+  ArgumentObjectProps,
+  ArgumentProps,
+  ArgumentRaws,
+} from './src/argument';
+export {
+  ArgumentList,
+  ArgumentListObjectProps,
+  ArgumentListProps,
+  ArgumentListRaws,
+  NewArguments,
+} from './src/argument-list';
+export {
   Configuration,
   ConfigurationProps,
   ConfigurationRaws,
@@ -50,6 +64,11 @@ export {
   NumberExpressionProps,
   NumberExpressionRaws,
 } from './src/expression/number';
+export {
+  IncludeRule,
+  IncludeRuleProps,
+  IncludeRuleRaws,
+} from './src/statement/include-rule';
 export {
   Interpolation,
   InterpolationProps,

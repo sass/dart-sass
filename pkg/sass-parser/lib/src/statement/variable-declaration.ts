@@ -81,7 +81,7 @@ export class VariableDeclaration
   declare raws: VariableDeclarationRaws;
 
   /**
-   * The variable name, not including `$`.
+   * The variable's namespace.
    *
    * This is the parsed value, with escapes resolved to the characters they
    * represent.
