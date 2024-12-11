@@ -9,7 +9,5 @@ extension JSTypedArrayExtension on JSTypedArray {
 }
 
 extension JSArrayExtension<T extends JSAny?> on JSArray<T> {
-  external int get length;
-  external T operator [](int index);
   external JSArray<T> slice([int start, int end]);
 }
