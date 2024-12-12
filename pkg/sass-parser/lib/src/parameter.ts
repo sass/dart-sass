@@ -149,8 +149,8 @@ export class Parameter extends Node {
 
   constructor(defaults: ParameterProps);
   /** @hidden */
-  constructor(_: undefined, inner: sassInternal.Argument);
-  constructor(defaults?: ParameterProps, inner?: sassInternal.Argument) {
+  constructor(_: undefined, inner: sassInternal.Parameter);
+  constructor(defaults?: ParameterProps, inner?: sassInternal.Parameter) {
     if (typeof defaults === 'string') {
       defaults = {name: defaults};
     } else if (Array.isArray(defaults)) {

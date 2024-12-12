@@ -165,7 +165,7 @@ void main() {
               ..success = _true));
 
           var failure = await getCompileFailure(_process);
-          expect(failure.message, equals(r"No argument named $arg."));
+          expect(failure.message, equals(r"No parameter named $arg."));
           await _process.close();
         });
 

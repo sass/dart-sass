@@ -66,19 +66,19 @@ declare namespace SassInternal {
     readonly span: FileSpan;
   }
 
-  class ArgumentDeclaration extends SassNode {
-    readonly arguments: Argument[];
-    readonly restArgument?: string;
-  }
-
-  class Argument extends SassNode {
-    readonly name: string;
-    readonly defaultValue?: Expression;
-  }
-
   class Interpolation extends SassNode {
     contents: (string | Expression)[];
     get asPlain(): string | undefined;
+  }
+
+  class ParameterList extends SassNode {
+    readonly parameters: Parameter[];
+    readonly restParameter?: string;
+  }
+
+  class Parameter extends SassNode {
+    readonly name: string;
+    readonly defaultValue?: Expression;
   }
 
   class Statement extends SassNode {
@@ -136,7 +136,7 @@ declare namespace SassInternal {
 
   class FunctionRule extends ParentStatement<Statement[]> {
     readonly name: string;
-    readonly arguments: ArgumentDeclaration;
+    readonly parameters: ParameterList;
   }
 
   class LoudComment extends Statement {
@@ -149,7 +149,7 @@ declare namespace SassInternal {
 
   class MixinRule extends ParentStatement<Statement[]> {
     readonly name: string;
-    readonly arguments: ArgumentDeclaration;
+    readonly parameters: ParameterList;
   }
 
   class ReturnRule extends Statement {
@@ -304,8 +304,8 @@ export type UseRule = SassInternal.UseRule;
 export type VariableDeclaration = SassInternal.VariableDeclaration;
 export type WarnRule = SassInternal.WarnRule;
 export type WhileRule = SassInternal.WhileRule;
-export type Argument = SassInternal.Argument;
-export type ArgumentDeclaration = SassInternal.ArgumentDeclaration;
+export type Parameter = SassInternal.Parameter;
+export type ParameterList = SassInternal.ParameterList;
 export type ConfiguredVariable = SassInternal.ConfiguredVariable;
 export type Interpolation = SassInternal.Interpolation;
 export type Expression = SassInternal.Expression;

@@ -10,14 +10,14 @@ import 'expression.dart';
 import 'declaration.dart';
 import 'node.dart';
 
-/// An argument declared as part of an [ArgumentDeclaration].
+/// An parameter declared as part of an [ParameterList].
 ///
 /// {@category AST}
-final class Argument implements SassNode, SassDeclaration {
-  /// The argument name.
+final class Parameter implements SassNode, SassDeclaration {
+  /// The parameter name.
   final String name;
 
-  /// The default value of this argument, or `null` if none was declared.
+  /// The default value of this parameter, or `null` if none was declared.
   final Expression? defaultValue;
 
   final FileSpan span;
@@ -33,7 +33,7 @@ final class Argument implements SassNode, SassDeclaration {
   FileSpan get nameSpan =>
       defaultValue == null ? span : span.initialIdentifier(includeLeading: 1);
 
-  Argument(this.name, this.span, {this.defaultValue});
+  Parameter(this.name, this.span, {this.defaultValue});
 
   String toString() => defaultValue == null ? name : "$name: $defaultValue";
 }

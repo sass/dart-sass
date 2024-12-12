@@ -477,7 +477,7 @@ final class _EvaluateVisitor
         var args = arguments[1] as SassArgumentList;
 
         var callableNode = _callableNode!;
-        var invocation = ArgumentInvocation([], {}, callableNode.span,
+        var invocation = ArgumentList([], {}, callableNode.span,
             rest: ValueExpression(args, callableNode.span),
             keywordRest: args.keywords.isEmpty
                 ? null
@@ -551,7 +551,7 @@ final class _EvaluateVisitor
         var args = arguments[1] as SassArgumentList;
 
         var callableNode = _callableNode!;
-        var invocation = ArgumentInvocation(
+        var invocation = ArgumentList(
           const [],
           const {},
           callableNode.span,
@@ -1851,7 +1851,7 @@ final class _EvaluateVisitor
   Future<void> _applyMixin(
       AsyncCallable? mixin,
       UserDefinedCallable<AsyncEnvironment>? contentCallable,
-      ArgumentInvocation arguments,
+      ArgumentList arguments,
       AstNode nodeWithSpan,
       AstNode nodeWithSpanWithoutContent) async {
     switch (mixin) {
@@ -1887,7 +1887,7 @@ final class _EvaluateVisitor
             "Mixin doesn't accept a content block.",
             nodeWithSpanWithoutContent.span,
             "invocation",
-            {mixin.declaration.arguments.spanWithName: "declaration"},
+            {mixin.declaration.parameters.spanWithName: "declaration"},
             _stackTrace(nodeWithSpanWithoutContent.span));
 
       case UserDefinedCallable<AsyncEnvironment>():
@@ -2934,7 +2934,7 @@ final class _EvaluateVisitor
   /// Evaluates the arguments in [arguments] as applied to [callable], and
   /// invokes [run] in a scope with those arguments defined.
   Future<V> _runUserDefinedCallable<V extends Value?>(
-      ArgumentInvocation arguments,
+      ArgumentList arguments,
       UserDefinedCallable<AsyncEnvironment> callable,
       AstNode nodeWithSpan,
       Future<V> run()) async {
@@ -2953,36 +2953,36 @@ final class _EvaluateVisitor
       return _withEnvironment(callable.environment.closure(), () {
         return _environment.scope(() async {
           _verifyArguments(evaluated.positional.length, evaluated.named,
-              callable.declaration.arguments, nodeWithSpan);
+              callable.declaration.parameters, nodeWithSpan);
 
-          var declaredArguments = callable.declaration.arguments.arguments;
+          var parameters = callable.declaration.parameters.parameters;
           var minLength =
-              math.min(evaluated.positional.length, declaredArguments.length);
+              math.min(evaluated.positional.length, parameters.length);
           for (var i = 0; i < minLength; i++) {
-            _environment.setLocalVariable(declaredArguments[i].name,
+            _environment.setLocalVariable(parameters[i].name,
                 evaluated.positional[i], evaluated.positionalNodes[i]);
           }
 
           for (var i = evaluated.positional.length;
-              i < declaredArguments.length;
+              i < parameters.length;
               i++) {
-            var argument = declaredArguments[i];
-            var value = evaluated.named.remove(argument.name) ??
+            var parameter = parameters[i];
+            var value = evaluated.named.remove(parameter.name) ??
                 _withoutSlash(
-                    await argument.defaultValue!.accept<Future<Value>>(this),
-                    _expressionNode(argument.defaultValue!));
+                    await parameter.defaultValue!.accept<Future<Value>>(this),
+                    _expressionNode(parameter.defaultValue!));
             _environment.setLocalVariable(
-                argument.name,
+                parameter.name,
                 value,
-                evaluated.namedNodes[argument.name] ??
-                    _expressionNode(argument.defaultValue!));
+                evaluated.namedNodes[parameter.name] ??
+                    _expressionNode(parameter.defaultValue!));
           }
 
           SassArgumentList? argumentList;
-          var restArgument = callable.declaration.arguments.restArgument;
-          if (restArgument != null) {
-            var rest = evaluated.positional.length > declaredArguments.length
-                ? evaluated.positional.sublist(declaredArguments.length)
+          var restParameter = callable.declaration.parameters.restParameter;
+          if (restParameter != null) {
+            var rest = evaluated.positional.length > parameters.length
+                ? evaluated.positional.sublist(parameters.length)
                 : const <Value>[];
             argumentList = SassArgumentList(
                 rest,
@@ -2991,7 +2991,7 @@ final class _EvaluateVisitor
                     ? ListSeparator.comma
                     : evaluated.separator);
             _environment.setLocalVariable(
-                restArgument, argumentList, nodeWithSpan);
+                restParameter, argumentList, nodeWithSpan);
           }
 
           var result = await run();
@@ -3000,14 +3000,15 @@ final class _EvaluateVisitor
           if (evaluated.named.isEmpty) return result;
           if (argumentList.wereKeywordsAccessed) return result;
 
-          var argumentWord = pluralize('argument', evaluated.named.keys.length);
-          var argumentNames =
+          var parameterWord =
+              pluralize('parameter', evaluated.named.keys.length);
+          var parameterNames =
               toSentence(evaluated.named.keys.map((name) => "\$$name"), 'or');
           throw MultiSpanSassRuntimeException(
-              "No $argumentWord named $argumentNames.",
+              "No $parameterWord named $parameterNames.",
               nodeWithSpan.span,
               "invocation",
-              {callable.declaration.arguments.spanWithName: "declaration"},
+              {callable.declaration.parameters.spanWithName: "declaration"},
               _stackTrace(nodeWithSpan.span));
         });
       });
@@ -3017,7 +3018,7 @@ final class _EvaluateVisitor
   }
 
   /// Evaluates [arguments] as applied to [callable].
-  Future<Value> _runFunctionCallable(ArgumentInvocation arguments,
+  Future<Value> _runFunctionCallable(ArgumentList arguments,
       AsyncCallable? callable, AstNode nodeWithSpan) async {
     if (callable is AsyncBuiltInCallable) {
       return _withoutSlash(
@@ -3078,7 +3079,7 @@ final class _EvaluateVisitor
 
   /// Evaluates [invocation] as applied to [callable], and invokes [callable]'s
   /// body.
-  Future<Value> _runBuiltInCallable(ArgumentInvocation arguments,
+  Future<Value> _runBuiltInCallable(ArgumentList arguments,
       AsyncBuiltInCallable callable, AstNode nodeWithSpan) async {
     var evaluated = await _evaluateArguments(arguments);
 
@@ -3091,23 +3092,21 @@ final class _EvaluateVisitor
     _addExceptionSpan(nodeWithSpan,
         () => overload.verify(evaluated.positional.length, namedSet));
 
-    var declaredArguments = overload.arguments;
-    for (var i = evaluated.positional.length;
-        i < declaredArguments.length;
-        i++) {
-      var argument = declaredArguments[i];
-      evaluated.positional.add(evaluated.named.remove(argument.name) ??
-          _withoutSlash(await argument.defaultValue!.accept(this),
-              argument.defaultValue!));
+    var parameters = overload.parameters;
+    for (var i = evaluated.positional.length; i < parameters.length; i++) {
+      var parameter = parameters[i];
+      evaluated.positional.add(evaluated.named.remove(parameter.name) ??
+          _withoutSlash(await parameter.defaultValue!.accept(this),
+              parameter.defaultValue!));
     }
 
     SassArgumentList? argumentList;
-    if (overload.restArgument != null) {
+    if (overload.restParameter != null) {
       var rest = const <Value>[];
-      if (evaluated.positional.length > declaredArguments.length) {
-        rest = evaluated.positional.sublist(declaredArguments.length);
+      if (evaluated.positional.length > parameters.length) {
+        rest = evaluated.positional.sublist(parameters.length);
         evaluated.positional
-            .removeRange(declaredArguments.length, evaluated.positional.length);
+            .removeRange(parameters.length, evaluated.positional.length);
       }
 
       argumentList = SassArgumentList(
@@ -3136,7 +3135,7 @@ final class _EvaluateVisitor
     if (argumentList.wereKeywordsAccessed) return result;
 
     throw MultiSpanSassRuntimeException(
-        "No ${pluralize('argument', evaluated.named.keys.length)} named "
+        "No ${pluralize('parameter', evaluated.named.keys.length)} named "
             "${toSentence(evaluated.named.keys.map((name) => "\$$name"), 'or')}.",
         nodeWithSpan.span,
         "invocation",
@@ -3145,8 +3144,7 @@ final class _EvaluateVisitor
   }
 
   /// Returns the evaluated values of the given [arguments].
-  Future<_ArgumentResults> _evaluateArguments(
-      ArgumentInvocation arguments) async {
+  Future<_ArgumentResults> _evaluateArguments(ArgumentList arguments) async {
     // TODO(nweiz): This used to avoid tracking source spans for arguments if
     // [_sourceMap]s was false or it was being called from
     // [_runBuiltInCallable]. We always have to track them now to produce better
@@ -3322,11 +3320,11 @@ final class _EvaluateVisitor
   }
 
   /// Throws a [SassRuntimeException] if [positional] and [named] aren't valid
-  /// when applied to [arguments].
+  /// when applied to [parameters].
   void _verifyArguments(int positional, Map<String, dynamic> named,
-          ArgumentDeclaration arguments, AstNode nodeWithSpan) =>
+          ParameterList parameters, AstNode nodeWithSpan) =>
       _addExceptionSpan(
-          nodeWithSpan, () => arguments.verify(positional, MapKeySet(named)));
+          nodeWithSpan, () => parameters.verify(positional, MapKeySet(named)));
 
   Future<Value> visitSelectorExpression(SelectorExpression node) async =>
       _styleRuleIgnoringAtRoot?.originalSelector.asSassList ?? sassNull;

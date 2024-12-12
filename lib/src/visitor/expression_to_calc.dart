@@ -13,7 +13,7 @@ import 'replace_expression.dart';
 FunctionExpression expressionToCalc(Expression expression) =>
     FunctionExpression(
         "calc",
-        ArgumentInvocation(
+        ArgumentList(
             [expression.accept(const _MakeExpressionCalculationSafe())],
             const {},
             expression.span),
@@ -31,7 +31,7 @@ class _MakeExpressionCalculationSafe with ReplaceExpressionVisitor {
       // `mod()` calculation function because there's no browser support, so we have
       // to work around it by wrapping the call in a Sass function.
       ? FunctionExpression(
-          'max', ArgumentInvocation([node], const {}, node.span), node.span,
+          'max', ArgumentList([node], const {}, node.span), node.span,
           namespace: 'math')
       : super.visitBinaryOperationExpression(node);
 

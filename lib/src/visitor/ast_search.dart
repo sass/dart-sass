@@ -30,8 +30,7 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
       node.value.andThen(visitInterpolation) ??
       super.visitAtRule(node);
 
-  T? visitContentRule(ContentRule node) =>
-      visitArgumentInvocation(node.arguments);
+  T? visitContentRule(ContentRule node) => visitArgumentList(node.arguments);
 
   T? visitDebugRule(DebugRule node) => visitExpression(node.expression);
 
@@ -69,7 +68,7 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
           : null);
 
   T? visitIncludeRule(IncludeRule node) =>
-      visitArgumentInvocation(node.arguments) ?? super.visitIncludeRule(node);
+      visitArgumentList(node.arguments) ?? super.visitIncludeRule(node);
 
   T? visitLoudComment(LoudComment node) => visitInterpolation(node.text);
 
@@ -105,13 +104,12 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
   T? visitColorExpression(ColorExpression node) => null;
 
   T? visitFunctionExpression(FunctionExpression node) =>
-      visitArgumentInvocation(node.arguments);
+      visitArgumentList(node.arguments);
 
   T? visitInterpolatedFunctionExpression(InterpolatedFunctionExpression node) =>
-      visitInterpolation(node.name) ?? visitArgumentInvocation(node.arguments);
+      visitInterpolation(node.name) ?? visitArgumentList(node.arguments);
 
-  T? visitIfExpression(IfExpression node) =>
-      visitArgumentInvocation(node.arguments);
+  T? visitIfExpression(IfExpression node) => visitArgumentList(node.arguments);
 
   T? visitListExpression(ListExpression node) =>
       node.contents.search((item) => item.accept(this));
@@ -143,8 +141,8 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
 
   @protected
   T? visitCallableDeclaration(CallableDeclaration node) =>
-      node.arguments.arguments.search(
-          (argument) => argument.defaultValue.andThen(visitExpression)) ??
+      node.parameters.parameters.search(
+          (parameter) => parameter.defaultValue.andThen(visitExpression)) ??
       super.visitCallableDeclaration(node);
 
   /// Visits each expression in an [invocation].
@@ -152,7 +150,7 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
   /// The default implementation of the visit methods calls this to visit any
   /// argument invocation in a statement.
   @protected
-  T? visitArgumentInvocation(ArgumentInvocation invocation) =>
+  T? visitArgumentList(ArgumentList invocation) =>
       invocation.positional
           .search((expression) => visitExpression(expression)) ??
       invocation.named.values

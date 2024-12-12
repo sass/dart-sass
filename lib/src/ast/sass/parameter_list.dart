@@ -9,20 +9,20 @@ import '../../parse/scss.dart';
 import '../../util/character.dart';
 import '../../util/span.dart';
 import '../../utils.dart';
-import 'argument.dart';
+import 'parameter.dart';
 import 'node.dart';
 
-/// An argument declaration, as for a function or mixin definition.
+/// An parameter declaration, as for a function or mixin definition.
 ///
 /// {@category AST}
 /// {@category Parsing}
-final class ArgumentDeclaration implements SassNode {
-  /// The arguments that are taken.
-  final List<Argument> arguments;
+final class ParameterList implements SassNode {
+  /// The parameters that are taken.
+  final List<Parameter> parameters;
 
-  /// The name of the rest argument (as in `$args...`), or `null` if none was
+  /// The name of the rest parameter (as in `$args...`), or `null` if none was
   /// declared.
-  final String? restArgument;
+  final String? restParameter;
 
   final FileSpan span;
 
@@ -31,7 +31,7 @@ final class ArgumentDeclaration implements SassNode {
   FileSpan get spanWithName {
     var text = span.file.getText(0);
 
-    // Move backwards through any whitespace between the name and the arguments.
+    // Move backwards through any whitespace between the name and the parameters.
     var i = span.start.offset - 1;
     while (i > 0 && text.codeUnitAt(i).isWhitespace) {
       i--;
@@ -48,60 +48,59 @@ final class ArgumentDeclaration implements SassNode {
     if (!text.codeUnitAt(i + 1).isNameStart) return span;
 
     // Trim because it's possible that this span is empty (for example, a mixin
-    // may be declared without an argument list).
+    // may be declared without an parameter list).
     return span.file.span(i + 1, span.end.offset).trim();
   }
 
-  /// Returns whether this declaration takes no arguments.
-  bool get isEmpty => arguments.isEmpty && restArgument == null;
+  /// Returns whether this declaration takes no parameters.
+  bool get isEmpty => parameters.isEmpty && restParameter == null;
 
-  ArgumentDeclaration(Iterable<Argument> arguments, this.span,
-      {this.restArgument})
-      : arguments = List.unmodifiable(arguments);
+  ParameterList(Iterable<Parameter> parameters, this.span, {this.restParameter})
+      : parameters = List.unmodifiable(parameters);
 
-  /// Creates a declaration that declares no arguments.
-  ArgumentDeclaration.empty(this.span)
-      : arguments = const [],
-        restArgument = null;
+  /// Creates a declaration that declares no parameters.
+  ParameterList.empty(this.span)
+      : parameters = const [],
+        restParameter = null;
 
-  /// Parses an argument declaration from [contents], which should be of the
+  /// Parses an parameter declaration from [contents], which should be of the
   /// form `@rule name(args) {`.
   ///
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory ArgumentDeclaration.parse(String contents, {Object? url}) =>
-      ScssParser(contents, url: url).parseArgumentDeclaration();
+  factory ParameterList.parse(String contents, {Object? url}) =>
+      ScssParser(contents, url: url).parseParameterList();
 
   /// Throws a [SassScriptException] if [positional] and [names] aren't valid
-  /// for this argument declaration.
+  /// for this parameter declaration.
   void verify(int positional, Set<String> names) {
     var namedUsed = 0;
-    for (var i = 0; i < arguments.length; i++) {
-      var argument = arguments[i];
+    for (var i = 0; i < parameters.length; i++) {
+      var parameter = parameters[i];
       if (i < positional) {
-        if (names.contains(argument.name)) {
+        if (names.contains(parameter.name)) {
           throw SassScriptException(
-              "Argument ${_originalArgumentName(argument.name)} was passed "
+              "Argument ${_originalParameterName(parameter.name)} was passed "
               "both by position and by name.");
         }
-      } else if (names.contains(argument.name)) {
+      } else if (names.contains(parameter.name)) {
         namedUsed++;
-      } else if (argument.defaultValue == null) {
+      } else if (parameter.defaultValue == null) {
         throw MultiSpanSassScriptException(
-            "Missing argument ${_originalArgumentName(argument.name)}.",
+            "Missing argument ${_originalParameterName(parameter.name)}.",
             "invocation",
             {spanWithName: "declaration"});
       }
     }
 
-    if (restArgument != null) return;
+    if (restParameter != null) return;
 
-    if (positional > arguments.length) {
+    if (positional > parameters.length) {
       throw MultiSpanSassScriptException(
-          "Only ${arguments.length} "
+          "Only ${parameters.length} "
               "${names.isEmpty ? '' : 'positional '}"
-              "${pluralize('argument', arguments.length)} allowed, but "
+              "${pluralize('argument', parameters.length)} allowed, but "
               "$positional ${pluralize('was', positional, plural: 'were')} "
               "passed.",
           "invocation",
@@ -110,54 +109,54 @@ final class ArgumentDeclaration implements SassNode {
 
     if (namedUsed < names.length) {
       var unknownNames = Set.of(names)
-        ..removeAll(arguments.map((argument) => argument.name));
+        ..removeAll(parameters.map((parameter) => parameter.name));
       throw MultiSpanSassScriptException(
-          "No ${pluralize('argument', unknownNames.length)} named "
+          "No ${pluralize('parameter', unknownNames.length)} named "
               "${toSentence(unknownNames.map((name) => "\$$name"), 'or')}.",
           "invocation",
           {spanWithName: "declaration"});
     }
   }
 
-  /// Returns the argument named [name] with a leading `$` and its original
+  /// Returns the parameter named [name] with a leading `$` and its original
   /// underscores (which are otherwise converted to hyphens).
-  String _originalArgumentName(String name) {
-    if (name == restArgument) {
+  String _originalParameterName(String name) {
+    if (name == restParameter) {
       var text = span.text;
       var fromDollar = text.substring(text.lastIndexOf("\$"));
       return fromDollar.substring(0, text.indexOf("."));
     }
 
-    for (var argument in arguments) {
-      if (argument.name == name) return argument.originalName;
+    for (var parameter in parameters) {
+      if (parameter.name == name) return parameter.originalName;
     }
 
-    throw ArgumentError('This declaration has no argument named "\$$name".');
+    throw ArgumentError('This declaration has no parameter named "\$$name".');
   }
 
-  /// Returns whether [positional] and [names] are valid for this argument
+  /// Returns whether [positional] and [names] are valid for this parameter
   /// declaration.
   bool matches(int positional, Set<String> names) {
     var namedUsed = 0;
-    for (var i = 0; i < arguments.length; i++) {
-      var argument = arguments[i];
+    for (var i = 0; i < parameters.length; i++) {
+      var parameter = parameters[i];
       if (i < positional) {
-        if (names.contains(argument.name)) return false;
-      } else if (names.contains(argument.name)) {
+        if (names.contains(parameter.name)) return false;
+      } else if (names.contains(parameter.name)) {
         namedUsed++;
-      } else if (argument.defaultValue == null) {
+      } else if (parameter.defaultValue == null) {
         return false;
       }
     }
 
-    if (restArgument != null) return true;
-    if (positional > arguments.length) return false;
+    if (restParameter != null) return true;
+    if (positional > parameters.length) return false;
     if (namedUsed < names.length) return false;
     return true;
   }
 
   String toString() => [
-        for (var arg in arguments) '\$$arg',
-        if (restArgument != null) '\$$restArgument...'
+        for (var arg in parameters) '\$$arg',
+        if (restParameter != null) '\$$restParameter...'
       ].join(', ');
 }

@@ -91,7 +91,7 @@ class CssParser extends ScssParser {
           StringExpression string => string.text,
           InterpolatedFunctionExpression(
             :var name,
-            arguments: ArgumentInvocation(
+            arguments: ArgumentList(
               positional: [StringExpression string],
               named: Map(isEmpty: true),
               rest: null,
@@ -172,8 +172,7 @@ class CssParser extends ScssParser {
 
     return FunctionExpression(
         plain,
-        ArgumentInvocation(
-            arguments, const {}, scanner.spanFrom(beforeArguments)),
+        ArgumentList(arguments, const {}, scanner.spanFrom(beforeArguments)),
         scanner.spanFrom(start));
   }
 

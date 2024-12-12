@@ -1,6 +1,6 @@
-## 1.82.1-dev
+## 1.83.0
 
-* No user-visible changes.
+* Allow trailing commas in *all* argument and parameter lists.
 
 ## 1.82.0
 
