@@ -2,9 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-export 'sass/argument.dart';
-export 'sass/argument_declaration.dart';
-export 'sass/argument_invocation.dart';
+export 'sass/argument_list.dart';
 export 'sass/at_root_query.dart';
 export 'sass/callable_invocation.dart';
 export 'sass/configured_variable.dart';
@@ -33,6 +31,8 @@ export 'sass/import/dynamic.dart';
 export 'sass/import/static.dart';
 export 'sass/interpolation.dart';
 export 'sass/node.dart';
+export 'sass/parameter.dart';
+export 'sass/parameter_list.dart';
 export 'sass/reference.dart';
 export 'sass/statement.dart';
 export 'sass/statement/at_root_rule.dart';

@@ -17,13 +17,13 @@ typedef Callback = FutureOr<Value> Function(List<Value> arguments);
 ///
 /// Unlike user-defined callables, built-in callables support overloads. They
 /// may declare multiple different callbacks with multiple different sets of
-/// arguments. When the callable is invoked, the first callback with matching
-/// arguments is invoked.
+/// parameters. When the callable is invoked, the first callback with matching
+/// parameters is invoked.
 class AsyncBuiltInCallable implements AsyncCallable {
   final String name;
 
-  /// This callable's arguments.
-  final ArgumentDeclaration _arguments;
+  /// This callable's parameters.
+  final ParameterList _parameters;
 
   /// The callback to run when executing this callable.
   final Callback _callback;
@@ -33,35 +33,34 @@ class AsyncBuiltInCallable implements AsyncCallable {
   /// This can only be true for mixins.
   final bool acceptsContent;
 
-  /// Creates a function with a single [arguments] declaration and a single
+  /// Creates a function with a single [parameters] declaration and a single
   /// [callback].
   ///
-  /// The argument declaration is parsed from [arguments], which should not
+  /// The parameter declaration is parsed from [parameters], which should not
   /// include parentheses. Throws a [SassFormatException] if parsing fails.
   ///
   /// If passed, [url] is the URL of the module in which the function is
   /// defined.
-  AsyncBuiltInCallable.function(String name, String arguments,
-      FutureOr<Value> callback(List<Value> arguments), {Object? url})
+  AsyncBuiltInCallable.function(String name, String parameters,
+      FutureOr<Value> callback(List<Value> parameters), {Object? url})
       : this.parsed(
             name,
-            ArgumentDeclaration.parse('@function $name($arguments) {',
-                url: url),
+            ParameterList.parse('@function $name($parameters) {', url: url),
             callback);
 
-  /// Creates a mixin with a single [arguments] declaration and a single
+  /// Creates a mixin with a single [parameters] declaration and a single
   /// [callback].
   ///
-  /// The argument declaration is parsed from [arguments], which should not
+  /// The parameter declaration is parsed from [parameters], which should not
   /// include parentheses. Throws a [SassFormatException] if parsing fails.
   ///
   /// If passed, [url] is the URL of the module in which the mixin is
   /// defined.
-  AsyncBuiltInCallable.mixin(String name, String arguments,
-      FutureOr<void> callback(List<Value> arguments),
+  AsyncBuiltInCallable.mixin(String name, String parameters,
+      FutureOr<void> callback(List<Value> parameters),
       {Object? url, bool acceptsContent = false})
-      : this.parsed(name,
-            ArgumentDeclaration.parse('@mixin $name($arguments) {', url: url),
+      : this.parsed(
+            name, ParameterList.parse('@mixin $name($parameters) {', url: url),
             (arguments) async {
           await callback(arguments);
           // We could encode the fact that functions return values and mixins
@@ -71,25 +70,24 @@ class AsyncBuiltInCallable implements AsyncCallable {
           return sassNull;
         });
 
-  /// Creates a callable with a single [arguments] declaration and a single
+  /// Creates a callable with a single [parameters] declaration and a single
   /// [callback].
-  AsyncBuiltInCallable.parsed(this.name, this._arguments, this._callback,
+  AsyncBuiltInCallable.parsed(this.name, this._parameters, this._callback,
       {this.acceptsContent = false});
 
-  /// Returns the argument declaration and Dart callback for the given
-  /// positional and named arguments.
+  /// Returns the parameter declaration and Dart callback for the given
+  /// positional and named parameters.
   ///
   /// If no exact match is found, finds the closest approximation. Note that this
   /// doesn't guarantee that [positional] and [names] are valid for the returned
-  /// [ArgumentDeclaration].
-  (ArgumentDeclaration, Callback) callbackFor(
-          int positional, Set<String> names) =>
-      (_arguments, _callback);
+  /// [ParameterList].
+  (ParameterList, Callback) callbackFor(int positional, Set<String> names) =>
+      (_parameters, _callback);
 
   /// Returns a copy of this callable that emits a deprecation warning.
   AsyncBuiltInCallable withDeprecationWarning(String module,
           [String? newName]) =>
-      AsyncBuiltInCallable.parsed(name, _arguments, (args) {
+      AsyncBuiltInCallable.parsed(name, _parameters, (args) {
         warnForGlobalBuiltIn(module, newName ?? name);
         return _callback(args);
       }, acceptsContent: acceptsContent);

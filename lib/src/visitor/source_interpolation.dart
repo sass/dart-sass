@@ -37,7 +37,7 @@ class SourceInterpolationVisitor implements ExpressionVisitor<void> {
 
   /// Visits the positional arguments in [arguments] with [visitor], if it's
   /// valid interpolated plain CSS.
-  void _visitArguments(ArgumentInvocation arguments,
+  void _visitArguments(ArgumentList arguments,
       [ExpressionVisitor<void>? visitor]) {
     if (arguments.named.isNotEmpty || arguments.rest != null) return;
 

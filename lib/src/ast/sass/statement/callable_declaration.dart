@@ -4,7 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
-import '../argument_declaration.dart';
+import '../parameter_list.dart';
 import '../statement.dart';
 import 'parent.dart';
 import 'silent_comment.dart';
@@ -24,12 +24,12 @@ abstract base class CallableDeclaration
   /// The comment immediately preceding this declaration.
   final SilentComment? comment;
 
-  /// The declared arguments this callable accepts.
-  final ArgumentDeclaration arguments;
+  /// The declared parameters this callable accepts.
+  final ParameterList parameters;
 
   final FileSpan span;
 
-  CallableDeclaration(this.originalName, this.arguments,
+  CallableDeclaration(this.originalName, this.parameters,
       Iterable<Statement> children, this.span,
       {this.comment})
       : name = originalName.replaceAll('_', '-'),

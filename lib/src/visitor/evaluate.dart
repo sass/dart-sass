@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: afc541c7e8bbec53a7a076341b1afff290cb0e45
+// Checksum: e47d81d6a53ba17bf1f6bf37e431c47fc82195e5
 //
 // ignore_for_file: unused_import
 
@@ -484,7 +484,7 @@ final class _EvaluateVisitor
         var args = arguments[1] as SassArgumentList;
 
         var callableNode = _callableNode!;
-        var invocation = ArgumentInvocation([], {}, callableNode.span,
+        var invocation = ArgumentList([], {}, callableNode.span,
             rest: ValueExpression(args, callableNode.span),
             keywordRest: args.keywords.isEmpty
                 ? null
@@ -555,7 +555,7 @@ final class _EvaluateVisitor
         var args = arguments[1] as SassArgumentList;
 
         var callableNode = _callableNode!;
-        var invocation = ArgumentInvocation(
+        var invocation = ArgumentList(
           const [],
           const {},
           callableNode.span,
@@ -1847,7 +1847,7 @@ final class _EvaluateVisitor
   void _applyMixin(
       Callable? mixin,
       UserDefinedCallable<Environment>? contentCallable,
-      ArgumentInvocation arguments,
+      ArgumentList arguments,
       AstNode nodeWithSpan,
       AstNode nodeWithSpanWithoutContent) {
     switch (mixin) {
@@ -1881,7 +1881,7 @@ final class _EvaluateVisitor
             "Mixin doesn't accept a content block.",
             nodeWithSpanWithoutContent.span,
             "invocation",
-            {mixin.declaration.arguments.spanWithName: "declaration"},
+            {mixin.declaration.parameters.spanWithName: "declaration"},
             _stackTrace(nodeWithSpanWithoutContent.span));
 
       case UserDefinedCallable<Environment>():
@@ -2912,7 +2912,7 @@ final class _EvaluateVisitor
   /// Evaluates the arguments in [arguments] as applied to [callable], and
   /// invokes [run] in a scope with those arguments defined.
   V _runUserDefinedCallable<V extends Value?>(
-      ArgumentInvocation arguments,
+      ArgumentList arguments,
       UserDefinedCallable<Environment> callable,
       AstNode nodeWithSpan,
       V run()) {
@@ -2931,35 +2931,35 @@ final class _EvaluateVisitor
       return _withEnvironment(callable.environment.closure(), () {
         return _environment.scope(() {
           _verifyArguments(evaluated.positional.length, evaluated.named,
-              callable.declaration.arguments, nodeWithSpan);
+              callable.declaration.parameters, nodeWithSpan);
 
-          var declaredArguments = callable.declaration.arguments.arguments;
+          var parameters = callable.declaration.parameters.parameters;
           var minLength =
-              math.min(evaluated.positional.length, declaredArguments.length);
+              math.min(evaluated.positional.length, parameters.length);
           for (var i = 0; i < minLength; i++) {
-            _environment.setLocalVariable(declaredArguments[i].name,
+            _environment.setLocalVariable(parameters[i].name,
                 evaluated.positional[i], evaluated.positionalNodes[i]);
           }
 
           for (var i = evaluated.positional.length;
-              i < declaredArguments.length;
+              i < parameters.length;
               i++) {
-            var argument = declaredArguments[i];
-            var value = evaluated.named.remove(argument.name) ??
-                _withoutSlash(argument.defaultValue!.accept<Value>(this),
-                    _expressionNode(argument.defaultValue!));
+            var parameter = parameters[i];
+            var value = evaluated.named.remove(parameter.name) ??
+                _withoutSlash(parameter.defaultValue!.accept<Value>(this),
+                    _expressionNode(parameter.defaultValue!));
             _environment.setLocalVariable(
-                argument.name,
+                parameter.name,
                 value,
-                evaluated.namedNodes[argument.name] ??
-                    _expressionNode(argument.defaultValue!));
+                evaluated.namedNodes[parameter.name] ??
+                    _expressionNode(parameter.defaultValue!));
           }
 
           SassArgumentList? argumentList;
-          var restArgument = callable.declaration.arguments.restArgument;
-          if (restArgument != null) {
-            var rest = evaluated.positional.length > declaredArguments.length
-                ? evaluated.positional.sublist(declaredArguments.length)
+          var restParameter = callable.declaration.parameters.restParameter;
+          if (restParameter != null) {
+            var rest = evaluated.positional.length > parameters.length
+                ? evaluated.positional.sublist(parameters.length)
                 : const <Value>[];
             argumentList = SassArgumentList(
                 rest,
@@ -2968,7 +2968,7 @@ final class _EvaluateVisitor
                     ? ListSeparator.comma
                     : evaluated.separator);
             _environment.setLocalVariable(
-                restArgument, argumentList, nodeWithSpan);
+                restParameter, argumentList, nodeWithSpan);
           }
 
           var result = run();
@@ -2977,14 +2977,15 @@ final class _EvaluateVisitor
           if (evaluated.named.isEmpty) return result;
           if (argumentList.wereKeywordsAccessed) return result;
 
-          var argumentWord = pluralize('argument', evaluated.named.keys.length);
-          var argumentNames =
+          var parameterWord =
+              pluralize('parameter', evaluated.named.keys.length);
+          var parameterNames =
               toSentence(evaluated.named.keys.map((name) => "\$$name"), 'or');
           throw MultiSpanSassRuntimeException(
-              "No $argumentWord named $argumentNames.",
+              "No $parameterWord named $parameterNames.",
               nodeWithSpan.span,
               "invocation",
-              {callable.declaration.arguments.spanWithName: "declaration"},
+              {callable.declaration.parameters.spanWithName: "declaration"},
               _stackTrace(nodeWithSpan.span));
         });
       });
@@ -2995,7 +2996,7 @@ final class _EvaluateVisitor
 
   /// Evaluates [arguments] as applied to [callable].
   Value _runFunctionCallable(
-      ArgumentInvocation arguments, Callable? callable, AstNode nodeWithSpan) {
+      ArgumentList arguments, Callable? callable, AstNode nodeWithSpan) {
     if (callable is BuiltInCallable) {
       return _withoutSlash(
           _runBuiltInCallable(arguments, callable, nodeWithSpan), nodeWithSpan);
@@ -3053,8 +3054,8 @@ final class _EvaluateVisitor
 
   /// Evaluates [invocation] as applied to [callable], and invokes [callable]'s
   /// body.
-  Value _runBuiltInCallable(ArgumentInvocation arguments,
-      BuiltInCallable callable, AstNode nodeWithSpan) {
+  Value _runBuiltInCallable(
+      ArgumentList arguments, BuiltInCallable callable, AstNode nodeWithSpan) {
     var evaluated = _evaluateArguments(arguments);
 
     var oldCallableNode = _callableNode;
@@ -3066,23 +3067,21 @@ final class _EvaluateVisitor
     _addExceptionSpan(nodeWithSpan,
         () => overload.verify(evaluated.positional.length, namedSet));
 
-    var declaredArguments = overload.arguments;
-    for (var i = evaluated.positional.length;
-        i < declaredArguments.length;
-        i++) {
-      var argument = declaredArguments[i];
-      evaluated.positional.add(evaluated.named.remove(argument.name) ??
+    var parameters = overload.parameters;
+    for (var i = evaluated.positional.length; i < parameters.length; i++) {
+      var parameter = parameters[i];
+      evaluated.positional.add(evaluated.named.remove(parameter.name) ??
           _withoutSlash(
-              argument.defaultValue!.accept(this), argument.defaultValue!));
+              parameter.defaultValue!.accept(this), parameter.defaultValue!));
     }
 
     SassArgumentList? argumentList;
-    if (overload.restArgument != null) {
+    if (overload.restParameter != null) {
       var rest = const <Value>[];
-      if (evaluated.positional.length > declaredArguments.length) {
-        rest = evaluated.positional.sublist(declaredArguments.length);
+      if (evaluated.positional.length > parameters.length) {
+        rest = evaluated.positional.sublist(parameters.length);
         evaluated.positional
-            .removeRange(declaredArguments.length, evaluated.positional.length);
+            .removeRange(parameters.length, evaluated.positional.length);
       }
 
       argumentList = SassArgumentList(
@@ -3111,7 +3110,7 @@ final class _EvaluateVisitor
     if (argumentList.wereKeywordsAccessed) return result;
 
     throw MultiSpanSassRuntimeException(
-        "No ${pluralize('argument', evaluated.named.keys.length)} named "
+        "No ${pluralize('parameter', evaluated.named.keys.length)} named "
             "${toSentence(evaluated.named.keys.map((name) => "\$$name"), 'or')}.",
         nodeWithSpan.span,
         "invocation",
@@ -3120,7 +3119,7 @@ final class _EvaluateVisitor
   }
 
   /// Returns the evaluated values of the given [arguments].
-  _ArgumentResults _evaluateArguments(ArgumentInvocation arguments) {
+  _ArgumentResults _evaluateArguments(ArgumentList arguments) {
     // TODO(nweiz): This used to avoid tracking source spans for arguments if
     // [_sourceMap]s was false or it was being called from
     // [_runBuiltInCallable]. We always have to track them now to produce better
@@ -3296,11 +3295,11 @@ final class _EvaluateVisitor
   }
 
   /// Throws a [SassRuntimeException] if [positional] and [named] aren't valid
-  /// when applied to [arguments].
+  /// when applied to [parameters].
   void _verifyArguments(int positional, Map<String, dynamic> named,
-          ArgumentDeclaration arguments, AstNode nodeWithSpan) =>
+          ParameterList parameters, AstNode nodeWithSpan) =>
       _addExceptionSpan(
-          nodeWithSpan, () => arguments.verify(positional, MapKeySet(named)));
+          nodeWithSpan, () => parameters.verify(positional, MapKeySet(named)));
 
   Value visitSelectorExpression(SelectorExpression node) =>
       _styleRuleIgnoringAtRoot?.originalSelector.asSassList ?? sassNull;

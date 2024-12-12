@@ -7,7 +7,7 @@ import 'package:source_span/source_span.dart';
 import '../../../util/span.dart';
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
-import '../argument_invocation.dart';
+import '../argument_list.dart';
 import '../callable_invocation.dart';
 import '../reference.dart';
 
@@ -33,7 +33,7 @@ final class FunctionExpression extends Expression
   final String originalName;
 
   /// The arguments to pass to the function.
-  final ArgumentInvocation arguments;
+  final ArgumentList arguments;
 
   final FileSpan span;
 

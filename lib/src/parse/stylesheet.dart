@@ -105,15 +105,15 @@ abstract class StylesheetParser extends Parser {
     });
   }
 
-  ArgumentDeclaration parseArgumentDeclaration() => _parseSingleProduction(() {
+  ParameterList parseParameterList() => _parseSingleProduction(() {
         scanner.expectChar($at, name: "@-rule");
         identifier();
         whitespace();
         identifier();
-        var arguments = _argumentDeclaration();
+        var parameters = _parameterList();
         whitespace();
         scanner.expectChar($lbrace);
-        return arguments;
+        return parameters;
       });
 
   (Expression, List<ParseTimeWarning>) parseExpression() =>
@@ -155,15 +155,14 @@ abstract class StylesheetParser extends Parser {
   /// option and returns its name and declaration.
   ///
   /// If [requireParens] is `false`, this allows parentheses to be omitted.
-  (String name, ArgumentDeclaration) parseSignature(
-      {bool requireParens = true}) {
+  (String name, ParameterList) parseSignature({bool requireParens = true}) {
     return wrapSpanFormatException(() {
       var name = identifier();
-      var arguments = requireParens || scanner.peekChar() == $lparen
-          ? _argumentDeclaration()
-          : ArgumentDeclaration.empty(scanner.emptySpan);
+      var parameters = requireParens || scanner.peekChar() == $lparen
+          ? _parameterList()
+          : ParameterList.empty(scanner.emptySpan);
       scanner.expectDone();
-      return (name, arguments);
+      return (name, parameters);
     });
   }
 
@@ -790,12 +789,12 @@ abstract class StylesheetParser extends Parser {
 
     var beforeWhitespace = scanner.location;
     whitespace();
-    ArgumentInvocation arguments;
+    ArgumentList arguments;
     if (scanner.peekChar() == $lparen) {
       arguments = _argumentInvocation(mixin: true);
       whitespace();
     } else {
-      arguments = ArgumentInvocation.empty(beforeWhitespace.pointSpan());
+      arguments = ArgumentList.empty(beforeWhitespace.pointSpan());
     }
 
     expectStatementSeparator("@content rule");
@@ -888,7 +887,7 @@ abstract class StylesheetParser extends Parser {
     }
 
     whitespace();
-    var arguments = _argumentDeclaration();
+    var parameters = _parameterList();
 
     if (_inMixin || _inContentBlock) {
       error("Mixins may not contain function declarations.",
@@ -914,7 +913,7 @@ abstract class StylesheetParser extends Parser {
     return _withChildren(
         _functionChild,
         start,
-        (children, span) => FunctionRule(name, arguments, children, span,
+        (children, span) => FunctionRule(name, parameters, children, span,
             comment: precedingComment));
   }
 
@@ -1262,24 +1261,24 @@ abstract class StylesheetParser extends Parser {
     whitespace();
     var arguments = scanner.peekChar() == $lparen
         ? _argumentInvocation(mixin: true)
-        : ArgumentInvocation.empty(scanner.emptySpan);
+        : ArgumentList.empty(scanner.emptySpan);
     whitespace();
 
-    ArgumentDeclaration? contentArguments;
+    ParameterList? contentParameters;
     if (scanIdentifier("using")) {
       whitespace();
-      contentArguments = _argumentDeclaration();
+      contentParameters = _parameterList();
       whitespace();
     }
 
     ContentBlock? content;
-    if (contentArguments != null || lookingAtChildren()) {
-      var contentArguments_ =
-          contentArguments ?? ArgumentDeclaration.empty(scanner.emptySpan);
+    if (contentParameters != null || lookingAtChildren()) {
+      var contentParameters_ =
+          contentParameters ?? ParameterList.empty(scanner.emptySpan);
       var wasInContentBlock = _inContentBlock;
       _inContentBlock = true;
       content = _withChildren(_statement, start,
-          (children, span) => ContentBlock(contentArguments_, children, span));
+          (children, span) => ContentBlock(contentParameters_, children, span));
       _inContentBlock = wasInContentBlock;
     } else {
       expectStatementSeparator();
@@ -1323,9 +1322,9 @@ abstract class StylesheetParser extends Parser {
     }
 
     whitespace();
-    var arguments = scanner.peekChar() == $lparen
-        ? _argumentDeclaration()
-        : ArgumentDeclaration.empty(scanner.emptySpan);
+    var parameters = scanner.peekChar() == $lparen
+        ? _parameterList()
+        : ParameterList.empty(scanner.emptySpan);
 
     if (_inMixin || _inContentBlock) {
       error("Mixins may not contain mixin declarations.",
@@ -1340,7 +1339,7 @@ abstract class StylesheetParser extends Parser {
 
     return _withChildren(_statement, start, (children, span) {
       _inMixin = false;
-      return MixinRule(name, arguments, children, span,
+      return MixinRule(name, parameters, children, span,
           comment: precedingComment);
     });
   }
@@ -1611,14 +1610,14 @@ abstract class StylesheetParser extends Parser {
     error("This at-rule is not allowed here.", scanner.spanFrom(start));
   }
 
-  /// Consumes an argument declaration.
-  ArgumentDeclaration _argumentDeclaration() {
+  /// Consumes a parameter list.
+  ParameterList _parameterList() {
     var start = scanner.state;
     scanner.expectChar($lparen);
     whitespace();
-    var arguments = <Argument>[];
+    var parameters = <Parameter>[];
     var named = <String>{};
-    String? restArgument;
+    String? restParameter;
     while (scanner.peekChar() == $dollar) {
       var variableStart = scanner.state;
       var name = variableName();
@@ -1633,22 +1632,22 @@ abstract class StylesheetParser extends Parser {
         scanner.expectChar($dot);
         whitespace();
         if (scanner.scanChar($comma)) whitespace();
-        restArgument = name;
+        restParameter = name;
         break;
       }
 
-      arguments.add(Argument(name, scanner.spanFrom(variableStart),
+      parameters.add(Parameter(name, scanner.spanFrom(variableStart),
           defaultValue: defaultValue));
       if (!named.add(name)) {
-        error("Duplicate argument.", arguments.last.span);
+        error("Duplicate parameter.", parameters.last.span);
       }
 
       if (!scanner.scanChar($comma)) break;
       whitespace();
     }
     scanner.expectChar($rparen);
-    return ArgumentDeclaration(arguments, scanner.spanFrom(start),
-        restArgument: restArgument);
+    return ParameterList(parameters, scanner.spanFrom(start),
+        restParameter: restParameter);
   }
 
   // ## Expressions
@@ -1662,7 +1661,7 @@ abstract class StylesheetParser extends Parser {
   /// If [allowEmptySecondArg] is `true`, this allows the second argument to be
   /// omitted, in which case an unquoted empty string will be passed in its
   /// place.
-  ArgumentInvocation _argumentInvocation(
+  ArgumentList _argumentInvocation(
       {bool mixin = false, bool allowEmptySecondArg = false}) {
     var start = scanner.state;
     scanner.expectChar($lparen);
@@ -1715,7 +1714,7 @@ abstract class StylesheetParser extends Parser {
     }
     scanner.expectChar($rparen);
 
-    return ArgumentInvocation(positional, named, scanner.spanFrom(start),
+    return ArgumentList(positional, named, scanner.spanFrom(start),
         rest: rest, keywordRest: keywordRest);
   }
 

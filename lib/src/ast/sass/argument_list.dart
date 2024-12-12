@@ -13,7 +13,7 @@ import 'node.dart';
 /// A set of arguments passed in to a function or mixin.
 ///
 /// {@category AST}
-final class ArgumentInvocation implements SassNode {
+final class ArgumentList implements SassNode {
   /// The arguments passed by position.
   final List<Expression> positional;
 
@@ -31,7 +31,7 @@ final class ArgumentInvocation implements SassNode {
   /// Returns whether this invocation passes no arguments.
   bool get isEmpty => positional.isEmpty && named.isEmpty && rest == null;
 
-  ArgumentInvocation(
+  ArgumentList(
       Iterable<Expression> positional, Map<String, Expression> named, this.span,
       {this.rest, this.keywordRest})
       : positional = List.unmodifiable(positional),
@@ -40,7 +40,7 @@ final class ArgumentInvocation implements SassNode {
   }
 
   /// Creates an invocation that passes no arguments.
-  ArgumentInvocation.empty(this.span)
+  ArgumentList.empty(this.span)
       : positional = const [],
         named = const {},
         rest = null,
