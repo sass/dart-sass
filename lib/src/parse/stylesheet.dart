@@ -1632,6 +1632,7 @@ abstract class StylesheetParser extends Parser {
         scanner.expectChar($dot);
         scanner.expectChar($dot);
         whitespace();
+        if (scanner.scanChar($comma)) whitespace();
         restArgument = name;
         break;
       }
@@ -1689,6 +1690,7 @@ abstract class StylesheetParser extends Parser {
         } else {
           keywordRest = expression;
           whitespace();
+          if (scanner.scanChar($comma)) whitespace();
           break;
         }
       } else if (named.isNotEmpty) {
