@@ -20,6 +20,7 @@ import '../visitor/interface/expression.dart';
 import '../visitor/interface/statement.dart';
 import 'reflection.dart';
 import 'set.dart';
+import 'utils.dart';
 import 'visitor/expression.dart';
 import 'visitor/statement.dart';
 
@@ -32,7 +33,8 @@ class ParserExports {
       required Function toCssIdentifier,
       required Function createExpressionVisitor,
       required Function createStatementVisitor,
-      required Function setToJS});
+      required Function setToJS,
+      required Function mapToRecord});
 
   external set parse(Function function);
   external set parseIdentifier(Function function);
@@ -40,6 +42,7 @@ class ParserExports {
   external set createStatementVisitor(Function function);
   external set createExpressionVisitor(Function function);
   external set setToJS(Function function);
+  external set mapToRecord(Function function);
 }
 
 /// An empty interpolation, used to initialize empty AST entries to modify their
@@ -61,7 +64,8 @@ ParserExports loadParserExports() {
           (JSExpressionVisitorObject inner) => JSExpressionVisitor(inner)),
       createStatementVisitor: allowInterop(
           (JSStatementVisitorObject inner) => JSStatementVisitor(inner)),
-      setToJS: allowInterop((Set<Object?> set) => JSSet([...set])));
+      setToJS: allowInterop((Set<Object?> set) => JSSet([...set])),
+      mapToRecord: allowInterop(mapToObject));
 }
 
 /// Modifies the prototypes of the Sass AST classes to provide access to JS.
@@ -88,6 +92,10 @@ void _updateAstPrototypes() {
       'accept',
       (Expression self, ExpressionVisitor<Object?> visitor) =>
           self.accept(visitor));
+  var arguments = ArgumentList([], {}, bogusSpan);
+  var include = IncludeRule('a', arguments, bogusSpan);
+  getJSClass(include)
+      .defineGetter('arguments', (IncludeRule self) => self.arguments);
 
   _addSupportsConditionToInterpolation();
 

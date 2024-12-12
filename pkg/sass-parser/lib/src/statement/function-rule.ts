@@ -32,8 +32,8 @@ export interface FunctionRuleRaws extends Omit<AtRuleRaws, 'params'> {
   /**
    * The function's name.
    *
-   * This may be different than {@link Function.functionName} if the name contains
-   * escape codes or underscores.
+   * This may be different than {@link FunctionRule.functionName} if the name
+   * contains escape codes or underscores.
    */
   functionName?: RawWithValue<string>;
 }

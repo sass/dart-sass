@@ -103,6 +103,10 @@ export class Stringifier extends PostCssStringifier {
     this.sassAtRule(node, semicolon);
   }
 
+  private ['include-rule'](node: FunctionRule, semicolon: boolean): void {
+    this.sassAtRule(node, semicolon);
+  }
+
   private ['mixin-rule'](node: MixinRule, semicolon: boolean): void {
     this.sassAtRule(node, semicolon);
   }

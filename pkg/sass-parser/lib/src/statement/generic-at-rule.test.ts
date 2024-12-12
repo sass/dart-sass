@@ -229,8 +229,8 @@ describe('a generic @-rule', () => {
 
         it('has a child node', () => {
           expect(node.nodes).toHaveLength(1);
-          expect(node.nodes[0]).toBeInstanceOf(Rule);
-          expect(node.nodes[0]).toHaveProperty('selector', '.bar\n');
+          expect(node.nodes![0]).toBeInstanceOf(Rule);
+          expect(node.nodes![0]).toHaveProperty('selector', '.bar\n');
         });
       });
     });
@@ -252,8 +252,8 @@ describe('a generic @-rule', () => {
 
           it('has a child node', () => {
             expect(node.nodes).toHaveLength(1);
-            expect(node.nodes[0]).toBeInstanceOf(Rule);
-            expect(node.nodes[0]).toHaveProperty('selector', '.baz\n');
+            expect(node.nodes![0]).toBeInstanceOf(Rule);
+            expect(node.nodes![0]).toHaveProperty('selector', '.baz\n');
           });
         });
       }
@@ -593,8 +593,8 @@ describe('a generic @-rule', () => {
 
         it('nodes', () => {
           expect(clone.nodes).toHaveLength(1);
-          expect(clone.nodes[0]).toBeInstanceOf(Rule);
-          expect(clone.nodes[0]).toHaveProperty('selector', '.baz ');
+          expect(clone.nodes![0]).toBeInstanceOf(Rule);
+          expect(clone.nodes![0]).toHaveProperty('selector', '.baz ');
         });
       });
 
@@ -612,7 +612,7 @@ describe('a generic @-rule', () => {
       });
 
       describe('sets parent for', () => {
-        it('nodes', () => expect(clone.nodes[0].parent).toBe(clone));
+        it('nodes', () => expect(clone.nodes![0].parent).toBe(clone));
       });
     });
 

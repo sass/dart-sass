@@ -71,7 +71,7 @@ describe('an @at-root rule', () => {
     it('has no params', () => expect(node.params).toBe(''));
 
     it('contains a Rule', () => {
-      const rule = node.nodes[0] as Rule;
+      const rule = node.nodes![0] as Rule;
       expect(rule).toHaveInterpolation('selectorInterpolation', '.foo ');
       expect(rule.parent).toBe(node);
     });

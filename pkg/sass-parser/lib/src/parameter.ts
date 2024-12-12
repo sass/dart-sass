@@ -155,17 +155,12 @@ export class Parameter extends Node {
       defaults = {name: defaults};
     } else if (Array.isArray(defaults)) {
       const [name, props] = defaults;
-      if (
-        'sassType' in props ||
-        !('defaultValue' in props || 'rest' in props)
-      ) {
-        defaults = {
-          name,
-          defaultValue: props as Expression | ExpressionProps,
-        };
-      } else {
-        defaults = {name, ...props} as ParameterObjectProps;
-      }
+      defaults = _isParameterObjectProps(props)
+        ? ({name, ...props} as ParameterObjectProps)
+        : {
+            name,
+            defaultValue: props as Expression | ExpressionProps,
+          };
     }
     super(defaults);
     this.raws ??= {};
@@ -213,4 +208,19 @@ export class Parameter extends Node {
   get nonStatementChildren(): ReadonlyArray<Expression> {
     return this.defaultValue ? [this.defaultValue] : [];
   }
+}
+
+/** Returns whether {@link props} is a {@link ParameterObjectProps}. */
+function _isParameterObjectProps(
+  props: ParameterExpressionProps,
+): props is Omit<ParameterObjectProps, 'name'> {
+  if ('sassType' in props) return false;
+  if ('defaultValue' in props) return true;
+  if ('rest' in props) return true;
+  const length = Object.keys(props).length;
+  // `raws` can appear in initializers for expressions, so we only treat it as
+  // a parameter initializer if it's passed alongside `defaultValue` or `rest`
+  // or on its own.
+  if ('raws' in props && length === 1) return true;
+  return false;
 }
