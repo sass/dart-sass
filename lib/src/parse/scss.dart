@@ -38,7 +38,7 @@ class ScssParser extends StylesheetParser {
 
   bool scanElse(int ifIndentation) {
     var start = scanner.state;
-    whitespace();
+    whitespace(consumeNewlines: true);
     var beforeAt = scanner.state;
     if (scanner.scanChar($at)) {
       if (scanIdentifier('else', caseSensitive: true)) return true;
