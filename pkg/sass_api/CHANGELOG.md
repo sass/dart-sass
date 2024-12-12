@@ -2,7 +2,7 @@
 
 * Rename `ArgumentInvocation` to `ArgumentList`, `ArgumentDeclaration` to
   `ParameterList`, and `Argument` to `Parameter` to better match the
-  conventional distinction between "arugments" and "parameters".
+  conventional distinction between "arguments" and "parameters".
 
 * Rename `ArgumentDeclaration.arguments` to `ParameterList.parameters`,
   `ArgumentDeclaration.restArgument` to `ParameterList.restParameter`,
