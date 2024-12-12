@@ -15,7 +15,7 @@ import 'recursive_statement.dart';
 /// This extends [RecursiveStatementVisitor] to traverse each expression in
 /// addition to each statement. It adds even more protected methods:
 ///
-/// * [visitArgumentInvocation]
+/// * [visitArgumentList]
 /// * [visitSupportsCondition]
 /// * [visitInterpolation]
 ///
@@ -34,7 +34,7 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
   }
 
   void visitContentRule(ContentRule node) {
-    visitArgumentInvocation(node.arguments);
+    visitArgumentList(node.arguments);
   }
 
   void visitDebugRule(DebugRule node) {
@@ -91,7 +91,7 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
   }
 
   void visitIncludeRule(IncludeRule node) {
-    visitArgumentInvocation(node.arguments);
+    visitArgumentList(node.arguments);
     super.visitIncludeRule(node);
   }
 
@@ -157,17 +157,17 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
   }
 
   void visitFunctionExpression(FunctionExpression node) {
-    visitArgumentInvocation(node.arguments);
+    visitArgumentList(node.arguments);
   }
 
   void visitInterpolatedFunctionExpression(
       InterpolatedFunctionExpression node) {
     visitInterpolation(node.name);
-    visitArgumentInvocation(node.arguments);
+    visitArgumentList(node.arguments);
   }
 
   void visitIfExpression(IfExpression node) {
-    visitArgumentInvocation(node.arguments);
+    visitArgumentList(node.arguments);
   }
 
   void visitListExpression(ListExpression node) {
@@ -211,8 +211,8 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
 
   @protected
   void visitCallableDeclaration(CallableDeclaration node) {
-    for (var argument in node.arguments.arguments) {
-      argument.defaultValue.andThen(visitExpression);
+    for (var parameter in node.parameters.parameters) {
+      parameter.defaultValue.andThen(visitExpression);
     }
     super.visitCallableDeclaration(node);
   }
@@ -222,7 +222,7 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
   /// The default implementation of the visit methods calls this to visit any
   /// argument invocation in a statement.
   @protected
-  void visitArgumentInvocation(ArgumentInvocation invocation) {
+  void visitArgumentList(ArgumentList invocation) {
     for (var expression in invocation.positional) {
       visitExpression(expression);
     }

@@ -115,7 +115,7 @@ export class FunctionRule
     if (inner) {
       this.source = new LazySource(inner);
       this.functionName = inner.name;
-      this.parameters = new ParameterList(undefined, inner.arguments);
+      this.parameters = new ParameterList(undefined, inner.parameters);
       appendInternalChildren(this, inner.children);
     }
   }

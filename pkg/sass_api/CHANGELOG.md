@@ -1,3 +1,13 @@
+## 15.0.0
+
+* Rename `ArgumentInvocation` to `ArgumentList`, `ArgumentDeclaration` to
+  `ParameterList`, and `Argument` to `Parameter` to better match the
+  conventional distinction between "arguments" and "parameters".
+
+* Rename `ArgumentDeclaration.arguments` to `ParameterList.parameters`,
+  `ArgumentDeclaration.restArgument` to `ParameterList.restParameter`,
+  `CallableDeclaration.arguments` to `.parameters`.
+
 ## 14.4.1-dev
 
 * No user-visible changes.

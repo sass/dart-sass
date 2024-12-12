@@ -94,19 +94,19 @@ export class ParameterList
 
   constructor(defaults?: ParameterListProps);
   /** @hidden */
-  constructor(_: undefined, inner: sassInternal.ArgumentDeclaration);
-  constructor(defaults?: object, inner?: sassInternal.ArgumentDeclaration) {
+  constructor(_: undefined, inner: sassInternal.ParameterList);
+  constructor(defaults?: object, inner?: sassInternal.ParameterList) {
     super(Array.isArray(defaults) ? {nodes: defaults} : defaults);
     if (inner) {
       this.source = new LazySource(inner);
       // TODO: set lazy raws here to use when stringifying
       this._nodes = [];
-      for (const argument of inner.arguments) {
-        this.append(new Parameter(undefined, argument));
+      for (const parameter of inner.parameters) {
+        this.append(new Parameter(undefined, parameter));
       }
-      if (inner.restArgument) {
-        // TODO: Provide source information for this argument.
-        this.append({name: inner.restArgument, rest: true});
+      if (inner.restParameter) {
+        // TODO: Provide source information for this parameter.
+        this.append({name: inner.restParameter, rest: true});
       }
     }
     if (this._nodes === undefined) this._nodes = [];

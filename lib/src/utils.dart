@@ -452,7 +452,7 @@ StackTrace? getTrace(Object error) =>
 /// If [requireParens] is `false`, this allows parentheses to be omitted.
 ///
 /// Throws a [SassFormatException] if parsing fails.
-(String name, ArgumentDeclaration) parseSignature(String signature,
+(String name, ParameterList) parseSignature(String signature,
     {bool requireParens = true}) {
   try {
     return ScssParser(signature).parseSignature(requireParens: requireParens);
