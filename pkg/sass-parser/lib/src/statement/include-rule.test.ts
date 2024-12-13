@@ -280,7 +280,7 @@ describe('a @include rule', () => {
       describe('with default raws', () => {
         it('with no arguments', () =>
           expect(new IncludeRule({includeName: 'foo'}).toString()).toBe(
-            '@include foo;',
+            '@include foo',
           ));
 
         it('with an argument', () =>
@@ -289,7 +289,7 @@ describe('a @include rule', () => {
               includeName: 'foo',
               arguments: [{text: 'bar'}],
             }).toString(),
-          ).toBe('@include foo(bar);'));
+          ).toBe('@include foo(bar)'));
 
         it('with empty using', () =>
           expect(
@@ -315,7 +315,7 @@ describe('a @include rule', () => {
               includeName: 'f o',
               arguments: [{text: 'bar'}],
             }).toString(),
-          ).toBe('@include f\\20o(bar);'));
+          ).toBe('@include f\\20o(bar)'));
       });
 
       it('with afterName', () =>
@@ -324,7 +324,7 @@ describe('a @include rule', () => {
             includeName: 'foo',
             raws: {afterName: '/**/'},
           }).toString(),
-        ).toBe('@include/**/foo;'));
+        ).toBe('@include/**/foo'));
 
       it('with matching includeName', () =>
         expect(
@@ -332,7 +332,7 @@ describe('a @include rule', () => {
             includeName: 'foo',
             raws: {includeName: {value: 'foo', raw: 'f\\6fo'}},
           }).toString(),
-        ).toBe('@include f\\6fo;'));
+        ).toBe('@include f\\6fo'));
 
       it('with non-matching includeName', () =>
         expect(
@@ -340,7 +340,7 @@ describe('a @include rule', () => {
             includeName: 'foo',
             raws: {includeName: {value: 'fao', raw: 'f\\41o'}},
           }).toString(),
-        ).toBe('@include foo;'));
+        ).toBe('@include foo'));
 
       it('with showArguments = true', () =>
         expect(
@@ -348,7 +348,7 @@ describe('a @include rule', () => {
             includeName: 'foo',
             raws: {showArguments: true},
           }).toString(),
-        ).toBe('@include foo();'));
+        ).toBe('@include foo()'));
 
       it('ignores showArguments with an argument', () =>
         expect(
@@ -357,7 +357,7 @@ describe('a @include rule', () => {
             arguments: [{text: 'bar'}],
             raws: {showArguments: true},
           }).toString(),
-        ).toBe('@include foo(bar);'));
+        ).toBe('@include foo(bar)'));
 
       describe('with afterArguments', () => {
         it('with no using', () =>
@@ -367,7 +367,7 @@ describe('a @include rule', () => {
               arguments: [{text: 'bar'}],
               raws: {afterArguments: '/**/'},
             }).toString(),
-          ).toBe('@include foo(bar);'));
+          ).toBe('@include foo(bar)'));
 
         it('with using', () =>
           expect(
@@ -387,7 +387,7 @@ describe('a @include rule', () => {
               using: ['baz'],
               raws: {afterArguments: '/**/'},
             }).toString(),
-          ).toBe('@include foo/**/using ($baz);'));
+          ).toBe('@include foo/**/using ($baz)'));
       });
 
       describe('with afterUsing', () => {
@@ -398,7 +398,7 @@ describe('a @include rule', () => {
               arguments: [{text: 'bar'}],
               raws: {afterUsing: '/**/'},
             }).toString(),
-          ).toBe('@include foo(bar);'));
+          ).toBe('@include foo(bar)'));
 
         it('with using', () =>
           expect(
@@ -407,7 +407,7 @@ describe('a @include rule', () => {
               using: ['baz'],
               raws: {afterUsing: '/**/'},
             }).toString(),
-          ).toBe('@include foo using/**/($baz);'));
+          ).toBe('@include foo using/**/($baz)'));
       });
     });
   });

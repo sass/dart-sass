@@ -437,7 +437,7 @@ describe('a @forward rule', () => {
               forwardUrl: 'foo',
               prefix: 'bar-',
             }).toString(),
-          ).toBe('@forward "foo" as bar-*;'));
+          ).toBe('@forward "foo" as bar-*'));
 
         it('with a non-identifier prefix', () =>
           expect(
@@ -445,7 +445,7 @@ describe('a @forward rule', () => {
               forwardUrl: 'foo',
               prefix: ' ',
             }).toString(),
-          ).toBe('@forward "foo" as \\20*;'));
+          ).toBe('@forward "foo" as \\20*'));
 
         it('with show', () =>
           expect(
@@ -453,7 +453,7 @@ describe('a @forward rule', () => {
               forwardUrl: 'foo',
               show: {mixinsAndFunctions: ['bar'], variables: ['baz', 'qux']},
             }).toString(),
-          ).toBe('@forward "foo" show bar, $baz, $qux;'));
+          ).toBe('@forward "foo" show bar, $baz, $qux'));
 
         it('with a non-identifier show', () =>
           expect(
@@ -461,7 +461,7 @@ describe('a @forward rule', () => {
               forwardUrl: 'foo',
               show: {mixinsAndFunctions: [' ']},
             }).toString(),
-          ).toBe('@forward "foo" show \\20;'));
+          ).toBe('@forward "foo" show \\20'));
 
         it('with hide', () =>
           expect(
@@ -469,7 +469,7 @@ describe('a @forward rule', () => {
               forwardUrl: 'foo',
               hide: {mixinsAndFunctions: ['bar'], variables: ['baz', 'qux']},
             }).toString(),
-          ).toBe('@forward "foo" hide bar, $baz, $qux;'));
+          ).toBe('@forward "foo" hide bar, $baz, $qux'));
 
         it('with a non-identifier hide', () =>
           expect(
@@ -477,7 +477,7 @@ describe('a @forward rule', () => {
               forwardUrl: 'foo',
               hide: {mixinsAndFunctions: [' ']},
             }).toString(),
-          ).toBe('@forward "foo" hide \\20;'));
+          ).toBe('@forward "foo" hide \\20'));
 
         it('with configuration', () =>
           expect(
@@ -487,7 +487,7 @@ describe('a @forward rule', () => {
                 variables: {bar: {text: 'baz', quotes: true}},
               },
             }).toString(),
-          ).toBe('@forward "foo" with ($bar: "baz");'));
+          ).toBe('@forward "foo" with ($bar: "baz")'));
       });
 
       describe('with a URL raw', () => {
@@ -497,7 +497,7 @@ describe('a @forward rule', () => {
               forwardUrl: 'foo',
               raws: {url: {raw: "'foo'", value: 'foo'}},
             }).toString(),
-          ).toBe("@forward 'foo';"));
+          ).toBe("@forward 'foo'"));
 
         it("that doesn't match", () =>
           expect(
@@ -505,7 +505,7 @@ describe('a @forward rule', () => {
               forwardUrl: 'foo',
               raws: {url: {raw: "'bar'", value: 'bar'}},
             }).toString(),
-          ).toBe('@forward "foo";'));
+          ).toBe('@forward "foo"'));
       });
 
       describe('with a prefix raw', () => {
@@ -516,7 +516,7 @@ describe('a @forward rule', () => {
               prefix: 'bar-',
               raws: {prefix: {raw: '  as  bar-*', value: 'bar-'}},
             }).toString(),
-          ).toBe('@forward "foo"  as  bar-*;'));
+          ).toBe('@forward "foo"  as  bar-*'));
 
         it("that doesn't match", () =>
           expect(
@@ -525,7 +525,7 @@ describe('a @forward rule', () => {
               prefix: 'baz-',
               raws: {url: {raw: '  as  bar-*', value: 'bar-'}},
             }).toString(),
-          ).toBe('@forward "foo" as baz-*;'));
+          ).toBe('@forward "foo" as baz-*'));
       });
 
       describe('with show', () => {
@@ -544,7 +544,7 @@ describe('a @forward rule', () => {
                 },
               },
             }).toString(),
-          ).toBe('@forward "foo"  show  bar, baz;'));
+          ).toBe('@forward "foo"  show  bar, baz'));
 
         it('that has an extra member', () =>
           expect(
@@ -561,7 +561,7 @@ describe('a @forward rule', () => {
                 },
               },
             }).toString(),
-          ).toBe('@forward "foo" show bar, baz;'));
+          ).toBe('@forward "foo" show bar, baz'));
 
         it("that's missing a member", () =>
           expect(
@@ -578,7 +578,7 @@ describe('a @forward rule', () => {
                 },
               },
             }).toString(),
-          ).toBe('@forward "foo" show bar, baz;'));
+          ).toBe('@forward "foo" show bar, baz'));
       });
 
       describe('with hide', () => {
@@ -597,7 +597,7 @@ describe('a @forward rule', () => {
                 },
               },
             }).toString(),
-          ).toBe('@forward "foo"  hide  bar, baz;'));
+          ).toBe('@forward "foo"  hide  bar, baz'));
 
         it('that has an extra member', () =>
           expect(
@@ -614,7 +614,7 @@ describe('a @forward rule', () => {
                 },
               },
             }).toString(),
-          ).toBe('@forward "foo" hide bar, baz;'));
+          ).toBe('@forward "foo" hide bar, baz'));
 
         it("that's missing a member", () =>
           expect(
@@ -631,7 +631,7 @@ describe('a @forward rule', () => {
                 },
               },
             }).toString(),
-          ).toBe('@forward "foo" hide bar, baz;'));
+          ).toBe('@forward "foo" hide bar, baz'));
       });
 
       describe('with beforeWith', () => {
@@ -644,7 +644,7 @@ describe('a @forward rule', () => {
               },
               raws: {beforeWith: '/**/'},
             }).toString(),
-          ).toBe('@forward "foo"/**/with ($bar: "baz");'));
+          ).toBe('@forward "foo"/**/with ($bar: "baz")'));
 
         it('and no configuration', () =>
           expect(
@@ -652,7 +652,7 @@ describe('a @forward rule', () => {
               forwardUrl: 'foo',
               raws: {beforeWith: '/**/'},
             }).toString(),
-          ).toBe('@forward "foo";'));
+          ).toBe('@forward "foo"'));
       });
 
       describe('with afterWith', () => {
@@ -665,7 +665,7 @@ describe('a @forward rule', () => {
               },
               raws: {afterWith: '/**/'},
             }).toString(),
-          ).toBe('@forward "foo" with/**/($bar: "baz");'));
+          ).toBe('@forward "foo" with/**/($bar: "baz")'));
 
         it('and no configuration', () =>
           expect(
@@ -673,7 +673,7 @@ describe('a @forward rule', () => {
               forwardUrl: 'foo',
               raws: {afterWith: '/**/'},
             }).toString(),
-          ).toBe('@forward "foo";'));
+          ).toBe('@forward "foo"'));
       });
     });
   });
