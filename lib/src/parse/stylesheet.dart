@@ -108,11 +108,9 @@ abstract class StylesheetParser extends Parser {
   ArgumentDeclaration parseArgumentDeclaration() => _parseSingleProduction(() {
         scanner.expectChar($at, name: "@-rule");
         identifier();
-        // TODO: No tests
         whitespace(consumeNewlines: true);
         identifier();
         var arguments = _argumentDeclaration();
-        // TODO: No tests
         whitespace(consumeNewlines: true);
         scanner.expectChar($lbrace);
         return arguments;
@@ -138,7 +136,6 @@ abstract class StylesheetParser extends Parser {
           var start = scanner.state;
           scanner.expectChar($at, name: "@-rule");
           expectIdentifier("use");
-          // TODO: No tests
           whitespace(consumeNewlines: true);
           return _useRule(start);
         }),
@@ -1197,10 +1194,9 @@ abstract class StylesheetParser extends Parser {
           } else {
             buffer.writeCharCode($lparen);
             buffer.addInterpolation(_interpolatedDeclarationValue(
-                allowEmpty: true, allowSemicolon: true));
+                allowEmpty: true, allowSemicolon: true, consumeNewlines: true));
             buffer.writeCharCode($rparen);
           }
-
           scanner.expectChar($rparen);
           whitespace(consumeNewlines: false);
         } else {
@@ -1235,7 +1231,7 @@ abstract class StylesheetParser extends Parser {
       if (_tryImportSupportsFunction() case var function?) return function;
 
       var start = scanner.state;
-      var name = _expression();
+      var name = _expression(consumeNewlines: true);
       scanner.expectChar($colon);
       return SupportsDeclaration(
           name, _supportsDeclarationValue(name), scanner.spanFrom(start));
@@ -1256,8 +1252,8 @@ abstract class StylesheetParser extends Parser {
       return null;
     }
 
-    var value =
-        _interpolatedDeclarationValue(allowEmpty: true, allowSemicolon: true);
+    var value = _interpolatedDeclarationValue(
+        allowEmpty: true, allowSemicolon: true, consumeNewlines: true);
     scanner.expectChar($rparen);
 
     return SupportsFunction(name, value, scanner.spanFrom(start));
@@ -1947,7 +1943,6 @@ abstract class StylesheetParser extends Parser {
             length: operator.operator.length);
       }
       operands.add(singleExpression);
-      // TODO: This needs more test coverage
       whitespace(consumeNewlines: true);
       singleExpression_ = _singleExpression();
     }
@@ -3152,7 +3147,6 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a single media query.
   void _mediaQuery(InterpolationBuffer buffer) {
     // This is somewhat duplicated in MediaQueryParser._mediaQuery.
-    // TODO: Do we need to duplicate the whitespace handling there?
     if (scanner.peekChar() == $lparen) {
       _mediaInParens(buffer);
       whitespace(consumeNewlines: false);
