@@ -2761,7 +2761,7 @@ abstract class StylesheetParser extends Parser {
 
     var beginningOfContents = scanner.state;
     if (!scanner.scanChar($lparen)) return null;
-    whitespaceWithoutComments(consumeNewlines: false);
+    whitespaceWithoutComments(consumeNewlines: true);
 
     // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
     // backtrack and re-parse as a function expression.
@@ -2788,7 +2788,7 @@ abstract class StylesheetParser extends Parser {
               >= 0x80:
           buffer.writeCharCode(scanner.readChar());
         case int(isWhitespace: true):
-          whitespaceWithoutComments(consumeNewlines: false);
+          whitespaceWithoutComments(consumeNewlines: true);
           if (scanner.peekChar() != $rparen) break loop;
         case $rparen:
           buffer.writeCharCode(scanner.readChar());
