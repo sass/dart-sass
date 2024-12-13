@@ -113,7 +113,7 @@ describe('a @return rule', () => {
           new ReturnRule({
             returnExpression: {text: 'foo'},
           }).toString(),
-        ).toBe('@return foo;'));
+        ).toBe('@return foo'));
 
       it('with afterName', () =>
         expect(
@@ -121,7 +121,7 @@ describe('a @return rule', () => {
             returnExpression: {text: 'foo'},
             raws: {afterName: '/**/'},
           }).toString(),
-        ).toBe('@return/**/foo;'));
+        ).toBe('@return/**/foo'));
 
       it('with between', () =>
         expect(
@@ -129,7 +129,7 @@ describe('a @return rule', () => {
             returnExpression: {text: 'foo'},
             raws: {between: '/**/'},
           }).toString(),
-        ).toBe('@return foo/**/;'));
+        ).toBe('@return foo/**/'));
     });
   });
 

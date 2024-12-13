@@ -12,7 +12,7 @@ exports[`a generic @-rule toJSON with a child 1`] = `
   "name": "foo",
   "nameInterpolation": <foo>,
   "nodes": [
-    <@bar;>,
+    <@bar>,
   ],
   "params": "",
   "raws": {},

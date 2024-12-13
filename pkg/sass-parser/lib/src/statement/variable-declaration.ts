@@ -9,11 +9,13 @@ import {Expression, ExpressionProps} from '../expression';
 import {convertExpression} from '../expression/convert';
 import {fromProps} from '../expression/from-props';
 import {LazySource} from '../lazy-source';
+import {NodeProps} from '../node';
 import {RawWithValue} from '../raw-with-value';
 import * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {Statement, StatementWithChildren} from '.';
 import {_Declaration} from './declaration-internal';
+import * as sassParser from '../..';
 
 /**
  * The set of raws supported by {@link VariableDeclaration}.
@@ -25,7 +27,7 @@ export interface VariableDeclarationRaws
   /**
    * The variable's namespace.
    *
-   * This may be different than {@link VariableDeclarationRaws.namespace} if the
+   * This may be different than {@link VariableDeclaration.namespace} if the
    * name contains escape codes or underscores.
    */
   namespace?: RawWithValue<string>;
@@ -33,7 +35,7 @@ export interface VariableDeclarationRaws
   /**
    * The variable's name, not including the `$`.
    *
-   * This may be different than {@link VariableDeclarationRaws.variableName} if
+   * This may be different than {@link VariableDeclaration.variableName} if
    * the name contains escape codes or underscores.
    */
   variableName?: RawWithValue<string>;
@@ -63,12 +65,15 @@ export type VariableDeclarationProps = NodeProps & {
   variableName: string;
   guarded?: boolean;
   global?: boolean;
-} & ({expression: Expression | ExpressionProps} | {value: string});
+} & (
+    | {expression: Expression | ExpressionProps; value?: never}
+    | {value: string; expression?: never}
+  );
 
 /**
  * A Sass variable declaration. Extends [`postcss.Declaration`].
  *
- * [`postcss.AtRule`]: https://postcss.org/api/#declaration
+ * [`postcss.Declaration`]: https://postcss.org/api/#declaration
  *
  * @category Statement
  */
@@ -208,17 +213,11 @@ export class VariableDeclaration
   }
 
   /** @hidden */
-  toString(): string {
-    return (
-      this.prop +
-      (this.raws.between ?? ': ') +
-      this.expression +
-      (this.raws.flags?.value?.guarded === this.guarded &&
-      this.raws.flags?.value?.global === this.global
-        ? this.raws.flags.raw
-        : (this.guarded ? ' !default' : '') + (this.global ? ' !global' : '')) +
-      (this.raws.afterValue ?? '')
-    );
+  toString(
+    stringifier: postcss.Stringifier | postcss.Syntax = sassParser.scss
+      .stringify,
+  ): string {
+    return super.toString(stringifier);
   }
 
   /** @hidden */
