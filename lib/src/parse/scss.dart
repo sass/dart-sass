@@ -20,7 +20,7 @@ class ScssParser extends StylesheetParser {
   Interpolation styleRuleSelector() => almostAnyValue();
 
   void expectStatementSeparator([String? name]) {
-    whitespaceWithoutComments();
+    whitespaceWithoutComments(consumeNewlines: true);
     if (scanner.isDone) return;
     if (scanner.peekChar() case $semicolon || $rbrace) return;
     scanner.expectChar($semicolon);
@@ -62,7 +62,7 @@ class ScssParser extends StylesheetParser {
 
   List<Statement> children(Statement child()) {
     scanner.expectChar($lbrace);
-    whitespaceWithoutComments();
+    whitespaceWithoutComments(consumeNewlines: true);
     var children = <Statement>[];
     while (true) {
       switch (scanner.peekChar()) {
@@ -73,17 +73,17 @@ class ScssParser extends StylesheetParser {
           switch (scanner.peekChar(1)) {
             case $slash:
               children.add(_silentComment());
-              whitespaceWithoutComments();
+              whitespaceWithoutComments(consumeNewlines: true);
             case $asterisk:
               children.add(_loudComment());
-              whitespaceWithoutComments();
+              whitespaceWithoutComments(consumeNewlines: true);
             default:
               children.add(child());
           }
 
         case $semicolon:
           scanner.readChar();
-          whitespaceWithoutComments();
+          whitespaceWithoutComments(consumeNewlines: true);
 
         case $rbrace:
           scanner.expectChar($rbrace);
@@ -97,7 +97,7 @@ class ScssParser extends StylesheetParser {
 
   List<Statement> statements(Statement? statement()) {
     var statements = <Statement>[];
-    whitespaceWithoutComments();
+    whitespaceWithoutComments(consumeNewlines: true);
     while (!scanner.isDone) {
       switch (scanner.peekChar()) {
         case $dollar:
@@ -107,17 +107,17 @@ class ScssParser extends StylesheetParser {
           switch (scanner.peekChar(1)) {
             case $slash:
               statements.add(_silentComment());
-              whitespaceWithoutComments();
+              whitespaceWithoutComments(consumeNewlines: true);
             case $asterisk:
               statements.add(_loudComment());
-              whitespaceWithoutComments();
+              whitespaceWithoutComments(consumeNewlines: true);
             default:
               if (statement() case var child?) statements.add(child);
           }
 
         case $semicolon:
           scanner.readChar();
-          whitespaceWithoutComments();
+          whitespaceWithoutComments(consumeNewlines: true);
 
         default:
           if (statement() case var child?) statements.add(child);

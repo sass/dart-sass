@@ -309,7 +309,7 @@ class SassParser extends StylesheetParser {
     return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
   }
 
-  void whitespaceWithoutComments({consumeNewlines = false}) {
+  void whitespaceWithoutComments({required bool consumeNewlines}) {
     // This overrides whitespace consumption so that it doesn't consume
     // newlines.
     while (!scanner.isDone) {

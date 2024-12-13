@@ -368,7 +368,7 @@ abstract class StylesheetParser extends Parser {
     if (_lookingAtPotentialPropertyHack()) {
       startsWithPunctuation = true;
       nameBuffer.writeCharCode(scanner.readChar());
-      nameBuffer.write(rawText(whitespace));
+      nameBuffer.write(rawText(() => whitespace(consumeNewlines: false)));
     }
 
     if (!_lookingAtInterpolatedIdentifier()) return nameBuffer;
@@ -386,7 +386,7 @@ abstract class StylesheetParser extends Parser {
     if (scanner.matches("/*")) nameBuffer.write(rawText(loudComment));
 
     var midBuffer = StringBuffer();
-    midBuffer.write(rawText(whitespace));
+    midBuffer.write(rawText(() => whitespace(consumeNewlines: false)));
     var beforeColon = scanner.state;
     if (!scanner.scanChar($colon)) {
       if (midBuffer.isNotEmpty) nameBuffer.writeCharCode($space);
@@ -413,7 +413,7 @@ abstract class StylesheetParser extends Parser {
       return nameBuffer..write(midBuffer);
     }
 
-    var postColonWhitespace = rawText(whitespace);
+    var postColonWhitespace = rawText(() => whitespace(consumeNewlines: false));
     if (_tryDeclarationChildren(name, start) case var nested?) return nested;
 
     midBuffer.write(postColonWhitespace);
@@ -536,7 +536,7 @@ abstract class StylesheetParser extends Parser {
     if (_lookingAtPotentialPropertyHack()) {
       var nameBuffer = InterpolationBuffer();
       nameBuffer.writeCharCode(scanner.readChar());
-      nameBuffer.write(rawText(whitespace));
+      nameBuffer.write(rawText(() => whitespace(consumeNewlines: false)));
       nameBuffer.addInterpolation(interpolatedIdentifier());
       name = nameBuffer.interpolation(scanner.spanFrom(start));
     } else if (!plainCss) {
@@ -1052,7 +1052,7 @@ abstract class StylesheetParser extends Parser {
     _inControlDirective = true;
     var condition = _expression();
     var children = this.children(child);
-    whitespaceWithoutComments();
+    whitespaceWithoutComments(consumeNewlines: false);
 
     var clauses = [IfClause(condition, children)];
     ElseClause? lastClause;
@@ -1070,7 +1070,7 @@ abstract class StylesheetParser extends Parser {
     _inControlDirective = wasInControlDirective;
 
     var span = scanner.spanFrom(start);
-    whitespaceWithoutComments();
+    whitespaceWithoutComments(consumeNewlines: false);
     return IfRule(clauses, span, lastClause: lastClause);
   }
 
@@ -1428,7 +1428,7 @@ abstract class StylesheetParser extends Parser {
       if (!scanner.scanChar($comma)) break;
 
       buffer.writeCharCode($comma);
-      buffer.write(rawText(whitespace));
+      buffer.write(rawText(() => whitespace(consumeNewlines: false)));
     }
 
     var value = buffer.interpolation(scanner.spanFrom(valueStart));
@@ -2761,7 +2761,7 @@ abstract class StylesheetParser extends Parser {
 
     var beginningOfContents = scanner.state;
     if (!scanner.scanChar($lparen)) return null;
-    whitespaceWithoutComments();
+    whitespaceWithoutComments(consumeNewlines: false);
 
     // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
     // backtrack and re-parse as a function expression.
@@ -2788,7 +2788,7 @@ abstract class StylesheetParser extends Parser {
               >= 0x80:
           buffer.writeCharCode(scanner.readChar());
         case int(isWhitespace: true):
-          whitespaceWithoutComments();
+          whitespaceWithoutComments(consumeNewlines: false);
           if (scanner.peekChar() != $rparen) break loop;
         case $rparen:
           buffer.writeCharCode(scanner.readChar());
@@ -3572,7 +3572,7 @@ abstract class StylesheetParser extends Parser {
   T _withChildren<T>(Statement child(), LineScannerState start,
       T create(List<Statement> children, FileSpan span)) {
     var result = create(children(child), scanner.spanFrom(start));
-    whitespaceWithoutComments();
+    whitespaceWithoutComments(consumeNewlines: false);
     return result;
   }
 

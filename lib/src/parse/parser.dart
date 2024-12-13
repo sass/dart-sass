@@ -80,7 +80,7 @@ class Parser {
   ///
   /// TODO: Bikeshed the variable name
   @protected
-  void whitespace({bool consumeNewlines = false}) {
+  void whitespace({required bool consumeNewlines}) {
     do {
       whitespaceWithoutComments(consumeNewlines: consumeNewlines);
     } while (scanComment());
@@ -88,7 +88,7 @@ class Parser {
 
   /// Consumes whitespace, but not comments.
   @protected
-  void whitespaceWithoutComments({bool consumeNewlines = true}) {
+  void whitespaceWithoutComments({required bool consumeNewlines}) {
     while (!scanner.isDone && scanner.peekChar().isWhitespace) {
       scanner.readChar();
     }
