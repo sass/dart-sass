@@ -16,7 +16,7 @@ import 'interface/expression.dart';
 /// protected methods that can be overridden to add behavior for a wide variety
 /// of AST nodes:
 ///
-/// * [visitArgumentInvocation]
+/// * [visitArgumentList]
 /// * [visitSupportsCondition]
 /// * [visitInterpolation]
 ///
@@ -33,16 +33,16 @@ mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
   Expression visitFunctionExpression(
           FunctionExpression node) =>
       FunctionExpression(
-          node.originalName, visitArgumentInvocation(node.arguments), node.span,
+          node.originalName, visitArgumentList(node.arguments), node.span,
           namespace: node.namespace);
 
   Expression visitInterpolatedFunctionExpression(
           InterpolatedFunctionExpression node) =>
       InterpolatedFunctionExpression(visitInterpolation(node.name),
-          visitArgumentInvocation(node.arguments), node.span);
+          visitArgumentList(node.arguments), node.span);
 
   Expression visitIfExpression(IfExpression node) =>
-      IfExpression(visitArgumentInvocation(node.arguments), node.span);
+      IfExpression(visitArgumentList(node.arguments), node.span);
 
   Expression visitListExpression(ListExpression node) => ListExpression(
       node.contents.map((item) => item.accept(this)), node.separator, node.span,
@@ -81,16 +81,15 @@ mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
   /// The default implementation of the visit methods calls this to replace any
   /// argument invocation in an expression.
   @protected
-  ArgumentInvocation visitArgumentInvocation(ArgumentInvocation invocation) =>
-      ArgumentInvocation(
-          invocation.positional.map((expression) => expression.accept(this)),
-          {
-            for (var (name, value) in invocation.named.pairs)
-              name: value.accept(this)
-          },
-          invocation.span,
-          rest: invocation.rest?.accept(this),
-          keywordRest: invocation.keywordRest?.accept(this));
+  ArgumentList visitArgumentList(ArgumentList invocation) => ArgumentList(
+      invocation.positional.map((expression) => expression.accept(this)),
+      {
+        for (var (name, value) in invocation.named.pairs)
+          name: value.accept(this)
+      },
+      invocation.span,
+      rest: invocation.rest?.accept(this),
+      keywordRest: invocation.keywordRest?.accept(this));
 
   /// Replaces each expression in [condition].
   ///

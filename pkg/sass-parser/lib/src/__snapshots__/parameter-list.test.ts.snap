@@ -11,9 +11,9 @@ exports[`a parameter list toJSON 1`] = `
   ],
   "nodes": [
     <$foo>,
+    <$bar...>,
   ],
   "raws": {},
-  "restParameter": "bar",
   "sassType": "parameter-list",
   "source": <1:12-1:27 in 0>,
 }

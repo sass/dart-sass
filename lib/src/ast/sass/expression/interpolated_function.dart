@@ -6,7 +6,7 @@ import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/expression.dart';
 import '../expression.dart';
-import '../argument_invocation.dart';
+import '../argument_list.dart';
 import '../callable_invocation.dart';
 import '../interpolation.dart';
 
@@ -21,7 +21,7 @@ final class InterpolatedFunctionExpression extends Expression
   final Interpolation name;
 
   /// The arguments to pass to the function.
-  final ArgumentInvocation arguments;
+  final ArgumentList arguments;
 
   final FileSpan span;
 

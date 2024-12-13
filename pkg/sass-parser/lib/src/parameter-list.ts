@@ -8,7 +8,6 @@ import {Container} from './container';
 import {Parameter, ParameterProps} from './parameter';
 import {LazySource} from './lazy-source';
 import {Node} from './node';
-import {RawWithValue} from './raw-with-value';
 import * as sassInternal from './sass-internal';
 import * as utils from './utils';
 
@@ -32,7 +31,6 @@ export type NewParameters =
  */
 export interface ParameterListObjectProps {
   nodes?: ReadonlyArray<NewParameters>;
-  restParameter?: string;
   raws?: ParameterListRaws;
 }
 
@@ -51,22 +49,10 @@ export type ParameterListProps =
  * @category Statement
  */
 export interface ParameterListRaws {
-  /** Whitespace before the rest parameter, if one exists. */
-  beforeRestParameter?: string;
-
-  /**
-   * The name of the rest parameter, if one exists.
-   *
-   * This may be different than {@link ParameterList.restParameter} if the name
-   * contains escape codes or underscores.
-   */
-  restParameter?: RawWithValue<string>;
-
   /**
    * Whether the final parameter has a trailing comma.
    *
-   * Ignored if {@link ParameterList.nodes} is empty or if
-   * {@link ParameterList.restParameter} is set.
+   * Ignored if {@link ParameterList.nodes} is empty.
    */
   comma?: boolean;
 
@@ -100,15 +86,6 @@ export class ParameterList
   private declare _nodes?: Array<Parameter>;
 
   /**
-   * The name of the rest parameter (such as `args` in `...$args`) in this
-   * parameter list.
-   *
-   * This is the parsed and normalized value, with underscores converted to
-   * hyphens and escapes resolved to the characters they represent.
-   */
-  declare restParameter?: string;
-
-  /**
    * Iterators that are currently active within this parameter list. Their
    * indices refer to the last position that has already been sent to the
    * callback, and are updated when {@link _nodes} is modified.
@@ -117,34 +94,33 @@ export class ParameterList
 
   constructor(defaults?: ParameterListProps);
   /** @hidden */
-  constructor(_: undefined, inner: sassInternal.ArgumentDeclaration);
-  constructor(defaults?: object, inner?: sassInternal.ArgumentDeclaration) {
+  constructor(_: undefined, inner: sassInternal.ParameterList);
+  constructor(defaults?: object, inner?: sassInternal.ParameterList) {
     super(Array.isArray(defaults) ? {nodes: defaults} : defaults);
     if (inner) {
       this.source = new LazySource(inner);
       // TODO: set lazy raws here to use when stringifying
       this._nodes = [];
-      this.restParameter = inner.restArgument ?? undefined;
-      for (const argument of inner.arguments) {
-        this.append(new Parameter(undefined, argument));
+      for (const parameter of inner.parameters) {
+        this.append(new Parameter(undefined, parameter));
+      }
+      if (inner.restParameter) {
+        // TODO: Provide source information for this parameter.
+        this.append({name: inner.restParameter, rest: true});
       }
     }
     if (this._nodes === undefined) this._nodes = [];
   }
 
   clone(overrides?: Partial<ParameterListObjectProps>): this {
-    return utils.cloneNode(this, overrides, [
-      'nodes',
-      {name: 'restParameter', explicitUndefined: true},
-      'raws',
-    ]);
+    return utils.cloneNode(this, overrides, ['nodes', 'raws']);
   }
 
   toJSON(): object;
   /** @hidden */
   toJSON(_: string, inputs: Map<postcss.Input, number>): object;
   toJSON(_?: string, inputs?: Map<postcss.Input, number>): object {
-    return utils.toJSON(this, ['nodes', 'restParameter'], inputs);
+    return utils.toJSON(this, ['nodes'], inputs);
   }
 
   append(...nodes: NewParameters[]): this {
@@ -283,21 +259,7 @@ export class ParameterList
       result += parameter.toString();
       result += parameter.raws.after ?? '';
     }
-
-    if (this.restParameter) {
-      if (this.nodes.length) {
-        result += ',' + (this.raws.beforeRestParameter ?? ' ');
-      } else if (this.raws.beforeRestParameter) {
-        result += this.raws.beforeRestParameter;
-      }
-      result +=
-        '$' +
-        (this.raws.restParameter?.value === this.restParameter
-          ? this.raws.restParameter.raw
-          : sassInternal.toCssIdentifier(this.restParameter)) +
-        '...';
-    }
-    if (this.raws.comma && this.nodes.length && !this.restParameter) {
+    if (this.raws.comma && this.nodes.length) {
       result += ',';
     }
     return result + (this.raws.after ?? '') + ')';

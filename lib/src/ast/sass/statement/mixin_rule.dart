@@ -28,14 +28,14 @@ final class MixinRule extends CallableDeclaration implements SassDeclaration {
     return startSpan.initialIdentifier();
   }
 
-  MixinRule(super.name, super.arguments, super.children, super.span,
+  MixinRule(super.name, super.parameters, super.children, super.span,
       {super.comment});
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitMixinRule(this);
 
   String toString() {
     var buffer = StringBuffer("@mixin $name");
-    if (!arguments.isEmpty) buffer.write("($arguments)");
+    if (!parameters.isEmpty) buffer.write("($parameters)");
     buffer.write(" {${children.join(' ')}}");
     return buffer.toString();
   }
