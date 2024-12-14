@@ -8,7 +8,7 @@ import {convertExpression} from './expression/convert';
 import {Expression, ExpressionProps} from './expression';
 import {fromProps} from './expression/from-props';
 import {LazySource} from './lazy-source';
-import {Node} from './node';
+import {Node, NodeProps} from './node';
 import {ParameterList} from './parameter-list';
 import * as sassInternal from './sass-internal';
 import {RawWithValue} from './raw-with-value';
@@ -57,7 +57,7 @@ export interface ParameterRaws {
  *
  * @category Statement
  */
-export type ParameterObjectProps = {
+export type ParameterObjectProps = NodeProps & {
   raws?: ParameterRaws;
   name: string;
 } & (

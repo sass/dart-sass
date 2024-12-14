@@ -5,6 +5,7 @@
 import * as postcss from 'postcss';
 
 import {LazySource} from '../lazy-source';
+import {NodeProps} from '../node';
 import type * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {Expression, ExpressionProps} from '.';
@@ -33,7 +34,7 @@ export type BinaryOperator =
  *
  * @category Expression
  */
-export interface BinaryOperationExpressionProps {
+export interface BinaryOperationExpressionProps extends NodeProps {
   operator: BinaryOperator;
   left: Expression | ExpressionProps;
   right: Expression | ExpressionProps;

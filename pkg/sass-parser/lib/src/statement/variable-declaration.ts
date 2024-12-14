@@ -57,7 +57,7 @@ export interface VariableDeclarationRaws
  *
  * @category Statement
  */
-export type VariableDeclarationProps = {
+export type VariableDeclarationProps = NodeProps & {
   raws?: VariableDeclarationRaws;
   namespace?: string;
   variableName: string;
