@@ -72,7 +72,7 @@ export class GenericAtRule
   readonly sassType = 'atrule' as const;
   declare parent: StatementWithChildren | undefined;
   declare raws: GenericAtRuleRaws;
-  declare nodes: ChildNode[];
+  declare nodes: ChildNode[] | undefined;
 
   get name(): string {
     return this.nameInterpolation.toString();
@@ -207,7 +207,7 @@ export class GenericAtRule
 
   /** @hidden */
   normalize(node: NewNode, sample?: postcss.Node): ChildNode[] {
-    return normalize(this, node, sample);
+    return normalize(this as StatementWithChildren, node, sample);
   }
 }
 

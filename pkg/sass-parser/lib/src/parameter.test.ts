@@ -55,6 +55,11 @@ describe('a parameter', () => {
     describe('constructed manually', () => {
       describeNode('with a string', () => new Parameter('foo'));
 
+      describeNode(
+        'with an array',
+        () => new Parameter(['foo', {raws: {before: '/**/'}}]),
+      );
+
       describeNode('with an object', () => new Parameter({name: 'foo'}));
     });
 
@@ -253,10 +258,14 @@ describe('a parameter', () => {
           .nodes[0],
     );
 
-    describeNode(
-      'constructed manually',
-      () => new Parameter({name: 'foo', rest: true}),
-    );
+    describe('constructed manually', () => {
+      describeNode('with an array', () => new Parameter(['foo', {rest: true}]));
+
+      describeNode(
+        'with an object',
+        () => new Parameter({name: 'foo', rest: true}),
+      );
+    });
 
     describeNode(
       'constructed from properties',
@@ -290,7 +299,7 @@ describe('a parameter', () => {
     });
   });
 
-  describe('assigned rest = true', () => {
+  describe('assigned a new rest', () => {
     it('updates the value of rest', () => {
       node.rest = true;
       expect(node.rest).toBe(true);

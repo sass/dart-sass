@@ -21,9 +21,11 @@ export type AnyNode = AnyStatement | AnyExpression | Interpolation;
 export type NodeType =
   | StatementType
   | ExpressionType
-  | 'interpolation'
+  | 'argument'
+  | 'argument-list'
   | 'configuration'
   | 'configured-variable'
+  | 'interpolation'
   | 'parameter'
   | 'parameter-list';
 

@@ -32,6 +32,14 @@ export interface DartSet<T> {
   _unique: 'DartSet';
 }
 
+export interface DartMap<K, V> {
+  _keyType: K;
+  _valueType: V;
+
+  // A brand to make this function as a nominal type.
+  _unique: 'DartMap';
+}
+
 // There may be a better way to declare this, but I can't figure it out.
 // eslint-disable-next-line @typescript-eslint/no-namespace
 declare namespace SassInternal {
@@ -45,6 +53,8 @@ declare namespace SassInternal {
   function toCssIdentifier(text: string): string;
 
   function setToJS<T>(set: DartSet<T>): Set<T>;
+
+  function mapToRecord<T>(set: DartMap<string, T>): Record<string, T>;
 
   class StatementVisitor<T> {
     private _fakePropertyToMakeThisAUniqueType1: T;
@@ -64,6 +74,13 @@ declare namespace SassInternal {
 
   class SassNode {
     readonly span: FileSpan;
+  }
+
+  class ArgumentList extends SassNode {
+    readonly positional: Expression[];
+    readonly named: DartMap<string, Expression>;
+    readonly rest?: Expression;
+    readonly keywordRest?: Expression;
   }
 
   class Interpolation extends SassNode {
@@ -97,6 +114,11 @@ declare namespace SassInternal {
   class AtRule extends ParentStatement<Statement[]> {
     readonly name: Interpolation;
     readonly value?: Interpolation;
+  }
+
+  class ContentBlock extends ParentStatement<Statement[]> {
+    readonly name: string;
+    readonly parameters: ParameterList;
   }
 
   class DebugRule extends Statement {
@@ -137,6 +159,13 @@ declare namespace SassInternal {
   class FunctionRule extends ParentStatement<Statement[]> {
     readonly name: string;
     readonly parameters: ParameterList;
+  }
+
+  class IncludeRule extends Statement {
+    readonly namespace: string | null;
+    readonly name: string;
+    readonly arguments: ArgumentList;
+    readonly content: ContentBlock | null;
   }
 
   class LoudComment extends Statement {
@@ -283,8 +312,10 @@ export type SassNode = SassInternal.SassNode;
 export type Statement = SassInternal.Statement;
 export type ParentStatement<T extends Statement[] | null> =
   SassInternal.ParentStatement<T>;
+export type ArgumentList = SassInternal.ArgumentList;
 export type AtRootRule = SassInternal.AtRootRule;
 export type AtRule = SassInternal.AtRule;
+export type ContentBlock = SassInternal.ContentBlock;
 export type DebugRule = SassInternal.DebugRule;
 export type EachRule = SassInternal.EachRule;
 export type ErrorRule = SassInternal.ErrorRule;
@@ -292,6 +323,7 @@ export type ExtendRule = SassInternal.ExtendRule;
 export type ForRule = SassInternal.ForRule;
 export type ForwardRule = SassInternal.ForwardRule;
 export type FunctionRule = SassInternal.FunctionRule;
+export type IncludeRule = SassInternal.IncludeRule;
 export type LoudComment = SassInternal.LoudComment;
 export type MediaRule = SassInternal.MediaRule;
 export type MixinRule = SassInternal.MixinRule;
@@ -324,6 +356,7 @@ export interface StatementVisitorObject<T> {
   visitForRule(node: ForRule): T;
   visitForwardRule(node: ForwardRule): T;
   visitFunctionRule(node: FunctionRule): T;
+  visitIncludeRule(node: IncludeRule): T;
   visitLoudComment(node: LoudComment): T;
   visitMediaRule(node: MediaRule): T;
   visitMixinRule(node: MixinRule): T;
@@ -344,9 +377,10 @@ export interface ExpressionVisitorObject<T> {
   visitNumberExpression(node: NumberExpression): T;
 }
 
+export const createExpressionVisitor = sassInternal.createExpressionVisitor;
+export const createStatementVisitor = sassInternal.createStatementVisitor;
+export const mapToRecord = sassInternal.mapToRecord;
 export const parse = sassInternal.parse;
 export const parseIdentifier = sassInternal.parseIdentifier;
-export const toCssIdentifier = sassInternal.toCssIdentifier;
-export const createStatementVisitor = sassInternal.createStatementVisitor;
-export const createExpressionVisitor = sassInternal.createExpressionVisitor;
 export const setToJS = sassInternal.setToJS;
+export const toCssIdentifier = sassInternal.toCssIdentifier;
