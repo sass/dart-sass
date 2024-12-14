@@ -10,7 +10,7 @@ import {
   ConfiguredVariableProps,
 } from './configured-variable';
 import {LazySource} from './lazy-source';
-import {Node} from './node';
+import {Node, NodeProps} from './node';
 import type * as sassInternal from './sass-internal';
 import * as utils from './utils';
 import {ForwardRule} from './statement/forward-rule';
@@ -37,7 +37,7 @@ export interface ConfigurationRaws {
  *
  * @category Statement
  */
-export interface ConfigurationProps {
+export interface ConfigurationProps extends NodeProps {
   raws?: ConfigurationRaws;
   variables:
     | Record<string, ConfiguredVariableExpressionProps>
