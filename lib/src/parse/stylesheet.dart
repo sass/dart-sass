@@ -1219,13 +1219,14 @@ abstract class StylesheetParser extends Parser {
   /// Consumes the contents of a `supports()` function after an `@import` rule
   /// (but not the function name or parentheses).
   SupportsCondition _importSupportsQuery() {
+    whitespace(consumeNewlines: true);
     if (scanIdentifier("not")) {
       whitespace(consumeNewlines: true);
       var start = scanner.state;
       return SupportsNegation(
           _supportsConditionInParens(), scanner.spanFrom(start));
     } else if (scanner.peekChar() == $lparen) {
-      return _supportsCondition();
+      return _supportsCondition(inParentheses: true);
     } else {
       if (_tryImportSupportsFunction() case var function?) return function;
 
@@ -1459,7 +1460,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   @protected
   SupportsRule supportsRule(LineScannerState start) {
-    whitespace(consumeNewlines: false);
+    whitespace(consumeNewlines: true);
     var condition = _supportsCondition();
     whitespace(consumeNewlines: false);
     return _withChildren(_statement, start,
@@ -3322,7 +3323,11 @@ abstract class StylesheetParser extends Parser {
   // ## Supports Conditions
 
   /// Consumes a `@supports` condition.
-  SupportsCondition _supportsCondition() {
+  ///
+  /// Set [inParentheses] to true if the condition is inside parentheses, to
+  /// allow the indented syntax to consume newlines where a statement otherwise
+  /// would end.
+  SupportsCondition _supportsCondition({bool inParentheses = false}) {
     var start = scanner.state;
     if (scanIdentifier("not")) {
       whitespace(consumeNewlines: true);
@@ -3331,7 +3336,7 @@ abstract class StylesheetParser extends Parser {
     }
 
     var condition = _supportsConditionInParens();
-    whitespace(consumeNewlines: false);
+    whitespace(consumeNewlines: inParentheses);
     String? operator;
     while (lookingAtIdentifier()) {
       if (operator != null) {
@@ -3382,7 +3387,7 @@ abstract class StylesheetParser extends Parser {
       scanner.expectChar($rparen);
       return SupportsNegation(condition, scanner.spanFrom(start));
     } else if (scanner.peekChar() == $lparen) {
-      var condition = _supportsCondition();
+      var condition = _supportsCondition(inParentheses: true);
       scanner.expectChar($rparen);
       return condition.withSpan(scanner.spanFrom(start));
     }
