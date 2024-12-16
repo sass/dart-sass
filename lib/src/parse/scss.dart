@@ -20,7 +20,7 @@ class ScssParser extends StylesheetParser {
   Interpolation styleRuleSelector() => almostAnyValue();
 
   void expectStatementSeparator([String? name]) {
-    whitespaceWithoutComments(consumeNewlines: true);
+    whitespaceWithoutComments(allowNewlines: true);
     if (scanner.isDone) return;
     if (scanner.peekChar() case $semicolon || $rbrace) return;
     scanner.expectChar($semicolon);
@@ -38,7 +38,7 @@ class ScssParser extends StylesheetParser {
 
   bool scanElse(int ifIndentation) {
     var start = scanner.state;
-    whitespace(consumeNewlines: true);
+    whitespace(allowNewlines: true);
     var beforeAt = scanner.state;
     if (scanner.scanChar($at)) {
       if (scanIdentifier('else', caseSensitive: true)) return true;
@@ -62,7 +62,7 @@ class ScssParser extends StylesheetParser {
 
   List<Statement> children(Statement child()) {
     scanner.expectChar($lbrace);
-    whitespaceWithoutComments(consumeNewlines: true);
+    whitespaceWithoutComments(allowNewlines: true);
     var children = <Statement>[];
     while (true) {
       switch (scanner.peekChar()) {
@@ -73,17 +73,17 @@ class ScssParser extends StylesheetParser {
           switch (scanner.peekChar(1)) {
             case $slash:
               children.add(_silentComment());
-              whitespaceWithoutComments(consumeNewlines: true);
+              whitespaceWithoutComments(allowNewlines: true);
             case $asterisk:
               children.add(_loudComment());
-              whitespaceWithoutComments(consumeNewlines: true);
+              whitespaceWithoutComments(allowNewlines: true);
             default:
               children.add(child());
           }
 
         case $semicolon:
           scanner.readChar();
-          whitespaceWithoutComments(consumeNewlines: true);
+          whitespaceWithoutComments(allowNewlines: true);
 
         case $rbrace:
           scanner.expectChar($rbrace);
@@ -97,7 +97,7 @@ class ScssParser extends StylesheetParser {
 
   List<Statement> statements(Statement? statement()) {
     var statements = <Statement>[];
-    whitespaceWithoutComments(consumeNewlines: true);
+    whitespaceWithoutComments(allowNewlines: true);
     while (!scanner.isDone) {
       switch (scanner.peekChar()) {
         case $dollar:
@@ -107,17 +107,17 @@ class ScssParser extends StylesheetParser {
           switch (scanner.peekChar(1)) {
             case $slash:
               statements.add(_silentComment());
-              whitespaceWithoutComments(consumeNewlines: true);
+              whitespaceWithoutComments(allowNewlines: true);
             case $asterisk:
               statements.add(_loudComment());
-              whitespaceWithoutComments(consumeNewlines: true);
+              whitespaceWithoutComments(allowNewlines: true);
             default:
               if (statement() case var child?) statements.add(child);
           }
 
         case $semicolon:
           scanner.readChar();
-          whitespaceWithoutComments(consumeNewlines: true);
+          whitespaceWithoutComments(allowNewlines: true);
 
         default:
           if (statement() case var child?) statements.add(child);

@@ -259,7 +259,7 @@ class SassParser extends StylesheetParser {
               buffer.writeCharCode(scanner.readChar());
               buffer.writeCharCode(scanner.readChar());
               var span = scanner.spanFrom(start);
-              whitespace(consumeNewlines: false);
+              whitespace(allowNewlines: false);
 
               // For backwards compatibility, allow additional comments after
               // the initial comment is closed.
@@ -269,7 +269,7 @@ class SassParser extends StylesheetParser {
                   _expectNewline();
                 }
                 _readIndentation();
-                whitespace(consumeNewlines: false);
+                whitespace(allowNewlines: false);
               }
 
               if (!scanner.isDone && !scanner.peekChar().isNewline) {
@@ -309,14 +309,14 @@ class SassParser extends StylesheetParser {
     return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
   }
 
-  void whitespaceWithoutComments({required bool consumeNewlines}) {
+  void whitespaceWithoutComments({required bool allowNewlines}) {
     // This overrides whitespace consumption so that it doesn't consume
     // newlines where that would cause a statement to end.
     while (!scanner.isDone) {
       var next = scanner.peekChar();
-      if (!consumeNewlines && !next.isSpaceOrTab) {
+      if (!allowNewlines && !next.isSpaceOrTab) {
         break;
-      } else if (consumeNewlines && !next.isWhitespace) {
+      } else if (allowNewlines && !next.isWhitespace) {
         break;
       }
       scanner.readChar();
