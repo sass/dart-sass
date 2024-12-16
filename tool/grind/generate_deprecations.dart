@@ -78,5 +78,7 @@ void deprecations() {
     fail("Couldn't find block for generated code in lib/src/deprecation.dart");
   }
   var newCode = dartText.replaceFirst(_blockRegex, buffer.toString());
-  dartFile.writeAsStringSync(DartFormatter().format(newCode));
+  dartFile.writeAsStringSync(
+      DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+          .format(newCode));
 }

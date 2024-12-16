@@ -58,7 +58,8 @@ String synchronizeFile(String source) {
   parseFile(path: source, featureSet: FeatureSet.latestLanguageVersion())
       .unit
       .accept(visitor);
-  return DartFormatter().format(visitor.result);
+  return DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+      .format(visitor.result);
 }
 
 /// The visitor that traverses the asynchronous parse tree and converts it to

@@ -37,30 +37,33 @@ import 'visitor/serialize.dart';
 ///
 /// If both `importCache` and `nodeImporter` are provided, the importers in
 /// `importCache` will be evaluated before `nodeImporter`.
-CompileResult compile(String path,
-    {Syntax? syntax,
-    Logger? logger,
-    ImportCache? importCache,
-    NodeImporter? nodeImporter,
-    Iterable<Callable>? functions,
-    OutputStyle? style,
-    bool useSpaces = true,
-    int? indentWidth,
-    LineFeed? lineFeed,
-    bool quietDeps = false,
-    bool verbose = false,
-    bool sourceMap = false,
-    bool charset = true,
-    Iterable<Deprecation>? silenceDeprecations,
-    Iterable<Deprecation>? fatalDeprecations,
-    Iterable<Deprecation>? futureDeprecations}) {
+CompileResult compile(
+  String path, {
+  Syntax? syntax,
+  Logger? logger,
+  ImportCache? importCache,
+  NodeImporter? nodeImporter,
+  Iterable<Callable>? functions,
+  OutputStyle? style,
+  bool useSpaces = true,
+  int? indentWidth,
+  LineFeed? lineFeed,
+  bool quietDeps = false,
+  bool verbose = false,
+  bool sourceMap = false,
+  bool charset = true,
+  Iterable<Deprecation>? silenceDeprecations,
+  Iterable<Deprecation>? fatalDeprecations,
+  Iterable<Deprecation>? futureDeprecations,
+}) {
   DeprecationProcessingLogger deprecationLogger =
-      logger = DeprecationProcessingLogger(logger ?? Logger.stderr(),
-          silenceDeprecations: {...?silenceDeprecations},
-          fatalDeprecations: {...?fatalDeprecations},
-          futureDeprecations: {...?futureDeprecations},
-          limitRepetition: !verbose)
-        ..validate();
+      logger = DeprecationProcessingLogger(
+        logger ?? Logger.stderr(),
+        silenceDeprecations: {...?silenceDeprecations},
+        fatalDeprecations: {...?fatalDeprecations},
+        futureDeprecations: {...?futureDeprecations},
+        limitRepetition: !verbose,
+      )..validate();
 
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
@@ -68,29 +71,35 @@ CompileResult compile(String path,
   if (nodeImporter == null &&
       (syntax == null || syntax == Syntax.forPath(path))) {
     importCache ??= ImportCache.none();
-    stylesheet = importCache.importCanonical(
-        FilesystemImporter.cwd, p.toUri(canonicalize(path)),
-        originalUrl: p.toUri(path))!;
+    stylesheet =
+        importCache.importCanonical(
+          FilesystemImporter.cwd,
+          p.toUri(canonicalize(path)),
+          originalUrl: p.toUri(path),
+        )!;
   } else {
     stylesheet = Stylesheet.parse(
-        readFile(path), syntax ?? Syntax.forPath(path),
-        url: p.toUri(path));
+      readFile(path),
+      syntax ?? Syntax.forPath(path),
+      url: p.toUri(path),
+    );
   }
 
   var result = _compileStylesheet(
-      stylesheet,
-      logger,
-      importCache,
-      nodeImporter,
-      FilesystemImporter.cwd,
-      functions,
-      style,
-      useSpaces,
-      indentWidth,
-      lineFeed,
-      quietDeps,
-      sourceMap,
-      charset);
+    stylesheet,
+    logger,
+    importCache,
+    nodeImporter,
+    FilesystemImporter.cwd,
+    functions,
+    style,
+    useSpaces,
+    indentWidth,
+    lineFeed,
+    quietDeps,
+    sourceMap,
+    charset,
+  );
 
   deprecationLogger.summarize(js: nodeImporter != null);
   return result;
@@ -100,51 +109,55 @@ CompileResult compile(String path,
 /// support the node-sass compatible API.
 ///
 /// At most one of `importCache` and `nodeImporter` may be provided at once.
-CompileResult compileString(String source,
-    {Syntax? syntax,
-    Logger? logger,
-    ImportCache? importCache,
-    NodeImporter? nodeImporter,
-    Iterable<Importer>? importers,
-    Iterable<String>? loadPaths,
-    Importer? importer,
-    Iterable<Callable>? functions,
-    OutputStyle? style,
-    bool useSpaces = true,
-    int? indentWidth,
-    LineFeed? lineFeed,
-    Object? url,
-    bool quietDeps = false,
-    bool verbose = false,
-    bool sourceMap = false,
-    bool charset = true,
-    Iterable<Deprecation>? silenceDeprecations,
-    Iterable<Deprecation>? fatalDeprecations,
-    Iterable<Deprecation>? futureDeprecations}) {
+CompileResult compileString(
+  String source, {
+  Syntax? syntax,
+  Logger? logger,
+  ImportCache? importCache,
+  NodeImporter? nodeImporter,
+  Iterable<Importer>? importers,
+  Iterable<String>? loadPaths,
+  Importer? importer,
+  Iterable<Callable>? functions,
+  OutputStyle? style,
+  bool useSpaces = true,
+  int? indentWidth,
+  LineFeed? lineFeed,
+  Object? url,
+  bool quietDeps = false,
+  bool verbose = false,
+  bool sourceMap = false,
+  bool charset = true,
+  Iterable<Deprecation>? silenceDeprecations,
+  Iterable<Deprecation>? fatalDeprecations,
+  Iterable<Deprecation>? futureDeprecations,
+}) {
   DeprecationProcessingLogger deprecationLogger =
-      logger = DeprecationProcessingLogger(logger ?? Logger.stderr(),
-          silenceDeprecations: {...?silenceDeprecations},
-          fatalDeprecations: {...?fatalDeprecations},
-          futureDeprecations: {...?futureDeprecations},
-          limitRepetition: !verbose)
-        ..validate();
+      logger = DeprecationProcessingLogger(
+        logger ?? Logger.stderr(),
+        silenceDeprecations: {...?silenceDeprecations},
+        fatalDeprecations: {...?fatalDeprecations},
+        futureDeprecations: {...?futureDeprecations},
+        limitRepetition: !verbose,
+      )..validate();
 
   var stylesheet = Stylesheet.parse(source, syntax ?? Syntax.scss, url: url);
 
   var result = _compileStylesheet(
-      stylesheet,
-      logger,
-      importCache,
-      nodeImporter,
-      importer ?? (isBrowser ? NoOpImporter() : FilesystemImporter.cwd),
-      functions,
-      style,
-      useSpaces,
-      indentWidth,
-      lineFeed,
-      quietDeps,
-      sourceMap,
-      charset);
+    stylesheet,
+    logger,
+    importCache,
+    nodeImporter,
+    importer ?? (isBrowser ? NoOpImporter() : FilesystemImporter.cwd),
+    functions,
+    style,
+    useSpaces,
+    indentWidth,
+    lineFeed,
+    quietDeps,
+    sourceMap,
+    charset,
+  );
 
   deprecationLogger.summarize(js: nodeImporter != null);
   return result;
@@ -154,53 +167,62 @@ CompileResult compileString(String source,
 ///
 /// Arguments are handled as for [compileString].
 CompileResult _compileStylesheet(
-    Stylesheet stylesheet,
-    Logger? logger,
-    ImportCache? importCache,
-    NodeImporter? nodeImporter,
-    Importer importer,
-    Iterable<Callable>? functions,
-    OutputStyle? style,
-    bool useSpaces,
-    int? indentWidth,
-    LineFeed? lineFeed,
-    bool quietDeps,
-    bool sourceMap,
-    bool charset) {
+  Stylesheet stylesheet,
+  Logger? logger,
+  ImportCache? importCache,
+  NodeImporter? nodeImporter,
+  Importer importer,
+  Iterable<Callable>? functions,
+  OutputStyle? style,
+  bool useSpaces,
+  int? indentWidth,
+  LineFeed? lineFeed,
+  bool quietDeps,
+  bool sourceMap,
+  bool charset,
+) {
   if (nodeImporter != null) {
     logger?.warnForDeprecation(
-        Deprecation.legacyJsApi,
-        'The legacy JS API is deprecated and will be removed in '
-        'Dart Sass 2.0.0.\n\n'
-        'More info: https://sass-lang.com/d/legacy-js-api');
+      Deprecation.legacyJsApi,
+      'The legacy JS API is deprecated and will be removed in '
+      'Dart Sass 2.0.0.\n\n'
+      'More info: https://sass-lang.com/d/legacy-js-api',
+    );
   }
-  var evaluateResult = evaluate(stylesheet,
-      importCache: importCache,
-      nodeImporter: nodeImporter,
-      importer: importer,
-      functions: functions,
-      logger: logger,
-      quietDeps: quietDeps,
-      sourceMap: sourceMap);
+  var evaluateResult = evaluate(
+    stylesheet,
+    importCache: importCache,
+    nodeImporter: nodeImporter,
+    importer: importer,
+    functions: functions,
+    logger: logger,
+    quietDeps: quietDeps,
+    sourceMap: sourceMap,
+  );
 
-  var serializeResult = serialize(evaluateResult.stylesheet,
-      style: style,
-      useSpaces: useSpaces,
-      indentWidth: indentWidth,
-      lineFeed: lineFeed,
-      logger: logger,
-      sourceMap: sourceMap,
-      charset: charset);
+  var serializeResult = serialize(
+    evaluateResult.stylesheet,
+    style: style,
+    useSpaces: useSpaces,
+    indentWidth: indentWidth,
+    lineFeed: lineFeed,
+    logger: logger,
+    sourceMap: sourceMap,
+    charset: charset,
+  );
 
   var resultSourceMap = serializeResult.sourceMap;
   if (resultSourceMap != null && importCache != null) {
     mapInPlace(
-        resultSourceMap.urls,
-        (url) => url == ''
-            ? Uri.dataFromString(stylesheet.span.file.getText(0),
-                    encoding: utf8)
-                .toString()
-            : importCache.sourceMapUrl(Uri.parse(url)).toString());
+      resultSourceMap.urls,
+      (url) =>
+          url == ''
+              ? Uri.dataFromString(
+                stylesheet.span.file.getText(0),
+                encoding: utf8,
+              ).toString()
+              : importCache.sourceMapUrl(Uri.parse(url)).toString(),
+    );
   }
 
   return CompileResult(evaluateResult, serializeResult);
