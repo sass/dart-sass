@@ -177,8 +177,6 @@ abstract class StylesheetParser extends Parser {
         return atRule(() => _statement(), root: root);
 
       case $plus:
-        // TODO: newlines not supported because of `lookingAtIdentifier`.
-        // This means it doesn't behave the same as = mixin syntax below.
         if (!indented || !lookingAtIdentifier(1)) return _styleRule();
         _isUseAllowed = false;
         var start = scanner.state;
@@ -2835,6 +2833,8 @@ abstract class StylesheetParser extends Parser {
     var start = scanner.state;
     var buffer = InterpolationBuffer();
 
+    var brackets = <int>[];
+
     loop:
     while (true) {
       switch (scanner.peekChar()) {
@@ -2870,7 +2870,7 @@ abstract class StylesheetParser extends Parser {
           buffer.addInterpolation(interpolatedIdentifier());
 
         case $cr || $lf || $ff:
-          if (indented) break loop;
+          if (indented && brackets.isEmpty) break loop;
           buffer.writeCharCode(scanner.readChar());
 
         case $exclamation || $semicolon || $lbrace || $rbrace:
@@ -2894,6 +2894,17 @@ abstract class StylesheetParser extends Parser {
             scanner.state = beforeUrl;
             buffer.writeCharCode(scanner.readChar());
           }
+
+        case $lparen || $lbracket:
+          var bracket = scanner.readChar();
+          buffer.writeCharCode(bracket);
+          brackets.add(opposite(bracket));
+
+        case $rparen || $rbracket:
+          if (brackets.isEmpty) break loop;
+          var bracket = brackets.removeLast();
+          scanner.expectChar(bracket);
+          buffer.writeCharCode(bracket);
 
         case null:
           break loop;
