@@ -18,109 +18,153 @@ enum Deprecation {
   // Checksum: 47c97f7824eb25d7f1e64e3230938b88330d40b4
 
   /// Deprecation for passing a string directly to meta.call().
-  callString('call-string',
-      deprecatedIn: '0.0.0',
-      description: 'Passing a string directly to meta.call().'),
+  callString(
+    'call-string',
+    deprecatedIn: '0.0.0',
+    description: 'Passing a string directly to meta.call().',
+  ),
 
   /// Deprecation for @elseif.
   elseif('elseif', deprecatedIn: '1.3.2', description: '@elseif.'),
 
   /// Deprecation for @-moz-document.
-  mozDocument('moz-document',
-      deprecatedIn: '1.7.2', description: '@-moz-document.'),
+  mozDocument(
+    'moz-document',
+    deprecatedIn: '1.7.2',
+    description: '@-moz-document.',
+  ),
 
   /// Deprecation for imports using relative canonical URLs.
-  relativeCanonical('relative-canonical',
-      deprecatedIn: '1.14.2',
-      description: 'Imports using relative canonical URLs.'),
+  relativeCanonical(
+    'relative-canonical',
+    deprecatedIn: '1.14.2',
+    description: 'Imports using relative canonical URLs.',
+  ),
 
   /// Deprecation for declaring new variables with !global.
-  newGlobal('new-global',
-      deprecatedIn: '1.17.2',
-      description: 'Declaring new variables with !global.'),
+  newGlobal(
+    'new-global',
+    deprecatedIn: '1.17.2',
+    description: 'Declaring new variables with !global.',
+  ),
 
   /// Deprecation for using color module functions in place of plain CSS functions.
-  colorModuleCompat('color-module-compat',
-      deprecatedIn: '1.23.0',
-      description:
-          'Using color module functions in place of plain CSS functions.'),
+  colorModuleCompat(
+    'color-module-compat',
+    deprecatedIn: '1.23.0',
+    description:
+        'Using color module functions in place of plain CSS functions.',
+  ),
 
   /// Deprecation for / operator for division.
-  slashDiv('slash-div',
-      deprecatedIn: '1.33.0', description: '/ operator for division.'),
+  slashDiv(
+    'slash-div',
+    deprecatedIn: '1.33.0',
+    description: '/ operator for division.',
+  ),
 
   /// Deprecation for leading, trailing, and repeated combinators.
-  bogusCombinators('bogus-combinators',
-      deprecatedIn: '1.54.0',
-      description: 'Leading, trailing, and repeated combinators.'),
+  bogusCombinators(
+    'bogus-combinators',
+    deprecatedIn: '1.54.0',
+    description: 'Leading, trailing, and repeated combinators.',
+  ),
 
   /// Deprecation for ambiguous + and - operators.
-  strictUnary('strict-unary',
-      deprecatedIn: '1.55.0', description: 'Ambiguous + and - operators.'),
+  strictUnary(
+    'strict-unary',
+    deprecatedIn: '1.55.0',
+    description: 'Ambiguous + and - operators.',
+  ),
 
   /// Deprecation for passing invalid units to built-in functions.
-  functionUnits('function-units',
-      deprecatedIn: '1.56.0',
-      description: 'Passing invalid units to built-in functions.'),
+  functionUnits(
+    'function-units',
+    deprecatedIn: '1.56.0',
+    description: 'Passing invalid units to built-in functions.',
+  ),
 
   /// Deprecation for using !default or !global multiple times for one variable.
-  duplicateVarFlags('duplicate-var-flags',
-      deprecatedIn: '1.62.0',
-      description:
-          'Using !default or !global multiple times for one variable.'),
+  duplicateVarFlags(
+    'duplicate-var-flags',
+    deprecatedIn: '1.62.0',
+    description: 'Using !default or !global multiple times for one variable.',
+  ),
 
   /// Deprecation for passing null as alpha in the ${isJS ? 'JS': 'Dart'} API.
-  nullAlpha('null-alpha',
-      deprecatedIn: '1.62.3',
-      description: 'Passing null as alpha in the ${isJS ? 'JS' : 'Dart'} API.'),
+  nullAlpha(
+    'null-alpha',
+    deprecatedIn: '1.62.3',
+    description: 'Passing null as alpha in the ${isJS ? 'JS' : 'Dart'} API.',
+  ),
 
   /// Deprecation for passing percentages to the Sass abs() function.
-  absPercent('abs-percent',
-      deprecatedIn: '1.65.0',
-      description: 'Passing percentages to the Sass abs() function.'),
+  absPercent(
+    'abs-percent',
+    deprecatedIn: '1.65.0',
+    description: 'Passing percentages to the Sass abs() function.',
+  ),
 
   /// Deprecation for using the current working directory as an implicit load path.
-  fsImporterCwd('fs-importer-cwd',
-      deprecatedIn: '1.73.0',
-      description:
-          'Using the current working directory as an implicit load path.'),
+  fsImporterCwd(
+    'fs-importer-cwd',
+    deprecatedIn: '1.73.0',
+    description:
+        'Using the current working directory as an implicit load path.',
+  ),
 
   /// Deprecation for function and mixin names beginning with --.
-  cssFunctionMixin('css-function-mixin',
-      deprecatedIn: '1.76.0',
-      description: 'Function and mixin names beginning with --.'),
+  cssFunctionMixin(
+    'css-function-mixin',
+    deprecatedIn: '1.76.0',
+    description: 'Function and mixin names beginning with --.',
+  ),
 
   /// Deprecation for declarations after or between nested rules.
-  mixedDecls('mixed-decls',
-      deprecatedIn: '1.77.7',
-      description: 'Declarations after or between nested rules.'),
+  mixedDecls(
+    'mixed-decls',
+    deprecatedIn: '1.77.7',
+    description: 'Declarations after or between nested rules.',
+  ),
 
   /// Deprecation for meta.feature-exists
-  featureExists('feature-exists',
-      deprecatedIn: '1.78.0', description: 'meta.feature-exists'),
+  featureExists(
+    'feature-exists',
+    deprecatedIn: '1.78.0',
+    description: 'meta.feature-exists',
+  ),
 
   /// Deprecation for certain uses of built-in sass:color functions.
-  color4Api('color-4-api',
-      deprecatedIn: '1.79.0',
-      description: 'Certain uses of built-in sass:color functions.'),
+  color4Api(
+    'color-4-api',
+    deprecatedIn: '1.79.0',
+    description: 'Certain uses of built-in sass:color functions.',
+  ),
 
   /// Deprecation for using global color functions instead of sass:color.
-  colorFunctions('color-functions',
-      deprecatedIn: '1.79.0',
-      description: 'Using global color functions instead of sass:color.'),
+  colorFunctions(
+    'color-functions',
+    deprecatedIn: '1.79.0',
+    description: 'Using global color functions instead of sass:color.',
+  ),
 
   /// Deprecation for legacy JS API.
-  legacyJsApi('legacy-js-api',
-      deprecatedIn: '1.79.0', description: 'Legacy JS API.'),
+  legacyJsApi(
+    'legacy-js-api',
+    deprecatedIn: '1.79.0',
+    description: 'Legacy JS API.',
+  ),
 
   /// Deprecation for @import rules.
   import('import', deprecatedIn: '1.80.0', description: '@import rules.'),
 
   /// Deprecation for global built-in functions that are available in sass: modules.
-  globalBuiltin('global-builtin',
-      deprecatedIn: '1.80.0',
-      description:
-          'Global built-in functions that are available in sass: modules.'),
+  globalBuiltin(
+    'global-builtin',
+    deprecatedIn: '1.80.0',
+    description:
+        'Global built-in functions that are available in sass: modules.',
+  ),
 
   // END AUTOGENERATED CODE
 
@@ -176,30 +220,32 @@ enum Deprecation {
 
   /// Constructs a regular deprecation.
   const Deprecation(this.id, {required String? deprecatedIn, this.description})
-      : _deprecatedIn = deprecatedIn,
-        _obsoleteIn = null,
-        isFuture = false;
+    : _deprecatedIn = deprecatedIn,
+      _obsoleteIn = null,
+      isFuture = false;
 
   /// Constructs a future deprecation.
   // ignore: unused_element
   const Deprecation.future(this.id, {this.description})
-      : _deprecatedIn = null,
-        _obsoleteIn = null,
-        isFuture = true;
+    : _deprecatedIn = null,
+      _obsoleteIn = null,
+      isFuture = true;
 
   @override
   String toString() => id;
 
   /// Returns the deprecation with a given ID, or null if none exists.
-  static Deprecation? fromId(String id) => Deprecation.values
-      .firstWhereOrNull((deprecation) => deprecation.id == id);
+  static Deprecation? fromId(String id) => Deprecation.values.firstWhereOrNull(
+    (deprecation) => deprecation.id == id,
+  );
 
   /// Returns the set of all deprecations done in or before [version].
   static Set<Deprecation> forVersion(Version version) {
     var range = VersionRange(max: version, includeMax: true);
     return {
       for (var deprecation in Deprecation.values)
-        if (deprecation.deprecatedIn.andThen(range.allows) ?? false) deprecation
+        if (deprecation.deprecatedIn.andThen(range.allows) ?? false)
+          deprecation,
     };
   }
 }

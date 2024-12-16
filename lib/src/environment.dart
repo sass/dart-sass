@@ -154,41 +154,42 @@ final class Environment {
   ///
   /// If [sourceMap] is `true`, this tracks variables' source locations
   Environment()
-      : _modules = {},
-        _namespaceNodes = {},
-        _globalModules = {},
-        _importedModules = {},
-        _forwardedModules = null,
-        _nestedForwardedModules = null,
-        _allModules = [],
-        _variables = [{}],
-        _variableNodes = [{}],
-        _variableIndices = {},
-        _functions = [{}],
-        _functionIndices = {},
-        _mixins = [{}],
-        _mixinIndices = {};
+    : _modules = {},
+      _namespaceNodes = {},
+      _globalModules = {},
+      _importedModules = {},
+      _forwardedModules = null,
+      _nestedForwardedModules = null,
+      _allModules = [],
+      _variables = [{}],
+      _variableNodes = [{}],
+      _variableIndices = {},
+      _functions = [{}],
+      _functionIndices = {},
+      _mixins = [{}],
+      _mixinIndices = {};
 
   Environment._(
-      this._modules,
-      this._namespaceNodes,
-      this._globalModules,
-      this._importedModules,
-      this._forwardedModules,
-      this._nestedForwardedModules,
-      this._allModules,
-      this._variables,
-      this._variableNodes,
-      this._functions,
-      this._mixins,
-      this._content)
-      // Lazily fill in the indices rather than eagerly copying them from the
-      // existing environment in closure() because the copying took a lot of
-      // time and was rarely helpful. This saves a bunch of time on Susy's
-      // tests.
-      : _variableIndices = {},
-        _functionIndices = {},
-        _mixinIndices = {};
+    this._modules,
+    this._namespaceNodes,
+    this._globalModules,
+    this._importedModules,
+    this._forwardedModules,
+    this._nestedForwardedModules,
+    this._allModules,
+    this._variables,
+    this._variableNodes,
+    this._functions,
+    this._mixins,
+    this._content,
+  )
+    // Lazily fill in the indices rather than eagerly copying them from the
+    // existing environment in closure() because the copying took a lot of
+    // time and was rarely helpful. This saves a bunch of time on Susy's
+    // tests.
+    : _variableIndices = {},
+      _functionIndices = {},
+      _mixinIndices = {};
 
   /// Creates a closure based on this environment.
   ///
@@ -196,18 +197,19 @@ final class Environment {
   /// However, any new declarations or assignments in scopes that are visible
   /// when the closure was created will be reflected.
   Environment closure() => Environment._(
-      _modules,
-      _namespaceNodes,
-      _globalModules,
-      _importedModules,
-      _forwardedModules,
-      _nestedForwardedModules,
-      _allModules,
-      _variables.toList(),
-      _variableNodes.toList(),
-      _functions.toList(),
-      _mixins.toList(),
-      _content);
+    _modules,
+    _namespaceNodes,
+    _globalModules,
+    _importedModules,
+    _forwardedModules,
+    _nestedForwardedModules,
+    _allModules,
+    _variables.toList(),
+    _variableNodes.toList(),
+    _functions.toList(),
+    _mixins.toList(),
+    _content,
+  );
 
   /// Returns a new environment to use for an imported file.
   ///
@@ -215,18 +217,19 @@ final class Environment {
   /// and mixins, but excludes most modules (except for global modules that
   /// result from importing a file with forwards).
   Environment forImport() => Environment._(
-      {},
-      {},
-      {},
-      _importedModules,
-      null,
-      null,
-      [],
-      _variables.toList(),
-      _variableNodes.toList(),
-      _functions.toList(),
-      _mixins.toList(),
-      _content);
+    {},
+    {},
+    {},
+    _importedModules,
+    null,
+    null,
+    [],
+    _variables.toList(),
+    _variableNodes.toList(),
+    _functions.toList(),
+    _mixins.toList(),
+    _content,
+  );
 
   /// Adds [module] to the set of modules visible in this environment.
   ///
@@ -238,8 +241,11 @@ final class Environment {
   /// Throws a [SassScriptException] if there's already a module with the given
   /// [namespace], or if [namespace] is `null` and [module] defines a variable
   /// with the same name as a variable defined in this environment.
-  void addModule(Module<Callable> module, AstNode nodeWithSpan,
-      {String? namespace}) {
+  void addModule(
+    Module<Callable> module,
+    AstNode nodeWithSpan, {
+    String? namespace,
+  }) {
     if (namespace == null) {
       _globalModules[module] = nodeWithSpan;
       _allModules.add(module);
@@ -247,16 +253,18 @@ final class Environment {
       if (_variables.first.keys.firstWhereOrNull(module.variables.containsKey)
           case var name?) {
         throw SassScriptException(
-            'This module and the new module both define a variable named '
-            '"\$$name".');
+          'This module and the new module both define a variable named '
+          '"\$$name".',
+        );
       }
     } else {
       if (_modules.containsKey(namespace)) {
         var span = _namespaceNodes[namespace]?.span;
         throw MultiSpanSassScriptException(
-            "There's already a module with namespace \"$namespace\".",
-            "new @use",
-            {if (span != null) span: "original @use"});
+          "There's already a module with namespace \"$namespace\".",
+          "new @use",
+          {if (span != null) span: "original @use"},
+        );
       }
 
       _modules[namespace] = module;
@@ -273,9 +281,19 @@ final class Environment {
     var view = ForwardedModuleView.ifNecessary(module, rule);
     for (var other in forwardedModules.keys) {
       _assertNoConflicts(
-          view.variables, other.variables, view, other, "variable");
+        view.variables,
+        other.variables,
+        view,
+        other,
+        "variable",
+      );
       _assertNoConflicts(
-          view.functions, other.functions, view, other, "function");
+        view.functions,
+        other.functions,
+        view,
+        other,
+        "function",
+      );
       _assertNoConflicts(view.mixins, other.mixins, view, other, "mixin");
     }
 
@@ -292,11 +310,12 @@ final class Environment {
   ///
   /// The [type] and [newModuleNodeWithSpan] are used for error reporting.
   void _assertNoConflicts(
-      Map<String, Object> newMembers,
-      Map<String, Object> oldMembers,
-      Module<Callable> newModule,
-      Module<Callable> oldModule,
-      String type) {
+    Map<String, Object> newMembers,
+    Map<String, Object> oldMembers,
+    Module<Callable> newModule,
+    Module<Callable> oldModule,
+    String type,
+  ) {
     Map<String, Object> smaller;
     Map<String, Object> larger;
     if (newMembers.length < oldMembers.length) {
@@ -319,9 +338,10 @@ final class Environment {
       if (type == "variable") name = "\$$name";
       var span = _forwardedModules?[oldModule]?.span;
       throw MultiSpanSassScriptException(
-          'Two forwarded modules both define a $type named $name.',
-          "new @forward",
-          {if (span != null) span: "original @forward"});
+        'Two forwarded modules both define a $type named $name.',
+        "new @forward",
+        {if (span != null) span: "original @forward"},
+      );
     }
   }
 
@@ -349,23 +369,25 @@ final class Environment {
     }
 
     var forwardedVariableNames = {
-      for (var module in forwarded.keys) ...module.variables.keys
+      for (var module in forwarded.keys) ...module.variables.keys,
     };
     var forwardedFunctionNames = {
-      for (var module in forwarded.keys) ...module.functions.keys
+      for (var module in forwarded.keys) ...module.functions.keys,
     };
     var forwardedMixinNames = {
-      for (var module in forwarded.keys) ...module.mixins.keys
+      for (var module in forwarded.keys) ...module.mixins.keys,
     };
 
     if (atRoot) {
       // Hide members from modules that have already been imported or
       // forwarded that would otherwise conflict with the @imported members.
       for (var (module, node) in _importedModules.pairs.toList()) {
-        var shadowed = ShadowedModuleView.ifNecessary(module,
-            variables: forwardedVariableNames,
-            mixins: forwardedMixinNames,
-            functions: forwardedFunctionNames);
+        var shadowed = ShadowedModuleView.ifNecessary(
+          module,
+          variables: forwardedVariableNames,
+          mixins: forwardedMixinNames,
+          functions: forwardedFunctionNames,
+        );
         if (shadowed != null) {
           _importedModules.remove(module);
           if (!shadowed.isEmpty) _importedModules[shadowed] = node;
@@ -373,10 +395,12 @@ final class Environment {
       }
 
       for (var (module, node) in forwardedModules.pairs.toList()) {
-        var shadowed = ShadowedModuleView.ifNecessary(module,
-            variables: forwardedVariableNames,
-            mixins: forwardedMixinNames,
-            functions: forwardedFunctionNames);
+        var shadowed = ShadowedModuleView.ifNecessary(
+          module,
+          variables: forwardedVariableNames,
+          mixins: forwardedMixinNames,
+          functions: forwardedFunctionNames,
+        );
         if (shadowed != null) {
           forwardedModules.remove(module);
           if (!shadowed.isEmpty) forwardedModules[shadowed] = node;
@@ -386,8 +410,10 @@ final class Environment {
       _importedModules.addAll(forwarded);
       forwardedModules.addAll(forwarded);
     } else {
-      (_nestedForwardedModules ??=
-              List.generate(_variables.length - 1, (_) => []))
+      (_nestedForwardedModules ??= List.generate(
+            _variables.length - 1,
+            (_) => [],
+          ))
           .last
           .addAll(forwarded.keys);
     }
@@ -536,8 +562,13 @@ final class Environment {
   /// defined with the given namespace, if no variable with the given [name] is
   /// defined in module with the given namespace, or if no [namespace] is passed
   /// and multiple global modules define variables named [name].
-  void setVariable(String name, Value value, AstNode nodeWithSpan,
-      {String? namespace, bool global = false}) {
+  void setVariable(
+    String name,
+    Value value,
+    AstNode nodeWithSpan, {
+    String? namespace,
+    bool global = false,
+  }) {
     if (namespace != null) {
       _getModule(namespace).setVariable(name, value, nodeWithSpan);
       return;
@@ -555,8 +586,11 @@ final class Environment {
       // If this module doesn't already contain a variable named [name], try
       // setting it in a global module.
       if (!_variables.first.containsKey(name)) {
-        var moduleWithName = _fromOneModule(name, "variable",
-            (module) => module.variables.containsKey(name) ? module : null);
+        var moduleWithName = _fromOneModule(
+          name,
+          "variable",
+          (module) => module.variables.containsKey(name) ? module : null,
+        );
         if (moduleWithName != null) {
           moduleWithName.setVariable(name, value, nodeWithSpan);
           return;
@@ -582,10 +616,13 @@ final class Environment {
       }
     }
 
-    var index = _lastVariableName == name
-        ? _lastVariableIndex!
-        : _variableIndices.putIfAbsent(
-            name, () => _variableIndex(name) ?? _variables.length - 1);
+    var index =
+        _lastVariableName == name
+            ? _lastVariableIndex!
+            : _variableIndices.putIfAbsent(
+              name,
+              () => _variableIndex(name) ?? _variables.length - 1,
+            );
     if (!_inSemiGlobalScope && index == 0) {
       index = _variables.length - 1;
       _variableIndices[name] = index;
@@ -800,12 +837,18 @@ final class Environment {
   /// that contains [css] and [preModuleComments] as its CSS, which can be
   /// extended using [extensionStore].
   Module<Callable> toModule(
-      CssStylesheet css,
-      Map<Module<Callable>, List<CssComment>> preModuleComments,
-      ExtensionStore extensionStore) {
+    CssStylesheet css,
+    Map<Module<Callable>, List<CssComment>> preModuleComments,
+    ExtensionStore extensionStore,
+  ) {
     assert(atRoot);
-    return _EnvironmentModule(this, css, preModuleComments, extensionStore,
-        forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)));
+    return _EnvironmentModule(
+      this,
+      css,
+      preModuleComments,
+      extensionStore,
+      forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)),
+    );
   }
 
   /// Returns a module with the same members and upstream modules as `this`, but
@@ -815,19 +858,23 @@ final class Environment {
   /// members into the current scope. It's the only situation in which a nested
   /// environment can become a module.
   Module<Callable> toDummyModule() => _EnvironmentModule(
-      this,
-      CssStylesheet(const [],
-          SourceFile.decoded(const [], url: "<dummy module>").span(0)),
-      const {},
-      ExtensionStore.empty,
-      forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)));
+    this,
+    CssStylesheet(
+      const [],
+      SourceFile.decoded(const [], url: "<dummy module>").span(0),
+    ),
+    const {},
+    ExtensionStore.empty,
+    forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)),
+  );
 
   /// Returns the module with the given [namespace], or throws a
   /// [SassScriptException] if none exists.
   Module<Callable> _getModule(String namespace) {
     if (_modules[namespace] case var module?) return module;
     throw SassScriptException(
-        'There is no module with the namespace "$namespace".');
+      'There is no module with the namespace "$namespace".',
+    );
   }
 
   /// Returns the result of [callback] if it returns non-`null` for exactly one
@@ -842,7 +889,10 @@ final class Environment {
   /// The [type] should be the singular name of the value type being returned.
   /// It's used to format an appropriate error message.
   T? _fromOneModule<T>(
-      String name, String type, T? callback(Module<Callable> module)) {
+    String name,
+    String type,
+    T? callback(Module<Callable> module),
+  ) {
     if (_nestedForwardedModules case var nestedForwardedModules?) {
       for (var modules in nestedForwardedModules.reversed) {
         for (var module in modules.reversed) {
@@ -860,18 +910,21 @@ final class Environment {
       var valueInModule = callback(module);
       if (valueInModule == null) continue;
 
-      Object? identityFromModule = valueInModule is Callable
-          ? valueInModule
-          : module.variableIdentity(name);
+      Object? identityFromModule =
+          valueInModule is Callable
+              ? valueInModule
+              : module.variableIdentity(name);
       if (identityFromModule == identity) continue;
 
       if (value != null) {
         throw MultiSpanSassScriptException(
-            'This $type is available from multiple global modules.',
-            '$type use', {
-          for (var (module, node) in _globalModules.pairs)
-            if (callback(module) != null) node.span: 'includes $type'
-        });
+          'This $type is available from multiple global modules.',
+          '$type use',
+          {
+            for (var (module, node) in _globalModules.pairs)
+              if (callback(module) != null) node.span: 'includes $type',
+          },
+        );
       }
 
       value = valueInModule;
@@ -908,41 +961,56 @@ final class _EnvironmentModule implements Module<Callable> {
   final Map<String, Module<Callable>> _modulesByVariable;
 
   factory _EnvironmentModule(
-      Environment environment,
-      CssStylesheet css,
-      Map<Module<Callable>, List<CssComment>> preModuleComments,
-      ExtensionStore extensionStore,
-      {Set<Module<Callable>>? forwarded}) {
+    Environment environment,
+    CssStylesheet css,
+    Map<Module<Callable>, List<CssComment>> preModuleComments,
+    ExtensionStore extensionStore, {
+    Set<Module<Callable>>? forwarded,
+  }) {
     forwarded ??= const {};
     return _EnvironmentModule._(
-        environment,
-        css,
-        Map.unmodifiable({
-          for (var (module, comments) in preModuleComments.pairs)
-            module: List<CssComment>.unmodifiable(comments)
-        }),
-        extensionStore,
-        _makeModulesByVariable(forwarded),
-        _memberMap(environment._variables.first,
-            forwarded.map((module) => module.variables)),
-        _memberMap(environment._variableNodes.first,
-            forwarded.map((module) => module.variableNodes)),
-        _memberMap(environment._functions.first,
-            forwarded.map((module) => module.functions)),
-        _memberMap(environment._mixins.first,
-            forwarded.map((module) => module.mixins)),
-        transitivelyContainsCss: css.children.isNotEmpty ||
-            preModuleComments.isNotEmpty ||
-            environment._allModules
-                .any((module) => module.transitivelyContainsCss),
-        transitivelyContainsExtensions: !extensionStore.isEmpty ||
-            environment._allModules
-                .any((module) => module.transitivelyContainsExtensions));
+      environment,
+      css,
+      Map.unmodifiable({
+        for (var (module, comments) in preModuleComments.pairs)
+          module: List<CssComment>.unmodifiable(comments),
+      }),
+      extensionStore,
+      _makeModulesByVariable(forwarded),
+      _memberMap(
+        environment._variables.first,
+        forwarded.map((module) => module.variables),
+      ),
+      _memberMap(
+        environment._variableNodes.first,
+        forwarded.map((module) => module.variableNodes),
+      ),
+      _memberMap(
+        environment._functions.first,
+        forwarded.map((module) => module.functions),
+      ),
+      _memberMap(
+        environment._mixins.first,
+        forwarded.map((module) => module.mixins),
+      ),
+      transitivelyContainsCss:
+          css.children.isNotEmpty ||
+          preModuleComments.isNotEmpty ||
+          environment._allModules.any(
+            (module) => module.transitivelyContainsCss,
+          ),
+      transitivelyContainsExtensions:
+          !extensionStore.isEmpty ||
+          environment._allModules.any(
+            (module) => module.transitivelyContainsExtensions,
+          ),
+    );
   }
 
   /// Create [_modulesByVariable] for a set of forwarded modules.
   static Map<String, Module<Callable>> _makeModulesByVariable(
-      Set<Module<Callable>> forwarded) {
+    Set<Module<Callable>> forwarded,
+  ) {
     if (forwarded.isEmpty) return const {};
 
     var modulesByVariable = <String, Module<Callable>>{};
@@ -952,8 +1020,11 @@ final class _EnvironmentModule implements Module<Callable> {
         for (var child in module._modulesByVariable.values) {
           setAll(modulesByVariable, child.variables.keys, child);
         }
-        setAll(modulesByVariable, module._environment._variables.first.keys,
-            module);
+        setAll(
+          modulesByVariable,
+          module._environment._variables.first.keys,
+          module,
+        );
       } else {
         setAll(modulesByVariable, module.variables.keys, module);
       }
@@ -964,14 +1035,16 @@ final class _EnvironmentModule implements Module<Callable> {
   /// Returns a map that exposes the public members of [localMap] as well as all
   /// the members of [otherMaps].
   static Map<String, V> _memberMap<V>(
-      Map<String, V> localMap, Iterable<Map<String, V>> otherMaps) {
+    Map<String, V> localMap,
+    Iterable<Map<String, V>> otherMaps,
+  ) {
     localMap = PublicMemberMapView(localMap);
     if (otherMaps.isEmpty) return localMap;
 
     var allMaps = [
       for (var map in otherMaps)
         if (map.isNotEmpty) map,
-      localMap
+      localMap,
     ];
     if (allMaps.length == 1) return localMap;
 
@@ -979,18 +1052,18 @@ final class _EnvironmentModule implements Module<Callable> {
   }
 
   _EnvironmentModule._(
-      this._environment,
-      this.css,
-      this.preModuleComments,
-      this.extensionStore,
-      this._modulesByVariable,
-      this.variables,
-      this.variableNodes,
-      this.functions,
-      this.mixins,
-      {required this.transitivelyContainsCss,
-      required this.transitivelyContainsExtensions})
-      : upstream = _environment._allModules;
+    this._environment,
+    this.css,
+    this.preModuleComments,
+    this.extensionStore,
+    this._modulesByVariable,
+    this.variables,
+    this.variableNodes,
+    this.functions,
+    this.mixins, {
+    required this.transitivelyContainsCss,
+    required this.transitivelyContainsExtensions,
+  }) : upstream = _environment._allModules;
 
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (_modulesByVariable[name] case var module?) {
@@ -1016,20 +1089,23 @@ final class _EnvironmentModule implements Module<Callable> {
   Module<Callable> cloneCss() {
     if (!transitivelyContainsCss) return this;
 
-    var (newStylesheet, newExtensionStore) =
-        cloneCssStylesheet(css, extensionStore);
+    var (newStylesheet, newExtensionStore) = cloneCssStylesheet(
+      css,
+      extensionStore,
+    );
     return _EnvironmentModule._(
-        _environment,
-        newStylesheet,
-        preModuleComments,
-        newExtensionStore,
-        _modulesByVariable,
-        variables,
-        variableNodes,
-        functions,
-        mixins,
-        transitivelyContainsCss: transitivelyContainsCss,
-        transitivelyContainsExtensions: transitivelyContainsExtensions);
+      _environment,
+      newStylesheet,
+      preModuleComments,
+      newExtensionStore,
+      _modulesByVariable,
+      variables,
+      variableNodes,
+      functions,
+      mixins,
+      transitivelyContainsCss: transitivelyContainsCss,
+      transitivelyContainsExtensions: transitivelyContainsExtensions,
+    );
   }
 
   String toString() => url == null ? "<unknown url>" : p.prettyUri(url);
