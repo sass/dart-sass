@@ -2939,6 +2939,9 @@ abstract class StylesheetParser extends Parser {
   /// comments. Otherwise, it will preserve two adjacent slashes and emit them
   /// to CSS.
   ///
+  /// If [consumeNewlines] is true, the indented syntax will consume newlines as
+  /// whitespace, in positions when a statement can not end.
+  ///
   /// Unlike [declarationValue], this allows interpolation.
   Interpolation _interpolatedDeclarationValue(
       {bool allowEmpty = false,
