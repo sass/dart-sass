@@ -311,7 +311,7 @@ class SassParser extends StylesheetParser {
 
   void whitespaceWithoutComments({required bool consumeNewlines}) {
     // This overrides whitespace consumption so that it doesn't consume
-    // newlines.
+    // newlines where that would cause a statement to end.
     while (!scanner.isDone) {
       var next = scanner.peekChar();
       if (!consumeNewlines && !next.isSpaceOrTab) {

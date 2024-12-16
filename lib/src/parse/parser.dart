@@ -75,10 +75,8 @@ class Parser {
 
   /// Consumes whitespace, including any comments.
   ///
-  /// Set [consumeNewlines] to true when a statement could not end, so newlines
-  /// can be consumed. Only used in the indented syntax.
-  ///
-  /// TODO: Bikeshed the variable name
+  /// If [consumeNewlines] is true, the indented syntax will consume newlines as
+  /// whitespace, in positions when a statement can not end.
   @protected
   void whitespace({required bool consumeNewlines}) {
     do {
@@ -87,6 +85,9 @@ class Parser {
   }
 
   /// Consumes whitespace, but not comments.
+  ///
+  /// If [consumeNewlines] is true, the indented syntax will consume newlines as
+  /// whitespace, in positions when a statement can not end.
   @protected
   void whitespaceWithoutComments({required bool consumeNewlines}) {
     while (!scanner.isDone && scanner.peekChar().isWhitespace) {
@@ -122,8 +123,8 @@ class Parser {
 
   /// Like [whitespace], but throws an error if no whitespace is consumed.
   ///
-  /// If [consumeNewlines] is true, consuming whitespace in the indented syntax
-  /// will include newlines.
+  /// If [consumeNewlines] is true, the indented syntax will consume newlines as
+  /// whitespace, in positions when a statement can not end.
   @protected
   void expectWhitespace({bool consumeNewlines = false}) {
     if (scanner.isDone || !(scanner.peekChar().isWhitespace || scanComment())) {

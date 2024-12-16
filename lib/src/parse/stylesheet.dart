@@ -1753,14 +1753,14 @@ abstract class StylesheetParser extends Parser {
   /// still be a valid expression. When it returns `true`, this returns the
   /// expression.
   ///
-  /// If [consumeNewlines] is true, consuming whitespace in the indented syntax
-  /// will include newlines.
+  /// If [consumeNewlines] is true, the indented syntax will consume newlines as
+  /// whitespace, in positions when a statement can not end.
   @protected
   Expression _expression(
       {bool bracketList = false,
       bool singleEquals = false,
-      bool until()?,
-      bool consumeNewlines = false}) {
+      bool consumeNewlines = false,
+      bool until()?}) {
     if (until != null && until()) scanner.error("Expected expression.");
 
     LineScannerState? beforeBracket;
@@ -2162,6 +2162,9 @@ abstract class StylesheetParser extends Parser {
   ///
   /// If [singleEquals] is true, this will allow the Microsoft-style `=`
   /// operator at the top level.
+  ///
+  /// If [consumeNewlines] is true, the indented syntax will consume newlines as
+  /// whitespace, in positions when a statement can not end.
   Expression expressionUntilComma(
           {bool singleEquals = false, bool consumeNewlines = false}) =>
       _expression(
@@ -3335,9 +3338,8 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes a `@supports` condition.
   ///
-  /// Set [inParentheses] to true if the condition is inside parentheses, to
-  /// allow the indented syntax to consume newlines where a statement otherwise
-  /// would end.
+  /// If [inParentheses] is true, the indented syntax will consume newlines
+  /// where a statement otherwise would end.
   SupportsCondition _supportsCondition({bool inParentheses = false}) {
     var start = scanner.state;
     if (scanIdentifier("not")) {

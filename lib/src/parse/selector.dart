@@ -87,9 +87,9 @@ class SelectorParser extends Parser {
     var previousLine = scanner.line;
     var components = <ComplexSelector>[_complexSelector()];
 
-    whitespace(consumeNewlines: false);
+    whitespace(consumeNewlines: true);
     while (scanner.scanChar($comma)) {
-      whitespace(consumeNewlines: false);
+      whitespace(consumeNewlines: true);
       if (scanner.peekChar() == $comma) continue;
       if (scanner.isDone) break;
 
