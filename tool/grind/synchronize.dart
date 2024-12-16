@@ -16,6 +16,7 @@ import 'package:crypto/crypto.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 
 import 'package:sass/src/util/nullable.dart';
@@ -58,7 +59,8 @@ String synchronizeFile(String source) {
   parseFile(path: source, featureSet: FeatureSet.latestLanguageVersion())
       .unit
       .accept(visitor);
-  return DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+  return DartFormatter(
+          languageVersion: Version.parse(Platform.version.split(' ').first))
       .format(visitor.result);
 }
 
