@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:grinder/grinder.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 import 'utils.dart';
@@ -78,5 +79,7 @@ void deprecations() {
     fail("Couldn't find block for generated code in lib/src/deprecation.dart");
   }
   var newCode = dartText.replaceFirst(_blockRegex, buffer.toString());
-  dartFile.writeAsStringSync(DartFormatter().format(newCode));
+  dartFile.writeAsStringSync(DartFormatter(
+          languageVersion: Version.parse(Platform.version.split(' ').first))
+      .format(newCode));
 }
