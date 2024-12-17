@@ -61,7 +61,12 @@ class SassParser extends StylesheetParser {
         position: _nextIndentationEnd!.position);
   }
 
-  bool atEndOfStatement() => scanner.peekChar()?.isNewline ?? true;
+  bool atEndOfStatement() {
+    var next = scanner.peekChar();
+    return next.isNewline ||
+        next == null ||
+        (next == $semicolon && scanner.peekChar(1).isNewline);
+  }
 
   bool lookingAtChildren() =>
       atEndOfStatement() && _peekIndentation() > currentIndentation;
@@ -406,7 +411,14 @@ class SassParser extends StylesheetParser {
     }
 
     var start = scanner.state;
-    if (!scanCharIf((char) => char.isNewline)) {
+
+    if (scanner.peekChar().isNewline) {
+      scanner.readChar();
+    } else if (scanner.peekChar() == $semicolon &&
+        scanner.peekChar(1).isNewline) {
+      scanner.readChar();
+      scanner.readChar();
+    } else {
       scanner.error("Expected newline.", position: scanner.position);
     }
 
