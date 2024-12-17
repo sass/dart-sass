@@ -1,5 +1,7 @@
 ## 0.4.8
 
+Add support for parsing the `@include` rule.
+
 Add support for parsing the `@mixin` rule.
 
 Add support for parsing the `@return` rule.

@@ -11,6 +11,7 @@ import 'package:js/js_util.dart';
 
 import '../syntax.dart';
 import '../utils.dart';
+import '../util/map.dart';
 import '../value.dart';
 import 'array.dart';
 import 'function.dart';
@@ -221,6 +222,18 @@ Map<String, Object?> objectToMap(Object object) {
   var map = <String, Object?>{};
   jsForEach(object, (key, value) => map[key] = value);
   return map;
+}
+
+@JS("Object")
+external JSClass get _jsObjectClass;
+
+/// Converts a JavaScript record into a map from property names to their values.
+Object mapToObject(Map<String, Object?> map) {
+  var result = callConstructor<Object>(_jsObjectClass, const []);
+  for (var (key, value) in map.pairs) {
+    setProperty(result, key, value);
+  }
+  return result;
 }
 
 /// Converts a JavaScript separator string into a [ListSeparator].

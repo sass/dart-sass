@@ -18,6 +18,7 @@ import {ErrorRule, ErrorRuleProps} from './error-rule';
 import {ForRule, ForRuleProps} from './for-rule';
 import {ForwardRule, ForwardRuleProps} from './forward-rule';
 import {FunctionRule, FunctionRuleProps} from './function-rule';
+import {IncludeRule, IncludeRuleProps} from './include-rule';
 import {MixinRule, MixinRuleProps} from './mixin-rule';
 import {ReturnRule, ReturnRuleProps} from './return-rule';
 import {Root} from './root';
@@ -61,6 +62,7 @@ export type StatementType =
   | 'for-rule'
   | 'forward-rule'
   | 'function-rule'
+  | 'include-rule'
   | 'mixin-rule'
   | 'return-rule'
   | 'sass-comment'
@@ -82,6 +84,7 @@ export type AtRule =
   | ForwardRule
   | FunctionRule
   | GenericAtRule
+  | IncludeRule
   | MixinRule
   | ReturnRule
   | UseRule
@@ -121,6 +124,7 @@ export type ChildProps =
   | ForwardRuleProps
   | FunctionRuleProps
   | GenericAtRuleProps
+  | IncludeRuleProps
   | MixinRuleProps
   | ReturnRuleProps
   | RuleProps
@@ -184,6 +188,7 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
   visitForRule: inner => new ForRule(undefined, inner),
   visitForwardRule: inner => new ForwardRule(undefined, inner),
   visitFunctionRule: inner => new FunctionRule(undefined, inner),
+  visitIncludeRule: inner => new IncludeRule(undefined, inner),
   visitExtendRule: inner => {
     const paramsInterpolation = new Interpolation(undefined, inner.selector);
     if (inner.isOptional) paramsInterpolation.append('!optional');
@@ -331,6 +336,8 @@ export function normalize(
       result.push(new EachRule(node));
     } else if ('errorExpression' in node) {
       result.push(new ErrorRule(node));
+    } else if ('includeName' in node) {
+      result.push(new IncludeRule(node));
     } else if ('fromExpression' in node) {
       result.push(new ForRule(node));
     } else if ('forwardUrl' in node) {
