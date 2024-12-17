@@ -54,14 +54,19 @@ class SassParser extends StylesheetParser {
   }
 
   void expectStatementSeparator([String? name]) {
-    if (!atEndOfStatement()) _expectNewline();
+    if (!atEndOfStatement()) _expectNewline(canEndInSemicolon: true);
     if (_peekIndentation() <= currentIndentation) return;
     scanner.error(
         "Nothing may be indented ${name == null ? 'here' : 'beneath a $name'}.",
         position: _nextIndentationEnd!.position);
   }
 
-  bool atEndOfStatement() => scanner.peekChar()?.isNewline ?? true;
+  bool atEndOfStatement() {
+    var next = scanner.peekChar();
+    return next.isNewline ||
+        next == null ||
+        (next == $semicolon && scanner.peekChar(1).isNewline);
+  }
 
   bool lookingAtChildren() =>
       atEndOfStatement() && _peekIndentation() > currentIndentation;
@@ -259,7 +264,7 @@ class SassParser extends StylesheetParser {
               buffer.writeCharCode(scanner.readChar());
               buffer.writeCharCode(scanner.readChar());
               var span = scanner.spanFrom(start);
-              whitespace();
+              whitespace(allowNewlines: false);
 
               // For backwards compatibility, allow additional comments after
               // the initial comment is closed.
@@ -269,7 +274,7 @@ class SassParser extends StylesheetParser {
                   _expectNewline();
                 }
                 _readIndentation();
-                whitespace();
+                whitespace(allowNewlines: false);
               }
 
               if (!scanner.isDone && !scanner.peekChar().isNewline) {
@@ -309,37 +314,39 @@ class SassParser extends StylesheetParser {
     return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
   }
 
-  void whitespaceWithoutComments() {
+  void whitespaceWithoutComments({required bool allowNewlines}) {
     // This overrides whitespace consumption so that it doesn't consume
-    // newlines.
+    // newlines where that would cause a statement to end.
     while (!scanner.isDone) {
       var next = scanner.peekChar();
-      if (next != $tab && next != $space) break;
+      if (!allowNewlines && !next.isSpaceOrTab) {
+        break;
+      } else if (allowNewlines && !next.isWhitespace) {
+        break;
+      }
       scanner.readChar();
     }
   }
 
-  void loudComment() {
-    // This overrides loud comment consumption so that it doesn't consume
-    // multi-line comments.
-    scanner.expect("/*");
-    while (true) {
-      var next = scanner.readChar();
-      if (next.isNewline) scanner.error("expected */.");
-      if (next != $asterisk) continue;
-
-      do {
-        next = scanner.readChar();
-      } while (next == $asterisk);
-      if (next == $slash) break;
-    }
-  }
-
-  /// Expect and consume a single newline character.
-  void _expectNewline() {
+  /// Expect and consume a single newline.
+  ///
+  /// If [canEndInSemicolon] is true, this will also consume a `;` before the
+  /// newline if present.
+  void _expectNewline({bool canEndInSemicolon = false}) {
     switch (scanner.peekChar()) {
+      case $semicolon
+          when canEndInSemicolon && [$lf, $ff].contains(scanner.peekChar(1)):
+        scanner.readChar();
+        scanner.readChar();
+        return;
+      case $semicolon when canEndInSemicolon && scanner.peekChar(1) == $cr:
+        scanner.readChar();
+        scanner.readChar();
+        if (scanner.peekChar() == $lf) scanner.readChar();
+        return;
       case $semicolon:
-        scanner.error("semicolons aren't allowed in the indented syntax.");
+        scanner.error(
+            "multiple statements on one line are not supported in the indented syntax.");
       case $cr:
         scanner.readChar();
         if (scanner.peekChar() == $lf) scanner.readChar();
@@ -404,7 +411,14 @@ class SassParser extends StylesheetParser {
     }
 
     var start = scanner.state;
-    if (!scanCharIf((char) => char.isNewline)) {
+
+    if (scanner.peekChar().isNewline) {
+      scanner.readChar();
+    } else if (scanner.peekChar() == $semicolon &&
+        scanner.peekChar(1).isNewline) {
+      scanner.readChar();
+      scanner.readChar();
+    } else {
       scanner.error("Expected newline.", position: scanner.position);
     }
 
