@@ -280,13 +280,6 @@ describe('a variable declaration', () => {
     expect(node).toHaveStringExpression('expression', 'baz');
   });
 
-  it('assigned a new expression', () => {
-    const old = node.expression;
-    node.expression = {text: 'baz'};
-    expect(old.parent).toBeUndefined();
-    expect(node).toHaveStringExpression('expression', 'baz');
-  });
-
   it('assigned a value', () => {
     node.value = 'Helvetica, sans-serif';
     expect(node).toHaveStringExpression('expression', 'Helvetica, sans-serif');

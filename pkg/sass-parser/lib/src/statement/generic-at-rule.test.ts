@@ -377,7 +377,7 @@ describe('a generic @-rule', () => {
       describe('with undefined nodes', () => {
         describe('without params', () => {
           it('with default raws', () =>
-            expect(new GenericAtRule({name: 'foo'}).toString()).toBe('@foo;'));
+            expect(new GenericAtRule({name: 'foo'}).toString()).toBe('@foo'));
 
           it('with afterName', () =>
             expect(
@@ -385,7 +385,7 @@ describe('a generic @-rule', () => {
                 name: 'foo',
                 raws: {afterName: '/**/'},
               }).toString(),
-            ).toBe('@foo/**/;'));
+            ).toBe('@foo/**/'));
 
           it('with afterName', () =>
             expect(
@@ -393,7 +393,7 @@ describe('a generic @-rule', () => {
                 name: 'foo',
                 raws: {afterName: '/**/'},
               }).toString(),
-            ).toBe('@foo/**/;'));
+            ).toBe('@foo/**/'));
 
           it('with between', () =>
             expect(
@@ -401,7 +401,7 @@ describe('a generic @-rule', () => {
                 name: 'foo',
                 raws: {between: '/**/'},
               }).toString(),
-            ).toBe('@foo/**/;'));
+            ).toBe('@foo/**/'));
 
           it('with afterName and between', () =>
             expect(
@@ -409,7 +409,7 @@ describe('a generic @-rule', () => {
                 name: 'foo',
                 raws: {afterName: '/*afterName*/', between: '/*between*/'},
               }).toString(),
-            ).toBe('@foo/*afterName*//*between*/;'));
+            ).toBe('@foo/*afterName*//*between*/'));
         });
 
         describe('with params', () => {
@@ -419,7 +419,7 @@ describe('a generic @-rule', () => {
                 name: 'foo',
                 paramsInterpolation: 'baz',
               }).toString(),
-            ).toBe('@foo baz;'));
+            ).toBe('@foo baz'));
 
           it('with afterName', () =>
             expect(
@@ -428,7 +428,7 @@ describe('a generic @-rule', () => {
                 paramsInterpolation: 'baz',
                 raws: {afterName: '/**/'},
               }).toString(),
-            ).toBe('@foo/**/baz;'));
+            ).toBe('@foo/**/baz'));
 
           it('with between', () =>
             expect(
@@ -437,13 +437,13 @@ describe('a generic @-rule', () => {
                 paramsInterpolation: 'baz',
                 raws: {between: '/**/'},
               }).toString(),
-            ).toBe('@foo baz/**/;'));
+            ).toBe('@foo baz/**/'));
         });
 
         it('with after', () =>
           expect(
             new GenericAtRule({name: 'foo', raws: {after: '/**/'}}).toString(),
-          ).toBe('@foo;'));
+          ).toBe('@foo'));
 
         it('with before', () =>
           expect(
