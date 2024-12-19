@@ -13,7 +13,7 @@ dependencies:
   sass: 1.83.0
 
 dev_dependencies:
-  dartdoc: ^8.0.14
+  dartdoc: ">=8.0.14 <8.3.1" # dart-lang/dartdoc#3947
 
 dependency_overrides:
   sass: { path: ../.. }
