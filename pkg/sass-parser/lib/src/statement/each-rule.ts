@@ -95,7 +95,7 @@ export class EachRule
     throw new Error("EachRule.params can't be overwritten.");
   }
 
-  /** The expresison whose value is iterated over. */
+  /** The expression whose value is iterated over. */
   get eachExpression(): Expression {
     return this._eachExpression!;
   }

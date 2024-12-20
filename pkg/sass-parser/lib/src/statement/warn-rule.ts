@@ -66,7 +66,7 @@ export class WarnRule
     this.warnExpression = {text: value?.toString() ?? ''};
   }
 
-  /** The expresison whose value is emitted when the warn rule is executed. */
+  /** The expression whose value is emitted when the warn rule is executed. */
   get warnExpression(): Expression {
     return this._warnExpression!;
   }

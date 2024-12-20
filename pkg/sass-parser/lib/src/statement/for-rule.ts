@@ -102,7 +102,7 @@ export class ForRule
     throw new Error("ForRule.params can't be overwritten.");
   }
 
-  /** The expresison whose value is the starting point of the iteration. */
+  /** The expression whose value is the starting point of the iteration. */
   get fromExpression(): Expression {
     return this._fromExpression!;
   }
@@ -116,7 +116,7 @@ export class ForRule
   }
   private declare _fromExpression?: Expression;
 
-  /** The expresison whose value is the ending point of the iteration. */
+  /** The expression whose value is the ending point of the iteration. */
   get toExpression(): Expression {
     return this._toExpression!;
   }
