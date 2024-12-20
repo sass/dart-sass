@@ -67,23 +67,29 @@ class Parser {
     if (!scanner.scanChar($dollar)) return false;
     if (!lookingAtIdentifier()) return false;
     identifier();
-    whitespace();
+    whitespace(allowNewlines: false);
     return scanner.scanChar($colon);
   }
 
   // ## Tokens
 
   /// Consumes whitespace, including any comments.
+  ///
+  /// If [allowNewlines] is true, the indented syntax will consume newlines as
+  /// whitespace, in positions when a statement can not end.
   @protected
-  void whitespace() {
+  void whitespace({required bool allowNewlines}) {
     do {
-      whitespaceWithoutComments();
+      whitespaceWithoutComments(allowNewlines: allowNewlines);
     } while (scanComment());
   }
 
   /// Consumes whitespace, but not comments.
+  ///
+  /// If [allowNewlines] is true, the indented syntax will consume newlines as
+  /// whitespace, in positions when a statement can not end.
   @protected
-  void whitespaceWithoutComments() {
+  void whitespaceWithoutComments({required bool allowNewlines}) {
     while (!scanner.isDone && scanner.peekChar().isWhitespace) {
       scanner.readChar();
     }
@@ -116,13 +122,15 @@ class Parser {
   }
 
   /// Like [whitespace], but throws an error if no whitespace is consumed.
+  ///
+  /// If [allowNewlines] is true, the indented syntax will consume newlines as
+  /// whitespace, in positions when a statement can not end.
   @protected
-  void expectWhitespace() {
+  void expectWhitespace({bool allowNewlines = false}) {
     if (scanner.isDone || !(scanner.peekChar().isWhitespace || scanComment())) {
       scanner.error("Expected whitespace.");
     }
-
-    whitespace();
+    whitespace(allowNewlines: allowNewlines);
   }
 
   /// Consumes and ignores a single silent (Sass-style) comment, not including
@@ -386,7 +394,7 @@ class Parser {
       return null;
     }
 
-    whitespace();
+    whitespace(allowNewlines: true);
 
     // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
     // backtrack and re-parse as a function expression.
@@ -407,7 +415,7 @@ class Parser {
               >= 0x0080:
           buffer.writeCharCode(scanner.readChar());
         case int(isWhitespace: true):
-          whitespace();
+          whitespace(allowNewlines: true);
           if (scanner.peekChar() != $rparen) break loop;
         case $rparen:
           buffer.writeCharCode(scanner.readChar());
