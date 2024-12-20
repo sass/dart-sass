@@ -13,6 +13,7 @@ import {CssComment, CssCommentProps} from './css-comment';
 import {SassComment, SassCommentChildProps} from './sass-comment';
 import {GenericAtRule, GenericAtRuleProps} from './generic-at-rule';
 import {DebugRule, DebugRuleProps} from './debug-rule';
+import {Declaration, DeclarationProps} from './declaration';
 import {EachRule, EachRuleProps} from './each-rule';
 import {ErrorRule, ErrorRuleProps} from './error-rule';
 import {ForRule, ForRuleProps} from './for-rule';
@@ -31,16 +32,12 @@ import {
 import {WarnRule, WarnRuleProps} from './warn-rule';
 import {WhileRule, WhileRuleProps} from './while-rule';
 
-// TODO: Replace this with the corresponding Sass types once they're
-// implemented.
-export {Declaration} from 'postcss';
-
 /**
  * The union type of all Sass statements.
  *
  * @category Statement
  */
-export type AnyStatement = Comment | Root | Rule | AtRule | VariableDeclaration;
+export type AnyStatement = Comment | Root | Rule | AtRule | AnyDeclaration;
 
 /**
  * Sass statement types.
@@ -56,6 +53,7 @@ export type StatementType =
   | 'rule'
   | 'atrule'
   | 'comment'
+  | 'decl'
   | 'debug-rule'
   | 'each-rule'
   | 'error-rule'
@@ -92,6 +90,13 @@ export type AtRule =
   | WhileRule;
 
 /**
+ * All Sass statements that are declarations.
+ *
+ * @category Statement
+ */
+export type AnyDeclaration = VariableDeclaration | Declaration;
+
+/**
  * All Sass statements that are comments.
  *
  * @category Statement
@@ -105,7 +110,7 @@ export type Comment = CssComment | SassComment;
  *
  * @category Statement
  */
-export type ChildNode = Rule | AtRule | Comment | VariableDeclaration;
+export type ChildNode = Rule | AtRule | Comment | AnyDeclaration;
 
 /**
  * The properties that can be used to construct {@link ChildNode}s.
@@ -118,6 +123,7 @@ export type ChildProps =
   | postcss.ChildProps
   | CssCommentProps
   | DebugRuleProps
+  | DeclarationProps
   | EachRuleProps
   | ErrorRuleProps
   | ForRuleProps
@@ -183,6 +189,7 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
   },
   visitAtRule: inner => new GenericAtRule(undefined, inner),
   visitDebugRule: inner => new DebugRule(undefined, inner),
+  visitDeclaration: inner => new Declaration(undefined, inner),
   visitErrorRule: inner => new ErrorRule(undefined, inner),
   visitEachRule: inner => new EachRule(undefined, inner),
   visitForRule: inner => new ForRule(undefined, inner),
@@ -322,6 +329,8 @@ export function normalize(
       }
     } else if ('type' in node) {
       result.push(...postcssNormalizeAndConvertToSass(self, node, sample));
+    } else if ('prop' in node || 'propInterpolation' in node) {
+      result.push(new Declaration(node));
     } else if (
       'selectorInterpolation' in node ||
       'selector' in node ||

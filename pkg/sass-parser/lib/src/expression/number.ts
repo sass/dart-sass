@@ -5,6 +5,7 @@
 import * as postcss from 'postcss';
 
 import {LazySource} from '../lazy-source';
+import {NodeProps} from '../node';
 import type * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {Expression} from '.';
@@ -14,7 +15,7 @@ import {Expression} from '.';
  *
  * @category Expression
  */
-export interface NumberExpressionProps {
+export interface NumberExpressionProps extends NodeProps {
   value: number;
   unit?: string;
   raws?: NumberExpressionRaws;

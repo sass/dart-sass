@@ -107,7 +107,7 @@ describe('a @error rule', () => {
           new ErrorRule({
             errorExpression: {text: 'foo'},
           }).toString(),
-        ).toBe('@error foo;'));
+        ).toBe('@error foo'));
 
       it('with afterName', () =>
         expect(
@@ -115,7 +115,7 @@ describe('a @error rule', () => {
             errorExpression: {text: 'foo'},
             raws: {afterName: '/**/'},
           }).toString(),
-        ).toBe('@error/**/foo;'));
+        ).toBe('@error/**/foo'));
 
       it('with between', () =>
         expect(
@@ -123,7 +123,7 @@ describe('a @error rule', () => {
             errorExpression: {text: 'foo'},
             raws: {between: '/**/'},
           }).toString(),
-        ).toBe('@error foo/**/;'));
+        ).toBe('@error foo/**/'));
     });
   });
 

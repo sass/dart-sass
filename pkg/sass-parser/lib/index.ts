@@ -99,6 +99,11 @@ export {
   DebugRuleProps,
   DebugRuleRaws,
 } from './src/statement/debug-rule';
+export {
+  Declaration,
+  DeclarationProps,
+  DeclarationRaws,
+} from './src/statement/declaration';
 export {EachRule, EachRuleProps, EachRuleRaws} from './src/statement/each-rule';
 export {
   ErrorRule,
@@ -142,10 +147,12 @@ export {
 } from './src/statement/sass-comment';
 export {UseRule, UseRuleProps, UseRuleRaws} from './src/statement/use-rule';
 export {
+  AnyDeclaration,
   AnyStatement,
   AtRule,
   ChildNode,
   ChildProps,
+  Comment,
   ContainerProps,
   NewNode,
   Statement,
@@ -196,7 +203,7 @@ class _Syntax implements Syntax {
   }
 
   stringify(node: postcss.AnyNode, builder: postcss.Builder): void {
-    new Stringifier(builder).stringify(node, true);
+    new Stringifier(builder).stringify(node, false);
   }
 }
 
