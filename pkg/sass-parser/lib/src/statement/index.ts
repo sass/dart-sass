@@ -15,10 +15,12 @@ import {GenericAtRule, GenericAtRuleProps} from './generic-at-rule';
 import {DebugRule, DebugRuleProps} from './debug-rule';
 import {Declaration, DeclarationProps} from './declaration';
 import {EachRule, EachRuleProps} from './each-rule';
+import {ElseRule, ElseRuleProps} from './else-rule';
 import {ErrorRule, ErrorRuleProps} from './error-rule';
 import {ForRule, ForRuleProps} from './for-rule';
 import {ForwardRule, ForwardRuleProps} from './forward-rule';
 import {FunctionRule, FunctionRuleProps} from './function-rule';
+import {IfRule, IfRuleProps} from './if-rule';
 import {IncludeRule, IncludeRuleProps} from './include-rule';
 import {MixinRule, MixinRuleProps} from './mixin-rule';
 import {ReturnRule, ReturnRuleProps} from './return-rule';
@@ -56,10 +58,12 @@ export type StatementType =
   | 'decl'
   | 'debug-rule'
   | 'each-rule'
+  | 'else-rule'
   | 'error-rule'
   | 'for-rule'
   | 'forward-rule'
   | 'function-rule'
+  | 'if-rule'
   | 'include-rule'
   | 'mixin-rule'
   | 'return-rule'
@@ -77,11 +81,13 @@ export type StatementType =
 export type AtRule =
   | DebugRule
   | EachRule
+  | ElseRule
   | ErrorRule
   | ForRule
   | ForwardRule
   | FunctionRule
   | GenericAtRule
+  | IfRule
   | IncludeRule
   | MixinRule
   | ReturnRule
@@ -125,11 +131,16 @@ export type ChildProps =
   | DebugRuleProps
   | DeclarationProps
   | EachRuleProps
+  // In a ChildProps context, `ElseRuleProps` requires an explicit
+  // `elseCondition: undefined` so that an empty object isn't a valid
+  // `ChildProps`.
+  | (ElseRuleProps & {elseCondition: ElseRuleProps['elseCondition']})
   | ErrorRuleProps
   | ForRuleProps
   | ForwardRuleProps
   | FunctionRuleProps
   | GenericAtRuleProps
+  | IfRuleProps
   | IncludeRuleProps
   | MixinRuleProps
   | ReturnRuleProps
@@ -175,7 +186,7 @@ export interface Statement extends postcss.Node, Node {
 }
 
 /** The visitor to use to convert internal Sass nodes to JS. */
-const visitor = sassInternal.createStatementVisitor<Statement>({
+const visitor = sassInternal.createStatementVisitor<Statement | Statement[]>({
   visitAtRootRule: inner => {
     const rule = new GenericAtRule({
       name: 'at-root',
@@ -195,6 +206,15 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
   visitForRule: inner => new ForRule(undefined, inner),
   visitForwardRule: inner => new ForwardRule(undefined, inner),
   visitFunctionRule: inner => new FunctionRule(undefined, inner),
+  visitIfRule: inner => {
+    const rules: Statement[] = [new IfRule(undefined, inner)];
+    for (let i = 1; i < inner.clauses.length; i++) {
+      rules.push(new ElseRule(undefined, inner, inner.clauses[i]));
+    }
+    if (inner.lastClause)
+      rules.push(new ElseRule(undefined, inner, inner.lastClause));
+    return rules;
+  },
   visitIncludeRule: inner => new IncludeRule(undefined, inner),
   visitExtendRule: inner => {
     const paramsInterpolation = new Interpolation(undefined, inner.selector);
@@ -343,8 +363,12 @@ export function normalize(
       result.push(new DebugRule(node));
     } else if ('eachExpression' in node) {
       result.push(new EachRule(node));
+    } else if ('elseCondition' in node) {
+      result.push(new ElseRule(node));
     } else if ('errorExpression' in node) {
       result.push(new ErrorRule(node));
+    } else if ('ifCondition' in node) {
+      result.push(new IfRule(node));
     } else if ('includeName' in node) {
       result.push(new IncludeRule(node));
     } else if ('fromExpression' in node) {

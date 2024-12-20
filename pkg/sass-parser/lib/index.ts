@@ -105,6 +105,7 @@ export {
   DeclarationRaws,
 } from './src/statement/declaration';
 export {EachRule, EachRuleProps, EachRuleRaws} from './src/statement/each-rule';
+export {ElseRule, ElseRuleProps, ElseRuleRaws} from './src/statement/else-rule';
 export {
   ErrorRule,
   ErrorRuleProps,
@@ -128,6 +129,7 @@ export {
   GenericAtRuleProps,
   GenericAtRuleRaws,
 } from './src/statement/generic-at-rule';
+export {IfRule, IfRuleProps, IfRuleRaws} from './src/statement/if-rule';
 export {
   MixinRule,
   MixinRuleProps,
