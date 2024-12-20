@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`an @else rule toJSON with an expression 1`] = `
+{
+  "elseCondition": <bar>,
+  "inputs": [
+    {
+      "css": "@if foo {} @else if bar {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "else",
+  "nodes": [],
+  "params": "if bar",
+  "raws": {},
+  "sassType": "else-rule",
+  "source": <1:1-1:27 in 0>,
+  "type": "atrule",
+}
+`;
+
+exports[`an @else rule toJSON with no expression 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@if foo {} @else {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "else",
+  "nodes": [],
+  "params": "",
+  "raws": {},
+  "sassType": "else-rule",
+  "source": <1:1-1:20 in 0>,
+  "type": "atrule",
+}
+`;
