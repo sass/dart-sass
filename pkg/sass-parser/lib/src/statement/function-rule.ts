@@ -134,7 +134,7 @@ export class FunctionRule
   toJSON(_?: string, inputs?: Map<postcss.Input, number>): object {
     return utils.toJSON(
       this,
-      ['name', 'functionName', 'parameters', 'nodes'],
+      ['name', 'params', 'functionName', 'parameters', 'nodes'],
       inputs,
     );
   }

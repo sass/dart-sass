@@ -222,7 +222,7 @@ export class Declaration
   toJSON(_?: string, inputs?: Map<postcss.Input, number>): object {
     return utils.toJSON(
       this,
-      ['propInterpolation', 'expression', 'nodes'],
+      ['prop', 'value', 'propInterpolation', 'expression', 'nodes'],
       inputs,
     );
   }
