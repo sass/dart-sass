@@ -13,6 +13,7 @@ exports[`a @mixin rule toJSON 1`] = `
   "name": "mixin",
   "nodes": [],
   "parameters": <($bar)>,
+  "params": "foo($bar)",
   "raws": {},
   "sassType": "mixin-rule",
   "source": <1:1-1:20 in 0>,

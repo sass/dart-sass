@@ -10,11 +10,13 @@ exports[`a property declaration toJSON with expression and no nodes 1`] = `
       "id": "<input css _____>",
     },
   ],
+  "prop": "foo",
   "propInterpolation": <foo>,
   "raws": {},
   "sassType": "decl",
   "source": <1:4-1:12 in 0>,
   "type": "decl",
+  "value": "bar",
 }
 `;
 
@@ -31,11 +33,13 @@ exports[`a property declaration toJSON with expression and nodes 1`] = `
   "nodes": [
     <baz: bang>,
   ],
+  "prop": "foo",
   "propInterpolation": <foo>,
   "raws": {},
   "sassType": "decl",
   "source": <1:4-1:24 in 0>,
   "type": "decl",
+  "value": "bar",
 }
 `;
 
@@ -51,10 +55,12 @@ exports[`a property declaration toJSON with no expression and nodes 1`] = `
   "nodes": [
     <baz: bang>,
   ],
+  "prop": "foo",
   "propInterpolation": <foo>,
   "raws": {},
   "sassType": "decl",
   "source": <1:4-1:20 in 0>,
   "type": "decl",
+  "value": "",
 }
 `;

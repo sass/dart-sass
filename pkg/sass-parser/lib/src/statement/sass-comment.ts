@@ -162,7 +162,7 @@ export class SassComment
   /** @hidden */
   toJSON(_: string, inputs: Map<postcss.Input, number>): object;
   toJSON(_?: string, inputs?: Map<postcss.Input, number>): object {
-    return utils.toJSON(this, ['text', 'text'], inputs);
+    return utils.toJSON(this, ['text'], inputs);
   }
 
   /** @hidden */

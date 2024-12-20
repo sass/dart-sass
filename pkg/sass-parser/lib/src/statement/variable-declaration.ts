@@ -207,7 +207,15 @@ export class VariableDeclaration
   toJSON(_?: string, inputs?: Map<postcss.Input, number>): object {
     return utils.toJSON(
       this,
-      ['namespace', 'variableName', 'expression', 'guarded', 'global'],
+      [
+        'prop',
+        'value',
+        'namespace',
+        'variableName',
+        'expression',
+        'guarded',
+        'global',
+      ],
       inputs,
     );
   }
