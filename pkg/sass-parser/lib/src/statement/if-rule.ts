@@ -25,82 +25,79 @@ import {interceptIsClean} from './intercept-is-clean';
 import * as sassParser from '../..';
 
 /**
- * The set of raws supported by {@link WhileRule}.
+ * The set of raws supported by {@link IfRule}.
  *
  * @category Statement
  */
-export type WhileRuleRaws = Omit<AtRuleRaws, 'params'>;
+export type IfRuleRaws = Omit<AtRuleRaws, 'params'>;
 
 /**
- * The initializer properties for {@link WhileRule}.
+ * The initializer properties for {@link IfRule}.
  *
  * @category Statement
  */
-export type WhileRuleProps = ContainerProps & {
-  raws?: WhileRuleRaws;
-  whileCondition: Expression | ExpressionProps;
+export type IfRuleProps = ContainerProps & {
+  raws?: IfRuleRaws;
+  ifCondition: Expression | ExpressionProps;
 };
 
 /**
- * A `@while` rule. Extends [`postcss.AtRule`].
+ * A `@if` rule. Extends [`postcss.AtRule`].
  *
  * [`postcss.AtRule`]: https://postcss.org/api/#atrule
  *
  * @category Statement
  */
-export class WhileRule
-  extends _AtRule<Partial<WhileRuleProps>>
-  implements Statement
-{
-  readonly sassType = 'while-rule' as const;
+export class IfRule extends _AtRule<Partial<IfRuleProps>> implements Statement {
+  readonly sassType = 'if-rule' as const;
   declare parent: StatementWithChildren | undefined;
-  declare raws: WhileRuleRaws;
+  declare raws: IfRuleRaws;
   declare nodes: ChildNode[];
 
   get name(): string {
-    return 'while';
+    return 'if';
   }
   set name(value: string) {
-    throw new Error("WhileRule.name can't be overwritten.");
+    throw new Error("IfRule.name can't be overwritten.");
   }
 
   get params(): string {
-    return this.whileCondition.toString();
+    return this.ifCondition.toString();
   }
   set params(value: string | number | undefined) {
-    throw new Error("WhileRule.params can't be overwritten.");
+    throw new Error("IfRule.params can't be overwritten.");
   }
 
-  /** The expression whose value determines whether to continue looping. */
-  get whileCondition(): Expression {
-    return this._whileCondition!;
+  /** The expression whose value determines whether to execute this block. */
+  get ifCondition(): Expression {
+    return this._ifCondition!;
   }
-  set whileCondition(whileCondition: Expression | ExpressionProps) {
-    if (this._whileCondition) this._whileCondition.parent = undefined;
-    if (!('sassType' in whileCondition)) {
-      whileCondition = fromProps(whileCondition);
+  set ifCondition(ifCondition: Expression | ExpressionProps) {
+    if (this._ifCondition) this._ifCondition.parent = undefined;
+    if (!('sassType' in ifCondition)) {
+      ifCondition = fromProps(ifCondition);
     }
-    whileCondition.parent = this;
-    this._whileCondition = whileCondition;
+    ifCondition.parent = this;
+    this._ifCondition = ifCondition;
   }
-  private declare _whileCondition?: Expression;
+  private declare _ifCondition?: Expression;
 
-  constructor(defaults: WhileRuleProps);
+  constructor(defaults: IfRuleProps);
   /** @hidden */
-  constructor(_: undefined, inner: sassInternal.WhileRule);
-  constructor(defaults?: WhileRuleProps, inner?: sassInternal.WhileRule) {
+  constructor(_: undefined, inner: sassInternal.IfRule);
+  constructor(defaults?: IfRuleProps, inner?: sassInternal.IfRule) {
     super(defaults as unknown as postcss.AtRuleProps);
     this.nodes ??= [];
 
     if (inner) {
       this.source = new LazySource(inner);
-      this.whileCondition = convertExpression(inner.condition);
-      appendInternalChildren(this, inner.children);
+      this.ifCondition = convertExpression(inner.clauses[0].expression);
+      appendInternalChildren(this, inner.clauses[0].children);
     }
   }
 
-  clone(overrides?: Partial<WhileRuleProps>): this {
-    return utils.cloneNode(this, overrides, ['raws', 'whileCondition']);
+  clone(overrides?: Partial<IfRuleProps>): this {
+    return utils.cloneNode(this, overrides, ['raws', 'ifCondition']);
   }
 
   toJSON(): object;
@@ -109,7 +106,7 @@ export class WhileRule
   toJSON(_?: string, inputs?: Map<postcss.Input, number>): object {
     return utils.toJSON(
       this,
-      ['name', 'whileCondition', 'params', 'nodes'],
+      ['name', 'ifCondition', 'params', 'nodes'],
       inputs,
     );
   }
@@ -124,7 +121,7 @@ export class WhileRule
 
   /** @hidden */
   get nonStatementChildren(): ReadonlyArray<Expression> {
-    return [this.whileCondition];
+    return [this.ifCondition];
   }
 
   /** @hidden */
@@ -133,4 +130,4 @@ export class WhileRule
   }
 }
 
-interceptIsClean(WhileRule);
+interceptIsClean(IfRule);
