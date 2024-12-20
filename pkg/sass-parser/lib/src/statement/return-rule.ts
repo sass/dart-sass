@@ -66,7 +66,7 @@ export class ReturnRule
     this.returnExpression = {text: value?.toString() ?? ''};
   }
 
-  /** The expresison whose value is emitted when the return rule is executed. */
+  /** The expression whose value is emitted when the return rule is executed. */
   get returnExpression(): Expression {
     return this._returnExpression!;
   }

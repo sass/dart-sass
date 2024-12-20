@@ -71,7 +71,7 @@ export class WhileRule
     throw new Error("WhileRule.params can't be overwritten.");
   }
 
-  /** The expresison whose value is emitted when the while rule is executed. */
+  /** The expression whose value is emitted when the while rule is executed. */
   get whileCondition(): Expression {
     return this._whileCondition!;
   }
