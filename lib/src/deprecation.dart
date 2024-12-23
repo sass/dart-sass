@@ -191,15 +191,17 @@ enum Deprecation {
   String toString() => id;
 
   /// Returns the deprecation with a given ID, or null if none exists.
-  static Deprecation? fromId(String id) => Deprecation.values
-      .firstWhereOrNull((deprecation) => deprecation.id == id);
+  static Deprecation? fromId(String id) => Deprecation.values.firstWhereOrNull(
+        (deprecation) => deprecation.id == id,
+      );
 
   /// Returns the set of all deprecations done in or before [version].
   static Set<Deprecation> forVersion(Version version) {
     var range = VersionRange(max: version, includeMax: true);
     return {
       for (var deprecation in Deprecation.values)
-        if (deprecation.deprecatedIn.andThen(range.allows) ?? false) deprecation
+        if (deprecation.deprecatedIn.andThen(range.allows) ?? false)
+          deprecation,
     };
   }
 }
