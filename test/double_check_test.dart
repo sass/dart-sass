@@ -85,8 +85,8 @@ void main() {
             'sass_api', sassPubspec, pkgPubspec.version!));
 
     test("matches SDK version", () {
-      expect(pkgPubspec.environment!["sdk"],
-          equals(sassPubspec.environment!["sdk"]));
+      expect(pkgPubspec.environment["sdk"],
+          equals(sassPubspec.environment["sdk"]));
     });
 
     test("matches dartdoc version", () {
