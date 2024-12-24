@@ -107,7 +107,7 @@ export class Declaration
   }
 
   /**
-   * The interpolation that represents this declaration's property prop.
+   * The interpolation that represents this declaration's property name.
    */
   get propInterpolation(): Interpolation {
     return this._propInterpolation!;
@@ -153,7 +153,7 @@ export class Declaration
     // TODO: Return whether `this.expression` is a nested series of unbracketed
     // list expressions that ends in the unquoted string `!important` (or an
     // unquoted string ending in " !important", which can occur if `value` is
-    // set // manually).
+    // set manually).
     throw new Error('Not yet implemented');
   }
   set important(value: boolean) {

@@ -280,7 +280,7 @@ describe('a property declaration', () => {
             }).toString(),
           ).toBe('foo:/**/bar {\n    baz: bang\n}'));
 
-        it('with no value and children', () =>
+        it('with only children', () =>
           expect(
             new Declaration({
               prop: 'foo',
