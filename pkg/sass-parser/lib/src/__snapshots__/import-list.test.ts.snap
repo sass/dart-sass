@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`an import list toJSON 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@import "foo", "bar.css"",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "nodes": [
+    <"foo">,
+    <"bar.css">,
+  ],
+  "raws": {},
+  "sassType": "import-list",
+  "source": <1:1-1:25 in 0>,
+}
+`;

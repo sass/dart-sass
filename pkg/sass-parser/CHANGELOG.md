@@ -1,6 +1,6 @@
 ## 0.4.10
 
-* No user-visible changes.
+* Add support for parsing the `@import` rule.
 
 ## 0.4.9
 
