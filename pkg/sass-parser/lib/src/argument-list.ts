@@ -119,7 +119,7 @@ export class ArgumentList
         this.append({value: convertExpression(inner.keywordRest), rest: true});
       }
     }
-    if (this._nodes === undefined) this._nodes = [];
+    this._nodes ??= [];
   }
 
   clone(overrides?: Partial<ArgumentListObjectProps>): this {

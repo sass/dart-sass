@@ -1,0 +1,34 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a static import toJSON with modifiers 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@import "foo.css" screen",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "modifiers": <screen>,
+  "raws": {},
+  "sassType": "static-import",
+  "source": <1:9-1:25 in 0>,
+  "staticUrl": <"foo.css">,
+}
+`;
+
+exports[`a static import toJSON without modifiers 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@import "foo.css"",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "raws": {},
+  "sassType": "static-import",
+  "source": <1:9-1:18 in 0>,
+  "staticUrl": <"foo.css">,
+}
+`;

@@ -180,6 +180,19 @@ declare namespace SassInternal {
     readonly children: Statement[];
   }
 
+  class ImportRule extends Statement {
+    readonly imports: (DynamicImport | StaticImport)[];
+  }
+
+  class DynamicImport extends SassNode {
+    readonly urlString: string;
+  }
+
+  class StaticImport extends SassNode {
+    readonly url: Interpolation;
+    readonly modifiers: Interpolation | null;
+  }
+
   class IncludeRule extends Statement {
     readonly namespace: string | null;
     readonly name: string;
@@ -346,6 +359,9 @@ export type FunctionRule = SassInternal.FunctionRule;
 export type IfRule = SassInternal.IfRule;
 export type IfClause = SassInternal.IfClause;
 export type ElseClause = SassInternal.ElseClause;
+export type ImportRule = SassInternal.ImportRule;
+export type DynamicImport = SassInternal.DynamicImport;
+export type StaticImport = SassInternal.StaticImport;
 export type IncludeRule = SassInternal.IncludeRule;
 export type LoudComment = SassInternal.LoudComment;
 export type MediaRule = SassInternal.MediaRule;
@@ -381,6 +397,7 @@ export interface StatementVisitorObject<T> {
   visitForwardRule(node: ForwardRule): T;
   visitFunctionRule(node: FunctionRule): T;
   visitIfRule(node: IfRule): T;
+  visitImportRule(node: ImportRule): T;
   visitIncludeRule(node: IncludeRule): T;
   visitLoudComment(node: LoudComment): T;
   visitMediaRule(node: MediaRule): T;

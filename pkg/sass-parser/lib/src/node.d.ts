@@ -25,9 +25,12 @@ export type NodeType =
   | 'argument-list'
   | 'configuration'
   | 'configured-variable'
+  | 'dynamic-import'
+  | 'import-list'
   | 'interpolation'
   | 'parameter'
-  | 'parameter-list';
+  | 'parameter-list'
+  | 'static-import';
 
 /** The constructor properties shared by all Sass AST nodes. */
 export type NodeProps = postcss.NodeProps;
