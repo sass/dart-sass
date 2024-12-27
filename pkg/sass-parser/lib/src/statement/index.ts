@@ -21,6 +21,7 @@ import {ForRule, ForRuleProps} from './for-rule';
 import {ForwardRule, ForwardRuleProps} from './forward-rule';
 import {FunctionRule, FunctionRuleProps} from './function-rule';
 import {IfRule, IfRuleProps} from './if-rule';
+import {ImportRule, ImportRuleProps} from './import-rule';
 import {IncludeRule, IncludeRuleProps} from './include-rule';
 import {MixinRule, MixinRuleProps} from './mixin-rule';
 import {ReturnRule, ReturnRuleProps} from './return-rule';
@@ -64,6 +65,7 @@ export type StatementType =
   | 'forward-rule'
   | 'function-rule'
   | 'if-rule'
+  | 'import-rule'
   | 'include-rule'
   | 'mixin-rule'
   | 'return-rule'
@@ -88,6 +90,7 @@ export type AtRule =
   | FunctionRule
   | GenericAtRule
   | IfRule
+  | ImportRule
   | IncludeRule
   | MixinRule
   | ReturnRule
@@ -141,6 +144,7 @@ export type ChildProps =
   | FunctionRuleProps
   | GenericAtRuleProps
   | IfRuleProps
+  | ImportRuleProps
   | IncludeRuleProps
   | MixinRuleProps
   | ReturnRuleProps
@@ -218,6 +222,7 @@ const visitor = sassInternal.createStatementVisitor<Statement | Statement[]>({
     }
     return rules;
   },
+  visitImportRule: inner => new ImportRule(undefined, inner),
   visitIncludeRule: inner => new IncludeRule(undefined, inner),
   visitExtendRule: inner => {
     const paramsInterpolation = new Interpolation(undefined, inner.selector);
@@ -372,6 +377,8 @@ export function normalize(
       result.push(new ErrorRule(node));
     } else if ('ifCondition' in node) {
       result.push(new IfRule(node));
+    } else if ('imports' in node) {
+      result.push(new ImportRule(node));
     } else if ('includeName' in node) {
       result.push(new IncludeRule(node));
     } else if ('fromExpression' in node) {

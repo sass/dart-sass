@@ -11,7 +11,7 @@ import {
   scss,
 } from '..';
 
-describe('a argument', () => {
+describe('an argument', () => {
   let node: Argument;
   beforeEach(
     () =>

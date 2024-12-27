@@ -39,6 +39,7 @@ import {ForwardRule} from './statement/forward-rule';
 import {FunctionRule} from './statement/function-rule';
 import {GenericAtRule} from './statement/generic-at-rule';
 import {IfRule} from './statement/if-rule';
+import {ImportRule} from './statement/import-rule';
 import {IncludeRule} from './statement/include-rule';
 import {MixinRule} from './statement/mixin-rule';
 import {ReturnRule} from './statement/return-rule';
@@ -146,6 +147,10 @@ export class Stringifier extends PostCssStringifier {
 
   private ['if-rule'](node: IfRule): void {
     this.sassAtRule(node);
+  }
+
+  private ['import-rule'](node: ImportRule, semicolon: boolean): void {
+    this.sassAtRule(node, semicolon);
   }
 
   private ['include-rule'](node: IncludeRule, semicolon: boolean): void {
