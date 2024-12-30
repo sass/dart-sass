@@ -2999,7 +2999,8 @@ abstract class StylesheetParser extends Parser {
         case $space || $tab:
           buffer.writeCharCode(scanner.readChar());
 
-        case $lf || $cr || $ff when indented && !allowNewlines:
+        case $lf || $cr || $ff
+            when indented && !allowNewlines && brackets.isEmpty:
           break loop;
 
         case $lf || $cr || $ff:
