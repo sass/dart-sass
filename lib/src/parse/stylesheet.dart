@@ -889,7 +889,7 @@ abstract class StylesheetParser extends Parser {
       ));
     }
 
-    whitespace(allowNewlines: false);
+    whitespace(allowNewlines: true);
     var parameters = _parameterList();
 
     if (_inMixin || _inContentBlock) {
@@ -1052,7 +1052,7 @@ abstract class StylesheetParser extends Parser {
     ElseClause? lastClause;
 
     while (scanElse(ifIndentation)) {
-      whitespace(allowNewlines: true);
+      whitespace(allowNewlines: false);
       if (scanIdentifier("if")) {
         whitespace(allowNewlines: true);
         clauses.add(IfClause(_expression(), this.children(child)));
@@ -1197,7 +1197,7 @@ abstract class StylesheetParser extends Parser {
           scanner.expectChar($rparen);
           whitespace(allowNewlines: false);
         } else {
-          whitespace(allowNewlines: true);
+          whitespace(allowNewlines: false);
           if (scanner.scanChar($comma)) {
             buffer.write(", ");
             buffer.addInterpolation(_mediaQueryList());
@@ -1458,7 +1458,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   @protected
   SupportsRule supportsRule(LineScannerState start) {
-    whitespace(allowNewlines: true);
+    whitespace(allowNewlines: false);
     var condition = _supportsCondition();
     whitespace(allowNewlines: false);
     return _withChildren(_statement, start,
@@ -3346,7 +3346,7 @@ abstract class StylesheetParser extends Parser {
   SupportsCondition _supportsCondition({bool inParentheses = false}) {
     var start = scanner.state;
     if (scanIdentifier("not")) {
-      whitespace(allowNewlines: true);
+      whitespace(allowNewlines: inParentheses);
       return SupportsNegation(
           _supportsConditionInParens(), scanner.spanFrom(start));
     }
@@ -3364,11 +3364,11 @@ abstract class StylesheetParser extends Parser {
         operator = "and";
       }
 
-      whitespace(allowNewlines: true);
+      whitespace(allowNewlines: inParentheses);
       var right = _supportsConditionInParens();
       condition = SupportsOperation(
           condition, right, operator, scanner.spanFrom(start));
-      whitespace(allowNewlines: false);
+      whitespace(allowNewlines: inParentheses);
     }
     return condition;
   }
