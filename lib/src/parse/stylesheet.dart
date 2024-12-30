@@ -91,7 +91,7 @@ abstract class StylesheetParser extends Parser {
         // Handle this specially so that [atRule] always returns a non-nullable
         // Statement.
         if (scanner.scan('@charset')) {
-          whitespace(allowNewlines: true);
+          whitespace(allowNewlines: false);
           string();
           return null;
         }
@@ -1754,7 +1754,8 @@ abstract class StylesheetParser extends Parser {
   /// expression.
   ///
   /// If [allowNewlines] is true, the indented syntax will consume newlines as
-  /// whitespace in positions when a statement can't end.
+  /// whitespace at the top level of the expression, outside of bracketed
+  /// subexpressions, in positions when a statement can't end.
   @protected
   Expression _expression(
       {bool bracketList = false,
