@@ -819,11 +819,11 @@ abstract class StylesheetParser extends Parser {
     _inControlDirective = true;
 
     var variables = [variableName()];
-    whitespace(allowNewlines: false);
+    whitespace(allowNewlines: true);
     while (scanner.scanChar($comma)) {
-      whitespace(allowNewlines: false);
+      whitespace(allowNewlines: true);
       variables.add(variableName());
-      whitespace(allowNewlines: false);
+      whitespace(allowNewlines: true);
     }
     whitespace(allowNewlines: true);
     expectIdentifier("in");
