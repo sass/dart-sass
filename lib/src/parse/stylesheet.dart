@@ -1754,7 +1754,7 @@ abstract class StylesheetParser extends Parser {
   /// expression.
   ///
   /// If [allowNewlines] is true, the indented syntax will consume newlines as
-  /// whitespace, in positions when a statement can not end.
+  /// whitespace in positions when a statement can't end.
   @protected
   Expression _expression(
       {bool bracketList = false,
@@ -2164,7 +2164,7 @@ abstract class StylesheetParser extends Parser {
   /// operator at the top level.
   ///
   /// If [allowNewlines] is true, the indented syntax will consume newlines as
-  /// whitespace, in positions when a statement can not end.
+  /// whitespace in positions when a statement can't end.
   Expression expressionUntilComma(
           {bool singleEquals = false, bool allowNewlines = false}) =>
       _expression(
@@ -2940,7 +2940,7 @@ abstract class StylesheetParser extends Parser {
   /// to CSS.
   ///
   /// If [allowNewlines] is true, the indented syntax will consume newlines as
-  /// whitespace, in positions when a statement can not end.
+  /// whitespace in positions when a statement can't end.
   ///
   /// Unlike [declarationValue], this allows interpolation.
   Interpolation _interpolatedDeclarationValue(

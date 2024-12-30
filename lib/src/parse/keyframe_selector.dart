@@ -15,7 +15,7 @@ class KeyframeSelectorParser extends Parser {
     return wrapSpanFormatException(() {
       var selectors = <String>[];
       do {
-        whitespace(allowNewlines: false);
+        _whitespace();
         if (lookingAtIdentifier()) {
           if (scanIdentifier("from")) {
             selectors.add("from");
@@ -26,7 +26,7 @@ class KeyframeSelectorParser extends Parser {
         } else {
           selectors.add(_percentage());
         }
-        whitespace(allowNewlines: false);
+        _whitespace();
       } while (scanner.scanChar($comma));
       scanner.expectDone();
 
@@ -70,5 +70,10 @@ class KeyframeSelectorParser extends Parser {
     scanner.expectChar($percent);
     buffer.writeCharCode($percent);
     return buffer.toString();
+  }
+
+  /// The value of `allowNewlines` is not relevant for this class.
+  void _whitespace() {
+    whitespace(allowNewlines: true);
   }
 }

@@ -14,22 +14,27 @@ class AtRootQueryParser extends Parser {
   AtRootQuery parse() {
     return wrapSpanFormatException(() {
       scanner.expectChar($lparen);
-      whitespace(allowNewlines: true);
+      _whitespace();
       var include = scanIdentifier("with");
       if (!include) expectIdentifier("without", name: '"with" or "without"');
-      whitespace(allowNewlines: true);
+      _whitespace();
       scanner.expectChar($colon);
-      whitespace(allowNewlines: true);
+      _whitespace();
 
       var atRules = <String>{};
       do {
         atRules.add(identifier().toLowerCase());
-        whitespace(allowNewlines: true);
+        _whitespace();
       } while (lookingAtIdentifier());
       scanner.expectChar($rparen);
       scanner.expectDone();
 
       return AtRootQuery(atRules, include: include);
     });
+  }
+
+  /// The value of `allowNewlines` is not relevant for this class.
+  void _whitespace() {
+    whitespace(allowNewlines: true);
   }
 }

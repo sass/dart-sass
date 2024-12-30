@@ -49,7 +49,7 @@ class CssParser extends ScssParser {
     var start = scanner.state;
     scanner.expectChar($at);
     var name = interpolatedIdentifier();
-    whitespace(allowNewlines: true);
+    _whitespace();
 
     return switch (name.asPlain) {
       "at-root" ||
@@ -113,7 +113,7 @@ class CssParser extends ScssParser {
           .text
     };
 
-    whitespace(allowNewlines: true);
+    _whitespace();
     var modifiers = tryImportModifiers();
     expectStatementSeparator("@import rule");
     return ImportRule(
@@ -126,7 +126,7 @@ class CssParser extends ScssParser {
     // evaluation time.
     var start = scanner.state;
     scanner.expectChar($lparen);
-    whitespace(allowNewlines: true);
+    _whitespace();
     var expression = expressionUntilComma();
     scanner.expectChar($rparen);
     return ParenthesizedExpression(expression, scanner.spanFrom(start));
@@ -151,7 +151,7 @@ class CssParser extends ScssParser {
     var arguments = <Expression>[];
     if (!scanner.scanChar($rparen)) {
       do {
-        whitespace(allowNewlines: true);
+        _whitespace();
         if (allowEmptySecondArg &&
             arguments.length == 1 &&
             scanner.peekChar() == $rparen) {
@@ -160,7 +160,7 @@ class CssParser extends ScssParser {
         }
 
         arguments.add(expressionUntilComma(singleEquals: true));
-        whitespace(allowNewlines: true);
+        _whitespace();
       } while (scanner.scanChar($comma));
       scanner.expectChar($rparen);
     }
@@ -179,5 +179,10 @@ class CssParser extends ScssParser {
   Expression namespacedExpression(String namespace, LineScannerState start) {
     var expression = super.namespacedExpression(namespace, start);
     error("Module namespaces aren't allowed in plain CSS.", expression.span);
+  }
+
+  /// The value of `allowNewlines` is not relevant for this class.
+  void _whitespace() {
+    whitespace(allowNewlines: true);
   }
 }

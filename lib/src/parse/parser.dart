@@ -67,7 +67,7 @@ class Parser {
     if (!scanner.scanChar($dollar)) return false;
     if (!lookingAtIdentifier()) return false;
     identifier();
-    whitespace(allowNewlines: false);
+    whitespace(allowNewlines: true);
     return scanner.scanChar($colon);
   }
 
@@ -76,7 +76,7 @@ class Parser {
   /// Consumes whitespace, including any comments.
   ///
   /// If [allowNewlines] is true, the indented syntax will consume newlines as
-  /// whitespace, in positions when a statement can not end.
+  /// whitespace in positions when a statement can't end.
   @protected
   void whitespace({required bool allowNewlines}) {
     do {
@@ -87,7 +87,7 @@ class Parser {
   /// Consumes whitespace, but not comments.
   ///
   /// If [allowNewlines] is true, the indented syntax will consume newlines as
-  /// whitespace, in positions when a statement can not end.
+  /// whitespace in positions when a statement can't end.
   @protected
   void whitespaceWithoutComments({required bool allowNewlines}) {
     while (!scanner.isDone && scanner.peekChar().isWhitespace) {
@@ -124,7 +124,7 @@ class Parser {
   /// Like [whitespace], but throws an error if no whitespace is consumed.
   ///
   /// If [allowNewlines] is true, the indented syntax will consume newlines as
-  /// whitespace, in positions when a statement can not end.
+  /// whitespace in positions when a statement can't end.
   @protected
   void expectWhitespace({bool allowNewlines = false}) {
     if (scanner.isDone || !(scanner.peekChar().isWhitespace || scanComment())) {
