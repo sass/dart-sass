@@ -63,8 +63,8 @@ class SassParser extends StylesheetParser {
 
   bool atEndOfStatement() {
     var next = scanner.peekChar();
-    return next.isNewline ||
-        next == null ||
+    return next == null ||
+        next.isNewline ||
         (next == $semicolon && scanner.peekChar(1).isNewline);
   }
 
@@ -319,11 +319,7 @@ class SassParser extends StylesheetParser {
     // newlines where that would cause a statement to end.
     while (!scanner.isDone) {
       var next = scanner.peekChar();
-      if (!allowNewlines && !next.isSpaceOrTab) {
-        break;
-      } else if (allowNewlines && !next.isWhitespace) {
-        break;
-      }
+      if (allowNewlines ? !next.isWhitespace : !next.isSpaceOrTab) break;
       scanner.readChar();
     }
   }
