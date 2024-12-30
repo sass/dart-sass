@@ -803,7 +803,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   DebugRule _debugRule(LineScannerState start) {
-    whitespace(allowNewlines: false);
+    whitespace(allowNewlines: true);
     var value = _expression();
     expectStatementSeparator("@debug rule");
     return DebugRule(value, scanner.spanFrom(start));
@@ -841,7 +841,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   ErrorRule _errorRule(LineScannerState start) {
-    whitespace(allowNewlines: false);
+    whitespace(allowNewlines: true);
     var value = _expression();
     expectStatementSeparator("@error rule");
     return ErrorRule(value, scanner.spanFrom(start));
@@ -1570,7 +1570,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   WarnRule _warnRule(LineScannerState start) {
-    whitespace(allowNewlines: false);
+    whitespace(allowNewlines: true);
     var value = _expression();
     expectStatementSeparator("@warn rule");
     return WarnRule(value, scanner.spanFrom(start));
