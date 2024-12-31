@@ -2905,7 +2905,10 @@ abstract class StylesheetParser extends Parser {
           brackets.add(opposite(bracket));
 
         case $rparen || $rbracket:
-          if (brackets.isEmpty) break loop;
+          if (brackets.isEmpty) {
+            scanner.error(
+                'Unexpected "${String.fromCharCode(scanner.peekChar()!)}".');
+          }
           var bracket = brackets.removeLast();
           scanner.expectChar(bracket);
           buffer.writeCharCode(bracket);
