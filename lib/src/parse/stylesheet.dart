@@ -1021,7 +1021,7 @@ abstract class StylesheetParser extends Parser {
     var identifiers = <String>{};
     var variables = <String>{};
     do {
-      whitespace(allowNewlines: false);
+      whitespace(allowNewlines: true);
       withErrorMessage("Expected variable, mixin, or function name", () {
         if (scanner.peekChar() == $dollar) {
           variables.add(variableName());
