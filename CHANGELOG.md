@@ -1,3 +1,10 @@
+## 1.84.0-dev
+
+* Allow newlines in whitespace in the indented syntax.
+* **Potentially breaking bug fix**: Selectors with interpolations that render
+  unmatched brackets previously parse, but now error. For example,
+  `[foo#{"]:is(bar"}) {a: b}` will now throw an error.
+
 ## 1.83.0
 
 * Allow trailing commas in *all* argument and parameter lists.
