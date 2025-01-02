@@ -323,11 +323,11 @@ class SassParser extends StylesheetParser {
   }
 
   /// Expect and consume a single newline character.
+  ///
+  /// If [trailingSemicolon] is true, this follows a semicolon, which is used
+  /// for error reporting.
   void _expectNewline({bool trailingSemicolon = false}) {
     switch (scanner.peekChar()) {
-      case $semicolon:
-        // TODO: jamesnw change
-        scanner.error("semicolons aren't allowed in the indented syntax.");
       case $cr:
         scanner.readChar();
         if (scanner.peekChar() == $lf) scanner.readChar();
@@ -459,8 +459,9 @@ class SassParser extends StylesheetParser {
     }
   }
 
-  //`[whitespace no newlines, no comments] ';'? [whitespace with newlines, comments] [newline]`
-
+  /// Consumes a semicolon and trailing whitespace, including comments.
+  ///
+  /// Returns whether a semicolon was consumed.
   bool _trailingSemicolon() {
     if (scanCharIf((char) => char == $semicolon)) {
       whitespace(allowNewlines: false);
