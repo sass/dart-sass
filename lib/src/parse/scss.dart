@@ -184,13 +184,13 @@ class ScssParser extends StylesheetParser {
     }
   }
 
-  /// The value of `allowNewlines` is not relevant for this class.
+  /// The value of `consumeNewlines` is not relevant for this class.
   void _whitespace() {
-    whitespace(allowNewlines: true);
+    whitespace(consumeNewlines: true);
   }
 
-  /// The value of `allowNewlines` is not relevant for this class.
+  /// The value of `consumeNewlines` is not relevant for this class.
   void _whitespaceWithoutComments() {
-    whitespaceWithoutComments(allowNewlines: true);
+    whitespaceWithoutComments(consumeNewlines: true);
   }
 }

@@ -33,8 +33,8 @@ class AtRootQueryParser extends Parser {
     });
   }
 
-  /// The value of `allowNewlines` is not relevant for this class.
+  /// The value of `consumeNewlines` is not relevant for this class.
   void _whitespace() {
-    whitespace(allowNewlines: true);
+    whitespace(consumeNewlines: true);
   }
 }

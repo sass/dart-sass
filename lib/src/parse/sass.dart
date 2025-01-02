@@ -262,7 +262,7 @@ class SassParser extends StylesheetParser {
               buffer.writeCharCode(scanner.readChar());
               buffer.writeCharCode(scanner.readChar());
               var span = scanner.spanFrom(start);
-              whitespace(allowNewlines: false);
+              whitespace(consumeNewlines: false);
 
               // For backwards compatibility, allow additional comments after
               // the initial comment is closed.
@@ -272,7 +272,7 @@ class SassParser extends StylesheetParser {
                   _expectNewline();
                 }
                 _readIndentation();
-                whitespace(allowNewlines: false);
+                whitespace(consumeNewlines: false);
               }
 
               if (!scanner.isDone && !scanner.peekChar().isNewline) {
@@ -312,12 +312,12 @@ class SassParser extends StylesheetParser {
     return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
   }
 
-  void whitespaceWithoutComments({required bool allowNewlines}) {
+  void whitespaceWithoutComments({required bool consumeNewlines}) {
     // This overrides whitespace consumption so that it doesn't consume
     // newlines where that would cause a statement to end.
     while (!scanner.isDone) {
       var next = scanner.peekChar();
-      if (allowNewlines ? !next.isWhitespace : !next.isSpaceOrTab) break;
+      if (consumeNewlines ? !next.isWhitespace : !next.isSpaceOrTab) break;
       scanner.readChar();
     }
   }
@@ -464,7 +464,7 @@ class SassParser extends StylesheetParser {
   /// Returns whether a semicolon was consumed.
   bool _trailingSemicolon() {
     if (scanCharIf((char) => char == $semicolon)) {
-      whitespace(allowNewlines: false);
+      whitespace(consumeNewlines: false);
       return true;
     }
     return false;

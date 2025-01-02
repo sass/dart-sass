@@ -181,8 +181,8 @@ class CssParser extends ScssParser {
     error("Module namespaces aren't allowed in plain CSS.", expression.span);
   }
 
-  /// The value of `allowNewlines` is not relevant for this class.
+  /// The value of `consumeNewlines` is not relevant for this class.
   void _whitespace() {
-    whitespace(allowNewlines: true);
+    whitespace(consumeNewlines: true);
   }
 }

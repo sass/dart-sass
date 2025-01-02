@@ -67,7 +67,7 @@ class Parser {
     if (!scanner.scanChar($dollar)) return false;
     if (!lookingAtIdentifier()) return false;
     identifier();
-    whitespace(allowNewlines: true);
+    whitespace(consumeNewlines: true);
     return scanner.scanChar($colon);
   }
 
@@ -75,21 +75,21 @@ class Parser {
 
   /// Consumes whitespace, including any comments.
   ///
-  /// If [allowNewlines] is true, the indented syntax will consume newlines as
+  /// If [consumeNewlines] is true, the indented syntax will consume newlines as
   /// whitespace in positions when a statement can't end.
   @protected
-  void whitespace({required bool allowNewlines}) {
+  void whitespace({required bool consumeNewlines}) {
     do {
-      whitespaceWithoutComments(allowNewlines: allowNewlines);
+      whitespaceWithoutComments(consumeNewlines: consumeNewlines);
     } while (scanComment());
   }
 
   /// Consumes whitespace, but not comments.
   ///
-  /// If [allowNewlines] is true, the indented syntax will consume newlines as
+  /// If [consumeNewlines] is true, the indented syntax will consume newlines as
   /// whitespace in positions when a statement can't end.
   @protected
-  void whitespaceWithoutComments({required bool allowNewlines}) {
+  void whitespaceWithoutComments({required bool consumeNewlines}) {
     while (!scanner.isDone && scanner.peekChar().isWhitespace) {
       scanner.readChar();
     }
@@ -123,14 +123,14 @@ class Parser {
 
   /// Like [whitespace], but throws an error if no whitespace is consumed.
   ///
-  /// If [allowNewlines] is true, the indented syntax will consume newlines as
+  /// If [consumeNewlines] is true, the indented syntax will consume newlines as
   /// whitespace in positions when a statement can't end.
   @protected
-  void expectWhitespace({bool allowNewlines = false}) {
+  void expectWhitespace({bool consumeNewlines = false}) {
     if (scanner.isDone || !(scanner.peekChar().isWhitespace || scanComment())) {
       scanner.error("Expected whitespace.");
     }
-    whitespace(allowNewlines: allowNewlines);
+    whitespace(consumeNewlines: consumeNewlines);
   }
 
   /// Consumes and ignores a single silent (Sass-style) comment, not including
@@ -394,7 +394,7 @@ class Parser {
       return null;
     }
 
-    whitespace(allowNewlines: true);
+    whitespace(consumeNewlines: true);
 
     // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
     // backtrack and re-parse as a function expression.
@@ -415,7 +415,7 @@ class Parser {
               >= 0x0080:
           buffer.writeCharCode(scanner.readChar());
         case int(isWhitespace: true):
-          whitespace(allowNewlines: true);
+          whitespace(consumeNewlines: true);
           if (scanner.peekChar() != $rparen) break loop;
         case $rparen:
           buffer.writeCharCode(scanner.readChar());
