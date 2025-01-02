@@ -54,19 +54,17 @@ class SassParser extends StylesheetParser {
   }
 
   void expectStatementSeparator([String? name]) {
-    if (!atEndOfStatement()) _expectNewline(canEndInSemicolon: true);
+    var trailingSemicolon = _trailingSemicolon();
+    if (!atEndOfStatement()) {
+      _expectNewline(trailingSemicolon: trailingSemicolon);
+    }
     if (_peekIndentation() <= currentIndentation) return;
     scanner.error(
         "Nothing may be indented ${name == null ? 'here' : 'beneath a $name'}.",
         position: _nextIndentationEnd!.position);
   }
 
-  bool atEndOfStatement() {
-    var next = scanner.peekChar();
-    return next == null ||
-        next.isNewline ||
-        (next == $semicolon && scanner.peekChar(1).isNewline);
-  }
+  bool atEndOfStatement() => scanner.peekChar()?.isNewline ?? true;
 
   bool lookingAtChildren() =>
       atEndOfStatement() && _peekIndentation() > currentIndentation;
@@ -324,25 +322,12 @@ class SassParser extends StylesheetParser {
     }
   }
 
-  /// Expect and consume a single newline.
-  ///
-  /// If [canEndInSemicolon] is true, this will also consume a `;` before the
-  /// newline if present.
-  void _expectNewline({bool canEndInSemicolon = false}) {
+  /// Expect and consume a single newline character.
+  void _expectNewline({bool trailingSemicolon = false}) {
     switch (scanner.peekChar()) {
-      case $semicolon
-          when canEndInSemicolon && [$lf, $ff].contains(scanner.peekChar(1)):
-        scanner.readChar();
-        scanner.readChar();
-        return;
-      case $semicolon when canEndInSemicolon && scanner.peekChar(1) == $cr:
-        scanner.readChar();
-        scanner.readChar();
-        if (scanner.peekChar() == $lf) scanner.readChar();
-        return;
       case $semicolon:
-        scanner.error(
-            "multiple statements on one line are not supported in the indented syntax.");
+        // TODO: jamesnw change
+        scanner.error("semicolons aren't allowed in the indented syntax.");
       case $cr:
         scanner.readChar();
         if (scanner.peekChar() == $lf) scanner.readChar();
@@ -351,7 +336,9 @@ class SassParser extends StylesheetParser {
         scanner.readChar();
         return;
       default:
-        scanner.error("expected newline.");
+        scanner.error(trailingSemicolon
+            ? "multiple statements on one line are not supported in the indented syntax."
+            : "expected newline.");
     }
   }
 
@@ -408,13 +395,7 @@ class SassParser extends StylesheetParser {
 
     var start = scanner.state;
 
-    if (scanner.peekChar().isNewline) {
-      scanner.readChar();
-    } else if (scanner.peekChar() == $semicolon &&
-        scanner.peekChar(1).isNewline) {
-      scanner.readChar();
-      scanner.readChar();
-    } else {
+    if (!scanCharIf((char) => char.isNewline)) {
       scanner.error("Expected newline.", position: scanner.position);
     }
 
@@ -476,5 +457,15 @@ class SassParser extends StylesheetParser {
       scanner.error("Expected tabs, was spaces.",
           position: scanner.position - scanner.column, length: scanner.column);
     }
+  }
+
+  //`[whitespace no newlines, no comments] ';'? [whitespace with newlines, comments] [newline]`
+
+  bool _trailingSemicolon() {
+    if (scanCharIf((char) => char == $semicolon)) {
+      whitespace(allowNewlines: false);
+      return true;
+    }
+    return false;
   }
 }
