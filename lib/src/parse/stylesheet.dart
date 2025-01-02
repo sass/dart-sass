@@ -805,8 +805,9 @@ abstract class StylesheetParser extends Parser {
   DebugRule _debugRule(LineScannerState start) {
     whitespace(allowNewlines: true);
     var value = _expression();
+    var expressionEnd = scanner.state;
     expectStatementSeparator("@debug rule");
-    return DebugRule(value, scanner.spanFrom(start));
+    return DebugRule(value, scanner.spanFrom(start, expressionEnd));
   }
 
   /// Consumes an `@each` rule.
@@ -843,8 +844,9 @@ abstract class StylesheetParser extends Parser {
   ErrorRule _errorRule(LineScannerState start) {
     whitespace(allowNewlines: true);
     var value = _expression();
+    var expressionEnd = scanner.state;
     expectStatementSeparator("@error rule");
-    return ErrorRule(value, scanner.spanFrom(start));
+    return ErrorRule(value, scanner.spanFrom(start, expressionEnd));
   }
 
   /// Consumes an `@extend` rule.
@@ -1572,8 +1574,9 @@ abstract class StylesheetParser extends Parser {
   WarnRule _warnRule(LineScannerState start) {
     whitespace(allowNewlines: true);
     var value = _expression();
+    var expressionEnd = scanner.state;
     expectStatementSeparator("@warn rule");
-    return WarnRule(value, scanner.spanFrom(start));
+    return WarnRule(value, scanner.spanFrom(start, expressionEnd));
   }
 
   /// Consumes a `@while` rule.
