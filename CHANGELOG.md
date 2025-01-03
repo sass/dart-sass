@@ -1,3 +1,8 @@
+## 1.83.1
+
+* Fix a bug where `--quiet-deps` would get deactivated for `@content` blocks,
+  even when those blocks were entirely contained within dependencies.
+
 ## 1.83.0
 
 * Allow trailing commas in *all* argument and parameter lists.

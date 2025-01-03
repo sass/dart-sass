@@ -1211,8 +1211,7 @@ final class _EvaluateVisitor
     if (siblings.last != _parent &&
         // Reproduce this condition from [_warn] so that we don't add anything to
         // [interleavedRules] for declarations in dependencies.
-        !(_quietDeps &&
-            (_inDependency || (_currentCallable?.inDependency ?? false)))) {
+        !(_quietDeps && _inDependency)) {
       loop:
       for (var sibling in siblings.skip(siblings.indexOf(_parent) + 1)) {
         switch (sibling) {
@@ -2946,7 +2945,9 @@ final class _EvaluateVisitor
     if (name != "@content") name += "()";
 
     var oldCallable = _currentCallable;
+    var oldInDependency = _inDependency;
     _currentCallable = callable;
+    _inDependency = callable.inDependency;
     var result = await _withStackFrame(name, nodeWithSpan, () {
       // Add an extra closure() call so that modifications to the environment
       // don't affect the underlying environment closure.
@@ -3014,6 +3015,7 @@ final class _EvaluateVisitor
       });
     });
     _currentCallable = oldCallable;
+    _inDependency = oldInDependency;
     return result;
   }
 
@@ -3873,10 +3875,7 @@ final class _EvaluateVisitor
 
   /// Emits a warning with the given [message] about the given [span].
   void _warn(String message, FileSpan span, [Deprecation? deprecation]) {
-    if (_quietDeps &&
-        (_inDependency || (_currentCallable?.inDependency ?? false))) {
-      return;
-    }
+    if (_quietDeps && _inDependency) return;
 
     if (!_warningsEmitted.add((message, span))) return;
     var trace = _stackTrace(span);
