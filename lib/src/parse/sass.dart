@@ -54,7 +54,7 @@ class SassParser extends StylesheetParser {
   }
 
   void expectStatementSeparator([String? name]) {
-    var trailingSemicolon = _trailingSemicolon();
+    var trailingSemicolon = _tryTrailingSemicolon();
     if (!atEndOfStatement()) {
       _expectNewline(trailingSemicolon: trailingSemicolon);
     }
@@ -394,7 +394,6 @@ class SassParser extends StylesheetParser {
     }
 
     var start = scanner.state;
-
     if (!scanCharIf((char) => char.isNewline)) {
       scanner.error("Expected newline.", position: scanner.position);
     }
@@ -462,7 +461,7 @@ class SassParser extends StylesheetParser {
   /// Consumes a semicolon and trailing whitespace, including comments.
   ///
   /// Returns whether a semicolon was consumed.
-  bool _trailingSemicolon() {
+  bool _tryTrailingSemicolon() {
     if (scanCharIf((char) => char == $semicolon)) {
       whitespace(consumeNewlines: false);
       return true;
