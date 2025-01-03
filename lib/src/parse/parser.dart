@@ -67,23 +67,31 @@ class Parser {
     if (!scanner.scanChar($dollar)) return false;
     if (!lookingAtIdentifier()) return false;
     identifier();
-    whitespace();
+    whitespace(consumeNewlines: true);
     return scanner.scanChar($colon);
   }
 
   // ## Tokens
 
   /// Consumes whitespace, including any comments.
+  ///
+  /// If [consumeNewlines] is `true`, the indented syntax will consume newlines
+  /// as whitespace. It should only be set to `true` in positions when a
+  /// statement can't end.
   @protected
-  void whitespace() {
+  void whitespace({required bool consumeNewlines}) {
     do {
-      whitespaceWithoutComments();
+      whitespaceWithoutComments(consumeNewlines: consumeNewlines);
     } while (scanComment());
   }
 
   /// Consumes whitespace, but not comments.
+  ///
+  /// If [consumeNewlines] is `true`, the indented syntax will consume newlines
+  /// as whitespace. It should only be set to `true` in positions when a
+  /// statement can't end.
   @protected
-  void whitespaceWithoutComments() {
+  void whitespaceWithoutComments({required bool consumeNewlines}) {
     while (!scanner.isDone && scanner.peekChar().isWhitespace) {
       scanner.readChar();
     }
@@ -116,13 +124,16 @@ class Parser {
   }
 
   /// Like [whitespace], but throws an error if no whitespace is consumed.
+  ///
+  /// If [consumeNewlines] is `true`, the indented syntax will consume newlines
+  /// as whitespace. It should only be set to `true` in positions when a
+  /// statement can't end.
   @protected
-  void expectWhitespace() {
+  void expectWhitespace({bool consumeNewlines = false}) {
     if (scanner.isDone || !(scanner.peekChar().isWhitespace || scanComment())) {
       scanner.error("Expected whitespace.");
     }
-
-    whitespace();
+    whitespace(consumeNewlines: consumeNewlines);
   }
 
   /// Consumes and ignores a single silent (Sass-style) comment, not including
@@ -386,7 +397,7 @@ class Parser {
       return null;
     }
 
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
     // backtrack and re-parse as a function expression.
@@ -407,7 +418,7 @@ class Parser {
               >= 0x0080:
           buffer.writeCharCode(scanner.readChar());
         case int(isWhitespace: true):
-          whitespace();
+          whitespace(consumeNewlines: true);
           if (scanner.peekChar() != $rparen) break loop;
         case $rparen:
           buffer.writeCharCode(scanner.readChar());
