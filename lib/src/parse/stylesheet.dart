@@ -2163,8 +2163,9 @@ abstract class StylesheetParser extends Parser {
   /// If [singleEquals] is true, this will allow the Microsoft-style `=`
   /// operator at the top level.
   ///
-  /// If [consumeNewlines] is true, the indented syntax will consume newlines as
-  /// whitespace in positions when a statement can't end.
+  /// If [consumeNewlines] is `true`, the indented syntax will consume newlines
+  /// as whitespace. It should only be set to `true` in positions when a
+  /// statement can't end.
   Expression expressionUntilComma(
           {bool singleEquals = false, bool consumeNewlines = false}) =>
       _expression(
@@ -2941,8 +2942,9 @@ abstract class StylesheetParser extends Parser {
   /// comments. Otherwise, it will preserve two adjacent slashes and emit them
   /// to CSS.
   ///
-  /// If [consumeNewlines] is true, the indented syntax will consume newlines as
-  /// whitespace in positions when a statement can't end.
+  /// If [consumeNewlines] is `true`, the indented syntax will consume newlines
+  /// as whitespace. It should only be set to `true` in positions when a
+  /// statement can't end.
   ///
   /// Unlike [declarationValue], this allows interpolation.
   Interpolation _interpolatedDeclarationValue(
