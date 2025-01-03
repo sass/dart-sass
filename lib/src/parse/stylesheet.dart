@@ -1968,11 +1968,7 @@ abstract class StylesheetParser extends Parser {
 
     loop:
     while (true) {
-      whitespace(
-          consumeNewlines: consumeNewlines ||
-              bracketList ||
-              _inParentheses ||
-              wasInExpression);
+      whitespace(consumeNewlines: consumeNewlines || bracketList);
       if (until != null && until()) break;
 
       switch (scanner.peekChar()) {
@@ -2230,7 +2226,7 @@ abstract class StylesheetParser extends Parser {
             [], ListSeparator.undecided, scanner.spanFrom(start));
       }
 
-      var first = expressionUntilComma();
+      var first = expressionUntilComma(consumeNewlines: true);
       if (scanner.scanChar($colon)) {
         whitespace(consumeNewlines: true);
         return _map(first, start);
@@ -2245,7 +2241,7 @@ abstract class StylesheetParser extends Parser {
       var expressions = [first];
       while (true) {
         if (!_lookingAtExpression()) break;
-        expressions.add(expressionUntilComma());
+        expressions.add(expressionUntilComma(consumeNewlines: true));
         if (!scanner.scanChar($comma)) break;
         whitespace(consumeNewlines: true);
       }
@@ -2264,16 +2260,16 @@ abstract class StylesheetParser extends Parser {
   /// as the expression before the colon and [start] the point before the
   /// opening parenthesis.
   MapExpression _map(Expression first, LineScannerState start) {
-    var pairs = [(first, expressionUntilComma())];
+    var pairs = [(first, expressionUntilComma(consumeNewlines: true))];
 
     while (scanner.scanChar($comma)) {
       whitespace(consumeNewlines: true);
       if (!_lookingAtExpression()) break;
 
-      var key = expressionUntilComma();
+      var key = expressionUntilComma(consumeNewlines: true);
       scanner.expectChar($colon);
       whitespace(consumeNewlines: true);
-      var value = expressionUntilComma();
+      var value = expressionUntilComma(consumeNewlines: true);
       pairs.add((key, value));
     }
 
@@ -2907,10 +2903,9 @@ abstract class StylesheetParser extends Parser {
           buffer.writeCharCode(bracket);
           brackets.add(opposite(bracket));
 
-        case $rparen || $rbracket:
+        case ($rparen || $rbracket) && var char:
           if (brackets.isEmpty) {
-            scanner.error(
-                'Unexpected "${String.fromCharCode(scanner.peekChar()!)}".');
+            scanner.error('Unexpected "${String.fromCharCode(char!)}".');
           }
           var bracket = brackets.removeLast();
           scanner.expectChar(bracket);
