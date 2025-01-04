@@ -1,4 +1,7 @@
-## 1.83.1-dev
+## 1.83.1
+
+* Fix a bug where `--quiet-deps` would get deactivated for `@content` blocks,
+  even when those blocks were entirely contained within dependencies.
 
 * Include deprecation IDs in deprecation warnings to make it easier to determine
   what to pass to `--silence-deprecation` or `--fatal-deprecation`.

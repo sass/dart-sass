@@ -487,6 +487,29 @@ void sharedTests(
         expect(sass.stderr, emitsDone);
         await sass.shouldExit(0);
       });
+
+      // Regression test for sass/dart-sass#2418
+      test("doesn't emit runner warnings in content blocks from local @include",
+          () async {
+        await d.file("test.scss", """
+          @use 'other';
+          @include other.foo;
+        """).create();
+        await d.dir("dir", [
+          d.file("_other.scss", """
+            @mixin bar {@content}
+            @mixin foo {
+              @include bar {
+                #{blue} {x: y}
+              }
+            }
+          """)
+        ]).create();
+
+        var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
+        expect(sass.stderr, emitsDone);
+        await sass.shouldExit(0);
+      });
     });
 
     group("silences warnings through @import", () {
