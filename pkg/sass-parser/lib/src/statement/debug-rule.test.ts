@@ -107,7 +107,7 @@ describe('a @debug rule', () => {
           new DebugRule({
             debugExpression: {text: 'foo'},
           }).toString(),
-        ).toBe('@debug foo;'));
+        ).toBe('@debug foo'));
 
       it('with afterName', () =>
         expect(
@@ -115,7 +115,7 @@ describe('a @debug rule', () => {
             debugExpression: {text: 'foo'},
             raws: {afterName: '/**/'},
           }).toString(),
-        ).toBe('@debug/**/foo;'));
+        ).toBe('@debug/**/foo'));
 
       it('with between', () =>
         expect(
@@ -123,7 +123,7 @@ describe('a @debug rule', () => {
             debugExpression: {text: 'foo'},
             raws: {between: '/**/'},
           }).toString(),
-        ).toBe('@debug foo/**/;'));
+        ).toBe('@debug foo/**/'));
     });
   });
 

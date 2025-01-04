@@ -275,7 +275,7 @@ describe('a @use rule', () => {
               useUrl: 'foo',
               namespace: 'bar',
             }).toString(),
-          ).toBe('@use "foo" as bar;'));
+          ).toBe('@use "foo" as bar'));
 
         it('with a non-identifier namespace', () =>
           expect(
@@ -283,7 +283,7 @@ describe('a @use rule', () => {
               useUrl: 'foo',
               namespace: ' ',
             }).toString(),
-          ).toBe('@use "foo" as \\20;'));
+          ).toBe('@use "foo" as \\20'));
 
         it('with no namespace', () =>
           expect(
@@ -291,7 +291,7 @@ describe('a @use rule', () => {
               useUrl: 'foo',
               namespace: null,
             }).toString(),
-          ).toBe('@use "foo" as *;'));
+          ).toBe('@use "foo" as *'));
 
         it('with configuration', () =>
           expect(
@@ -301,7 +301,7 @@ describe('a @use rule', () => {
                 variables: {bar: {text: 'baz', quotes: true}},
               },
             }).toString(),
-          ).toBe('@use "foo" with ($bar: "baz");'));
+          ).toBe('@use "foo" with ($bar: "baz")'));
       });
 
       describe('with a URL raw', () => {
@@ -311,7 +311,7 @@ describe('a @use rule', () => {
               useUrl: 'foo',
               raws: {url: {raw: "'foo'", value: 'foo'}},
             }).toString(),
-          ).toBe("@use 'foo';"));
+          ).toBe("@use 'foo'"));
 
         it("that doesn't match", () =>
           expect(
@@ -319,7 +319,7 @@ describe('a @use rule', () => {
               useUrl: 'foo',
               raws: {url: {raw: "'bar'", value: 'bar'}},
             }).toString(),
-          ).toBe('@use "foo";'));
+          ).toBe('@use "foo"'));
       });
 
       describe('with a namespace raw', () => {
@@ -329,7 +329,7 @@ describe('a @use rule', () => {
               useUrl: 'foo',
               raws: {namespace: {raw: '  as  foo', value: 'foo'}},
             }).toString(),
-          ).toBe('@use "foo"  as  foo;'));
+          ).toBe('@use "foo"  as  foo'));
 
         it('that matches null', () =>
           expect(
@@ -338,7 +338,7 @@ describe('a @use rule', () => {
               namespace: null,
               raws: {namespace: {raw: '  as  *', value: null}},
             }).toString(),
-          ).toBe('@use "foo"  as  *;'));
+          ).toBe('@use "foo"  as  *'));
 
         it("that doesn't match", () =>
           expect(
@@ -346,7 +346,7 @@ describe('a @use rule', () => {
               useUrl: 'foo',
               raws: {url: {raw: '  as  bar', value: 'bar'}},
             }).toString(),
-          ).toBe('@use "foo";'));
+          ).toBe('@use "foo"'));
       });
 
       describe('with beforeWith', () => {
@@ -359,7 +359,7 @@ describe('a @use rule', () => {
               },
               raws: {beforeWith: '/**/'},
             }).toString(),
-          ).toBe('@use "foo"/**/with ($bar: "baz");'));
+          ).toBe('@use "foo"/**/with ($bar: "baz")'));
 
         it('and no configuration', () =>
           expect(
@@ -367,7 +367,7 @@ describe('a @use rule', () => {
               useUrl: 'foo',
               raws: {beforeWith: '/**/'},
             }).toString(),
-          ).toBe('@use "foo";'));
+          ).toBe('@use "foo"'));
       });
 
       describe('with afterWith', () => {
@@ -380,7 +380,7 @@ describe('a @use rule', () => {
               },
               raws: {afterWith: '/**/'},
             }).toString(),
-          ).toBe('@use "foo" with/**/($bar: "baz");'));
+          ).toBe('@use "foo" with/**/($bar: "baz")'));
 
         it('and no configuration', () =>
           expect(
@@ -388,7 +388,7 @@ describe('a @use rule', () => {
               useUrl: 'foo',
               raws: {afterWith: '/**/'},
             }).toString(),
-          ).toBe('@use "foo";'));
+          ).toBe('@use "foo"'));
       });
     });
   });

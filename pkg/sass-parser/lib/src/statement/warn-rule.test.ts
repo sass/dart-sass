@@ -107,7 +107,7 @@ describe('a @warn rule', () => {
           new WarnRule({
             warnExpression: {text: 'foo'},
           }).toString(),
-        ).toBe('@warn foo;'));
+        ).toBe('@warn foo'));
 
       it('with afterName', () =>
         expect(
@@ -115,7 +115,7 @@ describe('a @warn rule', () => {
             warnExpression: {text: 'foo'},
             raws: {afterName: '/**/'},
           }).toString(),
-        ).toBe('@warn/**/foo;'));
+        ).toBe('@warn/**/foo'));
 
       it('with between', () =>
         expect(
@@ -123,7 +123,7 @@ describe('a @warn rule', () => {
             warnExpression: {text: 'foo'},
             raws: {between: '/**/'},
           }).toString(),
-        ).toBe('@warn foo/**/;'));
+        ).toBe('@warn foo/**/'));
     });
   });
 

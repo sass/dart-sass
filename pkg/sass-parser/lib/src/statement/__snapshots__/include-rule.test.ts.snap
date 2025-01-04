@@ -13,7 +13,7 @@ exports[`a @include rule toJSON with a child 1`] = `
   ],
   "name": "include",
   "nodes": [
-    <@qux;>,
+    <@qux>,
   ],
   "params": "foo(bar)",
   "raws": {},
@@ -56,7 +56,7 @@ exports[`a @include rule toJSON with using and a child 1`] = `
   ],
   "name": "include",
   "nodes": [
-    <@qux;>,
+    <@qux>,
   ],
   "params": "foo(bar) using ($baz)",
   "raws": {},

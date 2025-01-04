@@ -7,7 +7,7 @@ import * as postcss from 'postcss';
 import {Container} from './container';
 import {Parameter, ParameterProps} from './parameter';
 import {LazySource} from './lazy-source';
-import {Node} from './node';
+import {Node, NodeProps} from './node';
 import * as sassInternal from './sass-internal';
 import * as utils from './utils';
 
@@ -29,7 +29,7 @@ export type NewParameters =
  *
  * @category Statement
  */
-export interface ParameterListObjectProps {
+export interface ParameterListObjectProps extends NodeProps {
   nodes?: ReadonlyArray<NewParameters>;
   raws?: ParameterListRaws;
 }
