@@ -49,6 +49,8 @@ abstract class Logger {
 /// [warn].
 @internal
 abstract class LoggerWithDeprecationType implements Logger {
+  const LoggerWithDeprecationType();
+
   /// This forwards all calls to [internalWarn].
   ///
   /// For non-user deprecation warnings, the [warnForDeprecation] extension

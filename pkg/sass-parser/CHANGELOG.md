@@ -1,3 +1,7 @@
+## 0.4.9-dev
+
+* No user-visible changes.
+
 ## 0.4.8
 
 Add support for parsing the `@include` rule.
