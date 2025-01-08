@@ -6,6 +6,7 @@ import * as postcss from 'postcss';
 
 import {Interpolation, InterpolationProps} from '../interpolation';
 import {LazySource} from '../lazy-source';
+import {NodeProps} from '../node';
 import type * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {Expression} from '.';
@@ -15,7 +16,7 @@ import {Expression} from '.';
  *
  * @category Expression
  */
-export interface StringExpressionProps {
+export interface StringExpressionProps extends NodeProps {
   text: Interpolation | InterpolationProps;
   quotes?: boolean;
   raws?: StringExpressionRaws;

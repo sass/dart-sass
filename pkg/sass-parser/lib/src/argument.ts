@@ -6,7 +6,7 @@ import * as postcss from 'postcss';
 
 import {Expression, ExpressionProps} from './expression';
 import {fromProps} from './expression/from-props';
-import {Node} from './node';
+import {Node, NodeProps} from './node';
 import {ArgumentList} from './argument-list';
 import * as sassInternal from './sass-internal';
 import {RawWithValue} from './raw-with-value';
@@ -58,7 +58,7 @@ export interface ArgumentRaws {
  *
  * @category Expression
  */
-export type ArgumentObjectProps = {
+export type ArgumentObjectProps = NodeProps & {
   raws?: ArgumentRaws;
   value: Expression | ExpressionProps;
 } & ({name?: string; rest?: never} | {name?: never; rest?: boolean});

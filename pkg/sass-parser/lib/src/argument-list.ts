@@ -8,7 +8,7 @@ import {Argument, ArgumentProps} from './argument';
 import {Container} from './container';
 import {convertExpression} from './expression/convert';
 import {LazySource} from './lazy-source';
-import {Node} from './node';
+import {Node, NodeProps} from './node';
 import * as sassInternal from './sass-internal';
 import * as utils from './utils';
 
@@ -30,7 +30,7 @@ export type NewArguments =
  *
  * @category Expression
  */
-export interface ArgumentListObjectProps {
+export interface ArgumentListObjectProps extends NodeProps {
   nodes?: ReadonlyArray<NewArguments>;
   raws?: ArgumentListRaws;
 }

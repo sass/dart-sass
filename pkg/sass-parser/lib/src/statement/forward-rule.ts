@@ -8,10 +8,11 @@ import type {AtRuleRaws} from 'postcss/lib/at-rule';
 import {Configuration, ConfigurationProps} from '../configuration';
 import {StringExpression} from '../expression/string';
 import {LazySource} from '../lazy-source';
+import {NodeProps} from '../node';
 import {RawWithValue} from '../raw-with-value';
 import * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
-import {ContainerProps, Statement, StatementWithChildren} from '.';
+import {Statement, StatementWithChildren} from '.';
 import {_AtRule} from './at-rule-internal';
 import {interceptIsClean} from './intercept-is-clean';
 import * as sassParser from '../..';
@@ -89,7 +90,7 @@ export interface ForwardMemberProps {
  *
  * @category Statement
  */
-export type ForwardRuleProps = ContainerProps & {
+export type ForwardRuleProps = NodeProps & {
   raws?: ForwardRuleRaws;
   forwardUrl: string;
   prefix?: string;
