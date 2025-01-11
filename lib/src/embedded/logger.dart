@@ -44,13 +44,17 @@ final class EmbeddedLogger extends LoggerWithDeprecationType {
       {FileSpan? span, Trace? trace, Deprecation? deprecation}) {
     var formatted = withGlyphs(() {
       var buffer = StringBuffer();
+      var showDeprecation =
+          deprecation != null && deprecation != Deprecation.userAuthored;
       if (_color) {
         buffer.write('\u001b[33m\u001b[1m');
         if (deprecation != null) buffer.write('Deprecation ');
         buffer.write('Warning\u001b[0m');
+        if (showDeprecation) buffer.write(' [\u001b[34m$deprecation\u001b[0m]');
       } else {
         if (deprecation != null) buffer.write('DEPRECATION ');
         buffer.write('WARNING');
+        if (showDeprecation) buffer.write(' [$deprecation]');
       }
       if (span == null) {
         buffer.writeln(': $message');
