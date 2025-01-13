@@ -134,7 +134,7 @@ export class MixinRule
   toJSON(_?: string, inputs?: Map<postcss.Input, number>): object {
     return utils.toJSON(
       this,
-      ['name', 'mixinName', 'parameters', 'nodes'],
+      ['name', 'params', 'mixinName', 'parameters', 'nodes'],
       inputs,
     );
   }
