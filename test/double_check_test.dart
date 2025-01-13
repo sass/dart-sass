@@ -14,6 +14,8 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
 
+import 'package:sass/src/util/map.dart';
+
 import '../tool/grind/generate_deprecations.dart' as deprecations;
 import '../tool/grind/synchronize.dart' as synchronize;
 
@@ -21,26 +23,15 @@ import '../tool/grind/synchronize.dart' as synchronize;
 void main() {
   group("up-to-date generated", () {
     group("synchronized file:", () {
-      synchronize.sources.forEach((sourcePath, targetPath) {
-        test(targetPath, () {
-          if (File(targetPath).readAsStringSync() !=
-              synchronize.synchronizeFile(sourcePath)) {
-            fail("$targetPath is out-of-date.\n"
-                "Run `dart run grinder` to update it.");
-          }
-        });
-      });
-    });
-
-    test("deprecations", () {
-      var inputText = File(deprecations.yamlPath).readAsStringSync();
-      var outputText = File(deprecations.dartPath).readAsStringSync();
-      var checksum = sha1.convert(utf8.encode(inputText));
-      if (!outputText.contains('// Checksum: $checksum')) {
-        fail('${deprecations.dartPath} is out-of-date.\n'
-            'Run `dart run grinder` to update it.');
+      for (var (sourcePath, targetPath) in synchronize.sources.pairs) {
+        test(targetPath, () => _assertChecksumMatches(sourcePath, targetPath));
       }
     });
+
+    test(
+        "deprecations",
+        () => _assertChecksumMatches(
+            deprecations.yamlPath, deprecations.dartPath));
   },
       // Windows sees different bytes than other OSes, possibly because of
       // newline normalization issues.
@@ -180,5 +171,17 @@ void _checkVersionIncrementsAlong(
     expect(pkgMinor, equals(0),
         reason: "sass major version was incremented, $pkgName must increment "
             "at its major version as well");
+  }
+}
+
+/// Throws an error if the checksum in [outputPath] doesn't match the hash of
+/// the contents of [inputPath].
+void _assertChecksumMatches(String inputPath, String outputPath) {
+  var inputText = File(inputPath).readAsStringSync();
+  var outputText = File(outputPath).readAsStringSync();
+  var checksum = sha1.convert(utf8.encode(inputText));
+  if (!outputText.contains('// Checksum: $checksum')) {
+    fail('$outputPath is out-of-date.\n'
+        'Run `dart run grinder` to update it.');
   }
 }
