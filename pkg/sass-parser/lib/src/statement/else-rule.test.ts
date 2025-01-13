@@ -17,7 +17,7 @@ describe('an @else rule', () => {
         it('has no expression', () =>
           expect(node.elseCondition).toBeUndefined());
 
-        it('has matching params', () => expect(node.params).toBe(''));
+        it('has empty params', () => expect(node.params).toBe(''));
 
         it('has empty nodes', () => expect(node.nodes).toEqual([]));
       });
@@ -86,7 +86,7 @@ describe('an @else rule', () => {
         it('has an expression', () =>
           expect(node.elseCondition).toBeUndefined());
 
-        it('has matching params', () => expect(node.params).toBe(''));
+        it('has empty params', () => expect(node.params).toBe(''));
 
         it('has a child node', () => {
           expect(node.nodes).toHaveLength(1);

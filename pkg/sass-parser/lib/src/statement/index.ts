@@ -208,11 +208,14 @@ const visitor = sassInternal.createStatementVisitor<Statement | Statement[]>({
   visitFunctionRule: inner => new FunctionRule(undefined, inner),
   visitIfRule: inner => {
     const rules: Statement[] = [new IfRule(undefined, inner)];
+
+    // Skip `inner.clauses[0]` because it's already used by `new IfRule()`.
     for (let i = 1; i < inner.clauses.length; i++) {
       rules.push(new ElseRule(undefined, inner, inner.clauses[i]));
     }
-    if (inner.lastClause)
+    if (inner.lastClause) {
       rules.push(new ElseRule(undefined, inner, inner.lastClause));
+    }
     return rules;
   },
   visitIncludeRule: inner => new IncludeRule(undefined, inner),

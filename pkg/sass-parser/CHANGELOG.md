@@ -1,6 +1,6 @@
 ## 0.4.9
 
-* No user-visible changes.
+* Add support for parsing the `@if` and `@else` rules.
 
 ## 0.4.8
 
