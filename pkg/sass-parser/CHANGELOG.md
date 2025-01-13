@@ -1,14 +1,16 @@
 ## 0.4.9
 
+* Add support for parsing the `@include` rule.
+
+* Add support for parsing declarations.
+
 * Add support for parsing the `@if` and `@else` rules.
 
 ## 0.4.8
 
-Add support for parsing the `@include` rule.
+* Add support for parsing the `@mixin` rule.
 
-Add support for parsing the `@mixin` rule.
-
-Add support for parsing the `@return` rule.
+* Add support for parsing the `@return` rule.
 
 ## 0.4.7
 
