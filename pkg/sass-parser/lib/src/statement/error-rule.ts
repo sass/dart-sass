@@ -66,7 +66,7 @@ export class ErrorRule
     this.errorExpression = {text: value?.toString() ?? ''};
   }
 
-  /** The expresison whose value is thrown when the error rule is executed. */
+  /** The expression whose value is thrown when the error rule is executed. */
   get errorExpression(): Expression {
     return this._errorExpression!;
   }

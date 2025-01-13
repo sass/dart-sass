@@ -166,6 +166,20 @@ declare namespace SassInternal {
     readonly parameters: ParameterList;
   }
 
+  class IfRule extends Statement {
+    readonly clauses: IfClause[];
+    readonly lastClause: ElseClause | null;
+  }
+
+  class IfClause {
+    readonly expression: Expression;
+    readonly children: Statement[];
+  }
+
+  class ElseClause {
+    readonly children: Statement[];
+  }
+
   class IncludeRule extends Statement {
     readonly namespace: string | null;
     readonly name: string;
@@ -329,6 +343,9 @@ export type ExtendRule = SassInternal.ExtendRule;
 export type ForRule = SassInternal.ForRule;
 export type ForwardRule = SassInternal.ForwardRule;
 export type FunctionRule = SassInternal.FunctionRule;
+export type IfRule = SassInternal.IfRule;
+export type IfClause = SassInternal.IfClause;
+export type ElseClause = SassInternal.ElseClause;
 export type IncludeRule = SassInternal.IncludeRule;
 export type LoudComment = SassInternal.LoudComment;
 export type MediaRule = SassInternal.MediaRule;
@@ -363,6 +380,7 @@ export interface StatementVisitorObject<T> {
   visitForRule(node: ForRule): T;
   visitForwardRule(node: ForwardRule): T;
   visitFunctionRule(node: FunctionRule): T;
+  visitIfRule(node: IfRule): T;
   visitIncludeRule(node: IncludeRule): T;
   visitLoudComment(node: LoudComment): T;
   visitMediaRule(node: MediaRule): T;

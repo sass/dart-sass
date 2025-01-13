@@ -102,7 +102,7 @@ export class ConfiguredVariable extends Node {
    */
   declare name: string;
 
-  /** The expresison whose value the variable is assigned. */
+  /** The expression whose value the variable is assigned. */
   get expression(): Expression {
     return this._expression!;
   }

@@ -4,6 +4,8 @@
 
 * Add support for parsing declarations.
 
+* Add support for parsing the `@if` and `@else` rules.
+
 ## 0.4.8
 
 * Add support for parsing the `@mixin` rule.
