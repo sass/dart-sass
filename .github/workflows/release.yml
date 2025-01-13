@@ -127,6 +127,11 @@ jobs:
           check-latest: true
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Get version
+        id: version
+        run: |
+          echo "version=$(jq .version pkg/sass-parser/package.json)" | tee --append "$GITHUB_OUTPUT"
+
         # The repo package has a file dependency, but the released version needs
         # a real dependency on the released version of Sass.
       - run: npm install sass@${{ steps.version.outputs.version }}
@@ -137,10 +142,6 @@ jobs:
           NODE_AUTH_TOKEN: '${{ secrets.NPM_TOKEN }}'
         working-directory: pkg/sass-parser/
 
-      - name: Get version
-        id: version
-        run: |
-          echo "version=$(jq .version pkg/sass-parser/package.json)" | tee --append "$GITHUB_OUTPUT"
       - run: git tag sass-parser/${{ steps.version.outputs.version }}
       - run: git push --tag
 
