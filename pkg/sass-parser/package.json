@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "postcss": ">=8.4.41 <8.5.0",
-    "sass": "file:../../build/npm"
+    "sass": "^1.83.1"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",

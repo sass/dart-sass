@@ -1,14 +1,14 @@
 ## 0.4.9
 
-* No user-visible changes.
+* Add support for parsing the `@include` rule.
+
+* Add support for parsing declarations.
 
 ## 0.4.8
 
-Add support for parsing the `@include` rule.
+* Add support for parsing the `@mixin` rule.
 
-Add support for parsing the `@mixin` rule.
-
-Add support for parsing the `@return` rule.
+* Add support for parsing the `@return` rule.
 
 ## 0.4.7
 
