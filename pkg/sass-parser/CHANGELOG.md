@@ -4,6 +4,9 @@
 
 * Add support for parsing declarations.
 
+* Fix the deploy of this package so that it actually contains the package's
+  compiled contents.
+
 ## 0.4.8
 
 * Add support for parsing the `@mixin` rule.
