@@ -1756,9 +1756,9 @@ abstract class StylesheetParser extends Parser {
   /// still be a valid expression. When it returns `true`, this returns the
   /// expression.
   ///
-  /// If [consumeNewlines] is true, the indented syntax will consume newlines as
-  /// whitespace at the top level of the expression, outside of bracketed
-  /// subexpressions, in positions when a statement can't end.
+  /// If [consumeNewlines] is `true`, the indented syntax will consume newlines
+  /// as whitespace. It should only be set to `true` in positions when a
+  /// statement can't end.
   @protected
   Expression _expression(
       {bool bracketList = false,
@@ -2904,9 +2904,9 @@ abstract class StylesheetParser extends Parser {
           buffer.writeCharCode(bracket);
           brackets.add(opposite(bracket));
 
-        case ($rparen || $rbracket) && var char:
+        case ($rparen || $rbracket) && var char?:
           if (brackets.isEmpty) {
-            scanner.error('Unexpected "${String.fromCharCode(char!)}".');
+            scanner.error('Unexpected "${String.fromCharCode(char)}".');
           }
           var bracket = brackets.removeLast();
           scanner.expectChar(bracket);

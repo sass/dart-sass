@@ -1,9 +1,10 @@
 ## 1.84.0-dev
 
 * Allow newlines in whitespace in the indented syntax.
-* **Potentially breaking bug fix**: Selectors with interpolations containing
-  unmatched brackets previously parse, but now error. For example,
-  `[foo#{"]:is(bar"}) {a: b}` will now throw an error.
+
+* **Potentially breaking bug fix**: Selectors with unmatched brackets now always
+  produce a parser error. Previously, some edge cases like `[foo#{"]:is(bar"}) {a:
+  b}` would compile without error, but this was an unintentional bug.
 
 ## 1.83.1
 
