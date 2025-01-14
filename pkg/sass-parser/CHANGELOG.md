@@ -1,3 +1,7 @@
+## 0.4.11
+
+* Fix the automated release process.
+
 ## 0.4.10
 
 * No user-visible changes.

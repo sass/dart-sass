@@ -127,14 +127,12 @@ jobs:
           check-latest: true
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Get version
-        id: version
-        run: |
-          echo "version=$(jq .version pkg/sass-parser/package.json)" | tee --append "$GITHUB_OUTPUT"
-
         # The repo package has a file dependency, but the released version needs
         # a real dependency on the released version of Sass.
-      - run: npm install sass@${{ steps.version.outputs.version }}
+      - name: Get Dart Sass version
+        id: dart-sass-version
+        run: echo "version=${GITHUB_REF##*/}" | tee --append "$GITHUB_OUTPUT"
+      - run: npm install sass@${{ steps.dart-sassversion.outputs.version }}
         working-directory: pkg/sass-parser/
 
       - run: npm run compile
@@ -143,7 +141,11 @@ jobs:
           NODE_AUTH_TOKEN: '${{ secrets.NPM_TOKEN }}'
         working-directory: pkg/sass-parser/
 
-      - run: git tag sass-parser/${{ steps.version.outputs.version }}
+      - name: Get Sass parser version
+        id: sass-parser-version
+        run: |
+          echo "version=$(jq .version pkg/sass-parser/package.json)" | tee --append "$GITHUB_OUTPUT"
+      - run: git tag sass-parser/${{ steps.sass-parser-version.outputs.version }}
       - run: git push --tag
 
   deploy_homebrew:
