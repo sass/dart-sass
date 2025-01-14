@@ -137,6 +137,7 @@ jobs:
       - run: npm install sass@${{ steps.version.outputs.version }}
         working-directory: pkg/sass-parser/
 
+      - run: npm run compile
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: '${{ secrets.NPM_TOKEN }}'
