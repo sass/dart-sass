@@ -1,3 +1,7 @@
+## 0.4.12
+
+* Fix more bugs in the automated release process.
+
 ## 0.4.11
 
 * Fix the automated release process.

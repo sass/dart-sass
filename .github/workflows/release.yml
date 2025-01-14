@@ -132,10 +132,11 @@ jobs:
       - name: Get Dart Sass version
         id: dart-sass-version
         run: echo "version=${GITHUB_REF##*/}" | tee --append "$GITHUB_OUTPUT"
-      - run: npm install sass@${{ steps.dart-sassversion.outputs.version }}
+      - run: npm install sass@${{ steps.dart-sass-version.outputs.version }}
         working-directory: pkg/sass-parser/
 
       - run: npm run compile
+        working-directory: pkg/sass-parser/
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: '${{ secrets.NPM_TOKEN }}'
