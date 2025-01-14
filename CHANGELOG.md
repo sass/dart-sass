@@ -1,3 +1,9 @@
+## 1.83.2
+
+* Properly display deprecation IDs for the JS Sass API.
+
+* Don't display deprecation IDs for user-defined deprecations.
+
 ## 1.83.1
 
 * Fix a bug where `--quiet-deps` would get deactivated for `@content` blocks,
