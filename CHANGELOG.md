@@ -1,3 +1,10 @@
+## 1.84.0-dev
+
+* Allow newlines in whitespace in the indented syntax.
+* **Potentially breaking bug fix**: Selectors with interpolations containing
+  unmatched brackets previously parse, but now error. For example,
+  `[foo#{"]:is(bar"}) {a: b}` will now throw an error.
+
 ## 1.83.1
 
 * Fix a bug where `--quiet-deps` would get deactivated for `@content` blocks,
