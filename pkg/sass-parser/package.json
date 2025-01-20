@@ -31,7 +31,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "postcss": ">=8.4.41 <8.5.0",
+    "postcss": ">=8.4.41 <8.6.0",
     "sass": "file:../../build/npm"
   },
   "devDependencies": {
