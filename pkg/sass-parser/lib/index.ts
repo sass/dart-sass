@@ -108,6 +108,11 @@ export {
   Parameter,
 } from './src/parameter';
 export {
+  ContentRule,
+  ContentRuleProps,
+  ContentRuleRaws,
+} from './src/statement/content-rule';
+export {
   CssComment,
   CssCommentProps,
   CssCommentRaws,

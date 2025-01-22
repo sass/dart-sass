@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a @content rule toJSON 1`] = `
+{
+  "contentArguments": <(bar)>,
+  "inputs": [
+    {
+      "css": "@mixin foo {@content(bar)}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "content",
+  "params": "(bar)",
+  "raws": {},
+  "sassType": "content-rule",
+  "source": <1:13-1:26 in 0>,
+  "type": "atrule",
+}
+`;

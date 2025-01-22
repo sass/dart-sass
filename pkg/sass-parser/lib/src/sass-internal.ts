@@ -121,6 +121,10 @@ declare namespace SassInternal {
     readonly parameters: ParameterList;
   }
 
+  class ContentRule extends Statement {
+    readonly arguments: ArgumentList;
+  }
+
   class DebugRule extends Statement {
     readonly expression: Expression;
   }
@@ -348,6 +352,7 @@ export type ArgumentList = SassInternal.ArgumentList;
 export type AtRootRule = SassInternal.AtRootRule;
 export type AtRule = SassInternal.AtRule;
 export type ContentBlock = SassInternal.ContentBlock;
+export type ContentRule = SassInternal.ContentRule;
 export type DebugRule = SassInternal.DebugRule;
 export type Declaration = SassInternal.Declaration;
 export type EachRule = SassInternal.EachRule;
@@ -388,6 +393,7 @@ export type NumberExpression = SassInternal.NumberExpression;
 export interface StatementVisitorObject<T> {
   visitAtRootRule(node: AtRootRule): T;
   visitAtRule(node: AtRule): T;
+  visitContentRule(node: ContentRule): T;
   visitDebugRule(node: DebugRule): T;
   visitDeclaration(node: Declaration): T;
   visitEachRule(node: EachRule): T;

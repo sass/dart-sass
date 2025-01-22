@@ -93,9 +93,10 @@ void _updateAstPrototypes() {
       (Expression self, ExpressionVisitor<Object?> visitor) =>
           self.accept(visitor));
   var arguments = ArgumentList([], {}, bogusSpan);
-  var include = IncludeRule('a', arguments, bogusSpan);
-  getJSClass(include)
+  getJSClass(IncludeRule('a', arguments, bogusSpan))
       .defineGetter('arguments', (IncludeRule self) => self.arguments);
+  getJSClass(ContentRule(arguments, bogusSpan))
+      .defineGetter('arguments', (ContentRule self) => self.arguments);
 
   _addSupportsConditionToInterpolation();
 

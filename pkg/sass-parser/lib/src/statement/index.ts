@@ -12,6 +12,7 @@ import * as sassInternal from '../sass-internal';
 import {CssComment, CssCommentProps} from './css-comment';
 import {SassComment, SassCommentChildProps} from './sass-comment';
 import {GenericAtRule, GenericAtRuleProps} from './generic-at-rule';
+import {ContentRule, ContentRuleProps} from './content-rule';
 import {DebugRule, DebugRuleProps} from './debug-rule';
 import {Declaration, DeclarationProps} from './declaration';
 import {EachRule, EachRuleProps} from './each-rule';
@@ -56,6 +57,7 @@ export type StatementType =
   | 'rule'
   | 'atrule'
   | 'comment'
+  | 'content-rule'
   | 'decl'
   | 'debug-rule'
   | 'each-rule'
@@ -81,6 +83,7 @@ export type StatementType =
  * @category Statement
  */
 export type AtRule =
+  | ContentRule
   | DebugRule
   | EachRule
   | ElseRule
@@ -130,6 +133,12 @@ export type ChildNode = Rule | AtRule | Comment | AnyDeclaration;
  */
 export type ChildProps =
   | postcss.ChildProps
+  // In a ChildProps context, `ContentProps` requires an explicit
+  // `contentArguments: undefined` so that an empty object isn't a valid
+  // `ChildProps`.
+  | (ContentRuleProps & {
+      contentArguments: ContentRuleProps['contentArguments'];
+    })
   | CssCommentProps
   | DebugRuleProps
   | DeclarationProps
@@ -203,6 +212,7 @@ const visitor = sassInternal.createStatementVisitor<Statement | Statement[]>({
     return rule;
   },
   visitAtRule: inner => new GenericAtRule(undefined, inner),
+  visitContentRule: inner => new ContentRule(undefined, inner),
   visitDebugRule: inner => new DebugRule(undefined, inner),
   visitDeclaration: inner => new Declaration(undefined, inner),
   visitErrorRule: inner => new ErrorRule(undefined, inner),
@@ -367,6 +377,8 @@ export function normalize(
       result.push(new Rule(node));
     } else if ('name' in node || 'nameInterpolation' in node) {
       result.push(new GenericAtRule(node as GenericAtRuleProps));
+    } else if ('contentArguments' in node) {
+      result.push(new ContentRule(node));
     } else if ('debugExpression' in node) {
       result.push(new DebugRule(node));
     } else if ('eachExpression' in node) {
