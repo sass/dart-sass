@@ -116,11 +116,15 @@ export class IncludeRule
   get arguments(): ArgumentList {
     return this._arguments!;
   }
-  set arguments(args: ArgumentList | ArgumentListProps) {
+  set arguments(args: ArgumentList | ArgumentListProps | undefined) {
     if (this._arguments) {
       this._arguments.parent = undefined;
     }
-    this._arguments = 'sassType' in args ? args : new ArgumentList(args);
+    this._arguments = args
+      ? 'sassType' in args
+        ? args
+        : new ArgumentList(args)
+      : new ArgumentList();
     this._arguments.parent = this;
   }
   private declare _arguments: ArgumentList;

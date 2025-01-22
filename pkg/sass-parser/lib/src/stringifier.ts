@@ -28,7 +28,7 @@
 
 import * as postcss from 'postcss';
 
-import {AnyStatement} from './statement';
+import {AnyStatement, AtRule} from './statement';
 import {DebugRule} from './statement/debug-rule';
 import {Declaration} from './statement/declaration';
 import {EachRule} from './statement/each-rule';
@@ -82,6 +82,10 @@ export class Stringifier extends PostCssStringifier {
         semicolon: boolean,
       ) => void
     )(statement, semicolon);
+  }
+
+  private ['content-rule'](node: EachRule): void {
+    this.sassAtRule(node);
   }
 
   private ['debug-rule'](node: DebugRule, semicolon: boolean): void {
@@ -261,11 +265,12 @@ export class Stringifier extends PostCssStringifier {
   }
 
   /** Helper method for non-generic Sass at-rules. */
-  private sassAtRule(node: postcss.AtRule, semicolon?: boolean): void {
+  private sassAtRule(node: AtRule, semicolon?: boolean): void {
     const start =
       '@' +
       node.name +
-      (node.raws.afterName ?? (node.params === '' ? '' : ' ')) +
+      (node.raws.afterName ??
+        (node.params === '' || node.sassType === 'content-rule' ? '' : ' ')) +
       node.params;
     if (node.nodes) {
       this.block(node, start);
