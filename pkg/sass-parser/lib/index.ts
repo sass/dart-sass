@@ -66,6 +66,11 @@ export {
   BooleanExpressionRaws,
 } from './src/expression/boolean';
 export {
+  ColorExpression,
+  ColorExpressionProps,
+  ColorExpressionRaws,
+} from './src/expression/color';
+export {
   NumberExpression,
   NumberExpressionProps,
   NumberExpressionRaws,

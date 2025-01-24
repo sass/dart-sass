@@ -6,6 +6,7 @@ import * as postcss from 'postcss';
 
 import {LazySource} from '../lazy-source';
 import {NodeProps} from '../node';
+import {RawWithValue} from '../raw-with-value';
 import type * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {Expression} from '.';
@@ -34,8 +35,7 @@ export interface NumberExpressionRaws {
    * use scientific notation. For example, the following number representations
    * have the same value: `1e3`, `1000`, `01000.0`.
    */
-  // TODO: Replace with RawWithValue<T> when #2389 lands.
-  value?: {raw: string; value: number};
+  value?: RawWithValue<number>;
 }
 
 /**
