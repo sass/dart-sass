@@ -5,6 +5,24 @@
 * **Potentially breaking bug fix**: Selectors with unmatched brackets now always
   produce a parser error. Previously, some edge cases like `[foo#{"]:is(bar"}) {a:
   b}` would compile without error, but this was an unintentional bug.
+## 1.83.5-dev
+
+* Fix the error message for `@extend` without a selector and possibly other
+  parsing edge-cases in contexts that allow interpolation..
+
+## 1.83.4
+
+* No user-visible changes.
+
+## 1.83.3
+
+* No user-visible changes.
+
+## 1.83.2
+
+* Properly display deprecation IDs for the JS Sass API.
+
+* Don't display deprecation IDs for user-defined deprecations.
 
 ## 1.83.1
 

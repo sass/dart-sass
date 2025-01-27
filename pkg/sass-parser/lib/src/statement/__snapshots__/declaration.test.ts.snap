@@ -1,0 +1,66 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a property declaration toJSON with expression and no nodes 1`] = `
+{
+  "expression": <bar>,
+  "inputs": [
+    {
+      "css": "a {foo: bar}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "prop": "foo",
+  "propInterpolation": <foo>,
+  "raws": {},
+  "sassType": "decl",
+  "source": <1:4-1:12 in 0>,
+  "type": "decl",
+  "value": "bar",
+}
+`;
+
+exports[`a property declaration toJSON with expression and nodes 1`] = `
+{
+  "expression": <bar>,
+  "inputs": [
+    {
+      "css": "a {foo: bar {baz: bang}}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "nodes": [
+    <baz: bang>,
+  ],
+  "prop": "foo",
+  "propInterpolation": <foo>,
+  "raws": {},
+  "sassType": "decl",
+  "source": <1:4-1:24 in 0>,
+  "type": "decl",
+  "value": "bar",
+}
+`;
+
+exports[`a property declaration toJSON with no expression and nodes 1`] = `
+{
+  "inputs": [
+    {
+      "css": "a {foo: {baz: bang}}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "nodes": [
+    <baz: bang>,
+  ],
+  "prop": "foo",
+  "propInterpolation": <foo>,
+  "raws": {},
+  "sassType": "decl",
+  "source": <1:4-1:20 in 0>,
+  "type": "decl",
+  "value": "",
+}
+`;

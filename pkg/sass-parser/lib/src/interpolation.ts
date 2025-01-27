@@ -9,7 +9,7 @@ import {convertExpression} from './expression/convert';
 import {fromProps} from './expression/from-props';
 import {Expression, ExpressionProps} from './expression';
 import {LazySource} from './lazy-source';
-import {Node} from './node';
+import {Node, NodeProps} from './node';
 import {RawWithValue} from './raw-with-value';
 import type * as sassInternal from './sass-internal';
 import * as utils from './utils';
@@ -39,7 +39,7 @@ export type NewNodeForInterpolation =
  *
  * @category Expression
  */
-export interface InterpolationObjectProps {
+export interface InterpolationObjectProps extends NodeProps {
   nodes: ReadonlyArray<NewNodeForInterpolation>;
   raws?: InterpolationRaws;
 }

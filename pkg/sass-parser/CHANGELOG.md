@@ -1,14 +1,35 @@
-## 0.4.9
+## 0.4.13-dev
 
 * No user-visible changes.
 
+## 0.4.12
+
+* Fix more bugs in the automated release process.
+
+## 0.4.11
+
+* Fix the automated release process.
+
+## 0.4.10
+
+* No user-visible changes.
+
+## 0.4.9
+
+* Add support for parsing the `@include` rule.
+
+* Add support for parsing declarations.
+
+* Add support for parsing the `@if` and `@else` rules.
+
+* Fix the deploy of this package so that it actually contains the package's
+  compiled contents.
+
 ## 0.4.8
 
-Add support for parsing the `@include` rule.
+* Add support for parsing the `@mixin` rule.
 
-Add support for parsing the `@mixin` rule.
-
-Add support for parsing the `@return` rule.
+* Add support for parsing the `@return` rule.
 
 ## 0.4.7
 

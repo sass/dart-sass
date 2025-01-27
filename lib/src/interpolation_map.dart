@@ -46,6 +46,11 @@ final class InterpolationMap {
     var target = error.span;
     if (target == null) return error;
 
+    if (_interpolation.contents.isEmpty) {
+      return SourceSpanFormatException(
+          error.message, _interpolation.span, error.source);
+    }
+
     var source = mapSpan(target);
     var startIndex = _indexInContents(target.start);
     var endIndex = _indexInContents(target.end);
@@ -83,6 +88,8 @@ final class InterpolationMap {
   /// generated from interpolation, this will return the full [FileSpan] for
   /// that interpolated expression.
   Object /* FileLocation|FileSpan */ _mapLocation(SourceLocation target) {
+    if (_interpolation.contents.isEmpty) return _interpolation.span;
+
     var index = _indexInContents(target);
     if (_interpolation.contents[index] case Expression chunk) {
       return chunk.span;

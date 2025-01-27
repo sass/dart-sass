@@ -10,7 +10,7 @@ exports[`a style rule toJSON with a child 1`] = `
     },
   ],
   "nodes": [
-    <@bar;>,
+    <@bar>,
   ],
   "raws": {},
   "sassType": "rule",

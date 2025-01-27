@@ -41,8 +41,14 @@ final class JSToDartLogger extends LoggerWithDeprecationType {
               deprecationType: deprecations[deprecation?.id]));
     } else {
       _withAscii(() {
-        _fallback.warn(message,
-            span: span, trace: trace, deprecation: deprecation != null);
+        switch (_fallback) {
+          case LoggerWithDeprecationType():
+            _fallback.internalWarn(message,
+                span: span, trace: trace, deprecation: deprecation);
+          case _:
+            _fallback.warn(message,
+                span: span, trace: trace, deprecation: deprecation != null);
+        }
       });
     }
   }

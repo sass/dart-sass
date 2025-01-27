@@ -21,18 +21,18 @@ final class StderrLogger extends LoggerWithDeprecationType {
   void internalWarn(String message,
       {FileSpan? span, Trace? trace, Deprecation? deprecation}) {
     var result = StringBuffer();
+    var showDeprecation =
+        deprecation != null && deprecation != Deprecation.userAuthored;
     if (color) {
       // Bold yellow.
       result.write('\u001b[33m\u001b[1m');
       if (deprecation != null) result.write('Deprecation ');
       result.write('Warning\u001b[0m');
-      if (deprecation != null) {
-        result.write(' [\u001b[34m$deprecation\u001b[0m]');
-      }
+      if (showDeprecation) result.write(' [\u001b[34m$deprecation\u001b[0m]');
     } else {
       if (deprecation != null) result.write('DEPRECATION ');
       result.write('WARNING');
-      if (deprecation != null) result.write(' [$deprecation]');
+      if (showDeprecation) result.write(' [$deprecation]');
     }
 
     if (span == null) {

@@ -125,6 +125,11 @@ declare namespace SassInternal {
     readonly expression: Expression;
   }
 
+  class Declaration extends ParentStatement<Statement[] | null> {
+    readonly name: Interpolation;
+    readonly value?: Expression;
+  }
+
   class EachRule extends ParentStatement<Statement[]> {
     readonly variables: string[];
     readonly list: Expression;
@@ -159,6 +164,20 @@ declare namespace SassInternal {
   class FunctionRule extends ParentStatement<Statement[]> {
     readonly name: string;
     readonly parameters: ParameterList;
+  }
+
+  class IfRule extends Statement {
+    readonly clauses: IfClause[];
+    readonly lastClause: ElseClause | null;
+  }
+
+  class IfClause {
+    readonly expression: Expression;
+    readonly children: Statement[];
+  }
+
+  class ElseClause {
+    readonly children: Statement[];
   }
 
   class IncludeRule extends Statement {
@@ -317,12 +336,16 @@ export type AtRootRule = SassInternal.AtRootRule;
 export type AtRule = SassInternal.AtRule;
 export type ContentBlock = SassInternal.ContentBlock;
 export type DebugRule = SassInternal.DebugRule;
+export type Declaration = SassInternal.Declaration;
 export type EachRule = SassInternal.EachRule;
 export type ErrorRule = SassInternal.ErrorRule;
 export type ExtendRule = SassInternal.ExtendRule;
 export type ForRule = SassInternal.ForRule;
 export type ForwardRule = SassInternal.ForwardRule;
 export type FunctionRule = SassInternal.FunctionRule;
+export type IfRule = SassInternal.IfRule;
+export type IfClause = SassInternal.IfClause;
+export type ElseClause = SassInternal.ElseClause;
 export type IncludeRule = SassInternal.IncludeRule;
 export type LoudComment = SassInternal.LoudComment;
 export type MediaRule = SassInternal.MediaRule;
@@ -350,12 +373,14 @@ export interface StatementVisitorObject<T> {
   visitAtRootRule(node: AtRootRule): T;
   visitAtRule(node: AtRule): T;
   visitDebugRule(node: DebugRule): T;
+  visitDeclaration(node: Declaration): T;
   visitEachRule(node: EachRule): T;
   visitErrorRule(node: ErrorRule): T;
   visitExtendRule(node: ExtendRule): T;
   visitForRule(node: ForRule): T;
   visitForwardRule(node: ForwardRule): T;
   visitFunctionRule(node: FunctionRule): T;
+  visitIfRule(node: IfRule): T;
   visitIncludeRule(node: IncludeRule): T;
   visitLoudComment(node: LoudComment): T;
   visitMediaRule(node: MediaRule): T;
