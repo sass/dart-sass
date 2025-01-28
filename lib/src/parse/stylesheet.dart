@@ -1538,7 +1538,7 @@ abstract class StylesheetParser extends Parser {
       scanner.expectChar($colon);
       whitespace(consumeNewlines: true);
 
-      var expression = expressionUntilComma(consumeNewlines: true);
+      var expression = expressionUntilComma();
 
       var guarded = false;
       var flagStart = scanner.state;
@@ -2158,20 +2158,17 @@ abstract class StylesheetParser extends Parser {
     }
   }
 
-  /// Consumes an expression until it reaches a top-level comma.
+  /// Consumes an expression, inlcuding newlines, until it reaches a top-level
+  /// comma.
   ///
   /// If [singleEquals] is true, this will allow the Microsoft-style `=`
   /// operator at the top level.
-  ///
-  /// If [consumeNewlines] is `true`, the indented syntax will consume newlines
-  /// as whitespace. It should only be set to `true` in positions when a
-  /// statement can't end.
-  Expression expressionUntilComma(
-          {bool singleEquals = false, bool consumeNewlines = false}) =>
-      _expression(
-          singleEquals: singleEquals,
-          consumeNewlines: consumeNewlines,
-          until: () => scanner.peekChar() == $comma);
+  Expression expressionUntilComma({bool singleEquals = false}) {
+    return _expression(
+        singleEquals: singleEquals,
+        consumeNewlines: true,
+        until: () => scanner.peekChar() == $comma);
+  }
 
   /// Whether [expression] is allowed as an operand of a `/` expression that
   /// produces a potentially slash-separated number.
@@ -2227,7 +2224,7 @@ abstract class StylesheetParser extends Parser {
             [], ListSeparator.undecided, scanner.spanFrom(start));
       }
 
-      var first = expressionUntilComma(consumeNewlines: true);
+      var first = expressionUntilComma();
       if (scanner.scanChar($colon)) {
         whitespace(consumeNewlines: true);
         return _map(first, start);
@@ -2242,7 +2239,7 @@ abstract class StylesheetParser extends Parser {
       var expressions = [first];
       while (true) {
         if (!_lookingAtExpression()) break;
-        expressions.add(expressionUntilComma(consumeNewlines: true));
+        expressions.add(expressionUntilComma());
         if (!scanner.scanChar($comma)) break;
         whitespace(consumeNewlines: true);
       }
@@ -2261,16 +2258,16 @@ abstract class StylesheetParser extends Parser {
   /// as the expression before the colon and [start] the point before the
   /// opening parenthesis.
   MapExpression _map(Expression first, LineScannerState start) {
-    var pairs = [(first, expressionUntilComma(consumeNewlines: true))];
+    var pairs = [(first, expressionUntilComma())];
 
     while (scanner.scanChar($comma)) {
       whitespace(consumeNewlines: true);
       if (!_lookingAtExpression()) break;
 
-      var key = expressionUntilComma(consumeNewlines: true);
+      var key = expressionUntilComma();
       scanner.expectChar($colon);
       whitespace(consumeNewlines: true);
-      var value = expressionUntilComma(consumeNewlines: true);
+      var value = expressionUntilComma();
       pairs.add((key, value));
     }
 
