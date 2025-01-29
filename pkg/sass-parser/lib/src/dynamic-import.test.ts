@@ -6,7 +6,6 @@ import {DynamicImport, ImportList, ImportRule, sass, scss} from '..';
 
 describe('a dynamic import', () => {
   let node: DynamicImport;
-  beforeEach(() => void (node = new DynamicImport({url: 'foo'})));
 
   function describeNode(
     description: string,

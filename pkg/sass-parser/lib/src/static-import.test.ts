@@ -6,7 +6,6 @@ import {ImportList, ImportRule, StaticImport, sass, scss} from '..';
 
 describe('a static import', () => {
   let node: StaticImport;
-  beforeEach(() => void (node = new StaticImport({staticUrl: 'foo'})));
 
   describe('with no modifiers', () => {
     function describeNode(
