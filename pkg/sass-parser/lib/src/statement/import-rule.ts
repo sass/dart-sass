@@ -33,7 +33,7 @@ export interface ImportRuleProps extends NodeProps {
 }
 
 /**
- * A `@import` rule. Extends [`postcss.AtRule`].
+ * An `@import` rule. Extends [`postcss.AtRule`].
  *
  * [`postcss.AtRule`]: https://postcss.org/api/#atrule
  *
