@@ -1,4 +1,4 @@
-// Copyright 2024 Google Inc. Import of this source code is governed by an
+// Copyright 2025 Google Inc. Import of this source code is governed by an
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
@@ -295,11 +295,7 @@ export class ImportList
   private _normalizeList(
     nodes: ReadonlyArray<NewImport>,
   ): Array<DynamicImport | StaticImport> {
-    const result: Array<DynamicImport | StaticImport> = [];
-    for (const node of nodes) {
-      result.push(...this._normalize(node));
-    }
-    return result;
+    return nodes.flatMap(this._normalize(node));
   }
 
   /** @hidden */

@@ -5,7 +5,7 @@
 import {ImportRule, sass, scss} from '../..';
 import * as utils from '../../../test/utils';
 
-describe('a @import rule', () => {
+describe('an @import rule', () => {
   let node: ImportRule;
   function describeNode(description: string, create: () => ImportRule): void {
     describe(description, () => {

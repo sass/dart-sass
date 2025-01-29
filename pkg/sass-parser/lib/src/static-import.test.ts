@@ -168,6 +168,7 @@ describe('a static import', () => {
     beforeEach(() => {
       original = (scss.parse('@import "foo.css" screen').nodes[0] as ImportRule)
         .imports.nodes[0] as StaticImport;
+      // TODO: remove this once raws are properly parsed.
       original.raws.before = '/**/';
     });
 
