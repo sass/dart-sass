@@ -22,7 +22,7 @@ import * as sassParser from '../..';
  */
 export interface ContentRuleRaws extends Omit<AtRuleRaws, 'params'> {
   /**
-   * Whether to content an empty argument list. If the argument list isn't
+   * Whether to include an empty argument list. If the argument list isn't
    * empty, this is ignored.
    */
   showArguments?: boolean;
