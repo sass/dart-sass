@@ -2,6 +2,8 @@
 
 * Add support for parsing color expressions.
 
+* Add support for parsing list expressions.
+
 ## 0.4.13
 
 * No user-visible changes.
