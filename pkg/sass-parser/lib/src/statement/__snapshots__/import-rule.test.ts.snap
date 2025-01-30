@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`a @import rule toJSON 1`] = `
+exports[`an @import rule toJSON 1`] = `
 {
   "imports": <"foo", "bar" screen>,
   "inputs": [
