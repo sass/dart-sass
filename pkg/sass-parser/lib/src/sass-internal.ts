@@ -325,6 +325,16 @@ declare namespace SassInternal {
     readonly hasQuotes: boolean;
   }
 
+  class ListExpression extends Expression {
+    readonly contents: Expression[];
+    readonly separator: ListSeparator;
+    readonly hasBrackets: boolean;
+  }
+
+  class ListSeparator {
+    readonly separator: ' ' | ',' | '/' | null | undefined;
+  }
+
   class StringExpression extends Expression {
     readonly text: Interpolation;
     readonly hasQuotes: boolean;
@@ -390,6 +400,8 @@ export type ConfiguredVariable = SassInternal.ConfiguredVariable;
 export type Interpolation = SassInternal.Interpolation;
 export type Expression = SassInternal.Expression;
 export type BinaryOperationExpression = SassInternal.BinaryOperationExpression;
+export type ListExpression = SassInternal.ListExpression;
+export type ListSeparator = SassInternal.ListSeparator;
 export type StringExpression = SassInternal.StringExpression;
 export type BooleanExpression = SassInternal.BooleanExpression;
 export type ColorExpression = SassInternal.ColorExpression;
@@ -428,6 +440,7 @@ export interface ExpressionVisitorObject<T> {
   visitStringExpression(node: StringExpression): T;
   visitBooleanExpression(node: BooleanExpression): T;
   visitColorExpression(node: ColorExpression): T;
+  visitListExpression(node: ListExpression): T;
   visitNumberExpression(node: NumberExpression): T;
 }
 

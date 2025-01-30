@@ -9,6 +9,7 @@ import type {
 } from './binary-operation';
 import {BooleanExpression, BooleanExpressionProps} from './boolean';
 import {ColorExpression, ColorExpressionProps} from './color';
+import {ListExpression, ListExpressionProps} from './list';
 import {NumberExpression, NumberExpressionProps} from './number';
 import type {StringExpression, StringExpressionProps} from './string';
 
@@ -21,6 +22,7 @@ export type AnyExpression =
   | BinaryOperationExpression
   | BooleanExpression
   | ColorExpression
+  | ListExpression
   | NumberExpression
   | StringExpression;
 
@@ -33,6 +35,7 @@ export type ExpressionType =
   | 'binary-operation'
   | 'boolean'
   | 'color'
+  | 'list'
   | 'number'
   | 'string';
 
@@ -46,6 +49,7 @@ export type ExpressionProps =
   | BinaryOperationExpressionProps
   | BooleanExpressionProps
   | ColorExpressionProps
+  | ListExpressionProps
   | NumberExpressionProps
   | StringExpressionProps;
 
