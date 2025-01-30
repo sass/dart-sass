@@ -295,7 +295,7 @@ export class ImportList
   private _normalizeList(
     nodes: ReadonlyArray<NewImport>,
   ): Array<DynamicImport | StaticImport> {
-    return nodes.flatMap(this._normalize(node));
+    return nodes.flatMap(node => this._normalize(node));
   }
 
   /** @hidden */
