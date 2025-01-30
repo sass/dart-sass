@@ -47,7 +47,7 @@ export interface ArgumentRaws {
 
   /**
    * The space symbols between the end of the argument value and the comma
-   * afterwards. Always empty for a argument that doesn't have a trailing comma.
+   * afterwards. Always empty for an argument that doesn't have a trailing comma.
    */
   after?: string;
 }
