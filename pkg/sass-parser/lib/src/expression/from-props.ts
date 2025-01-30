@@ -2,11 +2,13 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import {BinaryOperationExpression} from './binary-operation';
+import * as sass from 'sass';
 import {Expression, ExpressionProps} from '.';
-import {StringExpression} from './string';
+import {BinaryOperationExpression} from './binary-operation';
 import {BooleanExpression} from './boolean';
+import {ColorExpression} from './color';
 import {NumberExpression} from './number';
+import {StringExpression} from './string';
 
 /** Constructs an expression from {@link ExpressionProps}. */
 export function fromProps(props: ExpressionProps): Expression {
@@ -15,7 +17,10 @@ export function fromProps(props: ExpressionProps): Expression {
   if ('value' in props) {
     if (typeof props.value === 'boolean') return new BooleanExpression(props);
     if (typeof props.value === 'number') return new NumberExpression(props);
+    if (props.value instanceof sass.SassColor) {
+      return new ColorExpression(props);
+    }
   }
 
-  throw new Error(`Unknown node type: ${props}`);
+  throw new Error(`Unknown node type, keys: ${Object.keys(props)}`);
 }

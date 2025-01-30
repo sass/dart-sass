@@ -163,7 +163,7 @@ describe('a number expression', () => {
     describe('overrides', () => {
       describe('value', () => {
         it('defined', () =>
-          expect(original.clone({value: 123}).value).toBe(123));
+          expect(original.clone({value: 321}).value).toBe(321));
 
         it('undefined', () =>
           expect(original.clone({value: undefined}).value).toBe(123));
