@@ -87,9 +87,9 @@ class SelectorParser extends Parser {
     var previousLine = scanner.line;
     var components = <ComplexSelector>[_complexSelector()];
 
-    whitespace();
+    _whitespace();
     while (scanner.scanChar($comma)) {
-      whitespace();
+      _whitespace();
       if (scanner.peekChar() == $comma) continue;
       if (scanner.isDone) break;
 
@@ -117,7 +117,7 @@ class SelectorParser extends Parser {
 
     loop:
     while (true) {
-      whitespace();
+      _whitespace();
 
       switch (scanner.peekChar()) {
         case $plus:
@@ -239,22 +239,23 @@ class SelectorParser extends Parser {
   AttributeSelector _attributeSelector() {
     var start = scanner.state;
     scanner.expectChar($lbracket);
-    whitespace();
+    _whitespace();
 
     var name = _attributeName();
-    whitespace();
+
+    _whitespace();
     if (scanner.scanChar($rbracket)) {
       return AttributeSelector(name, spanFrom(start));
     }
 
     var operator = _attributeOperator();
-    whitespace();
+    _whitespace();
 
     var next = scanner.peekChar();
     var value = next == $single_quote || next == $double_quote
         ? string()
         : identifier();
-    whitespace();
+    _whitespace();
 
     next = scanner.peekChar();
     var modifier = next != null && next.isAlphabetic
@@ -366,7 +367,7 @@ class SelectorParser extends Parser {
     if (!scanner.scanChar($lparen)) {
       return PseudoSelector(name, spanFrom(start), element: element);
     }
-    whitespace();
+    _whitespace();
 
     var unvendored = unvendor(name);
     String? argument;
@@ -381,11 +382,11 @@ class SelectorParser extends Parser {
       selector = _selectorList();
     } else if (unvendored == "nth-child" || unvendored == "nth-last-child") {
       argument = _aNPlusB();
-      whitespace();
+      _whitespace();
       if (scanner.peekChar(-1).isWhitespace && scanner.peekChar() != $rparen) {
         expectIdentifier("of");
         argument += " of";
-        whitespace();
+        _whitespace();
 
         selector = _selectorList();
       }
@@ -421,18 +422,18 @@ class SelectorParser extends Parser {
       do {
         buffer.writeCharCode(scanner.readChar());
       } while (scanner.peekChar().isDigit);
-      whitespace();
+      _whitespace();
       if (!scanIdentChar($n)) return buffer.toString();
     } else {
       expectIdentChar($n);
     }
     buffer.writeCharCode($n);
-    whitespace();
+    _whitespace();
 
     var next = scanner.peekChar();
     if (next != $plus && next != $minus) return buffer.toString();
     buffer.writeCharCode(scanner.readChar());
-    whitespace();
+    _whitespace();
 
     if (!scanner.peekChar().isDigit) scanner.error("Expected a number.");
     do {
@@ -478,4 +479,9 @@ class SelectorParser extends Parser {
         $ampersand => _plainCss,
         _ => false
       };
+
+  /// The value of `consumeNewlines` is not relevant for this class.
+  void _whitespace() {
+    whitespace(consumeNewlines: true);
+  }
 }

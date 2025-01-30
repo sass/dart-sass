@@ -91,7 +91,7 @@ abstract class StylesheetParser extends Parser {
         // Handle this specially so that [atRule] always returns a non-nullable
         // Statement.
         if (scanner.scan('@charset')) {
-          whitespace();
+          whitespace(consumeNewlines: false);
           string();
           return null;
         }
@@ -108,10 +108,10 @@ abstract class StylesheetParser extends Parser {
   ParameterList parseParameterList() => _parseSingleProduction(() {
         scanner.expectChar($at, name: "@-rule");
         identifier();
-        whitespace();
+        whitespace(consumeNewlines: true);
         identifier();
         var parameters = _parameterList();
-        whitespace();
+        whitespace(consumeNewlines: true);
         scanner.expectChar($lbrace);
         return parameters;
       });
@@ -136,7 +136,7 @@ abstract class StylesheetParser extends Parser {
           var start = scanner.state;
           scanner.expectChar($at, name: "@-rule");
           expectIdentifier("use");
-          whitespace();
+          whitespace(consumeNewlines: true);
           return _useRule(start);
         }),
         warnings
@@ -188,7 +188,7 @@ abstract class StylesheetParser extends Parser {
         _isUseAllowed = false;
         var start = scanner.state;
         scanner.readChar();
-        whitespace();
+        whitespace(consumeNewlines: true);
         return _mixinRule(start);
 
       case $rbrace:
@@ -228,9 +228,9 @@ abstract class StylesheetParser extends Parser {
           scanner.spanFrom(start));
     }
 
-    whitespace();
+    whitespace(consumeNewlines: true);
     scanner.expectChar($colon);
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     var value = _expression();
 
@@ -270,7 +270,7 @@ abstract class StylesheetParser extends Parser {
           error("Invalid flag name.", scanner.spanFrom(flagStart));
       }
 
-      whitespace();
+      whitespace(consumeNewlines: false);
       flagStart = scanner.state;
     }
 
@@ -362,7 +362,7 @@ abstract class StylesheetParser extends Parser {
     if (_lookingAtPotentialPropertyHack()) {
       startsWithPunctuation = true;
       nameBuffer.writeCharCode(scanner.readChar());
-      nameBuffer.write(rawText(whitespace));
+      nameBuffer.write(rawText(() => whitespace(consumeNewlines: false)));
     }
 
     if (!_lookingAtInterpolatedIdentifier()) return nameBuffer;
@@ -380,7 +380,7 @@ abstract class StylesheetParser extends Parser {
     if (scanner.matches("/*")) nameBuffer.write(rawText(loudComment));
 
     var midBuffer = StringBuffer();
-    midBuffer.write(rawText(whitespace));
+    midBuffer.write(rawText(() => whitespace(consumeNewlines: false)));
     var beforeColon = scanner.state;
     if (!scanner.scanChar($colon)) {
       if (midBuffer.isNotEmpty) nameBuffer.writeCharCode($space);
@@ -407,7 +407,7 @@ abstract class StylesheetParser extends Parser {
       return nameBuffer..write(midBuffer);
     }
 
-    var postColonWhitespace = rawText(whitespace);
+    var postColonWhitespace = rawText(() => whitespace(consumeNewlines: false));
     if (_tryDeclarationChildren(name, start) case var nested?) return nested;
 
     midBuffer.write(postColonWhitespace);
@@ -530,7 +530,7 @@ abstract class StylesheetParser extends Parser {
     if (_lookingAtPotentialPropertyHack()) {
       var nameBuffer = InterpolationBuffer();
       nameBuffer.writeCharCode(scanner.readChar());
-      nameBuffer.write(rawText(whitespace));
+      nameBuffer.write(rawText(() => whitespace(consumeNewlines: false)));
       nameBuffer.addInterpolation(interpolatedIdentifier());
       name = nameBuffer.interpolation(scanner.spanFrom(start));
     } else if (!plainCss) {
@@ -544,7 +544,7 @@ abstract class StylesheetParser extends Parser {
       name = interpolatedIdentifier();
     }
 
-    whitespace();
+    whitespace(consumeNewlines: false);
     scanner.expectChar($colon);
 
     if (parseCustomProperties && name.initialPlain.startsWith('--')) {
@@ -554,7 +554,7 @@ abstract class StylesheetParser extends Parser {
       return Declaration(name, value, scanner.spanFrom(start));
     }
 
-    whitespace();
+    whitespace(consumeNewlines: false);
     if (_tryDeclarationChildren(name, start) case var nested?) return nested;
 
     var value = _expression();
@@ -608,7 +608,6 @@ abstract class StylesheetParser extends Parser {
     var start = scanner.state;
     scanner.expectChar($at, name: "@-rule");
     var name = interpolatedIdentifier();
-    whitespace();
 
     // We want to set [_isUseAllowed] to `false` *unless* we're parsing
     // `@charset`, `@forward`, or `@use`. To avoid double-comparing the rule
@@ -733,7 +732,6 @@ abstract class StylesheetParser extends Parser {
   String _plainAtRuleName() {
     scanner.expectChar($at, name: "@-rule");
     var name = identifier();
-    whitespace();
     return name;
   }
 
@@ -741,9 +739,9 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   AtRootRule _atRootRule(LineScannerState start) {
+    whitespace(consumeNewlines: false);
     if (scanner.peekChar() == $lparen) {
       var query = _atRootQuery();
-      whitespace();
       return _withChildren(_statement, start,
           (children, span) => AtRootRule(children, span, query: query));
     } else if (lookingAtChildren() || (indented && atEndOfStatement())) {
@@ -761,18 +759,18 @@ abstract class StylesheetParser extends Parser {
     var buffer = InterpolationBuffer();
     scanner.expectChar($lparen);
     buffer.writeCharCode($lparen);
-    whitespace();
+    whitespace(consumeNewlines: true);
 
-    _addOrInject(buffer, _expression());
+    _addOrInject(buffer, _expression(consumeNewlines: true));
     if (scanner.scanChar($colon)) {
-      whitespace();
+      whitespace(consumeNewlines: true);
       buffer.writeCharCode($colon);
       buffer.writeCharCode($space);
-      _addOrInject(buffer, _expression());
+      _addOrInject(buffer, _expression(consumeNewlines: true));
     }
 
     scanner.expectChar($rparen);
-    whitespace();
+    whitespace(consumeNewlines: false);
     buffer.writeCharCode($rparen);
 
     return buffer.interpolation(scanner.spanFrom(start));
@@ -788,11 +786,11 @@ abstract class StylesheetParser extends Parser {
     }
 
     var beforeWhitespace = scanner.location;
-    whitespace();
+    whitespace(consumeNewlines: false);
     ArgumentList arguments;
     if (scanner.peekChar() == $lparen) {
       arguments = _argumentInvocation(mixin: true);
-      whitespace();
+      whitespace(consumeNewlines: false);
     } else {
       arguments = ArgumentList.empty(beforeWhitespace.pointSpan());
     }
@@ -805,9 +803,11 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   DebugRule _debugRule(LineScannerState start) {
+    whitespace(consumeNewlines: true);
     var value = _expression();
+    var expressionEnd = scanner.state;
     expectStatementSeparator("@debug rule");
-    return DebugRule(value, scanner.spanFrom(start));
+    return DebugRule(value, scanner.spanFrom(start, expressionEnd));
   }
 
   /// Consumes an `@each` rule.
@@ -815,19 +815,20 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`. [child] is called to consume any
   /// children that are specifically allowed in the caller's context.
   EachRule _eachRule(LineScannerState start, Statement child()) {
+    whitespace(consumeNewlines: true);
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
 
     var variables = [variableName()];
-    whitespace();
+    whitespace(consumeNewlines: true);
     while (scanner.scanChar($comma)) {
-      whitespace();
+      whitespace(consumeNewlines: true);
       variables.add(variableName());
-      whitespace();
+      whitespace(consumeNewlines: true);
     }
-
+    whitespace(consumeNewlines: true);
     expectIdentifier("in");
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     var list = _expression();
 
@@ -841,15 +842,18 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   ErrorRule _errorRule(LineScannerState start) {
+    whitespace(consumeNewlines: true);
     var value = _expression();
+    var expressionEnd = scanner.state;
     expectStatementSeparator("@error rule");
-    return ErrorRule(value, scanner.spanFrom(start));
+    return ErrorRule(value, scanner.spanFrom(start, expressionEnd));
   }
 
   /// Consumes an `@extend` rule.
   ///
   /// [start] should point before the `@`.
   ExtendRule _extendRule(LineScannerState start) {
+    whitespace(consumeNewlines: true);
     if (!_inStyleRule && !_inMixin && !_inContentBlock) {
       error("@extend may only be used within style rules.",
           scanner.spanFrom(start));
@@ -859,7 +863,7 @@ abstract class StylesheetParser extends Parser {
     var optional = scanner.scanChar($exclamation);
     if (optional) {
       expectIdentifier("optional");
-      whitespace();
+      whitespace(consumeNewlines: false);
     }
     expectStatementSeparator("@extend rule");
     return ExtendRule(value, scanner.spanFrom(start), optional: optional);
@@ -869,6 +873,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   FunctionRule _functionRule(LineScannerState start) {
+    whitespace(consumeNewlines: true);
     var precedingComment = lastSilentComment;
     lastSilentComment = null;
     var beforeName = scanner.state;
@@ -886,7 +891,7 @@ abstract class StylesheetParser extends Parser {
       ));
     }
 
-    whitespace();
+    whitespace(consumeNewlines: true);
     var parameters = _parameterList();
 
     if (_inMixin || _inContentBlock) {
@@ -909,7 +914,7 @@ abstract class StylesheetParser extends Parser {
       error("Invalid function name.", scanner.spanFrom(start));
     }
 
-    whitespace();
+    whitespace(consumeNewlines: false);
     return _withChildren(
         _functionChild,
         start,
@@ -922,30 +927,33 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`. [child] is called to consume any
   /// children that are specifically allowed in the caller's context.
   ForRule _forRule(LineScannerState start, Statement child()) {
+    whitespace(consumeNewlines: true);
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
     var variable = variableName();
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     expectIdentifier("from");
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     bool? exclusive;
-    var from = _expression(until: () {
-      if (!lookingAtIdentifier()) return false;
-      if (scanIdentifier("to")) {
-        exclusive = true;
-        return true;
-      } else if (scanIdentifier("through")) {
-        exclusive = false;
-        return true;
-      } else {
-        return false;
-      }
-    });
+    var from = _expression(
+        consumeNewlines: true,
+        until: () {
+          if (!lookingAtIdentifier()) return false;
+          if (scanIdentifier("to")) {
+            exclusive = true;
+            return true;
+          } else if (scanIdentifier("through")) {
+            exclusive = false;
+            return true;
+          } else {
+            return false;
+          }
+        });
     if (exclusive == null) scanner.error('Expected "to" or "through".');
 
-    whitespace();
+    whitespace(consumeNewlines: true);
     var to = _expression();
 
     return _withChildren(child, start, (children, span) {
@@ -959,15 +967,16 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   ForwardRule _forwardRule(LineScannerState start) {
+    whitespace(consumeNewlines: true);
     var url = _urlString();
-    whitespace();
+    whitespace(consumeNewlines: false);
 
     String? prefix;
     if (scanIdentifier("as")) {
-      whitespace();
+      whitespace(consumeNewlines: true);
       prefix = identifier(normalize: true);
       scanner.expectChar($asterisk);
-      whitespace();
+      whitespace(consumeNewlines: false);
     }
 
     Set<String>? shownMixinsAndFunctions;
@@ -975,13 +984,15 @@ abstract class StylesheetParser extends Parser {
     Set<String>? hiddenMixinsAndFunctions;
     Set<String>? hiddenVariables;
     if (scanIdentifier("show")) {
+      whitespace(consumeNewlines: true);
       (shownMixinsAndFunctions, shownVariables) = _memberList();
     } else if (scanIdentifier("hide")) {
+      whitespace(consumeNewlines: true);
       (hiddenMixinsAndFunctions, hiddenVariables) = _memberList();
     }
 
     var configuration = _configuration(allowGuarded: true);
-    whitespace();
+    whitespace(consumeNewlines: false);
 
     expectStatementSeparator("@forward rule");
     var span = scanner.spanFrom(start);
@@ -1012,7 +1023,7 @@ abstract class StylesheetParser extends Parser {
     var identifiers = <String>{};
     var variables = <String>{};
     do {
-      whitespace();
+      whitespace(consumeNewlines: true);
       withErrorMessage("Expected variable, mixin, or function name", () {
         if (scanner.peekChar() == $dollar) {
           variables.add(variableName());
@@ -1020,7 +1031,7 @@ abstract class StylesheetParser extends Parser {
           identifiers.add(identifier(normalize: true));
         }
       });
-      whitespace();
+      whitespace(consumeNewlines: false);
     } while (scanner.scanChar($comma));
 
     return (identifiers, variables);
@@ -1031,20 +1042,21 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`. [child] is called to consume any
   /// children that are specifically allowed in the caller's context.
   IfRule _ifRule(LineScannerState start, Statement child()) {
+    whitespace(consumeNewlines: true);
     var ifIndentation = currentIndentation;
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
     var condition = _expression();
     var children = this.children(child);
-    whitespaceWithoutComments();
+    whitespaceWithoutComments(consumeNewlines: false);
 
     var clauses = [IfClause(condition, children)];
     ElseClause? lastClause;
 
     while (scanElse(ifIndentation)) {
-      whitespace();
+      whitespace(consumeNewlines: false);
       if (scanIdentifier("if")) {
-        whitespace();
+        whitespace(consumeNewlines: true);
         clauses.add(IfClause(_expression(), this.children(child)));
       } else {
         lastClause = ElseClause(this.children(child));
@@ -1054,7 +1066,7 @@ abstract class StylesheetParser extends Parser {
     _inControlDirective = wasInControlDirective;
 
     var span = scanner.spanFrom(start);
-    whitespaceWithoutComments();
+    whitespaceWithoutComments(consumeNewlines: false);
     return IfRule(clauses, span, lastClause: lastClause);
   }
 
@@ -1064,7 +1076,7 @@ abstract class StylesheetParser extends Parser {
   ImportRule _importRule(LineScannerState start) {
     var imports = <Import>[];
     do {
-      whitespace();
+      whitespace(consumeNewlines: false);
       var argument = importArgument();
       if (argument is DynamicImport) {
         warnings.add((
@@ -1082,7 +1094,7 @@ abstract class StylesheetParser extends Parser {
       }
 
       imports.add(argument);
-      whitespace();
+      whitespace(consumeNewlines: false);
     } while (scanner.scanChar($comma));
     expectStatementSeparator("@import rule");
 
@@ -1097,7 +1109,7 @@ abstract class StylesheetParser extends Parser {
     var start = scanner.state;
     if (scanner.peekChar() case $u || $U) {
       var url = dynamicUrl();
-      whitespace();
+      whitespace(consumeNewlines: false);
       var modifiers = tryImportModifiers();
       return StaticImport(
           url is StringExpression
@@ -1109,7 +1121,7 @@ abstract class StylesheetParser extends Parser {
 
     var url = string();
     var urlSpan = scanner.spanFrom(start);
-    whitespace();
+    whitespace(consumeNewlines: false);
     var modifiers = tryImportModifiers();
     if (isPlainImportUrl(url) || modifiers != null) {
       return StaticImport(
@@ -1181,14 +1193,13 @@ abstract class StylesheetParser extends Parser {
           } else {
             buffer.writeCharCode($lparen);
             buffer.addInterpolation(_interpolatedDeclarationValue(
-                allowEmpty: true, allowSemicolon: true));
+                allowEmpty: true, allowSemicolon: true, consumeNewlines: true));
             buffer.writeCharCode($rparen);
           }
-
           scanner.expectChar($rparen);
-          whitespace();
+          whitespace(consumeNewlines: false);
         } else {
-          whitespace();
+          whitespace(consumeNewlines: false);
           if (scanner.scanChar($comma)) {
             buffer.write(", ");
             buffer.addInterpolation(_mediaQueryList());
@@ -1208,18 +1219,19 @@ abstract class StylesheetParser extends Parser {
   /// Consumes the contents of a `supports()` function after an `@import` rule
   /// (but not the function name or parentheses).
   SupportsCondition _importSupportsQuery() {
+    whitespace(consumeNewlines: true);
     if (scanIdentifier("not")) {
-      whitespace();
+      whitespace(consumeNewlines: true);
       var start = scanner.state;
       return SupportsNegation(
           _supportsConditionInParens(), scanner.spanFrom(start));
     } else if (scanner.peekChar() == $lparen) {
-      return _supportsCondition();
+      return _supportsCondition(inParentheses: true);
     } else {
       if (_tryImportSupportsFunction() case var function?) return function;
 
       var start = scanner.state;
-      var name = _expression();
+      var name = _expression(consumeNewlines: true);
       scanner.expectChar($colon);
       return SupportsDeclaration(
           name, _supportsDeclarationValue(name), scanner.spanFrom(start));
@@ -1240,8 +1252,8 @@ abstract class StylesheetParser extends Parser {
       return null;
     }
 
-    var value =
-        _interpolatedDeclarationValue(allowEmpty: true, allowSemicolon: true);
+    var value = _interpolatedDeclarationValue(
+        allowEmpty: true, allowSemicolon: true, consumeNewlines: true);
     scanner.expectChar($rparen);
 
     return SupportsFunction(name, value, scanner.spanFrom(start));
@@ -1251,6 +1263,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   IncludeRule _includeRule(LineScannerState start) {
+    whitespace(consumeNewlines: true);
     String? namespace;
     var name = identifier();
     if (scanner.scanChar($dot)) {
@@ -1258,17 +1271,17 @@ abstract class StylesheetParser extends Parser {
       name = _publicIdentifier();
     }
 
-    whitespace();
+    whitespace(consumeNewlines: false);
     var arguments = scanner.peekChar() == $lparen
         ? _argumentInvocation(mixin: true)
         : ArgumentList.empty(scanner.emptySpan);
-    whitespace();
+    whitespace(consumeNewlines: false);
 
     ParameterList? contentParameters;
     if (scanIdentifier("using")) {
-      whitespace();
+      whitespace(consumeNewlines: true);
       contentParameters = _parameterList();
-      whitespace();
+      whitespace(consumeNewlines: false);
     }
 
     ContentBlock? content;
@@ -1295,6 +1308,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   @protected
   MediaRule mediaRule(LineScannerState start) {
+    whitespace(consumeNewlines: false);
     var query = _mediaQueryList();
     return _withChildren(_statement, start,
         (children, span) => MediaRule(query, children, span));
@@ -1304,6 +1318,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   MixinRule _mixinRule(LineScannerState start) {
+    whitespace(consumeNewlines: true);
     var precedingComment = lastSilentComment;
     lastSilentComment = null;
     var beforeName = scanner.state;
@@ -1321,7 +1336,7 @@ abstract class StylesheetParser extends Parser {
       ));
     }
 
-    whitespace();
+    whitespace(consumeNewlines: false);
     var parameters = scanner.peekChar() == $lparen
         ? _parameterList()
         : ParameterList.empty(scanner.emptySpan);
@@ -1334,7 +1349,7 @@ abstract class StylesheetParser extends Parser {
           scanner.spanFrom(start));
     }
 
-    whitespace();
+    whitespace(consumeNewlines: false);
     _inMixin = true;
 
     return _withChildren(_statement, start, (children, span) {
@@ -1353,6 +1368,7 @@ abstract class StylesheetParser extends Parser {
   /// [the specification]: http://www.w3.org/TR/css3-conditional/
   @protected
   AtRule mozDocumentRule(LineScannerState start, Interpolation name) {
+    whitespace(consumeNewlines: false);
     var valueStart = scanner.state;
     var buffer = InterpolationBuffer();
     var needsDeprecationWarning = false;
@@ -1371,7 +1387,7 @@ abstract class StylesheetParser extends Parser {
               buffer.addInterpolation(contents);
             } else {
               scanner.expectChar($lparen);
-              whitespace();
+              whitespace(consumeNewlines: false);
               var argument = interpolatedString();
               scanner.expectChar($rparen);
 
@@ -1404,11 +1420,11 @@ abstract class StylesheetParser extends Parser {
         }
       }
 
-      whitespace();
+      whitespace(consumeNewlines: false);
       if (!scanner.scanChar($comma)) break;
 
       buffer.writeCharCode($comma);
-      buffer.write(rawText(whitespace));
+      buffer.write(rawText(() => whitespace(consumeNewlines: false)));
     }
 
     var value = buffer.interpolation(scanner.spanFrom(valueStart));
@@ -1433,6 +1449,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   ReturnRule _returnRule(LineScannerState start) {
+    whitespace(consumeNewlines: true);
     var value = _expression();
     expectStatementSeparator("@return rule");
     return ReturnRule(value, scanner.spanFrom(start));
@@ -1443,8 +1460,9 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`.
   @protected
   SupportsRule supportsRule(LineScannerState start) {
+    whitespace(consumeNewlines: false);
     var condition = _supportsCondition();
-    whitespace();
+    whitespace(consumeNewlines: false);
     return _withChildren(_statement, start,
         (children, span) => SupportsRule(condition, children, span));
   }
@@ -1453,13 +1471,14 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   UseRule _useRule(LineScannerState start) {
+    whitespace(consumeNewlines: true);
     var url = _urlString();
-    whitespace();
+    whitespace(consumeNewlines: false);
 
     var namespace = _useNamespace(url, start);
-    whitespace();
+    whitespace(consumeNewlines: false);
     var configuration = _configuration();
-    whitespace();
+    whitespace(consumeNewlines: false);
 
     var span = scanner.spanFrom(start);
     if (!_isUseAllowed) {
@@ -1476,7 +1495,7 @@ abstract class StylesheetParser extends Parser {
   /// Returns `null` to indicate a `@use` rule without a URL.
   String? _useNamespace(Uri url, LineScannerState start) {
     if (scanIdentifier("as")) {
-      whitespace();
+      whitespace(consumeNewlines: true);
       return scanner.scanChar($asterisk) ? null : identifier();
     }
 
@@ -1507,17 +1526,18 @@ abstract class StylesheetParser extends Parser {
 
     var variableNames = <String>{};
     var configuration = <ConfiguredVariable>[];
-    whitespace();
+    whitespace(consumeNewlines: true);
     scanner.expectChar($lparen);
 
     while (true) {
-      whitespace();
+      whitespace(consumeNewlines: true);
 
       var variableStart = scanner.state;
       var name = variableName();
-      whitespace();
+      whitespace(consumeNewlines: true);
       scanner.expectChar($colon);
-      whitespace();
+      whitespace(consumeNewlines: true);
+
       var expression = expressionUntilComma();
 
       var guarded = false;
@@ -1525,7 +1545,7 @@ abstract class StylesheetParser extends Parser {
       if (allowGuarded && scanner.scanChar($exclamation)) {
         if (identifier() == 'default') {
           guarded = true;
-          whitespace();
+          whitespace(consumeNewlines: true);
         } else {
           error("Invalid flag name.", scanner.spanFrom(flagStart));
         }
@@ -1540,7 +1560,7 @@ abstract class StylesheetParser extends Parser {
           .add(ConfiguredVariable(name, expression, span, guarded: guarded));
 
       if (!scanner.scanChar($comma)) break;
-      whitespace();
+      whitespace(consumeNewlines: true);
       if (!_lookingAtExpression()) break;
     }
 
@@ -1552,9 +1572,11 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`.
   WarnRule _warnRule(LineScannerState start) {
+    whitespace(consumeNewlines: true);
     var value = _expression();
+    var expressionEnd = scanner.state;
     expectStatementSeparator("@warn rule");
-    return WarnRule(value, scanner.spanFrom(start));
+    return WarnRule(value, scanner.spanFrom(start, expressionEnd));
   }
 
   /// Consumes a `@while` rule.
@@ -1562,6 +1584,7 @@ abstract class StylesheetParser extends Parser {
   /// [start] should point before the `@`. [child] is called to consume any
   /// children that are specifically allowed in the caller's context.
   WhileRule _whileRule(LineScannerState start, Statement child()) {
+    whitespace(consumeNewlines: true);
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
     var condition = _expression();
@@ -1578,6 +1601,8 @@ abstract class StylesheetParser extends Parser {
   AtRule unknownAtRule(LineScannerState start, Interpolation name) {
     var wasInUnknownAtRule = _inUnknownAtRule;
     _inUnknownAtRule = true;
+
+    whitespace(consumeNewlines: false);
 
     Interpolation? value;
     if (scanner.peekChar() != $exclamation && !atEndOfStatement()) {
@@ -1606,6 +1631,7 @@ abstract class StylesheetParser extends Parser {
   /// This declares a return type of [Statement] so that it can be returned
   /// within case statements.
   Statement _disallowedAtRule(LineScannerState start) {
+    whitespace(consumeNewlines: false);
     _interpolatedDeclarationValue(allowEmpty: true, allowOpenBrace: false);
     error("This at-rule is not allowed here.", scanner.spanFrom(start));
   }
@@ -1614,24 +1640,24 @@ abstract class StylesheetParser extends Parser {
   ParameterList _parameterList() {
     var start = scanner.state;
     scanner.expectChar($lparen);
-    whitespace();
+    whitespace(consumeNewlines: true);
     var parameters = <Parameter>[];
     var named = <String>{};
     String? restParameter;
     while (scanner.peekChar() == $dollar) {
       var variableStart = scanner.state;
       var name = variableName();
-      whitespace();
+      whitespace(consumeNewlines: true);
 
       Expression? defaultValue;
       if (scanner.scanChar($colon)) {
-        whitespace();
+        whitespace(consumeNewlines: true);
         defaultValue = expressionUntilComma();
       } else if (scanner.scanChar($dot)) {
         scanner.expectChar($dot);
         scanner.expectChar($dot);
-        whitespace();
-        if (scanner.scanChar($comma)) whitespace();
+        whitespace(consumeNewlines: true);
+        if (scanner.scanChar($comma)) whitespace(consumeNewlines: true);
         restParameter = name;
         break;
       }
@@ -1643,7 +1669,7 @@ abstract class StylesheetParser extends Parser {
       }
 
       if (!scanner.scanChar($comma)) break;
-      whitespace();
+      whitespace(consumeNewlines: true);
     }
     scanner.expectChar($rparen);
     return ParameterList(parameters, scanner.spanFrom(start),
@@ -1665,7 +1691,7 @@ abstract class StylesheetParser extends Parser {
       {bool mixin = false, bool allowEmptySecondArg = false}) {
     var start = scanner.state;
     scanner.expectChar($lparen);
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     var positional = <Expression>[];
     var named = <String, Expression>{};
@@ -1673,10 +1699,10 @@ abstract class StylesheetParser extends Parser {
     Expression? keywordRest;
     while (_lookingAtExpression()) {
       var expression = expressionUntilComma(singleEquals: !mixin);
-      whitespace();
+      whitespace(consumeNewlines: true);
 
       if (expression is VariableExpression && scanner.scanChar($colon)) {
-        whitespace();
+        whitespace(consumeNewlines: true);
         if (named.containsKey(expression.name)) {
           error("Duplicate argument.", expression.span);
         }
@@ -1688,8 +1714,8 @@ abstract class StylesheetParser extends Parser {
           rest = expression;
         } else {
           keywordRest = expression;
-          whitespace();
-          if (scanner.scanChar($comma)) whitespace();
+          whitespace(consumeNewlines: true);
+          if (scanner.scanChar($comma)) whitespace(consumeNewlines: true);
           break;
         }
       } else if (named.isNotEmpty) {
@@ -1699,9 +1725,9 @@ abstract class StylesheetParser extends Parser {
         positional.add(expression);
       }
 
-      whitespace();
+      whitespace(consumeNewlines: true);
       if (!scanner.scanChar($comma)) break;
-      whitespace();
+      whitespace(consumeNewlines: true);
 
       if (allowEmptySecondArg &&
           positional.length == 1 &&
@@ -1729,16 +1755,23 @@ abstract class StylesheetParser extends Parser {
   /// If [until] is passed, it's called each time the expression could end and
   /// still be a valid expression. When it returns `true`, this returns the
   /// expression.
+  ///
+  /// If [consumeNewlines] is `true`, the indented syntax will consume newlines
+  /// as whitespace. It should only be set to `true` in positions when a
+  /// statement can't end.
   @protected
   Expression _expression(
-      {bool bracketList = false, bool singleEquals = false, bool until()?}) {
+      {bool bracketList = false,
+      bool singleEquals = false,
+      bool consumeNewlines = false,
+      bool until()?}) {
     if (until != null && until()) scanner.error("Expected expression.");
 
     LineScannerState? beforeBracket;
     if (bracketList) {
       beforeBracket = scanner.state;
       scanner.expectChar($lbracket);
-      whitespace();
+      whitespace(consumeNewlines: true);
 
       if (scanner.scanChar($rbracket)) {
         return ListExpression(
@@ -1914,8 +1947,7 @@ abstract class StylesheetParser extends Parser {
             length: operator.operator.length);
       }
       operands.add(singleExpression);
-
-      whitespace();
+      whitespace(consumeNewlines: true);
       singleExpression_ = _singleExpression();
     }
 
@@ -1936,7 +1968,7 @@ abstract class StylesheetParser extends Parser {
 
     loop:
     while (true) {
-      whitespace();
+      whitespace(consumeNewlines: consumeNewlines || bracketList);
       if (until != null && until()) break;
 
       switch (scanner.peekChar()) {
@@ -2126,12 +2158,17 @@ abstract class StylesheetParser extends Parser {
     }
   }
 
-  /// Consumes an expression until it reaches a top-level comma.
+  /// Consumes an expression, inlcuding newlines, until it reaches a top-level
+  /// comma.
   ///
   /// If [singleEquals] is true, this will allow the Microsoft-style `=`
   /// operator at the top level.
-  Expression expressionUntilComma({bool singleEquals = false}) => _expression(
-      singleEquals: singleEquals, until: () => scanner.peekChar() == $comma);
+  Expression expressionUntilComma({bool singleEquals = false}) {
+    return _expression(
+        singleEquals: singleEquals,
+        consumeNewlines: true,
+        until: () => scanner.peekChar() == $comma);
+  }
 
   /// Whether [expression] is allowed as an operand of a `/` expression that
   /// produces a potentially slash-separated number.
@@ -2180,7 +2217,7 @@ abstract class StylesheetParser extends Parser {
     try {
       var start = scanner.state;
       scanner.expectChar($lparen);
-      whitespace();
+      whitespace(consumeNewlines: true);
       if (!_lookingAtExpression()) {
         scanner.expectChar($rparen);
         return ListExpression(
@@ -2189,7 +2226,7 @@ abstract class StylesheetParser extends Parser {
 
       var first = expressionUntilComma();
       if (scanner.scanChar($colon)) {
-        whitespace();
+        whitespace(consumeNewlines: true);
         return _map(first, start);
       }
 
@@ -2197,14 +2234,14 @@ abstract class StylesheetParser extends Parser {
         scanner.expectChar($rparen);
         return ParenthesizedExpression(first, scanner.spanFrom(start));
       }
-      whitespace();
+      whitespace(consumeNewlines: true);
 
       var expressions = [first];
       while (true) {
         if (!_lookingAtExpression()) break;
         expressions.add(expressionUntilComma());
         if (!scanner.scanChar($comma)) break;
-        whitespace();
+        whitespace(consumeNewlines: true);
       }
 
       scanner.expectChar($rparen);
@@ -2224,12 +2261,12 @@ abstract class StylesheetParser extends Parser {
     var pairs = [(first, expressionUntilComma())];
 
     while (scanner.scanChar($comma)) {
-      whitespace();
+      whitespace(consumeNewlines: true);
       if (!_lookingAtExpression()) break;
 
       var key = expressionUntilComma();
       scanner.expectChar($colon);
-      whitespace();
+      whitespace(consumeNewlines: true);
       var value = expressionUntilComma();
       pairs.add((key, value));
     }
@@ -2344,7 +2381,7 @@ abstract class StylesheetParser extends Parser {
 
     var start = scanner.state;
     scanner.readChar();
-    whitespace();
+    whitespace(consumeNewlines: true);
     expectIdentifier("important");
     return StringExpression.plain("!important", scanner.spanFrom(start));
   }
@@ -2360,7 +2397,7 @@ abstract class StylesheetParser extends Parser {
           position: scanner.position - 1, length: 1);
     }
 
-    whitespace();
+    whitespace(consumeNewlines: true);
     var operand = _singleExpression();
     return UnaryOperationExpression(operator, operand, scanner.spanFrom(start));
   }
@@ -2595,7 +2632,7 @@ abstract class StylesheetParser extends Parser {
         return IfExpression(
             invocation, identifier.span.expand(invocation.span));
       } else if (plain == "not") {
-        whitespace();
+        whitespace(consumeNewlines: true);
         var expression = _singleExpression();
         return UnaryOperationExpression(UnaryOperator.not, expression,
             identifier.span.expand(expression.span));
@@ -2720,7 +2757,7 @@ abstract class StylesheetParser extends Parser {
 
     var beginningOfContents = scanner.state;
     if (!scanner.scanChar($lparen)) return null;
-    whitespaceWithoutComments();
+    whitespaceWithoutComments(consumeNewlines: true);
 
     // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
     // backtrack and re-parse as a function expression.
@@ -2747,7 +2784,7 @@ abstract class StylesheetParser extends Parser {
               >= 0x80:
           buffer.writeCharCode(scanner.readChar());
         case int(isWhitespace: true):
-          whitespaceWithoutComments();
+          whitespaceWithoutComments(consumeNewlines: true);
           if (scanner.peekChar() != $rparen) break loop;
         case $rparen:
           buffer.writeCharCode(scanner.readChar());
@@ -2797,6 +2834,8 @@ abstract class StylesheetParser extends Parser {
     var start = scanner.state;
     var buffer = InterpolationBuffer();
 
+    var brackets = <int>[];
+
     loop:
     while (true) {
       switch (scanner.peekChar()) {
@@ -2832,7 +2871,7 @@ abstract class StylesheetParser extends Parser {
           buffer.addInterpolation(interpolatedIdentifier());
 
         case $cr || $lf || $ff:
-          if (indented) break loop;
+          if (indented && brackets.isEmpty) break loop;
           buffer.writeCharCode(scanner.readChar());
 
         case $exclamation || $semicolon || $lbrace || $rbrace:
@@ -2856,6 +2895,19 @@ abstract class StylesheetParser extends Parser {
             scanner.state = beforeUrl;
             buffer.writeCharCode(scanner.readChar());
           }
+
+        case $lparen || $lbracket:
+          var bracket = scanner.readChar();
+          buffer.writeCharCode(bracket);
+          brackets.add(opposite(bracket));
+
+        case ($rparen || $rbracket) && var char?:
+          if (brackets.isEmpty) {
+            scanner.error('Unexpected "${String.fromCharCode(char)}".');
+          }
+          var bracket = brackets.removeLast();
+          scanner.expectChar(bracket);
+          buffer.writeCharCode(bracket);
 
         case null:
           break loop;
@@ -2887,13 +2939,18 @@ abstract class StylesheetParser extends Parser {
   /// comments. Otherwise, it will preserve two adjacent slashes and emit them
   /// to CSS.
   ///
+  /// If [consumeNewlines] is `true`, the indented syntax will consume newlines
+  /// as whitespace. It should only be set to `true` in positions when a
+  /// statement can't end.
+  ///
   /// Unlike [declarationValue], this allows interpolation.
   Interpolation _interpolatedDeclarationValue(
       {bool allowEmpty = false,
       bool allowSemicolon = false,
       bool allowColon = true,
       bool allowOpenBrace = true,
-      bool silentComments = true}) {
+      bool silentComments = true,
+      bool consumeNewlines = false}) {
     // NOTE: this logic is largely duplicated in Parser.declarationValue. Most
     // changes here should be mirrored there.
 
@@ -2943,7 +3000,8 @@ abstract class StylesheetParser extends Parser {
         case $space || $tab:
           buffer.writeCharCode(scanner.readChar());
 
-        case $lf || $cr || $ff when indented:
+        case $lf || $cr || $ff
+            when indented && !consumeNewlines && brackets.isEmpty:
           break loop;
 
         case $lf || $cr || $ff:
@@ -3078,8 +3136,8 @@ abstract class StylesheetParser extends Parser {
   (Expression, FileSpan span) singleInterpolation() {
     var start = scanner.state;
     scanner.expect('#{');
-    whitespace();
-    var contents = _expression();
+    whitespace(consumeNewlines: true);
+    var contents = _expression(consumeNewlines: true);
     scanner.expectChar($rbrace);
     var span = scanner.spanFrom(start);
 
@@ -3097,9 +3155,9 @@ abstract class StylesheetParser extends Parser {
     var start = scanner.state;
     var buffer = InterpolationBuffer();
     while (true) {
-      whitespace();
+      whitespace(consumeNewlines: false);
       _mediaQuery(buffer);
-      whitespace();
+      whitespace(consumeNewlines: false);
       if (!scanner.scanChar($comma)) break;
       buffer.writeCharCode($comma);
       buffer.writeCharCode($space);
@@ -3112,7 +3170,7 @@ abstract class StylesheetParser extends Parser {
     // This is somewhat duplicated in MediaQueryParser._mediaQuery.
     if (scanner.peekChar() == $lparen) {
       _mediaInParens(buffer);
-      whitespace();
+      whitespace(consumeNewlines: false);
       if (scanIdentifier("and")) {
         buffer.write(" and ");
         expectWhitespace();
@@ -3138,7 +3196,7 @@ abstract class StylesheetParser extends Parser {
       }
     }
 
-    whitespace();
+    whitespace(consumeNewlines: false);
     buffer.addInterpolation(identifier1);
     if (!_lookingAtInterpolatedIdentifier()) {
       // For example, "@media screen {".
@@ -3153,7 +3211,7 @@ abstract class StylesheetParser extends Parser {
       // For example, "@media screen and ..."
       buffer.write(" and ");
     } else {
-      whitespace();
+      whitespace(consumeNewlines: false);
       buffer.addInterpolation(identifier2);
       if (scanIdentifier("and")) {
         // For example, "@media only screen and ..."
@@ -3185,10 +3243,10 @@ abstract class StylesheetParser extends Parser {
   void _mediaLogicSequence(InterpolationBuffer buffer, String operator) {
     while (true) {
       _mediaOrInterp(buffer);
-      whitespace();
+      whitespace(consumeNewlines: false);
 
       if (!scanIdentifier(operator)) return;
-      expectWhitespace();
+      expectWhitespace(consumeNewlines: false);
 
       buffer.writeCharCode($space);
       buffer.write(operator);
@@ -3210,32 +3268,32 @@ abstract class StylesheetParser extends Parser {
   void _mediaInParens(InterpolationBuffer buffer) {
     scanner.expectChar($lparen, name: "media condition in parentheses");
     buffer.writeCharCode($lparen);
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     if (scanner.peekChar() == $lparen) {
       _mediaInParens(buffer);
-      whitespace();
+      whitespace(consumeNewlines: true);
       if (scanIdentifier("and")) {
         buffer.write(" and ");
-        expectWhitespace();
+        expectWhitespace(consumeNewlines: true);
         _mediaLogicSequence(buffer, "and");
       } else if (scanIdentifier("or")) {
         buffer.write(" or ");
-        expectWhitespace();
+        expectWhitespace(consumeNewlines: true);
         _mediaLogicSequence(buffer, "or");
       }
     } else if (scanIdentifier("not")) {
       buffer.write("not ");
-      expectWhitespace();
+      expectWhitespace(consumeNewlines: true);
       _mediaOrInterp(buffer);
     } else {
       var expressionBefore = _expressionUntilComparison();
       buffer.add(expressionBefore, expressionBefore.span);
       if (scanner.scanChar($colon)) {
-        whitespace();
+        whitespace(consumeNewlines: true);
         buffer.writeCharCode($colon);
         buffer.writeCharCode($space);
-        var expressionAfter = _expression();
+        var expressionAfter = _expression(consumeNewlines: true);
         buffer.add(expressionAfter, expressionAfter.span);
       } else {
         var next = scanner.peekChar();
@@ -3247,7 +3305,7 @@ abstract class StylesheetParser extends Parser {
           }
           buffer.writeCharCode($space);
 
-          whitespace();
+          whitespace(consumeNewlines: true);
           var expressionMiddle = _expressionUntilComparison();
           buffer.add(expressionMiddle, expressionMiddle.span);
 
@@ -3258,7 +3316,7 @@ abstract class StylesheetParser extends Parser {
             if (scanner.scanChar($equal)) buffer.writeCharCode($equal);
             buffer.writeCharCode($space);
 
-            whitespace();
+            whitespace(consumeNewlines: true);
             var expressionAfter = _expressionUntilComparison();
             buffer.add(expressionAfter, expressionAfter.span);
           }
@@ -3267,13 +3325,14 @@ abstract class StylesheetParser extends Parser {
     }
 
     scanner.expectChar($rparen);
-    whitespace();
+    whitespace(consumeNewlines: false);
     buffer.writeCharCode($rparen);
   }
 
   /// Consumes an expression until it reaches a top-level `<`, `>`, or a `=`
   /// that's not `==`.
   Expression _expressionUntilComparison() => _expression(
+      consumeNewlines: true,
       until: () => switch (scanner.peekChar()) {
             $equal => scanner.peekChar(1) != $equal,
             $langle || $rangle => true,
@@ -3283,16 +3342,19 @@ abstract class StylesheetParser extends Parser {
   // ## Supports Conditions
 
   /// Consumes a `@supports` condition.
-  SupportsCondition _supportsCondition() {
+  ///
+  /// If [inParentheses] is true, the indented syntax will consume newlines
+  /// where a statement otherwise would end.
+  SupportsCondition _supportsCondition({bool inParentheses = false}) {
     var start = scanner.state;
     if (scanIdentifier("not")) {
-      whitespace();
+      whitespace(consumeNewlines: inParentheses);
       return SupportsNegation(
           _supportsConditionInParens(), scanner.spanFrom(start));
     }
 
     var condition = _supportsConditionInParens();
-    whitespace();
+    whitespace(consumeNewlines: inParentheses);
     String? operator;
     while (lookingAtIdentifier()) {
       if (operator != null) {
@@ -3304,11 +3366,11 @@ abstract class StylesheetParser extends Parser {
         operator = "and";
       }
 
-      whitespace();
+      whitespace(consumeNewlines: inParentheses);
       var right = _supportsConditionInParens();
       condition = SupportsOperation(
           condition, right, operator, scanner.spanFrom(start));
-      whitespace();
+      whitespace(consumeNewlines: inParentheses);
     }
     return condition;
   }
@@ -3325,7 +3387,7 @@ abstract class StylesheetParser extends Parser {
 
       if (scanner.scanChar($lparen)) {
         var arguments = _interpolatedDeclarationValue(
-            allowEmpty: true, allowSemicolon: true);
+            allowEmpty: true, allowSemicolon: true, consumeNewlines: true);
         scanner.expectChar($rparen);
         return SupportsFunction(identifier, arguments, scanner.spanFrom(start));
       } else if (identifier.contents case [Expression expression]) {
@@ -3336,14 +3398,14 @@ abstract class StylesheetParser extends Parser {
     }
 
     scanner.expectChar($lparen);
-    whitespace();
+    whitespace(consumeNewlines: true);
     if (scanIdentifier("not")) {
-      whitespace();
+      whitespace(consumeNewlines: true);
       var condition = _supportsConditionInParens();
       scanner.expectChar($rparen);
       return SupportsNegation(condition, scanner.spanFrom(start));
     } else if (scanner.peekChar() == $lparen) {
-      var condition = _supportsCondition();
+      var condition = _supportsCondition(inParentheses: true);
       scanner.expectChar($rparen);
       return condition.withSpan(scanner.spanFrom(start));
     }
@@ -3366,7 +3428,7 @@ abstract class StylesheetParser extends Parser {
     var nameStart = scanner.state;
     var wasInParentheses = _inParentheses;
     try {
-      name = _expression();
+      name = _expression(consumeNewlines: true);
       scanner.expectChar($colon);
     } on FormatException catch (_) {
       scanner.state = nameStart;
@@ -3385,7 +3447,10 @@ abstract class StylesheetParser extends Parser {
       var contents = (InterpolationBuffer()
             ..addInterpolation(identifier)
             ..addInterpolation(_interpolatedDeclarationValue(
-                allowEmpty: true, allowSemicolon: true, allowColon: false)))
+                allowEmpty: true,
+                allowSemicolon: true,
+                allowColon: false,
+                consumeNewlines: true)))
           .interpolation(scanner.spanFrom(nameStart));
       if (scanner.peekChar() == $colon) rethrow;
 
@@ -3405,8 +3470,8 @@ abstract class StylesheetParser extends Parser {
         when text.initialPlain.startsWith("--")) {
       return StringExpression(_interpolatedDeclarationValue());
     } else {
-      whitespace();
-      return _expression();
+      whitespace(consumeNewlines: true);
+      return _expression(consumeNewlines: true);
     }
   }
 
@@ -3420,7 +3485,7 @@ abstract class StylesheetParser extends Parser {
     if (expression is! Expression) return null;
 
     var beforeWhitespace = scanner.state;
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     SupportsOperation? operation;
     String? operator;
@@ -3436,14 +3501,14 @@ abstract class StylesheetParser extends Parser {
         return null;
       }
 
-      whitespace();
+      whitespace(consumeNewlines: true);
       var right = _supportsConditionInParens();
       operation = SupportsOperation(
           operation ?? SupportsInterpolation(expression, interpolation.span),
           right,
           operator,
           scanner.spanFrom(start));
-      whitespace();
+      whitespace(consumeNewlines: true);
     }
 
     return operation;
@@ -3525,7 +3590,7 @@ abstract class StylesheetParser extends Parser {
   T _withChildren<T>(Statement child(), LineScannerState start,
       T create(List<Statement> children, FileSpan span)) {
     var result = create(children(child), scanner.spanFrom(start));
-    whitespaceWithoutComments();
+    whitespaceWithoutComments(consumeNewlines: false);
     return result;
   }
 
