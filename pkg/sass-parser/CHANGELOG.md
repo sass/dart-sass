@@ -1,3 +1,7 @@
+## 0.4.15-dev
+
+* Add support for parsing list expressions.
+
 ## 0.4.14
 
 * Add support for parsing color expressions.
