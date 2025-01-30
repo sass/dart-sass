@@ -1,7 +1,12 @@
 ## 1.83.5-dev
 
 * Fix the error message for `@extend` without a selector and possibly other
-  parsing edge-cases in contexts that allow interpolation..
+  parsing edge-cases in contexts that allow interpolation.
+
+### Embedded Host
+
+* Fixed the implementation of the `SassBoolean` type to adhere to the spec,
+  now using a class instead of an interface.
 
 ## 1.83.4
 
