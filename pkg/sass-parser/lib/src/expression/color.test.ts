@@ -42,7 +42,7 @@ describe('a color expression', () => {
     );
   });
 
-  describe('with no alpha', () => {
+  describe('with alpha', () => {
     function describeNode(
       description: string,
       create: () => ColorExpression,

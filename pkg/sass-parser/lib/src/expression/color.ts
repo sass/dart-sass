@@ -55,7 +55,7 @@ export class ColorExpression extends Expression {
    * The color represented by this expression. This will always be a color in
    * the RGB color space.
    *
-   * THrows an error if this is set to a non-RGB color.
+   * Throws an error if this is set to a non-RGB color.
    */
   get value(): sass.SassColor {
     return this._value;
