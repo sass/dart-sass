@@ -133,27 +133,24 @@ describe('a color expression', () => {
       ).toThrow());
   });
 
-  describe('assigned new', () => {
-    beforeEach(() => void (node = utils.parseExpression('#123')));
-
-    it('value', () => {
-      node.value = new SassColor({
+  it('assigned new value', () => {
+    const node = utils.parseExpression('#123') as ColorExpression;
+    node.value = new SassColor({
+      space: 'rgb',
+      red: 10,
+      green: 20,
+      blue: 30,
+      alpha: 0.4,
+    });
+    expect(node.value).toEqual(
+      new SassColor({
         space: 'rgb',
         red: 10,
         green: 20,
         blue: 30,
         alpha: 0.4,
-      });
-      expect(node.value).toEqual(
-        new SassColor({
-          space: 'rgb',
-          red: 10,
-          green: 20,
-          blue: 30,
-          alpha: 0.4,
-        }),
-      );
-    });
+      }),
+    );
   });
 
   describe('stringifies', () => {
