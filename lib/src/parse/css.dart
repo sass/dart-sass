@@ -14,19 +14,25 @@ import 'scss.dart';
 final _disallowedFunctionNames =
     globalFunctions.map((function) => function.name).toSet()
       ..add("if")
-      ..remove("rgb")
-      ..remove("rgba")
+      ..remove("abs")
+      ..remove("alpha")
+      ..remove("color")
+      ..remove("grayscale")
       ..remove("hsl")
       ..remove("hsla")
-      ..remove("grayscale")
+      ..remove("hwb")
       ..remove("invert")
-      ..remove("alpha")
-      ..remove("opacity")
-      ..remove("saturate")
-      ..remove("min")
+      ..remove("lab")
+      ..remove("lch")
       ..remove("max")
+      ..remove("min")
+      ..remove("oklab")
+      ..remove("oklch")
+      ..remove("opacity")
+      ..remove("rgb")
+      ..remove("rgba")
       ..remove("round")
-      ..remove("abs");
+      ..remove("saturate");
 
 class CssParser extends ScssParser {
   bool get plainCss => true;
