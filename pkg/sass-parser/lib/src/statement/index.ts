@@ -12,6 +12,7 @@ import * as sassInternal from '../sass-internal';
 import {CssComment, CssCommentProps} from './css-comment';
 import {SassComment, SassCommentChildProps} from './sass-comment';
 import {GenericAtRule, GenericAtRuleProps} from './generic-at-rule';
+import {ContentRule, ContentRuleProps} from './content-rule';
 import {DebugRule, DebugRuleProps} from './debug-rule';
 import {Declaration, DeclarationProps} from './declaration';
 import {EachRule, EachRuleProps} from './each-rule';
@@ -21,6 +22,7 @@ import {ForRule, ForRuleProps} from './for-rule';
 import {ForwardRule, ForwardRuleProps} from './forward-rule';
 import {FunctionRule, FunctionRuleProps} from './function-rule';
 import {IfRule, IfRuleProps} from './if-rule';
+import {ImportRule, ImportRuleProps} from './import-rule';
 import {IncludeRule, IncludeRuleProps} from './include-rule';
 import {MixinRule, MixinRuleProps} from './mixin-rule';
 import {ReturnRule, ReturnRuleProps} from './return-rule';
@@ -55,6 +57,7 @@ export type StatementType =
   | 'rule'
   | 'atrule'
   | 'comment'
+  | 'content-rule'
   | 'decl'
   | 'debug-rule'
   | 'each-rule'
@@ -64,6 +67,7 @@ export type StatementType =
   | 'forward-rule'
   | 'function-rule'
   | 'if-rule'
+  | 'import-rule'
   | 'include-rule'
   | 'mixin-rule'
   | 'return-rule'
@@ -79,6 +83,7 @@ export type StatementType =
  * @category Statement
  */
 export type AtRule =
+  | ContentRule
   | DebugRule
   | EachRule
   | ElseRule
@@ -88,6 +93,7 @@ export type AtRule =
   | FunctionRule
   | GenericAtRule
   | IfRule
+  | ImportRule
   | IncludeRule
   | MixinRule
   | ReturnRule
@@ -127,6 +133,12 @@ export type ChildNode = Rule | AtRule | Comment | AnyDeclaration;
  */
 export type ChildProps =
   | postcss.ChildProps
+  // In a ChildProps context, `ContentProps` requires an explicit
+  // `contentArguments: undefined` so that an empty object isn't a valid
+  // `ChildProps`.
+  | (ContentRuleProps & {
+      contentArguments: ContentRuleProps['contentArguments'];
+    })
   | CssCommentProps
   | DebugRuleProps
   | DeclarationProps
@@ -141,6 +153,7 @@ export type ChildProps =
   | FunctionRuleProps
   | GenericAtRuleProps
   | IfRuleProps
+  | ImportRuleProps
   | IncludeRuleProps
   | MixinRuleProps
   | ReturnRuleProps
@@ -199,6 +212,7 @@ const visitor = sassInternal.createStatementVisitor<Statement | Statement[]>({
     return rule;
   },
   visitAtRule: inner => new GenericAtRule(undefined, inner),
+  visitContentRule: inner => new ContentRule(undefined, inner),
   visitDebugRule: inner => new DebugRule(undefined, inner),
   visitDeclaration: inner => new Declaration(undefined, inner),
   visitErrorRule: inner => new ErrorRule(undefined, inner),
@@ -218,6 +232,7 @@ const visitor = sassInternal.createStatementVisitor<Statement | Statement[]>({
     }
     return rules;
   },
+  visitImportRule: inner => new ImportRule(undefined, inner),
   visitIncludeRule: inner => new IncludeRule(undefined, inner),
   visitExtendRule: inner => {
     const paramsInterpolation = new Interpolation(undefined, inner.selector);
@@ -362,6 +377,8 @@ export function normalize(
       result.push(new Rule(node));
     } else if ('name' in node || 'nameInterpolation' in node) {
       result.push(new GenericAtRule(node as GenericAtRuleProps));
+    } else if ('contentArguments' in node) {
+      result.push(new ContentRule(node));
     } else if ('debugExpression' in node) {
       result.push(new DebugRule(node));
     } else if ('eachExpression' in node) {
@@ -372,6 +389,8 @@ export function normalize(
       result.push(new ErrorRule(node));
     } else if ('ifCondition' in node) {
       result.push(new IfRule(node));
+    } else if ('imports' in node) {
+      result.push(new ImportRule(node));
     } else if ('includeName' in node) {
       result.push(new IncludeRule(node));
     } else if ('fromExpression' in node) {

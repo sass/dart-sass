@@ -355,7 +355,7 @@ describe('a @include rule', () => {
           new IncludeRule({
             includeName: 'foo',
             arguments: [{text: 'bar'}],
-            raws: {showArguments: true},
+            raws: {showArguments: false},
           }).toString(),
         ).toBe('@include foo(bar)'));
 

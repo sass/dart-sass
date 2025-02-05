@@ -35,6 +35,12 @@ export {
   ConfiguredVariableRaws,
 } from './src/configured-variable';
 export {Container} from './src/container';
+export {
+  DynamicImport,
+  DynamicImportObjectProps,
+  DynamicImportProps,
+  DynamicImportRaws,
+} from './src/dynamic-import';
 export {AnyNode, Node, NodeProps, NodeType} from './src/node';
 export {RawWithValue} from './src/raw-with-value';
 export {
@@ -65,6 +71,18 @@ export {
   NumberExpressionRaws,
 } from './src/expression/number';
 export {
+  ImportList,
+  ImportListObjectProps,
+  ImportListProps,
+  ImportListRaws,
+  NewImport,
+} from './src/import-list';
+export {
+  ImportRule,
+  ImportRuleProps,
+  ImportRuleRaws,
+} from './src/statement/import-rule';
+export {
   IncludeRule,
   IncludeRuleProps,
   IncludeRuleRaws,
@@ -89,6 +107,11 @@ export {
   ParameterProps,
   Parameter,
 } from './src/parameter';
+export {
+  ContentRule,
+  ContentRuleProps,
+  ContentRuleRaws,
+} from './src/statement/content-rule';
 export {
   CssComment,
   CssCommentProps,
@@ -172,6 +195,11 @@ export {
   WhileRuleProps,
   WhileRuleRaws,
 } from './src/statement/while-rule';
+export {
+  StaticImport,
+  StaticImportProps,
+  StaticImportRaws,
+} from './src/static-import';
 
 /** Options that can be passed to the Sass parsers to control their behavior. */
 export type SassParserOptions = Pick<postcss.ProcessOptions, 'from' | 'map'>;

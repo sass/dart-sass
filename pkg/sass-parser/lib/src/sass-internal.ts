@@ -121,6 +121,10 @@ declare namespace SassInternal {
     readonly parameters: ParameterList;
   }
 
+  class ContentRule extends Statement {
+    readonly arguments: ArgumentList;
+  }
+
   class DebugRule extends Statement {
     readonly expression: Expression;
   }
@@ -178,6 +182,19 @@ declare namespace SassInternal {
 
   class ElseClause {
     readonly children: Statement[];
+  }
+
+  class ImportRule extends Statement {
+    readonly imports: (DynamicImport | StaticImport)[];
+  }
+
+  class DynamicImport extends SassNode {
+    readonly urlString: string;
+  }
+
+  class StaticImport extends SassNode {
+    readonly url: Interpolation;
+    readonly modifiers: Interpolation | null;
   }
 
   class IncludeRule extends Statement {
@@ -335,6 +352,7 @@ export type ArgumentList = SassInternal.ArgumentList;
 export type AtRootRule = SassInternal.AtRootRule;
 export type AtRule = SassInternal.AtRule;
 export type ContentBlock = SassInternal.ContentBlock;
+export type ContentRule = SassInternal.ContentRule;
 export type DebugRule = SassInternal.DebugRule;
 export type Declaration = SassInternal.Declaration;
 export type EachRule = SassInternal.EachRule;
@@ -346,6 +364,9 @@ export type FunctionRule = SassInternal.FunctionRule;
 export type IfRule = SassInternal.IfRule;
 export type IfClause = SassInternal.IfClause;
 export type ElseClause = SassInternal.ElseClause;
+export type ImportRule = SassInternal.ImportRule;
+export type DynamicImport = SassInternal.DynamicImport;
+export type StaticImport = SassInternal.StaticImport;
 export type IncludeRule = SassInternal.IncludeRule;
 export type LoudComment = SassInternal.LoudComment;
 export type MediaRule = SassInternal.MediaRule;
@@ -372,6 +393,7 @@ export type NumberExpression = SassInternal.NumberExpression;
 export interface StatementVisitorObject<T> {
   visitAtRootRule(node: AtRootRule): T;
   visitAtRule(node: AtRule): T;
+  visitContentRule(node: ContentRule): T;
   visitDebugRule(node: DebugRule): T;
   visitDeclaration(node: Declaration): T;
   visitEachRule(node: EachRule): T;
@@ -381,6 +403,7 @@ export interface StatementVisitorObject<T> {
   visitForwardRule(node: ForwardRule): T;
   visitFunctionRule(node: FunctionRule): T;
   visitIfRule(node: IfRule): T;
+  visitImportRule(node: ImportRule): T;
   visitIncludeRule(node: IncludeRule): T;
   visitLoudComment(node: LoudComment): T;
   visitMediaRule(node: MediaRule): T;

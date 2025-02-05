@@ -28,7 +28,7 @@
 
 import * as postcss from 'postcss';
 
-import {AnyStatement} from './statement';
+import {AnyStatement, AtRule} from './statement';
 import {DebugRule} from './statement/debug-rule';
 import {Declaration} from './statement/declaration';
 import {EachRule} from './statement/each-rule';
@@ -39,6 +39,7 @@ import {ForwardRule} from './statement/forward-rule';
 import {FunctionRule} from './statement/function-rule';
 import {GenericAtRule} from './statement/generic-at-rule';
 import {IfRule} from './statement/if-rule';
+import {ImportRule} from './statement/import-rule';
 import {IncludeRule} from './statement/include-rule';
 import {MixinRule} from './statement/mixin-rule';
 import {ReturnRule} from './statement/return-rule';
@@ -82,6 +83,10 @@ export class Stringifier extends PostCssStringifier {
         semicolon: boolean,
       ) => void
     )(statement, semicolon);
+  }
+
+  private ['content-rule'](node: EachRule): void {
+    this.sassAtRule(node);
   }
 
   private ['debug-rule'](node: DebugRule, semicolon: boolean): void {
@@ -146,6 +151,10 @@ export class Stringifier extends PostCssStringifier {
 
   private ['if-rule'](node: IfRule): void {
     this.sassAtRule(node);
+  }
+
+  private ['import-rule'](node: ImportRule, semicolon: boolean): void {
+    this.sassAtRule(node, semicolon);
   }
 
   private ['include-rule'](node: IncludeRule, semicolon: boolean): void {
@@ -261,11 +270,12 @@ export class Stringifier extends PostCssStringifier {
   }
 
   /** Helper method for non-generic Sass at-rules. */
-  private sassAtRule(node: postcss.AtRule, semicolon?: boolean): void {
+  private sassAtRule(node: AtRule, semicolon?: boolean): void {
     const start =
       '@' +
       node.name +
-      (node.raws.afterName ?? (node.params === '' ? '' : ' ')) +
+      (node.raws.afterName ??
+        (node.params === '' || node.sassType === 'content-rule' ? '' : ' ')) +
       node.params;
     if (node.nodes) {
       this.block(node, start);

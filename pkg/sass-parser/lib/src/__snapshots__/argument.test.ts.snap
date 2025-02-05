@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`a argument toJSON with a name 1`] = `
+exports[`an argument toJSON with a name 1`] = `
 {
   "inputs": [
     {
@@ -17,7 +17,7 @@ exports[`a argument toJSON with a name 1`] = `
 }
 `;
 
-exports[`a argument toJSON with no name 1`] = `
+exports[`an argument toJSON with no name 1`] = `
 {
   "inputs": [
     {
@@ -33,7 +33,7 @@ exports[`a argument toJSON with no name 1`] = `
 }
 `;
 
-exports[`a argument toJSON with rest 1`] = `
+exports[`an argument toJSON with rest 1`] = `
 {
   "inputs": [
     {
