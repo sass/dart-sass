@@ -54,7 +54,10 @@ class SassParser extends StylesheetParser {
   }
 
   void expectStatementSeparator([String? name]) {
-    if (!atEndOfStatement()) _expectNewline();
+    var trailingSemicolon = _tryTrailingSemicolon();
+    if (!atEndOfStatement()) {
+      _expectNewline(trailingSemicolon: trailingSemicolon);
+    }
     if (_peekIndentation() <= currentIndentation) return;
     scanner.error(
         "Nothing may be indented ${name == null ? 'here' : 'beneath a $name'}.",
@@ -259,7 +262,7 @@ class SassParser extends StylesheetParser {
               buffer.writeCharCode(scanner.readChar());
               buffer.writeCharCode(scanner.readChar());
               var span = scanner.spanFrom(start);
-              whitespace();
+              whitespace(consumeNewlines: false);
 
               // For backwards compatibility, allow additional comments after
               // the initial comment is closed.
@@ -269,7 +272,7 @@ class SassParser extends StylesheetParser {
                   _expectNewline();
                 }
                 _readIndentation();
-                whitespace();
+                whitespace(consumeNewlines: false);
               }
 
               if (!scanner.isDone && !scanner.peekChar().isNewline) {
@@ -309,37 +312,22 @@ class SassParser extends StylesheetParser {
     return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
   }
 
-  void whitespaceWithoutComments() {
-    // This overrides whitespace consumption so that it doesn't consume
-    // newlines.
+  void whitespaceWithoutComments({required bool consumeNewlines}) {
+    // This overrides whitespace consumption to only consume newlines when
+    // `consumeNewlines` is true.
     while (!scanner.isDone) {
       var next = scanner.peekChar();
-      if (next != $tab && next != $space) break;
+      if (consumeNewlines ? !next.isWhitespace : !next.isSpaceOrTab) break;
       scanner.readChar();
     }
   }
 
-  void loudComment() {
-    // This overrides loud comment consumption so that it doesn't consume
-    // multi-line comments.
-    scanner.expect("/*");
-    while (true) {
-      var next = scanner.readChar();
-      if (next.isNewline) scanner.error("expected */.");
-      if (next != $asterisk) continue;
-
-      do {
-        next = scanner.readChar();
-      } while (next == $asterisk);
-      if (next == $slash) break;
-    }
-  }
-
   /// Expect and consume a single newline character.
-  void _expectNewline() {
+  ///
+  /// If [trailingSemicolon] is true, this follows a semicolon, which is used
+  /// for error reporting.
+  void _expectNewline({bool trailingSemicolon = false}) {
     switch (scanner.peekChar()) {
-      case $semicolon:
-        scanner.error("semicolons aren't allowed in the indented syntax.");
       case $cr:
         scanner.readChar();
         if (scanner.peekChar() == $lf) scanner.readChar();
@@ -348,7 +336,9 @@ class SassParser extends StylesheetParser {
         scanner.readChar();
         return;
       default:
-        scanner.error("expected newline.");
+        scanner.error(trailingSemicolon
+            ? "multiple statements on one line are not supported in the indented syntax."
+            : "expected newline.");
     }
   }
 
@@ -466,5 +456,16 @@ class SassParser extends StylesheetParser {
       scanner.error("Expected tabs, was spaces.",
           position: scanner.position - scanner.column, length: scanner.column);
     }
+  }
+
+  /// Consumes a semicolon and trailing whitespace, including comments.
+  ///
+  /// Returns whether a semicolon was consumed.
+  bool _tryTrailingSemicolon() {
+    if (scanCharIf((char) => char == $semicolon)) {
+      whitespace(consumeNewlines: false);
+      return true;
+    }
+    return false;
   }
 }
