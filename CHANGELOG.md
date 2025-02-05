@@ -1,4 +1,4 @@
-## 1.84.0-dev
+## 1.84.0
 
 * Allow newlines in whitespace in the indented syntax.
 
