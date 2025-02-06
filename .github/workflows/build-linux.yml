@@ -115,7 +115,7 @@ jobs:
                      ${{ matrix.image }} <<'EOF'
           set -e
           apt-get update
-          apt-get install -y --no-install-recommends ca-certificates curl dnsutils git openssh-client unzip
+          apt-get install -y --no-install-recommends bind9-dnsutils ca-certificates curl git openssh-client unzip
 
           export DART_SDK=/usr/lib/dart
           export PATH=$DART_SDK/bin:/root/.pub-cache/bin:$PATH
