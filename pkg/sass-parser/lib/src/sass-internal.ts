@@ -2,8 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import * as sass from 'sass';
 import * as postcss from 'postcss';
+import * as sass from 'sass';
 
 import type * as binaryOperation from './expression/binary-operation';
 
@@ -334,6 +334,10 @@ declare namespace SassInternal {
     readonly value: boolean;
   }
 
+  class ColorExpression extends Expression {
+    readonly value: sass.SassColor;
+  }
+
   class NumberExpression extends Expression {
     readonly value: number;
     readonly unit: string;
@@ -388,6 +392,7 @@ export type Expression = SassInternal.Expression;
 export type BinaryOperationExpression = SassInternal.BinaryOperationExpression;
 export type StringExpression = SassInternal.StringExpression;
 export type BooleanExpression = SassInternal.BooleanExpression;
+export type ColorExpression = SassInternal.ColorExpression;
 export type NumberExpression = SassInternal.NumberExpression;
 
 export interface StatementVisitorObject<T> {
@@ -422,6 +427,7 @@ export interface ExpressionVisitorObject<T> {
   visitBinaryOperationExpression(node: BinaryOperationExpression): T;
   visitStringExpression(node: StringExpression): T;
   visitBooleanExpression(node: BooleanExpression): T;
+  visitColorExpression(node: ColorExpression): T;
   visitNumberExpression(node: NumberExpression): T;
 }
 

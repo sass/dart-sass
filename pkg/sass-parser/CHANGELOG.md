@@ -1,3 +1,7 @@
+## 0.4.14-dev
+
+* Add support for parsing color expressions.
+
 ## 0.4.13
 
 * No user-visible changes.

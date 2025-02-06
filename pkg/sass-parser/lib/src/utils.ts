@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import * as postcss from 'postcss';
+import * as sass from 'sass';
 
 import {Node} from './node';
 
@@ -108,7 +109,13 @@ function maybeClone<T>(value: T): T {
   if (typeof value !== 'object' || value === null) return value;
   // The only records we care about are raws, which only contain primitives and
   // arrays of primitives, so structued cloning is safe.
-  if (value.constructor === Object) return structuredClone(value);
+  if (value.constructor === Object) {
+    const clone: Record<string, unknown> = {};
+    for (const [key, child] of Object.entries(value)) {
+      clone[key] = maybeClone(child);
+    }
+    return clone as T;
+  }
   if (value instanceof postcss.Node) return value.clone() as T;
   return value;
 }
@@ -187,6 +194,12 @@ function toJsonField(
     } else {
       return (value as {toJSON: (field: string) => object}).toJSON(field);
     }
+  } else if (value instanceof sass.SassColor) {
+    return {
+      space: value.space,
+      channels: [...value.channelsOrNull],
+      alpha: value.isChannelMissing('alpha') ? null : value.alpha,
+    };
   } else {
     return value;
   }
