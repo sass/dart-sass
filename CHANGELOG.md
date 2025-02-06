@@ -1,4 +1,13 @@
-## 1.83.5-dev
+## 1.84.0
+
+* Allow newlines in whitespace in the indented syntax.
+
+* **Potentially breaking bug fix**: Selectors with unmatched brackets now always
+  produce a parser error. Previously, some edge cases like `[foo#{"]:is(bar"}) {a:
+  b}` would compile without error, but this was an unintentional bug.
+
+* Fix a bug in which various Color Level 4 functions weren't allowed in plain
+  CSS.
 
 * Fix the error message for `@extend` without a selector and possibly other
   parsing edge-cases in contexts that allow interpolation.

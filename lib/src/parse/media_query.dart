@@ -16,9 +16,9 @@ class MediaQueryParser extends Parser {
     return wrapSpanFormatException(() {
       var queries = <CssMediaQuery>[];
       do {
-        whitespace();
+        _whitespace();
         queries.add(_mediaQuery());
-        whitespace();
+        _whitespace();
       } while (scanner.scanChar($comma));
       scanner.expectDone();
       return queries;
@@ -30,7 +30,7 @@ class MediaQueryParser extends Parser {
     // This is somewhat duplicated in StylesheetParser._mediaQuery.
     if (scanner.peekChar() == $lparen) {
       var conditions = [_mediaInParens()];
-      whitespace();
+      _whitespace();
 
       var conjunction = true;
       if (scanIdentifier("and")) {
@@ -57,7 +57,7 @@ class MediaQueryParser extends Parser {
       }
     }
 
-    whitespace();
+    _whitespace();
     if (!lookingAtIdentifier()) {
       // For example, "@media screen {"
       return CssMediaQuery.type(identifier1);
@@ -70,7 +70,7 @@ class MediaQueryParser extends Parser {
       // For example, "@media screen and ..."
       type = identifier1;
     } else {
-      whitespace();
+      _whitespace();
       modifier = identifier1;
       type = identifier2;
       if (scanIdentifier("and")) {
@@ -102,7 +102,7 @@ class MediaQueryParser extends Parser {
     var result = <String>[];
     while (true) {
       result.add(_mediaInParens());
-      whitespace();
+      _whitespace();
 
       if (!scanIdentifier(operator)) return result;
       expectWhitespace();
@@ -116,5 +116,10 @@ class MediaQueryParser extends Parser {
     var result = "(${declarationValue()})";
     scanner.expectChar($rparen);
     return result;
+  }
+
+  /// The value of `consumeNewlines` is not relevant for this class.
+  void _whitespace() {
+    whitespace(consumeNewlines: true);
   }
 }
