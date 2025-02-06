@@ -8,6 +8,7 @@ import * as postcss from 'postcss';
 // Unclear why eslint considers this extraneous
 // eslint-disable-next-line n/no-extraneous-import
 import type * as pretty from 'pretty-format';
+import * as sass from 'sass';
 import 'jest-extended';
 
 import {Interpolation, StringExpression} from '../lib';
@@ -108,6 +109,16 @@ function toHaveInterpolation(
 }
 
 expect.extend({toHaveInterpolation});
+
+function areColorsEqual(color1: unknown, color2: unknown): boolean | undefined {
+  if (color1 instanceof sass.SassColor && color2 instanceof sass.SassColor) {
+    return color1.equals(color2);
+  } else {
+    return undefined;
+  }
+}
+
+expect.addEqualityTesters([areColorsEqual]);
 
 function toHaveStringExpression(
   this: MatcherContext,

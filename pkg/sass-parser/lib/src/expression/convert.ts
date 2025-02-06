@@ -4,11 +4,12 @@
 
 import * as sassInternal from '../sass-internal';
 
-import {BinaryOperationExpression} from './binary-operation';
-import {StringExpression} from './string';
 import {Expression} from '.';
+import {BinaryOperationExpression} from './binary-operation';
 import {BooleanExpression} from './boolean';
+import {ColorExpression} from './color';
 import {NumberExpression} from './number';
+import {StringExpression} from './string';
 
 /** The visitor to use to convert internal Sass nodes to JS. */
 const visitor = sassInternal.createExpressionVisitor<Expression>({
@@ -16,6 +17,7 @@ const visitor = sassInternal.createExpressionVisitor<Expression>({
     new BinaryOperationExpression(undefined, inner),
   visitStringExpression: inner => new StringExpression(undefined, inner),
   visitBooleanExpression: inner => new BooleanExpression(undefined, inner),
+  visitColorExpression: inner => new ColorExpression(undefined, inner),
   visitNumberExpression: inner => new NumberExpression(undefined, inner),
 });
 

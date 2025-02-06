@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a color expression toJSON 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@#{#00f}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "raws": {},
+  "sassType": "color",
+  "source": <1:4-1:8 in 0>,
+  "value": {
+    "alpha": 1,
+    "channels": [
+      0,
+      0,
+      255,
+    ],
+    "space": "rgb",
+  },
+}
+`;
