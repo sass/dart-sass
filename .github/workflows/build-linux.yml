@@ -92,7 +92,7 @@ jobs:
                      --workdir "$PWD" \
                      ${{ matrix.image }} <<'EOF'
           set -e
-          export DART_SDK=/system/${{ endsWith(matrix.target, '64') && 'lib64' || 'lib' }}/dart
+          export DART_SDK=/system/${{ matrix.target != 'android-arm' && 'lib64' || 'lib' }}/dart
           export PATH=$DART_SDK/bin:$PATH
           dart pub get
           dart run grinder pkg-standalone-${{ matrix.target }}
