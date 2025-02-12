@@ -181,7 +181,7 @@ enum Deprecation {
         isFuture = false;
 
   /// Constructs a future deprecation.
-  // ignore: unused_element
+  // ignore: unused_element, unused_element_parameter
   const Deprecation.future(this.id, {this.description})
       : _deprecatedIn = null,
         _obsoleteIn = null,

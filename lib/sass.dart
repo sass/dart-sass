@@ -2,9 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-/// We strongly recommend importing this library with the prefix `sass`.
-library sass;
-
 import 'package:meta/meta.dart';
 import 'package:package_config/package_config_types.dart';
 import 'package:source_maps/source_maps.dart';

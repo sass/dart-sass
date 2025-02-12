@@ -2,9 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-/// We strongly recommend importing this library with the prefix `sass`.
-library sass;
-
 // ignore_for_file: implementation_imports
 
 import 'package:sass/src/parse/parser.dart';
