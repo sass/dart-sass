@@ -60,8 +60,9 @@ class SassParser extends StylesheetParser {
     }
     if (_peekIndentation() <= currentIndentation) return;
     scanner.error(
-        "Nothing may be indented ${name == null ? 'here' : 'beneath a $name'}.",
-        position: _nextIndentationEnd!.position);
+      "Nothing may be indented ${name == null ? 'here' : 'beneath a $name'}.",
+      position: _nextIndentationEnd!.position,
+    );
   }
 
   bool atEndOfStatement() => scanner.peekChar()?.isNewline ?? true;
@@ -102,7 +103,9 @@ class SassParser extends StylesheetParser {
       // Serialize [url] as a Sass string because [StaticImport] expects it to
       // include quotes.
       return StaticImport(
-          Interpolation.plain(SassString(url).toString(), span), span);
+        Interpolation.plain(SassString(url).toString(), span),
+        span,
+      );
     } else {
       try {
         return DynamicImport(parseImportUrl(url), span);
@@ -139,8 +142,11 @@ class SassParser extends StylesheetParser {
 
   List<Statement> statements(Statement? statement()) {
     if (scanner.peekChar() case $tab || $space) {
-      scanner.error("Indenting at the beginning of the document is illegal.",
-          position: 0, length: scanner.position);
+      scanner.error(
+        "Indenting at the beginning of the document is illegal.",
+        position: 0,
+        length: scanner.position,
+      );
     }
 
     var statements = <Statement>[];
@@ -164,9 +170,9 @@ class SassParser extends StylesheetParser {
         $slash => switch (scanner.peekChar(1)) {
             $slash => _silentComment(),
             $asterisk => _loudComment(),
-            _ => child()
+            _ => child(),
           },
-        _ => child()
+        _ => child(),
       };
 
   /// Consumes an indented-style silent comment.
@@ -210,8 +216,10 @@ class SassParser extends StylesheetParser {
       }
     } while (scanner.scan("//"));
 
-    return lastSilentComment =
-        SilentComment(buffer.toString(), scanner.spanFrom(start));
+    return lastSilentComment = SilentComment(
+      buffer.toString(),
+      scanner.spanFrom(start),
+    );
   }
 
   /// Consumes an indented-style loud context.
@@ -281,10 +289,11 @@ class SassParser extends StylesheetParser {
                   scanner.readChar();
                 }
                 throw MultiSpanSassFormatException(
-                    "Unexpected text after end of comment",
-                    scanner.spanFrom(errorStart),
-                    "extra text",
-                    {span: "comment"});
+                  "Unexpected text after end of comment",
+                  scanner.spanFrom(errorStart),
+                  "extra text",
+                  {span: "comment"},
+                );
               } else {
                 return LoudComment(buffer.interpolation(span));
               }
@@ -336,9 +345,11 @@ class SassParser extends StylesheetParser {
         scanner.readChar();
         return;
       default:
-        scanner.error(trailingSemicolon
-            ? "multiple statements on one line are not supported in the indented syntax."
-            : "expected newline.");
+        scanner.error(
+          trailingSemicolon
+              ? "multiple statements on one line are not supported in the indented syntax."
+              : "expected newline.",
+        );
     }
   }
 
@@ -347,10 +358,10 @@ class SassParser extends StylesheetParser {
         $cr => switch (scanner.peekChar(1)) {
             $lf => scanner.peekChar(2).isNewline,
             $cr || $ff => true,
-            _ => false
+            _ => false,
           },
         $lf || $ff => scanner.peekChar(1).isNewline,
-        _ => false
+        _ => false,
       };
 
   /// As long as the scanner's position is indented beneath the starting line,
@@ -363,9 +374,10 @@ class SassParser extends StylesheetParser {
       childIndentation ??= indentation;
       if (childIndentation != indentation) {
         scanner.error(
-            "Inconsistent indentation, expected $childIndentation spaces.",
-            position: scanner.position - scanner.column,
-            length: scanner.column);
+          "Inconsistent indentation, expected $childIndentation spaces.",
+          position: scanner.position - scanner.column,
+          length: scanner.column,
+        );
       }
 
       body();
@@ -444,17 +456,24 @@ class SassParser extends StylesheetParser {
   void _checkIndentationConsistency(bool containsTab, bool containsSpace) {
     if (containsTab) {
       if (containsSpace) {
-        scanner.error("Tabs and spaces may not be mixed.",
-            position: scanner.position - scanner.column,
-            length: scanner.column);
+        scanner.error(
+          "Tabs and spaces may not be mixed.",
+          position: scanner.position - scanner.column,
+          length: scanner.column,
+        );
       } else if (_spaces == true) {
-        scanner.error("Expected spaces, was tabs.",
-            position: scanner.position - scanner.column,
-            length: scanner.column);
+        scanner.error(
+          "Expected spaces, was tabs.",
+          position: scanner.position - scanner.column,
+          length: scanner.column,
+        );
       }
     } else if (containsSpace && _spaces == false) {
-      scanner.error("Expected tabs, was spaces.",
-          position: scanner.position - scanner.column, length: scanner.column);
+      scanner.error(
+        "Expected tabs, was spaces.",
+        position: scanner.position - scanner.column,
+        length: scanner.column,
+      );
     }
   }
 

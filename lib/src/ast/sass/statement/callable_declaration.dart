@@ -29,9 +29,12 @@ abstract base class CallableDeclaration
 
   final FileSpan span;
 
-  CallableDeclaration(this.originalName, this.parameters,
-      Iterable<Statement> children, this.span,
-      {this.comment})
-      : name = originalName.replaceAll('_', '-'),
+  CallableDeclaration(
+    this.originalName,
+    this.parameters,
+    Iterable<Statement> children,
+    this.span, {
+    this.comment,
+  })  : name = originalName.replaceAll('_', '-'),
         super(List.unmodifiable(children));
 }

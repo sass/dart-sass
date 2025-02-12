@@ -195,8 +195,10 @@ $vary: 5.16em''';
             stylesheet.children.whereType<VariableDeclaration>().first;
 
         expect(stylesheet.children.length, equals(2));
-        expect(variable.comment!.docComment,
-            equals('Line 1\nLine 2\nLine 3\nLine 4'));
+        expect(
+          variable.comment!.docComment,
+          equals('Line 1\nLine 2\nLine 3\nLine 4'),
+        );
       });
     });
   });

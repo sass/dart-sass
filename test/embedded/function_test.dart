@@ -28,35 +28,45 @@ void main() {
     test("that's empty", () async {
       _process.send(compileString("a {b: c}", functions: [r""]));
       await _expectFunctionError(
-          _process, r'Invalid signature "": Expected identifier.');
+        _process,
+        r'Invalid signature "": Expected identifier.',
+      );
       await _process.close();
     });
 
     test("that's just a name", () async {
       _process.send(compileString("a {b: c}", functions: [r"foo"]));
       await _expectFunctionError(
-          _process, r'Invalid signature "foo": expected "(".');
+        _process,
+        r'Invalid signature "foo": expected "(".',
+      );
       await _process.close();
     });
 
     test("without a closing paren", () async {
       _process.send(compileString("a {b: c}", functions: [r"foo($bar"]));
       await _expectFunctionError(
-          _process, r'Invalid signature "foo($bar": expected ")".');
+        _process,
+        r'Invalid signature "foo($bar": expected ")".',
+      );
       await _process.close();
     });
 
     test("with text after the closing paren", () async {
       _process.send(compileString("a {b: c}", functions: [r"foo() "]));
       await _expectFunctionError(
-          _process, r'Invalid signature "foo() ": expected no more input.');
+        _process,
+        r'Invalid signature "foo() ": expected no more input.',
+      );
       await _process.close();
     });
 
     test("with invalid arguments", () async {
       _process.send(compileString("a {b: c}", functions: [r"foo($)"]));
       await _expectFunctionError(
-          _process, r'Invalid signature "foo($)": Expected identifier.');
+        _process,
+        r'Invalid signature "foo($)": Expected identifier.',
+      );
       await _process.close();
     });
   });
@@ -78,91 +88,122 @@ void main() {
       });
 
       test("by position", () async {
-        _process.send(compileString("a {b: foo(true, null, false)}",
-            functions: [r"foo($arg1, $arg2, $arg3)"]));
+        _process.send(
+          compileString(
+            "a {b: foo(true, null, false)}",
+            functions: [r"foo($arg1, $arg2, $arg3)"],
+          ),
+        );
         var request = await getFunctionCallRequest(_process);
         expect(request.arguments, equals([_true, _null, _false]));
         await _process.kill();
       });
 
       test("by name", () async {
-        _process.send(compileString(
+        _process.send(
+          compileString(
             r"a {b: foo($arg3: true, $arg1: null, $arg2: false)}",
-            functions: [r"foo($arg1, $arg2, $arg3)"]));
+            functions: [r"foo($arg1, $arg2, $arg3)"],
+          ),
+        );
         var request = await getFunctionCallRequest(_process);
         expect(request.arguments, equals([_null, _false, _true]));
         await _process.kill();
       });
 
       test("by position and name", () async {
-        _process.send(compileString(
+        _process.send(
+          compileString(
             r"a {b: foo(true, $arg3: null, $arg2: false)}",
-            functions: [r"foo($arg1, $arg2, $arg3)"]));
+            functions: [r"foo($arg1, $arg2, $arg3)"],
+          ),
+        );
         var request = await getFunctionCallRequest(_process);
         expect(request.arguments, equals([_true, _false, _null]));
         await _process.kill();
       });
 
       test("from defaults", () async {
-        _process.send(compileString(r"a {b: foo(1, $arg3: 2)}",
-            functions: [r"foo($arg1: null, $arg2: true, $arg3: false)"]));
+        _process.send(
+          compileString(
+            r"a {b: foo(1, $arg3: 2)}",
+            functions: [r"foo($arg1: null, $arg2: true, $arg3: false)"],
+          ),
+        );
         var request = await getFunctionCallRequest(_process);
         expect(
-            request.arguments,
-            equals([
-              Value()..number = (Value_Number()..value = 1.0),
-              _true,
-              Value()..number = (Value_Number()..value = 2.0)
-            ]));
+          request.arguments,
+          equals([
+            Value()..number = (Value_Number()..value = 1.0),
+            _true,
+            Value()..number = (Value_Number()..value = 2.0),
+          ]),
+        );
         await _process.kill();
       });
 
       group("from argument lists", () {
         test("with no named arguments", () async {
-          _process.send(compileString("a {b: foo(true, false, null)}",
-              functions: [r"foo($arg, $args...)"]));
+          _process.send(
+            compileString(
+              "a {b: foo(true, false, null)}",
+              functions: [r"foo($arg, $args...)"],
+            ),
+          );
           var request = await getFunctionCallRequest(_process);
 
           expect(
-              request.arguments,
-              equals([
-                _true,
-                Value()
-                  ..argumentList = (Value_ArgumentList()
-                    ..id = 1
-                    ..separator = ListSeparator.COMMA
-                    ..contents.addAll([_false, _null]))
-              ]));
+            request.arguments,
+            equals([
+              _true,
+              Value()
+                ..argumentList = (Value_ArgumentList()
+                  ..id = 1
+                  ..separator = ListSeparator.COMMA
+                  ..contents.addAll([_false, _null])),
+            ]),
+          );
           await _process.kill();
         });
 
         test("with named arguments", () async {
-          _process.send(compileString(r"a {b: foo(true, $arg: false)}",
-              functions: [r"foo($args...)"]));
+          _process.send(
+            compileString(
+              r"a {b: foo(true, $arg: false)}",
+              functions: [r"foo($args...)"],
+            ),
+          );
           var request = await getFunctionCallRequest(_process);
 
           expect(
-              request.arguments,
-              equals([
-                Value()
-                  ..argumentList = (Value_ArgumentList()
-                    ..id = 1
-                    ..separator = ListSeparator.COMMA
-                    ..contents.addAll([_true])
-                    ..keywords.addAll({"arg": _false}))
-              ]));
+            request.arguments,
+            equals([
+              Value()
+                ..argumentList = (Value_ArgumentList()
+                  ..id = 1
+                  ..separator = ListSeparator.COMMA
+                  ..contents.addAll([_true])
+                  ..keywords.addAll({"arg": _false})),
+            ]),
+          );
           await _process.kill();
         });
 
         test("throws if named arguments are unused", () async {
-          _process.send(compileString(r"a {b: foo($arg: false)}",
-              functions: [r"foo($args...)"]));
+          _process.send(
+            compileString(
+              r"a {b: foo($arg: false)}",
+              functions: [r"foo($args...)"],
+            ),
+          );
           var request = await getFunctionCallRequest(_process);
 
-          _process.send(InboundMessage()
-            ..functionCallResponse = (InboundMessage_FunctionCallResponse()
-              ..id = request.id
-              ..success = _true));
+          _process.send(
+            InboundMessage()
+              ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+                ..id = request.id
+                ..success = _true),
+          );
 
           var failure = await getCompileFailure(_process);
           expect(failure.message, equals(r"No parameter named $arg."));
@@ -170,16 +211,23 @@ void main() {
         });
 
         test("doesn't throw if named arguments are used", () async {
-          _process.send(compileString(r"a {b: foo($arg: false)}",
-              functions: [r"foo($args...)"]));
+          _process.send(
+            compileString(
+              r"a {b: foo($arg: false)}",
+              functions: [r"foo($args...)"],
+            ),
+          );
           var request = await getFunctionCallRequest(_process);
 
-          _process.send(InboundMessage()
-            ..functionCallResponse = (InboundMessage_FunctionCallResponse()
-              ..id = request.id
-              ..accessedArgumentLists
-                  .add(request.arguments.first.argumentList.id)
-              ..success = _true));
+          _process.send(
+            InboundMessage()
+              ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+                ..id = request.id
+                ..accessedArgumentLists.add(
+                  request.arguments.first.argumentList.id,
+                )
+                ..success = _true),
+          );
 
           await expectSuccess(_process, equals("a {\n  b: true;\n}"));
           await _process.close();
@@ -192,13 +240,15 @@ void main() {
     _process.send(compileString("a {b: foo() + 2px}", functions: [r"foo()"]));
     var request = await getFunctionCallRequest(_process);
 
-    _process.send(InboundMessage()
-      ..functionCallResponse = (InboundMessage_FunctionCallResponse()
-        ..id = request.id
-        ..success = (Value()
-          ..number = (Value_Number()
-            ..value = 1
-            ..numerators.add("px")))));
+    _process.send(
+      InboundMessage()
+        ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+          ..id = request.id
+          ..success = (Value()
+            ..number = (Value_Number()
+              ..value = 1
+              ..numerators.add("px")))),
+    );
 
     await expectSuccess(_process, equals("a {\n  b: 3px;\n}"));
     await _process.close();
@@ -206,92 +256,119 @@ void main() {
 
   group("calls a first-class function", () {
     test("defined in the compiler and passed to and from the host", () async {
-      _process.send(compileString(r"""
+      _process.send(
+        compileString(
+          r"""
         @use "sass:math";
         @use "sass:meta";
 
         a {b: meta.call(foo(meta.get-function("abs", $module: "math")), -1)}
-      """, functions: [r"foo($arg)"]));
+      """,
+          functions: [r"foo($arg)"],
+        ),
+      );
 
       var request = await getFunctionCallRequest(_process);
       var value = request.arguments.single;
       expect(value.hasCompilerFunction(), isTrue);
-      _process.send(InboundMessage()
-        ..functionCallResponse = (InboundMessage_FunctionCallResponse()
-          ..id = request.id
-          ..success = value));
+      _process.send(
+        InboundMessage()
+          ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+            ..id = request.id
+            ..success = value),
+      );
 
       await expectSuccess(_process, equals("a {\n  b: 1;\n}"));
       await _process.close();
     });
 
     test("defined in the host", () async {
-      _process.send(compileString("""
+      _process.send(
+        compileString(
+          """
         @use "sass:meta";
 
         a {b: meta.call(foo(), true)}
-      """, functions: [r"foo()"]));
+      """,
+          functions: [r"foo()"],
+        ),
+      );
 
       var hostFunctionId = 5678;
       var request = await getFunctionCallRequest(_process);
-      _process.send(InboundMessage()
-        ..functionCallResponse = (InboundMessage_FunctionCallResponse()
-          ..id = request.id
-          ..success = (Value()
-            ..hostFunction = (Value_HostFunction()
-              ..id = hostFunctionId
-              ..signature = r"bar($arg)"))));
+      _process.send(
+        InboundMessage()
+          ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+            ..id = request.id
+            ..success = (Value()
+              ..hostFunction = (Value_HostFunction()
+                ..id = hostFunctionId
+                ..signature = r"bar($arg)"))),
+      );
 
       request = await getFunctionCallRequest(_process);
       expect(request.functionId, equals(hostFunctionId));
       expect(request.arguments, equals([_true]));
 
-      _process.send(InboundMessage()
-        ..functionCallResponse = (InboundMessage_FunctionCallResponse()
-          ..id = request.id
-          ..success = _false));
+      _process.send(
+        InboundMessage()
+          ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+            ..id = request.id
+            ..success = _false),
+      );
 
       await expectSuccess(_process, equals("a {\n  b: false;\n}"));
       await _process.close();
     });
 
     test("defined in the host and passed to and from the host", () async {
-      _process.send(compileString(r"""
+      _process.send(
+        compileString(
+          r"""
             @use "sass:meta";
 
             $function: get-host-function();
             $function: round-trip($function);
             a {b: meta.call($function, true)}
-          """, functions: [r"get-host-function()", r"round-trip($function)"]));
+          """,
+          functions: [r"get-host-function()", r"round-trip($function)"],
+        ),
+      );
 
       var hostFunctionId = 5678;
       var request = await getFunctionCallRequest(_process);
       expect(request.name, equals("get-host-function"));
-      _process.send(InboundMessage()
-        ..functionCallResponse = (InboundMessage_FunctionCallResponse()
-          ..id = request.id
-          ..success = (Value()
-            ..hostFunction = (Value_HostFunction()
-              ..id = hostFunctionId
-              ..signature = r"bar($arg)"))));
+      _process.send(
+        InboundMessage()
+          ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+            ..id = request.id
+            ..success = (Value()
+              ..hostFunction = (Value_HostFunction()
+                ..id = hostFunctionId
+                ..signature = r"bar($arg)"))),
+      );
 
       request = await getFunctionCallRequest(_process);
       expect(request.name, equals("round-trip"));
       var value = request.arguments.single;
       expect(value.hasCompilerFunction(), isTrue);
-      _process.send(InboundMessage()
-        ..functionCallResponse = (InboundMessage_FunctionCallResponse()
-          ..id = request.id
-          ..success = value));
+      _process.send(
+        InboundMessage()
+          ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+            ..id = request.id
+            ..success = value),
+      );
 
       request = await getFunctionCallRequest(_process);
       expect(request.functionId, equals(hostFunctionId));
       expect(request.arguments, equals([_true]));
 
-      _process.send(InboundMessage()
-        ..functionCallResponse = (InboundMessage_FunctionCallResponse()
-          ..id = request.id
-          ..success = _false));
+      _process.send(
+        InboundMessage()
+          ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+            ..id = request.id
+            ..success = _false),
+      );
 
       await expectSuccess(_process, equals("a {\n  b: false;\n}"));
       await _process.close();
@@ -368,9 +445,10 @@ void main() {
       });
 
       test("with multiple denominators", () async {
-        var value =
-            (await _protofy('math.div(math.div(math.div(1, 1em), 1px), 1foo)'))
-                .number;
+        var value = (await _protofy(
+          'math.div(math.div(math.div(1, 1em), 1px), 1foo)',
+        ))
+            .number;
         expect(value.value, equals(1.0));
         expect(value.numerators, isEmpty);
         expect(value.denominators, unorderedEquals(["em", "px", "foo"]));
@@ -403,18 +481,24 @@ void main() {
 
         group("with alpha", () {
           test("0", () async {
-            expect(await _protofy('rgb(10, 20, 30, 0)'),
-                equals(_rgb(10, 20, 30, 0.0)));
+            expect(
+              await _protofy('rgb(10, 20, 30, 0)'),
+              equals(_rgb(10, 20, 30, 0.0)),
+            );
           });
 
           test("1", () async {
-            expect(await _protofy('rgb(10, 20, 30, 1)'),
-                equals(_rgb(10, 20, 30, 1.0)));
+            expect(
+              await _protofy('rgb(10, 20, 30, 1)'),
+              equals(_rgb(10, 20, 30, 1.0)),
+            );
           });
 
           test("between 0 and 1", () async {
-            expect(await _protofy('rgb(10, 20, 30, 0.123)'),
-                equals(_rgb(10, 20, 30, 0.123)));
+            expect(
+              await _protofy('rgb(10, 20, 30, 0.123)'),
+              equals(_rgb(10, 20, 30, 0.123)),
+            );
           });
         });
       });
@@ -428,22 +512,30 @@ void main() {
 
             test("360", () async {
               expect(
-                  await _protofy('hsl(360, 50%, 50%)'), _hsl(0, 50, 50, 1.0));
+                await _protofy('hsl(360, 50%, 50%)'),
+                _hsl(0, 50, 50, 1.0),
+              );
             });
 
             test("below 0", () async {
-              expect(await _protofy('hsl(-100, 50%, 50%)'),
-                  _hsl(260, 50, 50, 1.0));
+              expect(
+                await _protofy('hsl(-100, 50%, 50%)'),
+                _hsl(260, 50, 50, 1.0),
+              );
             });
 
             test("between 0 and 360", () async {
               expect(
-                  await _protofy('hsl(100, 50%, 50%)'), _hsl(100, 50, 50, 1.0));
+                await _protofy('hsl(100, 50%, 50%)'),
+                _hsl(100, 50, 50, 1.0),
+              );
             });
 
             test("above 360", () async {
               expect(
-                  await _protofy('hsl(560, 50%, 50%)'), _hsl(200, 50, 50, 1.0));
+                await _protofy('hsl(560, 50%, 50%)'),
+                _hsl(200, 50, 50, 1.0),
+              );
             });
           });
 
@@ -454,7 +546,9 @@ void main() {
 
             test("100", () async {
               expect(
-                  await _protofy('hsl(0, 100%, 50%)'), _hsl(0, 100, 50, 1.0));
+                await _protofy('hsl(0, 100%, 50%)'),
+                _hsl(0, 100, 50, 1.0),
+              );
             });
 
             test("in the middle", () async {
@@ -469,7 +563,9 @@ void main() {
 
             test("100", () async {
               expect(
-                  await _protofy('hsl(0, 50%, 100%)'), _hsl(0, 50, 100, 1.0));
+                await _protofy('hsl(0, 50%, 100%)'),
+                _hsl(0, 50, 100, 1.0),
+              );
             });
 
             test("in the middle", () async {
@@ -480,18 +576,24 @@ void main() {
 
         group("with alpha", () {
           test("0", () async {
-            expect(await _protofy('hsl(10, 20%, 30%, 0)'),
-                equals(_hsl(10, 20, 30, 0.0)));
+            expect(
+              await _protofy('hsl(10, 20%, 30%, 0)'),
+              equals(_hsl(10, 20, 30, 0.0)),
+            );
           });
 
           test("1", () async {
-            expect(await _protofy('hsl(10, 20%, 30%, 1)'),
-                equals(_hsl(10, 20, 30, 1.0)));
+            expect(
+              await _protofy('hsl(10, 20%, 30%, 1)'),
+              equals(_hsl(10, 20, 30, 1.0)),
+            );
           });
 
           test("between 0 and 1", () async {
-            expect(await _protofy('hsl(10, 20%, 30%, 0.123)'),
-                equals(_hsl(10, 20, 30, 0.123)));
+            expect(
+              await _protofy('hsl(10, 20%, 30%, 0.123)'),
+              equals(_hsl(10, 20, 30, 0.123)),
+            );
           });
         });
       });
@@ -583,18 +685,20 @@ void main() {
           });
 
           test("with a space separator", () async {
-            var list =
-                (await _protofy(r"list.join([true], [], $separator: space)"))
-                    .list;
+            var list = (await _protofy(
+              r"list.join([true], [], $separator: space)",
+            ))
+                .list;
             expect(list.contents, equals([_true]));
             expect(list.hasBrackets, isTrue);
             expect(list.separator, equals(ListSeparator.SPACE));
           });
 
           test("with a slash separator", () async {
-            var list =
-                (await _protofy(r"list.join([true], [], $separator: slash)"))
-                    .list;
+            var list = (await _protofy(
+              r"list.join([true], [], $separator: slash)",
+            ))
+                .list;
             expect(list.contents, equals([_true]));
             expect(list.hasBrackets, isTrue);
             expect(list.separator, equals(ListSeparator.SLASH));
@@ -610,18 +714,20 @@ void main() {
           });
 
           test("with a space separator", () async {
-            var list =
-                (await _protofy(r"list.join(true, (), $separator: space)"))
-                    .list;
+            var list = (await _protofy(
+              r"list.join(true, (), $separator: space)",
+            ))
+                .list;
             expect(list.contents, equals([_true]));
             expect(list.hasBrackets, isFalse);
             expect(list.separator, equals(ListSeparator.SPACE));
           });
 
           test("with a slash separator", () async {
-            var list =
-                (await _protofy(r"list.join(true, (), $separator: slash)"))
-                    .list;
+            var list = (await _protofy(
+              r"list.join(true, (), $separator: slash)",
+            ))
+                .list;
             expect(list.contents, equals([_true]));
             expect(list.hasBrackets, isFalse);
             expect(list.separator, equals(ListSeparator.SLASH));
@@ -696,16 +802,19 @@ void main() {
       });
 
       test("with a slash separator", () async {
-        var list =
-            (await _protofy(r"capture-args(list.slash(true, null, false)...)"))
-                .argumentList;
+        var list = (await _protofy(
+          r"capture-args(list.slash(true, null, false)...)",
+        ))
+            .argumentList;
         expect(list.contents, [_true, _null, _false]);
         expect(list.keywords, isEmpty);
         expect(list.separator, equals(ListSeparator.SLASH));
       });
 
       test("with keywords", () async {
-        var list = (await _protofy(r"capture-args($arg1: true, $arg2: false)"))
+        var list = (await _protofy(
+          r"capture-args($arg1: true, $arg2: false)",
+        ))
             .argumentList;
         expect(list.contents, isEmpty);
         expect(list.keywords, equals({"arg1": _true, "arg2": _false}));
@@ -720,113 +829,148 @@ void main() {
 
       test("with one element", () async {
         expect(
-            (await _protofy("(true: false)")).map.entries,
-            equals([
-              Value_Map_Entry()
-                ..key = _true
-                ..value = _false
-            ]));
+          (await _protofy("(true: false)")).map.entries,
+          equals([
+            Value_Map_Entry()
+              ..key = _true
+              ..value = _false,
+          ]),
+        );
       });
 
       test("with multiple elements", () async {
         expect(
-            (await _protofy("(true: false, 1: 2, a: b)")).map.entries,
-            equals([
-              Value_Map_Entry()
-                ..key = _true
-                ..value = _false,
-              Value_Map_Entry()
-                ..key = (Value()..number = (Value_Number()..value = 1.0))
-                ..value = (Value()..number = (Value_Number()..value = 2.0)),
-              Value_Map_Entry()
-                ..key = (Value()
-                  ..string = (Value_String()
-                    ..text = "a"
-                    ..quoted = false))
-                ..value = (Value()
-                  ..string = (Value_String()
-                    ..text = "b"
-                    ..quoted = false))
-            ]));
+          (await _protofy("(true: false, 1: 2, a: b)")).map.entries,
+          equals([
+            Value_Map_Entry()
+              ..key = _true
+              ..value = _false,
+            Value_Map_Entry()
+              ..key = (Value()..number = (Value_Number()..value = 1.0))
+              ..value = (Value()..number = (Value_Number()..value = 2.0)),
+            Value_Map_Entry()
+              ..key = (Value()
+                ..string = (Value_String()
+                  ..text = "a"
+                  ..quoted = false))
+              ..value = (Value()
+                ..string = (Value_String()
+                  ..text = "b"
+                  ..quoted = false)),
+          ]),
+        );
       });
     });
 
     group("a calculation", () {
       test("with a string argument", () async {
         expect(
-            (await _protofy("calc(var(--foo))")).calculation,
-            equals(Value_Calculation()
+          (await _protofy("calc(var(--foo))")).calculation,
+          equals(
+            Value_Calculation()
               ..name = "calc"
-              ..arguments.add(Value_Calculation_CalculationValue()
-                ..string = "var(--foo)")));
+              ..arguments.add(
+                Value_Calculation_CalculationValue()..string = "var(--foo)",
+              ),
+          ),
+        );
       });
 
       test("with an interpolation argument", () async {
         expect(
-            (await _protofy("calc(#{var(--foo)})")).calculation,
-            equals(Value_Calculation()
+          (await _protofy("calc(#{var(--foo)})")).calculation,
+          equals(
+            Value_Calculation()
               ..name = "calc"
-              ..arguments.add(Value_Calculation_CalculationValue()
-                ..string = "var(--foo)")));
+              ..arguments.add(
+                Value_Calculation_CalculationValue()..string = "var(--foo)",
+              ),
+          ),
+        );
       });
 
       test("with number arguments", () async {
         expect(
-            (await _protofy("clamp(1%, 2px, 3em)")).calculation,
-            equals(Value_Calculation()
+          (await _protofy("clamp(1%, 2px, 3em)")).calculation,
+          equals(
+            Value_Calculation()
               ..name = "clamp"
-              ..arguments.add(Value_Calculation_CalculationValue()
-                ..number = (Value_Number()
-                  ..value = 1.0
-                  ..numerators.add("%")))
-              ..arguments.add(Value_Calculation_CalculationValue()
-                ..number = (Value_Number()
-                  ..value = 2.0
-                  ..numerators.add("px")))
-              ..arguments.add(Value_Calculation_CalculationValue()
-                ..number = (Value_Number()
-                  ..value = 3.0
-                  ..numerators.add("em")))));
+              ..arguments.add(
+                Value_Calculation_CalculationValue()
+                  ..number = (Value_Number()
+                    ..value = 1.0
+                    ..numerators.add("%")),
+              )
+              ..arguments.add(
+                Value_Calculation_CalculationValue()
+                  ..number = (Value_Number()
+                    ..value = 2.0
+                    ..numerators.add("px")),
+              )
+              ..arguments.add(
+                Value_Calculation_CalculationValue()
+                  ..number = (Value_Number()
+                    ..value = 3.0
+                    ..numerators.add("em")),
+              ),
+          ),
+        );
       });
 
       test("with a calculation argument", () async {
         expect(
-            (await _protofy("min(max(1%, 2px), 3em)")).calculation,
-            equals(Value_Calculation()
+          (await _protofy("min(max(1%, 2px), 3em)")).calculation,
+          equals(
+            Value_Calculation()
               ..name = "min"
-              ..arguments.add(Value_Calculation_CalculationValue()
-                ..calculation = (Value_Calculation()
-                  ..name = "max"
-                  ..arguments.add(Value_Calculation_CalculationValue()
-                    ..number = (Value_Number()
-                      ..value = 1.0
-                      ..numerators.add("%")))
-                  ..arguments.add(Value_Calculation_CalculationValue()
-                    ..number = (Value_Number()
-                      ..value = 2.0
-                      ..numerators.add("px")))))
-              ..arguments.add(Value_Calculation_CalculationValue()
-                ..number = (Value_Number()
-                  ..value = 3.0
-                  ..numerators.add("em")))));
+              ..arguments.add(
+                Value_Calculation_CalculationValue()
+                  ..calculation = (Value_Calculation()
+                    ..name = "max"
+                    ..arguments.add(
+                      Value_Calculation_CalculationValue()
+                        ..number = (Value_Number()
+                          ..value = 1.0
+                          ..numerators.add("%")),
+                    )
+                    ..arguments.add(
+                      Value_Calculation_CalculationValue()
+                        ..number = (Value_Number()
+                          ..value = 2.0
+                          ..numerators.add("px")),
+                    )),
+              )
+              ..arguments.add(
+                Value_Calculation_CalculationValue()
+                  ..number = (Value_Number()
+                    ..value = 3.0
+                    ..numerators.add("em")),
+              ),
+          ),
+        );
       });
 
       test("with an operation", () async {
         expect(
-            (await _protofy("calc(1% + 2px)")).calculation,
-            equals(Value_Calculation()
+          (await _protofy("calc(1% + 2px)")).calculation,
+          equals(
+            Value_Calculation()
               ..name = "calc"
-              ..arguments.add(Value_Calculation_CalculationValue()
-                ..operation = (Value_Calculation_CalculationOperation()
-                  ..operator = CalculationOperator.PLUS
-                  ..left = (Value_Calculation_CalculationValue()
-                    ..number = (Value_Number()
-                      ..value = 1.0
-                      ..numerators.add("%")))
-                  ..right = (Value_Calculation_CalculationValue()
-                    ..number = (Value_Number()
-                      ..value = 2.0
-                      ..numerators.add("px")))))));
+              ..arguments.add(
+                Value_Calculation_CalculationValue()
+                  ..operation = (Value_Calculation_CalculationOperation()
+                    ..operator = CalculationOperator.PLUS
+                    ..left = (Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()
+                        ..value = 1.0
+                        ..numerators.add("%")))
+                    ..right = (Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()
+                        ..value = 2.0
+                        ..numerators.add("px")))),
+              ),
+          ),
+        );
       });
     });
 
@@ -848,20 +992,26 @@ void main() {
       group("quoted", () {
         test("and empty", () async {
           expect(
-              await _deprotofy(Value()
+            await _deprotofy(
+              Value()
                 ..string = (Value_String()
                   ..text = ""
-                  ..quoted = true)),
-              '""');
+                  ..quoted = true),
+            ),
+            '""',
+          );
         });
 
         test("and non-empty", () async {
           expect(
-              await _deprotofy(Value()
+            await _deprotofy(
+              Value()
                 ..string = (Value_String()
                   ..text = "foo bar"
-                  ..quoted = true)),
-              '"foo bar"');
+                  ..quoted = true),
+            ),
+            '"foo bar"',
+          );
         });
       });
 
@@ -869,19 +1019,24 @@ void main() {
         test("and empty", () async {
           // We can't use [_deprotofy] here because a property with an empty
           // value won't render at all.
-          await _assertRoundTrips(Value()
-            ..string = (Value_String()
-              ..text = ""
-              ..quoted = false));
+          await _assertRoundTrips(
+            Value()
+              ..string = (Value_String()
+                ..text = ""
+                ..quoted = false),
+          );
         });
 
         test("and non-empty", () async {
           expect(
-              await _deprotofy(Value()
+            await _deprotofy(
+              Value()
                 ..string = (Value_String()
                   ..text = "foo bar"
-                  ..quoted = false)),
-              "foo bar");
+                  ..quoted = false),
+            ),
+            "foo bar",
+          );
         });
       });
     });
@@ -890,69 +1045,82 @@ void main() {
       group("that's unitless", () {
         test("and an integer", () async {
           expect(
-              await _deprotofy(Value()..number = (Value_Number()..value = 1.0)),
-              "1");
+            await _deprotofy(Value()..number = (Value_Number()..value = 1.0)),
+            "1",
+          );
         });
 
         test("and a float", () async {
           expect(
-              await _deprotofy(Value()..number = (Value_Number()..value = 1.5)),
-              "1.5");
+            await _deprotofy(Value()..number = (Value_Number()..value = 1.5)),
+            "1.5",
+          );
         });
       });
 
       test("with one numerator", () async {
         expect(
-            await _deprotofy(Value()
+          await _deprotofy(
+            Value()
               ..number = (Value_Number()
                 ..value = 1
-                ..numerators.add("em"))),
-            "1em");
+                ..numerators.add("em")),
+          ),
+          "1em",
+        );
       });
 
       test("with multiple numerators", () async {
         expect(
-            await _deprotofy(
-                Value()
-                  ..number = (Value_Number()
-                    ..value = 1
-                    ..numerators.addAll(["em", "px", "foo"])),
-                inspect: true),
-            "calc(1em * 1px * 1foo)");
+          await _deprotofy(
+            Value()
+              ..number = (Value_Number()
+                ..value = 1
+                ..numerators.addAll(["em", "px", "foo"])),
+            inspect: true,
+          ),
+          "calc(1em * 1px * 1foo)",
+        );
       });
 
       test("with one denominator", () async {
         expect(
-            await _deprotofy(
-                Value()
-                  ..number = (Value_Number()
-                    ..value = 1
-                    ..denominators.add("em")),
-                inspect: true),
-            "calc(1 / 1em)");
+          await _deprotofy(
+            Value()
+              ..number = (Value_Number()
+                ..value = 1
+                ..denominators.add("em")),
+            inspect: true,
+          ),
+          "calc(1 / 1em)",
+        );
       });
 
       test("with multiple denominators", () async {
         expect(
-            await _deprotofy(
-                Value()
-                  ..number = (Value_Number()
-                    ..value = 1
-                    ..denominators.addAll(["em", "px", "foo"])),
-                inspect: true),
-            "calc(1 / 1em / 1px / 1foo)");
+          await _deprotofy(
+            Value()
+              ..number = (Value_Number()
+                ..value = 1
+                ..denominators.addAll(["em", "px", "foo"])),
+            inspect: true,
+          ),
+          "calc(1 / 1em / 1px / 1foo)",
+        );
       });
 
       test("with numerators and denominators", () async {
         expect(
-            await _deprotofy(
-                Value()
-                  ..number = (Value_Number()
-                    ..value = 1
-                    ..numerators.addAll(["em", "px"])
-                    ..denominators.addAll(["s", "foo"])),
-                inspect: true),
-            "calc(1em * 1px / 1s / 1foo)");
+          await _deprotofy(
+            Value()
+              ..number = (Value_Number()
+                ..value = 1
+                ..numerators.addAll(["em", "px"])
+                ..denominators.addAll(["s", "foo"])),
+            inspect: true,
+          ),
+          "calc(1em * 1px / 1s / 1foo)",
+        );
       });
     });
 
@@ -968,35 +1136,47 @@ void main() {
           });
 
           test("in the middle", () async {
-            expect(await _deprotofy(_rgb(0xaa, 0xbb, 0xcc, 1.0)),
-                equals('#aabbcc'));
+            expect(
+              await _deprotofy(_rgb(0xaa, 0xbb, 0xcc, 1.0)),
+              equals('#aabbcc'),
+            );
           });
 
           test("with red above 255", () async {
-            expect(await _deprotofy(_rgb(256, 0, 0, 1.0)),
-                equals('hsl(0, 100.7874015748%, 50.1960784314%)'));
+            expect(
+              await _deprotofy(_rgb(256, 0, 0, 1.0)),
+              equals('hsl(0, 100.7874015748%, 50.1960784314%)'),
+            );
           });
 
           test("with green above 255", () async {
-            expect(await _deprotofy(_rgb(0, 256, 0, 1.0)),
-                equals('hsl(120, 100.7874015748%, 50.1960784314%)'));
+            expect(
+              await _deprotofy(_rgb(0, 256, 0, 1.0)),
+              equals('hsl(120, 100.7874015748%, 50.1960784314%)'),
+            );
           });
 
           test("with blue above 255", () async {
-            expect(await _deprotofy(_rgb(0, 0, 256, 1.0)),
-                equals('hsl(240, 100.7874015748%, 50.1960784314%)'));
+            expect(
+              await _deprotofy(_rgb(0, 0, 256, 1.0)),
+              equals('hsl(240, 100.7874015748%, 50.1960784314%)'),
+            );
           });
         });
 
         group("with alpha", () {
           test("0", () async {
-            expect(await _deprotofy(_rgb(10, 20, 30, 0.0)),
-                equals('rgba(10, 20, 30, 0)'));
+            expect(
+              await _deprotofy(_rgb(10, 20, 30, 0.0)),
+              equals('rgba(10, 20, 30, 0)'),
+            );
           });
 
           test("between 0 and 1", () async {
-            expect(await _deprotofy(_rgb(10, 20, 30, 0.123)),
-                equals('rgba(10, 20, 30, 0.123)'));
+            expect(
+              await _deprotofy(_rgb(10, 20, 30, 0.123)),
+              equals('rgba(10, 20, 30, 0.123)'),
+            );
           });
         });
       });
@@ -1006,27 +1186,37 @@ void main() {
           group("hue", () {
             test("0", () async {
               expect(
-                  await _deprotofy(_hsl(0, 50, 50, 1.0)), "hsl(0, 50%, 50%)");
+                await _deprotofy(_hsl(0, 50, 50, 1.0)),
+                "hsl(0, 50%, 50%)",
+              );
             });
 
             test("360", () async {
               expect(
-                  await _deprotofy(_hsl(360, 50, 50, 1.0)), "hsl(0, 50%, 50%)");
+                await _deprotofy(_hsl(360, 50, 50, 1.0)),
+                "hsl(0, 50%, 50%)",
+              );
             });
 
             test("below 0", () async {
-              expect(await _deprotofy(_hsl(-100, 50, 50, 1.0)),
-                  "hsl(260, 50%, 50%)");
+              expect(
+                await _deprotofy(_hsl(-100, 50, 50, 1.0)),
+                "hsl(260, 50%, 50%)",
+              );
             });
 
             test("between 0 and 360", () async {
-              expect(await _deprotofy(_hsl(100, 50, 50, 1.0)),
-                  "hsl(100, 50%, 50%)");
+              expect(
+                await _deprotofy(_hsl(100, 50, 50, 1.0)),
+                "hsl(100, 50%, 50%)",
+              );
             });
 
             test("above 360", () async {
-              expect(await _deprotofy(_hsl(560, 50, 50, 1.0)),
-                  "hsl(200, 50%, 50%)");
+              expect(
+                await _deprotofy(_hsl(560, 50, 50, 1.0)),
+                "hsl(200, 50%, 50%)",
+              );
             });
           });
 
@@ -1037,12 +1227,16 @@ void main() {
 
             test("100", () async {
               expect(
-                  await _deprotofy(_hsl(0, 100, 50, 1.0)), "hsl(0, 100%, 50%)");
+                await _deprotofy(_hsl(0, 100, 50, 1.0)),
+                "hsl(0, 100%, 50%)",
+              );
             });
 
             test("in the middle", () async {
               expect(
-                  await _deprotofy(_hsl(0, 42, 50, 1.0)), "hsl(0, 42%, 50%)");
+                await _deprotofy(_hsl(0, 42, 50, 1.0)),
+                "hsl(0, 42%, 50%)",
+              );
             });
           });
 
@@ -1053,25 +1247,33 @@ void main() {
 
             test("100", () async {
               expect(
-                  await _deprotofy(_hsl(0, 50, 100, 1.0)), "hsl(0, 50%, 100%)");
+                await _deprotofy(_hsl(0, 50, 100, 1.0)),
+                "hsl(0, 50%, 100%)",
+              );
             });
 
             test("in the middle", () async {
               expect(
-                  await _deprotofy(_hsl(0, 50, 42, 1.0)), "hsl(0, 50%, 42%)");
+                await _deprotofy(_hsl(0, 50, 42, 1.0)),
+                "hsl(0, 50%, 42%)",
+              );
             });
           });
         });
 
         group("with alpha", () {
           test("0", () async {
-            expect(await _deprotofy(_hsl(10, 20, 30, 0.0)),
-                "hsla(10, 20%, 30%, 0)");
+            expect(
+              await _deprotofy(_hsl(10, 20, 30, 0.0)),
+              "hsla(10, 20%, 30%, 0)",
+            );
           });
 
           test("between 0 and 1", () async {
-            expect(await _deprotofy(_hsl(10, 20, 30, 0.123)),
-                "hsla(10, 20%, 30%, 0.123)");
+            expect(
+              await _deprotofy(_hsl(10, 20, 30, 0.123)),
+              "hsla(10, 20%, 30%, 0.123)",
+            );
           });
         });
       });
@@ -1082,80 +1284,88 @@ void main() {
         group("with brackets", () {
           group("with unknown separator", () {
             _testSerializationAndRoundTrip(
-                Value()
-                  ..list = (Value_List()
-                    ..hasBrackets = true
-                    ..separator = ListSeparator.UNDECIDED),
-                "[]");
+              Value()
+                ..list = (Value_List()
+                  ..hasBrackets = true
+                  ..separator = ListSeparator.UNDECIDED),
+              "[]",
+            );
           });
 
           group("with a comma separator", () {
             _testSerializationAndRoundTrip(
-                Value()
-                  ..list = (Value_List()
-                    ..hasBrackets = true
-                    ..separator = ListSeparator.COMMA),
-                "[]");
+              Value()
+                ..list = (Value_List()
+                  ..hasBrackets = true
+                  ..separator = ListSeparator.COMMA),
+              "[]",
+            );
           });
 
           group("with a space separator", () {
             _testSerializationAndRoundTrip(
-                Value()
-                  ..list = (Value_List()
-                    ..hasBrackets = true
-                    ..separator = ListSeparator.SPACE),
-                "[]");
+              Value()
+                ..list = (Value_List()
+                  ..hasBrackets = true
+                  ..separator = ListSeparator.SPACE),
+              "[]",
+            );
           });
 
           group("with a slash separator", () {
             _testSerializationAndRoundTrip(
-                Value()
-                  ..list = (Value_List()
-                    ..hasBrackets = true
-                    ..separator = ListSeparator.SLASH),
-                "[]");
+              Value()
+                ..list = (Value_List()
+                  ..hasBrackets = true
+                  ..separator = ListSeparator.SLASH),
+              "[]",
+            );
           });
         });
 
         group("without brackets", () {
           group("with unknown separator", () {
             _testSerializationAndRoundTrip(
-                Value()
-                  ..list = (Value_List()
-                    ..hasBrackets = false
-                    ..separator = ListSeparator.UNDECIDED),
-                "()",
-                inspect: true);
+              Value()
+                ..list = (Value_List()
+                  ..hasBrackets = false
+                  ..separator = ListSeparator.UNDECIDED),
+              "()",
+              inspect: true,
+            );
           });
 
           group("with a comma separator", () {
             _testSerializationAndRoundTrip(
-                Value()
-                  ..list = (Value_List()
-                    ..hasBrackets = false
-                    ..separator = ListSeparator.COMMA),
-                "()",
-                inspect: true);
+              Value()
+                ..list = (Value_List()
+                  ..hasBrackets = false
+                  ..separator = ListSeparator.COMMA),
+              "()",
+              inspect: true,
+            );
           });
 
           group("with a space separator", () {
             _testSerializationAndRoundTrip(
-                Value()
-                  ..list = (Value_List()
-                    ..hasBrackets = false
-                    ..separator = ListSeparator.SPACE),
-                "()",
-                inspect: true);
+              Value()
+                ..list = (Value_List()
+                  ..hasBrackets = false
+                  ..separator = ListSeparator.SPACE),
+              "()",
+              inspect: true,
+            );
           });
 
           group("with a slash separator", () {
             _testSerializationAndRoundTrip(
-                Value()
-                  ..list = (Value_List()
-                    ..hasBrackets = false
-                    ..separator = ListSeparator.SLASH),
-                "()",
-                inspect: true);
+              Value()
+                ..list = (Value_List()
+                  ..hasBrackets = false
+                  ..separator = ListSeparator.SLASH),
+              "()",
+              inspect: true,
+            );
           });
         });
       });
@@ -1164,88 +1374,98 @@ void main() {
         group("with brackets", () {
           group("with unknown separator", () {
             _testSerializationAndRoundTrip(
-                Value()
-                  ..list = (Value_List()
-                    ..contents.add(_true)
-                    ..hasBrackets = true
-                    ..separator = ListSeparator.UNDECIDED),
-                "[true]");
+              Value()
+                ..list = (Value_List()
+                  ..contents.add(_true)
+                  ..hasBrackets = true
+                  ..separator = ListSeparator.UNDECIDED),
+              "[true]",
+            );
           });
 
           test("with a comma separator", () async {
             expect(
-                await _deprotofy(
-                    Value()
-                      ..list = (Value_List()
-                        ..contents.add(_true)
-                        ..hasBrackets = true
-                        ..separator = ListSeparator.COMMA),
-                    inspect: true),
-                "[true,]");
+              await _deprotofy(
+                Value()
+                  ..list = (Value_List()
+                    ..contents.add(_true)
+                    ..hasBrackets = true
+                    ..separator = ListSeparator.COMMA),
+                inspect: true,
+              ),
+              "[true,]",
+            );
           });
 
           group("with a space separator", () {
             _testSerializationAndRoundTrip(
-                Value()
-                  ..list = (Value_List()
-                    ..contents.add(_true)
-                    ..hasBrackets = true
-                    ..separator = ListSeparator.SPACE),
-                "[true]");
+              Value()
+                ..list = (Value_List()
+                  ..contents.add(_true)
+                  ..hasBrackets = true
+                  ..separator = ListSeparator.SPACE),
+              "[true]",
+            );
           });
 
           group("with a slash separator", () {
             _testSerializationAndRoundTrip(
-                Value()
-                  ..list = (Value_List()
-                    ..contents.add(_true)
-                    ..hasBrackets = true
-                    ..separator = ListSeparator.SLASH),
-                "[true]");
+              Value()
+                ..list = (Value_List()
+                  ..contents.add(_true)
+                  ..hasBrackets = true
+                  ..separator = ListSeparator.SLASH),
+              "[true]",
+            );
           });
         });
 
         group("without brackets", () {
           group("with unknown separator", () {
             _testSerializationAndRoundTrip(
-                Value()
-                  ..list = (Value_List()
-                    ..contents.add(_true)
-                    ..hasBrackets = false
-                    ..separator = ListSeparator.UNDECIDED),
-                "true");
+              Value()
+                ..list = (Value_List()
+                  ..contents.add(_true)
+                  ..hasBrackets = false
+                  ..separator = ListSeparator.UNDECIDED),
+              "true",
+            );
           });
 
           test("with a comma separator", () async {
             expect(
-                await _deprotofy(
-                    Value()
-                      ..list = (Value_List()
-                        ..contents.add(_true)
-                        ..hasBrackets = false
-                        ..separator = ListSeparator.COMMA),
-                    inspect: true),
-                "(true,)");
+              await _deprotofy(
+                Value()
+                  ..list = (Value_List()
+                    ..contents.add(_true)
+                    ..hasBrackets = false
+                    ..separator = ListSeparator.COMMA),
+                inspect: true,
+              ),
+              "(true,)",
+            );
           });
 
           group("with a space separator", () {
             _testSerializationAndRoundTrip(
-                Value()
-                  ..list = (Value_List()
-                    ..contents.add(_true)
-                    ..hasBrackets = false
-                    ..separator = ListSeparator.SPACE),
-                "true");
+              Value()
+                ..list = (Value_List()
+                  ..contents.add(_true)
+                  ..hasBrackets = false
+                  ..separator = ListSeparator.SPACE),
+              "true",
+            );
           });
 
           group("with a slash separator", () {
             _testSerializationAndRoundTrip(
-                Value()
-                  ..list = (Value_List()
-                    ..contents.add(_true)
-                    ..hasBrackets = false
-                    ..separator = ListSeparator.SLASH),
-                "true");
+              Value()
+                ..list = (Value_List()
+                  ..contents.add(_true)
+                  ..hasBrackets = false
+                  ..separator = ListSeparator.SLASH),
+              "true",
+            );
           });
         });
       });
@@ -1254,76 +1474,88 @@ void main() {
         group("with brackets", () {
           test("with a comma separator", () async {
             expect(
-                await _deprotofy(
-                    Value()
-                      ..list = (Value_List()
-                        ..contents.addAll([_true, _null, _false])
-                        ..hasBrackets = true
-                        ..separator = ListSeparator.COMMA),
-                    inspect: true),
-                "[true, null, false]");
+              await _deprotofy(
+                Value()
+                  ..list = (Value_List()
+                    ..contents.addAll([_true, _null, _false])
+                    ..hasBrackets = true
+                    ..separator = ListSeparator.COMMA),
+                inspect: true,
+              ),
+              "[true, null, false]",
+            );
           });
 
           test("with a space separator", () async {
             expect(
-                await _deprotofy(
-                    Value()
-                      ..list = (Value_List()
-                        ..contents.addAll([_true, _null, _false])
-                        ..hasBrackets = true
-                        ..separator = ListSeparator.SPACE),
-                    inspect: true),
-                "[true null false]");
+              await _deprotofy(
+                Value()
+                  ..list = (Value_List()
+                    ..contents.addAll([_true, _null, _false])
+                    ..hasBrackets = true
+                    ..separator = ListSeparator.SPACE),
+                inspect: true,
+              ),
+              "[true null false]",
+            );
           });
 
           test("with a slash separator", () async {
             expect(
-                await _deprotofy(
-                    Value()
-                      ..list = (Value_List()
-                        ..contents.addAll([_true, _null, _false])
-                        ..hasBrackets = true
-                        ..separator = ListSeparator.SLASH),
-                    inspect: true),
-                "[true / null / false]");
+              await _deprotofy(
+                Value()
+                  ..list = (Value_List()
+                    ..contents.addAll([_true, _null, _false])
+                    ..hasBrackets = true
+                    ..separator = ListSeparator.SLASH),
+                inspect: true,
+              ),
+              "[true / null / false]",
+            );
           });
         });
 
         group("without brackets", () {
           test("with a comma separator", () async {
             expect(
-                await _deprotofy(
-                    Value()
-                      ..list = (Value_List()
-                        ..contents.addAll([_true, _null, _false])
-                        ..hasBrackets = false
-                        ..separator = ListSeparator.COMMA),
-                    inspect: true),
-                "true, null, false");
+              await _deprotofy(
+                Value()
+                  ..list = (Value_List()
+                    ..contents.addAll([_true, _null, _false])
+                    ..hasBrackets = false
+                    ..separator = ListSeparator.COMMA),
+                inspect: true,
+              ),
+              "true, null, false",
+            );
           });
 
           test("with a space separator", () async {
             expect(
-                await _deprotofy(
-                    Value()
-                      ..list = (Value_List()
-                        ..contents.addAll([_true, _null, _false])
-                        ..hasBrackets = false
-                        ..separator = ListSeparator.SPACE),
-                    inspect: true),
-                "true null false");
+              await _deprotofy(
+                Value()
+                  ..list = (Value_List()
+                    ..contents.addAll([_true, _null, _false])
+                    ..hasBrackets = false
+                    ..separator = ListSeparator.SPACE),
+                inspect: true,
+              ),
+              "true null false",
+            );
           });
 
           test("with a slash separator", () async {
             expect(
-                await _deprotofy(
-                    Value()
-                      ..list = (Value_List()
-                        ..contents.addAll([_true, _null, _false])
-                        ..hasBrackets = false
-                        ..separator = ListSeparator.SLASH),
-                    inspect: true),
-                "true / null / false");
+              await _deprotofy(
+                Value()
+                  ..list = (Value_List()
+                    ..contents.addAll([_true, _null, _false])
+                    ..hasBrackets = false
+                    ..separator = ListSeparator.SLASH),
+                inspect: true,
+              ),
+              "true / null / false",
+            );
           });
         });
       });
@@ -1332,220 +1564,248 @@ void main() {
     group("an argument list", () {
       test("with no elements", () async {
         expect(
-            await _roundTrip(Value()
+          await _roundTrip(
+            Value()
               ..argumentList =
-                  (Value_ArgumentList()..separator = ListSeparator.UNDECIDED)),
-            equals(Value()
+                  (Value_ArgumentList()..separator = ListSeparator.UNDECIDED),
+          ),
+          equals(
+            Value()
               ..argumentList = (Value_ArgumentList()
                 ..id = 1
-                ..separator = ListSeparator.UNDECIDED)));
+                ..separator = ListSeparator.UNDECIDED),
+          ),
+        );
       });
 
       test("with comma separator", () async {
         expect(
-            await _roundTrip(Value()
+          await _roundTrip(
+            Value()
               ..argumentList = (Value_ArgumentList()
                 ..contents.addAll([_true, _false, _null])
-                ..separator = ListSeparator.COMMA)),
-            equals(Value()
+                ..separator = ListSeparator.COMMA),
+          ),
+          equals(
+            Value()
               ..argumentList = (Value_ArgumentList()
                 ..id = 1
                 ..contents.addAll([_true, _false, _null])
-                ..separator = ListSeparator.COMMA)));
+                ..separator = ListSeparator.COMMA),
+          ),
+        );
       });
 
       test("with space separator", () async {
         expect(
-            await _roundTrip(Value()
+          await _roundTrip(
+            Value()
               ..argumentList = (Value_ArgumentList()
                 ..contents.addAll([_true, _false, _null])
-                ..separator = ListSeparator.SPACE)),
-            equals(Value()
+                ..separator = ListSeparator.SPACE),
+          ),
+          equals(
+            Value()
               ..argumentList = (Value_ArgumentList()
                 ..id = 1
                 ..contents.addAll([_true, _false, _null])
-                ..separator = ListSeparator.SPACE)));
+                ..separator = ListSeparator.SPACE),
+          ),
+        );
       });
 
       test("with slash separator", () async {
         expect(
-            await _roundTrip(Value()
+          await _roundTrip(
+            Value()
               ..argumentList = (Value_ArgumentList()
                 ..contents.addAll([_true, _false, _null])
-                ..separator = ListSeparator.SLASH)),
-            equals(Value()
+                ..separator = ListSeparator.SLASH),
+          ),
+          equals(
+            Value()
               ..argumentList = (Value_ArgumentList()
                 ..id = 1
                 ..contents.addAll([_true, _false, _null])
-                ..separator = ListSeparator.SLASH)));
+                ..separator = ListSeparator.SLASH),
+          ),
+        );
       });
 
       test("with keywords", () async {
         expect(
-            await _roundTrip(Value()
+          await _roundTrip(
+            Value()
               ..argumentList = (Value_ArgumentList()
                 ..keywords.addAll({"arg1": _true, "arg2": _false})
-                ..separator = ListSeparator.COMMA)),
-            equals(Value()
+                ..separator = ListSeparator.COMMA),
+          ),
+          equals(
+            Value()
               ..argumentList = (Value_ArgumentList()
                 ..id = 1
                 ..keywords.addAll({"arg1": _true, "arg2": _false})
-                ..separator = ListSeparator.COMMA)));
+                ..separator = ListSeparator.COMMA),
+          ),
+        );
       });
     });
 
     group("a map", () {
       group("with no elements", () {
-        _testSerializationAndRoundTrip(Value()..map = Value_Map(), "()",
-            inspect: true);
+        _testSerializationAndRoundTrip(
+          Value()..map = Value_Map(),
+          "()",
+          inspect: true,
+        );
       });
 
       test("with one element", () async {
         expect(
-            await _deprotofy(
-                Value()
-                  ..map = (Value_Map()
-                    ..entries.add(Value_Map_Entry()
-                      ..key = _true
-                      ..value = _false)),
-                inspect: true),
-            "(true: false)");
+          await _deprotofy(
+            Value()
+              ..map = (Value_Map()
+                ..entries.add(
+                  Value_Map_Entry()
+                    ..key = _true
+                    ..value = _false,
+                )),
+            inspect: true,
+          ),
+          "(true: false)",
+        );
       });
 
       test("with multiple elements", () async {
         expect(
-            await _deprotofy(
-                Value()
-                  ..map = (Value_Map()
-                    ..entries.addAll([
-                      Value_Map_Entry()
-                        ..key = _true
-                        ..value = _false,
-                      Value_Map_Entry()
-                        ..key =
-                            (Value()..number = (Value_Number()..value = 1.0))
-                        ..value =
-                            (Value()..number = (Value_Number()..value = 2.0)),
-                      Value_Map_Entry()
-                        ..key = (Value()
-                          ..string = (Value_String()
-                            ..text = "a"
-                            ..quoted = false))
-                        ..value = (Value()
-                          ..string = (Value_String()
-                            ..text = "b"
-                            ..quoted = false))
-                    ])),
-                inspect: true),
-            "(true: false, 1: 2, a: b)");
+          await _deprotofy(
+            Value()
+              ..map = (Value_Map()
+                ..entries.addAll([
+                  Value_Map_Entry()
+                    ..key = _true
+                    ..value = _false,
+                  Value_Map_Entry()
+                    ..key = (Value()..number = (Value_Number()..value = 1.0))
+                    ..value = (Value()..number = (Value_Number()..value = 2.0)),
+                  Value_Map_Entry()
+                    ..key = (Value()
+                      ..string = (Value_String()
+                        ..text = "a"
+                        ..quoted = false))
+                    ..value = (Value()
+                      ..string = (Value_String()
+                        ..text = "b"
+                        ..quoted = false)),
+                ])),
+            inspect: true,
+          ),
+          "(true: false, 1: 2, a: b)",
+        );
       });
     });
 
     group("a calculation", () {
       test("with a string argument", () async {
         expect(
-            await _deprotofy(Value()
+          await _deprotofy(
+            Value()
               ..calculation = (Value_Calculation()
                 ..name = "calc"
-                ..arguments.add(Value_Calculation_CalculationValue()
-                  ..string = "var(--foo)"))),
-            "calc(var(--foo))");
+                ..arguments.add(
+                  Value_Calculation_CalculationValue()..string = "var(--foo)",
+                )),
+          ),
+          "calc(var(--foo))",
+        );
       });
 
       test("with an interpolation argument", () async {
         expect(
-            await _deprotofy(Value()
+          await _deprotofy(
+            Value()
               ..calculation = (Value_Calculation()
                 ..name = "calc"
-                ..arguments.add(Value_Calculation_CalculationValue()
-                  ..interpolation = "var(--foo)"))),
-            "calc((var(--foo)))");
+                ..arguments.add(
+                  Value_Calculation_CalculationValue()
+                    ..interpolation = "var(--foo)",
+                )),
+          ),
+          "calc((var(--foo)))",
+        );
       });
 
       test("with number arguments", () async {
         expect(
-            await _deprotofy(Value()
+          await _deprotofy(
+            Value()
               ..calculation = (Value_Calculation()
                 ..name = "clamp"
-                ..arguments.add(Value_Calculation_CalculationValue()
-                  ..number = (Value_Number()
-                    ..value = 1.0
-                    ..numerators.add("%")))
-                ..arguments.add(Value_Calculation_CalculationValue()
-                  ..number = (Value_Number()
-                    ..value = 2.0
-                    ..numerators.add("px")))
-                ..arguments.add(Value_Calculation_CalculationValue()
-                  ..number = (Value_Number()
-                    ..value = 3.0
-                    ..numerators.add("em"))))),
-            "clamp(1%, 2px, 3em)");
+                ..arguments.add(
+                  Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()
+                      ..value = 1.0
+                      ..numerators.add("%")),
+                )
+                ..arguments.add(
+                  Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()
+                      ..value = 2.0
+                      ..numerators.add("px")),
+                )
+                ..arguments.add(
+                  Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()
+                      ..value = 3.0
+                      ..numerators.add("em")),
+                )),
+          ),
+          "clamp(1%, 2px, 3em)",
+        );
       });
 
       test("with a calculation argument", () async {
         expect(
-            await _deprotofy(Value()
+          await _deprotofy(
+            Value()
               ..calculation = (Value_Calculation()
                 ..name = "min"
-                ..arguments.add(Value_Calculation_CalculationValue()
-                  ..calculation = (Value_Calculation()
-                    ..name = "max"
-                    ..arguments.add(Value_Calculation_CalculationValue()
-                      ..number = (Value_Number()
-                        ..value = 1.0
-                        ..numerators.add("%")))
-                    ..arguments.add(Value_Calculation_CalculationValue()
-                      ..number = (Value_Number()
-                        ..value = 2.0
-                        ..numerators.add("px")))))
-                ..arguments.add(Value_Calculation_CalculationValue()
-                  ..number = (Value_Number()
-                    ..value = 3.0
-                    ..numerators.add("em"))))),
-            "min(max(1%, 2px), 3em)");
+                ..arguments.add(
+                  Value_Calculation_CalculationValue()
+                    ..calculation = (Value_Calculation()
+                      ..name = "max"
+                      ..arguments.add(
+                        Value_Calculation_CalculationValue()
+                          ..number = (Value_Number()
+                            ..value = 1.0
+                            ..numerators.add("%")),
+                      )
+                      ..arguments.add(
+                        Value_Calculation_CalculationValue()
+                          ..number = (Value_Number()
+                            ..value = 2.0
+                            ..numerators.add("px")),
+                      )),
+                )
+                ..arguments.add(
+                  Value_Calculation_CalculationValue()
+                    ..number = (Value_Number()
+                      ..value = 3.0
+                      ..numerators.add("em")),
+                )),
+          ),
+          "min(max(1%, 2px), 3em)",
+        );
       });
 
       test("with an operation", () async {
         expect(
-            await _deprotofy(Value()
+          await _deprotofy(
+            Value()
               ..calculation = (Value_Calculation()
                 ..name = "calc"
-                ..arguments.add(Value_Calculation_CalculationValue()
-                  ..operation = (Value_Calculation_CalculationOperation()
-                    ..operator = CalculationOperator.PLUS
-                    ..left = (Value_Calculation_CalculationValue()
-                      ..number = (Value_Number()
-                        ..value = 1.0
-                        ..numerators.add("%")))
-                    ..right = (Value_Calculation_CalculationValue()
-                      ..number = (Value_Number()
-                        ..value = 2.0
-                        ..numerators.add("px"))))))),
-            "calc(1% + 2px)");
-      });
-
-      group("simplifies", () {
-        test("an operation", () async {
-          expect(
-              await _deprotofy(Value()
-                ..calculation = (Value_Calculation()
-                  ..name = "calc"
-                  ..arguments.add(Value_Calculation_CalculationValue()
-                    ..operation = (Value_Calculation_CalculationOperation()
-                      ..operator = CalculationOperator.PLUS
-                      ..left = (Value_Calculation_CalculationValue()
-                        ..number = (Value_Number()..value = 1.0))
-                      ..right = (Value_Calculation_CalculationValue()
-                        ..number = (Value_Number()..value = 2.0)))))),
-              "3");
-        });
-
-        test("a nested operation", () async {
-          expect(
-              await _deprotofy(Value()
-                ..calculation = (Value_Calculation()
-                  ..name = "calc"
-                  ..arguments.add(Value_Calculation_CalculationValue()
+                ..arguments.add(
+                  Value_Calculation_CalculationValue()
                     ..operation = (Value_Calculation_CalculationOperation()
                       ..operator = CalculationOperator.PLUS
                       ..left = (Value_Calculation_CalculationValue()
@@ -1553,59 +1813,137 @@ void main() {
                           ..value = 1.0
                           ..numerators.add("%")))
                       ..right = (Value_Calculation_CalculationValue()
-                        ..operation = (Value_Calculation_CalculationOperation()
-                          ..operator = CalculationOperator.PLUS
-                          ..left = (Value_Calculation_CalculationValue()
-                            ..number = (Value_Number()
-                              ..value = 2.0
-                              ..numerators.add("px")))
-                          ..right = (Value_Calculation_CalculationValue()
-                            ..number = (Value_Number()
-                              ..value = 3.0
-                              ..numerators.add("px"))))))))),
-              "calc(1% + 5px)");
+                        ..number = (Value_Number()
+                          ..value = 2.0
+                          ..numerators.add("px")))),
+                )),
+          ),
+          "calc(1% + 2px)",
+        );
+      });
+
+      group("simplifies", () {
+        test("an operation", () async {
+          expect(
+            await _deprotofy(
+              Value()
+                ..calculation = (Value_Calculation()
+                  ..name = "calc"
+                  ..arguments.add(
+                    Value_Calculation_CalculationValue()
+                      ..operation = (Value_Calculation_CalculationOperation()
+                        ..operator = CalculationOperator.PLUS
+                        ..left = (Value_Calculation_CalculationValue()
+                          ..number = (Value_Number()..value = 1.0))
+                        ..right = (Value_Calculation_CalculationValue()
+                          ..number = (Value_Number()..value = 2.0))),
+                  )),
+            ),
+            "3",
+          );
+        });
+
+        test("a nested operation", () async {
+          expect(
+            await _deprotofy(
+              Value()
+                ..calculation = (Value_Calculation()
+                  ..name = "calc"
+                  ..arguments.add(
+                    Value_Calculation_CalculationValue()
+                      ..operation = (Value_Calculation_CalculationOperation()
+                        ..operator = CalculationOperator.PLUS
+                        ..left = (Value_Calculation_CalculationValue()
+                          ..number = (Value_Number()
+                            ..value = 1.0
+                            ..numerators.add("%")))
+                        ..right = (Value_Calculation_CalculationValue()
+                          ..operation =
+                              (Value_Calculation_CalculationOperation()
+                                ..operator = CalculationOperator.PLUS
+                                ..left = (Value_Calculation_CalculationValue()
+                                  ..number = (Value_Number()
+                                    ..value = 2.0
+                                    ..numerators.add("px")))
+                                ..right = (Value_Calculation_CalculationValue()
+                                  ..number = (Value_Number()
+                                    ..value = 3.0
+                                    ..numerators.add(
+                                      "px",
+                                    )))))),
+                  )),
+            ),
+            "calc(1% + 5px)",
+          );
         });
 
         test("min", () async {
           expect(
-              await _deprotofy(Value()
+            await _deprotofy(
+              Value()
                 ..calculation = (Value_Calculation()
                   ..name = "min"
-                  ..arguments.add(Value_Calculation_CalculationValue()
-                    ..number = (Value_Number()..value = 1.0))
-                  ..arguments.add(Value_Calculation_CalculationValue()
-                    ..number = (Value_Number()..value = 2.0))
-                  ..arguments.add(Value_Calculation_CalculationValue()
-                    ..number = (Value_Number()..value = 3.0)))),
-              "1");
+                  ..arguments.add(
+                    Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 1.0),
+                  )
+                  ..arguments.add(
+                    Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 2.0),
+                  )
+                  ..arguments.add(
+                    Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 3.0),
+                  )),
+            ),
+            "1",
+          );
         });
 
         test("max", () async {
           expect(
-              await _deprotofy(Value()
+            await _deprotofy(
+              Value()
                 ..calculation = (Value_Calculation()
                   ..name = "max"
-                  ..arguments.add(Value_Calculation_CalculationValue()
-                    ..number = (Value_Number()..value = 1.0))
-                  ..arguments.add(Value_Calculation_CalculationValue()
-                    ..number = (Value_Number()..value = 2.0))
-                  ..arguments.add(Value_Calculation_CalculationValue()
-                    ..number = (Value_Number()..value = 3.0)))),
-              "3");
+                  ..arguments.add(
+                    Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 1.0),
+                  )
+                  ..arguments.add(
+                    Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 2.0),
+                  )
+                  ..arguments.add(
+                    Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 3.0),
+                  )),
+            ),
+            "3",
+          );
         });
 
         test("clamp", () async {
           expect(
-              await _deprotofy(Value()
+            await _deprotofy(
+              Value()
                 ..calculation = (Value_Calculation()
                   ..name = "clamp"
-                  ..arguments.add(Value_Calculation_CalculationValue()
-                    ..number = (Value_Number()..value = 1.0))
-                  ..arguments.add(Value_Calculation_CalculationValue()
-                    ..number = (Value_Number()..value = 2.0))
-                  ..arguments.add(Value_Calculation_CalculationValue()
-                    ..number = (Value_Number()..value = 3.0)))),
-              "2");
+                  ..arguments.add(
+                    Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 1.0),
+                  )
+                  ..arguments.add(
+                    Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 2.0),
+                  )
+                  ..arguments.add(
+                    Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 3.0),
+                  )),
+            ),
+            "2",
+          );
         });
       });
     });
@@ -1625,149 +1963,207 @@ void main() {
     group("and rejects", () {
       group("a color", () {
         test("with RGB alpha below 0", () async {
-          await _expectDeprotofyError(_rgb(0, 0, 0, -0.1),
-              "Color.alpha must be between 0 and 1, was -0.1");
+          await _expectDeprotofyError(
+            _rgb(0, 0, 0, -0.1),
+            "Color.alpha must be between 0 and 1, was -0.1",
+          );
         });
 
         test("with RGB alpha above 1", () async {
-          await _expectDeprotofyError(_rgb(0, 0, 0, 1.1),
-              "Color.alpha must be between 0 and 1, was 1.1");
+          await _expectDeprotofyError(
+            _rgb(0, 0, 0, 1.1),
+            "Color.alpha must be between 0 and 1, was 1.1",
+          );
         });
 
         test("with HSL alpha below 0", () async {
-          await _expectDeprotofyError(_hsl(0, 0, 0, -0.1),
-              "Color.alpha must be between 0 and 1, was -0.1");
+          await _expectDeprotofyError(
+            _hsl(0, 0, 0, -0.1),
+            "Color.alpha must be between 0 and 1, was -0.1",
+          );
         });
 
         test("with HSL alpha above 1", () async {
-          await _expectDeprotofyError(_hsl(0, 0, 0, 1.1),
-              "Color.alpha must be between 0 and 1, was 1.1");
+          await _expectDeprotofyError(
+            _hsl(0, 0, 0, 1.1),
+            "Color.alpha must be between 0 and 1, was 1.1",
+          );
         });
       });
 
       test("a list with multiple elements and an unknown separator", () async {
         await _expectDeprotofyError(
-            Value()
-              ..list = (Value_List()
-                ..contents.addAll([_true, _false])
-                ..separator = ListSeparator.UNDECIDED),
-            endsWith("can't have an undecided separator because it has 2 "
-                "elements"));
+          Value()
+            ..list = (Value_List()
+              ..contents.addAll([_true, _false])
+              ..separator = ListSeparator.UNDECIDED),
+          endsWith(
+            "can't have an undecided separator because it has 2 "
+            "elements",
+          ),
+        );
       });
 
       test("an arglist with an unknown id", () async {
         await _expectDeprotofyError(
-            Value()..argumentList = (Value_ArgumentList()..id = 1),
-            equals(
-                "Value.ArgumentList.id 1 doesn't match any known argument lists"));
+          Value()..argumentList = (Value_ArgumentList()..id = 1),
+          equals(
+            "Value.ArgumentList.id 1 doesn't match any known argument lists",
+          ),
+        );
       });
 
       group("a calculation", () {
         group("with too many arguments", () {
           test("for calc", () async {
             await _expectDeprotofyError(
-                Value()
-                  ..calculation = (Value_Calculation()
-                    ..name = "calc"
-                    ..arguments.add(Value_Calculation_CalculationValue()
-                      ..number = (Value_Number()..value = 1.0))
-                    ..arguments.add(Value_Calculation_CalculationValue()
-                      ..number = (Value_Number()..value = 2.0))),
-                equals("Value.Calculation.arguments must have exactly one "
-                    "argument for calc()."));
+              Value()
+                ..calculation = (Value_Calculation()
+                  ..name = "calc"
+                  ..arguments.add(
+                    Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 1.0),
+                  )
+                  ..arguments.add(
+                    Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 2.0),
+                  )),
+              equals(
+                "Value.Calculation.arguments must have exactly one "
+                "argument for calc().",
+              ),
+            );
           });
 
           test("for clamp", () async {
             await _expectDeprotofyError(
-                Value()
-                  ..calculation = (Value_Calculation()
-                    ..name = "clamp"
-                    ..arguments.add(Value_Calculation_CalculationValue()
-                      ..number = (Value_Number()..value = 1.0))
-                    ..arguments.add(Value_Calculation_CalculationValue()
-                      ..number = (Value_Number()..value = 2.0))
-                    ..arguments.add(Value_Calculation_CalculationValue()
-                      ..number = (Value_Number()..value = 3.0))
-                    ..arguments.add(Value_Calculation_CalculationValue()
-                      ..number = (Value_Number()..value = 4.0))),
-                equals("Value.Calculation.arguments must have 1 to 3 "
-                    "arguments for clamp()."));
+              Value()
+                ..calculation = (Value_Calculation()
+                  ..name = "clamp"
+                  ..arguments.add(
+                    Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 1.0),
+                  )
+                  ..arguments.add(
+                    Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 2.0),
+                  )
+                  ..arguments.add(
+                    Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 3.0),
+                  )
+                  ..arguments.add(
+                    Value_Calculation_CalculationValue()
+                      ..number = (Value_Number()..value = 4.0),
+                  )),
+              equals(
+                "Value.Calculation.arguments must have 1 to 3 "
+                "arguments for clamp().",
+              ),
+            );
           });
         });
 
         group("with too few arguments", () {
           test("for calc", () async {
             await _expectDeprotofyError(
-                Value()..calculation = (Value_Calculation()..name = "calc"),
-                equals("Value.Calculation.arguments must have exactly one "
-                    "argument for calc()."));
+              Value()..calculation = (Value_Calculation()..name = "calc"),
+              equals(
+                "Value.Calculation.arguments must have exactly one "
+                "argument for calc().",
+              ),
+            );
           });
 
           test("for clamp", () async {
             await _expectDeprotofyError(
-                Value()..calculation = (Value_Calculation()..name = "clamp"),
-                equals("Value.Calculation.arguments must have 1 to 3 "
-                    "arguments for clamp()."));
+              Value()..calculation = (Value_Calculation()..name = "clamp"),
+              equals(
+                "Value.Calculation.arguments must have 1 to 3 "
+                "arguments for clamp().",
+              ),
+            );
           });
 
           test("for min", () async {
             await _expectDeprotofyError(
-                Value()..calculation = (Value_Calculation()..name = "min"),
-                equals("Value.Calculation.arguments must have at least 1 "
-                    "argument for min()."));
+              Value()..calculation = (Value_Calculation()..name = "min"),
+              equals(
+                "Value.Calculation.arguments must have at least 1 "
+                "argument for min().",
+              ),
+            );
           });
 
           test("for max", () async {
             await _expectDeprotofyError(
-                Value()..calculation = (Value_Calculation()..name = "max"),
-                equals("Value.Calculation.arguments must have at least 1 "
-                    "argument for max()."));
+              Value()..calculation = (Value_Calculation()..name = "max"),
+              equals(
+                "Value.Calculation.arguments must have at least 1 "
+                "argument for max().",
+              ),
+            );
           });
         });
 
-        test("reports a compilation failure when simplification fails",
-            () async {
-          _process.send(compileString("a {b: foo()}", functions: [r"foo()"]));
+        test(
+          "reports a compilation failure when simplification fails",
+          () async {
+            _process.send(compileString("a {b: foo()}", functions: [r"foo()"]));
 
-          var request = await getFunctionCallRequest(_process);
-          expect(request.arguments, isEmpty);
-          _process.send(InboundMessage()
-            ..functionCallResponse = (InboundMessage_FunctionCallResponse()
-              ..id = request.id
-              ..success = (Value()
-                ..calculation = (Value_Calculation()
-                  ..name = "min"
-                  ..arguments.add(Value_Calculation_CalculationValue()
-                    ..number = (Value_Number()
-                      ..value = 1.0
-                      ..numerators.add("px")))
-                  ..arguments.add(Value_Calculation_CalculationValue()
-                    ..number = (Value_Number()
-                      ..value = 2.0
-                      ..numerators.add("s")))))));
+            var request = await getFunctionCallRequest(_process);
+            expect(request.arguments, isEmpty);
+            _process.send(
+              InboundMessage()
+                ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+                  ..id = request.id
+                  ..success = (Value()
+                    ..calculation = (Value_Calculation()
+                      ..name = "min"
+                      ..arguments.add(
+                        Value_Calculation_CalculationValue()
+                          ..number = (Value_Number()
+                            ..value = 1.0
+                            ..numerators.add("px")),
+                      )
+                      ..arguments.add(
+                        Value_Calculation_CalculationValue()
+                          ..number = (Value_Number()
+                            ..value = 2.0
+                            ..numerators.add("s")),
+                      )))),
+            );
 
-          var failure = await getCompileFailure(_process);
-          expect(failure.message, equals("1px and 2s are incompatible."));
-          expect(_process.close(), completes);
-        });
+            var failure = await getCompileFailure(_process);
+            expect(failure.message, equals("1px and 2s are incompatible."));
+            expect(_process.close(), completes);
+          },
+        );
       });
 
       group("reports a compilation error for a function with a signature", () {
         Future<void> expectSignatureError(
-            String signature, Object message) async {
-          _process.send(compileString(
+          String signature,
+          Object message,
+        ) async {
+          _process.send(
+            compileString(
               "@use 'sass:meta';\na {b: meta.inspect(foo())}",
-              functions: [r"foo()"]));
+              functions: [r"foo()"],
+            ),
+          );
 
           var request = await getFunctionCallRequest(_process);
           expect(request.arguments, isEmpty);
-          _process.send(InboundMessage()
-            ..functionCallResponse = (InboundMessage_FunctionCallResponse()
-              ..id = request.id
-              ..success = (Value()
-                ..hostFunction = (Value_HostFunction()
-                  ..id = 1234
-                  ..signature = signature))));
+          _process.send(
+            InboundMessage()
+              ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+                ..id = request.id
+                ..success = (Value()
+                  ..hostFunction = (Value_HostFunction()
+                    ..id = 1234
+                    ..signature = signature))),
+          );
 
           var failure = await getCompileFailure(_process);
           expect(failure.message, message);
@@ -1776,27 +2172,37 @@ void main() {
 
         test("that's empty", () async {
           await expectSignatureError(
-              "", r'Invalid signature "": Expected identifier.');
+            "",
+            r'Invalid signature "": Expected identifier.',
+          );
         });
 
         test("that's just a name", () async {
           await expectSignatureError(
-              "foo", r'Invalid signature "foo": expected "(".');
+            "foo",
+            r'Invalid signature "foo": expected "(".',
+          );
         });
 
         test("without a closing paren", () async {
           await expectSignatureError(
-              r"foo($bar", r'Invalid signature "foo($bar": expected ")".');
+            r"foo($bar",
+            r'Invalid signature "foo($bar": expected ")".',
+          );
         });
 
         test("with text after the closing paren", () async {
-          await expectSignatureError(r"foo() ",
-              r'Invalid signature "foo() ": expected no more input.');
+          await expectSignatureError(
+            r"foo() ",
+            r'Invalid signature "foo() ": expected no more input.',
+          );
         });
 
         test("with invalid arguments", () async {
           await expectSignatureError(
-              r"foo($)", r'Invalid signature "foo($)": Expected identifier.');
+            r"foo($)",
+            r'Invalid signature "foo($)": Expected identifier.',
+          );
         });
       });
     });
@@ -1806,7 +2212,9 @@ void main() {
 /// Evaluates [sassScript] in the compiler, passes it to a custom function, and
 /// returns the protocol buffer result.
 Future<Value> _protofy(String sassScript) async {
-  _process.send(compileString("""
+  _process.send(
+    compileString(
+      """
 @use 'sass:list';
 @use 'sass:map';
 @use 'sass:math';
@@ -1819,7 +2227,10 @@ Future<Value> _protofy(String sassScript) async {
 }
 
 \$_: foo(($sassScript));
-""", functions: [r"foo($arg)"]));
+""",
+      functions: [r"foo($arg)"],
+    ),
+  );
   var request = await getFunctionCallRequest(_process);
   expect(_process.kill(), completes);
   return request.arguments.single;
@@ -1831,10 +2242,15 @@ Future<Value> _protofy(String sassScript) async {
 ///
 /// This is necessary for values that can be serialized but also have metadata
 /// that's not visible in the serialized form.
-void _testSerializationAndRoundTrip(Value value, String expected,
-    {bool inspect = false}) {
-  test("is serialized correctly",
-      () async => expect(await _deprotofy(value, inspect: inspect), expected));
+void _testSerializationAndRoundTrip(
+  Value value,
+  String expected, {
+  bool inspect = false,
+}) {
+  test(
+    "is serialized correctly",
+    () async => expect(await _deprotofy(value, inspect: inspect), expected),
+  );
 
   test("preserves metadata", () => _assertRoundTrips(value));
 }
@@ -1844,18 +2260,23 @@ void _testSerializationAndRoundTrip(Value value, String expected,
 /// If [inspect] is true, this returns the value as serialized by the
 /// `meta.inspect()` function.
 Future<String> _deprotofy(Value value, {bool inspect = false}) async {
-  _process.send(compileString(
+  _process.send(
+    compileString(
       inspect
           ? "@use 'sass:meta';\na {b: meta.inspect(foo())}"
           : "a {b: foo()}",
-      functions: [r"foo()"]));
+      functions: [r"foo()"],
+    ),
+  );
 
   var request = await getFunctionCallRequest(_process);
   expect(request.arguments, isEmpty);
-  _process.send(InboundMessage()
-    ..functionCallResponse = (InboundMessage_FunctionCallResponse()
-      ..id = request.id
-      ..success = value));
+  _process.send(
+    InboundMessage()
+      ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+        ..id = request.id
+        ..success = value),
+  );
 
   var success = await getCompileSuccess(_process);
   expect(_process.close(), completes);
@@ -1869,10 +2290,12 @@ Future<void> _expectDeprotofyError(Value value, Object message) async {
 
   var request = await getFunctionCallRequest(_process);
   expect(request.arguments, isEmpty);
-  _process.send(InboundMessage()
-    ..functionCallResponse = (InboundMessage_FunctionCallResponse()
-      ..id = request.id
-      ..success = value));
+  _process.send(
+    InboundMessage()
+      ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+        ..id = request.id
+        ..success = value),
+  );
 
   await expectParamsError(_process, errorId, message);
   await _process.kill();
@@ -1891,16 +2314,23 @@ Future<void> _assertRoundTrips(Value value) async =>
 /// Sends [value] to the compiler to convert to a native Sass value, then sends
 /// it back out to the host as a protocol buffer and returns the result.
 Future<Value> _roundTrip(Value value) async {
-  _process.send(compileString("""
+  _process.send(
+    compileString(
+      """
 \$_: outbound(inbound());
-""", functions: ["inbound()", r"outbound($arg)"]));
+""",
+      functions: ["inbound()", r"outbound($arg)"],
+    ),
+  );
 
   var request = await getFunctionCallRequest(_process);
   expect(request.arguments, isEmpty);
-  _process.send(InboundMessage()
-    ..functionCallResponse = (InboundMessage_FunctionCallResponse()
-      ..id = request.id
-      ..success = value));
+  _process.send(
+    InboundMessage()
+      ..functionCallResponse = (InboundMessage_FunctionCallResponse()
+        ..id = request.id
+        ..success = value),
+  );
 
   request = await getFunctionCallRequest(_process);
   expect(_process.kill(), completes);
@@ -1928,7 +2358,9 @@ Value _hsl(num hue, num saturation, num lightness, double alpha) => Value()
 /// Asserts that [process] emits a [CompileFailure] result with the given
 /// [message] on its protobuf stream and causes the compilation to fail.
 Future<void> _expectFunctionError(
-    EmbeddedProcess process, Object message) async {
+  EmbeddedProcess process,
+  Object message,
+) async {
   var failure = await getCompileFailure(process);
   expect(failure.message, equals(message));
 }

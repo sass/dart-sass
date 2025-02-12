@@ -65,10 +65,13 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   ///
   /// @nodoc
   @internal
-  Stylesheet.internal(Iterable<Statement> children, this.span,
-      List<ParseTimeWarning> parseTimeWarnings,
-      {this.plainCss = false, Map<String, FileSpan>? globalVariables})
-      : parseTimeWarnings = UnmodifiableListView(parseTimeWarnings),
+  Stylesheet.internal(
+    Iterable<Statement> children,
+    this.span,
+    List<ParseTimeWarning> parseTimeWarnings, {
+    this.plainCss = false,
+    Map<String, FileSpan>? globalVariables,
+  })  : parseTimeWarnings = UnmodifiableListView(parseTimeWarnings),
         globalVariables = globalVariables == null
             ? const {}
             : Map.unmodifiable(globalVariables),
@@ -113,7 +116,10 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
       if (url == null || url.toString() == 'stdin') rethrow;
 
       throw throwWithTrace(
-          error.withLoadedUrls(Set.unmodifiable({url})), error, stackTrace);
+        error.withLoadedUrls(Set.unmodifiable({url})),
+        error,
+        stackTrace,
+      );
     }
   }
 

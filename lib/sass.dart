@@ -98,36 +98,41 @@ export 'src/evaluation_context.dart' show warn;
 /// Throws a [SassException] if conversion fails.
 ///
 /// {@category Compile}
-CompileResult compileToResult(String path,
-        {bool color = false,
-        Logger? logger,
-        Iterable<Importer>? importers,
-        Iterable<String>? loadPaths,
-        PackageConfig? packageConfig,
-        Iterable<Callable>? functions,
-        OutputStyle? style,
-        bool quietDeps = false,
-        bool verbose = false,
-        bool sourceMap = false,
-        bool charset = true,
-        Iterable<Deprecation>? silenceDeprecations,
-        Iterable<Deprecation>? fatalDeprecations,
-        Iterable<Deprecation>? futureDeprecations}) =>
-    c.compile(path,
-        logger: logger,
-        importCache: ImportCache(
-            importers: importers,
-            loadPaths: loadPaths,
-            packageConfig: packageConfig),
-        functions: functions,
-        style: style,
-        quietDeps: quietDeps,
-        verbose: verbose,
-        sourceMap: sourceMap,
-        charset: charset,
-        silenceDeprecations: silenceDeprecations,
-        fatalDeprecations: fatalDeprecations,
-        futureDeprecations: futureDeprecations);
+CompileResult compileToResult(
+  String path, {
+  bool color = false,
+  Logger? logger,
+  Iterable<Importer>? importers,
+  Iterable<String>? loadPaths,
+  PackageConfig? packageConfig,
+  Iterable<Callable>? functions,
+  OutputStyle? style,
+  bool quietDeps = false,
+  bool verbose = false,
+  bool sourceMap = false,
+  bool charset = true,
+  Iterable<Deprecation>? silenceDeprecations,
+  Iterable<Deprecation>? fatalDeprecations,
+  Iterable<Deprecation>? futureDeprecations,
+}) =>
+    c.compile(
+      path,
+      logger: logger,
+      importCache: ImportCache(
+        importers: importers,
+        loadPaths: loadPaths,
+        packageConfig: packageConfig,
+      ),
+      functions: functions,
+      style: style,
+      quietDeps: quietDeps,
+      verbose: verbose,
+      sourceMap: sourceMap,
+      charset: charset,
+      silenceDeprecations: silenceDeprecations,
+      fatalDeprecations: fatalDeprecations,
+      futureDeprecations: futureDeprecations,
+    );
 
 /// Compiles [source] to CSS and returns a [CompileResult] containing the CSS
 /// and additional metadata about the compilation..
@@ -195,78 +200,88 @@ CompileResult compileToResult(String path,
 /// Throws a [SassException] if conversion fails.
 ///
 /// {@category Compile}
-CompileResult compileStringToResult(String source,
-        {Syntax? syntax,
-        bool color = false,
-        Logger? logger,
-        Iterable<Importer>? importers,
-        PackageConfig? packageConfig,
-        Iterable<String>? loadPaths,
-        Iterable<Callable>? functions,
-        OutputStyle? style,
-        Importer? importer,
-        Object? url,
-        bool quietDeps = false,
-        bool verbose = false,
-        bool sourceMap = false,
-        bool charset = true,
-        Iterable<Deprecation>? silenceDeprecations,
-        Iterable<Deprecation>? fatalDeprecations,
-        Iterable<Deprecation>? futureDeprecations}) =>
-    c.compileString(source,
-        syntax: syntax,
-        logger: logger,
-        importCache: ImportCache(
-            importers: importers,
-            packageConfig: packageConfig,
-            loadPaths: loadPaths),
-        functions: functions,
-        style: style,
-        importer: importer,
-        url: url,
-        quietDeps: quietDeps,
-        verbose: verbose,
-        sourceMap: sourceMap,
-        charset: charset,
-        silenceDeprecations: silenceDeprecations,
-        fatalDeprecations: fatalDeprecations,
-        futureDeprecations: futureDeprecations);
+CompileResult compileStringToResult(
+  String source, {
+  Syntax? syntax,
+  bool color = false,
+  Logger? logger,
+  Iterable<Importer>? importers,
+  PackageConfig? packageConfig,
+  Iterable<String>? loadPaths,
+  Iterable<Callable>? functions,
+  OutputStyle? style,
+  Importer? importer,
+  Object? url,
+  bool quietDeps = false,
+  bool verbose = false,
+  bool sourceMap = false,
+  bool charset = true,
+  Iterable<Deprecation>? silenceDeprecations,
+  Iterable<Deprecation>? fatalDeprecations,
+  Iterable<Deprecation>? futureDeprecations,
+}) =>
+    c.compileString(
+      source,
+      syntax: syntax,
+      logger: logger,
+      importCache: ImportCache(
+        importers: importers,
+        packageConfig: packageConfig,
+        loadPaths: loadPaths,
+      ),
+      functions: functions,
+      style: style,
+      importer: importer,
+      url: url,
+      quietDeps: quietDeps,
+      verbose: verbose,
+      sourceMap: sourceMap,
+      charset: charset,
+      silenceDeprecations: silenceDeprecations,
+      fatalDeprecations: fatalDeprecations,
+      futureDeprecations: futureDeprecations,
+    );
 
 /// Like [compileToResult], except it runs asynchronously.
 ///
 /// Running asynchronously allows this to take [AsyncImporter]s rather than
 /// synchronous [Importer]s. However, running asynchronously is also somewhat
 /// slower, so [compileToResult] should be preferred if possible.
-Future<CompileResult> compileToResultAsync(String path,
-        {bool color = false,
-        Logger? logger,
-        Iterable<AsyncImporter>? importers,
-        PackageConfig? packageConfig,
-        Iterable<String>? loadPaths,
-        Iterable<AsyncCallable>? functions,
-        OutputStyle? style,
-        bool quietDeps = false,
-        bool verbose = false,
-        bool sourceMap = false,
-        bool charset = true,
-        Iterable<Deprecation>? silenceDeprecations,
-        Iterable<Deprecation>? fatalDeprecations,
-        Iterable<Deprecation>? futureDeprecations}) =>
-    c.compileAsync(path,
-        logger: logger,
-        importCache: AsyncImportCache(
-            importers: importers,
-            loadPaths: loadPaths,
-            packageConfig: packageConfig),
-        functions: functions,
-        style: style,
-        quietDeps: quietDeps,
-        verbose: verbose,
-        sourceMap: sourceMap,
-        charset: charset,
-        silenceDeprecations: silenceDeprecations,
-        fatalDeprecations: fatalDeprecations,
-        futureDeprecations: futureDeprecations);
+Future<CompileResult> compileToResultAsync(
+  String path, {
+  bool color = false,
+  Logger? logger,
+  Iterable<AsyncImporter>? importers,
+  PackageConfig? packageConfig,
+  Iterable<String>? loadPaths,
+  Iterable<AsyncCallable>? functions,
+  OutputStyle? style,
+  bool quietDeps = false,
+  bool verbose = false,
+  bool sourceMap = false,
+  bool charset = true,
+  Iterable<Deprecation>? silenceDeprecations,
+  Iterable<Deprecation>? fatalDeprecations,
+  Iterable<Deprecation>? futureDeprecations,
+}) =>
+    c.compileAsync(
+      path,
+      logger: logger,
+      importCache: AsyncImportCache(
+        importers: importers,
+        loadPaths: loadPaths,
+        packageConfig: packageConfig,
+      ),
+      functions: functions,
+      style: style,
+      quietDeps: quietDeps,
+      verbose: verbose,
+      sourceMap: sourceMap,
+      charset: charset,
+      silenceDeprecations: silenceDeprecations,
+      fatalDeprecations: fatalDeprecations,
+      futureDeprecations: futureDeprecations,
+    );
 
 /// Like [compileStringToResult], except it runs asynchronously.
 ///
@@ -275,42 +290,47 @@ Future<CompileResult> compileToResultAsync(String path,
 /// slower, so [compileStringToResult] should be preferred if possible.
 ///
 /// {@category Compile}
-Future<CompileResult> compileStringToResultAsync(String source,
-        {Syntax? syntax,
-        bool color = false,
-        Logger? logger,
-        Iterable<AsyncImporter>? importers,
-        PackageConfig? packageConfig,
-        Iterable<String>? loadPaths,
-        Iterable<AsyncCallable>? functions,
-        OutputStyle? style,
-        AsyncImporter? importer,
-        Object? url,
-        bool quietDeps = false,
-        bool verbose = false,
-        bool sourceMap = false,
-        bool charset = true,
-        Iterable<Deprecation>? silenceDeprecations,
-        Iterable<Deprecation>? fatalDeprecations,
-        Iterable<Deprecation>? futureDeprecations}) =>
-    c.compileStringAsync(source,
-        syntax: syntax,
-        logger: logger,
-        importCache: AsyncImportCache(
-            importers: importers,
-            packageConfig: packageConfig,
-            loadPaths: loadPaths),
-        functions: functions,
-        style: style,
-        importer: importer,
-        url: url,
-        quietDeps: quietDeps,
-        verbose: verbose,
-        sourceMap: sourceMap,
-        charset: charset,
-        silenceDeprecations: silenceDeprecations,
-        fatalDeprecations: fatalDeprecations,
-        futureDeprecations: futureDeprecations);
+Future<CompileResult> compileStringToResultAsync(
+  String source, {
+  Syntax? syntax,
+  bool color = false,
+  Logger? logger,
+  Iterable<AsyncImporter>? importers,
+  PackageConfig? packageConfig,
+  Iterable<String>? loadPaths,
+  Iterable<AsyncCallable>? functions,
+  OutputStyle? style,
+  AsyncImporter? importer,
+  Object? url,
+  bool quietDeps = false,
+  bool verbose = false,
+  bool sourceMap = false,
+  bool charset = true,
+  Iterable<Deprecation>? silenceDeprecations,
+  Iterable<Deprecation>? fatalDeprecations,
+  Iterable<Deprecation>? futureDeprecations,
+}) =>
+    c.compileStringAsync(
+      source,
+      syntax: syntax,
+      logger: logger,
+      importCache: AsyncImportCache(
+        importers: importers,
+        packageConfig: packageConfig,
+        loadPaths: loadPaths,
+      ),
+      functions: functions,
+      style: style,
+      importer: importer,
+      url: url,
+      quietDeps: quietDeps,
+      verbose: verbose,
+      sourceMap: sourceMap,
+      charset: charset,
+      silenceDeprecations: silenceDeprecations,
+      fatalDeprecations: fatalDeprecations,
+      futureDeprecations: futureDeprecations,
+    );
 
 /// Like [compileToResult], but returns [CompileResult.css] rather than
 /// returning [CompileResult] directly.
@@ -334,30 +354,34 @@ Future<CompileResult> compileStringToResultAsync(String source,
 ///
 /// {@category Compile}
 @Deprecated("Use compileToResult() instead.")
-String compile(String path,
-    {bool color = false,
-    Logger? logger,
-    Iterable<Importer>? importers,
-    Iterable<String>? loadPaths,
-    PackageConfig? packageConfig,
-    Iterable<Callable>? functions,
-    OutputStyle? style,
-    bool quietDeps = false,
-    bool verbose = false,
-    @Deprecated("Use CompileResult.sourceMap from compileToResult() instead.")
-    void sourceMap(SingleMapping map)?,
-    bool charset = true}) {
-  var result = compileToResult(path,
-      logger: logger,
-      importers: importers,
-      loadPaths: loadPaths,
-      packageConfig: packageConfig,
-      functions: functions,
-      style: style,
-      quietDeps: quietDeps,
-      verbose: verbose,
-      sourceMap: sourceMap != null,
-      charset: charset);
+String compile(
+  String path, {
+  bool color = false,
+  Logger? logger,
+  Iterable<Importer>? importers,
+  Iterable<String>? loadPaths,
+  PackageConfig? packageConfig,
+  Iterable<Callable>? functions,
+  OutputStyle? style,
+  bool quietDeps = false,
+  bool verbose = false,
+  @Deprecated("Use CompileResult.sourceMap from compileToResult() instead.")
+  void sourceMap(SingleMapping map)?,
+  bool charset = true,
+}) {
+  var result = compileToResult(
+    path,
+    logger: logger,
+    importers: importers,
+    loadPaths: loadPaths,
+    packageConfig: packageConfig,
+    functions: functions,
+    style: style,
+    quietDeps: quietDeps,
+    verbose: verbose,
+    sourceMap: sourceMap != null,
+    charset: charset,
+  );
   result.sourceMap.andThen(sourceMap);
   return result.css;
 }
@@ -384,38 +408,43 @@ String compile(String path,
 ///
 /// {@category Compile}
 @Deprecated("Use compileStringToResult() instead.")
-String compileString(String source,
-    {Syntax? syntax,
-    bool color = false,
-    Logger? logger,
-    Iterable<Importer>? importers,
-    PackageConfig? packageConfig,
-    Iterable<String>? loadPaths,
-    Iterable<Callable>? functions,
-    OutputStyle? style,
-    Importer? importer,
-    Object? url,
-    bool quietDeps = false,
-    bool verbose = false,
-    @Deprecated(
-        "Use CompileResult.sourceMap from compileStringToResult() instead.")
-    void sourceMap(SingleMapping map)?,
-    bool charset = true,
-    @Deprecated("Use syntax instead.") bool indented = false}) {
-  var result = compileStringToResult(source,
-      syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
-      logger: logger,
-      importers: importers,
-      packageConfig: packageConfig,
-      loadPaths: loadPaths,
-      functions: functions,
-      style: style,
-      importer: importer,
-      url: url,
-      quietDeps: quietDeps,
-      verbose: verbose,
-      sourceMap: sourceMap != null,
-      charset: charset);
+String compileString(
+  String source, {
+  Syntax? syntax,
+  bool color = false,
+  Logger? logger,
+  Iterable<Importer>? importers,
+  PackageConfig? packageConfig,
+  Iterable<String>? loadPaths,
+  Iterable<Callable>? functions,
+  OutputStyle? style,
+  Importer? importer,
+  Object? url,
+  bool quietDeps = false,
+  bool verbose = false,
+  @Deprecated(
+    "Use CompileResult.sourceMap from compileStringToResult() instead.",
+  )
+  void sourceMap(SingleMapping map)?,
+  bool charset = true,
+  @Deprecated("Use syntax instead.") bool indented = false,
+}) {
+  var result = compileStringToResult(
+    source,
+    syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
+    logger: logger,
+    importers: importers,
+    packageConfig: packageConfig,
+    loadPaths: loadPaths,
+    functions: functions,
+    style: style,
+    importer: importer,
+    url: url,
+    quietDeps: quietDeps,
+    verbose: verbose,
+    sourceMap: sourceMap != null,
+    charset: charset,
+  );
   result.sourceMap.andThen(sourceMap);
   return result.css;
 }
@@ -428,29 +457,34 @@ String compileString(String source,
 ///
 /// {@category Compile}
 @Deprecated("Use compileToResultAsync() instead.")
-Future<String> compileAsync(String path,
-    {bool color = false,
-    Logger? logger,
-    Iterable<AsyncImporter>? importers,
-    PackageConfig? packageConfig,
-    Iterable<String>? loadPaths,
-    Iterable<AsyncCallable>? functions,
-    OutputStyle? style,
-    bool quietDeps = false,
-    bool verbose = false,
-    @Deprecated(
-        "Use CompileResult.sourceMap from compileToResultAsync() instead.")
-    void sourceMap(SingleMapping map)?}) async {
-  var result = await compileToResultAsync(path,
-      logger: logger,
-      importers: importers,
-      loadPaths: loadPaths,
-      packageConfig: packageConfig,
-      functions: functions,
-      style: style,
-      quietDeps: quietDeps,
-      verbose: verbose,
-      sourceMap: sourceMap != null);
+Future<String> compileAsync(
+  String path, {
+  bool color = false,
+  Logger? logger,
+  Iterable<AsyncImporter>? importers,
+  PackageConfig? packageConfig,
+  Iterable<String>? loadPaths,
+  Iterable<AsyncCallable>? functions,
+  OutputStyle? style,
+  bool quietDeps = false,
+  bool verbose = false,
+  @Deprecated(
+    "Use CompileResult.sourceMap from compileToResultAsync() instead.",
+  )
+  void sourceMap(SingleMapping map)?,
+}) async {
+  var result = await compileToResultAsync(
+    path,
+    logger: logger,
+    importers: importers,
+    loadPaths: loadPaths,
+    packageConfig: packageConfig,
+    functions: functions,
+    style: style,
+    quietDeps: quietDeps,
+    verbose: verbose,
+    sourceMap: sourceMap != null,
+  );
   result.sourceMap.andThen(sourceMap);
   return result.css;
 }
@@ -463,38 +497,43 @@ Future<String> compileAsync(String path,
 ///
 /// {@category Compile}
 @Deprecated("Use compileStringToResultAsync() instead.")
-Future<String> compileStringAsync(String source,
-    {Syntax? syntax,
-    bool color = false,
-    Logger? logger,
-    Iterable<AsyncImporter>? importers,
-    PackageConfig? packageConfig,
-    Iterable<String>? loadPaths,
-    Iterable<AsyncCallable>? functions,
-    OutputStyle? style,
-    AsyncImporter? importer,
-    Object? url,
-    bool quietDeps = false,
-    bool verbose = false,
-    @Deprecated(
-        "Use CompileResult.sourceMap from compileStringToResultAsync() instead.")
-    void sourceMap(SingleMapping map)?,
-    bool charset = true,
-    @Deprecated("Use syntax instead.") bool indented = false}) async {
-  var result = await compileStringToResultAsync(source,
-      syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
-      logger: logger,
-      importers: importers,
-      packageConfig: packageConfig,
-      loadPaths: loadPaths,
-      functions: functions,
-      style: style,
-      importer: importer,
-      url: url,
-      quietDeps: quietDeps,
-      verbose: verbose,
-      sourceMap: sourceMap != null,
-      charset: charset);
+Future<String> compileStringAsync(
+  String source, {
+  Syntax? syntax,
+  bool color = false,
+  Logger? logger,
+  Iterable<AsyncImporter>? importers,
+  PackageConfig? packageConfig,
+  Iterable<String>? loadPaths,
+  Iterable<AsyncCallable>? functions,
+  OutputStyle? style,
+  AsyncImporter? importer,
+  Object? url,
+  bool quietDeps = false,
+  bool verbose = false,
+  @Deprecated(
+    "Use CompileResult.sourceMap from compileStringToResultAsync() instead.",
+  )
+  void sourceMap(SingleMapping map)?,
+  bool charset = true,
+  @Deprecated("Use syntax instead.") bool indented = false,
+}) async {
+  var result = await compileStringToResultAsync(
+    source,
+    syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
+    logger: logger,
+    importers: importers,
+    packageConfig: packageConfig,
+    loadPaths: loadPaths,
+    functions: functions,
+    style: style,
+    importer: importer,
+    url: url,
+    quietDeps: quietDeps,
+    verbose: verbose,
+    sourceMap: sourceMap != null,
+    charset: charset,
+  );
   result.sourceMap.andThen(sourceMap);
   return result.css;
 }

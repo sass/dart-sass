@@ -41,12 +41,16 @@ class AsyncBuiltInCallable implements AsyncCallable {
   ///
   /// If passed, [url] is the URL of the module in which the function is
   /// defined.
-  AsyncBuiltInCallable.function(String name, String parameters,
-      FutureOr<Value> callback(List<Value> parameters), {Object? url})
-      : this.parsed(
-            name,
-            ParameterList.parse('@function $name($parameters) {', url: url),
-            callback);
+  AsyncBuiltInCallable.function(
+    String name,
+    String parameters,
+    FutureOr<Value> callback(List<Value> parameters), {
+    Object? url,
+  }) : this.parsed(
+          name,
+          ParameterList.parse('@function $name($parameters) {', url: url),
+          callback,
+        );
 
   /// Creates a mixin with a single [parameters] declaration and a single
   /// [callback].
@@ -56,24 +60,33 @@ class AsyncBuiltInCallable implements AsyncCallable {
   ///
   /// If passed, [url] is the URL of the module in which the mixin is
   /// defined.
-  AsyncBuiltInCallable.mixin(String name, String parameters,
-      FutureOr<void> callback(List<Value> parameters),
-      {Object? url, bool acceptsContent = false})
-      : this.parsed(
-            name, ParameterList.parse('@mixin $name($parameters) {', url: url),
-            (arguments) async {
-          await callback(arguments);
-          // We could encode the fact that functions return values and mixins
-          // don't in the type system, but that would get very messy very
-          // quickly so it's easier to just return Sass's `null` for mixins and
-          // simply ignore it at the call site.
-          return sassNull;
-        });
+  AsyncBuiltInCallable.mixin(
+    String name,
+    String parameters,
+    FutureOr<void> callback(List<Value> parameters), {
+    Object? url,
+    bool acceptsContent = false,
+  }) : this.parsed(
+          name,
+          ParameterList.parse('@mixin $name($parameters) {', url: url),
+          (arguments) async {
+            await callback(arguments);
+            // We could encode the fact that functions return values and mixins
+            // don't in the type system, but that would get very messy very
+            // quickly so it's easier to just return Sass's `null` for mixins and
+            // simply ignore it at the call site.
+            return sassNull;
+          },
+        );
 
   /// Creates a callable with a single [parameters] declaration and a single
   /// [callback].
-  AsyncBuiltInCallable.parsed(this.name, this._parameters, this._callback,
-      {this.acceptsContent = false});
+  AsyncBuiltInCallable.parsed(
+    this.name,
+    this._parameters,
+    this._callback, {
+    this.acceptsContent = false,
+  });
 
   /// Returns the parameter declaration and Dart callback for the given
   /// positional and named parameters.
@@ -81,12 +94,16 @@ class AsyncBuiltInCallable implements AsyncCallable {
   /// If no exact match is found, finds the closest approximation. Note that this
   /// doesn't guarantee that [positional] and [names] are valid for the returned
   /// [ParameterList].
-  (ParameterList, Callback) callbackFor(int positional, Set<String> names) =>
-      (_parameters, _callback);
+  (ParameterList, Callback) callbackFor(int positional, Set<String> names) => (
+        _parameters,
+        _callback,
+      );
 
   /// Returns a copy of this callable that emits a deprecation warning.
-  AsyncBuiltInCallable withDeprecationWarning(String module,
-          [String? newName]) =>
+  AsyncBuiltInCallable withDeprecationWarning(
+    String module, [
+    String? newName,
+  ]) =>
       AsyncBuiltInCallable.parsed(name, _parameters, (args) {
         warnForGlobalBuiltIn(module, newName ?? name);
         return _callback(args);
@@ -97,9 +114,10 @@ class AsyncBuiltInCallable implements AsyncCallable {
 /// available as function [name] in built-in module [module].
 void warnForGlobalBuiltIn(String module, String name) {
   warnForDeprecation(
-      'Global built-in functions are deprecated and will be removed in Dart '
-      'Sass 3.0.0.\n'
-      'Use $module.$name instead.\n\n'
-      'More info and automated migrator: https://sass-lang.com/d/import',
-      Deprecation.globalBuiltin);
+    'Global built-in functions are deprecated and will be removed in Dart '
+    'Sass 3.0.0.\n'
+    'Use $module.$name instead.\n\n'
+    'More info and automated migrator: https://sass-lang.com/d/import',
+    Deprecation.globalBuiltin,
+  );
 }

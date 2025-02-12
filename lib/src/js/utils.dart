@@ -59,8 +59,13 @@ Object? call2(JSFunction function, Object thisArg, Object arg1, Object arg2) =>
     function.apply(thisArg, [arg1, arg2]);
 
 /// Invokes [function] with [thisArg] as `this`.
-Object? call3(JSFunction function, Object thisArg, Object arg1, Object arg2,
-        Object arg3) =>
+Object? call3(
+  JSFunction function,
+  Object thisArg,
+  Object arg1,
+  Object arg2,
+  Object arg3,
+) =>
     function.apply(thisArg, [arg1, arg2, arg3]);
 
 @JS("Object.keys")
@@ -100,7 +105,10 @@ String jsType(Object? value) {
 
 @JS("Object.defineProperty")
 external void _defineProperty(
-    Object object, String name, _PropertyDescriptor prototype);
+  Object object,
+  String name,
+  _PropertyDescriptor prototype,
+);
 
 @JS()
 @anonymous
@@ -109,8 +117,11 @@ class _PropertyDescriptor {
   external Function get get;
   external bool get enumerable;
 
-  external factory _PropertyDescriptor(
-      {Object? value, Function? get, bool? enumerable});
+  external factory _PropertyDescriptor({
+    Object? value,
+    Function? get,
+    bool? enumerable,
+  });
 }
 
 /// Defines a JS getter on [object] named [name].
@@ -119,12 +130,15 @@ class _PropertyDescriptor {
 /// the getter just returns [value].
 void defineGetter(Object object, String name, {Object? value, Function? get}) {
   _defineProperty(
-      object,
-      name,
-      get == null
-          ? _PropertyDescriptor(value: value, enumerable: false)
-          : _PropertyDescriptor(
-              get: allowInteropCaptureThis(get), enumerable: false));
+    object,
+    name,
+    get == null
+        ? _PropertyDescriptor(value: value, enumerable: false)
+        : _PropertyDescriptor(
+            get: allowInteropCaptureThis(get),
+            enumerable: false,
+          ),
+  );
 }
 
 /// Like [allowInterop], but gives the function a [name] so it's more ergonomic
@@ -173,14 +187,18 @@ bool isPromise(Object? object) =>
 
 /// Like [futureToPromise] from `node_interop`, but stores the stack trace for
 /// errors using [throwWithTrace].
-Promise futureToPromise(Future<Object?> future) => Promise(allowInterop(
-        (void Function(Object?) resolve, void Function(Object?) reject) {
-      future.then((result) => resolve(result),
+Promise futureToPromise(Future<Object?> future) => Promise(
+      allowInterop(
+          (void Function(Object?) resolve, void Function(Object?) reject) {
+        future.then(
+          (result) => resolve(result),
           onError: (Object error, StackTrace stackTrace) {
-        attachTrace(error, stackTrace);
-        reject(error);
-      });
-    }));
+            attachTrace(error, stackTrace);
+            reject(error);
+          },
+        );
+      }),
+    );
 
 @JS('URL')
 external JSClass get _urlClass;
@@ -242,7 +260,7 @@ ListSeparator jsToDartSeparator(String? separator) => switch (separator) {
       ',' => ListSeparator.comma,
       '/' => ListSeparator.slash,
       null => ListSeparator.undecided,
-      _ => jsThrow(JsError('Unknown separator "$separator".'))
+      _ => jsThrow(JsError('Unknown separator "$separator".')),
     };
 
 /// Converts a syntax string to an instance of [Syntax].
@@ -250,7 +268,7 @@ Syntax parseSyntax(String? syntax) => switch (syntax) {
       null || 'scss' => Syntax.scss,
       'indented' => Syntax.sass,
       'css' => Syntax.css,
-      _ => jsThrow(JsError('Unknown syntax "$syntax".'))
+      _ => jsThrow(JsError('Unknown syntax "$syntax".')),
     };
 
 /// The path to the Node.js entrypoint, if one can be located.

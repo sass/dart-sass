@@ -127,22 +127,24 @@ abstract class Value {
     var indexValue = sassIndex.assertNumber(name);
     if (indexValue.hasUnits) {
       warnForDeprecation(
-          "\$$name: Passing a number with unit ${indexValue.unitString} is "
-          "deprecated.\n"
-          "\n"
-          "To preserve current behavior: "
-          "${indexValue.unitSuggestion(name ?? 'index')}\n"
-          "\n"
-          "More info: https://sass-lang.com/d/function-units",
-          Deprecation.functionUnits);
+        "\$$name: Passing a number with unit ${indexValue.unitString} is "
+        "deprecated.\n"
+        "\n"
+        "To preserve current behavior: "
+        "${indexValue.unitSuggestion(name ?? 'index')}\n"
+        "\n"
+        "More info: https://sass-lang.com/d/function-units",
+        Deprecation.functionUnits,
+      );
     }
 
     var index = indexValue.assertInt(name);
     if (index == 0) throw SassScriptException("List index may not be 0.", name);
     if (index.abs() > lengthAsList) {
       throw SassScriptException(
-          "Invalid index $sassIndex for a list with $lengthAsList elements.",
-          name);
+        "Invalid index $sassIndex for a list with $lengthAsList elements.",
+        name,
+      );
     }
 
     return index < 0 ? lengthAsList + index : index - 1;
@@ -247,9 +249,10 @@ abstract class Value {
     if (_selectorStringOrNull() case var string?) return string;
 
     throw SassScriptException(
-        "$this is not a valid selector: it must be a string,\n"
-        "a list of strings, or a list of lists of strings.",
-        name);
+      "$this is not a valid selector: it must be a string,\n"
+      "a list of strings, or a list of lists of strings.",
+      name,
+    );
   }
 
   /// Converts a `selector-parse()`-style input into a string that can be
@@ -291,10 +294,16 @@ abstract class Value {
 
   /// Returns a new list containing [contents] that defaults to this value's
   /// separator and brackets.
-  SassList withListContents(Iterable<Value> contents,
-      {ListSeparator? separator, bool? brackets}) {
-    return SassList(contents, separator ?? this.separator,
-        brackets: brackets ?? hasBrackets);
+  SassList withListContents(
+    Iterable<Value> contents, {
+    ListSeparator? separator,
+    bool? brackets,
+  }) {
+    return SassList(
+      contents,
+      separator ?? this.separator,
+      brackets: brackets ?? hasBrackets,
+    );
   }
 
   /// The SassScript `=` operation.
@@ -351,11 +360,13 @@ abstract class Value {
   /// @nodoc
   @internal
   Value plus(Value other) => switch (other) {
-        SassString() =>
-          SassString(toCssString() + other.text, quotes: other.hasQuotes),
+        SassString() => SassString(
+            toCssString() + other.text,
+            quotes: other.hasQuotes,
+          ),
         SassCalculation() =>
           throw SassScriptException('Undefined operation "$this + $other".'),
-        _ => SassString(toCssString() + other.toCssString(), quotes: false)
+        _ => SassString(toCssString() + other.toCssString(), quotes: false),
       };
 
   /// The SassScript `-` operation.
@@ -364,7 +375,10 @@ abstract class Value {
   @internal
   Value minus(Value other) => other is SassCalculation
       ? throw SassScriptException('Undefined operation "$this - $other".')
-      : SassString("${toCssString()}-${other.toCssString()}", quotes: false);
+      : SassString(
+          "${toCssString()}-${other.toCssString()}",
+          quotes: false,
+        );
 
   /// The SassScript `/` operation.
   ///
@@ -448,10 +462,10 @@ extension SassApiValue on Value {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
       throwWithTrace(
-          SassScriptException(
-              error.toString().replaceFirst("Error: ", ""), name),
-          error,
-          stackTrace);
+        SassScriptException(error.toString().replaceFirst("Error: ", ""), name),
+        error,
+        stackTrace,
+      );
     }
   }
 
@@ -464,8 +478,10 @@ extension SassApiValue on Value {
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  SimpleSelector assertSimpleSelector(
-      {String? name, bool allowParent = false}) {
+  SimpleSelector assertSimpleSelector({
+    String? name,
+    bool allowParent = false,
+  }) {
     var string = _selectorString(name);
     try {
       return SimpleSelector.parse(string, allowParent: allowParent);
@@ -473,10 +489,10 @@ extension SassApiValue on Value {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
       throwWithTrace(
-          SassScriptException(
-              error.toString().replaceFirst("Error: ", ""), name),
-          error,
-          stackTrace);
+        SassScriptException(error.toString().replaceFirst("Error: ", ""), name),
+        error,
+        stackTrace,
+      );
     }
   }
 
@@ -489,8 +505,10 @@ extension SassApiValue on Value {
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  CompoundSelector assertCompoundSelector(
-      {String? name, bool allowParent = false}) {
+  CompoundSelector assertCompoundSelector({
+    String? name,
+    bool allowParent = false,
+  }) {
     var string = _selectorString(name);
     try {
       return CompoundSelector.parse(string, allowParent: allowParent);
@@ -498,10 +516,10 @@ extension SassApiValue on Value {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
       throwWithTrace(
-          SassScriptException(
-              error.toString().replaceFirst("Error: ", ""), name),
-          error,
-          stackTrace);
+        SassScriptException(error.toString().replaceFirst("Error: ", ""), name),
+        error,
+        stackTrace,
+      );
     }
   }
 
@@ -514,8 +532,10 @@ extension SassApiValue on Value {
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  ComplexSelector assertComplexSelector(
-      {String? name, bool allowParent = false}) {
+  ComplexSelector assertComplexSelector({
+    String? name,
+    bool allowParent = false,
+  }) {
     var string = _selectorString(name);
     try {
       return ComplexSelector.parse(string, allowParent: allowParent);
@@ -523,10 +543,10 @@ extension SassApiValue on Value {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
       throwWithTrace(
-          SassScriptException(
-              error.toString().replaceFirst("Error: ", ""), name),
-          error,
-          stackTrace);
+        SassScriptException(error.toString().replaceFirst("Error: ", ""), name),
+        error,
+        stackTrace,
+      );
     }
   }
 }

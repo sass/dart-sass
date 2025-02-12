@@ -11,6 +11,7 @@ import '../utils.dart';
 void validateUrlScheme(String scheme) {
   if (!isValidUrlScheme(scheme)) {
     jsThrow(
-        JsError('"$scheme" isn\'t a valid URL scheme (for example "file").'));
+      JsError('"$scheme" isn\'t a valid URL scheme (for example "file").'),
+    );
   }
 }

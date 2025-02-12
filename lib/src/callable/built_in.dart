@@ -32,12 +32,15 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// If passed, [url] is the URL of the module in which the function is
   /// defined.
   BuiltInCallable.function(
-      String name, String parameters, Value callback(List<Value> arguments),
-      {Object? url})
-      : this.parsed(
-            name,
-            ParameterList.parse('@function $name($parameters) {', url: url),
-            callback);
+    String name,
+    String parameters,
+    Value callback(List<Value> arguments), {
+    Object? url,
+  }) : this.parsed(
+          name,
+          ParameterList.parse('@function $name($parameters) {', url: url),
+          callback,
+        );
 
   /// Creates a mixin with a single [parameters] declaration and a single
   /// [callback].
@@ -48,21 +51,29 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// If passed, [url] is the URL of the module in which the mixin is
   /// defined.
   BuiltInCallable.mixin(
-      String name, String parameters, void callback(List<Value> arguments),
-      {Object? url, bool acceptsContent = false})
-      : this.parsed(
-            name, ParameterList.parse('@mixin $name($parameters) {', url: url),
-            (arguments) {
-          callback(arguments);
-          return sassNull;
-        }, acceptsContent: acceptsContent);
+    String name,
+    String parameters,
+    void callback(List<Value> arguments), {
+    Object? url,
+    bool acceptsContent = false,
+  }) : this.parsed(
+          name,
+          ParameterList.parse('@mixin $name($parameters) {', url: url),
+          (arguments) {
+            callback(arguments);
+            return sassNull;
+          },
+          acceptsContent: acceptsContent,
+        );
 
   /// Creates a callable with a single [parameters] declaration and a single
   /// [callback].
-  BuiltInCallable.parsed(this.name, ParameterList parameters,
-      Value callback(List<Value> arguments),
-      {this.acceptsContent = false})
-      : _overloads = [(parameters, callback)];
+  BuiltInCallable.parsed(
+    this.name,
+    ParameterList parameters,
+    Value callback(List<Value> arguments), {
+    this.acceptsContent = false,
+  }) : _overloads = [(parameters, callback)];
 
   /// Creates a function with multiple implementations.
   ///
@@ -73,14 +84,16 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   ///
   /// If passed, [url] is the URL of the module in which the function is
   /// defined.
-  BuiltInCallable.overloadedFunction(this.name, Map<String, Callback> overloads,
-      {Object? url})
-      : _overloads = [
+  BuiltInCallable.overloadedFunction(
+    this.name,
+    Map<String, Callback> overloads, {
+    Object? url,
+  })  : _overloads = [
           for (var (args, callback) in overloads.pairs)
             (
               ParameterList.parse('@function $name($args) {', url: url),
-              callback
-            )
+              callback,
+            ),
         ],
         acceptsContent = false;
 
@@ -135,8 +148,8 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
                 (args) {
                   warnForGlobalBuiltIn(module, newName ?? name);
                   return function(args);
-                }
-              )
+                },
+              ),
           ],
           acceptsContent);
 }

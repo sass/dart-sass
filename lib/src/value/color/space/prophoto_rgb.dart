@@ -50,6 +50,6 @@ final class ProphotoRgbColorSpace extends ColorSpace {
         ColorSpace.xyzD65 => linearProphotoRgbToXyzD65,
         ColorSpace.xyzD50 => linearProphotoRgbToXyzD50,
         ColorSpace.lms => linearProphotoRgbToLms,
-        _ => super.transformationMatrix(dest)
+        _ => super.transformationMatrix(dest),
       };
 }

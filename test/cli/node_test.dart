@@ -24,17 +24,26 @@ void main() {
   test("--version prints the Sass and dart2js versions", () async {
     var sass = await runSass(["--version"]);
     expect(
-        sass.stdout,
-        emits(matches(
-            RegExp(r"^\d+\.\d+\.\d+.* compiled with dart2js \d+\.\d+\.\d+"))));
+      sass.stdout,
+      emits(
+        matches(
+          RegExp(r"^\d+\.\d+\.\d+.* compiled with dart2js \d+\.\d+\.\d+"),
+        ),
+      ),
+    );
     await sass.shouldExit(0);
   });
 }
 
-Future<TestProcess> runSass(Iterable<String> arguments,
-        {Map<String, String>? environment}) =>
-    pkg.start("sass", arguments,
-        environment: environment,
-        workingDirectory: d.sandbox,
-        encoding: utf8,
-        node: true);
+Future<TestProcess> runSass(
+  Iterable<String> arguments, {
+  Map<String, String>? environment,
+}) =>
+    pkg.start(
+      "sass",
+      arguments,
+      environment: environment,
+      workingDirectory: d.sandbox,
+      encoding: utf8,
+      node: true,
+    );

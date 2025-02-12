@@ -161,7 +161,8 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
   }
 
   void visitInterpolatedFunctionExpression(
-      InterpolatedFunctionExpression node) {
+    InterpolatedFunctionExpression node,
+  ) {
     visitInterpolation(node.name);
     visitArgumentList(node.arguments);
   }

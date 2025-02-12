@@ -22,17 +22,23 @@ final class RgbColorSpace extends ColorSpace {
           LinearChannel('red', 0, 255, lowerClamped: true, upperClamped: true),
           LinearChannel('green', 0, 255,
               lowerClamped: true, upperClamped: true),
-          LinearChannel('blue', 0, 255, lowerClamped: true, upperClamped: true)
+          LinearChannel('blue', 0, 255, lowerClamped: true, upperClamped: true),
         ]);
 
-  SassColor convert(ColorSpace dest, double? red, double? green, double? blue,
-          double? alpha) =>
+  SassColor convert(
+    ColorSpace dest,
+    double? red,
+    double? green,
+    double? blue,
+    double? alpha,
+  ) =>
       ColorSpace.srgb.convert(
-          dest,
-          red == null ? null : red / 255,
-          green == null ? null : green / 255,
-          blue == null ? null : blue / 255,
-          alpha);
+        dest,
+        red == null ? null : red / 255,
+        green == null ? null : green / 255,
+        blue == null ? null : blue / 255,
+        alpha,
+      );
 
   @protected
   double toLinear(double channel) => srgbAndDisplayP3ToLinear(channel / 255);

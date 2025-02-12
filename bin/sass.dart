@@ -49,20 +49,29 @@ Future<void> main(List<String> args) async {
     options.futureDeprecations;
     options.fatalDeprecations;
 
-    var graph = StylesheetGraph(ImportCache(
+    var graph = StylesheetGraph(
+      ImportCache(
         importers: [...options.pkgImporters, FilesystemImporter.noLoadPath],
-        loadPaths: options.loadPaths));
+        loadPaths: options.loadPaths,
+      ),
+    );
     if (options.watch) {
       await watch(options, graph);
       return;
     }
 
-    await compileStylesheets(options, graph, options.sourcesToDestinations,
-        ifModified: options.update);
+    await compileStylesheets(
+      options,
+      graph,
+      options.sourcesToDestinations,
+      ifModified: options.update,
+    );
   } on UsageException catch (error) {
     print("${error.message}\n");
-    print("Usage: sass <input.scss> [output.css]\n"
-        "       sass <input.scss>:<output.css> <input/>:<output/> <dir/>\n");
+    print(
+      "Usage: sass <input.scss> [output.css]\n"
+      "       sass <input.scss>:<output.css> <input/>:<output/> <dir/>\n",
+    );
     print(ExecutableOptions.usage);
     exitCode = 64;
   } catch (error, stackTrace) {
@@ -75,7 +84,8 @@ Future<void> main(List<String> args) async {
     buffer.writeln();
     buffer.writeln();
     buffer.write(
-        Trace.from(getTrace(error) ?? stackTrace).terse.toString().trimRight());
+      Trace.from(getTrace(error) ?? stackTrace).terse.toString().trimRight(),
+    );
     printError(buffer);
     exitCode = 255;
   }
@@ -92,8 +102,9 @@ Future<String> _loadVersion() async {
     return version;
   }
 
-  var libDir =
-      p.fromUri(await Isolate.resolvePackageUri(Uri.parse('package:sass/')));
+  var libDir = p.fromUri(
+    await Isolate.resolvePackageUri(Uri.parse('package:sass/')),
+  );
   var pubspec = readFile(p.join(libDir, '..', 'pubspec.yaml'));
   return pubspec
       .split("\n")

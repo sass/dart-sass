@@ -17,8 +17,10 @@ void main() {
   group("emits private-use area characters as escapes in expanded mode", () {
     testCharacter(String escape) {
       test(escape, () {
-        expect(compileString("a {b: $escape}"),
-            equalsIgnoringWhitespace("a { b: $escape; }"));
+        expect(
+          compileString("a {b: $escape}"),
+          equalsIgnoringWhitespace("a { b: $escape; }"),
+        );
       });
     }
 
@@ -49,13 +51,17 @@ void main() {
 
     group("adds a space", () {
       test("if followed by a hex character", () {
-        expect(compileString(r"a {b: '\e000 a'}"),
-            equalsIgnoringWhitespace(r'a { b: "\e000 a"; }'));
+        expect(
+          compileString(r"a {b: '\e000 a'}"),
+          equalsIgnoringWhitespace(r'a { b: "\e000 a"; }'),
+        );
       });
 
       test("if followed by a space", () {
-        expect(compileString(r"a {b: '\e000  '}"),
-            equalsIgnoringWhitespace(r'a { b: "\e000  "; }'));
+        expect(
+          compileString(r"a {b: '\e000  '}"),
+          equalsIgnoringWhitespace(r'a { b: "\e000  "; }'),
+        );
       });
     });
   });
@@ -68,8 +74,10 @@ void main() {
     });
 
     test("in Sass", () {
-      expect(compileString("/*\r\n  foo\r\n  bar", syntax: Syntax.sass),
-          equals("/* foo\n * bar */"));
+      expect(
+        compileString("/*\r\n  foo\r\n  bar", syntax: Syntax.sass),
+        equals("/* foo\n * bar */"),
+      );
     });
   });
 
@@ -78,8 +86,10 @@ void main() {
   group("removes exponential notation", () {
     group("for integers", () {
       test(">= 1e21", () {
-        expect(compileString("a {b: 1e21}"),
-            equalsIgnoringWhitespace("a { b: 1${'0' * 21}; }"));
+        expect(
+          compileString("a {b: 1e21}"),
+          equalsIgnoringWhitespace("a { b: 1${'0' * 21}; }"),
+        );
       });
 
       // At time of writing, numbers that are 20 digits or fewer are not printed
@@ -87,20 +97,26 @@ void main() {
       // determine when to get rid of the exponent. This test ensures that if that
       // ever changes, we know about it.
       test("< 1e21", () {
-        expect(compileString("a {b: 1e20}"),
-            equalsIgnoringWhitespace("a { b: 1${'0' * 20}; }"));
+        expect(
+          compileString("a {b: 1e20}"),
+          equalsIgnoringWhitespace("a { b: 1${'0' * 20}; }"),
+        );
       });
     });
 
     group("for floating-point numbers", () {
       test("Infinity", () {
-        expect(compileString("a {b: 1e999}"),
-            equalsIgnoringWhitespace("a { b: calc(infinity); }"));
+        expect(
+          compileString("a {b: 1e999}"),
+          equalsIgnoringWhitespace("a { b: calc(infinity); }"),
+        );
       });
 
       test(">= 1e21", () {
-        expect(compileString("a {b: 1.01e21}"),
-            equalsIgnoringWhitespace("a { b: 101${'0' * 19}; }"));
+        expect(
+          compileString("a {b: 1.01e21}"),
+          equalsIgnoringWhitespace("a { b: 101${'0' * 19}; }"),
+        );
       });
 
       // At time of writing, numbers that are 20 digits or fewer are not printed
@@ -108,8 +124,10 @@ void main() {
       // determine when to get rid of the exponent. This test ensures that if that
       // ever changes, we know about it.
       test("< 1e21", () {
-        expect(compileString("a {b: 1.01e20}"),
-            equalsIgnoringWhitespace("a { b: 101${'0' * 18}; }"));
+        expect(
+          compileString("a {b: 1.01e20}"),
+          equalsIgnoringWhitespace("a { b: 101${'0' * 18}; }"),
+        );
       });
     });
   });
@@ -121,40 +139,55 @@ void main() {
   group("uses a nice format to inspect numbers with complex units", () {
     group("finite", () {
       test("top-level", () {
-        expect(compileString("""
+        expect(
+          compileString("""
           @use 'sass:meta';
           a {b: meta.inspect(1px * 1em)};
-        """), equalsIgnoringWhitespace('a { b: calc(1px * 1em); }'));
+        """),
+          equalsIgnoringWhitespace('a { b: calc(1px * 1em); }'),
+        );
       });
 
       test("in calc", () {
-        expect(compileString("""
+        expect(
+          compileString("""
           @use 'sass:meta';
           a {b: meta.inspect(calc(1px * 1em))};
-        """), equalsIgnoringWhitespace('a { b: calc(1px * 1em); }'));
+        """),
+          equalsIgnoringWhitespace('a { b: calc(1px * 1em); }'),
+        );
       });
 
       test("nested in calc", () {
-        expect(compileString("""
+        expect(
+          compileString("""
           @use 'sass:meta';
           a {b: meta.inspect(calc(c / (1px * 1em)))};
-        """), equalsIgnoringWhitespace('a { b: calc(c / (1px * 1em)); }'));
+        """),
+          equalsIgnoringWhitespace('a { b: calc(c / (1px * 1em)); }'),
+        );
       });
 
       test("numerator and denominator", () {
-        expect(compileString("""
+        expect(
+          compileString("""
           @use 'sass:math';
           @use 'sass:meta';
           a {b: meta.inspect(1px * math.div(math.div(1em, 1s), 1x))};
-        """), equalsIgnoringWhitespace('a { b: calc(1px * 1em / 1s / 1x); }'));
+        """),
+          equalsIgnoringWhitespace('a { b: calc(1px * 1em / 1s / 1x); }'),
+        );
       });
 
       test("denominator only", () {
-        expect(compileString("""
+        expect(
+          compileString("""
           @use 'sass:math';
           @use 'sass:meta';
           a {b: meta.inspect(math.div(math.div(1, 1s), 1x))};
-        """), equalsIgnoringWhitespace('a { b: calc(1 / 1s / 1x); }'));
+        """),
+          equalsIgnoringWhitespace('a { b: calc(1 / 1s / 1x); }'),
+        );
       });
     });
   });
@@ -165,102 +198,130 @@ void main() {
   // trailing loud comments in the Sass syntax.
   group("preserve trailing loud comments in SCSS", () {
     test("after open block", () {
-      expect(compileString("""
+      expect(
+        compileString("""
 selector { /* please don't move me */
   name: value;
-}"""), equals("""
+}"""),
+        equals("""
 selector { /* please don't move me */
   name: value;
-}"""));
+}"""),
+      );
     });
 
     test("after open block (multi-line selector)", () {
-      expect(compileString("""
+      expect(
+        compileString("""
 selector1,
 selector2 { /* please don't move me */
   name: value;
-}"""), equals("""
+}"""),
+        equals("""
 selector1,
 selector2 { /* please don't move me */
   name: value;
-}"""));
+}"""),
+      );
     });
 
     test("after close block", () {
-      expect(compileString("""
+      expect(
+        compileString("""
 selector {
   name: value;
-} /* please don't move me */"""), equals("""
+} /* please don't move me */"""),
+        equals("""
 selector {
   name: value;
-} /* please don't move me */"""));
+} /* please don't move me */"""),
+      );
     });
 
     test("only content in block", () {
-      expect(compileString("""
+      expect(
+        compileString("""
 selector {
   /* please don't move me */
-}"""), equals("""
+}"""),
+        equals("""
 selector {
   /* please don't move me */
-}"""));
+}"""),
+      );
     });
 
     test("only content in block (no newlines)", () {
-      expect(compileString("""
-selector { /* please don't move me */ }"""), equals("""
-selector { /* please don't move me */ }"""));
+      expect(
+        compileString("""
+selector { /* please don't move me */ }"""),
+        equals("""
+selector { /* please don't move me */ }"""),
+      );
     });
 
     test("double trailing empty block", () {
-      expect(compileString("""
+      expect(
+        compileString("""
 selector { /* please don't move me */ /* please don't move me */ }"""),
-          equals("""
+        equals("""
 selector { /* please don't move me */ /* please don't move me */
-}"""));
+}"""),
+      );
     });
 
     test("double trailing style rule", () {
-      expect(compileString("""
+      expect(
+        compileString("""
 selector {
   margin: 1px; /* please don't move me */ /* please don't move me */
-}"""), equals("""
+}"""),
+        equals("""
 selector {
   margin: 1px; /* please don't move me */ /* please don't move me */
-}"""));
+}"""),
+      );
     });
 
     test("after property in block", () {
-      expect(compileString("""
+      expect(
+        compileString("""
 selector {
   name1: value1; /* please don't move me 1 */
   name2: value2; /* please don't move me 2 */
   name3: value3; /* please don't move me 3 */
-}"""), equals("""
+}"""),
+        equals("""
 selector {
   name1: value1; /* please don't move me 1 */
   name2: value2; /* please don't move me 2 */
   name3: value3; /* please don't move me 3 */
-}"""));
+}"""),
+      );
     });
 
     test("after rule in block", () {
-      expect(compileString("""
+      expect(
+        compileString("""
 selector {
   @rule1; /* please don't move me 1 */
   @rule2; /* please don't move me 2 */
   @rule3; /* please don't move me 3 */
-}"""), equals("""
+}"""),
+        equals("""
 selector {
   @rule1; /* please don't move me 1 */
   @rule2; /* please don't move me 2 */
   @rule3; /* please don't move me 3 */
-}"""));
+}"""),
+      );
     });
 
     test("after top-level statement", () {
-      expect(compileString("@rule; /* please don't move me */"),
-          equals("@rule; /* please don't move me */"));
+      expect(
+        compileString("@rule; /* please don't move me */"),
+        equals("@rule; /* please don't move me */"),
+      );
     });
 
     // The trailing comment detection logic looks for left braces to detect
@@ -268,56 +329,68 @@ selector {
     // checks to make sure it isn't confused by syntax that uses braces for
     // things other than starting child blocks.
     test("selector contains left brace", () {
-      expect(compileString("""@rule1;
+      expect(
+        compileString("""@rule1;
 @rule2;
 selector[href*="{"]
 { /* please don't move me */ }
 
-@rule3;"""), equals("""@rule1;
+@rule3;"""),
+        equals("""@rule1;
 @rule2;
 selector[href*="{"] { /* please don't move me */ }
 
-@rule3;"""));
+@rule3;"""),
+      );
     });
 
     group("loud comments in mixin", () {
       test("empty with spacing", () {
-        expect(compileString("""
+        expect(
+          compileString("""
 @mixin loudComment {
   /* ... */
 }
 
 selector {
   @include loudComment;
-}"""), """
+}"""),
+          """
 selector {
   /* ... */
-}""");
+}""",
+        );
       });
 
       test("empty no spacing", () {
-        expect(compileString("""
+        expect(
+          compileString("""
 @mixin loudComment{/* ... */}
-selector {@include loudComment;}"""), """
+selector {@include loudComment;}"""),
+          """
 selector {
   /* ... */
-}""");
+}""",
+        );
       });
 
       test("with style rule", () {
-        expect(compileString("""
+        expect(
+          compileString("""
 @mixin loudComment {
   margin: 1px; /* mixin */
 } /* mixin-out */
 
 selector {
   @include loudComment; /* selector */
-}"""), """
+}"""),
+          """
 /* mixin-out */
 selector {
   margin: 1px; /* mixin */
   /* selector */
-}""");
+}""",
+        );
       });
     });
 

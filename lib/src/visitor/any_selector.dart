@@ -13,8 +13,9 @@ import 'interface/selector.dart';
 /// Each method returns `false` by default.
 @internal
 mixin AnySelectorVisitor implements SelectorVisitor<bool> {
-  bool visitComplexSelector(ComplexSelector complex) => complex.components
-      .any((component) => visitCompoundSelector(component.selector));
+  bool visitComplexSelector(ComplexSelector complex) => complex.components.any(
+        (component) => visitCompoundSelector(component.selector),
+      );
 
   bool visitCompoundSelector(CompoundSelector compound) =>
       compound.components.any((simple) => simple.accept(this));

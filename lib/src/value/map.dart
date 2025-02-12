@@ -32,7 +32,7 @@ class SassMap extends Value {
 
   List<Value> get asList => [
         for (var (key, value) in contents.pairs)
-          SassList([key, value], ListSeparator.space)
+          SassList([key, value], ListSeparator.space),
       ];
 
   /// @nodoc

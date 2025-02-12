@@ -44,8 +44,10 @@ class CssParser extends ScssParser {
 
     var start = scanner.state;
     super.silentComment();
-    error("Silent comments aren't allowed in plain CSS.",
-        scanner.spanFrom(start));
+    error(
+      "Silent comments aren't allowed in plain CSS.",
+      scanner.spanFrom(start),
+    );
   }
 
   Statement atRule(Statement child(), {bool root = false}) {
@@ -77,7 +79,7 @@ class CssParser extends ScssParser {
       "media" => mediaRule(start),
       "-moz-document" => mozDocumentRule(start, name),
       "supports" => supportsRule(start),
-      _ => unknownAtRule(start, name)
+      _ => unknownAtRule(start, name),
     };
   }
 
@@ -103,7 +105,7 @@ class CssParser extends ScssParser {
               rest: null,
               keywordRest: null,
             ),
-            :var span
+            :var span,
           ) =>
             (InterpolationBuffer()
                   ..addInterpolation(name)
@@ -112,19 +114,22 @@ class CssParser extends ScssParser {
                   ..writeCharCode($rparen))
                 .interpolation(span),
           // This shouldn't be reachable.
-          var expression =>
-            error("Unsupported plain CSS import.", expression.span)
+          var expression => error(
+              "Unsupported plain CSS import.",
+              expression.span,
+            ),
         },
-      _ => StringExpression(interpolatedString().asInterpolation(static: true))
-          .text
+      _ => StringExpression(
+          interpolatedString().asInterpolation(static: true),
+        ).text,
     };
 
     _whitespace();
     var modifiers = tryImportModifiers();
     expectStatementSeparator("@import rule");
-    return ImportRule(
-        [StaticImport(url, scanner.spanFrom(urlStart), modifiers: modifiers)],
-        scanner.spanFrom(start));
+    return ImportRule([
+      StaticImport(url, scanner.spanFrom(urlStart), modifiers: modifiers),
+    ], scanner.spanFrom(start));
   }
 
   ParenthesizedExpression parentheses() {
@@ -173,13 +178,16 @@ class CssParser extends ScssParser {
 
     if (_disallowedFunctionNames.contains(plain)) {
       error(
-          "This function isn't allowed in plain CSS.", scanner.spanFrom(start));
+        "This function isn't allowed in plain CSS.",
+        scanner.spanFrom(start),
+      );
     }
 
     return FunctionExpression(
-        plain,
-        ArgumentList(arguments, const {}, scanner.spanFrom(beforeArguments)),
-        scanner.spanFrom(start));
+      plain,
+      ArgumentList(arguments, const {}, scanner.spanFrom(beforeArguments)),
+      scanner.spanFrom(start),
+    );
   }
 
   Expression namespacedExpression(String namespace, LineScannerState start) {

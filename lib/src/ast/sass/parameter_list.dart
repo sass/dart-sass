@@ -81,16 +81,18 @@ final class ParameterList implements SassNode {
       if (i < positional) {
         if (names.contains(parameter.name)) {
           throw SassScriptException(
-              "Argument ${_originalParameterName(parameter.name)} was passed "
-              "both by position and by name.");
+            "Argument ${_originalParameterName(parameter.name)} was passed "
+            "both by position and by name.",
+          );
         }
       } else if (names.contains(parameter.name)) {
         namedUsed++;
       } else if (parameter.defaultValue == null) {
         throw MultiSpanSassScriptException(
-            "Missing argument ${_originalParameterName(parameter.name)}.",
-            "invocation",
-            {spanWithName: "declaration"});
+          "Missing argument ${_originalParameterName(parameter.name)}.",
+          "invocation",
+          {spanWithName: "declaration"},
+        );
       }
     }
 
@@ -98,23 +100,25 @@ final class ParameterList implements SassNode {
 
     if (positional > parameters.length) {
       throw MultiSpanSassScriptException(
-          "Only ${parameters.length} "
-              "${names.isEmpty ? '' : 'positional '}"
-              "${pluralize('argument', parameters.length)} allowed, but "
-              "$positional ${pluralize('was', positional, plural: 'were')} "
-              "passed.",
-          "invocation",
-          {spanWithName: "declaration"});
+        "Only ${parameters.length} "
+            "${names.isEmpty ? '' : 'positional '}"
+            "${pluralize('argument', parameters.length)} allowed, but "
+            "$positional ${pluralize('was', positional, plural: 'were')} "
+            "passed.",
+        "invocation",
+        {spanWithName: "declaration"},
+      );
     }
 
     if (namedUsed < names.length) {
       var unknownNames = Set.of(names)
         ..removeAll(parameters.map((parameter) => parameter.name));
       throw MultiSpanSassScriptException(
-          "No ${pluralize('parameter', unknownNames.length)} named "
-              "${toSentence(unknownNames.map((name) => "\$$name"), 'or')}.",
-          "invocation",
-          {spanWithName: "declaration"});
+        "No ${pluralize('parameter', unknownNames.length)} named "
+            "${toSentence(unknownNames.map((name) => "\$$name"), 'or')}.",
+        "invocation",
+        {spanWithName: "declaration"},
+      );
     }
   }
 
@@ -157,6 +161,6 @@ final class ParameterList implements SassNode {
 
   String toString() => [
         for (var arg in parameters) '\$$arg',
-        if (restParameter != null) '\$$restParameter...'
+        if (restParameter != null) '\$$restParameter...',
       ].join(', ');
 }

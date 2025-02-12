@@ -67,22 +67,32 @@ void main() {
       });
 
       test("rejects a non-number", () {
-        expect(() => value.sassIndexToStringIndex(SassString("foo")),
-            throwsSassScriptException);
+        expect(
+          () => value.sassIndexToStringIndex(SassString("foo")),
+          throwsSassScriptException,
+        );
       });
 
       test("rejects a non-integer", () {
-        expect(() => value.sassIndexToStringIndex(SassNumber(1.1)),
-            throwsSassScriptException);
+        expect(
+          () => value.sassIndexToStringIndex(SassNumber(1.1)),
+          throwsSassScriptException,
+        );
       });
 
       test("rejects invalid indices", () {
-        expect(() => value.sassIndexToStringIndex(SassNumber(0)),
-            throwsSassScriptException);
-        expect(() => value.sassIndexToStringIndex(SassNumber(7)),
-            throwsSassScriptException);
-        expect(() => value.sassIndexToStringIndex(SassNumber(-7)),
-            throwsSassScriptException);
+        expect(
+          () => value.sassIndexToStringIndex(SassNumber(0)),
+          throwsSassScriptException,
+        );
+        expect(
+          () => value.sassIndexToStringIndex(SassNumber(7)),
+          throwsSassScriptException,
+        );
+        expect(
+          () => value.sassIndexToStringIndex(SassNumber(-7)),
+          throwsSassScriptException,
+        );
       });
     });
 
@@ -106,22 +116,32 @@ void main() {
       });
 
       test("rejects a non-number", () {
-        expect(() => value.sassIndexToRuneIndex(SassString("foo")),
-            throwsSassScriptException);
+        expect(
+          () => value.sassIndexToRuneIndex(SassString("foo")),
+          throwsSassScriptException,
+        );
       });
 
       test("rejects a non-integer", () {
-        expect(() => value.sassIndexToRuneIndex(SassNumber(1.1)),
-            throwsSassScriptException);
+        expect(
+          () => value.sassIndexToRuneIndex(SassNumber(1.1)),
+          throwsSassScriptException,
+        );
       });
 
       test("rejects invalid indices", () {
-        expect(() => value.sassIndexToRuneIndex(SassNumber(0)),
-            throwsSassScriptException);
-        expect(() => value.sassIndexToRuneIndex(SassNumber(7)),
-            throwsSassScriptException);
-        expect(() => value.sassIndexToRuneIndex(SassNumber(-7)),
-            throwsSassScriptException);
+        expect(
+          () => value.sassIndexToRuneIndex(SassNumber(0)),
+          throwsSassScriptException,
+        );
+        expect(
+          () => value.sassIndexToRuneIndex(SassNumber(7)),
+          throwsSassScriptException,
+        );
+        expect(
+          () => value.sassIndexToRuneIndex(SassNumber(-7)),
+          throwsSassScriptException,
+        );
       });
     });
   });
@@ -170,12 +190,18 @@ void main() {
       });
 
       test("rejects invalid indices", () {
-        expect(() => value.sassIndexToStringIndex(SassNumber(0)),
-            throwsSassScriptException);
-        expect(() => value.sassIndexToStringIndex(SassNumber(6)),
-            throwsSassScriptException);
-        expect(() => value.sassIndexToStringIndex(SassNumber(-6)),
-            throwsSassScriptException);
+        expect(
+          () => value.sassIndexToStringIndex(SassNumber(0)),
+          throwsSassScriptException,
+        );
+        expect(
+          () => value.sassIndexToStringIndex(SassNumber(6)),
+          throwsSassScriptException,
+        );
+        expect(
+          () => value.sassIndexToStringIndex(SassNumber(-6)),
+          throwsSassScriptException,
+        );
       });
     });
 
@@ -197,12 +223,18 @@ void main() {
       });
 
       test("rejects invalid indices", () {
-        expect(() => value.sassIndexToRuneIndex(SassNumber(0)),
-            throwsSassScriptException);
-        expect(() => value.sassIndexToRuneIndex(SassNumber(6)),
-            throwsSassScriptException);
-        expect(() => value.sassIndexToRuneIndex(SassNumber(-6)),
-            throwsSassScriptException);
+        expect(
+          () => value.sassIndexToRuneIndex(SassNumber(0)),
+          throwsSassScriptException,
+        );
+        expect(
+          () => value.sassIndexToRuneIndex(SassNumber(6)),
+          throwsSassScriptException,
+        );
+        expect(
+          () => value.sassIndexToRuneIndex(SassNumber(-6)),
+          throwsSassScriptException,
+        );
       });
     });
   });

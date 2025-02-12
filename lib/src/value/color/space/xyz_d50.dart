@@ -25,12 +25,17 @@ final class XyzD50ColorSpace extends ColorSpace {
   const XyzD50ColorSpace() : super('xyz-d50', xyzChannels);
 
   SassColor convert(
-      ColorSpace dest, double? x, double? y, double? z, double? alpha,
-      {bool missingLightness = false,
-      bool missingChroma = false,
-      bool missingHue = false,
-      bool missingA = false,
-      bool missingB = false}) {
+    ColorSpace dest,
+    double? x,
+    double? y,
+    double? z,
+    double? alpha, {
+    bool missingLightness = false,
+    bool missingChroma = false,
+    bool missingHue = false,
+    bool missingA = false,
+    bool missingB = false,
+  }) {
     switch (dest) {
       case ColorSpace.lab || ColorSpace.lch:
         // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
@@ -44,17 +49,34 @@ final class XyzD50ColorSpace extends ColorSpace {
 
         return dest == ColorSpace.lab
             ? SassColor.lab(
-                lightness, missingA ? null : a, missingB ? null : b, alpha)
-            : labToLch(ColorSpace.lch, lightness, a, b, alpha,
-                missingChroma: missingChroma, missingHue: missingHue);
+                lightness,
+                missingA ? null : a,
+                missingB ? null : b,
+                alpha,
+              )
+            : labToLch(
+                ColorSpace.lch,
+                lightness,
+                a,
+                b,
+                alpha,
+                missingChroma: missingChroma,
+                missingHue: missingHue,
+              );
 
       default:
-        return super.convertLinear(dest, x, y, z, alpha,
-            missingLightness: missingLightness,
-            missingChroma: missingChroma,
-            missingHue: missingHue,
-            missingA: missingA,
-            missingB: missingB);
+        return super.convertLinear(
+          dest,
+          x,
+          y,
+          z,
+          alpha,
+          missingLightness: missingLightness,
+          missingChroma: missingChroma,
+          missingHue: missingHue,
+          missingA: missingA,
+          missingB: missingB,
+        );
     }
   }
 
@@ -81,6 +103,6 @@ final class XyzD50ColorSpace extends ColorSpace {
         ColorSpace.rec2020 => xyzD50ToLinearRec2020,
         ColorSpace.xyzD65 => xyzD50ToXyzD65,
         ColorSpace.lms => xyzD50ToLms,
-        _ => super.transformationMatrix(dest)
+        _ => super.transformationMatrix(dest),
       };
 }

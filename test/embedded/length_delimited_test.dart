@@ -40,8 +40,10 @@ void main() {
     test("encodes a message of length greater than 256", () {
       sink.add(List.filled(300, 1));
       sink.close();
-      expect(collectBytes(stream),
-          completion(equals([172, 2, ...List.filled(300, 1)])));
+      expect(
+        collectBytes(stream),
+        completion(equals([172, 2, ...List.filled(300, 1)])),
+      );
     });
 
     test("encodes multiple messages", () {
@@ -49,8 +51,10 @@ void main() {
       sink.add([20, 30]);
       sink.add([40, 50, 60]);
       sink.close();
-      expect(collectBytes(stream),
-          completion(equals([1, 10, 2, 20, 30, 3, 40, 50, 60])));
+      expect(
+        collectBytes(stream),
+        completion(equals([1, 10, 2, 20, 30, 3, 40, 50, 60])),
+      );
     });
   });
 

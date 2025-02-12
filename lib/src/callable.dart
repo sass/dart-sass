@@ -70,8 +70,11 @@ export 'callable/user_defined.dart';
 @sealed
 abstract interface class Callable implements AsyncCallable {
   @Deprecated('Use `Callable.function` instead.')
-  factory Callable(String name, String arguments,
-          Value callback(List<Value> arguments)) =>
+  factory Callable(
+    String name,
+    String arguments,
+    Value callback(List<Value> arguments),
+  ) =>
       Callable.function(name, arguments, callback);
 
   /// Creates a function with the given [name] and [arguments] that runs
@@ -116,18 +119,25 @@ abstract interface class Callable implements AsyncCallable {
   /// Note that the argument list is always an instance of [SassArgumentList],
   /// which provides access to keyword arguments using
   /// [SassArgumentList.keywords].
-  factory Callable.function(String name, String arguments,
-          Value callback(List<Value> arguments)) =>
+  factory Callable.function(
+    String name,
+    String arguments,
+    Value callback(List<Value> arguments),
+  ) =>
       BuiltInCallable.function(name, arguments, callback);
 
   /// Creates a callable with a single [signature] and a single [callback].
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory Callable.fromSignature(
-      String signature, Value callback(List<Value> arguments),
-      {bool requireParens = true}) {
-    var (name, declaration) =
-        parseSignature(signature, requireParens: requireParens);
+    String signature,
+    Value callback(List<Value> arguments), {
+    bool requireParens = true,
+  }) {
+    var (name, declaration) = parseSignature(
+      signature,
+      requireParens: requireParens,
+    );
     return BuiltInCallable.parsed(name, declaration, callback);
   }
 }

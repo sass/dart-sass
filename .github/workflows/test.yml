@@ -15,8 +15,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: dart-lang/setup-dart@v1
-    - run: dart format --fix .
-    - run: git diff --exit-code
+    - run: dart pub get
+    - run: dart format --set-exit-if-changed .
 
   static_analysis:
     name: Static analysis

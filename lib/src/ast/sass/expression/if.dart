@@ -16,8 +16,9 @@ import '../../../visitor/interface/expression.dart';
 /// {@category AST}
 final class IfExpression extends Expression implements CallableInvocation {
   /// The declaration of `if()`, as though it were a normal function.
-  static final declaration =
-      ParameterList.parse(r"@function if($condition, $if-true, $if-false) {");
+  static final declaration = ParameterList.parse(
+    r"@function if($condition, $if-true, $if-false) {",
+  );
 
   /// The arguments passed to `if()`.
   final ArgumentList arguments;

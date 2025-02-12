@@ -15,21 +15,34 @@ import 'options.dart';
 
 /// Compiles the stylesheets concurrently and returns whether all stylesheets are compiled
 /// successfully.
-Future<bool> compileStylesheets(ExecutableOptions options,
-    StylesheetGraph graph, Map<String?, String?> sourcesToDestinations,
-    {bool ifModified = false}) async {
+Future<bool> compileStylesheets(
+  ExecutableOptions options,
+  StylesheetGraph graph,
+  Map<String?, String?> sourcesToDestinations, {
+  bool ifModified = false,
+}) async {
   var errorsWithStackTraces = switch ([...sourcesToDestinations.pairs]) {
     // Concurrency does add some overhead, so avoid it in the common case of
     // compiling a single stylesheet.
     [(var source, var destination)] => [
-        await compileStylesheet(options, graph, source, destination,
-            ifModified: ifModified)
+        await compileStylesheet(
+          options,
+          graph,
+          source,
+          destination,
+          ifModified: ifModified,
+        ),
       ],
     var pairs => await Future.wait([
         for (var (source, destination) in pairs)
-          compileStylesheetConcurrently(options, graph, source, destination,
-              ifModified: ifModified)
-      ], eagerError: options.stopOnError)
+          compileStylesheetConcurrently(
+            options,
+            graph,
+            source,
+            destination,
+            ifModified: ifModified,
+          ),
+      ], eagerError: options.stopOnError),
   };
 
   var printedError = false;

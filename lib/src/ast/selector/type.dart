@@ -27,7 +27,9 @@ final class TypeSelector extends SimpleSelector {
   /// @nodoc
   @internal
   TypeSelector addSuffix(String suffix) => TypeSelector(
-      QualifiedName(name.name + suffix, namespace: name.namespace), span);
+        QualifiedName(name.name + suffix, namespace: name.namespace),
+        span,
+      );
 
   /// @nodoc
   @internal

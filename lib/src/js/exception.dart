@@ -51,7 +51,7 @@ final JSClass exceptionClass = () {
         exception._dartException.message,
     'sassStack': (_NodeException exception) =>
         exception._dartException.trace.toString(),
-    'span': (_NodeException exception) => exception._dartException.span
+    'span': (_NodeException exception) => exception._dartException.span,
   });
 
   return jsClass;
@@ -66,14 +66,18 @@ final JSClass exceptionClass = () {
 /// stringification.
 ///
 /// If [trace] is passed, it's used as the stack trace for the JS exception.
-Never throwNodeException(SassException exception,
-    {required bool color, required bool ascii, StackTrace? trace}) {
+Never throwNodeException(
+  SassException exception, {
+  required bool color,
+  required bool ascii,
+  StackTrace? trace,
+}) {
   var wasAscii = glyph.ascii;
   glyph.ascii = ascii;
   try {
     var jsException = exceptionClass.construct([
       exception,
-      exception.toString(color: color).replaceFirst('Error: ', '')
+      exception.toString(color: color).replaceFirst('Error: ', ''),
     ]) as _NodeException;
     trace = getTrace(exception) ?? trace;
     if (trace != null) attachJsStack(jsException, trace);

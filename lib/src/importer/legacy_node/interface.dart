@@ -3,18 +3,30 @@
 // https://opensource.org/licenses/MIT.
 
 final class NodeImporter {
-  NodeImporter(Object options, Iterable<String> includePaths,
-      Iterable<Object> importers);
+  NodeImporter(
+    Object options,
+    Iterable<String> includePaths,
+    Iterable<Object> importers,
+  );
 
   (String contents, String url)? loadRelative(
-          String url, Uri? previous, bool forImport) =>
+    String url,
+    Uri? previous,
+    bool forImport,
+  ) =>
       throw '';
 
   (String contents, String url)? load(
-          String url, Uri? previous, bool forImport) =>
+    String url,
+    Uri? previous,
+    bool forImport,
+  ) =>
       throw '';
 
   Future<(String contents, String url)?> loadAsync(
-          String url, Uri? previous, bool forImport) =>
+    String url,
+    Uri? previous,
+    bool forImport,
+  ) =>
       throw '';
 }

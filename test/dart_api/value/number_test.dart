@@ -44,19 +44,29 @@ void main() {
 
     test("can be coerced to any units", () {
       expect(
-          value.coerce(["abc"], ["def"]),
-          equals(SassNumber.withUnits(123,
-              numeratorUnits: ["abc"], denominatorUnits: ["def"])));
+        value.coerce(["abc"], ["def"]),
+        equals(
+          SassNumber.withUnits(
+            123,
+            numeratorUnits: ["abc"],
+            denominatorUnits: ["def"],
+          ),
+        ),
+      );
     });
 
     test("can be converted to unitless", () {
-      expect(value.convertToMatch(SassNumber(456)),
-          equals(SassNumber.withUnits(123)));
+      expect(
+        value.convertToMatch(SassNumber(456)),
+        equals(SassNumber.withUnits(123)),
+      );
     });
 
     test("can't be converted to a unit", () {
-      expect(() => value.convertToMatch(SassNumber(456, "px")),
-          throwsSassScriptException);
+      expect(
+        () => value.convertToMatch(SassNumber(456, "px")),
+        throwsSassScriptException,
+      );
     });
 
     test("can coerce its value to unitless", () {
@@ -72,8 +82,10 @@ void main() {
     });
 
     test("can't convert its value to any units", () {
-      expect(() => value.convertValueToMatch(SassNumber(456, "px")),
-          throwsSassScriptException);
+      expect(
+        () => value.convertValueToMatch(SassNumber(456, "px")),
+        throwsSassScriptException,
+      );
     });
 
     test("is compatible with any unit", () {
@@ -99,26 +111,34 @@ void main() {
 
     test("equals the same number within precision tolerance", () {
       expect(
-          value,
-          equalsWithHash(
-              SassNumber(123 + math.pow(10, -SassNumber.precision - 2))));
+        value,
+        equalsWithHash(
+          SassNumber(123 + math.pow(10, -SassNumber.precision - 2)),
+        ),
+      );
       expect(
-          value,
-          equalsWithHash(
-              SassNumber(123 - math.pow(10, -SassNumber.precision - 2))));
+        value,
+        equalsWithHash(
+          SassNumber(123 - math.pow(10, -SassNumber.precision - 2)),
+        ),
+      );
     });
 
     test("doesn't equal a different number", () {
       expect(value, isNot(equals(SassNumber(124))));
       expect(value, isNot(equals(SassNumber(122))));
       expect(
-          value,
-          isNot(equals(
-              SassNumber(123 + math.pow(10, -SassNumber.precision - 1)))));
+        value,
+        isNot(
+          equals(SassNumber(123 + math.pow(10, -SassNumber.precision - 1))),
+        ),
+      );
       expect(
-          value,
-          isNot(equals(
-              SassNumber(123 - math.pow(10, -SassNumber.precision - 1)))));
+        value,
+        isNot(
+          equals(SassNumber(123 - math.pow(10, -SassNumber.precision - 1))),
+        ),
+      );
     });
 
     test("doesn't equal a number with units", () {
@@ -171,17 +191,21 @@ void main() {
 
     test("equals the same number", () {
       expect(
-          value,
-          equalsWithHash(
-              SassNumber(123 + math.pow(10, -SassNumber.precision - 2))));
+        value,
+        equalsWithHash(
+          SassNumber(123 + math.pow(10, -SassNumber.precision - 2)),
+        ),
+      );
     });
 
     test("equals the same number within precision tolerance", () {
       expect(value, equalsWithHash(SassNumber(123)));
       expect(
-          value,
-          equalsWithHash(
-              SassNumber(123 - math.pow(10, -SassNumber.precision - 2))));
+        value,
+        equalsWithHash(
+          SassNumber(123 - math.pow(10, -SassNumber.precision - 2)),
+        ),
+      );
     });
 
     group("valueInRange()", () {
@@ -230,19 +254,25 @@ void main() {
     });
 
     test("can't be converted to unitless", () {
-      expect(() => value.convertToMatch(SassNumber(456)),
-          throwsSassScriptException);
+      expect(
+        () => value.convertToMatch(SassNumber(456)),
+        throwsSassScriptException,
+      );
     });
 
     test("can be converted to compatible units", () {
       expect(value.convertToMatch(SassNumber(456, "px")), equals(value));
-      expect(value.convertToMatch(SassNumber(456, "in")),
-          equals(SassNumber(1.28125, "in")));
+      expect(
+        value.convertToMatch(SassNumber(456, "in")),
+        equals(SassNumber(1.28125, "in")),
+      );
     });
 
     test("can't be converted to incompatible units", () {
-      expect(() => value.convertToMatch(SassNumber(456, "abc")),
-          throwsSassScriptException);
+      expect(
+        () => value.convertToMatch(SassNumber(456, "abc")),
+        throwsSassScriptException,
+      );
     });
 
     test("can coerce its value to unitless", () {
@@ -259,8 +289,10 @@ void main() {
     });
 
     test("can't convert its value to unitless", () {
-      expect(() => value.convertValueToMatch(SassNumber(456)),
-          throwsSassScriptException);
+      expect(
+        () => value.convertValueToMatch(SassNumber(456)),
+        throwsSassScriptException,
+      );
     });
 
     test("can convert its value to compatible units", () {
@@ -269,8 +301,10 @@ void main() {
     });
 
     test("can't convert its value to incompatible units", () {
-      expect(() => value.convertValueToMatch(SassNumber(456, "abc")),
-          throwsSassScriptException);
+      expect(
+        () => value.convertValueToMatch(SassNumber(456, "abc")),
+        throwsSassScriptException,
+      );
     });
 
     test("is compatible with the same unit", () {
@@ -301,15 +335,25 @@ void main() {
     test("doesn't equal a number with different units", () {
       expect(value, isNot(equals(SassNumber(123, "abc"))));
       expect(
-          value,
-          isNot(
-              equals(SassNumber.withUnits(123, numeratorUnits: ["px", "px"]))));
+        value,
+        isNot(equals(SassNumber.withUnits(123, numeratorUnits: ["px", "px"]))),
+      );
       expect(
-          value,
-          isNot(equals(SassNumber.withUnits(123,
-              numeratorUnits: ["px"], denominatorUnits: ["abc"]))));
-      expect(value,
-          isNot(equals(SassNumber.withUnits(123, denominatorUnits: ["px"]))));
+        value,
+        isNot(
+          equals(
+            SassNumber.withUnits(
+              123,
+              numeratorUnits: ["px"],
+              denominatorUnits: ["abc"],
+            ),
+          ),
+        ),
+      );
+      expect(
+        value,
+        isNot(equals(SassNumber.withUnits(123, denominatorUnits: ["px"]))),
+      );
     });
   });
 
@@ -337,17 +381,34 @@ void main() {
     test("can be coerced to compatible units", () {
       expect(value.coerce(["px"], ["ms"]), equals(value));
       expect(
-          value.coerce(["in"], ["s"]),
-          equals(SassNumber.withUnits(256.25,
-              numeratorUnits: ["in"], denominatorUnits: ["s"])));
+        value.coerce(["in"], ["s"]),
+        equals(
+          SassNumber.withUnits(
+            256.25,
+            numeratorUnits: ["in"],
+            denominatorUnits: ["s"],
+          ),
+        ),
+      );
     });
 
     test("can coerce to match another number", () {
       expect(
-          value.coerceToMatch(SassNumber.withUnits(456,
-              numeratorUnits: ["in"], denominatorUnits: ["s"])),
-          equals(SassNumber.withUnits(256.25,
-              numeratorUnits: ["in"], denominatorUnits: ["s"])));
+        value.coerceToMatch(
+          SassNumber.withUnits(
+            456,
+            numeratorUnits: ["in"],
+            denominatorUnits: ["s"],
+          ),
+        ),
+        equals(
+          SassNumber.withUnits(
+            256.25,
+            numeratorUnits: ["in"],
+            denominatorUnits: ["s"],
+          ),
+        ),
+      );
     });
 
     test("can't be coerced to incompatible units", () {
@@ -355,20 +416,39 @@ void main() {
     });
 
     test("can't be converted to unitless", () {
-      expect(() => value.convertToMatch(SassNumber(456)),
-          throwsSassScriptException);
+      expect(
+        () => value.convertToMatch(SassNumber(456)),
+        throwsSassScriptException,
+      );
     });
 
     test("can be converted to compatible units", () {
       expect(
-          value.convertToMatch(SassNumber.withUnits(456,
-              numeratorUnits: ["px"], denominatorUnits: ["ms"])),
-          equals(value));
+        value.convertToMatch(
+          SassNumber.withUnits(
+            456,
+            numeratorUnits: ["px"],
+            denominatorUnits: ["ms"],
+          ),
+        ),
+        equals(value),
+      );
       expect(
-          value.convertToMatch(SassNumber.withUnits(456,
-              numeratorUnits: ["in"], denominatorUnits: ["s"])),
-          equals(SassNumber.withUnits(256.25,
-              numeratorUnits: ["in"], denominatorUnits: ["s"])));
+        value.convertToMatch(
+          SassNumber.withUnits(
+            456,
+            numeratorUnits: ["in"],
+            denominatorUnits: ["s"],
+          ),
+        ),
+        equals(
+          SassNumber.withUnits(
+            256.25,
+            numeratorUnits: ["in"],
+            denominatorUnits: ["s"],
+          ),
+        ),
+      );
     });
 
     test("can coerce its value to unitless", () {
@@ -385,24 +465,40 @@ void main() {
     });
 
     test("can't convert its value to unitless", () {
-      expect(() => value.convertValueToMatch(SassNumber(456)),
-          throwsSassScriptException);
+      expect(
+        () => value.convertValueToMatch(SassNumber(456)),
+        throwsSassScriptException,
+      );
     });
 
     test("can convert its value to compatible units", () {
       expect(
-          value.convertValueToMatch(SassNumber.withUnits(456,
-              numeratorUnits: ["px"], denominatorUnits: ["ms"])),
-          equals(24.6));
+        value.convertValueToMatch(
+          SassNumber.withUnits(
+            456,
+            numeratorUnits: ["px"],
+            denominatorUnits: ["ms"],
+          ),
+        ),
+        equals(24.6),
+      );
       expect(
-          value.convertValueToMatch(SassNumber.withUnits(456,
-              numeratorUnits: ["in"], denominatorUnits: ["s"])),
-          equals(256.25));
+        value.convertValueToMatch(
+          SassNumber.withUnits(
+            456,
+            numeratorUnits: ["in"],
+            denominatorUnits: ["s"],
+          ),
+        ),
+        equals(256.25),
+      );
     });
 
     test("can't convert its value to incompatible units", () {
-      expect(() => value.convertValueToMatch(SassNumber(456, "abc")),
-          throwsSassScriptException);
+      expect(
+        () => value.convertValueToMatch(SassNumber(456, "abc")),
+        throwsSassScriptException,
+      );
     });
 
     test("is incompatible with the numerator unit", () {
@@ -415,16 +511,28 @@ void main() {
 
     test("equals the same number", () {
       expect(
-          value,
-          equalsWithHash(SassNumber.withUnits(24.6,
-              numeratorUnits: ["px"], denominatorUnits: ["ms"])));
+        value,
+        equalsWithHash(
+          SassNumber.withUnits(
+            24.6,
+            numeratorUnits: ["px"],
+            denominatorUnits: ["ms"],
+          ),
+        ),
+      );
     });
 
     test("equals an equivalent number", () {
       expect(
-          value,
-          equalsWithHash(SassNumber.withUnits(256.25,
-              numeratorUnits: ["in"], denominatorUnits: ["s"])));
+        value,
+        equalsWithHash(
+          SassNumber.withUnits(
+            256.25,
+            numeratorUnits: ["in"],
+            denominatorUnits: ["s"],
+          ),
+        ),
+      );
     });
 
     test("doesn't equal a unitless number", () {
@@ -433,16 +541,34 @@ void main() {
 
     test("doesn't equal a number with different units", () {
       expect(value, isNot(equals(SassNumber(24.6, "px"))));
-      expect(value,
-          isNot(equals(SassNumber.withUnits(24.6, denominatorUnits: ["ms"]))));
       expect(
-          value,
-          isNot(equals(SassNumber.withUnits(24.6,
-              numeratorUnits: ["ms"], denominatorUnits: ["px"]))));
+        value,
+        isNot(equals(SassNumber.withUnits(24.6, denominatorUnits: ["ms"]))),
+      );
       expect(
-          value,
-          isNot(equals(SassNumber.withUnits(24.6,
-              numeratorUnits: ["in"], denominatorUnits: ["s"]))));
+        value,
+        isNot(
+          equals(
+            SassNumber.withUnits(
+              24.6,
+              numeratorUnits: ["ms"],
+              denominatorUnits: ["px"],
+            ),
+          ),
+        ),
+      );
+      expect(
+        value,
+        isNot(
+          equals(
+            SassNumber.withUnits(
+              24.6,
+              numeratorUnits: ["in"],
+              denominatorUnits: ["s"],
+            ),
+          ),
+        ),
+      );
     });
   });
 
@@ -468,8 +594,11 @@ void main() {
     });
 
     test("can create a number with units", () {
-      var number = SassNumber.withUnits(123.456,
-          numeratorUnits: ["px", "em"], denominatorUnits: ["ms", "kHz"]);
+      var number = SassNumber.withUnits(
+        123.456,
+        numeratorUnits: ["px", "em"],
+        denominatorUnits: ["ms", "kHz"],
+      );
       expect(number.value, equals(123.456));
       expect(number.numeratorUnits, equals(["px", "em"]));
       expect(number.denominatorUnits, equals(["ms", "kHz"]));

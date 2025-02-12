@@ -36,7 +36,7 @@ final class UnaryOperationExpression extends Expression {
       UnaryOperationExpression() ||
       ListExpression(hasBrackets: false, contents: [_, _, ...]) =>
         true,
-      _ => false
+      _ => false,
     };
     if (needsParens) buffer.write($lparen);
     buffer.write(operand);

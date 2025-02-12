@@ -59,9 +59,13 @@ final class IncludeRule extends Statement
     return startSpan.initialIdentifier();
   }
 
-  IncludeRule(this.originalName, this.arguments, this.span,
-      {this.namespace, this.content})
-      : name = originalName.replaceAll('_', '-');
+  IncludeRule(
+    this.originalName,
+    this.arguments,
+    this.span, {
+    this.namespace,
+    this.content,
+  }) : name = originalName.replaceAll('_', '-');
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIncludeRule(this);
 

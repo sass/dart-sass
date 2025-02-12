@@ -24,8 +24,9 @@ class InterpolationMethod {
       : hue = space.isPolar ? hue ?? HueInterpolationMethod.shorter : null {
     if (!space.isPolar && hue != null) {
       throw ArgumentError(
-          "Hue interpolation method may not be set for rectangular color space "
-          "$space.");
+        "Hue interpolation method may not be set for rectangular color space "
+        "$space.",
+      );
     }
   }
 
@@ -39,32 +40,42 @@ class InterpolationMethod {
     var list = value.assertCommonListStyle(name, allowSlash: false);
     if (list.isEmpty) {
       throw SassScriptException(
-          'Expected a color interpolation method, got an empty list.', name);
+        'Expected a color interpolation method, got an empty list.',
+        name,
+      );
     }
 
     var space = ColorSpace.fromName(
-        (list.first.assertString(name)..assertUnquoted(name)).text, name);
+      (list.first.assertString(name)..assertUnquoted(name)).text,
+      name,
+    );
     if (list.length == 1) return InterpolationMethod(space);
 
     var hueMethod = HueInterpolationMethod._fromValue(list[1], name);
     if (list.length == 2) {
       throw SassScriptException(
-          'Expected unquoted string "hue" after $value.', name);
+        'Expected unquoted string "hue" after $value.',
+        name,
+      );
     } else if ((list[2].assertString(name)..assertUnquoted(name))
             .text
             .toLowerCase() !=
         'hue') {
       throw SassScriptException(
-          'Expected unquoted string "hue" at the end of $value, was ${list[2]}.',
-          name);
+        'Expected unquoted string "hue" at the end of $value, was ${list[2]}.',
+        name,
+      );
     } else if (list.length > 3) {
       throw SassScriptException(
-          'Expected nothing after "hue" in $value.', name);
+        'Expected nothing after "hue" in $value.',
+        name,
+      );
     } else if (!space.isPolar) {
       throw SassScriptException(
-          'Hue interpolation method "$hueMethod hue" may not be set for '
-          'rectangular color space $space.',
-          name);
+        'Hue interpolation method "$hueMethod hue" may not be set for '
+        'rectangular color space $space.',
+        name,
+      );
     }
 
     return InterpolationMethod(space, hueMethod);
@@ -112,6 +123,8 @@ enum HueInterpolationMethod {
         'increasing' => HueInterpolationMethod.increasing,
         'decreasing' => HueInterpolationMethod.decreasing,
         _ => throw SassScriptException(
-            'Unknown hue interpolation method $value.', name)
+            'Unknown hue interpolation method $value.',
+            name,
+          ),
       };
 }

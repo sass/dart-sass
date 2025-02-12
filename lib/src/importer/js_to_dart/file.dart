@@ -23,22 +23,29 @@ final class JSToDartFileImporter extends Importer {
     if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);
 
     var result = wrapJSExceptions(
-        () => _findFileUrl(url.toString(), canonicalizeContext));
+      () => _findFileUrl(url.toString(), canonicalizeContext),
+    );
     if (result == null) return null;
 
     if (isPromise(result)) {
-      jsThrow(JsError(
+      jsThrow(
+        JsError(
           "The findFileUrl() function can't return a Promise for synchron "
-          "compile functions."));
+          "compile functions.",
+        ),
+      );
     } else if (!isJSUrl(result)) {
       jsThrow(JsError("The findFileUrl() method must return a URL."));
     }
 
     var resultUrl = jsToDartUrl(result as JSUrl);
     if (resultUrl.scheme != 'file') {
-      jsThrow(JsError(
+      jsThrow(
+        JsError(
           'The findFileUrl() must return a URL with scheme file://, was '
-          '"$url".'));
+          '"$url".',
+        ),
+      );
     }
 
     return FilesystemImporter.cwd.canonicalize(resultUrl);

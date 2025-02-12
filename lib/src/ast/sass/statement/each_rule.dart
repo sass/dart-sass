@@ -23,9 +23,12 @@ final class EachRule extends ParentStatement<List<Statement>> {
 
   final FileSpan span;
 
-  EachRule(Iterable<String> variables, this.list, Iterable<Statement> children,
-      this.span)
-      : variables = List.unmodifiable(variables),
+  EachRule(
+    Iterable<String> variables,
+    this.list,
+    Iterable<Statement> children,
+    this.span,
+  )   : variables = List.unmodifiable(variables),
         super(List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitEachRule(this);

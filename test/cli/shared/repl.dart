@@ -18,13 +18,15 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       '--embed-sources',
       '--embed-source-map',
       '--update',
-      '--watch'
+      '--watch',
     ];
     for (var arg in invalidArgs) {
       test(arg, () async {
         var sass = await runSass(["--interactive", arg]);
-        expect(sass.stdout,
-            emitsThrough(contains("isn't allowed with --interactive")));
+        expect(
+          sass.stdout,
+          emitsThrough(contains("isn't allowed with --interactive")),
+        );
         sass.stdin.close();
         await sass.shouldExit(64);
       });
@@ -155,7 +157,9 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
       sass.stdin.writeln(r"other.$derived");
       await expectLater(
-          sass.stdout, emitsInOrder([r">> other.$derived", "14"]));
+        sass.stdout,
+        emitsInOrder([r">> other.$derived", "14"]),
+      );
 
       await sass.kill();
     });
@@ -166,9 +170,13 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       var sass = await runSass(["--interactive"]);
       sass.stdin.writeln("1 + 2;");
       await expectLater(
-          sass.stdout,
-          emitsInOrder(
-              [">> 1 + 2;", "        ^", "Error: expected no more input."]));
+        sass.stdout,
+        emitsInOrder([
+          ">> 1 + 2;",
+          "        ^",
+          "Error: expected no more input.",
+        ]),
+      );
       await sass.kill();
     });
 
@@ -176,20 +184,23 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       var sass = await runSass(["--interactive"]);
       sass.stdin.writeln("\$foo: 1 + 2;");
       await expectLater(
-          sass.stdout,
-          emitsInOrder([
-            ">> \$foo: 1 + 2;",
-            "              ^",
-            "Error: expected no more input."
-          ]));
+        sass.stdout,
+        emitsInOrder([
+          ">> \$foo: 1 + 2;",
+          "              ^",
+          "Error: expected no more input.",
+        ]),
+      );
       await sass.kill();
     });
 
     test("a parse error after the end of the input", () async {
       var sass = await runSass(["--interactive"]);
       sass.stdin.writeln("foo(");
-      await expectLater(sass.stdout,
-          emitsInOrder([">> foo(", "       ^", 'Error: expected ")".']));
+      await expectLater(
+        sass.stdout,
+        emitsInOrder([">> foo(", "       ^", 'Error: expected ")".']),
+      );
       await sass.kill();
     });
 
@@ -198,13 +209,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       sass.stdin.writeln("@use 'sass:math'");
       sass.stdin.writeln("math.max(2, 1 + blue)");
       await expectLater(
-          sass.stdout,
-          emitsInOrder([
-            ">> @use 'sass:math'",
-            ">> math.max(2, 1 + blue)",
-            "               ^^^^^^^^",
-            'Error: Undefined operation "1 + blue".'
-          ]));
+        sass.stdout,
+        emitsInOrder([
+          ">> @use 'sass:math'",
+          ">> math.max(2, 1 + blue)",
+          "               ^^^^^^^^",
+          'Error: Undefined operation "1 + blue".',
+        ]),
+      );
       await sass.kill();
     });
 
@@ -212,9 +224,13 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       var sass = await runSass(["--interactive"]);
       sass.stdin.writeln(r"1 + $x + 3");
       await expectLater(
-          sass.stdout,
-          emitsInOrder(
-              [r">> 1 + $x + 3", "       ^^", "Error: Undefined variable."]));
+        sass.stdout,
+        emitsInOrder([
+          r">> 1 + $x + 3",
+          "       ^^",
+          "Error: Undefined variable.",
+        ]),
+      );
       await sass.kill();
     });
 
@@ -223,15 +239,16 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       sass.stdin.writeln("call('max', 1, 2) + blue");
       await expectLater(sass.stderr, emits(contains("DEPRECATION WARNING")));
       await expectLater(
-          sass.stdout,
-          emitsInOrder([
-            ">> call('max', 1, 2) + blue",
-            'Error: Undefined operation "2 + blue".',
-            "  ,",
-            "1 | call('max', 1, 2) + blue",
-            "  | ^^^^^^^^^^^^^^^^^^^^^^^^",
-            "  '"
-          ]));
+        sass.stdout,
+        emitsInOrder([
+          ">> call('max', 1, 2) + blue",
+          'Error: Undefined operation "2 + blue".',
+          "  ,",
+          "1 | call('max', 1, 2) + blue",
+          "  | ^^^^^^^^^^^^^^^^^^^^^^^^",
+          "  '",
+        ]),
+      );
       await sass.kill();
     });
 
@@ -240,12 +257,13 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         var sass = await runSass(["--no-unicode", "--interactive"]);
         sass.stdin.writeln('@use "non-existent"');
         await expectLater(
-            sass.stdout,
-            emitsInOrder([
-              '>> @use "non-existent"',
-              "   ^^^^^^^^^^^^^^^^^^^",
-              "Error: Can't find stylesheet to import."
-            ]));
+          sass.stdout,
+          emitsInOrder([
+            '>> @use "non-existent"',
+            "   ^^^^^^^^^^^^^^^^^^^",
+            "Error: Can't find stylesheet to import.",
+          ]),
+        );
         await sass.kill();
       });
 
@@ -253,12 +271,13 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         var sass = await runSass(["--no-unicode", "--interactive"]);
         sass.stdin.writeln('@use "other" as');
         await expectLater(
-            sass.stdout,
-            emitsInOrder([
-              '>> @use "other" as',
-              "                  ^",
-              "Error: Expected identifier."
-            ]));
+          sass.stdout,
+          emitsInOrder([
+            '>> @use "other" as',
+            "                  ^",
+            "Error: Expected identifier.",
+          ]),
+        );
         await sass.kill();
       });
 
@@ -268,15 +287,16 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         var sass = await runSass(["--no-unicode", "--interactive"]);
         sass.stdin.writeln('@use "other"');
         await expectLater(
-            sass.stdout,
-            emitsInOrder([
-              '>> @use "other"',
-              "Error: Expected expression.",
-              "  ,",
-              r"1 | $var: 1px +",
-              "  |            ^",
-              "  '"
-            ]));
+          sass.stdout,
+          emitsInOrder([
+            '>> @use "other"',
+            "Error: Expected expression.",
+            "  ,",
+            r"1 | $var: 1px +",
+            "  |            ^",
+            "  '",
+          ]),
+        );
         await sass.kill();
       });
 
@@ -286,15 +306,16 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         var sass = await runSass(["--no-unicode", "--interactive"]);
         sass.stdin.writeln('@use "other"');
         await expectLater(
-            sass.stdout,
-            emitsInOrder([
-              '>> @use "other"',
-              "Error: 1px and 1s have incompatible units.",
-              "  ,",
-              r"1 | $var: 1px + 1s;",
-              "  |       ^^^^^^^^",
-              "  '"
-            ]));
+          sass.stdout,
+          emitsInOrder([
+            '>> @use "other"',
+            "Error: 1px and 1s have incompatible units.",
+            "  ,",
+            r"1 | $var: 1px + 1s;",
+            "  |       ^^^^^^^^",
+            "  '",
+          ]),
+        );
         await sass.kill();
       });
     });
@@ -305,14 +326,15 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         sass.stdin.writeln("@use 'sass:math'");
         sass.stdin.writeln("math.max(2, 1 + blue)");
         await expectLater(
-            sass.stdout,
-            emitsInOrder([
-              ">> @use 'sass:math'",
-              ">> math.max(2, 1 + blue)",
-              "\u001b[31m\u001b[1F\u001b[15C1 + blue",
-              "               ^^^^^^^^",
-              '\u001b[0mError: Undefined operation "1 + blue".'
-            ]));
+          sass.stdout,
+          emitsInOrder([
+            ">> @use 'sass:math'",
+            ">> math.max(2, 1 + blue)",
+            "\u001b[31m\u001b[1F\u001b[15C1 + blue",
+            "               ^^^^^^^^",
+            '\u001b[0mError: Undefined operation "1 + blue".',
+          ]),
+        );
         await sass.kill();
       });
 
@@ -320,12 +342,13 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         var sass = await runSass(["--interactive", "--color"]);
         sass.stdin.writeln("foo(");
         await expectLater(
-            sass.stdout,
-            emitsInOrder([
-              ">> foo(",
-              "\u001b[31m       ^",
-              '\u001b[0mError: expected ")".'
-            ]));
+          sass.stdout,
+          emitsInOrder([
+            ">> foo(",
+            "\u001b[31m       ^",
+            '\u001b[0mError: expected ")".',
+          ]),
+        );
         await sass.kill();
       });
     });

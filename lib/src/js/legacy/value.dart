@@ -45,5 +45,5 @@ Object wrapValue(Value value) => switch (value) {
       SassMap() => newNodeSassMap(value),
       SassNumber() => newNodeSassNumber(value),
       SassString() => newNodeSassString(value),
-      _ => value
+      _ => value,
     };

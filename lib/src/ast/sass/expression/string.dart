@@ -84,8 +84,12 @@ final class StringExpression extends Expression {
   ///
   /// This always adds an escape sequence before [quote]. If [static] is true,
   /// it also escapes any `#{` sequences in the string.
-  static void _quoteInnerText(String text, int quote, StringSink buffer,
-      {bool static = false}) {
+  static void _quoteInnerText(
+    String text,
+    int quote,
+    StringSink buffer, {
+    bool static = false,
+  }) {
     for (var i = 0; i < text.length; i++) {
       switch (text.codeUnitAt(i)) {
         case int(isNewline: true):

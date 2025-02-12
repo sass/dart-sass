@@ -23,26 +23,30 @@ final global = UnmodifiableListView([
   _append.withDeprecationWarning('selector').withName("selector-append"),
   _extend.withDeprecationWarning('selector').withName("selector-extend"),
   _replace.withDeprecationWarning('selector').withName("selector-replace"),
-  _unify.withDeprecationWarning('selector').withName("selector-unify")
+  _unify.withDeprecationWarning('selector').withName("selector-unify"),
 ]);
 
 /// The Sass selector module.
-final module = BuiltInModule("selector", functions: <Callable>[
-  _isSuperselector,
-  _simpleSelectors,
-  _parse,
-  _nest,
-  _append,
-  _extend,
-  _replace,
-  _unify
-]);
+final module = BuiltInModule(
+  "selector",
+  functions: <Callable>[
+    _isSuperselector,
+    _simpleSelectors,
+    _parse,
+    _nest,
+    _append,
+    _extend,
+    _replace,
+    _unify,
+  ],
+);
 
 final _nest = _function("nest", r"$selectors...", (arguments) {
   var selectors = arguments[0].asList;
   if (selectors.isEmpty) {
     throw SassScriptException(
-        "\$selectors: At least one selector must be passed.");
+      "\$selectors: At least one selector must be passed.",
+    );
   }
 
   var first = true;
@@ -60,35 +64,40 @@ final _append = _function("append", r"$selectors...", (arguments) {
   var selectors = arguments[0].asList;
   if (selectors.isEmpty) {
     throw SassScriptException(
-        "\$selectors: At least one selector must be passed.");
+      "\$selectors: At least one selector must be passed.",
+    );
   }
 
   var span = EvaluationContext.current.currentCallableSpan;
-  return selectors
-      .map((selector) => selector.assertSelector())
-      .reduce((parent, child) {
-    return SelectorList(child.components.map((complex) {
-      if (complex.leadingCombinators.isNotEmpty) {
-        throw SassScriptException("Can't append $complex to $parent.");
-      }
+  return selectors.map((selector) => selector.assertSelector()).reduce((
+    parent,
+    child,
+  ) {
+    return SelectorList(
+      child.components.map((complex) {
+        if (complex.leadingCombinators.isNotEmpty) {
+          throw SassScriptException("Can't append $complex to $parent.");
+        }
 
-      var [component, ...rest] = complex.components;
-      var newCompound = _prependParent(component.selector);
-      if (newCompound == null) {
-        throw SassScriptException("Can't append $complex to $parent.");
-      }
+        var [component, ...rest] = complex.components;
+        var newCompound = _prependParent(component.selector);
+        if (newCompound == null) {
+          throw SassScriptException("Can't append $complex to $parent.");
+        }
 
-      return ComplexSelector(const [], [
-        ComplexSelectorComponent(newCompound, component.combinators, span),
-        ...rest
-      ], span);
-    }), span)
-        .nestWithin(parent);
+        return ComplexSelector(const [], [
+          ComplexSelectorComponent(newCompound, component.combinators, span),
+          ...rest,
+        ], span);
+      }),
+      span,
+    ).nestWithin(parent);
   }).asSassList;
 });
 
-final _extend =
-    _function("extend", r"$selector, $extendee, $extender", (arguments) {
+final _extend = _function("extend", r"$selector, $extendee, $extender", (
+  arguments,
+) {
   var selector = arguments[0].assertSelector(name: "selector")
     ..assertNotBogus(name: "selector");
   var target = arguments[1].assertSelector(name: "extendee")
@@ -96,13 +105,17 @@ final _extend =
   var source = arguments[2].assertSelector(name: "extender")
     ..assertNotBogus(name: "extender");
 
-  return ExtensionStore.extend(selector, source, target,
-          EvaluationContext.current.currentCallableSpan)
-      .asSassList;
+  return ExtensionStore.extend(
+    selector,
+    source,
+    target,
+    EvaluationContext.current.currentCallableSpan,
+  ).asSassList;
 });
 
-final _replace =
-    _function("replace", r"$selector, $original, $replacement", (arguments) {
+final _replace = _function("replace", r"$selector, $original, $replacement", (
+  arguments,
+) {
   var selector = arguments[0].assertSelector(name: "selector")
     ..assertNotBogus(name: "selector");
   var target = arguments[1].assertSelector(name: "original")
@@ -110,9 +123,12 @@ final _replace =
   var source = arguments[2].assertSelector(name: "replacement")
     ..assertNotBogus(name: "replacement");
 
-  return ExtensionStore.replace(selector, source, target,
-          EvaluationContext.current.currentCallableSpan)
-      .asSassList;
+  return ExtensionStore.replace(
+    selector,
+    source,
+    target,
+    EvaluationContext.current.currentCallableSpan,
+  ).asSassList;
 });
 
 final _unify = _function("unify", r"$selector1, $selector2", (arguments) {
@@ -124,8 +140,9 @@ final _unify = _function("unify", r"$selector1, $selector2", (arguments) {
   return selector1.unify(selector2)?.asSassList ?? sassNull;
 });
 
-final _isSuperselector =
-    _function("is-superselector", r"$super, $sub", (arguments) {
+final _isSuperselector = _function("is-superselector", r"$super, $sub", (
+  arguments,
+) {
   var selector1 = arguments[0].assertSelector(name: "super")
     ..assertNotBogus(name: "super");
   var selector2 = arguments[1].assertSelector(name: "sub")
@@ -134,18 +151,24 @@ final _isSuperselector =
   return SassBoolean(selector1.isSuperselector(selector2));
 });
 
-final _simpleSelectors =
-    _function("simple-selectors", r"$selector", (arguments) {
+final _simpleSelectors = _function("simple-selectors", r"$selector", (
+  arguments,
+) {
   var selector = arguments[0].assertCompoundSelector(name: "selector");
 
   return SassList(
-      selector.components
-          .map((simple) => SassString(simple.toString(), quotes: false)),
-      ListSeparator.comma);
+    selector.components.map(
+      (simple) => SassString(simple.toString(), quotes: false),
+    ),
+    ListSeparator.comma,
+  );
 });
 
-final _parse = _function("parse", r"$selector",
-    (arguments) => arguments[0].assertSelector(name: "selector").asSassList);
+final _parse = _function(
+  "parse",
+  r"$selector",
+  (arguments) => arguments[0].assertSelector(name: "selector").asSassList,
+);
 
 /// Adds a [ParentSelector] to the beginning of [compound], or returns `null` if
 /// that wouldn't produce a valid selector.
@@ -154,15 +177,22 @@ CompoundSelector? _prependParent(CompoundSelector compound) {
   return switch (compound.components) {
     [UniversalSelector(), ...] => null,
     [TypeSelector type, ...] when type.name.namespace != null => null,
-    [TypeSelector type, ...var rest] => CompoundSelector(
-        [ParentSelector(span, suffix: type.name.name), ...rest], span),
-    var components =>
-      CompoundSelector([ParentSelector(span), ...components], span)
+    [TypeSelector type, ...var rest] => CompoundSelector([
+        ParentSelector(span, suffix: type.name.name),
+        ...rest,
+      ], span),
+    var components => CompoundSelector([
+        ParentSelector(span),
+        ...components,
+      ], span),
   };
 }
 
 /// Like [BuiltInCallable.function], but always sets the URL to
 /// `sass:selector`.
 BuiltInCallable _function(
-        String name, String arguments, Value callback(List<Value> arguments)) =>
+  String name,
+  String arguments,
+  Value callback(List<Value> arguments),
+) =>
     BuiltInCallable.function(name, arguments, callback, url: "sass:selector");

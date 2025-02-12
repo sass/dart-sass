@@ -35,14 +35,21 @@ void main(List<String> args) {
   pkg.homebrewFormula.value = "Formula/sass.rb";
   pkg.homebrewEditFormula.value = _updateHomebrewLanguageRevision;
   pkg.jsRequires.value = [
-    pkg.JSRequire("@parcel/watcher",
-        target: pkg.JSRequireTarget.cli, lazy: true, optional: true),
+    pkg.JSRequire(
+      "@parcel/watcher",
+      target: pkg.JSRequireTarget.cli,
+      lazy: true,
+      optional: true,
+    ),
     pkg.JSRequire("immutable", target: pkg.JSRequireTarget.all),
     pkg.JSRequire("chokidar", target: pkg.JSRequireTarget.cli),
     pkg.JSRequire("readline", target: pkg.JSRequireTarget.cli),
     pkg.JSRequire("fs", target: pkg.JSRequireTarget.node),
-    pkg.JSRequire("module",
-        target: pkg.JSRequireTarget.node, identifier: 'nodeModule'),
+    pkg.JSRequire(
+      "module",
+      target: pkg.JSRequireTarget.node,
+      identifier: 'nodeModule',
+    ),
     pkg.JSRequire("stream", target: pkg.JSRequireTarget.node),
     pkg.JSRequire("util", target: pkg.JSRequireTarget.node),
   ];
@@ -112,15 +119,17 @@ void main(List<String> args) {
 
   pkg.environmentConstants.fn = () {
     if (!Directory('build/language').existsSync()) {
-      fail('Run `dart run grinder protobuf` before building Dart Sass '
-          'executables.');
+      fail(
+        'Run `dart run grinder protobuf` before building Dart Sass '
+        'executables.',
+      );
     }
 
     return {
       ...pkg.environmentConstants.defaultValue,
-      "protocol-version": File('build/language/spec/EMBEDDED_PROTOCOL_VERSION')
-          .readAsStringSync()
-          .trim(),
+      "protocol-version": File(
+        'build/language/spec/EMBEDDED_PROTOCOL_VERSION',
+      ).readAsStringSync().trim(),
       "compiler-version": pkg.pubspec.version!.toString(),
     };
   };
@@ -149,8 +158,15 @@ void npmInstall() =>
     run(Platform.isWindows ? "npm.cmd" : "npm", arguments: ["install"]);
 
 @Task('Runs the tasks that are required for running tests.')
-@Depends(format, synchronize, protobuf, deprecations, "pkg-npm-dev", npmInstall,
-    "pkg-standalone-dev")
+@Depends(
+  format,
+  synchronize,
+  protobuf,
+  deprecations,
+  "pkg-npm-dev",
+  npmInstall,
+  "pkg-standalone-dev",
+)
 void beforeTest() {}
 
 String get _nuspec => """
@@ -176,10 +192,11 @@ This package is Dart Sass, the new Dart implementation of Sass.</description>
 """;
 
 final _readAndResolveRegExp = RegExp(
-    r"^<!-- +#include +([^\s]+) +"
-    '"([^"\n]+)"'
-    r" +-->$",
-    multiLine: true);
+  r"^<!-- +#include +([^\s]+) +"
+  '"([^"\n]+)"'
+  r" +-->$",
+  multiLine: true,
+);
 
 /// Reads a Markdown file from [path] and resolves include directives.
 ///
@@ -187,9 +204,9 @@ final _readAndResolveRegExp = RegExp(
 /// which must appear on its own line. PATH is a relative file: URL to another
 /// Markdown file, and HEADER is the name of a header in that file whose
 /// contents should be included as-is.
-String _readAndResolveMarkdown(String path) => File(path)
-        .readAsStringSync()
-        .replaceAllMapped(_readAndResolveRegExp, (match) {
+String _readAndResolveMarkdown(String path) => File(
+      path,
+    ).readAsStringSync().replaceAllMapped(_readAndResolveRegExp, (match) {
       late String included;
       try {
         included = File(p.join(p.dirname(path), p.fromUri(match[1])))
@@ -229,7 +246,7 @@ Map<String, String> _fetchJSTypes() {
     for (var entry in Directory(typeRoot).listSync(recursive: true))
       if (entry is File && entry.path.endsWith('.d.ts'))
         p.join('types', p.relative(entry.path, from: typeRoot)):
-            entry.readAsStringSync()
+            entry.readAsStringSync(),
   };
 }
 
@@ -260,13 +277,17 @@ dart run protoc_plugin "\$@"
     run('chmod', arguments: ['a+x', 'build/protoc-gen-dart']);
   }
 
-  await runAsync("buf",
-      arguments: ["generate"],
-      runOptions: RunOptions(environment: {
+  await runAsync(
+    "buf",
+    arguments: ["generate"],
+    runOptions: RunOptions(
+      environment: {
         "PATH": 'build' +
             (Platform.isWindows ? ";" : ":") +
-            Platform.environment["PATH"]!
-      }));
+            Platform.environment["PATH"]!,
+      },
+    ),
+  );
 }
 
 /// After building the NPM package, add default exports to
@@ -306,19 +327,21 @@ function defaultExportDeprecation() {
 /// A regular expression to locate the language repo revision in the Dart Sass
 /// Homebrew formula.
 final _homebrewLanguageRegExp = RegExp(
-    r'resource "language" do$'
-    r'(?:(?! end$).)+'
-    r'revision: "([a-f0-9]{40})"',
-    dotAll: true,
-    multiLine: true);
+  r'resource "language" do$'
+  r'(?:(?! end$).)+'
+  r'revision: "([a-f0-9]{40})"',
+  dotAll: true,
+  multiLine: true,
+);
 
 /// Updates the Homebrew [formula] to change the revision of the language repo
 /// to the latest revision.
 String _updateHomebrewLanguageRevision(String formula) {
-  var languageRepoRevision = run("git",
-          arguments: ["ls-remote", "https://github.com/sass/sass"], quiet: true)
-      .split("\t")
-      .first;
+  var languageRepoRevision = run(
+    "git",
+    arguments: ["ls-remote", "https://github.com/sass/sass"],
+    quiet: true,
+  ).split("\t").first;
 
   var match = _homebrewLanguageRegExp.firstMatch(formula);
   if (match == null) {

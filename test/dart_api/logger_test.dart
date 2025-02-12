@@ -17,216 +17,319 @@ void main() {
   group("with @warn", () {
     test("passes the message and stack trace to the logger", () {
       var mustBeCalled = expectAsync0(() {});
-      compileString('''
+      compileString(
+        '''
         @mixin foo {@warn heck}
         @include foo;
-      ''', logger: _TestLogger.withWarn((message,
-              {span, trace, deprecation = false}) {
-        expect(message, equals("heck"));
-        expect(span, isNull);
-        expect(trace!.frames.first.member, equals('foo()'));
-        expect(deprecation, isFalse);
-        mustBeCalled();
-      }));
+      ''',
+        logger: _TestLogger.withWarn((
+          message, {
+          span,
+          trace,
+          deprecation = false,
+        }) {
+          expect(message, equals("heck"));
+          expect(span, isNull);
+          expect(trace!.frames.first.member, equals('foo()'));
+          expect(deprecation, isFalse);
+          mustBeCalled();
+        }),
+      );
     });
 
     test("stringifies the argument", () {
       var mustBeCalled = expectAsync0(() {});
-      compileString('@warn #abc', logger:
-          _TestLogger.withWarn((message, {span, trace, deprecation = false}) {
-        expect(message, equals("#abc"));
-        mustBeCalled();
-      }));
+      compileString(
+        '@warn #abc',
+        logger: _TestLogger.withWarn((
+          message, {
+          span,
+          trace,
+          deprecation = false,
+        }) {
+          expect(message, equals("#abc"));
+          mustBeCalled();
+        }),
+      );
     });
 
     test("doesn't inspect the argument", () {
       var mustBeCalled = expectAsync0(() {});
-      compileString('@warn null', logger:
-          _TestLogger.withWarn((message, {span, trace, deprecation = false}) {
-        expect(message, isEmpty);
-        mustBeCalled();
-      }));
+      compileString(
+        '@warn null',
+        logger: _TestLogger.withWarn((
+          message, {
+          span,
+          trace,
+          deprecation = false,
+        }) {
+          expect(message, isEmpty);
+          mustBeCalled();
+        }),
+      );
     });
   });
 
   group("with @debug", () {
     test("passes the message and span to the logger", () {
-      compileString('@debug heck',
-          logger: _TestLogger.withDebug(expectAsync2((message, span) {
-        expect(message, equals("heck"));
-        expect(span.start.line, equals(0));
-        expect(span.start.column, equals(0));
-        expect(span.end.line, equals(0));
-        expect(span.end.column, equals(11));
-      })));
+      compileString(
+        '@debug heck',
+        logger: _TestLogger.withDebug(
+          expectAsync2((message, span) {
+            expect(message, equals("heck"));
+            expect(span.start.line, equals(0));
+            expect(span.start.column, equals(0));
+            expect(span.end.line, equals(0));
+            expect(span.end.column, equals(11));
+          }),
+        ),
+      );
     });
 
     test("stringifies the argument", () {
-      compileString('@debug #abc',
-          logger: _TestLogger.withDebug(expectAsync2((message, span) {
-        expect(message, equals("#abc"));
-      })));
+      compileString(
+        '@debug #abc',
+        logger: _TestLogger.withDebug(
+          expectAsync2((message, span) {
+            expect(message, equals("#abc"));
+          }),
+        ),
+      );
     });
 
     test("inspects the argument", () {
-      compileString('@debug null',
-          logger: _TestLogger.withDebug(expectAsync2((message, span) {
-        expect(message, equals("null"));
-      })));
+      compileString(
+        '@debug null',
+        logger: _TestLogger.withDebug(
+          expectAsync2((message, span) {
+            expect(message, equals("null"));
+          }),
+        ),
+      );
     });
   });
 
   test("with a parser warning passes the message, span, and trace", () {
     var mustBeCalled = expectAsync0(() {});
-    compileString('a {b: c && d}', logger:
-        _TestLogger.withWarn((message, {span, trace, deprecation = false}) {
-      expect(message, contains('"&&" means two copies'));
+    compileString(
+      'a {b: c && d}',
+      logger: _TestLogger.withWarn((
+        message, {
+        span,
+        trace,
+        deprecation = false,
+      }) {
+        expect(message, contains('"&&" means two copies'));
 
-      expect(span!.start.line, equals(0));
-      expect(span.start.column, equals(8));
-      expect(span.end.line, equals(0));
-      expect(span.end.column, equals(10));
+        expect(span!.start.line, equals(0));
+        expect(span.start.column, equals(8));
+        expect(span.end.line, equals(0));
+        expect(span.end.column, equals(10));
 
-      expect(trace!.frames.first.member, equals('root stylesheet'));
-      expect(deprecation, isFalse);
-      mustBeCalled();
-    }));
+        expect(trace!.frames.first.member, equals('root stylesheet'));
+        expect(deprecation, isFalse);
+        mustBeCalled();
+      }),
+    );
   });
 
   test("with a runner warning passes the message, span, and trace", () {
     var mustBeCalled = expectAsync0(() {});
-    compileString('''
+    compileString(
+      '''
         @mixin foo {#{blue} {x: y}}
         @include foo;
-      ''', logger:
-            _TestLogger.withWarn((message, {span, trace, deprecation = false}) {
-      expect(message, contains("color value blue"));
+      ''',
+      logger: _TestLogger.withWarn((
+        message, {
+        span,
+        trace,
+        deprecation = false,
+      }) {
+        expect(message, contains("color value blue"));
 
-      expect(span!.start.line, equals(0));
-      expect(span.start.column, equals(22));
-      expect(span.end.line, equals(0));
-      expect(span.end.column, equals(26));
+        expect(span!.start.line, equals(0));
+        expect(span.start.column, equals(22));
+        expect(span.end.line, equals(0));
+        expect(span.end.column, equals(26));
 
-      expect(trace!.frames.first.member, equals('foo()'));
-      expect(deprecation, isFalse);
-      mustBeCalled();
-    }));
+        expect(trace!.frames.first.member, equals('foo()'));
+        expect(deprecation, isFalse);
+        mustBeCalled();
+      }),
+    );
   });
 
   group("with warn()", () {
     group("from a function", () {
       test("synchronously", () {
         var mustBeCalled = expectAsync0(() {});
-        compileString("""
+        compileString(
+          """
         @function bar() {@return foo()}
         a {b: bar()}
-      """, functions: [
-          Callable("foo", "", expectAsync1((_) {
-            warn("heck");
-            return sassNull;
-          }))
-        ], logger: _TestLogger.withWarn((message,
-                {span, trace, deprecation = false}) {
-          expect(message, equals("heck"));
+      """,
+          functions: [
+            Callable(
+              "foo",
+              "",
+              expectAsync1((_) {
+                warn("heck");
+                return sassNull;
+              }),
+            ),
+          ],
+          logger: _TestLogger.withWarn((
+            message, {
+            span,
+            trace,
+            deprecation = false,
+          }) {
+            expect(message, equals("heck"));
 
-          expect(span!.start.line, equals(0));
-          expect(span.start.column, equals(33));
-          expect(span.end.line, equals(0));
-          expect(span.end.column, equals(38));
+            expect(span!.start.line, equals(0));
+            expect(span.start.column, equals(33));
+            expect(span.end.line, equals(0));
+            expect(span.end.column, equals(38));
 
-          expect(trace!.frames.first.member, equals('bar()'));
-          expect(deprecation, isFalse);
-          mustBeCalled();
-        }));
+            expect(trace!.frames.first.member, equals('bar()'));
+            expect(deprecation, isFalse);
+            mustBeCalled();
+          }),
+        );
       });
 
       test("asynchronously", () {
         var mustBeCalled = expectAsync0(() {});
-        compileStringAsync("""
+        compileStringAsync(
+          """
         @function bar() {@return foo()}
         a {b: bar()}
-      """, functions: [
-          AsyncCallable("foo", "", expectAsync1((_) async {
-            warn("heck");
-            return sassNull;
-          }))
-        ], logger: _TestLogger.withWarn((message,
-                {span, trace, deprecation = false}) {
-          expect(message, equals("heck"));
+      """,
+          functions: [
+            AsyncCallable(
+              "foo",
+              "",
+              expectAsync1((_) async {
+                warn("heck");
+                return sassNull;
+              }),
+            ),
+          ],
+          logger: _TestLogger.withWarn((
+            message, {
+            span,
+            trace,
+            deprecation = false,
+          }) {
+            expect(message, equals("heck"));
 
-          expect(span!.start.line, equals(0));
-          expect(span.start.column, equals(33));
-          expect(span.end.line, equals(0));
-          expect(span.end.column, equals(38));
+            expect(span!.start.line, equals(0));
+            expect(span.start.column, equals(33));
+            expect(span.end.line, equals(0));
+            expect(span.end.column, equals(38));
 
-          expect(trace!.frames.first.member, equals('bar()'));
-          expect(deprecation, isFalse);
-          mustBeCalled();
-        }));
+            expect(trace!.frames.first.member, equals('bar()'));
+            expect(deprecation, isFalse);
+            mustBeCalled();
+          }),
+        );
       });
 
       test("asynchronously after a gap", () {
         var mustBeCalled = expectAsync0(() {});
-        compileStringAsync("""
+        compileStringAsync(
+          """
         @function bar() {@return foo()}
         a {b: bar()}
-      """, functions: [
-          AsyncCallable("foo", "", expectAsync1((_) async {
-            await Future<void>.delayed(Duration.zero);
-            warn("heck");
-            return sassNull;
-          }))
-        ], logger: _TestLogger.withWarn((message,
-                {span, trace, deprecation = false}) {
-          expect(message, equals("heck"));
+      """,
+          functions: [
+            AsyncCallable(
+              "foo",
+              "",
+              expectAsync1((_) async {
+                await Future<void>.delayed(Duration.zero);
+                warn("heck");
+                return sassNull;
+              }),
+            ),
+          ],
+          logger: _TestLogger.withWarn((
+            message, {
+            span,
+            trace,
+            deprecation = false,
+          }) {
+            expect(message, equals("heck"));
 
-          expect(span!.start.line, equals(0));
-          expect(span.start.column, equals(33));
-          expect(span.end.line, equals(0));
-          expect(span.end.column, equals(38));
+            expect(span!.start.line, equals(0));
+            expect(span.start.column, equals(33));
+            expect(span.end.line, equals(0));
+            expect(span.end.column, equals(38));
 
-          expect(trace!.frames.first.member, equals('bar()'));
-          expect(deprecation, isFalse);
-          mustBeCalled();
-        }));
+            expect(trace!.frames.first.member, equals('bar()'));
+            expect(deprecation, isFalse);
+            mustBeCalled();
+          }),
+        );
       });
     });
 
     test("from an importer", () {
       var mustBeCalled = expectAsync0(() {});
-      compileString("@use 'foo';", importers: [
-        TestImporter((url) => Uri.parse("u:$url"), (url) {
-          warn("heck");
-          return ImporterResult("", indented: false);
-        })
-      ], logger:
-          _TestLogger.withWarn((message, {span, trace, deprecation = false}) {
-        expect(message, equals("heck"));
+      compileString(
+        "@use 'foo';",
+        importers: [
+          TestImporter((url) => Uri.parse("u:$url"), (url) {
+            warn("heck");
+            return ImporterResult("", indented: false);
+          }),
+        ],
+        logger: _TestLogger.withWarn((
+          message, {
+          span,
+          trace,
+          deprecation = false,
+        }) {
+          expect(message, equals("heck"));
 
-        expect(span!.start.line, equals(0));
-        expect(span.start.column, equals(0));
-        expect(span.end.line, equals(0));
-        expect(span.end.column, equals(10));
+          expect(span!.start.line, equals(0));
+          expect(span.start.column, equals(0));
+          expect(span.end.line, equals(0));
+          expect(span.end.column, equals(10));
 
-        expect(trace!.frames.first.member, equals('@use'));
-        expect(deprecation, isFalse);
-        mustBeCalled();
-      }));
+          expect(trace!.frames.first.member, equals('@use'));
+          expect(deprecation, isFalse);
+          mustBeCalled();
+        }),
+      );
     });
 
     test("with deprecation", () {
       var mustBeCalled = expectAsync0(() {});
-      compileString("a {b: foo()}", functions: [
-        Callable("foo", "", expectAsync1((_) {
-          warn("heck", deprecation: true);
-          return sassNull;
-        }))
-      ], logger:
-          _TestLogger.withWarn((message, {span, trace, deprecation = false}) {
-        expect(message, equals("heck"));
-        expect(deprecation, isTrue);
-        mustBeCalled();
-      }));
+      compileString(
+        "a {b: foo()}",
+        functions: [
+          Callable(
+            "foo",
+            "",
+            expectAsync1((_) {
+              warn("heck", deprecation: true);
+              return sassNull;
+            }),
+          ),
+        ],
+        logger: _TestLogger.withWarn((
+          message, {
+          span,
+          trace,
+          deprecation = false,
+        }) {
+          expect(message, equals("heck"));
+          expect(deprecation, isTrue);
+          mustBeCalled();
+        }),
+      );
     });
   });
 }
@@ -241,8 +344,12 @@ class _TestLogger implements Logger {
 
   _TestLogger.withDebug(this._debug) : _warn = const Logger.stderr().warn;
 
-  void warn(String message,
-          {FileSpan? span, Trace? trace, bool deprecation = false}) =>
+  void warn(
+    String message, {
+    FileSpan? span,
+    Trace? trace,
+    bool deprecation = false,
+  }) =>
       _warn(message, span: span, trace: trace, deprecation: deprecation);
   void debug(String message, SourceSpan span) => _debug(message, span);
 }

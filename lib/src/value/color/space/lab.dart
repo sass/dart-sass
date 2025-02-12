@@ -25,20 +25,35 @@ final class LabColorSpace extends ColorSpace {
 
   const LabColorSpace()
       : super('lab', const [
-          LinearChannel('lightness', 0, 100,
-              lowerClamped: true, upperClamped: true),
+          LinearChannel(
+            'lightness',
+            0,
+            100,
+            lowerClamped: true,
+            upperClamped: true,
+          ),
           LinearChannel('a', -125, 125),
-          LinearChannel('b', -125, 125)
+          LinearChannel('b', -125, 125),
         ]);
 
   SassColor convert(
-      ColorSpace dest, double? lightness, double? a, double? b, double? alpha,
-      {bool missingChroma = false, bool missingHue = false}) {
+    ColorSpace dest,
+    double? lightness,
+    double? a,
+    double? b,
+    double? alpha, {
+    bool missingChroma = false,
+    bool missingHue = false,
+  }) {
     switch (dest) {
       case ColorSpace.lab:
         var powerlessAB = lightness == null || fuzzyEquals(lightness, 0);
-        return SassColor.lab(lightness, a == null || powerlessAB ? null : a,
-            b == null || powerlessAB ? null : b, alpha);
+        return SassColor.lab(
+          lightness,
+          a == null || powerlessAB ? null : a,
+          b == null || powerlessAB ? null : b,
+          alpha,
+        );
 
       case ColorSpace.lch:
         return labToLch(dest, lightness, a, b, alpha);
@@ -51,19 +66,20 @@ final class LabColorSpace extends ColorSpace {
         var f1 = (lightness + 16) / 116;
 
         return const XyzD50ColorSpace().convert(
-            dest,
-            _convertFToXorZ((a ?? 0) / 500 + f1) * d50[0],
-            (lightness > labKappa * labEpsilon
-                    ? math.pow((lightness + 16) / 116, 3) * 1.0
-                    : lightness / labKappa) *
-                d50[1],
-            _convertFToXorZ(f1 - (b ?? 0) / 200) * d50[2],
-            alpha,
-            missingLightness: missingLightness,
-            missingChroma: missingChroma,
-            missingHue: missingHue,
-            missingA: a == null,
-            missingB: b == null);
+          dest,
+          _convertFToXorZ((a ?? 0) / 500 + f1) * d50[0],
+          (lightness > labKappa * labEpsilon
+                  ? math.pow((lightness + 16) / 116, 3) * 1.0
+                  : lightness / labKappa) *
+              d50[1],
+          _convertFToXorZ(f1 - (b ?? 0) / 200) * d50[2],
+          alpha,
+          missingLightness: missingLightness,
+          missingChroma: missingChroma,
+          missingHue: missingHue,
+          missingA: a == null,
+          missingB: b == null,
+        );
     }
   }
 

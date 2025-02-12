@@ -35,8 +35,10 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
     test("contains mappings", () {
       var result = sass.compileStringToResult("a {b: 1 + 2}", sourceMap: true);
-      expect(map,
-          containsPair("mappings", result.sourceMap!.toJson()["mappings"]));
+      expect(
+        map,
+        containsPair("mappings", result.sourceMap!.toJson()["mappings"]),
+      );
     });
   });
 
@@ -51,39 +53,61 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
     test("refers to them using relative URLs by default", () async {
       await (await runSass(["test.scss", "out.css"])).shouldExit(0);
-      expect(_readJson("out.css.map"),
-          containsPair("sources", ["dir/other.scss", "test.scss"]));
-    });
-
-    test("refers to them using relative URLs with --source-map-urls=relative",
-        () async {
-      await (await runSass(
-              ["--source-map-urls=relative", "test.scss", "out.css"]))
-          .shouldExit(0);
-      expect(_readJson("out.css.map"),
-          containsPair("sources", ["dir/other.scss", "test.scss"]));
-    });
-
-    test("refers to them using absolute URLs with --source-map-urls=absolute",
-        () async {
-      await (await runSass(
-              ["--source-map-urls=absolute", "test.scss", "out.css"]))
-          .shouldExit(0);
       expect(
+        _readJson("out.css.map"),
+        containsPair("sources", ["dir/other.scss", "test.scss"]),
+      );
+    });
+
+    test(
+      "refers to them using relative URLs with --source-map-urls=relative",
+      () async {
+        await (await runSass([
+          "--source-map-urls=relative",
+          "test.scss",
+          "out.css",
+        ]))
+            .shouldExit(0);
+        expect(
+          _readJson("out.css.map"),
+          containsPair("sources", ["dir/other.scss", "test.scss"]),
+        );
+      },
+    );
+
+    test(
+      "refers to them using absolute URLs with --source-map-urls=absolute",
+      () async {
+        await (await runSass([
+          "--source-map-urls=absolute",
+          "test.scss",
+          "out.css",
+        ]))
+            .shouldExit(0);
+        expect(
           _readJson("out.css.map"),
           containsPair("sources", [
             p.toUri(canonicalize(d.path("dir/other.scss"))).toString(),
-            p.toUri(canonicalize(d.path("test.scss"))).toString()
-          ]));
-    });
+            p.toUri(canonicalize(d.path("test.scss"))).toString(),
+          ]),
+        );
+      },
+    );
 
     test("includes source contents with --embed-sources", () async {
-      await (await runSass(["--embed-sources", "test.scss", "out.css"]))
+      await (await runSass([
+        "--embed-sources",
+        "test.scss",
+        "out.css",
+      ]))
           .shouldExit(0);
       expect(
-          _readJson("out.css.map"),
-          containsPair("sourcesContent",
-              ["a {b: 1 + 2}", readFile(d.path("test.scss"))]));
+        _readJson("out.css.map"),
+        containsPair("sourcesContent", [
+          "a {b: 1 + 2}",
+          readFile(d.path("test.scss")),
+        ]),
+      );
     });
   });
 
@@ -130,14 +154,18 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     });
 
     test("refers to a source", () {
-      expect(_readJson("out/test.css.map"),
-          containsPair("sources", ["../in/test.scss"]));
+      expect(
+        _readJson("out/test.css.map"),
+        containsPair("sources", ["../in/test.scss"]),
+      );
     });
 
     test("includes a source map comment", () async {
       await d
-          .file("out/test.css",
-              endsWith("\n\n/*# sourceMappingURL=test.css.map */\n"))
+          .file(
+            "out/test.css",
+            endsWith("\n\n/*# sourceMappingURL=test.css.map */\n"),
+          )
           .validate();
     });
   });
@@ -149,9 +177,11 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     await sass.shouldExit(0);
 
     expect(
-        _readJson("out.css.map"),
-        containsPair("sources",
-            [Uri.dataFromString("a {b: c}\n", encoding: utf8).toString()]));
+      _readJson("out.css.map"),
+      containsPair("sources", [
+        Uri.dataFromString("a {b: c}\n", encoding: utf8).toString(),
+      ]),
+    );
   });
 
   group("with --no-source-map,", () {
@@ -160,7 +190,11 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     });
 
     test("no source map is generated", () async {
-      await (await runSass(["--no-source-map", "test.scss", "out.css"]))
+      await (await runSass([
+        "--no-source-map",
+        "test.scss",
+        "out.css",
+      ]))
           .shouldExit(0);
 
       await d.file("out.css", isNot(contains("/*#"))).validate();
@@ -172,32 +206,52 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         "--no-source-map",
         "--source-map-urls=absolute",
         "test.scss",
-        "out.css"
+        "out.css",
       ]);
-      expect(sass.stdout,
-          emits("--source-map-urls isn't allowed with --no-source-map."));
       expect(
-          sass.stdout, emitsThrough(contains("Print this usage information.")));
+        sass.stdout,
+        emits("--source-map-urls isn't allowed with --no-source-map."),
+      );
+      expect(
+        sass.stdout,
+        emitsThrough(contains("Print this usage information.")),
+      );
       await sass.shouldExit(64);
     });
 
     test("--embed-sources is disallowed", () async {
-      var sass = await runSass(
-          ["--no-source-map", "--embed-sources", "test.scss", "out.css"]);
-      expect(sass.stdout,
-          emits("--embed-sources isn't allowed with --no-source-map."));
+      var sass = await runSass([
+        "--no-source-map",
+        "--embed-sources",
+        "test.scss",
+        "out.css",
+      ]);
       expect(
-          sass.stdout, emitsThrough(contains("Print this usage information.")));
+        sass.stdout,
+        emits("--embed-sources isn't allowed with --no-source-map."),
+      );
+      expect(
+        sass.stdout,
+        emitsThrough(contains("Print this usage information.")),
+      );
       await sass.shouldExit(64);
     });
 
     test("--embed-source-map is disallowed", () async {
-      var sass = await runSass(
-          ["--no-source-map", "--embed-source-map", "test.scss", "out.css"]);
-      expect(sass.stdout,
-          emits("--embed-source-map isn't allowed with --no-source-map."));
+      var sass = await runSass([
+        "--no-source-map",
+        "--embed-source-map",
+        "test.scss",
+        "out.css",
+      ]);
       expect(
-          sass.stdout, emitsThrough(contains("Print this usage information.")));
+        sass.stdout,
+        emits("--embed-source-map isn't allowed with --no-source-map."),
+      );
+      expect(
+        sass.stdout,
+        emitsThrough(contains("Print this usage information.")),
+      );
       await sass.shouldExit(64);
     });
   });
@@ -207,11 +261,16 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await d.file("test.scss", "a {b: c}").create();
       var sass = await runSass(["--source-map", "test.scss"]);
       expect(
-          sass.stdout,
-          emits("When printing to stdout, --source-map requires "
-              "--embed-source-map."));
+        sass.stdout,
+        emits(
+          "When printing to stdout, --source-map requires "
+          "--embed-source-map.",
+        ),
+      );
       expect(
-          sass.stdout, emitsThrough(contains("Print this usage information.")));
+        sass.stdout,
+        emitsThrough(contains("Print this usage information.")),
+      );
       await sass.shouldExit(64);
     });
 
@@ -219,11 +278,16 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await d.file("test.scss", "a {b: c}").create();
       var sass = await runSass(["--source-map-urls=absolute", "test.scss"]);
       expect(
-          sass.stdout,
-          emits("When printing to stdout, --source-map-urls requires "
-              "--embed-source-map."));
+        sass.stdout,
+        emits(
+          "When printing to stdout, --source-map-urls requires "
+          "--embed-source-map.",
+        ),
+      );
       expect(
-          sass.stdout, emitsThrough(contains("Print this usage information.")));
+        sass.stdout,
+        emitsThrough(contains("Print this usage information.")),
+      );
       await sass.shouldExit(64);
     });
 
@@ -231,11 +295,16 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       await d.file("test.scss", "a {b: c}").create();
       var sass = await runSass(["--embed-sources", "test.scss"]);
       expect(
-          sass.stdout,
-          emits("When printing to stdout, --embed-sources requires "
-              "--embed-source-map."));
+        sass.stdout,
+        emits(
+          "When printing to stdout, --embed-sources requires "
+          "--embed-source-map.",
+        ),
+      );
       expect(
-          sass.stdout, emitsThrough(contains("Print this usage information.")));
+        sass.stdout,
+        emitsThrough(contains("Print this usage information.")),
+      );
       await sass.shouldExit(64);
     });
 
@@ -243,14 +312,22 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         "--source-map-urls=relative is disallowed even with "
         "--embed-source-map", () async {
       await d.file("test.scss", "a {b: c}").create();
-      var sass = await runSass(
-          ["--source-map-urls=relative", "--embed-source-map", "test.scss"]);
+      var sass = await runSass([
+        "--source-map-urls=relative",
+        "--embed-source-map",
+        "test.scss",
+      ]);
       expect(
-          sass.stdout,
-          emits("--source-map-urls=relative isn't allowed when printing to "
-              "stdout."));
+        sass.stdout,
+        emits(
+          "--source-map-urls=relative isn't allowed when printing to "
+          "stdout.",
+        ),
+      );
       expect(
-          sass.stdout, emitsThrough(contains("Print this usage information.")));
+        sass.stdout,
+        emitsThrough(contains("Print this usage information.")),
+      );
       await sass.shouldExit(64);
     });
 
@@ -261,7 +338,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         "--source-map-urls=absolute",
         "--embed-sources",
         "--embed-source-map",
-        "test.scss"
+        "test.scss",
       ]);
       var css = (await sass.stdout.rest.toList()).join("\n");
       await sass.shouldExit(0);
@@ -280,17 +357,25 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     Map<String, dynamic>? map;
     group("with the target in the same directory", () {
       setUp(() async {
-        await (await runSass(["--embed-source-map", "test.scss", "out.css"]))
+        await (await runSass([
+          "--embed-source-map",
+          "test.scss",
+          "out.css",
+        ]))
             .shouldExit(0);
         var css = readFile(d.path("out.css"));
         map = embeddedSourceMap(css);
       });
 
       test("contains mappings in the generated CSS", () {
-        var result =
-            sass.compileStringToResult("a {b: 1 + 2}", sourceMap: true);
-        expect(map,
-            containsPair("mappings", result.sourceMap!.toJson()["mappings"]));
+        var result = sass.compileStringToResult(
+          "a {b: 1 + 2}",
+          sourceMap: true,
+        );
+        expect(
+          map,
+          containsPair("mappings", result.sourceMap!.toJson()["mappings"]),
+        );
       });
 
       test("refers to the source file", () {
@@ -312,7 +397,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           "--embed-source-map",
           "--embed-sources",
           "test.scss",
-          "out.css"
+          "out.css",
         ]))
             .shouldExit(0);
         var css = readFile(d.path("out.css"));
@@ -326,8 +411,11 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     group("with the target in a different directory", () {
       setUp(() async {
         ensureDir(d.path("dir"));
-        await (await runSass(
-                ["--embed-source-map", "test.scss", "dir/out.css"]))
+        await (await runSass([
+          "--embed-source-map",
+          "test.scss",
+          "dir/out.css",
+        ]))
             .shouldExit(0);
         var css = readFile(d.path("dir/out.css"));
         map = embeddedSourceMap(css);
@@ -345,14 +433,15 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     test("with stdout as the target", () async {
       var sass = await runSass(["--embed-source-map", "test.scss"]);
       expect(
-          sass.stdout,
-          emitsInOrder([
-            "a {",
-            "  b: 3;",
-            "}",
-            "",
-            startsWith("/*# sourceMappingURL=data:")
-          ]));
+        sass.stdout,
+        emitsInOrder([
+          "a {",
+          "  b: 3;",
+          "}",
+          "",
+          startsWith("/*# sourceMappingURL=data:"),
+        ]),
+      );
       await sass.shouldExit(0);
     });
   });

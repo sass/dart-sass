@@ -27,8 +27,11 @@ abstract interface class AsyncCallable {
   String get name;
 
   @Deprecated('Use `AsyncCallable.function` instead.')
-  factory AsyncCallable(String name, String arguments,
-          FutureOr<Value> callback(List<Value> arguments)) =>
+  factory AsyncCallable(
+    String name,
+    String arguments,
+    FutureOr<Value> callback(List<Value> arguments),
+  ) =>
       AsyncCallable.function(name, arguments, callback);
 
   /// Creates a callable with the given [name] and [arguments] that runs
@@ -38,18 +41,25 @@ abstract interface class AsyncCallable {
   /// include parentheses. Throws a [SassFormatException] if parsing fails.
   ///
   /// See [Callable.new] for more details.
-  factory AsyncCallable.function(String name, String arguments,
-          FutureOr<Value> callback(List<Value> arguments)) =>
+  factory AsyncCallable.function(
+    String name,
+    String arguments,
+    FutureOr<Value> callback(List<Value> arguments),
+  ) =>
       AsyncBuiltInCallable.function(name, arguments, callback);
 
   /// Creates a callable with a single [signature] and a single [callback].
   ///
   /// Throws a [SassFormatException] if parsing fails.
   factory AsyncCallable.fromSignature(
-      String signature, FutureOr<Value> callback(List<Value> arguments),
-      {bool requireParens = true}) {
-    var (name, declaration) =
-        parseSignature(signature, requireParens: requireParens);
+    String signature,
+    FutureOr<Value> callback(List<Value> arguments), {
+    bool requireParens = true,
+  }) {
+    var (name, declaration) = parseSignature(
+      signature,
+      requireParens: requireParens,
+    );
     return AsyncBuiltInCallable.parsed(name, declaration, callback);
   }
 }

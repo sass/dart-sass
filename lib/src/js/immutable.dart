@@ -47,8 +47,10 @@ ImmutableMap dartMapToImmutableMap(Map<Object, Object?> dartMap) {
 /// Converts an [ImmutableMap] into an equivalent Dart map.
 Map<Object, Object?> immutableMapToDartMap(ImmutableMap immutableMap) {
   var dartMap = <Object, Object?>{};
-  immutableMap.forEach(allowInterop((value, key, _) {
-    dartMap[key] = value;
-  }));
+  immutableMap.forEach(
+    allowInterop((value, key, _) {
+      dartMap[key] = value;
+    }),
+  );
   return dartMap;
 }

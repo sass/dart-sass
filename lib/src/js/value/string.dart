@@ -10,13 +10,14 @@ import '../reflection.dart';
 /// The JavaScript `SassString` class.
 final JSClass stringClass = () {
   var jsClass = createJSClass(
-      'sass.SassString',
-      (Object self, [Object? textOrOptions, _ConstructorOptions? options]) =>
-          textOrOptions is String
-              ? SassString(textOrOptions, quotes: options?.quotes ?? true)
-              : SassString.empty(
-                  quotes:
-                      (textOrOptions as _ConstructorOptions?)?.quotes ?? true));
+    'sass.SassString',
+    (Object self, [Object? textOrOptions, _ConstructorOptions? options]) =>
+        textOrOptions is String
+            ? SassString(textOrOptions, quotes: options?.quotes ?? true)
+            : SassString.empty(
+                quotes: (textOrOptions as _ConstructorOptions?)?.quotes ?? true,
+              ),
+  );
 
   jsClass.defineGetters({
     'text': (SassString self) => self.text,
@@ -25,9 +26,10 @@ final JSClass stringClass = () {
   });
 
   jsClass.defineMethod(
-      'sassIndexToStringIndex',
-      (SassString self, Value sassIndex, [String? name]) =>
-          self.sassIndexToStringIndex(sassIndex, name));
+    'sassIndexToStringIndex',
+    (SassString self, Value sassIndex, [String? name]) =>
+        self.sassIndexToStringIndex(sassIndex, name),
+  );
 
   getJSClass(SassString.empty()).injectSuperclass(jsClass);
   return jsClass;

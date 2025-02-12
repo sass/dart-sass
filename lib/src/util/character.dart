@@ -122,7 +122,7 @@ int asHex(int character) {
     <= $9 => character - $0,
     // ignore: non_constant_relational_pattern_expression
     <= $F => 10 + character - $A,
-    _ => 10 + character - $a
+    _ => 10 + character - $a,
   };
 }
 
@@ -157,7 +157,8 @@ int opposite(int character) => switch (character) {
       $lbrace => $rbrace,
       $lbracket => $rbracket,
       _ => throw ArgumentError(
-          '"${String.fromCharCode(character)}" isn\'t a brace-like character.')
+          '"${String.fromCharCode(character)}" isn\'t a brace-like character.',
+        ),
     };
 
 /// Returns [character], converted to upper case if it's an ASCII lowercase

@@ -42,32 +42,43 @@ import 'utils.dart';
 ///
 /// [render]: https://github.com/sass/node-sass#options
 void render(
-    RenderOptions options, void callback(Object? error, RenderResult? result)) {
+  RenderOptions options,
+  void callback(Object? error, RenderResult? result),
+) {
   if (!isNodeJs) {
     jsThrow(JsError("The render() method is only available in Node.js."));
   }
   if (options.fiber case var fiber?) {
-    fiber.call(allowInterop(() {
-      try {
-        callback(null, renderSync(options));
-      } catch (error) {
-        callback(error, null);
-      }
-      return null;
-    })).run();
+    fiber.call(
+      allowInterop(() {
+        try {
+          callback(null, renderSync(options));
+        } catch (error) {
+          callback(error, null);
+        }
+        return null;
+      }),
+    ).run();
   } else {
-    _renderAsync(options).then((result) {
-      callback(null, result);
-    }, onError: (Object error, StackTrace stackTrace) {
-      if (error is SassException) {
-        callback(_wrapException(error, stackTrace), null);
-      } else {
-        callback(
-            _newRenderError(error.toString(), getTrace(error) ?? stackTrace,
-                status: 3),
-            null);
-      }
-    });
+    _renderAsync(options).then(
+      (result) {
+        callback(null, result);
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        if (error is SassException) {
+          callback(_wrapException(error, stackTrace), null);
+        } else {
+          callback(
+            _newRenderError(
+              error.toString(),
+              getTrace(error) ?? stackTrace,
+              status: 3,
+            ),
+            null,
+          );
+        }
+      },
+    );
   }
 }
 
@@ -77,51 +88,65 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
   CompileResult result;
 
   var file = options.file.andThen(p.absolute);
-  var logger =
-      JSToDartLogger(options.logger, Logger.stderr(color: hasTerminal));
+  var logger = JSToDartLogger(
+    options.logger,
+    Logger.stderr(color: hasTerminal),
+  );
   if (options.data case var data?) {
-    result = await compileStringAsync(data,
-        nodeImporter: _parseImporter(options, start),
-        importCache: _parsePackageImportersAsync(options, start),
-        functions: _parseFunctions(options, start, asynch: true),
-        syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
-        style: _parseOutputStyle(options.outputStyle),
-        useSpaces: options.indentType != 'tab',
-        indentWidth: _parseIndentWidth(options.indentWidth),
-        lineFeed: _parseLineFeed(options.linefeed),
-        url: file == null ? 'stdin' : p.toUri(file).toString(),
-        quietDeps: options.quietDeps ?? false,
-        fatalDeprecations: parseDeprecations(logger, options.fatalDeprecations,
-            supportVersions: true),
-        futureDeprecations:
-            parseDeprecations(logger, options.futureDeprecations),
-        silenceDeprecations:
-            parseDeprecations(logger, options.silenceDeprecations),
-        verbose: options.verbose ?? false,
-        charset: options.charset ?? true,
-        sourceMap: _enableSourceMaps(options),
-        logger: logger);
+    result = await compileStringAsync(
+      data,
+      nodeImporter: _parseImporter(options, start),
+      importCache: _parsePackageImportersAsync(options, start),
+      functions: _parseFunctions(options, start, asynch: true),
+      syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
+      style: _parseOutputStyle(options.outputStyle),
+      useSpaces: options.indentType != 'tab',
+      indentWidth: _parseIndentWidth(options.indentWidth),
+      lineFeed: _parseLineFeed(options.linefeed),
+      url: file == null ? 'stdin' : p.toUri(file).toString(),
+      quietDeps: options.quietDeps ?? false,
+      fatalDeprecations: parseDeprecations(
+        logger,
+        options.fatalDeprecations,
+        supportVersions: true,
+      ),
+      futureDeprecations: parseDeprecations(logger, options.futureDeprecations),
+      silenceDeprecations: parseDeprecations(
+        logger,
+        options.silenceDeprecations,
+      ),
+      verbose: options.verbose ?? false,
+      charset: options.charset ?? true,
+      sourceMap: _enableSourceMaps(options),
+      logger: logger,
+    );
   } else if (file != null) {
-    result = await compileAsync(file,
-        nodeImporter: _parseImporter(options, start),
-        importCache: _parsePackageImportersAsync(options, start),
-        functions: _parseFunctions(options, start, asynch: true),
-        syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
-        style: _parseOutputStyle(options.outputStyle),
-        useSpaces: options.indentType != 'tab',
-        indentWidth: _parseIndentWidth(options.indentWidth),
-        lineFeed: _parseLineFeed(options.linefeed),
-        quietDeps: options.quietDeps ?? false,
-        fatalDeprecations: parseDeprecations(logger, options.fatalDeprecations,
-            supportVersions: true),
-        futureDeprecations:
-            parseDeprecations(logger, options.futureDeprecations),
-        silenceDeprecations:
-            parseDeprecations(logger, options.silenceDeprecations),
-        verbose: options.verbose ?? false,
-        charset: options.charset ?? true,
-        sourceMap: _enableSourceMaps(options),
-        logger: logger);
+    result = await compileAsync(
+      file,
+      nodeImporter: _parseImporter(options, start),
+      importCache: _parsePackageImportersAsync(options, start),
+      functions: _parseFunctions(options, start, asynch: true),
+      syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
+      style: _parseOutputStyle(options.outputStyle),
+      useSpaces: options.indentType != 'tab',
+      indentWidth: _parseIndentWidth(options.indentWidth),
+      lineFeed: _parseLineFeed(options.linefeed),
+      quietDeps: options.quietDeps ?? false,
+      fatalDeprecations: parseDeprecations(
+        logger,
+        options.fatalDeprecations,
+        supportVersions: true,
+      ),
+      futureDeprecations: parseDeprecations(logger, options.futureDeprecations),
+      silenceDeprecations: parseDeprecations(
+        logger,
+        options.silenceDeprecations,
+      ),
+      verbose: options.verbose ?? false,
+      charset: options.charset ?? true,
+      sourceMap: _enableSourceMaps(options),
+      logger: logger,
+    );
   } else {
     throw ArgumentError("Either options.data or options.file must be set.");
   }
@@ -144,51 +169,71 @@ RenderResult renderSync(RenderOptions options) {
     CompileResult result;
 
     var file = options.file.andThen(p.absolute);
-    var logger =
-        JSToDartLogger(options.logger, Logger.stderr(color: hasTerminal));
+    var logger = JSToDartLogger(
+      options.logger,
+      Logger.stderr(color: hasTerminal),
+    );
     if (options.data case var data?) {
-      result = compileString(data,
-          nodeImporter: _parseImporter(options, start),
-          importCache: _parsePackageImporters(options, start),
-          functions: _parseFunctions(options, start).cast(),
-          syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
-          style: _parseOutputStyle(options.outputStyle),
-          useSpaces: options.indentType != 'tab',
-          indentWidth: _parseIndentWidth(options.indentWidth),
-          lineFeed: _parseLineFeed(options.linefeed),
-          url: file == null ? 'stdin' : p.toUri(file).toString(),
-          quietDeps: options.quietDeps ?? false,
-          fatalDeprecations: parseDeprecations(
-              logger, options.fatalDeprecations, supportVersions: true),
-          futureDeprecations:
-              parseDeprecations(logger, options.futureDeprecations),
-          silenceDeprecations:
-              parseDeprecations(logger, options.silenceDeprecations),
-          verbose: options.verbose ?? false,
-          charset: options.charset ?? true,
-          sourceMap: _enableSourceMaps(options),
-          logger: logger);
+      result = compileString(
+        data,
+        nodeImporter: _parseImporter(options, start),
+        importCache: _parsePackageImporters(options, start),
+        functions: _parseFunctions(options, start).cast(),
+        syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
+        style: _parseOutputStyle(options.outputStyle),
+        useSpaces: options.indentType != 'tab',
+        indentWidth: _parseIndentWidth(options.indentWidth),
+        lineFeed: _parseLineFeed(options.linefeed),
+        url: file == null ? 'stdin' : p.toUri(file).toString(),
+        quietDeps: options.quietDeps ?? false,
+        fatalDeprecations: parseDeprecations(
+          logger,
+          options.fatalDeprecations,
+          supportVersions: true,
+        ),
+        futureDeprecations: parseDeprecations(
+          logger,
+          options.futureDeprecations,
+        ),
+        silenceDeprecations: parseDeprecations(
+          logger,
+          options.silenceDeprecations,
+        ),
+        verbose: options.verbose ?? false,
+        charset: options.charset ?? true,
+        sourceMap: _enableSourceMaps(options),
+        logger: logger,
+      );
     } else if (file != null) {
-      result = compile(file,
-          nodeImporter: _parseImporter(options, start),
-          importCache: _parsePackageImporters(options, start),
-          functions: _parseFunctions(options, start).cast(),
-          syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
-          style: _parseOutputStyle(options.outputStyle),
-          useSpaces: options.indentType != 'tab',
-          indentWidth: _parseIndentWidth(options.indentWidth),
-          lineFeed: _parseLineFeed(options.linefeed),
-          quietDeps: options.quietDeps ?? false,
-          fatalDeprecations: parseDeprecations(
-              logger, options.fatalDeprecations, supportVersions: true),
-          futureDeprecations:
-              parseDeprecations(logger, options.futureDeprecations),
-          silenceDeprecations:
-              parseDeprecations(logger, options.silenceDeprecations),
-          verbose: options.verbose ?? false,
-          charset: options.charset ?? true,
-          sourceMap: _enableSourceMaps(options),
-          logger: logger);
+      result = compile(
+        file,
+        nodeImporter: _parseImporter(options, start),
+        importCache: _parsePackageImporters(options, start),
+        functions: _parseFunctions(options, start).cast(),
+        syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
+        style: _parseOutputStyle(options.outputStyle),
+        useSpaces: options.indentType != 'tab',
+        indentWidth: _parseIndentWidth(options.indentWidth),
+        lineFeed: _parseLineFeed(options.linefeed),
+        quietDeps: options.quietDeps ?? false,
+        fatalDeprecations: parseDeprecations(
+          logger,
+          options.fatalDeprecations,
+          supportVersions: true,
+        ),
+        futureDeprecations: parseDeprecations(
+          logger,
+          options.futureDeprecations,
+        ),
+        silenceDeprecations: parseDeprecations(
+          logger,
+          options.silenceDeprecations,
+        ),
+        verbose: options.verbose ?? false,
+        charset: options.charset ?? true,
+        sourceMap: _enableSourceMaps(options),
+        logger: logger,
+      );
     } else {
       throw ArgumentError("Either options.data or options.file must be set.");
     }
@@ -197,8 +242,13 @@ RenderResult renderSync(RenderOptions options) {
   } on SassException catch (error, stackTrace) {
     jsThrow(_wrapException(error, stackTrace));
   } catch (error, stackTrace) {
-    jsThrow(_newRenderError(error.toString(), getTrace(error) ?? stackTrace,
-        status: 3));
+    jsThrow(
+      _newRenderError(
+        error.toString(),
+        getTrace(error) ?? stackTrace,
+        status: 3,
+      ),
+    );
   }
 }
 
@@ -208,15 +258,17 @@ JsError _wrapException(Object exception, StackTrace stackTrace) {
     var file = switch (exception.span.sourceUrl) {
       null => 'stdin',
       Uri(scheme: 'file') && var url => p.fromUri(url),
-      var url => url.toString()
+      var url => url.toString(),
     };
 
-    return _newRenderError(exception.toString().replaceFirst("Error: ", ""),
-        getTrace(exception) ?? stackTrace,
-        line: exception.span.start.line + 1,
-        column: exception.span.start.column + 1,
-        file: file,
-        status: 1);
+    return _newRenderError(
+      exception.toString().replaceFirst("Error: ", ""),
+      getTrace(exception) ?? stackTrace,
+      line: exception.span.start.line + 1,
+      column: exception.span.start.column + 1,
+      file: file,
+      status: 1,
+    );
   } else {
     var error = JsError(exception.toString());
     attachJsStack(error, getTrace(exception) ?? stackTrace);
@@ -229,8 +281,11 @@ JsError _wrapException(Object exception, StackTrace stackTrace) {
 ///
 /// This is typed to always return [AsyncCallable], but in practice it will
 /// return a `List<Callable>` if [asynch] is `false`.
-List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
-    {bool asynch = false}) {
+List<AsyncCallable> _parseFunctions(
+  RenderOptions options,
+  DateTime start, {
+  bool asynch = false,
+}) {
   var functions = options.functions;
   if (functions == null) return const [];
 
@@ -240,45 +295,61 @@ List<AsyncCallable> _parseFunctions(RenderOptions options, DateTime start,
     context.options.context = context;
 
     if (options.fiber case var fiber?) {
-      result.add(Callable.fromSignature(signature.trimLeft(), (arguments) {
-        var currentFiber = fiber.current;
-        var jsArguments = [
-          ...arguments.map(wrapValue),
-          allowInterop(([Object? result]) {
-            // Schedule a microtask so we don't try to resume the running fiber
-            // if [importer] calls `done()` synchronously.
-            scheduleMicrotask(() => currentFiber.run(result));
-          })
-        ];
-        var result = wrapJSExceptions(
-            () => (callback as JSFunction).apply(context, jsArguments));
-        return unwrapValue(isUndefined(result)
-            // Run `fiber.yield()` in runZoned() so that Dart resets the current
-            // zone once it's done. Otherwise, interweaving fibers can leave
-            // `Zone.current` in an inconsistent state.
-            ? runZoned(() => fiber.yield())
-            : result);
-      }, requireParens: false));
+      result.add(
+        Callable.fromSignature(signature.trimLeft(), (arguments) {
+          var currentFiber = fiber.current;
+          var jsArguments = [
+            ...arguments.map(wrapValue),
+            allowInterop(([Object? result]) {
+              // Schedule a microtask so we don't try to resume the running fiber
+              // if [importer] calls `done()` synchronously.
+              scheduleMicrotask(() => currentFiber.run(result));
+            }),
+          ];
+          var result = wrapJSExceptions(
+            () => (callback as JSFunction).apply(context, jsArguments),
+          );
+          return unwrapValue(
+            isUndefined(result)
+                // Run `fiber.yield()` in runZoned() so that Dart resets the current
+                // zone once it's done. Otherwise, interweaving fibers can leave
+                // `Zone.current` in an inconsistent state.
+                ? runZoned(() => fiber.yield())
+                : result,
+          );
+        }, requireParens: false),
+      );
     } else if (!asynch) {
-      result.add(Callable.fromSignature(
+      result.add(
+        Callable.fromSignature(
           signature.trimLeft(),
-          (arguments) => unwrapValue(wrapJSExceptions(() =>
-              (callback as JSFunction)
-                  .apply(context, arguments.map(wrapValue).toList()))),
-          requireParens: false));
+          (arguments) => unwrapValue(
+            wrapJSExceptions(
+              () => (callback as JSFunction).apply(
+                context,
+                arguments.map(wrapValue).toList(),
+              ),
+            ),
+          ),
+          requireParens: false,
+        ),
+      );
     } else {
       result.add(
-          AsyncCallable.fromSignature(signature.trimLeft(), (arguments) async {
-        var completer = Completer<Object?>();
-        var jsArguments = [
-          ...arguments.map(wrapValue),
-          allowInterop(([Object? result]) => completer.complete(result))
-        ];
-        var result = wrapJSExceptions(
-            () => (callback as JSFunction).apply(context, jsArguments));
-        return unwrapValue(
-            isUndefined(result) ? await completer.future : result);
-      }, requireParens: false));
+        AsyncCallable.fromSignature(signature.trimLeft(), (arguments) async {
+          var completer = Completer<Object?>();
+          var jsArguments = [
+            ...arguments.map(wrapValue),
+            allowInterop(([Object? result]) => completer.complete(result)),
+          ];
+          var result = wrapJSExceptions(
+            () => (callback as JSFunction).apply(context, jsArguments),
+          );
+          return unwrapValue(
+            isUndefined(result) ? await completer.future : result,
+          );
+        }, requireParens: false),
+      );
     }
   });
   return result;
@@ -298,15 +369,24 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
 
   if (options.fiber case var fiber?) {
     importers = importers.map((importer) {
-      return allowInteropCaptureThis(
-          (Object thisArg, String url, String previous, [Object? _]) {
+      return allowInteropCaptureThis((
+        Object thisArg,
+        String url,
+        String previous, [
+        Object? _,
+      ]) {
         var currentFiber = fiber.current;
-        var result = call3(importer, thisArg, url, previous,
-            allowInterop((Object result) {
-          // Schedule a microtask so we don't try to resume the running fiber if
-          // [importer] calls `done()` synchronously.
-          scheduleMicrotask(() => currentFiber.run(result));
-        }));
+        var result = call3(
+          importer,
+          thisArg,
+          url,
+          previous,
+          allowInterop((Object result) {
+            // Schedule a microtask so we don't try to resume the running fiber if
+            // [importer] calls `done()` synchronously.
+            scheduleMicrotask(() => currentFiber.run(result));
+          }),
+        );
 
         // Run `fiber.yield()` in runZoned() so that Dart resets the current
         // zone once it's done. Otherwise, interweaving fibers can leave
@@ -323,7 +403,9 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
 
 /// Creates an [AsyncImportCache] for Package Importers.
 AsyncImportCache? _parsePackageImportersAsync(
-    RenderOptions options, DateTime start) {
+  RenderOptions options,
+  DateTime start,
+) {
   if (options.pkgImporter is NodePackageImporter) {
     return AsyncImportCache.only([options.pkgImporter!]);
   }
@@ -343,32 +425,35 @@ ImportCache? _parsePackageImporters(RenderOptions options, DateTime start) {
 RenderContextOptions _contextOptions(RenderOptions options, DateTime start) {
   var includePaths = List<String>.from(options.includePaths ?? []);
   return RenderContextOptions(
-      file: options.file,
-      data: options.data,
-      includePaths: ([p.current, ...includePaths]).join(isWindows ? ';' : ':'),
-      precision: SassNumber.precision,
-      style: 1,
-      indentType: options.indentType == 'tab' ? 1 : 0,
-      indentWidth: _parseIndentWidth(options.indentWidth) ?? 2,
-      linefeed: _parseLineFeed(options.linefeed).text,
-      result: RenderContextResult(
-          stats: RenderContextResultStats(
-              start: start.millisecondsSinceEpoch,
-              entry: options.file ?? 'data')));
+    file: options.file,
+    data: options.data,
+    includePaths: ([p.current, ...includePaths]).join(isWindows ? ';' : ':'),
+    precision: SassNumber.precision,
+    style: 1,
+    indentType: options.indentType == 'tab' ? 1 : 0,
+    indentWidth: _parseIndentWidth(options.indentWidth) ?? 2,
+    linefeed: _parseLineFeed(options.linefeed).text,
+    result: RenderContextResult(
+      stats: RenderContextResultStats(
+        start: start.millisecondsSinceEpoch,
+        entry: options.file ?? 'data',
+      ),
+    ),
+  );
 }
 
 /// Parse [style] into an [OutputStyle].
 OutputStyle _parseOutputStyle(String? style) => switch (style) {
       null || 'expanded' => OutputStyle.expanded,
       'compressed' => OutputStyle.compressed,
-      _ => jsThrow(JsError('Unknown output style "$style".'))
+      _ => jsThrow(JsError('Unknown output style "$style".')),
     };
 
 /// Parses the indentation width into an [int].
 int? _parseIndentWidth(Object? width) => switch (width) {
       null => null,
       int() => width,
-      _ => int.parse(width.toString())
+      _ => int.parse(width.toString()),
     };
 
 /// Parses the name of a line feed type into a [LineFeed].
@@ -376,12 +461,15 @@ LineFeed _parseLineFeed(String? str) => switch (str) {
       'cr' => LineFeed.cr,
       'crlf' => LineFeed.crlf,
       'lfcr' => LineFeed.lfcr,
-      _ => LineFeed.lf
+      _ => LineFeed.lf,
     };
 
 /// Creates a [RenderResult] that exposes [result] in the Node Sass API format.
 RenderResult _newRenderResult(
-    RenderOptions options, CompileResult result, DateTime start) {
+  RenderOptions options,
+  CompileResult result,
+  DateTime start,
+) {
   var end = DateTime.now();
 
   var css = result.css;
@@ -401,7 +489,7 @@ RenderResult _newRenderResult(
     if (outFile == null) {
       sourceMap.targetUrl = switch (options.file) {
         var file? => p.toUri(p.setExtension(file, '.css')).toString(),
-        _ => sourceMap.targetUrl = 'stdin.css'
+        _ => sourceMap.targetUrl = 'stdin.css',
       };
     } else {
       sourceMap.targetUrl =
@@ -422,32 +510,37 @@ RenderResult _newRenderResult(
     }
 
     var json = sourceMap.toJson(
-        includeSourceContents: isTruthy(options.sourceMapContents));
+      includeSourceContents: isTruthy(options.sourceMapContents),
+    );
     sourceMapBytes = utf8Encode(jsonEncode(json));
 
     if (!isTruthy(options.omitSourceMapUrl)) {
       var url = isTruthy(options.sourceMapEmbed)
           ? Uri.dataFromBytes(sourceMapBytes, mimeType: "application/json")
-          : p.toUri(outFile == null
-              ? sourceMapPath
-              : p.relative(sourceMapPath, from: p.dirname(outFile)));
+          : p.toUri(
+              outFile == null
+                  ? sourceMapPath
+                  : p.relative(sourceMapPath, from: p.dirname(outFile)),
+            );
       var escapedUrl = url.toString().replaceAll("*/", '%2A/');
       css += "\n\n/*# sourceMappingURL=$escapedUrl */";
     }
   }
 
   return RenderResult(
-      css: utf8Encode(css),
-      map: sourceMapBytes,
-      stats: RenderResultStats(
-          entry: options.file ?? 'data',
-          start: start.millisecondsSinceEpoch,
-          end: end.millisecondsSinceEpoch,
-          duration: end.difference(start).inMilliseconds,
-          includedFiles: [
-            for (var url in result.loadedUrls)
-              url.scheme == 'file' ? p.fromUri(url) : url.toString()
-          ]));
+    css: utf8Encode(css),
+    map: sourceMapBytes,
+    stats: RenderResultStats(
+      entry: options.file ?? 'data',
+      start: start.millisecondsSinceEpoch,
+      end: end.millisecondsSinceEpoch,
+      duration: end.difference(start).inMilliseconds,
+      includedFiles: [
+        for (var url in result.loadedUrls)
+          url.scheme == 'file' ? p.fromUri(url) : url.toString(),
+      ],
+    ),
+  );
 }
 
 /// Returns whether source maps are enabled by [options].
@@ -457,8 +550,14 @@ bool _enableSourceMaps(RenderOptions options) =>
 
 /// Creates a [JsError] with the given fields added to it so it acts like a Node
 /// Sass error.
-JsError _newRenderError(String message, StackTrace stackTrace,
-    {int? line, int? column, String? file, int? status}) {
+JsError _newRenderError(
+  String message,
+  StackTrace stackTrace, {
+  int? line,
+  int? column,
+  String? file,
+  int? status,
+}) {
   var error = JsError(message);
   setProperty(error, 'formatted', 'Error: $message');
   if (line != null) setProperty(error, 'line', line);

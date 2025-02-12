@@ -80,7 +80,8 @@ void writeFile(String path, String contents) {
     throw UnsupportedError("writeFile() is only supported on Node.js");
   }
   return _systemErrorToFileSystemException(
-      () => fs.writeFileSync(path, contents));
+    () => fs.writeFileSync(path, contents),
+  );
 }
 
 void deleteFile(String path) {
@@ -103,19 +104,28 @@ Future<String> readStdin() async {
   });
   // Node defaults all buffers to 'utf8'.
   var sink = utf8.decoder.startChunkedConversion(innerSink);
-  process.stdin.on('data', allowInterop(([Object? chunk]) {
-    sink.add(chunk as List<int>);
-  }));
-  process.stdin.on('end', allowInterop(([Object? arg]) {
-    // Callback for 'end' receives no args.
-    assert(arg == null);
-    sink.close();
-  }));
-  process.stdin.on('error', allowInterop(([Object? e]) {
-    printError('Failed to read from stdin');
-    printError(e);
-    completer.completeError(e!);
-  }));
+  process.stdin.on(
+    'data',
+    allowInterop(([Object? chunk]) {
+      sink.add(chunk as List<int>);
+    }),
+  );
+  process.stdin.on(
+    'end',
+    allowInterop(([Object? arg]) {
+      // Callback for 'end' receives no args.
+      assert(arg == null);
+      sink.close();
+    }),
+  );
+  process.stdin.on(
+    'error',
+    allowInterop(([Object? e]) {
+      printError('Failed to read from stdin');
+      printError(e);
+      completer.completeError(e!);
+    }),
+  );
   return completer.future;
 }
 
@@ -123,8 +133,10 @@ Future<String> readStdin() async {
 String _cleanErrorMessage(JsSystemError error) {
   // The error message is of the form "$code: $text, $syscall '$path'". We just
   // want the text.
-  return error.message.substring("${error.code}: ".length,
-      error.message.length - ", ${error.syscall} '${error.path}'".length);
+  return error.message.substring(
+    "${error.code}: ".length,
+    error.message.length - ", ${error.syscall} '${error.path}'".length,
+  );
 }
 
 bool fileExists(String path) {
@@ -212,8 +224,10 @@ DateTime modificationTime(String path) {
   if (!isNodeJs) {
     throw UnsupportedError("modificationTime() is only supported on Node.js");
   }
-  return _systemErrorToFileSystemException(() =>
-      DateTime.fromMillisecondsSinceEpoch(fs.statSync(path).mtime.getTime()));
+  return _systemErrorToFileSystemException(
+    () =>
+        DateTime.fromMillisecondsSinceEpoch(fs.statSync(path).mtime.getTime()),
+  );
 }
 
 String? getEnvironmentVariable(String name) {
@@ -258,8 +272,10 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
   // Chokidar will give us a bunch of add events for files that already exist.
   StreamController<WatchEvent>? controller;
   if (parcelWatcher case var parcel? when !poll) {
-    var subscription = await parcel.subscribe(path,
-        (Object? error, List<ParcelWatcherEvent> events) {
+    var subscription = await parcel.subscribe(path, (
+      Object? error,
+      List<ParcelWatcherEvent> events,
+    ) {
       if (error != null) {
         controller?.addError(error);
       } else {
@@ -276,37 +292,54 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
       }
     });
 
-    return (controller = StreamController<WatchEvent>(onCancel: () {
-      subscription.unsubscribe();
-    }))
+    return (controller = StreamController<WatchEvent>(
+      onCancel: () {
+        subscription.unsubscribe();
+      },
+    ))
         .stream;
   } else {
     var watcher = chokidar.watch(path, ChokidarOptions(usePolling: poll));
     watcher
       ..on(
-          'add',
-          allowInterop((String path, [void _]) =>
-              controller?.add(WatchEvent(ChangeType.ADD, path))))
+        'add',
+        allowInterop(
+          (String path, [void _]) =>
+              controller?.add(WatchEvent(ChangeType.ADD, path)),
+        ),
+      )
       ..on(
-          'change',
-          allowInterop((String path, [void _]) =>
-              controller?.add(WatchEvent(ChangeType.MODIFY, path))))
+        'change',
+        allowInterop(
+          (String path, [void _]) =>
+              controller?.add(WatchEvent(ChangeType.MODIFY, path)),
+        ),
+      )
       ..on(
-          'unlink',
-          allowInterop((String path) =>
-              controller?.add(WatchEvent(ChangeType.REMOVE, path))))
+        'unlink',
+        allowInterop(
+          (String path) => controller?.add(WatchEvent(ChangeType.REMOVE, path)),
+        ),
+      )
       ..on(
-          'error', allowInterop((Object error) => controller?.addError(error)));
+        'error',
+        allowInterop((Object error) => controller?.addError(error)),
+      );
 
     var completer = Completer<Stream<WatchEvent>>();
-    watcher.on('ready', allowInterop(() {
-      // dart-lang/sdk#45348
-      var stream = (controller = StreamController<WatchEvent>(onCancel: () {
-        watcher.close();
-      }))
-          .stream;
-      completer.complete(stream);
-    }));
+    watcher.on(
+      'ready',
+      allowInterop(() {
+        // dart-lang/sdk#45348
+        var stream = (controller = StreamController<WatchEvent>(
+          onCancel: () {
+            watcher.close();
+          },
+        ))
+            .stream;
+        completer.complete(stream);
+      }),
+    );
 
     return completer.future;
   }

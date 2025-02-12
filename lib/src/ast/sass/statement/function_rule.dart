@@ -18,8 +18,13 @@ final class FunctionRule extends CallableDeclaration
     implements SassDeclaration {
   FileSpan get nameSpan => span.withoutInitialAtRule().initialIdentifier();
 
-  FunctionRule(super.name, super.parameters, super.children, super.span,
-      {super.comment});
+  FunctionRule(
+    super.name,
+    super.parameters,
+    super.children,
+    super.span, {
+    super.comment,
+  });
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitFunctionRule(this);
 

@@ -216,8 +216,11 @@ class Parser {
   }
 
   /// Like [_identifierBody], but parses the body into the [text] buffer.
-  void _identifierBody(StringBuffer text,
-      {bool normalize = false, bool unit = false}) {
+  void _identifierBody(
+    StringBuffer text, {
+    bool normalize = false,
+    bool unit = false,
+  }) {
     loop:
     while (true) {
       switch (scanner.peekChar()) {
@@ -475,8 +478,11 @@ class Parser {
       try {
         return String.fromCharCode(value);
       } on RangeError {
-        scanner.error("Invalid Unicode code point.",
-            position: start, length: scanner.position - start);
+        scanner.error(
+          "Invalid Unicode code point.",
+          position: start,
+          length: scanner.position - start,
+        );
       }
     } else if (value <= 0x1F ||
         value == 0x7F ||
@@ -536,8 +542,10 @@ class Parser {
   void expectIdentChar(int letter, {bool caseSensitive = false}) {
     if (scanIdentChar(letter, caseSensitive: caseSensitive)) return;
 
-    scanner.error('Expected "${String.fromCharCode(letter)}".',
-        position: scanner.position);
+    scanner.error(
+      'Expected "${String.fromCharCode(letter)}".',
+      position: scanner.position,
+    );
   }
 
   // ## Utilities
@@ -554,9 +562,9 @@ class Parser {
         $plus || $minus => switch (scanner.peekChar(1)) {
             int(isDigit: true) => true,
             $dot => scanner.peekChar(2)?.isDigit ?? false,
-            _ => false
+            _ => false,
           },
-        _ => false
+        _ => false,
       };
 
   /// Returns whether the scanner is immediately before a plain CSS identifier.
@@ -576,9 +584,9 @@ class Parser {
       int(isNameStart: true) || $backslash => true,
       $dash => switch (scanner.peekChar(forward + 1)) {
           int(isNameStart: true) || $backslash || $dash => true,
-          _ => false
+          _ => false,
         },
-      _ => false
+      _ => false,
     };
   }
 
@@ -633,8 +641,11 @@ class Parser {
 
   /// Consumes an identifier and asserts that its name exactly matches [text].
   @protected
-  void expectIdentifier(String text,
-      {String? name, bool caseSensitive = false}) {
+  void expectIdentifier(
+    String text, {
+    String? name,
+    bool caseSensitive = false,
+  }) {
     name ??= '"$text"';
 
     var start = scanner.position;
@@ -686,9 +697,10 @@ class Parser {
       return callback();
     } on SourceSpanFormatException catch (error, stackTrace) {
       throwWithTrace(
-          SourceSpanFormatException(message, error.span, error.source),
-          error,
-          stackTrace);
+        SourceSpanFormatException(message, error.span, error.source),
+        error,
+        stackTrace,
+      );
     }
   }
 
@@ -725,15 +737,20 @@ class Parser {
         span = _adjustExceptionSpan(span);
         secondarySpans = {
           for (var (span, description) in secondarySpans.pairs)
-            _adjustExceptionSpan(span): description
+            _adjustExceptionSpan(span): description,
         };
       }
 
       throwWithTrace(
-          MultiSpanSassFormatException(
-              error.message, span, error.primaryLabel, secondarySpans),
-          error,
-          stackTrace);
+        MultiSpanSassFormatException(
+          error.message,
+          span,
+          error.primaryLabel,
+          secondarySpans,
+        ),
+        error,
+        stackTrace,
+      );
     } on SourceSpanFormatException catch (error, stackTrace) {
       var span = error.span as FileSpan;
       if (startsWithIgnoreCase(error.message, "expected")) {
@@ -741,7 +758,10 @@ class Parser {
       }
 
       throwWithTrace(
-          SassFormatException(error.message, span), error, stackTrace);
+        SassFormatException(error.message, span),
+        error,
+        stackTrace,
+      );
     }
   }
 

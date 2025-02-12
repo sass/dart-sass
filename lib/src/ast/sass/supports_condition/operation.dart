@@ -32,7 +32,10 @@ final class SupportsOperation implements SupportsCondition {
     var lowerOperator = operator.toLowerCase();
     if (lowerOperator != "and" && lowerOperator != "or") {
       throw ArgumentError.value(
-          operator, 'operator', 'may only be "and" or "or".');
+        operator,
+        'operator',
+        'may only be "and" or "or".',
+      );
     }
   }
 

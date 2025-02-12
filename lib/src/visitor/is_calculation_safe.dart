@@ -25,7 +25,7 @@ class IsCalculationSafeVisitor implements ExpressionVisitor<bool> {
         BinaryOperator.times,
         BinaryOperator.dividedBy,
         BinaryOperator.plus,
-        BinaryOperator.minus
+        BinaryOperator.minus,
       }).contains(node.operator) &&
       (node.left.accept(this) || node.right.accept(this));
 
@@ -36,7 +36,8 @@ class IsCalculationSafeVisitor implements ExpressionVisitor<bool> {
   bool visitFunctionExpression(FunctionExpression node) => true;
 
   bool visitInterpolatedFunctionExpression(
-          InterpolatedFunctionExpression node) =>
+    InterpolatedFunctionExpression node,
+  ) =>
       true;
 
   bool visitIfExpression(IfExpression node) => true;

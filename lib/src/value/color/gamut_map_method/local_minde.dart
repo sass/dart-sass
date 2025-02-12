@@ -52,8 +52,13 @@ final class LocalMindeGamutMap extends GamutMapMethod {
       // In the Color 4 algorithm `current` is in Oklch, but all its actual uses
       // other than modifying chroma convert it to `color.space` first so we
       // just store it in that space to begin with.
-      var current =
-          ColorSpace.oklch.convert(color.space, lightness, chroma, hue, alpha);
+      var current = ColorSpace.oklch.convert(
+        color.space,
+        lightness,
+        chroma,
+        hue,
+        alpha,
+      );
 
       // Per [this comment], the intention of the algorithm is to fall through
       // this clause if `minInGamut = false` without checking
@@ -86,8 +91,10 @@ final class LocalMindeGamutMap extends GamutMapMethod {
     var lab1 = color1.toSpace(ColorSpace.oklab);
     var lab2 = color2.toSpace(ColorSpace.oklab);
 
-    return math.sqrt(math.pow(lab1.channel0 - lab2.channel0, 2) +
-        math.pow(lab1.channel1 - lab2.channel1, 2) +
-        math.pow(lab1.channel2 - lab2.channel2, 2));
+    return math.sqrt(
+      math.pow(lab1.channel0 - lab2.channel0, 2) +
+          math.pow(lab1.channel1 - lab2.channel1, 2) +
+          math.pow(lab1.channel2 - lab2.channel2, 2),
+    );
   }
 }

@@ -12,12 +12,14 @@ import 'replace_expression.dart';
 /// expressions.
 FunctionExpression expressionToCalc(Expression expression) =>
     FunctionExpression(
-        "calc",
-        ArgumentList(
-            [expression.accept(const _MakeExpressionCalculationSafe())],
-            const {},
-            expression.span),
-        expression.span);
+      "calc",
+      ArgumentList(
+        [expression.accept(const _MakeExpressionCalculationSafe())],
+        const {},
+        expression.span,
+      ),
+      expression.span,
+    );
 
 /// A visitor that replaces constructs that can't be used in a calculation with
 /// those that can.
@@ -31,23 +33,30 @@ class _MakeExpressionCalculationSafe with ReplaceExpressionVisitor {
       // `mod()` calculation function because there's no browser support, so we have
       // to work around it by wrapping the call in a Sass function.
       ? FunctionExpression(
-          'max', ArgumentList([node], const {}, node.span), node.span,
-          namespace: 'math')
+          'max',
+          ArgumentList([node], const {}, node.span),
+          node.span,
+          namespace: 'math',
+        )
       : super.visitBinaryOperationExpression(node);
 
   Expression visitInterpolatedFunctionExpression(
-          InterpolatedFunctionExpression node) =>
+    InterpolatedFunctionExpression node,
+  ) =>
       node;
 
   Expression visitUnaryOperationExpression(UnaryOperationExpression node) =>
       switch (node.operator) {
         // `calc()` doesn't support unary operations.
         UnaryOperator.plus => node.operand,
-        UnaryOperator.minus => BinaryOperationExpression(BinaryOperator.times,
-            NumberExpression(-1, node.span), node.operand),
+        UnaryOperator.minus => BinaryOperationExpression(
+            BinaryOperator.times,
+            NumberExpression(-1, node.span),
+            node.operand,
+          ),
         _ =>
           // Other unary operations don't produce numbers, so keep them as-is to
           // give the user a more useful syntax error after serialization.
-          super.visitUnaryOperationExpression(node)
+          super.visitUnaryOperationExpression(node),
       };
 }

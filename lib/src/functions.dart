@@ -30,8 +30,11 @@ final List<BuiltInCallable> globalFunctions = UnmodifiableListView([
 
   // This is only invoked using `call()`. Hand-authored `if()`s are parsed as
   // [IfExpression]s.
-  BuiltInCallable.function("if", r"$condition, $if-true, $if-false",
-      (arguments) => arguments[0].isTruthy ? arguments[1] : arguments[2]),
+  BuiltInCallable.function(
+    "if",
+    r"$condition, $if-true, $if-false",
+    (arguments) => arguments[0].isTruthy ? arguments[1] : arguments[2],
+  ),
 ]);
 
 /// Sass's core library modules.
@@ -44,5 +47,5 @@ final coreModules = UnmodifiableListView([
   map.module,
   math.module,
   selector.module,
-  string.module
+  string.module,
 ]);

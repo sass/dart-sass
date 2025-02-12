@@ -18,8 +18,12 @@ final class StderrLogger extends LoggerWithDeprecationType {
 
   const StderrLogger({this.color = false});
 
-  void internalWarn(String message,
-      {FileSpan? span, Trace? trace, Deprecation? deprecation}) {
+  void internalWarn(
+    String message, {
+    FileSpan? span,
+    Trace? trace,
+    Deprecation? deprecation,
+  }) {
     var result = StringBuffer();
     var showDeprecation =
         deprecation != null && deprecation != Deprecation.userAuthored;

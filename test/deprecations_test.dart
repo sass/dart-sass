@@ -23,7 +23,9 @@ void main() {
   // Deprecated in 1.7.2
   test("mozDocument is violated by most @-moz-document rules", () {
     _expectDeprecation(
-        "@-moz-document url-prefix(foo) {}", Deprecation.mozDocument);
+      "@-moz-document url-prefix(foo) {}",
+      Deprecation.mozDocument,
+    );
   });
 
   // Deprecated in 1.17.2
@@ -49,7 +51,9 @@ void main() {
 
     test("using color.alpha for a microsoft filter", () {
       _expectDeprecation(
-          "$color.alpha(foo=bar)}", Deprecation.colorModuleCompat);
+        "$color.alpha(foo=bar)}",
+        Deprecation.colorModuleCompat,
+      );
     });
   });
 
@@ -92,7 +96,9 @@ void main() {
 
     test("a saturation/lightness with a non-percent unit", () {
       _expectDeprecation(
-          "a {b: hsl(10deg, 0px, 0%)}", Deprecation.functionUnits);
+        "a {b: hsl(10deg, 0px, 0%)}",
+        Deprecation.functionUnits,
+      );
     });
 
     test("a saturation/lightness with no unit", () {
@@ -101,23 +107,30 @@ void main() {
 
     test("an alpha value with a non-percent unit", () {
       _expectDeprecation(
-          r"@use 'sass:color'; a {b: color.change(red, $alpha: 1px)}",
-          Deprecation.functionUnits);
+        r"@use 'sass:color'; a {b: color.change(red, $alpha: 1px)}",
+        Deprecation.functionUnits,
+      );
     });
 
     test("calling math.random with units", () {
-      _expectDeprecation("@use 'sass:math'; a {b: math.random(100px)}",
-          Deprecation.functionUnits);
+      _expectDeprecation(
+        "@use 'sass:math'; a {b: math.random(100px)}",
+        Deprecation.functionUnits,
+      );
     });
 
     test("calling list.nth with units", () {
-      _expectDeprecation("@use 'sass:list'; a {b: list.nth(1 2, 1px)}",
-          Deprecation.functionUnits);
+      _expectDeprecation(
+        "@use 'sass:list'; a {b: list.nth(1 2, 1px)}",
+        Deprecation.functionUnits,
+      );
     });
 
     test("calling list.set-nth with units", () {
-      _expectDeprecation("@use 'sass:list'; a {b: list.set-nth(1 2, 1px, 3)}",
-          Deprecation.functionUnits);
+      _expectDeprecation(
+        "@use 'sass:list'; a {b: list.set-nth(1 2, 1px, 3)}",
+        Deprecation.functionUnits,
+      );
     });
   });
 }

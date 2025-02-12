@@ -20,7 +20,8 @@ class JSExpressionVisitor implements ExpressionVisitor<Object?> {
   Object? visitColorExpression(ColorExpression node) =>
       _inner.visitColorExpression(node);
   Object? visitInterpolatedFunctionExpression(
-          InterpolatedFunctionExpression node) =>
+    InterpolatedFunctionExpression node,
+  ) =>
       _inner.visitInterpolatedFunctionExpression(node);
   Object? visitFunctionExpression(FunctionExpression node) =>
       _inner.visitFunctionExpression(node);
@@ -53,11 +54,13 @@ class JSExpressionVisitor implements ExpressionVisitor<Object?> {
 @JS()
 class JSExpressionVisitorObject {
   external Object? visitBinaryOperationExpression(
-      BinaryOperationExpression node);
+    BinaryOperationExpression node,
+  );
   external Object? visitBooleanExpression(BooleanExpression node);
   external Object? visitColorExpression(ColorExpression node);
   external Object? visitInterpolatedFunctionExpression(
-      InterpolatedFunctionExpression node);
+    InterpolatedFunctionExpression node,
+  );
   external Object? visitFunctionExpression(FunctionExpression node);
   external Object? visitIfExpression(IfExpression node);
   external Object? visitListExpression(ListExpression node);
