@@ -782,8 +782,6 @@ final class AsyncEnvironment {
       var values = _variables[i];
       var nodes = _variableNodes[i];
       for (var (name, value) in values.pairs) {
-        // Implicit configurations are never invalid, making [configurationSpan]
-        // unnecessary, so we pass null here to avoid having to compute it.
         configuration[name] = ConfiguredValue.implicit(value, nodes[name]!);
       }
     }

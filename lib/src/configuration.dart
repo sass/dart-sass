@@ -46,7 +46,7 @@ final class Configuration {
   /// An implicit configuration will always return `false` because it was not
   /// created through another configuration.
   ///
-  /// [ExplicitConfiguration]s will and configurations created [throughForward]
+  /// [ExplicitConfiguration]s and configurations created [throughForward]
   /// will be considered to have the same original config if they were created
   /// as a copy from the same base configuration.
   bool sameOriginal(Configuration that) =>

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: e1beeae58a4d5b97cd7d4f01c7d46b0586b508b9
+// Checksum: 3698889f94437e131e4d581757d1538fd46be497
 //
 // ignore_for_file: unused_import
 
@@ -788,8 +788,6 @@ final class Environment {
       var values = _variables[i];
       var nodes = _variableNodes[i];
       for (var (name, value) in values.pairs) {
-        // Implicit configurations are never invalid, making [configurationSpan]
-        // unnecessary, so we pass null here to avoid having to compute it.
         configuration[name] = ConfiguredValue.implicit(value, nodes[name]!);
       }
     }
