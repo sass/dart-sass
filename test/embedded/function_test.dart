@@ -259,11 +259,11 @@ void main() {
       _process.send(
         compileString(
           r"""
-        @use "sass:math";
-        @use "sass:meta";
+            @use "sass:math";
+            @use "sass:meta";
 
-        a {b: meta.call(foo(meta.get-function("abs", $module: "math")), -1)}
-      """,
+            a {b: meta.call(foo(meta.get-function("abs", $module: "math")), -1)}
+          """,
           functions: [r"foo($arg)"],
         ),
       );
@@ -286,10 +286,10 @@ void main() {
       _process.send(
         compileString(
           """
-        @use "sass:meta";
+            @use "sass:meta";
 
-        a {b: meta.call(foo(), true)}
-      """,
+            a {b: meta.call(foo(), true)}
+          """,
           functions: [r"foo()"],
         ),
       );
@@ -2215,19 +2215,19 @@ Future<Value> _protofy(String sassScript) async {
   _process.send(
     compileString(
       """
-@use 'sass:list';
-@use 'sass:map';
-@use 'sass:math';
-@use 'sass:meta';
-@use 'sass:string';
+        @use 'sass:list';
+        @use 'sass:map';
+        @use 'sass:math';
+        @use 'sass:meta';
+        @use 'sass:string';
 
-@function capture-args(\$args...) {
-  \$_: meta.keywords(\$args);
-  @return \$args;
-}
+        @function capture-args(\$args...) {
+          \$_: meta.keywords(\$args);
+          @return \$args;
+        }
 
-\$_: foo(($sassScript));
-""",
+        \$_: foo(($sassScript));
+      """,
       functions: [r"foo($arg)"],
     ),
   );
@@ -2316,9 +2316,7 @@ Future<void> _assertRoundTrips(Value value) async =>
 Future<Value> _roundTrip(Value value) async {
   _process.send(
     compileString(
-      """
-\$_: outbound(inbound());
-""",
+      "\$_: outbound(inbound());",
       functions: ["inbound()", r"outbound($arg)"],
     ),
   );

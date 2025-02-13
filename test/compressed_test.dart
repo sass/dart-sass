@@ -70,15 +70,15 @@ void main() {
         test("folds whitespace for multiline properties", () {
           expect(
             _compile("""
-            a {
-              --foo: {
-                q: r;
-                b {
-                  s: t;
+              a {
+                --foo: {
+                  q: r;
+                  b {
+                    s: t;
+                  }
                 }
               }
-            }
-          """),
+            """),
             equals("a{--foo: { q: r; b { s: t; } } }"),
           );
         });
@@ -86,10 +86,10 @@ void main() {
         test("folds whitespace for single-line properties", () {
           expect(
             _compile("""
-            a {
-              --foo: a   b\t\tc;
-            }
-          """),
+              a {
+                --foo: a   b\t\tc;
+              }
+            """),
             equals("a{--foo: a b\tc}"),
           );
         });
@@ -97,14 +97,14 @@ void main() {
         test("preserves semicolons when necessary", () {
           expect(
             _compile("""
-            a {
-              --foo: {
-                a: b;
-              };
-              --bar: x y;
-              --baz: q r;
-            }
-          """),
+              a {
+                --foo: {
+                  a: b;
+                };
+                --bar: x y;
+                --baz: q r;
+              }
+            """),
             equals("a{--foo: { a: b; };--bar: x y;--baz: q r}"),
           );
         });
@@ -128,9 +128,9 @@ void main() {
       test("don't include spaces around slashes", () {
         expect(
           _compile("""
-          @use "sass:list";
-          a {b: list.slash(x, y, z)}
-        """),
+            @use "sass:list";
+            a {b: list.slash(x, y, z)}
+          """),
           equals("a{b:x/y/z}"),
         );
       });
@@ -244,10 +244,10 @@ void main() {
       test('around "and"', () {
         expect(
           _compile("""
-              @media screen and (min-width: 900px) and (max-width: 100px) {
-                a {b: c}
-              }
-            """),
+            @media screen and (min-width: 900px) and (max-width: 100px) {
+              a {b: c}
+            }
+          """),
           equals(
             "@media screen and (min-width: 900px)and (max-width: 100px)"
             "{a{b:c}}",
@@ -258,10 +258,10 @@ void main() {
       test('around "or"', () {
         expect(
           _compile("""
-              @media (min-width: 900px) or (max-width: 100px) or (print) {
-                a {b: c}
-              }
-            """),
+            @media (min-width: 900px) or (max-width: 100px) or (print) {
+              a {b: c}
+            }
+          """),
           equals(
             "@media(min-width: 900px)or (max-width: 100px)or (print)"
             "{a{b:c}}",
@@ -272,10 +272,10 @@ void main() {
       test('after "not"', () {
         expect(
           _compile("""
-              @media not (min-width: 900px) {
-                a {b: c}
-              }
-            """),
+            @media not (min-width: 900px) {
+              a {b: c}
+            }
+          """),
           equals("@media not (min-width: 900px){a{b:c}}"),
         );
       });
@@ -335,12 +335,12 @@ void main() {
       expect(_compile("/* foo bar */"), isEmpty);
       expect(
         _compile("""
-        a {
-          b: c;
-          /* foo bar */
-          d: e;
-        }
-      """),
+          a {
+            b: c;
+            /* foo bar */
+            d: e;
+          }
+        """),
         equals("a{b:c;d:e}"),
       );
     });
@@ -349,11 +349,11 @@ void main() {
       expect(_compile("a {/* foo bar */}"), isEmpty);
       expect(
         _compile("""
-        a {
-          /* foo bar */
-          /* baz bang */
-        }
-      """),
+          a {
+            /* foo bar */
+            /* baz bang */
+          }
+        """),
         isEmpty,
       );
     });
@@ -366,10 +366,10 @@ void main() {
       );
       expect(
         _compile("""
-        a {
-          /*! foo bar */
-        }
-      """),
+          a {
+            /*! foo bar */
+          }
+        """),
         equals("a{/*! foo bar */}"),
       );
     });

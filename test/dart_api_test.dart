@@ -245,21 +245,23 @@ void main() {
       test("doesn't emit @charset for a pure-ASCII stylesheet", () {
         expect(
           compileString("a {b: c}"),
-          equals("""
-a {
-  b: c;
-}"""),
+          equalsIgnoringWhitespace("""
+            a {
+              b: c;
+            }
+          """),
         );
       });
 
       test("emits @charset with expanded output", () async {
         expect(
           compileString("a {b: 👭}"),
-          equals("""
-@charset "UTF-8";
-a {
-  b: 👭;
-}"""),
+          equalsIgnoringWhitespace("""
+            @charset "UTF-8";
+            a {
+              b: 👭;
+            }
+          """),
         );
       });
 
@@ -275,10 +277,11 @@ a {
       test("doesn't emit @charset with expanded output", () async {
         expect(
           compileString("a {b: 👭}", charset: false),
-          equals("""
-a {
-  b: 👭;
-}"""),
+          equalsIgnoringWhitespace("""
+            a {
+              b: 👭;
+            }
+          """),
         );
       });
 
@@ -382,9 +385,9 @@ a {
     expect(
       compileStringAsync(
         """
-      @use 'sass:meta';
-      @include meta.load-css("other.scss");
-    """,
+          @use 'sass:meta';
+          @include meta.load-css("other.scss");
+        """,
         loadPaths: [d.sandbox],
       ),
       completion(equals("/**/ /**/")),

@@ -151,9 +151,9 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       group("an evaluation-time deprecation", () {
         setUp(
           () => d.file("test.scss", """
-          @use 'sass:math';
-          a {b: math.random(1px)}
-        """).create(),
+            @use 'sass:math';
+            a {b: math.random(1px)}
+          """).create(),
         );
 
         test("in immediate mode", () async {
@@ -352,9 +352,9 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       group("an evaluation-time deprecation", () {
         setUp(
           () => d.file("test.scss", """
-          @use 'sass:math';
-          a {b: math.random(1px)}
-        """).create(),
+            @use 'sass:math';
+            a {b: math.random(1px)}
+          """).create(),
         );
 
         test("in immediate mode", () async {

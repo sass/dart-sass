@@ -19,9 +19,9 @@ void main() {
       var mustBeCalled = expectAsync0(() {});
       compileString(
         '''
-        @mixin foo {@warn heck}
-        @include foo;
-      ''',
+          @mixin foo {@warn heck}
+          @include foo;
+        ''',
         logger: _TestLogger.withWarn((
           message, {
           span,
@@ -166,9 +166,9 @@ void main() {
         var mustBeCalled = expectAsync0(() {});
         compileString(
           """
-        @function bar() {@return foo()}
-        a {b: bar()}
-      """,
+            @function bar() {@return foo()}
+            a {b: bar()}
+          """,
           functions: [
             Callable(
               "foo",
@@ -188,9 +188,9 @@ void main() {
             expect(message, equals("heck"));
 
             expect(span!.start.line, equals(0));
-            expect(span.start.column, equals(33));
+            expect(span.start.column, equals(37));
             expect(span.end.line, equals(0));
-            expect(span.end.column, equals(38));
+            expect(span.end.column, equals(42));
 
             expect(trace!.frames.first.member, equals('bar()'));
             expect(deprecation, isFalse);
@@ -203,9 +203,9 @@ void main() {
         var mustBeCalled = expectAsync0(() {});
         compileStringAsync(
           """
-        @function bar() {@return foo()}
-        a {b: bar()}
-      """,
+            @function bar() {@return foo()}
+            a {b: bar()}
+          """,
           functions: [
             AsyncCallable(
               "foo",
@@ -225,9 +225,9 @@ void main() {
             expect(message, equals("heck"));
 
             expect(span!.start.line, equals(0));
-            expect(span.start.column, equals(33));
+            expect(span.start.column, equals(37));
             expect(span.end.line, equals(0));
-            expect(span.end.column, equals(38));
+            expect(span.end.column, equals(42));
 
             expect(trace!.frames.first.member, equals('bar()'));
             expect(deprecation, isFalse);
@@ -240,9 +240,9 @@ void main() {
         var mustBeCalled = expectAsync0(() {});
         compileStringAsync(
           """
-        @function bar() {@return foo()}
-        a {b: bar()}
-      """,
+            @function bar() {@return foo()}
+            a {b: bar()}
+          """,
           functions: [
             AsyncCallable(
               "foo",
@@ -263,9 +263,9 @@ void main() {
             expect(message, equals("heck"));
 
             expect(span!.start.line, equals(0));
-            expect(span.start.column, equals(33));
+            expect(span.start.column, equals(37));
             expect(span.end.line, equals(0));
-            expect(span.end.column, equals(38));
+            expect(span.end.column, equals(42));
 
             expect(trace!.frames.first.member, equals('bar()'));
             expect(deprecation, isFalse);

@@ -538,16 +538,16 @@ void main() {
     test("with a multi-line source span", () async {
       process.send(
         compileString("""
-a {
-  b: 1px +
-     1em;
-}
-"""),
+          a {
+            b: 1px +
+                1em;
+          }
+        """),
       );
 
       var failure = await getCompileFailure(process);
-      expect(failure.span.text, "1px +\n     1em");
-      expect(failure.span.start, equals(location(9, 1, 5)));
+      expect(failure.span.text, "1px +\n                1em");
+      expect(failure.span.start, equals(location(29, 1, 5)));
       expect(failure.span.end, equals(location(23, 2, 8)));
       expect(failure.span.url, isEmpty);
       expect(failure.span.context, equals("  b: 1px +\n     1em;\n"));
@@ -558,22 +558,22 @@ a {
     test("with multiple stack trace entries", () async {
       process.send(
         compileString("""
-@function fail() {
-  @return 1px + 1em;
-}
+          @function fail() {
+            @return 1px + 1em;
+          }
 
-a {
-  b: fail();
-}
-"""),
+          a {
+            b: fail();
+          }
+        """),
       );
 
       var failure = await getCompileFailure(process);
       expect(
         failure.stackTrace,
         equals(
-          "- 2:11  fail()\n"
-          "- 6:6   root stylesheet\n",
+          "- 2:21  fail()\n"
+          "- 6:16   root stylesheet\n",
         ),
       );
       await process.close();
