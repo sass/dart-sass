@@ -150,7 +150,8 @@ void all() {}
 
 @Task('Run the Dart formatter.')
 void format() {
-  run('dart', arguments: ['format', '--fix', '.']);
+  run('dart', arguments: ['format', '.']);
+  run('dart', arguments: ['fix', '--apply', '.']);
 }
 
 @Task('Installs dependencies from npm.')

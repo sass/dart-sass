@@ -665,8 +665,9 @@ final class _EvaluateVisitor
         () async {
           if (node.span.sourceUrl case var url?) {
             _activeModules[url] = null;
-            if (!(_asNodeSass && url.toString() == 'stdin'))
+            if (!(_asNodeSass && url.toString() == 'stdin')) {
               _loadedUrls.add(url);
+            }
           }
 
           var module = await _addExceptionTrace(() => _execute(importer, node));
