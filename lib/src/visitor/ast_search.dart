@@ -51,21 +51,27 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
       visitExpression(node.to) ??
       super.visitForRule(node);
 
-  T? visitForwardRule(ForwardRule node) => node.configuration
-      .search((variable) => visitExpression(variable.expression));
+  T? visitForwardRule(ForwardRule node) => node.configuration.search(
+        (variable) => visitExpression(variable.expression),
+      );
 
   T? visitIfRule(IfRule node) =>
-      node.clauses.search((clause) =>
-          visitExpression(clause.expression) ??
-          clause.children.search((child) => child.accept(this))) ??
-      node.lastClause.andThen((lastClause) =>
-          lastClause.children.search((child) => child.accept(this)));
+      node.clauses.search(
+        (clause) =>
+            visitExpression(clause.expression) ??
+            clause.children.search((child) => child.accept(this)),
+      ) ??
+      node.lastClause.andThen(
+        (lastClause) =>
+            lastClause.children.search((child) => child.accept(this)),
+      );
 
-  T? visitImportRule(ImportRule node) =>
-      node.imports.search((import) => import is StaticImport
-          ? visitInterpolation(import.url) ??
-              import.modifiers.andThen(visitInterpolation)
-          : null);
+  T? visitImportRule(ImportRule node) => node.imports.search(
+        (import) => import is StaticImport
+            ? visitInterpolation(import.url) ??
+                import.modifiers.andThen(visitInterpolation)
+            : null,
+      );
 
   T? visitIncludeRule(IncludeRule node) =>
       visitArgumentList(node.arguments) ?? super.visitIncludeRule(node);
@@ -83,8 +89,9 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
   T? visitSupportsRule(SupportsRule node) =>
       visitSupportsCondition(node.condition) ?? super.visitSupportsRule(node);
 
-  T? visitUseRule(UseRule node) => node.configuration
-      .search((variable) => visitExpression(variable.expression));
+  T? visitUseRule(UseRule node) => node.configuration.search(
+        (variable) => visitExpression(variable.expression),
+      );
 
   T? visitVariableDeclaration(VariableDeclaration node) =>
       visitExpression(node.expression);
@@ -142,7 +149,8 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
   @protected
   T? visitCallableDeclaration(CallableDeclaration node) =>
       node.parameters.parameters.search(
-          (parameter) => parameter.defaultValue.andThen(visitExpression)) ??
+        (parameter) => parameter.defaultValue.andThen(visitExpression),
+      ) ??
       super.visitCallableDeclaration(node);
 
   /// Visits each expression in an [invocation].
@@ -151,10 +159,12 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
   /// argument invocation in a statement.
   @protected
   T? visitArgumentList(ArgumentList invocation) =>
-      invocation.positional
-          .search((expression) => visitExpression(expression)) ??
-      invocation.named.values
-          .search((expression) => visitExpression(expression)) ??
+      invocation.positional.search(
+        (expression) => visitExpression(expression),
+      ) ??
+      invocation.named.values.search(
+        (expression) => visitExpression(expression),
+      ) ??
       invocation.rest.andThen(visitExpression) ??
       invocation.keywordRest.andThen(visitExpression);
 
@@ -170,7 +180,7 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
         SupportsInterpolation() => visitExpression(condition.expression),
         SupportsDeclaration() =>
           visitExpression(condition.name) ?? visitExpression(condition.value),
-        _ => null
+        _ => null,
       };
 
   /// Visits each expression in an [interpolation].

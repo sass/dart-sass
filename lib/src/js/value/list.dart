@@ -12,8 +12,11 @@ import '../utils.dart';
 
 /// The JavaScript `SassList` class.
 final JSClass listClass = () {
-  var jsClass = createJSClass('sass.SassList', (Object self,
-      [Object? contentsOrOptions, _ConstructorOptions? options]) {
+  var jsClass = createJSClass('sass.SassList', (
+    Object self, [
+    Object? contentsOrOptions,
+    _ConstructorOptions? options,
+  ]) {
     List<Value> contents;
     if (isImmutableList(contentsOrOptions)) {
       contents = (contentsOrOptions as ImmutableList).toArray().cast<Value>();
@@ -25,11 +28,12 @@ final JSClass listClass = () {
     }
 
     return SassList(
-        contents,
-        options == null || isUndefined(options.separator)
-            ? ListSeparator.comma
-            : jsToDartSeparator(options.separator),
-        brackets: options?.brackets ?? false);
+      contents,
+      options == null || isUndefined(options.separator)
+          ? ListSeparator.comma
+          : jsToDartSeparator(options.separator),
+      brackets: options?.brackets ?? false,
+    );
   });
 
   jsClass.defineMethod('get', (Value self, num indexFloat) {

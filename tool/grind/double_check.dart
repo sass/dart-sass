@@ -23,8 +23,10 @@ Future<void> doubleCheckBeforeRelease() async {
     fail("${pkg.version} is a dev release.");
   }
 
-  var versionHeader =
-      RegExp("^## ${RegExp.escape(pkg.version.toString())}\$", multiLine: true);
+  var versionHeader = RegExp(
+    "^## ${RegExp.escape(pkg.version.toString())}\$",
+    multiLine: true,
+  );
   if (!File("CHANGELOG.md").readAsStringSync().contains(versionHeader)) {
     fail("There's no CHANGELOG entry for ${pkg.version}.");
   }
@@ -33,12 +35,14 @@ Future<void> doubleCheckBeforeRelease() async {
   try {
     for (var dir in [
       ".",
-      ...Directory("pkg").listSync().map((entry) => entry.path)
+      ...Directory("pkg").listSync().map((entry) => entry.path),
     ]) {
       var pubspecFile = File("$dir/pubspec.yaml");
       if (!pubspecFile.existsSync()) continue;
-      var pubspec = Pubspec.parse(pubspecFile.readAsStringSync(),
-          sourceUrl: pubspecFile.uri);
+      var pubspec = Pubspec.parse(
+        pubspecFile.readAsStringSync(),
+        sourceUrl: pubspecFile.uri,
+      );
 
       var package = await client.packageInfo(pubspec.name);
       if (pubspec.version == package.latestPubspec.version) {

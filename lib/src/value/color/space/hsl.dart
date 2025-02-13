@@ -22,13 +22,23 @@ final class HslColorSpace extends ColorSpace {
   const HslColorSpace()
       : super('hsl', const [
           hueChannel,
-          LinearChannel('saturation', 0, 100,
-              requiresPercent: true, lowerClamped: true),
-          LinearChannel('lightness', 0, 100, requiresPercent: true)
+          LinearChannel(
+            'saturation',
+            0,
+            100,
+            requiresPercent: true,
+            lowerClamped: true,
+          ),
+          LinearChannel('lightness', 0, 100, requiresPercent: true),
         ]);
 
-  SassColor convert(ColorSpace dest, double? hue, double? saturation,
-      double? lightness, double? alpha) {
+  SassColor convert(
+    ColorSpace dest,
+    double? hue,
+    double? saturation,
+    double? lightness,
+    double? alpha,
+  ) {
     // Algorithm from the CSS3 spec: https://www.w3.org/TR/css3-color/#hsl-color.
     var scaledHue = ((hue ?? 0) / 360) % 1;
     var scaledSaturation = (saturation ?? 0) / 100;
@@ -42,13 +52,14 @@ final class HslColorSpace extends ColorSpace {
     var m1 = scaledLightness * 2 - m2;
 
     return const SrgbColorSpace().convert(
-        dest,
-        hueToRgb(m1, m2, scaledHue + 1 / 3),
-        hueToRgb(m1, m2, scaledHue),
-        hueToRgb(m1, m2, scaledHue - 1 / 3),
-        alpha,
-        missingLightness: lightness == null,
-        missingChroma: saturation == null,
-        missingHue: hue == null);
+      dest,
+      hueToRgb(m1, m2, scaledHue + 1 / 3),
+      hueToRgb(m1, m2, scaledHue),
+      hueToRgb(m1, m2, scaledHue - 1 / 3),
+      alpha,
+      missingLightness: lightness == null,
+      missingChroma: saturation == null,
+      missingHue: hue == null,
+    );
   }
 }

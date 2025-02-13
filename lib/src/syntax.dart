@@ -21,7 +21,7 @@ enum Syntax {
   static Syntax forPath(String path) => switch (p.extension(path)) {
         '.sass' => Syntax.sass,
         '.css' => Syntax.css,
-        _ => Syntax.scss
+        _ => Syntax.scss,
       };
 
   /// The name of the syntax.

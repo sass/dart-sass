@@ -21,21 +21,24 @@ final global = UnmodifiableListView([
     var number = arguments[0].assertNumber("number");
     if (number.hasUnit("%")) {
       warnForDeprecation(
-          "Passing percentage units to the global abs() function is "
-          "deprecated.\n"
-          "In the future, this will emit a CSS abs() function to be resolved "
-          "by the browser.\n"
-          "To preserve current behavior: math.abs($number)"
-          "\n"
-          "To emit a CSS abs() now: abs(#{$number})\n"
-          "More info: https://sass-lang.com/d/abs-percent",
-          Deprecation.absPercent);
+        "Passing percentage units to the global abs() function is "
+        "deprecated.\n"
+        "In the future, this will emit a CSS abs() function to be resolved "
+        "by the browser.\n"
+        "To preserve current behavior: math.abs($number)"
+        "\n"
+        "To emit a CSS abs() now: abs(#{$number})\n"
+        "More info: https://sass-lang.com/d/abs-percent",
+        Deprecation.absPercent,
+      );
     } else {
       warnForGlobalBuiltIn('math', 'abs');
     }
-    return SassNumber.withUnits(number.value.abs(),
-        numeratorUnits: number.numeratorUnits,
-        denominatorUnits: number.denominatorUnits);
+    return SassNumber.withUnits(
+      number.value.abs(),
+      numeratorUnits: number.numeratorUnits,
+      denominatorUnits: number.denominatorUnits,
+    );
   }),
   _ceil.withDeprecationWarning('math'),
   _floor.withDeprecationWarning('math'),
@@ -50,20 +53,24 @@ final global = UnmodifiableListView([
 ]);
 
 /// The Sass math module.
-final module = BuiltInModule("math", functions: <Callable>[
-  _numberFunction("abs", (value) => value.abs()),
-  _acos, _asin, _atan, _atan2, _ceil, _clamp, _cos, _compatible, _floor, //
-  _hypot, _isUnitless, _log, _max, _min, _percentage, _pow, _randomFunction,
-  _round, _sin, _sqrt, _tan, _unit, _div
-], variables: {
-  "e": SassNumber(math.e),
-  "pi": SassNumber(math.pi),
-  "epsilon": SassNumber(2.220446049250313e-16),
-  "max-safe-integer": SassNumber(9007199254740991),
-  "min-safe-integer": SassNumber(-9007199254740991),
-  "max-number": SassNumber(double.maxFinite),
-  "min-number": SassNumber(double.minPositive),
-});
+final module = BuiltInModule(
+  "math",
+  functions: <Callable>[
+    _numberFunction("abs", (value) => value.abs()),
+    _acos, _asin, _atan, _atan2, _ceil, _clamp, _cos, _compatible, _floor, //
+    _hypot, _isUnitless, _log, _max, _min, _percentage, _pow, _randomFunction,
+    _round, _sin, _sqrt, _tan, _unit, _div,
+  ],
+  variables: {
+    "e": SassNumber(math.e),
+    "pi": SassNumber(math.pi),
+    "epsilon": SassNumber(2.220446049250313e-16),
+    "max-safe-integer": SassNumber(9007199254740991),
+    "min-safe-integer": SassNumber(-9007199254740991),
+    "max-number": SassNumber(double.maxFinite),
+    "min-number": SassNumber(double.minPositive),
+  },
+);
 
 ///
 /// Bounding functions
@@ -127,12 +134,17 @@ final _hypot = _function("hypot", r"$numbers...", (arguments) {
   for (var i = 0; i < numbers.length; i++) {
     var number = numbers[i];
     var value = number.convertValueToMatch(
-        numbers[0], "numbers[${i + 1}]", "numbers[1]");
+      numbers[0],
+      "numbers[${i + 1}]",
+      "numbers[1]",
+    );
     subtotal += math.pow(value, 2);
   }
-  return SassNumber.withUnits(math.sqrt(subtotal),
-      numeratorUnits: numbers[0].numeratorUnits,
-      denominatorUnits: numbers[0].denominatorUnits);
+  return SassNumber.withUnits(
+    math.sqrt(subtotal),
+    numeratorUnits: numbers[0].numeratorUnits,
+    denominatorUnits: numbers[0].denominatorUnits,
+  );
 });
 
 ///
@@ -223,17 +235,18 @@ final _randomFunction = _function("random", r"$limit: null", (arguments) {
 
   if (limit.hasUnits) {
     warnForDeprecation(
-        "math.random() will no longer ignore \$limit units ($limit) in a "
-        "future release.\n"
-        "\n"
-        "Recommendation: "
-        "math.random(math.div(\$limit, 1${limit.unitString})) * 1${limit.unitString}\n"
-        "\n"
-        "To preserve current behavior: "
-        "math.random(math.div(\$limit, 1${limit.unitString}))\n"
-        "\n"
-        "More info: https://sass-lang.com/d/function-units",
-        Deprecation.functionUnits);
+      "math.random() will no longer ignore \$limit units ($limit) in a "
+      "future release.\n"
+      "\n"
+      "Recommendation: "
+      "math.random(math.div(\$limit, 1${limit.unitString})) * 1${limit.unitString}\n"
+      "\n"
+      "To preserve current behavior: "
+      "math.random(math.div(\$limit, 1${limit.unitString}))\n"
+      "\n"
+      "More info: https://sass-lang.com/d/function-units",
+      Deprecation.functionUnits,
+    );
   }
 
   var limitScalar = limit.assertInt("limit");
@@ -248,8 +261,10 @@ final _div = _function("div", r"$number1, $number2", (arguments) {
   var number2 = arguments[1];
 
   if (number1 is! SassNumber || number2 is! SassNumber) {
-    warn("math.div() will only support number arguments in a future release.\n"
-        "Use list.slash() instead for a slash separator.");
+    warn(
+      "math.div() will only support number arguments in a future release.\n"
+      "Use list.slash() instead for a slash separator.",
+    );
   }
 
   return number1.dividedBy(number2);
@@ -262,7 +277,9 @@ final _div = _function("div", r"$number1, $number2", (arguments) {
 /// Returns a [Callable] named [name] that calls a single argument
 /// math function.
 BuiltInCallable _singleArgumentMathFunc(
-    String name, SassNumber mathFunc(SassNumber value)) {
+  String name,
+  SassNumber mathFunc(SassNumber value),
+) {
   return _function(name, r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
     return mathFunc(number);
@@ -274,13 +291,18 @@ BuiltInCallable _singleArgumentMathFunc(
 BuiltInCallable _numberFunction(String name, double transform(double value)) {
   return _function(name, r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
-    return SassNumber.withUnits(transform(number.value),
-        numeratorUnits: number.numeratorUnits,
-        denominatorUnits: number.denominatorUnits);
+    return SassNumber.withUnits(
+      transform(number.value),
+      numeratorUnits: number.numeratorUnits,
+      denominatorUnits: number.denominatorUnits,
+    );
   });
 }
 
 /// Like [_function.function], but always sets the URL to `sass:math`.
 BuiltInCallable _function(
-        String name, String arguments, Value callback(List<Value> arguments)) =>
+  String name,
+  String arguments,
+  Value callback(List<Value> arguments),
+) =>
     BuiltInCallable.function(name, arguments, callback, url: "sass:math");

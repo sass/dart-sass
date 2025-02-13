@@ -123,9 +123,11 @@ final class ExplicitConfiguration extends Configuration {
 
   /// Creates an [ExplicitConfiguration] with a [values] map, a [nodeWithSpan]
   /// and if this is a copy a reference to the [_originalConfiguration].
-  ExplicitConfiguration._(Map<String, ConfiguredValue> values,
-      this.nodeWithSpan, Configuration? originalConfiguration)
-      : super._(values, originalConfiguration);
+  ExplicitConfiguration._(
+    Map<String, ConfiguredValue> values,
+    this.nodeWithSpan,
+    Configuration? originalConfiguration,
+  ) : super._(values, originalConfiguration);
 
   /// Returns a copy of `this` with the given [values] map.
   ///

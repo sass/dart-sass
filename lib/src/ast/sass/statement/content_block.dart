@@ -14,8 +14,10 @@ import 'callable_declaration.dart';
 /// {@category AST}
 final class ContentBlock extends CallableDeclaration {
   ContentBlock(
-      ParameterList parameters, Iterable<Statement> children, FileSpan span)
-      : super("@content", parameters, children, span);
+    ParameterList parameters,
+    Iterable<Statement> children,
+    FileSpan span,
+  ) : super("@content", parameters, children, span);
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitContentBlock(this);
 

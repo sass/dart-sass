@@ -30,8 +30,12 @@ abstract class Logger {
   /// warning was issued. If [deprecation] is `true`, it indicates that this is
   /// a deprecation warning. Implementations should surface all this information
   /// to the end user.
-  void warn(String message,
-      {FileSpan? span, Trace? trace, bool deprecation = false});
+  void warn(
+    String message, {
+    FileSpan? span,
+    Trace? trace,
+    bool deprecation = false,
+  });
 
   /// Emits a debugging message associated with the given [span].
   void debug(String message, SourceSpan span);
@@ -55,12 +59,18 @@ abstract class LoggerWithDeprecationType implements Logger {
   ///
   /// For non-user deprecation warnings, the [warnForDeprecation] extension
   /// method should be called instead.
-  void warn(String message,
-      {FileSpan? span, Trace? trace, bool deprecation = false}) {
-    internalWarn(message,
-        span: span,
-        trace: trace,
-        deprecation: deprecation ? Deprecation.userAuthored : null);
+  void warn(
+    String message, {
+    FileSpan? span,
+    Trace? trace,
+    bool deprecation = false,
+  }) {
+    internalWarn(
+      message,
+      span: span,
+      trace: trace,
+      deprecation: deprecation ? Deprecation.userAuthored : null,
+    );
   }
 
   /// Equivalent to [Logger.warn], but for internal loggers that support
@@ -68,8 +78,12 @@ abstract class LoggerWithDeprecationType implements Logger {
   ///
   /// Subclasses of this logger should override this method instead of [warn].
   @protected
-  void internalWarn(String message,
-      {FileSpan? span, Trace? trace, Deprecation? deprecation});
+  void internalWarn(
+    String message, {
+    FileSpan? span,
+    Trace? trace,
+    Deprecation? deprecation,
+  });
 }
 
 /// An extension to add a `warnForDeprecation` method to loggers without
@@ -77,12 +91,20 @@ abstract class LoggerWithDeprecationType implements Logger {
 @internal
 extension WarnForDeprecation on Logger {
   /// Emits a deprecation warning for [deprecation] with the given [message].
-  void warnForDeprecation(Deprecation deprecation, String message,
-      {FileSpan? span, Trace? trace}) {
+  void warnForDeprecation(
+    Deprecation deprecation,
+    String message, {
+    FileSpan? span,
+    Trace? trace,
+  }) {
     if (deprecation.isFuture && this is! DeprecationProcessingLogger) return;
     if (this case LoggerWithDeprecationType self) {
-      self.internalWarn(message,
-          span: span, trace: trace, deprecation: deprecation);
+      self.internalWarn(
+        message,
+        span: span,
+        trace: trace,
+        deprecation: deprecation,
+      );
     } else {
       warn(message, span: span, trace: trace, deprecation: true);
     }
@@ -91,7 +113,11 @@ extension WarnForDeprecation on Logger {
 
 /// A logger that emits no messages.
 final class _QuietLogger implements Logger {
-  void warn(String message,
-      {FileSpan? span, Trace? trace, bool deprecation = false}) {}
+  void warn(
+    String message, {
+    FileSpan? span,
+    Trace? trace,
+    bool deprecation = false,
+  }) {}
   void debug(String message, SourceSpan span) {}
 }

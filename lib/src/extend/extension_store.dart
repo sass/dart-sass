@@ -79,22 +79,31 @@ class ExtensionStore {
   /// This works as though `source {@extend target}` were written in the
   /// stylesheet, with the exception that [target] can contain compound
   /// selectors which must be extended as a unit.
-  static SelectorList extend(SelectorList selector, SelectorList source,
-          SelectorList targets, FileSpan span) =>
+  static SelectorList extend(
+    SelectorList selector,
+    SelectorList source,
+    SelectorList targets,
+    FileSpan span,
+  ) =>
       _extendOrReplace(selector, source, targets, ExtendMode.allTargets, span);
 
   /// Returns a copy of [selector] with [targets] replaced by [source].
-  static SelectorList replace(SelectorList selector, SelectorList source,
-          SelectorList targets, FileSpan span) =>
+  static SelectorList replace(
+    SelectorList selector,
+    SelectorList source,
+    SelectorList targets,
+    FileSpan span,
+  ) =>
       _extendOrReplace(selector, source, targets, ExtendMode.replace, span);
 
   /// A helper function for [extend] and [replace].
   static SelectorList _extendOrReplace(
-      SelectorList selector,
-      SelectorList source,
-      SelectorList targets,
-      ExtendMode mode,
-      FileSpan span) {
+    SelectorList selector,
+    SelectorList source,
+    SelectorList targets,
+    ExtendMode mode,
+    FileSpan span,
+  ) {
     var extender = ExtensionStore._mode(mode);
     if (!selector.isInvisible) extender._originals.addAll(selector.components);
 
@@ -108,8 +117,8 @@ class ExtensionStore {
         for (var simple in compound.components)
           simple: {
             for (var complex in source.components)
-              complex: Extension(complex, simple, span, optional: true)
-          }
+              complex: Extension(complex, simple, span, optional: true),
+          },
       });
     }
 
@@ -133,13 +142,13 @@ class ExtensionStore {
         _originals = Set.identity();
 
   ExtensionStore._(
-      this._selectors,
-      this._extensions,
-      this._extensionsByExtender,
-      this._mediaContexts,
-      this._sourceSpecificity,
-      this._originals)
-      : _mode = ExtendMode.normal;
+    this._selectors,
+    this._extensions,
+    this._extensionsByExtender,
+    this._mediaContexts,
+    this._sourceSpecificity,
+    this._originals,
+  ) : _mode = ExtendMode.normal;
 
   /// Returns all mandatory extensions in this extender for whose targets
   /// [callback] returns `true`.
@@ -147,14 +156,15 @@ class ExtensionStore {
   /// This un-merges any [MergedExtension] so only base [Extension]s are
   /// returned.
   Iterable<Extension> extensionsWhereTarget(
-      bool callback(SimpleSelector target)) sync* {
+    bool callback(SimpleSelector target),
+  ) sync* {
     for (var (simple, sources) in _extensions.pairs) {
       if (!callback(simple)) continue;
       for (var extension in sources.values) {
         if (extension is MergedExtension) {
-          yield* extension
-              .unmerge()
-              .where((extension) => !extension.isOptional);
+          yield* extension.unmerge().where(
+                (extension) => !extension.isOptional,
+              );
         } else if (!extension.isOptional) {
           yield extension;
         }
@@ -170,8 +180,10 @@ class ExtensionStore {
   ///
   /// The [mediaContext] is the media query context in which the selector was
   /// defined, or `null` if it was defined at the top level of the document.
-  Box<SelectorList> addSelector(SelectorList selector,
-      [List<CssMediaQuery>? mediaContext]) {
+  Box<SelectorList> addSelector(
+    SelectorList selector, [
+    List<CssMediaQuery>? mediaContext,
+  ]) {
     var originalSelector = selector;
     if (!originalSelector.isInvisible) {
       _originals.addAll(originalSelector.components);
@@ -182,12 +194,14 @@ class ExtensionStore {
         selector = _extendList(originalSelector, _extensions, mediaContext);
       } on SassException catch (error, stackTrace) {
         throwWithTrace(
-            SassException(
-                "From ${error.span.message('')}\n"
-                "${error.message}",
-                error.span),
-            error,
-            stackTrace);
+          SassException(
+            "From ${error.span.message('')}\n"
+            "${error.message}",
+            error.span,
+          ),
+          error,
+          stackTrace,
+        );
       }
     }
 
@@ -201,7 +215,9 @@ class ExtensionStore {
   /// Registers the [SimpleSelector]s in [list] to point to [selector] in
   /// [_selectors].
   void _registerSelector(
-      SelectorList list, ModifiableBox<SelectorList> selector) {
+    SelectorList list,
+    ModifiableBox<SelectorList> selector,
+  ) {
     for (var complex in list.components) {
       for (var component in complex.components) {
         for (var simple in component.selector.components) {
@@ -224,8 +240,11 @@ class ExtensionStore {
   /// is defined. It can only extend selectors within the same context. A `null`
   /// context indicates no media queries.
   void addExtension(
-      SelectorList extender, SimpleSelector target, ExtendRule extend,
-      [List<CssMediaQuery>? mediaContext]) {
+    SelectorList extender,
+    SimpleSelector target,
+    ExtendRule extend, [
+    List<CssMediaQuery>? mediaContext,
+  ]) {
     var selectors = _selectors[target];
     var existingExtensions = _extensionsByExtender[target];
 
@@ -234,8 +253,13 @@ class ExtensionStore {
     for (var complex in extender.components) {
       if (complex.isUseless) continue;
 
-      var extension = Extension(complex, target, extend.span,
-          mediaContext: mediaContext, optional: extend.isOptional);
+      var extension = Extension(
+        complex,
+        target,
+        extend.span,
+        mediaContext: mediaContext,
+        optional: extend.isOptional,
+      );
 
       if (sources[complex] case var existingExtension?) {
         // If there's already an extend from [extender] to [target], we don't need
@@ -263,8 +287,10 @@ class ExtensionStore {
 
     var newExtensionsByTarget = {target: newExtensions};
     if (existingExtensions != null) {
-      var additionalExtensions =
-          _extendExistingExtensions(existingExtensions, newExtensionsByTarget);
+      var additionalExtensions = _extendExistingExtensions(
+        existingExtensions,
+        newExtensionsByTarget,
+      );
       if (additionalExtensions != null) {
         mapAddAll2(newExtensionsByTarget, additionalExtensions);
       }
@@ -306,8 +332,10 @@ class ExtensionStore {
   ///
   /// Returns `null` if there are no extensions to add.
   Map<SimpleSelector, Map<ComplexSelector, Extension>>?
-      _extendExistingExtensions(List<Extension> extensions,
-          Map<SimpleSelector, Map<ComplexSelector, Extension>> newExtensions) {
+      _extendExistingExtensions(
+    List<Extension> extensions,
+    Map<SimpleSelector, Map<ComplexSelector, Extension>> newExtensions,
+  ) {
     Map<SimpleSelector, Map<ComplexSelector, Extension>>? additionalExtensions;
 
     for (var extension in extensions.toList()) {
@@ -316,14 +344,20 @@ class ExtensionStore {
       Iterable<ComplexSelector>? selectors;
       try {
         selectors = _extendComplex(
-            extension.extender.selector, newExtensions, extension.mediaContext);
+          extension.extender.selector,
+          newExtensions,
+          extension.mediaContext,
+        );
         if (selectors == null) continue;
       } on SassException catch (error, stackTrace) {
         throwWithTrace(
-            error.withAdditionalSpan(
-                extension.extender.selector.span, "target selector"),
-            error,
-            stackTrace);
+          error.withAdditionalSpan(
+            extension.extender.selector.span,
+            "target selector",
+          ),
+          error,
+          stackTrace,
+        );
       }
 
       // If the output contains the original complex selector, there's no need
@@ -334,8 +368,10 @@ class ExtensionStore {
       for (var complex in selectors) {
         var withExtender = extension.withExtender(complex);
         if (sources[complex] case var existingExtension?) {
-          sources[complex] =
-              MergedExtension.merge(existingExtension, withExtender);
+          sources[complex] = MergedExtension.merge(
+            existingExtension,
+            withExtender,
+          );
         } else {
           sources[complex] = withExtender;
 
@@ -349,8 +385,10 @@ class ExtensionStore {
 
           if (newExtensions.containsKey(extension.target)) {
             additionalExtensions ??= {};
-            var additionalSources =
-                additionalExtensions.putIfAbsent(extension.target, () => {});
+            var additionalSources = additionalExtensions.putIfAbsent(
+              extension.target,
+              () => {},
+            );
             additionalSources[complex] = withExtender;
           }
         }
@@ -361,22 +399,29 @@ class ExtensionStore {
   }
 
   /// Extend [extensions] using [newExtensions].
-  void _extendExistingSelectors(Set<ModifiableBox<SelectorList>> selectors,
-      Map<SimpleSelector, Map<ComplexSelector, Extension>> newExtensions) {
+  void _extendExistingSelectors(
+    Set<ModifiableBox<SelectorList>> selectors,
+    Map<SimpleSelector, Map<ComplexSelector, Extension>> newExtensions,
+  ) {
     for (var selector in selectors) {
       var oldValue = selector.value;
       try {
         selector.value = _extendList(
-            selector.value, newExtensions, _mediaContexts[selector]);
+          selector.value,
+          newExtensions,
+          _mediaContexts[selector],
+        );
       } on SassException catch (error, stackTrace) {
         // TODO(nweiz): Make this a MultiSpanSassException.
         throwWithTrace(
-            SassException(
-                "From ${selector.value.span.message('')}\n"
-                "${error.message}",
-                error.span),
-            error,
-            stackTrace);
+          SassException(
+            "From ${selector.value.span.message('')}\n"
+            "${error.message}",
+            error.span,
+          ),
+          error,
+          stackTrace,
+        );
       }
 
       // If no extends actually happened (for example because unification
@@ -426,7 +471,10 @@ class ExtensionStore {
         if (_extensions[target] case var existingSources?) {
           for (var (extender, extension) in newSources.pairs) {
             extension = existingSources.putOrMerge(
-                extender, extension, MergedExtension.merge);
+              extender,
+              extension,
+              MergedExtension.merge,
+            );
 
             if (extensionsForTarget != null || selectorsForTarget != null) {
               (newExtensions ??= {}).putIfAbsent(target, () => {})[extender] =
@@ -456,9 +504,11 @@ class ExtensionStore {
   }
 
   /// Extends [list] using [extensions].
-  SelectorList _extendList(SelectorList list,
-      Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
-      [List<CssMediaQuery>? mediaQueryContext]) {
+  SelectorList _extendList(
+    SelectorList list,
+    Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions, [
+    List<CssMediaQuery>? mediaQueryContext,
+  ]) {
     // This could be written more simply using [List.map], but we want to avoid
     // any allocations in the common case where no extends apply.
     List<ComplexSelector>? extended;
@@ -466,9 +516,10 @@ class ExtensionStore {
       var complex = list.components[i];
       var result = _extendComplex(complex, extensions, mediaQueryContext);
       assert(
-          result?.isNotEmpty ?? true,
-          '_extendComplex($complex) should return null rather than [] if '
-          'extension fails');
+        result?.isNotEmpty ?? true,
+        '_extendComplex($complex) should return null rather than [] if '
+        'extension fails',
+      );
       if (result == null) {
         extended?.add(complex);
       } else {
@@ -484,9 +535,10 @@ class ExtensionStore {
   /// Extends [complex] using [extensions], and returns the contents of a
   /// [SelectorList].
   List<ComplexSelector>? _extendComplex(
-      ComplexSelector complex,
-      Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
-      List<CssMediaQuery>? mediaQueryContext) {
+    ComplexSelector complex,
+    Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
+    List<CssMediaQuery>? mediaQueryContext,
+  ) {
     if (complex.leadingCombinators.length > 1) return null;
 
     // The complex selectors that each compound selector in [complex.components]
@@ -510,27 +562,39 @@ class ExtensionStore {
     var isOriginal = _originals.contains(complex);
     for (var i = 0; i < complex.components.length; i++) {
       var component = complex.components[i];
-      var extended = _extendCompound(component, extensions, mediaQueryContext,
-          inOriginal: isOriginal);
+      var extended = _extendCompound(
+        component,
+        extensions,
+        mediaQueryContext,
+        inOriginal: isOriginal,
+      );
       assert(
-          extended?.isNotEmpty ?? true,
-          '_extendCompound($component) should return null rather than [] if '
-          'extension fails');
+        extended?.isNotEmpty ?? true,
+        '_extendCompound($component) should return null rather than [] if '
+        'extension fails',
+      );
       if (extended == null) {
         extendedNotExpanded?.add([
-          ComplexSelector(const [], [component], complex.span,
-              lineBreak: complex.lineBreak)
+          ComplexSelector(
+            const [],
+            [component],
+            complex.span,
+            lineBreak: complex.lineBreak,
+          ),
         ]);
       } else if (extendedNotExpanded != null) {
         extendedNotExpanded.add(extended);
       } else if (i != 0) {
         extendedNotExpanded = [
           [
-            ComplexSelector(complex.leadingCombinators,
-                complex.components.take(i), complex.span,
-                lineBreak: complex.lineBreak)
+            ComplexSelector(
+              complex.leadingCombinators,
+              complex.components.take(i),
+              complex.span,
+              lineBreak: complex.lineBreak,
+            ),
           ],
-          extended
+          extended,
         ];
       } else if (complex.leadingCombinators.isEmpty) {
         extendedNotExpanded = [extended];
@@ -539,12 +603,17 @@ class ExtensionStore {
           [
             for (var newComplex in extended)
               if (newComplex.leadingCombinators.isEmpty ||
-                  listEquals(complex.leadingCombinators,
-                      newComplex.leadingCombinators))
-                ComplexSelector(complex.leadingCombinators,
-                    newComplex.components, complex.span,
-                    lineBreak: complex.lineBreak || newComplex.lineBreak)
-          ]
+                  listEquals(
+                    complex.leadingCombinators,
+                    newComplex.leadingCombinators,
+                  ))
+                ComplexSelector(
+                  complex.leadingCombinators,
+                  newComplex.components,
+                  complex.span,
+                  lineBreak: complex.lineBreak || newComplex.lineBreak,
+                ),
+          ],
         ];
       }
     }
@@ -552,8 +621,9 @@ class ExtensionStore {
 
     var first = true;
     return paths(extendedNotExpanded).expand((path) {
-      return weave(path, complex.span, forceLineBreak: complex.lineBreak)
-          .map((outputComplex) {
+      return weave(path, complex.span, forceLineBreak: complex.lineBreak).map((
+        outputComplex,
+      ) {
         // Make sure that copies of [complex] retain their status as "original"
         // selectors. This includes selectors that are modified because a :not()
         // was extended into.
@@ -576,10 +646,11 @@ class ExtensionStore {
   /// The [lineBreak] parameter indicates whether [component] appears in a
   /// complex selector with a line break.
   List<ComplexSelector>? _extendCompound(
-      ComplexSelectorComponent component,
-      Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
-      List<CssMediaQuery>? mediaQueryContext,
-      {required bool inOriginal}) {
+    ComplexSelectorComponent component,
+    Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
+    List<CssMediaQuery>? mediaQueryContext, {
+    required bool inOriginal,
+  }) {
     // If there's more than one target and they all need to match, we track
     // which targets are actually extended.
     var targetsUsed = _mode == ExtendMode.normal || extensions.length < 2
@@ -592,20 +663,26 @@ class ExtensionStore {
     List<List<Extender>>? options;
     for (var i = 0; i < simples.length; i++) {
       var simple = simples[i];
-      var extended =
-          _extendSimple(simple, extensions, mediaQueryContext, targetsUsed);
+      var extended = _extendSimple(
+        simple,
+        extensions,
+        mediaQueryContext,
+        targetsUsed,
+      );
       assert(
-          extended?.isNotEmpty ?? true,
-          '_extendSimple($simple) should return null rather than [] if '
-          'extension fails');
+        extended?.isNotEmpty ?? true,
+        '_extendSimple($simple) should return null rather than [] if '
+        'extension fails',
+      );
       if (extended == null) {
         options?.add([_extenderForSimple(simple)]);
       } else {
         if (options == null) {
           options = [];
           if (i != 0) {
-            options
-                .add([_extenderForCompound(simples.take(i), component.span)]);
+            options.add([
+              _extenderForCompound(simples.take(i), component.span),
+            ]);
           }
         }
 
@@ -626,8 +703,9 @@ class ExtensionStore {
       List<ComplexSelector>? result;
       for (var extender in extenders) {
         extender.assertCompatibleMediaContext(mediaQueryContext);
-        var complex =
-            extender.selector.withAdditionalCombinators(component.combinators);
+        var complex = extender.selector.withAdditionalCombinators(
+          component.combinators,
+        );
         if (complex.isUseless) continue;
         result ??= [];
         result.add(complex);
@@ -677,13 +755,17 @@ class ExtensionStore {
         // don't have to do any unification.
         ComplexSelector(const [], [
           ComplexSelectorComponent(
-              CompoundSelector(extenderPaths.first.expand((extender) {
+            CompoundSelector(
+              extenderPaths.first.expand((extender) {
                 assert(extender.selector.components.length == 1);
                 return extender.selector.components.last.selector.components;
-              }), component.selector.span),
-              component.combinators,
-              component.span)
-        ], component.span)
+              }),
+              component.selector.span,
+            ),
+            component.combinators,
+            component.span,
+          ),
+        ], component.span),
     ];
 
     for (var path in extenderPaths.skip(_mode == ExtendMode.replace ? 0 : 1)) {
@@ -691,8 +773,9 @@ class ExtensionStore {
       if (extended == null) continue;
 
       for (var complex in extended) {
-        var withCombinators =
-            complex.withAdditionalCombinators(component.combinators);
+        var withCombinators = complex.withAdditionalCombinators(
+          component.combinators,
+        );
         if (!withCombinators.isUseless) result.add(withCombinators);
       }
     }
@@ -712,8 +795,11 @@ class ExtensionStore {
   /// elements matched by all of [extenders]' selectors.
   ///
   /// The [span] will be used for the new selectors.
-  List<ComplexSelector>? _unifyExtenders(List<Extender> extenders,
-      List<CssMediaQuery>? mediaQueryContext, FileSpan span) {
+  List<ComplexSelector>? _unifyExtenders(
+    List<Extender> extenders,
+    List<CssMediaQuery>? mediaQueryContext,
+    FileSpan span,
+  ) {
     var toUnify = QueueList<ComplexSelector>();
     List<SimpleSelector>? originals;
     var originalsLineBreak = false;
@@ -732,10 +818,20 @@ class ExtensionStore {
     }
 
     if (originals != null) {
-      toUnify.addFirst(ComplexSelector(const [], [
-        ComplexSelectorComponent(
-            CompoundSelector(originals, span), const [], span)
-      ], span, lineBreak: originalsLineBreak));
+      toUnify.addFirst(
+        ComplexSelector(
+          const [],
+          [
+            ComplexSelectorComponent(
+              CompoundSelector(originals, span),
+              const [],
+              span,
+            ),
+          ],
+          span,
+          lineBreak: originalsLineBreak,
+        ),
+      );
     }
 
     var complexes = unifyComplex(toUnify, span);
@@ -754,10 +850,11 @@ class ExtensionStore {
   /// Each element of the returned iterable is a list of choices, which will be
   /// combined using [paths].
   Iterable<List<Extender>>? _extendSimple(
-      SimpleSelector simple,
-      Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
-      List<CssMediaQuery>? mediaQueryContext,
-      Set<SimpleSelector>? targetsUsed) {
+    SimpleSelector simple,
+    Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
+    List<CssMediaQuery>? mediaQueryContext,
+    Set<SimpleSelector>? targetsUsed,
+  ) {
     // Extends [simple] without extending the contents of any selector pseudos
     // it contains.
     List<Extender>? withoutPseudo(SimpleSelector simple) {
@@ -767,7 +864,7 @@ class ExtensionStore {
 
       return [
         if (_mode != ExtendMode.replace) _extenderForSimple(simple),
-        for (var extension in extensionsForSimple.values) extension.extender
+        for (var extension in extensionsForSimple.values) extension.extender,
       ];
     }
 
@@ -775,7 +872,8 @@ class ExtensionStore {
       if (_extendPseudo(simple, extensions, mediaQueryContext)
           case var extended?) {
         return extended.map(
-            (pseudo) => withoutPseudo(pseudo) ?? [_extenderForSimple(pseudo)]);
+          (pseudo) => withoutPseudo(pseudo) ?? [_extenderForSimple(pseudo)],
+        );
       }
     }
 
@@ -785,32 +883,41 @@ class ExtensionStore {
   /// Returns an [Extender] composed solely of a compound selector containing
   /// [simples].
   Extender _extenderForCompound(
-      Iterable<SimpleSelector> simples, FileSpan span) {
+    Iterable<SimpleSelector> simples,
+    FileSpan span,
+  ) {
     var compound = CompoundSelector(simples, span);
     return Extender(
-        ComplexSelector(const [],
-            [ComplexSelectorComponent(compound, const [], span)], span),
-        specificity: _sourceSpecificityFor(compound),
-        original: true);
+      ComplexSelector(const [], [
+        ComplexSelectorComponent(compound, const [], span),
+      ], span),
+      specificity: _sourceSpecificityFor(compound),
+      original: true,
+    );
   }
 
   /// Returns an [Extender] composed solely of [simple].
   Extender _extenderForSimple(SimpleSelector simple) => Extender(
-      ComplexSelector(const [], [
-        ComplexSelectorComponent(
-            CompoundSelector([simple], simple.span), const [], simple.span)
-      ], simple.span),
-      specificity: _sourceSpecificity[simple] ?? 0,
-      original: true);
+        ComplexSelector(const [], [
+          ComplexSelectorComponent(
+            CompoundSelector([simple], simple.span),
+            const [],
+            simple.span,
+          ),
+        ], simple.span),
+        specificity: _sourceSpecificity[simple] ?? 0,
+        original: true,
+      );
 
   /// Extends [pseudo] using [extensions], and returns a list of resulting
   /// pseudo selectors.
   ///
   /// This requires that [pseudo] have a selector argument.
   List<PseudoSelector>? _extendPseudo(
-      PseudoSelector pseudo,
-      Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
-      List<CssMediaQuery>? mediaQueryContext) {
+    PseudoSelector pseudo,
+    Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
+    List<CssMediaQuery>? mediaQueryContext,
+  ) {
     var selector = pseudo.selector;
     if (selector == null) {
       throw ArgumentError("Selector $pseudo must have a selector argument.");
@@ -828,8 +935,9 @@ class ExtensionStore {
     if (pseudo.normalizedName == "not" &&
         !selector.components.any((complex) => complex.components.length > 1) &&
         extended.components.any((complex) => complex.components.length == 1)) {
-      complexes = extended.components
-          .where((complex) => complex.components.length <= 1);
+      complexes = extended.components.where(
+        (complex) => complex.components.length <= 1,
+      );
     }
 
     complexes = complexes.expand((complex) {
@@ -846,8 +954,11 @@ class ExtensionStore {
           // become `.foo:not(.bar)`. However, this is a narrow edge case and
           // supporting it properly would make this code and the code calling it
           // a lot more complicated, so it's not supported for now.
-          if (!const {'is', 'matches', 'where'}
-              .contains(innerPseudo.normalizedName)) {
+          if (!const {
+            'is',
+            'matches',
+            'where',
+          }.contains(innerPseudo.normalizedName)) {
             return [];
           }
           return innerSelector.components;
@@ -885,8 +996,10 @@ class ExtensionStore {
     // unless it originally contained a selector list.
     if (pseudo.normalizedName == 'not' && selector.components.length == 1) {
       var result = complexes
-          .map((complex) =>
-              pseudo.withSelector(SelectorList([complex], selector.span)))
+          .map(
+            (complex) =>
+                pseudo.withSelector(SelectorList([complex], selector.span)),
+          )
           .toList();
       return result.isEmpty ? null : result;
     } else {
@@ -899,8 +1012,10 @@ class ExtensionStore {
   //
   // The [isOriginal] callback indicates which selectors are original to the
   // document, and thus should never be trimmed.
-  List<ComplexSelector> _trim(List<ComplexSelector> selectors,
-      bool isOriginal(ComplexSelector complex)) {
+  List<ComplexSelector> _trim(
+    List<ComplexSelector> selectors,
+    bool isOriginal(ComplexSelector complex),
+  ) {
     // Avoid truly horrific quadratic behavior.
     //
     // TODO(nweiz): I think there may be a way to get perfect trimming without
@@ -938,23 +1053,29 @@ class ExtensionStore {
       // greater or equal to this.
       var maxSpecificity = 0;
       for (var component in complex1.components) {
-        maxSpecificity =
-            math.max(maxSpecificity, _sourceSpecificityFor(component.selector));
+        maxSpecificity = math.max(
+          maxSpecificity,
+          _sourceSpecificityFor(component.selector),
+        );
       }
 
       // Look in [result] rather than [selectors] for selectors after [i]. This
       // ensures that we aren't comparing against a selector that's already been
       // trimmed, and thus that if there are two identical selectors only one is
       // trimmed.
-      if (result.any((complex2) =>
-          complex2.specificity >= maxSpecificity &&
-          complex2.isSuperselector(complex1))) {
+      if (result.any(
+        (complex2) =>
+            complex2.specificity >= maxSpecificity &&
+            complex2.isSuperselector(complex1),
+      )) {
         continue;
       }
 
-      if (selectors.take(i).any((complex2) =>
-          complex2.specificity >= maxSpecificity &&
-          complex2.isSuperselector(complex1))) {
+      if (selectors.take(i).any(
+            (complex2) =>
+                complex2.specificity >= maxSpecificity &&
+                complex2.isSuperselector(complex1),
+          )) {
         continue;
       }
 
@@ -998,13 +1119,14 @@ class ExtensionStore {
 
     return (
       ExtensionStore._(
-          newSelectors,
-          copyMapOfMap(_extensions),
-          copyMapOfList(_extensionsByExtender),
-          newMediaContexts,
-          Map.identity()..addAll(_sourceSpecificity),
-          Set.identity()..addAll(_originals)),
-      oldToNewSelectors
+        newSelectors,
+        copyMapOfMap(_extensions),
+        copyMapOfList(_extensionsByExtender),
+        newMediaContexts,
+        Map.identity()..addAll(_sourceSpecificity),
+        Set.identity()..addAll(_originals),
+      ),
+      oldToNewSelectors,
     );
   }
 }

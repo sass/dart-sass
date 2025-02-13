@@ -40,12 +40,20 @@ void main() {
   });
 
   test("can return a new function", () {
-    var css = compileString("a {b: call(foo(), 12)}", functions: [
-      Callable("foo", "", (_) {
-        return SassFunction(Callable("bar", r"$arg",
-            (arguments) => SassNumber(arguments[0].assertNumber().value + 1)));
-      })
-    ]);
+    var css = compileString(
+      "a {b: call(foo(), 12)}",
+      functions: [
+        Callable("foo", "", (_) {
+          return SassFunction(
+            Callable(
+              "bar",
+              r"$arg",
+              (arguments) => SassNumber(arguments[0].assertNumber().value + 1),
+            ),
+          );
+        }),
+      ],
+    );
 
     expect(css, equalsIgnoringWhitespace("a { b: 13; }"));
   });

@@ -20,7 +20,7 @@ final _features = {
   "extend-selector-pseudoclass",
   "units-level-3",
   "at-error",
-  "custom-property"
+  "custom-property",
 };
 
 /// Sass introspection functions that exist as both global functions and in the
@@ -34,53 +34,59 @@ final _shared = UnmodifiableListView([
   // runtime.
   _function("feature-exists", r"$feature", (arguments) {
     warnForDeprecation(
-        "The feature-exists() function is deprecated.\n\n"
-        "More info: https://sass-lang.com/d/feature-exists",
-        Deprecation.featureExists);
+      "The feature-exists() function is deprecated.\n\n"
+      "More info: https://sass-lang.com/d/feature-exists",
+      Deprecation.featureExists,
+    );
     var feature = arguments[0].assertString("feature");
     return SassBoolean(_features.contains(feature.text));
   }),
 
   _function(
-      "inspect",
-      r"$value",
-      (arguments) => SassString(serializeValue(arguments.first, inspect: true),
-          quotes: false)),
+    "inspect",
+    r"$value",
+    (arguments) => SassString(
+      serializeValue(arguments.first, inspect: true),
+      quotes: false,
+    ),
+  ),
 
   _function(
-      "type-of",
-      r"$value",
-      (arguments) => SassString(
-          switch (arguments[0]) {
-            SassArgumentList() => "arglist",
-            SassBoolean() => "bool",
-            SassColor() => "color",
-            SassList() => "list",
-            SassMap() => "map",
-            sassNull => "null",
-            SassNumber() => "number",
-            SassFunction() => "function",
-            SassMixin() => "mixin",
-            SassCalculation() => "calculation",
-            SassString() => "string",
-            _ => throw "[BUG] Unknown value type ${arguments[0]}"
-          },
-          quotes: false)),
+    "type-of",
+    r"$value",
+    (arguments) => SassString(
+        switch (arguments[0]) {
+          SassArgumentList() => "arglist",
+          SassBoolean() => "bool",
+          SassColor() => "color",
+          SassList() => "list",
+          SassMap() => "map",
+          sassNull => "null",
+          SassNumber() => "number",
+          SassFunction() => "function",
+          SassMixin() => "mixin",
+          SassCalculation() => "calculation",
+          SassString() => "string",
+          _ => throw "[BUG] Unknown value type ${arguments[0]}",
+        },
+        quotes: false),
+  ),
   _function("keywords", r"$args", (arguments) {
     if (arguments[0] case SassArgumentList(:var keywords)) {
       return SassMap({
         for (var (key, value) in keywords.pairs)
-          SassString(key, quotes: false): value
+          SassString(key, quotes: false): value,
       });
     } else {
       throw "\$args: ${arguments[0]} is not an argument list.";
     }
-  })
+  }),
 ]);
 
 /// The global definitions of Sass introspection functions.
-final global = UnmodifiableListView(
-    [for (var function in _shared) function.withDeprecationWarning('meta')]);
+final global = UnmodifiableListView([
+  for (var function in _shared) function.withDeprecationWarning('meta'),
+]);
 
 /// The versions of Sass introspection functions defined in the `sass:meta`
 /// module.
@@ -93,10 +99,13 @@ final moduleFunctions = UnmodifiableListView([
   _function("calc-args", r"$calc", (arguments) {
     var calculation = arguments[0].assertCalculation("calc");
     return SassList(
-        calculation.arguments.map((argument) => argument is Value
+      calculation.arguments.map(
+        (argument) => argument is Value
             ? argument
-            : SassString(argument.toString(), quotes: false)),
-        ListSeparator.comma);
+            : SassString(argument.toString(), quotes: false),
+      ),
+      ListSeparator.comma,
+    );
   }),
   _function("accepts-content", r"$mixin", (arguments) {
     var mixin = arguments[0].assertMixin("mixin");
@@ -106,12 +115,15 @@ final moduleFunctions = UnmodifiableListView([
         acceptsContent,
       UserDefinedCallable(declaration: MixinRule(hasContent: var hasContent)) =>
         hasContent,
-      _ => throw UnsupportedError("Unknown callable type $mixin.")
+      _ => throw UnsupportedError("Unknown callable type $mixin."),
     });
-  })
+  }),
 ]);
 
 /// Like [BuiltInCallable.function], but always sets the URL to `sass:meta`.
 BuiltInCallable _function(
-        String name, String arguments, Value callback(List<Value> arguments)) =>
+  String name,
+  String arguments,
+  Value callback(List<Value> arguments),
+) =>
     BuiltInCallable.function(name, arguments, callback, url: "sass:meta");

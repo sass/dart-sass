@@ -19,26 +19,48 @@ Future<void> benchmarkGenerate() async {
 
   await _writeNTimes("${sources.path}/small_plain.scss", ".foo {a: b}", 4);
   await _writeNTimes(
-      "${sources.path}/large_plain.scss", ".foo {a: b}", math.pow(2, 17));
-  await _writeNTimes("${sources.path}/preceding_sparse_extend.scss",
-      ".foo {a: b}", math.pow(2, 17),
-      header: '.x {@extend .y}', footer: '.y {a: b}');
-  await _writeNTimes("${sources.path}/following_sparse_extend.scss",
-      ".foo {a: b}", math.pow(2, 17),
-      header: '.y {a: b}', footer: '.x {@extend .y}');
-  await _writeNTimes("${sources.path}/preceding_dense_extend.scss",
-      ".foo {a: b}", math.pow(2, 17),
-      header: '.bar {@extend .foo}');
-  await _writeNTimes("${sources.path}/following_dense_extend.scss",
-      ".foo {a: b}", math.pow(2, 17),
-      footer: '.bar {@extend .foo}');
+    "${sources.path}/large_plain.scss",
+    ".foo {a: b}",
+    math.pow(2, 17),
+  );
+  await _writeNTimes(
+    "${sources.path}/preceding_sparse_extend.scss",
+    ".foo {a: b}",
+    math.pow(2, 17),
+    header: '.x {@extend .y}',
+    footer: '.y {a: b}',
+  );
+  await _writeNTimes(
+    "${sources.path}/following_sparse_extend.scss",
+    ".foo {a: b}",
+    math.pow(2, 17),
+    header: '.y {a: b}',
+    footer: '.x {@extend .y}',
+  );
+  await _writeNTimes(
+    "${sources.path}/preceding_dense_extend.scss",
+    ".foo {a: b}",
+    math.pow(2, 17),
+    header: '.bar {@extend .foo}',
+  );
+  await _writeNTimes(
+    "${sources.path}/following_dense_extend.scss",
+    ".foo {a: b}",
+    math.pow(2, 17),
+    footer: '.bar {@extend .foo}',
+  );
 
   cloneOrCheckout("https://github.com/twbs/bootstrap", "v4.1.3");
-  await _writeNTimes("${sources.path}/bootstrap.scss",
-      "@import '../bootstrap/scss/bootstrap';", 16);
+  await _writeNTimes(
+    "${sources.path}/bootstrap.scss",
+    "@import '../bootstrap/scss/bootstrap';",
+    16,
+  );
 
-  cloneOrCheckout("https://github.com/alex-page/sass-a11ycolor",
-      "2e7ef93ec06f8bbec80b632863e4b2811618af89");
+  cloneOrCheckout(
+    "https://github.com/alex-page/sass-a11ycolor",
+    "2e7ef93ec06f8bbec80b632863e4b2811618af89",
+  );
   File("${sources.path}/a11ycolor.scss").writeAsStringSync("""
     @import '../sass-a11ycolor/dist';
 
@@ -57,16 +79,19 @@ Future<void> benchmarkGenerate() async {
   """);
 
   cloneOrCheckout("https://github.com/zaydek/duomo", "v0.7.12");
-  File("${sources.path}/duomo.scss")
-      .writeAsStringSync("@import '../duomo/scripts/duomo.scss'");
+  File(
+    "${sources.path}/duomo.scss",
+  ).writeAsStringSync("@import '../duomo/scripts/duomo.scss'");
 
   var carbon = cloneOrCheckout(
-      "https://github.com/carbon-design-system/ibm-cloud-cognitive",
-      "@carbon/ibm-cloud-cognitive@1.0.0-rc.0");
+    "https://github.com/carbon-design-system/ibm-cloud-cognitive",
+    "@carbon/ibm-cloud-cognitive@1.0.0-rc.0",
+  );
   await runAsync("yarn", arguments: ["install"], workingDirectory: carbon);
-  File("${sources.path}/carbon.scss")
-      .writeAsStringSync("@import '../ibm-cloud-cognitive/packages/"
-          "cloud-cognitive/src/index-without-carbon-released-only'");
+  File("${sources.path}/carbon.scss").writeAsStringSync(
+    "@import '../ibm-cloud-cognitive/packages/"
+    "cloud-cognitive/src/index-without-carbon-released-only'",
+  );
 }
 
 /// Writes [times] instances of [text] to [path].
@@ -74,8 +99,13 @@ Future<void> benchmarkGenerate() async {
 /// If [header] is passed, it's written before [text]. If [footer] is passed,
 /// it's written after [text]. If the file already exists and is the expected
 /// length, it's not written.
-Future<void> _writeNTimes(String path, String text, num times,
-    {String? header, String? footer}) async {
+Future<void> _writeNTimes(
+  String path,
+  String text,
+  num times, {
+  String? header,
+  String? footer,
+}) async {
   var file = File(path);
   var expectedLength = (header == null ? 0 : header.length + 1) +
       (text.length + 1) * times +
@@ -96,16 +126,23 @@ Future<void> _writeNTimes(String path, String text, num times,
 }
 
 @Task('Run benchmarks for Sass compilation speed.')
-@Depends(benchmarkGenerate, "pkg-compile-snapshot", "pkg-compile-native",
-    "pkg-npm-release")
+@Depends(
+  benchmarkGenerate,
+  "pkg-compile-snapshot",
+  "pkg-compile-native",
+  "pkg-npm-release",
+)
 Future<void> benchmark() async {
   var libsass = cloneOrCheckout('https://github.com/sass/libsass', 'master');
   var sassc = cloneOrCheckout('https://github.com/sass/sassc', 'master');
 
-  await runAsync("make",
-      runOptions: RunOptions(
-          workingDirectory: sassc,
-          environment: {"SASS_LIBSASS_PATH": p.absolute(libsass)}));
+  await runAsync(
+    "make",
+    runOptions: RunOptions(
+      workingDirectory: sassc,
+      environment: {"SASS_LIBSASS_PATH": p.absolute(libsass)},
+    ),
+  );
   log("");
 
   var libsassRevision = await _revision(libsass);
@@ -136,45 +173,45 @@ I ran five instances of each configuration and recorded the fastest time.
     [
       "preceding_sparse_extend.scss",
       "Preceding Sparse `@extend`",
-      "`.x {@extend .y}`, 2^17 instances of `.foo {a: b}`, and then `.y {a: b}`"
+      "`.x {@extend .y}`, 2^17 instances of `.foo {a: b}`, and then `.y {a: b}`",
     ],
     [
       "following_sparse_extend.scss",
       "Following Sparse `@extend`",
-      "`.y {a: b}`, 2^17 instances of `.foo {a: b}`, and then `.x {@extend .y}`"
+      "`.y {a: b}`, 2^17 instances of `.foo {a: b}`, and then `.x {@extend .y}`",
     ],
     [
       "preceding_dense_extend.scss",
       "Preceding Dense `@extend`",
-      "`.bar {@extend .foo}` followed by 2^17 instances of `.foo {a: b}`"
+      "`.bar {@extend .foo}` followed by 2^17 instances of `.foo {a: b}`",
     ],
     [
       "following_dense_extend.scss",
       "Following Dense `@extend`",
-      "2^17 instances of `.foo {a: b}` followed by `.bar {@extend .foo}`"
+      "2^17 instances of `.foo {a: b}` followed by `.bar {@extend .foo}`",
     ],
     [
       "bootstrap.scss",
       "Bootstrap",
-      "16 instances of importing the Bootstrap framework"
+      "16 instances of importing the Bootstrap framework",
     ],
     [
       "a11ycolor.scss",
       "a11ycolor",
-      "test cases for a computation-intensive color-processing library"
+      "test cases for a computation-intensive color-processing library",
     ],
     [
       "duomo.scss",
       "Duomo",
       "the output of the numerically-intensive Duomo framework "
-          "(skipping LibSass due to module system use)"
+          "(skipping LibSass due to module system use)",
     ],
     [
       "carbon.scss",
       "Carbon",
       "the output of the import-intensive Carbon framework",
       "-I",
-      "build/ibm-cloud-cognitive/node_modules"
+      "build/ibm-cloud-cognitive/node_modules",
     ],
   ];
 
@@ -193,8 +230,10 @@ I ran five instances of each configuration and recorded the fastest time.
 
     Duration? sasscTime;
     if (!libsassIncompatible.contains(info[1])) {
-      sasscTime =
-          await _benchmark(p.join(sassc, 'bin', 'sassc'), [path, ...extraArgs]);
+      sasscTime = await _benchmark(p.join(sassc, 'bin', 'sassc'), [
+        path,
+        ...extraArgs,
+      ]);
       buffer.writeln("* sassc: ${_formatTime(sasscTime)}");
     }
 
@@ -202,50 +241,69 @@ I ran five instances of each configuration and recorded the fastest time.
       '--no-enable-asserts',
       p.join('build', 'sass.snapshot'),
       path,
-      ...extraArgs
+      ...extraArgs,
     ]);
-    buffer.writeln("* Dart Sass from a script snapshot: "
-        "${_formatTime(scriptSnapshotTime)}");
+    buffer.writeln(
+      "* Dart Sass from a script snapshot: "
+      "${_formatTime(scriptSnapshotTime)}",
+    );
 
-    var nativeExecutableTime =
-        await _benchmark(p.join('build', 'sass.native'), [path, ...extraArgs]);
-    buffer.writeln("* Dart Sass native executable: "
-        "${_formatTime(nativeExecutableTime)}");
+    var nativeExecutableTime = await _benchmark(
+      p.join('build', 'sass.native'),
+      [path, ...extraArgs],
+    );
+    buffer.writeln(
+      "* Dart Sass native executable: "
+      "${_formatTime(nativeExecutableTime)}",
+    );
 
-    var nodeTime = await _benchmark(
-        "node", [p.join('build', 'npm', 'sass.js'), path, ...extraArgs]);
+    var nodeTime = await _benchmark("node", [
+      p.join('build', 'npm', 'sass.js'),
+      path,
+      ...extraArgs,
+    ]);
     buffer.writeln("* Dart Sass on Node.js: ${_formatTime(nodeTime)}");
 
     buffer.writeln();
-    buffer.writeln('Based on these numbers, Dart Sass from a native executable '
-        'is approximately:');
+    buffer.writeln(
+      'Based on these numbers, Dart Sass from a native executable '
+      'is approximately:',
+    );
     buffer.writeln();
     if (sasscTime != null) {
       buffer.writeln('* ${_compare(nativeExecutableTime, sasscTime)} libsass');
     }
     buffer.writeln(
-        '* ${_compare(nativeExecutableTime, nodeTime)} Dart Sass on Node');
+      '* ${_compare(nativeExecutableTime, nodeTime)} Dart Sass on Node',
+    );
     buffer.writeln();
     log('');
   }
 
   buffer.write("# Prior Measurements");
   perf = perf.replaceFirst(
-      RegExp(r"# Measurements\n[^]*# Prior Measurements"), buffer.toString());
+    RegExp(r"# Measurements\n[^]*# Prior Measurements"),
+    buffer.toString(),
+  );
 
   File("perf.md").writeAsStringSync(perf);
 }
 
 /// Returns the revision of the Git repository at [path].
-Future<String> _revision(String path) async => (await runAsync("git",
-        arguments: ["rev-parse", "--short", "HEAD"],
-        quiet: true,
-        workingDirectory: path))
-    .trim();
+Future<String> _revision(String path) async => (await runAsync(
+      "git",
+      arguments: ["rev-parse", "--short", "HEAD"],
+      quiet: true,
+      workingDirectory: path,
+    ))
+        .trim();
 
 /// Returns the first line of output from `executable --version`.
-Future<String> _version(String executable) async =>
-    (await runAsync(executable, arguments: ["--version"], quiet: true))
+Future<String> _version(String executable) async => (await runAsync(
+      executable,
+      arguments: ["--version"],
+      quiet: true,
+    ))
         .split("\n")
         .first;
 
@@ -265,24 +323,30 @@ Future<Duration> _benchmark(String executable, List<String> arguments) async {
 }
 
 Future<Duration> _benchmarkOnce(
-    String executable, List<String> arguments) async {
-  var result = await Process.run(
-      "sh", ["-c", "time $executable ${arguments.join(' ')}"]);
+  String executable,
+  List<String> arguments,
+) async {
+  var result = await Process.run("sh", [
+    "-c",
+    "time $executable ${arguments.join(' ')}",
+  ]);
 
   if (result.exitCode != 0) {
     fail("Process failed with exit code ${result.exitCode}\n${result.stderr}");
   }
 
-  var match =
-      RegExp(r"(\d+)m(\d+)\.(\d+)s").firstMatch(result.stderr as String);
+  var match = RegExp(
+    r"(\d+)m(\d+)\.(\d+)s",
+  ).firstMatch(result.stderr as String);
   if (match == null) {
     fail("Process didn't print the expected format:\n${result.stderr}");
   }
 
   return Duration(
-      minutes: int.parse(match[1]!),
-      seconds: int.parse(match[2]!),
-      milliseconds: int.parse(match[3]!));
+    minutes: int.parse(match[1]!),
+    seconds: int.parse(match[2]!),
+    milliseconds: int.parse(match[3]!),
+  );
 }
 
 String _formatTime(Duration duration) =>

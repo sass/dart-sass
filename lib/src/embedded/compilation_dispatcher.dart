@@ -85,15 +85,17 @@ final class CompilationDispatcher {
                 InboundMessage_Message.fileImportResponse ||
                 InboundMessage_Message.functionCallResponse:
             throw paramsError(
-                "Response ID ${message.id} doesn't match any outstanding requests"
-                " in compilation $_compilationId.");
+              "Response ID ${message.id} doesn't match any outstanding requests"
+              " in compilation $_compilationId.",
+            );
 
           case InboundMessage_Message.notSet:
             throw parseError("InboundMessage.message is not set.");
 
           default: // ignore: unreachable_switch_default
             throw parseError(
-                "Unknown message type: ${message.toDebugString()}");
+              "Unknown message type: ${message.toDebugString()}",
+            );
         }
       } catch (error, stackTrace) {
         _handleError(error, stackTrace);
@@ -102,7 +104,8 @@ final class CompilationDispatcher {
   }
 
   OutboundMessage_CompileResponse _compile(
-      InboundMessage_CompileRequest request) {
+    InboundMessage_CompileRequest request,
+  ) {
     var functions = OpaqueRegistry<SassFunction>();
     var mixins = OpaqueRegistry<SassMixin>();
 
@@ -111,12 +114,16 @@ final class CompilationDispatcher {
         : sass.OutputStyle.expanded;
     var logger = request.silent
         ? Logger.quiet
-        : EmbeddedLogger(this,
-            color: request.alertColor, ascii: request.alertAscii);
+        : EmbeddedLogger(
+            this,
+            color: request.alertColor,
+            ascii: request.alertAscii,
+          );
 
     Iterable<sass.Deprecation>? parseDeprecationsOrWarn(
-        Iterable<String> deprecations,
-        {bool supportVersions = false}) {
+      Iterable<String> deprecations, {
+      bool supportVersions = false,
+    }) {
       return () sync* {
         for (var item in deprecations) {
           var deprecation = sass.Deprecation.fromId(item);
@@ -137,41 +144,49 @@ final class CompilationDispatcher {
       }();
     }
 
-    var fatalDeprecations = parseDeprecationsOrWarn(request.fatalDeprecation,
-        supportVersions: true);
-    var silenceDeprecations =
-        parseDeprecationsOrWarn(request.silenceDeprecation);
+    var fatalDeprecations = parseDeprecationsOrWarn(
+      request.fatalDeprecation,
+      supportVersions: true,
+    );
+    var silenceDeprecations = parseDeprecationsOrWarn(
+      request.silenceDeprecation,
+    );
     var futureDeprecations = parseDeprecationsOrWarn(request.futureDeprecation);
 
     try {
-      var importers = request.importers.map((importer) =>
-          _decodeImporter(importer) ??
-          (throw mandatoryError("Importer.importer")));
+      var importers = request.importers.map(
+        (importer) =>
+            _decodeImporter(importer) ??
+            (throw mandatoryError("Importer.importer")),
+      );
 
-      var globalFunctions = request.globalFunctions
-          .map((signature) => hostCallable(this, functions, mixins, signature));
+      var globalFunctions = request.globalFunctions.map(
+        (signature) => hostCallable(this, functions, mixins, signature),
+      );
 
       late sass.CompileResult result;
       switch (request.whichInput()) {
         case InboundMessage_CompileRequest_Input.string:
           var input = request.string;
-          result = sass.compileStringToResult(input.source,
-              color: request.alertColor,
-              logger: logger,
-              importers: importers,
-              importer: _decodeImporter(input.importer) ??
-                  (input.url.startsWith("file:") ? null : sass.Importer.noOp),
-              functions: globalFunctions,
-              syntax: syntaxToSyntax(input.syntax),
-              style: style,
-              url: input.url.isEmpty ? null : input.url,
-              quietDeps: request.quietDeps,
-              verbose: request.verbose,
-              fatalDeprecations: fatalDeprecations,
-              silenceDeprecations: silenceDeprecations,
-              futureDeprecations: futureDeprecations,
-              sourceMap: request.sourceMap,
-              charset: request.charset);
+          result = sass.compileStringToResult(
+            input.source,
+            color: request.alertColor,
+            logger: logger,
+            importers: importers,
+            importer: _decodeImporter(input.importer) ??
+                (input.url.startsWith("file:") ? null : sass.Importer.noOp),
+            functions: globalFunctions,
+            syntax: syntaxToSyntax(input.syntax),
+            style: style,
+            url: input.url.isEmpty ? null : input.url,
+            quietDeps: request.quietDeps,
+            verbose: request.verbose,
+            fatalDeprecations: fatalDeprecations,
+            silenceDeprecations: silenceDeprecations,
+            futureDeprecations: futureDeprecations,
+            sourceMap: request.sourceMap,
+            charset: request.charset,
+          );
 
         case InboundMessage_CompileRequest_Input.path:
           if (request.path.isEmpty) {
@@ -179,19 +194,21 @@ final class CompilationDispatcher {
           }
 
           try {
-            result = sass.compileToResult(request.path,
-                color: request.alertColor,
-                logger: logger,
-                importers: importers,
-                functions: globalFunctions,
-                style: style,
-                quietDeps: request.quietDeps,
-                verbose: request.verbose,
-                fatalDeprecations: fatalDeprecations,
-                silenceDeprecations: silenceDeprecations,
-                futureDeprecations: futureDeprecations,
-                sourceMap: request.sourceMap,
-                charset: request.charset);
+            result = sass.compileToResult(
+              request.path,
+              color: request.alertColor,
+              logger: logger,
+              importers: importers,
+              functions: globalFunctions,
+              style: style,
+              quietDeps: request.quietDeps,
+              verbose: request.verbose,
+              fatalDeprecations: fatalDeprecations,
+              silenceDeprecations: silenceDeprecations,
+              futureDeprecations: futureDeprecations,
+              sourceMap: request.sourceMap,
+              charset: request.charset,
+            );
           } on FileSystemException catch (error) {
             return OutboundMessage_CompileResponse()
               ..failure = (OutboundMessage_CompileResponse_CompileFailure()
@@ -213,16 +230,20 @@ final class CompilationDispatcher {
 
       var sourceMap = result.sourceMap;
       if (sourceMap != null) {
-        success.sourceMap = json.encode(sourceMap.toJson(
-            includeSourceContents: request.sourceMapIncludeSources));
+        success.sourceMap = json.encode(
+          sourceMap.toJson(
+            includeSourceContents: request.sourceMapIncludeSources,
+          ),
+        );
       }
       return OutboundMessage_CompileResponse()
         ..success = success
         ..loadedUrls.addAll(result.loadedUrls.map((url) => url.toString()));
     } on sass.SassException catch (error) {
       var formatted = withGlyphs(
-          () => error.toString(color: request.alertColor),
-          ascii: request.alertAscii);
+        () => error.toString(color: request.alertColor),
+        ascii: request.alertAscii,
+      );
       return OutboundMessage_CompileResponse()
         ..failure = (OutboundMessage_CompileResponse_CompileFailure()
           ..message = error.message
@@ -235,7 +256,8 @@ final class CompilationDispatcher {
 
   /// Converts [importer] into a [sass.Importer].
   sass.Importer? _decodeImporter(
-      InboundMessage_CompileRequest_Importer importer) {
+    InboundMessage_CompileRequest_Importer importer,
+  ) {
     switch (importer.whichImporter()) {
       case InboundMessage_CompileRequest_Importer_Importer.path:
         _checkNoNonCanonicalScheme(importer);
@@ -243,7 +265,10 @@ final class CompilationDispatcher {
 
       case InboundMessage_CompileRequest_Importer_Importer.importerId:
         return HostImporter(
-            this, importer.importerId, importer.nonCanonicalScheme);
+          this,
+          importer.importerId,
+          importer.nonCanonicalScheme,
+        );
 
       case InboundMessage_CompileRequest_Importer_Importer.fileImporterId:
         _checkNoNonCanonicalScheme(importer);
@@ -251,7 +276,8 @@ final class CompilationDispatcher {
 
       case InboundMessage_CompileRequest_Importer_Importer.nodePackageImporter:
         return npi.NodePackageImporter(
-            importer.nodePackageImporter.entryPointDirectory);
+          importer.nodePackageImporter.entryPointDirectory,
+        );
 
       case InboundMessage_CompileRequest_Importer_Importer.notSet:
         _checkNoNonCanonicalScheme(importer);
@@ -262,10 +288,13 @@ final class CompilationDispatcher {
   /// Throws a [ProtocolError] if [importer] contains one or more
   /// `nonCanonicalScheme`s.
   void _checkNoNonCanonicalScheme(
-      InboundMessage_CompileRequest_Importer importer) {
+    InboundMessage_CompileRequest_Importer importer,
+  ) {
     if (importer.nonCanonicalScheme.isEmpty) return;
-    throw paramsError("Importer.non_canonical_scheme may only be set along "
-        "with Importer.importer.importer_id");
+    throw paramsError(
+      "Importer.non_canonical_scheme may only be set along "
+      "with Importer.importer.importer_id",
+    );
   }
 
   /// Sends [event] to the host.
@@ -280,24 +309,32 @@ final class CompilationDispatcher {
   }
 
   InboundMessage_CanonicalizeResponse sendCanonicalizeRequest(
-          OutboundMessage_CanonicalizeRequest request) =>
+    OutboundMessage_CanonicalizeRequest request,
+  ) =>
       _sendRequest<InboundMessage_CanonicalizeResponse>(
-          OutboundMessage()..canonicalizeRequest = request);
+        OutboundMessage()..canonicalizeRequest = request,
+      );
 
   InboundMessage_ImportResponse sendImportRequest(
-          OutboundMessage_ImportRequest request) =>
+    OutboundMessage_ImportRequest request,
+  ) =>
       _sendRequest<InboundMessage_ImportResponse>(
-          OutboundMessage()..importRequest = request);
+        OutboundMessage()..importRequest = request,
+      );
 
   InboundMessage_FileImportResponse sendFileImportRequest(
-          OutboundMessage_FileImportRequest request) =>
+    OutboundMessage_FileImportRequest request,
+  ) =>
       _sendRequest<InboundMessage_FileImportResponse>(
-          OutboundMessage()..fileImportRequest = request);
+        OutboundMessage()..fileImportRequest = request,
+      );
 
   InboundMessage_FunctionCallResponse sendFunctionCallRequest(
-          OutboundMessage_FunctionCallRequest request) =>
+    OutboundMessage_FunctionCallRequest request,
+  ) =>
       _sendRequest<InboundMessage_FunctionCallResponse>(
-          OutboundMessage()..functionCallRequest = request);
+        OutboundMessage()..functionCallRequest = request,
+      );
 
   /// Sends [request] to the host and returns the message sent in response.
   T _sendRequest<T extends GeneratedMessage>(OutboundMessage message) {
@@ -305,8 +342,10 @@ final class CompilationDispatcher {
     _send(message);
 
     try {
-      var messageBuffer =
-          Uint8List.sublistView(_receive(), _compilationIdVarint.length);
+      var messageBuffer = Uint8List.sublistView(
+        _receive(),
+        _compilationIdVarint.length,
+      );
 
       InboundMessage message;
       try {
@@ -324,21 +363,24 @@ final class CompilationDispatcher {
           message.functionCallResponse,
         InboundMessage_Message.compileRequest => throw paramsError(
             "A CompileRequest with compilation ID $_compilationId is already "
-            "active."),
+            "active.",
+          ),
         InboundMessage_Message.versionRequest =>
           throw paramsError("VersionRequest must have compilation ID 0."),
         InboundMessage_Message.notSet =>
-          throw parseError("InboundMessage.message is not set.")
+          throw parseError("InboundMessage.message is not set."),
       };
 
       if (message.id != _outboundRequestId) {
         throw paramsError(
-            "Response ID ${message.id} doesn't match any outstanding requests "
-            "in compilation $_compilationId.");
+          "Response ID ${message.id} doesn't match any outstanding requests "
+          "in compilation $_compilationId.",
+        );
       } else if (response is! T) {
         throw paramsError(
-            "Request ID $_outboundRequestId doesn't match response type "
-            "${response.runtimeType} in compilation $_compilationId.");
+          "Request ID $_outboundRequestId doesn't match response type "
+          "${response.runtimeType} in compilation $_compilationId.",
+        );
       }
 
       return response;
@@ -370,11 +412,12 @@ final class CompilationDispatcher {
     // [IsolateDispatcher] knows whether to treat this isolate as inactive or
     // close out entirely.
     var packet = Uint8List(
-        1 + _compilationIdVarint.length + protobufWriter.lengthInBytes);
+      1 + _compilationIdVarint.length + protobufWriter.lengthInBytes,
+    );
     packet[0] = switch (message.whichMessage()) {
       OutboundMessage_Message.compileResponse => 1,
       OutboundMessage_Message.error => 2,
-      _ => 0
+      _ => 0,
     };
     packet.setAll(1, _compilationIdVarint);
     protobufWriter.writeTo(packet, 1 + _compilationIdVarint.length);

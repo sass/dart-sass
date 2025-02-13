@@ -26,7 +26,7 @@ abstract interface class EvaluationContext {
   static EvaluationContext? get currentOrNull =>
       switch (Zone.current[#_evaluationContext]) {
         EvaluationContext context => context,
-        _ => null
+        _ => null,
       };
 
   /// The current evaluation context, or null if there isn't a Sass stylesheet
@@ -65,18 +65,22 @@ abstract interface class EvaluationContext {
 /// {@category Compile}
 void warn(String message, {bool deprecation = false}) =>
     switch (EvaluationContext.currentOrNull) {
-      var context? =>
-        context.warn(message, deprecation ? Deprecation.userAuthored : null),
-      _ when deprecation => (const Logger.stderr())
-          .warnForDeprecation(Deprecation.userAuthored, message),
-      _ => (const Logger.stderr()).warn(message)
+      var context? => context.warn(
+          message,
+          deprecation ? Deprecation.userAuthored : null,
+        ),
+      _ when deprecation => (const Logger.stderr()).warnForDeprecation(
+          Deprecation.userAuthored,
+          message,
+        ),
+      _ => (const Logger.stderr()).warn(message),
     };
 
 /// Prints a deprecation warning with [message] of type [deprecation].
 void warnForDeprecation(String message, Deprecation deprecation) =>
     switch (EvaluationContext.currentOrNull) {
       var context? => context.warn(message, deprecation),
-      _ => (const Logger.stderr()).warnForDeprecation(deprecation, message)
+      _ => (const Logger.stderr()).warnForDeprecation(deprecation, message),
     };
 
 /// Prints a deprecation warning with [message] of type [deprecation],

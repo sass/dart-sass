@@ -46,19 +46,27 @@ class AsyncCompiler extends Compiler {
 /// The JavaScript `Compiler` class.
 final JSClass compilerClass = () {
   var jsClass = createJSClass(
-      'sass.Compiler',
-      (Object self) => {
-            jsThrow(JsError(("Compiler can not be directly constructed. "
-                "Please use `sass.initCompiler()` instead.")))
-          });
+    'sass.Compiler',
+    (Object self) => {
+      jsThrow(
+        JsError(
+          ("Compiler can not be directly constructed. "
+              "Please use `sass.initCompiler()` instead."),
+        ),
+      ),
+    },
+  );
 
   jsClass.defineMethods({
     'compile': (Compiler self, String path, [CompileOptions? options]) {
       self._throwIfDisposed();
       return compile(path, options);
     },
-    'compileString': (Compiler self, String source,
-        [CompileStringOptions? options]) {
+    'compileString': (
+      Compiler self,
+      String source, [
+      CompileStringOptions? options,
+    ]) {
       self._throwIfDisposed();
       return compileString(source, options);
     },
@@ -76,22 +84,33 @@ Compiler initCompiler() => Compiler();
 /// The JavaScript `AsyncCompiler` class.
 final JSClass asyncCompilerClass = () {
   var jsClass = createJSClass(
-      'sass.AsyncCompiler',
-      (Object self) => {
-            jsThrow(JsError(("AsyncCompiler can not be directly constructed. "
-                "Please use `sass.initAsyncCompiler()` instead.")))
-          });
+    'sass.AsyncCompiler',
+    (Object self) => {
+      jsThrow(
+        JsError(
+          ("AsyncCompiler can not be directly constructed. "
+              "Please use `sass.initAsyncCompiler()` instead."),
+        ),
+      ),
+    },
+  );
 
   jsClass.defineMethods({
-    'compileAsync': (AsyncCompiler self, String path,
-        [CompileOptions? options]) {
+    'compileAsync': (
+      AsyncCompiler self,
+      String path, [
+      CompileOptions? options,
+    ]) {
       self._throwIfDisposed();
       var compilation = compileAsync(path, options);
       self.addCompilation(compilation);
       return compilation;
     },
-    'compileStringAsync': (AsyncCompiler self, String source,
-        [CompileStringOptions? options]) {
+    'compileStringAsync': (
+      AsyncCompiler self,
+      String source, [
+      CompileStringOptions? options,
+    ]) {
       self._throwIfDisposed();
       var compilation = compileStringAsync(source, options);
       self.addCompilation(compilation);
@@ -99,11 +118,13 @@ final JSClass asyncCompilerClass = () {
     },
     'dispose': (AsyncCompiler self) {
       self._disposed = true;
-      return futureToPromise((() async {
-        self.compilations.close();
-        await self.compilations.future;
-      })());
-    }
+      return futureToPromise(
+        (() async {
+          self.compilations.close();
+          await self.compilations.future;
+        })(),
+      );
+    },
   });
 
   getJSClass(AsyncCompiler()).injectSuperclass(jsClass);

@@ -44,6 +44,6 @@ final class A98RgbColorSpace extends ColorSpace {
         ColorSpace.xyzD65 => linearA98RgbToXyzD65,
         ColorSpace.xyzD50 => linearA98RgbToXyzD50,
         ColorSpace.lms => linearA98RgbToLms,
-        _ => super.transformationMatrix(dest)
+        _ => super.transformationMatrix(dest),
       };
 }

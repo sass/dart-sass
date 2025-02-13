@@ -24,22 +24,33 @@ final class LchColorSpace extends ColorSpace {
 
   const LchColorSpace()
       : super('lch', const [
-          LinearChannel('lightness', 0, 100,
-              lowerClamped: true, upperClamped: true),
+          LinearChannel(
+            'lightness',
+            0,
+            100,
+            lowerClamped: true,
+            upperClamped: true,
+          ),
           LinearChannel('chroma', 0, 150, lowerClamped: true),
-          hueChannel
+          hueChannel,
         ]);
 
-  SassColor convert(ColorSpace dest, double? lightness, double? chroma,
-      double? hue, double? alpha) {
+  SassColor convert(
+    ColorSpace dest,
+    double? lightness,
+    double? chroma,
+    double? hue,
+    double? alpha,
+  ) {
     var hueRadians = (hue ?? 0) * math.pi / 180;
     return const LabColorSpace().convert(
-        dest,
-        lightness,
-        (chroma ?? 0) * math.cos(hueRadians),
-        (chroma ?? 0) * math.sin(hueRadians),
-        alpha,
-        missingChroma: chroma == null,
-        missingHue: hue == null);
+      dest,
+      lightness,
+      (chroma ?? 0) * math.cos(hueRadians),
+      (chroma ?? 0) * math.sin(hueRadians),
+      alpha,
+      missingChroma: chroma == null,
+      missingHue: hue == null,
+    );
   }
 }

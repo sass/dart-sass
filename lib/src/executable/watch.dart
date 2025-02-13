@@ -19,18 +19,20 @@ Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
   var directoriesToWatch = [
     ..._sourceDirectoriesToDestinations(options).keys,
     for (var dir in _sourcesToDestinations(options).keys) p.dirname(dir),
-    ...options.loadPaths
+    ...options.loadPaths,
   ];
 
   var dirWatcher = MultiDirWatcher(poll: options.poll);
-  await Future.wait(directoriesToWatch.map((dir) {
-    // If a directory doesn't exist, watch its parent directory so that we're
-    // notified once it starts existing.
-    while (!dirExists(dir)) {
-      dir = p.dirname(dir);
-    }
-    return dirWatcher.watch(dir);
-  }));
+  await Future.wait(
+    directoriesToWatch.map((dir) {
+      // If a directory doesn't exist, watch its parent directory so that we're
+      // notified once it starts existing.
+      while (!dirExists(dir)) {
+        dir = p.dirname(dir);
+      }
+      return dirWatcher.watch(dir);
+    }),
+  );
 
   // Before we start paying attention to changes, compile all the stylesheets as
   // they currently exist. This ensures that changes that come in update a
@@ -39,11 +41,18 @@ Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
   var sourcesToDestinations = _sourcesToDestinations(options);
   for (var source in sourcesToDestinations.keys) {
     graph.addCanonical(
-        FilesystemImporter.cwd, p.toUri(canonicalize(source)), p.toUri(source),
-        recanonicalize: false);
+      FilesystemImporter.cwd,
+      p.toUri(canonicalize(source)),
+      p.toUri(source),
+      recanonicalize: false,
+    );
   }
-  var success = await compileStylesheets(options, graph, sourcesToDestinations,
-      ifModified: true);
+  var success = await compileStylesheets(
+    options,
+    graph,
+    sourcesToDestinations,
+    ifModified: true,
+  );
   if (!success && options.stopOnError) {
     dirWatcher.events.listen(null).cancel();
     return;
@@ -109,8 +118,12 @@ final class _Watcher {
 
       var toRecompile = {..._toRecompile};
       _toRecompile.clear();
-      var success = await compileStylesheets(_options, _graph, toRecompile,
-          ifModified: true);
+      var success = await compileStylesheets(
+        _options,
+        _graph,
+        toRecompile,
+        ifModified: true,
+      );
       if (!success && _options.stopOnError) return;
     }
   }
@@ -139,7 +152,10 @@ final class _Watcher {
     var destination = _destinationFor(path);
     if (destination != null) _toRecompile[path] = destination;
     var downstream = _graph.addCanonical(
-        FilesystemImporter.cwd, _canonicalize(path), p.toUri(path));
+      FilesystemImporter.cwd,
+      _canonicalize(path),
+      p.toUri(path),
+    );
     _recompileDownstream(downstream);
   }
 
@@ -174,13 +190,13 @@ final class _Watcher {
           (null, var newType) => newType,
           (_, ChangeType.REMOVE) => ChangeType.REMOVE,
           (ChangeType.ADD, _) => ChangeType.ADD,
-          (_, _) => ChangeType.MODIFY
+          (_, _) => ChangeType.MODIFY,
         };
       }
 
       return [
         // PathMap always has nullable keys
-        for (var (path!, type) in typeForPath.pairs) WatchEvent(type, path)
+        for (var (path!, type) in typeForPath.pairs) WatchEvent(type, path),
       ];
     });
   }
@@ -192,7 +208,7 @@ final class _Watcher {
     while (nodes.isNotEmpty) {
       nodes = [
         for (var node in nodes)
-          if (seen.add(node)) node
+          if (seen.add(node)) node,
       ];
 
       _toRecompile.addAll(_sourceEntrypointsToDestinations(nodes));
@@ -203,7 +219,8 @@ final class _Watcher {
 
   /// Returns a sourcesToDestinations mapping for nodes that are entrypoints.
   Map<String, String> _sourceEntrypointsToDestinations(
-      Iterable<StylesheetNode> nodes) {
+    Iterable<StylesheetNode> nodes,
+  ) {
     var entrypoints = <String, String>{};
     for (var node in nodes) {
       var url = node.canonicalUrl;
@@ -231,8 +248,10 @@ final class _Watcher {
         in _sourceDirectoriesToDestinations(_options).pairs) {
       if (!p.isWithin(sourceDir, source)) continue;
 
-      var destination = p.join(destinationDir,
-          p.setExtension(p.relative(source, from: sourceDir), '.css'));
+      var destination = p.join(
+        destinationDir,
+        p.setExtension(p.relative(source, from: sourceDir), '.css'),
+      );
 
       // Don't compile ".css" files to their own locations.
       if (!p.equals(destination, source)) return destination;
@@ -250,5 +269,6 @@ Map<String, String> _sourcesToDestinations(ExecutableOptions options) =>
 /// Exposes [options.sourcesDirectoriesToDestinations] as a non-nullable map,
 /// since stdin inputs and stdout outputs aren't allowed in `--watch` mode.
 Map<String, String> _sourceDirectoriesToDestinations(
-        ExecutableOptions options) =>
+  ExecutableOptions options,
+) =>
     options.sourceDirectoriesToDestinations.cast<String, String>();

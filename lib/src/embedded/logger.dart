@@ -30,18 +30,24 @@ final class EmbeddedLogger extends LoggerWithDeprecationType {
         _ascii = ascii;
 
   void debug(String message, SourceSpan span) {
-    _dispatcher.sendLog(OutboundMessage_LogEvent()
-      ..type = LogEventType.DEBUG
-      ..message = message
-      ..span = protofySpan(span)
-      ..formatted = (span.start.sourceUrl.andThen(p.prettyUri) ?? '-') +
-          ':${span.start.line + 1} ' +
-          (_color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG') +
-          ': $message\n');
+    _dispatcher.sendLog(
+      OutboundMessage_LogEvent()
+        ..type = LogEventType.DEBUG
+        ..message = message
+        ..span = protofySpan(span)
+        ..formatted = (span.start.sourceUrl.andThen(p.prettyUri) ?? '-') +
+            ':${span.start.line + 1} ' +
+            (_color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG') +
+            ': $message\n',
+    );
   }
 
-  void internalWarn(String message,
-      {FileSpan? span, Trace? trace, Deprecation? deprecation}) {
+  void internalWarn(
+    String message, {
+    FileSpan? span,
+    Trace? trace,
+    Deprecation? deprecation,
+  }) {
     var formatted = withGlyphs(() {
       var buffer = StringBuffer();
       var showDeprecation =

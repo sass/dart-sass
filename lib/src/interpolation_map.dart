@@ -30,13 +30,15 @@ final class InterpolationMap {
   /// Each target location at index `i` corresponds to the character in the
   /// generated string after `interpolation.contents[i]`.
   InterpolationMap(
-      this._interpolation, Iterable<SourceLocation> targetLocations)
-      : _targetLocations = List.unmodifiable(targetLocations) {
+    this._interpolation,
+    Iterable<SourceLocation> targetLocations,
+  ) : _targetLocations = List.unmodifiable(targetLocations) {
     var expectedLocations = math.max(0, _interpolation.contents.length - 1);
     if (_targetLocations.length != expectedLocations) {
       throw ArgumentError(
-          "InterpolationMap must have $expectedLocations targetLocations if the "
-          "interpolation has ${_interpolation.contents.length} components.");
+        "InterpolationMap must have $expectedLocations targetLocations if the "
+        "interpolation has ${_interpolation.contents.length} components.",
+      );
     }
   }
 
@@ -48,7 +50,10 @@ final class InterpolationMap {
 
     if (_interpolation.contents.isEmpty) {
       return SourceSpanFormatException(
-          error.message, _interpolation.span, error.source);
+        error.message,
+        _interpolation.span,
+        error.source,
+      );
     }
 
     var source = mapSpan(target);
@@ -61,23 +66,37 @@ final class InterpolationMap {
         .any((content) => content is Expression)) {
       return SourceSpanFormatException(error.message, source, error.source);
     } else {
-      return MultiSourceSpanFormatException(error.message, source, "",
-          {target: "error in interpolated output"}, error.source);
+      return MultiSourceSpanFormatException(
+          error.message,
+          source,
+          "",
+          {
+            target: "error in interpolated output",
+          },
+          error.source);
     }
   }
 
   /// Maps a span in the string generated from this interpolation to its
   /// original source.
-  FileSpan mapSpan(SourceSpan target) =>
-      switch ((_mapLocation(target.start), _mapLocation(target.end))) {
+  FileSpan mapSpan(SourceSpan target) => switch ((
+        _mapLocation(target.start),
+        _mapLocation(target.end),
+      )) {
         (FileSpan start, FileSpan end) => start.expand(end),
-        (FileSpan start, FileLocation end) => _interpolation.span.file
-            .span(_expandInterpolationSpanLeft(start.start), end.offset),
-        (FileLocation start, FileSpan end) => _interpolation.span.file
-            .span(start.offset, _expandInterpolationSpanRight(end.end)),
-        (FileLocation start, FileLocation end) =>
-          _interpolation.span.file.span(start.offset, end.offset),
-        _ => throw '[BUG] Unreachable'
+        (FileSpan start, FileLocation end) => _interpolation.span.file.span(
+            _expandInterpolationSpanLeft(start.start),
+            end.offset,
+          ),
+        (FileLocation start, FileSpan end) => _interpolation.span.file.span(
+            start.offset,
+            _expandInterpolationSpanRight(end.end),
+          ),
+        (FileLocation start, FileLocation end) => _interpolation.span.file.span(
+            start.offset,
+            end.offset,
+          ),
+        _ => throw '[BUG] Unreachable',
       };
 
   /// Maps a location in the string generated from this interpolation to its
@@ -97,16 +116,20 @@ final class InterpolationMap {
 
     var previousLocation = index == 0
         ? _interpolation.span.start
-        : _interpolation.span.file.location(_expandInterpolationSpanRight(
-            (_interpolation.contents[index - 1] as Expression).span.end));
+        : _interpolation.span.file.location(
+            _expandInterpolationSpanRight(
+              (_interpolation.contents[index - 1] as Expression).span.end,
+            ),
+          );
     var offsetInString =
         target.offset - (index == 0 ? 0 : _targetLocations[index - 1].offset);
 
     // This produces slightly incorrect mappings if there are _unnecessary_
     // escapes in the source file, but that's unlikely enough that it's probably
     // not worth doing a reparse here to fix it.
-    return previousLocation.file
-        .location(previousLocation.offset + offsetInString);
+    return previousLocation.file.location(
+      previousLocation.offset + offsetInString,
+    );
   }
 
   /// Return the index in [_interpolation.contents] at which [target] points.

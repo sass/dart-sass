@@ -43,8 +43,10 @@ class PackageImporter extends Importer {
 
   bool couldCanonicalize(Uri url, Uri canonicalUrl) =>
       (url.scheme == 'file' || url.scheme == 'package' || url.scheme == '') &&
-      FilesystemImporter.cwd
-          .couldCanonicalize(Uri(path: url.path), canonicalUrl);
+      FilesystemImporter.cwd.couldCanonicalize(
+        Uri(path: url.path),
+        canonicalUrl,
+      );
 
   String toString() => "package:...";
 }

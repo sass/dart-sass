@@ -27,11 +27,12 @@ final class BuiltInModule<T extends AsyncCallable> implements Module<T> {
   bool get transitivelyContainsCss => false;
   bool get transitivelyContainsExtensions => false;
 
-  BuiltInModule(String name,
-      {Iterable<T>? functions,
-      Iterable<T>? mixins,
-      Map<String, Value>? variables})
-      : url = Uri(scheme: "sass", path: name),
+  BuiltInModule(
+    String name, {
+    Iterable<T>? functions,
+    Iterable<T>? mixins,
+    Map<String, Value>? variables,
+  })  : url = Uri(scheme: "sass", path: name),
         functions = _callableMap(functions),
         mixins = _callableMap(mixins),
         variables =
@@ -39,11 +40,15 @@ final class BuiltInModule<T extends AsyncCallable> implements Module<T> {
 
   /// Returns a map from [callables]' names to their values.
   static Map<String, T> _callableMap<T extends AsyncCallable>(
-          Iterable<T>? callables) =>
-      UnmodifiableMapView(callables == null
-          ? {}
-          : UnmodifiableMapView(
-              {for (var callable in callables) callable.name: callable}));
+    Iterable<T>? callables,
+  ) =>
+      UnmodifiableMapView(
+        callables == null
+            ? {}
+            : UnmodifiableMapView({
+                for (var callable in callables) callable.name: callable,
+              }),
+      );
 
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (!variables.containsKey(name)) {

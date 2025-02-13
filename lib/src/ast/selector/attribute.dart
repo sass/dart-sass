@@ -51,9 +51,13 @@ final class AttributeSelector extends SimpleSelector {
 
   /// Creates an attribute selector that matches an element with a property
   /// named [name], whose value matches [value] based on the semantics of [op].
-  AttributeSelector.withOperator(this.name, this.op, this.value, FileSpan span,
-      {this.modifier})
-      : super(span);
+  AttributeSelector.withOperator(
+    this.name,
+    this.op,
+    this.value,
+    FileSpan span, {
+    this.modifier,
+  }) : super(span);
 
   T accept<T>(SelectorVisitor<T> visitor) =>
       visitor.visitAttributeSelector(this);

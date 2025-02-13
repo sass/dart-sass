@@ -36,35 +36,56 @@ class UnitlessSassNumber extends SassNumber {
 
   bool compatibleWithUnit(String unit) => true;
 
-  SassNumber coerceToMatch(SassNumber other,
-          [String? name, String? otherName]) =>
+  SassNumber coerceToMatch(
+    SassNumber other, [
+    String? name,
+    String? otherName,
+  ]) =>
       other.withValue(value);
 
-  double coerceValueToMatch(SassNumber other,
-          [String? name, String? otherName]) =>
+  double coerceValueToMatch(
+    SassNumber other, [
+    String? name,
+    String? otherName,
+  ]) =>
       value;
 
-  SassNumber convertToMatch(SassNumber other,
-          [String? name, String? otherName]) =>
+  SassNumber convertToMatch(
+    SassNumber other, [
+    String? name,
+    String? otherName,
+  ]) =>
       other.hasUnits
           // Call this to generate a consistent error message.
           ? super.convertToMatch(other, name, otherName)
           : this;
 
-  double convertValueToMatch(SassNumber other,
-          [String? name, String? otherName]) =>
+  double convertValueToMatch(
+    SassNumber other, [
+    String? name,
+    String? otherName,
+  ]) =>
       other.hasUnits
           // Call this to generate a consistent error message.
           ? super.convertValueToMatch(other, name, otherName)
           : value;
 
-  SassNumber coerce(List<String> newNumerators, List<String> newDenominators,
-          [String? name]) =>
-      SassNumber.withUnits(value,
-          numeratorUnits: newNumerators, denominatorUnits: newDenominators);
+  SassNumber coerce(
+    List<String> newNumerators,
+    List<String> newDenominators, [
+    String? name,
+  ]) =>
+      SassNumber.withUnits(
+        value,
+        numeratorUnits: newNumerators,
+        denominatorUnits: newDenominators,
+      );
 
-  double coerceValue(List<String> newNumerators, List<String> newDenominators,
-          [String? name]) =>
+  double coerceValue(
+    List<String> newNumerators,
+    List<String> newDenominators, [
+    String? name,
+  ]) =>
       value;
 
   double coerceValueToUnit(String unit, [String? name]) => value;
@@ -128,9 +149,11 @@ class UnitlessSassNumber extends SassNumber {
   Value dividedBy(Value other) {
     if (other is SassNumber) {
       return other.hasUnits
-          ? SassNumber.withUnits(value / other.value,
+          ? SassNumber.withUnits(
+              value / other.value,
               numeratorUnits: other.denominatorUnits,
-              denominatorUnits: other.numeratorUnits)
+              denominatorUnits: other.numeratorUnits,
+            )
           : UnitlessSassNumber(value / other.value);
     }
     return super.dividedBy(other);

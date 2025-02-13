@@ -58,7 +58,8 @@ String _realCasePath(String path) {
       try {
         var matches = listDir(realDirname)
             .where(
-                (realPath) => equalsIgnoreCase(p.basename(realPath), basename))
+              (realPath) => equalsIgnoreCase(p.basename(realPath), basename),
+            )
             .toList();
 
         return switch (matches) {
@@ -66,7 +67,7 @@ String _realCasePath(String path) {
           // If the file doesn't exist, or if there are multiple options
           // (meaning the filesystem isn't actually case-insensitive), use
           // `basename` as-is.
-          _ => p.join(realDirname, basename)
+          _ => p.join(realDirname, basename),
         };
       } on FileSystemException catch (_) {
         // If there's an error listing a directory, it's likely because we're

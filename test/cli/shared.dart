@@ -12,14 +12,23 @@ import 'package:test_process/test_process.dart';
 
 /// Defines test that are shared between the Dart and Node.js CLI test suites.
 void sharedTests(
-    Future<TestProcess> runSass(Iterable<String> arguments,
-        {Map<String, String>? environment})) {
+  Future<TestProcess> runSass(
+    Iterable<String> arguments, {
+    Map<String, String>? environment,
+  }),
+) {
   /// Runs the executable on [arguments] plus an output file, then verifies that
   /// the contents of the output file match [expected].
-  Future<void> expectCompiles(List<String> arguments, Object expected,
-      {Map<String, String>? environment}) async {
-    var sass = await runSass([...arguments, "out.css", "--no-source-map"],
-        environment: environment);
+  Future<void> expectCompiles(
+    List<String> arguments,
+    Object expected, {
+    Map<String, String>? environment,
+  }) async {
+    var sass = await runSass([
+      ...arguments,
+      "out.css",
+      "--no-source-map",
+    ], environment: environment);
     await sass.shouldExit(0);
     await d.file("out.css", expected).validate();
   }
@@ -30,7 +39,9 @@ void sharedTests(
     var sass = await runSass(["--help"]);
     expect(sass.stdout, emits("Compile Sass to CSS."));
     expect(
-        sass.stdout, emitsThrough(contains("Print this usage information.")));
+      sass.stdout,
+      emitsThrough(contains("Print this usage information.")),
+    );
     await sass.shouldExit(64);
   });
 
@@ -38,13 +49,7 @@ void sharedTests(
     await d.file("test.scss", "a {b: 1 + 2}").create();
 
     var sass = await runSass(["test.scss"]);
-    expect(
-        sass.stdout,
-        emitsInOrder([
-          "a {",
-          "  b: 3;",
-          "}",
-        ]));
+    expect(sass.stdout, emitsInOrder(["a {", "  b: 3;", "}"]));
     await sass.shouldExit(0);
   });
 
@@ -63,13 +68,7 @@ void sharedTests(
     await d.file("test.scss", "a {b: 1 + 2}").create();
 
     var sass = await runSass([p.absolute(d.path("test.scss"))]);
-    expect(
-        sass.stdout,
-        emitsInOrder([
-          "a {",
-          "  b: 3;",
-          "}",
-        ]));
+    expect(sass.stdout, emitsInOrder(["a {", "  b: 3;", "}"]));
     await sass.shouldExit(0);
   });
 
@@ -85,8 +84,11 @@ void sharedTests(
   test("creates directories if necessary", () async {
     await d.file("test.scss", "a {b: 1 + 2}").create();
 
-    var sass =
-        await runSass(["--no-source-map", "test.scss", "some/new/dir/out.css"]);
+    var sass = await runSass([
+      "--no-source-map",
+      "test.scss",
+      "some/new/dir/out.css",
+    ]);
     expect(sass.stdout, emitsDone);
     await sass.shouldExit(0);
     await d
@@ -98,13 +100,7 @@ void sharedTests(
     var sass = await runSass(["-"]);
     sass.stdin.writeln("a {b: 1 + 2}");
     sass.stdin.close();
-    expect(
-        sass.stdout,
-        emitsInOrder([
-          "a {",
-          "  b: 3;",
-          "}",
-        ]));
+    expect(sass.stdout, emitsInOrder(["a {", "  b: 3;", "}"]));
     await sass.shouldExit(0);
   });
 
@@ -114,8 +110,9 @@ void sharedTests(
 
       await d.dir("dir", [d.file("test.scss", "a {b: 1 + 2}")]).create();
 
-      await expectCompiles(
-          ["test.scss"], equalsIgnoringWhitespace("a { b: 3; }"));
+      await expectCompiles([
+        "test.scss",
+      ], equalsIgnoringWhitespace("a { b: 3; }"));
     });
 
     test("from the load path", () async {
@@ -123,8 +120,11 @@ void sharedTests(
 
       await d.dir("dir", [d.file("test2.scss", "a {b: c}")]).create();
 
-      await expectCompiles(["--load-path", "dir", "test.scss"],
-          equalsIgnoringWhitespace("a { b: c; }"));
+      await expectCompiles([
+        "--load-path",
+        "dir",
+        "test.scss",
+      ], equalsIgnoringWhitespace("a { b: c; }"));
     });
 
     test("from SASS_PATH", () async {
@@ -138,26 +138,34 @@ void sharedTests(
 
       var separator = Platform.isWindows ? ';' : ':';
       await expectCompiles(
-          ["test.scss"], equalsIgnoringWhitespace("a { b: c; } x { y: z; }"),
-          environment: {"SASS_PATH": "dir2${separator}dir3"});
+        ["test.scss"],
+        equalsIgnoringWhitespace("a { b: c; } x { y: z; }"),
+        environment: {"SASS_PATH": "dir2${separator}dir3"},
+      );
     });
 
     // Regression test for #369
-    test("from within a directory, relative to a file on the load path",
-        () async {
-      await d
-          .dir("dir1", [d.file("test.scss", "@use 'subdir/test2'")]).create();
+    test(
+      "from within a directory, relative to a file on the load path",
+      () async {
+        await d.dir("dir1", [
+          d.file("test.scss", "@use 'subdir/test2'"),
+        ]).create();
 
-      await d.dir("dir2", [
-        d.dir("subdir", [
-          d.file("test2.scss", "@use 'test3'"),
-          d.file("test3.scss", "a {b: c}")
-        ])
-      ]).create();
+        await d.dir("dir2", [
+          d.dir("subdir", [
+            d.file("test2.scss", "@use 'test3'"),
+            d.file("test3.scss", "a {b: c}"),
+          ]),
+        ]).create();
 
-      await expectCompiles(["--load-path", "dir2", "dir1/test.scss"],
-          equalsIgnoringWhitespace("a { b: c; }"));
-    });
+        await expectCompiles([
+          "--load-path",
+          "dir2",
+          "dir1/test.scss",
+        ], equalsIgnoringWhitespace("a { b: c; }"));
+      },
+    );
 
     test("relative in preference to from the load path", () async {
       await d.file("test.scss", "@use 'test2'").create();
@@ -165,8 +173,11 @@ void sharedTests(
 
       await d.dir("dir", [d.file("test2.scss", "a {b: c}")]).create();
 
-      await expectCompiles(["--load-path", "dir", "test.scss"],
-          equalsIgnoringWhitespace("x { y: z; }"));
+      await expectCompiles([
+        "--load-path",
+        "dir",
+        "test.scss",
+      ], equalsIgnoringWhitespace("x { y: z; }"));
     });
 
     test("in load path order", () async {
@@ -175,9 +186,13 @@ void sharedTests(
       await d.dir("dir1", [d.file("test2.scss", "a {b: c}")]).create();
       await d.dir("dir2", [d.file("test2.scss", "x {y: z}")]).create();
 
-      await expectCompiles(
-          ["--load-path", "dir2", "--load-path", "dir1", "test.scss"],
-          equalsIgnoringWhitespace("x { y: z; }"));
+      await expectCompiles([
+        "--load-path",
+        "dir2",
+        "--load-path",
+        "dir1",
+        "test.scss",
+      ], equalsIgnoringWhitespace("x { y: z; }"));
     });
 
     test("from the load path in preference to from SASS_PATH", () async {
@@ -186,9 +201,11 @@ void sharedTests(
       await d.dir("dir1", [d.file("test2.scss", "a {b: c}")]).create();
       await d.dir("dir2", [d.file("test2.scss", "x {y: z}")]).create();
 
-      await expectCompiles(["--load-path", "dir2", "test.scss"],
-          equalsIgnoringWhitespace("x { y: z; }"),
-          environment: {"SASS_PATH": "dir1"});
+      await expectCompiles(
+        ["--load-path", "dir2", "test.scss"],
+        equalsIgnoringWhitespace("x { y: z; }"),
+        environment: {"SASS_PATH": "dir1"},
+      );
     });
 
     test("in SASS_PATH order", () async {
@@ -199,8 +216,10 @@ void sharedTests(
 
       var separator = Platform.isWindows ? ';' : ':';
       await expectCompiles(
-          ["test.scss"], equalsIgnoringWhitespace("x { y: z; }"),
-          environment: {"SASS_PATH": "dir2${separator}dir3"});
+        ["test.scss"],
+        equalsIgnoringWhitespace("x { y: z; }"),
+        environment: {"SASS_PATH": "dir2${separator}dir3"},
+      );
     });
 
     // Regression test for an internal Google issue.
@@ -214,9 +233,9 @@ void sharedTests(
         d.dir("parent", [
           d.dir("child", [
             d.file("test2.scss", "@import 'test3';"),
-            d.file("test3.scss", "a {b: c};")
-          ])
-        ])
+            d.file("test3.scss", "a {b: c};"),
+          ]),
+        ]),
       ]).create();
 
       await expectCompiles([
@@ -226,7 +245,7 @@ void sharedTests(
         "grandparent/parent",
         "--silence-deprecation",
         "import",
-        "test.scss"
+        "test.scss",
       ], equalsIgnoringWhitespace("a { b: c; } a { b: c; }"));
     });
 
@@ -239,7 +258,7 @@ void sharedTests(
 
       await d.dir("load-path", [
         d.file("_library.scss", "a { b: regular }"),
-        d.file("_library.import.scss", "a { b: import-only }")
+        d.file("_library.import.scss", "a { b: import-only }"),
       ]).create();
 
       await expectCompiles([
@@ -247,7 +266,7 @@ void sharedTests(
         "load-path",
         "--silence-deprecation",
         "import",
-        "test.scss"
+        "test.scss",
       ], equalsIgnoringWhitespace("a { b: regular; } a { b: import-only; }"));
     });
   });
@@ -257,13 +276,7 @@ void sharedTests(
       var sass = await runSass(["--stdin"]);
       sass.stdin.writeln("a {b: 1 + 2}");
       sass.stdin.close();
-      expect(
-          sass.stdout,
-          emitsInOrder([
-            "a {",
-            "  b: 3;",
-            "}",
-          ]));
+      expect(sass.stdout, emitsInOrder(["a {", "  b: 3;", "}"]));
       await sass.shouldExit(0);
     });
 
@@ -283,13 +296,7 @@ void sharedTests(
       var sass = await runSass(["--no-source-map", "--stdin", "--indented"]);
       sass.stdin.writeln("a\n  b: 1 + 2");
       sass.stdin.close();
-      expect(
-          sass.stdout,
-          emitsInOrder([
-            "a {",
-            "  b: 3;",
-            "}",
-          ]));
+      expect(sass.stdout, emitsInOrder(["a {", "  b: 3;", "}"]));
       await sass.shouldExit(0);
     });
 
@@ -308,15 +315,16 @@ void sharedTests(
     sass.stdin.writeln("a {b: 1 + }");
     sass.stdin.close();
     expect(
-        sass.stderr,
-        emitsInOrder([
-          "Error: Expected expression.",
-          "  ,",
-          "1 | a {b: 1 + }",
-          "  |           ^",
-          "  '",
-          "  - 1:11  root stylesheet",
-        ]));
+      sass.stderr,
+      emitsInOrder([
+        "Error: Expected expression.",
+        "  ,",
+        "1 | a {b: 1 + }",
+        "  |           ^",
+        "  '",
+        "  - 1:11  root stylesheet",
+      ]),
+    );
     await sass.shouldExit(65);
   });
 
@@ -328,15 +336,16 @@ void sharedTests(
     sass.stdin.writeln("a {b: (#123) + (#456)}");
     sass.stdin.close();
     expect(
-        sass.stderr,
-        emitsInOrder([
-          'Error: Undefined operation "#123 + #456".',
-          "  ,",
-          "1 | a {b: (#123) + (#456)}",
-          "  |       ^^^^^^^^^^^^^^^",
-          "  '",
-          "  - 1:7  root stylesheet",
-        ]));
+      sass.stderr,
+      emitsInOrder([
+        'Error: Undefined operation "#123 + #456".',
+        "  ,",
+        "1 | a {b: (#123) + (#456)}",
+        "  |       ^^^^^^^^^^^^^^^",
+        "  '",
+        "  - 1:7  root stylesheet",
+      ]),
+    );
     await sass.shouldExit(65);
   });
 
@@ -345,13 +354,7 @@ void sharedTests(
     await d.file("_test.scss", "x {y: z}").create();
 
     var sass = await runSass(["test.scss"]);
-    expect(
-        sass.stdout,
-        emitsInOrder([
-          "a {",
-          "  b: c;",
-          "}",
-        ]));
+    expect(sass.stdout, emitsInOrder(["a {", "  b: c;", "}"]));
     await sass.shouldExit(0);
   });
 
@@ -361,11 +364,9 @@ void sharedTests(
     var sass = await runSass(["test.scss"]);
     expect(sass.stdout, emitsDone);
     expect(
-        sass.stderr,
-        emitsInOrder([
-          "WARNING: aw beans",
-          "    test.scss 1:1  root stylesheet",
-        ]));
+      sass.stderr,
+      emitsInOrder(["WARNING: aw beans", "    test.scss 1:1  root stylesheet"]),
+    );
     await sass.shouldExit(0);
   });
 
@@ -489,27 +490,29 @@ void sharedTests(
       });
 
       // Regression test for sass/dart-sass#2418
-      test("doesn't emit runner warnings in content blocks from local @include",
-          () async {
-        await d.file("test.scss", """
-          @use 'other';
-          @include other.foo;
-        """).create();
-        await d.dir("dir", [
-          d.file("_other.scss", """
+      test(
+        "doesn't emit runner warnings in content blocks from local @include",
+        () async {
+          await d.file("test.scss", """
+            @use 'other';
+            @include other.foo;
+          """).create();
+          await d.dir("dir", [
+            d.file("_other.scss", """
             @mixin bar {@content}
             @mixin foo {
               @include bar {
                 #{blue} {x: y}
               }
             }
-          """)
-        ]).create();
+          """),
+          ]).create();
 
-        var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
-        expect(sass.stderr, emitsDone);
-        await sass.shouldExit(0);
-      });
+          var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
+          expect(sass.stderr, emitsDone);
+          await sass.shouldExit(0);
+        },
+      );
     });
 
     group("silences warnings through @import", () {
@@ -523,7 +526,7 @@ void sharedTests(
           "dir",
           "--silence-deprecation",
           "import",
-          "test.scss"
+          "test.scss",
         ]);
         expect(sass.stderr, emitsDone);
         await sass.shouldExit(0);
@@ -535,7 +538,7 @@ void sharedTests(
           d.file("_other.scss", """
             @use 'sass:color';
             #{blue} {x: y}
-          """)
+          """),
         ]).create();
 
         var sass = await runSass([
@@ -544,7 +547,7 @@ void sharedTests(
           "dir",
           "--silence-deprecation",
           "import",
-          "test.scss"
+          "test.scss",
         ]);
         expect(sass.stderr, emitsDone);
         await sass.shouldExit(0);
@@ -561,10 +564,10 @@ void sharedTests(
 
           await d.dir("dir", [
             d.file("_other.scss", """
-            @mixin foo {
-              @warn heck;
-            }
-          """)
+              @mixin foo {
+                @warn heck;
+              }
+            """),
           ]).create();
 
           var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
@@ -580,10 +583,10 @@ void sharedTests(
 
           await d.dir("dir", [
             d.file("_other.scss", """
-            @mixin foo {
-              @debug heck;
-            }
-          """)
+              @mixin foo {
+                @debug heck;
+              }
+            """),
           ]).create();
 
           var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
@@ -599,10 +602,10 @@ void sharedTests(
 
           await d.dir("dir", [
             d.file("_other.scss", """
-            @mixin foo {
-              #{blue} {x: y}
-            }
-          """)
+              @mixin foo {
+                #{blue} {x: y}
+              }
+            """),
           ]).create();
           await d.file("test.scss", "@use 'other'").create();
           await d.dir("dir", [d.file("_other.scss", "")]).create();
@@ -622,11 +625,11 @@ void sharedTests(
 
           await d.dir("dir", [
             d.file("_other.scss", """
-            @function foo() {
-              @warn heck;
-              @return null;
-            }
-          """)
+              @function foo() {
+                @warn heck;
+                @return null;
+              }
+            """),
           ]).create();
 
           var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
@@ -642,11 +645,11 @@ void sharedTests(
 
           await d.dir("dir", [
             d.file("_other.scss", """
-            @function foo() {
-              @debug heck;
-              @return null;
-            }
-          """)
+              @function foo() {
+                @debug heck;
+                @return null;
+              }
+            """),
           ]).create();
 
           var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
@@ -662,10 +665,10 @@ void sharedTests(
 
           await d.dir("dir", [
             d.file("_other.scss", """
-            @function foo() {
-              @return #{blue};
-            }
-          """)
+              @function foo() {
+                @return #{blue};
+              }
+            """),
           ]).create();
           await d.file("test.scss", "@use 'other'").create();
           await d.dir("dir", [d.file("_other.scss", "")]).create();
@@ -681,49 +684,61 @@ void sharedTests(
   group("with a bunch of deprecation warnings", () {
     setUp(() async {
       await d.file("test.scss", r"""
-      @use "sass:list";
-      @use "sass:meta";
+        @use "sass:list";
+        @use "sass:meta";
 
-      $_: meta.call("inspect", null);
-      $_: meta.call("rgb", 0, 0, 0);
-      $_: meta.call("nth", null, 1);
-      $_: meta.call("join", null, null);
-      $_: meta.call("if", true, 1, 2);
-      $_: meta.call("hsl", 0, 100%, 100%);
+        $_: meta.call("inspect", null);
+        $_: meta.call("rgb", 0, 0, 0);
+        $_: meta.call("nth", null, 1);
+        $_: meta.call("join", null, null);
+        $_: meta.call("if", true, 1, 2);
+        $_: meta.call("hsl", 0, 100%, 100%);
 
-      $_: 1/2;
-      $_: 1/3;
-      $_: 1/4;
-      $_: 1/5;
-      $_: 1/6;
-      $_: 1/7;
-    """).create();
+        $_: 1/2;
+        $_: 1/3;
+        $_: 1/4;
+        $_: 1/5;
+        $_: 1/6;
+        $_: 1/7;
+      """).create();
     });
 
     test("without --verbose, only prints five", () async {
       var sass = await runSass(["test.scss"]);
-      expect(sass.stderr,
-          emitsInOrder(List.filled(5, emitsThrough(contains("call()")))));
+      expect(
+        sass.stderr,
+        emitsInOrder(List.filled(5, emitsThrough(contains("call()")))),
+      );
       expect(sass.stderr, neverEmits(contains("call()")));
 
-      expect(sass.stderr,
-          emitsInOrder(List.filled(5, emitsThrough(contains("math.div")))));
+      expect(
+        sass.stderr,
+        emitsInOrder(List.filled(5, emitsThrough(contains("math.div")))),
+      );
       expect(sass.stderr, neverEmits(contains("math.div()")));
 
-      expect(sass.stderr,
-          emitsThrough(contains("2 repetitive deprecation warnings omitted.")));
+      expect(
+        sass.stderr,
+        emitsThrough(contains("2 repetitive deprecation warnings omitted.")),
+      );
     });
 
     test("with --verbose, prints all", () async {
       var sass = await runSass(["--verbose", "test.scss"]);
-      expect(sass.stderr,
-          neverEmits(contains("2 repetitive deprecation warnings omitted.")));
+      expect(
+        sass.stderr,
+        neverEmits(contains("2 repetitive deprecation warnings omitted.")),
+      );
 
-      expect(sass.stderr,
-          emitsInOrder(List.filled(6, emitsThrough(contains("call()")))));
+      expect(
+        sass.stderr,
+        emitsInOrder(List.filled(6, emitsThrough(contains("call()")))),
+      );
 
-      expect(sass.stderr,
-          emitsInOrder(List.filled(6, emitsThrough(contains("math.div")))));
+      expect(
+        sass.stderr,
+        emitsInOrder(List.filled(6, emitsThrough(contains("math.div")))),
+      );
     });
   });
 
@@ -732,13 +747,7 @@ void sharedTests(
       await d.file("test.scss", "a {b: c}").create();
 
       var sass = await runSass(["test.scss"]);
-      expect(
-          sass.stdout,
-          emitsInOrder([
-            "a {",
-            "  b: c;",
-            "}",
-          ]));
+      expect(sass.stdout, emitsInOrder(["a {", "  b: c;", "}"]));
       await sass.shouldExit(0);
     });
 
@@ -747,31 +756,32 @@ void sharedTests(
 
       var sass = await runSass(["test.scss"]);
       expect(
-          sass.stdout,
-          emitsInOrder([
-            "@charset \"UTF-8\";",
-            "a {",
-            "  b: 👭;",
-            "}",
-          ]));
+        sass.stdout,
+        emitsInOrder(["@charset \"UTF-8\";", "a {", "  b: 👭;", "}"]),
+      );
       await sass.shouldExit(0);
     });
 
     test("emits a BOM with compressed output", () async {
       await d.file("test.scss", "a {b: 👭}").create();
 
-      var sass = await runSass(
-          ["--no-source-map", "--style=compressed", "test.scss", "test.css"]);
+      var sass = await runSass([
+        "--no-source-map",
+        "--style=compressed",
+        "test.scss",
+        "test.css",
+      ]);
       await sass.shouldExit(0);
 
       // We can't verify this as a string because `dart:io` automatically trims
       // the BOM.
       var bomBytes = utf8.encode("\uFEFF");
       expect(
-          File(p.join(d.sandbox, "test.css"))
-              .readAsBytesSync()
-              .sublist(0, bomBytes.length),
-          equals(bomBytes));
+        File(
+          p.join(d.sandbox, "test.css"),
+        ).readAsBytesSync().sublist(0, bomBytes.length),
+        equals(bomBytes),
+      );
     });
   });
 
@@ -780,13 +790,7 @@ void sharedTests(
       await d.file("test.scss", "a {b: 👭}").create();
 
       var sass = await runSass(["--no-charset", "test.scss"]);
-      expect(
-          sass.stdout,
-          emitsInOrder([
-            "a {",
-            "  b: 👭;",
-            "}",
-          ]));
+      expect(sass.stdout, emitsInOrder(["a {", "  b: 👭;", "}"]));
       await sass.shouldExit(0);
     });
 
@@ -798,7 +802,7 @@ void sharedTests(
         "--no-source-map",
         "--style=compressed",
         "test.scss",
-        "test.css"
+        "test.css",
       ]);
       await sass.shouldExit(0);
 
@@ -806,10 +810,11 @@ void sharedTests(
       // the BOM.
       var bomBytes = utf8.encode("\uFEFF");
       expect(
-          File(p.join(d.sandbox, "test.css"))
-              .readAsBytesSync()
-              .sublist(0, bomBytes.length),
-          isNot(equals(bomBytes)));
+        File(
+          p.join(d.sandbox, "test.css"),
+        ).readAsBytesSync().sublist(0, bomBytes.length),
+        isNot(equals(bomBytes)),
+      );
     });
   });
 
@@ -878,13 +883,7 @@ void sharedTests(
     test("set to lower version, only warns", () async {
       await d.file("test.scss", "a {b: (4/2)}").create();
       var sass = await runSass(["--fatal-deprecation=1.32.0", "test.scss"]);
-      expect(
-          sass.stdout,
-          emitsInOrder([
-            "a {",
-            "  b: 2;",
-            "}",
-          ]));
+      expect(sass.stdout, emitsInOrder(["a {", "  b: 2;", "}"]));
       expect(sass.stderr, emitsThrough(contains("DEPRECATION WARNING")));
       await sass.shouldExit(0);
     });
@@ -902,13 +901,7 @@ void sharedTests(
       await d.file("_lib.scss", "a{b:c}").create();
       await d.file("test.scss", "@import 'lib'").create();
       var sass = await runSass(["--future-deprecation=import", "test.scss"]);
-      expect(
-          sass.stdout,
-          emitsInOrder([
-            "a {",
-            "  b: c;",
-            "}",
-          ]));
+      expect(sass.stdout, emitsInOrder(["a {", "  b: c;", "}"]));
       expect(sass.stderr, emitsThrough(contains("DEPRECATION WARNING")));
       await sass.shouldExit(0);
     });
@@ -919,7 +912,7 @@ void sharedTests(
       var sass = await runSass([
         "--future-deprecation=import",
         "--fatal-deprecation=import",
-        "test.scss"
+        "test.scss",
       ]);
       expect(sass.stdout, emitsDone);
       await sass.shouldExit(65);
@@ -944,16 +937,25 @@ void sharedTests(
     await d.file("_midstream.scss", "@forward 'upstream'").create();
     await d.file("_upstream.scss", r"$c: g").create();
 
-    var sass = await runSass(
-        ["--silence-deprecation", "import", "input.scss", "output.css"]);
+    var sass = await runSass([
+      "--silence-deprecation",
+      "import",
+      "input.scss",
+      "output.css",
+    ]);
     await sass.shouldExit(0);
 
-    await d.file("output.css", equalsIgnoringWhitespace("""
-      a e {
-        f: g;
-      }
+    await d
+        .file(
+          "output.css",
+          equalsIgnoringWhitespace("""
+            a e {
+              f: g;
+            }
 
-      /*# sourceMappingURL=output.css.map */
-    """)).validate();
+            /*# sourceMappingURL=output.css.map */
+          """),
+        )
+        .validate();
   });
 }

@@ -68,11 +68,12 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
       var sass = await update(["test1.scss:out1.css", "test2.scss:out2.css"]);
       expect(
-          sass.stdout,
-          emitsInAnyOrder([
-            endsWith('Compiled test1.scss to out1.css.'),
-            endsWith('Compiled test2.scss to out2.css.')
-          ]));
+        sass.stdout,
+        emitsInAnyOrder([
+          endsWith('Compiled test1.scss to out1.css.'),
+          endsWith('Compiled test2.scss to out2.css.'),
+        ]),
+      );
       await sass.shouldExit(0);
 
       await d
@@ -87,11 +88,12 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
       sass = await update(["test1.scss:out1.css", "test2.scss:out2.css"]);
       expect(
-          sass.stdout,
-          emitsInAnyOrder([
-            endsWith('Compiled test1.scss to out1.css.'),
-            endsWith('Compiled test2.scss to out2.css.')
-          ]));
+        sass.stdout,
+        emitsInAnyOrder([
+          endsWith('Compiled test1.scss to out1.css.'),
+          endsWith('Compiled test2.scss to out2.css.'),
+        ]),
+      );
       await sass.shouldExit(0);
 
       await d
@@ -273,20 +275,22 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     });
   });
 
-  test("deletes a CSS file when a file has an error with --no-error-css",
-      () async {
-    await d.file("test.scss", "a {b: c}").create();
-    await (await update(["test.scss:out.css"])).shouldExit(0);
-    await d.file("out.css", anything).validate();
+  test(
+    "deletes a CSS file when a file has an error with --no-error-css",
+    () async {
+      await d.file("test.scss", "a {b: c}").create();
+      await (await update(["test.scss:out.css"])).shouldExit(0);
+      await d.file("out.css", anything).validate();
 
-    await d.file("test.scss", "a {b: }").create();
-    var sass = await update(["--no-error-css", "test.scss:out.css"]);
-    expect(sass.stderr, emits("Error: Expected expression."));
-    expect(sass.stderr, emitsThrough(contains("test.scss 1:7")));
-    await sass.shouldExit(65);
+      await d.file("test.scss", "a {b: }").create();
+      var sass = await update(["--no-error-css", "test.scss:out.css"]);
+      expect(sass.stderr, emits("Error: Expected expression."));
+      expect(sass.stderr, emitsThrough(contains("test.scss 1:7")));
+      await sass.shouldExit(65);
 
-    await d.nothing("out.css").validate();
-  });
+      await d.nothing("out.css").validate();
+    },
+  );
 
   group("doesn't allow", () {
     test("--stdin", () async {
@@ -297,8 +301,10 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
     test("printing to stderr", () async {
       var sass = await update(["test.scss"]);
-      expect(sass.stdout,
-          emits('--update is not allowed when printing to stdout.'));
+      expect(
+        sass.stdout,
+        emits('--update is not allowed when printing to stdout.'),
+      );
       await sass.shouldExit(64);
     });
   });

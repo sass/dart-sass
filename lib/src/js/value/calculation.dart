@@ -18,9 +18,12 @@ void _assertCalculationValue(Object arg) => switch (arg) {
       CalculationOperation() ||
       CalculationInterpolation() =>
         null,
-      _ => jsThrow(JsError(
-          'Argument `$arg` must be one of SassNumber, unquoted SassString, '
-          'SassCalculation, CalculationOperation, CalculationInterpolation')),
+      _ => jsThrow(
+          JsError(
+            'Argument `$arg` must be one of SassNumber, unquoted SassString, '
+            'SassCalculation, CalculationOperation, CalculationInterpolation',
+          ),
+        ),
     };
 
 /// Check that [arg] is an unquoted string or interpolation.
@@ -31,8 +34,10 @@ bool _isValidClampArg(Object? arg) => switch (arg) {
 
 /// The JavaScript `SassCalculation` class.
 final JSClass calculationClass = () {
-  var jsClass =
-      createJSClass('sass.SassCalculation', (Object self, [Object? _]) {
+  var jsClass = createJSClass('sass.SassCalculation', (
+    Object self, [
+    Object? _,
+  ]) {
     jsThrow(JsError("new sass.SassCalculation() isn't allowed"));
   });
 
@@ -54,12 +59,16 @@ final JSClass calculationClass = () {
     'clamp': (Object min, [Object? value, Object? max]) {
       if ((value == null && !_isValidClampArg(min)) ||
           (max == null && ![min, value].any(_isValidClampArg))) {
-        jsThrow(JsError('Expected at least one SassString or '
-            'CalculationInterpolation in `${[min, value, max].nonNulls}`'));
+        jsThrow(
+          JsError(
+            'Expected at least one SassString or '
+            'CalculationInterpolation in `${[min, value, max].nonNulls}`',
+          ),
+        );
       }
       [min, value, max].nonNulls.forEach(_assertCalculationValue);
       return SassCalculation.unsimplified('clamp', [min, value, max].nonNulls);
-    }
+    },
   });
 
   jsClass.defineMethods({
@@ -71,24 +80,36 @@ final JSClass calculationClass = () {
     'arguments': (SassCalculation self) => ImmutableList(self.arguments),
   });
 
-  getJSClass(SassCalculation.unsimplified('calc', [SassNumber(1)]))
-      .injectSuperclass(jsClass);
+  getJSClass(
+    SassCalculation.unsimplified('calc', [SassNumber(1)]),
+  ).injectSuperclass(jsClass);
   return jsClass;
 }();
 
 /// The JavaScript `CalculationOperation` class.
 final JSClass calculationOperationClass = () {
-  var jsClass = createJSClass('sass.CalculationOperation',
-      (Object self, String strOperator, Object left, Object right) {
-    var operator = CalculationOperator.values
-        .firstWhereOrNull((value) => value.operator == strOperator);
+  var jsClass = createJSClass('sass.CalculationOperation', (
+    Object self,
+    String strOperator,
+    Object left,
+    Object right,
+  ) {
+    var operator = CalculationOperator.values.firstWhereOrNull(
+      (value) => value.operator == strOperator,
+    );
     if (operator == null) {
       jsThrow(JsError('Invalid operator: $strOperator'));
     }
     _assertCalculationValue(left);
     _assertCalculationValue(right);
-    return SassCalculation.operateInternal(operator, left, right,
-        inLegacySassFunction: null, simplify: false, warn: null);
+    return SassCalculation.operateInternal(
+      operator,
+      left,
+      right,
+      inLegacySassFunction: null,
+      simplify: false,
+      warn: null,
+    );
   });
 
   jsClass.defineMethods({
@@ -102,17 +123,25 @@ final JSClass calculationOperationClass = () {
     'right': (CalculationOperation self) => self.right,
   });
 
-  getJSClass(SassCalculation.operateInternal(
-          CalculationOperator.plus, SassNumber(1), SassNumber(1),
-          inLegacySassFunction: null, simplify: false, warn: null))
-      .injectSuperclass(jsClass);
+  getJSClass(
+    SassCalculation.operateInternal(
+      CalculationOperator.plus,
+      SassNumber(1),
+      SassNumber(1),
+      inLegacySassFunction: null,
+      simplify: false,
+      warn: null,
+    ),
+  ).injectSuperclass(jsClass);
   return jsClass;
 }();
 
 /// The JavaScript `CalculationInterpolation` class.
 final JSClass calculationInterpolationClass = () {
-  var jsClass = createJSClass('sass.CalculationInterpolation',
-      (Object self, String value) => CalculationInterpolation(value));
+  var jsClass = createJSClass(
+    'sass.CalculationInterpolation',
+    (Object self, String value) => CalculationInterpolation(value),
+  );
 
   jsClass.defineMethods({
     'equals': (CalculationInterpolation self, Object other) => self == other,

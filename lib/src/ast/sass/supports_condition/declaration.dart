@@ -38,7 +38,7 @@ final class SupportsDeclaration implements SupportsCondition {
   bool get isCustomProperty => switch (name) {
         StringExpression(hasQuotes: false, :var text) =>
           text.initialPlain.startsWith('--'),
-        _ => false
+        _ => false,
       };
 
   SupportsDeclaration(this.name, this.value, this.span);

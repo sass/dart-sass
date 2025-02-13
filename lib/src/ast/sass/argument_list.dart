@@ -32,9 +32,12 @@ final class ArgumentList implements SassNode {
   bool get isEmpty => positional.isEmpty && named.isEmpty && rest == null;
 
   ArgumentList(
-      Iterable<Expression> positional, Map<String, Expression> named, this.span,
-      {this.rest, this.keywordRest})
-      : positional = List.unmodifiable(positional),
+    Iterable<Expression> positional,
+    Map<String, Expression> named,
+    this.span, {
+    this.rest,
+    this.keywordRest,
+  })  : positional = List.unmodifiable(positional),
         named = Map.unmodifiable(named) {
     assert(rest != null || keywordRest == null);
   }
@@ -53,7 +56,7 @@ final class ArgumentList implements SassNode {
         "\$$name: ${_parenthesizeArgument(value)}",
       if (rest case var rest?) "${_parenthesizeArgument(rest)}...",
       if (keywordRest case var keywordRest?)
-        "${_parenthesizeArgument(keywordRest)}..."
+        "${_parenthesizeArgument(keywordRest)}...",
     ];
     return "(${components.join(', ')})";
   }
@@ -63,9 +66,9 @@ final class ArgumentList implements SassNode {
         ListExpression(
           separator: ListSeparator.comma,
           hasBrackets: false,
-          contents: [_, _, ...]
+          contents: [_, _, ...],
         ) =>
           "($argument)",
-        _ => argument.toString()
+        _ => argument.toString(),
       };
 }

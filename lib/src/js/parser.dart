@@ -27,14 +27,15 @@ import 'visitor/statement.dart';
 @JS()
 @anonymous
 class ParserExports {
-  external factory ParserExports(
-      {required Function parse,
-      required Function parseIdentifier,
-      required Function toCssIdentifier,
-      required Function createExpressionVisitor,
-      required Function createStatementVisitor,
-      required Function setToJS,
-      required Function mapToRecord});
+  external factory ParserExports({
+    required Function parse,
+    required Function parseIdentifier,
+    required Function toCssIdentifier,
+    required Function createExpressionVisitor,
+    required Function createStatementVisitor,
+    required Function setToJS,
+    required Function mapToRecord,
+  });
 
   external set parse(Function function);
   external set parseIdentifier(Function function);
@@ -57,15 +58,18 @@ final _expression = NullExpression(bogusSpan);
 ParserExports loadParserExports() {
   _updateAstPrototypes();
   return ParserExports(
-      parse: allowInterop(_parse),
-      parseIdentifier: allowInterop(_parseIdentifier),
-      toCssIdentifier: allowInterop(_toCssIdentifier),
-      createExpressionVisitor: allowInterop(
-          (JSExpressionVisitorObject inner) => JSExpressionVisitor(inner)),
-      createStatementVisitor: allowInterop(
-          (JSStatementVisitorObject inner) => JSStatementVisitor(inner)),
-      setToJS: allowInterop((Set<Object?> set) => JSSet([...set])),
-      mapToRecord: allowInterop(mapToObject));
+    parse: allowInterop(_parse),
+    parseIdentifier: allowInterop(_parseIdentifier),
+    toCssIdentifier: allowInterop(_toCssIdentifier),
+    createExpressionVisitor: allowInterop(
+      (JSExpressionVisitorObject inner) => JSExpressionVisitor(inner),
+    ),
+    createStatementVisitor: allowInterop(
+      (JSStatementVisitorObject inner) => JSStatementVisitor(inner),
+    ),
+    setToJS: allowInterop((Set<Object?> set) => JSSet([...set])),
+    mapToRecord: allowInterop(mapToObject),
+  );
 }
 
 /// Modifies the prototypes of the Sass AST classes to provide access to JS.
@@ -77,26 +81,34 @@ void _updateAstPrototypes() {
   // We don't need explicit getters for field names, because dart2js preserves
   // them as-is, so we actually need to expose very little to JS manually.
   var file = SourceFile.fromString('');
-  getJSClass(file).defineMethod('getText',
-      (SourceFile self, int start, [int? end]) => self.getText(start, end));
-  getJSClass(file)
-      .defineGetter('codeUnits', (SourceFile self) => self.codeUnits);
-  getJSClass(_interpolation)
-      .defineGetter('asPlain', (Interpolation self) => self.asPlain);
+  getJSClass(file).defineMethod(
+    'getText',
+    (SourceFile self, int start, [int? end]) => self.getText(start, end),
+  );
+  getJSClass(
+    file,
+  ).defineGetter('codeUnits', (SourceFile self) => self.codeUnits);
+  getJSClass(
+    _interpolation,
+  ).defineGetter('asPlain', (Interpolation self) => self.asPlain);
   getJSClass(ExtendRule(_interpolation, bogusSpan)).superclass.defineMethod(
-      'accept',
-      (Statement self, StatementVisitor<Object?> visitor) =>
-          self.accept(visitor));
+        'accept',
+        (Statement self, StatementVisitor<Object?> visitor) =>
+            self.accept(visitor),
+      );
   var string = StringExpression(_interpolation);
   getJSClass(string).superclass.defineMethod(
-      'accept',
-      (Expression self, ExpressionVisitor<Object?> visitor) =>
-          self.accept(visitor));
+        'accept',
+        (Expression self, ExpressionVisitor<Object?> visitor) =>
+            self.accept(visitor),
+      );
   var arguments = ArgumentList([], {}, bogusSpan);
-  getJSClass(IncludeRule('a', arguments, bogusSpan))
-      .defineGetter('arguments', (IncludeRule self) => self.arguments);
-  getJSClass(ContentRule(arguments, bogusSpan))
-      .defineGetter('arguments', (ContentRule self) => self.arguments);
+  getJSClass(
+    IncludeRule('a', arguments, bogusSpan),
+  ).defineGetter('arguments', (IncludeRule self) => self.arguments);
+  getJSClass(
+    ContentRule(arguments, bogusSpan),
+  ).defineGetter('arguments', (ContentRule self) => self.arguments);
 
   _addSupportsConditionToInterpolation();
 
@@ -104,7 +116,7 @@ void _updateAstPrototypes() {
     string,
     BinaryOperationExpression(BinaryOperator.plus, string, string),
     SupportsExpression(SupportsAnything(_interpolation, bogusSpan)),
-    LoudComment(_interpolation)
+    LoudComment(_interpolation),
   ]) {
     getJSClass(node).defineGetter('span', (SassNode self) => self.span);
   }
@@ -122,10 +134,12 @@ void _addSupportsConditionToInterpolation() {
     SupportsFunction(_interpolation, _interpolation, bogusSpan),
     SupportsInterpolation(_expression, bogusSpan),
     SupportsNegation(anything, bogusSpan),
-    SupportsOperation(anything, anything, "and", bogusSpan)
+    SupportsOperation(anything, anything, "and", bogusSpan),
   ]) {
     getJSClass(node).defineMethod(
-        'toInterpolation', (SupportsCondition self) => self.toInterpolation());
+      'toInterpolation',
+      (SupportsCondition self) => self.toInterpolation(),
+    );
   }
 }
 
@@ -136,7 +150,7 @@ Stylesheet _parse(String css, String syntax, String? path) => Stylesheet.parse(
       'scss' => Syntax.scss,
       'sass' => Syntax.sass,
       'css' => Syntax.css,
-      _ => throw UnsupportedError('Unknown syntax "$syntax"')
+      _ => throw UnsupportedError('Unknown syntax "$syntax"'),
     },
     url: path.andThen(p.toUri));
 

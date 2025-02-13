@@ -13,9 +13,10 @@ class JSLogger {
   external void Function(String message, WarnOptions options)? get warn;
   external void Function(String message, DebugOptions options)? get debug;
 
-  external factory JSLogger(
-      {void Function(String message, WarnOptions options)? warn,
-      void Function(String message, DebugOptions options)? debug});
+  external factory JSLogger({
+    void Function(String message, WarnOptions options)? warn,
+    void Function(String message, DebugOptions options)? debug,
+  });
 }
 
 @JS()
@@ -26,11 +27,12 @@ class WarnOptions {
   external SourceSpan? get span;
   external String? get stack;
 
-  external factory WarnOptions(
-      {required bool deprecation,
-      Deprecation? deprecationType,
-      SourceSpan? span,
-      String? stack});
+  external factory WarnOptions({
+    required bool deprecation,
+    Deprecation? deprecationType,
+    SourceSpan? span,
+    String? stack,
+  });
 }
 
 @JS()

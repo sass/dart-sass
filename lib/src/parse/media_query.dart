@@ -88,12 +88,18 @@ class MediaQueryParser extends Parser {
     if (scanIdentifier("not")) {
       // For example, "@media screen and not (...) {"
       expectWhitespace();
-      return CssMediaQuery.type(type,
-          modifier: modifier, conditions: ["(not ${_mediaInParens()})"]);
+      return CssMediaQuery.type(
+        type,
+        modifier: modifier,
+        conditions: ["(not ${_mediaInParens()})"],
+      );
     }
 
-    return CssMediaQuery.type(type,
-        modifier: modifier, conditions: _mediaLogicSequence("and"));
+    return CssMediaQuery.type(
+      type,
+      modifier: modifier,
+      conditions: _mediaLogicSequence("and"),
+    );
   }
 
   /// Consumes one or more `<media-in-parens>` expressions separated by

@@ -30,10 +30,11 @@ class _FindDependenciesVisitor with RecursiveStatementVisitor {
   DependencyReport run(Stylesheet stylesheet) {
     visitStylesheet(stylesheet);
     return DependencyReport._(
-        uses: UnmodifiableSetView(_uses),
-        forwards: UnmodifiableSetView(_forwards),
-        metaLoadCss: UnmodifiableSetView(_metaLoadCss),
-        imports: UnmodifiableSetView(_imports));
+      uses: UnmodifiableSetView(_uses),
+      forwards: UnmodifiableSetView(_forwards),
+      metaLoadCss: UnmodifiableSetView(_metaLoadCss),
+      imports: UnmodifiableSetView(_imports),
+    );
   }
 
   // These can never contain imports.
@@ -68,7 +69,9 @@ class _FindDependenciesVisitor with RecursiveStatementVisitor {
     if (!_metaNamespaces.contains(node.namespace)) return;
 
     if (node.arguments.positional
-        case [StringExpression(text: Interpolation(asPlain: var url?))]) {
+        case [
+          StringExpression(text: Interpolation(asPlain: var url?)),
+        ]) {
       try {
         _metaLoadCss.add(Uri.parse(url));
       } on FormatException {
@@ -103,9 +106,10 @@ final class DependencyReport {
   /// [imports].
   Set<Uri> get all => UnionSet({uses, forwards, metaLoadCss, imports});
 
-  DependencyReport._(
-      {required this.uses,
-      required this.forwards,
-      required this.metaLoadCss,
-      required this.imports});
+  DependencyReport._({
+    required this.uses,
+    required this.forwards,
+    required this.metaLoadCss,
+    required this.imports,
+  });
 }

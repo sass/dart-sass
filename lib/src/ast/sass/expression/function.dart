@@ -45,9 +45,12 @@ final class FunctionExpression extends Expression
   FileSpan? get namespaceSpan =>
       namespace == null ? null : span.initialIdentifier();
 
-  FunctionExpression(this.originalName, this.arguments, this.span,
-      {this.namespace})
-      : name = originalName.replaceAll('_', '-');
+  FunctionExpression(
+    this.originalName,
+    this.arguments,
+    this.span, {
+    this.namespace,
+  }) : name = originalName.replaceAll('_', '-');
 
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitFunctionExpression(this);

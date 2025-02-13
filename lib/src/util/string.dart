@@ -28,9 +28,10 @@ extension StringExtension on String {
     void consumeSurrogatePair(int character) {
       if (scanner.peekChar(1) case null || int(isLowSurrogate: false)) {
         scanner.error(
-            "An individual surrogates can't be represented as a CSS "
-            "identifier.",
-            length: 1);
+          "An individual surrogates can't be represented as a CSS "
+          "identifier.",
+          length: 1,
+        );
       } else if (character.isPrivateUseHighSurrogate) {
         writeEscape(combineSurrogates(scanner.readChar(), scanner.readChar()));
       } else {
@@ -55,7 +56,8 @@ extension StringExtension on String {
       switch (scanner.peekChar()) {
         case null:
           scanner.error(
-              "The empty string can't be represented as a CSS identifier.");
+            "The empty string can't be represented as a CSS identifier.",
+          );
 
         case 0:
           scanner.error("The U+0000 can't be represented as a CSS identifier.");
@@ -65,9 +67,10 @@ extension StringExtension on String {
 
         case int(isLowSurrogate: true):
           scanner.error(
-              "An individual surrogate can't be represented as a CSS "
-              "identifier.",
-              length: 1);
+            "An individual surrogate can't be represented as a CSS "
+            "identifier.",
+            length: 1,
+          );
 
         case int(isNameStart: true, isPrivateUseBMP: false):
           buffer.writeCharCode(scanner.readChar());
@@ -91,9 +94,10 @@ extension StringExtension on String {
 
         case int(isLowSurrogate: true):
           scanner.error(
-              "An individual surrogate can't be represented as a CSS "
-              "identifier.",
-              length: 1);
+            "An individual surrogate can't be represented as a CSS "
+            "identifier.",
+            length: 1,
+          );
 
         case int(isName: true, isPrivateUseBMP: false):
           buffer.writeCharCode(scanner.readChar());

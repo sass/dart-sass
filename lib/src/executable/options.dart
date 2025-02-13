@@ -28,11 +28,9 @@ final class ExecutableOptions {
   /// The parser that defines the arguments the executable allows.
   static final ArgParser _parser = () {
     var parser = ArgParser(allowTrailingOptions: true)
-
       // This is used for compatibility with sass-spec, even though we don't
       // support setting the precision.
       ..addOption('precision', hide: true)
-
       // This is used when testing to ensure that the asynchronous evaluator path
       // works the same as the synchronous one.
       ..addFlag('async', hide: true);
@@ -40,91 +38,145 @@ final class ExecutableOptions {
     parser
       ..addSeparator(_separator('Input and Output'))
       ..addFlag('stdin', help: 'Read the stylesheet from stdin.')
-      ..addFlag('indented',
-          help: 'Use the indented syntax for input from stdin.')
-      ..addMultiOption('load-path',
-          abbr: 'I',
-          valueHelp: 'PATH',
-          help: 'A path to use when resolving imports.\n'
-              'May be passed multiple times.',
-          splitCommas: false)
-      ..addMultiOption('pkg-importer',
-          abbr: 'p',
-          valueHelp: 'TYPE',
-          allowed: ['node'],
-          help: 'Built-in importer(s) to use for pkg: URLs.',
-          allowedHelp: {'node': 'Load files like Node.js package resolution.'})
-      ..addOption('style',
-          abbr: 's',
-          valueHelp: 'NAME',
-          help: 'Output style.',
-          allowed: ['expanded', 'compressed'],
-          defaultsTo: 'expanded')
-      ..addFlag('charset',
-          help: 'Emit a @charset or BOM for CSS with non-ASCII characters.',
-          defaultsTo: true)
-      ..addFlag('error-css',
-          help: 'When an error occurs, emit a stylesheet describing it.\n'
-              'Defaults to true when compiling to a file.',
-          defaultsTo: null)
-      ..addFlag('update',
-          help: 'Only compile out-of-date stylesheets.', negatable: false);
+      ..addFlag(
+        'indented',
+        help: 'Use the indented syntax for input from stdin.',
+      )
+      ..addMultiOption(
+        'load-path',
+        abbr: 'I',
+        valueHelp: 'PATH',
+        help: 'A path to use when resolving imports.\n'
+            'May be passed multiple times.',
+        splitCommas: false,
+      )
+      ..addMultiOption(
+        'pkg-importer',
+        abbr: 'p',
+        valueHelp: 'TYPE',
+        allowed: ['node'],
+        help: 'Built-in importer(s) to use for pkg: URLs.',
+        allowedHelp: {'node': 'Load files like Node.js package resolution.'},
+      )
+      ..addOption(
+        'style',
+        abbr: 's',
+        valueHelp: 'NAME',
+        help: 'Output style.',
+        allowed: ['expanded', 'compressed'],
+        defaultsTo: 'expanded',
+      )
+      ..addFlag(
+        'charset',
+        help: 'Emit a @charset or BOM for CSS with non-ASCII characters.',
+        defaultsTo: true,
+      )
+      ..addFlag(
+        'error-css',
+        help: 'When an error occurs, emit a stylesheet describing it.\n'
+            'Defaults to true when compiling to a file.',
+        defaultsTo: null,
+      )
+      ..addFlag(
+        'update',
+        help: 'Only compile out-of-date stylesheets.',
+        negatable: false,
+      );
 
     parser
       ..addSeparator(_separator('Source Maps'))
-      ..addFlag('source-map',
-          help: 'Whether to generate source maps.', defaultsTo: true)
-      ..addOption('source-map-urls',
-          defaultsTo: 'relative',
-          help: 'How to link from source maps to source files.',
-          allowed: ['relative', 'absolute'])
-      ..addFlag('embed-sources',
-          help: 'Embed source file contents in source maps.', defaultsTo: false)
-      ..addFlag('embed-source-map',
-          help: 'Embed source map contents in CSS.', defaultsTo: false);
+      ..addFlag(
+        'source-map',
+        help: 'Whether to generate source maps.',
+        defaultsTo: true,
+      )
+      ..addOption(
+        'source-map-urls',
+        defaultsTo: 'relative',
+        help: 'How to link from source maps to source files.',
+        allowed: ['relative', 'absolute'],
+      )
+      ..addFlag(
+        'embed-sources',
+        help: 'Embed source file contents in source maps.',
+        defaultsTo: false,
+      )
+      ..addFlag(
+        'embed-source-map',
+        help: 'Embed source map contents in CSS.',
+        defaultsTo: false,
+      );
 
     parser
       ..addSeparator(_separator('Warnings'))
       ..addFlag('quiet', abbr: 'q', help: "Don't print warnings.")
-      ..addFlag('quiet-deps',
-          help: "Don't print compiler warnings from dependencies.\n"
-              "Stylesheets imported through load paths count as dependencies.")
-      ..addFlag('verbose',
-          help: "Print all deprecation warnings even when they're repetitive.")
-      ..addMultiOption('fatal-deprecation',
-          help: 'Deprecations to treat as errors. You may also pass a Sass\n'
-              'version to include any behavior deprecated in or before it.\n'
-              'See https://sass-lang.com/documentation/breaking-changes for \n'
-              'a complete list.')
+      ..addFlag(
+        'quiet-deps',
+        help: "Don't print compiler warnings from dependencies.\n"
+            "Stylesheets imported through load paths count as dependencies.",
+      )
+      ..addFlag(
+        'verbose',
+        help: "Print all deprecation warnings even when they're repetitive.",
+      )
+      ..addMultiOption(
+        'fatal-deprecation',
+        help: 'Deprecations to treat as errors. You may also pass a Sass\n'
+            'version to include any behavior deprecated in or before it.\n'
+            'See https://sass-lang.com/documentation/breaking-changes for \n'
+            'a complete list.',
+      )
       ..addMultiOption('silence-deprecation', help: 'Deprecations to ignore.')
-      ..addMultiOption('future-deprecation',
-          help: 'Opt in to a deprecation early.');
+      ..addMultiOption(
+        'future-deprecation',
+        help: 'Opt in to a deprecation early.',
+      );
 
     parser
       ..addSeparator(_separator('Other'))
-      ..addFlag('watch',
-          abbr: 'w',
-          help: 'Watch stylesheets and recompile when they change.',
-          negatable: false)
-      ..addFlag('poll',
-          help: 'Manually check for changes rather than using a native '
-              'watcher.\n'
-              'Only valid with --watch.')
-      ..addFlag('stop-on-error',
-          help: "Don't compile more files once an error is encountered.")
-      ..addFlag('interactive',
-          abbr: 'i',
-          help: 'Run an interactive SassScript shell.',
-          negatable: false)
-      ..addFlag('color',
-          abbr: 'c', help: 'Whether to use terminal colors for messages.')
-      ..addFlag('unicode',
-          help: 'Whether to use Unicode characters for messages.')
+      ..addFlag(
+        'watch',
+        abbr: 'w',
+        help: 'Watch stylesheets and recompile when they change.',
+        negatable: false,
+      )
+      ..addFlag(
+        'poll',
+        help: 'Manually check for changes rather than using a native '
+            'watcher.\n'
+            'Only valid with --watch.',
+      )
+      ..addFlag(
+        'stop-on-error',
+        help: "Don't compile more files once an error is encountered.",
+      )
+      ..addFlag(
+        'interactive',
+        abbr: 'i',
+        help: 'Run an interactive SassScript shell.',
+        negatable: false,
+      )
+      ..addFlag(
+        'color',
+        abbr: 'c',
+        help: 'Whether to use terminal colors for messages.',
+      )
+      ..addFlag(
+        'unicode',
+        help: 'Whether to use Unicode characters for messages.',
+      )
       ..addFlag('trace', help: 'Print full Dart stack traces for exceptions.')
-      ..addFlag('help',
-          abbr: 'h', help: 'Print this usage information.', negatable: false)
-      ..addFlag('version',
-          help: 'Print the version of Dart Sass.', negatable: false);
+      ..addFlag(
+        'help',
+        abbr: 'h',
+        help: 'Print this usage information.',
+        negatable: false,
+      )
+      ..addFlag(
+        'version',
+        help: 'Print the version of Dart Sass.',
+        negatable: false,
+      );
 
     return parser;
   }();
@@ -158,7 +210,7 @@ final class ExecutableOptions {
 
     var invalidOptions = [
       'stdin', 'indented', 'style', 'source-map', 'source-map-urls', //
-      'embed-sources', 'embed-source-map', 'update', 'watch'
+      'embed-sources', 'embed-source-map', 'update', 'watch',
     ];
     if (invalidOptions.firstWhereOrNull(_options.wasParsed) case var option?) {
       throw UsageException("--$option isn't allowed with --interactive.");
@@ -209,7 +261,7 @@ final class ExecutableOptions {
   /// The list of built-in importers to use to load `pkg:` URLs.
   List<Importer> get pkgImporters => [
         for (var _ in _options['pkg-importer'] as List<String>)
-          NodePackageImporter('.')
+          NodePackageImporter('.'),
       ];
 
   /// Whether to run the evaluator in asynchronous mode, for debugging purposes.
@@ -300,8 +352,9 @@ final class ExecutableOptions {
         } else if (watch) {
           _fail("--watch is not allowed with --stdin.");
         }
-        _sourcesToDestinations = Map.unmodifiable(
-            {null: _options.rest.isEmpty ? null : _options.rest.first});
+        _sourcesToDestinations = Map.unmodifiable({
+          null: _options.rest.isEmpty ? null : _options.rest.first,
+        });
       } else if (_options.rest.length > 2) {
         _fail("Only two positional args may be passed.");
       } else if (directories.isNotEmpty) {
@@ -369,8 +422,9 @@ final class ExecutableOptions {
       }
     }
     _sourcesToDestinations = UnmodifiableMapView(sourcesToDestinations);
-    _sourceDirectoriesToDestinations =
-        UnmodifiableMapView(sourceDirectoriesToDestinations);
+    _sourceDirectoriesToDestinations = UnmodifiableMapView(
+      sourceDirectoriesToDestinations,
+    );
   }
 
   /// Splits an argument that contains a colon and returns its source and its
@@ -411,8 +465,10 @@ final class ExecutableOptions {
         if (_isEntrypoint(path) &&
             // Don't compile a CSS file to its own location.
             !(source == destination && p.extension(path) == '.css'))
-          path: p.join(destination,
-              p.setExtension(p.relative(path, from: source), '.css'))
+          path: p.join(
+            destination,
+            p.setExtension(p.relative(path, from: source), '.css'),
+          ),
     };
   }
 
@@ -443,20 +499,26 @@ final class ExecutableOptions {
 
     if (_ifParsed('source-map-urls') == 'relative') {
       _fail(
-          "--source-map-urls=relative isn't allowed when printing to stdout.");
+        "--source-map-urls=relative isn't allowed when printing to stdout.",
+      );
     }
 
     if (_options['embed-source-map'] as bool) {
       return _options['source-map'] as bool;
     } else if (_ifParsed('source-map') == true) {
       _fail(
-          "When printing to stdout, --source-map requires --embed-source-map.");
+        "When printing to stdout, --source-map requires --embed-source-map.",
+      );
     } else if (_options.wasParsed('source-map-urls')) {
-      _fail("When printing to stdout, --source-map-urls requires "
-          "--embed-source-map.");
+      _fail(
+        "When printing to stdout, --source-map-urls requires "
+        "--embed-source-map.",
+      );
     } else if (_options['embed-sources'] as bool) {
-      _fail("When printing to stdout, --embed-sources requires "
-          "--embed-source-map.");
+      _fail(
+        "When printing to stdout, --embed-sources requires "
+        "--embed-source-map.",
+      );
     } else {
       return false;
     }
@@ -495,17 +557,19 @@ final class ExecutableOptions {
     if (url.scheme.isNotEmpty && url.scheme != 'file') return url;
 
     var path = p.fromUri(url);
-    return p.toUri(_options['source-map-urls'] == 'relative' && !_writeToStdout
-        // [destination] can't be null here because --source-map-urls=relative
-        // is incompatible with writing to stdout.
-        ? p.relative(path, from: p.dirname(destination!))
-        : p.absolute(path));
+    return p.toUri(
+      _options['source-map-urls'] == 'relative' && !_writeToStdout
+          // [destination] can't be null here because --source-map-urls=relative
+          // is incompatible with writing to stdout.
+          ? p.relative(path, from: p.dirname(destination!))
+          : p.absolute(path),
+    );
   }
 
   /// The set of deprecations whose warnings should be silenced.
   Set<Deprecation> get silenceDeprecations => {
         for (var id in _options['silence-deprecation'] as List<String>)
-          Deprecation.fromId(id) ?? _fail('Invalid deprecation "$id".')
+          Deprecation.fromId(id) ?? _fail('Invalid deprecation "$id".'),
       };
 
   /// The set of deprecations that cause errors.
@@ -522,13 +586,17 @@ final class ExecutableOptions {
             // We can't get the version synchronously when running from
             // source, so we just ignore this check by using a version higher
             // than any that will ever be used.
-            var sassVersion = Version.parse(const bool.hasEnvironment('version')
-                ? const String.fromEnvironment('version')
-                : '1000.0.0');
+            var sassVersion = Version.parse(
+              const bool.hasEnvironment('version')
+                  ? const String.fromEnvironment('version')
+                  : '1000.0.0',
+            );
             if (argVersion > sassVersion) {
-              _fail('Invalid version $argVersion. --fatal-deprecation '
-                  'requires a version less than or equal to the current '
-                  'Dart Sass version.');
+              _fail(
+                'Invalid version $argVersion. --fatal-deprecation '
+                'requires a version less than or equal to the current '
+                'Dart Sass version.',
+              );
             }
             deprecations.addAll(Deprecation.forVersion(argVersion));
           } on FormatException {
@@ -542,7 +610,7 @@ final class ExecutableOptions {
   /// The set of future deprecations that should emit warnings anyway.
   Set<Deprecation> get futureDeprecations => {
         for (var id in _options['future-deprecation'] as List<String>)
-          Deprecation.fromId(id) ?? _fail('Invalid deprecation "$id".')
+          Deprecation.fromId(id) ?? _fail('Invalid deprecation "$id".'),
       };
 
   /// Returns the value of [name] in [options] if it was explicitly provided by

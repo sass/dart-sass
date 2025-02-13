@@ -11,16 +11,21 @@ import '../reflection.dart';
 
 /// The JavaScript `SassNumber` class.
 final JSClass numberClass = () {
-  var jsClass = createJSClass('sass.SassNumber', (Object self, num value,
-      [Object? unitOrOptions]) {
+  var jsClass = createJSClass('sass.SassNumber', (
+    Object self,
+    num value, [
+    Object? unitOrOptions,
+  ]) {
     if (unitOrOptions is String) return SassNumber(value, unitOrOptions);
 
     var options = unitOrOptions as _ConstructorOptions?;
-    return SassNumber.withUnits(value,
-        numeratorUnits:
-            options?.numeratorUnits.andThen(jsToDartList)?.cast<String>(),
-        denominatorUnits:
-            options?.denominatorUnits.andThen(jsToDartList)?.cast<String>());
+    return SassNumber.withUnits(
+      value,
+      numeratorUnits:
+          options?.numeratorUnits.andThen(jsToDartList)?.cast<String>(),
+      denominatorUnits:
+          options?.denominatorUnits.andThen(jsToDartList)?.cast<String>(),
+    );
   });
 
   jsClass.defineGetters({
@@ -44,33 +49,77 @@ final JSClass numberClass = () {
     'hasUnit': (SassNumber self, String unit) => self.hasUnit(unit),
     'compatibleWithUnit': (SassNumber self, String unit) =>
         self.hasUnits && self.compatibleWithUnit(unit),
-    'convert': (SassNumber self, Object numeratorUnits, Object denominatorUnits,
-            [String? name]) =>
-        self.convert(jsToDartList(numeratorUnits).cast<String>(),
-            jsToDartList(denominatorUnits).cast<String>(), name),
-    'convertToMatch': (SassNumber self, SassNumber other,
-            [String? name, String? otherName]) =>
+    'convert': (
+      SassNumber self,
+      Object numeratorUnits,
+      Object denominatorUnits, [
+      String? name,
+    ]) =>
+        self.convert(
+          jsToDartList(numeratorUnits).cast<String>(),
+          jsToDartList(denominatorUnits).cast<String>(),
+          name,
+        ),
+    'convertToMatch': (
+      SassNumber self,
+      SassNumber other, [
+      String? name,
+      String? otherName,
+    ]) =>
         self.convertToMatch(other, name, otherName),
-    'convertValue': (SassNumber self, Object numeratorUnits,
-            Object denominatorUnits, [String? name]) =>
-        self.convertValue(jsToDartList(numeratorUnits).cast<String>(),
-            jsToDartList(denominatorUnits).cast<String>(), name),
-    'convertValueToMatch': (SassNumber self, SassNumber other,
-            [String? name, String? otherName]) =>
+    'convertValue': (
+      SassNumber self,
+      Object numeratorUnits,
+      Object denominatorUnits, [
+      String? name,
+    ]) =>
+        self.convertValue(
+          jsToDartList(numeratorUnits).cast<String>(),
+          jsToDartList(denominatorUnits).cast<String>(),
+          name,
+        ),
+    'convertValueToMatch': (
+      SassNumber self,
+      SassNumber other, [
+      String? name,
+      String? otherName,
+    ]) =>
         self.convertValueToMatch(other, name, otherName),
-    'coerce': (SassNumber self, Object numeratorUnits, Object denominatorUnits,
-            [String? name]) =>
-        self.coerce(jsToDartList(numeratorUnits).cast<String>(),
-            jsToDartList(denominatorUnits).cast<String>(), name),
-    'coerceToMatch': (SassNumber self, SassNumber other,
-            [String? name, String? otherName]) =>
+    'coerce': (
+      SassNumber self,
+      Object numeratorUnits,
+      Object denominatorUnits, [
+      String? name,
+    ]) =>
+        self.coerce(
+          jsToDartList(numeratorUnits).cast<String>(),
+          jsToDartList(denominatorUnits).cast<String>(),
+          name,
+        ),
+    'coerceToMatch': (
+      SassNumber self,
+      SassNumber other, [
+      String? name,
+      String? otherName,
+    ]) =>
         self.coerceToMatch(other, name, otherName),
-    'coerceValue': (SassNumber self, Object numeratorUnits,
-            Object denominatorUnits, [String? name]) =>
-        self.coerceValue(jsToDartList(numeratorUnits).cast<String>(),
-            jsToDartList(denominatorUnits).cast<String>(), name),
-    'coerceValueToMatch': (SassNumber self, SassNumber other,
-            [String? name, String? otherName]) =>
+    'coerceValue': (
+      SassNumber self,
+      Object numeratorUnits,
+      Object denominatorUnits, [
+      String? name,
+    ]) =>
+        self.coerceValue(
+          jsToDartList(numeratorUnits).cast<String>(),
+          jsToDartList(denominatorUnits).cast<String>(),
+          name,
+        ),
+    'coerceValueToMatch': (
+      SassNumber self,
+      SassNumber other, [
+      String? name,
+      String? otherName,
+    ]) =>
         self.coerceValueToMatch(other, name, otherName),
   });
 

@@ -119,23 +119,44 @@ class MultiSpanSassException extends SassException
   final String primaryLabel;
   final Map<FileSpan, String> secondarySpans;
 
-  MultiSpanSassException(String message, FileSpan span, this.primaryLabel,
-      Map<FileSpan, String> secondarySpans,
-      [Iterable<Uri>? loadedUrls])
-      : secondarySpans = Map.unmodifiable(secondarySpans),
+  MultiSpanSassException(
+    String message,
+    FileSpan span,
+    this.primaryLabel,
+    Map<FileSpan, String> secondarySpans, [
+    Iterable<Uri>? loadedUrls,
+  ])  : secondarySpans = Map.unmodifiable(secondarySpans),
         super(message, span, loadedUrls);
 
   MultiSpanSassException withAdditionalSpan(FileSpan span, String label) =>
-      MultiSpanSassException(message, this.span, primaryLabel,
-          {...secondarySpans, span: label}, loadedUrls);
+      MultiSpanSassException(
+          message,
+          this.span,
+          primaryLabel,
+          {
+            ...secondarySpans,
+            span: label,
+          },
+          loadedUrls);
 
   MultiSpanSassRuntimeException withTrace(Trace trace) =>
       MultiSpanSassRuntimeException(
-          message, span, primaryLabel, secondarySpans, trace, loadedUrls);
+        message,
+        span,
+        primaryLabel,
+        secondarySpans,
+        trace,
+        loadedUrls,
+      );
 
   MultiSpanSassException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       MultiSpanSassException(
-          message, span, primaryLabel, secondarySpans, loadedUrls);
+        message,
+        span,
+        primaryLabel,
+        secondarySpans,
+        loadedUrls,
+      );
 
   String toString({Object? color, String? secondaryColor}) {
     var useColor = false;
@@ -150,10 +171,13 @@ class MultiSpanSassException extends SassException
     var buffer = StringBuffer("Error: $message\n");
 
     span
-        .highlightMultiple(primaryLabel, secondarySpans,
-            color: useColor,
-            primaryColor: primaryColor,
-            secondaryColor: secondaryColor)
+        .highlightMultiple(
+          primaryLabel,
+          secondarySpans,
+          color: useColor,
+          primaryColor: primaryColor,
+          secondaryColor: secondaryColor,
+        )
         .andThen(buffer.write);
 
     for (var frame in trace.toString().split("\n")) {
@@ -170,16 +194,27 @@ class SassRuntimeException extends SassException {
   final Trace trace;
 
   MultiSpanSassRuntimeException withAdditionalSpan(
-          FileSpan span, String label) =>
+    FileSpan span,
+    String label,
+  ) =>
       MultiSpanSassRuntimeException(
-          message, this.span, "", {span: label}, trace, loadedUrls);
+        message,
+        this.span,
+        "",
+        {span: label},
+        trace,
+        loadedUrls,
+      );
 
   SassRuntimeException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       SassRuntimeException(message, span, trace, loadedUrls);
 
-  SassRuntimeException(String message, FileSpan span, this.trace,
-      [Iterable<Uri>? loadedUrls])
-      : super(message, span, loadedUrls);
+  SassRuntimeException(
+    String message,
+    FileSpan span,
+    this.trace, [
+    Iterable<Uri>? loadedUrls,
+  ]) : super(message, span, loadedUrls);
 }
 
 /// A [SassRuntimeException] that's also a [MultiSpanSassException].
@@ -187,19 +222,37 @@ class MultiSpanSassRuntimeException extends MultiSpanSassException
     implements SassRuntimeException {
   final Trace trace;
 
-  MultiSpanSassRuntimeException(String message, FileSpan span,
-      String primaryLabel, Map<FileSpan, String> secondarySpans, this.trace,
-      [Iterable<Uri>? loadedUrls])
-      : super(message, span, primaryLabel, secondarySpans, loadedUrls);
+  MultiSpanSassRuntimeException(
+    String message,
+    FileSpan span,
+    String primaryLabel,
+    Map<FileSpan, String> secondarySpans,
+    this.trace, [
+    Iterable<Uri>? loadedUrls,
+  ]) : super(message, span, primaryLabel, secondarySpans, loadedUrls);
 
   MultiSpanSassRuntimeException withAdditionalSpan(
-          FileSpan span, String label) =>
-      MultiSpanSassRuntimeException(message, this.span, primaryLabel,
-          {...secondarySpans, span: label}, trace, loadedUrls);
+    FileSpan span,
+    String label,
+  ) =>
+      MultiSpanSassRuntimeException(
+        message,
+        this.span,
+        primaryLabel,
+        {...secondarySpans, span: label},
+        trace,
+        loadedUrls,
+      );
 
   MultiSpanSassRuntimeException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       MultiSpanSassRuntimeException(
-          message, span, primaryLabel, secondarySpans, trace, loadedUrls);
+        message,
+        span,
+        primaryLabel,
+        secondarySpans,
+        trace,
+        loadedUrls,
+      );
 }
 
 /// An exception thrown when Sass parsing has failed.
@@ -215,9 +268,17 @@ class SassFormatException extends SassException
   /// @nodoc
   @internal
   MultiSpanSassFormatException withAdditionalSpan(
-          FileSpan span, String label) =>
+    FileSpan span,
+    String label,
+  ) =>
       MultiSpanSassFormatException(
-          message, this.span, "", {span: label}, loadedUrls);
+          message,
+          this.span,
+          "",
+          {
+            span: label,
+          },
+          loadedUrls);
 
   /// @nodoc
   SassFormatException withLoadedUrls(Iterable<Uri> loadedUrls) =>
@@ -237,17 +298,35 @@ class MultiSpanSassFormatException extends MultiSpanSassException
   int get offset => span.start.offset;
 
   MultiSpanSassFormatException withAdditionalSpan(
-          FileSpan span, String label) =>
-      MultiSpanSassFormatException(message, this.span, primaryLabel,
-          {...secondarySpans, span: label}, loadedUrls);
+    FileSpan span,
+    String label,
+  ) =>
+      MultiSpanSassFormatException(
+          message,
+          this.span,
+          primaryLabel,
+          {
+            ...secondarySpans,
+            span: label,
+          },
+          loadedUrls);
 
   MultiSpanSassFormatException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       MultiSpanSassFormatException(
-          message, span, primaryLabel, secondarySpans, loadedUrls);
+        message,
+        span,
+        primaryLabel,
+        secondarySpans,
+        loadedUrls,
+      );
 
   MultiSpanSassFormatException(
-      super.message, super.span, super.primaryLabel, super.secondarySpans,
-      [super.loadedUrls]);
+    super.message,
+    super.span,
+    super.primaryLabel,
+    super.secondarySpans, [
+    super.loadedUrls,
+  ]);
 }
 
 /// An exception thrown by SassScript.
@@ -283,8 +362,10 @@ class MultiSpanSassScriptException extends SassScriptException {
   final Map<FileSpan, String> secondarySpans;
 
   MultiSpanSassScriptException(
-      super.message, this.primaryLabel, Map<FileSpan, String> secondarySpans)
-      : secondarySpans = Map.unmodifiable(secondarySpans);
+    super.message,
+    this.primaryLabel,
+    Map<FileSpan, String> secondarySpans,
+  ) : secondarySpans = Map.unmodifiable(secondarySpans);
 
   /// Converts this to a [SassException] with the given primary [span].
   MultiSpanSassException withSpan(FileSpan span) =>

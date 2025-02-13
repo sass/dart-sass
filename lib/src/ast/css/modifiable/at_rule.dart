@@ -17,9 +17,12 @@ final class ModifiableCssAtRule extends ModifiableCssParentNode
   final bool isChildless;
   final FileSpan span;
 
-  ModifiableCssAtRule(this.name, this.span,
-      {bool childless = false, this.value})
-      : isChildless = childless;
+  ModifiableCssAtRule(
+    this.name,
+    this.span, {
+    bool childless = false,
+    this.value,
+  }) : isChildless = childless;
 
   T accept<T>(ModifiableCssVisitor<T> visitor) => visitor.visitCssAtRule(this);
 

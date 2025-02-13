@@ -14,7 +14,7 @@ extension InboundMessageExtensions on InboundMessage {
         InboundMessage_Message.importResponse => importResponse.id,
         InboundMessage_Message.fileImportResponse => fileImportResponse.id,
         InboundMessage_Message.functionCallResponse => functionCallResponse.id,
-        _ => null
+        _ => null,
       };
 }
 
@@ -28,7 +28,7 @@ extension OutboundMessageExtensions on OutboundMessage {
         OutboundMessage_Message.fileImportRequest => fileImportRequest.id,
         OutboundMessage_Message.functionCallRequest => functionCallRequest.id,
         OutboundMessage_Message.versionResponse => versionResponse.id,
-        _ => throw ArgumentError("Unknown message type: ${toDebugString()}")
+        _ => throw ArgumentError("Unknown message type: ${toDebugString()}"),
       };
 
   /// Sets the outbound ID of this message, regardless of its type.

@@ -10,30 +10,41 @@ import 'package:sass/src/exception.dart';
 /// Parses [source] by way of a function call.
 Value parseValue(String source) {
   late Value value;
-  compileString("""
-    @use "sass:list";
-    @use "sass:math";
+  compileString(
+    """
+      @use "sass:list";
+      @use "sass:math";
 
-    a {b: foo(($source))}
-  """, functions: [
-    Callable("foo", r"$arg", expectAsync1((arguments) {
-      expect(arguments, hasLength(1));
-      value = arguments.first;
-      return sassNull;
-    }))
-  ]);
+      a {b: foo(($source))}
+    """,
+    functions: [
+      Callable(
+        "foo",
+        r"$arg",
+        expectAsync1((arguments) {
+          expect(arguments, hasLength(1));
+          value = arguments.first;
+          return sassNull;
+        }),
+      ),
+    ],
+  );
   return value;
 }
 
 /// A matcher that asserts that a function throws a [SassScriptException].
-final throwsSassScriptException =
-    throwsA(const TypeMatcher<SassScriptException>());
+final throwsSassScriptException = throwsA(
+  const TypeMatcher<SassScriptException>(),
+);
 
 /// Like [equals], but asserts that the hash codes of the values are the same as
 /// well.
 Matcher equalsWithHash(Object expected) => predicate((actual) {
       expect(actual, equals(expected));
-      expect(actual.hashCode, equals(expected.hashCode),
-          reason: "Expected $actual's hash code to equal $expected's.");
+      expect(
+        actual.hashCode,
+        equals(expected.hashCode),
+        reason: "Expected $actual's hash code to equal $expected's.",
+      );
       return true;
     });

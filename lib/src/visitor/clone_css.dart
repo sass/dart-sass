@@ -13,12 +13,14 @@ import 'interface/css.dart';
 ///
 /// The [extender] must be associated with [stylesheet].
 (ModifiableCssStylesheet, ExtensionStore) cloneCssStylesheet(
-    CssStylesheet stylesheet, ExtensionStore extensionStore) {
+  CssStylesheet stylesheet,
+  ExtensionStore extensionStore,
+) {
   var (newExtensionStore, oldToNewSelectors) = extensionStore.clone();
 
   return (
     _CloneCssVisitor(oldToNewSelectors).visitCssStylesheet(stylesheet),
-    newExtensionStore
+    newExtensionStore,
   );
 }
 
@@ -31,8 +33,12 @@ final class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
   _CloneCssVisitor(this._oldToNewSelectors);
 
   ModifiableCssAtRule visitCssAtRule(CssAtRule node) {
-    var rule = ModifiableCssAtRule(node.name, node.span,
-        childless: node.isChildless, value: node.value);
+    var rule = ModifiableCssAtRule(
+      node.name,
+      node.span,
+      childless: node.isChildless,
+      value: node.value,
+    );
     return node.isChildless ? rule : _visitChildren(rule, node);
   }
 
@@ -40,16 +46,22 @@ final class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
       ModifiableCssComment(node.text, node.span);
 
   ModifiableCssDeclaration visitCssDeclaration(CssDeclaration node) =>
-      ModifiableCssDeclaration(node.name, node.value, node.span,
-          parsedAsCustomProperty: node.parsedAsCustomProperty,
-          valueSpanForMap: node.valueSpanForMap);
+      ModifiableCssDeclaration(
+        node.name,
+        node.value,
+        node.span,
+        parsedAsCustomProperty: node.parsedAsCustomProperty,
+        valueSpanForMap: node.valueSpanForMap,
+      );
 
   ModifiableCssImport visitCssImport(CssImport node) =>
       ModifiableCssImport(node.url, node.span, modifiers: node.modifiers);
 
   ModifiableCssKeyframeBlock visitCssKeyframeBlock(CssKeyframeBlock node) =>
       _visitChildren(
-          ModifiableCssKeyframeBlock(node.selector, node.span), node);
+        ModifiableCssKeyframeBlock(node.selector, node.span),
+        node,
+      );
 
   ModifiableCssMediaRule visitCssMediaRule(CssMediaRule node) =>
       _visitChildren(ModifiableCssMediaRule(node.queries, node.span), node);
@@ -57,13 +69,18 @@ final class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
   ModifiableCssStyleRule visitCssStyleRule(CssStyleRule node) {
     if (_oldToNewSelectors[node.selector] case var newSelector?) {
       return _visitChildren(
-          ModifiableCssStyleRule(newSelector, node.span,
-              originalSelector: node.originalSelector),
-          node);
+        ModifiableCssStyleRule(
+          newSelector,
+          node.span,
+          originalSelector: node.originalSelector,
+        ),
+        node,
+      );
     } else {
       throw StateError(
-          "The ExtensionStore and CssStylesheet passed to cloneCssStylesheet() "
-          "must come from the same compilation.");
+        "The ExtensionStore and CssStylesheet passed to cloneCssStylesheet() "
+        "must come from the same compilation.",
+      );
     }
   }
 
@@ -72,12 +89,16 @@ final class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
 
   ModifiableCssSupportsRule visitCssSupportsRule(CssSupportsRule node) =>
       _visitChildren(
-          ModifiableCssSupportsRule(node.condition, node.span), node);
+        ModifiableCssSupportsRule(node.condition, node.span),
+        node,
+      );
 
   /// Visits [oldParent]'s children and adds their cloned values as children of
   /// [newParent], then returns [newParent].
   T _visitChildren<T extends ModifiableCssParentNode>(
-      T newParent, CssParentNode oldParent) {
+    T newParent,
+    CssParentNode oldParent,
+  ) {
     for (var child in oldParent.children) {
       var newChild = child.accept(this);
       newChild.isGroupEnd = child.isGroupEnd;

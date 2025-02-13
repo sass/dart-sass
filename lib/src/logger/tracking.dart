@@ -21,8 +21,12 @@ final class TrackingLogger implements Logger {
 
   TrackingLogger(this._logger);
 
-  void warn(String message,
-      {FileSpan? span, Trace? trace, bool deprecation = false}) {
+  void warn(
+    String message, {
+    FileSpan? span,
+    Trace? trace,
+    bool deprecation = false,
+  }) {
     _emittedWarning = true;
     _logger.warn(message, span: span, trace: trace, deprecation: deprecation);
   }

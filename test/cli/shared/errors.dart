@@ -11,21 +11,27 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   test("from invalid arguments", () async {
     var sass = await runSass(["--asdf"]);
     expect(
-        sass.stdout, emitsThrough(contains("Print this usage information.")));
+      sass.stdout,
+      emitsThrough(contains("Print this usage information.")),
+    );
     await sass.shouldExit(64);
   });
 
   test("from too many positional arguments", () async {
     var sass = await runSass(["abc", "def", "ghi"]);
     expect(
-        sass.stdout, emitsThrough(contains("Print this usage information.")));
+      sass.stdout,
+      emitsThrough(contains("Print this usage information.")),
+    );
     await sass.shouldExit(64);
   });
 
   test("from too many positional arguments with --stdin", () async {
     var sass = await runSass(["--stdin", "abc", "def"]);
     expect(
-        sass.stdout, emitsThrough(contains("Print this usage information.")));
+      sass.stdout,
+      emitsThrough(contains("Print this usage information.")),
+    );
     await sass.shouldExit(64);
   });
 
@@ -41,15 +47,16 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
     var sass = await runSass(["--no-unicode", "test.scss"]);
     expect(
-        sass.stderr,
-        emitsInOrder([
-          "Error: Expected expression.",
-          "  ,",
-          "1 | a {b: }",
-          "  |       ^",
-          "  '",
-          "  test.scss 1:7  root stylesheet",
-        ]));
+      sass.stderr,
+      emitsInOrder([
+        "Error: Expected expression.",
+        "  ,",
+        "1 | a {b: }",
+        "  |       ^",
+        "  '",
+        "  test.scss 1:7  root stylesheet",
+      ]),
+    );
     await sass.shouldExit(65);
   });
 
@@ -58,65 +65,68 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
     var sass = await runSass(["--no-unicode", "test.scss"]);
     expect(
-        sass.stderr,
-        emitsInOrder([
-          "Error: 1px and 1deg have incompatible units.",
-          "  ,",
-          "1 | a {b: 1px + 1deg}",
-          "  |       ^^^^^^^^^^",
-          "  '",
-          "  test.scss 1:7  root stylesheet",
-        ]));
+      sass.stderr,
+      emitsInOrder([
+        "Error: 1px and 1deg have incompatible units.",
+        "  ,",
+        "1 | a {b: 1px + 1deg}",
+        "  |       ^^^^^^^^^^",
+        "  '",
+        "  test.scss 1:7  root stylesheet",
+      ]),
+    );
     await sass.shouldExit(65);
   });
 
   test("from an error encountered within a function", () async {
     await d.file("test.scss", """
-@function a() {
-  @error "Within A.";
-}
+      @function a() {
+        @error "Within A.";
+      }
 
-.b {
-  c: a();
-}
-""").create();
+      .b {
+        c: a();
+      }
+    """).create();
 
     var sass = await runSass(["--no-unicode", "test.scss"]);
     expect(
-        sass.stderr,
-        emitsInOrder([
-          "Error: \"Within A.\"",
-          "  ,",
-          "6 |   c: a();",
-          "  |      ^^^",
-          "  '",
-          "  test.scss 6:6  root stylesheet",
-        ]));
+      sass.stderr,
+      emitsInOrder([
+        "Error: \"Within A.\"",
+        "  ,",
+        "6 |         c: a();",
+        "  |            ^^^",
+        "  '",
+        "  test.scss 6:12  root stylesheet",
+      ]),
+    );
     await sass.shouldExit(65);
   });
 
   test("from an error encountered within a mixin", () async {
     await d.file("test.scss", """
-@mixin a() {
-  @error "Within A.";
-}
+      @mixin a() {
+        @error "Within A.";
+      }
 
-.b {
-  @include a();
-}
-""").create();
+      .b {
+        @include a();
+      }
+    """).create();
 
     var sass = await runSass(["--no-unicode", "test.scss"]);
     expect(
-        sass.stderr,
-        emitsInOrder([
-          "Error: \"Within A.\"",
-          "  ,",
-          "6 |   @include a();",
-          "  |   ^^^^^^^^^^^^",
-          "  '",
-          "  test.scss 6:3  root stylesheet",
-        ]));
+      sass.stderr,
+      emitsInOrder([
+        "Error: \"Within A.\"",
+        "  ,",
+        "6 |         @include a();",
+        "  |         ^^^^^^^^^^^^",
+        "  '",
+        "  test.scss 6:9  root stylesheet",
+      ]),
+    );
     await sass.shouldExit(65);
   });
 
@@ -125,15 +135,16 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
     var sass = await runSass(["--no-unicode", "--color", "test.scss"]);
     expect(
-        sass.stderr,
-        emitsInOrder([
-          "Error: Expected expression.",
-          "\u001b[34m  ,\u001b[0m",
-          "\u001b[34m1 |\u001b[0m a {b: \u001b[31m\u001b[0m}",
-          "\u001b[34m  |\u001b[0m \u001b[31m      ^\u001b[0m",
-          "\u001b[34m  '\u001b[0m",
-          "  test.scss 1:7  root stylesheet",
-        ]));
+      sass.stderr,
+      emitsInOrder([
+        "Error: Expected expression.",
+        "\u001b[34m  ,\u001b[0m",
+        "\u001b[34m1 |\u001b[0m a {b: \u001b[31m\u001b[0m}",
+        "\u001b[34m  |\u001b[0m \u001b[31m      ^\u001b[0m",
+        "\u001b[34m  '\u001b[0m",
+        "  test.scss 1:7  root stylesheet",
+      ]),
+    );
     await sass.shouldExit(65);
   });
 
@@ -142,15 +153,16 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
     var sass = await runSass(["test.scss"]);
     expect(
-        sass.stderr,
-        emitsInOrder([
-          "Error: Expected expression.",
-          "  ╷",
-          "1 │ a {b: }",
-          "  │       ^",
-          "  ╵",
-          "  test.scss 1:7  root stylesheet",
-        ]));
+      sass.stderr,
+      emitsInOrder([
+        "Error: Expected expression.",
+        "  ╷",
+        "1 │ a {b: }",
+        "  │       ^",
+        "  ╵",
+        "  test.scss 1:7  root stylesheet",
+      ]),
+    );
     await sass.shouldExit(65);
   });
 

@@ -11,19 +11,29 @@ import '../utils.dart';
 
 /// The JavaScript `SassFunction` class.
 final JSClass functionClass = () {
-  var jsClass = createJSClass('sass.SassFunction',
-      (Object self, String signature, Value Function(List<Value>) callback) {
+  var jsClass = createJSClass('sass.SassFunction', (
+    Object self,
+    String signature,
+    Value Function(List<Value>) callback,
+  ) {
     var paren = signature.indexOf('(');
     if (paren == -1 || !signature.endsWith(')')) {
-      jsThrow(JsError(
-          'Invalid signature for new sass.SassFunction(): "$signature"'));
+      jsThrow(
+        JsError('Invalid signature for new sass.SassFunction(): "$signature"'),
+      );
     }
 
-    return SassFunction(Callable(signature.substring(0, paren),
-        signature.substring(paren + 1, signature.length - 1), callback));
+    return SassFunction(
+      Callable(
+        signature.substring(0, paren),
+        signature.substring(paren + 1, signature.length - 1),
+        callback,
+      ),
+    );
   });
 
-  getJSClass(SassFunction(Callable('f', '', (_) => sassNull)))
-      .injectSuperclass(jsClass);
+  getJSClass(
+    SassFunction(Callable('f', '', (_) => sassNull)),
+  ).injectSuperclass(jsClass);
   return jsClass;
 }();

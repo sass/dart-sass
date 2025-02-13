@@ -42,10 +42,16 @@ final class CssMediaQuery {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  static List<CssMediaQuery> parseList(String contents,
-          {Object? url, InterpolationMap? interpolationMap}) =>
-      MediaQueryParser(contents, url: url, interpolationMap: interpolationMap)
-          .parse();
+  static List<CssMediaQuery> parseList(
+    String contents, {
+    Object? url,
+    InterpolationMap? interpolationMap,
+  }) =>
+      MediaQueryParser(
+        contents,
+        url: url,
+        interpolationMap: interpolationMap,
+      ).parse();
 
   /// Creates a media query specifies a type and, optionally, conditions.
   ///
@@ -67,8 +73,9 @@ final class CssMediaQuery {
         conditions = List.unmodifiable(conditions) {
     if (this.conditions.length > 1 && conjunction == null) {
       throw ArgumentError(
-          "If conditions is longer than one element, conjunction may not be "
-          "null.");
+        "If conditions is longer than one element, conjunction may not be "
+        "null.",
+      );
     }
   }
 
@@ -85,9 +92,12 @@ final class CssMediaQuery {
     var theirType = other.type?.toLowerCase();
 
     if (ourType == null && theirType == null) {
-      return MediaQuerySuccessfulMergeResult._(CssMediaQuery.condition(
-          [...this.conditions, ...other.conditions],
-          conjunction: true));
+      return MediaQuerySuccessfulMergeResult._(
+        CssMediaQuery.condition([
+          ...this.conditions,
+          ...other.conditions,
+        ], conjunction: true),
+      );
     }
 
     String? modifier;
@@ -165,10 +175,13 @@ final class CssMediaQuery {
       conditions = [...this.conditions, ...other.conditions];
     }
 
-    return MediaQuerySuccessfulMergeResult._(CssMediaQuery.type(
+    return MediaQuerySuccessfulMergeResult._(
+      CssMediaQuery.type(
         type == ourType ? this.type : other.type,
         modifier: modifier == ourModifier ? this.modifier : other.modifier,
-        conditions: conditions));
+        conditions: conditions,
+      ),
+    );
   }
 
   bool operator ==(Object other) =>
@@ -209,7 +222,7 @@ sealed class MediaQueryMergeResult {
 /// The subclass [MediaQueryMergeResult] that represents singleton enum values.
 enum _SingletonCssMediaQueryMergeResult implements MediaQueryMergeResult {
   empty,
-  unrepresentable;
+  unrepresentable,
 }
 
 /// A successful result of [CssMediaQuery.merge].

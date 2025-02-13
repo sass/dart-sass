@@ -39,6 +39,6 @@ final class XyzD65ColorSpace extends ColorSpace {
         ColorSpace.rec2020 => xyzD65ToLinearRec2020,
         ColorSpace.xyzD50 => xyzD65ToXyzD50,
         ColorSpace.lms => xyzD65ToLms,
-        _ => super.transformationMatrix(dest)
+        _ => super.transformationMatrix(dest),
       };
 }

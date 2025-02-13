@@ -162,5 +162,5 @@ final colorsByName = {
 
 /// A map from Sass colors to (lowercase) color names.
 final namesByColor = {
-  for (var (name, color) in colorsByName.pairs) color: name
+  for (var (name, color) in colorsByName.pairs) color: name,
 };

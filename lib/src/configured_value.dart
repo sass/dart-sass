@@ -22,7 +22,10 @@ final class ConfiguredValue {
   /// Creates a variable value that's been configured explicitly with a `with`
   /// clause.
   ConfiguredValue.explicit(
-      this.value, this.configurationSpan, this.assignmentNode);
+    this.value,
+    this.configurationSpan,
+    this.assignmentNode,
+  );
 
   /// Creates a variable value that's implicitly configured by setting a
   /// variable prior to an `@import` of a file that contains a `@forward`.

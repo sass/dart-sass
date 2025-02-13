@@ -90,12 +90,13 @@ abstract base class Selector implements AstNode {
   void assertNotBogus({String? name}) {
     if (!isBogus) return;
     warnForDeprecation(
-        (name == null ? '' : '\$$name: ') +
-            '$this is not valid CSS.\n'
-                'This will be an error in Dart Sass 2.0.0.\n'
-                '\n'
-                'More info: https://sass-lang.com/d/bogus-combinators',
-        Deprecation.bogusCombinators);
+      (name == null ? '' : '\$$name: ') +
+          '$this is not valid CSS.\n'
+              'This will be an error in Dart Sass 2.0.0.\n'
+              '\n'
+              'More info: https://sass-lang.com/d/bogus-combinators',
+      Deprecation.bogusCombinators,
+    );
   }
 
   /// Calls the appropriate visit method on [visitor].
@@ -149,9 +150,11 @@ class _IsBogusVisitor with AnySelectorVisitor {
       return complex.leadingCombinators.length >
               (includeLeadingCombinator ? 0 : 1) ||
           complex.components.last.combinators.isNotEmpty ||
-          complex.components.any((component) =>
-              component.combinators.length > 1 ||
-              component.selector.accept(this));
+          complex.components.any(
+            (component) =>
+                component.combinators.length > 1 ||
+                component.selector.accept(this),
+          );
     }
   }
 
@@ -172,8 +175,10 @@ class _IsUselessVisitor with AnySelectorVisitor {
 
   bool visitComplexSelector(ComplexSelector complex) =>
       complex.leadingCombinators.length > 1 ||
-      complex.components.any((component) =>
-          component.combinators.length > 1 || component.selector.accept(this));
+      complex.components.any(
+        (component) =>
+            component.combinators.length > 1 || component.selector.accept(this),
+      );
 
   bool visitPseudoSelector(PseudoSelector pseudo) => pseudo.isBogus;
 }

@@ -39,7 +39,9 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
   /// Like [ForwardedModuleView], but returns `inner` as-is if it doesn't need
   /// any modification.
   static Module<T> ifNecessary<T extends AsyncCallable>(
-      Module<T> inner, ForwardRule rule) {
+    Module<T> inner,
+    ForwardRule rule,
+  ) {
     if (rule.prefix == null &&
         rule.shownMixinsAndFunctions == null &&
         rule.shownVariables == null &&
@@ -52,21 +54,41 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
   }
 
   ForwardedModuleView(this._inner, this._rule)
-      : variables = _forwardedMap(_inner.variables, _rule.prefix,
-            _rule.shownVariables, _rule.hiddenVariables),
-        variableNodes = _forwardedMap(_inner.variableNodes, _rule.prefix,
-            _rule.shownVariables, _rule.hiddenVariables),
-        functions = _forwardedMap(_inner.functions, _rule.prefix,
-            _rule.shownMixinsAndFunctions, _rule.hiddenMixinsAndFunctions),
-        mixins = _forwardedMap(_inner.mixins, _rule.prefix,
-            _rule.shownMixinsAndFunctions, _rule.hiddenMixinsAndFunctions);
+      : variables = _forwardedMap(
+          _inner.variables,
+          _rule.prefix,
+          _rule.shownVariables,
+          _rule.hiddenVariables,
+        ),
+        variableNodes = _forwardedMap(
+          _inner.variableNodes,
+          _rule.prefix,
+          _rule.shownVariables,
+          _rule.hiddenVariables,
+        ),
+        functions = _forwardedMap(
+          _inner.functions,
+          _rule.prefix,
+          _rule.shownMixinsAndFunctions,
+          _rule.hiddenMixinsAndFunctions,
+        ),
+        mixins = _forwardedMap(
+          _inner.mixins,
+          _rule.prefix,
+          _rule.shownMixinsAndFunctions,
+          _rule.hiddenMixinsAndFunctions,
+        );
 
   /// Wraps [map] so that it only shows members allowed by [blocklist] or
   /// [safelist], with the given [prefix], if given.
   ///
   /// Only one of [blocklist] or [safelist] may be non-`null`.
-  static Map<String, V> _forwardedMap<V>(Map<String, V> map, String? prefix,
-      Set<String>? safelist, Set<String>? blocklist) {
+  static Map<String, V> _forwardedMap<V>(
+    Map<String, V> map,
+    String? prefix,
+    Set<String>? safelist,
+    Set<String>? blocklist,
+  ) {
     assert(safelist == null || blocklist == null);
     if (prefix == null &&
         safelist == null &&

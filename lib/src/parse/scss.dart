@@ -50,7 +50,7 @@ class ScssParser extends StylesheetParser {
               'versions.\n'
               '\n'
               'Recommendation: @else if',
-          span: scanner.spanFrom(beforeAt)
+          span: scanner.spanFrom(beforeAt),
         ));
         scanner.position -= 2;
         return true;
@@ -138,12 +138,16 @@ class ScssParser extends StylesheetParser {
     } while (scanner.scan("//"));
 
     if (plainCss) {
-      error("Silent comments aren't allowed in plain CSS.",
-          scanner.spanFrom(start));
+      error(
+        "Silent comments aren't allowed in plain CSS.",
+        scanner.spanFrom(start),
+      );
     }
 
     return lastSilentComment = SilentComment(
-        scanner.substring(start.position), scanner.spanFrom(start));
+      scanner.substring(start.position),
+      scanner.spanFrom(start),
+    );
   }
 
   /// Consumes a statement-level loud comment block.
