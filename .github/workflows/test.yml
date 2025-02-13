@@ -17,6 +17,8 @@ jobs:
     - uses: dart-lang/setup-dart@v1
     - run: dart pub get
     - run: dart format --set-exit-if-changed .
+    - run: dart fix --apply
+    - run: git diff --exit-code
 
   static_analysis:
     name: Static analysis
