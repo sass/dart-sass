@@ -47,9 +47,9 @@ void main() {
   test("only invokes the importer once for a given canonicalization", () {
     var css = compileString(
       """
-      @import "orange";
-      @import "orange";
-    """,
+        @import "orange";
+        @import "orange";
+      """,
       importers: [
         TestImporter(
           (url) => Uri.parse('u:blue'),
@@ -63,14 +63,15 @@ void main() {
 
     expect(
       css,
-      equals("""
-.blue {
-  color: blue;
-}
+      equalsIgnoringWhitespace("""
+        .blue {
+          color: blue;
+        }
 
-.blue {
-  color: blue;
-}"""),
+        .blue {
+          color: blue;
+        }
+      """),
     );
   });
 

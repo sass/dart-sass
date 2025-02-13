@@ -80,14 +80,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
   test("from an error encountered within a function", () async {
     await d.file("test.scss", """
-@function a() {
-  @error "Within A.";
-}
+      @function a() {
+        @error "Within A.";
+      }
 
-.b {
-  c: a();
-}
-""").create();
+      .b {
+        c: a();
+      }
+    """).create();
 
     var sass = await runSass(["--no-unicode", "test.scss"]);
     expect(
@@ -106,14 +106,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
   test("from an error encountered within a mixin", () async {
     await d.file("test.scss", """
-@mixin a() {
-  @error "Within A.";
-}
+      @mixin a() {
+        @error "Within A.";
+      }
 
-.b {
-  @include a();
-}
-""").create();
+      .b {
+        @include a();
+      }
+    """).create();
 
     var sass = await runSass(["--no-unicode", "test.scss"]);
     expect(

@@ -141,9 +141,9 @@ void main() {
       test("top-level", () {
         expect(
           compileString("""
-          @use 'sass:meta';
-          a {b: meta.inspect(1px * 1em)};
-        """),
+            @use 'sass:meta';
+            a {b: meta.inspect(1px * 1em)};
+          """),
           equalsIgnoringWhitespace('a { b: calc(1px * 1em); }'),
         );
       });
@@ -151,9 +151,9 @@ void main() {
       test("in calc", () {
         expect(
           compileString("""
-          @use 'sass:meta';
-          a {b: meta.inspect(calc(1px * 1em))};
-        """),
+            @use 'sass:meta';
+            a {b: meta.inspect(calc(1px * 1em))};
+          """),
           equalsIgnoringWhitespace('a { b: calc(1px * 1em); }'),
         );
       });
@@ -161,9 +161,9 @@ void main() {
       test("nested in calc", () {
         expect(
           compileString("""
-          @use 'sass:meta';
-          a {b: meta.inspect(calc(c / (1px * 1em)))};
-        """),
+            @use 'sass:meta';
+            a {b: meta.inspect(calc(c / (1px * 1em)))};
+          """),
           equalsIgnoringWhitespace('a { b: calc(c / (1px * 1em)); }'),
         );
       });
@@ -171,10 +171,10 @@ void main() {
       test("numerator and denominator", () {
         expect(
           compileString("""
-          @use 'sass:math';
-          @use 'sass:meta';
-          a {b: meta.inspect(1px * math.div(math.div(1em, 1s), 1x))};
-        """),
+            @use 'sass:math';
+            @use 'sass:meta';
+            a {b: meta.inspect(1px * math.div(math.div(1em, 1s), 1x))};
+          """),
           equalsIgnoringWhitespace('a { b: calc(1px * 1em / 1s / 1x); }'),
         );
       });
@@ -182,10 +182,10 @@ void main() {
       test("denominator only", () {
         expect(
           compileString("""
-          @use 'sass:math';
-          @use 'sass:meta';
-          a {b: meta.inspect(math.div(math.div(1, 1s), 1x))};
-        """),
+            @use 'sass:math';
+            @use 'sass:meta';
+            a {b: meta.inspect(math.div(math.div(1, 1s), 1x))};
+          """),
           equalsIgnoringWhitespace('a { b: calc(1 / 1s / 1x); }'),
         );
       });
@@ -200,9 +200,10 @@ void main() {
     test("after open block", () {
       expect(
         compileString("""
-selector { /* please don't move me */
-  name: value;
-}"""),
+          selector { /* please don't move me */
+            name: value;
+          }
+        """),
         equals("""
 selector { /* please don't move me */
   name: value;
@@ -213,10 +214,11 @@ selector { /* please don't move me */
     test("after open block (multi-line selector)", () {
       expect(
         compileString("""
-selector1,
-selector2 { /* please don't move me */
-  name: value;
-}"""),
+          selector1,
+          selector2 { /* please don't move me */
+            name: value;
+          }
+        """),
         equals("""
 selector1,
 selector2 { /* please don't move me */
@@ -228,9 +230,10 @@ selector2 { /* please don't move me */
     test("after close block", () {
       expect(
         compileString("""
-selector {
-  name: value;
-} /* please don't move me */"""),
+          selector {
+            name: value;
+          } /* please don't move me */
+        """),
         equals("""
 selector {
   name: value;
@@ -241,9 +244,10 @@ selector {
     test("only content in block", () {
       expect(
         compileString("""
-selector {
-  /* please don't move me */
-}"""),
+          selector {
+            /* please don't move me */
+          }
+        """),
         equals("""
 selector {
   /* please don't move me */
@@ -253,17 +257,16 @@ selector {
 
     test("only content in block (no newlines)", () {
       expect(
-        compileString("""
-selector { /* please don't move me */ }"""),
-        equals("""
-selector { /* please don't move me */ }"""),
+        compileString("selector { /* please don't move me */ }"),
+        equals("selector { /* please don't move me */ }"),
       );
     });
 
     test("double trailing empty block", () {
       expect(
-        compileString("""
-selector { /* please don't move me */ /* please don't move me */ }"""),
+        compileString(
+            "selector { /* please don't move me */ /* please don't move me */ "
+            "}"),
         equals("""
 selector { /* please don't move me */ /* please don't move me */
 }"""),
@@ -273,9 +276,10 @@ selector { /* please don't move me */ /* please don't move me */
     test("double trailing style rule", () {
       expect(
         compileString("""
-selector {
-  margin: 1px; /* please don't move me */ /* please don't move me */
-}"""),
+          selector {
+            margin: 1px; /* please don't move me */ /* please don't move me */
+          }
+        """),
         equals("""
 selector {
   margin: 1px; /* please don't move me */ /* please don't move me */
@@ -286,11 +290,12 @@ selector {
     test("after property in block", () {
       expect(
         compileString("""
-selector {
-  name1: value1; /* please don't move me 1 */
-  name2: value2; /* please don't move me 2 */
-  name3: value3; /* please don't move me 3 */
-}"""),
+          selector {
+            name1: value1; /* please don't move me 1 */
+            name2: value2; /* please don't move me 2 */
+            name3: value3; /* please don't move me 3 */
+          }
+        """),
         equals("""
 selector {
   name1: value1; /* please don't move me 1 */
@@ -303,11 +308,12 @@ selector {
     test("after rule in block", () {
       expect(
         compileString("""
-selector {
-  @rule1; /* please don't move me 1 */
-  @rule2; /* please don't move me 2 */
-  @rule3; /* please don't move me 3 */
-}"""),
+          selector {
+            @rule1; /* please don't move me 1 */
+            @rule2; /* please don't move me 2 */
+            @rule3; /* please don't move me 3 */
+          }
+        """),
         equals("""
 selector {
   @rule1; /* please don't move me 1 */
@@ -330,13 +336,16 @@ selector {
     // things other than starting child blocks.
     test("selector contains left brace", () {
       expect(
-        compileString("""@rule1;
-@rule2;
-selector[href*="{"]
-{ /* please don't move me */ }
+        compileString("""
+          @rule1;
+          @rule2;
+          selector[href*="{"]
+          { /* please don't move me */ }
 
-@rule3;"""),
-        equals("""@rule1;
+          @rule3;
+        """),
+        equals("""
+@rule1;
 @rule2;
 selector[href*="{"] { /* please don't move me */ }
 
@@ -348,42 +357,45 @@ selector[href*="{"] { /* please don't move me */ }
       test("empty with spacing", () {
         expect(
           compileString("""
-@mixin loudComment {
-  /* ... */
-}
+            @mixin loudComment {
+              /* ... */
+            }
 
-selector {
-  @include loudComment;
-}"""),
-          """
+            selector {
+              @include loudComment;
+            }
+          """),
+          equals("""
 selector {
   /* ... */
-}""",
+}"""),
         );
       });
 
       test("empty no spacing", () {
         expect(
           compileString("""
-@mixin loudComment{/* ... */}
-selector {@include loudComment;}"""),
-          """
+            @mixin loudComment{/* ... */}
+            selector {@include loudComment;}
+          """),
+          equals("""
 selector {
   /* ... */
-}""",
+}"""),
         );
       });
 
       test("with style rule", () {
         expect(
           compileString("""
-@mixin loudComment {
-  margin: 1px; /* mixin */
-} /* mixin-out */
+            @mixin loudComment {
+              margin: 1px; /* mixin */
+            } /* mixin-out */
 
-selector {
-  @include loudComment; /* selector */
-}"""),
+            selector {
+              @include loudComment; /* selector */
+            }
+          """),
           """
 /* mixin-out */
 selector {
@@ -398,24 +410,24 @@ selector {
       test("with styles", () {
         expect(
           compileString("""
-foo { /* foo */
-  padding: 1px; /* foo padding */
-  bar { /* bar */
-    padding: 2px; /* bar padding */
-    baz { /* baz */
-      padding: 3px; /* baz padding */
-      margin: 3px; /* baz margin */
-    } /* baz end */
-    biz { /* biz */
-      padding: 3px; /* biz padding */
-      margin: 3px; /* biz margin */
-    } /* biz end */
-    margin: 2px; /* bar margin */
-  } /* bar end */
-  margin: 1px; /* foo margin */
-} /* foo end */
-"""),
-          """
+            foo { /* foo */
+              padding: 1px; /* foo padding */
+              bar { /* bar */
+                padding: 2px; /* bar padding */
+                baz { /* baz */
+                  padding: 3px; /* baz padding */
+                  margin: 3px; /* baz margin */
+                } /* baz end */
+                biz { /* biz */
+                  padding: 3px; /* biz padding */
+                  margin: 3px; /* biz margin */
+                } /* biz end */
+                margin: 2px; /* bar margin */
+              } /* bar end */
+              margin: 1px; /* foo margin */
+            } /* foo end */
+          """),
+          equals("""
 foo { /* foo */
   padding: 1px; /* foo padding */
   /* bar end */
@@ -436,23 +448,23 @@ foo bar biz { /* biz */
   margin: 3px; /* biz margin */
 }
 
-/* foo end */""",
+/* foo end */"""),
         );
       });
 
       test("empty", () {
         expect(
           compileString("""
-foo { /* foo */
-  bar { /* bar */
-    baz { /* baz */
-    } /* baz end */
-    biz { /* biz */
-    } /* biz end */
-  } /* bar end */
-} /* foo end */
-"""),
-          """
+            foo { /* foo */
+              bar { /* bar */
+                baz { /* baz */
+                } /* baz end */
+                biz { /* biz */
+                } /* biz end */
+              } /* bar end */
+            } /* foo end */
+          """),
+          equals("""
 foo { /* foo */
   /* bar end */
 }
@@ -463,7 +475,7 @@ foo bar { /* bar */
 foo bar baz { /* baz */ }
 foo bar biz { /* biz */ }
 
-/* foo end */""",
+/* foo end */"""),
         );
       });
     });

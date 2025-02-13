@@ -19,9 +19,9 @@ void main() {
       var mustBeCalled = expectAsync0(() {});
       compileString(
         '''
-        @mixin foo {@warn heck}
-        @include foo;
-      ''',
+          @mixin foo {@warn heck}
+          @include foo;
+        ''',
         logger: _TestLogger.withWarn((
           message, {
           span,
@@ -166,9 +166,9 @@ void main() {
         var mustBeCalled = expectAsync0(() {});
         compileString(
           """
-        @function bar() {@return foo()}
-        a {b: bar()}
-      """,
+            @function bar() {@return foo()}
+            a {b: bar()}
+          """,
           functions: [
             Callable(
               "foo",
@@ -203,9 +203,9 @@ void main() {
         var mustBeCalled = expectAsync0(() {});
         compileStringAsync(
           """
-        @function bar() {@return foo()}
-        a {b: bar()}
-      """,
+          @function bar() {@return foo()}
+          a {b: bar()}
+        """,
           functions: [
             AsyncCallable(
               "foo",
@@ -240,9 +240,9 @@ void main() {
         var mustBeCalled = expectAsync0(() {});
         compileStringAsync(
           """
-        @function bar() {@return foo()}
-        a {b: bar()}
-      """,
+            @function bar() {@return foo()}
+            a {b: bar()}
+          """,
           functions: [
             AsyncCallable(
               "foo",

@@ -22,147 +22,147 @@ void main() {
       test("that's basic", () {
         _expectSourceMap(
           """
-          {{1}}foo
-            {{2}}bar: baz
-        """,
+            {{1}}foo
+              {{2}}bar: baz
+          """,
           """
-          {{1}}foo {
-            {{2}}bar: baz;
-          }
-        """,
+            {{1}}foo {
+              {{2}}bar: baz;
+            }
+          """,
           """
-          {{1}}foo {
-            {{2}}bar: baz;
-          }
-        """,
+            {{1}}foo {
+              {{2}}bar: baz;
+            }
+          """,
         );
       });
 
       test("with a multiline selector", () {
         _expectSourceMap(
           """
-          {{1}}foo,
-          bar
-            {{2}}bar: baz
-        """,
+            {{1}}foo,
+            bar
+              {{2}}bar: baz
+          """,
           """
-          {{1}}foo,
-          bar {
-            {{2}}bar: baz;
-          }
-        """,
+            {{1}}foo,
+            bar {
+              {{2}}bar: baz;
+            }
+          """,
           """
-          {{1}}foo,
-          {{1}}bar {
-            {{2}}bar: baz;
-          }
-        """,
+            {{1}}foo,
+            {{1}}bar {
+              {{2}}bar: baz;
+            }
+          """,
         );
       });
 
       test("with a property on a different line", () {
         _expectScssSourceMap(
           """
-          {{1}}foo {
-            {{2}}bar:
-                {{3}}baz;
-          }
-        """,
+            {{1}}foo {
+              {{2}}bar:
+                  {{3}}baz;
+            }
+          """,
           """
-          {{1}}foo {
-            {{2}}bar: {{3}}baz;
-          }
-        """,
+            {{1}}foo {
+              {{2}}bar: {{3}}baz;
+            }
+          """,
         );
       });
 
       test("with a multiline property", () {
         _expectScssSourceMap(
           """
-          {{1}}foo {
-            {{2}}bar: baz
-                bang;
-          }
-        """,
+            {{1}}foo {
+              {{2}}bar: baz
+                  bang;
+            }
+          """,
           """
-          {{1}}foo {
-            {{2}}bar: baz bang;
-          }
-        """,
+            {{1}}foo {
+              {{2}}bar: baz bang;
+            }
+          """,
         );
       });
 
       test("that's nested", () {
         _expectSourceMap(
           """
-          foo
-            {{1}}bar
-              {{2}}baz: bang
-        """,
+            foo
+              {{1}}bar
+                {{2}}baz: bang
+          """,
           """
-          foo {
-            {{1}}bar {
+            foo {
+              {{1}}bar {
+                {{2}}baz: bang;
+              }
+            }
+          """,
+          """
+            {{1}}foo bar {
               {{2}}baz: bang;
             }
-          }
-        """,
-          """
-          {{1}}foo bar {
-            {{2}}baz: bang;
-          }
-        """,
+          """,
         );
       });
 
       test("with a nested rule and declaration", () {
         _expectSourceMap(
           """
-          {{1}}foo
-            {{2}}a: b
+            {{1}}foo
+              {{2}}a: b
 
-            {{3}}bar
-              {{4}}x: y
-        """,
+              {{3}}bar
+                {{4}}x: y
+          """,
           """
-          {{1}}foo {
-            {{2}}a: b;
+            {{1}}foo {
+              {{2}}a: b;
 
-            {{3}}bar {
+              {{3}}bar {
+                {{4}}x: y;
+              }
+            }
+          """,
+          """
+            {{1}}foo {
+              {{2}}a: b;
+            }
+            {{3}}foo bar {
               {{4}}x: y;
             }
-          }
-        """,
-          """
-          {{1}}foo {
-            {{2}}a: b;
-          }
-          {{3}}foo bar {
-            {{4}}x: y;
-          }
-        """,
+          """,
         );
       });
 
       test("with a nested declaration", () {
         _expectSourceMap(
           """
-          {{1}}foo
-            {{2}}a: b
-              {{3}}c: d
-        """,
+            {{1}}foo
+              {{2}}a: b
+                {{3}}c: d
+          """,
           """
-          {{1}}foo {
-            {{2}}a: b {
-              {{3}}c: d;
+            {{1}}foo {
+              {{2}}a: b {
+                {{3}}c: d;
+              }
             }
-          }
-        """,
+          """,
           """
-          {{1}}foo {
-            {{2}}a: b;
-            {{3}}a-c: d;
-          }
-        """,
+            {{1}}foo {
+              {{2}}a: b;
+              {{3}}a-c: d;
+            }
+          """,
         );
       });
     });
@@ -170,15 +170,9 @@ void main() {
     group("an unknown at-rule", () {
       test("without children", () {
         _expectSourceMap(
-          """
-          {{1}}@foo (fblthp)
-        """,
-          """
-          {{1}}@foo (fblthp);
-        """,
-          """
-          {{1}}@foo (fblthp);
-        """,
+          "{{1}}@foo (fblthp)",
+          "{{1}}@foo (fblthp);",
+          "{{1}}@foo (fblthp);",
         );
       });
 
@@ -186,62 +180,62 @@ void main() {
         test("declarations", () {
           _expectSourceMap(
             """
-            {{1}}@foo (fblthp)
-              {{2}}bar: baz
-          """,
+              {{1}}@foo (fblthp)
+                {{2}}bar: baz
+            """,
             """
-            {{1}}@foo (fblthp) {
-              {{2}}bar: baz;
-            }
-          """,
+              {{1}}@foo (fblthp) {
+                {{2}}bar: baz;
+              }
+            """,
             """
-            {{1}}@foo (fblthp) {
-              {{2}}bar: baz;
-            }
-          """,
+              {{1}}@foo (fblthp) {
+                {{2}}bar: baz;
+              }
+            """,
           );
         });
 
         test("style rules", () {
           _expectSourceMap(
             """
-            {{1}}@foo (fblthp)
-              {{2}}bar
-                {{3}}baz: bang
-          """,
+              {{1}}@foo (fblthp)
+                {{2}}bar
+                  {{3}}baz: bang
+            """,
             """
-            {{1}}@foo (fblthp) {
-              {{2}}bar {
-                {{3}}baz: bang;
+              {{1}}@foo (fblthp) {
+                {{2}}bar {
+                  {{3}}baz: bang;
+                }
               }
-            }
-          """,
+            """,
             """
-            {{1}}@foo (fblthp) {
-              {{2}}bar {
-                {{3}}baz: bang;
+              {{1}}@foo (fblthp) {
+                {{2}}bar {
+                  {{3}}baz: bang;
+                }
               }
-            }
-          """,
+            """,
           );
         });
 
         test("at-rules", () {
           _expectSourceMap(
             """
-            {{1}}@foo (fblthp)
-              {{2}}@bar baz
-          """,
+              {{1}}@foo (fblthp)
+                {{2}}@bar baz
+            """,
             """
-            {{1}}@foo (fblthp) {
-              {{2}}@bar baz;
-            }
-          """,
+              {{1}}@foo (fblthp) {
+                {{2}}@bar baz;
+              }
+            """,
             """
-            {{1}}@foo (fblthp) {
-              {{2}}@bar baz;
-            }
-          """,
+              {{1}}@foo (fblthp) {
+                {{2}}@bar baz;
+              }
+            """,
           );
         });
       });
@@ -251,34 +245,34 @@ void main() {
       test("that covers a single line", () {
         _expectSourceMap(
           """
-          {{1}}/* foo bar
-          {{2}}/* baz bang
-        """,
+            {{1}}/* foo bar
+            {{2}}/* baz bang
+          """,
           """
-          {{1}}/* foo bar */
-          {{2}}/* baz bang */
-        """,
+            {{1}}/* foo bar */
+            {{2}}/* baz bang */
+          """,
           """
-          {{1}}/* foo bar */
-          {{2}}/* baz bang */
-        """,
+            {{1}}/* foo bar */
+            {{2}}/* baz bang */
+          """,
         );
       });
 
       test("that covers multiple lines", () {
         _expectSourceMap(
           """
-          {{1}}/* foo bar
-             baz bang
-        """,
+            {{1}}/* foo bar
+               baz bang
+          """,
           """
-          {{1}}/* foo bar
-           * baz bang */
-        """,
+            {{1}}/* foo bar
+             * baz bang */
+          """,
           """
-          {{1}}/* foo bar
-          {{1}} * baz bang */
-        """,
+            {{1}}/* foo bar
+            {{1}} * baz bang */
+          """,
         );
       });
     });
@@ -287,30 +281,30 @@ void main() {
       test("with a single URL", () {
         _expectSourceMap(
           """
-          @import {{1}}url(foo)
-        """,
+            @import {{1}}url(foo)
+          """,
           """
-          @import {{1}}url(foo);
-        """,
+            @import {{1}}url(foo);
+          """,
           """
-          {{1}}@import url(foo);
-        """,
+            {{1}}@import url(foo);
+          """,
         );
       });
 
       test("with multiple URLs", () {
         _expectSourceMap(
           """
-          @import {{1}}url(foo), {{2}}"bar.css"
-        """,
+            @import {{1}}url(foo), {{2}}"bar.css"
+          """,
           """
-          @import {{1}}url(foo),
-            {{2}}"bar.css";
-        """,
+            @import {{1}}url(foo),
+              {{2}}"bar.css";
+          """,
           """
-          {{1}}@import url(foo);
-          {{2}}@import "bar.css";
-        """,
+            {{1}}@import url(foo);
+            {{2}}@import "bar.css";
+          """,
         );
       });
     });
@@ -318,34 +312,34 @@ void main() {
     test("@keyframes", () {
       _expectSourceMap(
         """
-        {{1}}@keyframes name
-          {{2}}from
-            {{3}}top: 0px
+          {{1}}@keyframes name
+            {{2}}from
+              {{3}}top: 0px
 
-          {{4}}10%
-            {{5}}top: 10px
-      """,
+            {{4}}10%
+              {{5}}top: 10px
+        """,
         """
-        {{1}}@keyframes name {
-          {{2}}from {
-            {{3}}top: 0px;
-          }
+          {{1}}@keyframes name {
+            {{2}}from {
+              {{3}}top: 0px;
+            }
 
-          {{4}}10% {
-            {{5}}top: 10px;
+            {{4}}10% {
+              {{5}}top: 10px;
+            }
           }
-        }
-      """,
+        """,
         """
-        {{1}}@keyframes name {
-          {{2}}from {
-            {{3}}top: 0px;
+          {{1}}@keyframes name {
+            {{2}}from {
+              {{3}}top: 0px;
+            }
+            {{4}}10% {
+              {{5}}top: 10px;
+            }
           }
-          {{4}}10% {
-            {{5}}top: 10px;
-          }
-        }
-      """,
+        """,
       );
     });
 
@@ -353,48 +347,48 @@ void main() {
       test("at the root", () {
         _expectSourceMap(
           """
-          {{1}}@media screen
-            {{2}}foo
-              {{3}}bar: baz
-        """,
+            {{1}}@media screen
+              {{2}}foo
+                {{3}}bar: baz
+          """,
           """
-          {{1}}@media screen {
-            {{2}}foo {
-              {{3}}bar: baz;
+            {{1}}@media screen {
+              {{2}}foo {
+                {{3}}bar: baz;
+              }
             }
-          }
-        """,
+          """,
           """
-          {{1}}@media screen {
-            {{2}}foo {
-              {{3}}bar: baz;
+            {{1}}@media screen {
+              {{2}}foo {
+                {{3}}bar: baz;
+              }
             }
-          }
-        """,
+          """,
         );
       });
 
       test("within a style rule", () {
         _expectSourceMap(
           """
-          {{1}}foo
-            {{2}}@media screen
-              {{3}}bar: baz
-        """,
+            {{1}}foo
+              {{2}}@media screen
+                {{3}}bar: baz
+          """,
           """
-          {{1}}foo {
-            {{2}}@media screen {
-              {{3}}bar: baz;
-            }
-          }
-        """,
-          """
-          {{2}}@media screen {
             {{1}}foo {
-              {{3}}bar: baz;
+              {{2}}@media screen {
+                {{3}}bar: baz;
+              }
             }
-          }
-        """,
+          """,
+          """
+            {{2}}@media screen {
+              {{1}}foo {
+                {{3}}bar: baz;
+              }
+            }
+          """,
         );
       });
     });
@@ -403,48 +397,48 @@ void main() {
       test("at the root", () {
         _expectSourceMap(
           """
-          {{1}}@supports (display: grid)
-            {{2}}foo
-              {{3}}bar: baz
-        """,
+            {{1}}@supports (display: grid)
+              {{2}}foo
+                {{3}}bar: baz
+          """,
           """
-          {{1}}@supports (display: grid) {
-            {{2}}foo {
-              {{3}}bar: baz;
+            {{1}}@supports (display: grid) {
+              {{2}}foo {
+                {{3}}bar: baz;
+              }
             }
-          }
-        """,
+          """,
           """
-          {{1}}@supports (display: grid) {
-            {{2}}foo {
-              {{3}}bar: baz;
+            {{1}}@supports (display: grid) {
+              {{2}}foo {
+                {{3}}bar: baz;
+              }
             }
-          }
-        """,
+          """,
         );
       });
 
       test("within a style rule", () {
         _expectSourceMap(
           """
-          {{1}}foo
-            {{2}}@supports (display: grid)
-              {{3}}bar: baz
-        """,
+            {{1}}foo
+              {{2}}@supports (display: grid)
+                {{3}}bar: baz
+          """,
           """
-          {{1}}foo {
-            {{2}}@supports (display: grid) {
-              {{3}}bar: baz;
-            }
-          }
-        """,
-          """
-          {{2}}@supports (display: grid) {
             {{1}}foo {
-              {{3}}bar: baz;
+              {{2}}@supports (display: grid) {
+                {{3}}bar: baz;
+              }
             }
-          }
-        """,
+          """,
+          """
+            {{2}}@supports (display: grid) {
+              {{1}}foo {
+                {{3}}bar: baz;
+              }
+            }
+          """,
         );
       });
     });
@@ -454,59 +448,59 @@ void main() {
         test("a variable declaration", () {
           _expectScssSourceMap(
             r"""
-            $var: {{1}}value;
+              $var: {{1}}value;
 
-            {{2}}a {
-              {{3}}b: $var;
-            }
-          """,
+              {{2}}a {
+                {{3}}b: $var;
+              }
+            """,
             """
-            {{2}}a {
-              {{3}}b: {{1}}value;
-            }
-          """,
+              {{2}}a {
+                {{3}}b: {{1}}value;
+              }
+            """,
           );
         });
 
         test("an @each rule", () {
           _expectScssSourceMap(
             r"""
-            @each $var in {{1}}1 2 {
-              {{2}}a {
-                {{3}}b: $var;
+              @each $var in {{1}}1 2 {
+                {{2}}a {
+                  {{3}}b: $var;
+                }
               }
-            }
-          """,
+            """,
             """
-            {{2}}a {
-              {{3}}b: {{1}}1;
-            }
+              {{2}}a {
+                {{3}}b: {{1}}1;
+              }
 
-            {{2}}a {
-              {{3}}b: {{1}}2;
-            }
-          """,
+              {{2}}a {
+                {{3}}b: {{1}}2;
+              }
+            """,
           );
         });
 
         test("a @for rule", () {
           _expectScssSourceMap(
             r"""
-            @for $var from {{1}}1 through 2 {
-              {{2}}a {
-                {{3}}b: $var;
+              @for $var from {{1}}1 through 2 {
+                {{2}}a {
+                  {{3}}b: $var;
+                }
               }
-            }
-          """,
+            """,
             """
-            {{2}}a {
-              {{3}}b: {{1}}1;
-            }
+              {{2}}a {
+                {{3}}b: {{1}}1;
+              }
 
-            {{2}}a {
-              {{3}}b: {{1}}2;
-            }
-          """,
+              {{2}}a {
+                {{3}}b: {{1}}2;
+              }
+            """,
           );
         });
 
@@ -514,76 +508,76 @@ void main() {
           test("the default value", () {
             _expectScssSourceMap(
               r"""
-              @mixin foo($var: {{1}}1) {
-                {{2}}b: $var;
-              }
+                @mixin foo($var: {{1}}1) {
+                  {{2}}b: $var;
+                }
 
-              {{3}}a {
-                @include foo();
-              }
-            """,
+                {{3}}a {
+                  @include foo();
+                }
+              """,
               """
-              {{3}}a {
-                {{2}}b: {{1}}1;
-              }
-            """,
+                {{3}}a {
+                  {{2}}b: {{1}}1;
+                }
+              """,
             );
           });
 
           test("passed by position", () {
             _expectScssSourceMap(
               r"""
-              @mixin foo($var) {
-                {{1}}b: $var;
-              }
+                @mixin foo($var) {
+                  {{1}}b: $var;
+                }
 
-              {{2}}a {
-                @include foo({{3}}1);
-              }
-            """,
+                {{2}}a {
+                  @include foo({{3}}1);
+                }
+              """,
               """
-              {{2}}a {
-                {{1}}b: {{3}}1;
-              }
-            """,
+                {{2}}a {
+                  {{1}}b: {{3}}1;
+                }
+              """,
             );
           });
 
           test("passed by name", () {
             _expectScssSourceMap(
               r"""
-              @mixin foo($var) {
-                {{1}}b: $var;
-              }
+                @mixin foo($var) {
+                  {{1}}b: $var;
+                }
 
-              {{2}}a {
-                @include foo($var: {{3}}1);
-              }
-            """,
+                {{2}}a {
+                  @include foo($var: {{3}}1);
+                }
+              """,
               """
-              {{2}}a {
-                {{1}}b: {{3}}1;
-              }
-            """,
+                {{2}}a {
+                  {{1}}b: {{3}}1;
+                }
+              """,
             );
           });
 
           test("passed by arglist", () {
             _expectScssSourceMap(
               r"""
-              @mixin foo($var) {
-                {{1}}b: $var;
-              }
+                @mixin foo($var) {
+                  {{1}}b: $var;
+                }
 
-              {{2}}a {
-                @include foo({{3}}(1,)...);
-              }
-            """,
+                {{2}}a {
+                  @include foo({{3}}(1,)...);
+                }
+              """,
               """
-              {{2}}a {
-                {{1}}b: {{3}}1;
-              }
-            """,
+                {{2}}a {
+                  {{1}}b: {{3}}1;
+                }
+              """,
             );
           });
         });
@@ -593,83 +587,83 @@ void main() {
         test("a variable rename", () {
           _expectScssSourceMap(
             r"""
-            $var1: {{1}}value;
-            $var2: $var1;
+              $var1: {{1}}value;
+              $var2: $var1;
 
-            {{2}}a {
-              {{3}}b: $var2;
-            }
-          """,
+              {{2}}a {
+                {{3}}b: $var2;
+              }
+            """,
             """
-            {{2}}a {
-              {{3}}b: {{1}}value;
-            }
-          """,
+              {{2}}a {
+                {{3}}b: {{1}}value;
+              }
+            """,
           );
         });
 
         test("an @each rule from a variable", () {
           _expectScssSourceMap(
             r"""
-            $list: {{1}}1 2;
+              $list: {{1}}1 2;
 
-            @each $var in $list {
-              {{2}}a {
-                {{3}}b: $var;
+              @each $var in $list {
+                {{2}}a {
+                  {{3}}b: $var;
+                }
               }
-            }
-          """,
+            """,
             """
-            {{2}}a {
-              {{3}}b: {{1}}1;
-            }
+              {{2}}a {
+                {{3}}b: {{1}}1;
+              }
 
-            {{2}}a {
-              {{3}}b: {{1}}2;
-            }
-          """,
+              {{2}}a {
+                {{3}}b: {{1}}2;
+              }
+            """,
           );
         });
 
         test("a @for rule from a variable", () {
           _expectScssSourceMap(
             r"""
-            $start: {{1}}1;
-            $end: 2;
+              $start: {{1}}1;
+              $end: 2;
 
-            @for $var from $start through $end {
-              {{2}}a {
-                {{3}}b: $var;
+              @for $var from $start through $end {
+                {{2}}a {
+                  {{3}}b: $var;
+                }
               }
-            }
-          """,
+            """,
             """
-            {{2}}a {
-              {{3}}b: {{1}}1;
-            }
+              {{2}}a {
+                {{3}}b: {{1}}1;
+              }
 
-            {{2}}a {
-              {{3}}b: {{1}}2;
-            }
-          """,
+              {{2}}a {
+                {{3}}b: {{1}}2;
+              }
+            """,
           );
         });
 
         test("a @use rule with a with clause", () {
           _expectScssSourceMap(
             r"""
-            $var1: {{1}}new value;
-            @use 'other' with ($var2: $var1);
+              $var1: {{1}}new value;
+              @use 'other' with ($var2: $var1);
 
-            {{2}}a {
-              {{3}}b: other.$var2;
-            }
-          """,
+              {{2}}a {
+                {{3}}b: other.$var2;
+              }
+            """,
             """
-            {{2}}a {
-              {{3}}b: {{1}}new value;
-            }
-          """,
+              {{2}}a {
+                {{3}}b: {{1}}new value;
+              }
+            """,
             importer: TestImporter(
               (url) => Uri.parse("u:$url"),
               (_) => ImporterResult(
@@ -684,84 +678,84 @@ void main() {
           test("the default value", () {
             _expectScssSourceMap(
               r"""
-              $original: {{1}}1;
+                $original: {{1}}1;
 
-              @mixin foo($var: $original) {
-                {{2}}b: $var;
-              }
+                @mixin foo($var: $original) {
+                  {{2}}b: $var;
+                }
 
-              {{3}}a {
-                @include foo();
-              }
-            """,
+                {{3}}a {
+                  @include foo();
+                }
+              """,
               """
-              {{3}}a {
-                {{2}}b: {{1}}1;
-              }
-            """,
+                {{3}}a {
+                  {{2}}b: {{1}}1;
+                }
+              """,
             );
           });
 
           test("passed by position", () {
             _expectScssSourceMap(
               r"""
-              $original: {{1}}1;
+                $original: {{1}}1;
 
-              @mixin foo($var) {
-                {{2}}b: $var;
-              }
+                @mixin foo($var) {
+                  {{2}}b: $var;
+                }
 
-              {{3}}a {
-                @include foo($original);
-              }
-            """,
+                {{3}}a {
+                  @include foo($original);
+                }
+              """,
               """
-              {{3}}a {
-                {{2}}b: {{1}}1;
-              }
-            """,
+                {{3}}a {
+                  {{2}}b: {{1}}1;
+                }
+              """,
             );
           });
 
           test("passed by name", () {
             _expectScssSourceMap(
               r"""
-              $original: {{1}}1;
+                $original: {{1}}1;
 
-              @mixin foo($var) {
-                {{2}}b: $var;
-              }
+                @mixin foo($var) {
+                  {{2}}b: $var;
+                }
 
-              {{3}}a {
-                @include foo($var: $original);
-              }
-            """,
+                {{3}}a {
+                  @include foo($var: $original);
+                }
+              """,
               """
-              {{3}}a {
-                {{2}}b: {{1}}1;
-              }
-            """,
+                {{3}}a {
+                  {{2}}b: {{1}}1;
+                }
+              """,
             );
           });
 
           test("passed by arglist", () {
             _expectScssSourceMap(
               r"""
-              $original: {{1}}1;
+                $original: {{1}}1;
 
-              @mixin foo($var) {
-                {{2}}b: $var;
-              }
+                @mixin foo($var) {
+                  {{2}}b: $var;
+                }
 
-              {{3}}a {
-                @include foo($original...);
-              }
-            """,
+                {{3}}a {
+                  @include foo($original...);
+                }
+              """,
               """
-              {{3}}a {
-                {{2}}b: {{1}}1;
-              }
-            """,
+                {{3}}a {
+                  {{2}}b: {{1}}1;
+                }
+              """,
             );
           });
         });
@@ -772,34 +766,34 @@ void main() {
       test("in expanded mode", () {
         _expectSourceMap(
           """
-        {{1}}föö
-          {{2}}bär: bäz
-      """,
+            {{1}}föö
+              {{2}}bär: bäz
+          """,
           """
-        {{1}}föö {
-          {{2}}bär: bäz;
-        }
-      """,
+            {{1}}föö {
+              {{2}}bär: bäz;
+            }
+          """,
           """
-        @charset "UTF-8";
-        {{1}}föö {
-          {{2}}bär: bäz;
-        }
-      """,
+            @charset "UTF-8";
+            {{1}}föö {
+              {{2}}bär: bäz;
+            }
+          """,
         );
       });
 
       test("in compressed mode", () {
         _expectSourceMap(
           """
-        {{1}}föö
-          {{2}}bär: bäz
-      """,
+            {{1}}föö
+              {{2}}bär: bäz
+          """,
           """
-        {{1}}föö {
-          {{2}}bär: bäz;
-        }
-      """,
+            {{1}}föö {
+              {{2}}bär: bäz;
+            }
+          """,
           "\uFEFF{{1}}föö{{{2}}bär:bäz}",
           style: OutputStyle.compressed,
         );
@@ -816,9 +810,9 @@ void main() {
     expect(
       () {
         compileString(r"""
-        $map: (a: b);
-        x {y: $map}
-      """, sourceMap: (_) {});
+          $map: (a: b);
+          x {y: $map}
+        """, sourceMap: (_) {});
       },
       throwsA(
         predicate((untypedError) {

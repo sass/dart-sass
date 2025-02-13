@@ -45,9 +45,9 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   group("with multiple sources", () {
     setUp(() async {
       await d.file("test.scss", """
-      @use 'dir/other';
-      x {y: z}
-    """).create();
+        @use 'dir/other';
+        x {y: z}
+      """).create();
       await d.dir("dir", [d.file("other.scss", "a {b: 1 + 2}")]).create();
     });
 

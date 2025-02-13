@@ -538,11 +538,11 @@ void main() {
     test("with a multi-line source span", () async {
       process.send(
         compileString("""
-a {
-  b: 1px +
-     1em;
-}
-"""),
+          a {
+            b: 1px +
+                1em;
+          }
+        """),
       );
 
       var failure = await getCompileFailure(process);
@@ -558,14 +558,14 @@ a {
     test("with multiple stack trace entries", () async {
       process.send(
         compileString("""
-@function fail() {
-  @return 1px + 1em;
-}
+          @function fail() {
+            @return 1px + 1em;
+          }
 
-a {
-  b: fail();
-}
-"""),
+          a {
+            b: fail();
+          }
+        """),
       );
 
       var failure = await getCompileFailure(process);

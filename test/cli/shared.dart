@@ -494,9 +494,9 @@ void sharedTests(
         "doesn't emit runner warnings in content blocks from local @include",
         () async {
           await d.file("test.scss", """
-          @use 'other';
-          @include other.foo;
-        """).create();
+            @use 'other';
+            @include other.foo;
+          """).create();
           await d.dir("dir", [
             d.file("_other.scss", """
             @mixin bar {@content}
@@ -564,10 +564,10 @@ void sharedTests(
 
           await d.dir("dir", [
             d.file("_other.scss", """
-            @mixin foo {
-              @warn heck;
-            }
-          """),
+              @mixin foo {
+                @warn heck;
+              }
+            """),
           ]).create();
 
           var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
@@ -583,10 +583,10 @@ void sharedTests(
 
           await d.dir("dir", [
             d.file("_other.scss", """
-            @mixin foo {
-              @debug heck;
-            }
-          """),
+              @mixin foo {
+                @debug heck;
+              }
+            """),
           ]).create();
 
           var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
@@ -602,10 +602,10 @@ void sharedTests(
 
           await d.dir("dir", [
             d.file("_other.scss", """
-            @mixin foo {
-              #{blue} {x: y}
-            }
-          """),
+              @mixin foo {
+                #{blue} {x: y}
+              }
+            """),
           ]).create();
           await d.file("test.scss", "@use 'other'").create();
           await d.dir("dir", [d.file("_other.scss", "")]).create();
@@ -625,11 +625,11 @@ void sharedTests(
 
           await d.dir("dir", [
             d.file("_other.scss", """
-            @function foo() {
-              @warn heck;
-              @return null;
-            }
-          """),
+              @function foo() {
+                @warn heck;
+                @return null;
+              }
+            """),
           ]).create();
 
           var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
@@ -645,11 +645,11 @@ void sharedTests(
 
           await d.dir("dir", [
             d.file("_other.scss", """
-            @function foo() {
-              @debug heck;
-              @return null;
-            }
-          """),
+              @function foo() {
+                @debug heck;
+                @return null;
+              }
+            """),
           ]).create();
 
           var sass = await runSass(["--quiet-deps", "-I", "dir", "test.scss"]);
@@ -665,10 +665,10 @@ void sharedTests(
 
           await d.dir("dir", [
             d.file("_other.scss", """
-            @function foo() {
-              @return #{blue};
-            }
-          """),
+              @function foo() {
+                @return #{blue};
+              }
+            """),
           ]).create();
           await d.file("test.scss", "@use 'other'").create();
           await d.dir("dir", [d.file("_other.scss", "")]).create();
@@ -684,23 +684,23 @@ void sharedTests(
   group("with a bunch of deprecation warnings", () {
     setUp(() async {
       await d.file("test.scss", r"""
-      @use "sass:list";
-      @use "sass:meta";
+        @use "sass:list";
+        @use "sass:meta";
 
-      $_: meta.call("inspect", null);
-      $_: meta.call("rgb", 0, 0, 0);
-      $_: meta.call("nth", null, 1);
-      $_: meta.call("join", null, null);
-      $_: meta.call("if", true, 1, 2);
-      $_: meta.call("hsl", 0, 100%, 100%);
+        $_: meta.call("inspect", null);
+        $_: meta.call("rgb", 0, 0, 0);
+        $_: meta.call("nth", null, 1);
+        $_: meta.call("join", null, null);
+        $_: meta.call("if", true, 1, 2);
+        $_: meta.call("hsl", 0, 100%, 100%);
 
-      $_: 1/2;
-      $_: 1/3;
-      $_: 1/4;
-      $_: 1/5;
-      $_: 1/6;
-      $_: 1/7;
-    """).create();
+        $_: 1/2;
+        $_: 1/3;
+        $_: 1/4;
+        $_: 1/5;
+        $_: 1/6;
+        $_: 1/7;
+      """).create();
     });
 
     test("without --verbose, only prints five", () async {
@@ -949,12 +949,12 @@ void sharedTests(
         .file(
           "output.css",
           equalsIgnoringWhitespace("""
-      a e {
-        f: g;
-      }
+            a e {
+              f: g;
+            }
 
-      /*# sourceMappingURL=output.css.map */
-    """),
+            /*# sourceMappingURL=output.css.map */
+          """),
         )
         .validate();
   });
