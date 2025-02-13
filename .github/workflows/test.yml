@@ -14,9 +14,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - uses: dart-lang/setup-dart@v1
-    - run: dart pub get
-    - run: dart format --set-exit-if-changed .
+    - uses: ./.github/util/initialize
+      with: {github-token: "${{ github.token }}"}
+    - run: dart format .
     - run: dart fix --apply
     - run: git diff --exit-code
 
