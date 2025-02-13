@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: b36532ee7c8eab018398c00c2fc25297ffdcfca5
+// Checksum: 25aa2d050126950ea37dc1c53539f0b041356e8e
 //
 // ignore_for_file: unused_import
 
@@ -673,8 +673,9 @@ final class _EvaluateVisitor
         () {
           if (node.span.sourceUrl case var url?) {
             _activeModules[url] = null;
-            if (!(_asNodeSass && url.toString() == 'stdin'))
+            if (!(_asNodeSass && url.toString() == 'stdin')) {
               _loadedUrls.add(url);
+            }
           }
 
           var module = _addExceptionTrace(() => _execute(importer, node));
