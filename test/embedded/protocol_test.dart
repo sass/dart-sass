@@ -550,8 +550,9 @@ void main() {
       expect(failure.span.start, equals(location(29, 1, 15)));
       expect(failure.span.end, equals(location(54, 2, 19)));
       expect(failure.span.url, isEmpty);
-      expect(failure.span.context, equals("            b: 1px +\n                1em;\n"));
-      expect(failure.stackTrace, equals("- 2:13 root stylesheet\n"));
+      expect(failure.span.context,
+          equals("            b: 1px +\n                1em;\n"));
+      expect(failure.stackTrace, equals("- 2:16  root stylesheet\n"));
       await process.close();
     });
 
