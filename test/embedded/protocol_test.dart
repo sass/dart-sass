@@ -548,7 +548,7 @@ void main() {
       var failure = await getCompileFailure(process);
       expect(failure.span.text, "1px +\n                1em");
       expect(failure.span.start, equals(location(29, 1, 15)));
-      expect(failure.span.end, equals(location(23, 2, 8)));
+      expect(failure.span.end, equals(location(54, 2, 19)));
       expect(failure.span.url, isEmpty);
       expect(failure.span.context, equals("  b: 1px +\n     1em;\n"));
       expect(failure.stackTrace, equals("- 2:6  root stylesheet\n"));
