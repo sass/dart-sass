@@ -28,6 +28,7 @@ export type NodeType =
   | 'dynamic-import'
   | 'import-list'
   | 'interpolation'
+  | 'map-entry'
   | 'parameter'
   | 'parameter-list'
   | 'static-import';
