@@ -212,7 +212,7 @@ describe('a list expression', () => {
 
             it('has no brackets', () => expect(node.brackets).toBe(false));
 
-            it('has a comma separator', () => expect(node.separator).toBe(' '));
+            it('has a space separator', () => expect(node.separator).toBe(' '));
 
             it('has an element', () => {
               expect(node.nodes).toHaveLength(2);
@@ -294,7 +294,7 @@ describe('a list expression', () => {
 
             it('has no brackets', () => expect(node.brackets).toBe(false));
 
-            it('has a comma separator', () => expect(node.separator).toBe('/'));
+            it('has a slash separator', () => expect(node.separator).toBe('/'));
 
             it('has an element', () => {
               expect(node.nodes).toHaveLength(2);
@@ -338,7 +338,7 @@ describe('a list expression', () => {
 
             it('has brackets', () => expect(node.brackets).toBe(true));
 
-            it('has a comma separator', () => expect(node.separator).toBe(' '));
+            it('has a space separator', () => expect(node.separator).toBe(' '));
 
             it('has an element', () => {
               expect(node.nodes).toHaveLength(2);
@@ -424,7 +424,7 @@ describe('a list expression', () => {
 
             it('has brackets', () => expect(node.brackets).toBe(true));
 
-            it('has a comma separator', () => expect(node.separator).toBe('/'));
+            it('has a slash separator', () => expect(node.separator).toBe('/'));
 
             it('has an element', () => {
               expect(node.nodes).toHaveLength(2);
