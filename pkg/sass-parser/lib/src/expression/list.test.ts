@@ -214,7 +214,7 @@ describe('a list expression', () => {
 
             it('has a space separator', () => expect(node.separator).toBe(' '));
 
-            it('has an element', () => {
+            it('has elements', () => {
               expect(node.nodes).toHaveLength(2);
               expect(node).toHaveStringExpression(0, 'foo');
               expect(node).toHaveStringExpression(1, 'bar');
@@ -255,7 +255,7 @@ describe('a list expression', () => {
 
             it('has a comma separator', () => expect(node.separator).toBe(','));
 
-            it('has an element', () => {
+            it('has elements', () => {
               expect(node.nodes).toHaveLength(2);
               expect(node).toHaveStringExpression(0, 'foo');
               expect(node).toHaveStringExpression(1, 'bar');
@@ -296,7 +296,7 @@ describe('a list expression', () => {
 
             it('has a slash separator', () => expect(node.separator).toBe('/'));
 
-            it('has an element', () => {
+            it('has elements', () => {
               expect(node.nodes).toHaveLength(2);
               expect(node).toHaveStringExpression(0, 'foo');
               expect(node).toHaveStringExpression(1, 'bar');
@@ -304,7 +304,7 @@ describe('a list expression', () => {
           });
         }
 
-        // Slash separators are currently parsed as division.
+        // TODO: Enable this once slash separators aren't parsed as division.
         // describeNode('parsed', () => utils.parseExpression('foo / bar'));
 
         describeNode(
@@ -340,7 +340,7 @@ describe('a list expression', () => {
 
             it('has a space separator', () => expect(node.separator).toBe(' '));
 
-            it('has an element', () => {
+            it('has elements', () => {
               expect(node.nodes).toHaveLength(2);
               expect(node).toHaveStringExpression(0, 'foo');
               expect(node).toHaveStringExpression(1, 'bar');
@@ -383,7 +383,7 @@ describe('a list expression', () => {
 
             it('has a comma separator', () => expect(node.separator).toBe(','));
 
-            it('has an element', () => {
+            it('has elements', () => {
               expect(node.nodes).toHaveLength(2);
               expect(node).toHaveStringExpression(0, 'foo');
               expect(node).toHaveStringExpression(1, 'bar');
@@ -426,7 +426,7 @@ describe('a list expression', () => {
 
             it('has a slash separator', () => expect(node.separator).toBe('/'));
 
-            it('has an element', () => {
+            it('has elements', () => {
               expect(node.nodes).toHaveLength(2);
               expect(node).toHaveStringExpression(0, 'foo');
               expect(node).toHaveStringExpression(1, 'bar');
@@ -434,7 +434,7 @@ describe('a list expression', () => {
           });
         }
 
-        // Slash separators are currently parsed as division.
+        // TODO: Enable this once slash separators aren't parsed as division.
         // describeNode('parsed', () => utils.parseExpression('[foo / bar]'));
 
         describeNode(
