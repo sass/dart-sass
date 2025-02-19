@@ -71,6 +71,13 @@ export {
   ColorExpressionRaws,
 } from './src/expression/color';
 export {
+  ListExpression,
+  ListExpressionProps,
+  ListExpressionRaws,
+  ListSeparator,
+  NewNodeForListExpression,
+} from './src/expression/list';
+export {
   NumberExpression,
   NumberExpressionProps,
   NumberExpressionRaws,
