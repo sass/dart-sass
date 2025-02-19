@@ -4,6 +4,8 @@
 
 * Add support for parsing map expressions.
 
+* Add support for parsing function calls.
+
 ## 0.4.14
 
 * Add support for parsing color expressions.

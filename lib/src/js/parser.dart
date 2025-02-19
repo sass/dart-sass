@@ -109,6 +109,12 @@ void _updateAstPrototypes() {
   getJSClass(
     ContentRule(arguments, bogusSpan),
   ).defineGetter('arguments', (ContentRule self) => self.arguments);
+  getJSClass(
+    FunctionExpression('a', arguments, bogusSpan),
+  ).defineGetter('arguments', (FunctionExpression self) => self.arguments);
+  getJSClass(
+    IfExpression(arguments, bogusSpan),
+  ).defineGetter('arguments', (IfExpression self) => self.arguments);
 
   _addSupportsConditionToInterpolation();
 
