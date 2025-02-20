@@ -8,6 +8,8 @@
 
 * Add support for parsing interpolated function calls.
 
+* Add support for parsing null literals.
+
 ## 0.4.14
 
 * Add support for parsing color expressions.

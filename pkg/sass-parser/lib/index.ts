@@ -99,6 +99,11 @@ export {
   NewNodeForMapExpression,
 } from './src/expression/map';
 export {
+  NullExpression,
+  NullExpressionProps,
+  NullExpressionRaws,
+} from './src/expression/null';
+export {
   NumberExpression,
   NumberExpressionProps,
   NumberExpressionRaws,
