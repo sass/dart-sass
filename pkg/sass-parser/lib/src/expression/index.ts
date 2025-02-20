@@ -16,6 +16,7 @@ import {
 } from './interpolated-function';
 import {ListExpression, ListExpressionProps} from './list';
 import {MapExpression, MapExpressionProps} from './map';
+import {NullExpression, NullExpressionProps} from './null';
 import {NumberExpression, NumberExpressionProps} from './number';
 import type {StringExpression, StringExpressionProps} from './string';
 
@@ -32,6 +33,7 @@ export type AnyExpression =
   | InterpolatedFunctionExpression
   | ListExpression
   | MapExpression
+  | NullExpression
   | NumberExpression
   | StringExpression;
 
@@ -48,6 +50,7 @@ export type ExpressionType =
   | 'interpolated-function-call'
   | 'list'
   | 'map'
+  | 'null'
   | 'number'
   | 'string';
 
@@ -65,6 +68,7 @@ export type ExpressionProps =
   | InterpolatedFunctionExpressionProps
   | ListExpressionProps
   | MapExpressionProps
+  | NullExpressionProps
   | NumberExpressionProps
   | StringExpressionProps;
 

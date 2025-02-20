@@ -1,3 +1,7 @@
+## 1.85.2-dev
+
+* No user-visible changes.
+
 ## 1.85.1
 
 * Fix a bug where global Sass functions whose names overlap with CSS math

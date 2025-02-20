@@ -372,6 +372,8 @@ declare namespace SassInternal {
     readonly value: sass.SassColor;
   }
 
+  class NullExpression extends Expression {}
+
   class NumberExpression extends Expression {
     readonly value: number;
     readonly unit: string;
@@ -434,6 +436,7 @@ export type MapExpression = SassInternal.MapExpression;
 export type StringExpression = SassInternal.StringExpression;
 export type BooleanExpression = SassInternal.BooleanExpression;
 export type ColorExpression = SassInternal.ColorExpression;
+export type NullExpression = SassInternal.NullExpression;
 export type NumberExpression = SassInternal.NumberExpression;
 
 export interface StatementVisitorObject<T> {
@@ -474,6 +477,7 @@ export interface ExpressionVisitorObject<T> {
   visitInterpolatedFunctionExpression(node: InterpolatedFunctionExpression): T;
   visitListExpression(node: ListExpression): T;
   visitMapExpression(node: MapExpression): T;
+  visitNullExpression(node: NullExpression): T;
   visitNumberExpression(node: NumberExpression): T;
 }
 

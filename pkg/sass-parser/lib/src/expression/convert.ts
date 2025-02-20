@@ -13,6 +13,7 @@ import {FunctionExpression} from './function';
 import {InterpolatedFunctionExpression} from './interpolated-function';
 import {ListExpression} from './list';
 import {MapExpression} from './map';
+import {NullExpression} from './null';
 import {NumberExpression} from './number';
 import {StringExpression} from './string';
 
@@ -33,6 +34,7 @@ const visitor = sassInternal.createExpressionVisitor<Expression>({
     new InterpolatedFunctionExpression(undefined, inner),
   visitListExpression: inner => new ListExpression(undefined, inner),
   visitMapExpression: inner => new MapExpression(undefined, inner),
+  visitNullExpression: inner => new NullExpression(undefined, inner),
   visitNumberExpression: inner => new NumberExpression(undefined, inner),
 });
 
