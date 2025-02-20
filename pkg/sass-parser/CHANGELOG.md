@@ -6,6 +6,8 @@
 
 * Add support for parsing function calls.
 
+* Add support for parsing interpolated function calls.
+
 ## 0.4.14
 
 * Add support for parsing color expressions.

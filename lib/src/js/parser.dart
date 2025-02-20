@@ -115,6 +115,10 @@ void _updateAstPrototypes() {
   getJSClass(
     IfExpression(arguments, bogusSpan),
   ).defineGetter('arguments', (IfExpression self) => self.arguments);
+  getJSClass(
+    InterpolatedFunctionExpression(_interpolation, arguments, bogusSpan),
+  ).defineGetter(
+      'arguments', (InterpolatedFunctionExpression self) => self.arguments);
 
   _addSupportsConditionToInterpolation();
 

@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`an interpolated function expression toJSON 1`] = `
+{
+  "arguments": <(bar)>,
+  "inputs": [
+    {
+      "css": "@#{f#{o}o(bar)}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": <f#{o}o>,
+  "raws": {},
+  "sassType": "interpolated-function-call",
+  "source": <1:4-1:15 in 0>,
+}
+`;
