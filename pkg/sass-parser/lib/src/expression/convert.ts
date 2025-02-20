@@ -9,6 +9,7 @@ import {BinaryOperationExpression} from './binary-operation';
 import {BooleanExpression} from './boolean';
 import {ColorExpression} from './color';
 import {ListExpression} from './list';
+import {MapExpression} from './map';
 import {NumberExpression} from './number';
 import {StringExpression} from './string';
 
@@ -20,6 +21,7 @@ const visitor = sassInternal.createExpressionVisitor<Expression>({
   visitBooleanExpression: inner => new BooleanExpression(undefined, inner),
   visitColorExpression: inner => new ColorExpression(undefined, inner),
   visitListExpression: inner => new ListExpression(undefined, inner),
+  visitMapExpression: inner => new MapExpression(undefined, inner),
   visitNumberExpression: inner => new NumberExpression(undefined, inner),
 });
 

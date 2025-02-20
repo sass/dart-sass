@@ -10,6 +10,7 @@ import type {
 import {BooleanExpression, BooleanExpressionProps} from './boolean';
 import {ColorExpression, ColorExpressionProps} from './color';
 import {ListExpression, ListExpressionProps} from './list';
+import {MapExpression, MapExpressionProps} from './map';
 import {NumberExpression, NumberExpressionProps} from './number';
 import type {StringExpression, StringExpressionProps} from './string';
 
@@ -23,6 +24,7 @@ export type AnyExpression =
   | BooleanExpression
   | ColorExpression
   | ListExpression
+  | MapExpression
   | NumberExpression
   | StringExpression;
 
@@ -36,6 +38,7 @@ export type ExpressionType =
   | 'boolean'
   | 'color'
   | 'list'
+  | 'map'
   | 'number'
   | 'string';
 
@@ -50,6 +53,7 @@ export type ExpressionProps =
   | BooleanExpressionProps
   | ColorExpressionProps
   | ListExpressionProps
+  | MapExpressionProps
   | NumberExpressionProps
   | StringExpressionProps;
 

@@ -78,6 +78,17 @@ export {
   NewNodeForListExpression,
 } from './src/expression/list';
 export {
+  MapEntry,
+  MapEntryProps,
+  MapEntryRaws,
+} from './src/expression/map-entry';
+export {
+  MapExpression,
+  MapExpressionProps,
+  MapExpressionRaws,
+  NewNodeForMapExpression,
+} from './src/expression/map';
+export {
   NumberExpression,
   NumberExpressionProps,
   NumberExpressionRaws,

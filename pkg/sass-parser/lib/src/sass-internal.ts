@@ -40,6 +40,11 @@ export interface DartMap<K, V> {
   _unique: 'DartMap';
 }
 
+export interface DartPair<E1, E2> {
+  _0: E1;
+  _1: E2;
+}
+
 // There may be a better way to declare this, but I can't figure it out.
 // eslint-disable-next-line @typescript-eslint/no-namespace
 declare namespace SassInternal {
@@ -335,6 +340,10 @@ declare namespace SassInternal {
     readonly separator: ' ' | ',' | '/' | null | undefined;
   }
 
+  class MapExpression extends Expression {
+    readonly pairs: DartPair<Expression, Expression>[];
+  }
+
   class StringExpression extends Expression {
     readonly text: Interpolation;
     readonly hasQuotes: boolean;
@@ -402,6 +411,7 @@ export type Expression = SassInternal.Expression;
 export type BinaryOperationExpression = SassInternal.BinaryOperationExpression;
 export type ListExpression = SassInternal.ListExpression;
 export type ListSeparator = SassInternal.ListSeparator;
+export type MapExpression = SassInternal.MapExpression;
 export type StringExpression = SassInternal.StringExpression;
 export type BooleanExpression = SassInternal.BooleanExpression;
 export type ColorExpression = SassInternal.ColorExpression;
@@ -441,6 +451,7 @@ export interface ExpressionVisitorObject<T> {
   visitBooleanExpression(node: BooleanExpression): T;
   visitColorExpression(node: ColorExpression): T;
   visitListExpression(node: ListExpression): T;
+  visitMapExpression(node: MapExpression): T;
   visitNumberExpression(node: NumberExpression): T;
 }
 
