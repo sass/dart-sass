@@ -10,6 +10,7 @@ import {BinaryOperationExpression} from './binary-operation';
 import {BooleanExpression} from './boolean';
 import {ColorExpression} from './color';
 import {FunctionExpression} from './function';
+import {InterpolatedFunctionExpression} from './interpolated-function';
 import {ListExpression} from './list';
 import {MapExpression} from './map';
 import {NumberExpression} from './number';
@@ -28,6 +29,8 @@ const visitor = sassInternal.createExpressionVisitor<Expression>({
       name: 'if',
       arguments: new ArgumentList(undefined, inner.arguments),
     }),
+  visitInterpolatedFunctionExpression: inner =>
+    new InterpolatedFunctionExpression(undefined, inner),
   visitListExpression: inner => new ListExpression(undefined, inner),
   visitMapExpression: inner => new MapExpression(undefined, inner),
   visitNumberExpression: inner => new NumberExpression(undefined, inner),
