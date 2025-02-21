@@ -18,6 +18,10 @@ import {ListExpression, ListExpressionProps} from './list';
 import {MapExpression, MapExpressionProps} from './map';
 import {NullExpression, NullExpressionProps} from './null';
 import {NumberExpression, NumberExpressionProps} from './number';
+import {
+  ParenthesizedExpression,
+  ParenthesizedExpressionProps,
+} from './parenthesized';
 import type {StringExpression, StringExpressionProps} from './string';
 
 /**
@@ -35,6 +39,7 @@ export type AnyExpression =
   | MapExpression
   | NullExpression
   | NumberExpression
+  | ParenthesizedExpression
   | StringExpression;
 
 /**
@@ -52,6 +57,7 @@ export type ExpressionType =
   | 'map'
   | 'null'
   | 'number'
+  | 'parenthesized'
   | 'string';
 
 /**
@@ -70,6 +76,7 @@ export type ExpressionProps =
   | MapExpressionProps
   | NullExpressionProps
   | NumberExpressionProps
+  | ParenthesizedExpressionProps
   | StringExpressionProps;
 
 /**

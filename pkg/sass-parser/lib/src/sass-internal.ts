@@ -372,12 +372,15 @@ declare namespace SassInternal {
     readonly value: sass.SassColor;
   }
 
-  class NullExpression extends Expression {
-  }
+  class NullExpression extends Expression {}
 
   class NumberExpression extends Expression {
     readonly value: number;
     readonly unit: string;
+  }
+
+  class ParenthesizedExpression extends Expression {
+    readonly expression: Expression;
   }
 }
 
@@ -439,6 +442,7 @@ export type BooleanExpression = SassInternal.BooleanExpression;
 export type ColorExpression = SassInternal.ColorExpression;
 export type NullExpression = SassInternal.NullExpression;
 export type NumberExpression = SassInternal.NumberExpression;
+export type ParenthesizedExpression = SassInternal.ParenthesizedExpression;
 
 export interface StatementVisitorObject<T> {
   visitAtRootRule(node: AtRootRule): T;
@@ -470,7 +474,6 @@ export interface StatementVisitorObject<T> {
 
 export interface ExpressionVisitorObject<T> {
   visitBinaryOperationExpression(node: BinaryOperationExpression): T;
-  visitStringExpression(node: StringExpression): T;
   visitBooleanExpression(node: BooleanExpression): T;
   visitColorExpression(node: ColorExpression): T;
   visitFunctionExpression(node: FunctionExpression): T;
@@ -480,6 +483,8 @@ export interface ExpressionVisitorObject<T> {
   visitMapExpression(node: MapExpression): T;
   visitNullExpression(node: NullExpression): T;
   visitNumberExpression(node: NumberExpression): T;
+  visitParenthesizedExpression(node: ParenthesizedExpression): T;
+  visitStringExpression(node: StringExpression): T;
 }
 
 export const createExpressionVisitor = sassInternal.createExpressionVisitor;
