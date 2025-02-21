@@ -12,6 +12,8 @@
 
 * Add support for parsing parenthesized expressions.
 
+* Add support for parsing selector expressions.
+
 ## 0.4.14
 
 * Add support for parsing color expressions.

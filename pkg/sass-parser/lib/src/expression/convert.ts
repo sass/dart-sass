@@ -16,13 +16,13 @@ import {MapExpression} from './map';
 import {NullExpression} from './null';
 import {NumberExpression} from './number';
 import {ParenthesizedExpression} from './parenthesized';
+import {SelectorExpression} from './selector';
 import {StringExpression} from './string';
 
 /** The visitor to use to convert internal Sass nodes to JS. */
 const visitor = sassInternal.createExpressionVisitor<Expression>({
   visitBinaryOperationExpression: inner =>
     new BinaryOperationExpression(undefined, inner),
-  visitStringExpression: inner => new StringExpression(undefined, inner),
   visitBooleanExpression: inner => new BooleanExpression(undefined, inner),
   visitColorExpression: inner => new ColorExpression(undefined, inner),
   visitFunctionExpression: inner => new FunctionExpression(undefined, inner),
@@ -39,6 +39,8 @@ const visitor = sassInternal.createExpressionVisitor<Expression>({
   visitNumberExpression: inner => new NumberExpression(undefined, inner),
   visitParenthesizedExpression: inner =>
     new ParenthesizedExpression(undefined, inner),
+  visitSelectorExpression: inner => new SelectorExpression(undefined, inner),
+  visitStringExpression: inner => new StringExpression(undefined, inner),
 });
 
 /** Converts an internal expression AST node into an external one. */

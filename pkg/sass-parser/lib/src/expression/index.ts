@@ -22,6 +22,7 @@ import {
   ParenthesizedExpression,
   ParenthesizedExpressionProps,
 } from './parenthesized';
+import type {SelectorExpression} from './selector';
 import type {StringExpression, StringExpressionProps} from './string';
 
 /**
@@ -40,6 +41,7 @@ export type AnyExpression =
   | NullExpression
   | NumberExpression
   | ParenthesizedExpression
+  | SelectorExpression
   | StringExpression;
 
 /**
@@ -58,6 +60,7 @@ export type ExpressionType =
   | 'null'
   | 'number'
   | 'parenthesized'
+  | 'selector-expr'
   | 'string';
 
 /**
