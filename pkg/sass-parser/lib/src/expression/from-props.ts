@@ -13,6 +13,7 @@ import {ListExpression} from './list';
 import {MapExpression} from './map';
 import {NullExpression} from './null';
 import {NumberExpression} from './number';
+import {ParenthesizedExpression} from './parenthesized';
 import {StringExpression} from './string';
 
 /** Constructs an expression from {@link ExpressionProps}. */
@@ -21,6 +22,7 @@ export function fromProps(props: ExpressionProps): Expression {
   if ('left' in props) return new BinaryOperationExpression(props);
   if ('separator' in props) return new ListExpression(props);
   if ('nodes' in props) return new MapExpression(props);
+  if ('inParens' in props) return new ParenthesizedExpression(props);
   if ('name' in props) {
     if (typeof props.name === 'string') {
       return new FunctionExpression(props as FunctionExpressionProps);

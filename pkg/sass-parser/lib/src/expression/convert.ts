@@ -15,6 +15,7 @@ import {ListExpression} from './list';
 import {MapExpression} from './map';
 import {NullExpression} from './null';
 import {NumberExpression} from './number';
+import {ParenthesizedExpression} from './parenthesized';
 import {StringExpression} from './string';
 
 /** The visitor to use to convert internal Sass nodes to JS. */
@@ -36,6 +37,8 @@ const visitor = sassInternal.createExpressionVisitor<Expression>({
   visitMapExpression: inner => new MapExpression(undefined, inner),
   visitNullExpression: inner => new NullExpression(undefined, inner),
   visitNumberExpression: inner => new NumberExpression(undefined, inner),
+  visitParenthesizedExpression: inner =>
+    new ParenthesizedExpression(undefined, inner),
 });
 
 /** Converts an internal expression AST node into an external one. */

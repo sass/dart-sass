@@ -2,6 +2,8 @@
 
 * Add support for parsing null literals.
 
+* Add support for parsing parenthesized expressions.
+
 ## 0.4.15
 
 * Add support for parsing list expressions.

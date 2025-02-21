@@ -109,6 +109,11 @@ export {
   NumberExpressionRaws,
 } from './src/expression/number';
 export {
+  ParenthesizedExpression,
+  ParenthesizedExpressionProps,
+  ParenthesizedExpressionRaws,
+} from './src/expression/parenthesized';
+export {
   ImportList,
   ImportListObjectProps,
   ImportListProps,
