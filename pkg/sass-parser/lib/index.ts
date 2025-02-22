@@ -248,6 +248,11 @@ export {
   StaticImportProps,
   StaticImportRaws,
 } from './src/static-import';
+export {
+  UnaryOperationExpression,
+  UnaryOperationExpressionProps,
+  UnaryOperationExpressionRaws,
+} from './src/expression/unary-operation';
 
 /** Options that can be passed to the Sass parsers to control their behavior. */
 export type SassParserOptions = Pick<postcss.ProcessOptions, 'from' | 'map'>;

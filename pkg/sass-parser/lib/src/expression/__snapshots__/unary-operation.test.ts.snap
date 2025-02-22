@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a unary operation toJSON 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@#{+foo}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "operand": <foo>,
+  "operator": "+",
+  "raws": {},
+  "sassType": "unary-operation",
+  "source": <1:4-1:8 in 0>,
+}
+`;
