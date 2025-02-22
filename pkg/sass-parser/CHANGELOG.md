@@ -14,6 +14,8 @@
 
 * Add support for parsing selector expressions.
 
+* Add support for parsing the `supports()` function in `@import` modifiers.
+
 ## 0.4.14
 
 * Add support for parsing color expressions.
