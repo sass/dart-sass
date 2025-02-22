@@ -7,7 +7,8 @@ import * as postcss from 'postcss';
 import {ArgumentList, ArgumentListProps} from '../argument-list';
 import {Interpolation, InterpolationProps} from '../interpolation';
 import {LazySource} from '../lazy-source';
-import {Node, NodeProps} from '../node';
+import {AnyNode, NodeProps} from '../node';
+import {AnyStatement} from '../statement';
 import type * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {Expression} from '.';
@@ -102,7 +103,7 @@ export class InterpolatedFunctionExpression extends Expression {
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Node> {
+  get nonStatementChildren(): ReadonlyArray<Exclude<AnyNode, AnyStatement>> {
     return [this.name, this.arguments];
   }
 }

@@ -76,7 +76,7 @@ export class NullExpression extends Expression {
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<never> {
     return [];
   }
 }

@@ -6,7 +6,7 @@ import * as postcss from 'postcss';
 
 import {Configuration} from './configuration';
 import {convertExpression} from './expression/convert';
-import {Expression, ExpressionProps} from './expression';
+import {AnyExpression, ExpressionProps} from './expression';
 import {fromProps} from './expression/from-props';
 import {LazySource} from './lazy-source';
 import {Node, NodeProps} from './node';
@@ -56,7 +56,7 @@ export interface ConfiguredVariableRaws {
 export interface ConfiguredVariableObjectProps extends NodeProps {
   raws?: ConfiguredVariableRaws;
   name: string;
-  expression: Expression | ExpressionProps;
+  expression: AnyExpression | ExpressionProps;
   guarded?: boolean;
 }
 
@@ -70,7 +70,7 @@ export interface ConfiguredVariableObjectProps extends NodeProps {
  * creates an unguarded {@link ConfiguredVariable}.
  */
 export type ConfiguredVariableExpressionProps =
-  | Expression
+  | AnyExpression
   | ExpressionProps
   | Omit<ConfiguredVariableObjectProps, 'name'>;
 
@@ -103,16 +103,16 @@ export class ConfiguredVariable extends Node {
   declare name: string;
 
   /** The expression whose value the variable is assigned. */
-  get expression(): Expression {
+  get expression(): AnyExpression {
     return this._expression!;
   }
-  set expression(value: Expression | ExpressionProps) {
+  set expression(value: AnyExpression | ExpressionProps) {
     if (this._expression) this._expression.parent = undefined;
-    if (!('sassType' in value)) value = fromProps(value);
-    if (value) value.parent = this;
-    this._expression = value;
+    const built = 'sassType' in value ? value : fromProps(value);
+    built.parent = this;
+    this._expression = built;
   }
-  private declare _expression: Expression;
+  private declare _expression: AnyExpression;
 
   /** Whether this has a `!default` guard. */
   declare guarded: boolean;
@@ -129,7 +129,7 @@ export class ConfiguredVariable extends Node {
       if ('sassType' in rest || !('expression' in rest)) {
         defaults = {
           name,
-          expression: rest as Expression | ExpressionProps,
+          expression: rest as AnyExpression | ExpressionProps,
         };
       } else {
         defaults = {name, ...rest};
@@ -178,7 +178,7 @@ export class ConfiguredVariable extends Node {
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return [this.expression];
   }
 }

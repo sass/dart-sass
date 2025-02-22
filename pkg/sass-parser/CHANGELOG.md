@@ -1,5 +1,9 @@
 ## 0.4.15-dev
 
+* Use union types rather than base classes for Sass nodes wherever possible.
+  This makes it possible for TypeScript to automatically narrow node types based
+  on `sassType` checks.
+
 * Add support for parsing list expressions.
 
 * Add support for parsing map expressions.

@@ -5,12 +5,11 @@
 import * as postcss from 'postcss';
 import type {DeclarationRaws as PostcssDeclarationRaws} from 'postcss/lib/declaration';
 
-import {Expression, ExpressionProps} from '../expression';
+import {AnyExpression, ExpressionProps} from '../expression';
 import {Interpolation, InterpolationProps} from '../interpolation';
 import {convertExpression} from '../expression/convert';
 import {fromProps} from '../expression/from-props';
 import {LazySource} from '../lazy-source';
-import {Node} from '../node';
 import * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {
@@ -75,7 +74,7 @@ export type DeclarationProps = ContainerProps & {
     | {prop: string; propInterpolation?: never}
   ) &
   (
-    | {expression: Expression | ExpressionProps; value?: never}
+    | {expression: AnyExpression | ExpressionProps; value?: never}
     | {value: string; expression?: never}
     // `expression` and `value` are optional, but *only* if `nodes` is passed
     // explicitly. This also allows `nodes` to be passed along with
@@ -129,18 +128,20 @@ export class Declaration
    * unquoted string values, and if they're set to other SassScript values they
    * may not be evaluated as expected.
    */
-  get expression(): Expression | undefined {
+  get expression(): AnyExpression | undefined {
     return this._expression;
   }
-  set expression(value: Expression | ExpressionProps | undefined) {
+  set expression(value: AnyExpression | ExpressionProps | undefined) {
     if (this._expression) this._expression.parent = undefined;
-    if (value) {
-      if (!('sassType' in value)) value = fromProps(value);
-      if (value) value.parent = this;
+    if (!value) {
+      this._expression = undefined;
+    } else {
+      const built = 'sassType' in value ? value : fromProps(value);
+      built.parent = this;
+      this._expression = built;
     }
-    this._expression = value;
   }
-  private declare _expression?: Expression;
+  private declare _expression?: AnyExpression;
 
   get value(): string {
     return this.expression?.toString() ?? '';
@@ -236,8 +237,10 @@ export class Declaration
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Node> {
-    const result: Node[] = [this.propInterpolation];
+  get nonStatementChildren(): ReadonlyArray<Interpolation | AnyExpression> {
+    const result: Array<Interpolation | AnyExpression> = [
+      this.propInterpolation,
+    ];
     if (this.expression) result.push(this.expression);
     return result;
   }

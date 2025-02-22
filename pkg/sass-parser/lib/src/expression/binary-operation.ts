@@ -8,7 +8,7 @@ import {LazySource} from '../lazy-source';
 import {NodeProps} from '../node';
 import type * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
-import {Expression, ExpressionProps} from '.';
+import {AnyExpression, Expression, ExpressionProps} from '.';
 import {convertExpression} from './convert';
 import {fromProps} from './from-props';
 
@@ -36,8 +36,8 @@ export type BinaryOperator =
  */
 export interface BinaryOperationExpressionProps extends NodeProps {
   operator: BinaryOperator;
-  left: Expression | ExpressionProps;
-  right: Expression | ExpressionProps;
+  left: AnyExpression | ExpressionProps;
+  right: AnyExpression | ExpressionProps;
   raws?: BinaryOperationExpressionRaws;
 }
 
@@ -80,30 +80,30 @@ export class BinaryOperationExpression extends Expression {
   private declare _operator: BinaryOperator;
 
   /** The expression on the left-hand side of this operation. */
-  get left(): Expression {
+  get left(): AnyExpression {
     return this._left;
   }
-  set left(left: Expression | ExpressionProps) {
+  set left(left: AnyExpression | ExpressionProps) {
     // TODO - postcss/postcss#1957: Mark this as dirty
     if (this._left) this._left.parent = undefined;
-    if (!('sassType' in left)) left = fromProps(left);
-    left.parent = this;
-    this._left = left;
+    const built = 'sassType' in left ? left : fromProps(left);
+    built.parent = this;
+    this._left = built;
   }
-  private declare _left: Expression;
+  private declare _left: AnyExpression;
 
   /** The expression on the right-hand side of this operation. */
-  get right(): Expression {
+  get right(): AnyExpression {
     return this._right;
   }
-  set right(right: Expression | ExpressionProps) {
+  set right(right: AnyExpression | ExpressionProps) {
     // TODO - postcss/postcss#1957: Mark this as dirty
     if (this._right) this._right.parent = undefined;
-    if (!('sassType' in right)) right = fromProps(right);
-    right.parent = this;
-    this._right = right;
+    const built = 'sassType' in right ? right : fromProps(right);
+    built.parent = this;
+    this._right = built;
   }
-  private declare _right: Expression;
+  private declare _right: AnyExpression;
 
   constructor(defaults: BinaryOperationExpressionProps);
   /** @hidden */
@@ -146,7 +146,7 @@ export class BinaryOperationExpression extends Expression {
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return [this.left, this.right];
   }
 }

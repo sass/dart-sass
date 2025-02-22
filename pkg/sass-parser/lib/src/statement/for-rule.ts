@@ -6,7 +6,7 @@ import * as postcss from 'postcss';
 import type {AtRuleRaws} from 'postcss/lib/at-rule';
 
 import {convertExpression} from '../expression/convert';
-import {Expression, ExpressionProps} from '../expression';
+import {AnyExpression, ExpressionProps} from '../expression';
 import {fromProps} from '../expression/from-props';
 import {LazySource} from '../lazy-source';
 import type * as sassInternal from '../sass-internal';
@@ -51,8 +51,8 @@ export interface ForRuleRaws extends Omit<AtRuleRaws, 'params'> {
 export type ForRuleProps = ContainerProps & {
   raws?: ForRuleRaws;
   variable: string;
-  fromExpression: Expression | ExpressionProps;
-  toExpression: Expression | ExpressionProps;
+  fromExpression: AnyExpression | ExpressionProps;
+  toExpression: AnyExpression | ExpressionProps;
   to?: 'to' | 'through';
 };
 
@@ -103,32 +103,30 @@ export class ForRule
   }
 
   /** The expression whose value is the starting point of the iteration. */
-  get fromExpression(): Expression {
+  get fromExpression(): AnyExpression {
     return this._fromExpression!;
   }
-  set fromExpression(fromExpression: Expression | ExpressionProps) {
+  set fromExpression(fromExpression: AnyExpression | ExpressionProps) {
     if (this._fromExpression) this._fromExpression.parent = undefined;
-    if (!('sassType' in fromExpression)) {
-      fromExpression = fromProps(fromExpression);
-    }
-    if (fromExpression) fromExpression.parent = this;
-    this._fromExpression = fromExpression;
+    const built =
+      'sassType' in fromExpression ? fromExpression : fromProps(fromExpression);
+    built.parent = this;
+    this._fromExpression = built;
   }
-  private declare _fromExpression?: Expression;
+  private declare _fromExpression?: AnyExpression;
 
   /** The expression whose value is the ending point of the iteration. */
-  get toExpression(): Expression {
+  get toExpression(): AnyExpression {
     return this._toExpression!;
   }
-  set toExpression(toExpression: Expression | ExpressionProps) {
+  set toExpression(toExpression: AnyExpression | ExpressionProps) {
     if (this._toExpression) this._toExpression.parent = undefined;
-    if (!('sassType' in toExpression)) {
-      toExpression = fromProps(toExpression);
-    }
-    if (toExpression) toExpression.parent = this;
-    this._toExpression = toExpression;
+    const built =
+      'sassType' in toExpression ? toExpression : fromProps(toExpression);
+    built.parent = this;
+    this._toExpression = built;
   }
-  private declare _toExpression?: Expression;
+  private declare _toExpression?: AnyExpression;
 
   constructor(defaults: ForRuleProps);
   /** @hidden */
@@ -187,7 +185,7 @@ export class ForRule
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return [this.fromExpression, this.toExpression];
   }
 

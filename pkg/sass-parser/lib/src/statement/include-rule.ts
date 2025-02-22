@@ -7,7 +7,6 @@ import type {AtRuleRaws} from 'postcss/lib/at-rule';
 
 import {ArgumentList, ArgumentListProps} from '../argument-list';
 import {LazySource} from '../lazy-source';
-import {Node} from '../node';
 import {ParameterList, ParameterListProps} from '../parameter-list';
 import {RawWithValue} from '../raw-with-value';
 import * as sassInternal from '../sass-internal';
@@ -239,8 +238,8 @@ export class IncludeRule
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Node> {
-    const result: Node[] = [this.arguments];
+  get nonStatementChildren(): ReadonlyArray<ArgumentList | ParameterList> {
+    const result: Array<ArgumentList | ParameterList> = [this.arguments];
     if (this.using) result.push(this.using);
     return result;
   }

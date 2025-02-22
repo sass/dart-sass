@@ -6,7 +6,7 @@ import * as postcss from 'postcss';
 import type {AtRuleRaws} from 'postcss/lib/at-rule';
 
 import {convertExpression} from '../expression/convert';
-import {Expression, ExpressionProps} from '../expression';
+import {AnyExpression, ExpressionProps} from '../expression';
 import {fromProps} from '../expression/from-props';
 import {LazySource} from '../lazy-source';
 import type * as sassInternal from '../sass-internal';
@@ -44,7 +44,7 @@ export interface ElseRuleRaws extends Omit<AtRuleRaws, 'params'> {
  */
 export type ElseRuleProps = ContainerProps & {
   raws?: ElseRuleRaws;
-  elseCondition?: Expression | ExpressionProps;
+  elseCondition?: AnyExpression | ExpressionProps;
 };
 
 /**
@@ -83,20 +83,23 @@ export class ElseRule
    * The expression whose value determines whether to evaluate the block. If
    * this isn't set, the block is evaluated unconditionally.
    */
-  get elseCondition(): Expression | undefined {
+  get elseCondition(): AnyExpression | undefined {
     return this._elseCondition!;
   }
-  set elseCondition(elseCondition: Expression | ExpressionProps | undefined) {
+  set elseCondition(
+    elseCondition: AnyExpression | ExpressionProps | undefined,
+  ) {
     if (this._elseCondition) this._elseCondition.parent = undefined;
-    if (elseCondition) {
-      if (!('sassType' in elseCondition)) {
-        elseCondition = fromProps(elseCondition);
-      }
-      elseCondition.parent = this;
+    if (!elseCondition) {
+      this._elseCondition = undefined;
+    } else {
+      const built =
+        'sassType' in elseCondition ? elseCondition : fromProps(elseCondition);
+      built.parent = this;
+      this._elseCondition = built;
     }
-    this._elseCondition = elseCondition;
   }
-  private declare _elseCondition?: Expression;
+  private declare _elseCondition?: AnyExpression;
 
   constructor(defaults?: ElseRuleProps);
   /** @hidden */
@@ -149,7 +152,7 @@ export class ElseRule
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return this.elseCondition ? [this.elseCondition] : [];
   }
 

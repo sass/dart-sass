@@ -3,9 +3,9 @@
 // https://opensource.org/licenses/MIT.
 
 import {
+  AnyExpression,
   ChildNode,
   ChildProps,
-  Expression,
   ExpressionProps,
   GenericAtRule,
   Interpolation,
@@ -14,7 +14,7 @@ import {
 } from '../lib';
 
 /** Parses a Sass expression from {@link text}. */
-export function parseExpression<T extends Expression>(text: string): T {
+export function parseExpression<T extends AnyExpression>(text: string): T {
   const interpolation = (scss.parse(`@#{${text}}`).nodes[0] as GenericAtRule)
     .nameInterpolation;
   const expression = interpolation.nodes[0] as T;
@@ -28,7 +28,7 @@ export function fromChildProps<T extends ChildNode>(props: ChildProps): T {
 }
 
 /** Constructs a new expression from {@link props}. */
-export function fromExpressionProps<T extends Expression>(
+export function fromExpressionProps<T extends AnyExpression>(
   props: ExpressionProps,
 ): T {
   return new Interpolation({nodes: [props]}).nodes[0] as T;

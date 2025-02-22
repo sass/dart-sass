@@ -7,7 +7,7 @@ import * as postcss from 'postcss';
 import {Container} from './container';
 import {convertExpression} from './expression/convert';
 import {fromProps} from './expression/from-props';
-import {Expression, ExpressionProps} from './expression';
+import {AnyExpression, ExpressionProps} from './expression';
 import {LazySource} from './lazy-source';
 import {Node, NodeProps} from './node';
 import {RawWithValue} from './raw-with-value';
@@ -25,8 +25,8 @@ import * as utils from './utils';
 export type NewNodeForInterpolation =
   | Interpolation
   | ReadonlyArray<Interpolation>
-  | Expression
-  | ReadonlyArray<Expression>
+  | AnyExpression
+  | ReadonlyArray<AnyExpression>
   | ExpressionProps
   | ReadonlyArray<ExpressionProps>
   | string
@@ -95,7 +95,7 @@ export interface InterpolationRaws {
  */
 export class Interpolation
   extends Node
-  implements Container<string | Expression, NewNodeForInterpolation>
+  implements Container<string | AnyExpression, NewNodeForInterpolation>
 {
   readonly sassType = 'interpolation' as const;
   declare raws: InterpolationRaws;
@@ -109,15 +109,15 @@ export class Interpolation
    * This shouldn't be modified directly; instead, the various methods defined
    * in {@link Interpolation} should be used to modify it.
    */
-  get nodes(): ReadonlyArray<string | Expression> {
+  get nodes(): ReadonlyArray<string | AnyExpression> {
     return this._nodes!;
   }
   /** @hidden */
-  set nodes(nodes: Array<string | Expression>) {
+  set nodes(nodes: Array<string | AnyExpression>) {
     // This *should* only ever be called by the superclass constructor.
     this._nodes = nodes;
   }
-  private declare _nodes?: Array<string | Expression>;
+  private declare _nodes?: Array<string | AnyExpression>;
 
   /** Returns whether this contains no interpolated expressions. */
   get isPlain(): boolean {
@@ -183,7 +183,7 @@ export class Interpolation
   }
 
   each(
-    callback: (node: string | Expression, index: number) => false | void,
+    callback: (node: string | AnyExpression, index: number) => false | void,
   ): false | undefined {
     const iterator = {index: 0};
     this.#iterators.push(iterator);
@@ -202,20 +202,20 @@ export class Interpolation
 
   every(
     condition: (
-      node: string | Expression,
+      node: string | AnyExpression,
       index: number,
-      nodes: ReadonlyArray<string | Expression>,
+      nodes: ReadonlyArray<string | AnyExpression>,
     ) => boolean,
   ): boolean {
     return this.nodes.every(condition);
   }
 
-  index(child: string | Expression | number): number {
+  index(child: string | AnyExpression | number): number {
     return typeof child === 'number' ? child : this.nodes.indexOf(child);
   }
 
   insertAfter(
-    oldNode: string | Expression | number,
+    oldNode: string | AnyExpression | number,
     newNode: NewNodeForInterpolation,
   ): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
@@ -231,7 +231,7 @@ export class Interpolation
   }
 
   insertBefore(
-    oldNode: string | Expression | number,
+    oldNode: string | AnyExpression | number,
     newNode: NewNodeForInterpolation,
   ): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
@@ -258,7 +258,7 @@ export class Interpolation
     return this;
   }
 
-  push(child: string | Expression): this {
+  push(child: string | AnyExpression): this {
     return this.append(child);
   }
 
@@ -271,7 +271,7 @@ export class Interpolation
     return this;
   }
 
-  removeChild(child: string | Expression | number): this {
+  removeChild(child: string | AnyExpression | number): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
     const index = this.index(child);
     child = this._nodes![index];
@@ -287,19 +287,19 @@ export class Interpolation
 
   some(
     condition: (
-      node: string | Expression,
+      node: string | AnyExpression,
       index: number,
-      nodes: ReadonlyArray<string | Expression>,
+      nodes: ReadonlyArray<string | AnyExpression>,
     ) => boolean,
   ): boolean {
     return this.nodes.some(condition);
   }
 
-  get first(): string | Expression | undefined {
+  get first(): string | AnyExpression | undefined {
     return this.nodes[0];
   }
 
-  get last(): string | Expression | undefined {
+  get last(): string | AnyExpression | undefined {
     return this.nodes[this.nodes.length - 1];
   }
 
@@ -327,8 +327,10 @@ export class Interpolation
    * Normalizes the many types of node that can be used with Interpolation
    * methods.
    */
-  private _normalize(nodes: NewNodeForInterpolation): (Expression | string)[] {
-    const result: Array<string | Expression> = [];
+  private _normalize(
+    nodes: NewNodeForInterpolation,
+  ): (AnyExpression | string)[] {
+    const result: Array<string | AnyExpression> = [];
     for (const node of Array.isArray(nodes) ? nodes : [nodes]) {
       if (node === undefined) {
         continue;
@@ -363,8 +365,8 @@ export class Interpolation
   /** Like {@link _normalize}, but also flattens a list of nodes. */
   private _normalizeList(
     nodes: ReadonlyArray<NewNodeForInterpolation>,
-  ): (Expression | string)[] {
-    const result: Array<string | Expression> = [];
+  ): (AnyExpression | string)[] {
+    const result: Array<string | AnyExpression> = [];
     for (const node of nodes) {
       result.push(...this._normalize(node));
     }
@@ -372,9 +374,9 @@ export class Interpolation
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return this.nodes.filter(
-      (node): node is Expression => typeof node !== 'string',
+      (node): node is AnyExpression => typeof node !== 'string',
     );
   }
 }

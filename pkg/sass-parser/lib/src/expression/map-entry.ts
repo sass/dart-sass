@@ -4,7 +4,7 @@
 
 import * as postcss from 'postcss';
 
-import {Expression, ExpressionProps} from './index';
+import {AnyExpression, ExpressionProps} from './index';
 import {fromProps} from './from-props';
 import {Node, NodeProps} from '../node';
 import {MapExpression} from './map';
@@ -37,8 +37,8 @@ export interface MapEntryRaws {
  */
 export interface MapEntryObjectProps extends NodeProps {
   raws?: MapEntryRaws;
-  key: Expression | ExpressionProps;
-  value: Expression | ExpressionProps;
+  key: AnyExpression | ExpressionProps;
+  value: AnyExpression | ExpressionProps;
 }
 
 /**
@@ -48,7 +48,7 @@ export interface MapEntryObjectProps extends NodeProps {
  */
 export type MapEntryProps =
   | MapEntryObjectProps
-  | [Expression | ExpressionProps, Expression | ExpressionProps];
+  | [AnyExpression | ExpressionProps, AnyExpression | ExpressionProps];
 
 /**
  * A single key/value pair in a map literal. This is always included in a {@link
@@ -62,28 +62,28 @@ export class MapEntry extends Node {
   declare parent: MapExpression | undefined;
 
   /** The map key. */
-  get key(): Expression {
+  get key(): AnyExpression {
     return this._key!;
   }
-  set key(key: Expression | ExpressionProps) {
+  set key(key: AnyExpression | ExpressionProps) {
     if (this._key) this._key.parent = undefined;
-    if (!('sassType' in key)) key = fromProps(key);
-    if (key) key.parent = this;
-    this._key = key;
+    const built = 'sassType' in key ? key : fromProps(key);
+    built.parent = this;
+    this._key = built;
   }
-  private declare _key?: Expression;
+  private declare _key?: AnyExpression;
 
   /** The map value. */
-  get value(): Expression {
+  get value(): AnyExpression {
     return this._value!;
   }
-  set value(value: Expression | ExpressionProps) {
+  set value(value: AnyExpression | ExpressionProps) {
     if (this._value) this._value.parent = undefined;
-    if (!('sassType' in value)) value = fromProps(value);
-    if (value) value.parent = this;
-    this._value = value;
+    const built = 'sassType' in value ? value : fromProps(value);
+    built.parent = this;
+    this._value = built;
   }
-  private declare _value?: Expression;
+  private declare _value?: AnyExpression;
 
   constructor(defaults: MapEntryProps) {
     if (Array.isArray(defaults)) {
@@ -110,7 +110,7 @@ export class MapEntry extends Node {
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return [this.key, this.value];
   }
 }

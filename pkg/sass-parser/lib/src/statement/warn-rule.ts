@@ -6,7 +6,7 @@ import * as postcss from 'postcss';
 import type {AtRuleRaws as PostcssAtRuleRaws} from 'postcss/lib/at-rule';
 
 import {convertExpression} from '../expression/convert';
-import {Expression, ExpressionProps} from '../expression';
+import {AnyExpression, ExpressionProps} from '../expression';
 import {fromProps} from '../expression/from-props';
 import {LazySource} from '../lazy-source';
 import type * as sassInternal from '../sass-internal';
@@ -33,7 +33,7 @@ export type WarnRuleRaws = Pick<
  */
 export type WarnRuleProps = postcss.NodeProps & {
   raws?: WarnRuleRaws;
-  warnExpression: Expression | ExpressionProps;
+  warnExpression: AnyExpression | ExpressionProps;
 };
 
 /**
@@ -67,18 +67,17 @@ export class WarnRule
   }
 
   /** The expression whose value is emitted when the warn rule is executed. */
-  get warnExpression(): Expression {
+  get warnExpression(): AnyExpression {
     return this._warnExpression!;
   }
-  set warnExpression(warnExpression: Expression | ExpressionProps) {
+  set warnExpression(warnExpression: AnyExpression | ExpressionProps) {
     if (this._warnExpression) this._warnExpression.parent = undefined;
-    if (!('sassType' in warnExpression)) {
-      warnExpression = fromProps(warnExpression);
-    }
-    if (warnExpression) warnExpression.parent = this;
-    this._warnExpression = warnExpression;
+    const built =
+      'sassType' in warnExpression ? warnExpression : fromProps(warnExpression);
+    built.parent = this;
+    this._warnExpression = built;
   }
-  private declare _warnExpression?: Expression;
+  private declare _warnExpression?: AnyExpression;
 
   constructor(defaults: WarnRuleProps);
   /** @hidden */
@@ -121,7 +120,7 @@ export class WarnRule
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return [this.warnExpression];
   }
 }

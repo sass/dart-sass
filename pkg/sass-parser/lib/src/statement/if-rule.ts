@@ -6,7 +6,7 @@ import * as postcss from 'postcss';
 import type {AtRuleRaws} from 'postcss/lib/at-rule';
 
 import {convertExpression} from '../expression/convert';
-import {Expression, ExpressionProps} from '../expression';
+import {AnyExpression, ExpressionProps} from '../expression';
 import {fromProps} from '../expression/from-props';
 import {LazySource} from '../lazy-source';
 import type * as sassInternal from '../sass-internal';
@@ -38,7 +38,7 @@ export type IfRuleRaws = Omit<AtRuleRaws, 'params'>;
  */
 export type IfRuleProps = ContainerProps & {
   raws?: IfRuleRaws;
-  ifCondition: Expression | ExpressionProps;
+  ifCondition: AnyExpression | ExpressionProps;
 };
 
 /**
@@ -69,18 +69,17 @@ export class IfRule extends _AtRule<Partial<IfRuleProps>> implements Statement {
   }
 
   /** The expression whose value determines whether to execute this block. */
-  get ifCondition(): Expression {
+  get ifCondition(): AnyExpression {
     return this._ifCondition!;
   }
-  set ifCondition(ifCondition: Expression | ExpressionProps) {
+  set ifCondition(ifCondition: AnyExpression | ExpressionProps) {
     if (this._ifCondition) this._ifCondition.parent = undefined;
-    if (!('sassType' in ifCondition)) {
-      ifCondition = fromProps(ifCondition);
-    }
-    ifCondition.parent = this;
-    this._ifCondition = ifCondition;
+    const built =
+      'sassType' in ifCondition ? ifCondition : fromProps(ifCondition);
+    built.parent = this;
+    this._ifCondition = built;
   }
-  private declare _ifCondition?: Expression;
+  private declare _ifCondition?: AnyExpression;
 
   constructor(defaults: IfRuleProps);
   /** @hidden */
@@ -120,7 +119,7 @@ export class IfRule extends _AtRule<Partial<IfRuleProps>> implements Statement {
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return [this.ifCondition];
   }
 

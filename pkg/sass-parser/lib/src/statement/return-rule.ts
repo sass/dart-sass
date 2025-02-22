@@ -6,7 +6,7 @@ import * as postcss from 'postcss';
 import type {AtRuleRaws as PostcssAtRuleRaws} from 'postcss/lib/at-rule';
 
 import {convertExpression} from '../expression/convert';
-import {Expression, ExpressionProps} from '../expression';
+import {AnyExpression, ExpressionProps} from '../expression';
 import {fromProps} from '../expression/from-props';
 import {LazySource} from '../lazy-source';
 import type * as sassInternal from '../sass-internal';
@@ -33,7 +33,7 @@ export type ReturnRuleRaws = Pick<
  */
 export type ReturnRuleProps = postcss.NodeProps & {
   raws?: ReturnRuleRaws;
-  returnExpression: Expression | ExpressionProps;
+  returnExpression: AnyExpression | ExpressionProps;
 };
 
 /**
@@ -67,18 +67,19 @@ export class ReturnRule
   }
 
   /** The expression whose value is emitted when the return rule is executed. */
-  get returnExpression(): Expression {
+  get returnExpression(): AnyExpression {
     return this._returnExpression!;
   }
-  set returnExpression(returnExpression: Expression | ExpressionProps) {
+  set returnExpression(returnExpression: AnyExpression | ExpressionProps) {
     if (this._returnExpression) this._returnExpression.parent = undefined;
-    if (!('sassType' in returnExpression)) {
-      returnExpression = fromProps(returnExpression);
-    }
-    if (returnExpression) returnExpression.parent = this;
-    this._returnExpression = returnExpression;
+    const built =
+      'sassType' in returnExpression
+        ? returnExpression
+        : fromProps(returnExpression);
+    built.parent = this;
+    this._returnExpression = built;
   }
-  declare _returnExpression?: Expression;
+  declare _returnExpression?: AnyExpression;
 
   constructor(defaults: ReturnRuleProps);
   /** @hidden */
@@ -121,7 +122,7 @@ export class ReturnRule
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return [this.returnExpression];
   }
 }

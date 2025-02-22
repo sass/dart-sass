@@ -6,7 +6,7 @@ import * as postcss from 'postcss';
 import type {AtRuleRaws} from 'postcss/lib/at-rule';
 
 import {convertExpression} from '../expression/convert';
-import {Expression, ExpressionProps} from '../expression';
+import {AnyExpression, ExpressionProps} from '../expression';
 import {fromProps} from '../expression/from-props';
 import {LazySource} from '../lazy-source';
 import type * as sassInternal from '../sass-internal';
@@ -51,7 +51,7 @@ export interface EachRuleRaws extends Omit<AtRuleRaws, 'params'> {
 export type EachRuleProps = ContainerProps & {
   raws?: EachRuleRaws;
   variables: string[];
-  eachExpression: Expression | ExpressionProps;
+  eachExpression: AnyExpression | ExpressionProps;
 };
 
 /**
@@ -96,18 +96,17 @@ export class EachRule
   }
 
   /** The expression whose value is iterated over. */
-  get eachExpression(): Expression {
+  get eachExpression(): AnyExpression {
     return this._eachExpression!;
   }
-  set eachExpression(eachExpression: Expression | ExpressionProps) {
+  set eachExpression(eachExpression: AnyExpression | ExpressionProps) {
     if (this._eachExpression) this._eachExpression.parent = undefined;
-    if (!('sassType' in eachExpression)) {
-      eachExpression = fromProps(eachExpression);
-    }
-    if (eachExpression) eachExpression.parent = this;
-    this._eachExpression = eachExpression;
+    const built =
+      'sassType' in eachExpression ? eachExpression : fromProps(eachExpression);
+    built.parent = this;
+    this._eachExpression = built;
   }
-  private declare _eachExpression?: Expression;
+  private declare _eachExpression?: AnyExpression;
 
   constructor(defaults: EachRuleProps);
   /** @hidden */
@@ -152,7 +151,7 @@ export class EachRule
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return [this.eachExpression];
   }
 

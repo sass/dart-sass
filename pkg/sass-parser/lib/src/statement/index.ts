@@ -180,7 +180,7 @@ export interface ContainerProps extends NodeProps {
  */
 export type StatementWithChildren = postcss.Container<postcss.ChildNode> &
   Container<ChildNode, NewNode> &
-  Statement;
+  AnyStatement;
 
 /**
  * A statement in a Sass stylesheet.

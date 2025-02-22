@@ -5,7 +5,7 @@
 import * as postcss from 'postcss';
 
 import {convertExpression} from './expression/convert';
-import {Expression, ExpressionProps} from './expression';
+import {AnyExpression, ExpressionProps} from './expression';
 import {fromProps} from './expression/from-props';
 import {LazySource} from './lazy-source';
 import {Node, NodeProps} from './node';
@@ -62,7 +62,7 @@ export type ParameterObjectProps = NodeProps & {
   name: string;
 } & (
     | {
-        defaultValue?: Expression | ExpressionProps;
+        defaultValue?: AnyExpression | ExpressionProps;
         rest?: never;
       }
     | {
@@ -78,7 +78,7 @@ export type ParameterObjectProps = NodeProps & {
  * ParameterDeclarationProps}.
  */
 export type ParameterExpressionProps =
-  | Expression
+  | AnyExpression
   | ExpressionProps
   | Omit<ParameterObjectProps, 'name'>;
 
@@ -116,21 +116,21 @@ export class Parameter extends Node {
    *
    * Setting this to a value automatically sets {@link rest} to `false`.
    */
-  get defaultValue(): Expression | undefined {
+  get defaultValue(): AnyExpression | undefined {
     return this._defaultValue!;
   }
-  set defaultValue(value: Expression | ExpressionProps | undefined) {
+  set defaultValue(value: AnyExpression | ExpressionProps | undefined) {
     if (this._defaultValue) this._defaultValue.parent = undefined;
     if (!value) {
       this._defaultValue = undefined;
     } else {
       this._rest = false;
-      if (!('sassType' in value)) value = fromProps(value);
-      if (value) value.parent = this;
-      this._defaultValue = value;
+      const built = 'sassType' in value ? value : fromProps(value);
+      built.parent = this;
+      this._defaultValue = built;
     }
   }
-  private declare _defaultValue?: Expression;
+  private declare _defaultValue?: AnyExpression;
 
   /**
    * Whether this is a rest parameter (indicated by `...` in Sass).
@@ -159,7 +159,7 @@ export class Parameter extends Node {
         ? ({name, ...props} as ParameterObjectProps)
         : {
             name,
-            defaultValue: props as Expression | ExpressionProps,
+            defaultValue: props as AnyExpression | ExpressionProps,
           };
     }
     super(defaults);
@@ -205,7 +205,7 @@ export class Parameter extends Node {
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return this.defaultValue ? [this.defaultValue] : [];
   }
 }
