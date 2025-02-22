@@ -71,6 +71,11 @@ export {
   ColorExpressionRaws,
 } from './src/expression/color';
 export {
+  FunctionExpression,
+  FunctionExpressionProps,
+  FunctionExpressionRaws,
+} from './src/expression/function';
+export {
   ListExpression,
   ListExpressionProps,
   ListExpressionRaws,

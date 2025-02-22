@@ -7,6 +7,7 @@ import {Expression, ExpressionProps} from '.';
 import {BinaryOperationExpression} from './binary-operation';
 import {BooleanExpression} from './boolean';
 import {ColorExpression} from './color';
+import {FunctionExpression} from './function';
 import {ListExpression} from './list';
 import {MapExpression} from './map';
 import {NumberExpression} from './number';
@@ -18,6 +19,7 @@ export function fromProps(props: ExpressionProps): Expression {
   if ('left' in props) return new BinaryOperationExpression(props);
   if ('separator' in props) return new ListExpression(props);
   if ('nodes' in props) return new MapExpression(props);
+  if ('name' in props) return new FunctionExpression(props);
   if ('value' in props) {
     if (typeof props.value === 'boolean') return new BooleanExpression(props);
     if (typeof props.value === 'number') return new NumberExpression(props);

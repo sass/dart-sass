@@ -1,0 +1,52 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a function expression toJSON if() 1`] = `
+{
+  "arguments": <(cond, true, false)>,
+  "inputs": [
+    {
+      "css": "@#{if(cond, true, false)}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "if",
+  "raws": {},
+  "sassType": "function-call",
+}
+`;
+
+exports[`a function expression toJSON with a namespace 1`] = `
+{
+  "arguments": <(bar)>,
+  "inputs": [
+    {
+      "css": "@#{baz.foo(bar)}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "foo",
+  "namespace": "baz",
+  "raws": {},
+  "sassType": "function-call",
+  "source": <1:4-1:16 in 0>,
+}
+`;
+
+exports[`a function expression toJSON without a namespace 1`] = `
+{
+  "arguments": <(bar)>,
+  "inputs": [
+    {
+      "css": "@#{foo(bar)}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "foo",
+  "raws": {},
+  "sassType": "function-call",
+  "source": <1:4-1:12 in 0>,
+}
+`;
