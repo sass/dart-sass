@@ -9,7 +9,7 @@ import {LazySource} from '../lazy-source';
 import {NodeProps} from '../node';
 import type * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
-import {Expression, ExpressionProps} from '.';
+import {AnyExpression, Expression, ExpressionProps} from '.';
 import {convertExpression} from './convert';
 import {fromProps} from './from-props';
 
@@ -31,7 +31,7 @@ export type ListSeparator = ' ' | ',' | '/' | null;
 export interface ListExpressionProps extends NodeProps {
   raws?: ListExpressionRaws;
   separator: ListSeparator;
-  nodes: Array<Expression | ExpressionProps>;
+  nodes: Array<AnyExpression | ExpressionProps>;
   brackets?: boolean;
 }
 
@@ -42,8 +42,8 @@ export interface ListExpressionProps extends NodeProps {
  * @category Expression
  */
 export type NewNodeForListExpression =
-  | Expression
-  | ReadonlyArray<Expression>
+  | AnyExpression
+  | ReadonlyArray<AnyExpression>
   | ExpressionProps
   | ReadonlyArray<ExpressionProps>
   | undefined;
@@ -98,7 +98,7 @@ export interface ListExpressionRaws {
  */
 export class ListExpression
   extends Expression
-  implements Container<Expression, NewNodeForListExpression>
+  implements Container<AnyExpression, NewNodeForListExpression>
 {
   readonly sassType = 'list' as const;
   declare raws: ListExpressionRaws;
@@ -126,15 +126,15 @@ export class ListExpression
   }
   private declare _brackets: boolean;
 
-  get nodes(): ReadonlyArray<Expression> {
+  get nodes(): ReadonlyArray<AnyExpression> {
     return this._nodes!;
   }
   /** @hidden */
-  set nodes(nodes: Array<Expression>) {
+  set nodes(nodes: Array<AnyExpression>) {
     // This *should* only ever be called by the superclass constructor.
     this._nodes = nodes;
   }
-  private declare _nodes?: Array<Expression>;
+  private declare _nodes?: Array<AnyExpression>;
 
   /**
    * Iterators that are currently active within this list. Their indices refer
@@ -183,7 +183,7 @@ export class ListExpression
   }
 
   each(
-    callback: (node: Expression, index: number) => false | void,
+    callback: (node: AnyExpression, index: number) => false | void,
   ): false | undefined {
     const iterator = {index: 0};
     this.#iterators.push(iterator);
@@ -202,20 +202,20 @@ export class ListExpression
 
   every(
     condition: (
-      node: Expression,
+      node: AnyExpression,
       index: number,
-      nodes: ReadonlyArray<Expression>,
+      nodes: ReadonlyArray<AnyExpression>,
     ) => boolean,
   ): boolean {
     return this.nodes.every(condition);
   }
 
-  index(child: Expression | number): number {
+  index(child: AnyExpression | number): number {
     return typeof child === 'number' ? child : this.nodes.indexOf(child);
   }
 
   insertAfter(
-    oldNode: Expression | number,
+    oldNode: AnyExpression | number,
     newNode: NewNodeForListExpression,
   ): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
@@ -231,7 +231,7 @@ export class ListExpression
   }
 
   insertBefore(
-    oldNode: Expression | number,
+    oldNode: AnyExpression | number,
     newNode: NewNodeForListExpression,
   ): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
@@ -258,7 +258,7 @@ export class ListExpression
     return this;
   }
 
-  push(child: Expression): this {
+  push(child: AnyExpression): this {
     return this.append(child);
   }
 
@@ -271,7 +271,7 @@ export class ListExpression
     return this;
   }
 
-  removeChild(child: Expression | number): this {
+  removeChild(child: AnyExpression | number): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
     const index = this.index(child);
     const argument = this._nodes![index];
@@ -287,19 +287,19 @@ export class ListExpression
 
   some(
     condition: (
-      node: Expression,
+      node: AnyExpression,
       index: number,
-      nodes: ReadonlyArray<Expression>,
+      nodes: ReadonlyArray<AnyExpression>,
     ) => boolean,
   ): boolean {
     return this.nodes.some(condition);
   }
 
-  get first(): Expression | undefined {
+  get first(): AnyExpression | undefined {
     return this.nodes[0];
   }
 
-  get last(): Expression | undefined {
+  get last(): AnyExpression | undefined {
     return this.nodes[this.nodes.length - 1];
   }
 
@@ -358,9 +358,9 @@ export class ListExpression
   /**
    * Normalizes a single argument declaration or list of arguments.
    */
-  private _normalize(nodes: NewNodeForListExpression): Expression[] {
+  private _normalize(nodes: NewNodeForListExpression): AnyExpression[] {
     if (nodes === undefined) return [];
-    const normalized: Expression[] = [];
+    const normalized: AnyExpression[] = [];
     for (const node of Array.isArray(nodes) ? nodes : [nodes]) {
       if (node === undefined) {
         continue;
@@ -380,8 +380,8 @@ export class ListExpression
   /** Like {@link _normalize}, but also flattens a list of nodes. */
   private _normalizeList(
     nodes: ReadonlyArray<NewNodeForListExpression>,
-  ): Expression[] {
-    const result: Array<Expression> = [];
+  ): AnyExpression[] {
+    const result: Array<AnyExpression> = [];
     for (const node of nodes) {
       result.push(...this._normalize(node));
     }
@@ -389,7 +389,7 @@ export class ListExpression
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return this.nodes;
   }
 }

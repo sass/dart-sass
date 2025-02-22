@@ -8,7 +8,7 @@ import {LazySource} from '../lazy-source';
 import {NodeProps} from '../node';
 import type * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
-import {Expression, ExpressionProps} from '.';
+import {AnyExpression, Expression, ExpressionProps} from '.';
 import {convertExpression} from './convert';
 import {fromProps} from './from-props';
 
@@ -18,7 +18,7 @@ import {fromProps} from './from-props';
  * @category Expression
  */
 export interface ParenthesizedExpressionProps extends NodeProps {
-  inParens: Expression | ExpressionProps;
+  inParens: AnyExpression | ExpressionProps;
   raws?: ParenthesizedExpressionRaws;
 }
 
@@ -45,17 +45,17 @@ export class ParenthesizedExpression extends Expression {
   declare raws: ParenthesizedExpressionRaws;
 
   /** The expression within the parentheses. */
-  get inParens(): Expression {
+  get inParens(): AnyExpression {
     return this._inParens;
   }
-  set inParens(inParens: Expression | ExpressionProps) {
+  set inParens(inParens: AnyExpression | ExpressionProps) {
     // TODO - postcss/postcss#1957: Mark this as dirty
     if (this._inParens) this._inParens.parent = undefined;
-    if (!('sassType' in inParens)) inParens = fromProps(inParens);
-    inParens.parent = this;
-    this._inParens = inParens;
+    const built = 'sassType' in inParens ? inParens : fromProps(inParens);
+    built.parent = this;
+    this._inParens = built;
   }
-  private declare _inParens: Expression;
+  private declare _inParens: AnyExpression;
 
   constructor(defaults: ParenthesizedExpressionProps);
   /** @hidden */
@@ -91,7 +91,7 @@ export class ParenthesizedExpression extends Expression {
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return [this.inParens];
   }
 }

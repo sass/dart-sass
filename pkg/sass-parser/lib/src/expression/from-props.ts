@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import * as sass from 'sass';
-import {Expression, ExpressionProps} from '.';
+import {AnyExpression, ExpressionProps} from '.';
 import {BinaryOperationExpression} from './binary-operation';
 import {BooleanExpression} from './boolean';
 import {ColorExpression} from './color';
@@ -17,7 +17,7 @@ import {ParenthesizedExpression} from './parenthesized';
 import {StringExpression} from './string';
 
 /** Constructs an expression from {@link ExpressionProps}. */
-export function fromProps(props: ExpressionProps): Expression {
+export function fromProps(props: ExpressionProps): AnyExpression {
   if ('text' in props) return new StringExpression(props);
   if ('left' in props) return new BinaryOperationExpression(props);
   if ('separator' in props) return new ListExpression(props);

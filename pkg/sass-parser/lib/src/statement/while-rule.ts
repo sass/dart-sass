@@ -6,7 +6,7 @@ import * as postcss from 'postcss';
 import type {AtRuleRaws} from 'postcss/lib/at-rule';
 
 import {convertExpression} from '../expression/convert';
-import {Expression, ExpressionProps} from '../expression';
+import {AnyExpression, ExpressionProps} from '../expression';
 import {fromProps} from '../expression/from-props';
 import {LazySource} from '../lazy-source';
 import type * as sassInternal from '../sass-internal';
@@ -38,7 +38,7 @@ export type WhileRuleRaws = Omit<AtRuleRaws, 'params'>;
  */
 export type WhileRuleProps = ContainerProps & {
   raws?: WhileRuleRaws;
-  whileCondition: Expression | ExpressionProps;
+  whileCondition: AnyExpression | ExpressionProps;
 };
 
 /**
@@ -72,18 +72,17 @@ export class WhileRule
   }
 
   /** The expression whose value determines whether to continue looping. */
-  get whileCondition(): Expression {
+  get whileCondition(): AnyExpression {
     return this._whileCondition!;
   }
-  set whileCondition(whileCondition: Expression | ExpressionProps) {
+  set whileCondition(whileCondition: AnyExpression | ExpressionProps) {
     if (this._whileCondition) this._whileCondition.parent = undefined;
-    if (!('sassType' in whileCondition)) {
-      whileCondition = fromProps(whileCondition);
-    }
-    whileCondition.parent = this;
-    this._whileCondition = whileCondition;
+    const built =
+      'sassType' in whileCondition ? whileCondition : fromProps(whileCondition);
+    built.parent = this;
+    this._whileCondition = built;
   }
-  private declare _whileCondition?: Expression;
+  private declare _whileCondition?: AnyExpression;
 
   constructor(defaults: WhileRuleProps);
   /** @hidden */
@@ -123,7 +122,7 @@ export class WhileRule
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return [this.whileCondition];
   }
 

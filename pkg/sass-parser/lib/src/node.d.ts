@@ -5,11 +5,34 @@
 import * as postcss from 'postcss';
 
 import {AnyExpression, ExpressionType} from './expression';
+import {ArgumentList} from './argument-list';
+import {Argument} from './argument';
+import {Configuration} from './configuration';
+import {ConfiguredVariable} from './configured-variable';
+import {DynamicImport} from './dynamic-import';
+import {MapEntry} from './expression/map-entry';
+import {ImportList} from './import-list';
 import {Interpolation} from './interpolation';
-import {AnyStatement, Statement, StatementType} from './statement';
+import {Parameter} from './parameter';
+import {ParameterList} from './parameter-list';
+import {AnyStatement, StatementType} from './statement';
+import {StaticImport} from './static-import';
 
 /** The union type of all Sass nodes. */
-export type AnyNode = AnyStatement | AnyExpression | Interpolation;
+export type AnyNode =
+  | AnyExpression
+  | AnyStatement
+  | Argument
+  | ArgumentList
+  | Configuration
+  | ConfiguredVariable
+  | DynamicImport
+  | ImportList
+  | Interpolation
+  | MapEntry
+  | Parameter
+  | ParameterList
+  | StaticImport;
 
 /**
  * All Sass node types.
@@ -70,7 +93,7 @@ declare abstract class Node
     >
 {
   abstract readonly sassType: NodeType;
-  parent: Node | undefined;
+  parent: AnyNode | undefined;
   source?: postcss.Source;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -82,7 +105,9 @@ declare abstract class Node
    *
    * @hidden
    */
-  abstract get nonStatementChildren(): ReadonlyArray<Exclude<Node, Statement>>;
+  abstract get nonStatementChildren(): ReadonlyArray<
+    Exclude<AnyNode, AnyStatement>
+  >;
 
   constructor(defaults?: object);
 
