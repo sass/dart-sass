@@ -20,6 +20,7 @@ import {NumberExpression} from './number';
 import {ParenthesizedExpression} from './parenthesized';
 import {SelectorExpression} from './selector';
 import {StringExpression} from './string';
+import {UnaryOperationExpression} from './unary-operation';
 
 /** The visitor to use to convert internal Sass nodes to JS. */
 const visitor = sassInternal.createExpressionVisitor<AnyExpression>({
@@ -48,6 +49,8 @@ const visitor = sassInternal.createExpressionVisitor<AnyExpression>({
       text: new Interpolation(undefined, inner.condition.toInterpolation()),
       source: new LazySource(inner),
     }),
+  visitUnaryOperationExpression: inner =>
+    new UnaryOperationExpression(undefined, inner),
 });
 
 /** Converts an internal expression AST node into an external one. */

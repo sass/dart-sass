@@ -20,6 +20,8 @@
 
 * Add support for parsing the `supports()` function in `@import` modifiers.
 
+* Add support for parsing unary operation expressions.
+
 ## 0.4.14
 
 * Add support for parsing color expressions.

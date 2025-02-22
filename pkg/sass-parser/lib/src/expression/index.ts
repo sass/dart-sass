@@ -24,6 +24,10 @@ import {
 } from './parenthesized';
 import type {SelectorExpression} from './selector';
 import type {StringExpression, StringExpressionProps} from './string';
+import type {
+  UnaryOperationExpression,
+  UnaryOperationExpressionProps,
+} from './unary-operation';
 
 /**
  * The union type of all Sass expressions.
@@ -42,7 +46,8 @@ export type AnyExpression =
   | NumberExpression
   | ParenthesizedExpression
   | SelectorExpression
-  | StringExpression;
+  | StringExpression
+  | UnaryOperationExpression;
 
 /**
  * Sass expression types.
@@ -61,7 +66,8 @@ export type ExpressionType =
   | 'number'
   | 'parenthesized'
   | 'selector-expr'
-  | 'string';
+  | 'string'
+  | 'unary-operation';
 
 /**
  * The union type of all properties that can be used to construct Sass
@@ -80,7 +86,8 @@ export type ExpressionProps =
   | NullExpressionProps
   | NumberExpressionProps
   | ParenthesizedExpressionProps
-  | StringExpressionProps;
+  | StringExpressionProps
+  | UnaryOperationExpressionProps;
 
 /**
  * The superclass of Sass expression nodes.

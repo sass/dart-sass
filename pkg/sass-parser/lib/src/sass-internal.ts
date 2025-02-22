@@ -6,6 +6,7 @@ import * as postcss from 'postcss';
 import * as sass from 'sass';
 
 import type * as binaryOperation from './expression/binary-operation';
+import type * as unaryOperation from './expression/unary-operation';
 
 // Type definitions for internal Sass APIs we're wrapping. We cast the Sass
 // module to this type to access them.
@@ -327,7 +328,6 @@ declare namespace SassInternal {
     readonly operator: BinaryOperator;
     readonly left: Expression;
     readonly right: Expression;
-    readonly hasQuotes: boolean;
   }
 
   class FunctionExpression extends Expression {
@@ -387,6 +387,15 @@ declare namespace SassInternal {
 
   class SupportsExpression extends Expression {
     readonly condition: SupportsCondition;
+  }
+
+  class UnaryOperator {
+    readonly operator: unaryOperation.UnaryOperator;
+  }
+
+  class UnaryOperationExpression extends Expression {
+    readonly operator: UnaryOperator;
+    readonly operand: Expression;
   }
 }
 
@@ -451,6 +460,7 @@ export type ParenthesizedExpression = SassInternal.ParenthesizedExpression;
 export type SelectorExpression = SassInternal.SelectorExpression;
 export type StringExpression = SassInternal.StringExpression;
 export type SupportsExpression = SassInternal.SupportsExpression;
+export type UnaryOperationExpression = SassInternal.UnaryOperationExpression;
 
 export interface StatementVisitorObject<T> {
   visitAtRootRule(node: AtRootRule): T;
@@ -495,6 +505,7 @@ export interface ExpressionVisitorObject<T> {
   visitSelectorExpression(node: SelectorExpression): T;
   visitStringExpression(node: StringExpression): T;
   visitSupportsExpression(node: SupportsExpression): T;
+  visitUnaryOperationExpression(node: UnaryOperationExpression): T;
 }
 
 export const createExpressionVisitor = sassInternal.createExpressionVisitor;
