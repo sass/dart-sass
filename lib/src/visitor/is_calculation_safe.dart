@@ -27,7 +27,8 @@ class IsCalculationSafeVisitor implements ExpressionVisitor<bool> {
         BinaryOperator.plus,
         BinaryOperator.minus,
       }).contains(node.operator) &&
-      (node.left.accept(this) || node.right.accept(this));
+      node.left.accept(this) &&
+      node.right.accept(this);
 
   bool visitBooleanExpression(BooleanExpression node) => false;
 
