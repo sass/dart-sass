@@ -1,6 +1,9 @@
-## 1.85.1-dev
+## 1.85.1
 
-* No user-visible changes.
+* Fix a bug where global Sass functions whose names overlap with CSS math
+  functions could incorrectly be treated as CSS math functions even though they
+  used Sass-only features, causing compilation failures. For example,
+  `round(-$var / 2)` previously threw an error but now works as intended.
 
 ## 1.85.0
 
