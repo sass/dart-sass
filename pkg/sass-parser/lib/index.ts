@@ -76,6 +76,11 @@ export {
   FunctionExpressionRaws,
 } from './src/expression/function';
 export {
+  InterpolatedFunctionExpression,
+  InterpolatedFunctionExpressionProps,
+  InterpolatedFunctionExpressionRaws,
+} from './src/expression/interpolated-function';
+export {
   ListExpression,
   ListExpressionProps,
   ListExpressionRaws,

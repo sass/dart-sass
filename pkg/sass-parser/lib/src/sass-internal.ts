@@ -340,6 +340,11 @@ declare namespace SassInternal {
     readonly arguments: ArgumentList;
   }
 
+  class InterpolatedFunctionExpression extends Expression {
+    readonly name: Interpolation;
+    readonly arguments: ArgumentList;
+  }
+
   class ListExpression extends Expression {
     readonly contents: Expression[];
     readonly separator: ListSeparator;
@@ -421,6 +426,8 @@ export type Expression = SassInternal.Expression;
 export type BinaryOperationExpression = SassInternal.BinaryOperationExpression;
 export type FunctionExpression = SassInternal.FunctionExpression;
 export type IfExpression = SassInternal.IfExpression;
+export type InterpolatedFunctionExpression =
+  SassInternal.InterpolatedFunctionExpression;
 export type ListExpression = SassInternal.ListExpression;
 export type ListSeparator = SassInternal.ListSeparator;
 export type MapExpression = SassInternal.MapExpression;
@@ -464,6 +471,7 @@ export interface ExpressionVisitorObject<T> {
   visitColorExpression(node: ColorExpression): T;
   visitFunctionExpression(node: FunctionExpression): T;
   visitIfExpression(node: IfExpression): T;
+  visitInterpolatedFunctionExpression(node: InterpolatedFunctionExpression): T;
   visitListExpression(node: ListExpression): T;
   visitMapExpression(node: MapExpression): T;
   visitNumberExpression(node: NumberExpression): T;
