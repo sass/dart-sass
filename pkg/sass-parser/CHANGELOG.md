@@ -22,6 +22,8 @@
 
 * Add support for parsing unary operation expressions.
 
+* Add support for parsing variable expressions.
+
 ## 0.4.14
 
 * Add support for parsing color expressions.

@@ -34,7 +34,7 @@ export interface IncludeRuleRaws extends Omit<AtRuleRaws, 'params'> {
    * The mixin's namespace.
    *
    * This may be different than {@link IncludeRule.namespace} if the name
-   * contains escape codes or underscores.
+   * contains escape codes.
    */
   namespace?: RawWithValue<string>;
 

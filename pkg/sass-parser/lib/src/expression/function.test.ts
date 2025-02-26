@@ -162,15 +162,34 @@ describe('a function expression', () => {
           }).toString(),
         ).toBe('foo(bar)'));
 
-      it('with a namespace', () =>
-        expect(
-          new FunctionExpression({
-            namespace: 'baz',
-            name: 'foo',
-            arguments: [{text: 'bar'}],
-          }).toString(),
-        ).toBe('baz.foo(bar)'));
+      describe('with a namespace', () => {
+        it("that's an identifier", () =>
+          expect(
+            new FunctionExpression({
+              namespace: 'baz',
+              name: 'foo',
+              arguments: [{text: 'bar'}],
+            }).toString(),
+          ).toBe('baz.foo(bar)'));
+
+        it("that's not an identifier", () =>
+          expect(
+            new FunctionExpression({
+              namespace: 'b z',
+              name: 'foo',
+              arguments: [{text: 'bar'}],
+            }).toString(),
+          ).toBe('b\\20z.foo(bar)'));
+      });
     });
+
+    it("with a name that's not an identifier", () =>
+      expect(
+        new FunctionExpression({
+          name: 'f o',
+          arguments: [{text: 'bar'}],
+        }).toString(),
+      ).toBe('f\\20o(bar)'));
 
     it('with matching namespace', () =>
       expect(

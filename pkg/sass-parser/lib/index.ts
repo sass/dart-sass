@@ -253,6 +253,11 @@ export {
   UnaryOperationExpressionProps,
   UnaryOperationExpressionRaws,
 } from './src/expression/unary-operation';
+export {
+  VariableExpression,
+  VariableExpressionProps,
+  VariableExpressionRaws,
+} from './src/expression/variable';
 
 /** Options that can be passed to the Sass parsers to control their behavior. */
 export type SassParserOptions = Pick<postcss.ProcessOptions, 'from' | 'map'>;

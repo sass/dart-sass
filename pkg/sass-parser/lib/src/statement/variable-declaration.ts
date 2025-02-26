@@ -28,7 +28,7 @@ export interface VariableDeclarationRaws
    * The variable's namespace.
    *
    * This may be different than {@link VariableDeclaration.namespace} if the
-   * name contains escape codes or underscores.
+   * name contains escape codes.
    */
   namespace?: RawWithValue<string>;
 
