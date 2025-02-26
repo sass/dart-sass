@@ -11,6 +11,7 @@ import {FunctionExpression, FunctionExpressionProps} from './function';
 import {InterpolatedFunctionExpression} from './interpolated-function';
 import {ListExpression} from './list';
 import {MapExpression} from './map';
+import {NullExpression} from './null';
 import {NumberExpression} from './number';
 import {StringExpression} from './string';
 
@@ -28,6 +29,7 @@ export function fromProps(props: ExpressionProps): Expression {
     }
   }
   if ('value' in props) {
+    if (props.value === null) return new NullExpression();
     if (typeof props.value === 'boolean') return new BooleanExpression(props);
     if (typeof props.value === 'number') return new NumberExpression(props);
     if (props.value instanceof sass.SassColor) {

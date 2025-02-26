@@ -1,3 +1,7 @@
+## 0.4.16-dev
+
+* Add support for parsing null literals.
+
 ## 0.4.15
 
 * Add support for parsing list expressions.
