@@ -1,6 +1,8 @@
 ## 1.85.2-dev
 
-* No user-visible changes.
+### Dart API
+
+* Increase the minimum Dart SDK to 3.6.0.
 
 ## 1.85.1
 
