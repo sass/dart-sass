@@ -21,18 +21,18 @@ const _knownCompatibilities = [
     "rlh", "vw", "lvw", "svw", "dvw", "vh", "lvh", "svh", "dvh", "vi", "lvi", //
     "svi", "dvi", "vb", "lvb", "svb", "dvb", "vmin", "lvmin", "svmin", //
     "dvmin", "vmax", "lvmax", "svmax", "dvmax", "cqw", "cqh", "cqi", "cqb", //
-    "cqmin", "cqmax", "cm", "mm", "q", "in", "pt", "pc", "px"
+    "cqmin", "cqmax", "cm", "mm", "q", "in", "pt", "pc", "px",
   },
   {"deg", "grad", "rad", "turn"},
   {"s", "ms"},
   {"hz", "khz"},
-  {"dpi", "dpcm", "dppx"}
+  {"dpi", "dpcm", "dppx"},
 ];
 
 /// A map from units to the other units they're known to be compatible with.
 final _knownCompatibilitiesByUnit = {
   for (var set in _knownCompatibilities)
-    for (var unit in set) unit: set
+    for (var unit in set) unit: set,
 };
 
 /// A specialized subclass of [SassNumber] for numbers that have exactly one
@@ -50,9 +50,11 @@ class SingleUnitSassNumber extends SassNumber {
   bool get hasUnits => true;
   bool get hasComplexUnits => false;
 
-  SingleUnitSassNumber(double value, this._unit,
-      [(SassNumber, SassNumber)? asSlash])
-      : super.protected(value, asSlash);
+  SingleUnitSassNumber(
+    double value,
+    this._unit, [
+    (SassNumber, SassNumber)? asSlash,
+  ]) : super.protected(value, asSlash);
 
   SassNumber withValue(num value) =>
       SingleUnitSassNumber(value.toDouble(), _unit);
@@ -79,14 +81,20 @@ class SingleUnitSassNumber extends SassNumber {
 
   bool compatibleWithUnit(String unit) => conversionFactor(_unit, unit) != null;
 
-  SassNumber coerceToMatch(SassNumber other,
-          [String? name, String? otherName]) =>
+  SassNumber coerceToMatch(
+    SassNumber other, [
+    String? name,
+    String? otherName,
+  ]) =>
       (other is SingleUnitSassNumber ? _coerceToUnit(other._unit) : null) ??
       // Call this to generate a consistent error message.
       super.coerceToMatch(other, name, otherName);
 
-  double coerceValueToMatch(SassNumber other,
-          [String? name, String? otherName]) =>
+  double coerceValueToMatch(
+    SassNumber other, [
+    String? name,
+    String? otherName,
+  ]) =>
       (other is SingleUnitSassNumber
           ? _coerceValueToUnit(other._unit)
           : null) ??
@@ -98,30 +106,42 @@ class SingleUnitSassNumber extends SassNumber {
       // Call this to generate a consistent error message.
       super.convertValueToUnit(unit, name);
 
-  SassNumber convertToMatch(SassNumber other,
-          [String? name, String? otherName]) =>
+  SassNumber convertToMatch(
+    SassNumber other, [
+    String? name,
+    String? otherName,
+  ]) =>
       (other is SingleUnitSassNumber ? _coerceToUnit(other._unit) : null) ??
       // Call this to generate a consistent error message.
       super.convertToMatch(other, name, otherName);
 
-  double convertValueToMatch(SassNumber other,
-          [String? name, String? otherName]) =>
+  double convertValueToMatch(
+    SassNumber other, [
+    String? name,
+    String? otherName,
+  ]) =>
       (other is SingleUnitSassNumber
           ? _coerceValueToUnit(other._unit)
           : null) ??
       // Call this to generate a consistent error message.
       super.convertValueToMatch(other, name, otherName);
 
-  SassNumber coerce(List<String> newNumerators, List<String> newDenominators,
-          [String? name]) =>
+  SassNumber coerce(
+    List<String> newNumerators,
+    List<String> newDenominators, [
+    String? name,
+  ]) =>
       (newNumerators.length == 1 && newDenominators.isEmpty
           ? _coerceToUnit(newNumerators[0])
           : null) ??
       // Call this to generate a consistent error message.
       super.coerce(newNumerators, newDenominators, name);
 
-  double coerceValue(List<String> newNumerators, List<String> newDenominators,
-          [String? name]) =>
+  double coerceValue(
+    List<String> newNumerators,
+    List<String> newDenominators, [
+    String? name,
+  ]) =>
       (newNumerators.length == 1 && newDenominators.isEmpty
           ? _coerceValueToUnit(newNumerators[0])
           : null) ??
@@ -137,8 +157,10 @@ class SingleUnitSassNumber extends SassNumber {
   /// returns `null` if coercion fails.
   SassNumber? _coerceToUnit(String unit) {
     if (_unit == unit) return this;
-    return conversionFactor(unit, _unit)
-        .andThen((factor) => SingleUnitSassNumber(value * factor, unit));
+    return conversionFactor(
+      unit,
+      _unit,
+    ).andThen((factor) => SingleUnitSassNumber(value * factor, unit));
   }
 
   /// Like [coerceValueToUnit], except that it returns `null` if coercion fails.
@@ -146,21 +168,30 @@ class SingleUnitSassNumber extends SassNumber {
       conversionFactor(unit, _unit).andThen((factor) => value * factor);
 
   SassNumber multiplyUnits(
-      num value, List<String> otherNumerators, List<String> otherDenominators) {
+    num value,
+    List<String> otherNumerators,
+    List<String> otherDenominators,
+  ) {
     var newNumerators = otherNumerators;
     var mutableOtherDenominators = otherDenominators.toList();
-    removeFirstWhere<String>(mutableOtherDenominators, (denominator) {
-      var factor = conversionFactor(denominator, _unit);
-      if (factor == null) return false;
-      value *= factor;
-      return true;
-    }, orElse: () {
-      newNumerators = [_unit, ...newNumerators];
-    });
+    removeFirstWhere<String>(
+      mutableOtherDenominators,
+      (denominator) {
+        var factor = conversionFactor(denominator, _unit);
+        if (factor == null) return false;
+        value *= factor;
+        return true;
+      },
+      orElse: () {
+        newNumerators = [_unit, ...newNumerators];
+      },
+    );
 
-    return SassNumber.withUnits(value,
-        numeratorUnits: newNumerators,
-        denominatorUnits: mutableOtherDenominators);
+    return SassNumber.withUnits(
+      value,
+      numeratorUnits: newNumerators,
+      denominatorUnits: mutableOtherDenominators,
+    );
   }
 
   Value unaryMinus() => SingleUnitSassNumber(-value, _unit);

@@ -23,6 +23,9 @@ final class UserDefinedCallable<E> implements Callable {
 
   String get name => declaration.name;
 
-  UserDefinedCallable(this.declaration, this.environment,
-      {required this.inDependency});
+  UserDefinedCallable(
+    this.declaration,
+    this.environment, {
+    required this.inDependency,
+  });
 }

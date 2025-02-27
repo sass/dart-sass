@@ -15,8 +15,10 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       setUp(() => d.file("test.scss", "").create());
 
       test("for user-authored", () async {
-        var sass =
-            await runSass(["--silence-deprecation=user-authored", "test.scss"]);
+        var sass = await runSass([
+          "--silence-deprecation=user-authored",
+          "test.scss",
+        ]);
         expect(sass.stderr, emits(contains("User-authored deprecations")));
         await sass.shouldExit(0);
       });
@@ -35,7 +37,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         var sass = await runSass([
           "--future-deprecation=import",
           "--silence-deprecation=import",
-          "test.scss"
+          "test.scss",
         ]);
         expect(sass.stderr, emits(contains("Conflicting options for future")));
         await sass.shouldExit(0);
@@ -46,20 +48,26 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           "--watch",
           "--poll",
           "--silence-deprecation=user-authored",
-          "test.scss:out.css"
+          "test.scss:out.css",
         ]);
         expect(sass.stderr, emits(contains("User-authored deprecations")));
 
-        await expectLater(sass.stdout,
-            emitsThrough(endsWith('Compiled test.scss to out.css.')));
+        await expectLater(
+          sass.stdout,
+          emitsThrough(endsWith('Compiled test.scss to out.css.')),
+        );
         await sass.kill();
       });
 
       test("in repl mode", () async {
-        var sass = await runSass(
-            ["--interactive", "--silence-deprecation=user-authored"]);
+        var sass = await runSass([
+          "--interactive",
+          "--silence-deprecation=user-authored",
+        ]);
         await expectLater(
-            sass.stderr, emits(contains("User-authored deprecations")));
+          sass.stderr,
+          emits(contains("User-authored deprecations")),
+        );
         await sass.kill();
       });
     });
@@ -68,8 +76,10 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       setUp(() => d.file("test.scss", "").create());
 
       test("in immediate mode", () async {
-        var sass =
-            await runSass(["--silence-deprecation=unknown", "test.scss"]);
+        var sass = await runSass([
+          "--silence-deprecation=unknown",
+          "test.scss",
+        ]);
         expect(sass.stdout, emits(contains('Invalid deprecation "unknown".')));
         await sass.shouldExit(64);
       });
@@ -79,15 +89,17 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           "--watch",
           "--poll",
           "--silence-deprecation=unknown",
-          "test.scss:out.css"
+          "test.scss:out.css",
         ]);
         expect(sass.stdout, emits(contains('Invalid deprecation "unknown".')));
         await sass.shouldExit(64);
       });
 
       test("in repl mode", () async {
-        var sass =
-            await runSass(["--interactive", "--silence-deprecation=unknown"]);
+        var sass = await runSass([
+          "--interactive",
+          "--silence-deprecation=unknown",
+        ]);
         expect(sass.stdout, emits(contains('Invalid deprecation "unknown".')));
         await sass.shouldExit(64);
       });
@@ -96,11 +108,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     group("silences", () {
       group("a parse-time deprecation", () {
         setUp(
-            () => d.file("test.scss", "@if true {} @elseif false {}").create());
+          () => d.file("test.scss", "@if true {} @elseif false {}").create(),
+        );
 
         test("in immediate mode", () async {
-          var sass =
-              await runSass(["--silence-deprecation=elseif", "test.scss"]);
+          var sass = await runSass([
+            "--silence-deprecation=elseif",
+            "test.scss",
+          ]);
           expect(sass.stderr, emitsDone);
           await sass.shouldExit(0);
         });
@@ -110,18 +125,22 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             "--watch",
             "--poll",
             "--silence-deprecation=elseif",
-            "test.scss:out.css"
+            "test.scss:out.css",
           ]);
           expect(sass.stderr, emitsDone);
 
-          await expectLater(sass.stdout,
-              emitsThrough(endsWith('Compiled test.scss to out.css.')));
+          await expectLater(
+            sass.stdout,
+            emitsThrough(endsWith('Compiled test.scss to out.css.')),
+          );
           await sass.kill();
         });
 
         test("in repl mode", () async {
-          var sass = await runSass(
-              ["--interactive", "--silence-deprecation=strict-unary"]);
+          var sass = await runSass([
+            "--interactive",
+            "--silence-deprecation=strict-unary",
+          ]);
           expect(sass.stderr, emitsDone);
           sass.stdin.writeln("4 -(5)");
           await expectLater(sass.stdout, emitsInOrder([">> 4 -(5)", "-1"]));
@@ -130,14 +149,18 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       });
 
       group("an evaluation-time deprecation", () {
-        setUp(() => d.file("test.scss", """
-          @use 'sass:math';
-          a {b: math.random(1px)}
-        """).create());
+        setUp(
+          () => d.file("test.scss", """
+            @use 'sass:math';
+            a {b: math.random(1px)}
+          """).create(),
+        );
 
         test("in immediate mode", () async {
-          var sass = await runSass(
-              ["--silence-deprecation=function-units", "test.scss"]);
+          var sass = await runSass([
+            "--silence-deprecation=function-units",
+            "test.scss",
+          ]);
           expect(sass.stderr, emitsDone);
           await sass.shouldExit(0);
         });
@@ -147,24 +170,30 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             "--watch",
             "--poll",
             "--silence-deprecation=function-units",
-            "test.scss:out.css"
+            "test.scss:out.css",
           ]);
           expect(sass.stderr, emitsDone);
 
-          await expectLater(sass.stdout,
-              emitsThrough(endsWith('Compiled test.scss to out.css.')));
+          await expectLater(
+            sass.stdout,
+            emitsThrough(endsWith('Compiled test.scss to out.css.')),
+          );
           await sass.kill();
         });
 
         test("in repl mode", () async {
-          var sass = await runSass(
-              ["--interactive", "--silence-deprecation=function-units"]);
+          var sass = await runSass([
+            "--interactive",
+            "--silence-deprecation=function-units",
+          ]);
           expect(sass.stderr, emitsDone);
           sass.stdin.writeln("@use 'sass:math'");
           await expectLater(sass.stdout, emits(">> @use 'sass:math'"));
           sass.stdin.writeln("math.random(1px)");
           await expectLater(
-              sass.stdout, emitsInOrder([">> math.random(1px)", "1"]));
+            sass.stdout,
+            emitsInOrder([">> math.random(1px)", "1"]),
+          );
           await sass.kill();
         });
       });
@@ -189,7 +218,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         var sass = await runSass([
           "--fatal-deprecation=elseif",
           "--silence-deprecation=elseif",
-          "test.scss"
+          "test.scss",
         ]);
         expect(sass.stderr, emits(contains("Ignoring setting to silence")));
         await sass.shouldExit(0);
@@ -201,12 +230,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           "--poll",
           "--fatal-deprecation=elseif",
           "--silence-deprecation=elseif",
-          "test.scss:out.css"
+          "test.scss:out.css",
         ]);
         expect(sass.stderr, emits(contains("Ignoring setting to silence")));
 
-        await expectLater(sass.stdout,
-            emitsThrough(endsWith('Compiled test.scss to out.css.')));
+        await expectLater(
+          sass.stdout,
+          emitsThrough(endsWith('Compiled test.scss to out.css.')),
+        );
         await sass.kill();
       });
 
@@ -214,10 +245,12 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         var sass = await runSass([
           "--interactive",
           "--fatal-deprecation=elseif",
-          "--silence-deprecation=elseif"
+          "--silence-deprecation=elseif",
         ]);
         await expectLater(
-            sass.stderr, emits(contains("Ignoring setting to silence")));
+          sass.stderr,
+          emits(contains("Ignoring setting to silence")),
+        );
         await sass.kill();
       });
     });
@@ -227,10 +260,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         setUp(() => d.file("test.scss", "").create());
 
         test("in immediate mode", () async {
-          var sass =
-              await runSass(["--fatal-deprecation=unknown", "test.scss"]);
+          var sass = await runSass([
+            "--fatal-deprecation=unknown",
+            "test.scss",
+          ]);
           expect(
-              sass.stdout, emits(contains('Invalid deprecation "unknown".')));
+            sass.stdout,
+            emits(contains('Invalid deprecation "unknown".')),
+          );
           await sass.shouldExit(64);
         });
 
@@ -239,25 +276,32 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             "--watch",
             "--poll",
             "--fatal-deprecation=unknown",
-            "test.scss:out.css"
+            "test.scss:out.css",
           ]);
           expect(
-              sass.stdout, emits(contains('Invalid deprecation "unknown".')));
+            sass.stdout,
+            emits(contains('Invalid deprecation "unknown".')),
+          );
           await sass.shouldExit(64);
         });
 
         test("in repl mode", () async {
-          var sass =
-              await runSass(["--interactive", "--fatal-deprecation=unknown"]);
+          var sass = await runSass([
+            "--interactive",
+            "--fatal-deprecation=unknown",
+          ]);
           expect(
-              sass.stdout, emits(contains('Invalid deprecation "unknown".')));
+            sass.stdout,
+            emits(contains('Invalid deprecation "unknown".')),
+          );
           await sass.shouldExit(64);
         });
       });
 
       group("a parse-time deprecation", () {
         setUp(
-            () => d.file("test.scss", "@if true {} @elseif false {}").create());
+          () => d.file("test.scss", "@if true {} @elseif false {}").create(),
+        );
 
         test("in immediate mode", () async {
           var sass = await runSass(["--fatal-deprecation=elseif", "test.scss"]);
@@ -270,27 +314,33 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             "--watch",
             "--poll",
             "--fatal-deprecation=elseif",
-            "test.scss:out.css"
+            "test.scss:out.css",
           ]);
           await expectLater(sass.stderr, emits(startsWith("Error: ")));
           await expectLater(
-              sass.stdout,
-              emitsInOrder(
-                  ["Sass is watching for changes. Press Ctrl-C to stop.", ""]));
+            sass.stdout,
+            emitsInOrder([
+              "Sass is watching for changes. Press Ctrl-C to stop.",
+              "",
+            ]),
+          );
           await sass.kill();
         });
 
         test("in repl mode", () async {
-          var sass = await runSass(
-              ["--interactive", "--fatal-deprecation=strict-unary"]);
+          var sass = await runSass([
+            "--interactive",
+            "--fatal-deprecation=strict-unary",
+          ]);
           sass.stdin.writeln("4 -(5)");
           await expectLater(
-              sass.stdout,
-              emitsInOrder([
-                ">> 4 -(5)",
-                emitsThrough(startsWith("Error: ")),
-                emitsThrough(contains("Remove this setting"))
-              ]));
+            sass.stdout,
+            emitsInOrder([
+              ">> 4 -(5)",
+              emitsThrough(startsWith("Error: ")),
+              emitsThrough(contains("Remove this setting")),
+            ]),
+          );
 
           // Verify that there's no output written for the previous line.
           sass.stdin.writeln("1");
@@ -300,14 +350,18 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       });
 
       group("an evaluation-time deprecation", () {
-        setUp(() => d.file("test.scss", """
-          @use 'sass:math';
-          a {b: math.random(1px)}
-        """).create());
+        setUp(
+          () => d.file("test.scss", """
+            @use 'sass:math';
+            a {b: math.random(1px)}
+          """).create(),
+        );
 
         test("in immediate mode", () async {
-          var sass = await runSass(
-              ["--fatal-deprecation=function-units", "test.scss"]);
+          var sass = await runSass([
+            "--fatal-deprecation=function-units",
+            "test.scss",
+          ]);
           expect(sass.stderr, emits(startsWith("Error: ")));
           await sass.shouldExit(65);
         });
@@ -317,29 +371,35 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             "--watch",
             "--poll",
             "--fatal-deprecation=function-units",
-            "test.scss:out.css"
+            "test.scss:out.css",
           ]);
           await expectLater(sass.stderr, emits(startsWith("Error: ")));
           await expectLater(
-              sass.stdout,
-              emitsInOrder(
-                  ["Sass is watching for changes. Press Ctrl-C to stop.", ""]));
+            sass.stdout,
+            emitsInOrder([
+              "Sass is watching for changes. Press Ctrl-C to stop.",
+              "",
+            ]),
+          );
           await sass.kill();
         });
 
         test("in repl mode", () async {
-          var sass = await runSass(
-              ["--interactive", "--fatal-deprecation=function-units"]);
+          var sass = await runSass([
+            "--interactive",
+            "--fatal-deprecation=function-units",
+          ]);
           sass.stdin.writeln("@use 'sass:math'");
           await expectLater(sass.stdout, emits(">> @use 'sass:math'"));
           sass.stdin.writeln("math.random(1px)");
           await expectLater(
-              sass.stdout,
-              emitsInOrder([
-                ">> math.random(1px)",
-                emitsThrough(startsWith("Error: ")),
-                emitsThrough(contains("Remove this setting"))
-              ]));
+            sass.stdout,
+            emitsInOrder([
+              ">> math.random(1px)",
+              emitsThrough(startsWith("Error: ")),
+              emitsThrough(contains("Remove this setting")),
+            ]),
+          );
 
           // Verify that there's no output written for the previous line.
           sass.stdin.writeln("1");
@@ -356,10 +416,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         setUp(() => d.file("test.scss", "").create());
 
         test("in immediate mode", () async {
-          var sass = await runSass(
-              ["--future-deprecation=function-units", "test.scss"]);
-          expect(sass.stderr,
-              emits(contains("function-units is not a future deprecation")));
+          var sass = await runSass([
+            "--future-deprecation=function-units",
+            "test.scss",
+          ]);
+          expect(
+            sass.stderr,
+            emits(contains("function-units is not a future deprecation")),
+          );
           await sass.shouldExit(0);
         });
 
@@ -368,13 +432,17 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             "--watch",
             "--poll",
             "--future-deprecation=function-units",
-            "test.scss:out.css"
+            "test.scss:out.css",
           ]);
-          expect(sass.stderr,
-              emits(contains("function-units is not a future deprecation")));
+          expect(
+            sass.stderr,
+            emits(contains("function-units is not a future deprecation")),
+          );
 
-          await expectLater(sass.stdout,
-              emitsThrough(endsWith('Compiled test.scss to out.css.')));
+          await expectLater(
+            sass.stdout,
+            emitsThrough(endsWith('Compiled test.scss to out.css.')),
+          );
           await sass.kill();
         });
 
@@ -394,8 +462,10 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         });
 
         test("in immediate mode", () async {
-          var sass =
-              await runSass(["--future-deprecation=import", "test.scss"]);
+          var sass = await runSass([
+            "--future-deprecation=import",
+            "test.scss",
+          ]);
           expect(sass.stderr, emits(startsWith("DEPRECATION WARNING")));
           await sass.shouldExit(0);
         });
@@ -405,11 +475,13 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             "--watch",
             "--poll",
             "--future-deprecation=import",
-            "test.scss:out.css"
+            "test.scss:out.css",
           ]);
 
           await expectLater(
-              sass.stderr, emits(startsWith("DEPRECATION WARNING")));
+            sass.stderr,
+            emits(startsWith("DEPRECATION WARNING")),
+          );
           await sass.kill();
         });
 
@@ -428,10 +500,14 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         setUp(() => d.file("test.scss", "").create());
 
         test("in immediate mode", () async {
-          var sass =
-              await runSass(["--future-deprecation=unknown", "test.scss"]);
+          var sass = await runSass([
+            "--future-deprecation=unknown",
+            "test.scss",
+          ]);
           expect(
-              sass.stdout, emits(contains('Invalid deprecation "unknown".')));
+            sass.stdout,
+            emits(contains('Invalid deprecation "unknown".')),
+          );
           await sass.shouldExit(64);
         });
 
@@ -440,18 +516,24 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             "--watch",
             "--poll",
             "--future-deprecation=unknown",
-            "test.scss:out.css"
+            "test.scss:out.css",
           ]);
           expect(
-              sass.stdout, emits(contains('Invalid deprecation "unknown".')));
+            sass.stdout,
+            emits(contains('Invalid deprecation "unknown".')),
+          );
           await sass.shouldExit(64);
         });
 
         test("in repl mode", () async {
-          var sass =
-              await runSass(["--interactive", "--future-deprecation=unknown"]);
+          var sass = await runSass([
+            "--interactive",
+            "--future-deprecation=unknown",
+          ]);
           expect(
-              sass.stdout, emits(contains('Invalid deprecation "unknown".')));
+            sass.stdout,
+            emits(contains('Invalid deprecation "unknown".')),
+          );
           await sass.shouldExit(64);
         });
       });
@@ -466,7 +548,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           var sass = await runSass([
             "--fatal-deprecation=import",
             "--future-deprecation=import",
-            "test.scss"
+            "test.scss",
           ]);
           expect(sass.stderr, emits(startsWith("Error: ")));
           await sass.shouldExit(65);
@@ -478,13 +560,16 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             "--poll",
             "--fatal-deprecation=import",
             "--future-deprecation=import",
-            "test.scss:out.css"
+            "test.scss:out.css",
           ]);
           await expectLater(sass.stderr, emits(startsWith("Error: ")));
           await expectLater(
-              sass.stdout,
-              emitsInOrder(
-                  ["Sass is watching for changes. Press Ctrl-C to stop.", ""]));
+            sass.stdout,
+            emitsInOrder([
+              "Sass is watching for changes. Press Ctrl-C to stop.",
+              "",
+            ]),
+          );
           await sass.kill();
         });
 

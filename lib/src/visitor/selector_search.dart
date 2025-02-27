@@ -23,8 +23,9 @@ mixin SelectorSearchVisitor<T> implements SelectorVisitor<T?> {
   T? visitTypeSelector(TypeSelector type) => null;
   T? visitUniversalSelector(UniversalSelector universal) => null;
 
-  T? visitComplexSelector(ComplexSelector complex) => complex.components
-      .search((component) => visitCompoundSelector(component.selector));
+  T? visitComplexSelector(ComplexSelector complex) => complex.components.search(
+        (component) => visitCompoundSelector(component.selector),
+      );
 
   T? visitCompoundSelector(CompoundSelector compound) =>
       compound.components.search((simple) => simple.accept(this));

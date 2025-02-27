@@ -46,9 +46,12 @@ mixin StatementSearchVisitor<T> implements StatementVisitor<T?> {
 
   T? visitIfRule(IfRule node) =>
       node.clauses.search(
-          (clause) => clause.children.search((child) => child.accept(this))) ??
-      node.lastClause.andThen((lastClause) =>
-          lastClause.children.search((child) => child.accept(this)));
+        (clause) => clause.children.search((child) => child.accept(this)),
+      ) ??
+      node.lastClause.andThen(
+        (lastClause) =>
+            lastClause.children.search((child) => child.accept(this)),
+      );
 
   T? visitImportRule(ImportRule node) => null;
 

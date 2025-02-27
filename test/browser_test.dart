@@ -16,14 +16,20 @@ external Sass get sass;
 
 @JS()
 class Sass {
-  external NodeCompileResult compileString(String text,
-      [CompileStringOptions? options]);
-  external Promise compileStringAsync(String text,
-      [CompileStringOptions? options]);
+  external NodeCompileResult compileString(
+    String text, [
+    CompileStringOptions? options,
+  ]);
+  external Promise compileStringAsync(
+    String text, [
+    CompileStringOptions? options,
+  ]);
   external NodeCompileResult compile(String path, [CompileOptions? options]);
   external Promise compileAsync(String path, [CompileOptions? options]);
   external void render(
-      RenderOptions options, void callback(Error error, RenderResult result));
+    RenderOptions options,
+    void callback(Error error, RenderResult result),
+  );
   external RenderResult renderSync(RenderOptions options);
   external String get info;
 }
@@ -32,48 +38,75 @@ void main() {
   setUpAll(ensureNpmPackage);
 
   test('compileAsync() is not available', () {
-    expect(() => sass.compileAsync('index.scss'), throwsA(predicate((error) {
-      expect(error, const TypeMatcher<JsError>());
-      expect(
-          error.toString(),
-          startsWith(
-              "Error: The compileAsync() method is only available in Node.js."));
-      return true;
-    })));
+    expect(
+      () => sass.compileAsync('index.scss'),
+      throwsA(
+        predicate((error) {
+          expect(error, const TypeMatcher<JsError>());
+          expect(
+            error.toString(),
+            startsWith(
+              "Error: The compileAsync() method is only available in Node.js.",
+            ),
+          );
+          return true;
+        }),
+      ),
+    );
   });
 
   test('compile() is not available', () {
-    expect(() => sass.compile('index.scss'), throwsA(predicate((error) {
-      expect(error, const TypeMatcher<JsError>());
-      expect(
-          error.toString(),
-          startsWith(
-              "Error: The compile() method is only available in Node.js."));
-      return true;
-    })));
+    expect(
+      () => sass.compile('index.scss'),
+      throwsA(
+        predicate((error) {
+          expect(error, const TypeMatcher<JsError>());
+          expect(
+            error.toString(),
+            startsWith(
+              "Error: The compile() method is only available in Node.js.",
+            ),
+          );
+          return true;
+        }),
+      ),
+    );
   });
 
   test('render() is not available', () {
-    expect(() => sass.render(RenderOptions(), allowInterop((error, result) {})),
-        throwsA(predicate((error) {
-      expect(error, const TypeMatcher<JsError>());
-      expect(
-          error.toString(),
-          startsWith(
-              "Error: The render() method is only available in Node.js."));
-      return true;
-    })));
+    expect(
+      () => sass.render(RenderOptions(), allowInterop((error, result) {})),
+      throwsA(
+        predicate((error) {
+          expect(error, const TypeMatcher<JsError>());
+          expect(
+            error.toString(),
+            startsWith(
+              "Error: The render() method is only available in Node.js.",
+            ),
+          );
+          return true;
+        }),
+      ),
+    );
   });
 
   test('renderSync() is not available', () {
-    expect(() => sass.renderSync(RenderOptions()), throwsA(predicate((error) {
-      expect(error, const TypeMatcher<JsError>());
-      expect(
-          error.toString(),
-          startsWith(
-              "Error: The renderSync() method is only available in Node.js."));
-      return true;
-    })));
+    expect(
+      () => sass.renderSync(RenderOptions()),
+      throwsA(
+        predicate((error) {
+          expect(error, const TypeMatcher<JsError>());
+          expect(
+            error.toString(),
+            startsWith(
+              "Error: The renderSync() method is only available in Node.js.",
+            ),
+          );
+          return true;
+        }),
+      ),
+    );
   });
 
   test('info produces output', () {
@@ -132,45 +165,64 @@ void main() {
     expect(getProperty<String>(sourceMap, 'mappings'), isA<String>());
   });
 
-  test('compileStringAsync() produces a sourceMap with source content',
-      () async {
-    var opts = jsify({'sourceMap': true, 'sourceMapIncludeSources': true})
-        as CompileStringOptions;
-    var result = sass.compileStringAsync('foo {bar: baz}', opts);
-    result = await promiseToFuture(result);
-    var sourceMap = (result as NodeCompileResult).sourceMap;
+  test(
+    'compileStringAsync() produces a sourceMap with source content',
+    () async {
+      var opts = jsify({'sourceMap': true, 'sourceMapIncludeSources': true})
+          as CompileStringOptions;
+      var result = sass.compileStringAsync('foo {bar: baz}', opts);
+      result = await promiseToFuture(result);
+      var sourceMap = (result as NodeCompileResult).sourceMap;
 
-    expect(sourceMap, isA<Object>());
+      expect(sourceMap, isA<Object>());
 
-    sourceMap = sourceMap!;
+      sourceMap = sourceMap!;
 
-    expect(getProperty<List<dynamic>>(sourceMap, 'sourcesContent'), isList);
-    expect(getProperty<List<dynamic>>(sourceMap, 'sourcesContent'), isNotEmpty);
-  });
+      expect(getProperty<List<dynamic>>(sourceMap, 'sourcesContent'), isList);
+      expect(
+        getProperty<List<dynamic>>(sourceMap, 'sourcesContent'),
+        isNotEmpty,
+      );
+    },
+  );
 
   test('compileString() throws error if importing without custom importer', () {
-    expect(() => sass.compileString("@use 'other';"),
-        throwsA(predicate((error) {
-      expect(error, const TypeMatcher<JsError>());
-      expect(
-          error.toString(),
-          startsWith(
-              "Custom importers are required to load stylesheets when compiling in the browser."));
-      return true;
-    })));
+    expect(
+      () => sass.compileString("@use 'other';"),
+      throwsA(
+        predicate((error) {
+          expect(error, const TypeMatcher<JsError>());
+          expect(
+            error.toString(),
+            startsWith(
+              "Custom importers are required to load stylesheets when compiling in the browser.",
+            ),
+          );
+          return true;
+        }),
+      ),
+    );
   });
 
-  test('compileStringAsync() throws error if importing without custom importer',
-      () async {
-    var result = sass.compileStringAsync("@use 'other';");
-    expect(() async => await promiseToFuture<NodeCompileResult>(result),
-        throwsA(predicate((error) {
-      expect(error, const TypeMatcher<JsError>());
+  test(
+    'compileStringAsync() throws error if importing without custom importer',
+    () async {
+      var result = sass.compileStringAsync("@use 'other';");
       expect(
-          error.toString(),
-          startsWith(
-              "Custom importers are required to load stylesheets when compiling in the browser."));
-      return true;
-    })));
-  });
+        () async => await promiseToFuture<NodeCompileResult>(result),
+        throwsA(
+          predicate((error) {
+            expect(error, const TypeMatcher<JsError>());
+            expect(
+              error.toString(),
+              startsWith(
+                "Custom importers are required to load stylesheets when compiling in the browser.",
+              ),
+            );
+            return true;
+          }),
+        ),
+      );
+    },
+  );
 }

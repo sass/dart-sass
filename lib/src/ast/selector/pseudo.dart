@@ -108,9 +108,13 @@ final class PseudoSelector extends SimpleSelector {
     }
   }();
 
-  PseudoSelector(this.name, FileSpan span,
-      {bool element = false, this.argument, this.selector})
-      : isClass = !element && !_isFakePseudoElement(name),
+  PseudoSelector(
+    this.name,
+    FileSpan span, {
+    bool element = false,
+    this.argument,
+    this.selector,
+  })  : isClass = !element && !_isFakePseudoElement(name),
         isSyntacticClass = !element,
         normalizedName = unvendor(name),
         super(span);
@@ -140,9 +144,13 @@ final class PseudoSelector extends SimpleSelector {
 
   /// Returns a new [PseudoSelector] based on this, but with the selector
   /// replaced with [selector].
-  PseudoSelector withSelector(SelectorList selector) =>
-      PseudoSelector(name, span,
-          element: isElement, argument: argument, selector: selector);
+  PseudoSelector withSelector(SelectorList selector) => PseudoSelector(
+        name,
+        span,
+        element: isElement,
+        argument: argument,
+        selector: selector,
+      );
 
   /// @nodoc
   @internal
@@ -155,9 +163,11 @@ final class PseudoSelector extends SimpleSelector {
   @internal
   List<SimpleSelector>? unify(List<SimpleSelector> compound) {
     if (name == 'host' || name == 'host-context') {
-      if (!compound.every((simple) =>
-          simple is PseudoSelector &&
-          (simple.isHost || simple.selector != null))) {
+      if (!compound.every(
+        (simple) =>
+            simple is PseudoSelector &&
+            (simple.isHost || simple.selector != null),
+      )) {
         return null;
       }
     } else if (compound case [var other]
@@ -205,7 +215,9 @@ final class PseudoSelector extends SimpleSelector {
 
     // Fall back to the logic defined in functions.dart, which knows how to
     // compare selector pseudoclasses against raw selectors.
-    return CompoundSelector([this], span)
+    return CompoundSelector([
+      this,
+    ], span)
         .isSuperselector(CompoundSelector([other], span));
   }
 

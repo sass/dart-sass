@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'ast/sass.dart';
 import 'import_cache.dart';
 import 'importer.dart';
+import 'io.dart';
 import 'util/map.dart';
 import 'util/nullable.dart';
 import 'visitor/find_dependencies.dart';
@@ -45,13 +46,18 @@ class StylesheetGraph {
   /// import [url] (resolved relative to [baseUrl] if it's passed).
   ///
   /// Returns `true` if the import cache can't find a stylesheet at [url].
-  bool modifiedSince(Uri url, DateTime since,
-      [Importer? baseImporter, Uri? baseUrl]) {
+  bool modifiedSince(
+    Uri url,
+    DateTime since, [
+    Importer? baseImporter,
+    Uri? baseUrl,
+  ]) {
     DateTime transitiveModificationTime(StylesheetNode node) {
       return _transitiveModificationTimes.putIfAbsent(node.canonicalUrl, () {
         var latest = node.importer.modificationTime(node.canonicalUrl);
-        for (var upstream
-            in node.upstream.values.followedBy(node.upstreamImports.values)) {
+        for (var upstream in node.upstream.values.followedBy(
+          node.upstreamImports.values,
+        )) {
           // If an import is missing, always recompile so we show the user the
           // error.
           var upstreamTime = upstream == null
@@ -76,8 +82,13 @@ class StylesheetGraph {
   ///
   /// Returns `null` if the import cache can't find a stylesheet at [url].
   StylesheetNode? _add(Uri url, [Importer? baseImporter, Uri? baseUrl]) {
-    var result = _ignoreErrors(() => importCache.canonicalize(url,
-        baseImporter: baseImporter, baseUrl: baseUrl));
+    var result = _ignoreErrors(
+      () => importCache.canonicalize(
+        url,
+        baseImporter: baseImporter,
+        baseUrl: baseUrl,
+      ),
+    );
     if (result case (var importer, var canonicalUrl, :var originalUrl)) {
       addCanonical(importer, canonicalUrl, originalUrl);
       return nodes[canonicalUrl];
@@ -102,16 +113,28 @@ class StylesheetGraph {
   /// `false` when initially adding stylesheets, not when handling future
   /// updates.
   Set<StylesheetNode> addCanonical(
-      Importer importer, Uri canonicalUrl, Uri originalUrl,
-      {bool recanonicalize = true}) {
+    Importer importer,
+    Uri canonicalUrl,
+    Uri originalUrl, {
+    bool recanonicalize = true,
+  }) {
     if (_nodes[canonicalUrl] != null) return const {};
 
-    var stylesheet = _ignoreErrors(() => importCache
-        .importCanonical(importer, canonicalUrl, originalUrl: originalUrl));
+    var stylesheet = _ignoreErrors(
+      () => importCache.importCanonical(
+        importer,
+        canonicalUrl,
+        originalUrl: originalUrl,
+      ),
+    );
     if (stylesheet == null) return const {};
 
-    var node = StylesheetNode._(stylesheet, importer, canonicalUrl,
-        _upstreamNodes(stylesheet, importer, canonicalUrl));
+    var node = StylesheetNode._(
+      stylesheet,
+      importer,
+      canonicalUrl,
+      _upstreamNodes(stylesheet, importer, canonicalUrl),
+    );
     _nodes[canonicalUrl] = node;
 
     return recanonicalize
@@ -125,18 +148,21 @@ class StylesheetGraph {
   /// The first map contains stylesheets depended on via module loads while the
   /// second map contains those depended on via `@import`.
   _UpstreamNodes _upstreamNodes(
-      Stylesheet stylesheet, Importer baseImporter, Uri baseUrl) {
+    Stylesheet stylesheet,
+    Importer baseImporter,
+    Uri baseUrl,
+  ) {
     var active = {baseUrl};
     var dependencies = findDependencies(stylesheet);
     return (
       modules: {
         for (var url in dependencies.modules)
-          url: _nodeFor(url, baseImporter, baseUrl, active)
+          url: _nodeFor(url, baseImporter, baseUrl, active),
       },
       imports: {
         for (var url in dependencies.imports)
-          url: _nodeFor(url, baseImporter, baseUrl, active, forImport: true)
-      }
+          url: _nodeFor(url, baseImporter, baseUrl, active, forImport: true),
+      },
     );
   }
 
@@ -160,13 +186,41 @@ class StylesheetGraph {
 
     importCache.clearImport(canonicalUrl);
     var stylesheet = _ignoreErrors(
-        () => importCache.importCanonical(node.importer, canonicalUrl));
+      () => importCache.importCanonical(node.importer, canonicalUrl),
+    );
     if (stylesheet == null) return false;
     node._stylesheet = stylesheet;
 
     var upstream = _upstreamNodes(stylesheet, node.importer, canonicalUrl);
     node._replaceUpstream(upstream.modules, upstream.imports);
     return true;
+  }
+
+  /// Re-parses all stylesheets in the graph that have been modified on disk
+  /// since their last known in-memory modification.
+  ///
+  /// This guards against situations where a recompilation is triggered before
+  /// the graph is manually informed of all changes, such as when `--poll` runs
+  /// slowly or native file system notifications aren't comprehensive.
+  void reloadAllModified() {
+    // Copy to a list because [reload] can modify [_nodes].
+    for (var node in [..._nodes.values]) {
+      var modified = false;
+      try {
+        var loadTime = importCache.loadTime(node.canonicalUrl);
+        modified = loadTime != null &&
+            node.importer.modificationTime(node.canonicalUrl).isAfter(loadTime);
+      } on FileSystemException catch (_) {
+        // If the file no longer exists, treat that as a modification.
+        modified = true;
+      }
+
+      if (modified) {
+        if (!reload(node.canonicalUrl)) {
+          remove(node.importer, node.canonicalUrl);
+        }
+      }
+    }
   }
 
   /// Removes the stylesheet at [canonicalUrl] (loaded by [importer]) from the
@@ -203,20 +257,31 @@ class StylesheetGraph {
   ///
   /// Returns all nodes whose imports were changed.
   Set<StylesheetNode> _recanonicalizeImports(
-      Importer importer, Uri canonicalUrl) {
+    Importer importer,
+    Uri canonicalUrl,
+  ) {
+    importCache.clearCanonicalize(canonicalUrl);
     var changed = <StylesheetNode>{};
     for (var node in nodes.values) {
       var newUpstream = _recanonicalizeImportsForNode(
-          node, importer, canonicalUrl,
-          forImport: false);
+        node,
+        importer,
+        canonicalUrl,
+        forImport: false,
+      );
       var newUpstreamImports = _recanonicalizeImportsForNode(
-          node, importer, canonicalUrl,
-          forImport: true);
+        node,
+        importer,
+        canonicalUrl,
+        forImport: true,
+      );
 
       if (newUpstream.isNotEmpty || newUpstreamImports.isNotEmpty) {
         changed.add(node);
-        node._replaceUpstream(mergeMaps(node.upstream, newUpstream),
-            mergeMaps(node.upstreamImports, newUpstreamImports));
+        node._replaceUpstream(
+          mergeMaps(node.upstream, newUpstream),
+          mergeMaps(node.upstreamImports, newUpstreamImports),
+        );
       }
     }
 
@@ -236,22 +301,26 @@ class StylesheetGraph {
   /// [node.upstreamImports]. Otherwise, it re-runs canonicalization for
   /// [node.upstream].
   Map<Uri, StylesheetNode?> _recanonicalizeImportsForNode(
-      StylesheetNode node, Importer importer, Uri canonicalUrl,
-      {required bool forImport}) {
+    StylesheetNode node,
+    Importer importer,
+    Uri canonicalUrl, {
+    required bool forImport,
+  }) {
     var map = forImport ? node.upstreamImports : node.upstream;
     var newMap = <Uri, StylesheetNode?>{};
     for (var (url, upstream) in map.pairs) {
       if (!importer.couldCanonicalize(url, canonicalUrl)) continue;
-      importCache.clearCanonicalize(url);
 
       // If the import produces a different canonicalized URL than it did
       // before, it changed and the stylesheet needs to be recompiled.
       CanonicalizeResult? result;
       try {
-        result = importCache.canonicalize(url,
-            baseImporter: node.importer,
-            baseUrl: node.canonicalUrl,
-            forImport: forImport);
+        result = importCache.canonicalize(
+          url,
+          baseImporter: node.importer,
+          baseUrl: node.canonicalUrl,
+          forImport: forImport,
+        );
       } catch (_) {
         // If the call to canonicalize failed, we ignore the error so that
         // it can be surfaced more gracefully when [node]'s stylesheet is
@@ -272,10 +341,20 @@ class StylesheetGraph {
   /// The [active] set should contain the canonical URLs that are currently
   /// being imported. It's used to detect circular imports.
   StylesheetNode? _nodeFor(
-      Uri url, Importer baseImporter, Uri baseUrl, Set<Uri> active,
-      {bool forImport = false}) {
-    var result = _ignoreErrors(() => importCache.canonicalize(url,
-        baseImporter: baseImporter, baseUrl: baseUrl, forImport: forImport));
+    Uri url,
+    Importer baseImporter,
+    Uri baseUrl,
+    Set<Uri> active, {
+    bool forImport = false,
+  }) {
+    var result = _ignoreErrors(
+      () => importCache.canonicalize(
+        url,
+        baseImporter: baseImporter,
+        baseUrl: baseUrl,
+        forImport: forImport,
+      ),
+    );
 
     // If an import fails, let the evaluator surface that error rather than
     // surfacing it here.
@@ -290,13 +369,22 @@ class StylesheetGraph {
     /// error will be produced during compilation.
     if (active.contains(canonicalUrl)) return null;
 
-    var stylesheet = _ignoreErrors(() => importCache
-        .importCanonical(importer, canonicalUrl, originalUrl: originalUrl));
+    var stylesheet = _ignoreErrors(
+      () => importCache.importCanonical(
+        importer,
+        canonicalUrl,
+        originalUrl: originalUrl,
+      ),
+    );
     if (stylesheet == null) return null;
 
     active.add(canonicalUrl);
-    var node = StylesheetNode._(stylesheet, importer, canonicalUrl,
-        _upstreamNodes(stylesheet, importer, canonicalUrl));
+    var node = StylesheetNode._(
+      stylesheet,
+      importer,
+      canonicalUrl,
+      _upstreamNodes(stylesheet, importer, canonicalUrl),
+    );
     active.remove(canonicalUrl);
     _nodes[canonicalUrl] = node;
     return node;
@@ -352,9 +440,12 @@ class StylesheetNode {
   Set<StylesheetNode> get downstream => UnmodifiableSetView(_downstream);
   final _downstream = <StylesheetNode>{};
 
-  StylesheetNode._(this._stylesheet, this.importer, this.canonicalUrl,
-      _UpstreamNodes allUpstream)
-      : _upstream = allUpstream.modules,
+  StylesheetNode._(
+    this._stylesheet,
+    this.importer,
+    this.canonicalUrl,
+    _UpstreamNodes allUpstream,
+  )   : _upstream = allUpstream.modules,
         _upstreamImports = allUpstream.imports {
     for (var node in upstream.values.followedBy(upstreamImports.values)) {
       node?._downstream.add(this);
@@ -364,8 +455,10 @@ class StylesheetNode {
   /// Updates [upstream] and [upstreamImports] from [newUpstream] and
   /// [newUpstreamImports] and adjusts upstream nodes' [downstream] fields
   /// accordingly.
-  void _replaceUpstream(Map<Uri, StylesheetNode?> newUpstream,
-      Map<Uri, StylesheetNode?> newUpstreamImports) {
+  void _replaceUpstream(
+    Map<Uri, StylesheetNode?> newUpstream,
+    Map<Uri, StylesheetNode?> newUpstreamImports,
+  ) {
     var oldUpstream =
         {...upstream.values, ...upstreamImports.values}.removeNull();
     var newUpstreamSet =

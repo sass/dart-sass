@@ -14,46 +14,49 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
 
+import 'package:sass/src/util/map.dart';
+
 import '../tool/grind/generate_deprecations.dart' as deprecations;
 import '../tool/grind/synchronize.dart' as synchronize;
 
 /// Tests that double-check that everything in the repo looks sensible.
 void main() {
-  group("up-to-date generated", () {
-    group("synchronized file:", () {
-      synchronize.sources.forEach((sourcePath, targetPath) {
-        test(targetPath, () {
-          if (File(targetPath).readAsStringSync() !=
-              synchronize.synchronizeFile(sourcePath)) {
-            fail("$targetPath is out-of-date.\n"
-                "Run `dart run grinder` to update it.");
-          }
-        });
+  group(
+    "up-to-date generated",
+    () {
+      group("synchronized file:", () {
+        for (var (sourcePath, targetPath) in synchronize.sources.pairs) {
+          test(
+            targetPath,
+            () => _assertChecksumMatches(sourcePath, targetPath),
+          );
+        }
       });
-    });
 
-    test("deprecations", () {
-      var inputText = File(deprecations.yamlPath).readAsStringSync();
-      var outputText = File(deprecations.dartPath).readAsStringSync();
-      var checksum = sha1.convert(utf8.encode(inputText));
-      if (!outputText.contains('// Checksum: $checksum')) {
-        fail('${deprecations.dartPath} is out-of-date.\n'
-            'Run `dart run grinder` to update it.');
-      }
-    });
-  },
-      // Windows sees different bytes than other OSes, possibly because of
-      // newline normalization issues.
-      testOn: "!windows");
+      test(
+        "deprecations",
+        () => _assertChecksumMatches(
+          deprecations.yamlPath,
+          deprecations.dartPath,
+        ),
+      );
+    },
+    // Windows sees different bytes than other OSes, possibly because of
+    // newline normalization issues.
+    testOn: "!windows",
+  );
 
   for (var package in [".", "pkg/sass_api"]) {
     group("in ${p.relative(package)}", () {
       test("pubspec version matches CHANGELOG version", () {
         var pubspec = Pubspec.parse(
-            File("$package/pubspec.yaml").readAsStringSync(),
-            sourceUrl: p.toUri("$package/pubspec.yaml"));
-        expect(pubspec.version!.toString(),
-            matchesChangelogVersion(_changelogVersion(package)));
+          File("$package/pubspec.yaml").readAsStringSync(),
+          sourceUrl: p.toUri("$package/pubspec.yaml"),
+        );
+        expect(
+          pubspec.version!.toString(),
+          matchesChangelogVersion(_changelogVersion(package)),
+        );
       });
     });
   }
@@ -62,11 +65,14 @@ void main() {
     late Pubspec sassPubspec;
     late Pubspec pkgPubspec;
     setUpAll(() {
-      sassPubspec = Pubspec.parse(File("pubspec.yaml").readAsStringSync(),
-          sourceUrl: Uri.parse("pubspec.yaml"));
+      sassPubspec = Pubspec.parse(
+        File("pubspec.yaml").readAsStringSync(),
+        sourceUrl: Uri.parse("pubspec.yaml"),
+      );
       pkgPubspec = Pubspec.parse(
-          File("pkg/sass_api/pubspec.yaml").readAsStringSync(),
-          sourceUrl: p.toUri("pkg/sass_api/pubspec.yaml"));
+        File("pkg/sass_api/pubspec.yaml").readAsStringSync(),
+        sourceUrl: p.toUri("pkg/sass_api/pubspec.yaml"),
+      );
     });
 
     test("depends on the current sass version", () {
@@ -75,23 +81,33 @@ void main() {
       expect(pkgPubspec.dependencies, contains("sass"));
       var dependency = pkgPubspec.dependencies["sass"]!;
       expect(dependency, isA<HostedDependency>());
-      expect((dependency as HostedDependency).version,
-          equals(sassPubspec.version));
+      expect(
+        (dependency as HostedDependency).version,
+        equals(sassPubspec.version),
+      );
     });
 
     test(
-        "increments along with the sass version",
-        () => _checkVersionIncrementsAlong(
-            'sass_api', sassPubspec, pkgPubspec.version!));
+      "increments along with the sass version",
+      () => _checkVersionIncrementsAlong(
+        'sass_api',
+        sassPubspec,
+        pkgPubspec.version!,
+      ),
+    );
 
     test("matches SDK version", () {
-      expect(pkgPubspec.environment!["sdk"],
-          equals(sassPubspec.environment!["sdk"]));
+      expect(
+        pkgPubspec.environment["sdk"],
+        equals(sassPubspec.environment["sdk"]),
+      );
     });
 
     test("matches dartdoc version", () {
-      expect(sassPubspec.devDependencies["dartdoc"],
-          equals(pkgPubspec.devDependencies["dartdoc"]));
+      expect(
+        sassPubspec.devDependencies["dartdoc"],
+        equals(pkgPubspec.devDependencies["dartdoc"]),
+      );
     });
   });
 
@@ -99,22 +115,31 @@ void main() {
     late Pubspec sassPubspec;
     late Map<String, Object?> packageJson;
     setUpAll(() {
-      sassPubspec = Pubspec.parse(File("pubspec.yaml").readAsStringSync(),
-          sourceUrl: Uri.parse("pubspec.yaml"));
+      sassPubspec = Pubspec.parse(
+        File("pubspec.yaml").readAsStringSync(),
+        sourceUrl: Uri.parse("pubspec.yaml"),
+      );
       packageJson =
           json.decode(File("pkg/sass-parser/package.json").readAsStringSync())
               as Map<String, Object?>;
     });
 
     test(
-        "package.json version matches CHANGELOG version",
-        () => expect(packageJson["version"].toString(),
-            matchesChangelogVersion(_changelogVersion("pkg/sass-parser"))));
+      "package.json version matches CHANGELOG version",
+      () => expect(
+        packageJson["version"].toString(),
+        matchesChangelogVersion(_changelogVersion("pkg/sass-parser")),
+      ),
+    );
 
     test(
-        "increments along with the sass version",
-        () => _checkVersionIncrementsAlong('sass-parser', sassPubspec,
-            Version.parse(packageJson["version"] as String)));
+      "increments along with the sass version",
+      () => _checkVersionIncrementsAlong(
+        'sass-parser',
+        sassPubspec,
+        Version.parse(packageJson["version"] as String),
+      ),
+    );
   });
 }
 
@@ -134,26 +159,36 @@ Version _changelogVersion(String package) {
 /// Returns a [Matcher] that matches any valid variant of the CHANGELOG version
 /// [version] that the package itself can have.
 Matcher matchesChangelogVersion(Version version) => anyOf(
-    equals(version.toString()),
-    version.isPreRelease
-        ? equals("${version.nextPatch}-dev")
-        : equals("$version-dev"));
+      equals(version.toString()),
+      version.isPreRelease
+          ? equals("${version.nextPatch}-dev")
+          : equals("$version-dev"),
+    );
 
 /// Verifies that [pkgVersion] loks like it was incremented when the version of
 /// the main Sass version was as well.
 void _checkVersionIncrementsAlong(
-    String pkgName, Pubspec sassPubspec, Version pkgVersion) {
+  String pkgName,
+  Pubspec sassPubspec,
+  Version pkgVersion,
+) {
   var sassVersion = sassPubspec.version!;
   if (_isDevVersion(sassVersion)) return;
 
-  expect(_isDevVersion(pkgVersion), isFalse,
-      reason: "sass $sassVersion isn't a dev version but $pkgName $pkgVersion "
-          "is");
+  expect(
+    _isDevVersion(pkgVersion),
+    isFalse,
+    reason: "sass $sassVersion isn't a dev version but $pkgName $pkgVersion "
+        "is",
+  );
 
   if (sassVersion.isPreRelease) {
-    expect(pkgVersion.isPreRelease, isTrue,
-        reason: "sass $sassVersion is a pre-release version but $pkgName "
-            "$pkgVersion isn't");
+    expect(
+      pkgVersion.isPreRelease,
+      isTrue,
+      reason: "sass $sassVersion is a pre-release version but $pkgName "
+          "$pkgVersion isn't",
+    );
   }
 
   // If only sass's patch version was incremented, there's not a good way
@@ -161,13 +196,44 @@ void _checkVersionIncrementsAlong(
   // because we don't have access to the prior version.
   if (sassVersion.patch != 0) return;
 
+  var pkgMajor = pkgVersion.major;
+  var pkgMinor = pkgVersion.minor;
+  var pkgPatch = pkgVersion.patch;
+  if (pkgMajor == 0) {
+    // Before 1.0.0, the semantics of each version number are moved up by one
+    // place.
+    pkgMajor = pkgMinor;
+    pkgMinor = pkgPatch;
+    pkgPatch = 0;
+  }
+
   if (sassVersion.minor != 0) {
-    expect(pkgVersion.patch, equals(0),
-        reason: "sass minor version was incremented, $pkgName must increment "
-            "at least its minor version");
+    expect(
+      pkgPatch,
+      equals(0),
+      reason: "sass minor version was incremented, $pkgName must increment "
+          "at least its minor version",
+    );
   } else {
-    expect(pkgVersion.minor, equals(0),
-        reason: "sass major version was incremented, $pkgName must increment "
-            "at its major version as well");
+    expect(
+      pkgMinor,
+      equals(0),
+      reason: "sass major version was incremented, $pkgName must increment "
+          "at its major version as well",
+    );
+  }
+}
+
+/// Throws an error if the checksum in [outputPath] doesn't match the hash of
+/// the contents of [inputPath].
+void _assertChecksumMatches(String inputPath, String outputPath) {
+  var inputText = File(inputPath).readAsStringSync();
+  var outputText = File(outputPath).readAsStringSync();
+  var checksum = sha1.convert(utf8.encode(inputText));
+  if (!outputText.contains('// Checksum: $checksum')) {
+    fail(
+      '$outputPath is out-of-date.\n'
+      'Run `dart run grinder` to update it.',
+    );
   }
 }

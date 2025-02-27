@@ -26,14 +26,19 @@ Future<String> cloneOrCheckout(String url, String ref) async {
 
   if (Directory(p.join(path, '.git')).existsSync()) {
     log("Updating $url");
-    await runAsync("git",
-        arguments: ["fetch", "origin"], workingDirectory: path);
+    await runAsync(
+      "git",
+      arguments: ["fetch", "origin"],
+      workingDirectory: path,
+    );
   } else {
     delete(Directory(path));
     await runAsync("git", arguments: ["clone", url, path]);
-    await runAsync("git",
-        arguments: ["config", "advice.detachedHead", "false"],
-        workingDirectory: path);
+    await runAsync(
+      "git",
+      arguments: ["config", "advice.detachedHead", "false"],
+      workingDirectory: path,
+    );
   }
   await runAsync("git", arguments: ["checkout", ref], workingDirectory: path);
   log("");

@@ -4,6 +4,7 @@
 
 import * as postcss from 'postcss';
 
+import {Container} from '../container';
 import {Interpolation} from '../interpolation';
 import {LazySource} from '../lazy-source';
 import {Node, NodeProps} from '../node';
@@ -11,10 +12,20 @@ import * as sassInternal from '../sass-internal';
 import {CssComment, CssCommentProps} from './css-comment';
 import {SassComment, SassCommentChildProps} from './sass-comment';
 import {GenericAtRule, GenericAtRuleProps} from './generic-at-rule';
+import {ContentRule, ContentRuleProps} from './content-rule';
 import {DebugRule, DebugRuleProps} from './debug-rule';
+import {Declaration, DeclarationProps} from './declaration';
 import {EachRule, EachRuleProps} from './each-rule';
+import {ElseRule, ElseRuleProps} from './else-rule';
 import {ErrorRule, ErrorRuleProps} from './error-rule';
 import {ForRule, ForRuleProps} from './for-rule';
+import {ForwardRule, ForwardRuleProps} from './forward-rule';
+import {FunctionRule, FunctionRuleProps} from './function-rule';
+import {IfRule, IfRuleProps} from './if-rule';
+import {ImportRule, ImportRuleProps} from './import-rule';
+import {IncludeRule, IncludeRuleProps} from './include-rule';
+import {MixinRule, MixinRuleProps} from './mixin-rule';
+import {ReturnRule, ReturnRuleProps} from './return-rule';
 import {Root} from './root';
 import {Rule, RuleProps} from './rule';
 import {UseRule, UseRuleProps} from './use-rule';
@@ -25,16 +36,12 @@ import {
 import {WarnRule, WarnRuleProps} from './warn-rule';
 import {WhileRule, WhileRuleProps} from './while-rule';
 
-// TODO: Replace this with the corresponding Sass types once they're
-// implemented.
-export {Declaration} from 'postcss';
-
 /**
  * The union type of all Sass statements.
  *
  * @category Statement
  */
-export type AnyStatement = Comment | Root | Rule | AtRule | VariableDeclaration;
+export type AnyStatement = Comment | Root | Rule | AtRule | AnyDeclaration;
 
 /**
  * Sass statement types.
@@ -50,12 +57,22 @@ export type StatementType =
   | 'rule'
   | 'atrule'
   | 'comment'
+  | 'content-rule'
+  | 'decl'
   | 'debug-rule'
   | 'each-rule'
-  | 'for-rule'
+  | 'else-rule'
   | 'error-rule'
-  | 'use-rule'
+  | 'for-rule'
+  | 'forward-rule'
+  | 'function-rule'
+  | 'if-rule'
+  | 'import-rule'
+  | 'include-rule'
+  | 'mixin-rule'
+  | 'return-rule'
   | 'sass-comment'
+  | 'use-rule'
   | 'variable-declaration'
   | 'warn-rule'
   | 'while-rule';
@@ -66,14 +83,30 @@ export type StatementType =
  * @category Statement
  */
 export type AtRule =
+  | ContentRule
   | DebugRule
   | EachRule
+  | ElseRule
   | ErrorRule
   | ForRule
+  | ForwardRule
+  | FunctionRule
   | GenericAtRule
+  | IfRule
+  | ImportRule
+  | IncludeRule
+  | MixinRule
+  | ReturnRule
   | UseRule
   | WarnRule
   | WhileRule;
+
+/**
+ * All Sass statements that are declarations.
+ *
+ * @category Statement
+ */
+export type AnyDeclaration = VariableDeclaration | Declaration;
 
 /**
  * All Sass statements that are comments.
@@ -89,7 +122,7 @@ export type Comment = CssComment | SassComment;
  *
  * @category Statement
  */
-export type ChildNode = Rule | AtRule | Comment | VariableDeclaration;
+export type ChildNode = Rule | AtRule | Comment | AnyDeclaration;
 
 /**
  * The properties that can be used to construct {@link ChildNode}s.
@@ -100,12 +133,30 @@ export type ChildNode = Rule | AtRule | Comment | VariableDeclaration;
  */
 export type ChildProps =
   | postcss.ChildProps
+  // In a ChildProps context, `ContentProps` requires an explicit
+  // `contentArguments: undefined` so that an empty object isn't a valid
+  // `ChildProps`.
+  | (ContentRuleProps & {
+      contentArguments: ContentRuleProps['contentArguments'];
+    })
   | CssCommentProps
   | DebugRuleProps
+  | DeclarationProps
   | EachRuleProps
+  // In a ChildProps context, `ElseRuleProps` requires an explicit
+  // `elseCondition: undefined` so that an empty object isn't a valid
+  // `ChildProps`.
+  | (ElseRuleProps & {elseCondition: ElseRuleProps['elseCondition']})
   | ErrorRuleProps
   | ForRuleProps
+  | ForwardRuleProps
+  | FunctionRuleProps
   | GenericAtRuleProps
+  | IfRuleProps
+  | ImportRuleProps
+  | IncludeRuleProps
+  | MixinRuleProps
+  | ReturnRuleProps
   | RuleProps
   | SassCommentChildProps
   | UseRuleProps
@@ -127,9 +178,9 @@ export interface ContainerProps extends NodeProps {
  *
  * @category Statement
  */
-export type StatementWithChildren = postcss.Container<postcss.ChildNode> & {
-  nodes: ChildNode[];
-} & Statement;
+export type StatementWithChildren = postcss.Container<postcss.ChildNode> &
+  Container<ChildNode, NewNode> &
+  Statement;
 
 /**
  * A statement in a Sass stylesheet.
@@ -148,7 +199,7 @@ export interface Statement extends postcss.Node, Node {
 }
 
 /** The visitor to use to convert internal Sass nodes to JS. */
-const visitor = sassInternal.createStatementVisitor<Statement>({
+const visitor = sassInternal.createStatementVisitor<Statement | Statement[]>({
   visitAtRootRule: inner => {
     const rule = new GenericAtRule({
       name: 'at-root',
@@ -161,10 +212,28 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
     return rule;
   },
   visitAtRule: inner => new GenericAtRule(undefined, inner),
+  visitContentRule: inner => new ContentRule(undefined, inner),
   visitDebugRule: inner => new DebugRule(undefined, inner),
+  visitDeclaration: inner => new Declaration(undefined, inner),
   visitErrorRule: inner => new ErrorRule(undefined, inner),
   visitEachRule: inner => new EachRule(undefined, inner),
   visitForRule: inner => new ForRule(undefined, inner),
+  visitForwardRule: inner => new ForwardRule(undefined, inner),
+  visitFunctionRule: inner => new FunctionRule(undefined, inner),
+  visitIfRule: inner => {
+    const rules: Statement[] = [new IfRule(undefined, inner)];
+
+    // Skip `inner.clauses[0]` because it's already used by `new IfRule()`.
+    for (let i = 1; i < inner.clauses.length; i++) {
+      rules.push(new ElseRule(undefined, inner, inner.clauses[i]));
+    }
+    if (inner.lastClause) {
+      rules.push(new ElseRule(undefined, inner, inner.lastClause));
+    }
+    return rules;
+  },
+  visitImportRule: inner => new ImportRule(undefined, inner),
+  visitIncludeRule: inner => new IncludeRule(undefined, inner),
   visitExtendRule: inner => {
     const paramsInterpolation = new Interpolation(undefined, inner.selector);
     if (inner.isOptional) paramsInterpolation.append('!optional');
@@ -184,6 +253,8 @@ const visitor = sassInternal.createStatementVisitor<Statement>({
     appendInternalChildren(rule, inner.children);
     return rule;
   },
+  visitMixinRule: inner => new MixinRule(undefined, inner),
+  visitReturnRule: inner => new ReturnRule(undefined, inner),
   visitSilentComment: inner => new SassComment(undefined, inner),
   visitStyleRule: inner => new Rule(undefined, inner),
   visitSupportsRule: inner => {
@@ -296,6 +367,8 @@ export function normalize(
       }
     } else if ('type' in node) {
       result.push(...postcssNormalizeAndConvertToSass(self, node, sample));
+    } else if ('prop' in node || 'propInterpolation' in node) {
+      result.push(new Declaration(node));
     } else if (
       'selectorInterpolation' in node ||
       'selector' in node ||
@@ -304,18 +377,36 @@ export function normalize(
       result.push(new Rule(node));
     } else if ('name' in node || 'nameInterpolation' in node) {
       result.push(new GenericAtRule(node as GenericAtRuleProps));
+    } else if ('contentArguments' in node) {
+      result.push(new ContentRule(node));
     } else if ('debugExpression' in node) {
       result.push(new DebugRule(node));
     } else if ('eachExpression' in node) {
       result.push(new EachRule(node));
-    } else if ('fromExpression' in node) {
-      result.push(new ForRule(node));
+    } else if ('elseCondition' in node) {
+      result.push(new ElseRule(node));
     } else if ('errorExpression' in node) {
       result.push(new ErrorRule(node));
-    } else if ('text' in node || 'textInterpolation' in node) {
-      result.push(new CssComment(node as CssCommentProps));
+    } else if ('ifCondition' in node) {
+      result.push(new IfRule(node));
+    } else if ('imports' in node) {
+      result.push(new ImportRule(node));
+    } else if ('includeName' in node) {
+      result.push(new IncludeRule(node));
+    } else if ('fromExpression' in node) {
+      result.push(new ForRule(node));
+    } else if ('forwardUrl' in node) {
+      result.push(new ForwardRule(node));
+    } else if ('functionName' in node) {
+      result.push(new FunctionRule(node));
+    } else if ('mixinName' in node) {
+      result.push(new MixinRule(node));
+    } else if ('returnExpression' in node) {
+      result.push(new ReturnRule(node));
     } else if ('silentText' in node) {
       result.push(new SassComment(node));
+    } else if ('text' in node || 'textInterpolation' in node) {
+      result.push(new CssComment(node as CssCommentProps));
     } else if ('useUrl' in node) {
       result.push(new UseRule(node));
     } else if ('variableName' in node) {

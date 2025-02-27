@@ -57,7 +57,8 @@ class FilesystemImporter extends Importer {
   /// load path doesn't matter, or `FilesystemImporter('.')` to explicitly
   /// preserve the existing behavior.
   @Deprecated(
-      "Use FilesystemImporter.noLoadPath or FilesystemImporter('.') instead.")
+    "Use FilesystemImporter.noLoadPath or FilesystemImporter('.') instead.",
+  )
   static final cwd = FilesystemImporter._deprecated('.');
 
   /// Creates an importer that _only_ loads absolute `file:` URLs and URLs
@@ -75,10 +76,11 @@ class FilesystemImporter extends Importer {
 
       if (resolved != null && _loadPathDeprecated) {
         warnForDeprecation(
-            "Using the current working directory as an implicit load path is "
-            "deprecated. Either add it as an explicit load path or importer, or "
-            "load this stylesheet from a different URL.",
-            Deprecation.fsImporterCwd);
+          "Using the current working directory as an implicit load path is "
+          "deprecated. Either add it as an explicit load path or importer, or "
+          "load this stylesheet from a different URL.",
+          Deprecation.fsImporterCwd,
+        );
       }
     } else {
       return null;
@@ -89,8 +91,11 @@ class FilesystemImporter extends Importer {
 
   ImporterResult? load(Uri url) {
     var path = p.fromUri(url);
-    return ImporterResult(io.readFile(path),
-        sourceMapUrl: url, syntax: Syntax.forPath(path));
+    return ImporterResult(
+      io.readFile(path),
+      sourceMapUrl: url,
+      syntax: Syntax.forPath(path),
+    );
   }
 
   DateTime modificationTime(Uri url) => io.modificationTime(p.fromUri(url));

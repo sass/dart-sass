@@ -29,10 +29,14 @@ final class ForRule extends ParentStatement<List<Statement>> {
 
   final FileSpan span;
 
-  ForRule(this.variable, this.from, this.to, Iterable<Statement> children,
-      this.span,
-      {bool exclusive = true})
-      : isExclusive = exclusive,
+  ForRule(
+    this.variable,
+    this.from,
+    this.to,
+    Iterable<Statement> children,
+    this.span, {
+    bool exclusive = true,
+  })  : isExclusive = exclusive,
         super(List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitForRule(this);

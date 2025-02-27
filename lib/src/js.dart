@@ -25,14 +25,20 @@ import 'value.dart';
 /// This sets up exports that can be called from JS.
 void main() {
   exports.compile = allowInteropNamed('sass.compile', compile);
-  exports.compileString =
-      allowInteropNamed('sass.compileString', compileString);
+  exports.compileString = allowInteropNamed(
+    'sass.compileString',
+    compileString,
+  );
   exports.compileAsync = allowInteropNamed('sass.compileAsync', compileAsync);
-  exports.compileStringAsync =
-      allowInteropNamed('sass.compileStringAsync', compileStringAsync);
+  exports.compileStringAsync = allowInteropNamed(
+    'sass.compileStringAsync',
+    compileStringAsync,
+  );
   exports.initCompiler = allowInteropNamed('sass.initCompiler', initCompiler);
-  exports.initAsyncCompiler =
-      allowInteropNamed('sass.initAsyncCompiler', initAsyncCompiler);
+  exports.initAsyncCompiler = allowInteropNamed(
+    'sass.initAsyncCompiler',
+    initAsyncCompiler,
+  );
   exports.Compiler = compilerClass;
   exports.AsyncCompiler = asyncCompilerClass;
   exports.Value = valueClass;
@@ -53,9 +59,11 @@ void main() {
   exports.sassFalse = sassFalse;
   exports.Exception = exceptionClass;
   exports.Logger = LoggerNamespace(
-      silent: JSLogger(
-          warn: allowInteropNamed('sass.Logger.silent.warn', (_, __) {}),
-          debug: allowInteropNamed('sass.Logger.silent.debug', (_, __) {})));
+    silent: JSLogger(
+      warn: allowInteropNamed('sass.Logger.silent.warn', (_, __) {}),
+      debug: allowInteropNamed('sass.Logger.silent.debug', (_, __) {}),
+    ),
+  );
   exports.NodePackageImporter = nodePackageImporterClass;
   exports.deprecations = jsify(deprecations);
   exports.Version = versionClass;
@@ -75,14 +83,15 @@ void main() {
   exports.renderSync = allowInteropNamed('sass.renderSync', renderSync);
 
   exports.types = Types(
-      Boolean: legacyBooleanClass,
-      Color: legacyColorClass,
-      List: legacyListClass,
-      Map: legacyMapClass,
-      Null: legacyNullClass,
-      Number: legacyNumberClass,
-      String: legacyStringClass,
-      Error: jsErrorClass);
+    Boolean: legacyBooleanClass,
+    Color: legacyColorClass,
+    List: legacyListClass,
+    Map: legacyMapClass,
+    Null: legacyNullClass,
+    Number: legacyNumberClass,
+    String: legacyStringClass,
+    Error: jsErrorClass,
+  );
   exports.NULL = sassNull;
   exports.TRUE = sassTrue;
   exports.FALSE = sassFalse;

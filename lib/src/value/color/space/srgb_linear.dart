@@ -24,20 +24,26 @@ final class SrgbLinearColorSpace extends ColorSpace {
 
   const SrgbLinearColorSpace() : super('srgb-linear', rgbChannels);
 
-  SassColor convert(ColorSpace dest, double? red, double? green, double? blue,
-          double? alpha) =>
+  SassColor convert(
+    ColorSpace dest,
+    double? red,
+    double? green,
+    double? blue,
+    double? alpha,
+  ) =>
       switch (dest) {
         ColorSpace.rgb ||
         ColorSpace.hsl ||
         ColorSpace.hwb ||
         ColorSpace.srgb =>
           ColorSpace.srgb.convert(
-              dest,
-              red.andThen(srgbAndDisplayP3FromLinear),
-              green.andThen(srgbAndDisplayP3FromLinear),
-              blue.andThen(srgbAndDisplayP3FromLinear),
-              alpha),
-        _ => super.convert(dest, red, green, blue, alpha)
+            dest,
+            red.andThen(srgbAndDisplayP3FromLinear),
+            green.andThen(srgbAndDisplayP3FromLinear),
+            blue.andThen(srgbAndDisplayP3FromLinear),
+            alpha,
+          ),
+        _ => super.convert(dest, red, green, blue, alpha),
       };
 
   @protected
@@ -55,6 +61,6 @@ final class SrgbLinearColorSpace extends ColorSpace {
         ColorSpace.xyzD65 => linearSrgbToXyzD65,
         ColorSpace.xyzD50 => linearSrgbToXyzD50,
         ColorSpace.lms => linearSrgbToLms,
-        _ => super.transformationMatrix(dest)
+        _ => super.transformationMatrix(dest),
       };
 }

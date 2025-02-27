@@ -28,7 +28,8 @@ final class JSToDartAsyncFileImporter extends AsyncImporter {
     if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);
 
     var result = wrapJSExceptions(
-        () => _findFileUrl(url.toString(), canonicalizeContext));
+      () => _findFileUrl(url.toString(), canonicalizeContext),
+    );
     if (isPromise(result)) result = await promiseToFuture(result as Promise);
     if (result == null) return null;
     if (!isJSUrl(result)) {
@@ -37,9 +38,12 @@ final class JSToDartAsyncFileImporter extends AsyncImporter {
 
     var resultUrl = jsToDartUrl(result as JSUrl);
     if (resultUrl.scheme != 'file') {
-      jsThrow(JsError(
+      jsThrow(
+        JsError(
           'The findFileUrl() must return a URL with scheme file://, was '
-          '"$url".'));
+          '"$url".',
+        ),
+      );
     }
 
     return FilesystemImporter.cwd.canonicalize(resultUrl);

@@ -10,8 +10,10 @@ import 'package:sass/src/util/map.dart';
 void main() {
   group("toCssIdentifier()", () {
     group("doesn't escape", () {
-      test('a double hyphen',
-          () => expect('--'.toCssIdentifier(), equals('--')));
+      test(
+        'a double hyphen',
+        () => expect('--'.toCssIdentifier(), equals('--')),
+      );
 
       group("a starting character", () {
         const chars = {
@@ -19,7 +21,7 @@ void main() {
           'upper-case alphabetic': 'E',
           'an underscore': '_',
           'non-ASCII': 'ä',
-          'double-width': '👭'
+          'double-width': '👭',
         };
 
         group("at the very beginning that's", () {
@@ -30,8 +32,10 @@ void main() {
 
         group("after a single hyphen that's", () {
           for (var (name, char) in chars.pairs) {
-            test(name,
-                () => expect('-$char'.toCssIdentifier(), equals('-$char')));
+            test(
+              name,
+              () => expect('-$char'.toCssIdentifier(), equals('-$char')),
+            );
           }
         });
       });
@@ -44,28 +48,34 @@ void main() {
           'an underscore': '_',
           'a hyphen': '-',
           'non-ASCII': 'ä',
-          'double-width': '👭'
+          'double-width': '👭',
         };
 
         group("after a name start that's", () {
           for (var (name, char) in chars.pairs) {
-            test(name,
-                () => expect('a$char'.toCssIdentifier(), equals('a$char')));
+            test(
+              name,
+              () => expect('a$char'.toCssIdentifier(), equals('a$char')),
+            );
           }
         });
 
         group("after a double hyphen that's", () {
           for (var (name, char) in chars.pairs) {
-            test(name,
-                () => expect('--$char'.toCssIdentifier(), equals('--$char')));
+            test(
+              name,
+              () => expect('--$char'.toCssIdentifier(), equals('--$char')),
+            );
           }
         });
       });
     });
 
     group('escapes', () {
-      test('a single hyphen',
-          () => expect('-'.toCssIdentifier(), equals('\\2d')));
+      test(
+        'a single hyphen',
+        () => expect('-'.toCssIdentifier(), equals('\\2d')),
+      );
 
       group('a starting character', () {
         const chars = {
@@ -83,8 +93,10 @@ void main() {
 
         group("after a single hyphen that's", () {
           for (var (name, (char, escape)) in chars.pairs) {
-            test(name,
-                () => expect('-$char'.toCssIdentifier(), equals('-$escape')));
+            test(
+              name,
+              () => expect('-$char'.toCssIdentifier(), equals('-$escape')),
+            );
           }
         });
       });
@@ -98,23 +110,29 @@ void main() {
 
         group("after a name start that's", () {
           for (var (name, (char, escape)) in chars.pairs) {
-            test(name,
-                () => expect('a$char'.toCssIdentifier(), equals('a$escape')));
+            test(
+              name,
+              () => expect('a$char'.toCssIdentifier(), equals('a$escape')),
+            );
           }
         });
 
         group("after a double hyphen that's", () {
           for (var (name, (char, escape)) in chars.pairs) {
-            test(name,
-                () => expect('--$char'.toCssIdentifier(), equals('--$escape')));
+            test(
+              name,
+              () => expect('--$char'.toCssIdentifier(), equals('--$escape')),
+            );
           }
         });
       });
     });
 
     group('throws an error for', () {
-      test('the empty string',
-          () => expect(''.toCssIdentifier, throwsFormatException));
+      test(
+        'the empty string',
+        () => expect(''.toCssIdentifier, throwsFormatException),
+      );
 
       const chars = {
         'zero': '\u0000',
@@ -130,29 +148,37 @@ void main() {
 
       group("after a hyphen that's", () {
         for (var (name, char) in chars.pairs) {
-          test(name,
-              () => expect('-$char'.toCssIdentifier, throwsFormatException));
+          test(
+            name,
+            () => expect('-$char'.toCssIdentifier, throwsFormatException),
+          );
         }
       });
 
       group("after a name start that's", () {
         for (var (name, char) in chars.pairs) {
-          test(name,
-              () => expect('a$char'.toCssIdentifier, throwsFormatException));
+          test(
+            name,
+            () => expect('a$char'.toCssIdentifier, throwsFormatException),
+          );
         }
       });
 
       group("after a double hyphen that's", () {
         for (var (name, char) in chars.pairs) {
-          test(name,
-              () => expect('--$char'.toCssIdentifier, throwsFormatException));
+          test(
+            name,
+            () => expect('--$char'.toCssIdentifier, throwsFormatException),
+          );
         }
       });
 
       group("before a body char that's", () {
         for (var (name, char) in chars.pairs) {
-          test(name,
-              () => expect('a${char}b'.toCssIdentifier, throwsFormatException));
+          test(
+            name,
+            () => expect('a${char}b'.toCssIdentifier, throwsFormatException),
+          );
         }
       });
     });
@@ -160,27 +186,39 @@ void main() {
     group('adds a space between an escape and', () {
       test('a digit', () => expect(' 1'.toCssIdentifier(), '\\20 1'));
 
-      test('a lowercase hex letter',
-          () => expect(' b'.toCssIdentifier(), '\\20 b'));
+      test(
+        'a lowercase hex letter',
+        () => expect(' b'.toCssIdentifier(), '\\20 b'),
+      );
 
-      test('an uppercase hex letter',
-          () => expect(' B'.toCssIdentifier(), '\\20 B'));
+      test(
+        'an uppercase hex letter',
+        () => expect(' B'.toCssIdentifier(), '\\20 B'),
+      );
     });
 
     group('doesn\'t add a space between an escape and', () {
       test(
-          'the end of the string', () => expect(' '.toCssIdentifier(), '\\20'));
+        'the end of the string',
+        () => expect(' '.toCssIdentifier(), '\\20'),
+      );
 
-      test('a lowercase non-hex letter',
-          () => expect(' g'.toCssIdentifier(), '\\20g'));
+      test(
+        'a lowercase non-hex letter',
+        () => expect(' g'.toCssIdentifier(), '\\20g'),
+      );
 
-      test('an uppercase non-hex letter',
-          () => expect(' G'.toCssIdentifier(), '\\20G'));
+      test(
+        'an uppercase non-hex letter',
+        () => expect(' G'.toCssIdentifier(), '\\20G'),
+      );
 
       test('a hyphen', () => expect(' -'.toCssIdentifier(), '\\20-'));
 
-      test('a non-ascii character',
-          () => expect(' ä'.toCssIdentifier(), '\\20ä'));
+      test(
+        'a non-ascii character',
+        () => expect(' ä'.toCssIdentifier(), '\\20ä'),
+      );
 
       test('another escape', () => expect('  '.toCssIdentifier(), '\\20\\20'));
     });

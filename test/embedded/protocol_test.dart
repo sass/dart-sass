@@ -33,8 +33,10 @@ void main() {
     test("caused by an unterminated compilation ID varint", () async {
       process.stdin.add([1, 0x81]);
       await expectParseError(
-          process, "Invalid compilation ID: continuation bit always set.",
-          compilationId: errorId);
+        process,
+        "Invalid compilation ID: continuation bit always set.",
+        compilationId: errorId,
+      );
       await process.shouldExit(76);
     });
 
@@ -42,43 +44,54 @@ void main() {
       var varint = serializeVarint(0x100000000);
       process.stdin.add([...serializeVarint(varint.length), ...varint]);
       await expectParseError(
-          process, "Varint compilation ID was longer than 32 bits.",
-          compilationId: errorId);
+        process,
+        "Varint compilation ID was longer than 32 bits.",
+        compilationId: errorId,
+      );
       await process.shouldExit(76);
     });
 
     test("caused by an invalid protobuf", () async {
       process.stdin.add([2, 1, 0]);
       await expectParseError(
-          process, "Protocol message contained an invalid tag (zero).",
-          compilationId: 1);
+        process,
+        "Protocol message contained an invalid tag (zero).",
+        compilationId: 1,
+      );
       await process.shouldExit(76);
     });
 
     test("caused by a response to an inactive compilation", () async {
-      process.send(InboundMessage()
-        ..canonicalizeResponse =
-            (InboundMessage_CanonicalizeResponse()..id = 1));
+      process.send(
+        InboundMessage()
+          ..canonicalizeResponse =
+              (InboundMessage_CanonicalizeResponse()..id = 1),
+      );
       await expectParamsError(
-          process,
-          errorId,
-          "Response ID 1 doesn't match any outstanding requests in "
-          "compilation $defaultCompilationId.");
+        process,
+        errorId,
+        "Response ID 1 doesn't match any outstanding requests in "
+        "compilation $defaultCompilationId.",
+      );
       await process.shouldExit(76);
     });
 
     test("caused by duplicate compilation IDs", () async {
-      process.send(compileString("@use 'other'", importers: [
-        InboundMessage_CompileRequest_Importer()..importerId = 1
-      ]));
+      process.send(
+        compileString(
+          "@use 'other'",
+          importers: [InboundMessage_CompileRequest_Importer()..importerId = 1],
+        ),
+      );
       await getCanonicalizeRequest(process);
 
       process.send(compileString("a {b: c}"));
       await expectParamsError(
-          process,
-          errorId,
-          "A CompileRequest with compilation ID $defaultCompilationId is "
-          "already active.");
+        process,
+        errorId,
+        "A CompileRequest with compilation ID $defaultCompilationId is "
+        "already active.",
+      );
       await process.shouldExit(76);
     });
   });
@@ -87,7 +100,7 @@ void main() {
     process.inbound.add((
       0,
       InboundMessage()
-        ..versionRequest = (InboundMessage_VersionRequest()..id = 123)
+        ..versionRequest = (InboundMessage_VersionRequest()..id = 123),
     ));
     var (compilationId, OutboundMessage(versionResponse: response)) =
         await process.outbound.next;
@@ -129,9 +142,11 @@ void main() {
     test("an absolute path", () async {
       await d.file("test.scss", "a {b: 1px + 2px}").create();
 
-      process.send(InboundMessage()
-        ..compileRequest = (InboundMessage_CompileRequest()
-          ..path = p.absolute(d.path("test.scss"))));
+      process.send(
+        InboundMessage()
+          ..compileRequest = (InboundMessage_CompileRequest()
+            ..path = p.absolute(d.path("test.scss"))),
+      );
       await expectSuccess(process, "a { b: 3px; }");
       await process.close();
     });
@@ -139,9 +154,11 @@ void main() {
     test("a relative path", () async {
       await d.file("test.scss", "a {b: 1px + 2px}").create();
 
-      process.send(InboundMessage()
-        ..compileRequest = (InboundMessage_CompileRequest()
-          ..path = p.relative(d.path("test.scss"))));
+      process.send(
+        InboundMessage()
+          ..compileRequest = (InboundMessage_CompileRequest()
+            ..path = p.relative(d.path("test.scss"))),
+      );
       await expectSuccess(process, "a { b: 3px; }");
       await process.close();
     });
@@ -149,15 +166,17 @@ void main() {
 
   group("compiles CSS in", () {
     test("expanded mode", () async {
-      process
-          .send(compileString("a {b: 1px + 2px}", style: OutputStyle.EXPANDED));
+      process.send(
+        compileString("a {b: 1px + 2px}", style: OutputStyle.EXPANDED),
+      );
       await expectSuccess(process, equals("a {\n  b: 3px;\n}"));
       await process.close();
     });
 
     test("compressed mode", () async {
       process.send(
-          compileString("a {b: 1px + 2px}", style: OutputStyle.COMPRESSED));
+        compileString("a {b: 1px + 2px}", style: OutputStyle.COMPRESSED),
+      );
       await expectSuccess(process, equals("a{b:3px}"));
       await process.close();
     });
@@ -187,15 +206,19 @@ void main() {
   test("handles many concurrent compilation requests", () async {
     var totalRequests = 1000;
     for (var i = 1; i <= totalRequests; i++) {
-      process.inbound
-          .add((i, compileString("a {b: foo() + 2px}", functions: [r"foo()"])));
+      process.inbound.add((
+        i,
+        compileString("a {b: foo() + 2px}", functions: [r"foo()"]),
+      ));
     }
 
     var successes = 0;
     process.outbound.rest.listen((pair) {
       var (compilationId, message) = pair;
-      expect(compilationId,
-          allOf(greaterThan(0), lessThanOrEqualTo(totalRequests)));
+      expect(
+        compilationId,
+        allOf(greaterThan(0), lessThanOrEqualTo(totalRequests)),
+      );
 
       if (message.hasFunctionCallRequest()) {
         process.inbound.add((
@@ -206,7 +229,7 @@ void main() {
               ..success = (Value()
                 ..number = (Value_Number()
                   ..value = 1
-                  ..numerators.add("px"))))
+                  ..numerators.add("px")))),
         ));
       } else if (message.hasCompileResponse()) {
         var response = message.compileResponse;
@@ -241,8 +264,10 @@ void main() {
     // compilations as we can realistically have anyway.
     var totalRequests = 15;
     for (var i = 1; i <= totalRequests; i++) {
-      process.inbound
-          .add((i, compileString("a {b: foo() + 2px}", functions: [r"foo()"])));
+      process.inbound.add((
+        i,
+        compileString("a {b: foo() + 2px}", functions: [r"foo()"]),
+      ));
     }
 
     await process.close();
@@ -262,54 +287,78 @@ void main() {
 
   test("includes a source map if source_map is true", () async {
     process.send(compileString("a {b: 1px + 2px}", sourceMap: true));
-    await expectSuccess(process, "a { b: 3px; }", sourceMap: (String map) {
-      var mapping = source_maps.parse(map);
-      var span = mapping.spanFor(2, 5)!;
-      expect(span.start.line, equals(0));
-      expect(span.start.column, equals(3));
-      expect(span.end, equals(span.start));
-      expect(mapping, isA<source_maps.SingleMapping>());
-      expect((mapping as source_maps.SingleMapping).files[0], isNull);
-      return true;
-    });
+    await expectSuccess(
+      process,
+      "a { b: 3px; }",
+      sourceMap: (String map) {
+        var mapping = source_maps.parse(map);
+        var span = mapping.spanFor(2, 5)!;
+        expect(span.start.line, equals(0));
+        expect(span.start.column, equals(3));
+        expect(span.end, equals(span.start));
+        expect(mapping, isA<source_maps.SingleMapping>());
+        expect((mapping as source_maps.SingleMapping).files[0], isNull);
+        return true;
+      },
+    );
     await process.close();
   });
 
   test(
-      "includes a source map without content if source_map is true and source_map_include_sources is false",
-      () async {
-    process.send(compileString("a {b: 1px + 2px}",
-        sourceMap: true, sourceMapIncludeSources: false));
-    await expectSuccess(process, "a { b: 3px; }", sourceMap: (String map) {
-      var mapping = source_maps.parse(map);
-      var span = mapping.spanFor(2, 5)!;
-      expect(span.start.line, equals(0));
-      expect(span.start.column, equals(3));
-      expect(span.end, equals(span.start));
-      expect(mapping, isA<source_maps.SingleMapping>());
-      expect((mapping as source_maps.SingleMapping).files[0], isNull);
-      return true;
-    });
-    await process.close();
-  });
+    "includes a source map without content if source_map is true and source_map_include_sources is false",
+    () async {
+      process.send(
+        compileString(
+          "a {b: 1px + 2px}",
+          sourceMap: true,
+          sourceMapIncludeSources: false,
+        ),
+      );
+      await expectSuccess(
+        process,
+        "a { b: 3px; }",
+        sourceMap: (String map) {
+          var mapping = source_maps.parse(map);
+          var span = mapping.spanFor(2, 5)!;
+          expect(span.start.line, equals(0));
+          expect(span.start.column, equals(3));
+          expect(span.end, equals(span.start));
+          expect(mapping, isA<source_maps.SingleMapping>());
+          expect((mapping as source_maps.SingleMapping).files[0], isNull);
+          return true;
+        },
+      );
+      await process.close();
+    },
+  );
 
   test(
-      "includes a source map with content if source_map is true and source_map_include_sources is true",
-      () async {
-    process.send(compileString("a {b: 1px + 2px}",
-        sourceMap: true, sourceMapIncludeSources: true));
-    await expectSuccess(process, "a { b: 3px; }", sourceMap: (String map) {
-      var mapping = source_maps.parse(map);
-      var span = mapping.spanFor(2, 5)!;
-      expect(span.start.line, equals(0));
-      expect(span.start.column, equals(3));
-      expect(span.end, equals(span.start));
-      expect(mapping, isA<source_maps.SingleMapping>());
-      expect((mapping as source_maps.SingleMapping).files[0], isNotNull);
-      return true;
-    });
-    await process.close();
-  });
+    "includes a source map with content if source_map is true and source_map_include_sources is true",
+    () async {
+      process.send(
+        compileString(
+          "a {b: 1px + 2px}",
+          sourceMap: true,
+          sourceMapIncludeSources: true,
+        ),
+      );
+      await expectSuccess(
+        process,
+        "a { b: 3px; }",
+        sourceMap: (String map) {
+          var mapping = source_maps.parse(map);
+          var span = mapping.spanFor(2, 5)!;
+          expect(span.start.line, equals(0));
+          expect(span.start.column, equals(3));
+          expect(span.end, equals(span.start));
+          expect(mapping, isA<source_maps.SingleMapping>());
+          expect((mapping as source_maps.SingleMapping).files[0], isNotNull);
+          return true;
+        },
+      );
+      await process.close();
+    },
+  );
 
   group("emits a log event", () {
     group("for a @debug rule", () {
@@ -332,7 +381,9 @@ void main() {
         process.send(compileString("a {@debug hello}", alertColor: true));
         var logEvent = await getLogEvent(process);
         expect(
-            logEvent.formatted, equals('-:1 \u001b[1mDebug\u001b[0m: hello\n'));
+          logEvent.formatted,
+          equals('-:1 \u001b[1mDebug\u001b[0m: hello\n'),
+        );
         await process.kill();
       });
     });
@@ -347,9 +398,12 @@ void main() {
         expect(logEvent.span, equals(SourceSpan()));
         expect(logEvent.stackTrace, equals("- 1:4  root stylesheet\n"));
         expect(
-            logEvent.formatted,
-            equals('WARNING: hello\n'
-                '    - 1:4  root stylesheet\n'));
+          logEvent.formatted,
+          equals(
+            'WARNING: hello\n'
+            '    - 1:4  root stylesheet\n',
+          ),
+        );
         await process.kill();
       });
 
@@ -357,9 +411,12 @@ void main() {
         process.send(compileString("a {@warn hello}", alertColor: true));
         var logEvent = await getLogEvent(process);
         expect(
-            logEvent.formatted,
-            equals('\x1B[33m\x1B[1mWarning\x1B[0m: hello\n'
-                '    - 1:4  root stylesheet\n'));
+          logEvent.formatted,
+          equals(
+            '\x1B[33m\x1B[1mWarning\x1B[0m: hello\n'
+            '    - 1:4  root stylesheet\n',
+          ),
+        );
         await process.kill();
       });
 
@@ -367,14 +424,17 @@ void main() {
         process.send(compileString("a {@debug a && b}", alertAscii: true));
         var logEvent = await getLogEvent(process);
         expect(
-            logEvent.formatted,
-            equals('WARNING: In Sass, "&&" means two copies of the parent '
-                'selector. You probably want to use "and" instead.\n\n'
-                '  ,\n'
-                '1 | a {@debug a && b}\n'
-                '  |             ^^\n'
-                '  \'\n'
-                '    - 1:13  root stylesheet\n'));
+          logEvent.formatted,
+          equals(
+            'WARNING: In Sass, "&&" means two copies of the parent '
+            'selector. You probably want to use "and" instead.\n\n'
+            '  ,\n'
+            '1 | a {@debug a && b}\n'
+            '  |             ^^\n'
+            '  \'\n'
+            '    - 1:13  root stylesheet\n',
+          ),
+        );
         await process.kill();
       });
     });
@@ -385,12 +445,14 @@ void main() {
       var logEvent = await getLogEvent(process);
       expect(logEvent.type, equals(LogEventType.DEPRECATION_WARNING));
       expect(
-          logEvent.message,
-          equals(
-              '@elseif is deprecated and will not be supported in future Sass '
-              'versions.\n'
-              '\n'
-              'Recommendation: @else if'));
+        logEvent.message,
+        equals(
+          '@elseif is deprecated and will not be supported in future Sass '
+          'versions.\n'
+          '\n'
+          'Recommendation: @else if',
+        ),
+      );
       expect(logEvent.span.text, equals("@elseif"));
       expect(logEvent.span.start, equals(location(12, 0, 12)));
       expect(logEvent.span.end, equals(location(19, 0, 19)));
@@ -405,11 +467,14 @@ void main() {
       var logEvent = await getLogEvent(process);
       expect(logEvent.type, equals(LogEventType.DEPRECATION_WARNING));
       expect(
-          logEvent.message,
-          equals("As of Dart Sass 2.0.0, !global assignments won't be able to "
-              "declare new variables.\n"
-              "\n"
-              "Recommendation: add `\$var: null` at the stylesheet root."));
+        logEvent.message,
+        equals(
+          "As of Dart Sass 2.0.0, !global assignments won't be able to "
+          "declare new variables.\n"
+          "\n"
+          "Recommendation: add `\$var: null` at the stylesheet root.",
+        ),
+      );
       expect(logEvent.span.text, equals("\$var: value !global"));
       expect(logEvent.span.start, equals(location(3, 0, 3)));
       expect(logEvent.span.end, equals(location(22, 0, 22)));
@@ -449,14 +514,18 @@ void main() {
     });
 
     test("from a missing file", () async {
-      process.send(InboundMessage()
-        ..compileRequest =
-            (InboundMessage_CompileRequest()..path = d.path("test.scss")));
+      process.send(
+        InboundMessage()
+          ..compileRequest =
+              (InboundMessage_CompileRequest()..path = d.path("test.scss")),
+      );
 
       var failure = await getCompileFailure(process);
       expect(failure.message, startsWith("Cannot open file: "));
-      expect(failure.message.replaceFirst("Cannot open file: ", "").trim(),
-          equalsPath(d.path('test.scss')));
+      expect(
+        failure.message.replaceFirst("Cannot open file: ", "").trim(),
+        equalsPath(d.path('test.scss')),
+      );
       expect(failure.span.text, equals(''));
       expect(failure.span.context, equals(''));
       expect(failure.span.start, equals(SourceSpan_SourceLocation()));
@@ -467,39 +536,47 @@ void main() {
     });
 
     test("with a multi-line source span", () async {
-      process.send(compileString("""
-a {
-  b: 1px +
-     1em;
-}
-"""));
+      process.send(
+        compileString("""
+          a {
+            b: 1px +
+                1em;
+          }
+        """),
+      );
 
       var failure = await getCompileFailure(process);
-      expect(failure.span.text, "1px +\n     1em");
-      expect(failure.span.start, equals(location(9, 1, 5)));
-      expect(failure.span.end, equals(location(23, 2, 8)));
+      expect(failure.span.text, "1px +\n                1em");
+      expect(failure.span.start, equals(location(29, 1, 15)));
+      expect(failure.span.end, equals(location(54, 2, 19)));
       expect(failure.span.url, isEmpty);
-      expect(failure.span.context, equals("  b: 1px +\n     1em;\n"));
-      expect(failure.stackTrace, equals("- 2:6  root stylesheet\n"));
+      expect(failure.span.context,
+          equals("            b: 1px +\n                1em;\n"));
+      expect(failure.stackTrace, equals("- 2:16  root stylesheet\n"));
       await process.close();
     });
 
     test("with multiple stack trace entries", () async {
-      process.send(compileString("""
-@function fail() {
-  @return 1px + 1em;
-}
+      process.send(
+        compileString("""
+          @function fail() {
+            @return 1px + 1em;
+          }
 
-a {
-  b: fail();
-}
-"""));
+          a {
+            b: fail();
+          }
+        """),
+      );
 
       var failure = await getCompileFailure(process);
       expect(
-          failure.stackTrace,
-          equals("- 2:11  fail()\n"
-              "- 6:6   root stylesheet\n"));
+        failure.stackTrace,
+        equals(
+          "- 2:21  fail()\n"
+          "- 6:16  root stylesheet\n",
+        ),
+      );
       await process.close();
     });
 
@@ -510,15 +587,19 @@ a {
         var failure = await getCompileFailure(process);
         expect(failure.span.url, equals("foo://bar/baz"));
         expect(
-            failure.stackTrace, equals("foo://bar/baz 1:7  root stylesheet\n"));
+          failure.stackTrace,
+          equals("foo://bar/baz 1:7  root stylesheet\n"),
+        );
         await process.close();
       });
 
       test("a path input", () async {
         await d.file("test.scss", "a {b: 1px + 1em}").create();
         var path = d.path("test.scss");
-        process.send(InboundMessage()
-          ..compileRequest = (InboundMessage_CompileRequest()..path = path));
+        process.send(
+          InboundMessage()
+            ..compileRequest = (InboundMessage_CompileRequest()..path = path),
+        );
 
         var failure = await getCompileFailure(process);
         expect(p.fromUri(failure.span.url), equalsPath(path));
@@ -548,13 +629,16 @@ a {
 
         var failure = await getCompileFailure(process);
         expect(
-            failure.formatted,
-            equals('Error: 1px and 1em have incompatible units.\n'
-                '  ╷\n'
-                '1 │ a {b: 1px + 1em}\n'
-                '  │       ^^^^^^^^^\n'
-                '  ╵\n'
-                '  - 1:7  root stylesheet'));
+          failure.formatted,
+          equals(
+            'Error: 1px and 1em have incompatible units.\n'
+            '  ╷\n'
+            '1 │ a {b: 1px + 1em}\n'
+            '  │       ^^^^^^^^^\n'
+            '  ╵\n'
+            '  - 1:7  root stylesheet',
+          ),
+        );
         await process.close();
       });
 
@@ -563,13 +647,16 @@ a {
 
         var failure = await getCompileFailure(process);
         expect(
-            failure.formatted,
-            equals('Error: 1px and 1em have incompatible units.\n'
-                '\x1B[34m  ╷\x1B[0m\n'
-                '\x1B[34m1 │\x1B[0m a {b: \x1B[31m1px + 1em\x1B[0m}\n'
-                '\x1B[34m  │\x1B[0m \x1B[31m      ^^^^^^^^^\x1B[0m\n'
-                '\x1B[34m  ╵\x1B[0m\n'
-                '  - 1:7  root stylesheet'));
+          failure.formatted,
+          equals(
+            'Error: 1px and 1em have incompatible units.\n'
+            '\x1B[34m  ╷\x1B[0m\n'
+            '\x1B[34m1 │\x1B[0m a {b: \x1B[31m1px + 1em\x1B[0m}\n'
+            '\x1B[34m  │\x1B[0m \x1B[31m      ^^^^^^^^^\x1B[0m\n'
+            '\x1B[34m  ╵\x1B[0m\n'
+            '  - 1:7  root stylesheet',
+          ),
+        );
         await process.close();
       });
 
@@ -578,13 +665,16 @@ a {
 
         var failure = await getCompileFailure(process);
         expect(
-            failure.formatted,
-            equals('Error: 1px and 1em have incompatible units.\n'
-                '  ,\n'
-                '1 | a {b: 1px + 1em}\n'
-                '  |       ^^^^^^^^^\n'
-                '  \'\n'
-                '  - 1:7  root stylesheet'));
+          failure.formatted,
+          equals(
+            'Error: 1px and 1em have incompatible units.\n'
+            '  ,\n'
+            '1 | a {b: 1px + 1em}\n'
+            '  |       ^^^^^^^^^\n'
+            '  \'\n'
+            '  - 1:7  root stylesheet',
+          ),
+        );
         await process.close();
       });
     });

@@ -5,6 +5,7 @@
 import * as postcss from 'postcss';
 
 import {LazySource} from '../lazy-source';
+import {NodeProps} from '../node';
 import type * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {Expression} from '.';
@@ -14,7 +15,7 @@ import {Expression} from '.';
  *
  * @category Expression
  */
-export interface BooleanExpressionProps {
+export interface BooleanExpressionProps extends NodeProps {
   value: boolean;
   raws?: BooleanExpressionRaws;
 }
@@ -44,7 +45,7 @@ export class BooleanExpression extends Expression {
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._value = value;
   }
-  private _value!: boolean;
+  private declare _value: boolean;
 
   constructor(defaults: BooleanExpressionProps);
   /** @hidden */

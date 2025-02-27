@@ -6,7 +6,7 @@ import 'package:source_span/source_span.dart';
 
 import '../../../util/span.dart';
 import '../../../visitor/interface/statement.dart';
-import '../argument_invocation.dart';
+import '../argument_list.dart';
 import '../callable_invocation.dart';
 import '../reference.dart';
 import '../statement.dart';
@@ -30,7 +30,7 @@ final class IncludeRule extends Statement
   final String originalName;
 
   /// The arguments to pass to the mixin.
-  final ArgumentInvocation arguments;
+  final ArgumentList arguments;
 
   /// The block that will be invoked for [ContentRule]s in the mixin being
   /// invoked, or `null` if this doesn't pass a content block.
@@ -59,9 +59,13 @@ final class IncludeRule extends Statement
     return startSpan.initialIdentifier();
   }
 
-  IncludeRule(this.originalName, this.arguments, this.span,
-      {this.namespace, this.content})
-      : name = originalName.replaceAll('_', '-');
+  IncludeRule(
+    this.originalName,
+    this.arguments,
+    this.span, {
+    this.namespace,
+    this.content,
+  }) : name = originalName.replaceAll('_', '-');
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIncludeRule(this);
 

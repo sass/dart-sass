@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 651decb8bf8d0378b657241a5a0db7272c228fd4
+  // Checksum: 47c97f7824eb25d7f1e64e3230938b88330d40b4
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -27,9 +27,7 @@ enum Deprecation {
 
   /// Deprecation for @-moz-document.
   mozDocument('moz-document',
-      deprecatedIn: '1.7.2',
-      obsoleteIn: '2.0.0',
-      description: '@-moz-document.'),
+      deprecatedIn: '1.7.2', description: '@-moz-document.'),
 
   /// Deprecation for imports using relative canonical URLs.
   relativeCanonical('relative-canonical',
@@ -184,7 +182,7 @@ enum Deprecation {
         isFuture = false;
 
   /// Constructs a future deprecation.
-  // ignore: unused_element
+  // ignore: unused_element, unused_element_parameter
   const Deprecation.future(this.id, {this.description})
       : _deprecatedIn = null,
         _obsoleteIn = null,
@@ -194,15 +192,17 @@ enum Deprecation {
   String toString() => id;
 
   /// Returns the deprecation with a given ID, or null if none exists.
-  static Deprecation? fromId(String id) => Deprecation.values
-      .firstWhereOrNull((deprecation) => deprecation.id == id);
+  static Deprecation? fromId(String id) => Deprecation.values.firstWhereOrNull(
+        (deprecation) => deprecation.id == id,
+      );
 
   /// Returns the set of all deprecations done in or before [version].
   static Set<Deprecation> forVersion(Version version) {
     var range = VersionRange(max: version, includeMax: true);
     return {
       for (var deprecation in Deprecation.values)
-        if (deprecation.deprecatedIn.andThen(range.allows) ?? false) deprecation
+        if (deprecation.deprecatedIn.andThen(range.allows) ?? false)
+          deprecation,
     };
   }
 }

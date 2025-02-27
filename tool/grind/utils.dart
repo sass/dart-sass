@@ -14,12 +14,14 @@ import 'package:path/path.dart' as p;
 import 'package:grinder/src/singleton.dart';
 
 /// Options for [run] that tell Git to commit using SassBot's name and email.
-final sassBotEnvironment = RunOptions(environment: {
-  "GIT_AUTHOR_NAME": pkg.botName.value,
-  "GIT_AUTHOR_EMAIL": pkg.botEmail.value,
-  "GIT_COMMITTER_NAME": pkg.botName.value,
-  "GIT_COMMITTER_EMAIL": pkg.botEmail.value
-});
+final sassBotEnvironment = RunOptions(
+  environment: {
+    "GIT_AUTHOR_NAME": pkg.botName.value,
+    "GIT_AUTHOR_EMAIL": pkg.botEmail.value,
+    "GIT_COMMITTER_NAME": pkg.botName.value,
+    "GIT_COMMITTER_EMAIL": pkg.botEmail.value,
+  },
+);
 
 /// Returns the HTTP basic authentication Authorization header from the
 /// environment.
@@ -28,8 +30,9 @@ String get githubAuthorization {
   return bearerToken != null
       ? "Bearer $bearerToken"
       : "Basic " +
-          base64.encode(utf8
-              .encode(pkg.githubUser.value + ':' + pkg.githubPassword.value));
+          base64.encode(
+            utf8.encode(pkg.githubUser.value + ':' + pkg.githubPassword.value),
+          );
 }
 
 /// Ensure that the `build/` directory exists.
@@ -66,17 +69,25 @@ String cloneOrCheckout(String url, String ref, {String? name}) {
   if (!Directory(p.join(path, '.git')).existsSync()) {
     delete(Directory(path));
     run("git", arguments: ["init", path]);
-    run("git",
-        arguments: ["config", "advice.detachedHead", "false"],
-        workingDirectory: path);
-    run("git",
-        arguments: ["remote", "add", "origin", url], workingDirectory: path);
+    run(
+      "git",
+      arguments: ["config", "advice.detachedHead", "false"],
+      workingDirectory: path,
+    );
+    run(
+      "git",
+      arguments: ["remote", "add", "origin", url],
+      workingDirectory: path,
+    );
   } else {
     log("Updating $url");
   }
 
-  run("git",
-      arguments: ["fetch", "origin", "--depth=1", ref], workingDirectory: path);
+  run(
+    "git",
+    arguments: ["fetch", "origin", "--depth=1", ref],
+    workingDirectory: path,
+  );
   run("git", arguments: ["checkout", "FETCH_HEAD"], workingDirectory: path);
   log("");
 
@@ -93,12 +104,15 @@ void afterTask(String taskName, FutureOr<void> callback()) {
   if (index == -1) fail("There is no task named $taskName.");
 
   var oldTask = grinder.tasks[index];
-  grinder.tasks[index] = GrinderTask(taskName,
-      description: oldTask.description,
-      depends: oldTask.depends, taskFunction: (TaskArgs args) async {
-    await oldTask.execute(context, args);
-    await callback();
-  });
+  grinder.tasks[index] = GrinderTask(
+    taskName,
+    description: oldTask.description,
+    depends: oldTask.depends,
+    taskFunction: (TaskArgs args) async {
+      await oldTask.execute(context, args);
+      await callback();
+    },
+  );
 }
 
 /// Clones the main branch of `github.com/sass/sass`.
@@ -113,7 +127,10 @@ void updateLanguageRepo() {
   // generically to other tasks.
   if (Platform.environment['UPDATE_SASS_SASS_REPO'] != 'false' &&
       Platform.environment['UPDATE_SASS_PROTOCOL'] != 'false') {
-    cloneOrCheckout("https://github.com/sass/sass.git", "main",
-        name: 'language');
+    cloneOrCheckout(
+      "https://github.com/sass/sass.git",
+      "main",
+      name: 'language',
+    );
   }
 }

@@ -54,11 +54,15 @@ class SassParser extends StylesheetParser {
   }
 
   void expectStatementSeparator([String? name]) {
-    if (!atEndOfStatement()) _expectNewline();
+    var trailingSemicolon = _tryTrailingSemicolon();
+    if (!atEndOfStatement()) {
+      _expectNewline(trailingSemicolon: trailingSemicolon);
+    }
     if (_peekIndentation() <= currentIndentation) return;
     scanner.error(
-        "Nothing may be indented ${name == null ? 'here' : 'beneath a $name'}.",
-        position: _nextIndentationEnd!.position);
+      "Nothing may be indented ${name == null ? 'here' : 'beneath a $name'}.",
+      position: _nextIndentationEnd!.position,
+    );
   }
 
   bool atEndOfStatement() => scanner.peekChar()?.isNewline ?? true;
@@ -99,7 +103,9 @@ class SassParser extends StylesheetParser {
       // Serialize [url] as a Sass string because [StaticImport] expects it to
       // include quotes.
       return StaticImport(
-          Interpolation.plain(SassString(url).toString(), span), span);
+        Interpolation.plain(SassString(url).toString(), span),
+        span,
+      );
     } else {
       try {
         return DynamicImport(parseImportUrl(url), span);
@@ -136,8 +142,11 @@ class SassParser extends StylesheetParser {
 
   List<Statement> statements(Statement? statement()) {
     if (scanner.peekChar() case $tab || $space) {
-      scanner.error("Indenting at the beginning of the document is illegal.",
-          position: 0, length: scanner.position);
+      scanner.error(
+        "Indenting at the beginning of the document is illegal.",
+        position: 0,
+        length: scanner.position,
+      );
     }
 
     var statements = <Statement>[];
@@ -161,9 +170,9 @@ class SassParser extends StylesheetParser {
         $slash => switch (scanner.peekChar(1)) {
             $slash => _silentComment(),
             $asterisk => _loudComment(),
-            _ => child()
+            _ => child(),
           },
-        _ => child()
+        _ => child(),
       };
 
   /// Consumes an indented-style silent comment.
@@ -207,8 +216,10 @@ class SassParser extends StylesheetParser {
       }
     } while (scanner.scan("//"));
 
-    return lastSilentComment =
-        SilentComment(buffer.toString(), scanner.spanFrom(start));
+    return lastSilentComment = SilentComment(
+      buffer.toString(),
+      scanner.spanFrom(start),
+    );
   }
 
   /// Consumes an indented-style loud context.
@@ -259,7 +270,7 @@ class SassParser extends StylesheetParser {
               buffer.writeCharCode(scanner.readChar());
               buffer.writeCharCode(scanner.readChar());
               var span = scanner.spanFrom(start);
-              whitespace();
+              whitespace(consumeNewlines: false);
 
               // For backwards compatibility, allow additional comments after
               // the initial comment is closed.
@@ -269,7 +280,7 @@ class SassParser extends StylesheetParser {
                   _expectNewline();
                 }
                 _readIndentation();
-                whitespace();
+                whitespace(consumeNewlines: false);
               }
 
               if (!scanner.isDone && !scanner.peekChar().isNewline) {
@@ -278,10 +289,11 @@ class SassParser extends StylesheetParser {
                   scanner.readChar();
                 }
                 throw MultiSpanSassFormatException(
-                    "Unexpected text after end of comment",
-                    scanner.spanFrom(errorStart),
-                    "extra text",
-                    {span: "comment"});
+                  "Unexpected text after end of comment",
+                  scanner.spanFrom(errorStart),
+                  "extra text",
+                  {span: "comment"},
+                );
               } else {
                 return LoudComment(buffer.interpolation(span));
               }
@@ -309,37 +321,22 @@ class SassParser extends StylesheetParser {
     return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
   }
 
-  void whitespaceWithoutComments() {
-    // This overrides whitespace consumption so that it doesn't consume
-    // newlines.
+  void whitespaceWithoutComments({required bool consumeNewlines}) {
+    // This overrides whitespace consumption to only consume newlines when
+    // `consumeNewlines` is true.
     while (!scanner.isDone) {
       var next = scanner.peekChar();
-      if (next != $tab && next != $space) break;
+      if (consumeNewlines ? !next.isWhitespace : !next.isSpaceOrTab) break;
       scanner.readChar();
     }
   }
 
-  void loudComment() {
-    // This overrides loud comment consumption so that it doesn't consume
-    // multi-line comments.
-    scanner.expect("/*");
-    while (true) {
-      var next = scanner.readChar();
-      if (next.isNewline) scanner.error("expected */.");
-      if (next != $asterisk) continue;
-
-      do {
-        next = scanner.readChar();
-      } while (next == $asterisk);
-      if (next == $slash) break;
-    }
-  }
-
   /// Expect and consume a single newline character.
-  void _expectNewline() {
+  ///
+  /// If [trailingSemicolon] is true, this follows a semicolon, which is used
+  /// for error reporting.
+  void _expectNewline({bool trailingSemicolon = false}) {
     switch (scanner.peekChar()) {
-      case $semicolon:
-        scanner.error("semicolons aren't allowed in the indented syntax.");
       case $cr:
         scanner.readChar();
         if (scanner.peekChar() == $lf) scanner.readChar();
@@ -348,7 +345,11 @@ class SassParser extends StylesheetParser {
         scanner.readChar();
         return;
       default:
-        scanner.error("expected newline.");
+        scanner.error(
+          trailingSemicolon
+              ? "multiple statements on one line are not supported in the indented syntax."
+              : "expected newline.",
+        );
     }
   }
 
@@ -357,10 +358,10 @@ class SassParser extends StylesheetParser {
         $cr => switch (scanner.peekChar(1)) {
             $lf => scanner.peekChar(2).isNewline,
             $cr || $ff => true,
-            _ => false
+            _ => false,
           },
         $lf || $ff => scanner.peekChar(1).isNewline,
-        _ => false
+        _ => false,
       };
 
   /// As long as the scanner's position is indented beneath the starting line,
@@ -373,9 +374,10 @@ class SassParser extends StylesheetParser {
       childIndentation ??= indentation;
       if (childIndentation != indentation) {
         scanner.error(
-            "Inconsistent indentation, expected $childIndentation spaces.",
-            position: scanner.position - scanner.column,
-            length: scanner.column);
+          "Inconsistent indentation, expected $childIndentation spaces.",
+          position: scanner.position - scanner.column,
+          length: scanner.column,
+        );
       }
 
       body();
@@ -454,17 +456,35 @@ class SassParser extends StylesheetParser {
   void _checkIndentationConsistency(bool containsTab, bool containsSpace) {
     if (containsTab) {
       if (containsSpace) {
-        scanner.error("Tabs and spaces may not be mixed.",
-            position: scanner.position - scanner.column,
-            length: scanner.column);
+        scanner.error(
+          "Tabs and spaces may not be mixed.",
+          position: scanner.position - scanner.column,
+          length: scanner.column,
+        );
       } else if (_spaces == true) {
-        scanner.error("Expected spaces, was tabs.",
-            position: scanner.position - scanner.column,
-            length: scanner.column);
+        scanner.error(
+          "Expected spaces, was tabs.",
+          position: scanner.position - scanner.column,
+          length: scanner.column,
+        );
       }
     } else if (containsSpace && _spaces == false) {
-      scanner.error("Expected tabs, was spaces.",
-          position: scanner.position - scanner.column, length: scanner.column);
+      scanner.error(
+        "Expected tabs, was spaces.",
+        position: scanner.position - scanner.column,
+        length: scanner.column,
+      );
     }
+  }
+
+  /// Consumes a semicolon and trailing whitespace, including comments.
+  ///
+  /// Returns whether a semicolon was consumed.
+  bool _tryTrailingSemicolon() {
+    if (scanCharIf((char) => char == $semicolon)) {
+      whitespace(consumeNewlines: false);
+      return true;
+    }
+    return false;
   }
 }

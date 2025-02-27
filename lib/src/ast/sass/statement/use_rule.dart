@@ -34,15 +34,21 @@ final class UseRule extends Statement implements SassDependency {
 
   FileSpan get urlSpan => span.withoutInitialAtRule().initialQuoted();
 
-  UseRule(this.url, this.namespace, this.span,
-      {Iterable<ConfiguredVariable>? configuration})
-      : configuration = configuration == null
+  UseRule(
+    this.url,
+    this.namespace,
+    this.span, {
+    Iterable<ConfiguredVariable>? configuration,
+  }) : configuration = configuration == null
             ? const []
             : List<ConfiguredVariable>.unmodifiable(configuration) {
     for (var variable in this.configuration) {
       if (variable.isGuarded) {
-        throw ArgumentError.value(variable, "configured variable",
-            "can't be guarded in a @use rule.");
+        throw ArgumentError.value(
+          variable,
+          "configured variable",
+          "can't be guarded in a @use rule.",
+        );
       }
     }
   }
@@ -61,8 +67,9 @@ final class UseRule extends Statement implements SassDependency {
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitUseRule(this);
 
   String toString() {
-    var buffer =
-        StringBuffer("@use ${StringExpression.quoteText(url.toString())}");
+    var buffer = StringBuffer(
+      "@use ${StringExpression.quoteText(url.toString())}",
+    );
 
     var basename = url.pathSegments.isEmpty ? "" : url.pathSegments.last;
     var dot = basename.indexOf(".");

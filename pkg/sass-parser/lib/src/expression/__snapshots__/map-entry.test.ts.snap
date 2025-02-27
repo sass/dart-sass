@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a map entry toJSON 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@#{(baz: qux)}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "key": <baz>,
+  "raws": {},
+  "sassType": "map-entry",
+  "value": <qux>,
+}
+`;

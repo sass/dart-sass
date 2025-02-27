@@ -46,24 +46,27 @@ import 'interface/value.dart';
 ///
 /// If [charset] is `true`, this will include a `@charset` declaration or a BOM
 /// if the stylesheet contains any non-ASCII characters.
-SerializeResult serialize(CssNode node,
-    {OutputStyle? style,
-    bool inspect = false,
-    bool useSpaces = true,
-    int? indentWidth,
-    LineFeed? lineFeed,
-    Logger? logger,
-    bool sourceMap = false,
-    bool charset = true}) {
+SerializeResult serialize(
+  CssNode node, {
+  OutputStyle? style,
+  bool inspect = false,
+  bool useSpaces = true,
+  int? indentWidth,
+  LineFeed? lineFeed,
+  Logger? logger,
+  bool sourceMap = false,
+  bool charset = true,
+}) {
   indentWidth ??= 2;
   var visitor = _SerializeVisitor(
-      style: style,
-      inspect: inspect,
-      useSpaces: useSpaces,
-      indentWidth: indentWidth,
-      lineFeed: lineFeed,
-      logger: logger,
-      sourceMap: sourceMap);
+    style: style,
+    inspect: inspect,
+    useSpaces: useSpaces,
+    indentWidth: indentWidth,
+    lineFeed: lineFeed,
+    logger: logger,
+    sourceMap: sourceMap,
+  );
   node.accept(visitor);
   var css = visitor._buffer.toString();
   String prefix;
@@ -75,7 +78,8 @@ SerializeResult serialize(CssNode node,
 
   return (
     prefix + css,
-    sourceMap: sourceMap ? visitor._buffer.buildSourceMap(prefix: prefix) : null
+    sourceMap:
+        sourceMap ? visitor._buffer.buildSourceMap(prefix: prefix) : null,
   );
 }
 
@@ -88,8 +92,11 @@ SerializeResult serialize(CssNode node,
 ///
 /// If [quote] is `false`, quoted strings are emitted without quotes.
 String serializeValue(Value value, {bool inspect = false, bool quote = true}) {
-  var visitor =
-      _SerializeVisitor(inspect: inspect, quote: quote, sourceMap: false);
+  var visitor = _SerializeVisitor(
+    inspect: inspect,
+    quote: quote,
+    sourceMap: false,
+  );
   value.accept(visitor);
   return visitor._buffer.toString();
 }
@@ -143,16 +150,16 @@ final class _SerializeVisitor
   /// Whether we're emitting compressed output.
   bool get _isCompressed => _style == OutputStyle.compressed;
 
-  _SerializeVisitor(
-      {OutputStyle? style,
-      bool inspect = false,
-      bool quote = true,
-      bool useSpaces = true,
-      int? indentWidth,
-      LineFeed? lineFeed,
-      Logger? logger,
-      bool sourceMap = true})
-      : _buffer = sourceMap ? SourceMapBuffer() : NoSourceMapBuffer(),
+  _SerializeVisitor({
+    OutputStyle? style,
+    bool inspect = false,
+    bool quote = true,
+    bool useSpaces = true,
+    int? indentWidth,
+    LineFeed? lineFeed,
+    Logger? logger,
+    bool sourceMap = true,
+  })  : _buffer = sourceMap ? SourceMapBuffer() : NoSourceMapBuffer(),
         _style = style ?? OutputStyle.expanded,
         _inspect = inspect,
         _quote = quote,
@@ -196,8 +203,10 @@ final class _SerializeVisitor
 
       if (_minimumIndentation(node.text) case var minimumIndentation?) {
         assert(minimumIndentation != -1);
-        minimumIndentation =
-            math.min(minimumIndentation, node.span.start.column);
+        minimumIndentation = math.min(
+          minimumIndentation,
+          node.span.start.column,
+        );
 
         _writeIndentation();
         _writeWithIndent(node.text, minimumIndentation);
@@ -288,9 +297,9 @@ final class _SerializeVisitor
     _writeIndentation();
 
     _for(
-        node.selector,
-        () =>
-            _writeBetween(node.selector.value, _commaSeparator, _buffer.write));
+      node.selector,
+      () => _writeBetween(node.selector.value, _commaSeparator, _buffer.write),
+    );
     _writeOptionalSpace();
     _visitChildren(node);
   }
@@ -312,8 +321,11 @@ final class _SerializeVisitor
       _buffer.write(condition.substring("(not ".length, condition.length - 1));
     } else {
       var operator = query.conjunction ? "and" : "or";
-      _writeBetween(query.conditions,
-          _isCompressed ? "$operator " : " $operator ", _buffer.write);
+      _writeBetween(
+        query.conditions,
+        _isCompressed ? "$operator " : " $operator ",
+        _buffer.write,
+      );
     }
   }
 
@@ -354,19 +366,19 @@ final class _SerializeVisitor
         if (!declSpecificities.any(ruleSpecificities.contains)) continue;
 
         _logger.warnForDeprecation(
-            Deprecation.mixedDecls,
-            "Sass's behavior for declarations that appear after nested\n"
-            "rules will be changing to match the behavior specified by CSS in an "
-            "upcoming\n"
-            "version. To keep the existing behavior, move the declaration above "
-            "the nested\n"
-            "rule. To opt into the new behavior, wrap the declaration in `& "
-            "{}`.\n"
-            "\n"
-            "More info: https://sass-lang.com/d/mixed-decls",
-            span:
-                MultiSpan(node.span, 'declaration', {rule.span: 'nested rule'}),
-            trace: node.trace);
+          Deprecation.mixedDecls,
+          "Sass's behavior for declarations that appear after nested\n"
+          "rules will be changing to match the behavior specified by CSS in an "
+          "upcoming\n"
+          "version. To keep the existing behavior, move the declaration above "
+          "the nested\n"
+          "rule. To opt into the new behavior, wrap the declaration in `& "
+          "{}`.\n"
+          "\n"
+          "More info: https://sass-lang.com/d/mixed-decls",
+          span: MultiSpan(node.span, 'declaration', {rule.span: 'nested rule'}),
+          trace: node.trace,
+        );
       }
     }
 
@@ -390,16 +402,26 @@ final class _SerializeVisitor
       _writeOptionalSpace();
       try {
         _buffer.forSpan(
-            node.valueSpanForMap, () => node.value.value.accept(this));
+          node.valueSpanForMap,
+          () => node.value.value.accept(this),
+        );
       } on MultiSpanSassScriptException catch (error, stackTrace) {
         throwWithTrace(
-            MultiSpanSassException(error.message, node.value.span,
-                error.primaryLabel, error.secondarySpans),
-            error,
-            stackTrace);
+          MultiSpanSassException(
+            error.message,
+            node.value.span,
+            error.primaryLabel,
+            error.secondarySpans,
+          ),
+          error,
+          stackTrace,
+        );
       } on SassScriptException catch (error, stackTrace) {
         throwWithTrace(
-            SassException(error.message, node.value.span), error, stackTrace);
+          SassException(error.message, node.value.span),
+          error,
+          stackTrace,
+        );
       }
     }
   }
@@ -413,7 +435,7 @@ final class _SerializeVisitor
       var parent = node.parent.andThen(_specificities)?.max ?? 0;
       return {
         for (var selector in rule.selector.components)
-          parent + selector.specificity
+          parent + selector.specificity,
       };
     } else {
       return node.parent.andThen(_specificities) ?? const {0};
@@ -449,7 +471,9 @@ final class _SerializeVisitor
         _buffer.writeCharCode($space);
       case var minimumIndentation:
         _writeWithIndent(
-            value, math.min(minimumIndentation, node.name.span.start.column));
+          value,
+          math.min(minimumIndentation, node.name.span.start.column),
+        );
     }
   }
 
@@ -600,7 +624,9 @@ final class _SerializeVisitor
   /// Writes the complex numerator and denominator units beyond the first
   /// numerator unit for a number as they appear in a calculation.
   void _writeCalculationUnits(
-      List<String> numeratorUnits, List<String> denominatorUnits) {
+    List<String> numeratorUnits,
+    List<String> denominatorUnits,
+  ) {
     for (var unit in numeratorUnits) {
       _writeOptionalSpace();
       _buffer.writeCharCode($asterisk);
@@ -623,12 +649,14 @@ final class _SerializeVisitor
   ///
   /// In `a ? (b # c)`, `outer` is `?` and `right` is `#`.
   bool _parenthesizeCalculationRhs(
-          CalculationOperator outer, CalculationOperator right) =>
+    CalculationOperator outer,
+    CalculationOperator right,
+  ) =>
       switch (outer) {
         CalculationOperator.dividedBy => true,
         CalculationOperator.plus => false,
         _ => right == CalculationOperator.plus ||
-            right == CalculationOperator.minus
+            right == CalculationOperator.minus,
       };
 
   void visitColor(SassColor value) {
@@ -727,7 +755,9 @@ final class _SerializeVisitor
         _writeChannel(value.channel1OrNull);
         _buffer.writeCharCode($space);
         _writeChannel(
-            value.channel2OrNull, polar && !_isCompressed ? 'deg' : null);
+          value.channel2OrNull,
+          polar && !_isCompressed ? 'deg' : null,
+        );
         _maybeWriteSlashAlpha(value);
         _buffer.writeCharCode($rparen);
 
@@ -959,15 +989,17 @@ final class _SerializeVisitor
 
   /// Writes [color] using the `color()` function syntax.
   void _writeColorFunction(SassColor color) {
-    assert(!{
-      ColorSpace.rgb,
-      ColorSpace.hsl,
-      ColorSpace.hwb,
-      ColorSpace.lab,
-      ColorSpace.oklab,
-      ColorSpace.lch,
-      ColorSpace.oklch
-    }.contains(color.space));
+    assert(
+      !{
+        ColorSpace.rgb,
+        ColorSpace.hsl,
+        ColorSpace.hwb,
+        ColorSpace.lab,
+        ColorSpace.oklab,
+        ColorSpace.lch,
+        ColorSpace.oklch,
+      }.contains(color.space),
+    );
     _buffer
       ..write('color(')
       ..write(color.space)
@@ -1042,20 +1074,21 @@ final class _SerializeVisitor
     if (singleton && !value.hasBrackets) _buffer.writeCharCode($lparen);
 
     _writeBetween<Value>(
-        _inspect
-            ? value.asList
-            : value.asList.where((element) => !element.isBlank),
-        _separatorString(value.separator),
-        _inspect
-            ? (element) {
-                var needsParens = _elementNeedsParens(value.separator, element);
-                if (needsParens) _buffer.writeCharCode($lparen);
-                element.accept(this);
-                if (needsParens) _buffer.writeCharCode($rparen);
-              }
-            : (element) {
-                element.accept(this);
-              });
+      _inspect
+          ? value.asList
+          : value.asList.where((element) => !element.isBlank),
+      _separatorString(value.separator),
+      _inspect
+          ? (element) {
+              var needsParens = _elementNeedsParens(value.separator, element);
+              if (needsParens) _buffer.writeCharCode($lparen);
+              element.accept(this);
+              if (needsParens) _buffer.writeCharCode($rparen);
+            }
+          : (element) {
+              element.accept(this);
+            },
+    );
 
     if (singleton) {
       _buffer.write(value.separator.separator);
@@ -1073,7 +1106,7 @@ final class _SerializeVisitor
         // This should never be used, but it may still be returned since
         // [_separatorString] is invoked eagerly by [writeList] even for lists
         // with only one elements.
-        _ => ""
+        _ => "",
       };
 
   /// Returns whether [value] needs parentheses as an element in a list with the
@@ -1087,7 +1120,7 @@ final class _SerializeVisitor
                 value.separator == ListSeparator.slash,
             _ => value.separator != ListSeparator.undecided,
           },
-        _ => false
+        _ => false,
       };
 
   void visitMap(SassMap map) {
@@ -1243,8 +1276,10 @@ final class _SerializeVisitor
   /// to [SassNumber.precision] digits after the decimal and writes the result
   /// to [_buffer].
   void _writeRounded(String text, SourceMapBuffer buffer) {
-    assert(RegExp(r"^-?\d+(\.\d+)?$").hasMatch(text),
-        '"$text" should be a number written without exponent notation.');
+    assert(
+      RegExp(r"^-?\d+(\.\d+)?$").hasMatch(text),
+      '"$text" should be a number written without exponent notation.',
+    );
 
     // Dart serializes all doubles with a trailing `.0`, even if they have
     // integer values. In that case we definitely don't need to adjust for
@@ -1491,7 +1526,11 @@ final class _SerializeVisitor
   /// characters are often used for glyph fonts, where it's useful for readers
   /// to be able to distinguish between them in the rendered stylesheet.
   int? _tryPrivateUseCharacter(
-      StringBuffer buffer, int codeUnit, String string, int i) {
+    StringBuffer buffer,
+    int codeUnit,
+    String string,
+    int i,
+  ) {
     if (_isCompressed) return null;
 
     if (codeUnit.isPrivateUseBMP) {
@@ -1500,8 +1539,12 @@ final class _SerializeVisitor
     }
 
     if (codeUnit.isPrivateUseHighSurrogate && string.length > i + 1) {
-      _writeEscape(buffer,
-          combineSurrogates(codeUnit, string.codeUnitAt(i + 1)), string, i + 1);
+      _writeEscape(
+        buffer,
+        combineSurrogates(codeUnit, string.codeUnitAt(i + 1)),
+        string,
+        i + 1,
+      );
       return i + 1;
     }
 
@@ -1559,7 +1602,7 @@ final class _SerializeVisitor
     if (complex
         case ComplexSelector(
           leadingCombinators: [_, ...],
-          components: [_, ...]
+          components: [_, ...],
         )) {
       _writeOptionalSpace();
     }
@@ -1635,7 +1678,7 @@ final class _SerializeVisitor
     if (pseudo
         case PseudoSelector(
           name: 'not',
-          selector: SelectorList(isInvisible: true)
+          selector: SelectorList(isInvisible: true),
         )) {
       return;
     }
@@ -1752,7 +1795,9 @@ final class _SerializeVisitor
     var endOffset = previous.span.text.lastIndexOf("{", searchFrom);
     endOffset = math.max(0, endOffset);
     var span = previous.span.file.span(
-        previous.span.start.offset, previous.span.start.offset + endOffset);
+      previous.span.start.offset,
+      previous.span.start.offset + endOffset,
+    );
     return node.span.start.line == span.end.line;
   }
 
@@ -1782,7 +1827,10 @@ final class _SerializeVisitor
   /// Calls [callback] to write each value in [iterable], and writes [text] in
   /// between each one.
   void _writeBetween<T>(
-      Iterable<T> iterable, String text, void callback(T value)) {
+    Iterable<T> iterable,
+    String text,
+    void callback(T value),
+  ) {
     var first = true;
     for (var value in iterable) {
       if (first) {
@@ -1836,7 +1884,7 @@ enum OutputStyle {
   /// ```css
   /// .sidebar{width:100px}
   /// ```
-  compressed;
+  compressed,
 }
 
 /// An enum of line feed sequences.
@@ -1867,11 +1915,9 @@ enum LineFeed {
 /// The result of converting a CSS AST to CSS text.
 typedef SerializeResult = (
   /// The serialized CSS.
-  String css,
-
+  String css, {
   /// The source map indicating how the source files map to [css].
   ///
   /// This is `null` if source mapping was disabled for this compilation.
-  {
-  SingleMapping? sourceMap
+  SingleMapping? sourceMap,
 });

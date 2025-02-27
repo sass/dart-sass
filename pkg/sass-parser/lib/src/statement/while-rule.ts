@@ -71,7 +71,7 @@ export class WhileRule
     throw new Error("WhileRule.params can't be overwritten.");
   }
 
-  /** The expresison whose value is emitted when the while rule is executed. */
+  /** The expression whose value determines whether to continue looping. */
   get whileCondition(): Expression {
     return this._whileCondition!;
   }
@@ -80,10 +80,10 @@ export class WhileRule
     if (!('sassType' in whileCondition)) {
       whileCondition = fromProps(whileCondition);
     }
-    if (whileCondition) whileCondition.parent = this;
+    whileCondition.parent = this;
     this._whileCondition = whileCondition;
   }
-  private _whileCondition?: Expression;
+  private declare _whileCondition?: Expression;
 
   constructor(defaults: WhileRuleProps);
   /** @hidden */

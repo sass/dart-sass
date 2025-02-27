@@ -118,7 +118,12 @@ double fuzzyAssertRange(double number, int min, int max, [String? name]) {
   var result = fuzzyCheckRange(number, min, max);
   if (result != null) return result;
   throw RangeError.range(
-      number, min, max, name, "must be between $min and $max");
+    number,
+    min,
+    max,
+    name,
+    "must be between $min and $max",
+  );
 }
 
 /// Return [num1] modulo [num2], using Sass's [floored division] modulo

@@ -30,15 +30,18 @@ class SourceInterpolationVisitor implements ExpressionVisitor<void> {
   void visitFunctionExpression(FunctionExpression node) => buffer = null;
 
   void visitInterpolatedFunctionExpression(
-      InterpolatedFunctionExpression node) {
+    InterpolatedFunctionExpression node,
+  ) {
     buffer?.addInterpolation(node.name);
     _visitArguments(node.arguments);
   }
 
   /// Visits the positional arguments in [arguments] with [visitor], if it's
   /// valid interpolated plain CSS.
-  void _visitArguments(ArgumentInvocation arguments,
-      [ExpressionVisitor<void>? visitor]) {
+  void _visitArguments(
+    ArgumentList arguments, [
+    ExpressionVisitor<void>? visitor,
+  ]) {
     if (arguments.named.isNotEmpty || arguments.rest != null) return;
 
     if (arguments.positional.isEmpty) {
@@ -119,8 +122,10 @@ class SourceInterpolationVisitor implements ExpressionVisitor<void> {
 
   /// Visits each expression in [expression] with [visitor], and writes whatever
   /// text is between them to [buffer].
-  void _writeListAndBetween(List<Expression> expressions,
-      [ExpressionVisitor<void>? visitor]) {
+  void _writeListAndBetween(
+    List<Expression> expressions, [
+    ExpressionVisitor<void>? visitor,
+  ]) {
     visitor ??= this;
 
     Expression? lastExpression;

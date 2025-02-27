@@ -21,17 +21,19 @@ import 'utils.dart';
 ///
 /// Throws a [SassException] if [signature] is invalid.
 Callable hostCallable(
-    CompilationDispatcher dispatcher,
-    OpaqueRegistry<SassFunction> functions,
-    OpaqueRegistry<SassMixin> mixins,
-    String signature,
-    {int? id}) {
+  CompilationDispatcher dispatcher,
+  OpaqueRegistry<SassFunction> functions,
+  OpaqueRegistry<SassMixin> mixins,
+  String signature, {
+  int? id,
+}) {
   late Callable callable;
   callable = Callable.fromSignature(signature, (arguments) {
     var protofier = Protofier(dispatcher, functions, mixins);
     var request = OutboundMessage_FunctionCallRequest()
-      ..arguments.addAll(
-          [for (var argument in arguments) protofier.protofy(argument)]);
+      ..arguments.addAll([
+        for (var argument in arguments) protofier.protofy(argument),
+      ]);
 
     if (id != null) {
       request.functionId = id;

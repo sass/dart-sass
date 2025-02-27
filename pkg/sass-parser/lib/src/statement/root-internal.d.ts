@@ -6,7 +6,7 @@ import * as postcss from 'postcss';
 
 import {Rule} from './rule';
 import {Root, RootProps} from './root';
-import {AtRule, ChildNode, Comment, Declaration, NewNode} from '.';
+import {AnyDeclaration, AtRule, ChildNode, Comment, NewNode} from '.';
 
 /**
  * A fake intermediate class to convince TypeScript to use Sass types for
@@ -62,10 +62,10 @@ export class _Root extends postcss.Root {
   ): false | undefined;
   walkDecls(
     propFilter: RegExp | string,
-    callback: (decl: Declaration, index: number) => false | void,
+    callback: (decl: AnyDeclaration, index: number) => false | void,
   ): false | undefined;
   walkDecls(
-    callback: (decl: Declaration, index: number) => false | void,
+    callback: (decl: AnyDeclaration, index: number) => false | void,
   ): false | undefined;
   walkRules(
     selectorFilter: RegExp | string,

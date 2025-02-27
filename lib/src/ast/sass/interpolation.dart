@@ -35,15 +35,20 @@ final class Interpolation implements SassNode {
   /// If this contains no interpolated expressions, returns its text contents.
   ///
   /// Otherwise, returns `null`.
-  String? get asPlain =>
-      switch (contents) { [] => '', [String first] => first, _ => null };
+  String? get asPlain => switch (contents) {
+        [] => '',
+        [String first] => first,
+        _ => null,
+      };
 
   /// Returns the plain text before the interpolation, or the empty string.
   ///
   /// @nodoc
   @internal
-  String get initialPlain =>
-      switch (contents) { [String first, ...] => first, _ => '' };
+  String get initialPlain => switch (contents) {
+        [String first, ...] => first,
+        _ => '',
+      };
 
   /// Returns the [FileSpan] covering the element of the interpolation at
   /// [index].
@@ -60,9 +65,9 @@ final class Interpolation implements SassNode {
   FileSpan spanForElement(int index) => switch (contents[index]) {
         String() => span.file.span(
             (index == 0 ? span.start : spans[index - 1]!.end).offset,
-            (index == spans.length ? span.end : spans[index + 1]!.start)
-                .offset),
-        _ => spans[index]!
+            (index == spans.length ? span.end : spans[index + 1]!.start).offset,
+          ),
+        _ => spans[index]!,
       };
 
   Interpolation.plain(String text, this.span)
@@ -76,31 +81,48 @@ final class Interpolation implements SassNode {
   /// expression.
   ///
   /// The single [span] must cover the entire interpolation.
-  Interpolation(Iterable<Object /* String | Expression */ > contents,
-      Iterable<FileSpan?> spans, this.span)
-      : contents = List.unmodifiable(contents),
+  Interpolation(
+    Iterable<Object /* String | Expression */ > contents,
+    Iterable<FileSpan?> spans,
+    this.span,
+  )   : contents = List.unmodifiable(contents),
         spans = List.unmodifiable(spans) {
     if (spans.length != contents.length) {
       throw ArgumentError.value(
-          this.spans, "spans", "Must be the same length as contents.");
+        this.spans,
+        "spans",
+        "Must be the same length as contents.",
+      );
     }
 
     for (var i = 0; i < this.contents.length; i++) {
       var isString = this.contents[i] is String;
       if (!isString && this.contents[i] is! Expression) {
-        throw ArgumentError.value(this.contents, "contents",
-            "May only contain Strings or Expressions.");
+        throw ArgumentError.value(
+          this.contents,
+          "contents",
+          "May only contain Strings or Expressions.",
+        );
       } else if (isString) {
         if (i != 0 && this.contents[i - 1] is String) {
           throw ArgumentError.value(
-              this.contents, "contents", "May not contain adjacent Strings.");
+            this.contents,
+            "contents",
+            "May not contain adjacent Strings.",
+          );
         } else if (i < spans.length && this.spans[i] != null) {
-          throw ArgumentError.value(this.spans, "spans",
-              "May not have a value for string elements (at index $i).");
+          throw ArgumentError.value(
+            this.spans,
+            "spans",
+            "May not have a value for string elements (at index $i).",
+          );
         }
       } else if (i >= spans.length || this.spans[i] == null) {
-        throw ArgumentError.value(this.spans, "spans",
-            "Must not have a value for expression elements (at index $i).");
+        throw ArgumentError.value(
+          this.spans,
+          "spans",
+          "Must not have a value for expression elements (at index $i).",
+        );
       }
     }
   }

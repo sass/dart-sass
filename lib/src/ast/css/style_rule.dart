@@ -21,7 +21,7 @@ abstract interface class CssStyleRule implements CssParentNode {
 
   /// Whether this style rule was originally defined in a plain CSS stylesheet.
   ///
-  /// :nodoc:
+  /// @nodoc
   @internal
   bool get fromPlainCss;
 }

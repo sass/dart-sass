@@ -34,16 +34,24 @@ class Extension {
   final FileSpan span;
 
   /// Creates a new extension.
-  Extension(ComplexSelector extender, this.target, this.span,
-      {this.mediaContext, bool optional = false})
-      : extender = Extender(extender),
+  Extension(
+    ComplexSelector extender,
+    this.target,
+    this.span, {
+    this.mediaContext,
+    bool optional = false,
+  })  : extender = Extender(extender),
         isOptional = optional {
     this.extender._extension = this;
   }
 
-  Extension withExtender(ComplexSelector newExtender) =>
-      Extension(newExtender, target, span,
-          mediaContext: mediaContext, optional: isOptional);
+  Extension withExtender(ComplexSelector newExtender) => Extension(
+        newExtender,
+        target,
+        span,
+        mediaContext: mediaContext,
+        optional: isOptional,
+      );
 
   String toString() =>
       "$extender {@extend $target${isOptional ? ' !optional' : ''}}";
@@ -90,7 +98,9 @@ final class Extender {
     }
 
     throw SassException(
-        "You may not @extend selectors across media queries.", extension.span);
+      "You may not @extend selectors across media queries.",
+      extension.span,
+    );
   }
 
   String toString() => selector.toString();

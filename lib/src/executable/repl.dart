@@ -24,12 +24,13 @@ import '../visitor/evaluate.dart';
 Future<void> repl(ExecutableOptions options) async {
   var repl = Repl(prompt: '>> ');
   var trackingLogger = TrackingLogger(options.logger);
-  var logger = DeprecationProcessingLogger(trackingLogger,
-      silenceDeprecations: options.silenceDeprecations,
-      fatalDeprecations: options.fatalDeprecations,
-      futureDeprecations: options.futureDeprecations,
-      limitRepetition: !options.verbose)
-    ..validate();
+  var logger = DeprecationProcessingLogger(
+    trackingLogger,
+    silenceDeprecations: options.silenceDeprecations,
+    fatalDeprecations: options.fatalDeprecations,
+    futureDeprecations: options.futureDeprecations,
+    limitRepetition: !options.verbose,
+  )..validate();
 
   void warn(ParseTimeWarning warning) {
     switch (warning) {
@@ -41,10 +42,13 @@ Future<void> repl(ExecutableOptions options) async {
   }
 
   var evaluator = Evaluator(
-      importer: FilesystemImporter.cwd,
-      importCache: ImportCache(
-          importers: options.pkgImporters, loadPaths: options.loadPaths),
-      logger: logger);
+    importer: FilesystemImporter.cwd,
+    importCache: ImportCache(
+      importers: options.pkgImporters,
+      loadPaths: options.loadPaths,
+    ),
+    logger: logger,
+  );
   await for (String line in repl.runAsync()) {
     if (line.trim().isEmpty) continue;
     try {
@@ -59,23 +63,38 @@ Future<void> repl(ExecutableOptions options) async {
         var (node, warnings) = ScssParser(line).parseVariableDeclaration();
         warnings.forEach(warn);
         evaluator.setVariable(node);
-        print(evaluator.evaluate(VariableExpression(node.name, node.span,
-            namespace: node.namespace)));
+        print(
+          evaluator.evaluate(
+            VariableExpression(node.name, node.span, namespace: node.namespace),
+          ),
+        );
       } else {
         var (node, warnings) = ScssParser(line).parseExpression();
         warnings.forEach(warn);
         print(evaluator.evaluate(node));
       }
     } on SassException catch (error, stackTrace) {
-      _logError(error, getTrace(error) ?? stackTrace, line, repl, options,
-          trackingLogger);
+      _logError(
+        error,
+        getTrace(error) ?? stackTrace,
+        line,
+        repl,
+        options,
+        trackingLogger,
+      );
     }
   }
 }
 
 /// Logs an error from the interactive shell.
-void _logError(SassException error, StackTrace stackTrace, String line,
-    Repl repl, ExecutableOptions options, TrackingLogger logger) {
+void _logError(
+  SassException error,
+  StackTrace stackTrace,
+  String line,
+  Repl repl,
+  ExecutableOptions options,
+  TrackingLogger logger,
+) {
   // If the error doesn't come from the repl line, or if something was logged
   // after the user's input, just print the error normally.
   if (error.span.sourceUrl != null ||

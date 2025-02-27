@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`an @import rule toJSON 1`] = `
+{
+  "imports": <"foo", "bar" screen>,
+  "inputs": [
+    {
+      "css": "@import "foo", "bar" screen",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "raws": {},
+  "sassType": "import-rule",
+  "source": <1:1-1:28 in 0>,
+  "type": "atrule",
+}
+`;

@@ -49,32 +49,14 @@ describe('a generic @-rule', () => {
         () => sass.parse('@foo').nodes[0] as GenericAtRule,
       );
 
-      describe('constructed manually', () => {
-        describeNode(
-          'with a name interpolation',
-          () =>
-            new GenericAtRule({
-              nameInterpolation: new Interpolation({nodes: ['foo']}),
-            }),
-        );
+      describeNode(
+        'constructed manually',
+        () => new GenericAtRule({nameInterpolation: 'foo'}),
+      );
 
-        describeNode(
-          'with a name string',
-          () => new GenericAtRule({name: 'foo'}),
-        );
-      });
-
-      describe('constructed from ChildProps', () => {
-        describeNode('with a name interpolation', () =>
-          utils.fromChildProps({
-            nameInterpolation: new Interpolation({nodes: ['foo']}),
-          }),
-        );
-
-        describeNode('with a name string', () =>
-          utils.fromChildProps({name: 'foo'}),
-        );
-      });
+      describeNode('constructed from ChildProps', () =>
+        utils.fromChildProps({nameInterpolation: 'foo'}),
+      );
     });
 
     describe('with params', () => {
@@ -111,34 +93,14 @@ describe('a generic @-rule', () => {
         () => sass.parse('@foo bar').nodes[0] as GenericAtRule,
       );
 
-      describe('constructed manually', () => {
-        describeNode(
-          'with an interpolation',
-          () =>
-            new GenericAtRule({
-              name: 'foo',
-              paramsInterpolation: new Interpolation({nodes: ['bar']}),
-            }),
-        );
+      describeNode(
+        'constructed manually',
+        () => new GenericAtRule({name: 'foo', paramsInterpolation: 'bar'}),
+      );
 
-        describeNode(
-          'with a param string',
-          () => new GenericAtRule({name: 'foo', params: 'bar'}),
-        );
-      });
-
-      describe('constructed from ChildProps', () => {
-        describeNode('with an interpolation', () =>
-          utils.fromChildProps({
-            name: 'foo',
-            paramsInterpolation: new Interpolation({nodes: ['bar']}),
-          }),
-        );
-
-        describeNode('with a param string', () =>
-          utils.fromChildProps({name: 'foo', params: 'bar'}),
-        );
-      });
+      describeNode('constructed from ChildProps', () =>
+        utils.fromChildProps({name: 'foo', paramsInterpolation: 'bar'}),
+      );
     });
   });
 
@@ -225,7 +187,7 @@ describe('a generic @-rule', () => {
           () =>
             new GenericAtRule({
               name: 'foo',
-              paramsInterpolation: new Interpolation({nodes: ['bar ']}),
+              paramsInterpolation: 'bar ',
               nodes: [],
             }),
         );
@@ -243,7 +205,7 @@ describe('a generic @-rule', () => {
         describeNode('with an interpolation', () =>
           utils.fromChildProps({
             name: 'foo',
-            paramsInterpolation: new Interpolation({nodes: ['bar ']}),
+            paramsInterpolation: 'bar ',
             nodes: [],
           }),
         );
@@ -267,8 +229,8 @@ describe('a generic @-rule', () => {
 
         it('has a child node', () => {
           expect(node.nodes).toHaveLength(1);
-          expect(node.nodes[0]).toBeInstanceOf(Rule);
-          expect(node.nodes[0]).toHaveProperty('selector', '.bar\n');
+          expect(node.nodes![0]).toBeInstanceOf(Rule);
+          expect(node.nodes![0]).toHaveProperty('selector', '.bar\n');
         });
       });
     });
@@ -290,8 +252,8 @@ describe('a generic @-rule', () => {
 
           it('has a child node', () => {
             expect(node.nodes).toHaveLength(1);
-            expect(node.nodes[0]).toBeInstanceOf(Rule);
-            expect(node.nodes[0]).toHaveProperty('selector', '.baz\n');
+            expect(node.nodes![0]).toBeInstanceOf(Rule);
+            expect(node.nodes![0]).toHaveProperty('selector', '.baz\n');
           });
         });
       }
@@ -415,7 +377,7 @@ describe('a generic @-rule', () => {
       describe('with undefined nodes', () => {
         describe('without params', () => {
           it('with default raws', () =>
-            expect(new GenericAtRule({name: 'foo'}).toString()).toBe('@foo;'));
+            expect(new GenericAtRule({name: 'foo'}).toString()).toBe('@foo'));
 
           it('with afterName', () =>
             expect(
@@ -423,7 +385,7 @@ describe('a generic @-rule', () => {
                 name: 'foo',
                 raws: {afterName: '/**/'},
               }).toString(),
-            ).toBe('@foo/**/;'));
+            ).toBe('@foo/**/'));
 
           it('with afterName', () =>
             expect(
@@ -431,7 +393,7 @@ describe('a generic @-rule', () => {
                 name: 'foo',
                 raws: {afterName: '/**/'},
               }).toString(),
-            ).toBe('@foo/**/;'));
+            ).toBe('@foo/**/'));
 
           it('with between', () =>
             expect(
@@ -439,7 +401,7 @@ describe('a generic @-rule', () => {
                 name: 'foo',
                 raws: {between: '/**/'},
               }).toString(),
-            ).toBe('@foo/**/;'));
+            ).toBe('@foo/**/'));
 
           it('with afterName and between', () =>
             expect(
@@ -447,7 +409,7 @@ describe('a generic @-rule', () => {
                 name: 'foo',
                 raws: {afterName: '/*afterName*/', between: '/*between*/'},
               }).toString(),
-            ).toBe('@foo/*afterName*//*between*/;'));
+            ).toBe('@foo/*afterName*//*between*/'));
         });
 
         describe('with params', () => {
@@ -457,7 +419,7 @@ describe('a generic @-rule', () => {
                 name: 'foo',
                 paramsInterpolation: 'baz',
               }).toString(),
-            ).toBe('@foo baz;'));
+            ).toBe('@foo baz'));
 
           it('with afterName', () =>
             expect(
@@ -466,7 +428,7 @@ describe('a generic @-rule', () => {
                 paramsInterpolation: 'baz',
                 raws: {afterName: '/**/'},
               }).toString(),
-            ).toBe('@foo/**/baz;'));
+            ).toBe('@foo/**/baz'));
 
           it('with between', () =>
             expect(
@@ -475,13 +437,13 @@ describe('a generic @-rule', () => {
                 paramsInterpolation: 'baz',
                 raws: {between: '/**/'},
               }).toString(),
-            ).toBe('@foo baz/**/;'));
+            ).toBe('@foo baz/**/'));
         });
 
         it('with after', () =>
           expect(
             new GenericAtRule({name: 'foo', raws: {after: '/**/'}}).toString(),
-          ).toBe('@foo;'));
+          ).toBe('@foo'));
 
         it('with before', () =>
           expect(
@@ -631,8 +593,8 @@ describe('a generic @-rule', () => {
 
         it('nodes', () => {
           expect(clone.nodes).toHaveLength(1);
-          expect(clone.nodes[0]).toBeInstanceOf(Rule);
-          expect(clone.nodes[0]).toHaveProperty('selector', '.baz ');
+          expect(clone.nodes![0]).toBeInstanceOf(Rule);
+          expect(clone.nodes![0]).toHaveProperty('selector', '.baz ');
         });
       });
 
@@ -650,7 +612,7 @@ describe('a generic @-rule', () => {
       });
 
       describe('sets parent for', () => {
-        it('nodes', () => expect(clone.nodes[0].parent).toBe(clone));
+        it('nodes', () => expect(clone.nodes![0].parent).toBe(clone));
       });
     });
 

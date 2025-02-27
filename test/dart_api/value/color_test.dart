@@ -80,9 +80,11 @@ void main() {
 
     test("equals an equivalent legacy color", () {
       expect(
-          value,
-          equalsWithHash(
-              SassColor.hsl(210, 65.3846153846154, 20.392156862745097)));
+        value,
+        equalsWithHash(
+          SassColor.hsl(210, 65.3846153846154, 20.392156862745097),
+        ),
+      );
     });
 
     test("does not equal an equivalent non-legacy color", () {
@@ -102,64 +104,93 @@ void main() {
     group("toSpace", () {
       test("converts the color to a given space", () {
         expect(
-            value.toSpace(ColorSpace.lab),
-            equals(SassColor.lab(
-                20.675469453386192, -2.276792630515417, -24.59314874484676)));
+          value.toSpace(ColorSpace.lab),
+          equals(
+            SassColor.lab(
+              20.675469453386192,
+              -2.276792630515417,
+              -24.59314874484676,
+            ),
+          ),
+        );
       });
 
       test("with legacyMissing: true, makes a powerless channel missing", () {
         expect(
-            SassColor.rgb(0, 0, 0)
-                .toSpace(ColorSpace.hsl)
-                .isChannelMissing("hue"),
-            isTrue);
+          SassColor.rgb(
+            0,
+            0,
+            0,
+          ).toSpace(ColorSpace.hsl).isChannelMissing("hue"),
+          isTrue,
+        );
       });
 
       test("with legacyMissing: false, makes a powerless channel zero", () {
-        var result = SassColor.rgb(0, 0, 0)
-            .toSpace(ColorSpace.hsl, legacyMissing: false);
+        var result = SassColor.rgb(
+          0,
+          0,
+          0,
+        ).toSpace(ColorSpace.hsl, legacyMissing: false);
         expect(result.isChannelMissing("hue"), isFalse);
         expect(result.channel("hue"), equals(0));
       });
 
       test(
-          "even with legacyMissing: false, preserves missing channels for same "
-          "space", () {
-        expect(
+        "even with legacyMissing: false, preserves missing channels for same "
+        "space",
+        () {
+          expect(
             SassColor.rgb(0, null, 0)
                 .toSpace(ColorSpace.rgb, legacyMissing: false)
                 .isChannelMissing("green"),
-            isTrue);
-      });
+            isTrue,
+          );
+        },
+      );
     });
 
     group("toGamut() brings the color into its gamut", () {
       setUp(() => value = parseValue("rgb(300 200 100)") as SassColor);
 
       test("with clip", () {
-        expect(value.toGamut(GamutMapMethod.clip),
-            equals(SassColor.rgb(255, 200, 100)));
+        expect(
+          value.toGamut(GamutMapMethod.clip),
+          equals(SassColor.rgb(255, 200, 100)),
+        );
       });
 
       test("with localMinde", () {
         // TODO: update
-        expect(value.toGamut(GamutMapMethod.localMinde),
-            equals(SassColor.rgb(255, 200, 100)));
+        expect(
+          value.toGamut(GamutMapMethod.localMinde),
+          equals(SassColor.rgb(255, 200, 100)),
+        );
       });
     });
 
     group("changeRgb()", () {
       test("changes RGB values", () {
-        expect(value.changeRgb(red: 0xAA),
-            equals(SassColor.rgb(0xAA, 0x34, 0x56)));
-        expect(value.changeRgb(green: 0xAA),
-            equals(SassColor.rgb(0x12, 0xAA, 0x56)));
-        expect(value.changeRgb(blue: 0xAA),
-            equals(SassColor.rgb(0x12, 0x34, 0xAA)));
-        expect(value.changeRgb(alpha: 0.5),
-            equals(SassColor.rgb(0x12, 0x34, 0x56, 0.5)));
-        expect(value.changeRgb(red: 0xAA, green: 0xAA, blue: 0xAA, alpha: 0.5),
-            equals(SassColor.rgb(0xAA, 0xAA, 0xAA, 0.5)));
+        expect(
+          value.changeRgb(red: 0xAA),
+          equals(SassColor.rgb(0xAA, 0x34, 0x56)),
+        );
+        expect(
+          value.changeRgb(green: 0xAA),
+          equals(SassColor.rgb(0x12, 0xAA, 0x56)),
+        );
+        expect(
+          value.changeRgb(blue: 0xAA),
+          equals(SassColor.rgb(0x12, 0x34, 0xAA)),
+        );
+        expect(
+          value.changeRgb(alpha: 0.5),
+          equals(SassColor.rgb(0x12, 0x34, 0x56, 0.5)),
+        );
+        expect(
+          value.changeRgb(red: 0xAA, green: 0xAA, blue: 0xAA, alpha: 0.5),
+          equals(SassColor.rgb(0xAA, 0xAA, 0xAA, 0.5)),
+        );
       });
 
       test("allows in-gamut alpha", () {
@@ -179,53 +210,82 @@ void main() {
     });
 
     test("changeHsl() changes HSL values", () {
-      expect(value.changeHsl(hue: 120),
-          equals(SassColor.hsl(120, 65.3846153846154, 20.392156862745097)));
-      expect(value.changeHsl(saturation: 42),
-          equals(SassColor.hsl(210, 42, 20.392156862745097)));
-      expect(value.changeHsl(lightness: 42),
-          equals(SassColor.hsl(210, 65.3846153846154, 42)));
       expect(
-          value.changeHsl(alpha: 0.5),
-          equals(
-              SassColor.hsl(210, 65.3846153846154, 20.392156862745097, 0.5)));
+        value.changeHsl(hue: 120),
+        equals(SassColor.hsl(120, 65.3846153846154, 20.392156862745097)),
+      );
       expect(
-          value.changeHsl(hue: 120, saturation: 42, lightness: 42, alpha: 0.5),
-          equals(SassColor.hsl(120, 42, 42, 0.5)));
+        value.changeHsl(saturation: 42),
+        equals(SassColor.hsl(210, 42, 20.392156862745097)),
+      );
+      expect(
+        value.changeHsl(lightness: 42),
+        equals(SassColor.hsl(210, 65.3846153846154, 42)),
+      );
+      expect(
+        value.changeHsl(alpha: 0.5),
+        equals(SassColor.hsl(210, 65.3846153846154, 20.392156862745097, 0.5)),
+      );
+      expect(
+        value.changeHsl(hue: 120, saturation: 42, lightness: 42, alpha: 0.5),
+        equals(SassColor.hsl(120, 42, 42, 0.5)),
+      );
     });
 
     test("changeHwb() changes HWB values", () {
-      expect(value.changeHwb(hue: 120),
-          equals(SassColor.hwb(120, 7.0588235294117645, 66.27450980392157)));
-      expect(value.changeHwb(whiteness: 20),
-          equals(SassColor.hwb(210, 20, 66.27450980392157)));
-      expect(value.changeHwb(blackness: 42),
-          equals(SassColor.hwb(210, 7.0588235294117645, 42)));
       expect(
-          value.changeHwb(alpha: 0.5),
-          equals(
-              SassColor.hwb(210, 7.0588235294117645, 66.27450980392157, 0.5)));
+        value.changeHwb(hue: 120),
+        equals(SassColor.hwb(120, 7.0588235294117645, 66.27450980392157)),
+      );
       expect(
-          value.changeHwb(hue: 120, whiteness: 42, blackness: 42, alpha: 0.5),
-          equals(SassColor.hwb(120, 42, 42, 0.5)));
-      expect(value.changeHwb(whiteness: 50),
-          equals(SassColor.hwb(210, 43.0016863406408, 56.9983136593592)));
+        value.changeHwb(whiteness: 20),
+        equals(SassColor.hwb(210, 20, 66.27450980392157)),
+      );
+      expect(
+        value.changeHwb(blackness: 42),
+        equals(SassColor.hwb(210, 7.0588235294117645, 42)),
+      );
+      expect(
+        value.changeHwb(alpha: 0.5),
+        equals(SassColor.hwb(210, 7.0588235294117645, 66.27450980392157, 0.5)),
+      );
+      expect(
+        value.changeHwb(hue: 120, whiteness: 42, blackness: 42, alpha: 0.5),
+        equals(SassColor.hwb(120, 42, 42, 0.5)),
+      );
+      expect(
+        value.changeHwb(whiteness: 50),
+        equals(SassColor.hwb(210, 43.0016863406408, 56.9983136593592)),
+      );
     });
 
     group("changeChannels()", () {
       test("changes RGB values", () {
-        expect(value.changeChannels({"red": 0xAA}),
-            equals(SassColor.rgb(0xAA, 0x34, 0x56)));
-        expect(value.changeChannels({"green": 0xAA}),
-            equals(SassColor.rgb(0x12, 0xAA, 0x56)));
-        expect(value.changeChannels({"blue": 0xAA}),
-            equals(SassColor.rgb(0x12, 0x34, 0xAA)));
-        expect(value.changeChannels({"alpha": 0.5}),
-            equals(SassColor.rgb(0x12, 0x34, 0x56, 0.5)));
         expect(
-            value.changeChannels(
-                {"red": 0xAA, "green": 0xAA, "blue": 0xAA, "alpha": 0.5}),
-            equals(SassColor.rgb(0xAA, 0xAA, 0xAA, 0.5)));
+          value.changeChannels({"red": 0xAA}),
+          equals(SassColor.rgb(0xAA, 0x34, 0x56)),
+        );
+        expect(
+          value.changeChannels({"green": 0xAA}),
+          equals(SassColor.rgb(0x12, 0xAA, 0x56)),
+        );
+        expect(
+          value.changeChannels({"blue": 0xAA}),
+          equals(SassColor.rgb(0x12, 0x34, 0xAA)),
+        );
+        expect(
+          value.changeChannels({"alpha": 0.5}),
+          equals(SassColor.rgb(0x12, 0x34, 0x56, 0.5)),
+        );
+        expect(
+          value.changeChannels({
+            "red": 0xAA,
+            "green": 0xAA,
+            "blue": 0xAA,
+            "alpha": 0.5,
+          }),
+          equals(SassColor.rgb(0xAA, 0xAA, 0xAA, 0.5)),
+        );
       });
 
       test("allows in-gamut alpha", () {
@@ -246,8 +306,10 @@ void main() {
 
     group("changeAlpha()", () {
       test("changes the alpha value", () {
-        expect(value.changeAlpha(0.5),
-            equals(SassColor.rgb(0x12, 0x34, 0x56, 0.5)));
+        expect(
+          value.changeAlpha(0.5),
+          equals(SassColor.rgb(0x12, 0x34, 0x56, 0.5)),
+        );
       });
 
       test("allows valid alphas", () {
@@ -278,8 +340,9 @@ void main() {
 
   group("a color with a missing channel", () {
     late SassColor value;
-    setUp(() =>
-        value = parseValue("color(display-p3 0.3 0.4 none)") as SassColor);
+    setUp(
+      () => value = parseValue("color(display-p3 0.3 0.4 none)") as SassColor,
+    );
 
     test("reports present channels as present", () {
       expect(value.isChannelMissing("red"), isFalse);
@@ -368,24 +431,45 @@ void main() {
 
     test("doesn't equal an equivalent color", () {
       expect(
-          value,
-          isNot(equals(SassColor.xyzD65(0.07461544022446227,
-              0.12417002656711021, 0.011301590030256693))));
+        value,
+        isNot(
+          equals(
+            SassColor.xyzD65(
+              0.07461544022446227,
+              0.12417002656711021,
+              0.011301590030256693,
+            ),
+          ),
+        ),
+      );
     });
 
     test("changeChannels() changes LCH values", () {
-      expect(value.changeChannels({"lightness": 30}),
-          equals(SassColor.lch(30, 63, 120)));
-      expect(value.changeChannels({"chroma": 30}),
-          equals(SassColor.lch(42, 30, 120)));
       expect(
-          value.changeChannels({"hue": 80}), equals(SassColor.lch(42, 63, 80)));
-      expect(value.changeChannels({"alpha": 0.5}),
-          equals(SassColor.lch(42, 63, 120, 0.5)));
+        value.changeChannels({"lightness": 30}),
+        equals(SassColor.lch(30, 63, 120)),
+      );
       expect(
-          value.changeChannels(
-              {"lightness": 30, "chroma": 30, "hue": 30, "alpha": 0.5}),
-          equals(SassColor.lch(30, 30, 30, 0.5)));
+        value.changeChannels({"chroma": 30}),
+        equals(SassColor.lch(42, 30, 120)),
+      );
+      expect(
+        value.changeChannels({"hue": 80}),
+        equals(SassColor.lch(42, 63, 80)),
+      );
+      expect(
+        value.changeChannels({"alpha": 0.5}),
+        equals(SassColor.lch(42, 63, 120, 0.5)),
+      );
+      expect(
+        value.changeChannels({
+          "lightness": 30,
+          "chroma": 30,
+          "hue": 30,
+          "alpha": 0.5,
+        }),
+        equals(SassColor.lch(30, 30, 30, 0.5)),
+      );
     });
   });
 

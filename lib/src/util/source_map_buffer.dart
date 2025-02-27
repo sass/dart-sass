@@ -166,14 +166,21 @@ class SourceMapBuffer implements StringBuffer {
       }
     }
 
-    return SingleMapping.fromEntries(_entries.map((entry) => Entry(
-        entry.source,
-        SourceLocation(entry.target.offset + prefixLength,
+    return SingleMapping.fromEntries(
+      _entries.map(
+        (entry) => Entry(
+          entry.source,
+          SourceLocation(
+            entry.target.offset + prefixLength,
             line: entry.target.line + prefixLines,
             // Only adjust the column for entries that are on the same line as
             // the last chunk of the prefix.
             column: entry.target.column +
-                (entry.target.line == 0 ? prefixColumn : 0)),
-        entry.identifierName)));
+                (entry.target.line == 0 ? prefixColumn : 0),
+          ),
+          entry.identifierName,
+        ),
+      ),
+    );
   }
 }

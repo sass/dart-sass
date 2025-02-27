@@ -31,8 +31,10 @@ final class JSToDartAsyncImporter extends AsyncImporter {
   final Set<String> _nonCanonicalSchemes;
 
   JSToDartAsyncImporter(
-      this._canonicalize, this._load, Iterable<String>? nonCanonicalSchemes)
-      : _nonCanonicalSchemes = nonCanonicalSchemes == null
+    this._canonicalize,
+    this._load,
+    Iterable<String>? nonCanonicalSchemes,
+  ) : _nonCanonicalSchemes = nonCanonicalSchemes == null
             ? const {}
             : Set.unmodifiable(nonCanonicalSchemes) {
     _nonCanonicalSchemes.forEach(validateUrlScheme);
@@ -40,7 +42,8 @@ final class JSToDartAsyncImporter extends AsyncImporter {
 
   FutureOr<Uri?> canonicalize(Uri url) async {
     var result = wrapJSExceptions(
-        () => _canonicalize(url.toString(), canonicalizeContext));
+      () => _canonicalize(url.toString(), canonicalizeContext),
+    );
     if (isPromise(result)) result = await promiseToFuture(result as Promise);
     if (result == null) return null;
 
@@ -57,19 +60,30 @@ final class JSToDartAsyncImporter extends AsyncImporter {
     result as JSImporterResult;
     var contents = result.contents;
     if (!isJsString(contents)) {
-      jsThrow(ArgumentError.value(contents, 'contents',
-          'must be a string but was: ${jsType(contents)}'));
+      jsThrow(
+        ArgumentError.value(
+          contents,
+          'contents',
+          'must be a string but was: ${jsType(contents)}',
+        ),
+      );
     }
 
     var syntax = result.syntax;
     if (contents == null || syntax == null) {
-      jsThrow(JsError("The load() function must return an object with contents "
-          "and syntax fields."));
+      jsThrow(
+        JsError(
+          "The load() function must return an object with contents "
+          "and syntax fields.",
+        ),
+      );
     }
 
-    return ImporterResult(contents,
-        syntax: parseSyntax(syntax),
-        sourceMapUrl: result.sourceMapUrl.andThen(jsToDartUrl));
+    return ImporterResult(
+      contents,
+      syntax: parseSyntax(syntax),
+      sourceMapUrl: result.sourceMapUrl.andThen(jsToDartUrl),
+    );
   }
 
   bool isNonCanonicalScheme(String scheme) =>

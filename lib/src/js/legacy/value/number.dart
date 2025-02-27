@@ -18,18 +18,23 @@ Object newNodeSassNumber(SassNumber value) =>
     legacyNumberClass.construct([null, null, value]);
 
 /// The JS constructor for the `sass.types.Number` class.
-final JSClass legacyNumberClass = createJSClass('sass.types.Number',
-    (_NodeSassNumber thisArg, num? value,
-        [String? unit, SassNumber? dartValue]) {
+final JSClass legacyNumberClass = createJSClass('sass.types.Number', (
+  _NodeSassNumber thisArg,
+  num? value, [
+  String? unit,
+  SassNumber? dartValue,
+]) {
   // Either [dartValue] or [value] must be passed.
   thisArg.dartValue = dartValue ?? _parseNumber(value!, unit);
 })
   ..defineMethods({
     'getValue': (_NodeSassNumber thisArg) => thisArg.dartValue.value,
     'setValue': (_NodeSassNumber thisArg, num value) {
-      thisArg.dartValue = SassNumber.withUnits(value,
-          numeratorUnits: thisArg.dartValue.numeratorUnits,
-          denominatorUnits: thisArg.dartValue.denominatorUnits);
+      thisArg.dartValue = SassNumber.withUnits(
+        value,
+        numeratorUnits: thisArg.dartValue.numeratorUnits,
+        denominatorUnits: thisArg.dartValue.denominatorUnits,
+      );
     },
     'getUnit': (_NodeSassNumber thisArg) =>
         thisArg.dartValue.numeratorUnits.join('*') +
@@ -37,7 +42,7 @@ final JSClass legacyNumberClass = createJSClass('sass.types.Number',
         thisArg.dartValue.denominatorUnits.join('*'),
     'setUnit': (_NodeSassNumber thisArg, String unit) {
       thisArg.dartValue = _parseNumber(thisArg.dartValue.value, unit);
-    }
+    },
   });
 
 /// Parses a [SassNumber] from [value] and [unit], using Node Sass's unit
@@ -63,6 +68,9 @@ SassNumber _parseNumber(num value, String? unit) {
       denominator == null ? <String>[] : denominator.split('*');
   if (denominatorUnits.any((unit) => unit.isEmpty)) throw invalidUnit;
 
-  return SassNumber.withUnits(value,
-      numeratorUnits: numeratorUnits, denominatorUnits: denominatorUnits);
+  return SassNumber.withUnits(
+    value,
+    numeratorUnits: numeratorUnits,
+    denominatorUnits: denominatorUnits,
+  );
 }

@@ -5,6 +5,7 @@
 import * as postcss from 'postcss';
 
 import {LazySource} from '../lazy-source';
+import {NodeProps} from '../node';
 import type * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {Expression, ExpressionProps} from '.';
@@ -33,7 +34,7 @@ export type BinaryOperator =
  *
  * @category Expression
  */
-export interface BinaryOperationExpressionProps {
+export interface BinaryOperationExpressionProps extends NodeProps {
   operator: BinaryOperator;
   left: Expression | ExpressionProps;
   right: Expression | ExpressionProps;
@@ -76,7 +77,7 @@ export class BinaryOperationExpression extends Expression {
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._operator = operator;
   }
-  private _operator!: BinaryOperator;
+  private declare _operator: BinaryOperator;
 
   /** The expression on the left-hand side of this operation. */
   get left(): Expression {
@@ -89,7 +90,7 @@ export class BinaryOperationExpression extends Expression {
     left.parent = this;
     this._left = left;
   }
-  private _left!: Expression;
+  private declare _left: Expression;
 
   /** The expression on the right-hand side of this operation. */
   get right(): Expression {
@@ -102,7 +103,7 @@ export class BinaryOperationExpression extends Expression {
     right.parent = this;
     this._right = right;
   }
-  private _right!: Expression;
+  private declare _right: Expression;
 
   constructor(defaults: BinaryOperationExpressionProps);
   /** @hidden */

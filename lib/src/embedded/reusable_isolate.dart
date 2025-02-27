@@ -37,17 +37,25 @@ class ReusableIsolate {
   /// Whether the current isolate has been borrowed.
   bool _borrowed = false;
 
-  ReusableIsolate._(this._isolate, this._mailbox, this._receivePort,
-      {Function? onError})
-      : _subscription = _receivePort.listen(_defaultOnData, onError: onError);
+  ReusableIsolate._(
+    this._isolate,
+    this._mailbox,
+    this._receivePort, {
+    Function? onError,
+  }) : _subscription = _receivePort.listen(_defaultOnData, onError: onError);
 
   /// Spawns a [ReusableIsolate] that runs the given [entryPoint].
-  static Future<ReusableIsolate> spawn(ReusableIsolateEntryPoint entryPoint,
-      {Function? onError}) async {
+  static Future<ReusableIsolate> spawn(
+    ReusableIsolateEntryPoint entryPoint, {
+    Function? onError,
+  }) async {
     var mailbox = Mailbox();
     var receivePort = ReceivePort();
-    var isolate = await Isolate.spawn(
-        _isolateMain, (entryPoint, mailbox.asSendable, receivePort.sendPort));
+    var isolate = await Isolate.spawn(_isolateMain, (
+      entryPoint,
+      mailbox.asSendable,
+      receivePort.sendPort,
+    ));
     return ReusableIsolate._(isolate, mailbox, receivePort, onError: onError);
   }
 
@@ -98,7 +106,8 @@ void _defaultOnData(dynamic _) {
 }
 
 void _isolateMain(
-    (ReusableIsolateEntryPoint, Sendable<Mailbox>, SendPort) message) {
+  (ReusableIsolateEntryPoint, Sendable<Mailbox>, SendPort) message,
+) {
   var (entryPoint, sendableMailbox, sendPort) = message;
   entryPoint(sendableMailbox.materialize(), sendPort);
 }

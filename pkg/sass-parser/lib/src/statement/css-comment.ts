@@ -8,7 +8,7 @@ import type {CommentRaws} from 'postcss/lib/comment';
 import {convertExpression} from '../expression/convert';
 import {LazySource} from '../lazy-source';
 import type * as sassInternal from '../sass-internal';
-import {Interpolation} from '../interpolation';
+import {Interpolation, InterpolationProps} from '../interpolation';
 import * as utils from '../utils';
 import {ContainerProps, Statement, StatementWithChildren} from '.';
 import {_Comment} from './comment-internal';
@@ -37,7 +37,7 @@ export interface CssCommentRaws extends CommentRaws {
  */
 export type CssCommentProps = ContainerProps & {
   raws?: CssCommentRaws;
-} & ({text: string} | {textInterpolation: Interpolation | string});
+} & ({text: string} | {textInterpolation: Interpolation | InterpolationProps});
 
 /**
  * A CSS-style "loud" comment. Extends [`postcss.Comment`].
@@ -65,20 +65,17 @@ export class CssComment
   get textInterpolation(): Interpolation {
     return this._textInterpolation!;
   }
-  set textInterpolation(textInterpolation: Interpolation | string) {
+  set textInterpolation(value: Interpolation | InterpolationProps) {
     // TODO - postcss/postcss#1957: Mark this as dirty
     if (this._textInterpolation) {
       this._textInterpolation.parent = undefined;
     }
-    if (typeof textInterpolation === 'string') {
-      textInterpolation = new Interpolation({
-        nodes: [textInterpolation],
-      });
-    }
+    const textInterpolation =
+      value instanceof Interpolation ? value : new Interpolation(value);
     textInterpolation.parent = this;
     this._textInterpolation = textInterpolation;
   }
-  private _textInterpolation?: Interpolation;
+  private declare _textInterpolation?: Interpolation;
 
   constructor(defaults: CssCommentProps);
   /** @hidden */

@@ -31,7 +31,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "postcss": ">=8.4.41 <8.5.0",
+    "postcss": ">=8.4.41 <8.6.0",
     "sass": "file:../../build/npm"
   },
   "devDependencies": {
@@ -45,7 +45,7 @@
     "rimraf": "^6.0.1",
     "ts-jest": "^29.0.5",
     "ts-node": "^10.2.1",
-    "typedoc": "^0.26.5",
+    "typedoc": "^0.27.2",
     "typescript": "^5.0.2"
   }
 }

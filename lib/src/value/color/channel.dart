@@ -34,8 +34,11 @@ class ColorChannel {
 
   /// @nodoc
   @internal
-  const ColorChannel(this.name,
-      {required this.isPolarAngle, this.associatedUnit});
+  const ColorChannel(
+    this.name, {
+    required this.isPolarAngle,
+    this.associatedUnit,
+  });
 
   /// Returns whether this channel is [analogous] to [other].
   ///
@@ -48,7 +51,7 @@ class ColorChannel {
         ("lightness", "lightness") ||
         ("hue", "hue") =>
           true,
-        _ => false
+        _ => false,
       };
 }
 
@@ -93,14 +96,17 @@ class LinearChannel extends ColorChannel {
   ///
   /// @nodoc
   @internal
-  const LinearChannel(super.name, this.min, this.max,
-      {this.requiresPercent = false,
-      this.lowerClamped = false,
-      this.upperClamped = false,
-      bool? conventionallyPercent})
-      : super(
-            isPolarAngle: false,
-            associatedUnit: (conventionallyPercent ?? (min == 0 && max == 100))
-                ? '%'
-                : null);
+  const LinearChannel(
+    super.name,
+    this.min,
+    this.max, {
+    this.requiresPercent = false,
+    this.lowerClamped = false,
+    this.upperClamped = false,
+    bool? conventionallyPercent,
+  }) : super(
+          isPolarAngle: false,
+          associatedUnit:
+              (conventionallyPercent ?? (min == 0 && max == 100)) ? '%' : null,
+        );
 }

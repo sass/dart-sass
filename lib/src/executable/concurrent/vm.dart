@@ -14,20 +14,31 @@ import '../compile_stylesheet.dart';
 ///
 /// Runs in a new Dart Isolate, unless [source] is `null`.
 Future<(int, String, String?)?> compileStylesheetConcurrently(
-    ExecutableOptions options,
-    StylesheetGraph graph,
-    String? source,
-    String? destination,
-    {bool ifModified = false}) {
+  ExecutableOptions options,
+  StylesheetGraph graph,
+  String? source,
+  String? destination, {
+  bool ifModified = false,
+}) {
   // Reading from stdin does not work properly in dart isolate.
   if (source == null) {
-    return compileStylesheet(options, graph, source, destination,
-        ifModified: ifModified);
+    return compileStylesheet(
+      options,
+      graph,
+      source,
+      destination,
+      ifModified: ifModified,
+    );
   }
 
   return Isolate.run(() {
     term_glyph.ascii = !options.unicode;
-    return compileStylesheet(options, graph, source, destination,
-        ifModified: ifModified);
+    return compileStylesheet(
+      options,
+      graph,
+      source,
+      destination,
+      ifModified: ifModified,
+    );
   });
 }

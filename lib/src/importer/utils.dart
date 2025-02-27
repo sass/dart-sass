@@ -25,21 +25,26 @@ bool get fromImport =>
 CanonicalizeContext get canonicalizeContext =>
     switch (Zone.current[#_canonicalizeContext]) {
       null => throw StateError(
-          "canonicalizeContext may only be accessed within a call to canonicalize()."),
+          "canonicalizeContext may only be accessed within a call to canonicalize().",
+        ),
       CanonicalizeContext context => context,
       var value => throw StateError(
-          "Unexpected Zone.current[#_canonicalizeContext] value $value.")
+          "Unexpected Zone.current[#_canonicalizeContext] value $value.",
+        ),
     };
 
 /// Runs [callback] in a context where [fromImport] returns `true` and
 /// [resolveImportPath] uses `@import` semantics rather than `@use` semantics.
 T inImportRule<T>(T callback()) =>
     switch (Zone.current[#_canonicalizeContext]) {
-      null => runZoned(callback,
-          zoneValues: {#_canonicalizeContext: CanonicalizeContext(null, true)}),
+      null => runZoned(
+          callback,
+          zoneValues: {#_canonicalizeContext: CanonicalizeContext(null, true)},
+        ),
       CanonicalizeContext context => context.withFromImport(true, callback),
       var value => throw StateError(
-          "Unexpected Zone.current[#_canonicalizeContext] value $value.")
+          "Unexpected Zone.current[#_canonicalizeContext] value $value.",
+        ),
     };
 
 /// Runs [callback] in the given context.
@@ -53,13 +58,17 @@ T withCanonicalizeContext<T>(CanonicalizeContext? context, T callback()) =>
 String? resolveImportPath(String path) {
   var extension = p.extension(path);
   if (extension == '.sass' || extension == '.scss' || extension == '.css') {
-    return _ifInImport<String?>(() => _exactlyOne(
-            _tryPath('${p.withoutExtension(path)}.import$extension'))) ??
+    return _ifInImport<String?>(
+          () => _exactlyOne(
+            _tryPath('${p.withoutExtension(path)}.import$extension'),
+          ),
+        ) ??
         _exactlyOne(_tryPath(path));
   }
 
   return _ifInImport<String?>(
-          () => _exactlyOne(_tryPathWithExtensions('$path.import'))) ??
+        () => _exactlyOne(_tryPathWithExtensions('$path.import')),
+      ) ??
       _exactlyOne(_tryPathWithExtensions(path)) ??
       _tryPathAsDirectory(path);
 }
@@ -86,8 +95,9 @@ List<String> _tryPath(String path) {
 String? _tryPathAsDirectory(String path) {
   if (!dirExists(path)) return null;
 
-  return _ifInImport<String?>(() =>
-          _exactlyOne(_tryPathWithExtensions(p.join(path, 'index.import')))) ??
+  return _ifInImport<String?>(
+        () => _exactlyOne(_tryPathWithExtensions(p.join(path, 'index.import'))),
+      ) ??
       _exactlyOne(_tryPathWithExtensions(p.join(path, 'index')));
 }
 
@@ -99,7 +109,7 @@ String? _exactlyOne(List<String> paths) => switch (paths) {
       [] => null,
       [var path] => path,
       _ => throw "It's not clear which file to import. Found:\n" +
-          paths.map((path) => "  " + p.prettyUri(p.toUri(path))).join("\n")
+          paths.map((path) => "  " + p.prettyUri(p.toUri(path))).join("\n"),
     };
 
 /// If [fromImport] is `true`, invokes callback and returns the result.

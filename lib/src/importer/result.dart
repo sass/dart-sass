@@ -38,15 +38,19 @@ class ImporterResult {
   /// The [syntax] parameter must be passed. It's not marked as required only
   /// because old clients may still be passing the deprecated [indented]
   /// parameter instead.
-  ImporterResult(this.contents,
-      {Uri? sourceMapUrl,
-      Syntax? syntax,
-      @Deprecated("Use the syntax parameter instead.") bool? indented})
-      : _sourceMapUrl = sourceMapUrl,
+  ImporterResult(
+    this.contents, {
+    Uri? sourceMapUrl,
+    Syntax? syntax,
+    @Deprecated("Use the syntax parameter instead.") bool? indented,
+  })  : _sourceMapUrl = sourceMapUrl,
         syntax = syntax ?? (indented == true ? Syntax.sass : Syntax.scss) {
     if (sourceMapUrl?.scheme == '') {
       throw ArgumentError.value(
-          sourceMapUrl, 'sourceMapUrl', 'must be absolute');
+        sourceMapUrl,
+        'sourceMapUrl',
+        'must be absolute',
+      );
     } else if (syntax == null && indented == null) {
       throw ArgumentError("The syntax parameter must be passed.");
     } else if (syntax != null && indented != null) {

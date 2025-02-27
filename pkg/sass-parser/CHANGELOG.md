@@ -1,5 +1,70 @@
 ## 0.5.0
 
+## 0.4.16-dev
+
+* Add support for parsing null literals.
+
+## 0.4.15
+
+* Add support for parsing list expressions.
+
+* Add support for parsing map expressions.
+
+* Add support for parsing function calls.
+
+* Add support for parsing interpolated function calls.
+
+## 0.4.14
+
+* Add support for parsing color expressions.
+
+## 0.4.13
+
+* No user-visible changes.
+
+## 0.4.12
+
+* Fix more bugs in the automated release process.
+
+## 0.4.11
+
+* Fix the automated release process.
+
+## 0.4.10
+
+* Add support for parsing the `@import` rule.
+
+## 0.4.9
+
+* Add support for parsing the `@include` rule.
+
+* Add support for parsing declarations.
+
+* Add support for parsing the `@if` and `@else` rules.
+
+* Fix the deploy of this package so that it actually contains the package's
+  compiled contents.
+
+## 0.4.8
+
+* Add support for parsing the `@mixin` rule.
+
+* Add support for parsing the `@return` rule.
+
+## 0.4.7
+
+* No user-visible changes.
+
+## 0.4.6
+
+* No user-visible changes.
+
+## 0.4.5
+
+* Add support for parsing the `@forward` rule.
+
+## 0.4.4
+
 * No user-visible changes.
 
 ## 0.4.3

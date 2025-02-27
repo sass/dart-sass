@@ -50,55 +50,67 @@ class IsolateDispatcher {
   IsolateDispatcher(this._channel);
 
   void listen() {
-    _channel.stream.listen((packet) async {
-      int? compilationId;
-      InboundMessage? message;
-      try {
-        Uint8List messageBuffer;
-        (compilationId, messageBuffer) = parsePacket(packet);
+    _channel.stream.listen(
+      (packet) async {
+        int? compilationId;
+        InboundMessage? message;
+        try {
+          Uint8List messageBuffer;
+          (compilationId, messageBuffer) = parsePacket(packet);
 
-        if (compilationId != 0) {
-          var isolate = await _activeIsolates.putIfAbsent(
-              compilationId, () => _getIsolate(compilationId!));
+          if (compilationId != 0) {
+            var isolate = await _activeIsolates.putIfAbsent(
+              compilationId,
+              () => _getIsolate(compilationId!),
+            );
 
-          // The shutdown may have started by the time the isolate is spawned
-          if (_closed) return;
+            // The shutdown may have started by the time the isolate is spawned
+            if (_closed) return;
+
+            try {
+              isolate.send(packet);
+              return;
+            } on StateError catch (_) {
+              throw paramsError(
+                "Received multiple messages for compilation ID $compilationId",
+              );
+            }
+          }
 
           try {
-            isolate.send(packet);
-            return;
-          } on StateError catch (_) {
-            throw paramsError(
-                "Received multiple messages for compilation ID $compilationId");
+            message = InboundMessage.fromBuffer(messageBuffer);
+          } on InvalidProtocolBufferException catch (error) {
+            throw parseError(error.message);
           }
-        }
 
-        try {
-          message = InboundMessage.fromBuffer(messageBuffer);
-        } on InvalidProtocolBufferException catch (error) {
-          throw parseError(error.message);
-        }
+          if (message.whichMessage() case var type
+              when type != InboundMessage_Message.versionRequest) {
+            throw paramsError(
+              "Only VersionRequest may have wire ID 0, was $type.",
+            );
+          }
 
-        if (message.whichMessage() case var type
-            when type != InboundMessage_Message.versionRequest) {
-          throw paramsError(
-              "Only VersionRequest may have wire ID 0, was $type.");
+          var request = message.versionRequest;
+          var response = versionResponse();
+          response.id = request.id;
+          _send(0, OutboundMessage()..versionResponse = response);
+        } catch (error, stackTrace) {
+          _handleError(
+            error,
+            stackTrace,
+            compilationId: compilationId,
+            messageId: message?.id,
+          );
         }
-
-        var request = message.versionRequest;
-        var response = versionResponse();
-        response.id = request.id;
-        _send(0, OutboundMessage()..versionResponse = response);
-      } catch (error, stackTrace) {
-        _handleError(error, stackTrace,
-            compilationId: compilationId, messageId: message?.id);
-      }
-    }, onError: (Object error, StackTrace stackTrace) {
-      _handleError(error, stackTrace);
-    }, onDone: () {
-      _closed = true;
-      _allIsolates.stream.listen((isolate) => isolate.kill());
-    });
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        _handleError(error, stackTrace);
+      },
+      onDone: () {
+        _closed = true;
+        _allIsolates.stream.listen((isolate) => isolate.kill());
+      },
+    );
   }
 
   /// Returns an isolate that's ready to run a new compilation.
@@ -112,10 +124,12 @@ class IsolateDispatcher {
       isolate = _inactiveIsolates.first;
       _inactiveIsolates.remove(isolate);
     } else {
-      var future = ReusableIsolate.spawn(_isolateMain,
-          onError: (Object error, StackTrace stackTrace) {
-        _handleError(error, stackTrace);
-      });
+      var future = ReusableIsolate.spawn(
+        _isolateMain,
+        onError: (Object error, StackTrace stackTrace) {
+          _handleError(error, stackTrace);
+        },
+      );
       isolate = await future;
       _allIsolates.add(isolate);
     }
@@ -164,10 +178,16 @@ class IsolateDispatcher {
   ///
   /// The [compilationId] and [messageId] indicate the IDs of the message being
   /// responded to, if available.
-  void _handleError(Object error, StackTrace stackTrace,
-      {int? compilationId, int? messageId}) {
-    sendError(compilationId ?? errorId,
-        handleError(error, stackTrace, messageId: messageId));
+  void _handleError(
+    Object error,
+    StackTrace stackTrace, {
+    int? compilationId,
+    int? messageId,
+  }) {
+    sendError(
+      compilationId ?? errorId,
+      handleError(error, stackTrace, messageId: messageId),
+    );
     _channel.sink.close();
   }
 

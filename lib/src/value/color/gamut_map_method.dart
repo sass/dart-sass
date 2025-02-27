@@ -50,7 +50,9 @@ abstract base class GamutMapMethod {
         'clip' => GamutMapMethod.clip,
         'local-minde' => GamutMapMethod.localMinde,
         _ => throw SassScriptException(
-            'Unknown gamut map method "$name".', argumentName)
+            'Unknown gamut map method "$name".',
+            argumentName,
+          ),
       };
 
   /// Maps [color] to its gamut using this method's algorithm.

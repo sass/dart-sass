@@ -61,7 +61,7 @@ Syntax syntaxToSyntax(proto.Syntax syntax) => switch (syntax) {
       proto.Syntax.SCSS => Syntax.scss,
       proto.Syntax.INDENTED => Syntax.sass,
       proto.Syntax.CSS => Syntax.css,
-      _ => throw "Unknown syntax $syntax."
+      _ => throw "Unknown syntax $syntax.",
     };
 
 /// Returns the result of running [callback] with the global ASCII config set
@@ -117,7 +117,8 @@ final _compilationIdBuilder = VarintBuilder(32, 'compilation ID');
     while (true) {
       if (i == packet.length) {
         throw parseError(
-            "Invalid compilation ID: continuation bit always set.");
+          "Invalid compilation ID: continuation bit always set.",
+        );
       }
 
       var compilationId = _compilationIdBuilder.add(packet[i]);
@@ -132,8 +133,11 @@ final _compilationIdBuilder = VarintBuilder(32, 'compilation ID');
 }
 
 /// Wraps error object into ProtocolError, writes error to stderr, and returns the ProtocolError.
-ProtocolError handleError(Object error, StackTrace stackTrace,
-    {int? messageId}) {
+ProtocolError handleError(
+  Object error,
+  StackTrace stackTrace, {
+  int? messageId,
+}) {
   if (error is ProtocolError) {
     error.id = messageId ?? errorId;
     stderr.write("Host caused ${error.type.name.toLowerCase()} error");

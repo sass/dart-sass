@@ -1,0 +1,68 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a @include rule toJSON with a child 1`] = `
+{
+  "arguments": <(bar)>,
+  "includeName": "foo",
+  "inputs": [
+    {
+      "css": "@include foo(bar) {@qux}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "include",
+  "nodes": [
+    <@qux>,
+  ],
+  "params": "foo(bar)",
+  "raws": {},
+  "sassType": "include-rule",
+  "source": <1:1-1:25 in 0>,
+  "type": "atrule",
+}
+`;
+
+exports[`a @include rule toJSON with no children 1`] = `
+{
+  "arguments": <(bar)>,
+  "includeName": "foo",
+  "inputs": [
+    {
+      "css": "@include foo(bar)",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "include",
+  "params": "foo(bar)",
+  "raws": {},
+  "sassType": "include-rule",
+  "source": <1:1-1:18 in 0>,
+  "type": "atrule",
+}
+`;
+
+exports[`a @include rule toJSON with using and a child 1`] = `
+{
+  "arguments": <(bar)>,
+  "includeName": "foo",
+  "inputs": [
+    {
+      "css": "@include foo(bar) using ($baz) {@qux}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "include",
+  "nodes": [
+    <@qux>,
+  ],
+  "params": "foo(bar) using ($baz)",
+  "raws": {},
+  "sassType": "include-rule",
+  "source": <1:1-1:38 in 0>,
+  "type": "atrule",
+  "using": <($baz)>,
+}
+`;
