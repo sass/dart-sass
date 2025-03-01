@@ -1598,10 +1598,12 @@ final class _SerializeVisitor
   }
 
   void visitComplexSelector(ComplexSelector complex) {
-    _writeCombinators(complex.leadingCombinators);
+    if (complex.leadingCombinator case var combinator?) {
+      _buffer.write(combinator);
+    }
     if (complex
         case ComplexSelector(
-          leadingCombinators: [_, ...],
+          leadingCombinator: var _?,
           components: [_, ...],
         )) {
       _writeOptionalSpace();
@@ -1610,19 +1612,18 @@ final class _SerializeVisitor
     for (var i = 0; i < complex.components.length; i++) {
       var component = complex.components[i];
       visitCompoundSelector(component.selector);
-      if (component.combinators.isNotEmpty) _writeOptionalSpace();
-      _writeCombinators(component.combinators);
+
+      if (component.combinator case var combinator?) {
+        _writeOptionalSpace();
+        _buffer.write(combinator);
+      }
+
       if (i != complex.components.length - 1 &&
-          (!_isCompressed || component.combinators.isEmpty)) {
+          (!_isCompressed || component.combinator == null)) {
         _buffer.writeCharCode($space);
       }
     }
   }
-
-  /// Writes [combinators] to [_buffer], with spaces in between in expanded
-  /// mode.
-  void _writeCombinators(List<CssValue<Combinator>> combinators) =>
-      _writeBetween(combinators, _isCompressed ? '' : ' ', _buffer.write);
 
   void visitCompoundSelector(CompoundSelector compound) {
     var start = _buffer.length;

@@ -251,8 +251,6 @@ class ExtensionStore {
     Map<ComplexSelector, Extension>? newExtensions;
     var sources = _extensions.putIfAbsent(target, () => {});
     for (var complex in extender.components) {
-      if (complex.isUseless) continue;
-
       var extension = Extension(
         complex,
         target,
@@ -539,8 +537,6 @@ class ExtensionStore {
     Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
     List<CssMediaQuery>? mediaQueryContext,
   ) {
-    if (complex.leadingCombinators.length > 1) return null;
-
     // The complex selectors that each compound selector in [complex.components]
     // can expand to.
     //
@@ -576,7 +572,6 @@ class ExtensionStore {
       if (extended == null) {
         extendedNotExpanded?.add([
           ComplexSelector(
-            const [],
             [component],
             complex.span,
             lineBreak: complex.lineBreak,
@@ -588,29 +583,26 @@ class ExtensionStore {
         extendedNotExpanded = [
           [
             ComplexSelector(
-              complex.leadingCombinators,
               complex.components.take(i),
               complex.span,
+              leadingCombinator: complex.leadingCombinator,
               lineBreak: complex.lineBreak,
             ),
           ],
           extended,
         ];
-      } else if (complex.leadingCombinators.isEmpty) {
+      } else if (complex.leadingCombinator == null) {
         extendedNotExpanded = [extended];
       } else {
         extendedNotExpanded = [
           [
             for (var newComplex in extended)
-              if (newComplex.leadingCombinators.isEmpty ||
-                  listEquals(
-                    complex.leadingCombinators,
-                    newComplex.leadingCombinators,
-                  ))
+              if (newComplex.leadingCombinator == null ||
+                  complex.leadingCombinator == newComplex.leadingCombinator)
                 ComplexSelector(
-                  complex.leadingCombinators,
                   newComplex.components,
                   complex.span,
+                  leadingCombinator: complex.leadingCombinator,
                   lineBreak: complex.lineBreak || newComplex.lineBreak,
                 ),
           ],
@@ -620,10 +612,15 @@ class ExtensionStore {
     if (extendedNotExpanded == null) return null;
 
     var first = true;
-    return paths(extendedNotExpanded).expand((path) {
-      return weave(path, complex.span, forceLineBreak: complex.lineBreak).map((
-        outputComplex,
-      ) {
+    var result = paths(extendedNotExpanded).expand<ComplexSelector>((path) {
+      var woven = weave(
+        path,
+        complex.span,
+        forceLineBreak: complex.lineBreak,
+      );
+      if (woven == null) return [];
+
+      return woven.map((outputComplex) {
         // Make sure that copies of [complex] retain their status as "original"
         // selectors. This includes selectors that are modified because a :not()
         // was extended into.
@@ -635,6 +632,7 @@ class ExtensionStore {
         return outputComplex;
       });
     }).toList();
+    return result.isEmpty ? null : result;
   }
 
   /// Extends [component] using [extensions], and returns the contents of a
@@ -703,12 +701,11 @@ class ExtensionStore {
       List<ComplexSelector>? result;
       for (var extender in extenders) {
         extender.assertCompatibleMediaContext(mediaQueryContext);
-        var complex = extender.selector.withAdditionalCombinators(
-          component.combinators,
-        );
-        if (complex.isUseless) continue;
-        result ??= [];
-        result.add(complex);
+        if (extender.selector.withAdditionalCombinator(component.combinator)
+            case var complex?) {
+          result ??= [];
+          result.add(complex);
+        }
       }
       return result;
     }
@@ -753,7 +750,7 @@ class ExtensionStore {
         // The first path is always the original selector. We can't just return
         // [component] directly because selector pseudos may be modified, but we
         // don't have to do any unification.
-        ComplexSelector(const [], [
+        ComplexSelector([
           ComplexSelectorComponent(
             CompoundSelector(
               extenderPaths.first.expand((extender) {
@@ -762,7 +759,7 @@ class ExtensionStore {
               }),
               component.selector.span,
             ),
-            component.combinators,
+            combinator: component.combinator,
             component.span,
           ),
         ], component.span),
@@ -773,10 +770,10 @@ class ExtensionStore {
       if (extended == null) continue;
 
       for (var complex in extended) {
-        var withCombinators = complex.withAdditionalCombinators(
-          component.combinators,
-        );
-        if (!withCombinators.isUseless) result.add(withCombinators);
+        if (complex.withAdditionalCombinator(component.combinator)
+            case var withCombinator?) {
+          result.add(withCombinator);
+        }
       }
     }
 
@@ -807,11 +804,9 @@ class ExtensionStore {
       if (extender.isOriginal) {
         originals ??= [];
         var finalExtenderComponent = extender.selector.components.last;
-        assert(finalExtenderComponent.combinators.isEmpty);
+        assert(finalExtenderComponent.combinator == null);
         originals.addAll(finalExtenderComponent.selector.components);
         originalsLineBreak = originalsLineBreak || extender.selector.lineBreak;
-      } else if (extender.selector.isUseless) {
-        return null;
       } else {
         toUnify.add(extender.selector);
       }
@@ -820,14 +815,7 @@ class ExtensionStore {
     if (originals != null) {
       toUnify.addFirst(
         ComplexSelector(
-          const [],
-          [
-            ComplexSelectorComponent(
-              CompoundSelector(originals, span),
-              const [],
-              span,
-            ),
-          ],
+          [ComplexSelectorComponent(CompoundSelector(originals, span), span)],
           span,
           lineBreak: originalsLineBreak,
         ),
@@ -888,9 +876,7 @@ class ExtensionStore {
   ) {
     var compound = CompoundSelector(simples, span);
     return Extender(
-      ComplexSelector(const [], [
-        ComplexSelectorComponent(compound, const [], span),
-      ], span),
+      ComplexSelector([ComplexSelectorComponent(compound, span)], span),
       specificity: _sourceSpecificityFor(compound),
       original: true,
     );
@@ -898,10 +884,9 @@ class ExtensionStore {
 
   /// Returns an [Extender] composed solely of [simple].
   Extender _extenderForSimple(SimpleSelector simple) => Extender(
-        ComplexSelector(const [], [
+        ComplexSelector([
           ComplexSelectorComponent(
             CompoundSelector([simple], simple.span),
-            const [],
             simple.span,
           ),
         ], simple.span),
@@ -995,15 +980,17 @@ class ExtensionStore {
     // In order to support those browsers, we break up the contents of a `:not`
     // unless it originally contained a selector list.
     if (pseudo.normalizedName == 'not' && selector.components.length == 1) {
-      var result = complexes
-          .map(
-            (complex) =>
-                pseudo.withSelector(SelectorList([complex], selector.span)),
-          )
-          .toList();
+      var result = [
+        for (var complex in complexes)
+          if (pseudo.withSelector(SelectorList([complex], selector.span))
+              case var newPseudo?)
+            newPseudo,
+      ];
       return result.isEmpty ? null : result;
     } else {
-      return [pseudo.withSelector(SelectorList(complexes, selector.span))];
+      return pseudo
+          .withSelector(SelectorList(complexes, selector.span))
+          .andThen((newPseudo) => [newPseudo]);
     }
   }
 

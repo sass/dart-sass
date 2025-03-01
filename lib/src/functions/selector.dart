@@ -75,7 +75,7 @@ final _append = _function("append", r"$selectors...", (arguments) {
   ) {
     return SelectorList(
       child.components.map((complex) {
-        if (complex.leadingCombinators.isNotEmpty) {
+        if (complex.leadingCombinator != null) {
           throw SassScriptException("Can't append $complex to $parent.");
         }
 
@@ -85,8 +85,12 @@ final _append = _function("append", r"$selectors...", (arguments) {
           throw SassScriptException("Can't append $complex to $parent.");
         }
 
-        return ComplexSelector(const [], [
-          ComplexSelectorComponent(newCompound, component.combinators, span),
+        return ComplexSelector([
+          ComplexSelectorComponent(
+            newCompound,
+            span,
+            combinator: component.combinator,
+          ),
           ...rest,
         ], span);
       }),

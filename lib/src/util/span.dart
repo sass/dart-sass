@@ -136,6 +136,12 @@ extension SpanExtensions on FileSpan {
       file.url == target.file.url &&
       start.offset <= target.start.offset &&
       end.offset >= target.end.offset;
+
+  /// Whether this [FileSpan] covers the same region as [other].
+  bool equals(FileSpan other) =>
+      file.url == other.file.url &&
+      start.offset == other.start.offset &&
+      end.offset == other.end.offset;
 }
 
 /// Consumes an identifier from [scanner].

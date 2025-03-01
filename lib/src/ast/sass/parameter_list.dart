@@ -12,7 +12,7 @@ import '../../utils.dart';
 import 'parameter.dart';
 import 'node.dart';
 
-/// An parameter declaration, as for a function or mixin definition.
+/// A parameter declaration, as for a function or mixin definition.
 ///
 /// {@category AST}
 /// {@category Parsing}
