@@ -1,6 +1,33 @@
 ## 16.0.0
 
-* No user-visible changes.
+### Bogus Selectors
+
+* Drop support for bogus selectors that can never become valid CSS through
+  nesting, including complex selectors with multiple combinators in a row and
+  selector pseudos whose selectors contain leading and trailing combinators
+  (except for `:has()`, which explicitly allows a leading combinator).
+
+* Replace `ComplexSelector.leadingCombinators` with a nullable
+  `ComplexSelector.leadingCombinator`.
+
+* Remove the `leadingCombinators` argument from `ComplexSelector()` and replace
+  it with a named `leadingCombinator` argument.
+
+* Replace `ComplexSelectorComponent.combinators` with a nullable
+  `ComplexSelectorComponent.combinator`.
+
+* Remove the `combinators` argument from `ComplexSelectorComponent()` and replace
+  it with a named `combinator` argument.
+
+* Replace `Selector.isBogus` with `SelectorList.isStandAlone`,
+  `SelectorList.isRelative`, `ComplexSelector.isStandAlone`, and
+  `ComplexSelector.isRelative`.
+
+* Replace `Selector.assertNotBogus()` with `SelectorList.assertValid()` and
+  `ComplexSelector.assertValid()`.
+
+* `Value.assertSelector()` and `Value.assertComplexSelector()` now forbid
+  selectors with leading or trailing combinators by default.
 
 ## 15.2.2-dev
 

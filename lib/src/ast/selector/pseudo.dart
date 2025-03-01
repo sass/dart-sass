@@ -144,13 +144,27 @@ final class PseudoSelector extends SimpleSelector {
 
   /// Returns a new [PseudoSelector] based on this, but with the selector
   /// replaced with [selector].
-  PseudoSelector withSelector(SelectorList selector) => PseudoSelector(
-        name,
-        span,
-        element: isElement,
-        argument: argument,
-        selector: selector,
-      );
+  ///
+  /// Returns `null` if this wouldn't produce a valid selector.
+  PseudoSelector? withSelector(SelectorList selector) {
+    // :has() allows selectors with leading combinators
+    var has = equalsIgnoreCase(name, "has");
+    if (has ? !selector.isRelative : !selector.isStandAlone) {
+      var validComplex = [
+        for (var complex in selector.components)
+          if (has ? complex.isRelative : complex.isStandAlone) complex,
+      ];
+      if (validComplex.isEmpty) return null;
+      selector = SelectorList(validComplex, selector.span);
+    }
+    return PseudoSelector(
+      name,
+      span,
+      element: isElement,
+      argument: argument,
+      selector: selector,
+    );
+  }
 
   /// @nodoc
   @internal

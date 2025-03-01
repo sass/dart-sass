@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 47c97f7824eb25d7f1e64e3230938b88330d40b4
+  // Checksum: 8f593fa3dcf8de884b25a82e4625a8bc9effef50
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',

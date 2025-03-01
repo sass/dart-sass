@@ -4,6 +4,13 @@
   parsing associated with it. It is now parsed like any other unknown plain CSS
   at-rule, where Sass features are only allowed within `#{}` interpolation.
 
+### Dart API
+
+* Remove `Value.assertSelector()`, `.assertSimpleSelector()`,
+  `.assertCompoundSelector()`, and `.assertComplexSelector()`. This is now only
+  available through the expanded `sass_api` package, since that package also
+  exposes the selector AST that it returns.
+
 ## 1.85.2-dev
 
 * No user-visible changes.

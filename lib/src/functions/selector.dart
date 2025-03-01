@@ -52,7 +52,11 @@ final _nest = _function("nest", r"$selectors...", (arguments) {
   var first = true;
   return selectors
       .map((selector) {
-        var result = selector.assertSelector(allowParent: !first);
+        var result = selector.assertSelector(
+          allowParent: !first,
+          allowLeadingCombinator: true,
+          allowTrailingCombinator: true,
+        );
         first = false;
         return result;
       })
@@ -69,13 +73,20 @@ final _append = _function("append", r"$selectors...", (arguments) {
   }
 
   var span = EvaluationContext.current.currentCallableSpan;
-  return selectors.map((selector) => selector.assertSelector()).reduce((
-    parent,
-    child,
-  ) {
-    return SelectorList(
+  SelectorList? parent;
+  for (var i = 0; i < selectors.length; i++) {
+    var child = selectors[i].assertSelector(
+      allowLeadingCombinator: true,
+      allowTrailingCombinator: true,
+    );
+    if (parent == null) {
+      parent = child;
+      continue;
+    }
+
+    parent = SelectorList(
       child.components.map((complex) {
-        if (complex.leadingCombinators.isNotEmpty) {
+        if (complex.leadingCombinator != null || complex.components.isEmpty) {
           throw SassScriptException("Can't append $complex to $parent.");
         }
 
@@ -85,25 +96,29 @@ final _append = _function("append", r"$selectors...", (arguments) {
           throw SassScriptException("Can't append $complex to $parent.");
         }
 
-        return ComplexSelector(const [], [
-          ComplexSelectorComponent(newCompound, component.combinators, span),
+        return ComplexSelector([
+          ComplexSelectorComponent(
+            newCompound,
+            span,
+            combinator: component.combinator,
+          ),
           ...rest,
         ], span);
       }),
       span,
     ).nestWithin(parent);
-  }).asSassList;
+  }
+
+  return parent!.asSassList;
 });
 
 final _extend = _function("extend", r"$selector, $extendee, $extender", (
   arguments,
 ) {
-  var selector = arguments[0].assertSelector(name: "selector")
-    ..assertNotBogus(name: "selector");
-  var target = arguments[1].assertSelector(name: "extendee")
-    ..assertNotBogus(name: "extendee");
-  var source = arguments[2].assertSelector(name: "extender")
-    ..assertNotBogus(name: "extender");
+  var selector = arguments[0]
+      .assertSelector(name: "selector", allowLeadingCombinator: true);
+  var target = arguments[1].assertSelector(name: "extendee");
+  var source = arguments[2].assertSelector(name: "extender");
 
   return ExtensionStore.extend(
     selector,
@@ -116,12 +131,10 @@ final _extend = _function("extend", r"$selector, $extendee, $extender", (
 final _replace = _function("replace", r"$selector, $original, $replacement", (
   arguments,
 ) {
-  var selector = arguments[0].assertSelector(name: "selector")
-    ..assertNotBogus(name: "selector");
-  var target = arguments[1].assertSelector(name: "original")
-    ..assertNotBogus(name: "original");
-  var source = arguments[2].assertSelector(name: "replacement")
-    ..assertNotBogus(name: "replacement");
+  var selector = arguments[0]
+      .assertSelector(name: "selector", allowLeadingCombinator: true);
+  var target = arguments[1].assertSelector(name: "original");
+  var source = arguments[2].assertSelector(name: "replacement");
 
   return ExtensionStore.replace(
     selector,
@@ -132,10 +145,10 @@ final _replace = _function("replace", r"$selector, $original, $replacement", (
 });
 
 final _unify = _function("unify", r"$selector1, $selector2", (arguments) {
-  var selector1 = arguments[0].assertSelector(name: "selector1")
-    ..assertNotBogus(name: "selector1");
-  var selector2 = arguments[1].assertSelector(name: "selector2")
-    ..assertNotBogus(name: "selector2");
+  var selector1 = arguments[0]
+      .assertSelector(name: "selector1", allowLeadingCombinator: true);
+  var selector2 = arguments[1]
+      .assertSelector(name: "selector2", allowLeadingCombinator: true);
 
   return selector1.unify(selector2)?.asSassList ?? sassNull;
 });
@@ -143,10 +156,8 @@ final _unify = _function("unify", r"$selector1, $selector2", (arguments) {
 final _isSuperselector = _function("is-superselector", r"$super, $sub", (
   arguments,
 ) {
-  var selector1 = arguments[0].assertSelector(name: "super")
-    ..assertNotBogus(name: "super");
-  var selector2 = arguments[1].assertSelector(name: "sub")
-    ..assertNotBogus(name: "sub");
+  var selector1 = arguments[0].assertSelector(name: "super");
+  var selector2 = arguments[1].assertSelector(name: "sub");
 
   return SassBoolean(selector1.isSuperselector(selector2));
 });
@@ -167,7 +178,13 @@ final _simpleSelectors = _function("simple-selectors", r"$selector", (
 final _parse = _function(
   "parse",
   r"$selector",
-  (arguments) => arguments[0].assertSelector(name: "selector").asSassList,
+  (arguments) => arguments[0]
+      .assertSelector(
+        name: "selector",
+        allowLeadingCombinator: true,
+        allowTrailingCombinator: true,
+      )
+      .asSassList,
 );
 
 /// Adds a [ParentSelector] to the beginning of [compound], or returns `null` if

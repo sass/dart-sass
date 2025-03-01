@@ -54,21 +54,6 @@ void main() {
     _expectDeprecation(r"a {b: (4/2)}", Deprecation.slashDiv);
   });
 
-  // Deprecated in 1.54.0
-  group("bogusCombinators is violated by", () {
-    test("adjacent combinators", () {
-      _expectDeprecation("a > > a {b: c}", Deprecation.bogusCombinators);
-    });
-
-    test("leading combinators", () {
-      _expectDeprecation("a > {b: c}", Deprecation.bogusCombinators);
-    });
-
-    test("trailing combinators", () {
-      _expectDeprecation("> a {b: c}", Deprecation.bogusCombinators);
-    });
-  });
-
   // Deprecated in 1.55.0
   group("strictUnary is violated by", () {
     test("an ambiguous + operator", () {

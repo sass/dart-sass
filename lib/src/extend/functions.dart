@@ -19,6 +19,8 @@ import 'package:source_span/source_span.dart';
 import '../ast/css/value.dart';
 import '../ast/selector.dart';
 import '../util/iterable.dart';
+import '../util/nullable.dart';
+import '../util/option.dart';
 import '../util/span.dart';
 import '../utils.dart';
 
@@ -42,12 +44,10 @@ List<ComplexSelector>? unifyComplex(
   CssValue<Combinator>? leadingCombinator;
   CssValue<Combinator>? trailingCombinator;
   for (var complex in complexes) {
-    if (complex.isUseless) return null;
-
     if (complex
         case ComplexSelector(
           components: [_],
-          leadingCombinators: [var newLeadingCombinator],
+          leadingCombinator: var newLeadingCombinator?,
         )) {
       if (leadingCombinator == null) {
         leadingCombinator = newLeadingCombinator;
@@ -59,7 +59,7 @@ List<ComplexSelector>? unifyComplex(
     var base = complex.components.last;
     if (base
         case ComplexSelectorComponent(
-          combinators: [var newTrailingCombinator],
+          combinator: var newTrailingCombinator?,
         )) {
       if (trailingCombinator != null &&
           trailingCombinator != newTrailingCombinator) {
@@ -80,35 +80,32 @@ List<ComplexSelector>? unifyComplex(
     for (var complex in complexes)
       if (complex.components.length > 1)
         ComplexSelector(
-          complex.leadingCombinators,
           complex.components.exceptLast,
           complex.span,
+          leadingCombinator: complex.leadingCombinator,
           lineBreak: complex.lineBreak,
         ),
   ];
 
   var base = ComplexSelector(
-    leadingCombinator == null ? const [] : [leadingCombinator],
     [
       ComplexSelectorComponent(
         unifiedBase!,
-        trailingCombinator == null ? const [] : [trailingCombinator],
         span,
+        combinator: trailingCombinator,
       ),
     ],
     span,
+    leadingCombinator: leadingCombinator,
     lineBreak: complexes.any((complex) => complex.lineBreak),
   );
 
-  return weave(
-    withoutBases.isEmpty
-        ? [base]
-        : [
-            ...withoutBases.exceptLast,
-            withoutBases.last.concatenate(base, span),
-          ],
-    span,
-  );
+  return switch (withoutBases) {
+    [] => [base],
+    [...var initial, var last] => last
+        .concatenate(base, span)
+        .andThen((combined) => weave([...initial, combined], span)),
+  };
 }
 
 /// Returns a [CompoundSelector] that matches only elements that are matched by
@@ -228,7 +225,9 @@ SimpleSelector? unifyUniversalAndElement(
 ///
 /// If [forceLineBreak] is `true`, this will mark all returned complex selectors
 /// as having line breaks.
-List<ComplexSelector> weave(
+///
+/// If no selectors can be meaninfully combined, returns `null`.
+List<ComplexSelector>? weave(
   List<ComplexSelector> complexes,
   FileSpan span, {
   bool forceLineBreak = false,
@@ -237,9 +236,9 @@ List<ComplexSelector> weave(
     if (!forceLineBreak || complex.lineBreak) return complexes;
     return [
       ComplexSelector(
-        complex.leadingCombinators,
         complex.components,
         complex.span,
+        leadingCombinator: complex.leadingCombinator,
         lineBreak: true,
       ),
     ];
@@ -247,30 +246,30 @@ List<ComplexSelector> weave(
 
   var prefixes = [complexes.first];
   for (var complex in complexes.skip(1)) {
-    if (complex.components.length == 1) {
-      for (var i = 0; i < prefixes.length; i++) {
-        prefixes[i] = prefixes[i].concatenate(
-          complex,
-          span,
-          forceLineBreak: forceLineBreak,
-        );
-      }
-      continue;
-    }
-
-    prefixes = [
-      for (var prefix in prefixes)
-        for (var parentPrefix in _weaveParents(prefix, complex, span) ??
-            const <ComplexSelector>[])
-          parentPrefix.withAdditionalComponent(
-            complex.components.last,
-            span,
-            forceLineBreak: forceLineBreak,
-          ),
-    ];
+    prefixes = complex.components.length == 1
+        ? [
+            for (var prefix in prefixes)
+              if (prefix.concatenate(
+                complex,
+                span,
+                forceLineBreak: forceLineBreak,
+              )
+                  case var combined?)
+                combined,
+          ]
+        : [
+            for (var prefix in prefixes)
+              for (var parentPrefix in _weaveParents(prefix, complex, span) ??
+                  const <ComplexSelector>[])
+                parentPrefix.withAdditionalComponent(
+                  complex.components.last,
+                  span,
+                  forceLineBreak: forceLineBreak,
+                ),
+          ];
   }
 
-  return prefixes;
+  return prefixes.isEmpty ? null : prefixes;
 }
 
 /// Interweaves [prefix]'s components with [base]'s components _other than
@@ -297,11 +296,17 @@ Iterable<ComplexSelector>? _weaveParents(
   ComplexSelector base,
   FileSpan span,
 ) {
-  var leadingCombinators = _mergeLeadingCombinators(
-    prefix.leadingCombinators,
-    base.leadingCombinators,
-  );
-  if (leadingCombinators == null) return null;
+  CssValue<Combinator>? leadingCombinator;
+  switch (_mergeLeadingCombinators(
+    prefix.leadingCombinator,
+    base.leadingCombinator,
+  )) {
+    case (var combinator,):
+      leadingCombinator = combinator;
+
+    case null:
+      return null;
+  }
 
   // Make queues of _only_ the parent selectors. The prefix only contains
   // parents, but the complex selector has a target that we don't want to weave
@@ -319,10 +324,18 @@ Iterable<ComplexSelector>? _weaveParents(
       var rootish = unifyCompound(rootish1.selector, rootish2.selector);
       if (rootish == null) return null;
       queue1.addFirst(
-        ComplexSelectorComponent(rootish, rootish1.combinators, rootish1.span),
+        ComplexSelectorComponent(
+          rootish,
+          rootish1.span,
+          combinator: rootish1.combinator,
+        ),
       );
       queue2.addFirst(
-        ComplexSelectorComponent(rootish, rootish2.combinators, rootish1.span),
+        ComplexSelectorComponent(
+          rootish,
+          rootish1.span,
+          combinator: rootish2.combinator,
+        ),
       );
 
     case (var rootish?, null):
@@ -346,8 +359,8 @@ Iterable<ComplexSelector>? _weaveParents(
       if (!_mustUnify(group1, group2)) return null;
 
       var unified = unifyComplex([
-        ComplexSelector(const [], group1, span),
-        ComplexSelector(const [], group2, span),
+        ComplexSelector(group1, span),
+        ComplexSelector(group2, span),
       ], span);
       return unified?.singleOrNull?.components;
     },
@@ -376,9 +389,9 @@ Iterable<ComplexSelector>? _weaveParents(
   return [
     for (var path in paths(choices.where((choice) => choice.isNotEmpty)))
       ComplexSelector(
-        leadingCombinators,
         [for (var components in path) ...components],
         span,
+        leadingCombinator: leadingCombinator,
         lineBreak: prefix.lineBreak || base.lineBreak,
       ),
   ];
@@ -406,20 +419,20 @@ ComplexSelectorComponent? _firstIfRootish(
   return null;
 }
 
-/// Returns a leading combinator list that's compatible with both [combinators1]
-/// and [combinators2].
+/// Returns a leading combinator that's compatible with both [combinator1] and
+/// [combinator2].
 ///
-/// Returns `null` if the combinator lists can't be unified.
-List<CssValue<Combinator>>? _mergeLeadingCombinators(
-  List<CssValue<Combinator>>? combinators1,
-  List<CssValue<Combinator>>? combinators2,
+/// Returns a none option if the combinators can't be unified, and a some option
+/// with value `null` if the combinators are unified into a descendant
+/// combinator.
+Option<CssValue<Combinator>?> _mergeLeadingCombinators(
+  CssValue<Combinator>? combinator1,
+  CssValue<Combinator>? combinator2,
 ) =>
-// Allow null arguments just to make calls to `Iterable.reduce()` easier.
-    switch ((combinators1, combinators2)) {
-      (null, _) || (_, null) => null,
-      (List(length: > 1), _) || (_, List(length: > 1)) => null,
-      ([], var combinators) || (var combinators, []) => combinators,
-      _ => listEquals(combinators1, combinators2) ? combinators1 : null,
+    switch ((combinator1, combinator2)) {
+      (null, var combinator) || (var combinator, null) => some(combinator),
+      _ when combinator1 == combinator2 => some(combinator1),
+      _ => none(),
     };
 
 /// Extracts trailing [ComplexSelectorComponent]s with trailing combinators from
@@ -428,8 +441,9 @@ List<CssValue<Combinator>>? _mergeLeadingCombinators(
 /// Each element in the returned list is a set of choices for a particular
 /// position in a complex selector. Each choice is the contents of a complex
 /// selector, which is to say a list of complex selector components. The union
-/// of each path through these choices will match the full set of necessary
-/// elements.
+/// of each path through these choices will match the intersection of `E1 *` and
+/// `E2 *`, where `E1` and `E2` are the trailing sublists extracted from
+/// [components1] and [components2] respectively.
 ///
 /// If there are no combinators to be merged, returns an empty list. If the
 /// sequences can't be merged, returns `null`.
@@ -443,22 +457,21 @@ List<List<List<ComplexSelectorComponent>>>? _mergeTrailingCombinators(
 ]) {
   result ??= QueueList();
 
-  var combinators1 = switch (components1) {
-    [..., var last] => last.combinators,
-    _ => const <CssValue<Combinator>>[],
+  var combinator1 = switch (components1) {
+    [..., var last] => last.combinator,
+    _ => null,
   };
-  var combinators2 = switch (components2) {
-    [..., var last] => last.combinators,
-    _ => const <CssValue<Combinator>>[],
+  var combinator2 = switch (components2) {
+    [..., var last] => last.combinator,
+    _ => null,
   };
-  if (combinators1.isEmpty && combinators2.isEmpty) return result;
-  if (combinators1.length > 1 || combinators2.length > 1) return null;
+  if (combinator1 == null && combinator2 == null) return result;
 
   // This code looks complicated, but it's actually just a bunch of special
   // cases for interactions between different combinators.
   switch ((
-    combinators1.firstOrNull?.value,
-    combinators2.firstOrNull?.value,
+    combinator1?.value,
+    combinator2?.value,
     // Include the component lists in the pattern match so we can easily
     // generalize cases across different orderings of the two combinators.
     components1,
@@ -484,7 +497,7 @@ List<List<List<ComplexSelectorComponent>>>? _mergeTrailingCombinators(
         if (unifyCompound(component1.selector, component2.selector)
             case var unified?) {
           choices.add([
-            ComplexSelectorComponent(unified, [combinators1.first], span),
+            ComplexSelectorComponent(unified, span, combinator: combinator1),
           ]);
         }
 
@@ -514,7 +527,13 @@ List<List<List<ComplexSelectorComponent>>>? _mergeTrailingCombinators(
           [following, next],
           if (unifyCompound(following.selector, next.selector)
               case var unified?)
-            [ComplexSelectorComponent(unified, next.combinators, span)],
+            [
+              ComplexSelectorComponent(
+                unified,
+                span,
+                combinator: next.combinator,
+              ),
+            ],
         ]);
       }
 
@@ -534,17 +553,16 @@ List<List<List<ComplexSelectorComponent>>>? _mergeTrailingCombinators(
         [siblingComponents.removeLast()],
       ]);
 
-    case (var combinator1?, var combinator2?, _, _)
+    case (var combinator1?, var combinator2?, var components1, _)
         when combinator1 == combinator2:
+      var combinator = components1.last.combinator!;
       var unified = unifyCompound(
         components1.removeLast().selector,
         components2.removeLast().selector,
       );
       if (unified == null) return null;
       result.addFirst([
-        [
-          ComplexSelectorComponent(unified, [combinators1.first], span),
-        ],
+        [ComplexSelectorComponent(unified, span, combinator: combinator)],
       ]);
 
     case (
@@ -670,7 +688,7 @@ QueueList<List<ComplexSelectorComponent>> _groupSelectors(
   var group = <ComplexSelectorComponent>[];
   for (var component in complex) {
     group.add(component);
-    if (component.combinators.isEmpty) {
+    if (component.combinator == null) {
       groups.add(group);
       group = [];
     }
@@ -708,7 +726,6 @@ bool _complexIsParentSuperselector(
   // allocations...
   var base = ComplexSelectorComponent(
     CompoundSelector([PlaceholderSelector('<temp>', bogusSpan)], bogusSpan),
-    const [],
     bogusSpan,
   );
   return complexIsSuperselector([...complex1, base], [...complex2, base]);
@@ -722,10 +739,10 @@ bool complexIsSuperselector(
   List<ComplexSelectorComponent> complex1,
   List<ComplexSelectorComponent> complex2,
 ) {
-  // Selectors with trailing operators are neither superselectors nor
+  // Selectors with trailing combinators are neither superselectors nor
   // subselectors.
-  if (complex1.last.combinators.isNotEmpty) return false;
-  if (complex2.last.combinators.isNotEmpty) return false;
+  if (complex1.last.combinator != null) return false;
+  if (complex2.last.combinator != null) return false;
 
   var i1 = 0;
   var i2 = 0;
@@ -739,19 +756,14 @@ bool complexIsSuperselector(
     if (remaining1 > remaining2) return false;
 
     var component1 = complex1[i1];
-    if (component1.combinators.length > 1) return false;
     if (remaining1 == 1) {
-      if (complex2.any((parent) => parent.combinators.length > 1)) {
-        return false;
-      } else {
-        return compoundIsSuperselector(
-          component1.selector,
-          complex2.last.selector,
-          parents: component1.selector.hasComplicatedSuperselectorSemantics
-              ? complex2.sublist(i2, complex2.length - 1)
-              : null,
-        );
-      }
+      return compoundIsSuperselector(
+        component1.selector,
+        complex2.last.selector,
+        parents: component1.selector.hasComplicatedSuperselectorSemantics
+            ? complex2.sublist(i2, complex2.length - 1)
+            : null,
+      );
     }
 
     // Find the first index [endOfSubselector] in [complex2] such that
@@ -760,7 +772,6 @@ bool complexIsSuperselector(
     var endOfSubselector = i2;
     while (true) {
       var component2 = complex2[endOfSubselector];
-      if (component2.combinators.length > 1) return false;
       if (compoundIsSuperselector(
         component1.selector,
         component2.selector,
@@ -789,8 +800,8 @@ bool complexIsSuperselector(
     }
 
     var component2 = complex2[endOfSubselector];
-    var combinator1 = component1.combinators.firstOrNull;
-    var combinator2 = component2.combinators.firstOrNull;
+    var combinator1 = component1.combinator;
+    var combinator2 = component2.combinator;
     if (!_isSupercombinator(combinator1, combinator2)) {
       return false;
     }
@@ -804,10 +815,8 @@ bool complexIsSuperselector(
         // The selector `.foo ~ .bar` is only a superselector of selectors that
         // *exclusively* contain subcombinators of `~`.
         if (!complex2.take(complex2.length - 1).skip(i2).every(
-              (component) => _isSupercombinator(
-                combinator1,
-                component.combinators.firstOrNull,
-              ),
+              (component) =>
+                  _isSupercombinator(combinator1, component.combinator),
             )) {
           return false;
         }
@@ -838,9 +847,8 @@ bool _compatibleWithPreviousCombinator(
   // only if they're all siblings.
   return parents.every(
     (component) =>
-        component.combinators.firstOrNull?.value ==
-            Combinator.followingSibling ||
-        component.combinators.firstOrNull?.value == Combinator.nextSibling,
+        component.combinator?.value == Combinator.followingSibling ||
+        component.combinator?.value == Combinator.nextSibling,
   );
 }
 
@@ -986,10 +994,10 @@ bool _selectorPseudoIsSuperselector(
           ) ||
           selector1.components.any(
             (complex1) =>
-                complex1.leadingCombinators.isEmpty &&
+                complex1.leadingCombinator == null &&
                 complexIsSuperselector(complex1.components, [
                   ...?parents,
-                  ComplexSelectorComponent(compound2, const [], compound2.span),
+                  ComplexSelectorComponent(compound2, compound2.span),
                 ]),
           );
 
@@ -1009,10 +1017,8 @@ bool _selectorPseudoIsSuperselector(
       ).any((selector2) => selector1.isSuperselector(selector2));
 
     case 'not':
-      return selector1.components.every((complex) {
-        if (complex.isBogus) return false;
-
-        return compound2.components.any(
+      return selector1.components.every(
+        (complex) => compound2.components.any(
           (simple2) => switch (simple2) {
             TypeSelector() => complex.components.last.selector.components.any(
                 (simple1) => simple1 is TypeSelector && simple1 != simple2,
@@ -1025,8 +1031,8 @@ bool _selectorPseudoIsSuperselector(
               listIsSuperselector(selector2.components, [complex]),
             _ => false,
           },
-        );
-      });
+        ),
+      );
 
     case 'current':
       return _selectorPseudoArgs(

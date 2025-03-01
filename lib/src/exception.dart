@@ -9,6 +9,7 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
 import 'util/nullable.dart';
+import 'util/span.dart';
 import 'utils.dart';
 import 'value.dart';
 
@@ -32,6 +33,13 @@ class SassException extends SourceSpanException {
       : loadedUrls =
             loadedUrls == null ? const {} : Set.unmodifiable(loadedUrls);
 
+  /// Creates a copy of this exception associated with the given [message].
+  ///
+  /// @nodoc
+  @internal
+  SassException withMessage(String message) =>
+      SassFormatException(message, span, loadedUrls);
+
   /// Converts this to a [MultiSpanSassException] with the additional [span] and
   /// [label].
   ///
@@ -52,6 +60,11 @@ class SassException extends SourceSpanException {
   @internal
   SassException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       SassException(message, span, loadedUrls);
+
+  /// Returns whether any of the spans associated with this exception exactly
+  /// match [span].
+  @internal
+  bool hasSpan(FileSpan span) => this.span.equals(span);
 
   String toString({Object? color}) {
     var buffer = StringBuffer()
@@ -128,6 +141,20 @@ class MultiSpanSassException extends SassException
   ])  : secondarySpans = Map.unmodifiable(secondarySpans),
         super(message, span, loadedUrls);
 
+  @internal
+  bool hasSpan(FileSpan span) =>
+      super.hasSpan(span) || secondarySpans.keys.any((key) => key.equals(span));
+
+  /// Creates a copy of this exception with the given [message].
+  ///
+  /// @nodoc
+  @internal
+  MultiSpanSassException withMessage(String message) =>
+      MultiSpanSassFormatException(
+          message, span, primaryLabel, secondarySpans, loadedUrls);
+
+  /// @nodoc
+  @internal
   MultiSpanSassException withAdditionalSpan(FileSpan span, String label) =>
       MultiSpanSassException(
           message,
@@ -139,6 +166,8 @@ class MultiSpanSassException extends SassException
           },
           loadedUrls);
 
+  /// @nodoc
+  @internal
   MultiSpanSassRuntimeException withTrace(Trace trace) =>
       MultiSpanSassRuntimeException(
         message,
@@ -149,6 +178,8 @@ class MultiSpanSassException extends SassException
         loadedUrls,
       );
 
+  /// @nodoc
+  @internal
   MultiSpanSassException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       MultiSpanSassException(
         message,
@@ -193,6 +224,13 @@ class MultiSpanSassException extends SassException
 class SassRuntimeException extends SassException {
   final Trace trace;
 
+  /// @nodoc
+  @internal
+  SassRuntimeException withMessage(String message) =>
+      SassRuntimeException(message, span, trace, loadedUrls);
+
+  /// @nodoc
+  @internal
   MultiSpanSassRuntimeException withAdditionalSpan(
     FileSpan span,
     String label,
@@ -206,6 +244,8 @@ class SassRuntimeException extends SassException {
         loadedUrls,
       );
 
+  /// @nodoc
+  @internal
   SassRuntimeException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       SassRuntimeException(message, span, trace, loadedUrls);
 
@@ -231,6 +271,14 @@ class MultiSpanSassRuntimeException extends MultiSpanSassException
     Iterable<Uri>? loadedUrls,
   ]) : super(message, span, primaryLabel, secondarySpans, loadedUrls);
 
+  /// @nodoc
+  @internal
+  MultiSpanSassRuntimeException withMessage(String message) =>
+      MultiSpanSassRuntimeException(
+          message, span, primaryLabel, secondarySpans, trace, loadedUrls);
+
+  /// @nodoc
+  @internal
   MultiSpanSassRuntimeException withAdditionalSpan(
     FileSpan span,
     String label,
@@ -244,6 +292,8 @@ class MultiSpanSassRuntimeException extends MultiSpanSassException
         loadedUrls,
       );
 
+  /// @nodoc
+  @internal
   MultiSpanSassRuntimeException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       MultiSpanSassRuntimeException(
         message,
@@ -264,6 +314,11 @@ class SassFormatException extends SassException
   String get source => span.file.getText(0);
 
   int get offset => span.start.offset;
+
+  /// @nodoc
+  @internal
+  SassFormatException withMessage(String message) =>
+      SassFormatException(message, span, loadedUrls);
 
   /// @nodoc
   @internal
@@ -297,6 +352,14 @@ class MultiSpanSassFormatException extends MultiSpanSassException
 
   int get offset => span.start.offset;
 
+  /// @nodoc
+  @internal
+  MultiSpanSassFormatException withMessage(String message) =>
+      MultiSpanSassFormatException(
+          message, span, primaryLabel, secondarySpans, loadedUrls);
+
+  /// @nodoc
+  @internal
   MultiSpanSassFormatException withAdditionalSpan(
     FileSpan span,
     String label,
@@ -311,6 +374,8 @@ class MultiSpanSassFormatException extends MultiSpanSassException
           },
           loadedUrls);
 
+  /// @nodoc
+  @internal
   MultiSpanSassFormatException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       MultiSpanSassFormatException(
         message,

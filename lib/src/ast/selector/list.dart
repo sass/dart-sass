@@ -37,17 +37,54 @@ final class SelectorList extends Selector {
     return SassList(
       components.map((complex) {
         return SassList([
-          for (var combinator in complex.leadingCombinators)
+          if (complex.leadingCombinator case var combinator?)
             SassString(combinator.toString(), quotes: false),
           for (var component in complex.components) ...[
             SassString(component.selector.toString(), quotes: false),
-            for (var combinator in component.combinators)
+            if (component.combinator case var combinator?)
               SassString(combinator.toString(), quotes: false),
           ],
         ], ListSeparator.space);
       }),
       ListSeparator.comma,
     );
+  }
+
+  /// Whether `this` is a CSS selector that's valid on its own at the root of
+  /// the CSS document.
+  ///
+  /// Selectors with leading or trailing combinators are *not* stand-alone.
+  bool get isStandAlone => components.every((complex) => complex.isStandAlone);
+
+  /// Whether `this` is a valid [relative selector].
+  ///
+  /// This allows leading combinators but not trailing combinators.
+  ///
+  /// [relative selector]: https://www.w3.org/TR/selectors-4/#relative-selector
+  bool get isRelative => components.every((complex) => complex.isRelative);
+
+  /// Throws a [SassException] if `this` isn't a CSS selector that's valid in
+  /// various places in the document, depending on the arguments passed.
+  ///
+  /// If [allowLeadingCombinator] or [allowTrailingCombinator] is `true`, this
+  /// allows selectors with leading or trailing selector combinators,
+  /// respectively. Otherwise, they produce errors after parsing. If both are
+  /// true, all selectors are allowed and this does nothing.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
+  void assertValid({
+    String? name,
+    bool allowLeadingCombinator = false,
+    bool allowTrailingCombinator = false,
+  }) {
+    if (allowLeadingCombinator && allowTrailingCombinator) return;
+    for (var complex in components) {
+      complex.assertValid(
+          name: name,
+          allowLeadingCombinator: allowLeadingCombinator,
+          allowTrailingCombinator: allowTrailingCombinator);
+    }
   }
 
   SelectorList(Iterable<ComplexSelector> components, super.span)
@@ -133,10 +170,19 @@ final class SelectorList extends Selector {
         components.map((complex) {
           if (preserveParentSelectors || !_containsParentSelector(complex)) {
             if (!implicitParent) return [complex];
-            return parent.components.map(
-              (parentComplex) =>
-                  parentComplex.concatenate(complex, complex.span),
-            );
+            return [
+              for (var parentComplex in parent.components)
+                if (parentComplex.concatenate(complex, complex.span)
+                    case var newComplex?)
+                  newComplex
+                else
+                  throw MultiSpanSassException(
+                    'The selector "$parentComplex $complex" is invalid CSS.',
+                    complex.span.trimRight(),
+                    "inner selector",
+                    {parentComplex.span.trimRight(): "outer selector"},
+                  ),
+            ];
           }
 
           var newComplexes = <ComplexSelector>[];
@@ -146,9 +192,9 @@ final class SelectorList extends Selector {
               if (newComplexes.isEmpty) {
                 newComplexes.add(
                   ComplexSelector(
-                    complex.leadingCombinators,
                     [component],
-                    complex.span,
+                    complex.span.trimRight(),
+                    leadingCombinator: complex.leadingCombinator,
                     lineBreak: false,
                   ),
                 );
@@ -161,29 +207,38 @@ final class SelectorList extends Selector {
                 }
               }
             } else if (newComplexes.isEmpty) {
-              newComplexes.addAll(
-                complex.leadingCombinators.isEmpty
-                    ? resolved
-                    : resolved.map(
-                        (resolvedComplex) => ComplexSelector(
-                          resolvedComplex.leadingCombinators.isEmpty
-                              ? complex.leadingCombinators
-                              : [
-                                  ...complex.leadingCombinators,
-                                  ...resolvedComplex.leadingCombinators,
-                                ],
-                          resolvedComplex.components,
-                          complex.span,
-                          lineBreak: resolvedComplex.lineBreak,
+              newComplexes.addAll(switch (complex.leadingCombinator) {
+                null => resolved,
+                var leadingCombinator => [
+                    for (var resolvedComplex in resolved)
+                      if (resolvedComplex.prependCombinator(leadingCombinator)
+                          case var newResolved?)
+                        newResolved
+                      else
+                        throw MultiSpanSassException(
+                          'The selector "$leadingCombinator $resolvedComplex" is '
+                              'invalid CSS.',
+                          complex.span.trimRight(),
+                          "inner selector",
+                          {parent.span.trimRight(): "outer selector"},
                         ),
-                      ),
-              );
+                  ],
+              });
             } else {
-              var previousComplexes = newComplexes;
               newComplexes = [
-                for (var newComplex in previousComplexes)
+                for (var newComplex in newComplexes)
                   for (var resolvedComplex in resolved)
-                    newComplex.concatenate(resolvedComplex, newComplex.span),
+                    if (newComplex.concatenate(resolvedComplex, newComplex.span)
+                        case var newResolved?)
+                      newResolved
+                    else
+                      throw MultiSpanSassException(
+                        'The selector "$newComplex $resolvedComplex" is invalid '
+                            'CSS.',
+                        resolvedComplex.span.trimRight(),
+                        "inner selector",
+                        {newComplex.span.trimRight(): "outer selector"},
+                      ),
               ];
             }
           }
@@ -214,56 +269,67 @@ final class SelectorList extends Selector {
     }
 
     var resolvedSimples = containsSelectorPseudo
-        ? simples.map(
-            (simple) => switch (simple) {
-              PseudoSelector(:var selector?)
-                  when _containsParentSelector(selector) =>
-                simple.withSelector(
-                  selector.nestWithin(parent, implicitParent: false),
-                ),
-              _ => simple,
-            },
-          )
+        ? simples.map((simple) {
+            if (simple
+                case PseudoSelector(
+                  :var selector?,
+                ) when _containsParentSelector(selector)) {
+              var nested = selector.nestWithin(parent, implicitParent: false);
+              var result = simple.withSelector(nested);
+              if (result != null) return result;
+
+              var invalid = simple.toString().replaceFirst(
+                    RegExp(r"\(.*\)"),
+                    "($nested)",
+                  );
+              throw MultiSpanSassException(
+                  'The selector "$invalid" is invalid CSS.',
+                  simple.accept(_ParentSelectorVisitor())!.span.trimRight(),
+                  "parent selector",
+                  {parent.span.trimRight(): "outer selector"});
+            } else {
+              return simple;
+            }
+          }).toList()
         : simples;
 
     var parentSelector = simples.first;
-    try {
-      if (parentSelector is! ParentSelector) {
-        return [
-          ComplexSelector(const [], [
-            ComplexSelectorComponent(
-              CompoundSelector(resolvedSimples, component.selector.span),
-              component.combinators,
-              component.span,
-            ),
-          ], component.span),
-        ];
-      } else if (simples.length == 1 && parentSelector.suffix == null) {
-        return parent
-            .withAdditionalCombinators(component.combinators)
-            .components;
-      }
-    } on SassException catch (error, stackTrace) {
-      throwWithTrace(
-        error.withAdditionalSpan(parentSelector.span, "parent selector"),
-        error,
-        stackTrace,
-      );
+    if (parentSelector is! ParentSelector) {
+      return [
+        ComplexSelector([
+          ComplexSelectorComponent(
+            CompoundSelector(resolvedSimples, component.selector.span),
+            component.span,
+            combinator: component.combinator,
+          ),
+        ], component.span),
+      ];
+    } else if (simples.length == 1 && parentSelector.suffix == null) {
+      return switch (parent.withAdditionalCombinator(component.combinator)) {
+        var list? => list.components,
+        _ => throw MultiSpanSassException(
+            'The selector "${parent.components.first} ${component.combinator}" '
+                'is invalid CSS.',
+            parentSelector.span,
+            "parent selector",
+            {parent.span.trimRight(): "outer selector"},
+          )
+      };
     }
 
     return parent.components.map((complex) {
-      try {
-        var lastComponent = complex.components.last;
-        if (lastComponent.combinators.isNotEmpty) {
-          throw MultiSpanSassException(
-            'Selector "$complex" can\'t be used as a parent in a compound '
-                'selector.',
-            lastComponent.span.trimRight(),
-            "outer selector",
-            {parentSelector.span: "parent selector"},
-          );
-        }
+      var lastComponent = complex.components.last;
+      if (lastComponent.combinator != null) {
+        throw MultiSpanSassException(
+          'Selector "$complex" can\'t be used as a parent in a compound '
+              'selector.',
+          lastComponent.span.trimRight(),
+          "outer selector",
+          {parentSelector.span: "parent selector"},
+        );
+      }
 
+      try {
         var suffix = parentSelector.suffix;
         var lastSimples = lastComponent.selector.components;
         var last = CompoundSelector(
@@ -278,21 +344,24 @@ final class SelectorList extends Selector {
         );
 
         return ComplexSelector(
-          complex.leadingCombinators,
           [
             ...complex.components.exceptLast,
             ComplexSelectorComponent(
               last,
-              component.combinators,
               component.span,
+              combinator: component.combinator,
             ),
           ],
           component.span,
+          leadingCombinator: complex.leadingCombinator,
           lineBreak: complex.lineBreak,
         );
       } on SassException catch (error, stackTrace) {
         throwWithTrace(
-          error.withAdditionalSpan(parentSelector.span, "parent selector"),
+          error
+              .withAdditionalSpan(
+                  lastComponent.span.trimRight(), "outer selector")
+              .withAdditionalSpan(parentSelector.span, "parent selector"),
           error,
           stackTrace,
         );
@@ -307,22 +376,22 @@ final class SelectorList extends Selector {
   bool isSuperselector(SelectorList other) =>
       listIsSuperselector(components, other.components);
 
-  /// Returns a copy of `this` with [combinators] added to the end of each
+  /// Returns a copy of `this` with [combinator] added to the end of each
   /// complex selector in [components].
+  ///
+  /// Returns `null` if this would produce an invalid selector.
   ///
   /// @nodoc
   @internal
-  SelectorList withAdditionalCombinators(
-    List<CssValue<Combinator>> combinators,
-  ) =>
-      combinators.isEmpty
-          ? this
-          : SelectorList(
-              components.map(
-                (complex) => complex.withAdditionalCombinators(combinators),
-              ),
-              span,
-            );
+  SelectorList? withAdditionalCombinator(CssValue<Combinator>? combinator) {
+    if (combinator == null) return this;
+    var newComponents = [
+      for (var complex in components)
+        if (complex.withAdditionalCombinator(combinator) case var newComplex?)
+          newComplex,
+    ];
+    return newComponents.isEmpty ? null : SelectorList(newComponents, span);
+  }
 
   int get hashCode => listHash(components);
 
