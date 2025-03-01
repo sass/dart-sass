@@ -14,7 +14,7 @@ describe('a parenthesized expression', () => {
     describe(description, () => {
       beforeEach(() => void (node = create()));
 
-      it('has sassType binary-operation', () =>
+      it('has sassType parenthesized', () =>
         expect(node.sassType).toBe('parenthesized'));
 
       it('has an expression', () =>
