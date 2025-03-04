@@ -239,6 +239,11 @@ export {
   WhileRuleRaws,
 } from './src/statement/while-rule';
 export {
+  SelectorExpression,
+  SelectorExpressionProps,
+  SelectorExpressionRaws,
+} from './src/expression/selector';
+export {
   StaticImport,
   StaticImportProps,
   StaticImportRaws,

@@ -359,11 +359,6 @@ declare namespace SassInternal {
     readonly pairs: DartPair<Expression, Expression>[];
   }
 
-  class StringExpression extends Expression {
-    readonly text: Interpolation;
-    readonly hasQuotes: boolean;
-  }
-
   class BooleanExpression extends Expression {
     readonly value: boolean;
   }
@@ -381,6 +376,13 @@ declare namespace SassInternal {
 
   class ParenthesizedExpression extends Expression {
     readonly expression: Expression;
+  }
+
+  class SelectorExpression extends Expression {}
+
+  class StringExpression extends Expression {
+    readonly text: Interpolation;
+    readonly hasQuotes: boolean;
   }
 }
 
@@ -437,12 +439,13 @@ export type InterpolatedFunctionExpression =
 export type ListExpression = SassInternal.ListExpression;
 export type ListSeparator = SassInternal.ListSeparator;
 export type MapExpression = SassInternal.MapExpression;
-export type StringExpression = SassInternal.StringExpression;
 export type BooleanExpression = SassInternal.BooleanExpression;
 export type ColorExpression = SassInternal.ColorExpression;
 export type NullExpression = SassInternal.NullExpression;
 export type NumberExpression = SassInternal.NumberExpression;
 export type ParenthesizedExpression = SassInternal.ParenthesizedExpression;
+export type SelectorExpression = SassInternal.SelectorExpression;
+export type StringExpression = SassInternal.StringExpression;
 
 export interface StatementVisitorObject<T> {
   visitAtRootRule(node: AtRootRule): T;
@@ -484,6 +487,7 @@ export interface ExpressionVisitorObject<T> {
   visitNullExpression(node: NullExpression): T;
   visitNumberExpression(node: NumberExpression): T;
   visitParenthesizedExpression(node: ParenthesizedExpression): T;
+  visitSelectorExpression(node: SelectorExpression): T;
   visitStringExpression(node: StringExpression): T;
 }
 
