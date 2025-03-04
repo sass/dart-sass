@@ -167,12 +167,12 @@ that we make available to users.
 
 [`FilesystemImporter`]: importer/filesystem.dart
 
-In the Dart API, the importer root class is [`importer/async_importer.dart`].
+In the Dart API, the importer root class is [`importer/async.dart`].
 The JS API and the embedded compiler wrap the Dart importer API in
-[`importer/node_to_dart`] and [`embedded/importer`] respectively.
+[`importer/js_to_dart`] and [`embedded/importer`] respectively.
 
-[`importer/async_importer.dart`]: importer/async_importer.dart
-[`importer/node_to_dart`]: importer/node_to_dart
+[`importer/async.dart`]: importer/async.dart
+[`importer/js_to_dart`]: importer/js_to_dart
 [`embedded/importer`]: embedded/importer
 
 ### Custom Functions

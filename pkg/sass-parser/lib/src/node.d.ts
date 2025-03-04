@@ -21,9 +21,17 @@ export type AnyNode = AnyStatement | AnyExpression | Interpolation;
 export type NodeType =
   | StatementType
   | ExpressionType
-  | 'interpolation'
+  | 'argument'
+  | 'argument-list'
   | 'configuration'
-  | 'configured-variable';
+  | 'configured-variable'
+  | 'dynamic-import'
+  | 'import-list'
+  | 'interpolation'
+  | 'map-entry'
+  | 'parameter'
+  | 'parameter-list'
+  | 'static-import';
 
 /** The constructor properties shared by all Sass AST nodes. */
 export type NodeProps = postcss.NodeProps;

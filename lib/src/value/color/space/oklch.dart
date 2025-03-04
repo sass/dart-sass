@@ -24,24 +24,34 @@ final class OklchColorSpace extends ColorSpace {
 
   const OklchColorSpace()
       : super('oklch', const [
-          LinearChannel('lightness', 0, 1,
-              conventionallyPercent: true,
-              lowerClamped: true,
-              upperClamped: true),
+          LinearChannel(
+            'lightness',
+            0,
+            1,
+            conventionallyPercent: true,
+            lowerClamped: true,
+            upperClamped: true,
+          ),
           LinearChannel('chroma', 0, 0.4, lowerClamped: true),
-          hueChannel
+          hueChannel,
         ]);
 
-  SassColor convert(ColorSpace dest, double? lightness, double? chroma,
-      double? hue, double? alpha) {
+  SassColor convert(
+    ColorSpace dest,
+    double? lightness,
+    double? chroma,
+    double? hue,
+    double? alpha,
+  ) {
     var hueRadians = (hue ?? 0) * math.pi / 180;
     return const OklabColorSpace().convert(
-        dest,
-        lightness,
-        (chroma ?? 0) * math.cos(hueRadians),
-        (chroma ?? 0) * math.sin(hueRadians),
-        alpha,
-        missingChroma: chroma == null,
-        missingHue: hue == null);
+      dest,
+      lightness,
+      (chroma ?? 0) * math.cos(hueRadians),
+      (chroma ?? 0) * math.sin(hueRadians),
+      alpha,
+      missingChroma: chroma == null,
+      missingHue: hue == null,
+    );
   }
 }

@@ -1,0 +1,46 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a parameter toJSON with a default 1`] = `
+{
+  "defaultValue": <"qux">,
+  "inputs": [
+    {
+      "css": "@function x($baz: "qux") {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "baz",
+  "raws": {},
+  "rest": false,
+  "sassType": "parameter",
+  "source": <1:13-1:24 in 0>,
+}
+`;
+
+exports[`a parameter toJSON with no default 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@function x($baz) {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "baz",
+  "raws": {},
+  "rest": false,
+  "sassType": "parameter",
+  "source": <1:13-1:17 in 0>,
+}
+`;
+
+exports[`a parameter toJSON with rest = true 1`] = `
+{
+  "inputs": [],
+  "name": "baz",
+  "raws": {},
+  "rest": true,
+  "sassType": "parameter",
+}
+`;

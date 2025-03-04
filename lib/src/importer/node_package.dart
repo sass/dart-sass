@@ -73,7 +73,11 @@ class NodePackageImporter extends Importer {
     }
 
     if (_resolvePackageExports(
-            packageRoot, subpath, packageManifest, packageName)
+      packageRoot,
+      subpath,
+      packageManifest,
+      packageName,
+    )
         case var resolved?) {
       if (_validExtensions.contains(p.extension(resolved))) {
         return p.toUri(p.canonicalize(resolved));
@@ -135,7 +139,9 @@ class NodePackageImporter extends Importer {
   /// Returns a file path specified by the `sass` or `style` values in a package
   /// manifest, or an `index` file relative to the package root.
   String? _resolvePackageRootValues(
-      String packageRoot, Map<String, dynamic> packageManifest) {
+    String packageRoot,
+    Map<String, dynamic> packageManifest,
+  ) {
     if (packageManifest['sass'] case String sassValue
         when _validExtensions.contains(p.url.extension(sassValue))) {
       return p.join(packageRoot, sassValue);
@@ -152,13 +158,22 @@ class NodePackageImporter extends Importer {
   /// package.json.
   ///
   /// `packageName` is used for error reporting.
-  String? _resolvePackageExports(String packageRoot, String? subpath,
-      Map<String, dynamic> packageManifest, String packageName) {
+  String? _resolvePackageExports(
+    String packageRoot,
+    String? subpath,
+    Map<String, dynamic> packageManifest,
+    String packageName,
+  ) {
     var exports = packageManifest['exports'] as Object?;
     if (exports == null) return null;
     var subpathVariants = _exportsToCheck(subpath);
     if (_nodePackageExportsResolve(
-            packageRoot, subpathVariants, exports, subpath, packageName)
+      packageRoot,
+      subpathVariants,
+      exports,
+      subpath,
+      packageName,
+    )
         case var path?) {
       return path;
     }
@@ -167,7 +182,12 @@ class NodePackageImporter extends Importer {
 
     var subpathIndexVariants = _exportsToCheck(subpath, addIndex: true);
     if (_nodePackageExportsResolve(
-            packageRoot, subpathIndexVariants, exports, subpath, packageName)
+      packageRoot,
+      subpathIndexVariants,
+      exports,
+      subpath,
+      packageName,
+    )
         case var path?) {
       return path;
     }
@@ -184,11 +204,12 @@ class NodePackageImporter extends Importer {
   /// Implementation of `PACKAGE_EXPORTS_RESOLVE` from the [Resolution Algorithm
   /// Specification](https://nodejs.org/api/esm.html#resolution-algorithm-specification).
   String? _nodePackageExportsResolve(
-      String packageRoot,
-      List<String?> subpathVariants,
-      Object exports,
-      String? subpath,
-      String packageName) {
+    String packageRoot,
+    List<String?> subpathVariants,
+    Object exports,
+    String? subpath,
+    String packageName,
+  ) {
     if (exports is Map<String, dynamic> &&
         exports.keys.any((key) => key.startsWith('.')) &&
         exports.keys.any((key) => !key.startsWith('.'))) {
@@ -201,8 +222,10 @@ class NodePackageImporter extends Importer {
     var matches = subpathVariants
         .map((String? variant) {
           if (variant == null) {
-            return _getMainExport(exports).andThen((mainExport) =>
-                _packageTargetResolve(variant, mainExport, packageRoot));
+            return _getMainExport(exports).andThen(
+              (mainExport) =>
+                  _packageTargetResolve(variant, mainExport, packageRoot),
+            );
           } else if (exports is! Map<String, dynamic> ||
               exports.keys.every((key) => !key.startsWith('.'))) {
             return null;
@@ -212,12 +235,15 @@ class NodePackageImporter extends Importer {
               exports[matchKey] != null &&
               !matchKey.contains('*')) {
             return _packageTargetResolve(
-                matchKey, exports[matchKey] as Object, packageRoot);
+              matchKey,
+              exports[matchKey] as Object,
+              packageRoot,
+            );
           }
 
           var expansionKeys = [
             for (var key in exports.keys)
-              if ('*'.allMatches(key).length == 1) key
+              if ('*'.allMatches(key).length == 1) key,
           ]..sort(_compareExpansionKeys);
 
           for (var expansionKey in expansionKeys) {
@@ -230,9 +256,15 @@ class NodePackageImporter extends Importer {
               var target = exports[expansionKey] as Object?;
               if (target == null) continue;
               var patternMatch = matchKey.substring(
-                  patternBase.length, matchKey.length - patternTrailer.length);
+                patternBase.length,
+                matchKey.length - patternTrailer.length,
+              );
               return _packageTargetResolve(
-                  variant, target, packageRoot, patternMatch);
+                variant,
+                target,
+                packageRoot,
+                patternMatch,
+              );
             }
           }
 
@@ -248,7 +280,7 @@ class NodePackageImporter extends Importer {
         throw "Unable to determine which of multiple potential resolutions "
             "found for ${subpath ?? 'root'} in $packageName should be used. "
             "\n\nFound:\n"
-            "${paths.join('\n')}"
+            "${paths.join('\n')}",
     };
   }
 
@@ -277,8 +309,11 @@ class NodePackageImporter extends Importer {
   /// Implementation of `PACKAGE_TARGET_RESOLVE` from the [Resolution Algorithm
   /// Specification](https://nodejs.org/api/esm.html#resolution-algorithm-specification).
   String? _packageTargetResolve(
-      String? subpath, Object exports, String packageRoot,
-      [String? patternMatch]) {
+    String? subpath,
+    Object exports,
+    String packageRoot, [
+    String? patternMatch,
+  ]) {
     switch (exports) {
       case String string when !string.startsWith('./'):
         throw "Export '$string' must be a path relative to the package root at '$packageRoot'.";
@@ -293,7 +328,11 @@ class NodePackageImporter extends Importer {
           if (!const {'sass', 'style', 'default'}.contains(key)) continue;
           if (value == null) continue;
           if (_packageTargetResolve(
-                  subpath, value as Object, packageRoot, patternMatch)
+            subpath,
+            value as Object,
+            packageRoot,
+            patternMatch,
+          )
               case var result?) {
             return result;
           }
@@ -307,7 +346,11 @@ class NodePackageImporter extends Importer {
         for (var value in array) {
           if (value == null) continue;
           if (_packageTargetResolve(
-                  subpath, value as Object, packageRoot, patternMatch)
+            subpath,
+            value as Object,
+            packageRoot,
+            patternMatch,
+          )
               case var result?) {
             return result;
           }
@@ -330,7 +373,7 @@ class NodePackageImporter extends Importer {
           when !map.keys.any((key) => key.startsWith('.')) =>
         map,
       <String, dynamic>{'.': var export?} => export,
-      _ => null
+      _ => null,
     };
   }
 
@@ -352,12 +395,7 @@ class NodePackageImporter extends Importer {
     if (_validExtensions.contains(p.url.extension(subpath))) {
       paths.add(subpath);
     } else {
-      paths.addAll([
-        subpath,
-        '$subpath.scss',
-        '$subpath.sass',
-        '$subpath.css',
-      ]);
+      paths.addAll([subpath, '$subpath.scss', '$subpath.sass', '$subpath.css']);
     }
     var basename = p.basename(subpath);
     var dirname = p.dirname(subpath);
@@ -370,7 +408,7 @@ class NodePackageImporter extends Importer {
         if (dirname == '.')
           '_${p.basename(path)}'
         else
-          p.join(dirname, '_${p.basename(path)}')
+          p.join(dirname, '_${p.basename(path)}'),
     ];
   }
 }

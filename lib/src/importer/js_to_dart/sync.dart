@@ -27,8 +27,10 @@ final class JSToDartImporter extends Importer {
   final Set<String> _nonCanonicalSchemes;
 
   JSToDartImporter(
-      this._canonicalize, this._load, Iterable<String>? nonCanonicalSchemes)
-      : _nonCanonicalSchemes = nonCanonicalSchemes == null
+    this._canonicalize,
+    this._load,
+    Iterable<String>? nonCanonicalSchemes,
+  ) : _nonCanonicalSchemes = nonCanonicalSchemes == null
             ? const {}
             : Set.unmodifiable(nonCanonicalSchemes) {
     _nonCanonicalSchemes.forEach(validateUrlScheme);
@@ -36,14 +38,18 @@ final class JSToDartImporter extends Importer {
 
   Uri? canonicalize(Uri url) {
     var result = wrapJSExceptions(
-        () => _canonicalize(url.toString(), canonicalizeContext));
+      () => _canonicalize(url.toString(), canonicalizeContext),
+    );
     if (result == null) return null;
     if (isJSUrl(result)) return jsToDartUrl(result as JSUrl);
 
     if (isPromise(result)) {
-      jsThrow(JsError(
+      jsThrow(
+        JsError(
           "The canonicalize() function can't return a Promise for synchronous "
-          "compile functions."));
+          "compile functions.",
+        ),
+      );
     } else {
       jsThrow(JsError("The canonicalize() method must return a URL."));
     }
@@ -54,27 +60,41 @@ final class JSToDartImporter extends Importer {
     if (result == null) return null;
 
     if (isPromise(result)) {
-      jsThrow(JsError(
+      jsThrow(
+        JsError(
           "The load() function can't return a Promise for synchronous compile "
-          "functions."));
+          "functions.",
+        ),
+      );
     }
 
     result as JSImporterResult;
     var contents = result.contents;
     if (!isJsString(contents)) {
-      jsThrow(ArgumentError.value(contents, 'contents',
-          'must be a string but was: ${jsType(contents)}'));
+      jsThrow(
+        ArgumentError.value(
+          contents,
+          'contents',
+          'must be a string but was: ${jsType(contents)}',
+        ),
+      );
     }
 
     var syntax = result.syntax;
     if (contents == null || syntax == null) {
-      jsThrow(JsError("The load() function must return an object with contents "
-          "and syntax fields."));
+      jsThrow(
+        JsError(
+          "The load() function must return an object with contents "
+          "and syntax fields.",
+        ),
+      );
     }
 
-    return ImporterResult(contents,
-        syntax: parseSyntax(syntax),
-        sourceMapUrl: result.sourceMapUrl.andThen(jsToDartUrl));
+    return ImporterResult(
+      contents,
+      syntax: parseSyntax(syntax),
+      sourceMapUrl: result.sourceMapUrl.andThen(jsToDartUrl),
+    );
   }
 
   bool isNonCanonicalScheme(String scheme) =>

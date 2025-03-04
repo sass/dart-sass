@@ -46,7 +46,7 @@ final class Configuration {
   /// An implicit configuration will always return `false` because it was not
   /// created through another configuration.
   ///
-  /// [ExplicitConfiguration]s will and configurations created [throughForward]
+  /// [ExplicitConfiguration]s and configurations created [throughForward]
   /// will be considered to have the same original config if they were created
   /// as a copy from the same base configuration.
   bool sameOriginal(Configuration that) =>
@@ -123,9 +123,11 @@ final class ExplicitConfiguration extends Configuration {
 
   /// Creates an [ExplicitConfiguration] with a [values] map, a [nodeWithSpan]
   /// and if this is a copy a reference to the [_originalConfiguration].
-  ExplicitConfiguration._(Map<String, ConfiguredValue> values,
-      this.nodeWithSpan, Configuration? originalConfiguration)
-      : super._(values, originalConfiguration);
+  ExplicitConfiguration._(
+    Map<String, ConfiguredValue> values,
+    this.nodeWithSpan,
+    Configuration? originalConfiguration,
+  ) : super._(values, originalConfiguration);
 
   /// Returns a copy of `this` with the given [values] map.
   ///

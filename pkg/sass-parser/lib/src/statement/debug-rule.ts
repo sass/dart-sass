@@ -66,7 +66,7 @@ export class DebugRule
     this.debugExpression = {text: value?.toString() ?? ''};
   }
 
-  /** The expresison whose value is emitted when the debug rule is executed. */
+  /** The expression whose value is emitted when the debug rule is executed. */
   get debugExpression(): Expression {
     return this._debugExpression!;
   }
@@ -78,7 +78,7 @@ export class DebugRule
     if (debugExpression) debugExpression.parent = this;
     this._debugExpression = debugExpression;
   }
-  private _debugExpression?: Expression;
+  private declare _debugExpression?: Expression;
 
   constructor(defaults: DebugRuleProps);
   /** @hidden */

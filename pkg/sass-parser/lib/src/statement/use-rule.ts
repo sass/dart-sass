@@ -6,13 +6,13 @@ import * as postcss from 'postcss';
 import type {AtRuleRaws} from 'postcss/lib/at-rule';
 
 import {Configuration, ConfigurationProps} from '../configuration';
-import {Expression} from '../expression';
 import {StringExpression} from '../expression/string';
 import {LazySource} from '../lazy-source';
+import {NodeProps} from '../node';
 import {RawWithValue} from '../raw-with-value';
 import * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
-import {ContainerProps, Statement, StatementWithChildren} from '.';
+import {Statement, StatementWithChildren} from '.';
 import {_AtRule} from './at-rule-internal';
 import {interceptIsClean} from './intercept-is-clean';
 import * as sassParser from '../..';
@@ -23,7 +23,7 @@ import * as sassParser from '../..';
  * @category Statement
  */
 export interface UseRuleRaws extends Omit<AtRuleRaws, 'params'> {
-  /** The representation of {@link UseRule.url}. */
+  /** The representation of {@link UseRule.useUrl}. */
   url?: RawWithValue<string>;
 
   /**
@@ -54,7 +54,7 @@ export interface UseRuleRaws extends Omit<AtRuleRaws, 'params'> {
  *
  * @category Statement
  */
-export type UseRuleProps = ContainerProps & {
+export type UseRuleProps = NodeProps & {
   raws?: UseRuleRaws;
   useUrl: string;
   namespace?: string | null;
@@ -152,7 +152,7 @@ export class UseRule
         : new Configuration(configuration);
     this._configuration.parent = this;
   }
-  private _configuration!: Configuration;
+  private declare _configuration: Configuration;
 
   constructor(defaults: UseRuleProps);
   /** @hidden */
@@ -201,8 +201,8 @@ export class UseRule
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
-    return [...Object.values(this.configuration)];
+  get nonStatementChildren(): ReadonlyArray<Configuration> {
+    return [this.configuration];
   }
 }
 

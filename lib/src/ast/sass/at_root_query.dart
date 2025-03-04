@@ -56,8 +56,11 @@ final class AtRootQuery {
   /// original location of the selector in the source file.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory AtRootQuery.parse(String contents,
-          {Object? url, InterpolationMap? interpolationMap}) =>
+  factory AtRootQuery.parse(
+    String contents, {
+    Object? url,
+    InterpolationMap? interpolationMap,
+  }) =>
       AtRootQueryParser(contents, url: url).parse();
 
   /// Returns whether `this` excludes [node].
@@ -71,7 +74,7 @@ final class AtRootQuery {
       CssMediaRule() => excludesName("media"),
       CssSupportsRule() => excludesName("supports"),
       CssAtRule() => excludesName(node.name.value.toLowerCase()),
-      _ => false
+      _ => false,
     };
   }
 

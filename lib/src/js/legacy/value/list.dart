@@ -19,13 +19,18 @@ Object newNodeSassList(SassList value) =>
     legacyListClass.construct([null, null, value]);
 
 /// The JS `sass.types.List` class.
-final JSClass legacyListClass = createJSClass('sass.types.List',
-    (_NodeSassList thisArg, int? length,
-        [bool? commaSeparator, SassList? dartValue]) {
+final JSClass legacyListClass = createJSClass('sass.types.List', (
+  _NodeSassList thisArg,
+  int? length, [
+  bool? commaSeparator,
+  SassList? dartValue,
+]) {
   thisArg.dartValue = dartValue ??
       // Either [dartValue] or [length] must be passed.
-      SassList(Iterable.generate(length!, (_) => sassNull),
-          (commaSeparator ?? true) ? ListSeparator.comma : ListSeparator.space);
+      SassList(
+        Iterable.generate(length!, (_) => sassNull),
+        (commaSeparator ?? true) ? ListSeparator.comma : ListSeparator.space,
+      );
 })
   ..defineMethods({
     'getValue': (_NodeSassList thisArg, int index) =>
@@ -38,9 +43,11 @@ final JSClass legacyListClass = createJSClass('sass.types.List',
     'getSeparator': (_NodeSassList thisArg) =>
         thisArg.dartValue.separator == ListSeparator.comma,
     'setSeparator': (_NodeSassList thisArg, bool isComma) {
-      thisArg.dartValue = SassList(thisArg.dartValue.asList,
-          isComma ? ListSeparator.comma : ListSeparator.space,
-          brackets: thisArg.dartValue.hasBrackets);
+      thisArg.dartValue = SassList(
+        thisArg.dartValue.asList,
+        isComma ? ListSeparator.comma : ListSeparator.space,
+        brackets: thisArg.dartValue.hasBrackets,
+      );
     },
-    'getLength': (_NodeSassList thisArg) => thisArg.dartValue.asList.length
+    'getLength': (_NodeSassList thisArg) => thisArg.dartValue.asList.length,
   });

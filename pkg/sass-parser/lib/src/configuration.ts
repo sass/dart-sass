@@ -10,9 +10,10 @@ import {
   ConfiguredVariableProps,
 } from './configured-variable';
 import {LazySource} from './lazy-source';
-import {Node} from './node';
+import {Node, NodeProps} from './node';
 import type * as sassInternal from './sass-internal';
 import * as utils from './utils';
+import {ForwardRule} from './statement/forward-rule';
 import {UseRule} from './statement/use-rule';
 
 /**
@@ -36,12 +37,15 @@ export interface ConfigurationRaws {
  *
  * @category Statement
  */
-export interface ConfigurationProps {
+export interface ConfigurationProps extends NodeProps {
   raws?: ConfigurationRaws;
   variables:
     | Record<string, ConfiguredVariableExpressionProps>
     | Array<ConfiguredVariable | ConfiguredVariableProps>;
 }
+
+// TODO: This should probably implement a similar interface to `ParameterList`
+// as well as or instead of its current map-like interface.
 
 /**
  * A configuration map for a `@use` or `@forward` rule.
@@ -51,7 +55,7 @@ export interface ConfigurationProps {
 export class Configuration extends Node {
   readonly sassType = 'configuration' as const;
   declare raws: ConfigurationRaws;
-  declare parent: UseRule | undefined; // TODO: forward as well
+  declare parent: ForwardRule | UseRule | undefined;
 
   /** The underlying map from variable names to their values. */
   private _variables: Map<string, ConfiguredVariable> = new Map();
@@ -100,9 +104,9 @@ export class Configuration extends Node {
     const realVariable =
       'sassType' in variable ? variable : new ConfiguredVariable(variable);
     realVariable.parent = this;
-    const old = this._variables.get(realVariable.variableName);
+    const old = this._variables.get(realVariable.name);
     if (old) old.parent = undefined;
-    this._variables.set(realVariable.variableName, realVariable);
+    this._variables.set(realVariable.name, realVariable);
     return this;
   }
 
@@ -188,7 +192,7 @@ export class Configuration extends Node {
         result += variable.raws.before ?? ' ';
       }
       result += variable.toString();
-      result += variable.raws.afterValue ?? '';
+      result += variable.raws.after ?? '';
     }
     return result + `${this.raws.comma ? ',' : ''}${this.raws.after ?? ''})`;
   }

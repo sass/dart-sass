@@ -21,27 +21,38 @@ final class EmptyExtensionStore implements ExtensionStore {
   const EmptyExtensionStore();
 
   Iterable<Extension> extensionsWhereTarget(
-          bool callback(SimpleSelector target)) =>
+    bool callback(SimpleSelector target),
+  ) =>
       const [];
 
-  Box<SelectorList> addSelector(SelectorList selector,
-      [List<CssMediaQuery>? mediaContext]) {
+  Box<SelectorList> addSelector(
+    SelectorList selector, [
+    List<CssMediaQuery>? mediaContext,
+  ]) {
     throw UnsupportedError(
-        "addSelector() can't be called for a const ExtensionStore.");
+      "addSelector() can't be called for a const ExtensionStore.",
+    );
   }
 
   void addExtension(
-      SelectorList extender, SimpleSelector target, ExtendRule extend,
-      [List<CssMediaQuery>? mediaContext]) {
+    SelectorList extender,
+    SimpleSelector target,
+    ExtendRule extend, [
+    List<CssMediaQuery>? mediaContext,
+  ]) {
     throw UnsupportedError(
-        "addExtension() can't be called for a const ExtensionStore.");
+      "addExtension() can't be called for a const ExtensionStore.",
+    );
   }
 
   void addExtensions(Iterable<ExtensionStore> extenders) {
     throw UnsupportedError(
-        "addExtensions() can't be called for a const ExtensionStore.");
+      "addExtensions() can't be called for a const ExtensionStore.",
+    );
   }
 
-  (ExtensionStore, Map<SelectorList, Box<SelectorList>>) clone() =>
-      const (EmptyExtensionStore(), {});
+  (ExtensionStore, Map<SelectorList, Box<SelectorList>>) clone() => const (
+        EmptyExtensionStore(),
+        {},
+      );
 }

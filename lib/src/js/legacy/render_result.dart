@@ -13,10 +13,11 @@ class RenderResult {
   external Uint8List? get map;
   external RenderResultStats get stats;
 
-  external factory RenderResult(
-      {required Uint8List css,
-      Uint8List? map,
-      required RenderResultStats stats});
+  external factory RenderResult({
+    required Uint8List css,
+    Uint8List? map,
+    required RenderResultStats stats,
+  });
 }
 
 @JS()
@@ -28,10 +29,11 @@ class RenderResultStats {
   external int get duration;
   external List<Object /* String */ > get includedFiles;
 
-  external factory RenderResultStats(
-      {required String entry,
-      required int start,
-      required int end,
-      required int duration,
-      required List<String> includedFiles});
+  external factory RenderResultStats({
+    required String entry,
+    required int start,
+    required int end,
+    required int duration,
+    required List<String> includedFiles,
+  });
 }

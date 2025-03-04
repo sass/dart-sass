@@ -14,19 +14,25 @@ import 'scss.dart';
 final _disallowedFunctionNames =
     globalFunctions.map((function) => function.name).toSet()
       ..add("if")
-      ..remove("rgb")
-      ..remove("rgba")
+      ..remove("abs")
+      ..remove("alpha")
+      ..remove("color")
+      ..remove("grayscale")
       ..remove("hsl")
       ..remove("hsla")
-      ..remove("grayscale")
+      ..remove("hwb")
       ..remove("invert")
-      ..remove("alpha")
-      ..remove("opacity")
-      ..remove("saturate")
-      ..remove("min")
+      ..remove("lab")
+      ..remove("lch")
       ..remove("max")
+      ..remove("min")
+      ..remove("oklab")
+      ..remove("oklch")
+      ..remove("opacity")
+      ..remove("rgb")
+      ..remove("rgba")
       ..remove("round")
-      ..remove("abs");
+      ..remove("saturate");
 
 class CssParser extends ScssParser {
   bool get plainCss => true;
@@ -38,8 +44,10 @@ class CssParser extends ScssParser {
 
     var start = scanner.state;
     super.silentComment();
-    error("Silent comments aren't allowed in plain CSS.",
-        scanner.spanFrom(start));
+    error(
+      "Silent comments aren't allowed in plain CSS.",
+      scanner.spanFrom(start),
+    );
   }
 
   Statement atRule(Statement child(), {bool root = false}) {
@@ -49,7 +57,7 @@ class CssParser extends ScssParser {
     var start = scanner.state;
     scanner.expectChar($at);
     var name = interpolatedIdentifier();
-    whitespace();
+    _whitespace();
 
     return switch (name.asPlain) {
       "at-root" ||
@@ -70,7 +78,7 @@ class CssParser extends ScssParser {
       "import" => _cssImportRule(start),
       "media" => mediaRule(start),
       "supports" => supportsRule(start),
-      _ => unknownAtRule(start, name)
+      _ => unknownAtRule(start, name),
     };
   }
 
@@ -90,13 +98,13 @@ class CssParser extends ScssParser {
           StringExpression string => string.text,
           InterpolatedFunctionExpression(
             :var name,
-            arguments: ArgumentInvocation(
+            arguments: ArgumentList(
               positional: [StringExpression string],
               named: Map(isEmpty: true),
               rest: null,
               keywordRest: null,
             ),
-            :var span
+            :var span,
           ) =>
             (InterpolationBuffer()
                   ..addInterpolation(name)
@@ -105,19 +113,22 @@ class CssParser extends ScssParser {
                   ..writeCharCode($rparen))
                 .interpolation(span),
           // This shouldn't be reachable.
-          var expression =>
-            error("Unsupported plain CSS import.", expression.span)
+          var expression => error(
+              "Unsupported plain CSS import.",
+              expression.span,
+            ),
         },
-      _ => StringExpression(interpolatedString().asInterpolation(static: true))
-          .text
+      _ => StringExpression(
+          interpolatedString().asInterpolation(static: true),
+        ).text,
     };
 
-    whitespace();
+    _whitespace();
     var modifiers = tryImportModifiers();
     expectStatementSeparator("@import rule");
-    return ImportRule(
-        [StaticImport(url, scanner.spanFrom(urlStart), modifiers: modifiers)],
-        scanner.spanFrom(start));
+    return ImportRule([
+      StaticImport(url, scanner.spanFrom(urlStart), modifiers: modifiers),
+    ], scanner.spanFrom(start));
   }
 
   ParenthesizedExpression parentheses() {
@@ -125,7 +136,7 @@ class CssParser extends ScssParser {
     // evaluation time.
     var start = scanner.state;
     scanner.expectChar($lparen);
-    whitespace();
+    _whitespace();
     var expression = expressionUntilComma();
     scanner.expectChar($rparen);
     return ParenthesizedExpression(expression, scanner.spanFrom(start));
@@ -150,7 +161,7 @@ class CssParser extends ScssParser {
     var arguments = <Expression>[];
     if (!scanner.scanChar($rparen)) {
       do {
-        whitespace();
+        _whitespace();
         if (allowEmptySecondArg &&
             arguments.length == 1 &&
             scanner.peekChar() == $rparen) {
@@ -159,25 +170,32 @@ class CssParser extends ScssParser {
         }
 
         arguments.add(expressionUntilComma(singleEquals: true));
-        whitespace();
+        _whitespace();
       } while (scanner.scanChar($comma));
       scanner.expectChar($rparen);
     }
 
     if (_disallowedFunctionNames.contains(plain)) {
       error(
-          "This function isn't allowed in plain CSS.", scanner.spanFrom(start));
+        "This function isn't allowed in plain CSS.",
+        scanner.spanFrom(start),
+      );
     }
 
     return FunctionExpression(
-        plain,
-        ArgumentInvocation(
-            arguments, const {}, scanner.spanFrom(beforeArguments)),
-        scanner.spanFrom(start));
+      plain,
+      ArgumentList(arguments, const {}, scanner.spanFrom(beforeArguments)),
+      scanner.spanFrom(start),
+    );
   }
 
   Expression namespacedExpression(String namespace, LineScannerState start) {
     var expression = super.namespacedExpression(namespace, start);
     error("Module namespaces aren't allowed in plain CSS.", expression.span);
+  }
+
+  /// The value of `consumeNewlines` is not relevant for this class.
+  void _whitespace() {
+    whitespace(consumeNewlines: true);
   }
 }

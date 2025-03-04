@@ -5,7 +5,6 @@
 // OS X's modification time reporting is flaky, so we skip these tests on it.
 @TestOn('vm && !mac-os')
 @Tags(['node'])
-
 // File watching is inherently flaky at the OS level. To mitigate this, we do a
 // few retries when the tests fail.
 @Retry(3)

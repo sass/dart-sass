@@ -13,22 +13,24 @@ void main() {
     group('in SCSS', () {
       test('attach to variable declarations', () {
         final contents = r'''
-            /// Results my vary.
-            $vary: 5.16em;''';
+          /// Results may vary.
+          $vary: 5.16em;
+        ''';
         final stylesheet = Stylesheet.parseScss(contents);
         final variable =
             stylesheet.children.whereType<VariableDeclaration>().first;
 
-        expect(variable.comment!.docComment, equals('Results my vary.'));
+        expect(variable.comment!.docComment, equals('Results may vary.'));
       });
 
       test('attach to function rules', () {
         final contents = r'''
-            /// A fun function!
-            @function fun($val) {
-              // Not a doc comment.
-              @return ($val / 1000) * 1em;
-            }''';
+          /// A fun function!
+          @function fun($val) {
+            // Not a doc comment.
+            @return ($val / 1000) * 1em;
+          }
+        ''';
         final stylesheet = Stylesheet.parseScss(contents);
         final function = stylesheet.children.whereType<FunctionRule>().first;
 
@@ -37,12 +39,13 @@ void main() {
 
       test('attach to mixin rules', () {
         final contents = r'''
-            /// Mysterious mixin.
-            @mixin mystery {
-              // All black.
-              color: black;
-              background-color: black;
-            }''';
+          /// Mysterious mixin.
+          @mixin mystery {
+            // All black.
+            color: black;
+            background-color: black;
+          }
+        ''';
         final stylesheet = Stylesheet.parseScss(contents);
         final mix = stylesheet.children.whereType<MixinRule>().first;
 
@@ -51,8 +54,9 @@ void main() {
 
       test('are null when there are no triple-slash comments', () {
         final contents = r'''
-            // Regular comment.
-            $vary: 5.16em;''';
+          // Regular comment.
+          $vary: 5.16em;
+        ''';
         final stylesheet = Stylesheet.parseScss(contents);
         final variable =
             stylesheet.children.whereType<VariableDeclaration>().first;
@@ -62,18 +66,19 @@ void main() {
 
       test('are not carried over across members', () {
         final contents = r'''
-            /// Mysterious mixin.
-            @mixin mystery {
-              // All black.
-              color: black;
-              background-color: black;
-            }
+          /// Mysterious mixin.
+          @mixin mystery {
+            // All black.
+            color: black;
+            background-color: black;
+          }
 
-            /// A fun function!
-            @function fun($val) {
-              // Not a doc comment.
-              @return ($val / 1000) * 1em;
-            }''';
+          /// A fun function!
+          @function fun($val) {
+            // Not a doc comment.
+            @return ($val / 1000) * 1em;
+          }
+        ''';
         final stylesheet = Stylesheet.parseScss(contents);
         final mix = stylesheet.children.whereType<MixinRule>().first;
         final function = stylesheet.children.whereType<FunctionRule>().first;
@@ -84,13 +89,14 @@ void main() {
 
       test('do not include double-slash comments', () {
         final contents = r'''
-            // Not a doc comment.
-            /// Line 1
-            /// Line 2
-            // Not a doc comment.
-            /// Line 3
-            // Not a doc comment.
-            $vary: 5.16em;''';
+          // Not a doc comment.
+          /// Line 1
+          /// Line 2
+          // Not a doc comment.
+          /// Line 3
+          // Not a doc comment.
+          $vary: 5.16em;
+        ''';
         final stylesheet = Stylesheet.parseScss(contents);
         final variable =
             stylesheet.children.whereType<VariableDeclaration>().first;
@@ -102,13 +108,14 @@ void main() {
     group('in indented syntax', () {
       test('attach to variable declarations', () {
         final contents = r'''
-/// Results my vary.
-$vary: 5.16em''';
+/// Results may vary.
+$vary: 5.16em
+''';
         final stylesheet = Stylesheet.parseSass(contents);
         final variable =
             stylesheet.children.whereType<VariableDeclaration>().first;
 
-        expect(variable.comment!.docComment, equals('Results my vary.'));
+        expect(variable.comment!.docComment, equals('Results may vary.'));
       });
 
       test('attach to function rules', () {
@@ -116,7 +123,8 @@ $vary: 5.16em''';
 /// A fun function!
 @function fun($val)
   // Not a doc comment.
-  @return ($val / 1000) * 1em''';
+  @return ($val / 1000) * 1em
+''';
         final stylesheet = Stylesheet.parseSass(contents);
         final function = stylesheet.children.whereType<FunctionRule>().first;
 
@@ -129,7 +137,8 @@ $vary: 5.16em''';
 @mixin mystery
   // All black.
   color: black
-  background-color: black''';
+  background-color: black
+''';
         final stylesheet = Stylesheet.parseSass(contents);
         final mix = stylesheet.children.whereType<MixinRule>().first;
 
@@ -139,7 +148,8 @@ $vary: 5.16em''';
       test('are null when there are no triple-slash comments', () {
         final contents = r'''
 // Regular comment.
-$vary: 5.16em''';
+$vary: 5.16em
+''';
         final stylesheet = Stylesheet.parseSass(contents);
         final variable =
             stylesheet.children.whereType<VariableDeclaration>().first;
@@ -158,7 +168,8 @@ $vary: 5.16em''';
 /// A fun function!
 @function fun($val)
   // Not a doc comment.
-  @return ($val / 1000) * 1em''';
+  @return ($val / 1000) * 1em
+''';
         final stylesheet = Stylesheet.parseSass(contents);
         final mix = stylesheet.children.whereType<MixinRule>().first;
         final function = stylesheet.children.whereType<FunctionRule>().first;
@@ -174,7 +185,8 @@ $vary: 5.16em''';
    Line 2
 // Not a doc comment.
   Should be ignored.
-$vary: 5.16em''';
+$vary: 5.16em
+''';
         final stylesheet = Stylesheet.parseSass(contents);
         final variable =
             stylesheet.children.whereType<VariableDeclaration>().first;
@@ -189,14 +201,17 @@ $vary: 5.16em''';
 /// Line 2
    Line 3
 /// Line 4
-$vary: 5.16em''';
+$vary: 5.16em
+''';
         final stylesheet = Stylesheet.parseSass(contents);
         final variable =
             stylesheet.children.whereType<VariableDeclaration>().first;
 
         expect(stylesheet.children.length, equals(2));
-        expect(variable.comment!.docComment,
-            equals('Line 1\nLine 2\nLine 3\nLine 4'));
+        expect(
+          variable.comment!.docComment,
+          equals('Line 1\nLine 2\nLine 3\nLine 4'),
+        );
       });
     });
   });

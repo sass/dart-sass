@@ -12,13 +12,16 @@ import '../reflection.dart';
 /// The JavaScript `SassMap` class.
 final JSClass mapClass = () {
   var jsClass = createJSClass(
-      'sass.SassMap',
-      (Object self, [ImmutableMap? contents]) => contents == null
-          ? const SassMap.empty()
-          : SassMap(immutableMapToDartMap(contents).cast<Value, Value>()));
+    'sass.SassMap',
+    (Object self, [ImmutableMap? contents]) => contents == null
+        ? const SassMap.empty()
+        : SassMap(immutableMapToDartMap(contents).cast<Value, Value>()),
+  );
 
   jsClass.defineGetter(
-      'contents', (SassMap self) => dartMapToImmutableMap(self.contents));
+    'contents',
+    (SassMap self) => dartMapToImmutableMap(self.contents),
+  );
 
   jsClass.defineMethod('get', (SassMap self, Object indexOrKey) {
     if (indexOrKey is num) {

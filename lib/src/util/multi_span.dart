@@ -22,9 +22,11 @@ class MultiSpan implements FileSpan {
   /// The [secondarySpans] map for [SourceSpanExtension.messageMultiple].
   final Map<SourceSpan, String> secondarySpans;
 
-  MultiSpan(FileSpan primary, String primaryLabel,
-      Map<SourceSpan, String> secondarySpans)
-      : this._(primary, primaryLabel, Map.unmodifiable(secondarySpans));
+  MultiSpan(
+    FileSpan primary,
+    String primaryLabel,
+    Map<SourceSpan, String> secondarySpans,
+  ) : this._(primary, primaryLabel, Map.unmodifiable(secondarySpans));
 
   MultiSpan._(this._primary, this.primaryLabel, this.secondarySpans);
 
@@ -42,33 +44,52 @@ class MultiSpan implements FileSpan {
   MultiSpan subspan(int start, [int? end]) =>
       _withPrimary(_primary.subspan(start, end));
 
-  String highlight({dynamic color}) =>
-      _primary.highlightMultiple(primaryLabel, secondarySpans,
-          color: color == true || color is String,
-          primaryColor: color is String ? color : null);
+  String highlight({dynamic color}) => _primary.highlightMultiple(
+        primaryLabel,
+        secondarySpans,
+        color: color == true || color is String,
+        primaryColor: color is String ? color : null,
+      );
 
-  String message(String message, {dynamic color}) =>
-      _primary.messageMultiple(message, primaryLabel, secondarySpans,
-          color: color == true || color is String,
-          primaryColor: color is String ? color : null);
+  String message(String message, {dynamic color}) => _primary.messageMultiple(
+        message,
+        primaryLabel,
+        secondarySpans,
+        color: color == true || color is String,
+        primaryColor: color is String ? color : null,
+      );
 
   String highlightMultiple(
-          String newLabel, Map<SourceSpan, String> additionalSecondarySpans,
-          {bool color = false, String? primaryColor, String? secondaryColor}) =>
+    String newLabel,
+    Map<SourceSpan, String> additionalSecondarySpans, {
+    bool color = false,
+    String? primaryColor,
+    String? secondaryColor,
+  }) =>
       _primary.highlightMultiple(
-          newLabel, {...secondarySpans, ...additionalSecondarySpans},
-          color: color,
-          primaryColor: primaryColor,
-          secondaryColor: secondaryColor);
+        newLabel,
+        {...secondarySpans, ...additionalSecondarySpans},
+        color: color,
+        primaryColor: primaryColor,
+        secondaryColor: secondaryColor,
+      );
 
-  String messageMultiple(String message, String newLabel,
-          Map<SourceSpan, String> additionalSecondarySpans,
-          {bool color = false, String? primaryColor, String? secondaryColor}) =>
+  String messageMultiple(
+    String message,
+    String newLabel,
+    Map<SourceSpan, String> additionalSecondarySpans, {
+    bool color = false,
+    String? primaryColor,
+    String? secondaryColor,
+  }) =>
       _primary.messageMultiple(
-          message, newLabel, {...secondarySpans, ...additionalSecondarySpans},
-          color: color,
-          primaryColor: primaryColor,
-          secondaryColor: secondaryColor);
+        message,
+        newLabel,
+        {...secondarySpans, ...additionalSecondarySpans},
+        color: color,
+        primaryColor: primaryColor,
+        secondaryColor: secondaryColor,
+      );
 
   /// Returns a copy of `this` with [newPrimary] as its primary span.
   MultiSpan _withPrimary(FileSpan newPrimary) =>

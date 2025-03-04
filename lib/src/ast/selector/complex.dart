@@ -51,7 +51,9 @@ final class ComplexSelector extends Selector {
   /// "sufficiently high"; it's extremely unlikely that any single selector
   /// sequence will contain 1000 simple selectors.
   late final int specificity = components.fold(
-      0, (sum, component) => sum + component.selector.specificity);
+    0,
+    (sum, component) => sum + component.selector.specificity,
+  );
 
   /// If this compound selector is composed of a single compound selector with
   /// no combinators, returns it.
@@ -64,18 +66,21 @@ final class ComplexSelector extends Selector {
     if (leadingCombinators.isNotEmpty) return null;
     return switch (components) {
       [ComplexSelectorComponent(:var selector, combinators: [])] => selector,
-      _ => null
+      _ => null,
     };
   }
 
-  ComplexSelector(Iterable<CssValue<Combinator>> leadingCombinators,
-      Iterable<ComplexSelectorComponent> components, super.span,
-      {this.lineBreak = false})
-      : leadingCombinators = List.unmodifiable(leadingCombinators),
+  ComplexSelector(
+    Iterable<CssValue<Combinator>> leadingCombinators,
+    Iterable<ComplexSelectorComponent> components,
+    super.span, {
+    this.lineBreak = false,
+  })  : leadingCombinators = List.unmodifiable(leadingCombinators),
         components = List.unmodifiable(components) {
     if (this.leadingCombinators.isEmpty && this.components.isEmpty) {
       throw ArgumentError(
-          "leadingCombinators and components may not both be empty.");
+        "leadingCombinators and components may not both be empty.",
+      );
     }
   }
 
@@ -86,10 +91,16 @@ final class ComplexSelector extends Selector {
   /// selector.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory ComplexSelector.parse(String contents,
-          {Object? url, bool allowParent = true}) =>
-      SelectorParser(contents, url: url, allowParent: allowParent)
-          .parseComplexSelector();
+  factory ComplexSelector.parse(
+    String contents, {
+    Object? url,
+    bool allowParent = true,
+  }) =>
+      SelectorParser(
+        contents,
+        url: url,
+        allowParent: allowParent,
+      ).parseComplexSelector();
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitComplexSelector(this);
 
@@ -111,16 +122,23 @@ final class ComplexSelector extends Selector {
   /// @nodoc
   @internal
   ComplexSelector withAdditionalCombinators(
-      List<CssValue<Combinator>> combinators,
-      {bool forceLineBreak = false}) {
+    List<CssValue<Combinator>> combinators, {
+    bool forceLineBreak = false,
+  }) {
     if (combinators.isEmpty) return this;
     return switch (components) {
-      [...var initial, var last] => ComplexSelector(leadingCombinators,
-          [...initial, last.withAdditionalCombinators(combinators)], span,
-          lineBreak: lineBreak || forceLineBreak),
+      [...var initial, var last] => ComplexSelector(
+          leadingCombinators,
+          [...initial, last.withAdditionalCombinators(combinators)],
+          span,
+          lineBreak: lineBreak || forceLineBreak,
+        ),
       [] => ComplexSelector(
-          [...leadingCombinators, ...combinators], const [], span,
-          lineBreak: lineBreak || forceLineBreak)
+          [...leadingCombinators, ...combinators],
+          const [],
+          span,
+          lineBreak: lineBreak || forceLineBreak,
+        ),
     };
   }
 
@@ -134,10 +152,16 @@ final class ComplexSelector extends Selector {
   /// @nodoc
   @internal
   ComplexSelector withAdditionalComponent(
-          ComplexSelectorComponent component, FileSpan span,
-          {bool forceLineBreak = false}) =>
-      ComplexSelector(leadingCombinators, [...components, component], span,
-          lineBreak: lineBreak || forceLineBreak);
+    ComplexSelectorComponent component,
+    FileSpan span, {
+    bool forceLineBreak = false,
+  }) =>
+      ComplexSelector(
+        leadingCombinators,
+        [...components, component],
+        span,
+        lineBreak: lineBreak || forceLineBreak,
+      );
 
   /// Returns a copy of `this` with [child]'s combinators added to the end.
   ///
@@ -151,28 +175,36 @@ final class ComplexSelector extends Selector {
   ///
   /// @nodoc
   @internal
-  ComplexSelector concatenate(ComplexSelector child, FileSpan span,
-      {bool forceLineBreak = false}) {
+  ComplexSelector concatenate(
+    ComplexSelector child,
+    FileSpan span, {
+    bool forceLineBreak = false,
+  }) {
     if (child.leadingCombinators.isEmpty) {
       return ComplexSelector(
-          leadingCombinators, [...components, ...child.components], span,
-          lineBreak: lineBreak || child.lineBreak || forceLineBreak);
+        leadingCombinators,
+        [...components, ...child.components],
+        span,
+        lineBreak: lineBreak || child.lineBreak || forceLineBreak,
+      );
     } else if (components case [...var initial, var last]) {
       return ComplexSelector(
-          leadingCombinators,
-          [
-            ...initial,
-            last.withAdditionalCombinators(child.leadingCombinators),
-            ...child.components
-          ],
-          span,
-          lineBreak: lineBreak || child.lineBreak || forceLineBreak);
+        leadingCombinators,
+        [
+          ...initial,
+          last.withAdditionalCombinators(child.leadingCombinators),
+          ...child.components,
+        ],
+        span,
+        lineBreak: lineBreak || child.lineBreak || forceLineBreak,
+      );
     } else {
       return ComplexSelector(
-          [...leadingCombinators, ...child.leadingCombinators],
-          child.components,
-          span,
-          lineBreak: lineBreak || child.lineBreak || forceLineBreak);
+        [...leadingCombinators, ...child.leadingCombinators],
+        child.components,
+        span,
+        lineBreak: lineBreak || child.lineBreak || forceLineBreak,
+      );
     }
   }
 

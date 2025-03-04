@@ -36,13 +36,17 @@ void main() {
 
       group("in prefixed pseudos", () {
         test("preserves whitespace", () {
-          expect(_compile("a:nth-child(2n of b) {x: y}"),
-              equals("a:nth-child(2n of b){x:y}"));
+          expect(
+            _compile("a:nth-child(2n of b) {x: y}"),
+            equals("a:nth-child(2n of b){x:y}"),
+          );
         });
 
         test("removes whitespace after commas", () {
-          expect(_compile("a:nth-child(2n of b, c) {x: y}"),
-              equals("a:nth-child(2n of b,c){x:y}"));
+          expect(
+            _compile("a:nth-child(2n of b, c) {x: y}"),
+            equals("a:nth-child(2n of b,c){x:y}"),
+          );
         });
       });
 
@@ -64,36 +68,45 @@ void main() {
 
       group("of custom properties", () {
         test("folds whitespace for multiline properties", () {
-          expect(_compile("""
-            a {
-              --foo: {
-                q: r;
-                b {
-                  s: t;
+          expect(
+            _compile("""
+              a {
+                --foo: {
+                  q: r;
+                  b {
+                    s: t;
+                  }
                 }
               }
-            }
-          """), equals("a{--foo: { q: r; b { s: t; } } }"));
+            """),
+            equals("a{--foo: { q: r; b { s: t; } } }"),
+          );
         });
 
         test("folds whitespace for single-line properties", () {
-          expect(_compile("""
-            a {
-              --foo: a   b\t\tc;
-            }
-          """), equals("a{--foo: a b\tc}"));
+          expect(
+            _compile("""
+              a {
+                --foo: a   b\t\tc;
+              }
+            """),
+            equals("a{--foo: a b\tc}"),
+          );
         });
 
         test("preserves semicolons when necessary", () {
-          expect(_compile("""
-            a {
-              --foo: {
-                a: b;
-              };
-              --bar: x y;
-              --baz: q r;
-            }
-          """), equals("a{--foo: { a: b; };--bar: x y;--baz: q r}"));
+          expect(
+            _compile("""
+              a {
+                --foo: {
+                  a: b;
+                };
+                --bar: x y;
+                --baz: q r;
+              }
+            """),
+            equals("a{--foo: { a: b; };--bar: x y;--baz: q r}"),
+          );
         });
       });
     });
@@ -113,10 +126,13 @@ void main() {
       });
 
       test("don't include spaces around slashes", () {
-        expect(_compile("""
-          @use "sass:list";
-          a {b: list.slash(x, y, z)}
-        """), equals("a{b:x/y/z}"));
+        expect(
+          _compile("""
+            @use "sass:list";
+            a {b: list.slash(x, y, z)}
+          """),
+          equals("a{b:x/y/z}"),
+        );
       });
 
       test("do include spaces when space-separated", () {
@@ -138,8 +154,10 @@ void main() {
       });
 
       test("use rgba() when necessary", () {
-        expect(_compile("a {b: rgba(255, 0, 0, 0.5)}"),
-            equals("a{b:rgba(255,0,0,.5)}"));
+        expect(
+          _compile("a {b: rgba(255, 0, 0, 0.5)}"),
+          equals("a{b:rgba(255,0,0,.5)}"),
+        );
       });
 
       test("don't error when there's no name", () {
@@ -153,9 +171,11 @@ void main() {
           var escape = "\\${character.toRadixString(16)}";
           test(escape, () {
             expect(
-                _compile("a {b: $escape}"),
-                equalsIgnoringWhitespace(
-                    "a{b:${String.fromCharCode(character)}}"));
+              _compile("a {b: $escape}"),
+              equalsIgnoringWhitespace(
+                "a{b:${String.fromCharCode(character)}}",
+              ),
+            );
           });
         }
 
@@ -189,25 +209,33 @@ void main() {
 
   group("@supports", () {
     test("removes whitespace around the condition", () {
-      expect(_compile("@supports (display: flex) {a {b: c}}"),
-          equals("@supports(display: flex){a{b:c}}"));
+      expect(
+        _compile("@supports (display: flex) {a {b: c}}"),
+        equals("@supports(display: flex){a{b:c}}"),
+      );
     });
 
     test("preserves whitespace before the condition if necessary", () {
-      expect(_compile("@supports not (display: flex) {a {b: c}}"),
-          equals("@supports not (display: flex){a{b:c}}"));
+      expect(
+        _compile("@supports not (display: flex) {a {b: c}}"),
+        equals("@supports not (display: flex){a{b:c}}"),
+      );
     });
   });
 
   group("@media", () {
     test("removes whitespace around the query", () {
-      expect(_compile("@media (min-width: 900px) {a {b: c}}"),
-          equals("@media(min-width: 900px){a{b:c}}"));
+      expect(
+        _compile("@media (min-width: 900px) {a {b: c}}"),
+        equals("@media(min-width: 900px){a{b:c}}"),
+      );
     });
 
     test("preserves whitespace before the query if necessary", () {
-      expect(_compile("@media screen {a {b: c}}"),
-          equals("@media screen{a{b:c}}"));
+      expect(
+        _compile("@media screen {a {b: c}}"),
+        equals("@media screen{a{b:c}}"),
+      );
     });
 
     // Removing whitespace after "and", "or", or "not" is forbidden because it
@@ -215,50 +243,65 @@ void main() {
     group('preserves whitespace when necessary', () {
       test('around "and"', () {
         expect(
-            _compile("""
-              @media screen and (min-width: 900px) and (max-width: 100px) {
-                a {b: c}
-              }
-            """),
-            equals("@media screen and (min-width: 900px)and (max-width: 100px)"
-                "{a{b:c}}"));
+          _compile("""
+            @media screen and (min-width: 900px) and (max-width: 100px) {
+              a {b: c}
+            }
+          """),
+          equals(
+            "@media screen and (min-width: 900px)and (max-width: 100px)"
+            "{a{b:c}}",
+          ),
+        );
       });
 
       test('around "or"', () {
         expect(
-            _compile("""
-              @media (min-width: 900px) or (max-width: 100px) or (print) {
-                a {b: c}
-              }
-            """),
-            equals("@media(min-width: 900px)or (max-width: 100px)or (print)"
-                "{a{b:c}}"));
+          _compile("""
+            @media (min-width: 900px) or (max-width: 100px) or (print) {
+              a {b: c}
+            }
+          """),
+          equals(
+            "@media(min-width: 900px)or (max-width: 100px)or (print)"
+            "{a{b:c}}",
+          ),
+        );
       });
 
       test('after "not"', () {
-        expect(_compile("""
-              @media not (min-width: 900px) {
-                a {b: c}
-              }
-            """), equals("@media not (min-width: 900px){a{b:c}}"));
+        expect(
+          _compile("""
+            @media not (min-width: 900px) {
+              a {b: c}
+            }
+          """),
+          equals("@media not (min-width: 900px){a{b:c}}"),
+        );
       });
     });
 
     test("preserves whitespace around the modifier", () {
-      expect(_compile("@media only screen {a {b: c}}"),
-          equals("@media only screen{a{b:c}}"));
+      expect(
+        _compile("@media only screen {a {b: c}}"),
+        equals("@media only screen{a{b:c}}"),
+      );
     });
   });
 
   group("@keyframes", () {
     test("removes whitespace after the selector", () {
-      expect(_compile("@keyframes a {from {a: b}}"),
-          equals("@keyframes a{from{a:b}}"));
+      expect(
+        _compile("@keyframes a {from {a: b}}"),
+        equals("@keyframes a{from{a:b}}"),
+      );
     });
 
     test("removes whitespace after commas", () {
-      expect(_compile("@keyframes a {from, to {a: b}}"),
-          equals("@keyframes a{from,to{a:b}}"));
+      expect(
+        _compile("@keyframes a {from, to {a: b}}"),
+        equals("@keyframes a{from,to{a:b}}"),
+      );
     });
   });
 
@@ -273,47 +316,62 @@ void main() {
     });
 
     test("removes whitespace before a media query", () {
-      expect(_compile('@import "foo.css" screen;'),
-          equals('@import"foo.css"screen'));
+      expect(
+        _compile('@import "foo.css" screen;'),
+        equals('@import"foo.css"screen'),
+      );
     });
 
     test("removes whitespace before a supports condition", () {
-      expect(_compile('@import "foo.css" supports(display: flex);'),
-          equals('@import"foo.css"supports(display: flex)'));
+      expect(
+        _compile('@import "foo.css" supports(display: flex);'),
+        equals('@import"foo.css"supports(display: flex)'),
+      );
     });
   });
 
   group("comments", () {
     test("are removed", () {
       expect(_compile("/* foo bar */"), isEmpty);
-      expect(_compile("""
-        a {
-          b: c;
-          /* foo bar */
-          d: e;
-        }
-      """), equals("a{b:c;d:e}"));
+      expect(
+        _compile("""
+          a {
+            b: c;
+            /* foo bar */
+            d: e;
+          }
+        """),
+        equals("a{b:c;d:e}"),
+      );
     });
 
     test("remove their parents if they're the only contents", () {
       expect(_compile("a {/* foo bar */}"), isEmpty);
-      expect(_compile("""
-        a {
-          /* foo bar */
-          /* baz bang */
-        }
-      """), isEmpty);
+      expect(
+        _compile("""
+          a {
+            /* foo bar */
+            /* baz bang */
+          }
+        """),
+        isEmpty,
+      );
     });
 
     test("are preserved with /*!", () {
       expect(_compile("/*! foo bar */"), equals("/*! foo bar */"));
       expect(
-          _compile("/*! foo */\n/*! bar */"), equals("/*! foo *//*! bar */"));
-      expect(_compile("""
-        a {
-          /*! foo bar */
-        }
-      """), equals("a{/*! foo bar */}"));
+        _compile("/*! foo */\n/*! bar */"),
+        equals("/*! foo *//*! bar */"),
+      );
+      expect(
+        _compile("""
+          a {
+            /*! foo bar */
+          }
+        """),
+        equals("a{/*! foo bar */}"),
+      );
     });
   });
 }

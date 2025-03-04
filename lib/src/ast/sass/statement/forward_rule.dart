@@ -77,9 +77,12 @@ final class ForwardRule extends Statement implements SassDependency {
   FileSpan get urlSpan => span.withoutInitialAtRule().initialQuoted();
 
   /// Creates a `@forward` rule that allows all members to be accessed.
-  ForwardRule(this.url, this.span,
-      {this.prefix, Iterable<ConfiguredVariable>? configuration})
-      : shownMixinsAndFunctions = null,
+  ForwardRule(
+    this.url,
+    this.span, {
+    this.prefix,
+    Iterable<ConfiguredVariable>? configuration,
+  })  : shownMixinsAndFunctions = null,
         shownVariables = null,
         hiddenMixinsAndFunctions = null,
         hiddenVariables = null,
@@ -88,11 +91,16 @@ final class ForwardRule extends Statement implements SassDependency {
 
   /// Creates a `@forward` rule that allows only members included in
   /// [shownMixinsAndFunctions] and [shownVariables] to be accessed.
-  ForwardRule.show(this.url, Iterable<String> shownMixinsAndFunctions,
-      Iterable<String> shownVariables, this.span,
-      {this.prefix, Iterable<ConfiguredVariable>? configuration})
-      : shownMixinsAndFunctions =
-            UnmodifiableSetView(Set.of(shownMixinsAndFunctions)),
+  ForwardRule.show(
+    this.url,
+    Iterable<String> shownMixinsAndFunctions,
+    Iterable<String> shownVariables,
+    this.span, {
+    this.prefix,
+    Iterable<ConfiguredVariable>? configuration,
+  })  : shownMixinsAndFunctions = UnmodifiableSetView(
+          Set.of(shownMixinsAndFunctions),
+        ),
         shownVariables = UnmodifiableSetView(Set.of(shownVariables)),
         hiddenMixinsAndFunctions = null,
         hiddenVariables = null,
@@ -101,13 +109,18 @@ final class ForwardRule extends Statement implements SassDependency {
 
   /// Creates a `@forward` rule that allows only members not included in
   /// [hiddenMixinsAndFunctions] and [hiddenVariables] to be accessed.
-  ForwardRule.hide(this.url, Iterable<String> hiddenMixinsAndFunctions,
-      Iterable<String> hiddenVariables, this.span,
-      {this.prefix, Iterable<ConfiguredVariable>? configuration})
-      : shownMixinsAndFunctions = null,
+  ForwardRule.hide(
+    this.url,
+    Iterable<String> hiddenMixinsAndFunctions,
+    Iterable<String> hiddenVariables,
+    this.span, {
+    this.prefix,
+    Iterable<ConfiguredVariable>? configuration,
+  })  : shownMixinsAndFunctions = null,
         shownVariables = null,
-        hiddenMixinsAndFunctions =
-            UnmodifiableSetView(Set.of(hiddenMixinsAndFunctions)),
+        hiddenMixinsAndFunctions = UnmodifiableSetView(
+          Set.of(hiddenMixinsAndFunctions),
+        ),
         hiddenVariables = UnmodifiableSetView(Set.of(hiddenVariables)),
         configuration =
             configuration == null ? const [] : List.unmodifiable(configuration);
@@ -115,8 +128,9 @@ final class ForwardRule extends Statement implements SassDependency {
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitForwardRule(this);
 
   String toString() {
-    var buffer =
-        StringBuffer("@forward ${StringExpression.quoteText(url.toString())}");
+    var buffer = StringBuffer(
+      "@forward ${StringExpression.quoteText(url.toString())}",
+    );
 
     var shownMixinsAndFunctions = this.shownMixinsAndFunctions;
     var hiddenMixinsAndFunctions = this.hiddenMixinsAndFunctions;
@@ -144,6 +158,8 @@ final class ForwardRule extends Statement implements SassDependency {
 
   /// Returns a combined list of names of the given members.
   String _memberList(
-          Iterable<String> mixinsAndFunctions, Iterable<String> variables) =>
+    Iterable<String> mixinsAndFunctions,
+    Iterable<String> variables,
+  ) =>
       [...mixinsAndFunctions, for (var name in variables) "\$$name"].join(", ");
 }

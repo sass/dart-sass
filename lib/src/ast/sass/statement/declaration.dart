@@ -46,9 +46,12 @@ final class Declaration extends ParentStatement {
   /// Creates a declaration with children.
   ///
   /// For these declarations, a value is optional.
-  Declaration.nested(this.name, Iterable<Statement> children, this.span,
-      {this.value})
-      : super(List.unmodifiable(children));
+  Declaration.nested(
+    this.name,
+    Iterable<Statement> children,
+    this.span, {
+    this.value,
+  }) : super(List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitDeclaration(this);
 

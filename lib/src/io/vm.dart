@@ -54,18 +54,23 @@ String readFile(String path) {
   try {
     return utf8.decode(bytes);
   } on FormatException catch (error, stackTrace) {
-    var decodedUntilError =
-        utf8.decode(bytes.sublist(0, error.offset), allowMalformed: true);
+    var decodedUntilError = utf8.decode(
+      bytes.sublist(0, error.offset),
+      allowMalformed: true,
+    );
     var stringOffset = decodedUntilError.length;
     if (decodedUntilError.endsWith("�")) stringOffset--;
 
     var decoded = utf8.decode(bytes, allowMalformed: true);
     var sourceFile = SourceFile.fromString(decoded, url: p.toUri(path));
     throwWithTrace(
-        SassException(
-            "Invalid UTF-8.", sourceFile.location(stringOffset).pointSpan()),
-        error,
-        stackTrace);
+      SassException(
+        "Invalid UTF-8.",
+        sourceFile.location(stringOffset).pointSpan(),
+      ),
+      error,
+      stackTrace,
+    );
   }
 }
 
@@ -107,9 +112,13 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
 
   // Wrap [stream] in a [SubscriptionStream] so that its `onListen` event
   // triggers but the caller can still listen at their leisure.
-  var stream = SubscriptionStream<WatchEvent>(watcher.events
-      .transform(const SingleSubscriptionTransformer<WatchEvent, WatchEvent>())
-      .listen(null));
+  var stream = SubscriptionStream<WatchEvent>(
+    watcher.events
+        .transform(
+          const SingleSubscriptionTransformer<WatchEvent, WatchEvent>(),
+        )
+        .listen(null),
+  );
   await watcher.ready;
 
   return stream;

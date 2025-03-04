@@ -11,8 +11,12 @@ import '../utils.dart';
 /// The JavaScript `SassBoolean` class.
 final JSClass booleanClass = () {
   var jsClass = createJSClass('sass.SassBoolean', (Object self, [Object? _]) {
-    jsThrow(JsError("new sass.SassBoolean() isn't allowed.\n"
-        "Use sass.sassTrue or sass.sassFalse instead."));
+    jsThrow(
+      JsError(
+        "new sass.SassBoolean() isn't allowed.\n"
+        "Use sass.sassTrue or sass.sassFalse instead.",
+      ),
+    );
   });
   getJSClass(sassTrue).injectSuperclass(jsClass);
 

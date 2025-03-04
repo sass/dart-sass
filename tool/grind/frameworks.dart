@@ -31,8 +31,10 @@ Future<void> fetchBulma() => _getLatestRelease('jgthms/bulma');
 /// If [pattern] is passed, this will clone the latest release that matches that
 /// pattern.
 Future<void> _getLatestRelease(String slug, {Pattern? pattern}) async {
-  cloneOrCheckout('https://github.com/$slug',
-      await _findLatestRelease(slug, pattern: pattern));
+  cloneOrCheckout(
+    'https://github.com/$slug',
+    await _findLatestRelease(slug, pattern: pattern),
+  );
 }
 
 /// Returns the tag name of the latest release for the given GitHub repository
@@ -58,13 +60,20 @@ Future<String> _findLatestRelease(String slug, {Pattern? pattern}) async {
 }
 
 /// Fetches the GitHub releases page for the repo at [slug].
-Future<List<Map<String, dynamic>>> _fetchReleases(String slug,
-    {int page = 1}) async {
-  var result = json.decode(await http.read(
-      Uri.parse("https://api.github.com/repos/$slug/releases?page=$page"),
+Future<List<Map<String, dynamic>>> _fetchReleases(
+  String slug, {
+  int page = 1,
+}) async {
+  var result = json.decode(
+    await http.read(
+      Uri.parse(
+        "https://api.github.com/repos/$slug/releases?page=$page",
+      ),
       headers: {
         "accept": "application/vnd.github.v3+json",
-        "authorization": githubAuthorization
-      })) as List<dynamic>;
+        "authorization": githubAuthorization,
+      },
+    ),
+  ) as List<dynamic>;
   return result.cast<Map<String, dynamic>>();
 }

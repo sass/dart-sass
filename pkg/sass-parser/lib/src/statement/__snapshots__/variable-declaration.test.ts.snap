@@ -13,10 +13,12 @@ exports[`a variable declaration toJSON 1`] = `
     },
   ],
   "namespace": "baz",
+  "prop": "baz.$foo",
   "raws": {},
   "sassType": "variable-declaration",
   "source": <1:1-1:16 in 0>,
   "type": "decl",
+  "value": ""bar"",
   "variableName": "foo",
 }
 `;

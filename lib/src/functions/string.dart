@@ -30,52 +30,62 @@ final global = UnmodifiableListView([
   _length.withDeprecationWarning('string').withName("str-length"),
   _insert.withDeprecationWarning('string').withName("str-insert"),
   _index.withDeprecationWarning('string').withName("str-index"),
-  _slice.withDeprecationWarning('string').withName("str-slice")
+  _slice.withDeprecationWarning('string').withName("str-slice"),
 ]);
 
 /// The Sass string module.
-final module = BuiltInModule("string", functions: <Callable>[
-  _unquote, _quote, _toUpperCase, _toLowerCase, _length, _insert, _index, //
-  _slice, _uniqueId,
+final module = BuiltInModule(
+  "string",
+  functions: <Callable>[
+    _unquote, _quote, _toUpperCase, _toLowerCase, _length, _insert, _index, //
+    _slice, _uniqueId,
 
-  _function("split", r"$string, $separator, $limit: null", (arguments) {
-    var string = arguments[0].assertString("string");
-    var separator = arguments[1].assertString("separator");
-    var limit = arguments[2].realNull?.assertNumber("limit").assertInt("limit");
+    _function("split", r"$string, $separator, $limit: null", (arguments) {
+      var string = arguments[0].assertString("string");
+      var separator = arguments[1].assertString("separator");
+      var limit =
+          arguments[2].realNull?.assertNumber("limit").assertInt("limit");
 
-    if (limit != null && limit < 1) {
-      throw SassScriptException("\$limit: Must be 1 or greater, was $limit.");
-    }
+      if (limit != null && limit < 1) {
+        throw SassScriptException("\$limit: Must be 1 or greater, was $limit.");
+      }
 
-    if (string.text.isEmpty) {
-      return const SassList.empty(
-          separator: ListSeparator.comma, brackets: true);
-    } else if (separator.text.isEmpty) {
-      return SassList(
-          string.text.runes.map((rune) =>
-              SassString(String.fromCharCode(rune), quotes: string.hasQuotes)),
+      if (string.text.isEmpty) {
+        return const SassList.empty(
+          separator: ListSeparator.comma,
+          brackets: true,
+        );
+      } else if (separator.text.isEmpty) {
+        return SassList(
+          string.text.runes.map(
+            (rune) =>
+                SassString(String.fromCharCode(rune), quotes: string.hasQuotes),
+          ),
           ListSeparator.comma,
-          brackets: true);
-    }
+          brackets: true,
+        );
+      }
 
-    var i = 0;
-    var lastEnd = 0;
-    var chunks = <String>[];
-    for (var match in separator.text.allMatches(string.text)) {
-      chunks.add(string.text.substring(lastEnd, match.start));
-      lastEnd = match.end;
+      var i = 0;
+      var lastEnd = 0;
+      var chunks = <String>[];
+      for (var match in separator.text.allMatches(string.text)) {
+        chunks.add(string.text.substring(lastEnd, match.start));
+        lastEnd = match.end;
 
-      i++;
-      if (i == limit) break;
-    }
-    chunks.add(string.text.substring(lastEnd));
+        i++;
+        if (i == limit) break;
+      }
+      chunks.add(string.text.substring(lastEnd));
 
-    return SassList(
+      return SassList(
         chunks.map((chunk) => SassString(chunk, quotes: string.hasQuotes)),
         ListSeparator.comma,
-        brackets: true);
-  }),
-]);
+        brackets: true,
+      );
+    }),
+  ],
+);
 
 final _unquote = _function("unquote", r"$string", (arguments) {
   var string = arguments[0].assertString("string");
@@ -113,11 +123,14 @@ final _insert = _function("insert", r"$string, $insert, $index", (arguments) {
   }
 
   var codepointIndex = _codepointForIndex(indexInt, string.sassLength);
-  var codeUnitIndex =
-      codepointIndexToCodeUnitIndex(string.text, codepointIndex);
+  var codeUnitIndex = codepointIndexToCodeUnitIndex(
+    string.text,
+    codepointIndex,
+  );
   return SassString(
-      string.text.replaceRange(codeUnitIndex, codeUnitIndex, insert.text),
-      quotes: string.hasQuotes);
+    string.text.replaceRange(codeUnitIndex, codeUnitIndex, insert.text),
+    quotes: string.hasQuotes,
+  );
 });
 
 final _index = _function("index", r"$string, $substring", (arguments) {
@@ -126,13 +139,16 @@ final _index = _function("index", r"$string, $substring", (arguments) {
 
   var codeUnitIndex = string.text.indexOf(substring.text);
   if (codeUnitIndex == -1) return sassNull;
-  var codepointIndex =
-      codeUnitIndexToCodepointIndex(string.text, codeUnitIndex);
+  var codepointIndex = codeUnitIndexToCodepointIndex(
+    string.text,
+    codeUnitIndex,
+  );
   return SassNumber(codepointIndex + 1);
 });
 
-final _slice =
-    _function("slice", r"$string, $start-at, $end-at: -1", (arguments) {
+final _slice = _function("slice", r"$string, $start-at, $end-at: -1", (
+  arguments,
+) {
   var string = arguments[0].assertString("string");
   var start = arguments[1].assertNumber("start-at");
   var end = arguments[2].assertNumber("end-at");
@@ -146,20 +162,27 @@ final _slice =
   var endInt = end.assertInt();
   if (endInt == 0) return SassString.empty(quotes: string.hasQuotes);
 
-  var startCodepoint =
-      _codepointForIndex(start.assertInt(), lengthInCodepoints);
-  var endCodepoint =
-      _codepointForIndex(endInt, lengthInCodepoints, allowNegative: true);
+  var startCodepoint = _codepointForIndex(
+    start.assertInt(),
+    lengthInCodepoints,
+  );
+  var endCodepoint = _codepointForIndex(
+    endInt,
+    lengthInCodepoints,
+    allowNegative: true,
+  );
   if (endCodepoint == lengthInCodepoints) endCodepoint -= 1;
   if (endCodepoint < startCodepoint) {
     return SassString.empty(quotes: string.hasQuotes);
   }
 
   return SassString(
-      string.text.substring(
-          codepointIndexToCodeUnitIndex(string.text, startCodepoint),
-          codepointIndexToCodeUnitIndex(string.text, endCodepoint + 1)),
-      quotes: string.hasQuotes);
+    string.text.substring(
+      codepointIndexToCodeUnitIndex(string.text, startCodepoint),
+      codepointIndexToCodeUnitIndex(string.text, endCodepoint + 1),
+    ),
+    quotes: string.hasQuotes,
+  );
 });
 
 final _toUpperCase = _function("to-upper-case", r"$string", (arguments) {
@@ -188,8 +211,10 @@ final _uniqueId = _function("unique-id", "", (arguments) {
   }
 
   // The leading "u" ensures that the result is a valid identifier.
-  return SassString("u${_previousUniqueId.toRadixString(36).padLeft(6, '0')}",
-      quotes: false);
+  return SassString(
+    "u${_previousUniqueId.toRadixString(36).padLeft(6, '0')}",
+    quotes: false,
+  );
 });
 
 /// Converts a Sass string index into a codepoint index into a string whose
@@ -202,8 +227,11 @@ final _uniqueId = _function("unique-id", "", (arguments) {
 /// If [index] is negative and it points before the beginning of
 /// [lengthInCodepoints], this will return `0` if [allowNegative] is `false` and
 /// the index if it's `true`.
-int _codepointForIndex(int index, int lengthInCodepoints,
-    {bool allowNegative = false}) {
+int _codepointForIndex(
+  int index,
+  int lengthInCodepoints, {
+  bool allowNegative = false,
+}) {
   if (index == 0) return 0;
   if (index > 0) return math.min(index - 1, lengthInCodepoints);
   var result = lengthInCodepoints + index;
@@ -214,5 +242,8 @@ int _codepointForIndex(int index, int lengthInCodepoints,
 /// Like [BuiltInCallable.function], but always sets the URL to
 /// `sass:string`.
 BuiltInCallable _function(
-        String name, String arguments, Value callback(List<Value> arguments)) =>
+  String name,
+  String arguments,
+  Value callback(List<Value> arguments),
+) =>
     BuiltInCallable.function(name, arguments, callback, url: "sass:string");

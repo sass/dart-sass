@@ -72,8 +72,11 @@ extension JSClassExtension on JSClass {
   /// Sets the custom inspect logic for this class to [body].
   void setCustomInspect(String inspect(Object self)) {
     if (_util == null) return;
-    setProperty(prototype, _inspectSymbol,
-        allowInteropCaptureThis((Object self, _, __, [___]) => inspect(self)));
+    setProperty(
+      prototype,
+      _inspectSymbol,
+      allowInteropCaptureThis((Object self, _, __, [___]) => inspect(self)),
+    );
   }
 
   /// Defines a static method with the given [name] and [body].

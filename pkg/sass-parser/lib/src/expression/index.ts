@@ -8,6 +8,15 @@ import type {
   BinaryOperationExpressionProps,
 } from './binary-operation';
 import {BooleanExpression, BooleanExpressionProps} from './boolean';
+import {ColorExpression, ColorExpressionProps} from './color';
+import {FunctionExpression, FunctionExpressionProps} from './function';
+import {
+  InterpolatedFunctionExpression,
+  InterpolatedFunctionExpressionProps,
+} from './interpolated-function';
+import {ListExpression, ListExpressionProps} from './list';
+import {MapExpression, MapExpressionProps} from './map';
+import {NullExpression, NullExpressionProps} from './null';
 import {NumberExpression, NumberExpressionProps} from './number';
 import type {StringExpression, StringExpressionProps} from './string';
 
@@ -18,9 +27,15 @@ import type {StringExpression, StringExpressionProps} from './string';
  */
 export type AnyExpression =
   | BinaryOperationExpression
-  | StringExpression
   | BooleanExpression
-  | NumberExpression;
+  | ColorExpression
+  | FunctionExpression
+  | InterpolatedFunctionExpression
+  | ListExpression
+  | MapExpression
+  | NullExpression
+  | NumberExpression
+  | StringExpression;
 
 /**
  * Sass expression types.
@@ -29,9 +44,15 @@ export type AnyExpression =
  */
 export type ExpressionType =
   | 'binary-operation'
-  | 'string'
   | 'boolean'
-  | 'number';
+  | 'color'
+  | 'function-call'
+  | 'interpolated-function-call'
+  | 'list'
+  | 'map'
+  | 'null'
+  | 'number'
+  | 'string';
 
 /**
  * The union type of all properties that can be used to construct Sass
@@ -41,9 +62,15 @@ export type ExpressionType =
  */
 export type ExpressionProps =
   | BinaryOperationExpressionProps
-  | StringExpressionProps
   | BooleanExpressionProps
-  | NumberExpressionProps;
+  | ColorExpressionProps
+  | FunctionExpressionProps
+  | InterpolatedFunctionExpressionProps
+  | ListExpressionProps
+  | MapExpressionProps
+  | NullExpressionProps
+  | NumberExpressionProps
+  | StringExpressionProps;
 
 /**
  * The superclass of Sass expression nodes.

@@ -79,7 +79,7 @@ export class Rule extends _Rule implements Statement {
     selectorInterpolation.parent = this;
     this._selectorInterpolation = selectorInterpolation;
   }
-  private _selectorInterpolation?: Interpolation;
+  private declare _selectorInterpolation?: Interpolation;
 
   constructor(defaults: RuleProps);
   constructor(_: undefined, inner: sassInternal.StyleRule);

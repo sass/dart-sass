@@ -28,8 +28,10 @@ final class ComplexSelectorComponent {
   final FileSpan span;
 
   ComplexSelectorComponent(
-      this.selector, Iterable<CssValue<Combinator>> combinators, this.span)
-      : combinators = List.unmodifiable(combinators);
+    this.selector,
+    Iterable<CssValue<Combinator>> combinators,
+    this.span,
+  ) : combinators = List.unmodifiable(combinators);
 
   /// Returns a copy of `this` with [combinators] added to the end of
   /// [this.combinators].
@@ -37,11 +39,17 @@ final class ComplexSelectorComponent {
   /// @nodoc
   @internal
   ComplexSelectorComponent withAdditionalCombinators(
-          List<CssValue<Combinator>> combinators) =>
+    List<CssValue<Combinator>> combinators,
+  ) =>
       combinators.isEmpty
           ? this
           : ComplexSelectorComponent(
-              selector, [...this.combinators, ...combinators], span);
+              selector,
+              [
+                ...this.combinators,
+                ...combinators,
+              ],
+              span);
 
   int get hashCode => selector.hashCode ^ listHash(combinators);
 

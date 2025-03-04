@@ -26,24 +26,29 @@ final class ModifiableCssDeclaration extends ModifiableCssNode
   bool get isCustomProperty => name.value.startsWith('--');
 
   /// Returns a new CSS declaration with the given properties.
-  ModifiableCssDeclaration(this.name, this.value, this.span,
-      {required this.parsedAsCustomProperty,
-      Iterable<CssStyleRule>? interleavedRules,
-      this.trace,
-      FileSpan? valueSpanForMap})
-      : interleavedRules = interleavedRules == null
+  ModifiableCssDeclaration(
+    this.name,
+    this.value,
+    this.span, {
+    required this.parsedAsCustomProperty,
+    Iterable<CssStyleRule>? interleavedRules,
+    this.trace,
+    FileSpan? valueSpanForMap,
+  })  : interleavedRules = interleavedRules == null
             ? const []
             : List.unmodifiable(interleavedRules),
         valueSpanForMap = valueSpanForMap ?? value.span {
     if (parsedAsCustomProperty) {
       if (!isCustomProperty) {
         throw ArgumentError(
-            'parsedAsCustomProperty must be false if name doesn\'t begin with '
-            '"--".');
+          'parsedAsCustomProperty must be false if name doesn\'t begin with '
+          '"--".',
+        );
       } else if (value.value is! SassString) {
         throw ArgumentError(
-            'If parsedAsCustomProperty is true, value must contain a SassString '
-            '(was `$value` of type ${value.value.runtimeType}).');
+          'If parsedAsCustomProperty is true, value must contain a SassString '
+          '(was `$value` of type ${value.value.runtimeType}).',
+        );
       }
     }
   }

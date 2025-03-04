@@ -41,7 +41,7 @@ class LimitedMapView<K, V> extends UnmodifiableMapBase<K, V> {
   LimitedMapView.blocklist(this._map, Set<K> blocklist)
       : _keys = {
           for (var key in _map.keys)
-            if (!blocklist.contains(key)) key
+            if (!blocklist.contains(key)) key,
         };
 
   V? operator [](Object? key) => _keys.contains(key) ? _map[key] : null;

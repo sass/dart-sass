@@ -33,47 +33,66 @@ void main() {
 
   group('SassCalculation simplifies', () {
     test('calc()', () {
-      expect(SassCalculation.calc(SassNumber(1)).assertNumber(),
-          equals(SassNumber(1)));
+      expect(
+        SassCalculation.calc(SassNumber(1)).assertNumber(),
+        equals(SassNumber(1)),
+      );
     });
 
     test('min()', () {
-      expect(SassCalculation.min([SassNumber(1), SassNumber(2)]).assertNumber(),
-          equals(SassNumber(1)));
+      expect(
+        SassCalculation.min([SassNumber(1), SassNumber(2)]).assertNumber(),
+        equals(SassNumber(1)),
+      );
     });
 
     test('max()', () {
-      expect(SassCalculation.max([SassNumber(1), SassNumber(2)]).assertNumber(),
-          equals(SassNumber(2)));
+      expect(
+        SassCalculation.max([SassNumber(1), SassNumber(2)]).assertNumber(),
+        equals(SassNumber(2)),
+      );
     });
 
     test('clamp()', () {
       expect(
-          SassCalculation.clamp(SassNumber(1), SassNumber(2), SassNumber(3))
-              .assertNumber(),
-          equals(SassNumber(2)));
+        SassCalculation.clamp(
+          SassNumber(1),
+          SassNumber(2),
+          SassNumber(3),
+        ).assertNumber(),
+        equals(SassNumber(2)),
+      );
     });
 
     test('operations', () {
       expect(
-          SassCalculation.calc(SassCalculation.operate(
-                  CalculationOperator.plus,
-                  SassCalculation.operate(
-                      CalculationOperator.minus,
-                      SassCalculation.operate(
-                          CalculationOperator.times,
-                          SassCalculation.operate(CalculationOperator.dividedBy,
-                              SassNumber(5), SassNumber(2)),
-                          SassNumber(3)),
-                      SassNumber(4)),
-                  SassNumber(5)))
-              .assertNumber(),
-          equals(SassNumber(8.5)));
+        SassCalculation.calc(
+          SassCalculation.operate(
+            CalculationOperator.plus,
+            SassCalculation.operate(
+              CalculationOperator.minus,
+              SassCalculation.operate(
+                CalculationOperator.times,
+                SassCalculation.operate(
+                  CalculationOperator.dividedBy,
+                  SassNumber(5),
+                  SassNumber(2),
+                ),
+                SassNumber(3),
+              ),
+              SassNumber(4),
+            ),
+            SassNumber(5),
+          ),
+        ).assertNumber(),
+        equals(SassNumber(8.5)),
+      );
     });
 
     test('interpolation', () {
-      var result = SassCalculation.calc(CalculationInterpolation('1 + 2'))
-          .assertCalculation();
+      var result = SassCalculation.calc(
+        CalculationInterpolation('1 + 2'),
+      ).assertCalculation();
       expect(result.name, equals('calc'));
       expect(result.arguments[0], equals(SassString('(1 + 2)')));
     });

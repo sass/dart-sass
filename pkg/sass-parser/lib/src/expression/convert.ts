@@ -4,11 +4,18 @@
 
 import * as sassInternal from '../sass-internal';
 
-import {BinaryOperationExpression} from './binary-operation';
-import {StringExpression} from './string';
+import {ArgumentList} from '../argument-list';
 import {Expression} from '.';
+import {BinaryOperationExpression} from './binary-operation';
 import {BooleanExpression} from './boolean';
+import {ColorExpression} from './color';
+import {FunctionExpression} from './function';
+import {InterpolatedFunctionExpression} from './interpolated-function';
+import {ListExpression} from './list';
+import {MapExpression} from './map';
+import {NullExpression} from './null';
 import {NumberExpression} from './number';
+import {StringExpression} from './string';
 
 /** The visitor to use to convert internal Sass nodes to JS. */
 const visitor = sassInternal.createExpressionVisitor<Expression>({
@@ -16,6 +23,18 @@ const visitor = sassInternal.createExpressionVisitor<Expression>({
     new BinaryOperationExpression(undefined, inner),
   visitStringExpression: inner => new StringExpression(undefined, inner),
   visitBooleanExpression: inner => new BooleanExpression(undefined, inner),
+  visitColorExpression: inner => new ColorExpression(undefined, inner),
+  visitFunctionExpression: inner => new FunctionExpression(undefined, inner),
+  visitIfExpression: inner =>
+    new FunctionExpression({
+      name: 'if',
+      arguments: new ArgumentList(undefined, inner.arguments),
+    }),
+  visitInterpolatedFunctionExpression: inner =>
+    new InterpolatedFunctionExpression(undefined, inner),
+  visitListExpression: inner => new ListExpression(undefined, inner),
+  visitMapExpression: inner => new MapExpression(undefined, inner),
+  visitNullExpression: inner => new NullExpression(undefined, inner),
   visitNumberExpression: inner => new NumberExpression(undefined, inner),
 });
 

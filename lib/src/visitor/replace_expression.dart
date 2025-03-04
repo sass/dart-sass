@@ -16,7 +16,7 @@ import 'interface/expression.dart';
 /// protected methods that can be overridden to add behavior for a wide variety
 /// of AST nodes:
 ///
-/// * [visitArgumentInvocation]
+/// * [visitArgumentList]
 /// * [visitSupportsCondition]
 /// * [visitInterpolation]
 ///
@@ -24,33 +24,45 @@ import 'interface/expression.dart';
 mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
   Expression visitBinaryOperationExpression(BinaryOperationExpression node) =>
       BinaryOperationExpression(
-          node.operator, node.left.accept(this), node.right.accept(this));
+        node.operator,
+        node.left.accept(this),
+        node.right.accept(this),
+      );
 
   Expression visitBooleanExpression(BooleanExpression node) => node;
 
   Expression visitColorExpression(ColorExpression node) => node;
 
-  Expression visitFunctionExpression(
-          FunctionExpression node) =>
+  Expression visitFunctionExpression(FunctionExpression node) =>
       FunctionExpression(
-          node.originalName, visitArgumentInvocation(node.arguments), node.span,
-          namespace: node.namespace);
+        node.originalName,
+        visitArgumentList(node.arguments),
+        node.span,
+        namespace: node.namespace,
+      );
 
   Expression visitInterpolatedFunctionExpression(
-          InterpolatedFunctionExpression node) =>
-      InterpolatedFunctionExpression(visitInterpolation(node.name),
-          visitArgumentInvocation(node.arguments), node.span);
+    InterpolatedFunctionExpression node,
+  ) =>
+      InterpolatedFunctionExpression(
+        visitInterpolation(node.name),
+        visitArgumentList(node.arguments),
+        node.span,
+      );
 
   Expression visitIfExpression(IfExpression node) =>
-      IfExpression(visitArgumentInvocation(node.arguments), node.span);
+      IfExpression(visitArgumentList(node.arguments), node.span);
 
   Expression visitListExpression(ListExpression node) => ListExpression(
-      node.contents.map((item) => item.accept(this)), node.separator, node.span,
-      brackets: node.hasBrackets);
+        node.contents.map((item) => item.accept(this)),
+        node.separator,
+        node.span,
+        brackets: node.hasBrackets,
+      );
 
   Expression visitMapExpression(MapExpression node) => MapExpression([
         for (var (key, value) in node.pairs)
-          (key.accept(this), value.accept(this))
+          (key.accept(this), value.accept(this)),
       ], node.span);
 
   Expression visitNullExpression(NullExpression node) => node;
@@ -70,7 +82,10 @@ mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
 
   Expression visitUnaryOperationExpression(UnaryOperationExpression node) =>
       UnaryOperationExpression(
-          node.operator, node.operand.accept(this), node.span);
+        node.operator,
+        node.operand.accept(this),
+        node.span,
+      );
 
   Expression visitValueExpression(ValueExpression node) => node;
 
@@ -81,16 +96,16 @@ mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
   /// The default implementation of the visit methods calls this to replace any
   /// argument invocation in an expression.
   @protected
-  ArgumentInvocation visitArgumentInvocation(ArgumentInvocation invocation) =>
-      ArgumentInvocation(
-          invocation.positional.map((expression) => expression.accept(this)),
-          {
-            for (var (name, value) in invocation.named.pairs)
-              name: value.accept(this)
-          },
-          invocation.span,
-          rest: invocation.rest?.accept(this),
-          keywordRest: invocation.keywordRest?.accept(this));
+  ArgumentList visitArgumentList(ArgumentList invocation) => ArgumentList(
+        invocation.positional.map((expression) => expression.accept(this)),
+        {
+          for (var (name, value) in invocation.named.pairs)
+            name: value.accept(this),
+        },
+        invocation.span,
+        rest: invocation.rest?.accept(this),
+        keywordRest: invocation.keywordRest?.accept(this),
+      );
 
   /// Replaces each expression in [condition].
   ///
@@ -100,22 +115,32 @@ mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
   SupportsCondition visitSupportsCondition(SupportsCondition condition) {
     if (condition is SupportsOperation) {
       return SupportsOperation(
-          visitSupportsCondition(condition.left),
-          visitSupportsCondition(condition.right),
-          condition.operator,
-          condition.span);
+        visitSupportsCondition(condition.left),
+        visitSupportsCondition(condition.right),
+        condition.operator,
+        condition.span,
+      );
     } else if (condition is SupportsNegation) {
       return SupportsNegation(
-          visitSupportsCondition(condition.condition), condition.span);
+        visitSupportsCondition(condition.condition),
+        condition.span,
+      );
     } else if (condition is SupportsInterpolation) {
       return SupportsInterpolation(
-          condition.expression.accept(this), condition.span);
+        condition.expression.accept(this),
+        condition.span,
+      );
     } else if (condition is SupportsDeclaration) {
-      return SupportsDeclaration(condition.name.accept(this),
-          condition.value.accept(this), condition.span);
+      return SupportsDeclaration(
+        condition.name.accept(this),
+        condition.value.accept(this),
+        condition.span,
+      );
     } else {
       throw SassException(
-          "BUG: Unknown SupportsCondition $condition.", condition.span);
+        "BUG: Unknown SupportsCondition $condition.",
+        condition.span,
+      );
     }
   }
 
@@ -126,8 +151,10 @@ mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
   @protected
   Interpolation visitInterpolation(Interpolation interpolation) =>
       Interpolation(
-          interpolation.contents
-              .map((node) => node is Expression ? node.accept(this) : node),
-          interpolation.spans,
-          interpolation.span);
+        interpolation.contents.map(
+          (node) => node is Expression ? node.accept(this) : node,
+        ),
+        interpolation.spans,
+        interpolation.span,
+      );
 }

@@ -19,13 +19,19 @@ class _NodeSassMap {
 Object newNodeSassMap(SassMap value) => legacyMapClass.construct([null, value]);
 
 /// The JS `sass.types.Map` class.
-final JSClass legacyMapClass = createJSClass('sass.types.Map',
-    (_NodeSassMap thisArg, int? length, [SassMap? dartValue]) {
+final JSClass legacyMapClass = createJSClass('sass.types.Map', (
+  _NodeSassMap thisArg,
+  int? length, [
+  SassMap? dartValue,
+]) {
   thisArg.dartValue = dartValue ??
-      SassMap(Map.fromIterables(
+      SassMap(
+        Map.fromIterables(
           // Either [dartValue] or [length] must be passed.
           Iterable.generate(length!, (i) => SassNumber(i)),
-          Iterable.generate(length, (_) => sassNull)));
+          Iterable.generate(length, (_) => sassNull),
+        ),
+      );
 })
   ..defineMethods({
     'getKey': (_NodeSassMap thisArg, int index) =>
@@ -56,7 +62,9 @@ final JSClass legacyMapClass = createJSClass('sass.types.Map',
     },
     'setValue': (_NodeSassMap thisArg, int index, Object value) {
       var key = thisArg.dartValue.contents.keys.elementAt(index);
-      thisArg.dartValue =
-          SassMap({...thisArg.dartValue.contents, key: unwrapValue(value)});
-    }
+      thisArg.dartValue = SassMap({
+        ...thisArg.dartValue.contents,
+        key: unwrapValue(value),
+      });
+    },
   });

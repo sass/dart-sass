@@ -2,8 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import * as sass from 'sass';
 import * as postcss from 'postcss';
+import * as sass from 'sass';
 
 import type * as binaryOperation from './expression/binary-operation';
 
@@ -25,6 +25,26 @@ export interface SourceFile {
   getText(start: number, end?: number): string;
 }
 
+export interface DartSet<T> {
+  _type: T;
+
+  // A brand to make this function as a nominal type.
+  _unique: 'DartSet';
+}
+
+export interface DartMap<K, V> {
+  _keyType: K;
+  _valueType: V;
+
+  // A brand to make this function as a nominal type.
+  _unique: 'DartMap';
+}
+
+export interface DartPair<E1, E2> {
+  _0: E1;
+  _1: E2;
+}
+
 // There may be a better way to declare this, but I can't figure it out.
 // eslint-disable-next-line @typescript-eslint/no-namespace
 declare namespace SassInternal {
@@ -36,6 +56,10 @@ declare namespace SassInternal {
   ): string | null;
 
   function toCssIdentifier(text: string): string;
+
+  function setToJS<T>(set: DartSet<T>): Set<T>;
+
+  function mapToRecord<T>(set: DartMap<string, T>): Record<string, T>;
 
   class StatementVisitor<T> {
     private _fakePropertyToMakeThisAUniqueType1: T;
@@ -57,9 +81,26 @@ declare namespace SassInternal {
     readonly span: FileSpan;
   }
 
+  class ArgumentList extends SassNode {
+    readonly positional: Expression[];
+    readonly named: DartMap<string, Expression>;
+    readonly rest?: Expression;
+    readonly keywordRest?: Expression;
+  }
+
   class Interpolation extends SassNode {
     contents: (string | Expression)[];
     get asPlain(): string | undefined;
+  }
+
+  class ParameterList extends SassNode {
+    readonly parameters: Parameter[];
+    readonly restParameter?: string;
+  }
+
+  class Parameter extends SassNode {
+    readonly name: string;
+    readonly defaultValue?: Expression;
   }
 
   class Statement extends SassNode {
@@ -80,8 +121,22 @@ declare namespace SassInternal {
     readonly value?: Interpolation;
   }
 
+  class ContentBlock extends ParentStatement<Statement[]> {
+    readonly name: string;
+    readonly parameters: ParameterList;
+  }
+
+  class ContentRule extends Statement {
+    readonly arguments: ArgumentList;
+  }
+
   class DebugRule extends Statement {
     readonly expression: Expression;
+  }
+
+  class Declaration extends ParentStatement<Statement[] | null> {
+    readonly name: Interpolation;
+    readonly value?: Expression;
   }
 
   class EachRule extends ParentStatement<Statement[]> {
@@ -105,12 +160,70 @@ declare namespace SassInternal {
     readonly isExclusive: boolean;
   }
 
+  class ForwardRule extends Statement {
+    readonly url: Object;
+    readonly shownMixinsAndFunctions?: DartSet<string>;
+    readonly shownVariables?: DartSet<string>;
+    readonly hiddenMixinsAndFunctions?: DartSet<string>;
+    readonly hiddenVariables?: DartSet<string>;
+    readonly prefix?: string;
+    readonly configuration: ConfiguredVariable[];
+  }
+
+  class FunctionRule extends ParentStatement<Statement[]> {
+    readonly name: string;
+    readonly parameters: ParameterList;
+  }
+
+  class IfRule extends Statement {
+    readonly clauses: IfClause[];
+    readonly lastClause: ElseClause | null;
+  }
+
+  class IfClause {
+    readonly expression: Expression;
+    readonly children: Statement[];
+  }
+
+  class ElseClause {
+    readonly children: Statement[];
+  }
+
+  class ImportRule extends Statement {
+    readonly imports: (DynamicImport | StaticImport)[];
+  }
+
+  class DynamicImport extends SassNode {
+    readonly urlString: string;
+  }
+
+  class StaticImport extends SassNode {
+    readonly url: Interpolation;
+    readonly modifiers: Interpolation | null;
+  }
+
+  class IncludeRule extends Statement {
+    readonly namespace: string | null;
+    readonly name: string;
+    readonly arguments: ArgumentList;
+    readonly content: ContentBlock | null;
+  }
+
   class LoudComment extends Statement {
     readonly text: Interpolation;
   }
 
   class MediaRule extends ParentStatement<Statement[]> {
     readonly query: Interpolation;
+  }
+
+  class MixinRule extends ParentStatement<Statement[]> {
+    readonly name: string;
+    readonly parameters: ParameterList;
+  }
+
+  class ReturnRule extends Statement {
+    readonly expression: Expression;
   }
 
   class SilentComment extends Statement {
@@ -217,6 +330,35 @@ declare namespace SassInternal {
     readonly hasQuotes: boolean;
   }
 
+  class FunctionExpression extends Expression {
+    readonly namespace: string | null | undefined;
+    readonly name: string;
+    readonly arguments: ArgumentList;
+  }
+
+  class IfExpression extends Expression {
+    readonly arguments: ArgumentList;
+  }
+
+  class InterpolatedFunctionExpression extends Expression {
+    readonly name: Interpolation;
+    readonly arguments: ArgumentList;
+  }
+
+  class ListExpression extends Expression {
+    readonly contents: Expression[];
+    readonly separator: ListSeparator;
+    readonly hasBrackets: boolean;
+  }
+
+  class ListSeparator {
+    readonly separator: ' ' | ',' | '/' | null | undefined;
+  }
+
+  class MapExpression extends Expression {
+    readonly pairs: DartPair<Expression, Expression>[];
+  }
+
   class StringExpression extends Expression {
     readonly text: Interpolation;
     readonly hasQuotes: boolean;
@@ -225,6 +367,12 @@ declare namespace SassInternal {
   class BooleanExpression extends Expression {
     readonly value: boolean;
   }
+
+  class ColorExpression extends Expression {
+    readonly value: sass.SassColor;
+  }
+
+  class NullExpression extends Expression {}
 
   class NumberExpression extends Expression {
     readonly value: number;
@@ -240,15 +388,30 @@ export type SassNode = SassInternal.SassNode;
 export type Statement = SassInternal.Statement;
 export type ParentStatement<T extends Statement[] | null> =
   SassInternal.ParentStatement<T>;
+export type ArgumentList = SassInternal.ArgumentList;
 export type AtRootRule = SassInternal.AtRootRule;
 export type AtRule = SassInternal.AtRule;
+export type ContentBlock = SassInternal.ContentBlock;
+export type ContentRule = SassInternal.ContentRule;
 export type DebugRule = SassInternal.DebugRule;
+export type Declaration = SassInternal.Declaration;
 export type EachRule = SassInternal.EachRule;
 export type ErrorRule = SassInternal.ErrorRule;
 export type ExtendRule = SassInternal.ExtendRule;
 export type ForRule = SassInternal.ForRule;
+export type ForwardRule = SassInternal.ForwardRule;
+export type FunctionRule = SassInternal.FunctionRule;
+export type IfRule = SassInternal.IfRule;
+export type IfClause = SassInternal.IfClause;
+export type ElseClause = SassInternal.ElseClause;
+export type ImportRule = SassInternal.ImportRule;
+export type DynamicImport = SassInternal.DynamicImport;
+export type StaticImport = SassInternal.StaticImport;
+export type IncludeRule = SassInternal.IncludeRule;
 export type LoudComment = SassInternal.LoudComment;
 export type MediaRule = SassInternal.MediaRule;
+export type MixinRule = SassInternal.MixinRule;
+export type ReturnRule = SassInternal.ReturnRule;
 export type SilentComment = SassInternal.SilentComment;
 export type Stylesheet = SassInternal.Stylesheet;
 export type StyleRule = SassInternal.StyleRule;
@@ -257,24 +420,44 @@ export type UseRule = SassInternal.UseRule;
 export type VariableDeclaration = SassInternal.VariableDeclaration;
 export type WarnRule = SassInternal.WarnRule;
 export type WhileRule = SassInternal.WhileRule;
+export type Parameter = SassInternal.Parameter;
+export type ParameterList = SassInternal.ParameterList;
 export type ConfiguredVariable = SassInternal.ConfiguredVariable;
 export type Interpolation = SassInternal.Interpolation;
 export type Expression = SassInternal.Expression;
 export type BinaryOperationExpression = SassInternal.BinaryOperationExpression;
+export type FunctionExpression = SassInternal.FunctionExpression;
+export type IfExpression = SassInternal.IfExpression;
+export type InterpolatedFunctionExpression =
+  SassInternal.InterpolatedFunctionExpression;
+export type ListExpression = SassInternal.ListExpression;
+export type ListSeparator = SassInternal.ListSeparator;
+export type MapExpression = SassInternal.MapExpression;
 export type StringExpression = SassInternal.StringExpression;
 export type BooleanExpression = SassInternal.BooleanExpression;
+export type ColorExpression = SassInternal.ColorExpression;
+export type NullExpression = SassInternal.NullExpression;
 export type NumberExpression = SassInternal.NumberExpression;
 
 export interface StatementVisitorObject<T> {
   visitAtRootRule(node: AtRootRule): T;
   visitAtRule(node: AtRule): T;
+  visitContentRule(node: ContentRule): T;
   visitDebugRule(node: DebugRule): T;
+  visitDeclaration(node: Declaration): T;
   visitEachRule(node: EachRule): T;
   visitErrorRule(node: ErrorRule): T;
   visitExtendRule(node: ExtendRule): T;
   visitForRule(node: ForRule): T;
+  visitForwardRule(node: ForwardRule): T;
+  visitFunctionRule(node: FunctionRule): T;
+  visitIfRule(node: IfRule): T;
+  visitImportRule(node: ImportRule): T;
+  visitIncludeRule(node: IncludeRule): T;
   visitLoudComment(node: LoudComment): T;
   visitMediaRule(node: MediaRule): T;
+  visitMixinRule(node: MixinRule): T;
+  visitReturnRule(node: ReturnRule): T;
   visitSilentComment(node: SilentComment): T;
   visitStyleRule(node: StyleRule): T;
   visitSupportsRule(node: SupportsRule): T;
@@ -288,11 +471,20 @@ export interface ExpressionVisitorObject<T> {
   visitBinaryOperationExpression(node: BinaryOperationExpression): T;
   visitStringExpression(node: StringExpression): T;
   visitBooleanExpression(node: BooleanExpression): T;
+  visitColorExpression(node: ColorExpression): T;
+  visitFunctionExpression(node: FunctionExpression): T;
+  visitIfExpression(node: IfExpression): T;
+  visitInterpolatedFunctionExpression(node: InterpolatedFunctionExpression): T;
+  visitListExpression(node: ListExpression): T;
+  visitMapExpression(node: MapExpression): T;
+  visitNullExpression(node: NullExpression): T;
   visitNumberExpression(node: NumberExpression): T;
 }
 
+export const createExpressionVisitor = sassInternal.createExpressionVisitor;
+export const createStatementVisitor = sassInternal.createStatementVisitor;
+export const mapToRecord = sassInternal.mapToRecord;
 export const parse = sassInternal.parse;
 export const parseIdentifier = sassInternal.parseIdentifier;
+export const setToJS = sassInternal.setToJS;
 export const toCssIdentifier = sassInternal.toCssIdentifier;
-export const createStatementVisitor = sassInternal.createStatementVisitor;
-export const createExpressionVisitor = sassInternal.createExpressionVisitor;

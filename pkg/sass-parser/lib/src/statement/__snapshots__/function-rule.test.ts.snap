@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a @function rule toJSON 1`] = `
+{
+  "functionName": "foo",
+  "inputs": [
+    {
+      "css": "@function foo($bar) {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": "function",
+  "nodes": [],
+  "parameters": <($bar)>,
+  "params": "foo($bar)",
+  "raws": {},
+  "sassType": "function-rule",
+  "source": <1:1-1:23 in 0>,
+  "type": "atrule",
+}
+`;

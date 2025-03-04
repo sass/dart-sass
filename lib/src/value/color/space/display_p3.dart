@@ -39,6 +39,6 @@ final class DisplayP3ColorSpace extends ColorSpace {
         ColorSpace.xyzD65 => linearDisplayP3ToXyzD65,
         ColorSpace.xyzD50 => linearDisplayP3ToXyzD50,
         ColorSpace.lms => linearDisplayP3ToLms,
-        _ => super.transformationMatrix(dest)
+        _ => super.transformationMatrix(dest),
       };
 }

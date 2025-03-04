@@ -30,27 +30,37 @@ final class EmbeddedLogger extends LoggerWithDeprecationType {
         _ascii = ascii;
 
   void debug(String message, SourceSpan span) {
-    _dispatcher.sendLog(OutboundMessage_LogEvent()
-      ..type = LogEventType.DEBUG
-      ..message = message
-      ..span = protofySpan(span)
-      ..formatted = (span.start.sourceUrl.andThen(p.prettyUri) ?? '-') +
-          ':${span.start.line + 1} ' +
-          (_color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG') +
-          ': $message\n');
+    _dispatcher.sendLog(
+      OutboundMessage_LogEvent()
+        ..type = LogEventType.DEBUG
+        ..message = message
+        ..span = protofySpan(span)
+        ..formatted = (span.start.sourceUrl.andThen(p.prettyUri) ?? '-') +
+            ':${span.start.line + 1} ' +
+            (_color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG') +
+            ': $message\n',
+    );
   }
 
-  void internalWarn(String message,
-      {FileSpan? span, Trace? trace, Deprecation? deprecation}) {
+  void internalWarn(
+    String message, {
+    FileSpan? span,
+    Trace? trace,
+    Deprecation? deprecation,
+  }) {
     var formatted = withGlyphs(() {
       var buffer = StringBuffer();
+      var showDeprecation =
+          deprecation != null && deprecation != Deprecation.userAuthored;
       if (_color) {
         buffer.write('\u001b[33m\u001b[1m');
         if (deprecation != null) buffer.write('Deprecation ');
         buffer.write('Warning\u001b[0m');
+        if (showDeprecation) buffer.write(' [\u001b[34m$deprecation\u001b[0m]');
       } else {
         if (deprecation != null) buffer.write('DEPRECATION ');
         buffer.write('WARNING');
+        if (showDeprecation) buffer.write(' [$deprecation]');
       }
       if (span == null) {
         buffer.writeln(': $message');

@@ -86,61 +86,23 @@ const _conversions = {
   },
 
   // Rotation
-  "deg": {
-    "deg": 1.0,
-    "grad": 9 / 10,
-    "rad": 180 / pi,
-    "turn": 360.0,
-  },
-  "grad": {
-    "deg": 10 / 9,
-    "grad": 1.0,
-    "rad": 200 / pi,
-    "turn": 400.0,
-  },
-  "rad": {
-    "deg": pi / 180,
-    "grad": pi / 200,
-    "rad": 1.0,
-    "turn": 2 * pi,
-  },
-  "turn": {
-    "deg": 1 / 360,
-    "grad": 1 / 400,
-    "rad": 1 / (2 * pi),
-    "turn": 1.0,
-  },
+  "deg": {"deg": 1.0, "grad": 9 / 10, "rad": 180 / pi, "turn": 360.0},
+  "grad": {"deg": 10 / 9, "grad": 1.0, "rad": 200 / pi, "turn": 400.0},
+  "rad": {"deg": pi / 180, "grad": pi / 200, "rad": 1.0, "turn": 2 * pi},
+  "turn": {"deg": 1 / 360, "grad": 1 / 400, "rad": 1 / (2 * pi), "turn": 1.0},
 
   // Time
-  "s": {
-    "s": 1.0,
-    "ms": 1 / 1000,
-  },
-  "ms": {
-    "s": 1000.0,
-    "ms": 1.0,
-  },
+  "s": {"s": 1.0, "ms": 1 / 1000},
+  "ms": {"s": 1000.0, "ms": 1.0},
 
   // Frequency
   "Hz": {"Hz": 1.0, "kHz": 1000.0},
   "kHz": {"Hz": 1 / 1000, "kHz": 1.0},
 
   // Pixel density
-  "dpi": {
-    "dpi": 1.0,
-    "dpcm": 2.54,
-    "dppx": 96.0,
-  },
-  "dpcm": {
-    "dpi": 1 / 2.54,
-    "dpcm": 1.0,
-    "dppx": 96 / 2.54,
-  },
-  "dppx": {
-    "dpi": 1 / 96,
-    "dpcm": 2.54 / 96,
-    "dppx": 1.0,
-  },
+  "dpi": {"dpi": 1.0, "dpcm": 2.54, "dppx": 96.0},
+  "dpcm": {"dpi": 1 / 2.54, "dpcm": 1.0, "dppx": 96 / 2.54},
+  "dppx": {"dpi": 1 / 96, "dpcm": 2.54 / 96, "dppx": 1.0},
 };
 
 /// A map from human-readable names of unit types to the convertible units that
@@ -150,13 +112,13 @@ const _unitsByType = {
   "angle": ["deg", "grad", "rad", "turn"],
   "time": ["s", "ms"],
   "frequency": ["Hz", "kHz"],
-  "pixel density": ["dpi", "dpcm", "dppx"]
+  "pixel density": ["dpi", "dpcm", "dppx"],
 };
 
 /// A map from units to the human-readable names of those unit types.
 final _typesByUnit = {
   for (var (type, units) in _unitsByType.pairs)
-    for (var unit in units) unit: type
+    for (var unit in units) unit: type,
 };
 
 /// Returns the number of [unit1]s per [unit2].
@@ -255,8 +217,11 @@ abstract class SassNumber extends Value {
       : SingleUnitSassNumber(value.toDouble(), unit);
 
   /// Creates a number with full [numeratorUnits] and [denominatorUnits].
-  factory SassNumber.withUnits(num value,
-      {List<String>? numeratorUnits, List<String>? denominatorUnits}) {
+  factory SassNumber.withUnits(
+    num value, {
+    List<String>? numeratorUnits,
+    List<String>? denominatorUnits,
+  }) {
     var valueDouble = value.toDouble();
     switch ((numeratorUnits, denominatorUnits)) {
       case (null || [], null || []):
@@ -266,10 +231,16 @@ abstract class SassNumber extends Value {
       // TODO(dart-lang/language#3160): Remove extra null checks
       case (var numerators?, null || []):
         return ComplexSassNumber(
-            valueDouble, List.unmodifiable(numerators), const []);
+          valueDouble,
+          List.unmodifiable(numerators),
+          const [],
+        );
       case (null || [], var denominators?):
         return ComplexSassNumber(
-            valueDouble, const [], List.unmodifiable(denominators));
+          valueDouble,
+          const [],
+          List.unmodifiable(denominators),
+        );
     }
 
     // dart-lang/language#3160 as well
@@ -293,8 +264,11 @@ abstract class SassNumber extends Value {
     return switch ((numerators, denominators)) {
       ([], []) => UnitlessSassNumber(valueDouble),
       ([var unit], []) => SingleUnitSassNumber(valueDouble, unit),
-      _ => ComplexSassNumber(valueDouble, List.unmodifiable(numerators),
-          List.unmodifiable(denominators))
+      _ => ComplexSassNumber(
+          valueDouble,
+          List.unmodifiable(numerators),
+          List.unmodifiable(denominators),
+        ),
     };
   }
 
@@ -346,8 +320,9 @@ abstract class SassNumber extends Value {
   double valueInRange(num min, num max, [String? name]) {
     if (fuzzyCheckRange(value, min, max) case var result?) return result;
     throw SassScriptException(
-        "Expected $this to be within $min$unitString and $max$unitString.",
-        name);
+      "Expected $this to be within $min$unitString and $max$unitString.",
+      name,
+    );
   }
 
   /// Like [valueInRange], but with an explicit unit for the expected upper and
@@ -362,7 +337,9 @@ abstract class SassNumber extends Value {
   double valueInRangeWithUnit(num min, num max, String name, String unit) {
     if (fuzzyCheckRange(value, min, max) case var result?) return result;
     throw SassScriptException(
-        "Expected $this to be within $min$unit and $max$unit.", name);
+      "Expected $this to be within $min$unit and $max$unit.",
+      name,
+    );
   }
 
   /// Returns whether `this` has [unit] as its only unit (and as a numerator).
@@ -419,10 +396,16 @@ abstract class SassNumber extends Value {
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  SassNumber convert(List<String> newNumerators, List<String> newDenominators,
-          [String? name]) =>
-      SassNumber.withUnits(convertValue(newNumerators, newDenominators, name),
-          numeratorUnits: newNumerators, denominatorUnits: newDenominators);
+  SassNumber convert(
+    List<String> newNumerators,
+    List<String> newDenominators, [
+    String? name,
+  ]) =>
+      SassNumber.withUnits(
+        convertValue(newNumerators, newDenominators, name),
+        numeratorUnits: newNumerators,
+        denominatorUnits: newDenominators,
+      );
 
   /// Returns [value], converted to the units represented by [newNumerators] and
   /// [newDenominators].
@@ -432,10 +415,17 @@ abstract class SassNumber extends Value {
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  double convertValue(List<String> newNumerators, List<String> newDenominators,
-          [String? name]) =>
-      _coerceOrConvertValue(newNumerators, newDenominators,
-          coerceUnitless: false, name: name);
+  double convertValue(
+    List<String> newNumerators,
+    List<String> newDenominators, [
+    String? name,
+  ]) =>
+      _coerceOrConvertValue(
+        newNumerators,
+        newDenominators,
+        coerceUnitless: false,
+        name: name,
+      );
 
   /// A shorthand for [convertValue] with only one numerator unit.
   double convertValueToUnit(String unit, [String? name]) =>
@@ -453,11 +443,16 @@ abstract class SassNumber extends Value {
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`) and [otherName] is the argument name for [other]. These
   /// are used for error reporting.
-  SassNumber convertToMatch(SassNumber other,
-          [String? name, String? otherName]) =>
-      SassNumber.withUnits(convertValueToMatch(other, name, otherName),
-          numeratorUnits: other.numeratorUnits,
-          denominatorUnits: other.denominatorUnits);
+  SassNumber convertToMatch(
+    SassNumber other, [
+    String? name,
+    String? otherName,
+  ]) =>
+      SassNumber.withUnits(
+        convertValueToMatch(other, name, otherName),
+        numeratorUnits: other.numeratorUnits,
+        denominatorUnits: other.denominatorUnits,
+      );
 
   /// Returns [value], converted to the same units as [other].
   ///
@@ -468,13 +463,19 @@ abstract class SassNumber extends Value {
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`) and [otherName] is the argument name for [other]. These
   /// are used for error reporting.
-  double convertValueToMatch(SassNumber other,
-          [String? name, String? otherName]) =>
-      _coerceOrConvertValue(other.numeratorUnits, other.denominatorUnits,
-          coerceUnitless: false,
-          name: name,
-          other: other,
-          otherName: otherName);
+  double convertValueToMatch(
+    SassNumber other, [
+    String? name,
+    String? otherName,
+  ]) =>
+      _coerceOrConvertValue(
+        other.numeratorUnits,
+        other.denominatorUnits,
+        coerceUnitless: false,
+        name: name,
+        other: other,
+        otherName: otherName,
+      );
 
   /// Returns a copy of this number, converted to the units represented by
   /// [newNumerators] and [newDenominators].
@@ -492,10 +493,16 @@ abstract class SassNumber extends Value {
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  SassNumber coerce(List<String> newNumerators, List<String> newDenominators,
-          [String? name]) =>
-      SassNumber.withUnits(coerceValue(newNumerators, newDenominators, name),
-          numeratorUnits: newNumerators, denominatorUnits: newDenominators);
+  SassNumber coerce(
+    List<String> newNumerators,
+    List<String> newDenominators, [
+    String? name,
+  ]) =>
+      SassNumber.withUnits(
+        coerceValue(newNumerators, newDenominators, name),
+        numeratorUnits: newNumerators,
+        denominatorUnits: newDenominators,
+      );
 
   /// Returns [value], converted to the units represented by [newNumerators] and
   /// [newDenominators].
@@ -510,10 +517,17 @@ abstract class SassNumber extends Value {
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  double coerceValue(List<String> newNumerators, List<String> newDenominators,
-          [String? name]) =>
-      _coerceOrConvertValue(newNumerators, newDenominators,
-          coerceUnitless: true, name: name);
+  double coerceValue(
+    List<String> newNumerators,
+    List<String> newDenominators, [
+    String? name,
+  ]) =>
+      _coerceOrConvertValue(
+        newNumerators,
+        newDenominators,
+        coerceUnitless: true,
+        name: name,
+      );
 
   /// A shorthand for [coerceValue] with only one numerator unit.
   double coerceValueToUnit(String unit, [String? name]) =>
@@ -535,11 +549,16 @@ abstract class SassNumber extends Value {
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`) and [otherName] is the argument name for [other]. These
   /// are used for error reporting.
-  SassNumber coerceToMatch(SassNumber other,
-          [String? name, String? otherName]) =>
-      SassNumber.withUnits(coerceValueToMatch(other, name, otherName),
-          numeratorUnits: other.numeratorUnits,
-          denominatorUnits: other.denominatorUnits);
+  SassNumber coerceToMatch(
+    SassNumber other, [
+    String? name,
+    String? otherName,
+  ]) =>
+      SassNumber.withUnits(
+        coerceValueToMatch(other, name, otherName),
+        numeratorUnits: other.numeratorUnits,
+        denominatorUnits: other.denominatorUnits,
+      );
 
   /// Returns [value], converted to the same units as [other].
   ///
@@ -554,16 +573,28 @@ abstract class SassNumber extends Value {
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`) and [otherName] is the argument name for [other]. These
   /// are used for error reporting.
-  double coerceValueToMatch(SassNumber other,
-          [String? name, String? otherName]) =>
-      _coerceOrConvertValue(other.numeratorUnits, other.denominatorUnits,
-          coerceUnitless: true, name: name, other: other, otherName: otherName);
+  double coerceValueToMatch(
+    SassNumber other, [
+    String? name,
+    String? otherName,
+  ]) =>
+      _coerceOrConvertValue(
+        other.numeratorUnits,
+        other.denominatorUnits,
+        coerceUnitless: true,
+        name: name,
+        other: other,
+        otherName: otherName,
+      );
 
   /// This has been renamed [coerceValue] for consistency with [coerceToMatch],
   /// [coerceValueToMatch], [convertToMatch], and [convertValueToMatch].
   @Deprecated("Use coerceValue instead.")
-  double valueInUnits(List<String> newNumerators, List<String> newDenominators,
-          [String? name]) =>
+  double valueInUnits(
+    List<String> newNumerators,
+    List<String> newDenominators, [
+    String? name,
+  ]) =>
       coerceValue(newNumerators, newDenominators, name);
 
   /// Converts [value] to [newNumerators] and [newDenominators].
@@ -577,17 +608,20 @@ abstract class SassNumber extends Value {
   /// function parameter names of `this` and [other], respectively, used for
   /// error reporting.
   double _coerceOrConvertValue(
-      List<String> newNumerators, List<String> newDenominators,
-      {required bool coerceUnitless,
-      String? name,
-      SassNumber? other,
-      String? otherName}) {
+    List<String> newNumerators,
+    List<String> newDenominators, {
+    required bool coerceUnitless,
+    String? name,
+    SassNumber? other,
+    String? otherName,
+  }) {
     assert(
-        other == null ||
-            (listEquals(other.numeratorUnits, newNumerators) &&
-                listEquals(other.denominatorUnits, newDenominators)),
-        "Expected $other to have units "
-        "${_unitString(newNumerators, newDenominators)}.");
+      other == null ||
+          (listEquals(other.numeratorUnits, newNumerators) &&
+              listEquals(other.denominatorUnits, newDenominators)),
+      "Expected $other to have units "
+      "${_unitString(newNumerators, newDenominators)}.",
+    );
 
     if (listEquals(numeratorUnits, newNumerators) &&
         listEquals(denominatorUnits, newDenominators)) {
@@ -615,18 +649,22 @@ abstract class SassNumber extends Value {
             // If we're converting to a unit of a named type, use that type name
             // and make it clear exactly which units are convertible.
             return SassScriptException(
-                "Expected $this to have ${a(type)} unit "
-                "(${_unitsByType[type]!.join(', ')}).",
-                name);
+              "Expected $this to have ${a(type)} unit "
+              "(${_unitsByType[type]!.join(', ')}).",
+              name,
+            );
           }
         }
 
-        var unit =
-            pluralize('unit', newNumerators.length + newDenominators.length);
+        var unit = pluralize(
+          'unit',
+          newNumerators.length + newDenominators.length,
+        );
         return SassScriptException(
-            "Expected $this to have $unit "
-            "${_unitString(newNumerators, newDenominators)}.",
-            name);
+          "Expected $this to have $unit "
+          "${_unitString(newNumerators, newDenominators)}.",
+          name,
+        );
       }
     }
 
@@ -746,7 +784,10 @@ abstract class SassNumber extends Value {
     if (other is SassNumber) {
       if (!other.hasUnits) return withValue(value * other.value);
       return multiplyUnits(
-          value * other.value, other.numeratorUnits, other.denominatorUnits);
+        value * other.value,
+        other.numeratorUnits,
+        other.denominatorUnits,
+      );
     }
     throw SassScriptException('Undefined operation "$this * $other".');
   }
@@ -757,7 +798,10 @@ abstract class SassNumber extends Value {
     if (other is SassNumber) {
       if (!other.hasUnits) return withValue(value / other.value);
       return multiplyUnits(
-          value / other.value, other.denominatorUnits, other.numeratorUnits);
+        value / other.value,
+        other.denominatorUnits,
+        other.numeratorUnits,
+      );
     }
     return super.dividedBy(other);
   }
@@ -791,22 +835,28 @@ abstract class SassNumber extends Value {
   ///
   /// @nodoc
   @protected
-  SassNumber multiplyUnits(double value, List<String> otherNumerators,
-      List<String> otherDenominators) {
+  SassNumber multiplyUnits(
+    double value,
+    List<String> otherNumerators,
+    List<String> otherDenominators,
+  ) {
     // Short-circuit without allocating any new unit lists if possible.
     switch ((
       numeratorUnits,
       denominatorUnits,
       otherNumerators,
-      otherDenominators
+      otherDenominators,
     )) {
       case (var numerators, var denominators, [], []) ||
             ([], [], var numerators, var denominators):
       case ([], var denominators, var numerators, []) ||
               (var numerators, [], [], var denominators)
           when !_areAnyConvertible(numerators, denominators):
-        return SassNumber.withUnits(value,
-            numeratorUnits: numerators, denominatorUnits: denominators);
+        return SassNumber.withUnits(
+          value,
+          numeratorUnits: numerators,
+          denominatorUnits: denominators,
+        );
     }
 
     var newNumerators = <String>[];
@@ -830,19 +880,23 @@ abstract class SassNumber extends Value {
       }, orElse: () => newNumerators.add(numerator));
     }
 
-    return SassNumber.withUnits(value,
-        numeratorUnits: newNumerators,
-        denominatorUnits: mutableDenominatorUnits
-          ..addAll(mutableOtherDenominators));
+    return SassNumber.withUnits(
+      value,
+      numeratorUnits: newNumerators,
+      denominatorUnits: mutableDenominatorUnits
+        ..addAll(mutableOtherDenominators),
+    );
   }
 
   /// Returns whether there exists a unit in [units1] that can be converted to a
   /// unit in [units2].
   bool _areAnyConvertible(List<String> units1, List<String> units2) =>
-      units1.any((unit1) => switch (_conversions[unit1]) {
-            var innerMap? => units2.any(innerMap.containsKey),
-            _ => units2.contains(unit1)
-          });
+      units1.any(
+        (unit1) => switch (_conversions[unit1]) {
+          var innerMap? => units2.any(innerMap.containsKey),
+          _ => units2.contains(unit1),
+        },
+      );
 
   /// Returns a human-readable string representation of [numerators] and
   /// [denominators].
@@ -864,25 +918,32 @@ abstract class SassNumber extends Value {
     }
     if (!hasUnits) return fuzzyEquals(value, other.value);
 
-    if (!listEquals(_canonicalizeUnitList(numeratorUnits),
-            _canonicalizeUnitList(other.numeratorUnits)) ||
-        !listEquals(_canonicalizeUnitList(denominatorUnits),
-            _canonicalizeUnitList(other.denominatorUnits))) {
+    if (!listEquals(
+          _canonicalizeUnitList(numeratorUnits),
+          _canonicalizeUnitList(other.numeratorUnits),
+        ) ||
+        !listEquals(
+          _canonicalizeUnitList(denominatorUnits),
+          _canonicalizeUnitList(other.denominatorUnits),
+        )) {
       return false;
     }
 
     return fuzzyEquals(
+      value *
+          _canonicalMultiplier(numeratorUnits) /
+          _canonicalMultiplier(denominatorUnits),
+      other.value *
+          _canonicalMultiplier(other.numeratorUnits) /
+          _canonicalMultiplier(other.denominatorUnits),
+    );
+  }
+
+  int get hashCode => hashCache ??= fuzzyHashCode(
         value *
             _canonicalMultiplier(numeratorUnits) /
             _canonicalMultiplier(denominatorUnits),
-        other.value *
-            _canonicalMultiplier(other.numeratorUnits) /
-            _canonicalMultiplier(other.denominatorUnits));
-  }
-
-  int get hashCode => hashCache ??= fuzzyHashCode(value *
-      _canonicalMultiplier(numeratorUnits) /
-      _canonicalMultiplier(denominatorUnits));
+      );
 
   /// Converts a unit list (such as [numeratorUnits]) into an equivalent list in
   /// a canonical form, to make it easier to check whether two numbers have
@@ -906,7 +967,9 @@ abstract class SassNumber extends Value {
   /// That is, if `X units1 == Y units2`, `X * _canonicalMultiplier(units1) == Y
   /// * _canonicalMultiplier(units2)`.
   double _canonicalMultiplier(List<String> units) => units.fold(
-      1, (multiplier, unit) => multiplier * canonicalMultiplierForUnit(unit));
+        1,
+        (multiplier, unit) => multiplier * canonicalMultiplierForUnit(unit),
+      );
 
   /// Returns a multiplier that encapsulates unit equivalence with [unit].
   ///

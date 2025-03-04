@@ -29,20 +29,40 @@ final class JSToDartLogger extends LoggerWithDeprecationType {
   JSToDartLogger(this._node, this._fallback, {bool? ascii})
       : _ascii = ascii ?? glyph.ascii;
 
-  void internalWarn(String message,
-      {FileSpan? span, Trace? trace, Deprecation? deprecation}) {
+  void internalWarn(
+    String message, {
+    FileSpan? span,
+    Trace? trace,
+    Deprecation? deprecation,
+  }) {
     if (_node?.warn case var warn?) {
       warn(
-          message,
-          WarnOptions(
-              span: span ?? (undefined as SourceSpan?),
-              stack: trace.toString(),
-              deprecation: deprecation != null,
-              deprecationType: deprecations[deprecation?.id]));
+        message,
+        WarnOptions(
+          span: span ?? (undefined as SourceSpan?),
+          stack: trace.toString(),
+          deprecation: deprecation != null,
+          deprecationType: deprecations[deprecation?.id],
+        ),
+      );
     } else {
       _withAscii(() {
-        _fallback.warn(message,
-            span: span, trace: trace, deprecation: deprecation != null);
+        switch (_fallback) {
+          case LoggerWithDeprecationType():
+            _fallback.internalWarn(
+              message,
+              span: span,
+              trace: trace,
+              deprecation: deprecation,
+            );
+          case _:
+            _fallback.warn(
+              message,
+              span: span,
+              trace: trace,
+              deprecation: deprecation != null,
+            );
+        }
       });
     }
   }

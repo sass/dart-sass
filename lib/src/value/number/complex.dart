@@ -26,13 +26,17 @@ class ComplexSassNumber extends SassNumber {
   bool get hasComplexUnits => true;
 
   ComplexSassNumber(
-      double value, List<String> numeratorUnits, List<String> denominatorUnits)
-      : this._(value, numeratorUnits, denominatorUnits);
+    double value,
+    List<String> numeratorUnits,
+    List<String> denominatorUnits,
+  ) : this._(value, numeratorUnits, denominatorUnits);
 
   ComplexSassNumber._(
-      double value, this._numeratorUnits, this._denominatorUnits,
-      [(SassNumber, SassNumber)? asSlash])
-      : super.protected(value, asSlash) {
+    double value,
+    this._numeratorUnits,
+    this._denominatorUnits, [
+    (SassNumber, SassNumber)? asSlash,
+  ]) : super.protected(value, asSlash) {
     assert(numeratorUnits.length > 1 || denominatorUnits.isNotEmpty);
   }
 
@@ -45,13 +49,16 @@ class ComplexSassNumber extends SassNumber {
     // This logic is well-defined, and we could implement it in principle.
     // However, it would be fairly complex and there's no clear need for it yet.
     throw UnimplementedError(
-        "ComplexSassNumber.hasPossiblyCompatibleUnits is not implemented.");
+      "ComplexSassNumber.hasPossiblyCompatibleUnits is not implemented.",
+    );
   }
 
   SassNumber withValue(num value) =>
       ComplexSassNumber._(value.toDouble(), numeratorUnits, denominatorUnits);
 
   SassNumber withSlash(SassNumber numerator, SassNumber denominator) =>
-      ComplexSassNumber._(
-          value, numeratorUnits, denominatorUnits, (numerator, denominator));
+      ComplexSassNumber._(value, numeratorUnits, denominatorUnits, (
+        numerator,
+        denominator,
+      ));
 }

@@ -9,22 +9,29 @@ import '../utils.dart';
 
 /// The JavaScript `SassArgumentList` class.
 final JSClass argumentListClass = () {
-  var jsClass = createJSClass('sass.SassArgumentList',
-      (Object self, Object contents, Object keywords,
-          [String? separator = ',']) {
+  var jsClass = createJSClass('sass.SassArgumentList', (
+    Object self,
+    Object contents,
+    Object keywords, [
+    String? separator = ',',
+  ]) {
     return SassArgumentList(
-        jsToDartList(contents).cast<Value>(),
-        (isImmutableMap(keywords)
-                ? immutableMapToDartMap(keywords as ImmutableMap)
-                : objectToMap(keywords))
-            .cast<String, Value>(),
-        jsToDartSeparator(separator));
+      jsToDartList(contents).cast<Value>(),
+      (isImmutableMap(keywords)
+              ? immutableMapToDartMap(keywords as ImmutableMap)
+              : objectToMap(keywords))
+          .cast<String, Value>(),
+      jsToDartSeparator(separator),
+    );
   });
 
-  jsClass.defineGetter('keywords',
-      (SassArgumentList self) => dartMapToImmutableMap(self.keywords));
+  jsClass.defineGetter(
+    'keywords',
+    (SassArgumentList self) => dartMapToImmutableMap(self.keywords),
+  );
 
-  getJSClass(SassArgumentList([], {}, ListSeparator.undecided))
-      .injectSuperclass(jsClass);
+  getJSClass(
+    SassArgumentList([], {}, ListSeparator.undecided),
+  ).injectSuperclass(jsClass);
   return jsClass;
 }();

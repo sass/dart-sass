@@ -28,14 +28,25 @@
 
 import * as postcss from 'postcss';
 
-import {AnyStatement} from './statement';
+import {AnyStatement, AtRule} from './statement';
 import {DebugRule} from './statement/debug-rule';
+import {Declaration} from './statement/declaration';
 import {EachRule} from './statement/each-rule';
+import {ElseRule} from './statement/else-rule';
 import {ErrorRule} from './statement/error-rule';
+import {ForRule} from './statement/for-rule';
+import {ForwardRule} from './statement/forward-rule';
+import {FunctionRule} from './statement/function-rule';
 import {GenericAtRule} from './statement/generic-at-rule';
+import {IfRule} from './statement/if-rule';
+import {ImportRule} from './statement/import-rule';
+import {IncludeRule} from './statement/include-rule';
+import {MixinRule} from './statement/mixin-rule';
+import {ReturnRule} from './statement/return-rule';
 import {Rule} from './statement/rule';
 import {SassComment} from './statement/sass-comment';
 import {UseRule} from './statement/use-rule';
+import {VariableDeclaration} from './statement/variable-declaration';
 import {WarnRule} from './statement/warn-rule';
 import {WhileRule} from './statement/while-rule';
 
@@ -74,11 +85,51 @@ export class Stringifier extends PostCssStringifier {
     )(statement, semicolon);
   }
 
+  private ['content-rule'](node: EachRule): void {
+    this.sassAtRule(node);
+  }
+
   private ['debug-rule'](node: DebugRule, semicolon: boolean): void {
     this.sassAtRule(node, semicolon);
   }
 
+  decl(node: Declaration, semicolon: boolean): void {
+    const start =
+      node.propInterpolation.toString() +
+      (node.raws.between ?? (node.expression ? ': ' : ':')) +
+      (node.expression ? node.expression : '');
+
+    // We can't use Stringifier.block() here because it expects the "between"
+    // raw to refer to the whitespace immediately before `{`, but for a
+    // declaration (even one with children) it refers to `: ` instead.
+    if (node.nodes) {
+      this.builder(start + (node.raws.afterValue ?? ' ') + '{');
+
+      let after;
+      if (node.nodes.length) {
+        this.body(node);
+        after = this.raw(node, 'after');
+      } else {
+        after = this.raw(node, 'after', 'emptyBody');
+      }
+
+      if (after) this.builder(after);
+      this.builder('}', node, 'end');
+      if (node.raws.ownSemicolon) {
+        this.builder(node.raws.ownSemicolon, node, 'end');
+      }
+    } else {
+      this.builder(
+        start + (node.raws.afterValue ?? '') + (semicolon ? ';' : ''),
+      );
+    }
+  }
+
   private ['each-rule'](node: EachRule): void {
+    this.sassAtRule(node);
+  }
+
+  private ['else-rule'](node: ElseRule): void {
     this.sassAtRule(node);
   }
 
@@ -86,8 +137,32 @@ export class Stringifier extends PostCssStringifier {
     this.sassAtRule(node, semicolon);
   }
 
-  private ['for-rule'](node: EachRule): void {
+  private ['for-rule'](node: ForRule): void {
     this.sassAtRule(node);
+  }
+
+  private ['forward-rule'](node: ForwardRule, semicolon: boolean): void {
+    this.sassAtRule(node, semicolon);
+  }
+
+  private ['function-rule'](node: FunctionRule, semicolon: boolean): void {
+    this.sassAtRule(node, semicolon);
+  }
+
+  private ['if-rule'](node: IfRule): void {
+    this.sassAtRule(node);
+  }
+
+  private ['import-rule'](node: ImportRule, semicolon: boolean): void {
+    this.sassAtRule(node, semicolon);
+  }
+
+  private ['include-rule'](node: IncludeRule, semicolon: boolean): void {
+    this.sassAtRule(node, semicolon);
+  }
+
+  private ['mixin-rule'](node: MixinRule, semicolon: boolean): void {
+    this.sassAtRule(node, semicolon);
   }
 
   private atrule(node: GenericAtRule, semicolon: boolean): void {
@@ -97,6 +172,7 @@ export class Stringifier extends PostCssStringifier {
       node.raws.atRootShorthand &&
       node.name === 'at-root' &&
       node.paramsInterpolation === undefined &&
+      node.nodes &&
       node.nodes.length === 1 &&
       node.nodes[0].sassType === 'rule'
     ) {
@@ -121,6 +197,10 @@ export class Stringifier extends PostCssStringifier {
         node,
       );
     }
+  }
+
+  private ['return-rule'](node: ReturnRule, semicolon: boolean): void {
+    this.sassAtRule(node, semicolon);
   }
 
   private rule(node: Rule): void {
@@ -166,13 +246,37 @@ export class Stringifier extends PostCssStringifier {
     this.sassAtRule(node, semicolon);
   }
 
+  private ['variable-declaration'](
+    node: VariableDeclaration,
+    semicolon: boolean,
+  ): void {
+    this.builder(
+      node.prop +
+        this.raw(node, 'between', 'colon') +
+        node.expression +
+        (node.raws.flags?.value?.guarded === node.guarded &&
+        node.raws.flags?.value?.global === node.global
+          ? node.raws.flags.raw
+          : (node.guarded ? ' !default' : '') +
+            (node.global ? ' !global' : '')) +
+        (node.raws.afterValue ?? '') +
+        (semicolon ? ';' : ''),
+      node,
+    );
+  }
+
   private ['while-rule'](node: WhileRule): void {
     this.sassAtRule(node);
   }
 
   /** Helper method for non-generic Sass at-rules. */
-  private sassAtRule(node: postcss.AtRule, semicolon?: boolean): void {
-    const start = '@' + node.name + (node.raws.afterName ?? ' ') + node.params;
+  private sassAtRule(node: AtRule, semicolon?: boolean): void {
+    const start =
+      '@' +
+      node.name +
+      (node.raws.afterName ??
+        (node.params === '' || node.sassType === 'content-rule' ? '' : ' ')) +
+      node.params;
     if (node.nodes) {
       this.block(node, start);
     } else {

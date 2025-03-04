@@ -21,11 +21,14 @@ final _sassVersionRegExp = RegExp(r'^( +)sass: (\d.*)$', multiLine: true);
 void addBumpVersionTasks() {
   for (var patch in [false, true]) {
     for (var dev in [true, false]) {
-      addTask(GrinderTask(
+      addTask(
+        GrinderTask(
           'bump-version-${patch ? 'patch' : 'minor'}' + (dev ? '-dev' : ''),
           taskFunction: () => _bumpVersion(patch, dev),
           description: 'Bump the version of all packages to the next '
-              '${patch ? 'patch' : 'minor'}${dev ? ' dev' : ''} version'));
+              '${patch ? 'patch' : 'minor'}${dev ? ' dev' : ''} version',
+        ),
+      );
     }
   }
 }
@@ -36,11 +39,7 @@ void _bumpVersion(bool patch, bool dev) {
   // Returns the version to which to bump [version].
   Version chooseNextVersion(Version version, SourceSpan span) {
     if (dev) {
-      if (patch
-          ? version.preRelease.isNotEmpty
-          : version.patch == 0 ||
-              version.preRelease.length != 1 ||
-              version.preRelease.first != "dev") {
+      if (version.preRelease.isNotEmpty && (patch || version.patch == 0)) {
         fail(span.message("Version is already pre-release", color: true));
       }
     } else if (version.preRelease.length == 1 &&
@@ -53,8 +52,12 @@ void _bumpVersion(bool patch, bool dev) {
 
     var nextVersion =
         patch || version.major == 0 ? version.nextPatch : version.nextMinor;
-    return Version(nextVersion.major, nextVersion.minor, nextVersion.patch,
-        pre: dev ? "dev" : null);
+    return Version(
+      nextVersion.major,
+      nextVersion.minor,
+      nextVersion.patch,
+      pre: dev ? "dev" : null,
+    );
   }
 
   /// Adds a "No user-visible changes" entry for [version] to the changelog in
@@ -64,12 +67,14 @@ void _bumpVersion(bool patch, bool dev) {
     var text = File(path).readAsStringSync();
     if (!dev && text.startsWith("## $version-dev\n")) {
       File(path).writeAsStringSync(
-          text.replaceFirst("## $version-dev\n", "## $version\n"));
+        text.replaceFirst("## $version-dev\n", "## $version\n"),
+      );
     } else if (text.startsWith("## $version\n")) {
       return;
     } else {
-      File(path).writeAsStringSync(
-          "## $version\n\n* No user-visible changes.\n\n$text");
+      File(
+        path,
+      ).writeAsStringSync("## $version\n\n* No user-visible changes.\n\n$text");
     }
   }
 
@@ -82,17 +87,24 @@ void _bumpVersion(bool patch, bool dev) {
   Version bumpDartVersion(String path, [Version? sassVersion]) {
     var text = File(path).readAsStringSync();
     var pubspec = loadYaml(text, sourceUrl: p.toUri(path)) as YamlMap;
-    var version = chooseNextVersion(Version.parse(pubspec["version"] as String),
-        pubspec.nodes["version"]!.span);
+    var version = chooseNextVersion(
+      Version.parse(pubspec["version"] as String),
+      pubspec.nodes["version"]!.span,
+    );
 
     text = text.replaceFirst(_pubspecVersionRegExp, 'version: $version');
     if (sassVersion != null) {
       // Don't depend on a prerelease version, depend on its released
       // equivalent.
-      var sassDependencyVersion =
-          Version(sassVersion.major, sassVersion.minor, sassVersion.patch);
-      text = text.replaceFirstMapped(_sassVersionRegExp,
-          (match) => '${match[1]}sass: $sassDependencyVersion');
+      var sassDependencyVersion = Version(
+        sassVersion.major,
+        sassVersion.minor,
+        sassVersion.patch,
+      );
+      text = text.replaceFirstMapped(
+        _sassVersionRegExp,
+        (match) => '${match[1]}sass: $sassDependencyVersion',
+      );
     }
 
     File(path).writeAsStringSync(text);
@@ -108,10 +120,14 @@ void _bumpVersion(bool patch, bool dev) {
   var packageJson =
       loadYaml(packageJsonText, sourceUrl: p.toUri(packageJsonPath)) as YamlMap;
   var version = chooseNextVersion(
-      Version.parse(packageJson["version"] as String),
-      packageJson.nodes["version"]!.span);
-  File(packageJsonPath).writeAsStringSync(JsonEncoder.withIndent("  ")
-          .convert({...packageJson, "version": version.toString()}) +
-      "\n");
+    Version.parse(packageJson["version"] as String),
+    packageJson.nodes["version"]!.span,
+  );
+  File(packageJsonPath).writeAsStringSync(
+    JsonEncoder.withIndent(
+          "  ",
+        ).convert({...packageJson, "version": version.toString()}) +
+        "\n",
+  );
   addChangelogEntry("pkg/sass-parser", version);
 }

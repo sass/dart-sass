@@ -79,7 +79,7 @@ class SassString extends Value {
           $a || $A => equalsLetterIgnoreCase($l, text.codeUnitAt(2)) &&
               equalsLetterIgnoreCase($c, text.codeUnitAt(3)) &&
               text.codeUnitAt(4) == $lparen,
-          _ => false
+          _ => false,
         },
       $v || $V => equalsLetterIgnoreCase($a, text.codeUnitAt(1)) &&
           equalsLetterIgnoreCase($r, text.codeUnitAt(2)) &&
@@ -92,9 +92,9 @@ class SassString extends Value {
               text.codeUnitAt(3) == $lparen,
           $i || $I => equalsLetterIgnoreCase($n, text.codeUnitAt(2)) &&
               text.codeUnitAt(3) == $lparen,
-          _ => false
+          _ => false,
         },
-      _ => false
+      _ => false,
     };
   }
 
@@ -168,7 +168,9 @@ class SassString extends Value {
   /// argument name (without the `$`). It's used for error reporting.
   int sassIndexToStringIndex(Value sassIndex, [String? name]) =>
       codepointIndexToCodeUnitIndex(
-          text, sassIndexToRuneIndex(sassIndex, name));
+        text,
+        sassIndexToRuneIndex(sassIndex, name),
+      );
 
   /// Converts [sassIndex] into a Dart-style index into [text]`.runes`.
   ///
@@ -187,8 +189,9 @@ class SassString extends Value {
       throw SassScriptException("String index may not be 0.", name);
     } else if (index.abs() > sassLength) {
       throw SassScriptException(
-          "Invalid index $sassIndex for a string with $sassLength characters.",
-          name);
+        "Invalid index $sassIndex for a string with $sassLength characters.",
+        name,
+      );
     }
 
     return index < 0 ? sassLength + index : index - 1;

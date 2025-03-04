@@ -26,50 +26,73 @@ void main() {
 
     test("returns its contents as a list", () {
       expect(
-          value.asList,
-          equals([
-            SassString("a", quotes: false),
-            SassString("b", quotes: false),
-            SassString("c", quotes: false)
-          ]));
+        value.asList,
+        equals([
+          SassString("a", quotes: false),
+          SassString("b", quotes: false),
+          SassString("c", quotes: false),
+        ]),
+      );
     });
 
     test("equals the same list", () {
       expect(
-          value,
-          equalsWithHash(SassList([
+        value,
+        equalsWithHash(
+          SassList([
             SassString("a", quotes: false),
             SassString("b", quotes: false),
-            SassString("c", quotes: false)
-          ], ListSeparator.comma)));
+            SassString("c", quotes: false),
+          ], ListSeparator.comma),
+        ),
+      );
     });
 
     test("doesn't equal a value with different metadata", () {
       expect(
-          value,
-          isNot(equals(SassList([
-            SassString("a", quotes: false),
-            SassString("b", quotes: false),
-            SassString("c", quotes: false)
-          ], ListSeparator.space))));
+        value,
+        isNot(
+          equals(
+            SassList([
+              SassString("a", quotes: false),
+              SassString("b", quotes: false),
+              SassString("c", quotes: false),
+            ], ListSeparator.space),
+          ),
+        ),
+      );
 
       expect(
-          value,
-          isNot(equals(SassList([
-            SassString("a", quotes: false),
-            SassString("b", quotes: false),
-            SassString("c", quotes: false)
-          ], ListSeparator.comma, brackets: true))));
+        value,
+        isNot(
+          equals(
+            SassList(
+              [
+                SassString("a", quotes: false),
+                SassString("b", quotes: false),
+                SassString("c", quotes: false),
+              ],
+              ListSeparator.comma,
+              brackets: true,
+            ),
+          ),
+        ),
+      );
     });
 
     test("doesn't equal a value with different contents", () {
       expect(
-          value,
-          isNot(equals(SassList([
-            SassString("a", quotes: false),
-            SassString("x", quotes: false),
-            SassString("c", quotes: false)
-          ], ListSeparator.comma))));
+        value,
+        isNot(
+          equals(
+            SassList([
+              SassString("a", quotes: false),
+              SassString("x", quotes: false),
+              SassString("c", quotes: false),
+            ], ListSeparator.comma),
+          ),
+        ),
+      );
     });
 
     group("sassIndexToListIndex()", () {
@@ -87,22 +110,31 @@ void main() {
 
       test("rejects a non-number", () {
         expect(
-            () => value.sassIndexToListIndex(SassString("foo", quotes: false)),
-            throwsSassScriptException);
+          () => value.sassIndexToListIndex(SassString("foo", quotes: false)),
+          throwsSassScriptException,
+        );
       });
 
       test("rejects a non-integer", () {
-        expect(() => value.sassIndexToListIndex(SassNumber(1.1)),
-            throwsSassScriptException);
+        expect(
+          () => value.sassIndexToListIndex(SassNumber(1.1)),
+          throwsSassScriptException,
+        );
       });
 
       test("rejects invalid indices", () {
-        expect(() => value.sassIndexToListIndex(SassNumber(0)),
-            throwsSassScriptException);
-        expect(() => value.sassIndexToListIndex(SassNumber(4)),
-            throwsSassScriptException);
-        expect(() => value.sassIndexToListIndex(SassNumber(-4)),
-            throwsSassScriptException);
+        expect(
+          () => value.sassIndexToListIndex(SassNumber(0)),
+          throwsSassScriptException,
+        );
+        expect(
+          () => value.sassIndexToListIndex(SassNumber(4)),
+          throwsSassScriptException,
+        );
+        expect(
+          () => value.sassIndexToListIndex(SassNumber(-4)),
+          throwsSassScriptException,
+        );
       });
     });
 
@@ -119,8 +151,10 @@ void main() {
   });
 
   test("a slash-separated list is slash-separated", () {
-    expect(parseValue("list.slash(a, b, c)").separator,
-        equals(ListSeparator.slash));
+    expect(
+      parseValue("list.slash(a, b, c)").separator,
+      equals(ListSeparator.slash),
+    );
   });
 
   test("a space-separated list is space-separated", () {
@@ -188,12 +222,18 @@ void main() {
     });
 
     test("sassIndexToListIndex() rejects invalid indices", () {
-      expect(() => value.sassIndexToListIndex(SassNumber(0)),
-          throwsSassScriptException);
-      expect(() => value.sassIndexToListIndex(SassNumber(1)),
-          throwsSassScriptException);
-      expect(() => value.sassIndexToListIndex(SassNumber(-1)),
-          throwsSassScriptException);
+      expect(
+        () => value.sassIndexToListIndex(SassNumber(0)),
+        throwsSassScriptException,
+      );
+      expect(
+        () => value.sassIndexToListIndex(SassNumber(1)),
+        throwsSassScriptException,
+      );
+      expect(
+        () => value.sassIndexToListIndex(SassNumber(-1)),
+        throwsSassScriptException,
+      );
     });
   });
 
@@ -225,12 +265,18 @@ void main() {
       });
 
       test("rejects invalid indices", () {
-        expect(() => value.sassIndexToListIndex(SassNumber(0)),
-            throwsSassScriptException);
-        expect(() => value.sassIndexToListIndex(SassNumber(2)),
-            throwsSassScriptException);
-        expect(() => value.sassIndexToListIndex(SassNumber(-2)),
-            throwsSassScriptException);
+        expect(
+          () => value.sassIndexToListIndex(SassNumber(0)),
+          throwsSassScriptException,
+        );
+        expect(
+          () => value.sassIndexToListIndex(SassNumber(2)),
+          throwsSassScriptException,
+        );
+        expect(
+          () => value.sassIndexToListIndex(SassNumber(-2)),
+          throwsSassScriptException,
+        );
       });
     });
   });
@@ -252,8 +298,9 @@ void main() {
 
   group("new SassList()", () {
     test("creates a list with the given contents and metadata", () {
-      var list =
-          SassList([SassString("a", quotes: false)], ListSeparator.space);
+      var list = SassList([
+        SassString("a", quotes: false),
+      ], ListSeparator.space);
       expect(list.asList, equals([SassString("a", quotes: false)]));
       expect(list.separator, equals(ListSeparator.space));
       expect(list.hasBrackets, isFalse);
@@ -261,27 +308,37 @@ void main() {
 
     test("can create a bracketed list", () {
       expect(
-          SassList([SassString("a", quotes: false)], ListSeparator.space,
-                  brackets: true)
-              .hasBrackets,
-          isTrue);
+        SassList(
+          [SassString("a", quotes: false)],
+          ListSeparator.space,
+          brackets: true,
+        ).hasBrackets,
+        isTrue,
+      );
     });
 
     test("can create a short list with an undecided separator", () {
       expect(
-          SassList([SassString("a", quotes: false)], ListSeparator.undecided)
-              .separator,
-          equals(ListSeparator.undecided));
-      expect(SassList([], ListSeparator.undecided).separator,
-          equals(ListSeparator.undecided));
+        SassList([
+          SassString("a", quotes: false),
+        ], ListSeparator.undecided)
+            .separator,
+        equals(ListSeparator.undecided),
+      );
+      expect(
+        SassList([], ListSeparator.undecided).separator,
+        equals(ListSeparator.undecided),
+      );
     });
 
     test("can't create a long list with an undecided separator", () {
       expect(
-          () => SassList(
-              [SassString("a", quotes: false), SassString("b", quotes: false)],
-              ListSeparator.undecided),
-          throwsArgumentError);
+        () => SassList([
+          SassString("a", quotes: false),
+          SassString("b", quotes: false),
+        ], ListSeparator.undecided),
+        throwsArgumentError,
+      );
     });
   });
 }

@@ -28,16 +28,21 @@ final class LmsColorSpace extends ColorSpace {
       : super('lms', const [
           LinearChannel('long', 0, 1),
           LinearChannel('medium', 0, 1),
-          LinearChannel('short', 0, 1)
+          LinearChannel('short', 0, 1),
         ]);
 
-  SassColor convert(ColorSpace dest, double? long, double? medium,
-      double? short, double? alpha,
-      {bool missingLightness = false,
-      bool missingChroma = false,
-      bool missingHue = false,
-      bool missingA = false,
-      bool missingB = false}) {
+  SassColor convert(
+    ColorSpace dest,
+    double? long,
+    double? medium,
+    double? short,
+    double? alpha, {
+    bool missingLightness = false,
+    bool missingChroma = false,
+    bool missingHue = false,
+    bool missingA = false,
+    bool missingB = false,
+  }) {
     switch (dest) {
       case ColorSpace.oklab:
         // Algorithm from https://drafts.csswg.org/css-color-4/#color-conversion-code
@@ -49,18 +54,19 @@ final class LmsColorSpace extends ColorSpace {
             lmsToOklab[2] * shortScaled;
 
         return SassColor.oklab(
-            missingLightness ? null : lightness,
-            missingA
-                ? null
-                : lmsToOklab[3] * longScaled +
-                    lmsToOklab[4] * mediumScaled +
-                    lmsToOklab[5] * shortScaled,
-            missingB
-                ? null
-                : lmsToOklab[6] * longScaled +
-                    lmsToOklab[7] * mediumScaled +
-                    lmsToOklab[8] * shortScaled,
-            alpha);
+          missingLightness ? null : lightness,
+          missingA
+              ? null
+              : lmsToOklab[3] * longScaled +
+                  lmsToOklab[4] * mediumScaled +
+                  lmsToOklab[5] * shortScaled,
+          missingB
+              ? null
+              : lmsToOklab[6] * longScaled +
+                  lmsToOklab[7] * mediumScaled +
+                  lmsToOklab[8] * shortScaled,
+          alpha,
+        );
 
       case ColorSpace.oklch:
         // This is equivalent to converting to OKLab and then to OKLCH, but we
@@ -70,29 +76,36 @@ final class LmsColorSpace extends ColorSpace {
         var mediumScaled = _cubeRootPreservingSign(medium ?? 0);
         var shortScaled = _cubeRootPreservingSign(short ?? 0);
         return labToLch(
-            dest,
-            missingLightness
-                ? null
-                : lmsToOklab[0] * longScaled +
-                    lmsToOklab[1] * mediumScaled +
-                    lmsToOklab[2] * shortScaled,
-            lmsToOklab[3] * longScaled +
-                lmsToOklab[4] * mediumScaled +
-                lmsToOklab[5] * shortScaled,
-            lmsToOklab[6] * longScaled +
-                lmsToOklab[7] * mediumScaled +
-                lmsToOklab[8] * shortScaled,
-            alpha,
-            missingChroma: missingChroma,
-            missingHue: missingHue);
+          dest,
+          missingLightness
+              ? null
+              : lmsToOklab[0] * longScaled +
+                  lmsToOklab[1] * mediumScaled +
+                  lmsToOklab[2] * shortScaled,
+          lmsToOklab[3] * longScaled +
+              lmsToOklab[4] * mediumScaled +
+              lmsToOklab[5] * shortScaled,
+          lmsToOklab[6] * longScaled +
+              lmsToOklab[7] * mediumScaled +
+              lmsToOklab[8] * shortScaled,
+          alpha,
+          missingChroma: missingChroma,
+          missingHue: missingHue,
+        );
 
       default:
-        return super.convertLinear(dest, long, medium, short, alpha,
-            missingLightness: missingLightness,
-            missingChroma: missingChroma,
-            missingHue: missingHue,
-            missingA: missingA,
-            missingB: missingB);
+        return super.convertLinear(
+          dest,
+          long,
+          medium,
+          short,
+          alpha,
+          missingLightness: missingLightness,
+          missingChroma: missingChroma,
+          missingHue: missingHue,
+          missingA: missingA,
+          missingB: missingB,
+        );
     }
   }
 
@@ -119,6 +132,6 @@ final class LmsColorSpace extends ColorSpace {
         ColorSpace.rec2020 => lmsToLinearRec2020,
         ColorSpace.xyzD65 => lmsToXyzD65,
         ColorSpace.xyzD50 => lmsToXyzD50,
-        _ => super.transformationMatrix(dest)
+        _ => super.transformationMatrix(dest),
       };
 }

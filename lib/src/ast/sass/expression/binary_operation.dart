@@ -81,7 +81,7 @@ final class BinaryOperationExpression extends Expression {
       BinaryOperationExpression(operator: BinaryOperator(:var precedence)) =>
         precedence < operator.precedence,
       ListExpression(hasBrackets: false, contents: [_, _, ...]) => true,
-      _ => false
+      _ => false,
     };
     if (leftNeedsParens) buffer.writeCharCode($lparen);
     buffer.write(left);
@@ -97,7 +97,7 @@ final class BinaryOperationExpression extends Expression {
         operator.precedence <= this.operator.precedence &&
             !(operator == this.operator && operator.isAssociative),
       ListExpression(hasBrackets: false, contents: [_, _, ...]) => true,
-      _ => false
+      _ => false,
     };
     if (rightNeedsParens) buffer.writeCharCode($lparen);
     buffer.write(right);
@@ -172,9 +172,12 @@ enum BinaryOperator {
   /// [associative property]: https://en.wikipedia.org/wiki/Associative_property
   final bool isAssociative;
 
-  const BinaryOperator(this.name, this.operator, this.precedence,
-      {bool associative = false})
-      : isAssociative = associative;
+  const BinaryOperator(
+    this.name,
+    this.operator,
+    this.precedence, {
+    bool associative = false,
+  }) : isAssociative = associative;
 
   String toString() => name;
 }

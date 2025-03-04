@@ -54,8 +54,10 @@ final class NodeImporter {
   final List<JSFunction> _importers;
 
   NodeImporter(
-      this._options, Iterable<String> includePaths, Iterable<Object> importers)
-      : _includePaths = List.unmodifiable(_addSassPath(includePaths)),
+    this._options,
+    Iterable<String> includePaths,
+    Iterable<Object> importers,
+  )   : _includePaths = List.unmodifiable(_addSassPath(includePaths)),
         _importers = List.unmodifiable(importers.cast());
 
   /// Returns [includePaths] followed by any paths loaded from the `SASS_PATH`
@@ -75,7 +77,10 @@ final class NodeImporter {
   /// Returns the stylesheet at that path and the URL used to load it, or `null`
   /// if loading failed.
   (String contents, String url)? loadRelative(
-      String url, Uri? previous, bool forImport) {
+    String url,
+    Uri? previous,
+    bool forImport,
+  ) {
     if (p.url.isAbsolute(url)) {
       if (!url.startsWith('/') && !url.startsWith('file:')) return null;
       return _tryPath(p.fromUri(url), forImport);
@@ -85,7 +90,9 @@ final class NodeImporter {
 
     // 1: Filesystem imports relative to the base file.
     return _tryPath(
-        p.join(p.dirname(p.fromUri(previous)), p.fromUri(url)), forImport);
+      p.join(p.dirname(p.fromUri(previous)), p.fromUri(url)),
+      forImport,
+    );
   }
 
   /// Loads the stylesheet at [url] from an importer or load path.
@@ -94,12 +101,16 @@ final class NodeImporter {
   /// appeared. Returns the contents of the stylesheet and the URL to use as
   /// [previous] for imports within the loaded stylesheet.
   (String contents, String url)? load(
-      String url, Uri? previous, bool forImport) {
+    String url,
+    Uri? previous,
+    bool forImport,
+  ) {
     // The previous URL is always an absolute file path for filesystem imports.
     var previousString = _previousToString(previous);
     for (var importer in _importers) {
-      if (wrapJSExceptions(() =>
-              call2(importer, _renderContext(forImport), url, previousString))
+      if (wrapJSExceptions(
+        () => call2(importer, _renderContext(forImport), url, previousString),
+      )
           case var value?) {
         return _handleImportResult(url, previous, value, forImport);
       }
@@ -115,7 +126,10 @@ final class NodeImporter {
   /// appeared. Returns the contents of the stylesheet and the URL to use as
   /// [previous] for imports within the loaded stylesheet.
   Future<(String contents, String url)?> loadAsync(
-      String url, Uri? previous, bool forImport) async {
+    String url,
+    Uri? previous,
+    bool forImport,
+  ) async {
     // The previous URL is always an absolute file path for filesystem imports.
     var previousString = _previousToString(previous);
     for (var importer in _importers) {
@@ -132,7 +146,7 @@ final class NodeImporter {
   String _previousToString(Uri? previous) => switch (previous) {
         null => 'stdin',
         Uri(scheme: 'file') => p.fromUri(previous),
-        _ => previous.toString()
+        _ => previous.toString(),
       };
 
   /// Tries to load a stylesheet at the given [url] from a load path (including
@@ -170,23 +184,33 @@ final class NodeImporter {
   /// Returns the stylesheet at that path and the URL used to load it, or `null`
   /// if loading failed.
   (String, String)? _tryPath(String path, bool forImport) => (forImport
-          ? inImportRule(() => resolveImportPath(path))
-          : resolveImportPath(path))
-      .andThen(
-          (resolved) => (readFile(resolved), p.toUri(resolved).toString()));
+              ? inImportRule(() => resolveImportPath(path))
+              : resolveImportPath(path))
+          .andThen(
+        (resolved) => (readFile(resolved), p.toUri(resolved).toString()),
+      );
 
   /// Converts an importer's return [value] to a (contents, url) pair that can
   /// be returned by [load].
   (String, String)? _handleImportResult(
-      String url, Uri? previous, Object value, bool forImport) {
+    String url,
+    Uri? previous,
+    Object value,
+    bool forImport,
+  ) {
     if (isJSError(value)) throw value;
     if (value is! NodeImporterResult) return null;
 
     var file = value.file;
     var contents = value.contents;
     if (contents != null && !isJsString(contents)) {
-      jsThrow(ArgumentError.value(contents, 'contents',
-          'must be a string but was: ${jsType(contents)}'));
+      jsThrow(
+        ArgumentError.value(
+          contents,
+          'contents',
+          'must be a string but was: ${jsType(contents)}',
+        ),
+      );
     }
 
     if (file == null) {
@@ -203,16 +227,23 @@ final class NodeImporter {
   }
 
   /// Calls an importer that may or may not be asynchronous.
-  Future<Object?> _callImporterAsync(JSFunction importer, String url,
-      String previousString, bool forImport) async {
+  Future<Object?> _callImporterAsync(
+    JSFunction importer,
+    String url,
+    String previousString,
+    bool forImport,
+  ) async {
     var completer = Completer<Object>();
 
-    var result = wrapJSExceptions(() => call3(
+    var result = wrapJSExceptions(
+      () => call3(
         importer,
         _renderContext(forImport),
         url,
         previousString,
-        allowInterop(completer.complete)));
+        allowInterop(completer.complete),
+      ),
+    );
     if (isUndefined(result)) return await completer.future;
     return result;
   }
@@ -220,7 +251,9 @@ final class NodeImporter {
   /// Returns the [RenderContext] in which to invoke importers.
   RenderContext _renderContext(bool fromImport) {
     var context = RenderContext(
-        options: _options as RenderContextOptions, fromImport: fromImport);
+      options: _options as RenderContextOptions,
+      fromImport: fromImport,
+    );
     context.options.context = context;
     return context;
   }

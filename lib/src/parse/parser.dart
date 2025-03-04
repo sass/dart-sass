@@ -67,23 +67,31 @@ class Parser {
     if (!scanner.scanChar($dollar)) return false;
     if (!lookingAtIdentifier()) return false;
     identifier();
-    whitespace();
+    whitespace(consumeNewlines: true);
     return scanner.scanChar($colon);
   }
 
   // ## Tokens
 
   /// Consumes whitespace, including any comments.
+  ///
+  /// If [consumeNewlines] is `true`, the indented syntax will consume newlines
+  /// as whitespace. It should only be set to `true` in positions when a
+  /// statement can't end.
   @protected
-  void whitespace() {
+  void whitespace({required bool consumeNewlines}) {
     do {
-      whitespaceWithoutComments();
+      whitespaceWithoutComments(consumeNewlines: consumeNewlines);
     } while (scanComment());
   }
 
   /// Consumes whitespace, but not comments.
+  ///
+  /// If [consumeNewlines] is `true`, the indented syntax will consume newlines
+  /// as whitespace. It should only be set to `true` in positions when a
+  /// statement can't end.
   @protected
-  void whitespaceWithoutComments() {
+  void whitespaceWithoutComments({required bool consumeNewlines}) {
     while (!scanner.isDone && scanner.peekChar().isWhitespace) {
       scanner.readChar();
     }
@@ -116,13 +124,16 @@ class Parser {
   }
 
   /// Like [whitespace], but throws an error if no whitespace is consumed.
+  ///
+  /// If [consumeNewlines] is `true`, the indented syntax will consume newlines
+  /// as whitespace. It should only be set to `true` in positions when a
+  /// statement can't end.
   @protected
-  void expectWhitespace() {
+  void expectWhitespace({bool consumeNewlines = false}) {
     if (scanner.isDone || !(scanner.peekChar().isWhitespace || scanComment())) {
       scanner.error("Expected whitespace.");
     }
-
-    whitespace();
+    whitespace(consumeNewlines: consumeNewlines);
   }
 
   /// Consumes and ignores a single silent (Sass-style) comment, not including
@@ -205,8 +216,11 @@ class Parser {
   }
 
   /// Like [_identifierBody], but parses the body into the [text] buffer.
-  void _identifierBody(StringBuffer text,
-      {bool normalize = false, bool unit = false}) {
+  void _identifierBody(
+    StringBuffer text, {
+    bool normalize = false,
+    bool unit = false,
+  }) {
     loop:
     while (true) {
       switch (scanner.peekChar()) {
@@ -386,7 +400,7 @@ class Parser {
       return null;
     }
 
-    whitespace();
+    whitespace(consumeNewlines: true);
 
     // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
     // backtrack and re-parse as a function expression.
@@ -407,7 +421,7 @@ class Parser {
               >= 0x0080:
           buffer.writeCharCode(scanner.readChar());
         case int(isWhitespace: true):
-          whitespace();
+          whitespace(consumeNewlines: true);
           if (scanner.peekChar() != $rparen) break loop;
         case $rparen:
           buffer.writeCharCode(scanner.readChar());
@@ -464,8 +478,11 @@ class Parser {
       try {
         return String.fromCharCode(value);
       } on RangeError {
-        scanner.error("Invalid Unicode code point.",
-            position: start, length: scanner.position - start);
+        scanner.error(
+          "Invalid Unicode code point.",
+          position: start,
+          length: scanner.position - start,
+        );
       }
     } else if (value <= 0x1F ||
         value == 0x7F ||
@@ -525,8 +542,10 @@ class Parser {
   void expectIdentChar(int letter, {bool caseSensitive = false}) {
     if (scanIdentChar(letter, caseSensitive: caseSensitive)) return;
 
-    scanner.error('Expected "${String.fromCharCode(letter)}".',
-        position: scanner.position);
+    scanner.error(
+      'Expected "${String.fromCharCode(letter)}".',
+      position: scanner.position,
+    );
   }
 
   // ## Utilities
@@ -543,9 +562,9 @@ class Parser {
         $plus || $minus => switch (scanner.peekChar(1)) {
             int(isDigit: true) => true,
             $dot => scanner.peekChar(2)?.isDigit ?? false,
-            _ => false
+            _ => false,
           },
-        _ => false
+        _ => false,
       };
 
   /// Returns whether the scanner is immediately before a plain CSS identifier.
@@ -565,9 +584,9 @@ class Parser {
       int(isNameStart: true) || $backslash => true,
       $dash => switch (scanner.peekChar(forward + 1)) {
           int(isNameStart: true) || $backslash || $dash => true,
-          _ => false
+          _ => false,
         },
-      _ => false
+      _ => false,
     };
   }
 
@@ -622,8 +641,11 @@ class Parser {
 
   /// Consumes an identifier and asserts that its name exactly matches [text].
   @protected
-  void expectIdentifier(String text,
-      {String? name, bool caseSensitive = false}) {
+  void expectIdentifier(
+    String text, {
+    String? name,
+    bool caseSensitive = false,
+  }) {
     name ??= '"$text"';
 
     var start = scanner.position;
@@ -675,9 +697,10 @@ class Parser {
       return callback();
     } on SourceSpanFormatException catch (error, stackTrace) {
       throwWithTrace(
-          SourceSpanFormatException(message, error.span, error.source),
-          error,
-          stackTrace);
+        SourceSpanFormatException(message, error.span, error.source),
+        error,
+        stackTrace,
+      );
     }
   }
 
@@ -714,15 +737,20 @@ class Parser {
         span = _adjustExceptionSpan(span);
         secondarySpans = {
           for (var (span, description) in secondarySpans.pairs)
-            _adjustExceptionSpan(span): description
+            _adjustExceptionSpan(span): description,
         };
       }
 
       throwWithTrace(
-          MultiSpanSassFormatException(
-              error.message, span, error.primaryLabel, secondarySpans),
-          error,
-          stackTrace);
+        MultiSpanSassFormatException(
+          error.message,
+          span,
+          error.primaryLabel,
+          secondarySpans,
+        ),
+        error,
+        stackTrace,
+      );
     } on SourceSpanFormatException catch (error, stackTrace) {
       var span = error.span as FileSpan;
       if (startsWithIgnoreCase(error.message, "expected")) {
@@ -730,7 +758,10 @@ class Parser {
       }
 
       throwWithTrace(
-          SassFormatException(error.message, span), error, stackTrace);
+        SassFormatException(error.message, span),
+        error,
+        stackTrace,
+      );
     }
   }
 

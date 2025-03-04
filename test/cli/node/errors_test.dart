@@ -22,15 +22,16 @@ void main() {
 
     var sass = await runSass(["--no-unicode", "test.scss"]);
     expect(
-        sass.stderr,
-        emitsInOrder([
-          "Error: \"package:\" URLs aren't supported on this platform.",
-          "  ,",
-          "1 | @use 'package:nope/test';",
-          "  | ^^^^^^^^^^^^^^^^^^^^^^^^",
-          "  '",
-          "  test.scss 1:1  root stylesheet"
-        ]));
+      sass.stderr,
+      emitsInOrder([
+        "Error: \"package:\" URLs aren't supported on this platform.",
+        "  ,",
+        "1 | @use 'package:nope/test';",
+        "  | ^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  '",
+        "  test.scss 1:1  root stylesheet",
+      ]),
+    );
     await sass.shouldExit(65);
   });
 }

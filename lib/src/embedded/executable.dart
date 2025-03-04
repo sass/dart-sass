@@ -16,22 +16,27 @@ void main(List<String> args) {
       var response = IsolateDispatcher.versionResponse();
       response.id = 0;
       stdout.writeln(
-          JsonEncoder.withIndent("  ").convert(response.toProto3Json()));
+        JsonEncoder.withIndent("  ").convert(response.toProto3Json()),
+      );
       return;
 
     case [_, ...]:
       stderr.writeln(
-          "sass --embedded is not intended to be executed with additional "
-          "arguments.\n"
-          "See https://github.com/sass/dart-sass#embedded-dart-sass for "
-          "details.");
+        "sass --embedded is not intended to be executed with additional "
+        "arguments.\n"
+        "See https://github.com/sass/dart-sass#embedded-dart-sass for "
+        "details.",
+      );
       // USAGE error from https://bit.ly/2poTt90
       exitCode = 64;
       return;
   }
 
   IsolateDispatcher(
-          StreamChannel.withGuarantees(stdin, stdout, allowSinkErrors: false)
-              .transform(lengthDelimited))
-      .listen();
+    StreamChannel.withGuarantees(
+      stdin,
+      stdout,
+      allowSinkErrors: false,
+    ).transform(lengthDelimited),
+  ).listen();
 }

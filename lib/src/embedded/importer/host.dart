@@ -20,13 +20,16 @@ final class HostImporter extends ImporterBase {
   final Set<String> _nonCanonicalSchemes;
 
   HostImporter(
-      super.dispatcher, this._importerId, Iterable<String> nonCanonicalSchemes)
-      : _nonCanonicalSchemes = Set.unmodifiable(nonCanonicalSchemes) {
+    super.dispatcher,
+    this._importerId,
+    Iterable<String> nonCanonicalSchemes,
+  ) : _nonCanonicalSchemes = Set.unmodifiable(nonCanonicalSchemes) {
     for (var scheme in _nonCanonicalSchemes) {
       if (isValidUrlScheme(scheme)) continue;
       throw SassException(
-          '"$scheme" isn\'t a valid URL scheme (for example "file").',
-          bogusSpan);
+        '"$scheme" isn\'t a valid URL scheme (for example "file").',
+        bogusSpan,
+      );
     }
   }
 
@@ -43,27 +46,35 @@ final class HostImporter extends ImporterBase {
     if (!response.containingUrlUnused) canonicalizeContext.containingUrl;
 
     return switch (response.whichResult()) {
-      InboundMessage_CanonicalizeResponse_Result.url =>
-        parseAbsoluteUrl("The importer", response.url),
+      InboundMessage_CanonicalizeResponse_Result.url => parseAbsoluteUrl(
+          "The importer",
+          response.url,
+        ),
       InboundMessage_CanonicalizeResponse_Result.error => throw response.error,
-      InboundMessage_CanonicalizeResponse_Result.notSet => null
+      InboundMessage_CanonicalizeResponse_Result.notSet => null,
     };
   }
 
   ImporterResult? load(Uri url) {
-    var response = dispatcher.sendImportRequest(OutboundMessage_ImportRequest()
-      ..importerId = _importerId
-      ..url = url.toString());
+    var response = dispatcher.sendImportRequest(
+      OutboundMessage_ImportRequest()
+        ..importerId = _importerId
+        ..url = url.toString(),
+    );
 
     return switch (response.whichResult()) {
       InboundMessage_ImportResponse_Result.success => ImporterResult(
           response.success.contents,
           sourceMapUrl: response.success.sourceMapUrl.isEmpty
               ? null
-              : parseAbsoluteUrl("The importer", response.success.sourceMapUrl),
-          syntax: syntaxToSyntax(response.success.syntax)),
+              : parseAbsoluteUrl(
+                  "The importer",
+                  response.success.sourceMapUrl,
+                ),
+          syntax: syntaxToSyntax(response.success.syntax),
+        ),
       InboundMessage_ImportResponse_Result.error => throw response.error,
-      InboundMessage_ImportResponse_Result.notSet => null
+      InboundMessage_ImportResponse_Result.notSet => null,
     };
   }
 

@@ -5,6 +5,8 @@
 import * as postcss from 'postcss';
 
 import {LazySource} from '../lazy-source';
+import {NodeProps} from '../node';
+import {RawWithValue} from '../raw-with-value';
 import type * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {Expression} from '.';
@@ -14,7 +16,7 @@ import {Expression} from '.';
  *
  * @category Expression
  */
-export interface NumberExpressionProps {
+export interface NumberExpressionProps extends NodeProps {
   value: number;
   unit?: string;
   raws?: NumberExpressionRaws;
@@ -33,8 +35,7 @@ export interface NumberExpressionRaws {
    * use scientific notation. For example, the following number representations
    * have the same value: `1e3`, `1000`, `01000.0`.
    */
-  // TODO: Replace with RawWithValue<T> when #2389 lands.
-  value?: {raw: string; value: number};
+  value?: RawWithValue<number>;
 }
 
 /**
@@ -54,7 +55,7 @@ export class NumberExpression extends Expression {
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._value = value;
   }
-  private _value!: number;
+  private declare _value: number;
 
   /** The denominator units of this number. */
   get unit(): string | null {
@@ -64,7 +65,7 @@ export class NumberExpression extends Expression {
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._unit = unit;
   }
-  private _unit!: string | null;
+  private declare _unit: string | null;
 
   /** Whether the number is unitless. */
   isUnitless(): boolean {

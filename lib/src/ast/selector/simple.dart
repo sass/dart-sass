@@ -18,7 +18,7 @@ final _subselectorPseudos = {
   'where',
   'any',
   'nth-child',
-  'nth-last-child'
+  'nth-last-child',
 };
 
 /// An abstract superclass for simple selectors.
@@ -52,10 +52,16 @@ abstract base class SimpleSelector extends Selector {
   /// selector.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory SimpleSelector.parse(String contents,
-          {Object? url, bool allowParent = true}) =>
-      SelectorParser(contents, url: url, allowParent: allowParent)
-          .parseSimpleSelector();
+  factory SimpleSelector.parse(
+    String contents, {
+    Object? url,
+    bool allowParent = true,
+  }) =>
+      SelectorParser(
+        contents,
+        url: url,
+        allowParent: allowParent,
+      ).parseSimpleSelector();
 
   /// Returns a new [SimpleSelector] based on `this`, as though it had been
   /// written with [suffix] at the end.
@@ -66,7 +72,11 @@ abstract base class SimpleSelector extends Selector {
   /// @nodoc
   @internal
   SimpleSelector addSuffix(String suffix) => throw MultiSpanSassException(
-      'Selector "$this" can\'t have a suffix', span, "outer selector", {});
+        'Selector "$this" can\'t have a suffix',
+        span,
+        "outer selector",
+        {},
+      );
 
   /// Returns the components of a [CompoundSelector] that matches only elements
   /// matched by both this and [compound].
@@ -113,10 +123,13 @@ abstract base class SimpleSelector extends Selector {
     if (other is PseudoSelector && other.isClass) {
       var list = other.selector;
       if (list != null && _subselectorPseudos.contains(other.normalizedName)) {
-        return list.components.every((complex) =>
-            complex.components.isNotEmpty &&
-            complex.components.last.selector.components
-                .any((simple) => isSuperselector(simple)));
+        return list.components.every(
+          (complex) =>
+              complex.components.isNotEmpty &&
+              complex.components.last.selector.components.any(
+                (simple) => isSuperselector(simple),
+              ),
+        );
       }
     }
     return false;

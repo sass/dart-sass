@@ -1,4 +1,71 @@
+## 16.0.0
+
+* No user-visible changes.
+
+## 15.2.2-dev
+
+* No user-visible changes.
+
+## 15.2.1
+
+* No user-visible changes.
+
+## 15.2.0
+
+* No user-visible changes.
+
+## 15.1.0
+
+* No user-visible changes.
+
+## 15.0.5-dev
+
+* No user-visible changes.
+
+## 15.0.4
+
+* No user-visible changes.
+
+## 15.0.3
+
+* No user-visible changes.
+
+## 15.0.2
+
+* No user-visible changes.
+
+## 15.0.1
+
+* No user-visible changes.
+
 ## 15.0.0
+
+* Rename `ArgumentInvocation` to `ArgumentList`, `ArgumentDeclaration` to
+  `ParameterList`, and `Argument` to `Parameter` to better match the
+  conventional distinction between "arguments" and "parameters".
+
+* Rename `ArgumentDeclaration.arguments` to `ParameterList.parameters`,
+  `ArgumentDeclaration.restArgument` to `ParameterList.restParameter`,
+  `CallableDeclaration.arguments` to `.parameters`.
+
+## 14.4.1-dev
+
+* No user-visible changes.
+
+## 14.4.0
+
+* No user-visible changes.
+
+## 14.3.0
+
+* Add `NodePackageImporter`, which loads `pkg:` URLs from `node_modules` within
+  the provided `entryPointDirectory`.
+
+## 14.2.0
+
+* No user-visible changes.
+
+## 14.1.3
 
 * No user-visible changes.
 
@@ -13,7 +80,7 @@
 ## 14.1.0
 
 * Add `Expression.isCalculationSafe`, which returns true when this expression
-  can safely be used in a calcuation.
+  can safely be used in a calculation.
 
 ## 14.0.0
 

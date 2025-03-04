@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import * as postcss from 'postcss';
+import * as sass from 'sass';
 
 import {Node} from './node';
 
@@ -108,7 +109,13 @@ function maybeClone<T>(value: T): T {
   if (typeof value !== 'object' || value === null) return value;
   // The only records we care about are raws, which only contain primitives and
   // arrays of primitives, so structued cloning is safe.
-  if (value.constructor === Object) return structuredClone(value);
+  if (value.constructor === Object) {
+    const clone: Record<string, unknown> = {};
+    for (const [key, child] of Object.entries(value)) {
+      clone[key] = maybeClone(child);
+    }
+    return clone as T;
+  }
   if (value instanceof postcss.Node) return value.clone() as T;
   return value;
 }
@@ -187,6 +194,12 @@ function toJsonField(
     } else {
       return (value as {toJSON: (field: string) => object}).toJSON(field);
     }
+  } else if (value instanceof sass.SassColor) {
+    return {
+      space: value.space,
+      channels: [...value.channelsOrNull],
+      alpha: value.isChannelMissing('alpha') ? null : value.alpha,
+    };
   } else {
     return value;
   }
@@ -216,4 +229,17 @@ export function longestCommonInitialSubstring(strings: string[]): string {
     }
   }
   return candidate ?? '';
+}
+
+/**
+ * Returns whether {@link set1} and {@link set2} contain the same elements,
+ * regardless of order.
+ */
+export function setsEqual<T>(set1: Set<T>, set2: Set<T>): boolean {
+  if (set1 === set2) return true;
+  if (set1.size !== set2.size) return false;
+  for (const element of set1) {
+    if (!set2.has(element)) return false;
+  }
+  return true;
 }

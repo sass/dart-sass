@@ -13,11 +13,11 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
-import 'package:dart_style/dart_style.dart';
 import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
+import 'package:sass/src/util/map.dart';
 import 'package:sass/src/util/nullable.dart';
 
 /// The files to compile to synchronous versions.
@@ -25,7 +25,7 @@ final sources = const {
   'lib/src/visitor/async_evaluate.dart': 'lib/src/visitor/evaluate.dart',
   'lib/src/async_compile.dart': 'lib/src/compile.dart',
   'lib/src/async_environment.dart': 'lib/src/environment.dart',
-  'lib/src/async_import_cache.dart': 'lib/src/import_cache.dart'
+  'lib/src/async_import_cache.dart': 'lib/src/import_cache.dart',
 };
 
 /// Classes that are defined in the async version of a file and used as-is in
@@ -46,8 +46,10 @@ final _sharedClasses = const ['EvaluateResult'];
 /// to a synchronous equivalent.
 @Task('Compile async code to synchronous code.')
 void synchronize() {
-  sources.forEach((source, target) =>
-      File(target).writeAsStringSync(synchronizeFile(source)));
+  for (var (source, target) in sources.pairs) {
+    File(target).writeAsStringSync(synchronizeFile(source));
+    DartFmt.format(target);
+  }
 }
 
 /// Returns the result of synchronizing [source].
@@ -55,10 +57,11 @@ String synchronizeFile(String source) {
   source = p.absolute(source);
   var visitor = _Visitor(File(source).readAsStringSync(), source);
 
-  parseFile(path: source, featureSet: FeatureSet.latestLanguageVersion())
-      .unit
-      .accept(visitor);
-  return DartFormatter().format(visitor.result);
+  parseFile(
+    path: source,
+    featureSet: FeatureSet.latestLanguageVersion(),
+  ).unit.accept(visitor);
+  return visitor.result;
 }
 
 /// The visitor that traverses the asynchronous parse tree and converts it to
@@ -210,7 +213,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
     if (node
         case MethodInvocation(
           target: null,
-          methodName: SimpleIdentifier(name: "mapAsync" || "putIfAbsentAsync")
+          methodName: SimpleIdentifier(name: "mapAsync" || "putIfAbsentAsync"),
         )) {
       _writeTo(node);
       var arguments = node.argumentList.arguments;
@@ -320,13 +323,14 @@ class _Visitor extends RecursiveAstVisitor<void> {
   SourceSpanException _alreadyEmittedException(SourceSpan span) {
     var lines = _buffer.toString().split("\n");
     return SourceSpanException(
-        "Node was already emitted. Last 3 lines:\n\n" +
-            lines
-                .slice(math.max(lines.length - 3, 0))
-                .map((line) => "  $line")
-                .join("\n") +
-            "\n",
-        span);
+      "Node was already emitted. Last 3 lines:\n\n" +
+          lines
+              .slice(math.max(lines.length - 3, 0))
+              .map((line) => "  $line")
+              .join("\n") +
+          "\n",
+      span,
+    );
   }
 
   /// Returns a [FileSpan] that represents [token]'s position in the source

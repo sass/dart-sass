@@ -4,17 +4,21 @@
 
 import * as postcss from 'postcss';
 
+import {Container} from './container';
 import {convertExpression} from './expression/convert';
 import {fromProps} from './expression/from-props';
 import {Expression, ExpressionProps} from './expression';
 import {LazySource} from './lazy-source';
-import {Node} from './node';
+import {Node, NodeProps} from './node';
 import {RawWithValue} from './raw-with-value';
 import type * as sassInternal from './sass-internal';
 import * as utils from './utils';
 
 /**
  * The type of new nodes that can be passed into an interpolation.
+ *
+ * Note that unlike in PostCSS, a `string` here is treated as a raw string for
+ * interpolation rather than parsed as an expression.
  *
  * @category Expression
  */
@@ -30,14 +34,27 @@ export type NewNodeForInterpolation =
   | undefined;
 
 /**
- * The initializer properties for {@link Interpolation}
+ * The initializer properties for {@link Interpolation} passed as an options
+ * object.
  *
  * @category Expression
  */
-export interface InterpolationProps {
+export interface InterpolationObjectProps extends NodeProps {
   nodes: ReadonlyArray<NewNodeForInterpolation>;
   raws?: InterpolationRaws;
 }
+
+/**
+ * The initializer properties for {@link Interpolation} passed.
+ *
+ * A plain string is interpreted as a plain-text interpolation.
+ *
+ * @category Expression
+ */
+export type InterpolationProps =
+  | InterpolationObjectProps
+  | ReadonlyArray<NewNodeForInterpolation>
+  | string;
 
 /**
  * Raws indicating how to precisely serialize an {@link Interpolation} node.
@@ -76,7 +93,10 @@ export interface InterpolationRaws {
  *
  * @category Expression
  */
-export class Interpolation extends Node {
+export class Interpolation
+  extends Node
+  implements Container<string | Expression, NewNodeForInterpolation>
+{
   readonly sassType = 'interpolation' as const;
   declare raws: InterpolationRaws;
 
@@ -97,7 +117,7 @@ export class Interpolation extends Node {
     // This *should* only ever be called by the superclass constructor.
     this._nodes = nodes;
   }
-  private _nodes?: Array<string | Expression>;
+  private declare _nodes?: Array<string | Expression>;
 
   /** Returns whether this contains no interpolated expressions. */
   get isPlain(): boolean {
@@ -124,8 +144,14 @@ export class Interpolation extends Node {
   constructor(defaults?: InterpolationProps);
   /** @hidden */
   constructor(_: undefined, inner: sassInternal.Interpolation);
-  constructor(defaults?: object, inner?: sassInternal.Interpolation) {
-    super(defaults);
+  constructor(defaults?: object | string, inner?: sassInternal.Interpolation) {
+    super(
+      typeof defaults === 'string'
+        ? {nodes: [defaults]}
+        : Array.isArray(defaults)
+          ? {nodes: defaults}
+          : defaults,
+    );
     if (inner) {
       this.source = new LazySource(inner);
       // TODO: set lazy raws here to use when stringifying
@@ -139,7 +165,7 @@ export class Interpolation extends Node {
     if (this._nodes === undefined) this._nodes = [];
   }
 
-  clone(overrides?: Partial<InterpolationProps>): this {
+  clone(overrides?: Partial<InterpolationObjectProps>): this {
     return utils.cloneNode(this, overrides, ['nodes', 'raws']);
   }
 
@@ -150,31 +176,12 @@ export class Interpolation extends Node {
     return utils.toJSON(this, ['nodes'], inputs);
   }
 
-  /**
-   * Inserts new nodes at the end of this interpolation.
-   *
-   * Note: unlike PostCSS's [`Container.append()`], this treats strings as raw
-   * text rather than parsing them into new nodes.
-   *
-   * [`Container.append()`]: https://postcss.org/api/#container-append
-   */
   append(...nodes: NewNodeForInterpolation[]): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._nodes!.push(...this._normalizeList(nodes));
     return this;
   }
 
-  /**
-   * Iterates through {@link nodes}, calling `callback` for each child.
-   *
-   * Returning `false` in the callback will break iteration.
-   *
-   * Unlike a `for` loop or `Array#forEach`, this iterator is safe to use while
-   * modifying the interpolation's children.
-   *
-   * @param callback The iterator callback, which is passed each child
-   * @return Returns `false` if any call to `callback` returned false
-   */
   each(
     callback: (node: string | Expression, index: number) => false | void,
   ): false | undefined {
@@ -193,10 +200,6 @@ export class Interpolation extends Node {
     }
   }
 
-  /**
-   * Returns `true` if {@link condition} returns `true` for all of the
-   * container’s children.
-   */
   every(
     condition: (
       node: string | Expression,
@@ -207,22 +210,10 @@ export class Interpolation extends Node {
     return this.nodes.every(condition);
   }
 
-  /**
-   * Returns the first index of {@link child} in {@link nodes}.
-   *
-   * If {@link child} is a number, returns it as-is.
-   */
   index(child: string | Expression | number): number {
     return typeof child === 'number' ? child : this.nodes.indexOf(child);
   }
 
-  /**
-   * Inserts {@link newNode} immediately after the first occurance of
-   * {@link oldNode} in {@link nodes}.
-   *
-   * If {@link oldNode} is a number, inserts {@link newNode} immediately after
-   * that index instead.
-   */
   insertAfter(
     oldNode: string | Expression | number,
     newNode: NewNodeForInterpolation,
@@ -239,13 +230,6 @@ export class Interpolation extends Node {
     return this;
   }
 
-  /**
-   * Inserts {@link newNode} immediately before the first occurance of
-   * {@link oldNode} in {@link nodes}.
-   *
-   * If {@link oldNode} is a number, inserts {@link newNode} at that index
-   * instead.
-   */
   insertBefore(
     oldNode: string | Expression | number,
     newNode: NewNodeForInterpolation,
@@ -262,7 +246,6 @@ export class Interpolation extends Node {
     return this;
   }
 
-  /** Inserts {@link nodes} at the beginning of the interpolation. */
   prepend(...nodes: NewNodeForInterpolation[]): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
     const normalized = this._normalizeList(nodes);
@@ -275,15 +258,10 @@ export class Interpolation extends Node {
     return this;
   }
 
-  /** Adds {@link child} to the end of this interpolation. */
   push(child: string | Expression): this {
     return this.append(child);
   }
 
-  /**
-   * Removes all {@link nodes} from this interpolation and cleans their {@link
-   * Node.parent} properties.
-   */
   removeAll(): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
     for (const node of this.nodes) {
@@ -293,15 +271,10 @@ export class Interpolation extends Node {
     return this;
   }
 
-  /**
-   * Removes the first occurance of {@link child} from the container and cleans
-   * the parent properties from the node and its children.
-   *
-   * If {@link child} is a number, removes the child at that index.
-   */
   removeChild(child: string | Expression | number): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
     const index = this.index(child);
+    child = this._nodes![index];
     if (typeof child === 'object') child.parent = undefined;
     this._nodes!.splice(index, 1);
 
@@ -312,10 +285,6 @@ export class Interpolation extends Node {
     return this;
   }
 
-  /**
-   * Returns `true` if {@link condition} returns `true` for (at least) one of
-   * the container’s children.
-   */
   some(
     condition: (
       node: string | Expression,
@@ -326,18 +295,10 @@ export class Interpolation extends Node {
     return this.nodes.some(condition);
   }
 
-  /** The first node in {@link nodes}. */
   get first(): string | Expression | undefined {
     return this.nodes[0];
   }
 
-  /**
-   * The container’s last child.
-   *
-   * ```js
-   * rule.last === rule.nodes[rule.nodes.length - 1]
-   * ```
-   */
   get last(): string | Expression | undefined {
     return this.nodes[this.nodes.length - 1];
   }

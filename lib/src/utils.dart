@@ -56,7 +56,7 @@ String bulletedList(Iterable<String> bullets) => bullets.map((element) {
       return "${glyph.bullet} ${lines.first}" +
           switch (lines) {
             [_, ...var rest] => "\n" + indent(rest.join("\n"), 2),
-            _ => ""
+            _ => "",
           };
     }).join("\n");
 
@@ -78,7 +78,9 @@ String trimAscii(String string, {bool excludeEscape = false}) {
   return start == null
       ? ""
       : string.substring(
-          start, _lastNonWhitespace(string, excludeEscape: excludeEscape)! + 1);
+          start,
+          _lastNonWhitespace(string, excludeEscape: excludeEscape)! + 1,
+        );
 }
 
 /// Like [String.trimLeft], but only trims ASCII whitespace.
@@ -211,10 +213,11 @@ int mapHash(Map<Object, Object> map) =>
 /// By default, the frame's URL is set to `span.sourceUrl`. However, if [url] is
 /// passed, it's used instead.
 Frame frameForSpan(SourceSpan span, String member, {Uri? url}) => Frame(
-    url ?? span.sourceUrl ?? _noSourceUrl,
-    span.start.line + 1,
-    span.start.column + 1,
-    member);
+      url ?? span.sourceUrl ?? _noSourceUrl,
+      span.start.line + 1,
+      span.start.column + 1,
+      member,
+    );
 
 /// Returns the variable name (including the leading `$`) from a [span] that
 /// covers a variable declaration, which includes the variable name as well as
@@ -249,7 +252,9 @@ bool equalsIgnoreCase(String? string1, String? string2) {
 
   for (var i = 0; i < string1.length; i++) {
     if (!characterEqualsIgnoreCase(
-        string1.codeUnitAt(i), string2.codeUnitAt(i))) {
+      string1.codeUnitAt(i),
+      string2.codeUnitAt(i),
+    )) {
       return false;
     }
   }
@@ -261,7 +266,9 @@ bool startsWithIgnoreCase(String string, String prefix) {
   if (string.length < prefix.length) return false;
   for (var i = 0; i < prefix.length; i++) {
     if (!characterEqualsIgnoreCase(
-        string.codeUnitAt(i), prefix.codeUnitAt(i))) {
+      string.codeUnitAt(i),
+      prefix.codeUnitAt(i),
+    )) {
       return false;
     }
   }
@@ -283,17 +290,24 @@ void mapInPlace<T>(List<T> list, T function(T element)) {
 /// If [select] is passed, it's used to check equality between elements in each
 /// list. If it returns `null`, the elements are considered unequal; otherwise,
 /// it should return the element to include in the return value.
-List<T> longestCommonSubsequence<T>(List<T> list1, List<T> list2,
-    {T? select(T element1, T element2)?}) {
+List<T> longestCommonSubsequence<T>(
+  List<T> list1,
+  List<T> list2, {
+  T? select(T element1, T element2)?,
+}) {
   select ??= (element1, element2) => element1 == element2 ? element1 : null;
 
   var lengths = List.generate(
-      list1.length + 1, (_) => List.filled(list2.length + 1, 0),
-      growable: false);
+    list1.length + 1,
+    (_) => List.filled(list2.length + 1, 0),
+    growable: false,
+  );
 
   var selections = List<List<T?>>.generate(
-      list1.length, (_) => List<T?>.filled(list2.length, null),
-      growable: false);
+    list1.length,
+    (_) => List<T?>.filled(list2.length, null),
+    growable: false,
+  );
 
   for (var i = 0; i < list1.length; i++) {
     for (var j = 0; j < list2.length; j++) {
@@ -335,7 +349,9 @@ void removeFirstWhere<T>(List<T> list, bool test(T value), {void orElse()?}) {
 ///
 /// This avoids copying inner maps from [source] if possible.
 void mapAddAll2<K1, K2, V>(
-    Map<K1, Map<K2, V>> destination, Map<K1, Map<K2, V>> source) {
+  Map<K1, Map<K2, V>> destination,
+  Map<K1, Map<K2, V>> source,
+) {
   source.forEach((key, inner) {
     if (destination[key] case var innerDestination?) {
       innerDestination.addAll(inner);
@@ -365,7 +381,9 @@ void rotateSlice(List<Object> list, int start, int end) {
 
 /// Like [Iterable.map] but for an asynchronous [callback].
 Future<Iterable<F>> mapAsync<E, F>(
-        Iterable<E> iterable, Future<F> callback(E value)) async =>
+  Iterable<E> iterable,
+  Future<F> callback(E value),
+) async =>
     [for (var element in iterable) await callback(element)];
 
 /// Like [Map.putIfAbsent], but for an asynchronous [ifAbsent].
@@ -373,7 +391,10 @@ Future<Iterable<F>> mapAsync<E, F>(
 /// Note that this is *not* safe to call in parallel on the same map with the
 /// same key.
 Future<V> putIfAbsentAsync<K, V>(
-    Map<K, V> map, K key, Future<V> ifAbsent()) async {
+  Map<K, V> map,
+  K key,
+  Future<V> ifAbsent(),
+) async {
   if (map.containsKey(key)) return map[key] as V;
   var value = await ifAbsent();
   map[key] = value;
@@ -381,12 +402,14 @@ Future<V> putIfAbsentAsync<K, V>(
 }
 
 /// Returns a deep copy of a map that contains maps.
-Map<K1, Map<K2, V>> copyMapOfMap<K1, K2, V>(Map<K1, Map<K2, V>> map) =>
-    {for (var (key, child) in map.pairs) key: Map.of(child)};
+Map<K1, Map<K2, V>> copyMapOfMap<K1, K2, V>(Map<K1, Map<K2, V>> map) => {
+      for (var (key, child) in map.pairs) key: Map.of(child),
+    };
 
 /// Returns a deep copy of a map that contains lists.
-Map<K, List<E>> copyMapOfList<K, E>(Map<K, List<E>> map) =>
-    {for (var (key, list) in map.pairs) key: list.toList()};
+Map<K, List<E>> copyMapOfList<K, E>(Map<K, List<E>> map) => {
+      for (var (key, list) in map.pairs) key: list.toList(),
+    };
 
 /// Consumes an escape sequence from [scanner] and returns the character it
 /// represents.
@@ -410,7 +433,7 @@ int consumeEscapedCharacter(StringScanner scanner) {
 
       return switch (value) {
         0 || (>= 0xD800 && <= 0xDFFF) || >= maxAllowedCharacter => 0xFFFD,
-        _ => value
+        _ => value,
       };
     case _:
       return scanner.readChar();
@@ -452,15 +475,20 @@ StackTrace? getTrace(Object error) =>
 /// If [requireParens] is `false`, this allows parentheses to be omitted.
 ///
 /// Throws a [SassFormatException] if parsing fails.
-(String name, ArgumentDeclaration) parseSignature(String signature,
-    {bool requireParens = true}) {
+(String name, ParameterList) parseSignature(
+  String signature, {
+  bool requireParens = true,
+}) {
   try {
     return ScssParser(signature).parseSignature(requireParens: requireParens);
   } on SassFormatException catch (error, stackTrace) {
     throwWithTrace(
-        SassFormatException(
-            'Invalid signature "$signature": ${error.message}', error.span),
-        error,
-        stackTrace);
+      SassFormatException(
+        'Invalid signature "$signature": ${error.message}',
+        error.span,
+      ),
+      error,
+      stackTrace,
+    );
   }
 }

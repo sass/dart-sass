@@ -71,8 +71,10 @@ class EmbeddedProcess {
   /// Completes to [_process]'s exit code if it's exited, otherwise completes to
   /// `null` immediately.
   Future<int?> get _exitCodeOrNull async {
-    var exitCode =
-        await this.exitCode.timeout(Duration.zero, onTimeout: () => -1);
+    var exitCode = await this.exitCode.timeout(
+          Duration.zero,
+          onTimeout: () => -1,
+        );
     return exitCode == -1 ? null : exitCode;
   }
 
@@ -85,18 +87,21 @@ class EmbeddedProcess {
   /// If [forwardOutput] is `true`, the process's [outbound] messages and
   /// [stderr] will be printed to the console as they appear. This is only
   /// intended to be set temporarily to help when debugging test failures.
-  static Future<EmbeddedProcess> start(
-      {String? workingDirectory,
-      Map<String, String>? environment,
-      bool includeParentEnvironment = true,
-      bool runInShell = false,
-      bool forwardOutput = false}) async {
-    var process = await Process.start(pkg.executableRunner("sass"),
-        [...pkg.executableArgs("sass"), "--embedded"],
-        workingDirectory: workingDirectory,
-        environment: environment,
-        includeParentEnvironment: includeParentEnvironment,
-        runInShell: runInShell);
+  static Future<EmbeddedProcess> start({
+    String? workingDirectory,
+    Map<String, String>? environment,
+    bool includeParentEnvironment = true,
+    bool runInShell = false,
+    bool forwardOutput = false,
+  }) async {
+    var process = await Process.start(
+      pkg.executableRunner("sass"),
+      [...pkg.executableArgs("sass"), "--embedded"],
+      workingDirectory: workingDirectory,
+      environment: environment,
+      includeParentEnvironment: includeParentEnvironment,
+      runInShell: runInShell,
+    );
 
     return EmbeddedProcess._(process, forwardOutput: forwardOutput);
   }
@@ -107,23 +112,33 @@ class EmbeddedProcess {
   EmbeddedProcess._(Process process, {bool forwardOutput = false})
       : _process = process,
         _outboundSplitter = StreamSplitter(
-            process.stdout.transform(lengthDelimitedDecoder).map((packet) {
-          var (compilationId, buffer) = parsePacket(packet);
-          return (compilationId, OutboundMessage.fromBuffer(buffer));
-        })),
-        _stderrSplitter = StreamSplitter(process.stderr
-            .transform(utf8.decoder)
-            .transform(const LineSplitter())),
+          process.stdout.transform(lengthDelimitedDecoder).map((packet) {
+            var (compilationId, buffer) = parsePacket(packet);
+            return (compilationId, OutboundMessage.fromBuffer(buffer));
+          }),
+        ),
+        _stderrSplitter = StreamSplitter(
+          process.stderr
+              .transform(utf8.decoder)
+              .transform(const LineSplitter()),
+        ),
         inbound = StreamSinkTransformer<(int, InboundMessage),
-            List<int>>.fromHandlers(handleData: (pair, sink) {
-          var (compilationId, message) = pair;
-          sink.add(serializePacket(compilationId, message));
-        }).bind(
-            StreamSinkTransformer.fromStreamTransformer(lengthDelimitedEncoder)
-                .bind(process.stdin)) {
+            List<int>>.fromHandlers(
+          handleData: (pair, sink) {
+            var (compilationId, message) = pair;
+            sink.add(serializePacket(compilationId, message));
+          },
+        ).bind(
+          StreamSinkTransformer.fromStreamTransformer(
+            lengthDelimitedEncoder,
+          ).bind(process.stdin),
+        ) {
     addTearDown(_tearDown);
-    expect(_process.exitCode.then((_) => _logOutput()), completes,
-        reason: "Process `sass --embedded` never exited.");
+    expect(
+      _process.exitCode.then((_) => _logOutput()),
+      completes,
+      reason: "Process `sass --embedded` never exited.",
+    );
 
     _outbound = StreamQueue(_outboundSplitter.split());
     _stderr = StreamQueue(_stderrSplitter.split());
@@ -185,8 +200,11 @@ class EmbeddedProcess {
   /// default compilation ID.
   Future<OutboundMessage> receive() async {
     var (actualCompilationId, message) = await outbound.next;
-    expect(actualCompilationId, equals(defaultCompilationId),
-        reason: "Expected default compilation ID");
+    expect(
+      actualCompilationId,
+      equals(defaultCompilationId),
+      reason: "Expected default compilation ID",
+    );
     return message;
   }
 
@@ -213,7 +231,10 @@ class EmbeddedProcess {
   Future<void> shouldExit([int? expectedExitCode]) async {
     var exitCode = await this.exitCode;
     if (expectedExitCode == null) return;
-    expect(exitCode, expectedExitCode,
-        reason: "Process `dart_sass_embedded` had an unexpected exit code.");
+    expect(
+      exitCode,
+      expectedExitCode,
+      reason: "Process `dart_sass_embedded` had an unexpected exit code.",
+    );
   }
 }
