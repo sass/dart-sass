@@ -31,7 +31,7 @@ export interface SelectorExpressionProps extends NodeProps {
 export interface SelectorExpressionRaws {}
 
 /**
- * An expression representing the current selector in Sass.
+ * An `&` expression representing the current selector in Sass.
  *
  * @category Expression
  */
