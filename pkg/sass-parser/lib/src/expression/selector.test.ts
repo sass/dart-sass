@@ -15,7 +15,8 @@ describe('a selector expression', () => {
     describe(description, () => {
       beforeEach(() => void (node = create()));
 
-      it('has sassType selector', () => expect(node.sassType).toBe('selector-expr'));
+      it('has sassType selector', () =>
+        expect(node.sassType).toBe('selector-expr'));
     });
   }
 
@@ -27,7 +28,8 @@ describe('a selector expression', () => {
     describeNode('with empty props', () => new SelectorExpression({}));
   });
 
-  it('stringifies', () => expect(new SelectorExpression().toString()).toBe('&'));
+  it('stringifies', () =>
+    expect(new SelectorExpression().toString()).toBe('&'));
 
   describe('clone', () => {
     let original: SelectorExpression;
