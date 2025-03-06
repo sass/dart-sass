@@ -2,7 +2,13 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import {Interpolation, StringExpression} from '../..';
+import {
+  ImportRule,
+  Interpolation,
+  StaticImport,
+  StringExpression,
+  scss,
+} from '../..';
 import * as utils from '../../../test/utils';
 
 describe('a string expression', () => {
@@ -284,5 +290,24 @@ describe('a string expression', () => {
     });
   });
 
-  it('toJSON', () => expect(utils.parseExpression('"foo"')).toMatchSnapshot());
+  describe('toJSON', () => {
+    it('a quoted string', () =>
+      expect(utils.parseExpression('"foo"')).toMatchSnapshot());
+
+    it('an unquoted string', () =>
+      expect(utils.parseExpression('foo')).toMatchSnapshot());
+
+    it('a string with interpolation', () =>
+      expect(utils.parseExpression('f#{o}o')).toMatchSnapshot());
+
+    it('supports()', () =>
+      expect(
+        (
+          (
+            scss.parse('@import "foo" supports(width: 1 + 1)')
+              .nodes[0] as ImportRule
+          ).imports.nodes[0] as StaticImport
+        ).modifiers!.nodes[1],
+      ).toMatchSnapshot());
+  });
 });

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`a string expression toJSON 1`] = `
+exports[`a string expression toJSON a quoted string 1`] = `
 {
   "inputs": [
     {
@@ -14,5 +14,56 @@ exports[`a string expression toJSON 1`] = `
   "sassType": "string",
   "source": <1:4-1:9 in 0>,
   "text": <foo>,
+}
+`;
+
+exports[`a string expression toJSON a string with interpolation 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@#{f#{o}o}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "quotes": false,
+  "raws": {},
+  "sassType": "string",
+  "source": <1:4-1:10 in 0>,
+  "text": <f#{o}o>,
+}
+`;
+
+exports[`a string expression toJSON an unquoted string 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@#{foo}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "quotes": false,
+  "raws": {},
+  "sassType": "string",
+  "source": <1:4-1:7 in 0>,
+  "text": <foo>,
+}
+`;
+
+exports[`a string expression toJSON supports() 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@import "foo" supports(width: 1 + 1)",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "quotes": false,
+  "raws": {},
+  "sassType": "string",
+  "source": <1:24-1:36 in 0>,
+  "text": <width: #{1 + 1}>,
 }
 `;
