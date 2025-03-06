@@ -4,6 +4,8 @@
 
 * Add support for parsing parenthesized expressions.
 
+* Add support for parsing selector expressions.
+
 ## 0.4.15
 
 * Add support for parsing list expressions.
