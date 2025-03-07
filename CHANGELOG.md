@@ -3,6 +3,33 @@
 * **Breaking change:** The `@-moz-document` rule no longer has any special
   parsing associated with it. It is now parsed like any other unknown plain CSS
   at-rule, where Sass features are only allowed within `#{}` interpolation.
+  
+### Bogus Combinators
+
+* **Breaking change:** Selectors with more than one combinator in a row, such as
+  `.foo + ~ a`, are now syntax errors.
+
+* **Breaking change:** It's now an error for a selector at the root of the
+  document or in a psuedo selector to have a leading combinator, such as
+  `+ .foo`. These are still allowed in nested selectors and in `:has()`.
+
+* **Breaking change:** It's now an error for selectors with trailing
+  combinators, such as `.foo +`, to contain declarations, non-bubbling plain-CSS
+  at rules, or `@extend` rules.
+
+* **Breaking change:** It's now an error for `@extend` rules to extend selectors
+  with leading or trailing combinators.
+
+* **Breaking change:** The `$extender` and `$extendee` arguments of
+  `selector.extend()` and `selector.replace()`, as well as the `$super` and
+  `$sub` arguments of `selector.is-superselector()`, no longer allow selectors
+  with leading or trailing combinators.
+
+* **Breaking change:** The `$selector` arguments of `selector.extend()` and
+  `selector.replace()`, as well as the `$selector1` and `$selector2` arguments
+  of `selector.unify()`, no longer allow selectors with trailing combinators.
+  Leading combinators are still allowed for these functions because they may
+  appear in a plain CSS nesting context.
 
 ### Dart API
 
