@@ -384,6 +384,10 @@ declare namespace SassInternal {
     readonly text: Interpolation;
     readonly hasQuotes: boolean;
   }
+
+  class SupportsExpression extends Expression {
+    readonly condition: SupportsCondition;
+  }
 }
 
 const sassInternal = (
@@ -446,6 +450,7 @@ export type NumberExpression = SassInternal.NumberExpression;
 export type ParenthesizedExpression = SassInternal.ParenthesizedExpression;
 export type SelectorExpression = SassInternal.SelectorExpression;
 export type StringExpression = SassInternal.StringExpression;
+export type SupportsExpression = SassInternal.SupportsExpression;
 
 export interface StatementVisitorObject<T> {
   visitAtRootRule(node: AtRootRule): T;
@@ -489,6 +494,7 @@ export interface ExpressionVisitorObject<T> {
   visitParenthesizedExpression(node: ParenthesizedExpression): T;
   visitSelectorExpression(node: SelectorExpression): T;
   visitStringExpression(node: StringExpression): T;
+  visitSupportsExpression(node: SupportsExpression): T;
 }
 
 export const createExpressionVisitor = sassInternal.createExpressionVisitor;

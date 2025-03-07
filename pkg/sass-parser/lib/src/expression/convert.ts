@@ -5,6 +5,8 @@
 import * as sassInternal from '../sass-internal';
 
 import {ArgumentList} from '../argument-list';
+import {Interpolation} from '../interpolation';
+import {LazySource} from '../lazy-source';
 import {Expression} from '.';
 import {BinaryOperationExpression} from './binary-operation';
 import {BooleanExpression} from './boolean';
@@ -41,6 +43,15 @@ const visitor = sassInternal.createExpressionVisitor<Expression>({
     new ParenthesizedExpression(undefined, inner),
   visitSelectorExpression: inner => new SelectorExpression(undefined, inner),
   visitStringExpression: inner => new StringExpression(undefined, inner),
+  visitSupportsExpression: inner =>
+    new StringExpression({
+      text: new Interpolation([
+        '(',
+        new Interpolation(undefined, inner.condition.toInterpolation()),
+        ')',
+      ]),
+      source: new LazySource(inner),
+    }),
 });
 
 /** Converts an internal expression AST node into an external one. */
