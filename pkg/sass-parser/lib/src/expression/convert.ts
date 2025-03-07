@@ -45,7 +45,11 @@ const visitor = sassInternal.createExpressionVisitor<Expression>({
   visitStringExpression: inner => new StringExpression(undefined, inner),
   visitSupportsExpression: inner =>
     new StringExpression({
-      text: new Interpolation(undefined, inner.condition.toInterpolation()),
+      text: new Interpolation([
+        '(',
+        new Interpolation(undefined, inner.condition.toInterpolation()),
+        ')',
+      ]),
       source: new LazySource(inner),
     }),
 });

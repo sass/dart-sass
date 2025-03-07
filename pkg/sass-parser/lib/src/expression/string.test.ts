@@ -307,7 +307,7 @@ describe('a string expression', () => {
             scss.parse('@import "foo" supports(width: 1 + 1)')
               .nodes[0] as ImportRule
           ).imports.nodes[0] as StaticImport
-        ).modifiers!.nodes[1],
+        ).modifiers,
       ).toMatchSnapshot());
   });
 });

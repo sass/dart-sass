@@ -60,10 +60,12 @@ exports[`a string expression toJSON supports() 1`] = `
       "id": "<input css _____>",
     },
   ],
-  "quotes": false,
+  "nodes": [
+    "supports",
+    <(width: #{1 + 1})>,
+  ],
   "raws": {},
-  "sassType": "string",
-  "source": <1:24-1:36 in 0>,
-  "text": <width: #{1 + 1}>,
+  "sassType": "interpolation",
+  "source": <1:15-1:37 in 0>,
 }
 `;
