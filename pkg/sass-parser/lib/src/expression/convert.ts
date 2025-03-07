@@ -7,7 +7,7 @@ import * as sassInternal from '../sass-internal';
 import {ArgumentList} from '../argument-list';
 import {Interpolation} from '../interpolation';
 import {LazySource} from '../lazy-source';
-import {Expression} from '.';
+import {AnyExpression} from '.';
 import {BinaryOperationExpression} from './binary-operation';
 import {BooleanExpression} from './boolean';
 import {ColorExpression} from './color';
@@ -22,7 +22,7 @@ import {SelectorExpression} from './selector';
 import {StringExpression} from './string';
 
 /** The visitor to use to convert internal Sass nodes to JS. */
-const visitor = sassInternal.createExpressionVisitor<Expression>({
+const visitor = sassInternal.createExpressionVisitor<AnyExpression>({
   visitBinaryOperationExpression: inner =>
     new BinaryOperationExpression(undefined, inner),
   visitBooleanExpression: inner => new BooleanExpression(undefined, inner),
@@ -57,6 +57,6 @@ const visitor = sassInternal.createExpressionVisitor<Expression>({
 /** Converts an internal expression AST node into an external one. */
 export function convertExpression(
   expression: sassInternal.Expression,
-): Expression {
+): AnyExpression {
   return expression.accept(visitor);
 }

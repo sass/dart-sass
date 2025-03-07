@@ -4,7 +4,7 @@
 
 import * as postcss from 'postcss';
 
-import {Expression, ExpressionProps} from './expression';
+import {AnyExpression, ExpressionProps} from './expression';
 import {fromProps} from './expression/from-props';
 import {Node, NodeProps} from './node';
 import {ArgumentList} from './argument-list';
@@ -60,7 +60,7 @@ export interface ArgumentRaws {
  */
 export type ArgumentObjectProps = NodeProps & {
   raws?: ArgumentRaws;
-  value: Expression | ExpressionProps;
+  value: AnyExpression | ExpressionProps;
 } & ({name?: string; rest?: never} | {name?: never; rest?: boolean});
 
 /**
@@ -70,7 +70,7 @@ export type ArgumentObjectProps = NodeProps & {
  * ArgumentDeclarationProps}.
  */
 export type ArgumentExpressionProps =
-  | Expression
+  | AnyExpression
   | ExpressionProps
   | Omit<ArgumentObjectProps, 'name'>;
 
@@ -81,7 +81,7 @@ export type ArgumentExpressionProps =
  */
 export type ArgumentProps =
   | ArgumentObjectProps
-  | Expression
+  | AnyExpression
   | ExpressionProps
   | [string, ArgumentExpressionProps];
 
@@ -115,16 +115,16 @@ export class Argument extends Node {
   private declare _name?: string;
 
   /** The argument's value. */
-  get value(): Expression {
+  get value(): AnyExpression {
     return this._value!;
   }
-  set value(value: Expression | ExpressionProps) {
+  set value(value: AnyExpression | ExpressionProps) {
     if (this._value) this._value.parent = undefined;
-    if (!('sassType' in value)) value = fromProps(value);
-    if (value) value.parent = this;
-    this._value = value;
+    const built = 'sassType' in value ? value : fromProps(value);
+    built.parent = this;
+    this._value = built;
   }
-  private declare _value?: Expression;
+  private declare _value?: AnyExpression;
 
   /**
    * Whether this is a rest argument (indicated by `...` in Sass).
@@ -147,14 +147,14 @@ export class Argument extends Node {
       if ('sassType' in props || !('value' in props)) {
         defaults = {
           name,
-          value: props as Expression | ExpressionProps,
+          value: props as AnyExpression | ExpressionProps,
         };
       } else {
         defaults = {name, ...props} as ArgumentObjectProps;
       }
     } else if ('sassType' in defaults || !('value' in defaults)) {
       defaults = {
-        value: defaults as Expression | ExpressionProps,
+        value: defaults as AnyExpression | ExpressionProps,
       };
     }
     super(defaults);
@@ -193,7 +193,7 @@ export class Argument extends Node {
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return [this.value];
   }
 }

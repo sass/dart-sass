@@ -6,7 +6,7 @@ import * as postcss from 'postcss';
 import type {AtRuleRaws as PostcssAtRuleRaws} from 'postcss/lib/at-rule';
 
 import {convertExpression} from '../expression/convert';
-import {Expression, ExpressionProps} from '../expression';
+import {AnyExpression, ExpressionProps} from '../expression';
 import {fromProps} from '../expression/from-props';
 import {LazySource} from '../lazy-source';
 import type * as sassInternal from '../sass-internal';
@@ -33,7 +33,7 @@ export type ErrorRuleRaws = Pick<
  */
 export type ErrorRuleProps = postcss.NodeProps & {
   raws?: ErrorRuleRaws;
-  errorExpression: Expression | ExpressionProps;
+  errorExpression: AnyExpression | ExpressionProps;
 };
 
 /**
@@ -67,18 +67,19 @@ export class ErrorRule
   }
 
   /** The expression whose value is thrown when the error rule is executed. */
-  get errorExpression(): Expression {
+  get errorExpression(): AnyExpression {
     return this._errorExpression!;
   }
-  set errorExpression(errorExpression: Expression | ExpressionProps) {
+  set errorExpression(errorExpression: AnyExpression | ExpressionProps) {
     if (this._errorExpression) this._errorExpression.parent = undefined;
-    if (!('sassType' in errorExpression)) {
-      errorExpression = fromProps(errorExpression);
-    }
-    if (errorExpression) errorExpression.parent = this;
-    this._errorExpression = errorExpression;
+    const built =
+      'sassType' in errorExpression
+        ? errorExpression
+        : fromProps(errorExpression);
+    built.parent = this;
+    this._errorExpression = built;
   }
-  private declare _errorExpression?: Expression;
+  private declare _errorExpression?: AnyExpression;
 
   constructor(defaults: ErrorRuleProps);
   /** @hidden */
@@ -121,7 +122,7 @@ export class ErrorRule
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return [this.errorExpression];
   }
 }

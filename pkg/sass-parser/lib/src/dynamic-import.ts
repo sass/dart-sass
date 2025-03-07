@@ -7,10 +7,10 @@ import * as postcss from 'postcss';
 import {StringExpression} from './expression/string';
 import {ImportList} from './import-list';
 import {LazySource} from './lazy-source';
-import {Node, NodeProps} from './node';
+import {AnyNode, Node, NodeProps} from './node';
 import * as sassInternal from './sass-internal';
 import {RawWithValue} from './raw-with-value';
-import {Statement} from './statement';
+import {AnyStatement} from './statement';
 import * as utils from './utils';
 
 /**
@@ -103,7 +103,7 @@ export class DynamicImport extends Node {
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Exclude<Node, Statement>> {
+  get nonStatementChildren(): ReadonlyArray<Exclude<AnyNode, AnyStatement>> {
     return [];
   }
 }
