@@ -477,7 +477,7 @@ final class _EvaluateVisitor
             );
             if (local != null || namespace != null) return local;
             return _builtInFunctions[normalizedName];
-          });
+          }, label: "function call");
           if (callable == null) throw "Function not found: $name";
 
           return SassFunction(callable);
@@ -497,6 +497,7 @@ final class _EvaluateVisitor
             name.text.replaceAll("_", "-"),
             namespace: module?.text,
           ),
+          label: "mixin include",
         );
         if (callable == null) throw "Mixin not found: $name";
 
@@ -767,6 +768,8 @@ final class _EvaluateVisitor
         );
       }
 
+      // TODO: Is this exception span necessary?
+
       // Always consider built-in stylesheets to be "already loaded", since they
       // never require additional execution to load and never produce CSS.
       await _addExceptionSpanAsync(
@@ -819,6 +822,7 @@ final class _EvaluateVisitor
         _inDependency = oldInDependency;
       }
 
+      // TODO: Is this exception span necessary?
       await _addExceptionSpanAsync(
         nodeWithSpan,
         () => callback(module, firstLoad),
@@ -1472,18 +1476,13 @@ final class _EvaluateVisitor
     }
 
     for (var complex in styleRule.originalSelector.components) {
-      if (!complex.isBogus) continue;
-      _warn(
-        'The selector "${complex.toString().trim()}" is invalid CSS and ' +
-            (complex.isUseless ? "can't" : "shouldn't") +
-            ' be an extender.\n'
-                'This will be an error in Dart Sass 2.0.0.\n'
-                '\n'
-                'More info: https://sass-lang.com/d/bogus-combinators',
-        MultiSpan(complex.span.trimRight(), 'invalid selector', {
-          node.span: '@extend rule',
-        }),
-        Deprecation.bogusCombinators,
+      if (complex.isStandAlone) continue;
+      throw MultiSpanSassRuntimeException(
+        "This selector is invalid CSS and can't be an extender.",
+        complex.span.trimRight(),
+        'invalid selector',
+        {node.span: '@extend rule'},
+        _stackTrace(complex.span),
       );
     }
 
@@ -2153,6 +2152,7 @@ final class _EvaluateVisitor
     var mixin = _addExceptionSpan(
       node,
       () => _environment.getMixin(node.name, namespace: node.namespace),
+      label: "mixin include",
     );
     if (node.originalName.startsWith('--') &&
         mixin is UserDefinedCallable &&
@@ -2377,14 +2377,11 @@ final class _EvaluateVisitor
     if (nest) {
       if (_stylesheet.plainCss) {
         for (var complex in parsedSelector.components) {
-          if (complex.leadingCombinators
-              case [
-                var first,
-                ...,
-              ] when _stylesheet.plainCss) {
+          if (complex.leadingCombinator case var combinator?
+              when _stylesheet.plainCss) {
             throw _exception(
               "Top-level leading combinators aren't allowed in plain CSS.",
-              first.span,
+              combinator.span,
             );
           }
         }
@@ -2420,7 +2417,7 @@ final class _EvaluateVisitor
     );
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 
-    _warnForBogusCombinators(rule);
+    _checkBogusCombinators(rule);
 
     if (_styleRule == null && _parent.children.isNotEmpty) {
       var lastChild = _parent.children.last;
@@ -2430,54 +2427,37 @@ final class _EvaluateVisitor
     return null;
   }
 
-  /// Emits deprecation warnings for any bogus combinators in [rule].
-  void _warnForBogusCombinators(CssStyleRule rule) {
-    if (!rule.isInvisibleOtherThanBogusCombinators) {
-      for (var complex in rule.selector.components) {
-        if (!complex.isBogus) continue;
+  /// Throw errors for any bogus combinators in [rule].
+  void _checkBogusCombinators(CssStyleRule rule) {
+    if (rule.isInvisible) return;
 
-        if (complex.isUseless) {
-          _warn(
-            'The selector "${complex.toString().trim()}" is invalid CSS. It '
-            'will be omitted from the generated CSS.\n'
-            'This will be an error in Dart Sass 2.0.0.\n'
-            '\n'
-            'More info: https://sass-lang.com/d/bogus-combinators',
-            complex.span.trimRight(),
-            Deprecation.bogusCombinators,
-          );
-        } else if (complex.leadingCombinators.isNotEmpty) {
-          if (!_stylesheet.plainCss) {
-            _warn(
-              'The selector "${complex.toString().trim()}" is invalid CSS.\n'
-              'This will be an error in Dart Sass 2.0.0.\n'
-              '\n'
-              'More info: https://sass-lang.com/d/bogus-combinators',
-              complex.span.trimRight(),
-              Deprecation.bogusCombinators,
-            );
-          }
-        } else {
-          _warn(
-            'The selector "${complex.toString().trim()}" is only valid for '
-                    "nesting and shouldn't\n"
-                    'have children other than style rules.' +
-                (complex.isBogusOtherThanLeadingCombinator
-                    ? ' It will be omitted from the generated CSS.'
-                    : '') +
-                '\n'
-                    'This will be an error in Dart Sass 2.0.0.\n'
-                    '\n'
-                    'More info: https://sass-lang.com/d/bogus-combinators',
-            MultiSpan(complex.span.trimRight(), 'invalid selector', {
-              rule.children.first.span: "this is not a style rule" +
-                  (rule.children.every((child) => child is CssComment)
-                      ? '\n(try converting to a //-style comment)'
-                      : ''),
-            }),
-            Deprecation.bogusCombinators,
+    for (var complex in rule.selector.components) {
+      if (complex.isStandAlone) continue;
+
+      if (complex.leadingCombinator != null) {
+        if (!_stylesheet.plainCss) {
+          var span = complex.span.trimRight();
+          throw SassRuntimeException(
+            'This selector is invalid CSS.',
+            span,
+            _stackTrace(span),
           );
         }
+      } else {
+        throw MultiSpanSassRuntimeException(
+          "This selector is only valid for nesting and shouldn't have "
+              "children other than\n"
+              'style rules.',
+          complex.span.trimRight(),
+          'invalid selector',
+          {
+            rule.children.first.span: "this is not a style rule" +
+                (rule.children.every((child) => child is CssComment)
+                    ? '\n(try converting to a //-style comment)'
+                    : ''),
+          },
+          _stackTrace(complex.span),
+        );
       }
     }
   }
@@ -2596,7 +2576,7 @@ final class _EvaluateVisitor
               override.assignmentNode,
               global: true,
             );
-          });
+          }, label: "variable declaration");
           return null;
         }
       }
@@ -2604,6 +2584,7 @@ final class _EvaluateVisitor
       var value = _addExceptionSpan(
         node,
         () => _environment.getVariable(node.name, namespace: node.namespace),
+        label: "variable declaration",
       );
       if (value != null && value != sassNull) return null;
     }
@@ -2639,7 +2620,7 @@ final class _EvaluateVisitor
         namespace: node.namespace,
         global: node.isGlobal,
       );
-    });
+    }, label: "variable declaration");
     return null;
   }
 
@@ -2671,10 +2652,7 @@ final class _EvaluateVisitor
   }
 
   Future<Value?> visitWarnRule(WarnRule node) async {
-    var value = await _addExceptionSpanAsync(
-      node,
-      () => node.expression.accept(this),
-    );
+    var value = await node.expression.accept(this);
     _logger.warn(
       value is SassString ? value.text : _serialize(value, node.expression),
       trace: _stackTrace(node.span),
@@ -2815,6 +2793,7 @@ final class _EvaluateVisitor
     var result = _addExceptionSpan(
       node,
       () => _environment.getVariable(node.name, namespace: node.namespace),
+      label: "variable use",
     );
     if (result != null) return result;
     throw _exception("Undefined variable.", node.span);
@@ -2839,7 +2818,7 @@ final class _EvaluateVisitor
 
   Future<Value> visitIfExpression(IfExpression node) async {
     var (positional, named) = await _evaluateMacroArguments(node);
-    _verifyArguments(positional.length, named, IfExpression.declaration, node);
+    _verifyParameters(positional.length, named, IfExpression.declaration, node);
 
     // ignore: prefer_is_empty
     var condition = positional.elementAtOrNull(0) ?? named["condition"]!;
@@ -2907,6 +2886,7 @@ final class _EvaluateVisitor
               node.name,
               namespace: node.namespace,
             ),
+            label: "function call",
           );
     if (function == null) {
       if (node.namespace != null) {
@@ -3388,7 +3368,7 @@ final class _EvaluateVisitor
       // don't affect the underlying environment closure.
       return _withEnvironment(callable.environment.closure(), () {
         return _environment.scope(() async {
-          _verifyArguments(
+          _verifyParameters(
             evaluated.positional.length,
             evaluated.named,
             callable.declaration.parameters,
@@ -3564,10 +3544,9 @@ final class _EvaluateVisitor
       evaluated.positional.length,
       namedSet,
     );
-    _addExceptionSpan(
-      nodeWithSpan,
-      () => overload.verify(evaluated.positional.length, namedSet),
-    );
+    _addExceptionSpan(nodeWithSpan,
+        () => overload.verify(evaluated.positional.length, namedSet),
+        label: "invocation");
 
     var parameters = overload.parameters;
     for (var i = evaluated.positional.length; i < parameters.length; i++) {
@@ -3607,6 +3586,7 @@ final class _EvaluateVisitor
       result = await _addExceptionSpanAsync(
         nodeWithSpan,
         () => callback(evaluated.positional),
+        label: "invocation",
       );
     } on SassException {
       rethrow;
@@ -3834,16 +3814,14 @@ final class _EvaluateVisitor
 
   /// Throws a [SassRuntimeException] if [positional] and [named] aren't valid
   /// when applied to [parameters].
-  void _verifyArguments(
+  void _verifyParameters(
     int positional,
     Map<String, dynamic> named,
     ParameterList parameters,
     AstNode nodeWithSpan,
   ) =>
       _addExceptionSpan(
-        nodeWithSpan,
-        () => parameters.verify(positional, MapKeySet(named)),
-      );
+          nodeWithSpan, () => parameters.verify(positional, MapKeySet(named)));
 
   Future<Value> visitSelectorExpression(SelectorExpression node) async =>
       _styleRuleIgnoringAtRoot?.originalSelector.asSassList ?? sassNull;
@@ -4324,6 +4302,7 @@ final class _EvaluateVisitor
               expression.name,
               namespace: expression.namespace,
             ),
+            label: "variable",
           ) ??
           expression;
     } else {
@@ -4547,11 +4526,15 @@ final class _EvaluateVisitor
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
   ///
+  /// The [label] is used for [nodeWithSpan]'s span if the error already has a
+  /// source span.
+  ///
   /// If [addStackFrame] is true (the default), this will add an innermost stack
   /// frame for [nodeWithSpan]. Otherwise, it will use the existing stack as-is.
   T _addExceptionSpan<T>(
     AstNode nodeWithSpan,
     T callback(), {
+    String? label,
     bool addStackFrame = true,
   }) {
     try {
@@ -4564,6 +4547,9 @@ final class _EvaluateVisitor
         error,
         stackTrace,
       );
+    } on SassException catch (error, stackTrace) {
+      throwWithTrace(_adjustException(error, nodeWithSpan.span, label: label),
+          error, stackTrace);
     }
   }
 
@@ -4571,6 +4557,7 @@ final class _EvaluateVisitor
   Future<T> _addExceptionSpanAsync<T>(
     AstNode nodeWithSpan,
     FutureOr<T> callback(), {
+    String? label,
     bool addStackFrame = true,
   }) async {
     try {
@@ -4583,7 +4570,30 @@ final class _EvaluateVisitor
         error,
         stackTrace,
       );
+    } on SassException catch (error, stackTrace) {
+      throwWithTrace(_adjustException(error, nodeWithSpan.span, label: label),
+          error, stackTrace);
     }
+  }
+
+  /// Adjusts [exception] for [_addExceptionSpan].
+  SassException _adjustException(
+    SassException error,
+    FileSpan span, {
+    String? label,
+  }) {
+    // Don't add a duplicate span. This can happen when using `meta.call()` or
+    // `meta.include()`, since those involve two nested calls to
+    // [_addExceptionSpan] with the same span.
+    if (label != null && !error.hasSpan(span)) {
+      error = error.withAdditionalSpan(span, label);
+    }
+
+    if (error is! SassRuntimeException) {
+      error = error.withTrace(_stackTrace(error.span));
+    }
+
+    return error;
   }
 
   /// Runs [callback], and converts any [SassException]s that aren't already

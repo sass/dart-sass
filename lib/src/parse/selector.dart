@@ -83,10 +83,18 @@ class SelectorParser extends Parser {
   }
 
   /// Consumes a selector list.
-  SelectorList _selectorList() {
+  SelectorList _selectorList({
+    bool allowLeadingCombinator = true,
+    bool allowTrailingCombinator = true,
+  }) {
     var start = scanner.state;
     var previousLine = scanner.line;
-    var components = <ComplexSelector>[_complexSelector()];
+    var components = <ComplexSelector>[
+      _complexSelector(
+        allowLeadingCombinator: allowLeadingCombinator,
+        allowTrailingCombinator: allowTrailingCombinator,
+      ),
+    ];
 
     _whitespace();
     while (scanner.scanChar($comma)) {
@@ -96,7 +104,13 @@ class SelectorParser extends Parser {
 
       var lineBreak = scanner.line != previousLine;
       if (lineBreak) previousLine = scanner.line;
-      components.add(_complexSelector(lineBreak: lineBreak));
+      components.add(
+        _complexSelector(
+          allowLeadingCombinator: allowLeadingCombinator,
+          allowTrailingCombinator: allowTrailingCombinator,
+          lineBreak: lineBreak,
+        ),
+      );
     }
 
     return SelectorList(components, spanFrom(start));
@@ -104,42 +118,52 @@ class SelectorParser extends Parser {
 
   /// Consumes a complex selector.
   ///
+  /// If [allowLeadingCombinator] or [allowTrailingCombinator] is false, leading
+  /// or trailing combinators will be syntax errors, respectively. Both are
+  /// allowed by default.
+  ///
   /// If [lineBreak] is `true`, that indicates that there was a line break
   /// before this selector.
-  ComplexSelector _complexSelector({bool lineBreak = false}) {
+  ComplexSelector _complexSelector({
+    bool allowLeadingCombinator = true,
+    bool allowTrailingCombinator = true,
+    bool lineBreak = false,
+  }) {
     var start = scanner.state;
 
     var componentStart = scanner.state;
     CompoundSelector? lastCompound;
-    var combinators = <CssValue<Combinator>>[];
+    CssValue<Combinator>? combinator;
 
-    List<CssValue<Combinator>>? initialCombinators;
+    CssValue<Combinator>? leadingCombinator;
     var components = <ComplexSelectorComponent>[];
 
     loop:
     while (true) {
       _whitespace();
 
+      var allowCombinator = combinator == null &&
+          (allowLeadingCombinator || lastCompound != null);
       switch (scanner.peekChar()) {
-        case $plus:
+        case $plus when allowCombinator:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinators.add(
-            CssValue(Combinator.nextSibling, spanFrom(combinatorStart)),
+          combinator = CssValue(
+            Combinator.nextSibling,
+            spanFrom(combinatorStart),
           );
 
-        case $gt:
+        case $gt when allowCombinator:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinators.add(
-            CssValue(Combinator.child, spanFrom(combinatorStart)),
-          );
+          combinator = CssValue(Combinator.child, spanFrom(combinatorStart));
 
-        case $tilde:
+        case $tilde when allowCombinator:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinators.add(
-            CssValue(Combinator.followingSibling, spanFrom(combinatorStart)),
+          combinator = CssValue(
+            Combinator.followingSibling,
+            spanFrom(combinatorStart),
           );
 
         case null:
@@ -158,18 +182,18 @@ class SelectorParser extends Parser {
             components.add(
               ComplexSelectorComponent(
                 lastCompound,
-                combinators,
                 spanFrom(componentStart),
+                combinator: combinator,
               ),
             );
-          } else if (combinators.isNotEmpty) {
-            assert(initialCombinators == null);
-            initialCombinators = combinators;
+          } else if (combinator != null) {
+            assert(leadingCombinator == null);
+            leadingCombinator = combinator;
             componentStart = scanner.state;
           }
 
           lastCompound = _compoundSelector();
-          combinators = [];
+          combinator = null;
           if (scanner.peekChar() == $ampersand) {
             scanner.error(
               '"&" may only used at the beginning of a compound selector.',
@@ -181,26 +205,26 @@ class SelectorParser extends Parser {
       }
     }
 
-    if (combinators.isNotEmpty && _plainCss) {
+    if (combinator != null && (_plainCss || !allowTrailingCombinator)) {
       scanner.error("expected selector.");
     } else if (lastCompound != null) {
       components.add(
         ComplexSelectorComponent(
           lastCompound,
-          combinators,
           spanFrom(componentStart),
+          combinator: combinator,
         ),
       );
-    } else if (combinators.isNotEmpty) {
-      initialCombinators = combinators;
+    } else if (combinator != null) {
+      leadingCombinator = combinator;
     } else {
       scanner.error("expected selector.");
     }
 
     return ComplexSelector(
-      initialCombinators ?? const [],
       components,
       spanFrom(start),
+      leadingCombinator: leadingCombinator,
       lineBreak: lineBreak,
     );
   }
@@ -403,12 +427,18 @@ class SelectorParser extends Parser {
     SelectorList? selector;
     if (element) {
       if (_selectorPseudoElements.contains(unvendored)) {
-        selector = _selectorList();
+        selector = _selectorList(
+          allowLeadingCombinator: false,
+          allowTrailingCombinator: false,
+        );
       } else {
         argument = declarationValue(allowEmpty: true);
       }
     } else if (_selectorPseudoClasses.contains(unvendored)) {
-      selector = _selectorList();
+      selector = _selectorList(
+        allowLeadingCombinator: equalsIgnoreCase(name, 'has'),
+        allowTrailingCombinator: false,
+      );
     } else if (unvendored == "nth-child" || unvendored == "nth-last-child") {
       argument = _aNPlusB();
       _whitespace();
@@ -417,7 +447,10 @@ class SelectorParser extends Parser {
         argument += " of";
         _whitespace();
 
-        selector = _selectorList();
+        selector = _selectorList(
+          allowLeadingCombinator: false,
+          allowTrailingCombinator: false,
+        );
       }
     } else {
       argument = declarationValue(allowEmpty: true).trimRight();

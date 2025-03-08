@@ -35,16 +35,6 @@ abstract class CssNode implements AstNode {
         const _IsInvisibleVisitor(includeBogus: true, includeComments: false),
       );
 
-  // Whether this node would be invisible even if style rule selectors within it
-  // didn't have bogus combinators.
-  ///
-  /// Note that this doesn't consider nodes that contain loud comments to be
-  /// invisible even though they're omitted in compressed mode.
-  @internal
-  bool get isInvisibleOtherThanBogusCombinators => accept(
-        const _IsInvisibleVisitor(includeBogus: false, includeComments: false),
-      );
-
   // Whether this node will be invisible when loud comments are stripped.
   @internal
   bool get isInvisibleHidingComments => accept(
@@ -92,8 +82,5 @@ class _IsInvisibleVisitor with EveryCssVisitor {
       includeComments && !comment.isPreserved;
 
   bool visitCssStyleRule(CssStyleRule rule) =>
-      (includeBogus
-          ? rule.selector.isInvisible
-          : rule.selector.isInvisibleOtherThanBogusCombinators) ||
-      super.visitCssStyleRule(rule);
+      rule.selector.isInvisible || super.visitCssStyleRule(rule);
 }

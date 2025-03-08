@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 47c97f7824eb25d7f1e64e3230938b88330d40b4
+  // Checksum: f34f224d924705c05c56bfc57a398706597f6c64
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -27,7 +27,9 @@ enum Deprecation {
 
   /// Deprecation for @-moz-document.
   mozDocument('moz-document',
-      deprecatedIn: '1.7.2', description: '@-moz-document.'),
+      deprecatedIn: '1.7.2',
+      obsoleteIn: '2.0.0',
+      description: '@-moz-document.'),
 
   /// Deprecation for imports using relative canonical URLs.
   relativeCanonical('relative-canonical',
@@ -52,6 +54,7 @@ enum Deprecation {
   /// Deprecation for leading, trailing, and repeated combinators.
   bogusCombinators('bogus-combinators',
       deprecatedIn: '1.54.0',
+      obsoleteIn: '2.0.0',
       description: 'Leading, trailing, and repeated combinators.'),
 
   /// Deprecation for ambiguous + and - operators.

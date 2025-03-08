@@ -21,5 +21,6 @@ extension MapExtensions<K, V> on Map<K, V> {
 
   /// Returns an option that contains the value at [key] if one exists and null
   /// otherwise.
-  Option<V> getOption(K key) => containsKey(key) ? (this[key] as V,) : null;
+  Option<V> getOption(K key) =>
+      containsKey(key) ? some(this[key] as V) : none();
 }

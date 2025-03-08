@@ -5,8 +5,10 @@
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
+import '../../exception.dart';
 import '../../extend/functions.dart';
 import '../../parse/selector.dart';
+import '../../util/nullable.dart';
 import '../../utils.dart';
 import '../../visitor/interface/selector.dart';
 import '../css/value.dart';
@@ -20,16 +22,12 @@ import '../selector.dart';
 /// {@category AST}
 /// {@category Parsing}
 final class ComplexSelector extends Selector {
-  /// This selector's leading combinators.
-  ///
-  /// If this is empty, that indicates that it has no leading combinator. If
-  /// it's more than one element, that means it's invalid CSS; however, we still
-  /// support this for backwards-compatibility purposes.
-  final List<CssValue<Combinator>> leadingCombinators;
+  /// This selector's leading combinator, if it has one.
+  final CssValue<Combinator>? leadingCombinator;
 
   /// The components of this selector.
   ///
-  /// This is only empty if [leadingCombinators] is not empty.
+  /// This is only empty if [leadingCombinator] is not null.
   ///
   /// Descendant combinators aren't explicitly represented here. If two
   /// [CompoundSelector]s are adjacent to one another, there's an implicit
@@ -55,6 +53,50 @@ final class ComplexSelector extends Selector {
     (sum, component) => sum + component.selector.specificity,
   );
 
+  /// Whether `this` is a CSS selector that's valid on its own at the root of
+  /// the CSS document.
+  ///
+  /// Selectors with leading or trailing combinators are *not* stand-alone.
+  bool get isStandAlone =>
+      leadingCombinator == null && components.last.combinator == null;
+
+  /// Whether `this` is a valid [relative selector].
+  ///
+  /// This allows leading combinators but not trailing combinators. For any
+  /// selector where this returns true, [isStandAlone] will also return true.
+  ///
+  /// [relative selector]: https://www.w3.org/TR/selectors-4/#relative-selector
+  bool get isRelative => switch (components) {
+        [] => false,
+        [..., ComplexSelectorComponent(combinator: var _?)] => false,
+        _ => true,
+      };
+
+  /// Throws a [SassException] if `this` isn't a CSS selector that's valid in
+  /// various places in the document, depending on the arguments passed.
+  ///
+  /// If [allowLeadingCombinator] or [allowTrailingCombinator] is `true`, this
+  /// allows selectors with leading or trailing selector combinators,
+  /// respectively. Otherwise, they produce errors after parsing. If both are
+  /// true, all selectors are allowed and this does nothing.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
+  void assertValid({
+    String? name,
+    bool allowLeadingCombinator = false,
+    bool allowTrailingCombinator = false,
+  }) {
+    if ((!allowLeadingCombinator && leadingCombinator != null) ||
+        (!allowTrailingCombinator && !isRelative)) {
+      throw SassScriptException(
+        'Selectors that aren\'t valid on their own aren\'t allowed '
+        'in this function.',
+        name,
+      ).withSpan(span);
+    }
+  }
+
   /// If this compound selector is composed of a single compound selector with
   /// no combinators, returns it.
   ///
@@ -63,23 +105,22 @@ final class ComplexSelector extends Selector {
   /// @nodoc
   @internal
   CompoundSelector? get singleCompound {
-    if (leadingCombinators.isNotEmpty) return null;
+    if (leadingCombinator != null) return null;
     return switch (components) {
-      [ComplexSelectorComponent(:var selector, combinators: [])] => selector,
+      [ComplexSelectorComponent(:var selector, combinator: null)] => selector,
       _ => null,
     };
   }
 
   ComplexSelector(
-    Iterable<CssValue<Combinator>> leadingCombinators,
     Iterable<ComplexSelectorComponent> components,
     super.span, {
+    this.leadingCombinator,
     this.lineBreak = false,
-  })  : leadingCombinators = List.unmodifiable(leadingCombinators),
-        components = List.unmodifiable(components) {
-    if (this.leadingCombinators.isEmpty && this.components.isEmpty) {
+  }) : components = List.unmodifiable(components) {
+    if (leadingCombinator == null && this.components.isEmpty) {
       throw ArgumentError(
-        "leadingCombinators and components may not both be empty.",
+        "components may only empty if leadingCombinator is non-null.",
       );
     }
   }
@@ -109,38 +150,55 @@ final class ComplexSelector extends Selector {
   /// That is, whether this matches every element that [other] matches, as well
   /// as possibly matching more.
   bool isSuperselector(ComplexSelector other) =>
-      leadingCombinators.isEmpty &&
-      other.leadingCombinators.isEmpty &&
+      leadingCombinator == null &&
+      other.leadingCombinator == null &&
       complexIsSuperselector(components, other.components);
 
-  /// Returns a copy of `this` with [combinators] added to the end of the final
+  /// Returns a copy of `this` with [combinator] added to the beginning.
+  ///
+  /// Returns `null` if this already has a leading combinator.
+  ///
+  /// @nodoc
+  @internal
+  ComplexSelector? prependCombinator(CssValue<Combinator>? combinator) {
+    if (combinator == null) return this;
+    if (leadingCombinator != null) return null;
+    return ComplexSelector(
+      components,
+      span,
+      leadingCombinator: combinator,
+      lineBreak: lineBreak,
+    );
+  }
+
+  /// Returns a copy of `this` with [combinator] added to the end of the final
   /// component in [components].
   ///
   /// If [forceLineBreak] is `true`, this will mark the new complex selector as
   /// having a line break.
   ///
+  /// Returns `null` if this already has a trailing combinator.
+  ///
   /// @nodoc
   @internal
-  ComplexSelector withAdditionalCombinators(
-    List<CssValue<Combinator>> combinators, {
+  ComplexSelector? withAdditionalCombinator(
+    CssValue<Combinator>? combinator, {
     bool forceLineBreak = false,
-  }) {
-    if (combinators.isEmpty) return this;
-    return switch (components) {
-      [...var initial, var last] => ComplexSelector(
-          leadingCombinators,
-          [...initial, last.withAdditionalCombinators(combinators)],
-          span,
-          lineBreak: lineBreak || forceLineBreak,
-        ),
-      [] => ComplexSelector(
-          [...leadingCombinators, ...combinators],
-          const [],
-          span,
-          lineBreak: lineBreak || forceLineBreak,
-        ),
-    };
-  }
+  }) =>
+      combinator == null
+          ? this
+          : switch (components) {
+              [...var initial, var last] =>
+                last.withAdditionalCombinator(combinator).andThen(
+                      (newLast) => ComplexSelector(
+                        [...initial, newLast],
+                        span,
+                        leadingCombinator: leadingCombinator,
+                        lineBreak: lineBreak || forceLineBreak,
+                      ),
+                    ),
+              [] => null,
+            };
 
   /// Returns a copy of `this` with an additional [component] added to the end.
   ///
@@ -152,21 +210,24 @@ final class ComplexSelector extends Selector {
   /// @nodoc
   @internal
   ComplexSelector withAdditionalComponent(
-    ComplexSelectorComponent component,
+    ComplexSelectorComponent? component,
     FileSpan span, {
     bool forceLineBreak = false,
   }) =>
-      ComplexSelector(
-        leadingCombinators,
-        [...components, component],
-        span,
-        lineBreak: lineBreak || forceLineBreak,
-      );
+      component == null
+          ? this
+          : ComplexSelector(
+              [...components, component],
+              span,
+              leadingCombinator: leadingCombinator,
+              lineBreak: lineBreak || forceLineBreak,
+            );
 
-  /// Returns a copy of `this` with [child]'s combinators added to the end.
+  /// Returns a copy of `this` with [child] added to the end.
   ///
-  /// If [child] has [leadingCombinators], they're appended to `this`'s last
-  /// combinator. This does _not_ resolve parent selectors.
+  /// If [child] has [leadingCombinator], they're appended to `this`'s last
+  /// combinator. If that would produce an invalid selector, this returns `null`
+  /// instead. This does _not_ resolve parent selectors.
   ///
   /// The [span] is used for the new selector.
   ///
@@ -175,43 +236,38 @@ final class ComplexSelector extends Selector {
   ///
   /// @nodoc
   @internal
-  ComplexSelector concatenate(
+  ComplexSelector? concatenate(
     ComplexSelector child,
     FileSpan span, {
     bool forceLineBreak = false,
-  }) {
-    if (child.leadingCombinators.isEmpty) {
-      return ComplexSelector(
-        leadingCombinators,
-        [...components, ...child.components],
-        span,
-        lineBreak: lineBreak || child.lineBreak || forceLineBreak,
-      );
-    } else if (components case [...var initial, var last]) {
-      return ComplexSelector(
-        leadingCombinators,
-        [
-          ...initial,
-          last.withAdditionalCombinators(child.leadingCombinators),
-          ...child.components,
-        ],
-        span,
-        lineBreak: lineBreak || child.lineBreak || forceLineBreak,
-      );
-    } else {
-      return ComplexSelector(
-        [...leadingCombinators, ...child.leadingCombinators],
-        child.components,
-        span,
-        lineBreak: lineBreak || child.lineBreak || forceLineBreak,
-      );
-    }
-  }
+  }) =>
+      switch (child.leadingCombinator) {
+        null => ComplexSelector(
+            [...components, ...child.components],
+            span,
+            leadingCombinator: leadingCombinator,
+            lineBreak: lineBreak || child.lineBreak || forceLineBreak,
+          ),
+        var childCombinator => switch (components) {
+            [...var initial, var last] =>
+              last.withAdditionalCombinator(childCombinator).andThen(
+                    (newLast) => ComplexSelector(
+                      [...initial, newLast, ...child.components],
+                      span,
+                      leadingCombinator: leadingCombinator,
+                      lineBreak: lineBreak || child.lineBreak || forceLineBreak,
+                    ),
+                  ),
+            // If components is empty, this must have a leading combinator, which
+            // isn't compatible with [childCombinator].
+            _ => null,
+          },
+      };
 
-  int get hashCode => listHash(leadingCombinators) ^ listHash(components);
+  int get hashCode => leadingCombinator.hashCode ^ listHash(components);
 
   bool operator ==(Object other) =>
       other is ComplexSelector &&
-      listEquals(leadingCombinators, other.leadingCombinators) &&
+      leadingCombinator == other.leadingCombinator &&
       listEquals(components, other.components);
 }
