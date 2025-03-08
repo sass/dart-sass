@@ -1,4 +1,8 @@
-## 1.85.2-dev
+## 1.86.0
+
+* Add support for `%` as an expression in its own right. It will still be parsed
+  as the modulo operator when between two other expressions, but in any other
+  context it will be an expression whose value is the unquoted string `%`.
 
 ### Dart API
 
