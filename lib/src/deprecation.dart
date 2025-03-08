@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: b715850a96d4d346e09fecb54444ccec6dc69610
+  // Checksum: f34f224d924705c05c56bfc57a398706597f6c64
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -54,6 +54,7 @@ enum Deprecation {
   /// Deprecation for leading, trailing, and repeated combinators.
   bogusCombinators('bogus-combinators',
       deprecatedIn: '1.54.0',
+      obsoleteIn: '2.0.0',
       description: 'Leading, trailing, and repeated combinators.'),
 
   /// Deprecation for ambiguous + and - operators.
