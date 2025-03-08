@@ -61,6 +61,7 @@ describe('a unary operation', () => {
         const operand = new StringExpression({text: 'zip'});
         node.operand = operand;
         expect(node.operand).toBe(operand);
+        expect(node.operand.parent).toBe(node);
         expect(node).toHaveStringExpression('operand', 'zip');
       });
 
