@@ -1,4 +1,4 @@
-## 0.4.16-dev
+## 0.4.16
 
 * Use union types rather than base classes for Sass nodes wherever possible.
   This makes it possible for TypeScript to automatically narrow node types based
