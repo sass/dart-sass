@@ -45,7 +45,7 @@ describe('a variable expression', () => {
       describe(description, () => {
         beforeEach(() => void (node = create()));
 
-        it('has sassType variable-call', () =>
+        it('has sassType variable', () =>
           expect(node.sassType).toBe('variable'));
 
         it('has a namespace', () => expect(node.namespace).toBe('bar'));
