@@ -14,6 +14,8 @@
 
 * Add support for parsing unary operation expressions.
 
+* Add support for parsing variable expressions.
+
 ## 0.4.15
 
 * Add support for parsing list expressions.

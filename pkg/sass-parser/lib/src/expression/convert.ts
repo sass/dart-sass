@@ -21,6 +21,7 @@ import {ParenthesizedExpression} from './parenthesized';
 import {SelectorExpression} from './selector';
 import {StringExpression} from './string';
 import {UnaryOperationExpression} from './unary-operation';
+import {VariableExpression} from './variable';
 
 /** The visitor to use to convert internal Sass nodes to JS. */
 const visitor = sassInternal.createExpressionVisitor<AnyExpression>({
@@ -55,6 +56,7 @@ const visitor = sassInternal.createExpressionVisitor<AnyExpression>({
     }),
   visitUnaryOperationExpression: inner =>
     new UnaryOperationExpression(undefined, inner),
+  visitVariableExpression: inner => new VariableExpression(undefined, inner),
 });
 
 /** Converts an internal expression AST node into an external one. */

@@ -16,6 +16,7 @@ import {NumberExpression} from './number';
 import {ParenthesizedExpression} from './parenthesized';
 import {StringExpression} from './string';
 import {UnaryOperationExpression} from './unary-operation';
+import {VariableExpression} from './variable';
 
 /** Constructs an expression from {@link ExpressionProps}. */
 export function fromProps(props: ExpressionProps): AnyExpression {
@@ -25,6 +26,7 @@ export function fromProps(props: ExpressionProps): AnyExpression {
   if ('separator' in props) return new ListExpression(props);
   if ('nodes' in props) return new MapExpression(props);
   if ('inParens' in props) return new ParenthesizedExpression(props);
+  if ('variableName' in props) return new VariableExpression(props);
   if ('name' in props) {
     if (typeof props.name === 'string') {
       return new FunctionExpression(props as FunctionExpressionProps);
