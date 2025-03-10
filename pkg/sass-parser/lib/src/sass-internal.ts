@@ -397,6 +397,11 @@ declare namespace SassInternal {
     readonly operator: UnaryOperator;
     readonly operand: Expression;
   }
+
+  class VariableExpression extends Expression {
+    readonly namespace?: string | null;
+    readonly name: string;
+  }
 }
 
 const sassInternal = (
@@ -461,6 +466,7 @@ export type SelectorExpression = SassInternal.SelectorExpression;
 export type StringExpression = SassInternal.StringExpression;
 export type SupportsExpression = SassInternal.SupportsExpression;
 export type UnaryOperationExpression = SassInternal.UnaryOperationExpression;
+export type VariableExpression = SassInternal.VariableExpression;
 
 export interface StatementVisitorObject<T> {
   visitAtRootRule(node: AtRootRule): T;
@@ -506,6 +512,7 @@ export interface ExpressionVisitorObject<T> {
   visitStringExpression(node: StringExpression): T;
   visitSupportsExpression(node: SupportsExpression): T;
   visitUnaryOperationExpression(node: UnaryOperationExpression): T;
+  visitVariableExpression(node: VariableExpression): T;
 }
 
 export const createExpressionVisitor = sassInternal.createExpressionVisitor;

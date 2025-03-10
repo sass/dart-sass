@@ -28,6 +28,7 @@ import type {
   UnaryOperationExpression,
   UnaryOperationExpressionProps,
 } from './unary-operation';
+import type {VariableExpression, VariableExpressionProps} from './variable';
 
 /**
  * The union type of all Sass expressions.
@@ -47,7 +48,8 @@ export type AnyExpression =
   | ParenthesizedExpression
   | SelectorExpression
   | StringExpression
-  | UnaryOperationExpression;
+  | UnaryOperationExpression
+  | VariableExpression;
 
 /**
  * Sass expression types.
@@ -67,7 +69,8 @@ export type ExpressionType =
   | 'parenthesized'
   | 'selector-expr'
   | 'string'
-  | 'unary-operation';
+  | 'unary-operation'
+  | 'variable';
 
 /**
  * The union type of all properties that can be used to construct Sass
@@ -87,7 +90,8 @@ export type ExpressionProps =
   | NumberExpressionProps
   | ParenthesizedExpressionProps
   | StringExpressionProps
-  | UnaryOperationExpressionProps;
+  | UnaryOperationExpressionProps
+  | VariableExpressionProps;
 
 /**
  * The superclass of Sass expression nodes.
