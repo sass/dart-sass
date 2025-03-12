@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 05d8589b401932198e1f52434066ea4d6cbf3756
+// Checksum: 1cca6e94fd02f68addebda66bf0aeecf25689b30
 //
 // ignore_for_file: unused_import
 
@@ -144,6 +144,10 @@ final class _EvaluateVisitor
         StatementVisitor<Value?>,
         ExpressionVisitor<Value>,
         CssVisitor<void> {
+  /// The unique compile context for tracking if SassFunction and SassMixin
+  /// belongs to current compilation or not.
+  final Object _compileContext = Object();
+
   /// The import cache used to import other stylesheets.
   final ImportCache? _importCache;
 
@@ -441,7 +445,8 @@ final class _EvaluateVisitor
 
         return SassMap({
           for (var (name, value) in module.functions.pairs)
-            SassString(name): SassFunction(value),
+            SassString(name):
+                SassFunction.withCompileContext(value, _compileContext),
         });
       }, url: "sass:meta"),
 
@@ -454,7 +459,8 @@ final class _EvaluateVisitor
 
         return SassMap({
           for (var (name, value) in module.mixins.pairs)
-            SassString(name): SassMixin(value),
+            SassString(name):
+                SassMixin.withCompileContext(value, _compileContext),
         });
       }, url: "sass:meta"),
 
@@ -470,7 +476,8 @@ final class _EvaluateVisitor
             if (module != null) {
               throw r"$css and $module may not both be passed at once.";
             }
-            return SassFunction(PlainCssCallable(name.text));
+            return SassFunction.withCompileContext(
+                PlainCssCallable(name.text), _compileContext);
           }
 
           var callable = _addExceptionSpan(_callableNode!, () {
@@ -485,7 +492,7 @@ final class _EvaluateVisitor
           });
           if (callable == null) throw "Function not found: $name";
 
-          return SassFunction(callable);
+          return SassFunction.withCompileContext(callable, _compileContext);
         },
         url: "sass:meta",
       ),
@@ -505,7 +512,7 @@ final class _EvaluateVisitor
         );
         if (callable == null) throw "Mixin not found: $name";
 
-        return SassMixin(callable);
+        return SassMixin.withCompileContext(callable, _compileContext);
       }, url: "sass:meta"),
 
       BuiltInCallable.function("call", r"$function, $args...", (
@@ -549,7 +556,10 @@ final class _EvaluateVisitor
           return expression.accept(this);
         }
 
-        var callable = function.assertFunction("function").callable;
+        var callable = function
+            .assertFunction("function")
+            .assertCompileContext(_compileContext)
+            .callable;
         // ignore: unnecessary_type_check
         if (callable is Callable) {
           return _runFunctionCallable(
@@ -616,7 +626,10 @@ final class _EvaluateVisitor
             rest: ValueExpression(args, callableNode.span),
           );
 
-          var callable = mixin.assertMixin("mixin").callable;
+          var callable = mixin
+              .assertMixin("mixin")
+              .assertCompileContext(_compileContext)
+              .callable;
           var content = _environment.content;
 
           // ignore: unnecessary_type_check
