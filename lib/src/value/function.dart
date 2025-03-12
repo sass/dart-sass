@@ -5,6 +5,7 @@
 import 'package:meta/meta.dart';
 
 import '../callable.dart';
+import '../exception.dart';
 import '../visitor/interface/value.dart';
 import '../value.dart';
 
@@ -23,13 +24,30 @@ class SassFunction extends Value {
   /// synchronous evaluate visitor will crash if this isn't a [Callable].
   final AsyncCallable callable;
 
-  SassFunction(this.callable);
+  /// The unique compile context for tracking if SassFunction and SassMixin
+  /// belongs to current compilation or not.
+  final Object? _compileContext;
+
+  SassFunction(this.callable) : _compileContext = null;
+
+  @internal
+  SassFunction.withCompileContext(this.callable, this._compileContext);
 
   /// @nodoc
   @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitFunction(this);
 
   SassFunction assertFunction([String? name]) => this;
+
+  @internal
+  SassFunction assertCompileContext(Object compileContext) {
+    if (_compileContext != null && _compileContext != compileContext) {
+      throw SassScriptException(
+          "$this does not belong to current compilation.");
+    }
+
+    return this;
+  }
 
   bool operator ==(Object other) =>
       other is SassFunction && callable == other.callable;
