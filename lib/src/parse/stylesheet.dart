@@ -923,9 +923,18 @@ abstract class StylesheetParser extends Parser {
         deprecation: Deprecation.cssFunctionMixin,
         message:
             'Sass @function names beginning with -- are deprecated for forward-'
-            'compatibility with plain CSS mixins.\n'
+            'compatibility with plain CSS functions.\n'
             '\n'
             'For details, see https://sass-lang.com/d/css-function-mixin',
+        span: scanner.spanFrom(beforeName),
+      ));
+    } else if (equalsIgnoreCase(name, 'type')) {
+      warnings.add((
+        deprecation: Deprecation.typeFunction,
+        message: 'Sass @functions named "type" are deprecated for forward-'
+            'compatibility with the plain CSS type() function.\n'
+            '\n'
+            'For details, see https://sass-lang.com/d/type-function',
         span: scanner.spanFrom(beforeName),
       ));
     }
@@ -2079,7 +2088,6 @@ abstract class StylesheetParser extends Parser {
           operators.last.precedence >= operator.precedence) {
         resolveOneOperation();
       }
-      operators.add(operator);
 
       var singleExpression = singleExpression_;
       if (singleExpression == null) {
@@ -2089,9 +2097,16 @@ abstract class StylesheetParser extends Parser {
           length: operator.operator.length,
         );
       }
-      operands.add(singleExpression);
       whitespace(consumeNewlines: true);
-      singleExpression_ = _singleExpression();
+
+      if (operator == BinaryOperator.modulo && !_lookingAtExpression()) {
+        addSingleExpression(StringExpression.plain(
+            '%', scanner.spanFromPosition(scanner.position - 1)));
+      } else {
+        operators.add(operator);
+        operands.add(singleExpression);
+        singleExpression_ = _singleExpression();
+      }
     }
 
     void resolveSpaceExpressions() {
@@ -2353,6 +2368,7 @@ abstract class StylesheetParser extends Parser {
         $plus => _plusExpression(),
         $minus => _minusExpression(),
         $exclamation => _importantExpression(),
+        $percent => _percentExpression(),
         // dart-lang/sdk#52740
         // ignore: non_constant_relational_pattern_expression
         $u || $U when scanner.peekChar(1) == $plus => _unicodeRange(),
@@ -2551,6 +2567,15 @@ abstract class StylesheetParser extends Parser {
     whitespace(consumeNewlines: true);
     expectIdentifier("important");
     return StringExpression.plain("!important", scanner.spanFrom(start));
+  }
+
+  /// Consumes a `%` expression.
+  Expression _percentExpression() {
+    assert(scanner.peekChar() == $percent);
+
+    var start = scanner.state;
+    scanner.readChar();
+    return StringExpression.plain("%", scanner.spanFrom(start));
   }
 
   /// Consumes a unary operation expression.
@@ -3799,6 +3824,7 @@ abstract class StylesheetParser extends Parser {
         $backslash ||
         $dollar ||
         $ampersand ||
+        $percent ||
         int(isNameStart: true) ||
         int(isDigit: true) =>
           true,
