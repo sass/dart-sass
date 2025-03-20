@@ -45,10 +45,9 @@ jobs:
         uses: actions/download-artifact@v4
 
       - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            build-*/*
+        run: gh release upload ${{ github.ref_name }} build-*/* --repo ${{ github.repository }}
+        env:
+          GH_TOKEN: ${{ github.token }}
 
   deploy_npm:
     name: Deploy npm
@@ -131,7 +130,7 @@ jobs:
         # a real dependency on the released version of Sass.
       - name: Get Dart Sass version
         id: dart-sass-version
-        run: echo "version=${GITHUB_REF##*/}" | tee --append "$GITHUB_OUTPUT"
+        run: echo "version=${{ github.ref_name }}" | tee --append "$GITHUB_OUTPUT"
       - run: npm install sass@${{ steps.dart-sass-version.outputs.version }}
         working-directory: pkg/sass-parser/
 
@@ -190,7 +189,7 @@ jobs:
 
       - name: Get version
         id: version
-        run: echo "version=${GITHUB_REF##*/}" | tee --append "$GITHUB_OUTPUT"
+        run: echo "version=${{ github.ref_name }}" | tee --append "$GITHUB_OUTPUT"
 
       - name: Wait for npm registry's CDN to catch up on replications
         run: sleep 600
@@ -219,7 +218,7 @@ jobs:
       - name: Get version
         id: version
         run: |
-          echo "version=${GITHUB_REF##*/}" | tee --append "$GITHUB_OUTPUT"
+          echo "version=${{ github.ref_name }}" | tee --append "$GITHUB_OUTPUT"
           echo "protocol_version=$(curl -fsSL -H "Authorization: Bearer ${{ github.token }}" https://raw.githubusercontent.com/sass/sass/HEAD/spec/EMBEDDED_PROTOCOL_VERSION)" | tee --append "$GITHUB_OUTPUT"
 
       - name: Update version
