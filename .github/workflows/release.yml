@@ -26,6 +26,9 @@ jobs:
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
+      - run: |
+          sha256sum build-*/* | sed 's@  .*/@  @' > CHECKSUMS
+
       - name: Deploy
         run: dart run grinder pkg-github-release
         env:
@@ -49,6 +52,7 @@ jobs:
         with:
           files: |
             build-*/*
+            CHECKSUMS
 
   deploy_npm:
     name: Deploy npm
