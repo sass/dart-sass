@@ -5,14 +5,23 @@ on:
 
 jobs:
   build_linux:
+    permissions:
+      attestations: write
+      id-token: write
     uses: ./.github/workflows/build-linux.yml
     secrets: inherit
 
   build_macos:
+    permissions:
+      attestations: write
+      id-token: write
     uses: ./.github/workflows/build-macos.yml
     secrets: inherit
 
   build_windows:
+    permissions:
+      attestations: write
+      id-token: write
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
 
