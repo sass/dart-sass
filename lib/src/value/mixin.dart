@@ -5,6 +5,7 @@
 import 'package:meta/meta.dart';
 
 import '../callable.dart';
+import '../exception.dart';
 import '../visitor/interface/value.dart';
 import '../value.dart';
 
@@ -25,13 +26,30 @@ final class SassMixin extends Value {
   @internal
   final AsyncCallable callable;
 
-  SassMixin(this.callable);
+  /// The unique compile context for tracking if SassFunction and SassMixin
+  /// belongs to current compilation or not.
+  final Object? _compileContext;
+
+  SassMixin(this.callable) : _compileContext = null;
+
+  @internal
+  SassMixin.withCompileContext(this.callable, this._compileContext);
 
   /// @nodoc
   @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitMixin(this);
 
   SassMixin assertMixin([String? name]) => this;
+
+  @internal
+  SassMixin assertCompileContext(Object compileContext) {
+    if (_compileContext != null && _compileContext != compileContext) {
+      throw SassScriptException(
+          "$this does not belong to current compilation.");
+    }
+
+    return this;
+  }
 
   bool operator ==(Object other) =>
       other is SassMixin && callable == other.callable;
