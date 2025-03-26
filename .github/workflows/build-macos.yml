@@ -10,6 +10,10 @@ jobs:
 
     runs-on: ${{ matrix.runner }}
 
+    permissions:
+      attestations: write
+      id-token: write
+
     strategy:
       fail-fast: false
       matrix:
@@ -27,6 +31,12 @@ jobs:
 
       - name: Build
         run: dart run grinder pkg-standalone-macos-${{ matrix.arch }}
+
+      - name: Generate artifact attestation
+        if: github.ref_type == 'tag'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: build/*.tar.gz
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
