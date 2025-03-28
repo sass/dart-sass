@@ -1,3 +1,7 @@
+## 0.4.17
+
+* No user-visible changes.
+
 ## 0.4.16
 
 * Use union types rather than base classes for Sass nodes wherever possible.
