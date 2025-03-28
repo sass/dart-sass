@@ -36,7 +36,7 @@ String _realCasePath(String path) {
   // TODO(nweiz): Use an SDK function for this when dart-lang/sdk#35370 and/or
   // nodejs/node#24942 are fixed, or at least use FFI functions.
 
-  //if (!_couldBeCaseInsensitive) return path;
+  if (!_couldBeCaseInsensitive) return path;
 
   if (isWindows) {
     // Drive names are *always* case-insensitive, so convert them to uppercase.
