@@ -473,10 +473,7 @@ RenderResult _newRenderResult(
   var end = DateTime.now();
 
   var css = result.css;
-  // TODO(nweiz): Get rid of this cast once pulyaevskiy/node-interop#109 is
-  // released.
-  // ignore: prefer_void_to_null
-  Uint8List? sourceMapBytes = undefined as Null;
+  Uint8List? sourceMapBytes = undefined;
   if (_enableSourceMaps(options)) {
     var sourceMapOption = options.sourceMap;
     var sourceMapPath =

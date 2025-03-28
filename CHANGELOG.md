@@ -1,3 +1,8 @@
+## 1.86.1
+
+* Improve the performance of `file:` URL case canonicalization on Windows and
+  Mac OS.
+
 ## 1.86.0
 
 * Add support for `%` as an expression in its own right. It will still be parsed

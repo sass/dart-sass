@@ -61,6 +61,9 @@ bool fileExists(String path) => throw '';
 /// Returns whether a dir at [path] exists.
 bool dirExists(String path) => throw '';
 
+/// Returns whether a symbolic link at [path] exists.
+bool linkExists(String path) => throw '';
+
 /// Ensures that a directory exists at [path], creating it and its ancestors if
 /// necessary.
 void ensureDir(String path) => throw '';
@@ -70,6 +73,10 @@ void ensureDir(String path) => throw '';
 /// If [recursive] is `true`, this lists files in directories transitively
 /// beneath [path] as well.
 Iterable<String> listDir(String path, {bool recursive = false}) => throw '';
+
+/// Returns the resolved physical path of [path] on disk, with symbolic links
+/// resolved and with the same case as the physical file.
+String realpath(String path) => throw '';
 
 /// Returns the modification time of the file at [path].
 DateTime modificationTime(String path) => throw '';
