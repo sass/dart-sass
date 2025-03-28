@@ -187,7 +187,7 @@ bool linkExists(String path) {
   }
   return _systemErrorToFileSystemException(() {
     try {
-      return fs.statSync(path).isSymbolicLink();
+      return fs.lstatSync(path).isSymbolicLink();
     } catch (error) {
       var systemError = error as JsSystemError;
       if (systemError.code == 'ENOENT') return false;
