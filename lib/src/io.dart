@@ -57,8 +57,18 @@ String _realCasePath(String path) {
       if (!linkExists(path)) {
         // Don't recompute the real path if it was already computed for a child
         // and we haven't seen any symlinks between that child and this directory.
-        var realPathNonNull = realPath ?? realpath(path);
-        return p.join(helper(dirname, p.dirname(realPathNonNull)), p.basename(realPathNonNull));
+        String realPathNonNull;
+        try {
+          realPathNonNull = realPath ?? realpath(path);
+        } on FileSystemException {
+          // If we can't get the realpath, that probably means the file doesn't
+          // exist. Rather than throwing an error about symlink resolution,
+          // return the non-existent path and let it throw whatever use-time
+          // error it's going to throw.
+          return path;
+        }
+        return p.join(helper(dirname, p.dirname(realPathNonNull)),
+            p.basename(realPathNonNull));
       }
 
       var realDirname = helper(dirname);
