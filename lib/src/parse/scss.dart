@@ -5,7 +5,6 @@
 import 'package:charcode/charcode.dart';
 
 import '../ast/sass.dart';
-import '../deprecation.dart';
 import '../interpolation_buffer.dart';
 import '../util/character.dart';
 import 'stylesheet.dart';
@@ -39,25 +38,12 @@ class ScssParser extends StylesheetParser {
   bool scanElse(int ifIndentation) {
     var start = scanner.state;
     _whitespace();
-    var beforeAt = scanner.state;
-    if (scanner.scanChar($at)) {
-      if (scanIdentifier('else', caseSensitive: true)) return true;
-      if (scanIdentifier('elseif', caseSensitive: true)) {
-        warnings.add((
-          deprecation: Deprecation.elseif,
-          message:
-              '@elseif is deprecated and will not be supported in future Sass '
-              'versions.\n'
-              '\n'
-              'Recommendation: @else if',
-          span: scanner.spanFrom(beforeAt),
-        ));
-        scanner.position -= 2;
-        return true;
-      }
+    if (scanner.scanChar($at) && scanIdentifier('else', caseSensitive: true)) {
+      return true;
+    } else {
+      scanner.state = start;
+      return false;
     }
-    scanner.state = start;
-    return false;
   }
 
   List<Statement> children(Statement child()) {

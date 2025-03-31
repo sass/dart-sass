@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: cd61dac9558368fdb6f4221bb23d917003b61610
+  // Checksum: e386251fa5eea522619d91ac98daf84dd474c29d
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -23,7 +23,8 @@ enum Deprecation {
       description: 'Passing a string directly to meta.call().'),
 
   /// Deprecation for @elseif.
-  elseif('elseif', deprecatedIn: '1.3.2', description: '@elseif.'),
+  elseif('elseif',
+      deprecatedIn: '1.3.2', obsoleteIn: '2.0.0', description: '@elseif.'),
 
   /// Deprecation for @-moz-document.
   mozDocument('moz-document',
