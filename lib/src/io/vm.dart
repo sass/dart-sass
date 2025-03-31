@@ -80,6 +80,8 @@ bool fileExists(String path) => io.File(path).existsSync();
 
 bool dirExists(String path) => io.Directory(path).existsSync();
 
+bool linkExists(String path) => io.Link(path).existsSync();
+
 void ensureDir(String path) => io.Directory(path).createSync(recursive: true);
 
 Iterable<String> listDir(String path, {bool recursive = false}) =>
@@ -87,6 +89,9 @@ Iterable<String> listDir(String path, {bool recursive = false}) =>
         .listSync(recursive: recursive)
         .whereType<io.File>()
         .map((entity) => entity.path);
+
+// The `File()` method works with directories as well.
+String realpath(String path) => io.File(path).resolveSymbolicLinksSync();
 
 DateTime modificationTime(String path) {
   var stat = io.FileStat.statSync(path);
