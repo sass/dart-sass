@@ -1,3 +1,7 @@
+## 1.86.2
+
+* No user-visible changes.
+
 ## 1.86.1
 
 * Improve the performance of `file:` URL case canonicalization on Windows and
