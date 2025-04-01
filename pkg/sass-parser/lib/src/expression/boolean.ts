@@ -77,7 +77,7 @@ export class BooleanExpression extends Expression {
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<never> {
     return [];
   }
 }

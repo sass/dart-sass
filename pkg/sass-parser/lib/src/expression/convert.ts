@@ -5,7 +5,9 @@
 import * as sassInternal from '../sass-internal';
 
 import {ArgumentList} from '../argument-list';
-import {Expression} from '.';
+import {Interpolation} from '../interpolation';
+import {LazySource} from '../lazy-source';
+import {AnyExpression} from '.';
 import {BinaryOperationExpression} from './binary-operation';
 import {BooleanExpression} from './boolean';
 import {ColorExpression} from './color';
@@ -15,13 +17,16 @@ import {ListExpression} from './list';
 import {MapExpression} from './map';
 import {NullExpression} from './null';
 import {NumberExpression} from './number';
+import {ParenthesizedExpression} from './parenthesized';
+import {SelectorExpression} from './selector';
 import {StringExpression} from './string';
+import {UnaryOperationExpression} from './unary-operation';
+import {VariableExpression} from './variable';
 
 /** The visitor to use to convert internal Sass nodes to JS. */
-const visitor = sassInternal.createExpressionVisitor<Expression>({
+const visitor = sassInternal.createExpressionVisitor<AnyExpression>({
   visitBinaryOperationExpression: inner =>
     new BinaryOperationExpression(undefined, inner),
-  visitStringExpression: inner => new StringExpression(undefined, inner),
   visitBooleanExpression: inner => new BooleanExpression(undefined, inner),
   visitColorExpression: inner => new ColorExpression(undefined, inner),
   visitFunctionExpression: inner => new FunctionExpression(undefined, inner),
@@ -36,11 +41,27 @@ const visitor = sassInternal.createExpressionVisitor<Expression>({
   visitMapExpression: inner => new MapExpression(undefined, inner),
   visitNullExpression: inner => new NullExpression(undefined, inner),
   visitNumberExpression: inner => new NumberExpression(undefined, inner),
+  visitParenthesizedExpression: inner =>
+    new ParenthesizedExpression(undefined, inner),
+  visitSelectorExpression: inner => new SelectorExpression(undefined, inner),
+  visitStringExpression: inner => new StringExpression(undefined, inner),
+  visitSupportsExpression: inner =>
+    new StringExpression({
+      text: new Interpolation([
+        '(',
+        new Interpolation(undefined, inner.condition.toInterpolation()),
+        ')',
+      ]),
+      source: new LazySource(inner),
+    }),
+  visitUnaryOperationExpression: inner =>
+    new UnaryOperationExpression(undefined, inner),
+  visitVariableExpression: inner => new VariableExpression(undefined, inner),
 });
 
 /** Converts an internal expression AST node into an external one. */
 export function convertExpression(
   expression: sassInternal.Expression,
-): Expression {
+): AnyExpression {
   return expression.accept(visitor);
 }

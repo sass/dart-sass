@@ -5,7 +5,7 @@
 import * as postcss from 'postcss';
 import type {DeclarationRaws} from 'postcss/lib/declaration';
 
-import {Expression, ExpressionProps} from '../expression';
+import {AnyExpression, ExpressionProps} from '../expression';
 import {convertExpression} from '../expression/convert';
 import {fromProps} from '../expression/from-props';
 import {LazySource} from '../lazy-source';
@@ -28,7 +28,7 @@ export interface VariableDeclarationRaws
    * The variable's namespace.
    *
    * This may be different than {@link VariableDeclaration.namespace} if the
-   * name contains escape codes or underscores.
+   * name contains escape codes.
    */
   namespace?: RawWithValue<string>;
 
@@ -66,7 +66,7 @@ export type VariableDeclarationProps = NodeProps & {
   guarded?: boolean;
   global?: boolean;
 } & (
-    | {expression: Expression | ExpressionProps; value?: never}
+    | {expression: AnyExpression | ExpressionProps; value?: never}
     | {value: string; expression?: never}
   );
 
@@ -102,16 +102,16 @@ export class VariableDeclaration
   declare variableName: string;
 
   /** The variable's value. */
-  get expression(): Expression {
+  get expression(): AnyExpression {
     return this._expression;
   }
-  set expression(value: Expression | ExpressionProps) {
+  set expression(value: AnyExpression | ExpressionProps) {
     if (this._expression) this._expression.parent = undefined;
-    if (!('sassType' in value)) value = fromProps(value);
-    if (value) value.parent = this;
-    this._expression = value;
+    const built = 'sassType' in value ? value : fromProps(value);
+    built.parent = this;
+    this._expression = built;
   }
-  private declare _expression: Expression;
+  private declare _expression: AnyExpression;
 
   /** Whether the variable has a `!default` flag. */
   declare guarded: boolean;
@@ -229,7 +229,7 @@ export class VariableDeclaration
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return [this.expression];
   }
 }

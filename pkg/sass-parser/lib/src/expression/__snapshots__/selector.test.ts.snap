@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a selector expression toJSON 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@#{&}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "raws": {},
+  "sassType": "selector-expr",
+  "source": <1:4-1:5 in 0>,
+}
+`;

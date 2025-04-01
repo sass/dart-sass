@@ -6,7 +6,7 @@ import * as postcss from 'postcss';
 import type {AtRuleRaws as PostcssAtRuleRaws} from 'postcss/lib/at-rule';
 
 import {convertExpression} from '../expression/convert';
-import {Expression, ExpressionProps} from '../expression';
+import {AnyExpression, ExpressionProps} from '../expression';
 import {fromProps} from '../expression/from-props';
 import {LazySource} from '../lazy-source';
 import type * as sassInternal from '../sass-internal';
@@ -33,7 +33,7 @@ export type DebugRuleRaws = Pick<
  */
 export type DebugRuleProps = postcss.NodeProps & {
   raws?: DebugRuleRaws;
-  debugExpression: Expression | ExpressionProps;
+  debugExpression: AnyExpression | ExpressionProps;
 };
 
 /**
@@ -67,18 +67,19 @@ export class DebugRule
   }
 
   /** The expression whose value is emitted when the debug rule is executed. */
-  get debugExpression(): Expression {
+  get debugExpression(): AnyExpression {
     return this._debugExpression!;
   }
-  set debugExpression(debugExpression: Expression | ExpressionProps) {
+  set debugExpression(debugExpression: AnyExpression | ExpressionProps) {
     if (this._debugExpression) this._debugExpression.parent = undefined;
-    if (!('sassType' in debugExpression)) {
-      debugExpression = fromProps(debugExpression);
-    }
-    if (debugExpression) debugExpression.parent = this;
-    this._debugExpression = debugExpression;
+    const built =
+      'sassType' in debugExpression
+        ? debugExpression
+        : fromProps(debugExpression);
+    built.parent = this;
+    this._debugExpression = built;
   }
-  private declare _debugExpression?: Expression;
+  private declare _debugExpression?: AnyExpression;
 
   constructor(defaults: DebugRuleProps);
   /** @hidden */
@@ -121,7 +122,7 @@ export class DebugRule
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Expression> {
+  get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return [this.debugExpression];
   }
 }

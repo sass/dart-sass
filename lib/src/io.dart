@@ -30,9 +30,8 @@ String canonicalize(String path) => _couldBeCaseInsensitive
 
 /// Returns `path` with the case updated to match the path's case on disk.
 ///
-/// This only updates `path`'s basename. It always returns `path` as-is on
-/// operating systems other than Windows or Mac OS, since they almost never use
-/// case-insensitive filesystems.
+/// This always returns `path` as-is on operating systems other than Windows or
+/// Mac OS, since they almost never use case-insensitive filesystems.
 String _realCasePath(String path) {
   // TODO(nweiz): Use an SDK function for this when dart-lang/sdk#35370 and/or
   // nodejs/node#24942 are fixed, or at least use FFI functions.
@@ -47,14 +46,33 @@ String _realCasePath(String path) {
     }
   }
 
-  String helper(String path) {
+  String helper(String path, [String? realPath]) {
     var dirname = p.dirname(path);
     if (dirname == path) return path;
 
     return _realCaseCache.putIfAbsent(path, () {
+      // If the path isn't a symlink, we can use the libraries' `realpath()`
+      // functions to get its actual basename much more efficiently than listing
+      // all its siblings.
+      if (!linkExists(path)) {
+        // Don't recompute the real path if it was already computed for a child
+        // and we haven't seen any symlinks between that child and this directory.
+        String realPathNonNull;
+        try {
+          realPathNonNull = realPath ?? realpath(path);
+        } on FileSystemException {
+          // If we can't get the realpath, that probably means the file doesn't
+          // exist. Rather than throwing an error about symlink resolution,
+          // return the non-existent path and let it throw whatever use-time
+          // error it's going to throw.
+          return path;
+        }
+        return p.join(helper(dirname, p.dirname(realPathNonNull)),
+            p.basename(realPathNonNull));
+      }
+
       var realDirname = helper(dirname);
       var basename = p.basename(path);
-
       try {
         var matches = listDir(realDirname)
             .where(

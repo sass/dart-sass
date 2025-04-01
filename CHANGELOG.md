@@ -38,9 +38,26 @@
   available through the expanded `sass_api` package, since that package also
   exposes the selector AST that it returns.
 
-## 1.85.2-dev
+## 1.86.1
 
-* No user-visible changes.
+* Improve the performance of `file:` URL case canonicalization on Windows and
+  Mac OS.
+
+## 1.86.0
+
+* Add support for `%` as an expression in its own right. It will still be parsed
+  as the modulo operator when between two other expressions, but in any other
+  context it will be an expression whose value is the unquoted string `%`.
+
+* Consider `attr()` to be a special number function that can be used as a
+  channel in color functions.
+
+* Deprecate user-defined functions named `type()` so that we can eventually
+  support the new CSS `type()` function.
+
+### Dart API
+
+* Increase the minimum Dart SDK to 3.6.0.
 
 ## 1.85.1
 

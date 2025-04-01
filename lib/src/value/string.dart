@@ -71,6 +71,10 @@ class SassString extends Value {
     if (text.length < "min(_)".length) return false;
 
     return switch (text.codeUnitAt(0)) {
+      $a || $A => equalsLetterIgnoreCase($t, text.codeUnitAt(1)) &&
+          equalsLetterIgnoreCase($t, text.codeUnitAt(2)) &&
+          equalsLetterIgnoreCase($r, text.codeUnitAt(3)) &&
+          text.codeUnitAt(4) == $lparen,
       $c || $C => switch (text.codeUnitAt(1)) {
           $l || $L => equalsLetterIgnoreCase($a, text.codeUnitAt(2)) &&
               equalsLetterIgnoreCase($m, text.codeUnitAt(3)) &&

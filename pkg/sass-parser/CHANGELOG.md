@@ -1,8 +1,28 @@
 ## 0.5.0
 
-## 0.4.16-dev
+* No user-visible changes.
+
+## 0.4.17
+
+* No user-visible changes.
+
+## 0.4.16
+
+* Use union types rather than base classes for Sass nodes wherever possible.
+  This makes it possible for TypeScript to automatically narrow node types based
+  on `sassType` checks.
 
 * Add support for parsing null literals.
+
+* Add support for parsing parenthesized expressions.
+
+* Add support for parsing selector expressions.
+
+* Add support for parsing the `supports()` function in `@import` modifiers.
+
+* Add support for parsing unary operation expressions.
+
+* Add support for parsing variable expressions.
 
 ## 0.4.15
 

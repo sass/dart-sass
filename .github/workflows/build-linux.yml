@@ -10,6 +10,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    permissions:
+      attestations: write
+      id-token: write
+
     strategy:
       fail-fast: false
       matrix:
@@ -126,6 +130,12 @@ jobs:
           dart pub get
           dart run grinder pkg-standalone-${{ matrix.target }}
           EOF
+
+      - name: Generate artifact attestation
+        if: github.ref_type == 'tag'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: build/*.tar.gz
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
