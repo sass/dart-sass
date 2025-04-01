@@ -18,7 +18,17 @@ import {ListExpression, ListExpressionProps} from './list';
 import {MapExpression, MapExpressionProps} from './map';
 import {NullExpression, NullExpressionProps} from './null';
 import {NumberExpression, NumberExpressionProps} from './number';
+import {
+  ParenthesizedExpression,
+  ParenthesizedExpressionProps,
+} from './parenthesized';
+import type {SelectorExpression} from './selector';
 import type {StringExpression, StringExpressionProps} from './string';
+import type {
+  UnaryOperationExpression,
+  UnaryOperationExpressionProps,
+} from './unary-operation';
+import type {VariableExpression, VariableExpressionProps} from './variable';
 
 /**
  * The union type of all Sass expressions.
@@ -35,7 +45,11 @@ export type AnyExpression =
   | MapExpression
   | NullExpression
   | NumberExpression
-  | StringExpression;
+  | ParenthesizedExpression
+  | SelectorExpression
+  | StringExpression
+  | UnaryOperationExpression
+  | VariableExpression;
 
 /**
  * Sass expression types.
@@ -52,7 +66,11 @@ export type ExpressionType =
   | 'map'
   | 'null'
   | 'number'
-  | 'string';
+  | 'parenthesized'
+  | 'selector-expr'
+  | 'string'
+  | 'unary-operation'
+  | 'variable';
 
 /**
  * The union type of all properties that can be used to construct Sass
@@ -70,7 +88,10 @@ export type ExpressionProps =
   | MapExpressionProps
   | NullExpressionProps
   | NumberExpressionProps
-  | StringExpressionProps;
+  | ParenthesizedExpressionProps
+  | StringExpressionProps
+  | UnaryOperationExpressionProps
+  | VariableExpressionProps;
 
 /**
  * The superclass of Sass expression nodes.

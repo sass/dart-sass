@@ -32,20 +32,11 @@ bool get supportsAnsiEscapes {
 }
 
 void safePrint(Object? message) {
-  _threadSafeWriteLn(io.stdout, message);
+  print(message);
 }
 
 void printError(Object? message) {
-  _threadSafeWriteLn(io.stderr, message);
-}
-
-void _threadSafeWriteLn(io.IOSink sink, Object? message) {
-  // This does have performance penality of copying buffer
-  // if message is already a StringBuffer.
-  // https://github.com/dart-lang/sdk/issues/53471.
-  var buffer = StringBuffer(message.toString());
-  buffer.writeln();
-  sink.write(buffer);
+  io.stderr.writeln(message);
 }
 
 String readFile(String path) {
@@ -89,6 +80,8 @@ bool fileExists(String path) => io.File(path).existsSync();
 
 bool dirExists(String path) => io.Directory(path).existsSync();
 
+bool linkExists(String path) => io.Link(path).existsSync();
+
 void ensureDir(String path) => io.Directory(path).createSync(recursive: true);
 
 Iterable<String> listDir(String path, {bool recursive = false}) =>
@@ -96,6 +89,9 @@ Iterable<String> listDir(String path, {bool recursive = false}) =>
         .listSync(recursive: recursive)
         .whereType<io.File>()
         .map((entity) => entity.path);
+
+// The `File()` method works with directories as well.
+String realpath(String path) => io.File(path).resolveSymbolicLinksSync();
 
 DateTime modificationTime(String path) {
   var stat = io.FileStat.statSync(path);

@@ -181,6 +181,21 @@ bool dirExists(String path) {
   });
 }
 
+bool linkExists(String path) {
+  if (!isNodeJs) {
+    throw UnsupportedError("linkExists() is only supported on Node.js");
+  }
+  return _systemErrorToFileSystemException(() {
+    try {
+      return fs.lstatSync(path).isSymbolicLink();
+    } catch (error) {
+      var systemError = error as JsSystemError;
+      if (systemError.code == 'ENOENT') return false;
+      rethrow;
+    }
+  });
+}
+
 void ensureDir(String path) {
   if (!isNodeJs) {
     throw UnsupportedError("ensureDir() is only supported on Node.js");
@@ -218,6 +233,13 @@ Iterable<String> listDir(String path, {bool recursive = false}) {
       return list(path);
     }
   });
+}
+
+String realpath(String path) {
+  if (!isNodeJs) {
+    throw UnsupportedError("listDir() is only supported on Node.js");
+  }
+  return _systemErrorToFileSystemException(() => fs.realpathSync.native(path));
 }
 
 DateTime modificationTime(String path) {

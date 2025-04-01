@@ -6,6 +6,7 @@ import * as postcss from 'postcss';
 import * as sass from 'sass';
 
 import type * as binaryOperation from './expression/binary-operation';
+import type * as unaryOperation from './expression/unary-operation';
 
 // Type definitions for internal Sass APIs we're wrapping. We cast the Sass
 // module to this type to access them.
@@ -327,7 +328,6 @@ declare namespace SassInternal {
     readonly operator: BinaryOperator;
     readonly left: Expression;
     readonly right: Expression;
-    readonly hasQuotes: boolean;
   }
 
   class FunctionExpression extends Expression {
@@ -359,11 +359,6 @@ declare namespace SassInternal {
     readonly pairs: DartPair<Expression, Expression>[];
   }
 
-  class StringExpression extends Expression {
-    readonly text: Interpolation;
-    readonly hasQuotes: boolean;
-  }
-
   class BooleanExpression extends Expression {
     readonly value: boolean;
   }
@@ -377,6 +372,35 @@ declare namespace SassInternal {
   class NumberExpression extends Expression {
     readonly value: number;
     readonly unit: string;
+  }
+
+  class ParenthesizedExpression extends Expression {
+    readonly expression: Expression;
+  }
+
+  class SelectorExpression extends Expression {}
+
+  class StringExpression extends Expression {
+    readonly text: Interpolation;
+    readonly hasQuotes: boolean;
+  }
+
+  class SupportsExpression extends Expression {
+    readonly condition: SupportsCondition;
+  }
+
+  class UnaryOperator {
+    readonly operator: unaryOperation.UnaryOperator;
+  }
+
+  class UnaryOperationExpression extends Expression {
+    readonly operator: UnaryOperator;
+    readonly operand: Expression;
+  }
+
+  class VariableExpression extends Expression {
+    readonly namespace?: string | null;
+    readonly name: string;
   }
 }
 
@@ -433,11 +457,16 @@ export type InterpolatedFunctionExpression =
 export type ListExpression = SassInternal.ListExpression;
 export type ListSeparator = SassInternal.ListSeparator;
 export type MapExpression = SassInternal.MapExpression;
-export type StringExpression = SassInternal.StringExpression;
 export type BooleanExpression = SassInternal.BooleanExpression;
 export type ColorExpression = SassInternal.ColorExpression;
 export type NullExpression = SassInternal.NullExpression;
 export type NumberExpression = SassInternal.NumberExpression;
+export type ParenthesizedExpression = SassInternal.ParenthesizedExpression;
+export type SelectorExpression = SassInternal.SelectorExpression;
+export type StringExpression = SassInternal.StringExpression;
+export type SupportsExpression = SassInternal.SupportsExpression;
+export type UnaryOperationExpression = SassInternal.UnaryOperationExpression;
+export type VariableExpression = SassInternal.VariableExpression;
 
 export interface StatementVisitorObject<T> {
   visitAtRootRule(node: AtRootRule): T;
@@ -469,7 +498,6 @@ export interface StatementVisitorObject<T> {
 
 export interface ExpressionVisitorObject<T> {
   visitBinaryOperationExpression(node: BinaryOperationExpression): T;
-  visitStringExpression(node: StringExpression): T;
   visitBooleanExpression(node: BooleanExpression): T;
   visitColorExpression(node: ColorExpression): T;
   visitFunctionExpression(node: FunctionExpression): T;
@@ -479,6 +507,12 @@ export interface ExpressionVisitorObject<T> {
   visitMapExpression(node: MapExpression): T;
   visitNullExpression(node: NullExpression): T;
   visitNumberExpression(node: NumberExpression): T;
+  visitParenthesizedExpression(node: ParenthesizedExpression): T;
+  visitSelectorExpression(node: SelectorExpression): T;
+  visitStringExpression(node: StringExpression): T;
+  visitSupportsExpression(node: SupportsExpression): T;
+  visitUnaryOperationExpression(node: UnaryOperationExpression): T;
+  visitVariableExpression(node: VariableExpression): T;
 }
 
 export const createExpressionVisitor = sassInternal.createExpressionVisitor;

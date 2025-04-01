@@ -109,6 +109,11 @@ export {
   NumberExpressionRaws,
 } from './src/expression/number';
 export {
+  ParenthesizedExpression,
+  ParenthesizedExpressionProps,
+  ParenthesizedExpressionRaws,
+} from './src/expression/parenthesized';
+export {
   ImportList,
   ImportListObjectProps,
   ImportListProps,
@@ -234,10 +239,25 @@ export {
   WhileRuleRaws,
 } from './src/statement/while-rule';
 export {
+  SelectorExpression,
+  SelectorExpressionProps,
+  SelectorExpressionRaws,
+} from './src/expression/selector';
+export {
   StaticImport,
   StaticImportProps,
   StaticImportRaws,
 } from './src/static-import';
+export {
+  UnaryOperationExpression,
+  UnaryOperationExpressionProps,
+  UnaryOperationExpressionRaws,
+} from './src/expression/unary-operation';
+export {
+  VariableExpression,
+  VariableExpressionProps,
+  VariableExpressionRaws,
+} from './src/expression/variable';
 
 /** Options that can be passed to the Sass parsers to control their behavior. */
 export type SassParserOptions = Pick<postcss.ProcessOptions, 'from' | 'map'>;

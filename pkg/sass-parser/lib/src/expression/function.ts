@@ -8,7 +8,7 @@ import {ArgumentList, ArgumentListProps} from '../argument-list';
 import {LazySource} from '../lazy-source';
 import {NodeProps} from '../node';
 import {RawWithValue} from '../raw-with-value';
-import type * as sassInternal from '../sass-internal';
+import * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {Expression} from '.';
 
@@ -34,7 +34,7 @@ export interface FunctionExpressionRaws {
    * The function's namespace.
    *
    * This may be different than {@link FunctionExpression.namespace} if the
-   * namespace contains escape codes or underscores.
+   * namespace contains escape codes.
    */
   namespace?: RawWithValue<string>;
 
@@ -59,8 +59,8 @@ export class FunctionExpression extends Expression {
   /**
    * This function's namespace.
    *
-   * This is the parsed and normalized value, with underscores converted to
-   * hyphens and escapes resolved to the characters they represent.
+   * This is the parsed and normalized value, with escapes resolved to the
+   * characters they represent.
    */
   get namespace(): string | undefined {
     return this._namespace;
@@ -136,9 +136,11 @@ export class FunctionExpression extends Expression {
       (this.namespace
         ? (this.raws.namespace?.value === this.namespace
             ? this.raws.namespace.raw
-            : this.namespace) + '.'
+            : sassInternal.toCssIdentifier(this.namespace)) + '.'
         : '') +
-      (this.raws.name?.value === this.name ? this.raws.name.raw : this.name) +
+      (this.raws.name?.value === this.name
+        ? this.raws.name.raw
+        : sassInternal.toCssIdentifier(this.name)) +
       this.arguments
     );
   }

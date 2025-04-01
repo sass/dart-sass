@@ -29,7 +29,11 @@
 * `Value.assertSelector()` and `Value.assertComplexSelector()` now forbid
   selectors with leading or trailing combinators by default.
 
-## 15.2.2-dev
+## 15.3.1
+
+* No user-visible changes.
+
+## 15.3.0
 
 * No user-visible changes.
 
