@@ -5,14 +5,14 @@
 import 'dart:convert';
 
 import '../io.dart';
-import 'isolate_dispatcher.dart';
+import 'worker_dispatcher.dart';
 
 /// Returns true if should start embedded compiler,
 /// and false if should exit.
 bool parseOptions(List<String> args) {
   switch (args) {
     case ["--version", ...]:
-      var response = IsolateDispatcher.versionResponse();
+      var response = WorkerDispatcher.versionResponse();
       response.id = 0;
       safePrint(JsonEncoder.withIndent("  ").convert(response.toProto3Json()));
       return false;
