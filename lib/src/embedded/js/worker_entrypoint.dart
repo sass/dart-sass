@@ -9,6 +9,6 @@ import 'js.dart';
 @JS('process.argv')
 external JSArray<JSAny?> get _argv;
 
-(String, JSArray<JSString>) isolateMain() {
+(String, JSArray<JSString>) workerEntryPoint() {
   return ((_argv[1]! as JSString).toDart, _argv.slice(2) as JSArray<JSString>);
 }
