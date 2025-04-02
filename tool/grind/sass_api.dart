@@ -71,6 +71,8 @@ Future<void> deploySassApi() async {
     fail("dart pub publish ${pubspec.name} failed");
   }
 
+  // TODO(nweiz): Remove this when we use this tag to trigger the release
+  // (blocked by dart-lang/pub-dev#8690).
   var response = await client.post(
     Uri.parse("https://api.github.com/repos/sass/dart-sass/git/refs"),
     headers: {
