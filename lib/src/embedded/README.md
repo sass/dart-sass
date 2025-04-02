@@ -19,7 +19,7 @@ incoming messages from the embedded host:
    [`WorkerDispatcher`]: worker_dispatcher.dart
 
 2. The [`CompilationDispatcher`] fully parses and handles messages for a single
-   compilation. Each `CompilationDispatcher` runs in a separate isolate so that
+   compilation. Each `CompilationDispatcher` runs in a separate worker so that
    the embedded compiler can run multiple compilations in parallel.
 
    [`CompilationDispatcher`]: compilation_dispatcher.dart
