@@ -10,42 +10,43 @@ import 'package:pool/pool.dart';
 import 'package:protobuf/protobuf.dart';
 import 'package:stream_channel/stream_channel.dart';
 
-import 'concurrency.dart' if (dart.library.js) 'js/concurrency.dart';
 import 'embedded_sass.pb.dart';
-import 'isolate_main.dart' if (dart.library.js) 'js/isolate_main.dart';
-import 'reusable_isolate.dart' if (dart.library.js) 'js/reusable_isolate.dart';
 import 'util/proto_extensions.dart';
 import 'utils.dart';
+import 'vm/concurrency.dart' if (dart.library.js) 'js/concurrency.dart';
+import 'vm/reusable_worker.dart' if (dart.library.js) 'js/reusable_worker.dart';
+import 'worker_entrypoint.dart'
+    if (dart.library.js) 'js/worker_entrypoint.dart';
 
-/// A class that dispatches messages between the host and various isolates that
+/// A class that dispatches messages between the host and various workers that
 /// are each running an individual compilation.
-class IsolateDispatcher {
+class WorkerDispatcher {
   /// The channel of encoded protocol buffers, connected to the host.
   final StreamChannel<Uint8List> _channel;
 
-  /// Whether to wait for all worker isolates to exit before exiting the main
-  /// isolate or not.
+  /// Whether to wait for all worker workers to exit before exiting the main
+  /// worker or not.
   final bool _gracefulShutdown;
 
-  /// All isolates that have been spawned to dispatch to.
+  /// All workers that have been spawned to dispatch to.
   ///
   /// Only used for cleaning up the process when the underlying channel closes.
-  final _allIsolates = StreamController<ReusableIsolate>(sync: true);
+  final _allWorkers = StreamController<ReusableWorker>(sync: true);
 
-  /// The isolates that aren't currently running compilations
-  final _inactiveIsolates = <ReusableIsolate>{};
+  /// The workers that aren't currently running compilations
+  final _inactiveWorkers = <ReusableWorker>{};
 
-  /// A map from active compilationIds to isolates running those compilations.
-  final _activeIsolates = <int, Future<ReusableIsolate>>{};
+  /// A map from active compilationIds to workers running those compilations.
+  final _activeWorkers = <int, Future<ReusableWorker>>{};
 
-  /// A pool controlling how many isolates (and thus concurrent compilations)
+  /// A pool controlling how many workers (and thus concurrent compilations)
   /// may be live at once.
-  final _isolatePool = Pool(concurrencyLimit);
+  final _workerPool = Pool(concurrencyLimit);
 
   /// Whether [_channel] has been closed or not.
   var _closed = false;
 
-  IsolateDispatcher(this._channel, {bool gracefulShutdown = true})
+  WorkerDispatcher(this._channel, {bool gracefulShutdown = true})
       : _gracefulShutdown = gracefulShutdown;
 
   void listen() {
@@ -58,16 +59,16 @@ class IsolateDispatcher {
           (compilationId, messageBuffer) = parsePacket(packet);
 
           if (compilationId != 0) {
-            var isolate = await _activeIsolates.putIfAbsent(
+            var worker = await _activeWorkers.putIfAbsent(
               compilationId,
-              () => _getIsolate(compilationId!),
+              () => _getWorker(compilationId!),
             );
 
-            // The shutdown may have started by the time the isolate is spawned
+            // The shutdown may have started by the time the worker is spawned
             if (_closed) return;
 
             try {
-              isolate.send(packet);
+              worker.send(packet);
               return;
             } on StateError catch (_) {
               throw paramsError(
@@ -108,7 +109,7 @@ class IsolateDispatcher {
       onDone: () {
         if (_gracefulShutdown) {
           _closed = true;
-          _allIsolates.stream.listen((isolate) => isolate.kill());
+          _allWorkers.stream.listen((worker) => worker.kill());
         } else {
           exit(exitCode);
         }
@@ -116,36 +117,36 @@ class IsolateDispatcher {
     );
   }
 
-  /// Returns an isolate that's ready to run a new compilation.
+  /// Returns an worker that's ready to run a new compilation.
   ///
-  /// This re-uses an existing isolate if possible, and spawns a new one
+  /// This re-uses an existing worker if possible, and spawns a new one
   /// otherwise.
-  Future<ReusableIsolate> _getIsolate(int compilationId) async {
-    var resource = await _isolatePool.request();
-    ReusableIsolate isolate;
-    if (_inactiveIsolates.isNotEmpty) {
-      isolate = _inactiveIsolates.first;
-      _inactiveIsolates.remove(isolate);
+  Future<ReusableWorker> _getWorker(int compilationId) async {
+    var resource = await _workerPool.request();
+    ReusableWorker worker;
+    if (_inactiveWorkers.isNotEmpty) {
+      worker = _inactiveWorkers.first;
+      _inactiveWorkers.remove(worker);
     } else {
-      var future = ReusableIsolate.spawn(
-        isolateMain,
+      var future = ReusableWorker.spawn(
+        workerEntryPoint,
         onError: (Object error, StackTrace stackTrace) {
           _handleError(error, stackTrace);
         },
       );
-      isolate = await future;
-      _allIsolates.add(isolate);
+      worker = await future;
+      _allWorkers.add(worker);
     }
 
-    isolate.borrow((message) {
+    worker.borrow((message) {
       var fullBuffer = message as Uint8List;
 
-      // The first byte of messages from isolates indicates whether the entire
+      // The first byte of messages from workers indicates whether the entire
       // compilation is finished (1) or if it encountered an error (exitCode).
       // Sending this as part of the message buffer rather than a separate
       // message avoids a race condition where the host might send a new
       // compilation request with the same ID as one that just finished before
-      // the [IsolateDispatcher] receives word that the isolate with that ID is
+      // the [WorkerDispatcher] receives word that the worker with that ID is
       // done. See sass/dart-sass#2004.
       var category = fullBuffer[0];
       var packet = Uint8List.sublistView(fullBuffer, 1);
@@ -154,9 +155,9 @@ class IsolateDispatcher {
         case 0:
           _channel.sink.add(packet);
         case 1:
-          _activeIsolates.remove(compilationId);
-          isolate.release();
-          _inactiveIsolates.add(isolate);
+          _activeWorkers.remove(compilationId);
+          worker.release();
+          _inactiveWorkers.add(worker);
           resource.release();
           _channel.sink.add(packet);
         default:
@@ -170,7 +171,7 @@ class IsolateDispatcher {
       }
     });
 
-    return isolate;
+    return worker;
   }
 
   /// Creates a [OutboundMessage_VersionResponse]
