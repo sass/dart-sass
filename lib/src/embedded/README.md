@@ -11,12 +11,12 @@ protocol specification] for details.
 The embedded compiler has two different levels of dispatchers for handling
 incoming messages from the embedded host:
 
-1. The [`IsolateDispatcher`] is the first recipient of each packet. It decodes
+1. The [`WorkerDispatcher`] is the first recipient of each packet. It decodes
    the packets _just enough_ to determine which compilation they belong to, and
    forwards them to the appropriate compilation dispatcher. It also parses and
    handles messages that aren't compilation specific, such as `VersionRequest`.
 
-   [`IsolateDispatcher`]: isolate_dispatcher.dart
+   [`WorkerDispatcher`]: worker_dispatcher.dart
 
 2. The [`CompilationDispatcher`] fully parses and handles messages for a single
    compilation. Each `CompilationDispatcher` runs in a separate isolate so that
