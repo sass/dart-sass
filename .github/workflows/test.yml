@@ -184,7 +184,7 @@ jobs:
       - name: Initialize embedded host
         run: |
           npm install
-          npm run init -- --compiler-path=.. --language-path=../build/language --compiler-js=${{ matrix.js && 'true' || 'false' }}
+          npm run init -- --compiler-path=.. --language-path=../build/language ${{ matrix.js && '--compiler-js' || '' }}
           npm run compile
         working-directory: embedded-host-node
 
