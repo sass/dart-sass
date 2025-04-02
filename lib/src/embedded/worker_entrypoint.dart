@@ -7,6 +7,6 @@ import 'dart:isolate' show SendPort;
 import 'compilation_dispatcher.dart';
 import 'sync_receive_port.dart';
 
-void isolateMain(SyncReceivePort receivePort, SendPort sendPort) {
+void workerEntryPoint(SyncReceivePort receivePort, SendPort sendPort) {
   CompilationDispatcher(receivePort, sendPort).listen();
 }
