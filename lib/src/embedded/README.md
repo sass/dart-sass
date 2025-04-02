@@ -32,7 +32,7 @@ communicate with their protocol buffer equivalents.
 The way Dart VM launches lightweight isolates versus Node.js launches worker
 threads are very different.
 
-In Dart VM, the lightweight isolates shares program structures like loaded
+In Dart VM, the lightweight isolates share program structures like loaded
 libraries, classes, functions, etc., even including JIT optimized code. This
 allows main isolate to spawn child isolate with a reference to the entry point
 function.
@@ -56,10 +56,10 @@ function.
 In Node.JS, the worker threads do not share program structures. In order to
 launch a worker thread, it needs an entry point file, with the entry point
 function effectly hard-coded in the entry point file. While it's possible
-to have a separate entry point file for the worker threads, it's requires more
-complex packaging changes with `cli_pkg`, therefore the main thread the worker
-threads shares [the same entry point file](js/executable.dart), and the entry
-point file will decide what to run depends on `worker_threads.isMainThread`.
+to have a separate entry point file for the worker threads, it requires more
+complex packaging changes with `cli_pkg`, therefore the main thread and the
+worker threads share [the same entry point file](js/executable.dart), which
+decides what to run based on `worker_threads.isMainThread`.
 
 ```
   if (worker_threads.isMainThread) {                                                                 if (worker_threads.isMainThread) {
@@ -76,9 +76,9 @@ point file will decide what to run depends on `worker_threads.isMainThread`.
 │ │ SyncMessagePort(channel.port1) ├─┼─────────────────────────────────────────────────────────────┼►│ SyncMessagePort(channel.port2) │ │
 │ └────────────────────────────────┘ │                                                             │ └────────────────────────────────┘ │
 │                                    │                                                             │                                    │
-│ ┌────────────────────────────────┐ │               Asynchronous Messaging                        │ ┌────────────────────┐             │
-│ │ channel.port1                  │◄┼─────────────────────────────────────────────────────────────┼─┤ channel.port2      │             │
-│ └────────────────────────────────┘ │                                                             │ └────────────────────┘             │
+│ ┌────────────────────────────────┐ │               Asynchronous Messaging                        │ ┌────────────────────────────────┐ │
+│ │ channel.port1                  │◄┼─────────────────────────────────────────────────────────────┼─┤ channel.port2                  │ │
+│ └────────────────────────────────┘ │                                                             │ └────────────────────────────────┘ │
 │                                    │                                                             │                                    │
 └────────────────────────────────────┘                                                             └────────────────────────────────────┘
 ```
