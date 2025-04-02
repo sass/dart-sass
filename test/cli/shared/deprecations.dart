@@ -24,7 +24,13 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       });
 
       test("for an obsolete deprecation", () async {
-        // TODO: test this when a deprecation is obsoleted
+        var sass = await runSass([
+          "--silence-deprecation=moz-document",
+          "test.scss",
+        ]);
+        expect(sass.stderr,
+            emits(contains("moz-document deprecation is obsolete")));
+        await sass.shouldExit(0);
       });
 
       test("for an inactive future deprecation", () async {
@@ -107,45 +113,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
     group("silences", () {
       group("a parse-time deprecation", () {
-        setUp(
-          () => d.file("test.scss", "@if true {} @elseif false {}").create(),
-        );
-
-        test("in immediate mode", () async {
-          var sass = await runSass([
-            "--silence-deprecation=elseif",
-            "test.scss",
-          ]);
-          expect(sass.stderr, emitsDone);
-          await sass.shouldExit(0);
-        });
-
-        test("in watch mode", () async {
-          var sass = await runSass([
-            "--watch",
-            "--poll",
-            "--silence-deprecation=elseif",
-            "test.scss:out.css",
-          ]);
-          expect(sass.stderr, emitsDone);
-
-          await expectLater(
-            sass.stdout,
-            emitsThrough(endsWith('Compiled test.scss to out.css.')),
-          );
-          await sass.kill();
-        });
-
-        test("in repl mode", () async {
-          var sass = await runSass([
-            "--interactive",
-            "--silence-deprecation=strict-unary",
-          ]);
-          expect(sass.stderr, emitsDone);
-          sass.stdin.writeln("4 -(5)");
-          await expectLater(sass.stdout, emitsInOrder([">> 4 -(5)", "-1"]));
-          await sass.kill();
-        });
+        // TODO: Test this again once new deprecations are added post-2.0.0.
       });
 
       group("an evaluation-time deprecation", () {
@@ -205,7 +173,13 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       setUp(() => d.file("test.scss", "").create());
 
       test("for an obsolete deprecation", () async {
-        // TODO: test this when a deprecation is obsoleted
+        var sass = await runSass([
+          "--fatal-deprecation=moz-document",
+          "test.scss",
+        ]);
+        expect(sass.stderr,
+            emits(contains("moz-document deprecation is obsolete")));
+        await sass.shouldExit(0);
       });
 
       test("for an inactive future deprecation", () async {
@@ -215,43 +189,15 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       }, skip: true);
 
       test("for a silent deprecation", () async {
-        var sass = await runSass([
-          "--fatal-deprecation=elseif",
-          "--silence-deprecation=elseif",
-          "test.scss",
-        ]);
-        expect(sass.stderr, emits(contains("Ignoring setting to silence")));
-        await sass.shouldExit(0);
+        // TODO: Test this again once new deprecations are added post-2.0.0.
       });
 
       test("in watch mode", () async {
-        var sass = await runSass([
-          "--watch",
-          "--poll",
-          "--fatal-deprecation=elseif",
-          "--silence-deprecation=elseif",
-          "test.scss:out.css",
-        ]);
-        expect(sass.stderr, emits(contains("Ignoring setting to silence")));
-
-        await expectLater(
-          sass.stdout,
-          emitsThrough(endsWith('Compiled test.scss to out.css.')),
-        );
-        await sass.kill();
+        // TODO: Test this again once new deprecations are added post-2.0.0.
       });
 
       test("in repl mode", () async {
-        var sass = await runSass([
-          "--interactive",
-          "--fatal-deprecation=elseif",
-          "--silence-deprecation=elseif",
-        ]);
-        await expectLater(
-          sass.stderr,
-          emits(contains("Ignoring setting to silence")),
-        );
-        await sass.kill();
+        // TODO: Test this again once new deprecations are added post-2.0.0.
       });
     });
 
@@ -299,54 +245,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       });
 
       group("a parse-time deprecation", () {
-        setUp(
-          () => d.file("test.scss", "@if true {} @elseif false {}").create(),
-        );
-
-        test("in immediate mode", () async {
-          var sass = await runSass(["--fatal-deprecation=elseif", "test.scss"]);
-          expect(sass.stderr, emits(startsWith("Error: ")));
-          await sass.shouldExit(65);
-        });
-
-        test("in watch mode", () async {
-          var sass = await runSass([
-            "--watch",
-            "--poll",
-            "--fatal-deprecation=elseif",
-            "test.scss:out.css",
-          ]);
-          await expectLater(sass.stderr, emits(startsWith("Error: ")));
-          await expectLater(
-            sass.stdout,
-            emitsInOrder([
-              "Sass is watching for changes. Press Ctrl-C to stop.",
-              "",
-            ]),
-          );
-          await sass.kill();
-        });
-
-        test("in repl mode", () async {
-          var sass = await runSass([
-            "--interactive",
-            "--fatal-deprecation=strict-unary",
-          ]);
-          sass.stdin.writeln("4 -(5)");
-          await expectLater(
-            sass.stdout,
-            emitsInOrder([
-              ">> 4 -(5)",
-              emitsThrough(startsWith("Error: ")),
-              emitsThrough(contains("Remove this setting")),
-            ]),
-          );
-
-          // Verify that there's no output written for the previous line.
-          sass.stdin.writeln("1");
-          await expectLater(sass.stdout, emitsInOrder([">> 1", "1"]));
-          await sass.kill();
-        });
+        // TODO: Test this again once new deprecations are added post-2.0.0.
       });
 
       group("an evaluation-time deprecation", () {
@@ -451,8 +350,16 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         });
       });
 
-      group("an obsolete deprecation", () {
-        // TODO: test this when there are obsolete deprecations
+      test("an obsolete deprecation", () async {
+        var sass = await runSass([
+          "--future-deprecation=moz-document",
+          "test.scss",
+        ]);
+        expect(
+          sass.stderr,
+          emits(contains("moz-document is not a future deprecation")),
+        );
+        await sass.shouldExit(0);
       });
 
       group("a parse-time deprecation", () {

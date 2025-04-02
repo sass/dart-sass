@@ -1,9 +1,12 @@
 ## 2.0.0
 
+* **Breaking change:** `@elseif` is no longer treated as equivalent to `@else
+  if`, and is now treated like any other unknown plain CSS at-rule.
+
 * **Breaking change:** The `@-moz-document` rule no longer has any special
   parsing associated with it. It is now parsed like any other unknown plain CSS
   at-rule, where Sass features are only allowed within `#{}` interpolation.
-  
+
 ### Bogus Combinators
 
 * **Breaking change:** Selectors with more than one combinator in a row, such as

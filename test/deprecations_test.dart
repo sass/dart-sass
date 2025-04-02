@@ -15,11 +15,6 @@ void main() {
     _expectDeprecation("a { b: call(random)}", Deprecation.callString);
   });
 
-  // Deprecated in 1.3.2
-  test("elseIf is violated by using @elseif instead of @else if", () {
-    _expectDeprecation("@if false {} @elseif false {}", Deprecation.elseif);
-  });
-
   // Deprecated in 1.17.2
   test("newGlobal is violated by declaring a new variable with !global", () {
     _expectDeprecation(r"a {$foo: bar !global;}", Deprecation.newGlobal);

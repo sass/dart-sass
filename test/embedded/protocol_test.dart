@@ -440,24 +440,7 @@ void main() {
     });
 
     test("for a parse-time deprecation warning", () async {
-      process.send(compileString("@if true {} @elseif true {}"));
-
-      var logEvent = await getLogEvent(process);
-      expect(logEvent.type, equals(LogEventType.DEPRECATION_WARNING));
-      expect(
-        logEvent.message,
-        equals(
-          '@elseif is deprecated and will not be supported in future Sass '
-          'versions.\n'
-          '\n'
-          'Recommendation: @else if',
-        ),
-      );
-      expect(logEvent.span.text, equals("@elseif"));
-      expect(logEvent.span.start, equals(location(12, 0, 12)));
-      expect(logEvent.span.end, equals(location(19, 0, 19)));
-      expect(logEvent.span.context, equals("@if true {} @elseif true {}"));
-      expect(logEvent.stackTrace, "- 1:13  root stylesheet\n");
+      // TODO: Test this again once new deprecations are added post-2.0.0.
       await process.kill();
     });
 
