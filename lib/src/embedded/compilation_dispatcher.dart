@@ -408,20 +408,24 @@ final class CompilationDispatcher {
     var protobufWriter = CodedBufferWriter();
     message.writeToCodedBufferWriter(protobufWriter);
 
-    // Add one additional byte to the beginning to indicate whether or not the
-    // compilation has finished (1) or encountered a fatal error (exitCode), so
-    // the [IsolateDispatcher] knows whether to treat this isolate as inactive
-    // or close out entirely.
+    // Add two bytes to the beginning.
+    //
+    // The first byte indicates whether or not the compilation has finished (1)
+    // or encountered a fatal error (2), so the [WorkerDispatcher] knows
+    // whether to treat this isolate as inactive or close out entirely.
+    //
+    // The second byte is the exitCode when a fatal error occurs.
     var packet = Uint8List(
-      1 + _compilationIdVarint.length + protobufWriter.lengthInBytes,
+      2 + _compilationIdVarint.length + protobufWriter.lengthInBytes,
     );
     packet[0] = switch (message.whichMessage()) {
+      OutboundMessage_Message.error => 2,
       OutboundMessage_Message.compileResponse => 1,
-      OutboundMessage_Message.error => exitCode,
       _ => 0
     };
-    packet.setAll(1, _compilationIdVarint);
-    protobufWriter.writeTo(packet, 1 + _compilationIdVarint.length);
+    packet[1] = exitCode;
+    packet.setAll(2, _compilationIdVarint);
+    protobufWriter.writeTo(packet, 2 + _compilationIdVarint.length);
     return packet;
   }
 
