@@ -10,12 +10,12 @@ import 'js.dart';
 import 'sync_message_port.dart';
 import 'worker_threads.dart';
 
-/// The entrypoint for a [ReusableIsolate].
+/// The entrypoint for a [ReusableWorker].
 ///
 /// This must return a Record of filename and argv for creating the Worker.
-typedef ReusableIsolateEntryPoint = (String, JSArray<JSAny?>) Function();
+typedef ReusableWorkerEntryPoint = (String, JSArray<JSAny?>) Function();
 
-class ReusableIsolate {
+class ReusableWorker {
   /// The worker.
   final Worker _worker;
 
@@ -28,14 +28,14 @@ class ReusableIsolate {
   /// The subscription to [_receivePort].
   final StreamSubscription<dynamic> _subscription;
 
-  /// Whether the current isolate has been borrowed.
+  /// Whether the current worker has been borrowed.
   bool _borrowed = false;
 
-  ReusableIsolate._(
+  ReusableWorker._(
       this._worker, this._sendPort, this._receivePort, this._subscription);
 
-  /// Spawns a [ReusableIsolate] that runs the the entrypoint script.
-  static Future<ReusableIsolate> spawn(ReusableIsolateEntryPoint entryPoint,
+  /// Spawns a [ReusableWorker] that runs the the entrypoint script.
+  static Future<ReusableWorker> spawn(ReusableWorkerEntryPoint entryPoint,
       {Function? onError}) async {
     var (filename, argv) = entryPoint();
     var channel = SyncMessagePort.createChannel();
@@ -53,14 +53,14 @@ class ReusableIsolate {
         ((JSUint8Array buffer) {
           controller.add(buffer.toDart);
         }).toJS);
-    return ReusableIsolate._(worker, sendPort, receivePort,
+    return ReusableWorker._(worker, sendPort, receivePort,
         controller.stream.listen(_defaultOnData));
   }
 
   /// Subscribe to messages from [_receivePort].
   void borrow(void onData(dynamic event)?) {
     if (_borrowed) {
-      throw StateError('ReusableIsolate has already been borrowed.');
+      throw StateError('ReusableWorker has already been borrowed.');
     }
     _borrowed = true;
     _subscription.onData(onData);
@@ -69,16 +69,16 @@ class ReusableIsolate {
   /// Unsubscribe to messages from [_receivePort].
   void release() {
     if (!_borrowed) {
-      throw StateError('ReusableIsolate has not been borrowed.');
+      throw StateError('ReusableWorker has not been borrowed.');
     }
     _borrowed = false;
     _subscription.onData(_defaultOnData);
   }
 
-  /// Sends [message] to the isolate.
+  /// Sends [message] to the worker.
   ///
-  /// Throws a [StateError] if this is called while the isolate isn't borrowed,
-  /// or if a second message is sent before the isolate has processed the first
+  /// Throws a [StateError] if this is called while the worker isn't borrowed,
+  /// or if a second message is sent before the worker has processed the first
   /// one.
   void send(Uint8List message) {
     if (!_borrowed) {
@@ -88,7 +88,7 @@ class ReusableIsolate {
     _sendPort.postMessage(array, [array.buffer].toJS);
   }
 
-  /// Shuts down the isolate.
+  /// Shuts down the worker.
   void kill() {
     _sendPort.close();
     _worker.terminate();
@@ -96,7 +96,7 @@ class ReusableIsolate {
   }
 }
 
-/// The default handler for data events from the wrapped isolate when it's not
+/// The default handler for data events from the wrapped worker when it's not
 /// borrowed.
 void _defaultOnData(dynamic _) {
   throw StateError("Shouldn't receive a message before being borrowed.");
