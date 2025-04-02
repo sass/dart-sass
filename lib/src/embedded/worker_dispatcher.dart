@@ -142,14 +142,14 @@ class WorkerDispatcher {
       var fullBuffer = message as Uint8List;
 
       // The first byte of messages from workers indicates whether the entire
-      // compilation is finished (1) or if it encountered an error (exitCode).
+      // compilation is finished (1) or if it encountered an error (2).
       // Sending this as part of the message buffer rather than a separate
       // message avoids a race condition where the host might send a new
       // compilation request with the same ID as one that just finished before
       // the [WorkerDispatcher] receives word that the worker with that ID is
       // done. See sass/dart-sass#2004.
       var category = fullBuffer[0];
-      var packet = Uint8List.sublistView(fullBuffer, 1);
+      var packet = Uint8List.sublistView(fullBuffer, 2);
 
       switch (category) {
         case 0:
@@ -160,9 +160,18 @@ class WorkerDispatcher {
           _inactiveWorkers.add(worker);
           resource.release();
           _channel.sink.add(packet);
-        default:
+        case 2:
           _channel.sink.add(packet);
-          exitCode = category;
+          // The second byte of message is the exitCode when fatal error
+          // occurs. This is needed because in Node.js process.exitCode
+          // is thread local, so that we need to pass it from the worker
+          // thread back to main thread. Using onexit event to retrieve
+          // the exitCode is unrelibale because worker.kill() might get
+          // triggered from main thread before the worker thread finish
+          // exit itself, in which case onexit event will recevie an exit
+          // code 1 regardless of actual process.exitCode value in worker
+          // thread.
+          exitCode = fullBuffer[1];
           if (_gracefulShutdown) {
             _channel.sink.close();
           } else {
