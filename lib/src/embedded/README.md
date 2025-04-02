@@ -1,9 +1,9 @@
 # Embedded Sass Compiler
 
 This directory contains the Dart Sass embedded compiler. This is a special mode
-of the Dart Sass command-line executable, only supported on the Dart VM, in
-which it uses stdin and stdout to communicate with another endpoint, the
-"embedded host", using a protocol buffer-based protocol. See [the embedded
+of the Dart Sass command-line executable, only supported on the Dart VM and
+Node.js, in which it uses stdin and stdout to communicate with another endpoint,
+the "embedded host", using a protocol buffer-based protocol. See [the embedded
 protocol specification] for details.
 
 [the embedded protocol specification]: https://github.com/sass/sass/blob/main/spec/embedded-protocol.md
@@ -24,5 +24,61 @@ incoming messages from the embedded host:
 
    [`CompilationDispatcher`]: compilation_dispatcher.dart
 
-Otherwise, most of the code in this directory just wraps Dart APIs to
+Otherwise, most of the code in this directory just wraps Dart APIs or JS APIs to
 communicate with their protocol buffer equivalents.
+
+## Worker Communication and Management
+
+The way Dart VM launches lightweight isolates versus Node.js launches worker
+threads are very different.
+
+In Dart VM, the lightweight isolates shares program structures like loaded
+libraries, classes, functions, etc., even including JIT optimized code. This
+allows main isolate to spawn child isolate with a reference to the entry point
+function.
+
+```
+┌─────────────────┐                                                    ┌─────────────────┐
+│ Main Isolate    │ Isolate.spawn(workerEntryPoint, mailbox, sendPort) │ Worker Isolate  │
+│                 ├───────────────────────────────────────────────────►│                 │
+│                 │                                                    │                 │
+│ ┌─────────────┐ │               Synchronous Messaging                │ ┌─────────────┐ │
+│ │ Mailbox     ├─┼────────────────────────────────────────────────────┼►│ Mailbox     │ │
+│ └─────────────┘ │                                                    │ └─────────────┘ │
+│                 │                                                    │                 │
+│ ┌─────────────┐ │               Asynchronous Messaging               │ ┌─────────────┐ │
+│ │ ReceivePort │◄┼────────────────────────────────────────────────────┼─┤ SendPort    │ │
+│ └─────────────┘ │                                                    │ └─────────────┘ │
+│                 │                                                    │                 │
+└─────────────────┘                                                    └─────────────────┘
+```
+
+In Node.JS, the worker threads do not share program structures. In order to
+launch a worker thread, it needs an entry point file, with the entry point
+function effectly hard-coded in the entry point file. While it's possible
+to have a separate entry point file for the worker threads, it's requires more
+complex packaging changes with `cli_pkg`, therefore the main thread the worker
+threads shares [the same entry point file](js/executable.dart), and the entry
+point file will decide what to run depends on `worker_threads.isMainThread`.
+
+```
+  if (worker_threads.isMainThread) {                                                                 if (worker_threads.isMainThread) {
+    mainEntryPoint();                                                                                  mainEntryPoint();
+  } else {                                                                                           } else {
+    workerEntryPoint();                new Worker(process.argv[1], {                                   workerEntryPoint();
+  }                                                                  argv: process.argv.slice(2),    }
+                                                                     workerData: channel.port2,
+┌────────────────────────────────────┐                               transferList: [channel.port2] ┌────────────────────────────────────┐
+│ Main Thread                        │                             })                              │ Worker Thread                      │
+│                                    ├────────────────────────────────────────────────────────────►│                                    │
+│                                    │                                                             │                                    │
+│ ┌────────────────────────────────┐ │               Synchronous Messaging                         │ ┌────────────────────────────────┐ │
+│ │ SyncMessagePort(channel.port1) ├─┼─────────────────────────────────────────────────────────────┼►│ SyncMessagePort(channel.port2) │ │
+│ └────────────────────────────────┘ │                                                             │ └────────────────────────────────┘ │
+│                                    │                                                             │                                    │
+│ ┌────────────────────────────────┐ │               Asynchronous Messaging                        │ ┌────────────────────┐             │
+│ │ channel.port1                  │◄┼─────────────────────────────────────────────────────────────┼─┤ channel.port2      │             │
+│ └────────────────────────────────┘ │                                                             │ └────────────────────┘             │
+│                                    │                                                             │                                    │
+└────────────────────────────────────┘                                                             └────────────────────────────────────┘
+```
