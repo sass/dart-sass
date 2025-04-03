@@ -142,12 +142,12 @@ class WorkerDispatcher {
       var fullBuffer = message as Uint8List;
 
       // The first byte of messages from workers indicates whether the entire
-      // compilation is finished (1) or if it encountered an error (2).
-      // Sending this as part of the message buffer rather than a separate
-      // message avoids a race condition where the host might send a new
-      // compilation request with the same ID as one that just finished before
-      // the [WorkerDispatcher] receives word that the worker with that ID is
-      // done. See sass/dart-sass#2004.
+      // compilation is finished (1) or if it encountered an error (2). Sending
+      // this as part of the message buffer rather than a separate message
+      // avoids a race condition where the host might send a new compilation
+      // request with the same ID as one that just finished before the
+      // [WorkerDispatcher] receives word that the worker with that ID is done.
+      // See sass/dart-sass#2004.
       var category = fullBuffer[0];
       var packet = Uint8List.sublistView(fullBuffer, 2);
 
