@@ -14,6 +14,7 @@ import '../visitor/serialize.dart';
 import 'node.dart';
 import 'selector/complex.dart';
 import 'selector/list.dart';
+import 'selector/parent.dart';
 import 'selector/placeholder.dart';
 import 'selector/pseudo.dart';
 
@@ -48,6 +49,13 @@ abstract base class Selector implements AstNode {
   /// @nodoc
   @internal
   bool get isInvisible => accept(const _IsInvisibleVisitor(includeBogus: true));
+
+  /// Whether this selector contains a [ParentSelector].
+  ///
+  /// @nodoc
+  @internal
+  bool get containsParentSelector =>
+      accept(const _ContainsParentSelectorVisitor());
 
   // Whether this selector would be invisible even if it didn't have bogus
   // combinators.
@@ -169,7 +177,7 @@ class _IsBogusVisitor with AnySelectorVisitor {
   }
 }
 
-/// The visitor used to implement [Selector.isUseless]
+/// The visitor used to implement [Selector.isUseless].
 class _IsUselessVisitor with AnySelectorVisitor {
   const _IsUselessVisitor();
 
@@ -181,4 +189,11 @@ class _IsUselessVisitor with AnySelectorVisitor {
       );
 
   bool visitPseudoSelector(PseudoSelector pseudo) => pseudo.isBogus;
+}
+
+/// The visitor used to implement [Selector.containsParentSelector].
+class _ContainsParentSelectorVisitor with AnySelectorVisitor {
+  const _ContainsParentSelectorVisitor();
+
+  bool visitParentSelector(ParentSelector _) => true;
 }
