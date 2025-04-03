@@ -1,3 +1,8 @@
+## 1.86.3
+
+* Fix a bug introduced in 1.86.1 where Sass fails to resolve paths starting with
+  a `..` segment.
+
 ## 1.86.2
 
 * No user-visible changes.
