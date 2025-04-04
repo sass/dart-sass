@@ -1,3 +1,11 @@
+## 1.87.0
+
+* **Potentially breaking bug fix:** When a plain CSS file with a top-level
+  nesting selector `&` is loaded into a nested Sass context via
+  `meta.load-css()` or `@import`, Sass now emits plain CSS nesting rather than
+  incorrectly combining it with the parent selector using a descendant
+  combinator.
+
 ## 1.86.3
 
 * Fix a bug introduced in 1.86.1 where Sass fails to resolve paths starting with
