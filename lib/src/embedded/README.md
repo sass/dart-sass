@@ -29,13 +29,11 @@ communicate with their protocol buffer equivalents.
 
 ## Worker Communication and Management
 
-The way Dart VM launches lightweight isolates versus Node.js launches worker
-threads are very different.
-
-In Dart VM, the lightweight isolates share program structures like loaded
-libraries, classes, functions, etc., even including JIT optimized code. This
-allows main isolate to spawn child isolate with a reference to the entry point
-function.
+The way the Dart VM launches lightweight isolates is very different from how
+Node.js launches worker threads. In the Dart VM, the lightweight isolates share
+program structures like loaded libraries, classes, functions, and so on, even
+including JIT optimized code. This allows main isolate to spawn child isolate
+with a reference to the entry point function.
 
 ```
 ┌─────────────────┐                                                    ┌─────────────────┐
@@ -55,21 +53,21 @@ function.
 
 In Node.JS, the worker threads do not share program structures. In order to
 launch a worker thread, it needs an entry point file, with the entry point
-function effectly hard-coded in the entry point file. While it's possible
-to have a separate entry point file for the worker threads, it requires more
-complex packaging changes with `cli_pkg`, therefore the main thread and the
-worker threads share [the same entry point file](js/executable.dart), which
-decides what to run based on `worker_threads.isMainThread`.
+function effectly hard-coded in that file. While it's possible to have a
+separate entry point file for the worker threads, it would require complex
+packaging changes within `cli_pkg`, so instead the main thread and the worker
+threads share [the same entry point file](js/executable.dart), which decides
+what to run based on `worker_threads.isMainThread`.
 
 ```
   if (worker_threads.isMainThread) {                                                                 if (worker_threads.isMainThread) {
     mainEntryPoint();                                                                                  mainEntryPoint();
   } else {                                                                                           } else {
-    workerEntryPoint();                new Worker(process.argv[1], {                                   workerEntryPoint();
-  }                                                                  argv: process.argv.slice(2),    }
-                                                                     workerData: channel.port2,
-┌────────────────────────────────────┐                               transferList: [channel.port2] ┌────────────────────────────────────┐
-│ Main Thread                        │                             })                              │ Worker Thread                      │
+    workerEntryPoint();                                new Worker(process.argv[1], {                   workerEntryPoint();
+  }                                                      argv: process.argv.slice(2),                }
+                                                         workerData: channel.port2,
+┌────────────────────────────────────┐                   transferList: [channel.port2]             ┌────────────────────────────────────┐
+│ Main Thread                        │                 })                                          │ Worker Thread                      │
 │                                    ├────────────────────────────────────────────────────────────►│                                    │
 │                                    │                                                             │                                    │
 │ ┌────────────────────────────────┐ │               Synchronous Messaging                         │ ┌────────────────────────────────┐ │
