@@ -15,8 +15,6 @@ import 'util/proto_extensions.dart';
 import 'utils.dart';
 import 'vm/concurrency.dart' if (dart.library.js) 'js/concurrency.dart';
 import 'vm/reusable_worker.dart' if (dart.library.js) 'js/reusable_worker.dart';
-import 'worker_entrypoint.dart'
-    if (dart.library.js) 'js/worker_entrypoint.dart';
 
 /// A class that dispatches messages between the host and various workers that
 /// are each running an individual compilation.
@@ -129,7 +127,6 @@ class WorkerDispatcher {
       _inactiveWorkers.remove(worker);
     } else {
       var future = ReusableWorker.spawn(
-        workerEntryPoint,
         onError: (Object error, StackTrace stackTrace) {
           _handleError(error, stackTrace);
         },
