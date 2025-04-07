@@ -6,14 +6,11 @@ import 'dart:async';
 import 'dart:js_interop';
 import 'dart:typed_data';
 
+import 'package:node_interop/node_interop.dart';
+
 import 'js.dart';
 import 'sync_message_port.dart';
 import 'worker_threads.dart';
-
-/// The entrypoint for a [ReusableWorker].
-///
-/// This must return a Record of filename and argv for creating the Worker.
-typedef ReusableWorkerEntryPoint = (String, JSArray<JSAny?>) Function();
 
 class ReusableWorker {
   /// The worker.
@@ -34,17 +31,17 @@ class ReusableWorker {
   ReusableWorker._(
       this._worker, this._sendPort, this._receivePort, this._subscription);
 
-  /// Spawns a [ReusableWorker] that runs the the entrypoint script.
-  static Future<ReusableWorker> spawn(ReusableWorkerEntryPoint entryPoint,
-      {Function? onError}) async {
-    var (filename, argv) = entryPoint();
+  /// Spawns a [ReusableWorker].
+  static Future<ReusableWorker> spawn({Function? onError}) async {
+    var filename = process.argv[1] as String;
+    var argv = [for (var arg in process.argv.skip(2)) (arg as String).toJS];
     var channel = SyncMessagePort.createChannel();
     var worker = Worker(
         filename,
         WorkerOptions(
             workerData: channel.port2,
             transferList: [channel.port2].toJS,
-            argv: argv));
+            argv: argv.toJS));
     var controller = StreamController<dynamic>(sync: true);
     var sendPort = SyncMessagePort(channel.port1);
     var receivePort = channel.port1;
