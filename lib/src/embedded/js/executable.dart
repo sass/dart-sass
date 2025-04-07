@@ -4,10 +4,10 @@
 
 import 'package:stream_channel/stream_channel.dart';
 
+import '../compilation_dispatcher.dart';
 import '../options.dart';
 import '../util/length_delimited_transformer.dart';
 import '../worker_dispatcher.dart';
-import '../worker_entrypoint.dart';
 import 'io.dart';
 import 'sync_receive_port.dart';
 import 'worker_threads.dart';
@@ -21,7 +21,7 @@ void main(List<String> args) {
           .listen();
     } else {
       var port = workerData! as MessagePort;
-      workerEntryPoint(JSSyncReceivePort(port), JSSendPort(port));
+      CompilationDispatcher(JSSyncReceivePort(port), JSSendPort(port)).listen();
     }
   }
 }
