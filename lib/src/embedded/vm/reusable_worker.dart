@@ -10,18 +10,7 @@ import 'package:native_synchronization/mailbox.dart';
 import 'package:native_synchronization/sendable.dart';
 
 import '../sync_receive_port.dart';
-
-/// The entrypoint for a [ReusableWorker].
-///
-/// This must be a static global function. It's run when the isolate is spawned,
-/// and is passed a [Mailbox] that receives messages from [ReusableWorker.send]
-/// and a [SendPort] that sends messages to the [ReceivePort] listened by
-/// [ReusableWorker.borrow].
-///
-/// If the [sendPort] sends a message before [ReusableWorker.borrow] is called,
-/// this will throw an unhandled [StateError].
-typedef ReusableWorkerEntryPoint = FutureOr<void> Function(
-    SyncReceivePort receivePort, SendPort sendPort);
+import '../compilation_dispatcher.dart';
 
 class ReusableWorker {
   /// The wrapped isolate.
@@ -46,15 +35,13 @@ class ReusableWorker {
     Function? onError,
   }) : _subscription = _receivePort.listen(_defaultOnData, onError: onError);
 
-  /// Spawns a [ReusableWorker] that runs the given [entryPoint].
-  static Future<ReusableWorker> spawn(
-    ReusableWorkerEntryPoint entryPoint, {
+  /// Spawns a [ReusableWorker].
+  static Future<ReusableWorker> spawn({
     Function? onError,
   }) async {
     var mailbox = Mailbox();
     var receivePort = ReceivePort();
     var isolate = await Isolate.spawn(_isolateMain, (
-      entryPoint,
       mailbox.asSendable,
       receivePort.sendPort,
     ));
@@ -107,9 +94,9 @@ void _defaultOnData(dynamic _) {
   throw StateError("Shouldn't receive a message before being borrowed.");
 }
 
-void _isolateMain(
-  (ReusableWorkerEntryPoint, Sendable<Mailbox>, SendPort) message,
-) {
-  var (entryPoint, sendableMailbox, sendPort) = message;
-  entryPoint(MailboxSyncReceivePort(sendableMailbox.materialize()), sendPort);
+void _isolateMain((Sendable<Mailbox>, SendPort) message) {
+  var (sendableMailbox, sendPort) = message;
+  CompilationDispatcher(
+          MailboxSyncReceivePort(sendableMailbox.materialize()), sendPort)
+      .listen();
 }
