@@ -6,8 +6,10 @@ import 'dart:typed_data';
 export 'vm/sync_receive_port.dart'
     if (dart.library.js) 'js/sync_receive_port.dart';
 
-/// A common interface that is implemented by wrapping
-/// Dart Mailbox or JS SyncMessagePort.
+/// A port that receives message synchronously across workers.
 abstract interface class SyncReceivePort {
+  /// Receives a message from the port.
+  ///
+  /// Throws [StateError] if called after port has been closed.
   Uint8List receive();
 }
