@@ -60,23 +60,23 @@ threads share [the same entry point file](js/executable.dart), which decides
 what to run based on `worker_threads.isMainThread`.
 
 ```
-  if (worker_threads.isMainThread) {                                                                 if (worker_threads.isMainThread) {
-    mainEntryPoint();                                                                                  mainEntryPoint();
-  } else {                                                                                           } else {
-    workerEntryPoint();                                new Worker(process.argv[1], {                   workerEntryPoint();
-  }                                                      argv: process.argv.slice(2),                }
-                                                         workerData: channel.port2,
-┌────────────────────────────────────┐                   transferList: [channel.port2]             ┌────────────────────────────────────┐
-│ Main Thread                        │                 })                                          │ Worker Thread                      │
-│                                    ├────────────────────────────────────────────────────────────►│                                    │
-│                                    │                                                             │                                    │
-│ ┌────────────────────────────────┐ │               Synchronous Messaging                         │ ┌────────────────────────────────┐ │
-│ │ SyncMessagePort(channel.port1) ├─┼─────────────────────────────────────────────────────────────┼►│ SyncMessagePort(channel.port2) │ │
-│ └────────────────────────────────┘ │                                                             │ └────────────────────────────────┘ │
-│                                    │                                                             │                                    │
-│ ┌────────────────────────────────┐ │               Asynchronous Messaging                        │ ┌────────────────────────────────┐ │
-│ │ channel.port1                  │◄┼─────────────────────────────────────────────────────────────┼─┤ channel.port2                  │ │
-│ └────────────────────────────────┘ │                                                             │ └────────────────────────────────┘ │
-│                                    │                                                             │                                    │
-└────────────────────────────────────┘                                                             └────────────────────────────────────┘
+  if (worker_threads.isMainThread) {                                                    if (worker_threads.isMainThread) {
+    mainEntryPoint();                                                                     mainEntryPoint();
+  } else {                                                                              } else {
+    workerEntryPoint();                       new Worker(process.argv[1], {               workerEntryPoint();
+  }                                             argv: process.argv.slice(2),            }
+                                                workerData: channel.port2,
+┌────────────────────────────────────┐          transferList: [channel.port2]         ┌────────────────────────────────────┐
+│ Main Thread                        │        })                                      │ Worker Thread                      │
+│                                    ├───────────────────────────────────────────────►│                                    │
+│                                    │                                                │                                    │
+│ ┌────────────────────────────────┐ │             Synchronous Messaging              │ ┌────────────────────────────────┐ │
+│ │ SyncMessagePort(channel.port1) ├─┼────────────────────────────────────────────────┼►│ SyncMessagePort(channel.port2) │ │
+│ └────────────────────────────────┘ │                                                │ └────────────────────────────────┘ │
+│                                    │                                                │                                    │
+│ ┌────────────────────────────────┐ │             Asynchronous Messaging             │ ┌────────────────────────────────┐ │
+│ │ channel.port1                  │◄┼────────────────────────────────────────────────┼─┤ channel.port2                  │ │
+│ └────────────────────────────────┘ │                                                │ └────────────────────────────────┘ │
+│                                    │                                                │                                    │
+└────────────────────────────────────┘                                                └────────────────────────────────────┘
 ```
