@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate' show SendPort;
+export 'dart:isolate' show SendPort;
 
 import 'package:cli_pkg/js.dart';
 import 'package:js/js.dart';
