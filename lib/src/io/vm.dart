@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:isolate';
+export 'dart:isolate' show SendPort;
 
 import 'package:async/async.dart';
 import 'package:path/path.dart' as p;
