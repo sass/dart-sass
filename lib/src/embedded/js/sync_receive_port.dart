@@ -6,7 +6,7 @@ import 'dart:js_interop';
 import 'dart:typed_data';
 
 import '../sync_receive_port.dart';
-import 'isolate.dart';
+import '../../io.dart';
 import 'js.dart';
 import 'sync_message_port.dart';
 import 'worker_threads.dart';
