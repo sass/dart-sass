@@ -13,15 +13,15 @@ import 'sync_receive_port.dart';
 import 'worker_threads.dart';
 
 void main(List<String> args) {
-  if (parseOptions(args)) {
-    if (isMainThread) {
+  if (isMainThread) {
+    if (parseOptions(args)) {
       WorkerDispatcher(StreamChannel.withGuarantees(stdin, stdout,
                   allowSinkErrors: false)
               .transform(lengthDelimited))
           .listen();
-    } else {
-      var port = workerData! as MessagePort;
-      CompilationDispatcher(JSSyncReceivePort(port), JSSendPort(port)).listen();
     }
+  } else {
+    var port = workerData! as MessagePort;
+    CompilationDispatcher(JSSyncReceivePort(port), JSSendPort(port)).listen();
   }
 }
