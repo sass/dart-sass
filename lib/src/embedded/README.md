@@ -1,10 +1,9 @@
 # Embedded Sass Compiler
 
 This directory contains the Dart Sass embedded compiler. This is a special mode
-of the Dart Sass command-line executable, only supported on the Dart VM and
-Node.js, in which it uses stdin and stdout to communicate with another endpoint,
-the "embedded host", using a protocol buffer-based protocol. See [the embedded
-protocol specification] for details.
+of the Dart Sass command-line executable, in which it uses stdin and stdout to
+communicate with another endpoint, the "embedded host", using a protocol
+buffer-based protocol. See [the embedded protocol specification] for details.
 
 [the embedded protocol specification]: https://github.com/sass/sass/blob/main/spec/embedded-protocol.md
 
