@@ -3,8 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:convert';
-import 'dart:io' if (dart.library.js) 'js/io.dart';
-import 'dart:isolate' if (dart.library.js) 'js/isolate.dart';
 import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
@@ -13,7 +11,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:sass/sass.dart' as sass;
 import 'package:sass/src/importer/node_package.dart' as npi;
 
-import '../io.dart' show FileSystemException;
+import '../io.dart';
 import '../logger.dart';
 import '../value/function.dart';
 import '../value/mixin.dart';
@@ -306,7 +304,7 @@ final class CompilationDispatcher {
   ///
   /// This is used during compilation by other classes like host callable.
   Never sendError(ProtocolError error) {
-    Isolate.exit(_sendPort, _serializePacket(OutboundMessage()..error = error));
+    exitWorker(_sendPort, _serializePacket(OutboundMessage()..error = error));
   }
 
   InboundMessage_CanonicalizeResponse sendCanonicalizeRequest(
@@ -436,7 +434,7 @@ final class CompilationDispatcher {
     } on StateError catch (_) {
       // The [SyncReceivePort] has been closed, exit the current isolate immediately
       // to avoid bubble the error up as [SassException] during [_sendRequest].
-      Isolate.exit();
+      exitWorker();
     }
   }
 }

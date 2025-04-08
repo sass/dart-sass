@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
+import 'dart:isolate';
 
 import 'package:async/async.dart';
 import 'package:path/path.dart' as p;
@@ -102,6 +103,10 @@ DateTime modificationTime(String path) {
 }
 
 String? getEnvironmentVariable(String name) => io.Platform.environment[name];
+
+Never exitWorker([SendPort? finalMessagePort, Object? message]) {
+  Isolate.exit(finalMessagePort, message);
+}
 
 Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
   var watcher = poll ? PollingDirectoryWatcher(path) : DirectoryWatcher(path);
