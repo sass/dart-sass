@@ -22,9 +22,6 @@ jobs:
             platform: linux/amd64
             target: linux-x64
           - image: docker.io/library/dart
-            platform: linux/amd64
-            target: linux-ia32
-          - image: docker.io/library/dart
             platform: linux/arm64
             target: linux-arm64
           - image: docker.io/library/dart
@@ -37,9 +34,6 @@ jobs:
             platform: linux/amd64
             target: linux-x64-musl
           - image: ghcr.io/dart-musl/dart
-            platform: linux/amd64
-            target: linux-ia32-musl
-          - image: ghcr.io/dart-musl/dart
             platform: linux/arm64
             target: linux-arm64-musl
           - image: ghcr.io/dart-musl/dart
@@ -51,9 +45,6 @@ jobs:
           - image: ghcr.io/dart-android/dart
             platform: linux/amd64
             target: android-x64
-          - image: ghcr.io/dart-android/dart
-            platform: linux/amd64
-            target: android-ia32
           - image: ghcr.io/dart-android/dart
             platform: linux/arm64
             target: android-arm64
