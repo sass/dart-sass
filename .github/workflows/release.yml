@@ -73,22 +73,6 @@ jobs:
           UPDATE_SASS_SASS_REPO: false
           NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
 
-  deploy_bazel:
-    name: Deploy Bazel
-    runs-on: ubuntu-latest
-    needs: [deploy_npm]
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/util/initialize
-        with: {github-token: "${{ github.token }}"}
-
-      - name: Deploy
-        run: dart run grinder update-bazel
-        env:
-          GH_TOKEN: "${{ secrets.GH_TOKEN }}"
-          GH_USER: sassbot
-
   deploy_pub:
     name: Deploy Pub
     runs-on: ubuntu-latest
