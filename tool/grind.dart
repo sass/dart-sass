@@ -16,7 +16,6 @@ import 'grind/generate_deprecations.dart';
 import 'grind/synchronize.dart';
 import 'grind/utils.dart';
 
-export 'grind/bazel.dart';
 export 'grind/benchmark.dart';
 export 'grind/double_check.dart';
 export 'grind/frameworks.dart';
