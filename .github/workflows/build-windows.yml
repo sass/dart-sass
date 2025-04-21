@@ -23,7 +23,7 @@ jobs:
           - arch: ia32
             runner: windows-latest
           - arch: arm64
-            runner: windows-arm64
+            runner: windows-11-arm
 
     steps:
       - uses: actions/checkout@v4
