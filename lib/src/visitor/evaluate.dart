@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 25aa2d050126950ea37dc1c53539f0b041356e8e
+// Checksum: 607745b48d0737b3be112d0a8753dd87492fcc31
 //
 // ignore_for_file: unused_import
 
@@ -2380,7 +2380,11 @@ final class _EvaluateVisitor
       plainCss: _stylesheet.plainCss,
     );
 
-    var nest = !(_styleRule?.fromPlainCss ?? false);
+    var nest = switch (_styleRule) {
+      null => true,
+      CssStyleRule(fromPlainCss: true) => false,
+      _ => !(_stylesheet.plainCss && parsedSelector.containsParentSelector)
+    };
     if (nest) {
       if (_stylesheet.plainCss) {
         for (var complex in parsedSelector.components) {
@@ -4072,7 +4076,11 @@ final class _EvaluateVisitor
     }
 
     var styleRule = _styleRule;
-    var nest = !(_styleRule?.fromPlainCss ?? false);
+    var nest = switch (_styleRule) {
+      null => true,
+      CssStyleRule(fromPlainCss: true) => false,
+      _ => !(node.fromPlainCss && node.selector.containsParentSelector)
+    };
     var originalSelector = nest
         ? node.selector.nestWithin(
             styleRule?.originalSelector,
