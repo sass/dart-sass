@@ -32,9 +32,7 @@ runs:
       shell: ${{ runner.os == 'Windows' && 'powershell' || 'bash' }}
 
     - uses: bufbuild/buf-setup-action@v1.50.0
-      with:
-        github_token: "${{ inputs.github-token }}"
-        version: 1.53.0
+      with: {github_token: "${{ inputs.github-token }}"}
 
     # This composite action requires bash, but bash is not available on windows-arm64 runner.
     # Avoid running this composite action on non-PR, so that we can release on windows-arm64.
