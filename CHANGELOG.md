@@ -1,3 +1,7 @@
+## 1.88.0
+
+* Deprecate passing a relative URL to `compileString()` and related functions.
+
 ## 1.87.0
 
 * **Potentially breaking bug fix:** When a plain CSS file with a top-level

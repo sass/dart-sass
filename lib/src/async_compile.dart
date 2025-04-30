@@ -133,6 +133,16 @@ Future<CompileResult> compileStringAsync(
 
   var stylesheet = Stylesheet.parse(source, syntax ?? Syntax.scss, url: url);
 
+  if (stylesheet.span.sourceUrl case Uri(scheme: '')
+      when nodeImporter == null) {
+    deprecationLogger.warnForDeprecation(
+      Deprecation.compileStringRelativeUrl,
+      'Passing a relative `url` argument (${stylesheet.span.sourceUrl}) to '
+      'compileString() or related functions is deprecated and will be an error '
+      'in Dart Sass 2.0.0.',
+    );
+  }
+
   var result = await _compileStylesheet(
     stylesheet,
     logger,
