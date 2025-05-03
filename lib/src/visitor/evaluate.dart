@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 607745b48d0737b3be112d0a8753dd87492fcc31
+// Checksum: 05d8589b401932198e1f52434066ea4d6cbf3756
 //
 // ignore_for_file: unused_import
 
@@ -217,9 +217,6 @@ final class _EvaluateVisitor
 
   /// The human-readable name of the current stack frame.
   var _member = "root stylesheet";
-
-  /// The innermost user-defined callable that's being invoked.
-  UserDefinedCallable<Environment>? _currentCallable;
 
   /// The node for the innermost callable that's being invoked.
   ///
@@ -3384,9 +3381,7 @@ final class _EvaluateVisitor
     var name = callable.name;
     if (name != "@content") name += "()";
 
-    var oldCallable = _currentCallable;
     var oldInDependency = _inDependency;
-    _currentCallable = callable;
     _inDependency = callable.inDependency;
     var result = _withStackFrame(name, nodeWithSpan, () {
       // Add an extra closure() call so that modifications to the environment
@@ -3474,7 +3469,6 @@ final class _EvaluateVisitor
         });
       });
     });
-    _currentCallable = oldCallable;
     _inDependency = oldInDependency;
     return result;
   }

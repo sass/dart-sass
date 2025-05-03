@@ -210,9 +210,6 @@ final class _EvaluateVisitor
   /// The human-readable name of the current stack frame.
   var _member = "root stylesheet";
 
-  /// The innermost user-defined callable that's being invoked.
-  UserDefinedCallable<AsyncEnvironment>? _currentCallable;
-
   /// The node for the innermost callable that's being invoked.
   ///
   /// This is used to produce warnings for function calls. It's stored as an
@@ -3383,9 +3380,7 @@ final class _EvaluateVisitor
     var name = callable.name;
     if (name != "@content") name += "()";
 
-    var oldCallable = _currentCallable;
     var oldInDependency = _inDependency;
-    _currentCallable = callable;
     _inDependency = callable.inDependency;
     var result = await _withStackFrame(name, nodeWithSpan, () {
       // Add an extra closure() call so that modifications to the environment
@@ -3473,7 +3468,6 @@ final class _EvaluateVisitor
         });
       });
     });
-    _currentCallable = oldCallable;
     _inDependency = oldInDependency;
     return result;
   }
