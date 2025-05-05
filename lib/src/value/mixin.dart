@@ -26,8 +26,8 @@ final class SassMixin extends Value {
   @internal
   final AsyncCallable callable;
 
-  /// The unique compile context for tracking if SassFunction and SassMixin
-  /// belongs to current compilation or not.
+  /// The unique compile context for tracking if this [SassMixin] belongs to the
+  /// current compilation or not.
   final Object? _compileContext;
 
   SassMixin(this.callable) : _compileContext = null;

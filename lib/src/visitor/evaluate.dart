@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 1cca6e94fd02f68addebda66bf0aeecf25689b30
+// Checksum: 6e5710daa106ed0b9b684af8bc61ce9cc233a10b
 //
 // ignore_for_file: unused_import
 
@@ -144,10 +144,6 @@ final class _EvaluateVisitor
         StatementVisitor<Value?>,
         ExpressionVisitor<Value>,
         CssVisitor<void> {
-  /// The unique compile context for tracking if SassFunction and SassMixin
-  /// belongs to current compilation or not.
-  final Object _compileContext = Object();
-
   /// The import cache used to import other stylesheets.
   final ImportCache? _importCache;
 
@@ -190,6 +186,10 @@ final class _EvaluateVisitor
 
   /// Whether to track source map information.
   final bool _sourceMap;
+
+  /// The unique compile context for tracking if [SassFunction]s and
+  /// [SassMixin]s belongs to the current compilation or not.
+  final Object _compileContext = Object();
 
   /// The current lexical environment.
   Environment _environment;

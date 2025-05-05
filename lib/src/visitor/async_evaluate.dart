@@ -136,10 +136,6 @@ final class _EvaluateVisitor
         StatementVisitor<Future<Value?>>,
         ExpressionVisitor<Future<Value>>,
         CssVisitor<Future<void>> {
-  /// The unique compile context for tracking if SassFunction and SassMixin
-  /// belongs to current compilation or not.
-  final Object _compileContext = Object();
-
   /// The import cache used to import other stylesheets.
   final AsyncImportCache? _importCache;
 
@@ -182,6 +178,10 @@ final class _EvaluateVisitor
 
   /// Whether to track source map information.
   final bool _sourceMap;
+
+  /// The unique compile context for tracking if [SassFunction]s and
+  /// [SassMixin]s belongs to the current compilation or not.
+  final Object _compileContext = Object();
 
   /// The current lexical environment.
   AsyncEnvironment _environment;

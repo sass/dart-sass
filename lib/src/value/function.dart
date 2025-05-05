@@ -24,8 +24,10 @@ class SassFunction extends Value {
   /// synchronous evaluate visitor will crash if this isn't a [Callable].
   final AsyncCallable callable;
 
-  /// The unique compile context for tracking if SassFunction and SassMixin
-  /// belongs to current compilation or not.
+  /// The unique compile context for tracking if this [SassFunction] belongs to
+  /// the current compilation or not.
+  ///
+  /// This is `null` for functions defined in plugins' Dart code.
   final Object? _compileContext;
 
   SassFunction(this.callable) : _compileContext = null;
