@@ -65,7 +65,8 @@ final class Interpolation implements SassNode {
   FileSpan spanForElement(int index) => switch (contents[index]) {
         String() => span.file.span(
             (index == 0 ? span.start : spans[index - 1]!.end).offset,
-            (index + 1 == spans.length ? span.end : spans[index + 1]!.start).offset,
+            (index + 1 == spans.length ? span.end : spans[index + 1]!.start)
+                .offset,
           ),
         _ => spans[index]!,
       };
