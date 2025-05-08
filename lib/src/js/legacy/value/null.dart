@@ -2,10 +2,16 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:js_util';
+import 'dart:js_interop';
+
+import 'package:js_core/js_core.dart';
+import 'package:js_core/unsafe.dart';
 
 import '../../../value.dart';
-import '../../reflection.dart';
+import '../../../util/nullable.dart';
+import '../../extension/class.dart';
+import '../../immutable.dart';
+import '../../util.dart';
 
 /// The JS `sass.types.Null` class.
 ///
@@ -13,13 +19,22 @@ import '../../reflection.dart';
 /// Dart Sass booleans without an additional wrapper. However, they still have
 /// to have a constructor injected into their inheritance chain so that
 /// `instanceof` works properly.
-final JSClass legacyNullClass = () {
-  var jsClass = createJSClass('sass.types.Null', (dynamic _, [dynamic __]) {
-    throw "new sass.types.Null() isn't allowed. Use sass.types.Null.NULL "
-        "instead.";
-  });
-  setProperty(jsClass, "NULL", sassNull);
+extension type JSSassLegacyNull._(JSObject _) implements JSObject {
+  static final JSClass<JSSassLegacyNull> jsClass = () {
+    var jsClass =
+        JSClass('sass.types.Null', (JSSassLegacyNull self, [JSAny? _]) {
+      throw "new sass.types.Null() isn't allowed. Use sass.types.Null.NULL "
+          "instead.";
+    })
+          ..setProperty("NULL".toJS, sassNull.toJSLegacy);
 
-  getJSClass(sassNull).injectSuperclass(jsClass);
-  return jsClass;
-}();
+    sassNull.toJSLegacy.constructor.injectSuperclass(jsClass);
+    return jsClass;
+  }();
+
+  SassNull get toDart => sassNull;
+}
+
+extension SassNullToJSLegacy on SassNull {
+  JSSassLegacyNull get toJSLegacy => this as JSSassLegacyNull;
+}

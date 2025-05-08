@@ -2,33 +2,41 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:js/js.dart';
+import 'dart:js_interop';
+
+import 'package:js_core/js_core.dart';
+import 'package:js_core/unsafe.dart';
 
 import '../../../value.dart';
-import '../../reflection.dart';
+import '../../../util/nullable.dart';
+import '../../extension/class.dart';
+import '../../immutable.dart';
+import '../../util.dart';
 
-@JS()
-class _NodeSassString {
-  external SassString get dartValue;
-  external set dartValue(SassString dartValue);
+@anonymous
+extension type JSSassLegacyString._(JSObject _) implements JSObject {
+  /// The JS `sass.types.String` class.
+  static final jsClass = JSClass<JSSassLegacyString>('sass.types.String', (
+    JSSassLegacyString self,
+    String? value, [
+    JSSassString? modernValue,
+  ]) {
+    // Either [modernValue] or [value] must be passed.
+    self.modernValue = modernValue ?? SassString(value!, quotes: false).toJS;
+  })
+    ..defineMethods({
+      'getValue': ((JSSassLegacyString self) => self.toDart.text).toJS,
+      'setValue': (JSSassLegacyString self, String value) {
+        self.modernValue = SassString(value, quotes: false).toJS;
+      }.toJS,
+    });
+
+  external JSSassString modernValue;
+
+  SassString get toDart => modernValue.toDart;
 }
 
-/// Creates a new `sass.types.String` object wrapping [value].
-Object newNodeSassString(SassString value) =>
-    legacyStringClass.construct([null, value]);
-
-/// The JS constructor for the `sass.types.String` class.
-final JSClass legacyStringClass = createJSClass('sass.types.String', (
-  _NodeSassString thisArg,
-  String? value, [
-  SassString? dartValue,
-]) {
-  // Either [dartValue] or [value] must be passed.
-  thisArg.dartValue = dartValue ?? SassString(value!, quotes: false);
-})
-  ..defineMethods({
-    'getValue': (_NodeSassString thisArg) => thisArg.dartValue.text,
-    'setValue': (_NodeSassString thisArg, String value) {
-      thisArg.dartValue = SassString(value, quotes: false);
-    },
-  });
+extension SassStringToJSLegacy on SassString {
+  JSSassLegacyString get toJSLegacy =>
+      JSSassLegacyString.jsClass.construct(null, this.toJS);
+}
