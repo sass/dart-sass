@@ -39,6 +39,10 @@ class SassFunction extends Value {
 
   SassFunction assertFunction([String? name]) => this;
 
+  /// Asserts that this SassFunction belongs to [compileContext] and returns it.
+  ///
+  /// It's checked before evaluating a SassFunction to prevent execution of
+  /// SassFunction across different compilations.
   @internal
   SassFunction assertCompileContext(Object compileContext) {
     if (_compileContext != null && _compileContext != compileContext) {

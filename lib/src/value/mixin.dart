@@ -41,6 +41,10 @@ final class SassMixin extends Value {
 
   SassMixin assertMixin([String? name]) => this;
 
+  /// Asserts that this SassMixin belongs to [compileContext] and returns it.
+  ///
+  /// It's checked before evaluating a SassMixin to prevent execution of
+  /// SassMixin across different compilations.
   @internal
   SassMixin assertCompileContext(Object compileContext) {
     if (_compileContext != null && _compileContext != compileContext) {
