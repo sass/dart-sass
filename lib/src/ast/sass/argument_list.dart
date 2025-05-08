@@ -6,6 +6,7 @@ import 'package:source_span/source_span.dart';
 
 import '../../value/list.dart';
 import '../../util/map.dart';
+import '../../util/span.dart';
 import 'expression.dart';
 import 'expression/list.dart';
 import 'node.dart';
@@ -14,6 +15,13 @@ import 'node.dart';
 ///
 /// {@category AST}
 final class ArgumentList implements SassNode {
+  /// An empty [ArgumentList] with a bogus source span that can be used as a
+  /// placeholder.
+  ///
+  /// @nodoc
+  @internal
+  static final bogus = ArgumentList.empty(bogusSpan);
+
   /// The arguments passed by position.
   final List<Expression> positional;
 

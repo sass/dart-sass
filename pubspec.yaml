@@ -36,6 +36,7 @@ dependencies:
   term_glyph: ^1.2.0
   typed_data: ^1.1.0
   watcher: ^1.0.0
+  web: ^2.0.0
 
 dev_dependencies:
   analyzer: ">=6.8.0 <8.0.0"
@@ -54,3 +55,6 @@ dev_dependencies:
   yaml: ^3.1.0
   cli_util: ^0.4.0
 
+dependency_overrides:
+  js_core: {path: ../../pkg/dart/js_core}
+  web: {path: ../../pkg/dart/web/web}

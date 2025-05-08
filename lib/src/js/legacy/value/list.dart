@@ -2,52 +2,64 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:js/js.dart';
+import 'dart:js_interop';
+
+import 'package:js_core/js_core.dart';
+import 'package:js_core/unsafe.dart';
 
 import '../../../value.dart';
-import '../../reflection.dart';
-import '../value.dart';
+import '../../../util/nullable.dart';
+import '../../extension/class.dart';
+import '../../immutable.dart';
+import '../../util.dart';
 
-@JS()
-class _NodeSassList {
-  external SassList get dartValue;
-  external set dartValue(SassList dartValue);
+@anonymous
+extension type JSSassLegacyList._(JSObject _) implements JSObject {
+  /// The JS `sass.types.List` class.
+  static final jsClass = JSClass<JSSassLegacyList>(
+      'sass.types.List',
+      (
+        JSSassLegacyList self,
+        int? length, [
+        bool? commaSeparator,
+        JSSassList? modernValue,
+      ]) {
+        self.modernValue = modernValue ??
+            // Either [modernValue] or [length] must be passed.
+            SassList(
+              Iterable.generate(length!, (_) => sassNull),
+              (commaSeparator ?? true)
+                  ? ListSeparator.comma
+                  : ListSeparator.space,
+            ).toJS;
+      }.toJS)
+    ..defineMethods({
+      'getValue': ((JSSassLegacyList self, int index) =>
+          self.toDart.asList[index].toJSLegacy).toJS,
+      'setValue': (JSSassLegacyList self, int index, JSLegacyValue value) {
+        var mutable = self.toDart.asList.toList();
+        mutable[index] = value.toDart;
+        self.modernValue = self.toDart.withListContents(mutable).toJS;
+      },
+      'getSeparator': ((JSSassLegacyList self) =>
+          self.toDart.separator == ListSeparator.comma).toJS,
+      'setSeparator': (JSSassLegacyList self, bool isComma) {
+        self.modernValue = SassList(
+          self.toDart.asList,
+          isComma ? ListSeparator.comma : ListSeparator.space,
+          brackets: self.toDart.hasBrackets,
+        ).toJS;
+      }.toJS,
+      'getLength': ((JSSassLegacyList self) => self.toDart.asList.length).toJS,
+    });
+
+  /// The value of the list in the modern JS API.
+  external SassList modernValue;
+
+  SassList get toDart => modernValue.toDart;
 }
 
-/// Creates a new `sass.types.List` object wrapping [value].
-Object newNodeSassList(SassList value) =>
-    legacyListClass.construct([null, null, value]);
-
-/// The JS `sass.types.List` class.
-final JSClass legacyListClass = createJSClass('sass.types.List', (
-  _NodeSassList thisArg,
-  int? length, [
-  bool? commaSeparator,
-  SassList? dartValue,
-]) {
-  thisArg.dartValue = dartValue ??
-      // Either [dartValue] or [length] must be passed.
-      SassList(
-        Iterable.generate(length!, (_) => sassNull),
-        (commaSeparator ?? true) ? ListSeparator.comma : ListSeparator.space,
-      );
-})
-  ..defineMethods({
-    'getValue': (_NodeSassList thisArg, int index) =>
-        wrapValue(thisArg.dartValue.asList[index]),
-    'setValue': (_NodeSassList thisArg, int index, Object value) {
-      var mutable = thisArg.dartValue.asList.toList();
-      mutable[index] = unwrapValue(value);
-      thisArg.dartValue = thisArg.dartValue.withListContents(mutable);
-    },
-    'getSeparator': (_NodeSassList thisArg) =>
-        thisArg.dartValue.separator == ListSeparator.comma,
-    'setSeparator': (_NodeSassList thisArg, bool isComma) {
-      thisArg.dartValue = SassList(
-        thisArg.dartValue.asList,
-        isComma ? ListSeparator.comma : ListSeparator.space,
-        brackets: thisArg.dartValue.hasBrackets,
-      );
-    },
-    'getLength': (_NodeSassList thisArg) => thisArg.dartValue.asList.length,
-  });
+extension SassListToJSLegacy on SassList {
+  JSSassLegacyList get toJSLegacy =>
+      JSSassLegacyList.jsClass.construct(null, null, this.toJS);
+}

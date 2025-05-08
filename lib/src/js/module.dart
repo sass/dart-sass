@@ -2,7 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:js/js.dart';
+import 'dart:js_interop';
 
 @JS('nodeModule')
 external JSModule get module;
@@ -10,17 +10,15 @@ external JSModule get module;
 /// A Dart API for the [`node:module`] module.
 ///
 /// [`node:module`]: https://nodejs.org/api/module.html#modules-nodemodule-api
-@JS()
 @anonymous
-class JSModule {
+extension type JSModule._(JSObject _) implements JSObject {
   /// See https://nodejs.org/api/module.html#modulecreaterequirefilename.
   external JSModuleRequire createRequire(String filename);
 }
 
 /// A `require` function returned by `module.createRequire()`.
-@JS()
 @anonymous
-class JSModuleRequire {
+extension type JSModuleRequire._(JSObject _) implements JSObject {
   /// See https://nodejs.org/api/modules.html#requireresolverequest-options.
   external String resolve(String filename);
 }

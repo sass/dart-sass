@@ -2,20 +2,44 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:js/js.dart';
+import 'dart:js_interop';
 
-import 'array.dart';
+import 'package:web/web.dart';
 
-@JS()
-@anonymous
-class NodeCompileResult {
+import '../compile_result.dart';
+
+extension type JSCompileResult._(JSObject _) implements JSObject {
   external String get css;
-  external Object? get sourceMap;
-  external JSArray get loadedUrls;
+  external JSObject? get sourceMap;
+  external JSArray<URL> get loadedUrls;
 
-  external factory NodeCompileResult({
+  external JSCompileResult({
     required String css,
-    Object? sourceMap,
-    required JSArray loadedUrls,
+    JSObject? sourceMap,
+    required JSArray<URL> loadedUrls,
   });
+}
+
+extension CompileResultToJS on CompileResult {
+  JSCompileResult toJS({required bool includeSourceContents}) {
+    var sourceMap = sourceMap?.toJson(
+      includeSourceContents: includeSourceContents,
+    );
+    if (sourceMap is Map<String, dynamic> &&
+        !sourceMap.containsKey('sources')) {
+      // Dart's source map library can omit the sources key, but JS's type
+      // declaration doesn't allow that.
+      sourceMap['sources'] = <String>[];
+    }
+
+    var loadedUrls = result.loadedUrls.map((url) => url.toJS).toJSCopy;
+    return sourceMap == null
+        // The JS API tests expects *no* source map here, not a null source map.
+        ? JSCompileResult(css: result.css, loadedUrls: loadedUrls)
+        : JSCompileResult(
+            css: result.css,
+            loadedUrls: loadedUrls,
+            sourceMap: jsify(sourceMap),
+          );
+  }
 }

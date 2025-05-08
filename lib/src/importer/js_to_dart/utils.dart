@@ -7,11 +7,11 @@ import 'package:node_interop/js.dart';
 import '../../js/utils.dart';
 import '../utils.dart';
 
-/// Throws a JsError if [scheme] isn't a valid URL scheme.
+/// Throws a JSError if [scheme] isn't a valid URL scheme.
 void validateUrlScheme(String scheme) {
   if (!isValidUrlScheme(scheme)) {
-    jsThrow(
-      JsError('"$scheme" isn\'t a valid URL scheme (for example "file").'),
+    JSError.throwLikeJS(
+      JSError('"$scheme" isn\'t a valid URL scheme (for example "file").'),
     );
   }
 }
