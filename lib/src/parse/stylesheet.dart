@@ -412,7 +412,9 @@ abstract class StylesheetParser extends Parser {
     var name = nameBuffer.interpolation(scanner.spanFrom(start, beforeColon));
     if (name.initialPlain.startsWith('--')) {
       var value = StringExpression(
-        _interpolatedDeclarationValue(silentComments: false),
+        atEndOfStatement()
+            ? Interpolation(const [], const [], scanner.emptySpan)
+            : _interpolatedDeclarationValue(silentComments: false),
       );
       expectStatementSeparator("custom property");
       return Declaration(name, value, scanner.spanFrom(start));

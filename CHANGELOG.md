@@ -1,4 +1,6 @@
-## 1.88.0-dev
+## 1.88.0
+
+* Allow custom properties with empty values (such as `--var:;`).
 
 * Fix a bug when calculating source spans for interpolations.
 

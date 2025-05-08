@@ -1381,9 +1381,12 @@ final class _EvaluateVisitor
 
     if (node.value case var expression?) {
       var value = await expression.accept(this);
-      // If the value is an empty list, preserve it, because converting it to CSS
-      // will throw an error that we want the user to see.
-      if (!value.isBlank || _isEmptyList(value)) {
+      if (!value.isBlank ||
+          // If the value is an empty list, preserve it, because converting it
+          // to CSS will throw an error that we want the user to see.
+          _isEmptyList(value) ||
+          // Custom properties are allowed to have empty values, per spec.
+          name.value.startsWith('--')) {
         _parent.addChild(
           ModifiableCssDeclaration(
             name,
@@ -1395,11 +1398,6 @@ final class _EvaluateVisitor
             valueSpanForMap:
                 _sourceMap ? node.value.andThen(_expressionNode)?.span : null,
           ),
-        );
-      } else if (name.value.startsWith('--')) {
-        throw _exception(
-          "Custom property values may not be empty.",
-          expression.span,
         );
       }
     }
