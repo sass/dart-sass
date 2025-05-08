@@ -12,6 +12,13 @@ import 'node.dart';
 ///
 /// {@category AST}
 final class Interpolation implements SassNode {
+  /// An empty [Interpolation] with a bogus source span that can be used as a
+  /// placeholder.
+  ///
+  /// @nodoc
+  @internal
+  static final bogus = Interpolation(const [], const [], bogusSpan);
+
   /// The contents of this interpolation.
   ///
   /// This contains [String]s and [Expression]s. It never contains two adjacent

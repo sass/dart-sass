@@ -5,13 +5,12 @@
 // ignore_for_file: non_constant_identifier_names
 // See dart-lang/sdk#47374
 
-import 'package:js/js.dart';
+import 'dart:js_interop';
 
-import '../reflection.dart';
+import 'package:js_core/unsafe.dart';
 
-@JS()
 @anonymous
-class Types {
+extension type Types._(JSObject _) implements JSObject {
   external set Boolean(JSClass function);
   external set Color(JSClass function);
   external set List(JSClass function);

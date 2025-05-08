@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:js_interop' as interop;
+import 'dart:js_interop_unsafe';
 import 'dart:js_util';
 import 'dart:typed_data';
 
@@ -19,41 +21,6 @@ import 'module.dart';
 import 'reflection.dart';
 import 'url.dart';
 
-/// Throws [error] like JS would, without any Dart wrappers.
-Never jsThrow(Object error) => _jsThrow.call(error) as Never;
-
-final _jsThrow = JSFunction("error", "throw error;");
-
-/// Returns whether or not [value] is the JS `undefined` value.
-bool isUndefined(Object? value) => _isUndefined.call(value) as bool;
-
-final _isUndefined = JSFunction("value", "return value === undefined;");
-
-/// Returns whether or not [value] is the JS `null` value.
-bool isNull(Object? value) => _isNull.call(value) as bool;
-
-final _isNull = JSFunction("value", "return value === null;");
-
-@JS("Error")
-external JSClass get jsErrorClass;
-
-/// Returns whether [value] is a JS Error object.
-bool isJSError(Object value) => instanceof(value, jsErrorClass);
-
-/// Attaches [trace] to [error] as its stack trace.
-void attachJsStack(JsError error, StackTrace trace) {
-  // Stack traces in v8 contain the error message itself as well as the stack
-  // information, so we trim that out if it exists so we don't double-print it.
-  var traceString = trace.toString();
-  var firstRealLine = traceString.indexOf('\n    at');
-  if (firstRealLine != -1) {
-    // +1 to account for the newline before the first line.
-    traceString = traceString.substring(firstRealLine + 1);
-  }
-
-  setProperty(error, 'stack', "Error: ${error.message}\n$traceString");
-}
-
 /// Invokes [function] with [thisArg] as `this`.
 Object? call2(JSFunction function, Object thisArg, Object arg1, Object arg2) =>
     function.apply(thisArg, [arg1, arg2]);
@@ -68,13 +35,15 @@ Object? call3(
 ) =>
     function.apply(thisArg, [arg1, arg2, arg3]);
 
-@JS("Object.keys")
-external List<String> _keys(Object? object);
+@interop.JS("Object.keys")
+external interop.JSArray<interop.JSString> _keys(interop.JSObject? object);
 
 /// Invokes [callback] for each key/value pair in [object].
-void jsForEach(Object object, void callback(String key, Object? value)) {
-  for (var key in _keys(object)) {
-    callback(key, getProperty(object, key));
+void jsForEach<V extends interop.JSAny?>(
+    interop.JSObject object, void callback(String key, V value)) {
+  var keys = _keys(object);
+  for (var i = 0; i < keys.length; i++) {
+    callback(keys[i].toDart, object.getProperty(key) as V);
   }
 }
 
@@ -175,37 +144,6 @@ void _hideDartProperties(Object object) {
   }
 }
 
-/// Returns whether [value] is truthy according to JavaScript.
-bool isTruthy(Object? value) => value != false && value != null;
-
-@JS('Promise')
-external JSClass get _promiseClass;
-
-/// Returns whether [object] is a `Promise`.
-bool isPromise(Object? object) =>
-    object != null && instanceof(object, _promiseClass);
-
-/// Like [futureToPromise] from `node_interop`, but stores the stack trace for
-/// errors using [throwWithTrace].
-Promise futureToPromise(Future<Object?> future) => Promise(
-      allowInterop(
-          (void Function(Object?) resolve, void Function(Object?) reject) {
-        future.then(
-          (result) => resolve(result),
-          onError: (Object error, StackTrace stackTrace) {
-            attachTrace(error, stackTrace);
-            reject(error);
-          },
-        );
-      }),
-    );
-
-@JS('URL')
-external JSClass get _urlClass;
-
-/// Returns whether [object] is a JavaScript `URL`.
-bool isJSUrl(Object? object) => object != null && instanceof(object, _urlClass);
-
 @JS('Buffer.from')
 external Uint8List _buffer(String text, String encoding);
 
@@ -214,26 +152,6 @@ external Uint8List _buffer(String text, String encoding);
 /// We could do this using Dart's native UTF-8 support, but it's much less
 /// efficient in Node.
 Uint8List utf8Encode(String text) => _buffer(text, 'utf8');
-
-/// Converts a standard JS `URL` object to a Dart [Uri] object.
-Uri jsToDartUrl(JSUrl url) => Uri.parse(url.toString());
-
-/// Converts a Dart [Uri] object to a standard JS `URL` object.
-JSUrl dartToJSUrl(Uri url) => JSUrl(url.toString());
-
-/// Creates a JavaScript array containing [iterable].
-///
-/// While Dart arrays are notionally compatible with JS arrays, they still have
-/// some non-enumerable properties that can cause problems (for example, they
-/// don't compare as "equal" for Jest's matchers) so it's preferable to use this
-/// when exposing them.
-JSArray toJSArray(Iterable<Object?> iterable) {
-  var array = JSArray();
-  for (var element in iterable) {
-    array.push(element);
-  }
-  return array;
-}
 
 /// Converts a JavaScript record into a map from property names to their values.
 Map<String, Object?> objectToMap(Object object) {
@@ -260,7 +178,7 @@ ListSeparator jsToDartSeparator(String? separator) => switch (separator) {
       ',' => ListSeparator.comma,
       '/' => ListSeparator.slash,
       null => ListSeparator.undecided,
-      _ => jsThrow(JsError('Unknown separator "$separator".')),
+      _ => JSError.throwLikeJS(JSError('Unknown separator "$separator".')),
     };
 
 /// Converts a syntax string to an instance of [Syntax].
@@ -268,7 +186,7 @@ Syntax parseSyntax(String? syntax) => switch (syntax) {
       null || 'scss' => Syntax.scss,
       'indented' => Syntax.sass,
       'css' => Syntax.css,
-      _ => jsThrow(JsError('Unknown syntax "$syntax".')),
+      _ => JSError.throwLikeJS(JSError('Unknown syntax "$syntax".')),
     };
 
 /// The path to the Node.js entrypoint, if one can be located.

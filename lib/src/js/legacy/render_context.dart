@@ -2,23 +2,27 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:js/js.dart';
+import 'dart:js_interop';
 
-@JS()
 @anonymous
-class RenderContext {
+extension type RenderContext._(JSObject _) implements JSObject {
   external RenderContextOptions get options;
   external bool? get fromImport;
 
-  external factory RenderContext({
+  external RenderContext._({
     required RenderContextOptions options,
     bool? fromImport,
   });
+
+  factory RenderContext(RenderContextOptions options, {bool fromImport = false}) {
+    var context = RenderContext._(options: options, fromImport: fromImport);
+    context.options.context = context;
+    return context;
+  }
 }
 
-@JS()
 @anonymous
-class RenderContextOptions {
+extension type RenderContextOptions._(JSObject _) implements JSObject {
   external String? get file;
   external String? get data;
   external String get includePaths;
@@ -31,7 +35,7 @@ class RenderContextOptions {
   external set context(RenderContext value);
   external RenderContextResult get result;
 
-  external factory RenderContextOptions({
+  external factory RenderContextOptions._({
     String? file,
     String? data,
     required String includePaths,
@@ -42,25 +46,42 @@ class RenderContextOptions {
     required String linefeed,
     required RenderContextResult result,
   });
+  
+  factory RenderContextOptions(RenderOptions options, DateTime start) {
+  return RenderContextOptions(
+    file: options.file,
+    data: options.data,
+    includePaths: ([p.current, ...?includePaths]).join(isWindows ? ';' : ':'),
+    precision: SassNumber.precision,
+    style: 1,
+    indentType: options.indentType == 'tab' ? 1 : 0,
+    indentWidth: options.indentWidth,
+    linefeed: options.linefeed.text,
+    result: RenderContextResult._(
+      stats: RenderContextResultStats._(
+        start: start.millisecondsSinceEpoch,
+        entry: options.file ?? 'data',
+      ),
+    ),
+  );
+  }
 }
 
-@JS()
 @anonymous
-class RenderContextResult {
+extension type RenderContextResult._(JSObject _) implements JSObject {
   external RenderContextResultStats get stats;
 
-  external factory RenderContextResult({
+  external RenderContextResult._({
     required RenderContextResultStats stats,
   });
 }
 
-@JS()
 @anonymous
-class RenderContextResultStats {
+extension type RenderContextResultStats._(JSObject _) implements JSObject {
   external int get start;
   external String get entry;
 
-  external factory RenderContextResultStats({
+  external RenderContextResultStats._({
     required int start,
     required String entry,
   });

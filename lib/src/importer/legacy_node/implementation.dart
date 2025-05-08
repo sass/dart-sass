@@ -56,9 +56,9 @@ final class NodeImporter {
   NodeImporter(
     this._options,
     Iterable<String> includePaths,
-    Iterable<Object> importers,
+    Iterable<JSFunction> importers,
   )   : _includePaths = List.unmodifiable(_addSassPath(includePaths)),
-        _importers = List.unmodifiable(importers.cast());
+        _importers = List.unmodifiable(importers);
 
   /// Returns [includePaths] followed by any paths loaded from the `SASS_PATH`
   /// environment variable.
@@ -109,7 +109,7 @@ final class NodeImporter {
     var previousString = _previousToString(previous);
     for (var importer in _importers) {
       if (wrapJSExceptions(
-        () => call2(importer, _renderContext(forImport), url, previousString),
+        () => importer.callAsFunction(_renderContext(forImport), url, previousString),
       )
           case var value?) {
         return _handleImportResult(url, previous, value, forImport);
@@ -195,20 +195,21 @@ final class NodeImporter {
   (String, String)? _handleImportResult(
     String url,
     Uri? previous,
-    Object value,
+    JSAny? value,
     bool forImport,
   ) {
-    if (isJSError(value)) throw value;
-    if (value is! NodeImporterResult) return null;
+    if (JSError.isError(value)) throw value;
+    if (!value.isA<JSObject>()) return null;
 
+    value as NodeImporterResult;
     var file = value.file;
     var contents = value.contents;
-    if (contents != null && !isJsString(contents)) {
-      jsThrow(
+    if (contents != null && !contents.isA<JSString>()) {
+      JSError.throwLikeJS(
         ArgumentError.value(
           contents,
           'contents',
-          'must be a string but was: ${jsType(contents)}',
+          'must be a string but was: ${contents.jsTypeName}',
         ),
       );
     }
@@ -236,15 +237,15 @@ final class NodeImporter {
     var completer = Completer<Object>();
 
     var result = wrapJSExceptions(
-      () => call3(
-        importer,
+      () =>
+        importer.callAsFunction(,
         _renderContext(forImport),
         url,
         previousString,
-        allowInterop(completer.complete),
+        completer.complete.toJS,
       ),
     );
-    if (isUndefined(result)) return await completer.future;
+    if (result.isUndefined) return await completer.future;
     return result;
   }
 
