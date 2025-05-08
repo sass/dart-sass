@@ -19,6 +19,7 @@ dependencies:
   collection: ^1.16.0
   http: ^1.1.0
   js: ^0.6.3
+  js_core: ^1.0.0
   meta: ^1.3.0
   native_synchronization: ^0.3.0
   node_interop: ^2.2.0
@@ -36,6 +37,7 @@ dependencies:
   term_glyph: ^1.2.0
   typed_data: ^1.1.0
   watcher: ^1.0.0
+  web: ^2.0.0
 
 dev_dependencies:
   analyzer: ">=6.8.0 <8.0.0"
@@ -53,3 +55,9 @@ dev_dependencies:
   test_process: ^2.0.0
   yaml: ^3.1.0
   cli_util: ^0.4.0
+
+dependency_overrides:
+  cli_pkg: {path: ../../pkg/dart/cli_pkg}
+  js_core: {path: ../../pkg/dart/js_core}
+  node_interop: {path: ../../pkg/dart/node_interop/node_interop}
+  web: {path: ../../pkg/dart/web/web}

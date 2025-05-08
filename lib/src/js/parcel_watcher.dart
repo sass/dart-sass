@@ -4,12 +4,13 @@
 
 import 'dart:js_interop';
 
-@JS()
+@JS('parcel_watcher')
+external ParcelWatcher? get parcelWatcher;
+
 extension type ParcelWatcherSubscription(JSObject _) implements JSObject {
   external void unsubscribe();
 }
 
-@JS()
 extension type ParcelWatcherEvent(JSObject _) implements JSObject {
   external String get type;
   external String get path;
@@ -18,7 +19,6 @@ extension type ParcelWatcherEvent(JSObject _) implements JSObject {
 /// The @parcel/watcher module.
 ///
 /// See [the docs on npm](https://www.npmjs.com/package/@parcel/watcher).
-@JS()
 extension type ParcelWatcher(JSObject _) implements JSObject {
   @JS('subscribe')
   external JSPromise<ParcelWatcherSubscription> _subscribe(
@@ -27,7 +27,7 @@ extension type ParcelWatcher(JSObject _) implements JSObject {
   );
   Future<ParcelWatcherSubscription> subscribe(
     String path,
-    void Function(Object? error, List<ParcelWatcherEvent>) callback,
+    void Function(JSObject? error, List<ParcelWatcherEvent>) callback,
   ) =>
       _subscribe(
         path,
@@ -48,10 +48,7 @@ extension type ParcelWatcher(JSObject _) implements JSObject {
       (await _getEventsSince(path, snapshotPath).toDart).toDart;
 
   @JS('writeSnapshot')
-  external JSPromise<JSAny> _writeSnapshot(String path, String snapshotPath);
+  external JSPromise<JSAny?> _writeSnapshot(String path, String snapshotPath);
   Future<void> writeSnapshot(String path, String snapshotPath) =>
       _writeSnapshot(path, snapshotPath).toDart;
 }
-
-@JS('parcel_watcher')
-external ParcelWatcher? get parcelWatcher;

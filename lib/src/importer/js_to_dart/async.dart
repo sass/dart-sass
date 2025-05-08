@@ -4,14 +4,15 @@
 
 import 'dart:async';
 
-import 'package:cli_pkg/js.dart';
-import 'package:node_interop/js.dart';
-import 'package:node_interop/util.dart';
+import 'dart:js_interop';
 
+import 'package:js_core/js_core.dart';
+import 'package:js_core/unsafe.dart';
+import 'package:web/web.dart';
+
+import '../../js/hybrid/canonicalize_context.dart';
 import '../../js/importer.dart';
-import '../../js/url.dart';
 import '../../js/utils.dart';
-import '../../util/nullable.dart';
 import '../async.dart';
 import '../canonicalize_context.dart';
 import '../result.dart';
@@ -21,10 +22,11 @@ import 'utils.dart';
 /// a Dart [AsyncImporter].
 final class JSToDartAsyncImporter extends AsyncImporter {
   /// The wrapped canonicalize function.
-  final Object? Function(String, CanonicalizeContext) _canonicalize;
+  final JSAny? Function(String, UnsafeDartWrapper<CanonicalizeContext>)
+      _canonicalize;
 
   /// The wrapped load function.
-  final Object? Function(JSUrl) _load;
+  final JSAny? Function(URL) _load;
 
   /// The set of URL schemes that this importer promises never to return from
   /// [canonicalize].
@@ -41,48 +43,46 @@ final class JSToDartAsyncImporter extends AsyncImporter {
   }
 
   FutureOr<Uri?> canonicalize(Uri url) async {
-    var result = wrapJSExceptions(
-      () => _canonicalize(url.toString(), canonicalizeContext),
-    );
-    if (isPromise(result)) result = await promiseToFuture(result as Promise);
+    var result = await _canonicalize(url.toString(), canonicalizeContext.toJS)
+        .toDartFutureOr;
     if (result == null) return null;
+    if (result.isA<URL>()) return (result as URL).toDart;
 
-    if (isJSUrl(result)) return jsToDartUrl(result as JSUrl);
-
-    jsThrow(JsError("The canonicalize() method must return a URL."));
+    JSError.throwLikeJS(
+        JSError("The canonicalize() method must return a URL."));
   }
 
   FutureOr<ImporterResult?> load(Uri url) async {
-    var result = wrapJSExceptions(() => _load(dartToJSUrl(url)));
-    if (isPromise(result)) result = await promiseToFuture(result as Promise);
+    var result = (await _load(url.toJS).toDartFutureOr) as JSImporterResult?;
     if (result == null) return null;
 
-    result as JSImporterResult;
     var contents = result.contents;
-    if (!isJsString(contents)) {
-      jsThrow(
-        ArgumentError.value(
-          contents,
-          'contents',
-          'must be a string but was: ${jsType(contents)}',
-        ),
-      );
-    }
-
     var syntax = result.syntax;
     if (contents == null || syntax == null) {
-      jsThrow(
-        JsError(
+      JSError.throwLikeJS(
+        JSError(
           "The load() function must return an object with contents "
           "and syntax fields.",
         ),
       );
     }
 
+    var contentsString =
+        contents.isA<JSString>() ? (contents as JSString).toDart : null;
+    if (contentsString == null) {
+      JSError.throwLikeJS(
+        ArgumentError.value(
+          contents,
+          'contents',
+          'must be a string but was: ${contents.jsTypeName}',
+        ).toJS,
+      );
+    }
+
     return ImporterResult(
-      contents,
+      contentsString,
       syntax: parseSyntax(syntax),
-      sourceMapUrl: result.sourceMapUrl.andThen(jsToDartUrl),
+      sourceMapUrl: result.sourceMapUrl?.toDart,
     );
   }
 

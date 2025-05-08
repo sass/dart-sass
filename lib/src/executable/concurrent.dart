@@ -53,7 +53,7 @@ Future<bool> compileStylesheets(
     var (code, error, stackTrace) = errorWithStackTrace;
 
     // We let the highest exitCode take precedence for deterministic behavior.
-    exitCode = math.max(exitCode, code);
+    exitCode = math.max(exitCode ?? 0, code);
 
     _printError(error, stackTrace, printedError);
     printedError = true;

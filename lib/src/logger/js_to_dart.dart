@@ -2,14 +2,17 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:node_interop/js.dart';
+import 'package:js_core/js_core.dart';
+import 'package:js_core/unsafe.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import '../deprecation.dart';
 import '../logger.dart';
-import '../js/deprecations.dart' show deprecations;
+import '../js/deprecation.dart';
+import '../js/hybrid/file_span.dart';
+import '../js/hybrid/source_span.dart';
 import '../js/logger.dart';
 
 /// A wrapper around a [JSLogger] that exposes it as a Dart [Logger].
@@ -39,10 +42,10 @@ final class JSToDartLogger extends LoggerWithDeprecationType {
       warn(
         message,
         WarnOptions(
-          span: span ?? (undefined as SourceSpan?),
+          span: span?.toJS ?? (undefined as UnsafeDartWrapper<FileSpan>?),
           stack: trace.toString(),
           deprecation: deprecation != null,
-          deprecationType: deprecations[deprecation?.id],
+          deprecationType: JSDeprecation.all[deprecation?.id],
         ),
       );
     } else {
@@ -69,7 +72,7 @@ final class JSToDartLogger extends LoggerWithDeprecationType {
 
   void debug(String message, SourceSpan span) {
     if (_node?.debug case var debug?) {
-      debug(message, DebugOptions(span: span));
+      debug(message, DebugOptions(span: span.toJS));
     } else {
       _withAscii(() => _fallback.debug(message, span));
     }

@@ -2,13 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:js/js.dart';
+import 'dart:js_interop';
 
-@JS()
-@anonymous
-class NodeImporterResult {
+extension type NodeImporterResult._(JSObject _) implements JSObject {
   external String? get file;
-  external String? get contents;
+  external JSAny? get contents;
 
-  external factory NodeImporterResult({String? file, String? contents});
+  external NodeImporterResult({String? file, String? contents});
 }

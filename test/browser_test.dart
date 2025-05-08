@@ -1,34 +1,37 @@
 @TestOn('browser')
 library;
 
-import 'package:js/js.dart';
-import 'package:node_interop/js.dart';
-import 'package:node_interop/util.dart';
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
+
+import 'package:js_core/js_core.dart';
 import 'package:sass/src/js/compile_options.dart';
+import 'package:sass/src/js/compile_result.dart';
 import 'package:sass/src/js/legacy/render_options.dart';
 import 'package:sass/src/js/legacy/render_result.dart';
 import 'package:test/test.dart';
+
 import 'ensure_npm_package.dart';
-import 'package:sass/src/js/compile_result.dart';
 
 @JS()
 external Sass get sass;
 
 @JS()
 class Sass {
-  external NodeCompileResult compileString(
+  external JSCompileResult compileString(
     String text, [
-    CompileStringOptions? options,
+    SyncCompileOptions? options,
   ]);
-  external Promise compileStringAsync(
+  external JSPromise<JSCompileResult> compileStringAsync(
     String text, [
-    CompileStringOptions? options,
+    AsyncCompileOptions? options,
   ]);
-  external NodeCompileResult compile(String path, [CompileOptions? options]);
-  external Promise compileAsync(String path, [CompileOptions? options]);
+  external JSCompileResult compile(String path, [SyncCompileOptions? options]);
+  external JSPromise<JSCompileResult> compileAsync(String path,
+      [AsyncCompileOptions? options]);
   external void render(
     RenderOptions options,
-    void callback(Error error, RenderResult result),
+    JSFunction callback,
   );
   external RenderResult renderSync(RenderOptions options);
   external String get info;
@@ -42,7 +45,7 @@ void main() {
       () => sass.compileAsync('index.scss'),
       throwsA(
         predicate((error) {
-          expect(error, const TypeMatcher<JsError>());
+          expect(error, const TypeMatcher<JSError>());
           expect(
             error.toString(),
             startsWith(
@@ -60,7 +63,7 @@ void main() {
       () => sass.compile('index.scss'),
       throwsA(
         predicate((error) {
-          expect(error, const TypeMatcher<JsError>());
+          expect(error, const TypeMatcher<JSError>());
           expect(
             error.toString(),
             startsWith(
@@ -75,10 +78,10 @@ void main() {
 
   test('render() is not available', () {
     expect(
-      () => sass.render(RenderOptions(), allowInterop((error, result) {})),
+      () => sass.render(RenderOptions(), (error, result) {}.toJS),
       throwsA(
         predicate((error) {
-          expect(error, const TypeMatcher<JsError>());
+          expect(error, const TypeMatcher<JSError>());
           expect(
             error.toString(),
             startsWith(
@@ -96,7 +99,7 @@ void main() {
       () => sass.renderSync(RenderOptions()),
       throwsA(
         predicate((error) {
-          expect(error, const TypeMatcher<JsError>());
+          expect(error, const TypeMatcher<JSError>());
           expect(
             error.toString(),
             startsWith(
@@ -119,68 +122,65 @@ void main() {
   });
 
   test('compileString() produces a sourceMap', () {
-    var opts = jsify({'sourceMap': true}) as CompileStringOptions;
+    var opts = {'sourceMap': true}.jsify() as SyncCompileOptions;
     var result = sass.compileString('foo {bar: baz}', opts);
     expect(result.sourceMap, isA<Object>());
 
     var sourceMap = result.sourceMap!;
 
-    expect(getProperty<num>(sourceMap, 'version'), isA<num>());
-    expect(getProperty<List<dynamic>>(sourceMap, 'sources'), isList);
-    expect(getProperty<List<dynamic>>(sourceMap, 'names'), isList);
-    expect(getProperty<String>(sourceMap, 'mappings'), isA<String>());
+    expect(sourceMap.getProperty('version'.toJS), isA<num>());
+    expect(sourceMap.getProperty('sources'.toJS), isList);
+    expect(sourceMap.getProperty('names'.toJS), isList);
+    expect(sourceMap.getProperty('mappings'.toJS), isA<String>());
   });
 
   test('compileString() produces a sourceMap with source content', () {
-    var opts = jsify({'sourceMap': true, 'sourceMapIncludeSources': true})
-        as CompileStringOptions;
+    var opts = {'sourceMap': true, 'sourceMapIncludeSources': true}.jsify()
+        as SyncCompileOptions;
     var result = sass.compileString('foo {bar: baz}', opts);
     expect(result.sourceMap, isA<Object>());
 
     var sourceMap = result.sourceMap!;
 
-    expect(getProperty<List<dynamic>>(sourceMap, 'sourcesContent'), isList);
-    expect(getProperty<List<dynamic>>(sourceMap, 'sourcesContent'), isNotEmpty);
+    expect(sourceMap.getProperty('sourcesContent'.toJS), isList);
+    expect(sourceMap.getProperty('sourcesContent'.toJS), isNotEmpty);
   });
 
   test('compileStringAsync() produces output', () async {
-    var result = sass.compileStringAsync('foo {bar: baz}');
-    result = await promiseToFuture(result);
-    expect((result as NodeCompileResult).css, equals('foo {\n  bar: baz;\n}'));
+    var result = await sass.compileStringAsync('foo {bar: baz}').toDart;
+    expect(result.css, equals('foo {\n  bar: baz;\n}'));
   });
 
   test('compileStringAsync() produces a sourceMap', () async {
-    var opts = jsify({'sourceMap': true}) as CompileStringOptions;
-    var result = sass.compileStringAsync('foo {bar: baz}', opts);
-    result = await promiseToFuture(result);
-    var sourceMap = (result as NodeCompileResult).sourceMap;
+    var opts = {'sourceMap': true}.jsify() as AsyncCompileOptions;
+    var result = await sass.compileStringAsync('foo {bar: baz}', opts).toDart;
+    var sourceMap = result.sourceMap;
 
     expect(sourceMap, isA<Object>());
 
     sourceMap = sourceMap!;
 
-    expect(getProperty<num>(sourceMap, 'version'), isA<num>());
-    expect(getProperty<List<dynamic>>(sourceMap, 'sources'), isList);
-    expect(getProperty<List<dynamic>>(sourceMap, 'names'), isList);
-    expect(getProperty<String>(sourceMap, 'mappings'), isA<String>());
+    expect(sourceMap.getProperty('version'.toJS), isA<num>());
+    expect(sourceMap.getProperty('sources'.toJS), isList);
+    expect(sourceMap.getProperty('names'.toJS), isList);
+    expect(sourceMap.getProperty('mappings'.toJS), isA<String>());
   });
 
   test(
     'compileStringAsync() produces a sourceMap with source content',
     () async {
-      var opts = jsify({'sourceMap': true, 'sourceMapIncludeSources': true})
-          as CompileStringOptions;
-      var result = sass.compileStringAsync('foo {bar: baz}', opts);
-      result = await promiseToFuture(result);
-      var sourceMap = (result as NodeCompileResult).sourceMap;
+      var opts = {'sourceMap': true, 'sourceMapIncludeSources': true}.jsify()
+          as AsyncCompileOptions;
+      var result = await sass.compileStringAsync('foo {bar: baz}', opts).toDart;
+      var sourceMap = result.sourceMap;
 
       expect(sourceMap, isA<Object>());
 
       sourceMap = sourceMap!;
 
-      expect(getProperty<List<dynamic>>(sourceMap, 'sourcesContent'), isList);
+      expect(sourceMap.getProperty('sourcesContent'.toJS), isList);
       expect(
-        getProperty<List<dynamic>>(sourceMap, 'sourcesContent'),
+        sourceMap.getProperty('sourcesContent'.toJS),
         isNotEmpty,
       );
     },
@@ -191,7 +191,7 @@ void main() {
       () => sass.compileString("@use 'other';"),
       throwsA(
         predicate((error) {
-          expect(error, const TypeMatcher<JsError>());
+          expect(error, const TypeMatcher<JSError>());
           expect(
             error.toString(),
             startsWith(
@@ -209,10 +209,10 @@ void main() {
     () async {
       var result = sass.compileStringAsync("@use 'other';");
       expect(
-        () async => await promiseToFuture<NodeCompileResult>(result),
+        () async => await result.toDart,
         throwsA(
           predicate((error) {
-            expect(error, const TypeMatcher<JsError>());
+            expect(error, const TypeMatcher<JSError>());
             expect(
               error.toString(),
               startsWith(

@@ -3,16 +3,14 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:js_interop';
 
-import 'package:cli_pkg/js.dart';
-import 'package:js/js.dart';
+import 'package:js_core/js_core.dart';
 import 'package:path/path.dart' as p;
 
 import '../../io.dart';
-import '../../js/function.dart';
 import '../../js/legacy/importer_result.dart';
 import '../../js/legacy/render_context.dart';
-import '../../js/utils.dart';
 import '../../util/nullable.dart';
 import '../utils.dart';
 
@@ -56,9 +54,9 @@ final class NodeImporter {
   NodeImporter(
     this._options,
     Iterable<String> includePaths,
-    Iterable<Object> importers,
+    Iterable<JSFunction> importers,
   )   : _includePaths = List.unmodifiable(_addSassPath(includePaths)),
-        _importers = List.unmodifiable(importers.cast());
+        _importers = List.unmodifiable(importers);
 
   /// Returns [includePaths] followed by any paths loaded from the `SASS_PATH`
   /// environment variable.
@@ -108,9 +106,8 @@ final class NodeImporter {
     // The previous URL is always an absolute file path for filesystem imports.
     var previousString = _previousToString(previous);
     for (var importer in _importers) {
-      if (wrapJSExceptions(
-        () => call2(importer, _renderContext(forImport), url, previousString),
-      )
+      if (importer.callAsFunction(
+              _renderContext(forImport), url.toJS, previousString.toJS)
           case var value?) {
         return _handleImportResult(url, previous, value, forImport);
       }
@@ -195,24 +192,25 @@ final class NodeImporter {
   (String, String)? _handleImportResult(
     String url,
     Uri? previous,
-    Object value,
+    JSAny? value,
     bool forImport,
   ) {
-    if (isJSError(value)) throw value;
-    if (value is! NodeImporterResult) return null;
+    if (JSError.isError(value)) throw (value as JSError).toDart;
+    if (!value.isA<JSObject>()) return null;
 
-    var file = value.file;
-    var contents = value.contents;
-    if (contents != null && !isJsString(contents)) {
-      jsThrow(
+    var result = value as NodeImporterResult;
+    var file = result.file;
+    if (!result.contents.isA<JSString?>()) {
+      JSError.throwLikeJS(
         ArgumentError.value(
-          contents,
+          result.contents,
           'contents',
-          'must be a string but was: ${jsType(contents)}',
-        ),
+          'must be a string but was: ${result.contents.jsTypeName}',
+        ).toJS,
       );
     }
 
+    var contents = (result.contents as JSString?)?.toDart;
     if (file == null) {
       return (contents ?? '', url);
     } else if (contents != null) {
@@ -227,31 +225,28 @@ final class NodeImporter {
   }
 
   /// Calls an importer that may or may not be asynchronous.
-  Future<Object?> _callImporterAsync(
+  Future<JSAny?> _callImporterAsync(
     JSFunction importer,
     String url,
     String previousString,
     bool forImport,
   ) async {
-    var completer = Completer<Object>();
+    var completer = Completer<JSAny>();
 
-    var result = wrapJSExceptions(
-      () => call3(
-        importer,
-        _renderContext(forImport),
-        url,
-        previousString,
-        allowInterop(completer.complete),
-      ),
+    var result = importer.callAsFunction(
+      _renderContext(forImport),
+      url.toJS,
+      previousString.toJS,
+      ((JSAny value) => completer.complete(value)).toJS,
     );
-    if (isUndefined(result)) return await completer.future;
+    if (result.isUndefined) return await completer.future;
     return result;
   }
 
   /// Returns the [RenderContext] in which to invoke importers.
   RenderContext _renderContext(bool fromImport) {
     var context = RenderContext(
-      options: _options as RenderContextOptions,
+      _options as RenderContextOptions,
       fromImport: fromImport,
     );
     context.options.context = context;

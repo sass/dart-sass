@@ -2,29 +2,25 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:js/js.dart';
+import 'dart:js_interop';
 
-@JS()
-class Chokidar {
+extension type Chokidar._(JSObject _) implements JSObject {
   external ChokidarWatcher watch(String path, ChokidarOptions options);
 }
 
-@JS()
-@anonymous
-class ChokidarOptions {
+extension type ChokidarOptions._(JSObject _) implements JSObject {
   external bool? get usePolling;
 
-  external factory ChokidarOptions({bool? usePolling});
+  external ChokidarOptions({bool? usePolling});
 }
 
-@JS()
-class ChokidarWatcher {
-  external void on(String event, Function callback);
+extension type ChokidarWatcher._(JSObject _) implements JSObject {
+  external void on(String event, JSFunction callback);
   external void close();
 }
 
 /// The Chokidar module.
 ///
 /// See [the docs on npm](https://www.npmjs.com/package/chokidar).
-@JS("chokidar")
+@JS()
 external Chokidar get chokidar;

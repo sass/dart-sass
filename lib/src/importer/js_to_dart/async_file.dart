@@ -3,15 +3,15 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
+import 'dart:js_interop';
 
-import 'package:cli_pkg/js.dart';
-import 'package:node_interop/js.dart';
-import 'package:node_interop/util.dart';
+import 'package:js_core/js_core.dart';
+import 'package:js_core/unsafe.dart';
+import 'package:web/web.dart';
 
-import '../../js/url.dart';
-import '../../js/utils.dart';
-import '../async.dart';
+import '../../js/hybrid/canonicalize_context.dart';
 import '../canonicalize_context.dart';
+import '../async.dart';
 import '../filesystem.dart';
 import '../result.dart';
 import '../utils.dart';
@@ -20,26 +20,25 @@ import '../utils.dart';
 /// it as a Dart [AsyncImporter].
 final class JSToDartAsyncFileImporter extends AsyncImporter {
   /// The wrapped `findFileUrl` function.
-  final Object? Function(String, CanonicalizeContext) _findFileUrl;
+  final JSAny? Function(String, UnsafeDartWrapper<CanonicalizeContext>)
+      _findFileUrl;
 
   JSToDartAsyncFileImporter(this._findFileUrl);
 
   FutureOr<Uri?> canonicalize(Uri url) async {
     if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);
 
-    var result = wrapJSExceptions(
-      () => _findFileUrl(url.toString(), canonicalizeContext),
-    );
-    if (isPromise(result)) result = await promiseToFuture(result as Promise);
+    var result = await _findFileUrl(url.toString(), canonicalizeContext.toJS)
+        .toDartFutureOr;
     if (result == null) return null;
-    if (!isJSUrl(result)) {
-      jsThrow(JsError("The findFileUrl() method must return a URL."));
-    }
 
-    var resultUrl = jsToDartUrl(result as JSUrl);
-    if (resultUrl.scheme != 'file') {
-      jsThrow(
-        JsError(
+    var resultUrl = result.isA<URL>() ? (result as URL).toDart : null;
+    if (resultUrl == null) {
+      JSError.throwLikeJS(
+          JSError("The findFileUrl() method must return a URL."));
+    } else if (resultUrl.scheme != 'file') {
+      JSError.throwLikeJS(
+        JSError(
           'The findFileUrl() must return a URL with scheme file://, was '
           '"$url".',
         ),

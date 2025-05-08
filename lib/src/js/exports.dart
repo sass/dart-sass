@@ -5,67 +5,66 @@
 // ignore_for_file: non_constant_identifier_names
 // See dart-lang/sdk#47374
 
-import 'package:js/js.dart';
+import 'dart:js_interop';
 
-import '../value.dart' as value;
+import 'package:js_core/js_core.dart';
+import 'package:js_core/unsafe.dart';
+
+import 'deprecation.dart';
 import 'legacy/types.dart';
 import 'logger.dart';
-import 'reflection.dart';
 
-@JS()
-class Exports {
-  external set renderSync(Function function);
-  external set compileString(Function function);
-  external set compileStringAsync(Function function);
-  external set compile(Function function);
-  external set compileAsync(Function function);
-  external set initCompiler(Function function);
-  external set initAsyncCompiler(Function function);
+extension type Exports._(JSObject _) implements JSObject {
+  external set renderSync(JSFunction function);
+  external set compileString(JSFunction function);
+  external set compileStringAsync(JSFunction function);
+  external set compile(JSFunction function);
+  external set compileAsync(JSFunction function);
+  external set initCompiler(JSFunction function);
+  external set initAsyncCompiler(JSFunction function);
   external set Compiler(JSClass function);
   external set AsyncCompiler(JSClass function);
   external set info(String info);
   external set Exception(JSClass function);
   external set Logger(LoggerNamespace namespace);
   external set NodePackageImporter(JSClass function);
-  external set deprecations(Object? object);
+  external set deprecations(JSRecord<JSDeprecation> object);
   external set Version(JSClass version);
 
   // Value APIs
-  external set Value(JSClass function);
-  external set SassArgumentList(JSClass function);
-  external set SassCalculation(JSClass function);
-  external set CalculationOperation(JSClass function);
-  external set CalculationInterpolation(JSClass function);
-  external set SassBoolean(JSClass function);
-  external set SassColor(JSClass function);
-  external set SassFunction(JSClass function);
-  external set SassMixin(JSClass mixin);
-  external set SassList(JSClass function);
-  external set SassMap(JSClass function);
-  external set SassNumber(JSClass function);
-  external set SassString(JSClass function);
-  external set sassNull(value.Value sassNull);
-  external set sassTrue(value.SassBoolean sassTrue);
-  external set sassFalse(value.SassBoolean sassFalse);
+  external set Value(JSClass<UnsafeDartWrapper> function);
+  external set SassArgumentList(JSClass<UnsafeDartWrapper> function);
+  external set SassCalculation(JSClass<UnsafeDartWrapper> function);
+  external set CalculationOperation(JSClass<UnsafeDartWrapper> function);
+  external set CalculationInterpolation(JSClass<UnsafeDartWrapper> function);
+  external set SassBoolean(JSClass<UnsafeDartWrapper> function);
+  external set SassColor(JSClass<UnsafeDartWrapper> function);
+  external set SassFunction(JSClass<UnsafeDartWrapper> function);
+  external set SassMixin(JSClass<UnsafeDartWrapper> mixin);
+  external set SassList(JSClass<UnsafeDartWrapper> function);
+  external set SassMap(JSClass<UnsafeDartWrapper> function);
+  external set SassNumber(JSClass<UnsafeDartWrapper> function);
+  external set SassString(JSClass<UnsafeDartWrapper> function);
+  external set sassNull(UnsafeDartWrapper sassNull);
+  external set sassTrue(UnsafeDartWrapper sassTrue);
+  external set sassFalse(UnsafeDartWrapper sassFalse);
 
   // Legacy APIs
-  external set run_(Function function);
-  external set render(Function function);
+  external set run_(JSFunction function);
+  external set render(JSFunction function);
   external set types(Types types);
-  external set NULL(value.Value sassNull);
-  external set TRUE(value.SassBoolean sassTrue);
-  external set FALSE(value.SassBoolean sassFalse);
+  external set NULL(UnsafeDartWrapper sassNull);
+  external set TRUE(UnsafeDartWrapper sassTrue);
+  external set FALSE(UnsafeDartWrapper sassFalse);
 
   // `sass-parser` APIs
-  external set loadParserExports_(Function function);
+  external set loadParserExports_(JSFunction function);
 }
 
-@JS()
-@anonymous
-class LoggerNamespace {
+extension type LoggerNamespace._(JSObject _) implements JSObject {
   external JSLogger get silent;
 
-  external factory LoggerNamespace({required JSLogger silent});
+  external LoggerNamespace({required JSLogger silent});
 }
 
 @JS()

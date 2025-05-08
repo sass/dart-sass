@@ -2,72 +2,76 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:js/js_util.dart';
+import 'dart:js_interop';
 
-import 'js/exception.dart';
-import 'js/deprecations.dart';
-import 'js/exports.dart';
-import 'js/importer/canonicalize_context.dart';
+import 'package:js_core/js_core.dart';
+import 'package:js_core/unsafe.dart';
+
 import 'js/compile.dart';
-import 'js/compiler.dart';
+import 'js/compiler/async.dart';
+import 'js/compiler/sync.dart';
+import 'js/deprecation.dart';
+import 'js/exports.dart';
+import 'js/hybrid/canonicalize_context.dart';
+import 'js/hybrid/file_location.dart';
+import 'js/hybrid/file_span.dart';
+import 'js/hybrid/node_importer.dart';
+import 'js/hybrid/source_span.dart';
+import 'js/hybrid/value.dart';
+import 'js/hybrid/version.dart';
 import 'js/legacy.dart';
 import 'js/legacy/types.dart';
 import 'js/legacy/value.dart';
 import 'js/logger.dart';
 import 'js/parser.dart';
-import 'js/source_span.dart';
-import 'js/utils.dart';
-import 'js/value.dart';
+import 'js/sass_exception.dart';
 import 'value.dart';
+
+@JS('Error')
+external JSClass<JSError> _jsErrorClass;
 
 /// The entrypoint for the JavaScript module.
 ///
 /// This sets up exports that can be called from JS.
 void main() {
-  exports.compile = allowInteropNamed('sass.compile', compile);
-  exports.compileString = allowInteropNamed(
-    'sass.compileString',
-    compileString,
-  );
-  exports.compileAsync = allowInteropNamed('sass.compileAsync', compileAsync);
-  exports.compileStringAsync = allowInteropNamed(
-    'sass.compileStringAsync',
-    compileStringAsync,
-  );
-  exports.initCompiler = allowInteropNamed('sass.initCompiler', initCompiler);
-  exports.initAsyncCompiler = allowInteropNamed(
-    'sass.initAsyncCompiler',
-    initAsyncCompiler,
-  );
-  exports.Compiler = compilerClass;
-  exports.AsyncCompiler = asyncCompilerClass;
-  exports.Value = valueClass;
-  exports.SassBoolean = booleanClass;
-  exports.SassArgumentList = argumentListClass;
-  exports.SassCalculation = calculationClass;
-  exports.CalculationOperation = calculationOperationClass;
-  exports.CalculationInterpolation = calculationInterpolationClass;
-  exports.SassColor = colorClass;
-  exports.SassFunction = functionClass;
-  exports.SassMixin = mixinClass;
-  exports.SassList = listClass;
-  exports.SassMap = mapClass;
-  exports.SassNumber = numberClass;
-  exports.SassString = stringClass;
-  exports.sassNull = sassNull;
-  exports.sassTrue = sassTrue;
-  exports.sassFalse = sassFalse;
-  exports.Exception = exceptionClass;
+  exports.compile = compile.toJS..name = 'sass.compile';
+  exports.compileString = compileString.toJS..name = 'sass.compileString';
+  exports.compileAsync = compileAsync.toJS..name = 'sass.compileAsync';
+  exports.compileStringAsync = compileStringAsync.toJS
+    ..name = 'sass.compileStringAsync';
+  exports.initCompiler = (() => JSCompiler()).toJS..name = 'sass.initCompiler';
+  exports.initAsyncCompiler = (() => Future.sync(() => JSAsyncCompiler()).toJS)
+      .toJS
+    ..name = 'sass.initAsyncCompiler';
+  exports.Compiler = JSCompiler.jsClass;
+  exports.AsyncCompiler = JSAsyncCompiler.jsClass;
+  exports.Value = ValueToJS.jsClass;
+  exports.SassBoolean = SassBooleanToJS.jsClass;
+  exports.SassArgumentList = SassArgumentListToJS.jsClass;
+  exports.SassCalculation = SassCalculationToJS.jsClass;
+  exports.CalculationOperation = CalculationOperationToJS.jsClass;
+  exports.CalculationInterpolation = CalculationInterpolationToJS.jsClass;
+  exports.SassColor = SassColorToJS.jsClass;
+  exports.SassFunction = SassFunctionToJS.jsClass;
+  exports.SassMixin = SassMixinToJS.jsClass;
+  exports.SassList = SassListToJS.jsClass;
+  exports.SassMap = SassMapToJS.jsClass;
+  exports.SassNumber = SassNumberToJS.jsClass;
+  exports.SassString = SassStringToJS.jsClass;
+  exports.sassNull = sassNull.toJS;
+  exports.sassTrue = sassTrue.toJS;
+  exports.sassFalse = sassFalse.toJS;
+  exports.Exception = JSSassException.jsClass;
   exports.Logger = LoggerNamespace(
     silent: JSLogger(
-      warn: allowInteropNamed('sass.Logger.silent.warn', (_, __) {}),
-      debug: allowInteropNamed('sass.Logger.silent.debug', (_, __) {}),
+      warn: (JSAny? _, JSAny? __) {}.toJS..name = 'sass.Logger.silent.warn',
+      debug: (JSAny? _, JSAny? __) {}.toJS..name = 'sass.Logger.silent.debug',
     ),
   );
-  exports.NodePackageImporter = nodePackageImporterClass;
-  exports.deprecations = jsify(deprecations);
-  exports.Version = versionClass;
-  exports.loadParserExports_ = allowInterop(loadParserExports);
+  exports.NodePackageImporter = NodePackageImporterToJS.jsClass;
+  exports.deprecations = JSDeprecation.all;
+  exports.Version = VersionToJS.jsClass;
+  exports.loadParserExports_ = loadParserExports.toJS;
 
   exports.info =
       "dart-sass\t${const String.fromEnvironment('version')}\t(Sass Compiler)\t"
@@ -75,24 +79,26 @@ void main() {
       "dart2js\t${const String.fromEnvironment('dart-version')}\t"
       "(Dart Compiler)\t[Dart]";
 
-  updateCanonicalizeContextPrototype();
-  updateSourceSpanPrototype();
+  CanonicalizeContextToJS.updatePrototype();
+  FileSpanToJS.updatePrototype();
+  FileLocationToJS.updatePrototype();
+  SourceSpanToJS.updatePrototype();
 
   // Legacy API
-  exports.render = allowInteropNamed('sass.render', render);
-  exports.renderSync = allowInteropNamed('sass.renderSync', renderSync);
+  exports.render = render.toJS..name = 'sass.render';
+  exports.renderSync = renderSync.toJS..name = 'sass.renderSync';
 
   exports.types = Types(
-    Boolean: legacyBooleanClass,
-    Color: legacyColorClass,
-    List: legacyListClass,
-    Map: legacyMapClass,
-    Null: legacyNullClass,
-    Number: legacyNumberClass,
-    String: legacyStringClass,
-    Error: jsErrorClass,
+    Boolean: JSSassLegacyBoolean.jsClass,
+    Color: JSSassLegacyColor.jsClass,
+    List: JSSassLegacyList.jsClass,
+    Map: JSSassLegacyMap.jsClass,
+    Null: JSSassLegacyNull.jsClass,
+    Number: JSSassLegacyNumber.jsClass,
+    String: JSSassLegacyString.jsClass,
+    Error: _jsErrorClass,
   );
-  exports.NULL = sassNull;
-  exports.TRUE = sassTrue;
-  exports.FALSE = sassFalse;
+  exports.NULL = sassNull.toJS;
+  exports.TRUE = sassTrue.toJS;
+  exports.FALSE = sassFalse.toJS;
 }

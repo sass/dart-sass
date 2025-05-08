@@ -2,76 +2,92 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:js/js.dart';
+import 'dart:js_interop';
+
+import 'package:js_core/unsafe.dart';
 
 import '../../ast/sass.dart';
 import '../../visitor/interface/expression.dart';
+import '../hybrid/binary_operation_expression.dart';
+import '../hybrid/interpolated_function_expression.dart';
+import '../hybrid/function_expression.dart';
+import '../hybrid/if_expression.dart';
+import '../hybrid/string_expression.dart';
+import '../hybrid/supports_expression.dart';
 
 /// A wrapper around a JS object that implements the [ExpressionVisitor] methods.
-class JSExpressionVisitor implements ExpressionVisitor<Object?> {
+class JSExpressionVisitor implements ExpressionVisitor<JSAny?> {
   final JSExpressionVisitorObject _inner;
 
   JSExpressionVisitor(this._inner);
 
-  Object? visitBinaryOperationExpression(BinaryOperationExpression node) =>
-      _inner.visitBinaryOperationExpression(node);
-  Object? visitBooleanExpression(BooleanExpression node) =>
-      _inner.visitBooleanExpression(node);
-  Object? visitColorExpression(ColorExpression node) =>
-      _inner.visitColorExpression(node);
-  Object? visitInterpolatedFunctionExpression(
+  JSAny? visitBinaryOperationExpression(BinaryOperationExpression node) =>
+      _inner.visitBinaryOperationExpression(node.toJS);
+  JSAny? visitBooleanExpression(BooleanExpression node) =>
+      _inner.visitBooleanExpression(node.toUnsafeWrapper);
+  JSAny? visitColorExpression(ColorExpression node) =>
+      _inner.visitColorExpression(node.toUnsafeWrapper);
+  JSAny? visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
   ) =>
-      _inner.visitInterpolatedFunctionExpression(node);
-  Object? visitFunctionExpression(FunctionExpression node) =>
-      _inner.visitFunctionExpression(node);
-  Object? visitIfExpression(IfExpression node) =>
-      _inner.visitIfExpression(node);
-  Object? visitListExpression(ListExpression node) =>
-      _inner.visitListExpression(node);
-  Object? visitMapExpression(MapExpression node) =>
-      _inner.visitMapExpression(node);
-  Object? visitNullExpression(NullExpression node) =>
-      _inner.visitNullExpression(node);
-  Object? visitNumberExpression(NumberExpression node) =>
-      _inner.visitNumberExpression(node);
-  Object? visitParenthesizedExpression(ParenthesizedExpression node) =>
-      _inner.visitParenthesizedExpression(node);
-  Object? visitSelectorExpression(SelectorExpression node) =>
-      _inner.visitSelectorExpression(node);
-  Object? visitStringExpression(StringExpression node) =>
-      _inner.visitStringExpression(node);
-  Object? visitSupportsExpression(SupportsExpression node) =>
-      _inner.visitSupportsExpression(node);
-  Object? visitUnaryOperationExpression(UnaryOperationExpression node) =>
-      _inner.visitUnaryOperationExpression(node);
-  Object? visitValueExpression(ValueExpression node) =>
-      _inner.visitValueExpression(node);
-  Object? visitVariableExpression(VariableExpression node) =>
-      _inner.visitVariableExpression(node);
+      _inner.visitInterpolatedFunctionExpression(node.toJS);
+  JSAny? visitFunctionExpression(FunctionExpression node) =>
+      _inner.visitFunctionExpression(node.toJS);
+  JSAny? visitIfExpression(IfExpression node) =>
+      _inner.visitIfExpression(node.toJS);
+  JSAny? visitListExpression(ListExpression node) =>
+      _inner.visitListExpression(node.toUnsafeWrapper);
+  JSAny? visitMapExpression(MapExpression node) =>
+      _inner.visitMapExpression(node.toUnsafeWrapper);
+  JSAny? visitNullExpression(NullExpression node) =>
+      _inner.visitNullExpression(node.toUnsafeWrapper);
+  JSAny? visitNumberExpression(NumberExpression node) =>
+      _inner.visitNumberExpression(node.toUnsafeWrapper);
+  JSAny? visitParenthesizedExpression(ParenthesizedExpression node) =>
+      _inner.visitParenthesizedExpression(node.toUnsafeWrapper);
+  JSAny? visitSelectorExpression(SelectorExpression node) =>
+      _inner.visitSelectorExpression(node.toUnsafeWrapper);
+  JSAny? visitStringExpression(StringExpression node) =>
+      _inner.visitStringExpression(node.toJS);
+  JSAny? visitSupportsExpression(SupportsExpression node) =>
+      _inner.visitSupportsExpression(node.toJS);
+  JSAny? visitUnaryOperationExpression(UnaryOperationExpression node) =>
+      _inner.visitUnaryOperationExpression(node.toUnsafeWrapper);
+  JSAny? visitValueExpression(ValueExpression node) =>
+      _inner.visitValueExpression(node.toUnsafeWrapper);
+  JSAny? visitVariableExpression(VariableExpression node) =>
+      _inner.visitVariableExpression(node.toUnsafeWrapper);
 }
 
-@JS()
-class JSExpressionVisitorObject {
-  external Object? visitBinaryOperationExpression(
-    BinaryOperationExpression node,
+extension type JSExpressionVisitorObject._(JSObject _) implements JSObject {
+  external JSAny? visitBinaryOperationExpression(
+    UnsafeDartWrapper<BinaryOperationExpression> node,
   );
-  external Object? visitBooleanExpression(BooleanExpression node);
-  external Object? visitColorExpression(ColorExpression node);
-  external Object? visitInterpolatedFunctionExpression(
-    InterpolatedFunctionExpression node,
+  external JSAny? visitBooleanExpression(
+      UnsafeDartWrapper<BooleanExpression> node);
+  external JSAny? visitColorExpression(UnsafeDartWrapper<ColorExpression> node);
+  external JSAny? visitInterpolatedFunctionExpression(
+    UnsafeDartWrapper<InterpolatedFunctionExpression> node,
   );
-  external Object? visitFunctionExpression(FunctionExpression node);
-  external Object? visitIfExpression(IfExpression node);
-  external Object? visitListExpression(ListExpression node);
-  external Object? visitMapExpression(MapExpression node);
-  external Object? visitNullExpression(NullExpression node);
-  external Object? visitNumberExpression(NumberExpression node);
-  external Object? visitParenthesizedExpression(ParenthesizedExpression node);
-  external Object? visitSelectorExpression(SelectorExpression node);
-  external Object? visitStringExpression(StringExpression node);
-  external Object? visitSupportsExpression(SupportsExpression node);
-  external Object? visitUnaryOperationExpression(UnaryOperationExpression node);
-  external Object? visitValueExpression(ValueExpression node);
-  external Object? visitVariableExpression(VariableExpression node);
+  external JSAny? visitFunctionExpression(
+      UnsafeDartWrapper<FunctionExpression> node);
+  external JSAny? visitIfExpression(UnsafeDartWrapper<IfExpression> node);
+  external JSAny? visitListExpression(UnsafeDartWrapper<ListExpression> node);
+  external JSAny? visitMapExpression(UnsafeDartWrapper<MapExpression> node);
+  external JSAny? visitNullExpression(UnsafeDartWrapper<NullExpression> node);
+  external JSAny? visitNumberExpression(
+      UnsafeDartWrapper<NumberExpression> node);
+  external JSAny? visitParenthesizedExpression(
+      UnsafeDartWrapper<ParenthesizedExpression> node);
+  external JSAny? visitSelectorExpression(
+      UnsafeDartWrapper<SelectorExpression> node);
+  external JSAny? visitStringExpression(
+      UnsafeDartWrapper<StringExpression> node);
+  external JSAny? visitSupportsExpression(
+      UnsafeDartWrapper<SupportsExpression> node);
+  external JSAny? visitUnaryOperationExpression(
+      UnsafeDartWrapper<UnaryOperationExpression> node);
+  external JSAny? visitValueExpression(UnsafeDartWrapper<ValueExpression> node);
+  external JSAny? visitVariableExpression(
+      UnsafeDartWrapper<VariableExpression> node);
 }

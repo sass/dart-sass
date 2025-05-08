@@ -2,48 +2,56 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:js/js.dart';
+import 'dart:js_interop';
+
+import 'package:js_core/unsafe.dart';
 
 import '../../../value.dart';
-import '../../reflection.dart';
+import '../../hybrid/value/number.dart';
+import '../value.dart';
 
-@JS()
-class _NodeSassNumber {
-  external SassNumber get dartValue;
-  external set dartValue(SassNumber dartValue);
+extension type JSSassLegacyNumber._(JSLegacyValue _) implements JSLegacyValue {
+  /// The JS constructor for the `sass.types.Number` class.
+  static final jsClass = JSClass<JSSassLegacyNumber>(
+      (
+        JSSassLegacyNumber self,
+        num? value, [
+        String? unit,
+        UnsafeDartWrapper<SassNumber>? modernValue,
+      ]) {
+        // Either [modernValue] or [value] must be passed.
+        self.modernValue = modernValue ?? _parseNumber(value!, unit).toJS;
+      }.toJSCaptureThis,
+      name: 'sass.types.Number')
+    ..defineMethods({
+      'getValue':
+          ((JSSassLegacyNumber self) => self.toDart.value).toJSCaptureThis,
+      'setValue': (JSSassLegacyNumber self, num value) {
+        self.modernValue = SassNumber.withUnits(
+          value,
+          numeratorUnits: self.toDart.numeratorUnits,
+          denominatorUnits: self.toDart.denominatorUnits,
+        ).toJS;
+      }.toJSCaptureThis,
+      'getUnit': ((JSSassLegacyNumber self) =>
+          self.toDart.numeratorUnits.join('*') +
+          (self.toDart.denominatorUnits.isEmpty ? '' : '/') +
+          self.toDart.denominatorUnits.join('*')).toJSCaptureThis,
+      'setUnit': (JSSassLegacyNumber self, String unit) {
+        self.modernValue = _parseNumber(self.toDart.value, unit).toJS;
+      }.toJSCaptureThis,
+    });
+
+  @JS('dartValue')
+  external UnsafeDartWrapper<SassNumber> modernValue;
+
+  SassNumber get toDart => modernValue.toDart;
 }
 
-/// Creates a new `sass.types.Number` object wrapping [value].
-Object newNodeSassNumber(SassNumber value) =>
-    legacyNumberClass.construct([null, null, value]);
-
-/// The JS constructor for the `sass.types.Number` class.
-final JSClass legacyNumberClass = createJSClass('sass.types.Number', (
-  _NodeSassNumber thisArg,
-  num? value, [
-  String? unit,
-  SassNumber? dartValue,
-]) {
-  // Either [dartValue] or [value] must be passed.
-  thisArg.dartValue = dartValue ?? _parseNumber(value!, unit);
-})
-  ..defineMethods({
-    'getValue': (_NodeSassNumber thisArg) => thisArg.dartValue.value,
-    'setValue': (_NodeSassNumber thisArg, num value) {
-      thisArg.dartValue = SassNumber.withUnits(
-        value,
-        numeratorUnits: thisArg.dartValue.numeratorUnits,
-        denominatorUnits: thisArg.dartValue.denominatorUnits,
-      );
-    },
-    'getUnit': (_NodeSassNumber thisArg) =>
-        thisArg.dartValue.numeratorUnits.join('*') +
-        (thisArg.dartValue.denominatorUnits.isEmpty ? '' : '/') +
-        thisArg.dartValue.denominatorUnits.join('*'),
-    'setUnit': (_NodeSassNumber thisArg, String unit) {
-      thisArg.dartValue = _parseNumber(thisArg.dartValue.value, unit);
-    },
-  });
+extension SassNumberToJSLegacy on SassNumber {
+  JSSassLegacyNumber get toJSLegacy =>
+      JSSassLegacyNumber.jsClass.construct(null, null, toJS);
+}
 
 /// Parses a [SassNumber] from [value] and [unit], using Node Sass's unit
 /// format.

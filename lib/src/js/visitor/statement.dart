@@ -2,78 +2,103 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:js/js.dart';
+import 'dart:js_interop';
+
+import 'package:js_core/unsafe.dart';
 
 import '../../ast/sass.dart';
 import '../../visitor/interface/statement.dart';
+import '../hybrid/content_rule.dart';
+import '../hybrid/include_rule.dart';
+import '../hybrid/loud_comment.dart';
 
 /// A wrapper around a JS object that implements the [StatementVisitor] methods.
-class JSStatementVisitor implements StatementVisitor<Object?> {
+class JSStatementVisitor implements StatementVisitor<JSAny?> {
   final JSStatementVisitorObject _inner;
 
   JSStatementVisitor(this._inner);
 
-  Object? visitAtRootRule(AtRootRule node) => _inner.visitAtRootRule(node);
-  Object? visitAtRule(AtRule node) => _inner.visitAtRule(node);
-  Object? visitContentBlock(ContentBlock node) =>
-      _inner.visitContentBlock(node);
-  Object? visitContentRule(ContentRule node) => _inner.visitContentRule(node);
-  Object? visitDebugRule(DebugRule node) => _inner.visitDebugRule(node);
-  Object? visitDeclaration(Declaration node) => _inner.visitDeclaration(node);
-  Object? visitEachRule(EachRule node) => _inner.visitEachRule(node);
-  Object? visitErrorRule(ErrorRule node) => _inner.visitErrorRule(node);
-  Object? visitExtendRule(ExtendRule node) => _inner.visitExtendRule(node);
-  Object? visitForRule(ForRule node) => _inner.visitForRule(node);
-  Object? visitForwardRule(ForwardRule node) => _inner.visitForwardRule(node);
-  Object? visitFunctionRule(FunctionRule node) =>
-      _inner.visitFunctionRule(node);
-  Object? visitIfRule(IfRule node) => _inner.visitIfRule(node);
-  Object? visitImportRule(ImportRule node) => _inner.visitImportRule(node);
-  Object? visitIncludeRule(IncludeRule node) => _inner.visitIncludeRule(node);
-  Object? visitLoudComment(LoudComment node) => _inner.visitLoudComment(node);
-  Object? visitMediaRule(MediaRule node) => _inner.visitMediaRule(node);
-  Object? visitMixinRule(MixinRule node) => _inner.visitMixinRule(node);
-  Object? visitReturnRule(ReturnRule node) => _inner.visitReturnRule(node);
-  Object? visitSilentComment(SilentComment node) =>
-      _inner.visitSilentComment(node);
-  Object? visitStyleRule(StyleRule node) => _inner.visitStyleRule(node);
-  Object? visitStylesheet(Stylesheet node) => _inner.visitStylesheet(node);
-  Object? visitSupportsRule(SupportsRule node) =>
-      _inner.visitSupportsRule(node);
-  Object? visitUseRule(UseRule node) => _inner.visitUseRule(node);
-  Object? visitVariableDeclaration(VariableDeclaration node) =>
-      _inner.visitVariableDeclaration(node);
-  Object? visitWarnRule(WarnRule node) => _inner.visitWarnRule(node);
-  Object? visitWhileRule(WhileRule node) => _inner.visitWhileRule(node);
+  JSAny? visitAtRootRule(AtRootRule node) =>
+      _inner.visitAtRootRule(node.toUnsafeWrapper);
+  JSAny? visitAtRule(AtRule node) => _inner.visitAtRule(node.toUnsafeWrapper);
+  JSAny? visitContentBlock(ContentBlock node) =>
+      _inner.visitContentBlock(node.toUnsafeWrapper);
+  JSAny? visitContentRule(ContentRule node) =>
+      _inner.visitContentRule(node.toJS);
+  JSAny? visitDebugRule(DebugRule node) =>
+      _inner.visitDebugRule(node.toUnsafeWrapper);
+  JSAny? visitDeclaration(Declaration node) =>
+      _inner.visitDeclaration(node.toUnsafeWrapper);
+  JSAny? visitEachRule(EachRule node) =>
+      _inner.visitEachRule(node.toUnsafeWrapper);
+  JSAny? visitErrorRule(ErrorRule node) =>
+      _inner.visitErrorRule(node.toUnsafeWrapper);
+  JSAny? visitExtendRule(ExtendRule node) =>
+      _inner.visitExtendRule(node.toUnsafeWrapper);
+  JSAny? visitForRule(ForRule node) =>
+      _inner.visitForRule(node.toUnsafeWrapper);
+  JSAny? visitForwardRule(ForwardRule node) =>
+      _inner.visitForwardRule(node.toUnsafeWrapper);
+  JSAny? visitFunctionRule(FunctionRule node) =>
+      _inner.visitFunctionRule(node.toUnsafeWrapper);
+  JSAny? visitIfRule(IfRule node) => _inner.visitIfRule(node.toUnsafeWrapper);
+  JSAny? visitImportRule(ImportRule node) =>
+      _inner.visitImportRule(node.toUnsafeWrapper);
+  JSAny? visitIncludeRule(IncludeRule node) =>
+      _inner.visitIncludeRule(node.toJS);
+  JSAny? visitLoudComment(LoudComment node) =>
+      _inner.visitLoudComment(node.toJS);
+  JSAny? visitMediaRule(MediaRule node) =>
+      _inner.visitMediaRule(node.toUnsafeWrapper);
+  JSAny? visitMixinRule(MixinRule node) =>
+      _inner.visitMixinRule(node.toUnsafeWrapper);
+  JSAny? visitReturnRule(ReturnRule node) =>
+      _inner.visitReturnRule(node.toUnsafeWrapper);
+  JSAny? visitSilentComment(SilentComment node) =>
+      _inner.visitSilentComment(node.toUnsafeWrapper);
+  JSAny? visitStyleRule(StyleRule node) =>
+      _inner.visitStyleRule(node.toUnsafeWrapper);
+  JSAny? visitStylesheet(Stylesheet node) =>
+      _inner.visitStylesheet(node.toUnsafeWrapper);
+  JSAny? visitSupportsRule(SupportsRule node) =>
+      _inner.visitSupportsRule(node.toUnsafeWrapper);
+  JSAny? visitUseRule(UseRule node) =>
+      _inner.visitUseRule(node.toUnsafeWrapper);
+  JSAny? visitVariableDeclaration(VariableDeclaration node) =>
+      _inner.visitVariableDeclaration(node.toUnsafeWrapper);
+  JSAny? visitWarnRule(WarnRule node) =>
+      _inner.visitWarnRule(node.toUnsafeWrapper);
+  JSAny? visitWhileRule(WhileRule node) =>
+      _inner.visitWhileRule(node.toUnsafeWrapper);
 }
 
-@JS()
-class JSStatementVisitorObject {
-  external Object? visitAtRootRule(AtRootRule node);
-  external Object? visitAtRule(AtRule node);
-  external Object? visitContentBlock(ContentBlock node);
-  external Object? visitContentRule(ContentRule node);
-  external Object? visitDebugRule(DebugRule node);
-  external Object? visitDeclaration(Declaration node);
-  external Object? visitEachRule(EachRule node);
-  external Object? visitErrorRule(ErrorRule node);
-  external Object? visitExtendRule(ExtendRule node);
-  external Object? visitForRule(ForRule node);
-  external Object? visitForwardRule(ForwardRule node);
-  external Object? visitFunctionRule(FunctionRule node);
-  external Object? visitIfRule(IfRule node);
-  external Object? visitImportRule(ImportRule node);
-  external Object? visitIncludeRule(IncludeRule node);
-  external Object? visitLoudComment(LoudComment node);
-  external Object? visitMediaRule(MediaRule node);
-  external Object? visitMixinRule(MixinRule node);
-  external Object? visitReturnRule(ReturnRule node);
-  external Object? visitSilentComment(SilentComment node);
-  external Object? visitStyleRule(StyleRule node);
-  external Object? visitStylesheet(Stylesheet node);
-  external Object? visitSupportsRule(SupportsRule node);
-  external Object? visitUseRule(UseRule node);
-  external Object? visitVariableDeclaration(VariableDeclaration node);
-  external Object? visitWarnRule(WarnRule node);
-  external Object? visitWhileRule(WhileRule node);
+extension type JSStatementVisitorObject._(JSObject _) {
+  external JSAny? visitAtRootRule(UnsafeDartWrapper<AtRootRule> node);
+  external JSAny? visitAtRule(UnsafeDartWrapper<AtRule> node);
+  external JSAny? visitContentBlock(UnsafeDartWrapper<ContentBlock> node);
+  external JSAny? visitContentRule(UnsafeDartWrapper<ContentRule> node);
+  external JSAny? visitDebugRule(UnsafeDartWrapper<DebugRule> node);
+  external JSAny? visitDeclaration(UnsafeDartWrapper<Declaration> node);
+  external JSAny? visitEachRule(UnsafeDartWrapper<EachRule> node);
+  external JSAny? visitErrorRule(UnsafeDartWrapper<ErrorRule> node);
+  external JSAny? visitExtendRule(UnsafeDartWrapper<ExtendRule> node);
+  external JSAny? visitForRule(UnsafeDartWrapper<ForRule> node);
+  external JSAny? visitForwardRule(UnsafeDartWrapper<ForwardRule> node);
+  external JSAny? visitFunctionRule(UnsafeDartWrapper<FunctionRule> node);
+  external JSAny? visitIfRule(UnsafeDartWrapper<IfRule> node);
+  external JSAny? visitImportRule(UnsafeDartWrapper<ImportRule> node);
+  external JSAny? visitIncludeRule(UnsafeDartWrapper<IncludeRule> node);
+  external JSAny? visitLoudComment(UnsafeDartWrapper<LoudComment> node);
+  external JSAny? visitMediaRule(UnsafeDartWrapper<MediaRule> node);
+  external JSAny? visitMixinRule(UnsafeDartWrapper<MixinRule> node);
+  external JSAny? visitReturnRule(UnsafeDartWrapper<ReturnRule> node);
+  external JSAny? visitSilentComment(UnsafeDartWrapper<SilentComment> node);
+  external JSAny? visitStyleRule(UnsafeDartWrapper<StyleRule> node);
+  external JSAny? visitStylesheet(UnsafeDartWrapper<Stylesheet> node);
+  external JSAny? visitSupportsRule(UnsafeDartWrapper<SupportsRule> node);
+  external JSAny? visitUseRule(UnsafeDartWrapper<UseRule> node);
+  external JSAny? visitVariableDeclaration(
+      UnsafeDartWrapper<VariableDeclaration> node);
+  external JSAny? visitWarnRule(UnsafeDartWrapper<WarnRule> node);
+  external JSAny? visitWhileRule(UnsafeDartWrapper<WhileRule> node);
 }

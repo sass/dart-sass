@@ -2,23 +2,33 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:js/js.dart';
+import 'dart:js_interop';
 
-@JS()
-@anonymous
-class RenderContext {
+import 'package:js_core/js_core.dart';
+import 'package:path/path.dart' as p;
+
+import '../../io.dart';
+import '../../value/number.dart';
+import 'render_options.dart';
+
+extension type RenderContext._wrap(JSObject _) implements JSObject {
   external RenderContextOptions get options;
   external bool? get fromImport;
 
-  external factory RenderContext({
+  external RenderContext._({
     required RenderContextOptions options,
     bool? fromImport,
   });
+
+  factory RenderContext(RenderContextOptions options,
+      {bool fromImport = false}) {
+    var context = RenderContext._(options: options, fromImport: fromImport);
+    context.options.context = context;
+    return context;
+  }
 }
 
-@JS()
-@anonymous
-class RenderContextOptions {
+extension type RenderContextOptions._wrap(JSObject _) implements JSObject {
   external String? get file;
   external String? get data;
   external String get includePaths;
@@ -31,7 +41,7 @@ class RenderContextOptions {
   external set context(RenderContext value);
   external RenderContextResult get result;
 
-  external factory RenderContextOptions({
+  external RenderContextOptions._({
     String? file,
     String? data,
     required String includePaths,
@@ -42,25 +52,41 @@ class RenderContextOptions {
     required String linefeed,
     required RenderContextResult result,
   });
+
+  factory RenderContextOptions(RenderOptions options, DateTime start) {
+    return RenderContextOptions._(
+      file: options.file,
+      data: options.data,
+      includePaths: ([p.current, ...?options.includePaths?.toDart])
+          .join(isWindows ? ';' : ':'),
+      precision: SassNumber.precision,
+      style: 1,
+      indentType: options.useSpaces ? 0 : 1,
+      indentWidth: options.indentWidth ?? 2,
+      linefeed: options.lineFeed.text,
+      result: RenderContextResult._(
+        stats: RenderContextResultStats._(
+          start: start.millisecondsSinceEpoch,
+          entry: options.rawFile ?? 'data',
+        ),
+      ),
+    );
+  }
 }
 
-@JS()
-@anonymous
-class RenderContextResult {
+extension type RenderContextResult._wrap(JSObject _) implements JSObject {
   external RenderContextResultStats get stats;
 
-  external factory RenderContextResult({
+  external RenderContextResult._({
     required RenderContextResultStats stats,
   });
 }
 
-@JS()
-@anonymous
-class RenderContextResultStats {
+extension type RenderContextResultStats._wrap(JSObject _) implements JSObject {
   external int get start;
   external String get entry;
 
-  external factory RenderContextResultStats({
+  external RenderContextResultStats._({
     required int start,
     required String entry,
   });
