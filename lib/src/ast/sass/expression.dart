@@ -6,6 +6,7 @@ import 'package:meta/meta.dart';
 
 import '../../exception.dart';
 import '../../parse/scss.dart';
+import '../../util/span.dart';
 import '../../visitor/interface/expression.dart';
 import '../../visitor/is_calculation_safe.dart';
 import '../../visitor/source_interpolation.dart';
@@ -20,6 +21,13 @@ import '../sass.dart';
 /// {@category Parsing}
 @sealed
 abstract class Expression implements SassNode {
+  /// An [Expression] with a bogus source span that can be used as a
+  /// placeholder.
+  ///
+  /// @nodoc
+  @internal
+  static final Expression bogus = NullExpression(bogusSpan);
+
   /// Calls the appropriate visit method on [visitor].
   T accept<T>(ExpressionVisitor<T> visitor);
 
