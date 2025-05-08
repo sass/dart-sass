@@ -1,8 +1,13 @@
-## 1.88.1-dev
+## 1.88.0-dev
 
 * Fix a bug when calculating source spans for interpolations.
 
-## 1.88.0
+### Dart and JS APIs
+
+* **Potentially breaking bug fix:** Throw an error when passing a function or
+  mixin object from one compilation to another.
+
+### Dart API
 
 * Deprecate passing a relative URL to `compileString()` and related functions.
 
