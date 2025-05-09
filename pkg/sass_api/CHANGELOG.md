@@ -1,4 +1,4 @@
-## 15.5.0-dev
+## 15.5.0
 
 * No user-visible changes.
 

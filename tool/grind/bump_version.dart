@@ -17,6 +17,9 @@ final _pubspecVersionRegExp = RegExp(r'^version: (.*)$', multiLine: true);
 /// A regular expression that matches a Sass dependency version in a pubspec.
 final _sassVersionRegExp = RegExp(r'^( +)sass: (\d.*)$', multiLine: true);
 
+/// A regular expression that matches a CHANGELOG header for a dev version
+final _changelogDevHeaderRegExp = RegExp(r'^## .*-dev$', multiLine: true);
+
 /// Adds grinder tasks for bumping package versions.
 void addBumpVersionTasks() {
   for (var patch in [false, true]) {
@@ -65,9 +68,9 @@ void _bumpVersion(bool patch, bool dev) {
   void addChangelogEntry(String dir, Version version) {
     var path = p.join(dir, "CHANGELOG.md");
     var text = File(path).readAsStringSync();
-    if (!dev && text.startsWith("## $version-dev\n")) {
+    if (!dev && text.startsWith(_changelogDevHeaderRegExp)) {
       File(path).writeAsStringSync(
-        text.replaceFirst("## $version-dev\n", "## $version\n"),
+        text.replaceFirst(_changelogDevHeaderRegExp, "## $version"),
       );
     } else if (text.startsWith("## $version\n")) {
       return;

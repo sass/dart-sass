@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 6e5710daa106ed0b9b684af8bc61ce9cc233a10b
+// Checksum: a3068d04660dd2bed34b884aa6e1a21d423dc4e5
 //
 // ignore_for_file: unused_import
 
@@ -1389,9 +1389,12 @@ final class _EvaluateVisitor
 
     if (node.value case var expression?) {
       var value = expression.accept(this);
-      // If the value is an empty list, preserve it, because converting it to CSS
-      // will throw an error that we want the user to see.
-      if (!value.isBlank || _isEmptyList(value)) {
+      if (!value.isBlank ||
+          // If the value is an empty list, preserve it, because converting it
+          // to CSS will throw an error that we want the user to see.
+          _isEmptyList(value) ||
+          // Custom properties are allowed to have empty values, per spec.
+          name.value.startsWith('--')) {
         _parent.addChild(
           ModifiableCssDeclaration(
             name,
@@ -1403,11 +1406,6 @@ final class _EvaluateVisitor
             valueSpanForMap:
                 _sourceMap ? node.value.andThen(_expressionNode)?.span : null,
           ),
-        );
-      } else if (name.value.startsWith('--')) {
-        throw _exception(
-          "Custom property values may not be empty.",
-          expression.span,
         );
       }
     }
