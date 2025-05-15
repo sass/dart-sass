@@ -1,3 +1,9 @@
+## 1.89.0
+
+* Allow the Node package importer to load files even when there are multiple
+  potential resolutions, as long as those resolutions all point to the same
+  file.
+
 ## 1.88.0
 
 * Allow custom properties with empty values (such as `--var:;`).
