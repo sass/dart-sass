@@ -2396,6 +2396,7 @@ abstract class StylesheetParser extends Parser {
       var start = scanner.state;
       scanner.expectChar($lparen);
       whitespace(consumeNewlines: true);
+      var inside = scanner.state;
       if (!_lookingAtExpression()) {
         scanner.expectChar($rparen);
         return ListExpression(
@@ -2425,12 +2426,13 @@ abstract class StylesheetParser extends Parser {
         whitespace(consumeNewlines: true);
       }
 
-      scanner.expectChar($rparen);
-      return ListExpression(
+      var list = ListExpression(
         expressions,
         ListSeparator.comma,
-        scanner.spanFrom(start),
+        scanner.spanFrom(inside),
       );
+      scanner.expectChar($rparen);
+      return ParenthesizedExpression(list, scanner.spanFrom(start));
     } finally {
       _inParentheses = wasInParentheses;
     }

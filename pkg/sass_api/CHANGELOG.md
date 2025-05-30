@@ -1,3 +1,8 @@
+## 15.7.0
+
+* **Potentially-breaking bug fix**: parenthesized, comma-separated lists are now
+  correctly wrapped in a `ParenthesizedExpression`.
+
 ## 15.6.0
 
 * No user-visible changes.
