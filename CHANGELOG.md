@@ -1,3 +1,7 @@
+## 1.89.1
+
+* No user-visible changes.
+
 ## 1.89.0
 
 * Allow the Node package importer to load files even when there are multiple
