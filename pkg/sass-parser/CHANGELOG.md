@@ -1,5 +1,7 @@
 ## 0.4.23
 
+* Update types for compatibility with the latest PostCSS.
+
 * **Potentially-breaking bug fix**: parenthesized, comma-separated lists are now
   correctly wrapped in a `ParenthesizedExpression`.
 
