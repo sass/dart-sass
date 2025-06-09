@@ -1,3 +1,9 @@
+## 1.89.2
+
+### Embedded Host
+
+* Fixed a compilation error caused by an outdated `buf` dependency.
+
 ## 1.89.1
 
 * No user-visible changes.
