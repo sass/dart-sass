@@ -37,7 +37,7 @@
   "devDependencies": {
     "@types/jest": "^29.5.12",
     "copyfiles": "^2.4.1",
-    "expect": "^29.7.0",
+    "expect": "^30.0.3",
     "gts": "^6.0.2",
     "jest": "^29.4.1",
     "jest-extended": "^6.0.0",
