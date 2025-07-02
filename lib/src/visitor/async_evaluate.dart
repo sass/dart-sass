@@ -208,6 +208,12 @@ final class _EvaluateVisitor
 
   ModifiableCssParentNode? __parent;
 
+  /// The original parent node for a stylesheet that was loaded with @import.
+  ///
+  /// This value is only set when a file uses `@import` in combination with
+  /// non-built-in Sass modules.
+  ModifiableCssParentNode? _importParent;
+
   /// The name of the current declaration parent.
   String? _declarationName;
 
@@ -1321,7 +1327,12 @@ final class _EvaluateVisitor
   }
 
   Future<Value?> visitDeclaration(Declaration node) async {
-    if (_styleRule == null && !_inUnknownAtRule && !_inKeyframes) {
+    // If a stylesheet is @imported inside a style rule, declarations from that
+    // imported sheet are parented by the outer style rule.
+    var parent = _parent.parent == null ? _importParent : _parent;
+
+    if ((_styleRule == null && !_inUnknownAtRule && !_inKeyframes) ||
+        parent == null) {
       throw _exception(
         "Declarations may only be used within style rules.",
         node.span,
@@ -1334,14 +1345,14 @@ final class _EvaluateVisitor
       );
     }
 
-    var siblings = _parent.parent!.children;
+    var siblings = parent.parent?.children ?? [];
     var interleavedRules = <CssStyleRule>[];
-    if (siblings.last != _parent &&
-        // Reproduce this condition from [_warn] so that we don't add anything to
-        // [interleavedRules] for declarations in dependencies.
+    if (siblings.last != parent &&
+        // Reproduce this condition from [_warn] so that we don't add anything
+        // to [interleavedRules] for declarations in dependencies.
         !(_quietDeps && _inDependency)) {
       loop:
-      for (var sibling in siblings.skip(siblings.indexOf(_parent) + 1)) {
+      for (var sibling in siblings.skip(siblings.indexOf(parent) + 1)) {
         switch (sibling) {
           case CssComment():
             continue loop;
@@ -1387,7 +1398,7 @@ final class _EvaluateVisitor
           _isEmptyList(value) ||
           // Custom properties are allowed to have empty values, per spec.
           name.value.startsWith('--')) {
-        _parent.addChild(
+        parent.addChild(
           ModifiableCssDeclaration(
             name,
             CssValue(value, expression.span),
@@ -1895,6 +1906,7 @@ final class _EvaluateVisitor
         _stylesheet = stylesheet;
         if (loadsUserDefinedModules) {
           _root = ModifiableCssStylesheet(stylesheet.span);
+          _importParent = _parent;
           _parent = _root;
           _endOfImports = 0;
           _outOfOrderImports = null;
@@ -1915,6 +1927,7 @@ final class _EvaluateVisitor
         if (loadsUserDefinedModules) {
           _root = oldRoot;
           _parent = oldParent;
+          _importParent = null;
           _endOfImports = oldEndOfImports;
           _outOfOrderImports = oldOutOfOrderImports;
         }
