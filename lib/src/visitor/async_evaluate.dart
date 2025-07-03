@@ -156,6 +156,9 @@ final class _EvaluateVisitor
   /// The first [Configuration] used to load a module [Uri].
   final _moduleConfigurations = <Uri, Configuration>{};
 
+  // Track whether a module used one of the variables passed in a "with" clause
+  final _moduleUsedConfigVars = <Uri, bool>{};
+
   /// A map from canonical module URLs to the nodes whose spans indicate where
   /// those modules were originally loaded.
   ///
@@ -854,9 +857,17 @@ final class _EvaluateVisitor
   }) async {
     var url = stylesheet.span.sourceUrl;
 
+    // set up variables to determine if the module accessed (& consumed) any configuration variables.
+    var startingConfigPropVars =
+        _configuration.length; // number of this._config vars upon entry.
+    var startingConfigVars = (configuration?.length ??
+        0); // number of config vars passed in as a function arg.
+
     if (_modules[url] case var alreadyLoaded?) {
       var currentConfiguration = configuration ?? _configuration;
-      if (!_moduleConfigurations[url]!.sameOriginal(currentConfiguration) &&
+      // note: if module didn't use any of the config vars, treat it as if it was called without them.
+      if (_moduleUsedConfigVars[url]! &&
+          !_moduleConfigurations[url]!.sameOriginal(currentConfiguration) &&
           currentConfiguration is ExplicitConfiguration) {
         var message = namesInErrors
             ? "${p.prettyUri(url)} was already loaded, so it can't be "
@@ -947,6 +958,13 @@ final class _EvaluateVisitor
     if (url != null) {
       _modules[url] = module;
       _moduleConfigurations[url] = _configuration;
+      // determine if the module accessed (& consumed) any configuration variables.
+      // Sometimes this._configuration changes and sometime the value passed to the function shows the change
+      //  so test both: if the number of remaining variables has gone down, then the module used them.
+      _moduleUsedConfigVars[url] =
+          (startingConfigPropVars > _configuration.length) ||
+              (startingConfigVars >
+                  (configuration?.length ?? 0)); //module consumed config vars
       if (nodeWithSpan != null) _moduleNodes[url] = nodeWithSpan;
     }
 

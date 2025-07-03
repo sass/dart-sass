@@ -63,6 +63,8 @@ final class Configuration {
 
   bool get isEmpty => values.isEmpty;
 
+  int get length => values.length;
+
   /// Removes a variable with [name] from this configuration, returning it.
   ///
   /// If no such variable exists in this configuration, returns null.
