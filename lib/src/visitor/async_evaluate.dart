@@ -856,16 +856,11 @@ final class _EvaluateVisitor
     bool namesInErrors = false,
   }) async {
     var url = stylesheet.span.sourceUrl;
-
-    // set up variables to determine if the module accessed (& consumed) any configuration variables.
-    var startingConfigPropVars =
-        _configuration.length; // number of this._config vars upon entry.
-    var startingConfigVars = (configuration?.length ??
-        0); // number of config vars passed in as a function arg.
+    var moduleUsedOverrides = false;
 
     if (_modules[url] case var alreadyLoaded?) {
       var currentConfiguration = configuration ?? _configuration;
-      // note: if module didn't use any of the config vars, treat it as if it was called without them.
+      // note: if module didn't use any of the config vars, treat it as if it was called without "with".
       if (_moduleUsedConfigVars[url]! &&
           !_moduleConfigurations[url]!.sameOriginal(currentConfiguration) &&
           currentConfiguration is ExplicitConfiguration) {
@@ -927,11 +922,17 @@ final class _EvaluateVisitor
       _inKeyframes = false;
       if (configuration != null) _configuration = configuration;
 
+      // setup testing if the module accessed (& consumed) any configuration variables.
+      var configLength1 = _configuration.length;
+
       await visitStylesheet(stylesheet);
       css = _outOfOrderImports == null
           ? root
           : CssStylesheet(_addOutOfOrderImports(), stylesheet.span);
       preModuleComments = _preModuleComments;
+
+      // determine if the module accessed (& consumed) any configuration variables.
+      moduleUsedOverrides = configLength1 > _configuration.length;
 
       _importer = oldImporter;
       __stylesheet = oldStylesheet;
@@ -958,13 +959,7 @@ final class _EvaluateVisitor
     if (url != null) {
       _modules[url] = module;
       _moduleConfigurations[url] = _configuration;
-      // determine if the module accessed (& consumed) any configuration variables.
-      // Sometimes this._configuration changes and sometime the value passed to the function shows the change
-      //  so test both: if the number of remaining variables has gone down, then the module used them.
-      _moduleUsedConfigVars[url] =
-          (startingConfigPropVars > _configuration.length) ||
-              (startingConfigVars >
-                  (configuration?.length ?? 0)); //module consumed config vars
+      _moduleUsedConfigVars[url] = moduleUsedOverrides;
       if (nodeWithSpan != null) _moduleNodes[url] = nodeWithSpan;
     }
 
