@@ -1,3 +1,10 @@
+## 1.90.0
+
+* **Potentially breaking bug fix:** Fix a situation where Sass wasn't emitting
+  an error when loading a `@forward`ed module with a configuration when that
+  module had already been loaded with a different configuration *and* all
+  configured variables in the new configuration had already been used.
+
 ## 1.89.2
 
 ### Embedded Host
