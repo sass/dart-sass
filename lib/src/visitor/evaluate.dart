@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 6721ae642930e4f4ff4c01c7f5376d0c3cfc4208
+// Checksum: 4c0db6ff92d072b0165af02288d9d3a2782d137d
 //
 // ignore_for_file: unused_import
 
@@ -163,9 +163,6 @@ final class _EvaluateVisitor
 
   /// The first [Configuration] used to load a module [Uri].
   final _moduleConfigurations = <Uri, Configuration>{};
-
-  // Track whether a module used one of the variables passed in a "with" clause
-  final _moduleUsedConfigVars = <Uri, bool>{};
 
   /// A map from canonical module URLs to the nodes whose spans indicate where
   /// those modules were originally loaded.
@@ -865,35 +862,7 @@ final class _EvaluateVisitor
   }) {
     var url = stylesheet.span.sourceUrl;
     var moduleUsedOverrides = false;
-
-    if (_modules[url] case var alreadyLoaded?) {
-      var currentConfiguration = configuration ?? _configuration;
-      // note: if module didn't use any of the config vars, treat it as if it was called without "with".
-      if (_moduleUsedConfigVars[url]! &&
-          !_moduleConfigurations[url]!.sameOriginal(currentConfiguration) &&
-          currentConfiguration is ExplicitConfiguration) {
-        var message = namesInErrors
-            ? "${p.prettyUri(url)} was already loaded, so it can't be "
-                "configured using \"with\"."
-            : "This module was already loaded, so it can't be configured using "
-                "\"with\".";
-
-        var existingSpan = _moduleNodes[url]?.span;
-        var configurationSpan = configuration == null
-            ? currentConfiguration.nodeWithSpan.span
-            : null;
-        var secondarySpans = {
-          if (existingSpan != null) existingSpan: "original load",
-          if (configurationSpan != null) configurationSpan: "configuration",
-        };
-
-        throw secondarySpans.isEmpty
-            ? _exception(message)
-            : _multiSpanException(message, "new load", secondarySpans);
-      }
-
-      return alreadyLoaded;
-    }
+    var currentConfiguration = configuration ?? _configuration;
 
     var environment = Environment();
     late CssStylesheet css;
@@ -959,6 +928,34 @@ final class _EvaluateVisitor
       _configuration = oldConfiguration;
     });
 
+    if (_modules[url] case var alreadyLoaded?) {
+      // note: only throw an error if module used any of the config vars, otherwise treat it as if it was called without "with".
+      if (moduleUsedOverrides &&
+          !_moduleConfigurations[url]!.sameOriginal(currentConfiguration) &&
+          currentConfiguration is ExplicitConfiguration) {
+        var message = namesInErrors
+            ? "${p.prettyUri(url)} was already loaded, so it can't be "
+                "configured using \"with\"."
+            : "This module was already loaded, so it can't be configured using "
+                "\"with\".";
+
+        var existingSpan = _moduleNodes[url]?.span;
+        var configurationSpan = configuration == null
+            ? currentConfiguration.nodeWithSpan.span
+            : null;
+        var secondarySpans = {
+          if (existingSpan != null) existingSpan: "original load",
+          if (configurationSpan != null) configurationSpan: "configuration",
+        };
+
+        throw secondarySpans.isEmpty
+            ? _exception(message)
+            : _multiSpanException(message, "new load", secondarySpans);
+      }
+
+      return alreadyLoaded;
+    }
+
     var module = environment.toModule(
       css,
       preModuleComments ?? const {},
@@ -967,7 +964,6 @@ final class _EvaluateVisitor
     if (url != null) {
       _modules[url] = module;
       _moduleConfigurations[url] = _configuration;
-      _moduleUsedConfigVars[url] = moduleUsedOverrides;
       if (nodeWithSpan != null) _moduleNodes[url] = nodeWithSpan;
     }
 
