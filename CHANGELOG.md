@@ -1,3 +1,9 @@
+## 1.89.3
+
+* Fixed a crash when `@import` was nested in a style rule and loaded a Sass file
+  that `@use`s a non-built-in module and a top-level `@include` that emits
+  declarations.
+
 ## 1.89.2
 
 ### Embedded Host
