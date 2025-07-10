@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: a3068d04660dd2bed34b884aa6e1a21d423dc4e5
+// Checksum: 30755d20ab8cdb065eb2c24d27a5f8a248591fcd
 //
 // ignore_for_file: unused_import
 
@@ -862,8 +862,8 @@ final class _EvaluateVisitor
   }) {
     var url = stylesheet.span.sourceUrl;
 
+    var currentConfiguration = configuration ?? _configuration;
     if (_modules[url] case var alreadyLoaded?) {
-      var currentConfiguration = configuration ?? _configuration;
       if (!_moduleConfigurations[url]!.sameOriginal(currentConfiguration) &&
           currentConfiguration is ExplicitConfiguration) {
         var message = namesInErrors
@@ -954,7 +954,7 @@ final class _EvaluateVisitor
     );
     if (url != null) {
       _modules[url] = module;
-      _moduleConfigurations[url] = _configuration;
+      _moduleConfigurations[url] = currentConfiguration;
       if (nodeWithSpan != null) _moduleNodes[url] = nodeWithSpan;
     }
 

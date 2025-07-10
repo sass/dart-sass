@@ -50,7 +50,7 @@ final class Configuration {
   /// will be considered to have the same original config if they were created
   /// as a copy from the same base configuration.
   bool sameOriginal(Configuration that) =>
-      _originalConfiguration == that._originalConfiguration;
+      identical(_originalConfiguration, that._originalConfiguration);
 
   /// The empty configuration, which indicates that the module has not been
   /// configured.
@@ -70,7 +70,7 @@ final class Configuration {
 
   /// Creates a new configuration from this one based on a `@forward` rule.
   Configuration throughForward(ForwardRule forward) {
-    if (isEmpty) return const Configuration.empty();
+    if (isEmpty) return this;
     var newValues = _values;
 
     // Only allow variables that are visible through the `@forward` to be
