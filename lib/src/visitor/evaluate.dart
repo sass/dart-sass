@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: a3068d04660dd2bed34b884aa6e1a21d423dc4e5
+// Checksum: 4c0db6ff92d072b0165af02288d9d3a2782d137d
 //
 // ignore_for_file: unused_import
 
@@ -861,33 +861,8 @@ final class _EvaluateVisitor
     bool namesInErrors = false,
   }) {
     var url = stylesheet.span.sourceUrl;
-
-    if (_modules[url] case var alreadyLoaded?) {
-      var currentConfiguration = configuration ?? _configuration;
-      if (!_moduleConfigurations[url]!.sameOriginal(currentConfiguration) &&
-          currentConfiguration is ExplicitConfiguration) {
-        var message = namesInErrors
-            ? "${p.prettyUri(url)} was already loaded, so it can't be "
-                "configured using \"with\"."
-            : "This module was already loaded, so it can't be configured using "
-                "\"with\".";
-
-        var existingSpan = _moduleNodes[url]?.span;
-        var configurationSpan = configuration == null
-            ? currentConfiguration.nodeWithSpan.span
-            : null;
-        var secondarySpans = {
-          if (existingSpan != null) existingSpan: "original load",
-          if (configurationSpan != null) configurationSpan: "configuration",
-        };
-
-        throw secondarySpans.isEmpty
-            ? _exception(message)
-            : _multiSpanException(message, "new load", secondarySpans);
-      }
-
-      return alreadyLoaded;
-    }
+    var moduleUsedOverrides = false;
+    var currentConfiguration = configuration ?? _configuration;
 
     var environment = Environment();
     late CssStylesheet css;
@@ -924,11 +899,17 @@ final class _EvaluateVisitor
       _inKeyframes = false;
       if (configuration != null) _configuration = configuration;
 
+      // setup testing if the module accessed (& consumed) any configuration variables.
+      var configLength1 = _configuration.length;
+
       visitStylesheet(stylesheet);
       css = _outOfOrderImports == null
           ? root
           : CssStylesheet(_addOutOfOrderImports(), stylesheet.span);
       preModuleComments = _preModuleComments;
+
+      // determine if the module accessed (& consumed) any configuration variables.
+      moduleUsedOverrides = configLength1 > _configuration.length;
 
       _importer = oldImporter;
       __stylesheet = oldStylesheet;
@@ -946,6 +927,34 @@ final class _EvaluateVisitor
       _inKeyframes = oldInKeyframes;
       _configuration = oldConfiguration;
     });
+
+    if (_modules[url] case var alreadyLoaded?) {
+      // note: only throw an error if module used any of the config vars, otherwise treat it as if it was called without "with".
+      if (moduleUsedOverrides &&
+          !_moduleConfigurations[url]!.sameOriginal(currentConfiguration) &&
+          currentConfiguration is ExplicitConfiguration) {
+        var message = namesInErrors
+            ? "${p.prettyUri(url)} was already loaded, so it can't be "
+                "configured using \"with\"."
+            : "This module was already loaded, so it can't be configured using "
+                "\"with\".";
+
+        var existingSpan = _moduleNodes[url]?.span;
+        var configurationSpan = configuration == null
+            ? currentConfiguration.nodeWithSpan.span
+            : null;
+        var secondarySpans = {
+          if (existingSpan != null) existingSpan: "original load",
+          if (configurationSpan != null) configurationSpan: "configuration",
+        };
+
+        throw secondarySpans.isEmpty
+            ? _exception(message)
+            : _multiSpanException(message, "new load", secondarySpans);
+      }
+
+      return alreadyLoaded;
+    }
 
     var module = environment.toModule(
       css,
