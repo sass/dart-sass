@@ -30,8 +30,7 @@ abstract interface class Module<T extends AsyncCallable> {
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
   ///
-  /// Implementations must ensure that this has the same keys as [variables] if
-  /// it's not `null`.
+  /// Implementations must ensure that this has the same keys as [variables].
   Map<String, AstNode> get variableNodes;
 
   /// The module's functions.
