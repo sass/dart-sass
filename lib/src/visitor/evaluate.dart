@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: d02e86d11c5ca310e2402c60935ccf301d3cfbc2
+// Checksum: 0db2da7b7facb3c5c79cfba1d6829d18a5de5cdd
 //
 // ignore_for_file: unused_import
 
@@ -216,7 +216,7 @@ final class _EvaluateVisitor
 
   ModifiableCssParentNode? __parent;
 
-  /// The original parent node for a stylesheet that was loaded with @import.
+  /// The original parent node for a stylesheet that was loaded with `@import`.
   ///
   /// This value is only set when a file uses `@import` in combination with
   /// non-built-in Sass modules.

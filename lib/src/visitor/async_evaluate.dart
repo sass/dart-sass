@@ -208,7 +208,7 @@ final class _EvaluateVisitor
 
   ModifiableCssParentNode? __parent;
 
-  /// The original parent node for a stylesheet that was loaded with @import.
+  /// The original parent node for a stylesheet that was loaded with `@import`.
   ///
   /// This value is only set when a file uses `@import` in combination with
   /// non-built-in Sass modules.
