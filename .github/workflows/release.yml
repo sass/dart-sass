@@ -216,7 +216,8 @@ jobs:
           for dir in $(ls npm); do
             cat "npm/$dir/package.json" |
                 jq --arg version ${{ steps.version.outputs.version }} '
-                  .version |= $version
+                  .version |= $version |
+                  if (.dependencies.sass) then .dependencies.sass |= $version end
                 ' > package.json.tmp &&
               mv package.json.tmp "npm/$dir/package.json"
           done
