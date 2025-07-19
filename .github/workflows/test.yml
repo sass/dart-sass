@@ -170,17 +170,11 @@ jobs:
           npm install
           npm run init -- --compiler-path=.. --language-path=../build/language
           npm run compile
-          mv {`pwd`/,dist/}lib/src/vendor/dart-sass
         working-directory: embedded-host-node
 
       - name: Version info
-        run: |
-          path=embedded-host-node/dist/lib/src/vendor/dart-sass/sass
-          if [[ -f "$path.cmd" ]]; then "./$path.cmd" --version
-          elif [[ -f "$path.bat" ]]; then "./$path.bat" --version
-          elif [[ -f "$path.exe" ]]; then "./$path.exe" --version
-          else "./$path" --version
-          fi
+        run: node dist/bin/sass.js --version
+        working-directory: embedded-host-node
 
       - name: Run tests
         run: npm run js-api-spec -- --sassPackage ../embedded-host-node --sassSassRepo ../build/language
