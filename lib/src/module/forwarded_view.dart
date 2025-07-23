@@ -140,6 +140,31 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
     return _inner.variableIdentity(name);
   }
 
+  bool couldHaveBeenConfigured(Set<String> variables) {
+    assert(_rule.shownVariables == null || _rule.hiddenVariables == null);
+    if (_rule.prefix == null &&
+        _rule.shownVariables == null &&
+        (_rule.hiddenVariables?.isEmpty ?? true)) {
+      return _inner.couldHaveBeenConfigured(variables);
+    }
+
+    if (_rule.prefix case var prefix?) {
+      variables = {
+        for (var name in variables)
+          if (name.startsWith(prefix)) name.substring(prefix.length)
+      };
+    }
+
+    if (_rule.shownVariables case var safelist?) {
+      return _inner.couldHaveBeenConfigured(variables.intersection(safelist));
+    } else if (_rule.hiddenVariables case var blocklist?
+        when blocklist.isNotEmpty) {
+      return _inner.couldHaveBeenConfigured(variables.difference(blocklist));
+    } else {
+      return _inner.couldHaveBeenConfigured(variables);
+    }
+  }
+
   bool operator ==(Object other) =>
       other is ForwardedModuleView &&
       _inner == other._inner &&

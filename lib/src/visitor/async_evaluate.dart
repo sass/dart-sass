@@ -857,7 +857,15 @@ final class _EvaluateVisitor
     var currentConfiguration = configuration ?? _configuration;
     if (_modules[url] case var alreadyLoaded?) {
       if (!_moduleConfigurations[url]!.sameOriginal(currentConfiguration) &&
-          currentConfiguration is ExplicitConfiguration) {
+          currentConfiguration is ExplicitConfiguration &&
+          // Don't throw an error if the module being loaded doesn't expose any
+          // configurable variables that could have been affected by the
+          // configuration in the first place. If the configuration defines a
+          // value that's not in the module, it'll still throw an error, but
+          // this avoids throwing confusing errors for `@forward`ed modules
+          // without configuration.
+          alreadyLoaded.couldHaveBeenConfigured(
+              MapKeySet(currentConfiguration.values))) {
         var message = namesInErrors
             ? "${p.prettyUri(url)} was already loaded, so it can't be "
                 "configured using \"with\"."
@@ -2599,6 +2607,7 @@ final class _EvaluateVisitor
   Future<Value?> visitVariableDeclaration(VariableDeclaration node) async {
     if (node.isGuarded) {
       if (node.namespace == null && _environment.atRoot) {
+        _environment.markVariableConfigurable(node.name);
         if (_configuration.remove(node.name) case var override?
             when override.value != sassNull) {
           _addExceptionSpan(node, () {

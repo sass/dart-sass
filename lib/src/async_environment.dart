@@ -121,6 +121,10 @@ final class AsyncEnvironment {
   UserDefinedCallable<AsyncEnvironment>? get content => _content;
   UserDefinedCallable<AsyncEnvironment>? _content;
 
+  /// The set of variable names that could be configured when loading the
+  /// module.
+  final Set<String> _configurableVariables;
+
   /// Whether the environment is lexically at the root of the document.
   bool get atRoot => _variables.length == 1;
 
@@ -160,27 +164,28 @@ final class AsyncEnvironment {
         _functions = [{}],
         _functionIndices = {},
         _mixins = [{}],
-        _mixinIndices = {};
+        _mixinIndices = {},
+        _configurableVariables = {};
 
   AsyncEnvironment._(
-    this._modules,
-    this._namespaceNodes,
-    this._globalModules,
-    this._importedModules,
-    this._forwardedModules,
-    this._nestedForwardedModules,
-    this._allModules,
-    this._variables,
-    this._variableNodes,
-    this._functions,
-    this._mixins,
-    this._content,
-  )   
-  // Lazily fill in the indices rather than eagerly copying them from the
-  // existing environment in closure() because the copying took a lot of
-  // time and was rarely helpful. This saves a bunch of time on Susy's
-  // tests.
-  : _variableIndices = {},
+      this._modules,
+      this._namespaceNodes,
+      this._globalModules,
+      this._importedModules,
+      this._forwardedModules,
+      this._nestedForwardedModules,
+      this._allModules,
+      this._variables,
+      this._variableNodes,
+      this._functions,
+      this._mixins,
+      this._content,
+      this._configurableVariables)
+      // Lazily fill in the indices rather than eagerly copying them from the
+      // existing environment in closure() because the copying took a lot of
+      // time and was rarely helpful. This saves a bunch of time on Susy's
+      // tests.
+      : _variableIndices = {},
         _functionIndices = {},
         _mixinIndices = {};
 
@@ -202,6 +207,9 @@ final class AsyncEnvironment {
         _functions.toList(),
         _mixins.toList(),
         _content,
+        // Closures are always in nested contexts where configurable variables
+        // are never added.
+        const {},
       );
 
   /// Returns a new environment to use for an imported file.
@@ -222,6 +230,7 @@ final class AsyncEnvironment {
         _functions.toList(),
         _mixins.toList(),
         _content,
+        _configurableVariables,
       );
 
   /// Adds [module] to the set of modules visible in this environment.
@@ -638,6 +647,15 @@ final class AsyncEnvironment {
     _variableIndices[name] = index;
     _variables[index][name] = value;
     _variableNodes[index][name] = nodeWithSpan;
+  }
+
+  /// Records that [name] is a variable that could have been configured for this
+  /// module, whether or not it actually was.
+  ///
+  /// This is used to determine whether to throw an error when passing a new
+  /// configuration through `@forward` to an already-loaded module.
+  void markVariableConfigurable(String name) {
+    _configurableVariables.add(name);
   }
 
   /// Returns the value of the function named [name], optionally with the given
@@ -1069,6 +1087,11 @@ final class _EnvironmentModule implements Module {
     var module = _modulesByVariable[name];
     return module == null ? this : module.variableIdentity(name);
   }
+
+  bool couldHaveBeenConfigured(Set<String> variables) =>
+      variables.length < _environment._configurableVariables.length
+          ? variables.any(_environment._configurableVariables.contains)
+          : _environment._configurableVariables.any(variables.contains);
 
   Module cloneCss() {
     if (!transitivelyContainsCss) return this;

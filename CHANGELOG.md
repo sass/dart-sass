@@ -1,9 +1,8 @@
 ## 1.90.0
 
-* **Potentially breaking bug fix:** Fix a situation where Sass wasn't emitting
-  an error when loading a `@forward`ed module with a configuration when that
-  module had already been loaded with a different configuration *and* all
-  configured variables in the new configuration had already been used.
+* Allow a `@forward`ed module to be loaded with a configuration when that module
+  has already been loaded with a different configuration *and* the module
+  doesn't define any variables that would have been configured anyway.
 
 ## 1.89.2
 
