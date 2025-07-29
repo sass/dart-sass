@@ -19,3 +19,4 @@ dist/
 
 # Generated protocol buffer files.
 *.pb*.dart
+.vscode
