@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f947505f8d0057a36a175e81ba8279c70e59e9dc
+// Checksum: 72b802e4004aae8a84f7aa78ec728861339b846b
 //
 // ignore_for_file: unused_import
 
@@ -1099,9 +1099,24 @@ final class _EnvironmentModule implements Module<Callable> {
   }
 
   bool couldHaveBeenConfigured(Set<String> variables) =>
-      variables.length < _environment._configurableVariables.length
+      // Check if this module defines a configurable variable with any of the
+      // given names.
+      (variables.length < _environment._configurableVariables.length
           ? variables.any(_environment._configurableVariables.contains)
-          : _environment._configurableVariables.any(variables.contains);
+          : _environment._configurableVariables.any(variables.contains)) ||
+      // Find forwarded modules whose variables overlap with [variables] and
+      // check if they define configurable variables with any of the given
+      // names.
+      (variables.length < _modulesByVariable.length
+              ? {
+                  for (var variable in variables)
+                    if (_modulesByVariable[variable] case var module?) module
+                }
+              : {
+                  for (var (variable, module) in _modulesByVariable.pairs)
+                    if (variables.contains(variable)) module
+                })
+          .any((module) => module.couldHaveBeenConfigured(variables));
 
   Module<Callable> cloneCss() {
     if (!transitivelyContainsCss) return this;

@@ -1089,9 +1089,24 @@ final class _EnvironmentModule implements Module {
   }
 
   bool couldHaveBeenConfigured(Set<String> variables) =>
-      variables.length < _environment._configurableVariables.length
+      // Check if this module defines a configurable variable with any of the
+      // given names.
+      (variables.length < _environment._configurableVariables.length
           ? variables.any(_environment._configurableVariables.contains)
-          : _environment._configurableVariables.any(variables.contains);
+          : _environment._configurableVariables.any(variables.contains)) ||
+      // Find forwarded modules whose variables overlap with [variables] and
+      // check if they define configurable variables with any of the given
+      // names.
+      (variables.length < _modulesByVariable.length
+              ? {
+                  for (var variable in variables)
+                    if (_modulesByVariable[variable] case var module?) module
+                }
+              : {
+                  for (var (variable, module) in _modulesByVariable.pairs)
+                    if (variables.contains(variable)) module
+                })
+          .any((module) => module.couldHaveBeenConfigured(variables));
 
   Module cloneCss() {
     if (!transitivelyContainsCss) return this;
