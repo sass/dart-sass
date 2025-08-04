@@ -35,7 +35,7 @@
     "sass": "file:../../build/npm"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^30.0.0",
     "copyfiles": "^2.4.1",
     "expect": "^29.7.0",
     "gts": "^6.0.2",
