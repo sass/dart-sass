@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: add8a3972aec53ef29de3639af2bc84edcbde9e7
+// Checksum: 72b802e4004aae8a84f7aa78ec728861339b846b
 //
 // ignore_for_file: unused_import
 
@@ -128,6 +128,10 @@ final class Environment {
   UserDefinedCallable<Environment>? get content => _content;
   UserDefinedCallable<Environment>? _content;
 
+  /// The set of variable names that could be configured when loading the
+  /// module.
+  final Set<String> _configurableVariables;
+
   /// Whether the environment is lexically at the root of the document.
   bool get atRoot => _variables.length == 1;
 
@@ -167,27 +171,28 @@ final class Environment {
         _functions = [{}],
         _functionIndices = {},
         _mixins = [{}],
-        _mixinIndices = {};
+        _mixinIndices = {},
+        _configurableVariables = {};
 
   Environment._(
-    this._modules,
-    this._namespaceNodes,
-    this._globalModules,
-    this._importedModules,
-    this._forwardedModules,
-    this._nestedForwardedModules,
-    this._allModules,
-    this._variables,
-    this._variableNodes,
-    this._functions,
-    this._mixins,
-    this._content,
-  )   
-  // Lazily fill in the indices rather than eagerly copying them from the
-  // existing environment in closure() because the copying took a lot of
-  // time and was rarely helpful. This saves a bunch of time on Susy's
-  // tests.
-  : _variableIndices = {},
+      this._modules,
+      this._namespaceNodes,
+      this._globalModules,
+      this._importedModules,
+      this._forwardedModules,
+      this._nestedForwardedModules,
+      this._allModules,
+      this._variables,
+      this._variableNodes,
+      this._functions,
+      this._mixins,
+      this._content,
+      this._configurableVariables)
+      // Lazily fill in the indices rather than eagerly copying them from the
+      // existing environment in closure() because the copying took a lot of
+      // time and was rarely helpful. This saves a bunch of time on Susy's
+      // tests.
+      : _variableIndices = {},
         _functionIndices = {},
         _mixinIndices = {};
 
@@ -209,6 +214,9 @@ final class Environment {
         _functions.toList(),
         _mixins.toList(),
         _content,
+        // Closures are always in nested contexts where configurable variables
+        // are never added.
+        const {},
       );
 
   /// Returns a new environment to use for an imported file.
@@ -229,6 +237,7 @@ final class Environment {
         _functions.toList(),
         _mixins.toList(),
         _content,
+        _configurableVariables,
       );
 
   /// Adds [module] to the set of modules visible in this environment.
@@ -646,6 +655,15 @@ final class Environment {
     _variableIndices[name] = index;
     _variables[index][name] = value;
     _variableNodes[index][name] = nodeWithSpan;
+  }
+
+  /// Records that [name] is a variable that could have been configured for this
+  /// module, whether or not it actually was.
+  ///
+  /// This is used to determine whether to throw an error when passing a new
+  /// configuration through `@forward` to an already-loaded module.
+  void markVariableConfigurable(String name) {
+    _configurableVariables.add(name);
   }
 
   /// Returns the value of the function named [name], optionally with the given
@@ -1079,6 +1097,26 @@ final class _EnvironmentModule implements Module<Callable> {
     var module = _modulesByVariable[name];
     return module == null ? this : module.variableIdentity(name);
   }
+
+  bool couldHaveBeenConfigured(Set<String> variables) =>
+      // Check if this module defines a configurable variable with any of the
+      // given names.
+      (variables.length < _environment._configurableVariables.length
+          ? variables.any(_environment._configurableVariables.contains)
+          : _environment._configurableVariables.any(variables.contains)) ||
+      // Find forwarded modules whose variables overlap with [variables] and
+      // check if they define configurable variables with any of the given
+      // names.
+      (variables.length < _modulesByVariable.length
+              ? {
+                  for (var variable in variables)
+                    if (_modulesByVariable[variable] case var module?) module
+                }
+              : {
+                  for (var (variable, module) in _modulesByVariable.pairs)
+                    if (variables.contains(variable)) module
+                })
+          .any((module) => module.couldHaveBeenConfigured(variables));
 
   Module<Callable> cloneCss() {
     if (!transitivelyContainsCss) return this;

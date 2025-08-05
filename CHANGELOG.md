@@ -1,3 +1,9 @@
+## 1.90.0
+
+* Allow a `@forward`ed module to be loaded with a configuration when that module
+  has already been loaded with a different configuration *and* the module
+  doesn't define any variables that would have been configured anyway.
+
 ## 1.89.2
 
 ### Embedded Host
