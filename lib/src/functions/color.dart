@@ -170,7 +170,7 @@ final global = UnmodifiableListView([
     warnForDeprecation(
       "adjust-hue() is deprecated. Suggestion:\n"
       "\n"
-      "color.adjust(\$color, \$hue: $suggestedValue)\n"
+      "color.adjust(\$color, \$hue: ${suggestedValue.toCssString()})\n"
       "\n"
       "More info: https://sass-lang.com/d/color-functions",
       Deprecation.colorFunctions,
@@ -2019,7 +2019,7 @@ String _suggestScaleAndAdjust(
     var factorNumber = SassNumber(factor * 100, '%');
     suggestion += "s:\n"
         "\n"
-        "color.scale(\$color, \$$channelName: $factorNumber)\n";
+        "color.scale(\$color, \$$channelName: ${factorNumber.toCssString()})\n";
   } else {
     suggestion += ":\n\n";
   }
@@ -2028,7 +2028,8 @@ String _suggestScaleAndAdjust(
     adjustment,
     channel == ColorChannel.alpha ? null : '%',
   );
-  return suggestion + "color.adjust(\$color, \$$channelName: $difference)";
+  return suggestion +
+      "color.adjust(\$color, \$$channelName: ${difference.toCssString()})";
 }
 
 /// Throws an error indicating that a missing channel named [name] can't be
@@ -2037,7 +2038,7 @@ Never _missingChannelError(SassColor color, String channel) =>
     throw SassScriptException(
       "Because the CSS working group is still deciding on the best behavior, "
       "Sass doesn't currently support modifying missing channels (color: "
-      "$color).",
+      "${color.toCssString()}).",
       channel,
     );
 
