@@ -1,3 +1,12 @@
+## 1.91.0
+
+* **Potentially breaking change:** `meta.inspect()` (as well as other systems
+  that use it such as `@debug` and certain error messages) now emits numbers
+  with as high precision as is available instead of rounding to the nearest
+  1e⁻¹⁰ as we do when serializing to CSS. This better fits the purpose of
+  `meta.inspect()`, which is to provide full information about the structure of
+  a Sass value.
+
 ## 1.90.0
 
 * Allow a `@forward`ed module to be loaded with a configuration when that module

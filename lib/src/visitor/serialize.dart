@@ -1192,15 +1192,14 @@ final class _SerializeVisitor
 
     // Dart always converts integers to strings in the obvious way, so all we
     // have to do is clamp doubles that are close to being integers.
-    if (fuzzyAsInt(number) case var integer?) {
-      // Write the number as fuzzy integer only if not in inspect mode or if the
-      // number precisely equals to the fuzzy interger
-      if (!_inspect || number == integer) {
-        // JS still uses exponential notation for integers, so we have to handle
-        // it here.
-        buffer.write(_removeExponent(integer.toString()));
-        return;
-      }
+    if (fuzzyAsInt(number) case var integer?
+        // In inspect mode, we want to show the full precision of every number,
+        // so we only write them as integers when they're precisely equal.
+        when !_inspect || number == integer) {
+      // JS still uses exponential notation for integers, so we have to handle
+      // it here.
+      buffer.write(_removeExponent(integer.toString()));
+      return;
     }
 
     var text = _removeExponent(number.toString());
