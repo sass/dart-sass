@@ -27,7 +27,7 @@ jobs:
           - image: docker.io/library/dart
             platform: linux/arm/v7
             target: linux-arm
-          - image: docker.io/library/debian:trixie-slim
+          - image: docker.io/library/dart
             platform: linux/riscv64
             target: linux-riscv64
           - image: ghcr.io/dart-musl/dart
@@ -65,7 +65,7 @@ jobs:
         run: docker run --privileged --rm registry.fedoraproject.org/fedora-minimal /bin/sh -c "microdnf install --assumeyes --nodocs --setopt=install_weak_deps=False qemu-user-static systemd-udev && mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc && /usr/lib/systemd/systemd-binfmt --unregister && /usr/lib/systemd/systemd-binfmt"
 
       - name: Build
-        if: matrix.image != 'ghcr.io/dart-android/dart' && matrix.image != 'docker.io/library/debian:trixie-slim'
+        if: matrix.image != 'ghcr.io/dart-android/dart'
         run: |
           docker run --rm -i \
                      --platform ${{ matrix.platform }} \
@@ -89,35 +89,6 @@ jobs:
           set -e
           export DART_SDK=/system/${{ matrix.target != 'android-arm' && 'lib64' || 'lib' }}/dart
           export PATH=$DART_SDK/bin:$PATH
-          dart pub get
-          dart run grinder pkg-standalone-${{ matrix.target }}
-          EOF
-
-      # https://github.com/dart-lang/dart-docker/issues/96#issuecomment-1669860829
-      # There is no official riscv64 dart container image yet, build on debian:trixie instead.
-      # The setup is adopted from: https://github.com/dart-lang/dart-docker/blob/main/Dockerfile-debian.template
-      - name: Build
-        if: matrix.image == 'docker.io/library/debian:trixie-slim'
-        run: |
-          DART_CHANNEL=stable
-          DART_VERSION=$(curl -fsSL https://storage.googleapis.com/dart-archive/channels/$DART_CHANNEL/release/latest/VERSION | yq .version)
-          curl -fsSLO "https://storage.googleapis.com/dart-archive/channels/$DART_CHANNEL/release/$DART_VERSION/sdk/dartsdk-${{ matrix.target }}-release.zip"
-
-          docker run --rm -i \
-                     --platform ${{ matrix.platform }} \
-                     --volume "$PWD:$PWD" \
-                     --workdir "$PWD" \
-                     ${{ matrix.image }} <<'EOF'
-          set -e
-          apt-get update
-          apt-get install -y --no-install-recommends bind9-dnsutils ca-certificates curl git openssh-client unzip
-
-          export DART_SDK=/usr/lib/dart
-          export PATH=$DART_SDK/bin:/root/.pub-cache/bin:$PATH
-
-          SDK="dartsdk-${{ matrix.target }}-release.zip"
-          unzip "$SDK" && mv dart-sdk "$DART_SDK" && rm "$SDK"
-
           dart pub get
           dart run grinder pkg-standalone-${{ matrix.target }}
           EOF
