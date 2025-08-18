@@ -18,7 +18,7 @@ jobs:
     if: "github.ref_type == 'tag' && github.event.repository.fork == false"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
