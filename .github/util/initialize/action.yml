@@ -45,7 +45,7 @@ runs:
     # downloading repo via GitHub API.
     - name: Check out the language repo
       if: github.event_name != 'pull_request'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with: {repository: sass/sass, path: build/language}
 
     - name: Generate Dart from protobuf
