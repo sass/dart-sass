@@ -31,7 +31,7 @@ jobs:
     needs: [build_linux, build_macos, build_windows]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -78,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # We have to use this rather than the implicit GitHub token so that
           # pushing a new tag triggers another action.
@@ -105,7 +105,7 @@ jobs:
     needs: [deploy_npm]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           token: ${{ secrets.GH_TOKEN }}
       # Set up .npmrc file to publish to npm
@@ -142,7 +142,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
 
@@ -157,7 +157,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -171,7 +171,7 @@ jobs:
     needs: [deploy_npm]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: sass/sass-site
           token: ${{ secrets.SASS_SITE_TOKEN }}
@@ -199,7 +199,7 @@ jobs:
     needs: [deploy_github]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: sass/embedded-host-node
           token: ${{ secrets.GH_TOKEN }}
