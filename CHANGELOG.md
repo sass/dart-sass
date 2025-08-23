@@ -1,3 +1,11 @@
+## 1.92.0
+
+* **Potentially breaking bug fix:** It's now a syntax error to write a rest
+  argument (`$arg...`) before a positional or named argument when calling a
+  function or mixin. This was always outside the specified syntax, and it
+  produced confusing and mostly incorrect results, so it's being changed without
+  a deprecation period.
+
 ## 1.91.0
 
 * **Potentially breaking change:** `meta.inspect()` (as well as other systems

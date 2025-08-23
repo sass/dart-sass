@@ -1836,7 +1836,9 @@ abstract class StylesheetParser extends Parser {
       var expression = expressionUntilComma(singleEquals: !mixin);
       whitespace(consumeNewlines: true);
 
-      if (expression is VariableExpression && scanner.scanChar($colon)) {
+      if (rest == null &&
+          expression is VariableExpression &&
+          scanner.scanChar($colon)) {
         whitespace(consumeNewlines: true);
         if (named.containsKey(expression.name)) {
           error("Duplicate argument.", expression.span);
@@ -1856,6 +1858,14 @@ abstract class StylesheetParser extends Parser {
       } else if (named.isNotEmpty) {
         error(
           "Positional arguments must come before keyword arguments.",
+          expression.span,
+        );
+      } else if (rest != null) {
+        error(
+          ((expression is VariableExpression && scanner.peekChar() == $colon)
+                  ? "Named"
+                  : "Positional") +
+              " arguments must come before rest arguments.",
           expression.span,
         );
       } else {
