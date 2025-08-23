@@ -7,11 +7,11 @@
   `meta.inspect()`, which is to provide full information about the structure of
   a Sass value.
 
-* **Potentially breaking bug fix:** It's now a syntax error to write a rest
-  argument (`$arg...`) before a positional or named argument when calling a
-  function or mixin. This was always outside the specified syntax, and it
-  produced confusing and mostly incorrect results, so it's being changed without
-  a deprecation period.
+* Passing a rest argument (`$arg...`) before a positional or named argument when
+  calling a function or mixin is now deprecated. This was always outside the
+  specified syntax, but it was historically treated the same as passing the rest
+  argument at the end of the argument list whether or not that matched the
+  visual order of the arguments.
 
 ## 1.90.0
 

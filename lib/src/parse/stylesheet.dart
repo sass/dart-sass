@@ -15,6 +15,7 @@ import '../exception.dart';
 import '../interpolation_buffer.dart';
 import '../util/character.dart';
 import '../utils.dart';
+import '../util/multi_span.dart';
 import '../util/nullable.dart';
 import '../value.dart';
 import 'parser.dart';
@@ -1832,18 +1833,30 @@ abstract class StylesheetParser extends Parser {
     var named = <String, Expression>{};
     Expression? rest;
     Expression? keywordRest;
+    var emittedRestDeprecation = false;
     while (_lookingAtExpression()) {
       var expression = expressionUntilComma(singleEquals: !mixin);
       whitespace(consumeNewlines: true);
 
-      if (rest == null &&
-          expression is VariableExpression &&
-          scanner.scanChar($colon)) {
+      if (expression is VariableExpression && scanner.scanChar($colon)) {
         whitespace(consumeNewlines: true);
         if (named.containsKey(expression.name)) {
           error("Duplicate argument.", expression.span);
         }
         named[expression.name] = expressionUntilComma(singleEquals: !mixin);
+
+        if (rest != null && !emittedRestDeprecation) {
+          emittedRestDeprecation = true;
+          warnings.add((
+            deprecation: Deprecation.misplacedRest,
+            message: 'Named arguments must come before rest arguments.\n'
+                'This will be an error in Dart Sass 2.0.0.',
+            span: MultiSpan(
+                scanner.spanFromPosition(expression.span.start.offset),
+                'named argument',
+                {rest.span: 'rest argument'})
+          ));
+        }
       } else if (scanner.scanChar($dot)) {
         scanner.expectChar($dot);
         scanner.expectChar($dot);
@@ -1860,16 +1873,19 @@ abstract class StylesheetParser extends Parser {
           "Positional arguments must come before keyword arguments.",
           expression.span,
         );
-      } else if (rest != null) {
-        error(
-          ((expression is VariableExpression && scanner.peekChar() == $colon)
-                  ? "Named"
-                  : "Positional") +
-              " arguments must come before rest arguments.",
-          expression.span,
-        );
       } else {
         positional.add(expression);
+
+        if (rest != null && !emittedRestDeprecation) {
+          emittedRestDeprecation = true;
+          warnings.add((
+            deprecation: Deprecation.misplacedRest,
+            message: 'Positional arguments must come before rest arguments.\n'
+                'This will be an error in Dart Sass 2.0.0.',
+            span: MultiSpan(expression.span, 'positional argument',
+                {rest.span: 'rest argument'})
+          ));
+        }
       }
 
       whitespace(consumeNewlines: true);
