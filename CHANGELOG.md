@@ -3,6 +3,11 @@
 * Fix a bug where `@extend` rules loaded through a mixture of `@import` and
   `@use` rules could fail to apply correctly.
 
+### Command-Line Interface
+
+* In `--watch` mode, delete the source map when the associated source file is
+  deleted.
+
 ## 1.91.0
 
 * **Potentially breaking change:** `meta.inspect()` (as well as other systems

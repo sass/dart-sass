@@ -166,7 +166,10 @@ final class _Watcher {
     var url = _canonicalize(path);
 
     if (_graph.nodes.containsKey(url)) {
-      if (_destinationFor(path) case var destination?) _delete(destination);
+      if (_destinationFor(path) case var destination?) {
+        _delete(destination);
+        _delete("$destination.map");
+      }
     }
 
     var downstream = _graph.remove(FilesystemImporter.cwd, url);
