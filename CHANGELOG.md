@@ -1,4 +1,8 @@
-## 1.91.1-dev
+## 1.92.0-dev
+
+* **Breaking change:** Emit declarations, childless at-rules, and comments in
+  the order they appear in the source even when they're interleaved with nested
+  rules. This obsoletes the `mixed-decls` deprecation.
 
 * Fix a bug where `@extend` rules loaded through a mixture of `@import` and
   `@use` rules could fail to apply correctly.

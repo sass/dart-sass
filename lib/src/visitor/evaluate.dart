@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 70d926fd13a7d35cd805bf7053f073cc123b260f
+// Checksum: 100082e5b65dc126357c027e76f34ae97b3f9e48
 //
 // ignore_for_file: unused_import
 
@@ -1350,46 +1350,6 @@ final class _EvaluateVisitor
       );
     }
 
-    var siblings = _parent.parent!.children;
-    var interleavedRules = <CssStyleRule>[];
-    if (siblings.last != _parent &&
-        // Reproduce this condition from [_warn] so that we don't add anything to
-        // [interleavedRules] for declarations in dependencies.
-        !(_quietDeps && _inDependency)) {
-      loop:
-      for (var sibling in siblings.skip(siblings.indexOf(_parent) + 1)) {
-        switch (sibling) {
-          case CssComment():
-            continue loop;
-
-          case CssStyleRule rule:
-            interleavedRules.add(rule);
-
-          case _:
-            // Always warn for siblings that aren't style rules, because they
-            // add no specificity and they're nested in the same parent as this
-            // declaration.
-            _warn(
-              "Sass's behavior for declarations that appear after nested\n"
-              "rules will be changing to match the behavior specified by CSS "
-              "in an upcoming\n"
-              "version. To keep the existing behavior, move the declaration "
-              "above the nested\n"
-              "rule. To opt into the new behavior, wrap the declaration in "
-              "`& {}`.\n"
-              "\n"
-              "More info: https://sass-lang.com/d/mixed-decls",
-              MultiSpan(node.span, 'declaration', {
-                sibling.span: 'nested rule',
-              }),
-              Deprecation.mixedDecls,
-            );
-            interleavedRules.clear();
-            break;
-        }
-      }
-    }
-
     var name = _interpolationToValue(node.name, warnForColor: true);
     if (_declarationName case var declarationName?) {
       name = CssValue("$declarationName-${name.value}", name.span);
@@ -1403,14 +1363,14 @@ final class _EvaluateVisitor
           _isEmptyList(value) ||
           // Custom properties are allowed to have empty values, per spec.
           name.value.startsWith('--')) {
+        _copyParentAfterSibling();
         _parent.addChild(
           ModifiableCssDeclaration(
             name,
             CssValue(value, expression.span),
             node.span,
             parsedAsCustomProperty: node.isCustomProperty,
-            interleavedRules: interleavedRules,
-            trace: interleavedRules.isEmpty ? null : _stackTrace(node.span),
+            trace: _stackTrace(node.span),
             valueSpanForMap:
                 _sourceMap ? node.value.andThen(_expressionNode)?.span : null,
           ),
@@ -1573,6 +1533,7 @@ final class _EvaluateVisitor
 
     var children = node.children;
     if (children == null) {
+      _copyParentAfterSibling();
       _parent.addChild(
         ModifiableCssAtRule(name, node.span, childless: true, value: value),
       );
@@ -2089,6 +2050,7 @@ final class _EvaluateVisitor
     );
 
     if (_parent != _root) {
+      _copyParentAfterSibling();
       _parent.addChild(node);
     } else if (_endOfImports == _root.children.length) {
       _root.addChild(node);
@@ -2238,6 +2200,8 @@ final class _EvaluateVisitor
     var text = _performInterpolation(node.text);
     // Indented syntax doesn't require */
     if (!text.endsWith("*/")) text += " */";
+
+    _copyParentAfterSibling();
     _parent.addChild(ModifiableCssComment(text, node.span));
     return null;
   }
@@ -3921,6 +3885,7 @@ final class _EvaluateVisitor
     }
 
     if (node.isChildless) {
+      _copyParentAfterSibling();
       _parent.addChild(
         ModifiableCssAtRule(
           node.name,
@@ -3967,10 +3932,12 @@ final class _EvaluateVisitor
       _endOfImports++;
     }
 
+    _copyParentAfterSibling();
     _parent.addChild(ModifiableCssComment(node.text, node.span));
   }
 
   void visitCssDeclaration(CssDeclaration node) {
+    _copyParentAfterSibling();
     _parent.addChild(
       ModifiableCssDeclaration(
         node.name,
@@ -3992,6 +3959,7 @@ final class _EvaluateVisitor
       modifiers: node.modifiers,
     );
     if (_parent != _root) {
+      _copyParentAfterSibling();
       _parent.addChild(modifiableNode);
     } else if (_endOfImports == _root.children.length) {
       _root.addChild(modifiableNode);
@@ -4376,6 +4344,19 @@ final class _EvaluateVisitor
     _parent = oldParent;
 
     return result;
+  }
+
+  /// If the current [_parent] is not the last child of its grandparent, makes a
+  /// new childless copy of it and sets [_parent] to that.
+  ///
+  /// Otherwise, leaves [_parent] as-is.
+  void _copyParentAfterSibling() {
+    if (_parent.parent case var grandparent?
+        when grandparent.children.last != _parent) {
+      var newParent = _parent.copyWithoutChildren();
+      grandparent.addChild(newParent);
+      _parent = newParent;
+    }
   }
 
   /// Adds [node] as a child of the current parent.
