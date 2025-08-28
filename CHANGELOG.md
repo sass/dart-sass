@@ -1,4 +1,7 @@
-## 1.91.1
+## 1.91.1-dev
+
+* Fix a bug where `@extend` rules loaded through a mixture of `@import` and
+  `@use` rules could fail to apply correctly.
 
 ### Command-Line Interface
 
