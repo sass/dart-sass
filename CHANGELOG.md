@@ -1,3 +1,10 @@
+## 1.91.1
+
+### Command-Line Interface
+
+* In `--watch` mode, delete the source map when the associated source file is
+  deleted.
+
 ## 1.91.0
 
 * **Potentially breaking change:** `meta.inspect()` (as well as other systems
