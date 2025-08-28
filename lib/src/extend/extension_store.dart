@@ -1102,12 +1102,18 @@ class ExtensionStore {
     var newMediaContexts = <ModifiableBox<SelectorList>, List<CssMediaQuery>>{};
     var oldToNewSelectors = Map<SelectorList, Box<SelectorList>>.identity();
 
+    // A map from the old to the new selector boxes. This ensures that if a
+    // single box is referenced by multiple simple selectors, we only create a
+    // single new box for it in the cloned structure.
+    var newBoxes = <ModifiableBox<SelectorList>, ModifiableBox<SelectorList>>{};
+
     _selectors.forEach((simple, selectors) {
       var newSelectorSet = <ModifiableBox<SelectorList>>{};
       newSelectors[simple] = newSelectorSet;
 
       for (var selector in selectors) {
-        var newSelector = ModifiableBox(selector.value);
+        var newSelector =
+            newBoxes.putIfAbsent(selector, () => ModifiableBox(selector.value));
         newSelectorSet.add(newSelector);
         oldToNewSelectors[selector.value] = newSelector.seal();
 

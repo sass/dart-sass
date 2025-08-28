@@ -16,6 +16,8 @@ class Box<T> {
   bool operator ==(Object other) => other is Box<T> && other._inner == _inner;
 
   int get hashCode => _inner.hashCode;
+
+  String toString() => "<box: $value>";
 }
 
 /// A mutable reference to a (presumably immutable) value.
@@ -31,4 +33,6 @@ class ModifiableBox<T> {
   ///
   /// The underlying modifiable box may still be modified.
   Box<T> seal() => Box._(this);
+
+  String toString() => "<modifiable box: $value>";
 }
