@@ -42,7 +42,7 @@ final Map<String, Deprecation?> deprecations = {
             })(),
         description: deprecation.description,
         deprecatedIn: deprecation.deprecatedIn,
-        obsoleteIn: deprecation.deprecatedIn,
+        obsoleteIn: deprecation.obsoleteIn,
       ),
 };
 

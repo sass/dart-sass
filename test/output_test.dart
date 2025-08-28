@@ -430,25 +430,29 @@ selector {
           equals("""
 foo { /* foo */
   padding: 1px; /* foo padding */
-  /* bar end */
-  margin: 1px; /* foo margin */
 }
 foo bar { /* bar */
   padding: 2px; /* bar padding */
-  /* baz end */
-  /* biz end */
-  margin: 2px; /* bar margin */
 }
 foo bar baz { /* baz */
   padding: 3px; /* baz padding */
   margin: 3px; /* baz margin */
 }
+foo bar {
+  /* baz end */
+}
 foo bar biz { /* biz */
   padding: 3px; /* biz padding */
   margin: 3px; /* biz margin */
 }
-
-/* foo end */"""),
+foo bar {
+  /* biz end */
+  margin: 2px; /* bar margin */
+}
+foo {
+  /* bar end */
+  margin: 1px; /* foo margin */
+} /* foo end */"""),
         );
       });
 
@@ -465,17 +469,19 @@ foo bar biz { /* biz */
             } /* foo end */
           """),
           equals("""
-foo { /* foo */
-  /* bar end */
-}
-foo bar { /* bar */
+foo { /* foo */ }
+foo bar { /* bar */ }
+foo bar baz { /* baz */ }
+foo bar {
   /* baz end */
+}
+foo bar biz { /* biz */ }
+foo bar {
   /* biz end */
 }
-foo bar baz { /* baz */ }
-foo bar biz { /* biz */ }
-
-/* foo end */"""),
+foo {
+  /* bar end */
+} /* foo end */"""),
         );
       });
     });

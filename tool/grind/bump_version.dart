@@ -68,7 +68,7 @@ void _bumpVersion(bool patch, bool dev) {
   void addChangelogEntry(String dir, Version version) {
     var path = p.join(dir, "CHANGELOG.md");
     var text = File(path).readAsStringSync();
-    if (!dev && text.startsWith(_changelogDevHeaderRegExp)) {
+    if (text.startsWith(_changelogDevHeaderRegExp)) {
       File(path).writeAsStringSync(
         text.replaceFirst(_changelogDevHeaderRegExp, "## $version"),
       );
@@ -83,7 +83,7 @@ void _bumpVersion(bool patch, bool dev) {
 
   // Bumps the current version of [pubspec] to the next [patch] version, with
   // `-dev` if [dev] is true.
-  //
+  //c
   // If [sassVersion] is passed, this bumps the `sass` dependency to that version.
   //
   // Returns the new version of this package.
