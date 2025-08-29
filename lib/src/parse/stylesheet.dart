@@ -932,14 +932,8 @@ abstract class StylesheetParser extends Parser {
         span: scanner.spanFrom(beforeName),
       ));
     } else if (equalsIgnoreCase(name, 'type')) {
-      warnings.add((
-        deprecation: Deprecation.typeFunction,
-        message: 'Sass @functions named "type" are deprecated for forward-'
-            'compatibility with the plain CSS type() function.\n'
-            '\n'
-            'For details, see https://sass-lang.com/d/type-function',
-        span: scanner.spanFrom(beforeName),
-      ));
+      error('This name is reserved for the plain-CSS function.',
+          scanner.spanFrom(beforeName));
     }
 
     whitespace(consumeNewlines: true);
@@ -2966,35 +2960,40 @@ abstract class StylesheetParser extends Parser {
   /// [name].
   @protected
   Expression? trySpecialFunction(String name, LineScannerState start) {
-    var normalized = unvendor(name);
-
     InterpolationBuffer buffer;
-    switch (normalized) {
-      case "calc" when normalized != name && scanner.scanChar($lparen):
-      case "element" || "expression" when scanner.scanChar($lparen):
-        buffer = InterpolationBuffer()
-          ..write(name)
-          ..writeCharCode($lparen);
+    if (name == "type" && scanner.scanChar($lparen)) {
+      buffer = InterpolationBuffer()
+        ..write(name)
+        ..writeCharCode($lparen);
+    } else {
+      var normalized = unvendor(name);
+      switch (normalized) {
+        case "calc" when normalized != name && scanner.scanChar($lparen):
+        case "element" || "expression" when scanner.scanChar($lparen):
+          buffer = InterpolationBuffer()
+            ..write(name)
+            ..writeCharCode($lparen);
 
-      case "progid" when scanner.scanChar($colon):
-        buffer = InterpolationBuffer()
-          ..write(name)
-          ..writeCharCode($colon);
-        var next = scanner.peekChar();
-        while (next != null && (next.isAlphabetic || next == $dot)) {
-          buffer.writeCharCode(scanner.readChar());
-          next = scanner.peekChar();
-        }
-        scanner.expectChar($lparen);
-        buffer.writeCharCode($lparen);
+        case "progid" when scanner.scanChar($colon):
+          buffer = InterpolationBuffer()
+            ..write(name)
+            ..writeCharCode($colon);
+          var next = scanner.peekChar();
+          while (next != null && (next.isAlphabetic || next == $dot)) {
+            buffer.writeCharCode(scanner.readChar());
+            next = scanner.peekChar();
+          }
+          scanner.expectChar($lparen);
+          buffer.writeCharCode($lparen);
 
-      case "url":
-        return _tryUrlContents(
-          start,
-        ).andThen((contents) => StringExpression(contents));
+        case "url":
+          return _tryUrlContents(
+            start,
+          ).andThen((contents) => StringExpression(contents));
 
-      case _:
-        return null;
+        case _:
+          return null;
+      }
     }
 
     buffer.addInterpolation(_interpolatedDeclarationValue(allowEmpty: true));

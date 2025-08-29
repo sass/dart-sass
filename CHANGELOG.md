@@ -4,6 +4,11 @@
   the order they appear in the source even when they're interleaved with nested
   rules. This obsoletes the `mixed-decls` deprecation.
 
+* **Breaking change:** The function name `type()` is now fully reserved for the
+  plain CSS function. This means that `@function` definitions with the name
+  `type` will produce errors, while function calls will be parsed as special
+  function strings.
+
 * Fix a bug where `@extend` rules loaded through a mixture of `@import` and
   `@use` rules could fail to apply correctly.
 

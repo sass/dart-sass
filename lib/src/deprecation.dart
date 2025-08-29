@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 2a2a94a3dd8ab2f7e3880b24e8e7850d66998b33
+  // Checksum: 247ee9ef1df8665b759064856492831661b08985
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -125,7 +125,9 @@ enum Deprecation {
 
   /// Deprecation for functions named "type".
   typeFunction('type-function',
-      deprecatedIn: '1.86.0', description: 'Functions named "type".'),
+      deprecatedIn: '1.86.0',
+      obsoleteIn: '1.92.0',
+      description: 'Functions named "type".'),
 
   /// Deprecation for passing a relative url to compileString().
   compileStringRelativeUrl('compile-string-relative-url',
