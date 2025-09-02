@@ -464,7 +464,7 @@ void main() {
       expect(logEvent.span.context, equals("a {\$var: value !global}"));
       expect(logEvent.stackTrace, "- 1:4  root stylesheet\n");
       await process.kill();
-    });
+    }, skip: 'Re-enable this once we have a post-2.0.0 runtime deprecation');
   });
 
   group("gracefully handles an error", () {

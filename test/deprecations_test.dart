@@ -15,11 +15,6 @@ void main() {
     _expectDeprecation("a { b: call(random)}", Deprecation.callString);
   });
 
-  // Deprecated in 1.17.2
-  test("newGlobal is violated by declaring a new variable with !global", () {
-    _expectDeprecation(r"a {$foo: bar !global;}", Deprecation.newGlobal);
-  });
-
   // Deprecated in 1.23.0
   group("colorModuleCompat is violated by", () {
     var color = "@use 'sass:color'; a { b: color";
