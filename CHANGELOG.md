@@ -1,4 +1,4 @@
-## 1.92.0-dev
+## 1.92.0
 
 * **Breaking change:** Emit declarations, childless at-rules, and comments in
   the order they appear in the source even when they're interleaved with nested
@@ -8,6 +8,11 @@
   plain CSS function. This means that `@function` definitions with the name
   `type` will produce errors, while function calls will be parsed as special
   function strings.
+
+* Configuring private variables using `@use ... with`, `@forward ... with`, and
+  `meta.load-css(..., $with: ...)` is now deprecated. Private variables were
+  always intended to be fully encapsulated within the module that defines them,
+  and this helps enforce that encapsulation.
 
 * Fix a bug where `@extend` rules loaded through a mixture of `@import` and
   `@use` rules could fail to apply correctly.

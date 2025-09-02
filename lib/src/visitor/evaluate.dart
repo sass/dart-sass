@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 100082e5b65dc126357c027e76f34ae97b3f9e48
+// Checksum: a32ff6b83b3365e8dad72b8b12c2c17937a5f28e
 //
 // ignore_for_file: unused_import
 
@@ -588,11 +588,20 @@ final class _EvaluateVisitor
         if (withMap != null) {
           var values = <String, ConfiguredValue>{};
           var span = callableNode.span;
+          var privateDeprecation = false;
           withMap.forEach((variable, value) {
             var name =
                 variable.assertString("with key").text.replaceAll("_", "-");
             if (values.containsKey(name)) {
               throw "The variable \$$name was configured twice.";
+            } else if (name.startsWith("-") && !privateDeprecation) {
+              privateDeprecation = true;
+              warnForDeprecation(
+                "Configuring private variables (such as \$$name) is "
+                "deprecated.\n"
+                "This will be an error in Dart Sass 2.0.0.",
+                Deprecation.withPrivate,
+              );
             }
 
             values[name] = ConfiguredValue.explicit(value, span, callableNode);

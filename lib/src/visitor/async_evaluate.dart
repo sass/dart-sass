@@ -580,11 +580,20 @@ final class _EvaluateVisitor
         if (withMap != null) {
           var values = <String, ConfiguredValue>{};
           var span = callableNode.span;
+          var privateDeprecation = false;
           withMap.forEach((variable, value) {
             var name =
                 variable.assertString("with key").text.replaceAll("_", "-");
             if (values.containsKey(name)) {
               throw "The variable \$$name was configured twice.";
+            } else if (name.startsWith("-") && !privateDeprecation) {
+              privateDeprecation = true;
+              warnForDeprecation(
+                "Configuring private variables (such as \$$name) is "
+                "deprecated.\n"
+                "This will be an error in Dart Sass 2.0.0.",
+                Deprecation.withPrivate,
+              );
             }
 
             values[name] = ConfiguredValue.explicit(value, span, callableNode);
