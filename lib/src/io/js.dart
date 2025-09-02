@@ -14,6 +14,7 @@ import 'package:node_interop/node_interop.dart' hide process;
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:watcher/watcher.dart';
+import 'package:web/web.dart';
 
 import '../exception.dart';
 import '../js/chokidar.dart';
@@ -37,11 +38,11 @@ class FileSystemException {
 }
 
 void safePrint(Object? message) {
-  console.log(message?.toString() ?? '');
+  console.log((message?.toString() ?? '').toJS);
 }
 
 void printError(Object? message) {
-  console.error(message?.toString() ?? '');
+  console.error((message?.toString() ?? '').toJS);
 }
 
 String readFile(String path) {
