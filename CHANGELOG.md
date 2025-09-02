@@ -7,6 +7,9 @@
   parsing associated with it. It is now parsed like any other unknown plain CSS
   at-rule, where Sass features are only allowed within `#{}` interpolation.
 
+* **Breaking change:** A variable definition may now only have a single
+  `!global` flag or `!default` flag, or one of each.
+
 ### Bogus Combinators
 
 * **Breaking change:** Selectors with more than one combinator in a row, such as

@@ -255,13 +255,8 @@ abstract class StylesheetParser extends Parser {
       switch (identifier()) {
         case 'default':
           if (guarded) {
-            warnings.add((
-              deprecation: Deprecation.duplicateVarFlags,
-              message:
-                  '!default should only be written once for each variable.\n'
-                  'This will be an error in Dart Sass 2.0.0.',
-              span: scanner.spanFrom(flagStart),
-            ));
+            error('Only one !default is allowed per declaration.',
+                scanner.spanFrom(flagStart));
           }
           guarded = true;
 
@@ -272,13 +267,8 @@ abstract class StylesheetParser extends Parser {
               scanner.spanFrom(flagStart),
             );
           } else if (global) {
-            warnings.add((
-              deprecation: Deprecation.duplicateVarFlags,
-              message:
-                  '!global should only be written once for each variable.\n'
-                  'This will be an error in Dart Sass 2.0.0.',
-              span: scanner.spanFrom(flagStart),
-            ));
+            error('Only one !global is allowed per declaration.',
+                scanner.spanFrom(flagStart));
           }
           global = true;
 
