@@ -60,6 +60,24 @@ void main() {
     });
   });
 
+  group("compileStringRelativeUrl is violated by", () {
+    test("a fully relative URL", () {
+      _expectDeprecationCallback(
+          () => compileStringToResult("a {b: c}",
+              url: "foo",
+              fatalDeprecations: {Deprecation.compileStringRelativeUrl}),
+          Deprecation.compileStringRelativeUrl);
+    });
+
+    test("a root-relative URL", () {
+      _expectDeprecationCallback(
+          () => compileStringToResult("a {b: c}",
+              url: "/foo",
+              fatalDeprecations: {Deprecation.compileStringRelativeUrl}),
+          Deprecation.compileStringRelativeUrl);
+    });
+  });
+
   // Deprecated in various Sass versions <=1.56.0
   group("functionUnits is violated by", () {
     test("a hue with a non-angle unit", () {
@@ -108,9 +126,16 @@ void main() {
 }
 
 /// Confirms that [source] will error if [deprecation] is fatal.
-void _expectDeprecation(String source, Deprecation deprecation) {
+void _expectDeprecation(String source, Deprecation deprecation) =>
+    _expectDeprecationCallback(
+        () => compileStringToResult(source, fatalDeprecations: {deprecation}),
+        deprecation);
+
+/// Confirms that [callback] will produce a fatal deprecation error for
+/// [deprecation].
+void _expectDeprecationCallback(void callback(), Deprecation deprecation) {
   try {
-    compileStringToResult(source, fatalDeprecations: {deprecation});
+    callback();
   } catch (e) {
     if (e.toString().contains("$deprecation deprecation to be fatal")) return;
     fail('Unexpected error: $e');

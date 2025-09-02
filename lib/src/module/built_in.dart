@@ -62,5 +62,7 @@ final class BuiltInModule<T extends AsyncCallable> implements Module<T> {
     return this;
   }
 
+  bool couldHaveBeenConfigured(Set<String> _) => false;
+
   Module<T> cloneCss() => this;
 }

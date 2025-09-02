@@ -25,7 +25,7 @@ bool get _couldBeCaseInsensitive => isWindows || isMacOS;
 
 /// Returns the canonical form of `path` on disk.
 String canonicalize(String path) => _couldBeCaseInsensitive
-    ? _realCasePath(p.absolute(p.normalize(path)))
+    ? _realCasePath(p.normalize(p.absolute(path)))
     : p.canonicalize(path);
 
 /// Returns `path` with the case updated to match the path's case on disk.

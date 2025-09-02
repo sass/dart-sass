@@ -6,7 +6,6 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:charcode/charcode.dart';
-import 'package:collection/collection.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:string_scanner/string_scanner.dart';
 
@@ -14,13 +13,11 @@ import '../ast/css.dart';
 import '../ast/node.dart';
 import '../ast/selector.dart';
 import '../color_names.dart';
-import '../deprecation.dart';
 import '../exception.dart';
 import '../logger.dart';
 import '../parse/parser.dart';
 import '../utils.dart';
 import '../util/character.dart';
-import '../util/multi_span.dart';
 import '../util/no_source_map_buffer.dart';
 import '../util/nullable.dart';
 import '../util/number.dart';
@@ -145,6 +142,9 @@ final class _SerializeVisitor
   ///
   /// This should only be used for statement-level serialization. It's not
   /// guaranteed to be the main user-provided logger for expressions.
+  // We include this even when it's unused to reduce the churn as deprecations
+  // are added and removed.
+  // ignore: unused_field
   final Logger _logger;
 
   /// Whether we're emitting compressed output.
@@ -355,33 +355,6 @@ final class _SerializeVisitor
   }
 
   void visitCssDeclaration(CssDeclaration node) {
-    if (node.interleavedRules.isNotEmpty) {
-      var declSpecificities = _specificities(node.parent!);
-      for (var rule in node.interleavedRules) {
-        var ruleSpecificities = _specificities(rule);
-
-        // If the declaration can never match with the same specificity as one
-        // of its sibling rules, then ordering will never matter and there's no
-        // need to warn about the declaration being re-ordered.
-        if (!declSpecificities.any(ruleSpecificities.contains)) continue;
-
-        _logger.warnForDeprecation(
-          Deprecation.mixedDecls,
-          "Sass's behavior for declarations that appear after nested\n"
-          "rules will be changing to match the behavior specified by CSS in an "
-          "upcoming\n"
-          "version. To keep the existing behavior, move the declaration above "
-          "the nested\n"
-          "rule. To opt into the new behavior, wrap the declaration in `& "
-          "{}`.\n"
-          "\n"
-          "More info: https://sass-lang.com/d/mixed-decls",
-          span: MultiSpan(node.span, 'declaration', {rule.span: 'nested rule'}),
-          trace: node.trace,
-        );
-      }
-    }
-
     _writeIndentation();
 
     _write(node.name);
@@ -423,22 +396,6 @@ final class _SerializeVisitor
           stackTrace,
         );
       }
-    }
-  }
-
-  /// Returns the set of possible specificities which which [node] might match.
-  Set<int> _specificities(CssParentNode node) {
-    if (node case CssStyleRule rule) {
-      // Plain CSS style rule nesting implicitly wraps parent selectors in
-      // `:is()`, so they all match with the highest specificity among any of
-      // them.
-      var parent = node.parent.andThen(_specificities)?.max ?? 0;
-      return {
-        for (var selector in rule.selector.components)
-          parent + selector.specificity,
-      };
-    } else {
-      return node.parent.andThen(_specificities) ?? const {0};
     }
   }
 
@@ -1192,7 +1149,10 @@ final class _SerializeVisitor
 
     // Dart always converts integers to strings in the obvious way, so all we
     // have to do is clamp doubles that are close to being integers.
-    if (fuzzyAsInt(number) case var integer?) {
+    if (fuzzyAsInt(number) case var integer?
+        // In inspect mode, we want to show the full precision of every number,
+        // so we only write them as integers when they're precisely equal.
+        when !_inspect || number == integer) {
       // JS still uses exponential notation for integers, so we have to handle
       // it here.
       buffer.write(_removeExponent(integer.toString()));
@@ -1200,6 +1160,12 @@ final class _SerializeVisitor
     }
 
     var text = _removeExponent(number.toString());
+
+    // Write the number at full precision in inspect mode.
+    if (_inspect) {
+      buffer.write(text);
+      return;
+    }
 
     // Any double that's less than `SassNumber.precision + 2` digits long is
     // guaranteed to be safe to emit directly, since it'll contain at most `0.`

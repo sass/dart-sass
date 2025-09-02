@@ -976,6 +976,29 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
           await d.dir("dir", [d.nothing("out.css")]).validate();
         });
+
+        test("and deletes the source map", () async {
+          await d.file("test.scss", "a {b: c}").create();
+
+          var sass = await watch(["--source-map", "test.scss:out.css"]);
+          await expectLater(
+            sass.stdout,
+            emits(endsWith('Compiled test.scss to out.css.')),
+          );
+          await expectLater(sass.stdout, _watchingForChanges);
+          await tickIfPoll();
+
+          d.file("test.scss").io.deleteSync();
+          await expectLater(
+              sass.stdout,
+              emitsInOrder([
+                'Deleted out.css.',
+                'Deleted out.css.map.',
+              ]));
+          await sass.kill();
+
+          await d.nothing("out.css").validate();
+        });
       });
 
       test("creates a new CSS file when a Sass file is added", () async {

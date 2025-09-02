@@ -271,6 +271,7 @@ class NodePackageImporter extends Importer {
           return null;
         })
         .nonNulls
+        .toSet()
         .toList();
 
     return switch (matches) {

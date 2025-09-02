@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: ef3310e5d44fa5a9411c9416fb36f51741dfe6ad
+// Checksum: d305a0f75e329a29f5aff734ac31ce145fd3b8d5
 //
 // ignore_for_file: unused_import
 
@@ -141,6 +141,16 @@ CompileResult compileString(
   )..validate();
 
   var stylesheet = Stylesheet.parse(source, syntax ?? Syntax.scss, url: url);
+
+  if (stylesheet.span.sourceUrl case Uri(scheme: '')
+      when nodeImporter == null) {
+    deprecationLogger.warnForDeprecation(
+      Deprecation.compileStringRelativeUrl,
+      'Passing a relative `url` argument (${stylesheet.span.sourceUrl}) to '
+      'compileString() or related functions is deprecated and will be an error '
+      'in Dart Sass 2.0.0.',
+    );
+  }
 
   var result = _compileStylesheet(
     stylesheet,

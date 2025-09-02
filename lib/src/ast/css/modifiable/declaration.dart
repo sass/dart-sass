@@ -9,7 +9,6 @@ import '../../../value.dart';
 import '../../../visitor/interface/modifiable_css.dart';
 import '../declaration.dart';
 import '../value.dart';
-import '../style_rule.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssDeclaration] for use in the evaluation step.
@@ -18,7 +17,6 @@ final class ModifiableCssDeclaration extends ModifiableCssNode
   final CssValue<String> name;
   final CssValue<Value> value;
   final bool parsedAsCustomProperty;
-  final List<CssStyleRule> interleavedRules;
   final Trace? trace;
   final FileSpan valueSpanForMap;
   final FileSpan span;
@@ -31,13 +29,9 @@ final class ModifiableCssDeclaration extends ModifiableCssNode
     this.value,
     this.span, {
     required this.parsedAsCustomProperty,
-    Iterable<CssStyleRule>? interleavedRules,
     this.trace,
     FileSpan? valueSpanForMap,
-  })  : interleavedRules = interleavedRules == null
-            ? const []
-            : List.unmodifiable(interleavedRules),
-        valueSpanForMap = valueSpanForMap ?? value.span {
+  }) : valueSpanForMap = valueSpanForMap ?? value.span {
     if (parsedAsCustomProperty) {
       if (!isCustomProperty) {
         throw ArgumentError(

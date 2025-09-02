@@ -30,8 +30,7 @@ abstract interface class Module<T extends AsyncCallable> {
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
   ///
-  /// Implementations must ensure that this has the same keys as [variables] if
-  /// it's not `null`.
+  /// Implementations must ensure that this has the same keys as [variables].
   Map<String, AstNode> get variableNodes;
 
   /// The module's functions.
@@ -80,6 +79,10 @@ abstract interface class Module<T extends AsyncCallable> {
   /// and only if both modules expose identical definitions of the variable in
   /// question, as defined by the Sass spec.
   Object variableIdentity(String name);
+
+  /// Whether this module exposes any variables from among [variables] that
+  /// could have been configured when the module was loaded.
+  bool couldHaveBeenConfigured(Set<String> variables);
 
   /// Creates a copy of this module with new [css] and [extender].
   Module<T> cloneCss();

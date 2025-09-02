@@ -10,6 +10,7 @@ import '../visitor/interface/selector.dart';
 import '../visitor/serialize.dart';
 import 'node.dart';
 import 'selector/list.dart';
+import 'selector/parent.dart';
 import 'selector/placeholder.dart';
 import 'selector/pseudo.dart';
 
@@ -45,6 +46,13 @@ abstract base class Selector implements AstNode {
   @internal
   bool get isInvisible => accept(const _IsInvisibleVisitor());
 
+  /// Whether this selector contains a [ParentSelector].
+  ///
+  /// @nodoc
+  @internal
+  bool get containsParentSelector =>
+      accept(const _ContainsParentSelectorVisitor());
+
   final FileSpan span;
 
   Selector(this.span);
@@ -75,4 +83,11 @@ class _IsInvisibleVisitor with AnySelectorVisitor {
       return false;
     }
   }
+}
+
+/// The visitor used to implement [Selector.containsParentSelector].
+class _ContainsParentSelectorVisitor with AnySelectorVisitor {
+  const _ContainsParentSelectorVisitor();
+
+  bool visitParentSelector(ParentSelector _) => true;
 }
