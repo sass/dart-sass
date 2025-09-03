@@ -99,6 +99,38 @@ jobs:
       - run: git tag sass-api-${{ steps.sass-api-version.outputs.version }}
       - run: git push --tag
 
+  deploy_sass_types:
+    name: Deploy @sass/types
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+      # Set up .npmrc file to publish to npm
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          check-latest: true
+          registry-url: 'https://registry.npmjs.org'
+      - name: Get Dart Sass version
+        id: dart-sass-version
+        run: echo "version=${{ github.ref_name }}" | tee --append "$GITHUB_OUTPUT"
+      - name: Check out the language repo
+        uses: actions/checkout@v5
+        with: {repository: sass/sass, path: build/language}
+      - name: Copy types from the language repo
+        run: cp -r build/language/js-api-doc pkg/sass-types/types
+      - name: Copy LICENSE file
+        run: cp LICENSE pkg/sass-types/
+      - name: Set the version of @sass/types
+        run: npm pkg set version='{{ steps.dart-sass-version.outputs.version }}'
+        working-directory: pkg/sass-types/
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: '${{ secrets.NPM_TOKEN }}'
+        working-directory: pkg/sass-types/
+
   deploy_sass_parser:
     name: Deploy sass-parser
     runs-on: ubuntu-latest
