@@ -24,6 +24,7 @@ import {
 } from '.';
 import {_DeclarationWithChildren} from './declaration-internal';
 import * as sassParser from '../..';
+import {ContainerWithChildren} from 'postcss/lib/container';
 
 // TODO(nweiz): Make sure setting non-identifier strings for prop here and name
 // in GenericAtRule escapes properly.
@@ -247,6 +248,8 @@ export class Declaration
 
   /** @hidden */
   normalize(node: NewNode, sample?: postcss.Node): ChildNode[] {
-    return normalize(this as StatementWithChildren, node, sample);
+    // Casting is necessary because `_Declaration` can't extend
+    // `ContainerWithChildren` because it is a union type.
+    return normalize(this as unknown as StatementWithChildren, node, sample);
   }
 }
