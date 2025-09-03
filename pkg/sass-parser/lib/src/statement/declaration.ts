@@ -247,6 +247,9 @@ export class Declaration
 
   /** @hidden */
   normalize(node: NewNode, sample?: postcss.Node): ChildNode[] {
-    return normalize(this as StatementWithChildren, node, sample);
+    // Casting to `any` is necessary because `_Declaration` can't extend
+    // `ContainerWithChildren` because it is a union type.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return normalize(this as any, node, sample);
   }
 }
