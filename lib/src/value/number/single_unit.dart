@@ -50,17 +50,10 @@ class SingleUnitSassNumber extends SassNumber {
   bool get hasUnits => true;
   bool get hasComplexUnits => false;
 
-  SingleUnitSassNumber(
-    double value,
-    this._unit, [
-    (SassNumber, SassNumber)? asSlash,
-  ]) : super.protected(value, asSlash);
+  SingleUnitSassNumber(super.value, this._unit) : super.protected();
 
   SassNumber withValue(num value) =>
       SingleUnitSassNumber(value.toDouble(), _unit);
-
-  SassNumber withSlash(SassNumber numerator, SassNumber denominator) =>
-      SingleUnitSassNumber(value, _unit, (numerator, denominator));
 
   bool hasUnit(String unit) => unit == _unit;
 

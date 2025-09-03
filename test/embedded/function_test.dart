@@ -768,7 +768,7 @@ void main() {
           });
 
           test("with a slash separator", () async {
-            var list = (await _protofy(r"list.slash(true, null, false)")).list;
+            var list = (await _protofy(r"true / null / false")).list;
             expect(list.contents, equals([_true, _null, _false]));
             expect(list.hasBrackets, isFalse);
             expect(list.separator, equals(ListSeparator.SLASH));
@@ -803,7 +803,7 @@ void main() {
 
       test("with a slash separator", () async {
         var list = (await _protofy(
-          r"capture-args(list.slash(true, null, false)...)",
+          r"capture-args(true / null / false...)",
         ))
             .argumentList;
         expect(list.contents, [_true, _null, _false]);

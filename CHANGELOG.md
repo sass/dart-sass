@@ -1,5 +1,9 @@
 ## 2.0.0
 
+* **Breaking change:** `/` is now used for slash-separated lists rather than
+  division in SassScript. You can still use it for division within `calc()` and
+  other calculation expressions, or use `math.div()` instead.
+
 * **Breaking change:** `@elseif` is no longer treated as equivalent to `@else
   if`, and is now treated like any other unknown plain CSS at-rule.
 

@@ -24,13 +24,6 @@ final class BinaryOperationExpression extends Expression {
   /// The right-hand operand.
   final Expression right;
 
-  /// Whether this is a [BinaryOperator.dividedBy] operation that may be
-  /// interpreted as slash-separated numbers.
-  ///
-  /// @nodoc
-  @internal
-  final bool allowsSlash;
-
   FileSpan get span {
     // Avoid creating a bunch of intermediate spans for multiple binary
     // expressions in a row by moving to the left- and right-most expressions.
@@ -57,17 +50,7 @@ final class BinaryOperationExpression extends Expression {
           .trim()
       : span;
 
-  BinaryOperationExpression(this.operator, this.left, this.right)
-      : allowsSlash = false;
-
-  /// Creates a [BinaryOperator.dividedBy] operation that may be interpreted as
-  /// slash-separated numbers.
-  ///
-  /// @nodoc
-  @internal
-  BinaryOperationExpression.slash(this.left, this.right)
-      : operator = BinaryOperator.dividedBy,
-        allowsSlash = true;
+  BinaryOperationExpression(this.operator, this.left, this.right);
 
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitBinaryOperationExpression(this);
@@ -151,6 +134,10 @@ enum BinaryOperator {
   times('times', '*', 6, associative: true),
 
   /// The division operator, `/`.
+  ///
+  /// **Note:** This is never directly parsed by the Sass stylesheet. It's only
+  /// ever generated at runtime by reorienting the precedence of slash-separated
+  /// lists.
   dividedBy('divided by', '/', 6),
 
   /// The modulo operator, `%`.
