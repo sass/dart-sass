@@ -31,12 +31,8 @@ class ComplexSassNumber extends SassNumber {
     List<String> denominatorUnits,
   ) : this._(value, numeratorUnits, denominatorUnits);
 
-  ComplexSassNumber._(
-    double value,
-    this._numeratorUnits,
-    this._denominatorUnits, [
-    (SassNumber, SassNumber)? asSlash,
-  ]) : super.protected(value, asSlash) {
+  ComplexSassNumber._(super.value, this._numeratorUnits, this._denominatorUnits)
+      : super.protected() {
     assert(numeratorUnits.length > 1 || denominatorUnits.isNotEmpty);
   }
 
@@ -55,10 +51,4 @@ class ComplexSassNumber extends SassNumber {
 
   SassNumber withValue(num value) =>
       ComplexSassNumber._(value.toDouble(), numeratorUnits, denominatorUnits);
-
-  SassNumber withSlash(SassNumber numerator, SassNumber denominator) =>
-      ComplexSassNumber._(value, numeratorUnits, denominatorUnits, (
-        numerator,
-        denominator,
-      ));
 }

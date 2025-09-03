@@ -1806,22 +1806,6 @@ Value _parseChannels(
           "${pluralize('was', inputList.length, plural: 'were')} passed.",
           name,
         ),
-      [...var initial, SassString(hasQuotes: false, :var text)] => switch (
-            text.split('/')) {
-          [_] => (input, null),
-          [var channel3, var alpha] => (
-              SassList([
-                ...initial,
-                _parseNumberOrString(channel3),
-              ], ListSeparator.space),
-              _parseNumberOrString(alpha),
-            ),
-          _ => null,
-        },
-      [...var initial, SassNumber(asSlash: (var before, var after))] => (
-          SassList([...initial, before], ListSeparator.space),
-          after,
-        ),
       _ => (input, null),
     };
 

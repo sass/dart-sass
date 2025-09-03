@@ -44,7 +44,8 @@ class IsCalculationSafeVisitor implements ExpressionVisitor<bool> {
   bool visitIfExpression(IfExpression node) => true;
 
   bool visitListExpression(ListExpression node) =>
-      node.separator == ListSeparator.space &&
+      (node.separator == ListSeparator.space ||
+          node.separator == ListSeparator.slash) &&
       !node.hasBrackets &&
       node.contents.length > 1 &&
       node.contents.every((expression) => expression.accept(this));
