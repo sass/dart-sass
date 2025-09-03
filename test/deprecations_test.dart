@@ -39,11 +39,6 @@ void main() {
     });
   });
 
-  // Deprecated in 1.33.0
-  test("slashDiv is violated by using / for division", () {
-    _expectDeprecation(r"a {b: (4/2)}", Deprecation.slashDiv);
-  });
-
   // Deprecated in 1.55.0
   group("strictUnary is violated by", () {
     test("an ambiguous + operator", () {

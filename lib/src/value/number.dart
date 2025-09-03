@@ -184,13 +184,6 @@ abstract class SassNumber extends Value {
   /// lengths.
   bool get hasComplexUnits;
 
-  /// The representation of this number as two slash-separated numbers, if it
-  /// has one.
-  ///
-  /// @nodoc
-  @internal
-  final (SassNumber, SassNumber)? asSlash;
-
   /// Whether `this` is an integer, according to [fuzzyEquals].
   ///
   /// The [int] value can be accessed using [asInt] or [assertInt]. Note that
@@ -274,7 +267,7 @@ abstract class SassNumber extends Value {
 
   /// @nodoc
   @protected
-  SassNumber.protected(this._value, this.asSlash);
+  SassNumber.protected(this._value);
 
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitNumber(this);
 
@@ -284,19 +277,6 @@ abstract class SassNumber extends Value {
   /// @nodoc
   @protected
   SassNumber withValue(num value);
-
-  /// Returns a copy of `this` without [asSlash] set.
-  ///
-  /// @nodoc
-  @internal
-  SassNumber withoutSlash() => asSlash == null ? this : withValue(value);
-
-  /// Returns a copy of `this` with [asSlash] set to a pair containing
-  /// [numerator] and [denominator].
-  ///
-  /// @nodoc
-  @internal
-  SassNumber withSlash(SassNumber numerator, SassNumber denominator);
 
   SassNumber assertNumber([String? name]) => this;
 
