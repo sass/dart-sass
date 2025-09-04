@@ -49,7 +49,9 @@ export 'src/evaluation_context.dart' show warn;
 ///
 /// Imports are resolved by trying, in order:
 ///
-/// * Loading a file relative to [path].
+/// * **For relative URLs only:** the URL resolved relative to the current
+///   stylesheet's canonical URL, passed to the importer that loaded the current
+///   stylesheet.
 ///
 /// * Each importer in [importers].
 ///
@@ -147,7 +149,14 @@ CompileResult compileToResult(
 ///
 /// Imports are resolved by trying, in order:
 ///
-/// * The given [importer], with the imported URL resolved relative to [url].
+/// * **For relative URLs only:** the URL resolved relative to the current
+///   stylesheet's canonical URL, passed to the importer that loaded the current
+///   stylesheet.
+///
+///   For the entrypoint file, [url] is the canonical URL and [importer] is the
+///   importer that loaded it. If [url] is a `file:` URL and [importer] is null,
+///   it defaults to a [FilesystemImporter] that loads relative URLs from the
+///   filesystem.
 ///
 /// * Each importer in [importers].
 ///

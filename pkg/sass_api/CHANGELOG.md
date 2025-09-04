@@ -29,6 +29,43 @@
 * `Value.assertSelector()` and `Value.assertComplexSelector()` now forbid
   selectors with leading or trailing combinators by default.
 
+## 15.10.0-dev
+
+* No user-visible changes.
+
+## 15.9.0
+
+* No user-visible changes.
+
+## 15.8.0
+
+* No user-visible changes.
+
+## 15.7.1
+
+* No user-visible changes.
+
+## 15.7.0
+
+* **Potentially-breaking bug fix**: parenthesized, comma-separated lists are now
+  correctly wrapped in a `ParenthesizedExpression`.
+
+## 15.6.0
+
+* No user-visible changes.
+
+## 15.5.0
+
+* No user-visible changes.
+
+## 15.4.0
+
+* No user-visible changes.
+
+## 15.3.2
+
+* No user-visible changes.
+
 ## 15.3.1
 
 * No user-visible changes.

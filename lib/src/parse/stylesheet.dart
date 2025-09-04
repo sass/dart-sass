@@ -15,6 +15,7 @@ import '../exception.dart';
 import '../interpolation_buffer.dart';
 import '../util/character.dart';
 import '../utils.dart';
+import '../util/multi_span.dart';
 import '../util/nullable.dart';
 import '../value.dart';
 import 'parser.dart';
@@ -412,7 +413,9 @@ abstract class StylesheetParser extends Parser {
     var name = nameBuffer.interpolation(scanner.spanFrom(start, beforeColon));
     if (name.initialPlain.startsWith('--')) {
       var value = StringExpression(
-        _interpolatedDeclarationValue(silentComments: false),
+        atEndOfStatement()
+            ? Interpolation(const [], const [], scanner.emptySpan)
+            : _interpolatedDeclarationValue(silentComments: false),
       );
       expectStatementSeparator("custom property");
       return Declaration(name, value, scanner.spanFrom(start));
@@ -927,14 +930,8 @@ abstract class StylesheetParser extends Parser {
         span: scanner.spanFrom(beforeName),
       ));
     } else if (equalsIgnoreCase(name, 'type')) {
-      warnings.add((
-        deprecation: Deprecation.typeFunction,
-        message: 'Sass @functions named "type" are deprecated for forward-'
-            'compatibility with the plain CSS type() function.\n'
-            '\n'
-            'For details, see https://sass-lang.com/d/type-function',
-        span: scanner.spanFrom(beforeName),
-      ));
+      error('This name is reserved for the plain-CSS function.',
+          scanner.spanFrom(beforeName));
     }
 
     whitespace(consumeNewlines: true);
@@ -1742,6 +1739,7 @@ abstract class StylesheetParser extends Parser {
     var named = <String, Expression>{};
     Expression? rest;
     Expression? keywordRest;
+    var emittedRestDeprecation = false;
     while (_lookingAtExpression()) {
       var expression = expressionUntilComma(singleEquals: !mixin);
       whitespace(consumeNewlines: true);
@@ -1752,6 +1750,19 @@ abstract class StylesheetParser extends Parser {
           error("Duplicate argument.", expression.span);
         }
         named[expression.name] = expressionUntilComma(singleEquals: !mixin);
+
+        if (rest != null && !emittedRestDeprecation) {
+          emittedRestDeprecation = true;
+          warnings.add((
+            deprecation: Deprecation.misplacedRest,
+            message: 'Named arguments must come before rest arguments.\n'
+                'This will be an error in Dart Sass 2.0.0.',
+            span: MultiSpan(
+                scanner.spanFromPosition(expression.span.start.offset),
+                'named argument',
+                {rest.span: 'rest argument'})
+          ));
+        }
       } else if (scanner.scanChar($dot)) {
         scanner.expectChar($dot);
         scanner.expectChar($dot);
@@ -1770,6 +1781,17 @@ abstract class StylesheetParser extends Parser {
         );
       } else {
         positional.add(expression);
+
+        if (rest != null && !emittedRestDeprecation) {
+          emittedRestDeprecation = true;
+          warnings.add((
+            deprecation: Deprecation.misplacedRest,
+            message: 'Positional arguments must come before rest arguments.\n'
+                'This will be an error in Dart Sass 2.0.0.',
+            span: MultiSpan(expression.span, 'positional argument',
+                {rest.span: 'rest argument'})
+          ));
+        }
       }
 
       whitespace(consumeNewlines: true);
@@ -2306,6 +2328,7 @@ abstract class StylesheetParser extends Parser {
       var start = scanner.state;
       scanner.expectChar($lparen);
       whitespace(consumeNewlines: true);
+      var inside = scanner.state;
       if (!_lookingAtExpression()) {
         scanner.expectChar($rparen);
         return ListExpression(
@@ -2335,12 +2358,13 @@ abstract class StylesheetParser extends Parser {
         whitespace(consumeNewlines: true);
       }
 
-      scanner.expectChar($rparen);
-      return ListExpression(
+      var list = ListExpression(
         expressions,
         ListSeparator.comma,
-        scanner.spanFrom(start),
+        scanner.spanFrom(inside),
       );
+      scanner.expectChar($rparen);
+      return ParenthesizedExpression(list, scanner.spanFrom(start));
     } finally {
       _inParentheses = wasInParentheses;
     }
@@ -2848,35 +2872,40 @@ abstract class StylesheetParser extends Parser {
   /// [name].
   @protected
   Expression? trySpecialFunction(String name, LineScannerState start) {
-    var normalized = unvendor(name);
-
     InterpolationBuffer buffer;
-    switch (normalized) {
-      case "calc" when normalized != name && scanner.scanChar($lparen):
-      case "element" || "expression" when scanner.scanChar($lparen):
-        buffer = InterpolationBuffer()
-          ..write(name)
-          ..writeCharCode($lparen);
+    if (name == "type" && scanner.scanChar($lparen)) {
+      buffer = InterpolationBuffer()
+        ..write(name)
+        ..writeCharCode($lparen);
+    } else {
+      var normalized = unvendor(name);
+      switch (normalized) {
+        case "calc" when normalized != name && scanner.scanChar($lparen):
+        case "element" || "expression" when scanner.scanChar($lparen):
+          buffer = InterpolationBuffer()
+            ..write(name)
+            ..writeCharCode($lparen);
 
-      case "progid" when scanner.scanChar($colon):
-        buffer = InterpolationBuffer()
-          ..write(name)
-          ..writeCharCode($colon);
-        var next = scanner.peekChar();
-        while (next != null && (next.isAlphabetic || next == $dot)) {
-          buffer.writeCharCode(scanner.readChar());
-          next = scanner.peekChar();
-        }
-        scanner.expectChar($lparen);
-        buffer.writeCharCode($lparen);
+        case "progid" when scanner.scanChar($colon):
+          buffer = InterpolationBuffer()
+            ..write(name)
+            ..writeCharCode($colon);
+          var next = scanner.peekChar();
+          while (next != null && (next.isAlphabetic || next == $dot)) {
+            buffer.writeCharCode(scanner.readChar());
+            next = scanner.peekChar();
+          }
+          scanner.expectChar($lparen);
+          buffer.writeCharCode($lparen);
 
-      case "url":
-        return _tryUrlContents(
-          start,
-        ).andThen((contents) => StringExpression(contents));
+        case "url":
+          return _tryUrlContents(
+            start,
+          ).andThen((contents) => StringExpression(contents));
 
-      case _:
-        return null;
+        case _:
+          return null;
+      }
     }
 
     buffer.addInterpolation(_interpolatedDeclarationValue(allowEmpty: true));

@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: ./.github/util/initialize
       with: {github-token: "${{ github.token }}"}
     - run: dart format .
@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -66,7 +66,7 @@ jobs:
             async_args: '--cmd-args --async'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -105,7 +105,7 @@ jobs:
             node-version: 'lts/*'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -150,7 +150,7 @@ jobs:
             node-version: lts/-3
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/util/initialize
         with:
           github-token: ${{ github.token }}
@@ -170,17 +170,11 @@ jobs:
           npm install
           npm run init -- --compiler-path=.. --language-path=../build/language
           npm run compile
-          mv {`pwd`/,dist/}lib/src/vendor/dart-sass
         working-directory: embedded-host-node
 
       - name: Version info
-        run: |
-          path=embedded-host-node/dist/lib/src/vendor/dart-sass/sass
-          if [[ -f "$path.cmd" ]]; then "./$path.cmd" --version
-          elif [[ -f "$path.bat" ]]; then "./$path.bat" --version
-          elif [[ -f "$path.exe" ]]; then "./$path.exe" --version
-          else "./$path" --version
-          fi
+        run: node dist/bin/sass.js --version
+        working-directory: embedded-host-node
 
       - name: Run tests
         run: npm run js-api-spec -- --sassPackage ../embedded-host-node --sassSassRepo ../build/language
@@ -196,7 +190,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: browser-actions/setup-chrome@v1
       - uses: ./.github/util/initialize
         with:
@@ -239,7 +233,7 @@ jobs:
         # include: [{os: ubuntu-latest, dart_channel: dev}]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -278,7 +272,7 @@ jobs:
             node-version: 'lts/*'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -300,7 +294,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: browser-actions/setup-chrome@v1
     - uses: ./.github/util/initialize
       with:
@@ -309,13 +303,14 @@ jobs:
 
     - run: dart run grinder pkg-npm-dev
       env: {UPDATE_SASS_SASS_REPO: false}
-    - run: sudo chmod 4755 /opt/google/chrome/chrome-sandbox
+    # See https://github.com/puppeteer/puppeteer/issues/12818
+    # Ubuntu 23+ doesn't like running puppeteer without disabling AppArmor.
+    - name: Disable AppArmor
+      run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
     - name: Run tests
       run: dart run test -p chrome -j 2
       env:
         CHROME_EXECUTABLE: chrome
-        # See https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md#option-3_the-safest-way
-        CHROME_DEVEL_SANDBOX: /opt/google/chrome/chrome-sandbox
 
   sass_parser_tests:
     name: "sass-parser Tests | Dart ${{ matrix.dart_channel }} | Node ${{ matrix.node-version }}"
@@ -328,7 +323,7 @@ jobs:
         node-version: ['lts/*']
         include:
           # Test older LTS versions
-          # 
+          #
           # TODO: Test on lts/-2 and lts/-3 once they support
           # `structuredClone()` (that is, once they're v18 or later).
           - os: ubuntu-latest
@@ -340,7 +335,7 @@ jobs:
             node-version: 'lts/*'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -360,7 +355,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with: {node-version: 'lts/*'}
       - uses: ./.github/util/initialize
@@ -384,7 +379,7 @@ jobs:
   #   runs-on: ubuntu-latest
   #
   #   steps:
-  #     - uses: actions/checkout@v4
+  #     - uses: actions/checkout@v5
   #     - uses: actions/setup-node@v4
   #       with: {node-version: 'lts/*'}
   #     - run: npm install

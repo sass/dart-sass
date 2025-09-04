@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 6954fd19b9353445b3cf014505a4f3552cf6b0f0
+// Checksum: b6119944111590722f1b578e1d2338f7d3d9b9a2
 //
 // ignore_for_file: unused_import
 
@@ -51,7 +51,6 @@ import '../syntax.dart';
 import '../utils.dart';
 import '../util/character.dart';
 import '../util/map.dart';
-import '../util/multi_span.dart';
 import '../util/nullable.dart';
 import '../util/span.dart';
 import '../value.dart';
@@ -187,6 +186,10 @@ final class _EvaluateVisitor
   /// Whether to track source map information.
   final bool _sourceMap;
 
+  /// The unique compile context for tracking if [SassFunction]s and
+  /// [SassMixin]s belongs to the current compilation or not.
+  final Object _compileContext = Object();
+
   /// The current lexical environment.
   Environment _environment;
 
@@ -217,9 +220,6 @@ final class _EvaluateVisitor
 
   /// The human-readable name of the current stack frame.
   var _member = "root stylesheet";
-
-  /// The innermost user-defined callable that's being invoked.
-  UserDefinedCallable<Environment>? _currentCallable;
 
   /// The node for the innermost callable that's being invoked.
   ///
@@ -444,7 +444,8 @@ final class _EvaluateVisitor
 
         return SassMap({
           for (var (name, value) in module.functions.pairs)
-            SassString(name): SassFunction(value),
+            SassString(name):
+                SassFunction.withCompileContext(value, _compileContext),
         });
       }, url: "sass:meta"),
 
@@ -457,7 +458,8 @@ final class _EvaluateVisitor
 
         return SassMap({
           for (var (name, value) in module.mixins.pairs)
-            SassString(name): SassMixin(value),
+            SassString(name):
+                SassMixin.withCompileContext(value, _compileContext),
         });
       }, url: "sass:meta"),
 
@@ -473,7 +475,8 @@ final class _EvaluateVisitor
             if (module != null) {
               throw r"$css and $module may not both be passed at once.";
             }
-            return SassFunction(PlainCssCallable(name.text));
+            return SassFunction.withCompileContext(
+                PlainCssCallable(name.text), _compileContext);
           }
 
           var callable = _addExceptionSpan(_callableNode!, () {
@@ -488,7 +491,7 @@ final class _EvaluateVisitor
           }, label: "function call");
           if (callable == null) throw "Function not found: $name";
 
-          return SassFunction(callable);
+          return SassFunction.withCompileContext(callable, _compileContext);
         },
         url: "sass:meta",
       ),
@@ -509,7 +512,7 @@ final class _EvaluateVisitor
         );
         if (callable == null) throw "Mixin not found: $name";
 
-        return SassMixin(callable);
+        return SassMixin.withCompileContext(callable, _compileContext);
       }, url: "sass:meta"),
 
       BuiltInCallable.function("call", r"$function, $args...", (
@@ -553,7 +556,10 @@ final class _EvaluateVisitor
           return expression.accept(this);
         }
 
-        var callable = function.assertFunction("function").callable;
+        var callable = function
+            .assertFunction("function")
+            .assertCompileContext(_compileContext)
+            .callable;
         // ignore: unnecessary_type_check
         if (callable is Callable) {
           return _runFunctionCallable(
@@ -620,7 +626,10 @@ final class _EvaluateVisitor
             rest: ValueExpression(args, callableNode.span),
           );
 
-          var callable = mixin.assertMixin("mixin").callable;
+          var callable = mixin
+              .assertMixin("mixin")
+              .assertCompileContext(_compileContext)
+              .callable;
           var content = _environment.content;
 
           // ignore: unnecessary_type_check
@@ -856,10 +865,18 @@ final class _EvaluateVisitor
   }) {
     var url = stylesheet.span.sourceUrl;
 
+    var currentConfiguration = configuration ?? _configuration;
     if (_modules[url] case var alreadyLoaded?) {
-      var currentConfiguration = configuration ?? _configuration;
       if (!_moduleConfigurations[url]!.sameOriginal(currentConfiguration) &&
-          currentConfiguration is ExplicitConfiguration) {
+          currentConfiguration is ExplicitConfiguration &&
+          // Don't throw an error if the module being loaded doesn't expose any
+          // configurable variables that could have been affected by the
+          // configuration in the first place. If the configuration defines a
+          // value that's not in the module, it'll still throw an error, but
+          // this avoids throwing confusing errors for `@forward`ed modules
+          // without configuration.
+          alreadyLoaded.couldHaveBeenConfigured(
+              MapKeySet(currentConfiguration.values))) {
         var message = namesInErrors
             ? "${p.prettyUri(url)} was already loaded, so it can't be "
                 "configured using \"with\"."
@@ -948,7 +965,7 @@ final class _EvaluateVisitor
     );
     if (url != null) {
       _modules[url] = module;
-      _moduleConfigurations[url] = _configuration;
+      _moduleConfigurations[url] = currentConfiguration;
       if (nodeWithSpan != null) _moduleNodes[url] = nodeWithSpan;
     }
 
@@ -1336,46 +1353,6 @@ final class _EvaluateVisitor
       );
     }
 
-    var siblings = _parent.parent!.children;
-    var interleavedRules = <CssStyleRule>[];
-    if (siblings.last != _parent &&
-        // Reproduce this condition from [_warn] so that we don't add anything to
-        // [interleavedRules] for declarations in dependencies.
-        !(_quietDeps && _inDependency)) {
-      loop:
-      for (var sibling in siblings.skip(siblings.indexOf(_parent) + 1)) {
-        switch (sibling) {
-          case CssComment():
-            continue loop;
-
-          case CssStyleRule rule:
-            interleavedRules.add(rule);
-
-          case _:
-            // Always warn for siblings that aren't style rules, because they
-            // add no specificity and they're nested in the same parent as this
-            // declaration.
-            _warn(
-              "Sass's behavior for declarations that appear after nested\n"
-              "rules will be changing to match the behavior specified by CSS "
-              "in an upcoming\n"
-              "version. To keep the existing behavior, move the declaration "
-              "above the nested\n"
-              "rule. To opt into the new behavior, wrap the declaration in "
-              "`& {}`.\n"
-              "\n"
-              "More info: https://sass-lang.com/d/mixed-decls",
-              MultiSpan(node.span, 'declaration', {
-                sibling.span: 'nested rule',
-              }),
-              Deprecation.mixedDecls,
-            );
-            interleavedRules.clear();
-            break;
-        }
-      }
-    }
-
     var name = _interpolationToValue(node.name, warnForColor: true);
     if (_declarationName case var declarationName?) {
       name = CssValue("$declarationName-${name.value}", name.span);
@@ -1383,25 +1360,23 @@ final class _EvaluateVisitor
 
     if (node.value case var expression?) {
       var value = expression.accept(this);
-      // If the value is an empty list, preserve it, because converting it to CSS
-      // will throw an error that we want the user to see.
-      if (!value.isBlank || _isEmptyList(value)) {
+      if (!value.isBlank ||
+          // If the value is an empty list, preserve it, because converting it
+          // to CSS will throw an error that we want the user to see.
+          _isEmptyList(value) ||
+          // Custom properties are allowed to have empty values, per spec.
+          name.value.startsWith('--')) {
+        _copyParentAfterSibling();
         _parent.addChild(
           ModifiableCssDeclaration(
             name,
             CssValue(value, expression.span),
             node.span,
             parsedAsCustomProperty: node.isCustomProperty,
-            interleavedRules: interleavedRules,
-            trace: interleavedRules.isEmpty ? null : _stackTrace(node.span),
+            trace: _stackTrace(node.span),
             valueSpanForMap:
                 _sourceMap ? node.value.andThen(_expressionNode)?.span : null,
           ),
-        );
-      } else if (name.value.startsWith('--')) {
-        throw _exception(
-          "Custom property values may not be empty.",
-          expression.span,
         );
       }
     }
@@ -1556,6 +1531,7 @@ final class _EvaluateVisitor
 
     var children = node.children;
     if (children == null) {
+      _copyParentAfterSibling();
       _parent.addChild(
         ModifiableCssAtRule(name, node.span, childless: true, value: value),
       );
@@ -2072,6 +2048,7 @@ final class _EvaluateVisitor
     );
 
     if (_parent != _root) {
+      _copyParentAfterSibling();
       _parent.addChild(node);
     } else if (_endOfImports == _root.children.length) {
       _root.addChild(node);
@@ -2222,6 +2199,8 @@ final class _EvaluateVisitor
     var text = _performInterpolation(node.text);
     // Indented syntax doesn't require */
     if (!text.endsWith("*/")) text += " */";
+
+    _copyParentAfterSibling();
     _parent.addChild(ModifiableCssComment(text, node.span));
     return null;
   }
@@ -2380,7 +2359,11 @@ final class _EvaluateVisitor
       plainCss: _stylesheet.plainCss,
     );
 
-    var nest = !(_styleRule?.fromPlainCss ?? false);
+    var nest = switch (_styleRule) {
+      null => true,
+      CssStyleRule(fromPlainCss: true) => false,
+      _ => !(_stylesheet.plainCss && parsedSelector.containsParentSelector)
+    };
     if (nest) {
       if (_stylesheet.plainCss) {
         for (var complex in parsedSelector.components) {
@@ -2572,6 +2555,7 @@ final class _EvaluateVisitor
   Value? visitVariableDeclaration(VariableDeclaration node) {
     if (node.isGuarded) {
       if (node.namespace == null && _environment.atRoot) {
+        _environment.markVariableConfigurable(node.name);
         if (_configuration.remove(node.name) case var override?
             when override.value != sassNull) {
           _addExceptionSpan(node, () {
@@ -3360,9 +3344,7 @@ final class _EvaluateVisitor
     var name = callable.name;
     if (name != "@content") name += "()";
 
-    var oldCallable = _currentCallable;
     var oldInDependency = _inDependency;
-    _currentCallable = callable;
     _inDependency = callable.inDependency;
     var result = _withStackFrame(name, nodeWithSpan, () {
       // Add an extra closure() call so that modifications to the environment
@@ -3450,7 +3432,6 @@ final class _EvaluateVisitor
         });
       });
     });
-    _currentCallable = oldCallable;
     _inDependency = oldInDependency;
     return result;
   }
@@ -3881,6 +3862,7 @@ final class _EvaluateVisitor
     }
 
     if (node.isChildless) {
+      _copyParentAfterSibling();
       _parent.addChild(
         ModifiableCssAtRule(
           node.name,
@@ -3927,10 +3909,12 @@ final class _EvaluateVisitor
       _endOfImports++;
     }
 
+    _copyParentAfterSibling();
     _parent.addChild(ModifiableCssComment(node.text, node.span));
   }
 
   void visitCssDeclaration(CssDeclaration node) {
+    _copyParentAfterSibling();
     _parent.addChild(
       ModifiableCssDeclaration(
         node.name,
@@ -3952,6 +3936,7 @@ final class _EvaluateVisitor
       modifiers: node.modifiers,
     );
     if (_parent != _root) {
+      _copyParentAfterSibling();
       _parent.addChild(modifiableNode);
     } else if (_endOfImports == _root.children.length) {
       _root.addChild(modifiableNode);
@@ -4050,7 +4035,11 @@ final class _EvaluateVisitor
     }
 
     var styleRule = _styleRule;
-    var nest = !(_styleRule?.fromPlainCss ?? false);
+    var nest = switch (_styleRule) {
+      null => true,
+      CssStyleRule(fromPlainCss: true) => false,
+      _ => !(node.fromPlainCss && node.selector.containsParentSelector)
+    };
     var originalSelector = nest
         ? node.selector.nestWithin(
             styleRule?.originalSelector,
@@ -4333,6 +4322,19 @@ final class _EvaluateVisitor
     _parent = oldParent;
 
     return result;
+  }
+
+  /// If the current [_parent] is not the last child of its grandparent, makes a
+  /// new childless copy of it and sets [_parent] to that.
+  ///
+  /// Otherwise, leaves [_parent] as-is.
+  void _copyParentAfterSibling() {
+    if (_parent.parent case var grandparent?
+        when grandparent.children.last != _parent) {
+      var newParent = _parent.copyWithoutChildren();
+      grandparent.addChild(newParent);
+      _parent = newParent;
+    }
   }
 
   /// Adds [node] as a child of the current parent.

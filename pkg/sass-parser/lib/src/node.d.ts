@@ -121,7 +121,12 @@ declare abstract class Node
     opts?: Pick<postcss.WarningOptions, 'index' | 'word'>,
   ): postcss.Position;
   positionInside(index: number): postcss.Position;
-  rangeBy(opts?: Pick<postcss.WarningOptions, 'endIndex' | 'index' | 'word'>): {
+  rangeBy(
+    opts?: Pick<
+      postcss.WarningOptions,
+      'end' | 'endIndex' | 'index' | 'start' | 'word'
+    >,
+  ): {
     start: postcss.Position;
     end: postcss.Position;
   };

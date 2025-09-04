@@ -107,6 +107,14 @@ final class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
     return _inner.variableIdentity(name);
   }
 
+  bool couldHaveBeenConfigured(Set<String> variables) =>
+      this.variables == _inner.variables
+          ? _inner.couldHaveBeenConfigured(variables)
+          : _inner.couldHaveBeenConfigured({
+              for (var name in this.variables.keys)
+                if (variables.contains(name)) name
+            });
+
   bool operator ==(Object other) =>
       other is ShadowedModuleView &&
       _inner == other._inner &&

@@ -25,11 +25,11 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
       test("for an obsolete deprecation", () async {
         var sass = await runSass([
-          "--silence-deprecation=moz-document",
+          "--silence-deprecation=mixed-decls",
           "test.scss",
         ]);
         expect(sass.stderr,
-            emits(contains("moz-document deprecation is obsolete")));
+            emits(contains("mixed-decls deprecation is obsolete")));
         await sass.shouldExit(0);
       });
 
@@ -174,11 +174,11 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
       test("for an obsolete deprecation", () async {
         var sass = await runSass([
-          "--fatal-deprecation=moz-document",
+          "--fatal-deprecation=mixed-decls",
           "test.scss",
         ]);
         expect(sass.stderr,
-            emits(contains("moz-document deprecation is obsolete")));
+            emits(contains("mixed-decls deprecation is obsolete")));
         await sass.shouldExit(0);
       });
 
@@ -352,13 +352,11 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
       test("an obsolete deprecation", () async {
         var sass = await runSass([
-          "--future-deprecation=moz-document",
+          "--future-deprecation=mixed-decls",
           "test.scss",
         ]);
-        expect(
-          sass.stderr,
-          emits(contains("moz-document is not a future deprecation")),
-        );
+        expect(sass.stderr,
+            emits(contains("mixed-decls deprecation is obsolete")));
         await sass.shouldExit(0);
       });
 

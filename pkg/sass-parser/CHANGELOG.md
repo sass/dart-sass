@@ -1,6 +1,47 @@
-## 0.5.0
+## 0.5.0-dev
 
 * No user-visible changes.
+
+## 0.4.27-dev
+
+* No user-visible changes.
+
+## 0.4.26
+
+* No user-visible changes.
+
+## 0.4.25
+
+* No user-visible changes.
+
+## 0.4.24
+
+* No user-visible changes.
+
+## 0.4.23
+
+* Update types for compatibility with the latest PostCSS.
+
+* **Potentially-breaking bug fix**: parenthesized, comma-separated lists are now
+  correctly wrapped in a `ParenthesizedExpression`.
+
+## 0.4.22
+
+* No user-visible changes.
+
+## 0.4.21
+
+* No user-visible changes.
+
+## 0.4.20
+
+* No user-visible changes.
+
+## 0.4.19
+
+* No user-visible changes.
+
+## 0.4.18
 
 ## 0.4.17
 

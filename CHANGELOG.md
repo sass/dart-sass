@@ -41,6 +41,94 @@
   available through the expanded `sass_api` package, since that package also
   exposes the selector AST that it returns.
 
+## 1.92.0-dev
+
+* **Breaking change:** Emit declarations, childless at-rules, and comments in
+  the order they appear in the source even when they're interleaved with nested
+  rules. This obsoletes the `mixed-decls` deprecation.
+
+* **Breaking change:** The function name `type()` is now fully reserved for the
+  plain CSS function. This means that `@function` definitions with the name
+  `type` will produce errors, while function calls will be parsed as special
+  function strings.
+
+* Fix a bug where `@extend` rules loaded through a mixture of `@import` and
+  `@use` rules could fail to apply correctly.
+
+### Command-Line Interface
+
+* In `--watch` mode, delete the source map when the associated source file is
+  deleted.
+
+## 1.91.0
+
+* **Potentially breaking change:** `meta.inspect()` (as well as other systems
+  that use it such as `@debug` and certain error messages) now emits numbers
+  with as high precision as is available instead of rounding to the nearest
+  1e⁻¹⁰ as we do when serializing to CSS. This better fits the purpose of
+  `meta.inspect()`, which is to provide full information about the structure of
+  a Sass value.
+
+* Passing a rest argument (`$arg...`) before a positional or named argument when
+  calling a function or mixin is now deprecated. This was always outside the
+  specified syntax, but it was historically treated the same as passing the rest
+  argument at the end of the argument list whether or not that matched the
+  visual order of the arguments.
+
+## 1.90.0
+
+* Allow a `@forward`ed module to be loaded with a configuration when that module
+  has already been loaded with a different configuration *and* the module
+  doesn't define any variables that would have been configured anyway.
+
+## 1.89.2
+
+### Embedded Host
+
+* Fixed a compilation error caused by an outdated `buf` dependency.
+
+## 1.89.1
+
+* No user-visible changes.
+
+## 1.89.0
+
+* Allow the Node package importer to load files even when there are multiple
+  potential resolutions, as long as those resolutions all point to the same
+  file.
+
+## 1.88.0
+
+* Allow custom properties with empty values (such as `--var:;`).
+
+* Fix a bug when calculating source spans for interpolations.
+
+### Dart and JS APIs
+
+* **Potentially breaking bug fix:** Throw an error when passing a function or
+  mixin object from one compilation to another.
+
+### Dart API
+
+* Deprecate passing a relative URL to `compileString()` and related functions.
+
+## 1.87.0
+
+* **Potentially breaking bug fix:** When a plain CSS file with a top-level
+  nesting selector `&` is loaded into a nested Sass context via
+  `meta.load-css()` or `@import`, Sass now emits plain CSS nesting rather than
+  incorrectly combining it with the parent selector using a descendant
+  combinator.
+
+## 1.86.3
+
+* Fix a bug introduced in 1.86.1 where Sass fails to resolve paths starting with
+  a `..` segment.
+
+## 1.86.2
+
+* No user-visible changes.
+
 ## 1.86.1
 
 * Improve the performance of `file:` URL case canonicalization on Windows and
