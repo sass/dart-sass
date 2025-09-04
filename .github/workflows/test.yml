@@ -191,7 +191,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: browser-actions/setup-chrome@v1
+      - uses: browser-actions/setup-chrome@v2
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -295,7 +295,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v5
-    - uses: browser-actions/setup-chrome@v1
+    - uses: browser-actions/setup-chrome@v2
     - uses: ./.github/util/initialize
       with:
         dart-sdk: ${{ matrix.dart_channel }}

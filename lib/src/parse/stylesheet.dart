@@ -1652,6 +1652,15 @@ abstract class StylesheetParser extends Parser {
 
       var variableStart = scanner.state;
       var name = variableName();
+      if (name.startsWith('-')) {
+        warnings.add((
+          deprecation: Deprecation.withPrivate,
+          message: 'Configuring private variables is deprecated.\n'
+              'This will be an error in Dart Sass 2.0.0.',
+          span: scanner.spanFrom(variableStart),
+        ));
+      }
+
       whitespace(consumeNewlines: true);
       scanner.expectChar($colon);
       whitespace(consumeNewlines: true);
