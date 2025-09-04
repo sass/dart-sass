@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: f9088047deb7019c0d619480b54cea07a65abbb4
+  // Checksum: d1c9c01ca8d2b69e39b7371d774c9c86349efdef
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -70,6 +70,7 @@ enum Deprecation {
   /// Deprecation for using !default or !global multiple times for one variable.
   duplicateVarFlags('duplicate-var-flags',
       deprecatedIn: '1.62.0',
+      obsoleteIn: '2.0.0',
       description:
           'Using !default or !global multiple times for one variable.'),
 
