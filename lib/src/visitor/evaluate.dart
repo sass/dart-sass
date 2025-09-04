@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: b6119944111590722f1b578e1d2338f7d3d9b9a2
+// Checksum: faf491d48ccd341abf6a301773bfce08af22b113
 //
 // ignore_for_file: unused_import
 
@@ -2579,21 +2579,10 @@ final class _EvaluateVisitor
     }
 
     if (node.isGlobal && !_environment.globalVariableExists(node.name)) {
-      _warn(
-        _environment.atRoot
-            ? "As of Dart Sass 2.0.0, !global assignments won't be able to "
-                "declare new variables.\n"
-                "\n"
-                "Since this assignment is at the root of the stylesheet, the "
-                "!global flag is\n"
-                "unnecessary and can safely be removed."
-            : "As of Dart Sass 2.0.0, !global assignments won't be able to "
-                "declare new variables.\n"
-                "\n"
-                "Recommendation: add `${node.originalName}: null` at the "
-                "stylesheet root.",
+      throw SassRuntimeException(
+        '!global assignments may not declare new variables.',
         node.span,
-        Deprecation.newGlobal,
+        _stackTrace(node.span),
       );
     }
 
