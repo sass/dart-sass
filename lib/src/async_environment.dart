@@ -834,6 +834,12 @@ final class AsyncEnvironment {
   /// environment.
   Configuration toImplicitConfiguration() {
     var configuration = <String, ConfiguredValue>{};
+    for (var module in _importedModules.keys) {
+      for (var (name, value) in module.variables.pairs) {
+        configuration[name] =
+            ConfiguredValue.implicit(value, module.variableNodes[name]!);
+      }
+    }
     for (var i = 0; i < _variables.length; i++) {
       var values = _variables[i];
       var nodes = _variableNodes[i];
