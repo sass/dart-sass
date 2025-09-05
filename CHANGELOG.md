@@ -1,4 +1,4 @@
-## 1.93.0
+## 1.92.1
 
 * Fix a bug where variable definitions from one imported, forwarded module
   would not be passed as implicit configuration to a later imported, forwarded
