@@ -1,3 +1,9 @@
+## 1.92.1
+
+* Fix a bug where variable definitions from one imported, forwarded module
+  would not be passed as implicit configuration to a later imported, forwarded
+  module.
+
 ## 1.92.0
 
 * **Breaking change:** Emit declarations, childless at-rules, and comments in
