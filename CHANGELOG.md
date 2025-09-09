@@ -10,6 +10,15 @@
 * **Breaking change:** A variable definition may now only have a single
   `!global` flag or `!default` flag, or one of each.
 
+* **Potentially breaking bug fix:** In some cases involving a `:has()` selector
+  with a leading combinator being `@extend`ed by a selector that contained its
+  own combinators, `@extend` used to generate incorrect selectors. This has been
+  fixed.
+
+* `@extend` will now generate `:is()` selectors rather than manually combining
+  selectors when extending a target within an `:is()` or `:has()` selector,
+  since there are no browser compatibility concerns in that context.
+
 ### Bogus Combinators
 
 * **Breaking change:** Selectors with more than one combinator in a row, such as
