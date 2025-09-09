@@ -985,6 +985,7 @@ final class _EvaluateVisitor
   /// that they don't modify [root] or its dependencies.
   CssStylesheet _combineCss(Module root, {bool clone = false}) {
     if (!root.upstream.any((module) => module.transitivelyContainsCss)) {
+      root.extensionStore.trimModernSelectors();
       var selectors = root.extensionStore.simpleSelectors;
       if (root.extensionStore
               .extensionsWhereTarget((target) => !selectors.contains(target))
@@ -1075,6 +1076,7 @@ final class _EvaluateVisitor
         module.extensionStore.addExtensions,
       );
       if (module.extensionStore.isEmpty) continue;
+      module.extensionStore.trimModernSelectors();
 
       for (var upstream in module.upstream) {
         if (upstream.url case var url?) {
