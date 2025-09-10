@@ -1905,26 +1905,22 @@ final class _EvaluateVisitor
       // CSS from modules used by [stylesheet].
       var module = environment.toDummyModule();
       _environment.importForwards(module);
-      try {
-        if (loadsUserDefinedModules) {
-          if (module.transitivelyContainsCss) {
-            // If any transitively used module contains extensions, we need to
-            // clone all modules' CSS. Otherwise, it's possible that they'll be
-            // used or imported from another location that shouldn't have the same
-            // extensions applied.
-            await _combineCss(
-              module,
-              clone: module.transitivelyContainsExtensions,
-            ).accept(this);
-          }
-
-          var visitor = _ImportedCssVisitor(this);
-          for (var child in children) {
-            child.accept(visitor);
-          }
+      if (loadsUserDefinedModules) {
+        if (module.transitivelyContainsCss) {
+          // If any transitively used module contains extensions, we need to
+          // clone all modules' CSS. Otherwise, it's possible that they'll be
+          // used or imported from another location that shouldn't have the same
+          // extensions applied.
+          await _combineCss(
+            module,
+            clone: module.transitivelyContainsExtensions,
+          ).accept(this);
         }
-      } catch (e) {
-        assert(false, '$e: DEBUG: $children');
+
+        var visitor = _ImportedCssVisitor(this);
+        for (var child in children) {
+          child.accept(visitor);
+        }
       }
 
       _activeModules.remove(url);

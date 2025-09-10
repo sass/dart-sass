@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c5411a954055bb66780859de6774401d15089a0f
+// Checksum: b79ed685f78b8d5356795eb2d1112f830abaf58e
 //
 // ignore_for_file: unused_import
 
@@ -1913,26 +1913,22 @@ final class _EvaluateVisitor
       // CSS from modules used by [stylesheet].
       var module = environment.toDummyModule();
       _environment.importForwards(module);
-      try {
-        if (loadsUserDefinedModules) {
-          if (module.transitivelyContainsCss) {
-            // If any transitively used module contains extensions, we need to
-            // clone all modules' CSS. Otherwise, it's possible that they'll be
-            // used or imported from another location that shouldn't have the same
-            // extensions applied.
-            _combineCss(
-              module,
-              clone: module.transitivelyContainsExtensions,
-            ).accept(this);
-          }
-
-          var visitor = _ImportedCssVisitor(this);
-          for (var child in children) {
-            child.accept(visitor);
-          }
+      if (loadsUserDefinedModules) {
+        if (module.transitivelyContainsCss) {
+          // If any transitively used module contains extensions, we need to
+          // clone all modules' CSS. Otherwise, it's possible that they'll be
+          // used or imported from another location that shouldn't have the same
+          // extensions applied.
+          _combineCss(
+            module,
+            clone: module.transitivelyContainsExtensions,
+          ).accept(this);
         }
-      } catch (e) {
-        assert(false, '$e: DEBUG: $children');
+
+        var visitor = _ImportedCssVisitor(this);
+        for (var child in children) {
+          child.accept(visitor);
+        }
       }
 
       _activeModules.remove(url);
