@@ -1,3 +1,9 @@
+## 1.92.2-dev
+
+* Fix a crash when a style rule contains a nested `@import`, `@use`s a
+  user-defined module with top-level declarations emitted when it `@include`s a
+  top-level mixin.
+
 ## 1.92.1
 
 * Fix a bug where variable definitions from one imported, forwarded module
