@@ -1,7 +1,7 @@
 ## 1.92.2-dev
 
 * Fix a crash when a style rule contains a nested `@import`, and the loaded file
-  `@use`s a user-defined module as well as `@include` a top-level mixin which
+  `@use`s a user-defined module as well as `@include`s a top-level mixin which
   emits top-level declarations.
 
 ## 1.92.1
