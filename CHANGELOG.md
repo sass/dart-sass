@@ -1,3 +1,11 @@
+## 1.93.0
+
+### JavaScript API
+
+* Release a `@sass/types` package which contains the type annotations used by
+  both the `sass` and `sass-embedded` package without any additional code or
+  dependencies.
+
 ## 1.92.0
 
 * **Breaking change:** Emit declarations, childless at-rules, and comments in
