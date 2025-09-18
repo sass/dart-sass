@@ -1,5 +1,7 @@
 ## 16.0.0
 
+* Add a `ReplaceSelectorVisitor` class.
+
 ### Bogus Selectors
 
 * Drop support for bogus selectors that can never become valid CSS through

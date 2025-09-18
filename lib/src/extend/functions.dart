@@ -40,7 +40,7 @@ List<ComplexSelector>? unifyComplex(
 ) {
   if (complexes.length == 1) return complexes;
 
-  CompoundSelector? unifiedBase;
+  List<SimpleSelector>? unifiedBase;
   CssValue<Combinator>? leadingCombinator;
   CssValue<Combinator>? trailingCombinator;
   for (var complex in complexes) {
@@ -69,10 +69,12 @@ List<ComplexSelector>? unifyComplex(
     }
 
     if (unifiedBase == null) {
-      unifiedBase = base.selector;
+      unifiedBase = base.selector.components;
+    } else if (unifyCompoundComponents(unifiedBase, base.selector.components)
+        case var unified?) {
+      unifiedBase = unified;
     } else {
-      unifiedBase = unifyCompound(unifiedBase, base.selector);
-      if (unifiedBase == null) return null;
+      return null;
     }
   }
 
@@ -90,7 +92,7 @@ List<ComplexSelector>? unifyComplex(
   var base = ComplexSelector(
     [
       ComplexSelectorComponent(
-        unifiedBase!,
+        CompoundSelector(unifiedBase!, complexes.first.components.last.span),
         span,
         combinator: trailingCombinator,
       ),
@@ -131,17 +133,33 @@ CompoundSelector? unifyCompound(
   CompoundSelector compound1,
   CompoundSelector compound2,
 ) {
-  var result = compound1.components;
-  var pseudoResult = <SimpleSelector>[];
+  var result =
+      unifyCompoundComponents(compound1.components, compound2.components);
+  if (result == null) return null;
+  return CompoundSelector(result, compound1.span);
+}
+
+/// Like [unifyCompound], but operates directly on [CompoundSelector.components]
+/// to avoid extra allocations.
+List<SimpleSelector>? unifyCompoundComponents(
+  List<SimpleSelector> compound1,
+  List<SimpleSelector> compound2,
+) {
+  var result = compound1;
+  List<SimpleSelector>? pseudoResult;
   var pseudoElementFound = false;
 
-  for (var simple in compound2.components) {
+  for (var simple in compound2) {
     // All pseudo-classes are unified separately after a pseudo-element to
     // preserve their relative order with the pseudo-element.
     if (pseudoElementFound && simple is PseudoSelector) {
-      var unified = simple.unify(pseudoResult);
-      if (unified == null) return null;
-      pseudoResult = unified;
+      if (pseudoResult == null) {
+        pseudoResult = [simple];
+      } else {
+        var unified = simple.unify(pseudoResult);
+        if (unified == null) return null;
+        pseudoResult = unified;
+      }
     } else {
       pseudoElementFound |= simple is PseudoSelector && simple.isElement;
       var unified = simple.unify(result);
@@ -150,7 +168,7 @@ CompoundSelector? unifyCompound(
     }
   }
 
-  return CompoundSelector([...result, ...pseudoResult], compound1.span);
+  return pseudoResult == null ? result : [...result, ...pseudoResult];
 }
 
 /// Returns a [SimpleSelector] that matches only elements that are matched by
