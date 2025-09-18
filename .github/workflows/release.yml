@@ -141,7 +141,7 @@ jobs:
         with:
           token: ${{ secrets.GH_TOKEN }}
       # Set up .npmrc file to publish to npm
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 'lts/*'
           check-latest: true

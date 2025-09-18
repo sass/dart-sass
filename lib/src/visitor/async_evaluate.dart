@@ -4670,9 +4670,8 @@ final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
 
   void visitCssComment(ModifiableCssComment node) => _visitor._addChild(node);
 
-  void visitCssDeclaration(ModifiableCssDeclaration node) {
-    assert(false, "visitCssDeclaration() should never be called.");
-  }
+  void visitCssDeclaration(ModifiableCssDeclaration node) =>
+      _visitor._addChild(node);
 
   void visitCssImport(ModifiableCssImport node) {
     if (_visitor._parent != _visitor._root) {

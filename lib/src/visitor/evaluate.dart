@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: a32ff6b83b3365e8dad72b8b12c2c17937a5f28e
+// Checksum: b79ed685f78b8d5356795eb2d1112f830abaf58e
 //
 // ignore_for_file: unused_import
 
@@ -4652,9 +4652,8 @@ final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
 
   void visitCssComment(ModifiableCssComment node) => _visitor._addChild(node);
 
-  void visitCssDeclaration(ModifiableCssDeclaration node) {
-    assert(false, "visitCssDeclaration() should never be called.");
-  }
+  void visitCssDeclaration(ModifiableCssDeclaration node) =>
+      _visitor._addChild(node);
 
   void visitCssImport(ModifiableCssImport node) {
     if (_visitor._parent != _visitor._root) {
