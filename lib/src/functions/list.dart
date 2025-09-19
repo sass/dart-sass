@@ -7,6 +7,8 @@ import 'dart:collection';
 import 'package:collection/collection.dart';
 
 import '../callable.dart';
+import '../deprecation.dart';
+import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
 import '../value.dart';
@@ -152,6 +154,14 @@ final _isBracketed = _function(
 );
 
 final _slash = _function("slash", r"$elements...", (arguments) {
+  warnForDeprecation(
+    'list.slash() is no longer necessary. Sass now supports slash-separated '
+    'list literals.\n'
+    'This function is deprecated and will be removed in Dart 3.0.0.\n'
+    'More info and automated migrator: https://sass-lang.com/d/slash-div',
+    Deprecation.listSlash,
+  );
+
   var list = arguments[0].asList;
   if (list.length < 2) {
     throw SassScriptException("At least two elements are required.");

@@ -1,5 +1,7 @@
 ## 16.0.0
 
+* `/` is now parsed as slash-separated lists rather than division in SassScript.
+
 ### Bogus Selectors
 
 * Drop support for bogus selectors that can never become valid CSS through

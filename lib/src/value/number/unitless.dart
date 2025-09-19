@@ -19,12 +19,9 @@ class UnitlessSassNumber extends SassNumber {
   bool get hasUnits => false;
   bool get hasComplexUnits => false;
 
-  UnitlessSassNumber(super.value, [super.asSlash]) : super.protected();
+  UnitlessSassNumber(super.value) : super.protected();
 
   SassNumber withValue(num value) => UnitlessSassNumber(value.toDouble());
-
-  SassNumber withSlash(SassNumber numerator, SassNumber denominator) =>
-      UnitlessSassNumber(value, (numerator, denominator));
 
   bool hasUnit(String unit) => false;
 

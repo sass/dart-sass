@@ -1124,15 +1124,6 @@ class SassColor extends Value {
     throw SassScriptException('Undefined operation "$this - $other".');
   }
 
-  /// @nodoc
-  @internal
-  Value dividedBy(Value other) {
-    if (other is! SassNumber && other is! SassColor) {
-      return super.dividedBy(other);
-    }
-    throw SassScriptException('Undefined operation "$this / $other".');
-  }
-
   operator ==(Object other) {
     if (other is! SassColor) return false;
 

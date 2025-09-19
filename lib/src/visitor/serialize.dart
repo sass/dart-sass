@@ -1030,22 +1030,26 @@ final class _SerializeVisitor
             value.separator == ListSeparator.slash);
     if (singleton && !value.hasBrackets) _buffer.writeCharCode($lparen);
 
-    _writeBetween<Value>(
-      _inspect
-          ? value.asList
-          : value.asList.where((element) => !element.isBlank),
-      _separatorString(value.separator),
-      _inspect
-          ? (element) {
-              var needsParens = _elementNeedsParens(value.separator, element);
-              if (needsParens) _buffer.writeCharCode($lparen);
-              element.accept(this);
-              if (needsParens) _buffer.writeCharCode($rparen);
-            }
-          : (element) {
-              element.accept(this);
-            },
-    );
+    if (!_isCompressed && value.separator == ListSeparator.slash) {
+      _writeUncompressedSlashListContents(value);
+    } else {
+      _writeBetween<Value>(
+        _inspect
+            ? value.asList
+            : value.asList.where((element) => !element.isBlank),
+        _separatorString(value.separator),
+        _inspect
+            ? (element) {
+                var needsParens = _elementNeedsParens(value.separator, element);
+                if (needsParens) _buffer.writeCharCode($lparen);
+                element.accept(this);
+                if (needsParens) _buffer.writeCharCode($rparen);
+              }
+            : (element) {
+                element.accept(this);
+              },
+      );
+    }
 
     if (singleton) {
       _buffer.write(value.separator.separator);
@@ -1053,6 +1057,48 @@ final class _SerializeVisitor
     }
 
     if (value.hasBrackets) _buffer.writeCharCode($rbracket);
+  }
+
+  /// Writes the contents of a slash-separated list in uncompressed mode.
+  ///
+  /// This uses a different code-path because it's more complex and potentially
+  /// more expensive in order to produce elegant output for empty elements like
+  /// those allowed by the `border-image` shorthand syntax.
+  void _writeUncompressedSlashListContents(SassList value) {
+    var contents = _inspect
+        ? value.asList
+        : [
+            for (var element in value.asList)
+              if (!element.isBlank) element
+          ];
+    var lastElementEmpty = false;
+    for (var i = 0; i < contents.length; i++) {
+      var element = contents[i];
+      if (i != 0) {
+        if (!lastElementEmpty) {
+          _buffer.writeCharCode($space);
+          lastElementEmpty = false;
+        }
+
+        _buffer.writeCharCode($slash);
+        if (element case SassString(text: ' ', hasQuotes: false)) {
+          lastElementEmpty = true;
+        } else {
+          _buffer.writeCharCode($space);
+        }
+      } else if (element case SassString(text: ' ', hasQuotes: false)) {
+        lastElementEmpty = true;
+      }
+
+      if (_inspect) {
+        var needsParens = _elementNeedsParens(value.separator, element);
+        if (needsParens) _buffer.writeCharCode($lparen);
+        element.accept(this);
+        if (needsParens) _buffer.writeCharCode($rparen);
+      } else {
+        element.accept(this);
+      }
+    }
   }
 
   /// Returns the string to use to separate list items for lists with the given [separator].
@@ -1108,13 +1154,6 @@ final class _SerializeVisitor
   }
 
   void visitNumber(SassNumber value) {
-    if (value.asSlash case (var before, var after)) {
-      visitNumber(before);
-      _buffer.writeCharCode($slash);
-      visitNumber(after);
-      return;
-    }
-
     if (!value.value.isFinite) {
       visitCalculation(SassCalculation.unsimplified('calc', [value]));
       return;
