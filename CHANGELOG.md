@@ -1,8 +1,14 @@
-## 1.92.2-dev
+## 1.93.0
 
 * Fix a crash when a style rule contains a nested `@import`, and the loaded file
   `@use`s a user-defined module as well as `@include`s a top-level mixin which
   emits top-level declarations.
+
+### JavaScript API
+
+* Release a `@sass/types` package which contains the type annotations used by
+  both the `sass` and `sass-embedded` package without any additional code or
+  dependencies.
 
 ## 1.92.1
 
