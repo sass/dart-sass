@@ -9,19 +9,10 @@ import 'dart:typed_data';
 import 'package:native_synchronization/mailbox.dart';
 import 'package:native_synchronization/sendable.dart';
 
-/// The entrypoint for a [ReusableIsolate].
-///
-/// This must be a static global function. It's run when the isolate is spawned,
-/// and is passed a [Mailbox] that receives messages from [ReusableIsolate.send]
-/// and a [SendPort] that sends messages to the [ReceivePort] listened by
-/// [ReusableIsolate.borrow].
-///
-/// If the [sendPort] sends a message before [ReusableIsolate.borrow] is called,
-/// this will throw an unhandled [StateError].
-typedef ReusableIsolateEntryPoint = FutureOr<void> Function(
-    Mailbox mailbox, SendPort sink);
+import '../sync_receive_port.dart';
+import '../compilation_dispatcher.dart';
 
-class ReusableIsolate {
+class ReusableWorker {
   /// The wrapped isolate.
   final Isolate _isolate;
 
@@ -37,32 +28,30 @@ class ReusableIsolate {
   /// Whether the current isolate has been borrowed.
   bool _borrowed = false;
 
-  ReusableIsolate._(
+  ReusableWorker._(
     this._isolate,
     this._mailbox,
     this._receivePort, {
     Function? onError,
   }) : _subscription = _receivePort.listen(_defaultOnData, onError: onError);
 
-  /// Spawns a [ReusableIsolate] that runs the given [entryPoint].
-  static Future<ReusableIsolate> spawn(
-    ReusableIsolateEntryPoint entryPoint, {
+  /// Spawns a [ReusableWorker].
+  static Future<ReusableWorker> spawn({
     Function? onError,
   }) async {
     var mailbox = Mailbox();
     var receivePort = ReceivePort();
     var isolate = await Isolate.spawn(_isolateMain, (
-      entryPoint,
       mailbox.asSendable,
       receivePort.sendPort,
     ));
-    return ReusableIsolate._(isolate, mailbox, receivePort, onError: onError);
+    return ReusableWorker._(isolate, mailbox, receivePort, onError: onError);
   }
 
   /// Subscribe to messages from [_receivePort].
   void borrow(void onData(dynamic event)?) {
     if (_borrowed) {
-      throw StateError('ReusableIsolate has already been borrowed.');
+      throw StateError('ReusableWorker has already been borrowed.');
     }
     _borrowed = true;
     _subscription.onData(onData);
@@ -71,7 +60,7 @@ class ReusableIsolate {
   /// Unsubscribe to messages from [_receivePort].
   void release() {
     if (!_borrowed) {
-      throw StateError('ReusableIsolate has not been borrowed.');
+      throw StateError('ReusableWorker has not been borrowed.');
     }
     _borrowed = false;
     _subscription.onData(_defaultOnData);
@@ -105,9 +94,9 @@ void _defaultOnData(dynamic _) {
   throw StateError("Shouldn't receive a message before being borrowed.");
 }
 
-void _isolateMain(
-  (ReusableIsolateEntryPoint, Sendable<Mailbox>, SendPort) message,
-) {
-  var (entryPoint, sendableMailbox, sendPort) = message;
-  entryPoint(sendableMailbox.materialize(), sendPort);
+void _isolateMain((Sendable<Mailbox>, SendPort) message) {
+  var (sendableMailbox, sendPort) = message;
+  CompilationDispatcher(
+          MailboxSyncReceivePort(sendableMailbox.materialize()), sendPort)
+      .listen();
 }
