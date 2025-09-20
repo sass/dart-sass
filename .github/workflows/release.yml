@@ -124,7 +124,7 @@ jobs:
       - name: Copy LICENSE file
         run: cp LICENSE pkg/sass-types/
       - name: Set the version of @sass/types
-        run: npm pkg set version='{{ steps.dart-sass-version.outputs.version }}'
+        run: npm pkg set version='${{ steps.dart-sass-version.outputs.version }}'
         working-directory: pkg/sass-types/
       - run: npm publish
         env:
