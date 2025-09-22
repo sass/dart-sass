@@ -55,4 +55,6 @@ final class EmptyExtensionStore implements ExtensionStore {
         EmptyExtensionStore(),
         {},
       );
+
+  void trimModernSelectors() {}
 }

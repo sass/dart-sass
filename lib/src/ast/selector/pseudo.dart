@@ -119,6 +119,14 @@ final class PseudoSelector extends SimpleSelector {
         normalizedName = unvendor(name),
         super(span);
 
+  /// A shorthand for creating an `:is()` selector.
+  ///
+  /// @nodoc
+  @internal
+  factory PseudoSelector.isSelector(
+          Iterable<ComplexSelector> components, FileSpan span) =>
+      PseudoSelector('is', span, selector: SelectorList(components, span));
+
   /// Returns whether [name] is the name of a pseudo-element that can be written
   /// with pseudo-class syntax (`:before`, `:after`, `:first-line`, or
   /// `:first-letter`)

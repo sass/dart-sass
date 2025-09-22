@@ -63,6 +63,16 @@ final class SelectorList extends Selector {
   /// [relative selector]: https://www.w3.org/TR/selectors-4/#relative-selector
   bool get isRelative => components.every((complex) => complex.isRelative);
 
+  /// If this selector list is composed of a single complex selector, returns
+  /// it.
+  ///
+  /// Otherwise, returns null.
+  ///
+  /// @nodoc
+  @internal
+  ComplexSelector? get singleComplex =>
+      components.length == 1 ? components.first : null;
+
   /// Throws a [SassException] if `this` isn't a CSS selector that's valid in
   /// various places in the document, depending on the arguments passed.
   ///
