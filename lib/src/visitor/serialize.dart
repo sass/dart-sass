@@ -1077,7 +1077,6 @@ final class _SerializeVisitor
       if (i != 0) {
         if (!lastElementEmpty) {
           _buffer.writeCharCode($space);
-          lastElementEmpty = false;
         }
 
         _buffer.writeCharCode($slash);
@@ -1085,6 +1084,7 @@ final class _SerializeVisitor
           lastElementEmpty = true;
         } else {
           _buffer.writeCharCode($space);
+          lastElementEmpty = false;
         }
       } else if (element case SassString(text: ' ', hasQuotes: false)) {
         lastElementEmpty = true;
