@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 0bd4067eac410d6d9ab05aab30a1f5bf0e602144
+  // Checksum: da3a1fd53f628e2633aef3b7560951c00d48e1a1
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -40,6 +40,7 @@ enum Deprecation {
   /// Deprecation for declaring new variables with !global.
   newGlobal('new-global',
       deprecatedIn: '1.17.2',
+      obsoleteIn: '2.0.0',
       description: 'Declaring new variables with !global.'),
 
   /// Deprecation for using color module functions in place of plain CSS functions.
