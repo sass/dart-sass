@@ -1,6 +1,6 @@
 ## 0.5.0-dev
 
-* No user-visible changes.
+* `/` is now parsed as slash-separated lists rather than division in SassScript.
 
 ## 0.4.27-dev
 

@@ -683,39 +683,39 @@ void sharedTests(
 
   group("with a bunch of deprecation warnings", () {
     setUp(() async {
+      await d.file("_other.scss", "").create();
       await d.file("test.scss", r"""
-        @use "sass:list";
-        @use "sass:meta";
+        @import "other";
+        @import "./other";
+        @import "././other";
+        @import "./././other";
+        @import "././././other";
+        @import "./././././other";
 
-        $_: meta.call("inspect", null);
-        $_: meta.call("rgb", 0, 0, 0);
-        $_: meta.call("nth", null, 1);
-        $_: meta.call("join", null, null);
-        $_: meta.call("if", true, 1, 2);
-        $_: meta.call("hsl", 0, 100%, 100%);
-
-        $_: 1/2;
-        $_: 1/3;
-        $_: 1/4;
-        $_: 1/5;
-        $_: 1/6;
-        $_: 1/7;
+        $_: nth(a b c d e f g, 1);
+        $_: nth(a b c d e f g, 2);
+        $_: nth(a b c d e f g, 3);
+        $_: nth(a b c d e f g, 4);
+        $_: nth(a b c d e f g, 5);
+        $_: nth(a b c d e f g, 6);
       """).create();
     });
 
     test("without --verbose, only prints five", () async {
       var sass = await runSass(["test.scss"]);
-      expect(
-        sass.stderr,
-        emitsInOrder(List.filled(5, emitsThrough(contains("call()")))),
-      );
-      expect(sass.stderr, neverEmits(contains("call()")));
 
       expect(
         sass.stderr,
-        emitsInOrder(List.filled(5, emitsThrough(contains("math.div")))),
+        emitsInOrder(List.filled(5, emitsThrough(contains("[import]")))),
       );
-      expect(sass.stderr, neverEmits(contains("math.div()")));
+      expect(sass.stderr, neverEmits(contains("[import]")));
+
+      expect(
+        sass.stderr,
+        emitsInOrder(
+            List.filled(5, emitsThrough(contains("[global-builtin]")))),
+      );
+      expect(sass.stderr, neverEmits(contains("[global-builtin]")));
 
       expect(
         sass.stderr,
@@ -732,12 +732,12 @@ void sharedTests(
 
       expect(
         sass.stderr,
-        emitsInOrder(List.filled(6, emitsThrough(contains("call()")))),
+        emitsInOrder(List.filled(6, emitsThrough(contains("import")))),
       );
 
       expect(
         sass.stderr,
-        emitsInOrder(List.filled(6, emitsThrough(contains("math.div")))),
+        emitsInOrder(List.filled(6, emitsThrough(contains("global-builtin")))),
       );
     });
   });
@@ -867,29 +867,30 @@ void sharedTests(
 
   group("with --fatal-deprecation", () {
     test("set to a specific deprecation, errors as intended", () async {
-      await d.file("test.scss", "a {b: (4/2)}").create();
-      var sass = await runSass(["--fatal-deprecation=slash-div", "test.scss"]);
+      await d.file("test.scss", "a {b: nth(1 2 3, 1)}").create();
+      var sass =
+          await runSass(["--fatal-deprecation=global-builtin", "test.scss"]);
       expect(sass.stdout, emitsDone);
       await sass.shouldExit(65);
     });
 
     test("set to version, errors as intended", () async {
-      await d.file("test.scss", "a {b: (4/2)}").create();
-      var sass = await runSass(["--fatal-deprecation=1.33.0", "test.scss"]);
+      await d.file("test.scss", "a {b: nth(1 2 3, 1)}").create();
+      var sass = await runSass(["--fatal-deprecation=1.80.0", "test.scss"]);
       expect(sass.stdout, emitsDone);
       await sass.shouldExit(65);
     });
 
     test("set to lower version, only warns", () async {
-      await d.file("test.scss", "a {b: (4/2)}").create();
-      var sass = await runSass(["--fatal-deprecation=1.32.0", "test.scss"]);
-      expect(sass.stdout, emitsInOrder(["a {", "  b: 2;", "}"]));
+      await d.file("test.scss", "a {b: nth(1 2 3, 1)}").create();
+      var sass = await runSass(["--fatal-deprecation=1.79.0", "test.scss"]);
+      expect(sass.stdout, emitsInOrder(["a {", "  b: 1;", "}"]));
       expect(sass.stderr, emitsThrough(contains("DEPRECATION WARNING")));
       await sass.shouldExit(0);
     });
 
     test("set to future version, usage error", () async {
-      await d.file("test.scss", "a {b: (4/2)}").create();
+      await d.file("test.scss", "a {b: nth(1 2 3, 1)}").create();
       var sass = await runSass(["--fatal-deprecation=1000.0.0", "test.scss"]);
       expect(sass.stdout, emitsThrough(contains("Invalid version 1000.0.0")));
       await sass.shouldExit(64);

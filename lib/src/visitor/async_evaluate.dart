@@ -45,7 +45,6 @@ import '../util/map.dart';
 import '../util/nullable.dart';
 import '../util/span.dart';
 import '../value.dart';
-import 'expression_to_calc.dart';
 import 'interface/css.dart';
 import 'interface/expression.dart';
 import 'interface/modifiable_css.dart';
@@ -226,6 +225,9 @@ final class _EvaluateVisitor
   /// This is used to produce warnings for importers.
   FileSpan? _importSpan;
 
+  /// Whether we're currently executing a mixin.
+  var _inMixin = false;
+
   /// Whether we're currently executing a function.
   var _inFunction = false;
 
@@ -332,6 +334,13 @@ final class _EvaluateVisitor
   ///
   /// If this is empty, that indicates that the current module is not configured.
   var _configuration = const Configuration.empty();
+
+  /// A cache mapping slash-separated list expressions to the binary operation
+  /// expressions they're rewritten as when executing calculations.
+  ///
+  /// These are only cached in function and mixin contexts, where the same
+  /// calculations are likely to be evaluated multiple times.
+  final _calcSlashListCache = HashMap<ListExpression, Expression>.identity();
 
   /// Creates a new visitor.
   ///
@@ -1396,11 +1405,8 @@ final class _EvaluateVisitor
     var list = await node.list.accept(this);
     var nodeWithSpan = _expressionNode(node.list);
     var setVariables = switch (node.variables) {
-      [var variable] => (Value value) => _environment.setLocalVariable(
-            variable,
-            _withoutSlash(value, nodeWithSpan),
-            nodeWithSpan,
-          ),
+      [var variable] => (Value value) =>
+          _environment.setLocalVariable(variable, value, nodeWithSpan),
       var variables => (Value value) =>
           _setMultipleVariables(variables, value, nodeWithSpan),
     };
@@ -1425,11 +1431,7 @@ final class _EvaluateVisitor
     var list = value.asList;
     var minLength = math.min(variables.length, list.length);
     for (var i = 0; i < minLength; i++) {
-      _environment.setLocalVariable(
-        variables[i],
-        _withoutSlash(list[i], nodeWithSpan),
-        nodeWithSpan,
-      );
+      _environment.setLocalVariable(variables[i], list[i], nodeWithSpan);
     }
     for (var i = minLength; i < variables.length; i++) {
       _environment.setLocalVariable(variables[i], sassNull, nodeWithSpan);
@@ -1683,10 +1685,7 @@ final class _EvaluateVisitor
 
       var variableNodeWithSpan = _expressionNode(variable.expression);
       newValues[variable.name] = ConfiguredValue.explicit(
-        _withoutSlash(
-          await variable.expression.accept(this),
-          variableNodeWithSpan,
-        ),
+        await variable.expression.accept(this),
         variable.span,
         variableNodeWithSpan,
       );
@@ -2158,13 +2157,18 @@ final class _EvaluateVisitor
       () => node.spanWithoutContent,
     );
 
-    await _applyMixin(
-      mixin,
-      contentCallable,
-      node.arguments,
-      node,
-      nodeWithSpanWithoutContent,
-    );
+    _inMixin = true;
+    try {
+      await _applyMixin(
+        mixin,
+        contentCallable,
+        node.arguments,
+        node,
+        nodeWithSpanWithoutContent,
+      );
+    } finally {
+      _inMixin = false;
+    }
 
     return null;
   }
@@ -2298,7 +2302,7 @@ final class _EvaluateVisitor
   }
 
   Future<Value> visitReturnRule(ReturnRule node) async =>
-      _withoutSlash(await node.expression.accept(this), node.expression);
+      await node.expression.accept(this);
 
   Future<Value?> visitSilentComment(SilentComment node) async => null;
 
@@ -2583,10 +2587,7 @@ final class _EvaluateVisitor
       );
     }
 
-    var value = _withoutSlash(
-      await node.expression.accept(this),
-      node.expression,
-    );
+    var value = await node.expression.accept(this);
     _addExceptionSpan(node, () {
       _environment.setVariable(
         node.name,
@@ -2606,10 +2607,7 @@ final class _EvaluateVisitor
       for (var variable in node.configuration) {
         var variableNodeWithSpan = _expressionNode(variable.expression);
         values[variable.name] = ConfiguredValue.explicit(
-          _withoutSlash(
-            await variable.expression.accept(this),
-            variableNodeWithSpan,
-          ),
+          await variable.expression.accept(this),
           variable.span,
           variableNodeWithSpan,
         );
@@ -2657,9 +2655,7 @@ final class _EvaluateVisitor
   // ## Expressions
 
   Future<Value> visitBinaryOperationExpression(BinaryOperationExpression node) {
-    if (_stylesheet.plainCss &&
-        node.operator != BinaryOperator.singleEquals &&
-        node.operator != BinaryOperator.dividedBy) {
+    if (_stylesheet.plainCss && node.operator != BinaryOperator.singleEquals) {
       throw _exception(
         "Operators aren't allowed in plain CSS.",
         node.operatorSpan,
@@ -2695,72 +2691,16 @@ final class _EvaluateVisitor
         BinaryOperator.plus => left.plus(await node.right.accept(this)),
         BinaryOperator.minus => left.minus(await node.right.accept(this)),
         BinaryOperator.times => left.times(await node.right.accept(this)),
-        BinaryOperator.dividedBy => _slash(
-            left,
-            await node.right.accept(this),
-            node,
-          ),
         BinaryOperator.modulo => left.modulo(await node.right.accept(this)),
+
+        /// This can't be generated by the actual Sass parser, but it's still
+        /// supported by the AST for calculation purposes. Might as well support
+        /// it here too.
+        BinaryOperator.dividedBy =>
+          left.dividedBy(await node.right.accept(this)),
       };
     });
   }
-
-  /// Returns the result of the SassScript `/` operation between [left] and
-  /// [right] in [node].
-  Value _slash(Value left, Value right, BinaryOperationExpression node) {
-    var result = left.dividedBy(right);
-    switch ((left, right)) {
-      case (SassNumber left, SassNumber right)
-          when node.allowsSlash &&
-              _operandAllowsSlash(node.left) &&
-              _operandAllowsSlash(node.right):
-        return (result as SassNumber).withSlash(left, right);
-
-      case (SassNumber(), SassNumber()):
-        String recommendation(Expression expression) => switch (expression) {
-              BinaryOperationExpression(
-                operator: BinaryOperator.dividedBy,
-                :var left,
-                :var right,
-              ) =>
-                "math.div(${recommendation(left)}, ${recommendation(right)})",
-              ParenthesizedExpression() => expression.expression.toString(),
-              _ => expression.toString(),
-            };
-
-        _warn(
-          "Using / for division outside of calc() is deprecated "
-          "and will be removed in Dart Sass 2.0.0.\n"
-          "\n"
-          "Recommendation: ${recommendation(node)} or "
-          "${expressionToCalc(node)}\n"
-          "\n"
-          "More info and automated migrator: "
-          "https://sass-lang.com/d/slash-div",
-          node.span,
-          Deprecation.slashDiv,
-        );
-        return result;
-
-      case _:
-        return result;
-    }
-  }
-
-  /// Returns whether [node] can be used as a component of a slash-separated
-  /// number.
-  ///
-  /// Although this logic is mostly resolved at parse-time, we can't tell
-  /// whether operands will be evaluated as calculations until evaluation-time.
-  bool _operandAllowsSlash(Expression node) =>
-      node is! FunctionExpression ||
-      (node.namespace == null &&
-          const {
-            "calc", "clamp", "hypot", "sin", "cos", "tan", "asin", "acos", //
-            "atan", "sqrt", "exp", "sign", "mod", "rem", "atan2", "pow", //
-            "log", "calc-size",
-          }.contains(node.name.toLowerCase()) &&
-          _environment.getFunction(node.name) == null);
 
   Future<Value> visitValueExpression(ValueExpression node) async => node.value;
 
@@ -2801,7 +2741,7 @@ final class _EvaluateVisitor
     var ifFalse = positional.elementAtOrNull(2) ?? named["if-false"]!;
 
     var result = (await condition.accept(this)).isTruthy ? ifTrue : ifFalse;
-    return _withoutSlash(await result.accept(this), _expressionNode(result));
+    return await result.accept(this);
   }
 
   Future<Value> visitNullExpression(NullExpression node) async => sassNull;
@@ -3213,12 +3153,223 @@ final class _EvaluateVisitor
 
         return SassString(elements.join(' '), quotes: false);
 
+      // Correctly handling slashes is complicated, because they're parsed as
+      // list separators and so have lower precedence than any mathematical
+      // operators. They *should* have higher precedence than addition or
+      // subtraction and equivalent precedence to multiplication. The spec
+      // handles this by reconstructing the AST once it's determined that it's
+      // evaluating a calculation, but we want to avoid the extra allocations so
+      // we handle it as we evaluate instead.
+      case ListExpression(
+          hasBrackets: false,
+          separator: ListSeparator.slash,
+          contents: var contents,
+        ):
+        var adjusted = _inFunction || _inMixin
+            ? _calcSlashListCache.putIfAbsent(
+                node, () => _adjustSlashPrecedence(contents))
+            : _adjustSlashPrecedence(contents);
+        return await _visitCalculationExpression(adjusted,
+            inLegacySassFunction: inLegacySassFunction);
+
       case _:
         assert(!node.isCalculationSafe);
         throw _exception(
           "This expression can't be used in a calculation.",
           node.span,
         );
+    }
+  }
+
+  /// Converts the slash-separated list of [contents] into an expression that
+  /// matches `calc()` precedence.
+  ///
+  /// This is necessary because slashes are parsed as list separators and so
+  /// have lower precedence than any mathematical operators. They *should* have
+  /// higher precedence than addition or subtraction and equivalent precedence
+  /// to multiplication.
+  Expression _adjustSlashPrecedence(List<Expression> contents) {
+    var left = contents.first;
+    for (var right in contents.skip(1)) {
+      if (right
+          case StringExpression(
+            text: Interpolation(asPlain: " "),
+            hasQuotes: false
+          )) {
+        throw _exception(
+          "This expression can't be used in a calculation.",
+          right.span,
+        );
+      }
+
+      left = switch ((
+        _splitCalculationSumTail(left),
+        _splitCalculationSumHead(right)
+      )) {
+        // Example: 1 + 2 / 3 + 4
+        (
+          //   1                  +                 2
+          (var leftRemainder, var leftOperator, var leftOperand),
+          //   3                 +                  4
+          (var rightOperand, var rightOperator, var rightRemainder)
+        ) =>
+          // (1 + (2 / 3)) + 4
+          BinaryOperationExpression(
+            rightOperator,
+            // 1 + (2 / 3)
+            BinaryOperationExpression(
+              leftOperator,
+              leftRemainder,
+              // 2 / 3
+              BinaryOperationExpression(
+                  BinaryOperator.dividedBy, leftOperand, rightOperand),
+            ),
+            rightRemainder,
+          ),
+        // Example: 1 + 2 / 3
+        //    1                  +                 2
+        ((var leftRemainder, var leftOperator, var leftOperand), _) =>
+          // 1 + (2 / 3)
+          BinaryOperationExpression(
+            leftOperator,
+            leftRemainder,
+            // 2 / 3
+            BinaryOperationExpression(
+                BinaryOperator.dividedBy, leftOperand, right),
+          ),
+        // Example: 1 / 2 + 3
+        //       2                 +                  3
+        (_, (var rightOperand, var rightOperator, var rightRemainder)) =>
+          // (1 / 2) + 3
+          BinaryOperationExpression(
+            rightOperator,
+            // 1 / 2
+            BinaryOperationExpression(
+                BinaryOperator.dividedBy, left, rightOperand),
+            rightRemainder,
+          ),
+        _ => switch (right) {
+            // Example: 1 / 2 * 3
+            BinaryOperationExpression(
+              operator: BinaryOperator.times,
+              left: var rightOperand, // 2
+              right: var rightRemainder, // 3
+            ) =>
+              // (1 / 2) * 3
+              BinaryOperationExpression(
+                BinaryOperator.times,
+                // 1 / 2
+                BinaryOperationExpression(
+                    BinaryOperator.dividedBy, left, rightOperand),
+                rightRemainder,
+              ),
+            _ =>
+              BinaryOperationExpression(BinaryOperator.dividedBy, left, right),
+          },
+      };
+    }
+
+    return left;
+  }
+
+  /// If [expression] is a sequence of `+` or `-` operations, returns the
+  /// leftmost operator and its operand, as well as the remainder of the
+  /// expression (which may be rewritten according to the associative property).
+  ///
+  /// For example, if [expression] is `1 + 2 - 3 + 4`, this returns `(1, +, 2
+  /// - 3 + 4)`. This works regardless of how [expression] has been parsed.
+  ///
+  /// If [expression] is not such a sequence, returns `null`.
+  (Expression, BinaryOperator, Expression)? _splitCalculationSumHead(
+      Expression expression) {
+    switch (expression) {
+      // Example: ((1 + 2) + 3) - 4
+      case BinaryOperationExpression(
+          // -
+          operator:
+              (BinaryOperator.plus || BinaryOperator.minus) && var operator,
+          left: BinaryOperationExpression(
+                operator: BinaryOperator.plus || BinaryOperator.minus
+              ) &&
+              var left, // ((1 + 2) + 3)
+          :var right // 4
+        ):
+        // (1, +, 2 + 3)
+        var (head, leftOperator, leftRemainder) =
+            _splitCalculationSumHead(left)!;
+        // (1, +, (2 + 3) - 4)
+        return (
+          head,
+          leftOperator,
+          // (2 + 3) - 4
+          BinaryOperationExpression(operator, leftRemainder, right)
+        );
+
+      // Example: 1 + 2
+      case BinaryOperationExpression(
+          operator:
+              (BinaryOperator.plus || BinaryOperator.minus) && var operator,
+          :var left, // 1
+          :var right // 2
+        ):
+        // (1, +, 2)
+        return (left, operator, right);
+
+      case _:
+        return null;
+    }
+  }
+
+  /// If [expression] is a sequence of `+` or `-` operations, returns the
+  /// rightmost operator and its operand, as well as the remainder of the
+  /// expression (which may be rewritten according to the associative property).
+  ///
+  /// For example, if [expression] is `1 + 2 - 3 + 4`, this returns `(1 + 2 - 3,
+  /// +, 4)`. This works regardless of how [expression] has been parsed.
+  ///
+  /// If [expression] is not such a sequence, returns `null`.
+  (Expression, BinaryOperator, Expression)? _splitCalculationSumTail(
+      Expression expression) {
+    // Example: 1 - (2 + (3 + 4))
+    //
+    // Note: Sass parses operations left-associatively, so this parse won't
+    // actually appear naturally. We still handle it defensively in case it
+    // comes up from some other source.
+    switch (expression) {
+      case BinaryOperationExpression(
+          // -
+          operator:
+              (BinaryOperator.plus || BinaryOperator.minus) && var operator,
+          :var left, // 1
+          right: BinaryOperationExpression(
+                operator: BinaryOperator.plus || BinaryOperator.minus
+              ) &&
+              var right // 2 + (3 + 4)
+        ):
+        // (2 + 3, +, 4)
+        var (rightRemainder, rightOperator, tail) =
+            _splitCalculationSumTail(right)!;
+        // (1 - (2 + 3), + 4)
+        return (
+          // 1 - (2 + 3)
+          BinaryOperationExpression(operator, left, rightRemainder),
+          rightOperator, // +
+          tail // 4
+        );
+
+      // Example: 1 + 2
+      case BinaryOperationExpression(
+          // +
+          operator:
+              (BinaryOperator.plus || BinaryOperator.minus) && var operator,
+          :var left, // 1
+          :var right // 2
+        ):
+        // (1, +, 2)
+        return (left, operator, right);
+
+      case _:
+        return null;
     }
   }
 
@@ -3366,10 +3517,7 @@ final class _EvaluateVisitor
               i++) {
             var parameter = parameters[i];
             var value = evaluated.named.remove(parameter.name) ??
-                _withoutSlash(
-                  await parameter.defaultValue!.accept<Future<Value>>(this),
-                  _expressionNode(parameter.defaultValue!),
-                );
+                await parameter.defaultValue!.accept<Future<Value>>(this);
             _environment.setLocalVariable(
               parameter.name,
               value,
@@ -3433,10 +3581,7 @@ final class _EvaluateVisitor
     AstNode nodeWithSpan,
   ) async {
     if (callable is AsyncBuiltInCallable) {
-      return _withoutSlash(
-        await _runBuiltInCallable(arguments, callable, nodeWithSpan),
-        nodeWithSpan,
-      );
+      return await _runBuiltInCallable(arguments, callable, nodeWithSpan);
     } else if (callable is UserDefinedCallable<AsyncEnvironment>) {
       return await _runUserDefinedCallable(
         arguments,
@@ -3525,10 +3670,7 @@ final class _EvaluateVisitor
       var parameter = parameters[i];
       evaluated.positional.add(
         evaluated.named.remove(parameter.name) ??
-            _withoutSlash(
-              await parameter.defaultValue!.accept(this),
-              parameter.defaultValue!,
-            ),
+            await parameter.defaultValue!.accept(this),
       );
     }
 
@@ -3597,7 +3739,7 @@ final class _EvaluateVisitor
     var positionalNodes = <AstNode>[];
     for (var expression in arguments.positional) {
       var nodeForSpan = _expressionNode(expression);
-      positional.add(_withoutSlash(await expression.accept(this), nodeForSpan));
+      positional.add(await expression.accept(this));
       positionalNodes.add(nodeForSpan);
     }
 
@@ -3605,7 +3747,7 @@ final class _EvaluateVisitor
     var namedNodes = <String, AstNode>{};
     for (var (name, value) in arguments.named.pairs) {
       var nodeForSpan = _expressionNode(value);
-      named[name] = _withoutSlash(await value.accept(this), nodeForSpan);
+      named[name] = await value.accept(this);
       namedNodes[name] = nodeForSpan;
     }
 
@@ -3630,20 +3772,18 @@ final class _EvaluateVisitor
           (key as SassString).text: restNodeForSpan,
       });
     } else if (rest is SassList) {
-      positional.addAll(
-        rest.asList.map((value) => _withoutSlash(value, restNodeForSpan)),
-      );
+      positional.addAll(rest.asList.map((value) => value));
       positionalNodes.addAll(List.filled(rest.lengthAsList, restNodeForSpan));
       separator = rest.separator;
 
       if (rest is SassArgumentList) {
         rest.keywords.forEach((key, value) {
-          named[key] = _withoutSlash(value, restNodeForSpan);
+          named[key] = value;
           namedNodes[key] = restNodeForSpan;
         });
       }
     } else {
-      positional.add(_withoutSlash(rest, restNodeForSpan));
+      positional.add(rest);
       positionalNodes.add(restNodeForSpan);
     }
 
@@ -3697,7 +3837,6 @@ final class _EvaluateVisitor
     var positional = invocation.arguments.positional.toList();
     var named = Map.of(invocation.arguments.named);
     var rest = await restArgs.accept(this);
-    var restNodeForSpan = _expressionNode(restArgs);
     if (rest is SassMap) {
       _addRestMap(
         named,
@@ -3709,7 +3848,7 @@ final class _EvaluateVisitor
       positional.addAll(
         rest.asList.map(
           (value) => ValueExpression(
-            _withoutSlash(value, restNodeForSpan),
+            value,
             restArgs.span,
           ),
         ),
@@ -3717,14 +3856,14 @@ final class _EvaluateVisitor
       if (rest is SassArgumentList) {
         rest.keywords.forEach((key, value) {
           named[key] = ValueExpression(
-            _withoutSlash(value, restNodeForSpan),
+            value,
             restArgs.span,
           );
         });
       }
     } else {
       positional.add(
-        ValueExpression(_withoutSlash(rest, restNodeForSpan), restArgs.span),
+        ValueExpression(rest, restArgs.span),
       );
     }
 
@@ -3733,14 +3872,13 @@ final class _EvaluateVisitor
     var keywordRestArgs = keywordRestArgs_; // dart-lang/sdk#45348
 
     var keywordRest = await keywordRestArgs.accept(this);
-    var keywordRestNodeForSpan = _expressionNode(keywordRestArgs);
     if (keywordRest is SassMap) {
       _addRestMap(
         named,
         keywordRest,
         invocation,
         (value) => ValueExpression(
-          _withoutSlash(value, keywordRestNodeForSpan),
+          value,
           keywordRestArgs.span,
         ),
       );
@@ -3770,10 +3908,9 @@ final class _EvaluateVisitor
     AstNode nodeWithSpan,
     T convert(Value value),
   ) {
-    var expressionNode = _expressionNode(nodeWithSpan);
     map.contents.forEach((key, value) {
       if (key is SassString) {
-        values[key.text] = convert(_withoutSlash(value, expressionNode));
+        values[key.text] = convert(value);
       } else {
         throw _exception(
           "Variable keyword argument map must have string keys.\n"
@@ -4418,32 +4555,6 @@ final class _EvaluateVisitor
     _member = oldMember;
     _stack.removeLast();
     return result;
-  }
-
-  /// Like [Value.withoutSlash], but produces a deprecation warning if [value]
-  /// was a slash-separated number.
-  Value _withoutSlash(Value value, AstNode nodeForSpan) {
-    if (value case SassNumber(asSlash: _?)) {
-      String recommendation(SassNumber number) => switch (number.asSlash) {
-            (var before, var after) =>
-              "math.div(${recommendation(before)}, ${recommendation(after)})",
-            _ => number.toString(),
-          };
-
-      _warn(
-        "Using / for division is deprecated and will be removed in Dart Sass "
-        "2.0.0.\n"
-        "\n"
-        "Recommendation: ${recommendation(value)}\n"
-        "\n"
-        "More info and automated migrator: "
-        "https://sass-lang.com/d/slash-div",
-        nodeForSpan.span,
-        Deprecation.slashDiv,
-      );
-    }
-
-    return value.withoutSlash();
   }
 
   /// Creates a new stack frame with location information from [member] and

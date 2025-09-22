@@ -257,16 +257,8 @@ final _randomFunction = _function("random", r"$limit: null", (arguments) {
 });
 
 final _div = _function("div", r"$number1, $number2", (arguments) {
-  var number1 = arguments[0];
-  var number2 = arguments[1];
-
-  if (number1 is! SassNumber || number2 is! SassNumber) {
-    warn(
-      "math.div() will only support number arguments in a future release.\n"
-      "Use list.slash() instead for a slash separator.",
-    );
-  }
-
+  var number1 = arguments[0].assertNumber('number1');
+  var number2 = arguments[1].assertNumber('number2');
   return number1.dividedBy(number2);
 });
 

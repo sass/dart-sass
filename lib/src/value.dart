@@ -385,7 +385,7 @@ abstract class Value {
   /// @nodoc
   @internal
   Value dividedBy(Value other) =>
-      SassString("${toCssString()}/${other.toCssString()}", quotes: false);
+      throw SassScriptException('Undefined operation "$this / $other".');
 
   /// The SassScript unary `+` operation.
   ///

@@ -53,9 +53,6 @@ abstract class StylesheetParser extends Parser {
   /// Whether the parser is currently parsing a style rule.
   var _inStyleRule = false;
 
-  /// Whether the parser is currently within a parenthesized expression.
-  var _inParentheses = false;
-
   /// Whether the parser is currently within an expression.
   @protected
   bool get inExpression => _inExpression;
@@ -1850,7 +1847,6 @@ abstract class StylesheetParser extends Parser {
 
     var start = scanner.state;
     var wasInExpression = _inExpression;
-    var wasInParentheses = _inParentheses;
     _inExpression = true;
 
     // We use the convention below of referring to nullable variables that are
@@ -1860,6 +1856,8 @@ abstract class StylesheetParser extends Parser {
     // local nullability.
 
     List<Expression>? commaExpressions_;
+
+    List<Expression>? slashExpressions_;
 
     List<Expression>? spaceExpressions_;
 
@@ -1873,10 +1871,6 @@ abstract class StylesheetParser extends Parser {
     // of `operators_[n]`.
     List<Expression>? operands_;
 
-    /// Whether the single expression parsed so far may be interpreted as
-    /// slash-separated numbers.
-    var allowSlash = true;
-
     /// The leftmost expression that's been fully-parsed. This can be null in
     /// special cases where the expression begins with a sub-expression but has
     /// a later character that indicates that the outer expression isn't done,
@@ -1885,18 +1879,6 @@ abstract class StylesheetParser extends Parser {
     ///     foo, bar
     ///         ^
     Expression? singleExpression_ = _singleExpression();
-
-    // Resets the scanner state to the state it was at at the beginning of the
-    // expression, except for [_inParentheses].
-    void resetState() {
-      commaExpressions_ = null;
-      spaceExpressions_ = null;
-      operators_ = null;
-      operands_ = null;
-      scanner.state = start;
-      allowSlash = true;
-      singleExpression_ = _singleExpression();
-    }
 
     void resolveOneOperation() {
       var operator = operators_!.removeLast();
@@ -1912,44 +1894,35 @@ abstract class StylesheetParser extends Parser {
         );
       }
 
-      if (allowSlash &&
-          !_inParentheses &&
-          operator == BinaryOperator.dividedBy &&
-          _isSlashOperand(left) &&
-          _isSlashOperand(right)) {
-        singleExpression_ = BinaryOperationExpression.slash(left, right);
-      } else {
-        singleExpression_ = BinaryOperationExpression(operator, left, right);
-        allowSlash = false;
+      singleExpression_ = BinaryOperationExpression(operator, left, right);
 
-        if (operator case BinaryOperator.plus || BinaryOperator.minus) {
-          if (scanner.string.substring(
-                    right.span.start.offset - 1,
-                    right.span.start.offset,
-                  ) ==
-                  operator.operator &&
-              scanner.string.codeUnitAt(left.span.end.offset).isWhitespace) {
-            warnings.add((
-              deprecation: Deprecation.strictUnary,
-              message: "This operation is parsed as:\n"
-                  "\n"
-                  "    $left ${operator.operator} $right\n"
-                  "\n"
-                  "but you may have intended it to mean:\n"
-                  "\n"
-                  "    $left (${operator.operator}$right)\n"
-                  "\n"
-                  "Add a space after ${operator.operator} to clarify that it's "
-                  "meant to be a binary operation, or wrap\n"
-                  "it in parentheses to make it a unary operation. This will be "
-                  "an error in future\n"
-                  "versions of Sass.\n"
-                  "\n"
-                  "More info and automated migrator: "
-                  "https://sass-lang.com/d/strict-unary",
-              span: singleExpression_!.span,
-            ));
-          }
+      if (operator case BinaryOperator.plus || BinaryOperator.minus) {
+        if (scanner.string.substring(
+                  right.span.start.offset - 1,
+                  right.span.start.offset,
+                ) ==
+                operator.operator &&
+            scanner.string.codeUnitAt(left.span.end.offset).isWhitespace) {
+          warnings.add((
+            deprecation: Deprecation.strictUnary,
+            message: "This operation is parsed as:\n"
+                "\n"
+                "    $left ${operator.operator} $right\n"
+                "\n"
+                "but you may have intended it to mean:\n"
+                "\n"
+                "    $left (${operator.operator}$right)\n"
+                "\n"
+                "Add a space after ${operator.operator} to clarify that it's "
+                "meant to be a binary operation, or wrap\n"
+                "it in parentheses to make it a unary operation. This will be "
+                "an error in future\n"
+                "versions of Sass.\n"
+                "\n"
+                "More info and automated migrator: "
+                "https://sass-lang.com/d/strict-unary",
+            span: singleExpression_!.span,
+          ));
         }
       }
     }
@@ -1964,25 +1937,12 @@ abstract class StylesheetParser extends Parser {
 
     void addSingleExpression(Expression expression) {
       if (singleExpression_ != null) {
-        // If we discover we're parsing a list whose first element is a division
-        // operation, and we're in parentheses, reparse outside of a paren
-        // context. This ensures that `(1/2 1)` doesn't perform division on its
-        // first element.
-        if (_inParentheses) {
-          _inParentheses = false;
-          if (allowSlash) {
-            resetState();
-            return;
-          }
-        }
-
         var spaceExpressions = spaceExpressions_ ??= [];
         resolveOperations();
 
         // [singleExpression_] was non-null before, and [resolveOperations]
         // can't make it null, it can only change it.
         spaceExpressions.add(singleExpression_!);
-        allowSlash = true;
       }
 
       singleExpression_ = expression;
@@ -1995,16 +1955,13 @@ abstract class StylesheetParser extends Parser {
           // evaluation time.
           operator != BinaryOperator.plus &&
           operator != BinaryOperator.minus &&
-          operator != BinaryOperator.times &&
-          operator != BinaryOperator.dividedBy) {
+          operator != BinaryOperator.times) {
         scanner.error(
           "Operators aren't allowed in plain CSS.",
           position: scanner.position - operator.operator.length,
           length: operator.operator.length,
         );
       }
-
-      allowSlash = allowSlash && operator == BinaryOperator.dividedBy;
 
       var operators = operators_ ??= [];
       var operands = operands_ ??= [];
@@ -2037,10 +1994,14 @@ abstract class StylesheetParser extends Parser {
       resolveOperations();
 
       var spaceExpressions = spaceExpressions_;
-      if (spaceExpressions == null) return;
+
+      // This allows a list of the form `X,` but forbids a list of the form
+      // `X/`.
+      if (spaceExpressions == null && slashExpressions_ == null) return;
 
       var singleExpression = singleExpression_;
       if (singleExpression == null) scanner.error("Expected expression.");
+      if (spaceExpressions == null) return;
 
       spaceExpressions.add(singleExpression);
       singleExpression_ = ListExpression(
@@ -2049,6 +2010,24 @@ abstract class StylesheetParser extends Parser {
         spaceExpressions.first.span.expand(singleExpression.span),
       );
       spaceExpressions_ = null;
+    }
+
+    void resolveSlashExpressions() {
+      resolveSpaceExpressions();
+
+      var slashExpressions = slashExpressions_;
+      if (slashExpressions == null) return;
+
+      var singleExpression = singleExpression_;
+      if (singleExpression == null) scanner.error("Expected expression.");
+
+      slashExpressions.add(singleExpression);
+      singleExpression_ = ListExpression(
+        slashExpressions,
+        ListSeparator.slash,
+        slashExpressions.first.span.expand(singleExpression.span),
+      );
+      slashExpressions_ = null;
     }
 
     loop:
@@ -2142,13 +2121,6 @@ abstract class StylesheetParser extends Parser {
             addOperator(BinaryOperator.minus);
           }
 
-        case $slash when singleExpression_ == null:
-          addSingleExpression(_unaryOperation());
-
-        case $slash:
-          scanner.readChar();
-          addOperator(BinaryOperator.dividedBy);
-
         case $percent:
           scanner.readChar();
           addOperator(BinaryOperator.modulo);
@@ -2184,30 +2156,39 @@ abstract class StylesheetParser extends Parser {
               >= 0x80:
           addSingleExpression(identifierLike());
 
-        case $comma:
-          // If we discover we're parsing a list whose first element is a
-          // division operation, and we're in parentheses, reparse outside of a
-          // paren context. This ensures that `(1/2, 1)` doesn't perform division
-          // on its first element.
-          if (_inParentheses) {
-            _inParentheses = false;
-            if (allowSlash) {
-              resetState();
-              break;
-            }
+        case $slash when singleExpression_ == null:
+          if (slashExpressions_ case var slashExpressions?) {
+            slashExpressions
+                .add(StringExpression.plain(' ', scanner.location.pointSpan()));
+            scanner.readChar();
+          } else {
+            addSingleExpression(_unaryOperation());
           }
 
+        case $slash:
+          var slashExpressions = slashExpressions_ ??= [];
+
+          resolveSpaceExpressions();
+
+          // [resolveSpaceExpressions] can modify [singleExpression_], but it
+          // can't set it to null`. We know it's not null here because of the
+          // previous `$slash when singleExpression_ == null` case.
+          slashExpressions.add(singleExpression_!);
+
+          scanner.readChar();
+          singleExpression_ = null;
+
+        case $comma:
           var commaExpressions = commaExpressions_ ??= [];
 
           if (singleExpression_ == null) scanner.error("Expected expression.");
-          resolveSpaceExpressions();
+          resolveSlashExpressions();
 
-          // [resolveSpaceExpressions can modify [singleExpression_], but it
+          // [resolveSlashExpressions] can modify [singleExpression_], but it
           // can't set it to null`.
           commaExpressions.add(singleExpression_!);
 
           scanner.readChar();
-          allowSlash = true;
           singleExpression_ = null;
 
         case _:
@@ -2215,14 +2196,13 @@ abstract class StylesheetParser extends Parser {
       }
     }
 
-    if (bracketList) scanner.expectChar($rbracket);
-
     // TODO(dart-lang/sdk#52756): Use patterns to null-check these values.
     var commaExpressions = commaExpressions_;
+    var slashExpressions = slashExpressions_;
     var spaceExpressions = spaceExpressions_;
     if (commaExpressions != null) {
-      resolveSpaceExpressions();
-      _inParentheses = wasInParentheses;
+      resolveSlashExpressions();
+      if (bracketList) scanner.expectChar($rbracket);
       var singleExpression = singleExpression_;
       if (singleExpression != null) commaExpressions.add(singleExpression);
       _inExpression = wasInExpression;
@@ -2232,8 +2212,19 @@ abstract class StylesheetParser extends Parser {
         scanner.spanFrom(beforeBracket ?? start),
         brackets: bracketList,
       );
+    } else if (bracketList && slashExpressions != null) {
+      resolveSpaceExpressions();
+      scanner.expectChar($rbracket);
+      _inExpression = wasInExpression;
+      return ListExpression(
+        slashExpressions..add(singleExpression_!),
+        ListSeparator.slash,
+        scanner.spanFrom(beforeBracket!),
+        brackets: true,
+      );
     } else if (bracketList && spaceExpressions != null) {
       resolveOperations();
+      scanner.expectChar($rbracket);
       _inExpression = wasInExpression;
       return ListExpression(
         spaceExpressions..add(singleExpression_!),
@@ -2242,8 +2233,9 @@ abstract class StylesheetParser extends Parser {
         brackets: true,
       );
     } else {
-      resolveSpaceExpressions();
+      resolveSlashExpressions();
       if (bracketList) {
+        scanner.expectChar($rbracket);
         singleExpression_ = ListExpression(
           [singleExpression_!],
           ListSeparator.undecided,
@@ -2268,13 +2260,6 @@ abstract class StylesheetParser extends Parser {
       until: () => scanner.peekChar() == $comma,
     );
   }
-
-  /// Whether [expression] is allowed as an operand of a `/` expression that
-  /// produces a potentially slash-separated number.
-  bool _isSlashOperand(Expression expression) =>
-      expression is NumberExpression ||
-      expression is FunctionExpression ||
-      (expression is BinaryOperationExpression && expression.allowsSlash);
 
   /// Consumes an expression that doesn't contain any top-level whitespace.
   Expression _singleExpression() => switch (scanner.peekChar()) {
@@ -2312,52 +2297,46 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a parenthesized expression.
   @protected
   Expression parentheses() {
-    var wasInParentheses = _inParentheses;
-    _inParentheses = true;
-    try {
-      var start = scanner.state;
-      scanner.expectChar($lparen);
-      whitespace(consumeNewlines: true);
-      var inside = scanner.state;
-      if (!_lookingAtExpression()) {
-        scanner.expectChar($rparen);
-        return ListExpression(
-          [],
-          ListSeparator.undecided,
-          scanner.spanFrom(start),
-        );
-      }
-
-      var first = expressionUntilComma();
-      if (scanner.scanChar($colon)) {
-        whitespace(consumeNewlines: true);
-        return _map(first, start);
-      }
-
-      if (!scanner.scanChar($comma)) {
-        scanner.expectChar($rparen);
-        return ParenthesizedExpression(first, scanner.spanFrom(start));
-      }
-      whitespace(consumeNewlines: true);
-
-      var expressions = [first];
-      while (true) {
-        if (!_lookingAtExpression()) break;
-        expressions.add(expressionUntilComma());
-        if (!scanner.scanChar($comma)) break;
-        whitespace(consumeNewlines: true);
-      }
-
-      var list = ListExpression(
-        expressions,
-        ListSeparator.comma,
-        scanner.spanFrom(inside),
-      );
+    var start = scanner.state;
+    scanner.expectChar($lparen);
+    whitespace(consumeNewlines: true);
+    var inside = scanner.state;
+    if (!_lookingAtExpression()) {
       scanner.expectChar($rparen);
-      return ParenthesizedExpression(list, scanner.spanFrom(start));
-    } finally {
-      _inParentheses = wasInParentheses;
+      return ListExpression(
+        [],
+        ListSeparator.undecided,
+        scanner.spanFrom(start),
+      );
     }
+
+    var first = expressionUntilComma();
+    if (scanner.scanChar($colon)) {
+      whitespace(consumeNewlines: true);
+      return _map(first, start);
+    }
+
+    if (!scanner.scanChar($comma)) {
+      scanner.expectChar($rparen);
+      return ParenthesizedExpression(first, scanner.spanFrom(start));
+    }
+    whitespace(consumeNewlines: true);
+
+    var expressions = [first];
+    while (true) {
+      if (!_lookingAtExpression()) break;
+      expressions.add(expressionUntilComma());
+      if (!scanner.scanChar($comma)) break;
+      whitespace(consumeNewlines: true);
+    }
+
+    var list = ListExpression(
+      expressions,
+      ListSeparator.comma,
+      scanner.spanFrom(inside),
+    );
+    scanner.expectChar($rparen);
+    return ParenthesizedExpression(list, scanner.spanFrom(start));
   }
 
   /// Consumes a map expression.
@@ -3596,13 +3575,11 @@ abstract class StylesheetParser extends Parser {
     // a slower backtracking case.
     Expression name;
     var nameStart = scanner.state;
-    var wasInParentheses = _inParentheses;
     try {
       name = _expression(consumeNewlines: true);
       scanner.expectChar($colon);
     } on FormatException catch (_) {
       scanner.state = nameStart;
-      _inParentheses = wasInParentheses;
 
       var identifier = interpolatedIdentifier();
       if (_trySupportsOperation(identifier, nameStart) case var operation?) {
