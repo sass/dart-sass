@@ -1,3 +1,11 @@
+## 1.93.2
+
+* No user-visible changes.
+
+### JavaScript API
+
+* Fix another error in the release process for `@sass/types`.
+
 ## 1.93.1
 
 * No user-visible changes.
