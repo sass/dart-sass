@@ -67,52 +67,6 @@ void main() {
           Deprecation.compileStringRelativeUrl);
     });
   });
-
-  // Deprecated in various Sass versions <=1.56.0
-  group("functionUnits is violated by", () {
-    test("a hue with a non-angle unit", () {
-      _expectDeprecation("a {b: hsl(10px, 0%, 0%)}", Deprecation.functionUnits);
-    });
-
-    test("a saturation/lightness with a non-percent unit", () {
-      _expectDeprecation(
-        "a {b: hsl(10deg, 0px, 0%)}",
-        Deprecation.functionUnits,
-      );
-    });
-
-    test("a saturation/lightness with no unit", () {
-      _expectDeprecation("a {b: hsl(10deg, 0%, 0)}", Deprecation.functionUnits);
-    });
-
-    test("an alpha value with a non-percent unit", () {
-      _expectDeprecation(
-        r"@use 'sass:color'; a {b: color.change(red, $alpha: 1px)}",
-        Deprecation.functionUnits,
-      );
-    });
-
-    test("calling math.random with units", () {
-      _expectDeprecation(
-        "@use 'sass:math'; a {b: math.random(100px)}",
-        Deprecation.functionUnits,
-      );
-    });
-
-    test("calling list.nth with units", () {
-      _expectDeprecation(
-        "@use 'sass:list'; a {b: list.nth(1 2, 1px)}",
-        Deprecation.functionUnits,
-      );
-    });
-
-    test("calling list.set-nth with units", () {
-      _expectDeprecation(
-        "@use 'sass:list'; a {b: list.set-nth(1 2, 1px, 3)}",
-        Deprecation.functionUnits,
-      );
-    });
-  });
 }
 
 /// Confirms that [source] will error if [deprecation] is fatal.

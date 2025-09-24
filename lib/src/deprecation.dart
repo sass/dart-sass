@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: da3a1fd53f628e2633aef3b7560951c00d48e1a1
+  // Checksum: 212de63e7334243c6de7f9be29bbad0e1eaa2eea
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -68,6 +68,7 @@ enum Deprecation {
   /// Deprecation for passing invalid units to built-in functions.
   functionUnits('function-units',
       deprecatedIn: '1.56.0',
+      obsoleteIn: '2.0.0',
       description: 'Passing invalid units to built-in functions.'),
 
   /// Deprecation for using !default or !global multiple times for one variable.

@@ -1102,19 +1102,8 @@ SassColor _changeColor(
         SassNumber(hasUnits: false) => alphaArg.valueInRange(0, 1, "alpha"),
         SassNumber() when alphaArg.hasUnit('%') =>
           alphaArg.valueInRangeWithUnit(0, 100, "alpha", "%") / 100,
-        SassNumber() => () {
-            warnForDeprecation(
-              "\$alpha: Passing a unit other than % ($alphaArg) is "
-              "deprecated.\n"
-              "\n"
-              "To preserve current behavior: "
-              "${alphaArg.unitSuggestion('alpha')}\n"
-              "\n"
-              "See https://sass-lang.com/d/function-units",
-              Deprecation.functionUnits,
-            );
-            return alphaArg.valueInRange(0, 1, "alpha");
-          }(),
+        SassNumber() => throw SassScriptException(
+            '$alphaArg must have no units or unit %', 'alpha'),
         _ => throw SassScriptException(
             '$alphaArg is not a number or unquoted "none".',
             'alpha',
@@ -1259,37 +1248,6 @@ double? _adjustChannel(
   if (adjustmentArg == null) return oldValue;
 
   if (oldValue == null) _missingChannelError(color, channel.name);
-
-  switch ((color.space, channel)) {
-    case (ColorSpace.hsl || ColorSpace.hwb, ColorChannel(isPolarAngle: true)):
-      // `_channelFromValue` expects all hue values to be compatible with `deg`,
-      // but we're still in the deprecation period where we allow non-`deg`
-      // values for HSL and HWB so we have to handle that ahead-of-time.
-      adjustmentArg = SassNumber(_angleValue(adjustmentArg, 'hue'));
-
-    case (ColorSpace.hsl, LinearChannel(name: 'saturation' || 'lightness')):
-      // `_channelFromValue` expects lightness/saturation to be `%`, but we're
-      // still in the deprecation period where we allow non-`%` values so we
-      // have to handle that ahead-of-time.
-      _checkPercent(adjustmentArg, channel.name);
-      adjustmentArg = SassNumber(adjustmentArg.value, '%');
-
-    case (_, ColorChannel.alpha) when adjustmentArg.hasUnits:
-      // `_channelFromValue` expects alpha to be unitless or `%`, but we're
-      // still in the deprecation period where we allow other values (and
-      // interpret `%` as unitless) so we have to handle that ahead-of-time.
-      warnForDeprecation(
-        "\$alpha: Passing a number with unit ${adjustmentArg.unitString} is "
-        "deprecated.\n"
-        "\n"
-        "To preserve current behavior: "
-        "${adjustmentArg.unitSuggestion('alpha')}\n"
-        "\n"
-        "More info: https://sass-lang.com/d/function-units",
-        Deprecation.functionUnits,
-      );
-      adjustmentArg = SassNumber(adjustmentArg.value);
-  }
 
   var result =
       oldValue + _channelFromValue(channel, adjustmentArg, clamp: false)!;
@@ -1448,35 +1406,14 @@ Value _hsl(String name, List<Value> arguments) {
 }
 
 /// Asserts that [angle] is a number and returns its value in degrees.
-///
-/// Prints a deprecation warning if [angle] has a non-angle unit.
-double _angleValue(Value angleValue, String name) {
-  var angle = angleValue.assertNumber(name);
-  if (angle.compatibleWithUnit('deg')) return angle.coerceValueToUnit('deg');
-
-  warnForDeprecation(
-    "\$$name: Passing a unit other than deg ($angle) is deprecated.\n"
-    "\n"
-    "To preserve current behavior: ${angle.unitSuggestion(name)}\n"
-    "\n"
-    "See https://sass-lang.com/d/function-units",
-    Deprecation.functionUnits,
-  );
-  return angle.value;
-}
+double _angleValue(Value angleValue, String name) =>
+    angleValue.assertNumber(name).coerceValueToUnit('deg');
 
 /// Prints a deprecation warning if [number] doesn't have unit `%`.
 void _checkPercent(SassNumber number, String name) {
-  if (number.hasUnit('%')) return;
-
-  warnForDeprecation(
-    "\$$name: Passing a number without unit % ($number) is deprecated.\n"
-    "\n"
-    "To preserve current behavior: ${number.unitSuggestion(name, '%')}\n"
-    "\n"
-    "More info: https://sass-lang.com/d/function-units",
-    Deprecation.functionUnits,
-  );
+  if (!number.hasUnit('%')) {
+    throw SassScriptException('Expected $number to have unit %.', name);
+  }
 }
 
 /// Asserts that [number] is a percentage or has no units, and normalizes the

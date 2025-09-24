@@ -233,27 +233,13 @@ final _randomFunction = _function("random", r"$limit: null", (arguments) {
   if (arguments[0] == sassNull) return SassNumber(_random.nextDouble());
   var limit = arguments[0].assertNumber("limit");
 
-  if (limit.hasUnits) {
-    warnForDeprecation(
-      "math.random() will no longer ignore \$limit units ($limit) in a "
-      "future release.\n"
-      "\n"
-      "Recommendation: "
-      "math.random(math.div(\$limit, 1${limit.unitString})) * 1${limit.unitString}\n"
-      "\n"
-      "To preserve current behavior: "
-      "math.random(math.div(\$limit, 1${limit.unitString}))\n"
-      "\n"
-      "More info: https://sass-lang.com/d/function-units",
-      Deprecation.functionUnits,
-    );
-  }
-
   var limitScalar = limit.assertInt("limit");
   if (limitScalar < 1) {
     throw SassScriptException("\$limit: Must be greater than 0, was $limit.");
   }
-  return SassNumber(_random.nextInt(limitScalar) + 1);
+  return SassNumber.withUnits(_random.nextInt(limitScalar) + 1,
+      numeratorUnits: limit.numeratorUnits,
+      denominatorUnits: limit.denominatorUnits);
 });
 
 final _div = _function("div", r"$number1, $number2", (arguments) {

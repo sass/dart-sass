@@ -5,8 +5,6 @@
 import 'package:meta/meta.dart';
 
 import 'ast/selector.dart';
-import 'deprecation.dart';
-import 'evaluation_context.dart';
 import 'exception.dart';
 import 'utils.dart';
 import 'value/boolean.dart';
@@ -124,21 +122,8 @@ abstract class Value {
   /// [asList]. If [sassIndex] came from a function argument, [name] is the
   /// argument name (without the `$`). It's used for error reporting.
   int sassIndexToListIndex(Value sassIndex, [String? name]) {
-    var indexValue = sassIndex.assertNumber(name);
-    if (indexValue.hasUnits) {
-      warnForDeprecation(
-        "\$$name: Passing a number with unit ${indexValue.unitString} is "
-        "deprecated.\n"
-        "\n"
-        "To preserve current behavior: "
-        "${indexValue.unitSuggestion(name ?? 'index')}\n"
-        "\n"
-        "More info: https://sass-lang.com/d/function-units",
-        Deprecation.functionUnits,
-      );
-    }
-
-    var index = indexValue.assertInt(name);
+    var index =
+        (sassIndex.assertNumber(name)..assertNoUnits(name)).assertInt(name);
     if (index == 0) throw SassScriptException("List index may not be 0.", name);
     if (index.abs() > lengthAsList) {
       throw SassScriptException(

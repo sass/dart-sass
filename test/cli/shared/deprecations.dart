@@ -118,15 +118,12 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
       group("an evaluation-time deprecation", () {
         setUp(
-          () => d.file("test.scss", """
-            @use 'sass:math';
-            a {b: math.random(1px)}
-          """).create(),
+          () => d.file("test.scss", "a {b: nth(1 2 3, 1)}").create(),
         );
 
         test("in immediate mode", () async {
           var sass = await runSass([
-            "--silence-deprecation=function-units",
+            "--silence-deprecation=global-builtin",
             "test.scss",
           ]);
           expect(sass.stderr, emitsDone);
@@ -137,7 +134,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           var sass = await runSass([
             "--watch",
             "--poll",
-            "--silence-deprecation=function-units",
+            "--silence-deprecation=global-builtin",
             "test.scss:out.css",
           ]);
           expect(sass.stderr, emitsDone);
@@ -152,15 +149,13 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         test("in repl mode", () async {
           var sass = await runSass([
             "--interactive",
-            "--silence-deprecation=function-units",
+            "--silence-deprecation=global-builtin",
           ]);
           expect(sass.stderr, emitsDone);
-          sass.stdin.writeln("@use 'sass:math'");
-          await expectLater(sass.stdout, emits(">> @use 'sass:math'"));
-          sass.stdin.writeln("math.random(1px)");
+          sass.stdin.writeln("nth(1 2 3, 1)");
           await expectLater(
             sass.stdout,
-            emitsInOrder([">> math.random(1px)", "1"]),
+            emitsInOrder([">> nth(1 2 3, 1)", "1"]),
           );
           await sass.kill();
         });
@@ -250,15 +245,12 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
       group("an evaluation-time deprecation", () {
         setUp(
-          () => d.file("test.scss", """
-            @use 'sass:math';
-            a {b: math.random(1px)}
-          """).create(),
+          () => d.file("test.scss", "a {b: nth(1 2 3, 1)}").create(),
         );
 
         test("in immediate mode", () async {
           var sass = await runSass([
-            "--fatal-deprecation=function-units",
+            "--fatal-deprecation=global-builtin",
             "test.scss",
           ]);
           expect(sass.stderr, emits(startsWith("Error: ")));
@@ -269,7 +261,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           var sass = await runSass([
             "--watch",
             "--poll",
-            "--fatal-deprecation=function-units",
+            "--fatal-deprecation=global-builtin",
             "test.scss:out.css",
           ]);
           await expectLater(sass.stderr, emits(startsWith("Error: ")));
@@ -286,15 +278,13 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         test("in repl mode", () async {
           var sass = await runSass([
             "--interactive",
-            "--fatal-deprecation=function-units",
+            "--fatal-deprecation=global-builtin",
           ]);
-          sass.stdin.writeln("@use 'sass:math'");
-          await expectLater(sass.stdout, emits(">> @use 'sass:math'"));
-          sass.stdin.writeln("math.random(1px)");
+          sass.stdin.writeln("nth(1 2 3, 1)");
           await expectLater(
             sass.stdout,
             emitsInOrder([
-              ">> math.random(1px)",
+              ">> nth(1 2 3, 1)",
               emitsThrough(startsWith("Error: ")),
               emitsThrough(contains("Remove this setting")),
             ]),
@@ -316,12 +306,12 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
         test("in immediate mode", () async {
           var sass = await runSass([
-            "--future-deprecation=function-units",
+            "--future-deprecation=global-builtin",
             "test.scss",
           ]);
           expect(
             sass.stderr,
-            emits(contains("function-units is not a future deprecation")),
+            emits(contains("global-builtin is not a future deprecation")),
           );
           await sass.shouldExit(0);
         });
@@ -330,12 +320,12 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           var sass = await runSass([
             "--watch",
             "--poll",
-            "--future-deprecation=function-units",
+            "--future-deprecation=global-builtin",
             "test.scss:out.css",
           ]);
           expect(
             sass.stderr,
-            emits(contains("function-units is not a future deprecation")),
+            emits(contains("global-builtin is not a future deprecation")),
           );
 
           await expectLater(
