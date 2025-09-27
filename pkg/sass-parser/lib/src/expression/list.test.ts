@@ -877,7 +877,7 @@ describe('a list expression', () => {
         }),
       ).toHaveStringExpression('first', 'foo'));
 
-    it('returns undefined for an empty interpolation', () =>
+    it('returns undefined for an empty list', () =>
       expect(
         new ListExpression({separator: null, nodes: []}).first,
       ).toBeUndefined());
@@ -892,7 +892,7 @@ describe('a list expression', () => {
         }),
       ).toHaveStringExpression('last', 'baz'));
 
-    it('returns undefined for an empty interpolation', () =>
+    it('returns undefined for an empty list', () =>
       expect(
         new ListExpression({separator: null, nodes: []}).last,
       ).toBeUndefined());

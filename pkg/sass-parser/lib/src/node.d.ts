@@ -16,14 +16,24 @@ import {Interpolation} from './interpolation';
 import {Parameter} from './parameter';
 import {ParameterList} from './parameter-list';
 import {AnyStatement, StatementType} from './statement';
+import {AnySimpleSelector, SimpleSelectorType} from './selector';
+import {CompoundSelector} from './selector/compound';
+import {ComplexSelector} from './selector/complex';
+import {ComplexSelectorComponent} from './selector/complex-component';
+import {SelectorList} from './selector/list';
+import {QualifiedName} from './selector/qualified-name';
 import {StaticImport} from './static-import';
 
 /** The union type of all Sass nodes. */
 export type AnyNode =
   | AnyExpression
+  | AnySimpleSelector
   | AnyStatement
   | Argument
   | ArgumentList
+  | ComplexSelector
+  | ComplexSelectorComponent
+  | CompoundSelector
   | Configuration
   | ConfiguredVariable
   | DynamicImport
@@ -32,6 +42,8 @@ export type AnyNode =
   | MapEntry
   | Parameter
   | ParameterList
+  | QualifiedName
+  | SelectorList
   | StaticImport;
 
 /**
@@ -44,8 +56,12 @@ export type AnyNode =
 export type NodeType =
   | StatementType
   | ExpressionType
+  | SimpleSelectorType
   | 'argument'
   | 'argument-list'
+  | 'complex-selector'
+  | 'complex-selector-component'
+  | 'compound-selector'
   | 'configuration'
   | 'configured-variable'
   | 'dynamic-import'
@@ -54,6 +70,8 @@ export type NodeType =
   | 'map-entry'
   | 'parameter'
   | 'parameter-list'
+  | 'qualified-name'
+  | 'selector-list'
   | 'static-import';
 
 /** The constructor properties shared by all Sass AST nodes. */

@@ -19,8 +19,7 @@ final class AttributeSelector extends SimpleSelector {
 
   /// The operator that defines the semantics of [value].
   ///
-  /// If this is `null`, this matches any element with the given property,
-  /// regardless of this value. It's `null` if and only if [value] is `null`.
+  /// 
   final AttributeOperator? op;
 
   /// An assertion about the value of [name].
@@ -74,6 +73,8 @@ final class AttributeSelector extends SimpleSelector {
 }
 
 /// An operator that defines the semantics of an [AttributeSelector].
+///
+/// {@category AST}
 enum AttributeOperator {
   /// The attribute value exactly equals the given value.
   equal('='),

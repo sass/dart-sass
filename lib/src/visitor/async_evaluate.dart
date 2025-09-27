@@ -4234,13 +4234,13 @@ final class _EvaluateVisitor
     required bool sourceMap,
     bool warnForColor = false,
   }) async {
-    var targetLocations = sourceMap ? <SourceLocation>[] : null;
+    var targetOffsets = sourceMap ? <int>[] : null;
     var oldInSupportsDeclaration = _inSupportsDeclaration;
     _inSupportsDeclaration = false;
     var buffer = StringBuffer();
     var first = true;
     for (var value in interpolation.contents) {
-      if (!first) targetLocations?.add(SourceLocation(buffer.length));
+      if (!first) targetOffsets?.add(buffer.length);
       first = false;
 
       if (value is String) {
@@ -4278,8 +4278,8 @@ final class _EvaluateVisitor
 
     return (
       buffer.toString(),
-      targetLocations.andThen(
-        (targetLocations) => InterpolationMap(interpolation, targetLocations),
+      targetOffsets.andThen(
+        (targetOffsets) => InterpolationMap(interpolation, targetOffsets),
       ),
     );
   }

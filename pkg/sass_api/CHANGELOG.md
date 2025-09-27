@@ -1,3 +1,8 @@
+## 16.0.0
+
+* **Breaking change:** `InterpolationMap` now takes a list of integer offsets
+  rather than a list of `SourceLocation` objects.
+
 ## 15.12.2
 
 * No user-visible changes.

@@ -21,9 +21,13 @@ export interface SourceFile {
   /** Node-only extension that we use to avoid re-creating inputs. */
   _postcssInput?: postcss.Input;
 
+  length: number;
+
   readonly codeUnits: number[];
 
   getText(start: number, end?: number): string;
+
+  span(start: number, end?: number): FileSpan;
 }
 
 export interface DartSet<T> {
@@ -51,10 +55,18 @@ export interface DartPair<E1, E2> {
 declare namespace SassInternal {
   function parse(css: string, syntax: Syntax, path?: string): Stylesheet;
 
+  function parseSelectorList(
+    contents: string,
+    path?: string,
+    interpolationMap?: InterpolationMap,
+  ): SelectorList;
+
   function parseIdentifier(
     identifier: string,
     logger?: sass.Logger,
   ): string | null;
+
+  function createSourceFile(text: string, path?: string): SourceFile;
 
   function toCssIdentifier(text: string): string;
 
@@ -63,7 +75,7 @@ declare namespace SassInternal {
   function mapToRecord<T>(set: DartMap<string, T>): Record<string, T>;
 
   class StatementVisitor<T> {
-    private _fakePropertyToMakeThisAUniqueType1: T;
+    private _fakePropertyToMakeStatementVisitorAUniqueType: T;
   }
 
   function createStatementVisitor<T>(
@@ -71,15 +83,28 @@ declare namespace SassInternal {
   ): StatementVisitor<T>;
 
   class ExpressionVisitor<T> {
-    private _fakePropertyToMakeThisAUniqueType2: T;
+    private _fakePropertyToMakeExpressionVisitorAUniqueType: T;
   }
 
   function createExpressionVisitor<T>(
     inner: ExpressionVisitorObject<T>,
   ): ExpressionVisitor<T>;
 
+  class InterpolationMap {
+    private _fakePropertyToMakeInterpolationMapAUniqueType: object;
+  }
+
+  function createInterpolationMap(
+    interpolation: Interpolation,
+    targetOffsets: number[],
+  ): InterpolationMap;
+
   class SassNode {
     readonly span: FileSpan;
+  }
+
+  class CssValue<T> extends SassNode {
+    readonly value: T;
   }
 
   class ArgumentList extends SassNode {
@@ -93,6 +118,18 @@ declare namespace SassInternal {
     contents: (string | Expression)[];
     get asPlain(): string | undefined;
   }
+
+  /**
+   * Creates an interpolation with the minimal amount of information necessary
+   * to use in an [InterpolationMap].
+   *
+   * The {@link contents} array only needs to contain spans for the expressions
+   * in the interpolation.
+   */
+  function createInterpolationForMap(
+    contents: Array<FileSpan | undefined>,
+    span: FileSpan,
+  ): Interpolation;
 
   class ParameterList extends SassNode {
     readonly parameters: Parameter[];
@@ -402,6 +439,81 @@ declare namespace SassInternal {
     readonly namespace?: string | null;
     readonly name: string;
   }
+
+  // Selectors
+
+  class SimpleSelectorVisitor<T> {
+    private _fakePropertyToMakeSimpleSelectorVisitorAUniqueType: T;
+  }
+
+  function createSimpleSelectorVisitor<T>(
+    inner: SimpleSelectorVisitorObject<T>,
+  ): SimpleSelectorVisitor<T>;
+
+  class SimpleSelector extends SassNode {
+    accept<T>(visitor: SimpleSelectorVisitor<T>): T;
+  }
+
+  class AttributeSelector extends SimpleSelector {
+    readonly name: QualifiedName;
+    readonly op: object;
+    readonly value: string | null | undefined;
+    readonly modifier: string | null | undefined;
+  }
+
+  class ClassSelector extends SimpleSelector {
+    readonly name: string;
+  }
+
+  class ComplexSelector extends SassNode {
+    readonly leadingCombinators: Array<CssValue<object>>;
+    readonly components: ComplexSelectorComponent[];
+  }
+
+  class ComplexSelectorComponent extends SassNode {
+    readonly selector: CompoundSelector;
+    readonly combinators: Array<CssValue<object>>;
+  }
+
+  class CompoundSelector extends SassNode {
+    readonly components: SimpleSelector[];
+  }
+
+  class IDSelector extends SimpleSelector {
+    readonly name: string;
+  }
+
+  class SelectorList extends SassNode {
+    readonly components: ComplexSelector[];
+  }
+
+  class ParentSelector extends SimpleSelector {
+    readonly suffix: string | undefined;
+  }
+
+  class PlaceholderSelector extends SimpleSelector {
+    readonly name: string;
+  }
+
+  class PseudoSelector extends SimpleSelector {
+    readonly name: string;
+    readonly isSyntacticClass: boolean;
+    readonly argument: string | null | undefined;
+    readonly selector: SelectorList | null | undefined;
+  }
+
+  class QualifiedName extends SassNode {
+    readonly name: string;
+    readonly namespace: string | null | undefined;
+  }
+
+  class TypeSelector extends SimpleSelector {
+    readonly name: QualifiedName;
+  }
+
+  class UniversalSelector extends SimpleSelector {
+    readonly namespace: string | null | undefined;
+  }
 }
 
 const sassInternal = (
@@ -454,6 +566,7 @@ export type FunctionExpression = SassInternal.FunctionExpression;
 export type IfExpression = SassInternal.IfExpression;
 export type InterpolatedFunctionExpression =
   SassInternal.InterpolatedFunctionExpression;
+export type InterpolationMap = SassInternal.InterpolationMap;
 export type ListExpression = SassInternal.ListExpression;
 export type ListSeparator = SassInternal.ListSeparator;
 export type MapExpression = SassInternal.MapExpression;
@@ -467,6 +580,22 @@ export type StringExpression = SassInternal.StringExpression;
 export type SupportsExpression = SassInternal.SupportsExpression;
 export type UnaryOperationExpression = SassInternal.UnaryOperationExpression;
 export type VariableExpression = SassInternal.VariableExpression;
+
+// Selectors
+export type SimpleSelector = SassInternal.SimpleSelector;
+export type AttributeSelector = SassInternal.AttributeSelector;
+export type ClassSelector = SassInternal.ClassSelector;
+export type ComplexSelector = SassInternal.ComplexSelector;
+export type ComplexSelectorComponent = SassInternal.ComplexSelectorComponent;
+export type CompoundSelector = SassInternal.CompoundSelector;
+export type IDSelector = SassInternal.IDSelector;
+export type SelectorList = SassInternal.SelectorList;
+export type ParentSelector = SassInternal.ParentSelector;
+export type PlaceholderSelector = SassInternal.PlaceholderSelector;
+export type PseudoSelector = SassInternal.PseudoSelector;
+export type QualifiedName = SassInternal.QualifiedName;
+export type TypeSelector = SassInternal.TypeSelector;
+export type UniversalSelector = SassInternal.UniversalSelector;
 
 export interface StatementVisitorObject<T> {
   visitAtRootRule(node: AtRootRule): T;
@@ -515,10 +644,27 @@ export interface ExpressionVisitorObject<T> {
   visitVariableExpression(node: VariableExpression): T;
 }
 
+export interface SimpleSelectorVisitorObject<T> {
+  visitAttributeSelector(node: AttributeSelector): T;
+  visitClassSelector(node: ClassSelector): T;
+  visitIDSelector(node: IDSelector): T;
+  visitParentSelector(node: ParentSelector): T;
+  visitPlaceholderSelector(node: PlaceholderSelector): T;
+  visitPseudoSelector(node: PseudoSelector): T;
+  visitTypeSelector(node: TypeSelector): T;
+  visitUniversalSelector(node: UniversalSelector): T;
+}
+
 export const createExpressionVisitor = sassInternal.createExpressionVisitor;
+export const createInterpolationForMap = sassInternal.createInterpolationForMap;
+export const createInterpolationMap = sassInternal.createInterpolationMap;
+export const createSimpleSelectorVisitor =
+  sassInternal.createSimpleSelectorVisitor;
+export const createSourceFile = sassInternal.createSourceFile;
 export const createStatementVisitor = sassInternal.createStatementVisitor;
 export const mapToRecord = sassInternal.mapToRecord;
 export const parse = sassInternal.parse;
 export const parseIdentifier = sassInternal.parseIdentifier;
+export const parseSelectorList = sassInternal.parseSelectorList;
 export const setToJS = sassInternal.setToJS;
 export const toCssIdentifier = sassInternal.toCssIdentifier;

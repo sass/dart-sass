@@ -7,7 +7,9 @@ import type {RuleRaws as PostcssRuleRaws} from 'postcss/lib/rule';
 
 import {Interpolation} from '../interpolation';
 import {LazySource} from '../lazy-source';
-import type * as sassInternal from '../sass-internal';
+import * as sassInternal from '../sass-internal';
+import {InterpolationInjector} from '../selector/interpolation-injector';
+import {SelectorList} from '../selector/list';
 import * as utils from '../utils';
 import {
   ChildNode,
@@ -62,6 +64,7 @@ export class Rule extends _Rule implements Statement {
     this.selectorInterpolation = value;
   }
 
+  // TODO BEFORE SUBMIT: Remove this in favor of parsedSelector
   /** The interpolation that represents this rule's selector. */
   get selectorInterpolation(): Interpolation {
     return this._selectorInterpolation!;
@@ -80,6 +83,17 @@ export class Rule extends _Rule implements Statement {
     this._selectorInterpolation = selectorInterpolation;
   }
   private declare _selectorInterpolation?: Interpolation;
+
+  get parsedSelector(): SelectorList {
+    const [parseable, map, injector] = InterpolationInjector.extract(
+      this.selectorInterpolation,
+    );
+    return new SelectorList(
+      undefined,
+      sassInternal.parseSelectorList(parseable, this.source?.input?.file, map),
+      injector,
+    );
+  }
 
   constructor(defaults: RuleProps);
   constructor(_: undefined, inner: sassInternal.StyleRule);
