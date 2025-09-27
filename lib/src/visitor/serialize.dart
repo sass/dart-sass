@@ -1542,15 +1542,15 @@ final class _SerializeVisitor
 
     if (attribute.value case var value?) {
       _buffer.write(attribute.op);
-      if (Parser.isIdentifier(value) &&
+      if (Parser.isIdentifier(value.value) &&
           // Emit identifiers that start with `--` with quotes, because IE11
           // doesn't consider them to be valid identifiers.
-          !value.startsWith('--')) {
+          !value.value.startsWith('--')) {
         _buffer.write(value);
 
         if (attribute.modifier != null) _buffer.writeCharCode($space);
       } else {
-        _visitQuotedString(value);
+        _visitQuotedString(value.value);
         if (attribute.modifier != null) _writeOptionalSpace();
       }
       attribute.modifier.andThen(_buffer.write);

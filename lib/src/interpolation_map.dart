@@ -16,27 +16,27 @@ final class InterpolationMap {
   /// The interpolation from which this map was generated.
   final Interpolation _interpolation;
 
-  /// Locations in the generated string.
+  /// Location offsets in the generated string.
   ///
   /// Each of these indicates the location in the generated string that
   /// corresponds to the end of the component at the same index of
   /// [_interpolation.contents]. Its length is always one less than
   /// [_interpolation.contents] because the last element always ends the string.
-  final List<SourceLocation> _targetLocations;
+  final List<int> _targetOffsets;
 
-  /// Creates a new interpolation map that maps the given [targetLocations] in
-  /// the generated string to the contents of the interpolation.
+  /// Creates a new interpolation map that maps the given [targetOffsets] in the
+  /// generated string to the contents of the interpolation.
   ///
-  /// Each target location at index `i` corresponds to the character in the
+  /// Each target offset at index `i` corresponds to the character in the
   /// generated string after `interpolation.contents[i]`.
   InterpolationMap(
     this._interpolation,
-    Iterable<SourceLocation> targetLocations,
-  ) : _targetLocations = List.unmodifiable(targetLocations) {
+    Iterable<int> targetOffsets,
+  ) : _targetOffsets = List.unmodifiable(targetOffsets) {
     var expectedLocations = math.max(0, _interpolation.contents.length - 1);
-    if (_targetLocations.length != expectedLocations) {
+    if (_targetOffsets.length != expectedLocations) {
       throw ArgumentError(
-        "InterpolationMap must have $expectedLocations targetLocations if the "
+        "InterpolationMap must have $expectedLocations targetOffsets if the "
         "interpolation has ${_interpolation.contents.length} components.",
       );
     }
@@ -110,19 +110,17 @@ final class InterpolationMap {
     if (_interpolation.contents.isEmpty) return _interpolation.span;
 
     var index = _indexInContents(target);
-    if (_interpolation.contents[index] case Expression chunk) {
-      return chunk.span;
-    }
+    if (_interpolation.spans[index] case SourceSpan span) return span;
 
     var previousLocation = index == 0
         ? _interpolation.span.start
         : _interpolation.span.file.location(
             _expandInterpolationSpanRight(
-              (_interpolation.contents[index - 1] as Expression).span.end,
+              _interpolation.spans[index - 1]!.end,
             ),
           );
     var offsetInString =
-        target.offset - (index == 0 ? 0 : _targetLocations[index - 1].offset);
+        target.offset - (index == 0 ? 0 : _targetOffsets[index - 1]);
 
     // This produces slightly incorrect mappings if there are _unnecessary_
     // escapes in the source file, but that's unlikely enough that it's probably
@@ -134,8 +132,8 @@ final class InterpolationMap {
 
   /// Return the index in [_interpolation.contents] at which [target] points.
   int _indexInContents(SourceLocation target) {
-    for (var i = 0; i < _targetLocations.length; i++) {
-      if (target.offset < _targetLocations[i].offset) return i;
+    for (var i = 0; i < _targetOffsets.length; i++) {
+      if (target.offset < _targetOffsets[i]) return i;
     }
 
     return _interpolation.contents.length - 1;

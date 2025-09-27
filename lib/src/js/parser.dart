@@ -9,14 +9,20 @@ import 'package:js/js.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
+import '../ast/node.dart';
 import '../ast/sass.dart';
+import '../ast/selector.dart';
 import '../exception.dart';
+import '../interpolation_map.dart';
+import '../js/visitor/simple_selector.dart';
 import '../parse/parser.dart';
 import '../syntax.dart';
 import '../util/nullable.dart';
 import '../util/span.dart';
+import '../util/lazy_file_span.dart';
 import '../util/string.dart';
 import '../visitor/interface/expression.dart';
+import '../visitor/interface/selector.dart';
 import '../visitor/interface/statement.dart';
 import 'reflection.dart';
 import 'set.dart';
@@ -30,9 +36,14 @@ class ParserExports {
   external factory ParserExports({
     required Function parse,
     required Function parseIdentifier,
+    required Function parseSelectorList,
     required Function toCssIdentifier,
+    required Function createInterpolationForMap,
+    required Function createInterpolationMap,
     required Function createExpressionVisitor,
     required Function createStatementVisitor,
+    required Function createSimpleSelectorVisitor,
+    required Function createSourceFile,
     required Function setToJS,
     required Function mapToRecord,
   });
@@ -56,20 +67,42 @@ final _expression = NullExpression(bogusSpan);
 
 /// Loads and returns all the exports needed for the `sass-parser` package.
 ParserExports loadParserExports() {
+  _updateLazyFileSpanPrototype();
   _updateAstPrototypes();
   return ParserExports(
     parse: allowInterop(_parse),
     parseIdentifier: allowInterop(_parseIdentifier),
+    parseSelectorList: allowInterop(_parseSelectorList),
     toCssIdentifier: allowInterop(_toCssIdentifier),
+    createInterpolationMap: allowInterop(
+        (Interpolation interpolation, List<dynamic> targetOffsets) =>
+            InterpolationMap(interpolation, targetOffsets.cast<int>())),
+    createInterpolationForMap: allowInterop(_createInterpolationForMap),
     createExpressionVisitor: allowInterop(
       (JSExpressionVisitorObject inner) => JSExpressionVisitor(inner),
     ),
     createStatementVisitor: allowInterop(
       (JSStatementVisitorObject inner) => JSStatementVisitor(inner),
     ),
+    createSimpleSelectorVisitor: allowInterop(
+      (JSSimpleSelectorVisitorObject inner) => JSSimpleSelectorVisitor(inner),
+    ),
+    createSourceFile: allowInterop(
+      (String text) => SourceFile.fromString(text),
+    ),
     setToJS: allowInterop((Set<Object?> set) => JSSet([...set])),
     mapToRecord: allowInterop(mapToObject),
   );
+}
+
+/// Updates the prototype of [LazyFileSpan] to provide access to JS.
+void _updateLazyFileSpanPrototype() {
+  var span = LazyFileSpan(() => bogusSpan);
+  getJSClass(span).defineGetters({
+    'file': (LazyFileSpan span) => span.file,
+    'length': (LazyFileSpan span) => span.length,
+    'sourceUrl': (LazyFileSpan span) => span.sourceUrl,
+  });
 }
 
 /// Modifies the prototypes of the Sass AST classes to provide access to JS.
@@ -81,10 +114,11 @@ void _updateAstPrototypes() {
   // We don't need explicit getters for field names, because dart2js preserves
   // them as-is, so we actually need to expose very little to JS manually.
   var file = SourceFile.fromString('');
-  getJSClass(file).defineMethod(
-    'getText',
-    (SourceFile self, int start, [int? end]) => self.getText(start, end),
-  );
+  getJSClass(file).defineMethods({
+    'getText': (SourceFile self, int start, [int? end]) =>
+        self.getText(start, end),
+    'span': (SourceFile self, int start, [int? end]) => self.span(start, end),
+  });
   getJSClass(
     file,
   ).defineGetter('codeUnits', (SourceFile self) => self.codeUnits);
@@ -100,6 +134,12 @@ void _updateAstPrototypes() {
   getJSClass(string).superclass.defineMethod(
         'accept',
         (Expression self, ExpressionVisitor<Object?> visitor) =>
+            self.accept(visitor),
+      );
+  var selector = ParentSelector(bogusSpan);
+  getJSClass(selector).superclass.defineMethod(
+        'accept',
+        (SimpleSelector self, SelectorVisitor<Object?> visitor) =>
             self.accept(visitor),
       );
   var arguments = ArgumentList([], {}, bogusSpan);
@@ -128,7 +168,7 @@ void _updateAstPrototypes() {
     SupportsExpression(SupportsAnything(_interpolation, bogusSpan)),
     LoudComment(_interpolation),
   ]) {
-    getJSClass(node).defineGetter('span', (SassNode self) => self.span);
+    getJSClass(node).defineGetter('span', (AstNode self) => self.span);
   }
 }
 
@@ -175,6 +215,24 @@ String? _parseIdentifier(String identifier) {
   }
 }
 
+/// A JavaScript-friendly method to parse a selector list.
+SelectorList _parseSelectorList(
+        String text, String? path, InterpolationMap? map) =>
+    SelectorList.parse(text, url: path.andThen(p.toUri), interpolationMap: map);
+
 /// A JavaScript-friendly method to convert text to a valid CSS identifier with
 /// the same contents.
 String _toCssIdentifier(String text) => text.toCssIdentifier();
+
+/// Creates an interpolation with the minimal amount of information necessary to
+/// use in an [InterpolationMap].
+///
+/// The [contents] array only needs to contain spans for the expressions in the
+/// interpolation.
+Interpolation _createInterpolationForMap(
+    List<dynamic> contents, FileSpan span) {
+  return Interpolation(
+      contents.map((span) => span == null ? "" : bogusExpression),
+      contents.cast<FileSpan?>(),
+      span);
+}

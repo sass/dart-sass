@@ -2,14 +2,20 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:source_span/source_span.dart';
+
+import '../node.dart';
+
 /// A [qualified name].
 ///
 /// [qualified name]: https://www.w3.org/TR/css3-namespace/#css-qnames
 ///
 /// {@category AST}
-final class QualifiedName {
+final class QualifiedName implements AstNode {
   /// The identifier name.
   final String name;
+
+  final FileSpan span;
 
   /// The namespace name.
   ///
@@ -18,7 +24,7 @@ final class QualifiedName {
   /// to any namespace. Otherwise, [name] belongs to the given namespace.
   final String? namespace;
 
-  QualifiedName(this.name, {this.namespace});
+  QualifiedName(this.name, this.span, {this.namespace});
 
   bool operator ==(Object other) =>
       other is QualifiedName &&

@@ -275,6 +275,45 @@ describe('an interpolation', () => {
     });
   });
 
+  describe('replaceChild', () => {
+    beforeEach(
+      () => void (node = new Interpolation({nodes: ['foo', 'bar', 'baz']})),
+    );
+
+    it('replaces the given element', () => {
+      node.replaceChild('bar', 'qux');
+      expect(node.nodes).toEqual(['foo', 'qux', 'baz']);
+    });
+
+    it('replaces the beginning', () => {
+      node.replaceChild(0, 'qux');
+      expect(node.nodes).toEqual(['qux', 'bar', 'baz']);
+    });
+
+    it('replaces the end', () => {
+      node.replaceChild(3, 'qux');
+      expect(node.nodes).toEqual(['foo', 'bar', 'qux']);
+    });
+
+    it('inserts multiple nodes', () => {
+      node.replaceChild(1, ['qux', 'qax', 'qix']);
+      expect(node.nodes).toEqual(['foo', 'qux', 'qax', 'qix', 'baz']);
+    });
+
+    it('inserts before an iterator', () =>
+      testEachMutation(['foo', 'bar', ['baz', 5]], 1, () =>
+        node.replaceChild(0, ['qux', 'qax', 'qix']),
+      ));
+
+    it('inserts after an iterator', () =>
+      testEachMutation(['foo', 'qux', 'qax', 'qix', 'baz'], 1, () =>
+        node.replaceChild(1, ['qux', 'qax', 'qix']),
+      ));
+
+    it('returns itself', () =>
+      expect(node.replaceChild('foo', 'qux')).toBe(node));
+  });
+
   describe('append', () => {
     beforeEach(() => void (node = new Interpolation({nodes: ['foo', 'bar']})));
 

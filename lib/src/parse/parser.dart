@@ -250,8 +250,9 @@ class Parser {
   @protected
   String string() {
     // NOTE: this logic is largely duplicated in
-    // StylesheetParser.interpolatedString. Most changes here should be mirrored
-    // there.
+    // [StylesheetParser.interpolatedString] and
+    // [StylesheetParser.interpolatedStringToken]. Most changes here should be
+    // mirrored there.
 
     var quote = scanner.readChar();
     if (quote != $single_quote && quote != $double_quote) {
@@ -669,8 +670,18 @@ class Parser {
   /// Like [scanner.spanFrom], but passes the span through [_interpolationMap]
   /// if it's available.
   @protected
-  FileSpan spanFrom(LineScannerState state) {
-    var span = scanner.spanFrom(state);
+  FileSpan spanFrom(LineScannerState start, [LineScannerState? end]) {
+    var span = scanner.spanFrom(start, end);
+    return _interpolationMap == null
+        ? span
+        : LazyFileSpan(() => _interpolationMap.mapSpan(span));
+  }
+
+  /// Like [scanner.spanFromPosition], but passes the span through
+  /// [_interpolationMap] if it's available.
+  @protected
+  FileSpan spanFromPosition(int start, [int? end]) {
+    var span = scanner.spanFromPosition(start, end);
     return _interpolationMap == null
         ? span
         : LazyFileSpan(() => _interpolationMap.mapSpan(span));

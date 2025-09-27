@@ -1,3 +1,13 @@
+## 16.0.0
+
+* **Breaking change:** `InterpolationMap` now takes a list of integer offsets
+  rather than a list of `SourceLocation` objects.
+
+* **Breaking change:** `AttributeSelector`'s `op`, `value`, and `modifier`
+  fields are now `CssValue`s rather than plain values.
+
+* `QualifiedName` is now an `AstNode`.
+
 ## 15.12.2
 
 * No user-visible changes.

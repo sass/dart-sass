@@ -11,7 +11,7 @@ import {AnyExpression, ExpressionProps} from './expression';
 import {LazySource} from './lazy-source';
 import {Node, NodeProps} from './node';
 import {RawWithValue} from './raw-with-value';
-import type * as sassInternal from './sass-internal';
+import * as sassInternal from './sass-internal';
 import * as utils from './utils';
 
 /**
@@ -45,7 +45,7 @@ export interface InterpolationObjectProps extends NodeProps {
 }
 
 /**
- * The initializer properties for {@link Interpolation} passed.
+ * The initializer properties for {@link Interpolation}.
  *
  * A plain string is interpreted as a plain-text interpolation.
  *
@@ -135,6 +135,14 @@ export class Interpolation
   }
 
   /**
+   * The original Dart interpolation object this was created from.
+   *
+   * This is unset if this interpolation is modified, or if it was created from
+   * scratch.
+   */
+  private _dartInterpolation: sassInternal.Interpolation | undefined;
+
+  /**
    * Iterators that are currently active within this interpolation. Their
    * indices refer to the last position that has already been sent to the
    * callback, and are updated when {@link _nodes} is modified.
@@ -153,6 +161,7 @@ export class Interpolation
           : defaults,
     );
     if (inner) {
+      this._dartInterpolation = inner;
       this.source = new LazySource(inner);
       // TODO: set lazy raws here to use when stringifying
       this._nodes = [];
@@ -163,6 +172,58 @@ export class Interpolation
       }
     }
     if (this._nodes === undefined) this._nodes = [];
+  }
+
+  /**
+   * Returns a Dart interpolation object with enough information to create a
+   * {@link sassInternal.InterpolationMap}, but no more.
+   *
+   * @hidden
+   */
+  toDartInterpolationForMap(): sassInternal.Interpolation {
+    if (this._dartInterpolation) return this._dartInterpolation;
+
+    let span: sassInternal.FileSpan;
+    let file: sassInternal.SourceFile;
+    if (this.source instanceof LazySource) {
+      span = this.source.dartSpan;
+      file = span.file;
+    } else if (this.source?.input) {
+      file = sassInternal.createSourceFile(
+        this.source.input.css,
+        this.source.input.file,
+      );
+      span = file.span(
+        this.source.start?.offset ?? 0,
+        this.source.end?.offset ?? this.source.start?.offset ?? 0,
+      );
+    } else {
+      file = sassInternal.createSourceFile('');
+      span = file.span(0);
+    }
+
+    const contents: Array<sassInternal.FileSpan | undefined> = [];
+    for (const node of this.nodes) {
+      if (typeof node === 'string') {
+        contents.push(undefined);
+      } else if (node.source instanceof LazySource) {
+        contents.push(node.source.dartSpan);
+      } else if (node.source) {
+        contents.push(
+          file.span(
+            Math.min(node.source.start?.offset ?? 0, file.length),
+            Math.min(
+              node.source.end?.offset ?? node.source.start?.offset ?? 0,
+              file.length,
+            ),
+          ),
+        );
+      } else {
+        contents.push(file.span(0));
+      }
+    }
+
+    return sassInternal.createInterpolationForMap(contents, span);
   }
 
   clone(overrides?: Partial<InterpolationObjectProps>): this {
@@ -176,8 +237,30 @@ export class Interpolation
     return utils.toJSON(this, ['nodes'], inputs);
   }
 
+  /**
+   * Inserts {@link newNode} in place of the first occurrence of {@link oldNode}
+   * in {@link nodes}.
+   *
+   * If {@link oldNode} is a number, replaces the child at that index with
+   * {@link newNode} instead.
+   */
+  replaceChild(oldNode: string | AnyExpression | number, newNode: NewNodeForInterpolation): this {
+    // TODO - postcss/postcss#1957: Mark this as dirty
+    this._dartInterpolation = undefined;
+    const index = this.index(oldNode);
+    const normalized = this._normalize(newNode);
+    this._nodes!.splice(index, index + 1, ...normalized);
+
+    for (const iterator of this.#iterators) {
+      if (iterator.index > index) iterator.index += normalized.length - 1;
+    }
+
+    return this;
+  }
+
   append(...nodes: NewNodeForInterpolation[]): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
+    this._dartInterpolation = undefined;
     this._nodes!.push(...this._normalizeList(nodes));
     return this;
   }
@@ -219,6 +302,7 @@ export class Interpolation
     newNode: NewNodeForInterpolation,
   ): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
+    this._dartInterpolation = undefined;
     const index = this.index(oldNode);
     const normalized = this._normalize(newNode);
     this._nodes!.splice(index + 1, 0, ...normalized);
@@ -235,6 +319,7 @@ export class Interpolation
     newNode: NewNodeForInterpolation,
   ): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
+    this._dartInterpolation = undefined;
     const index = this.index(oldNode);
     const normalized = this._normalize(newNode);
     this._nodes!.splice(index, 0, ...normalized);
@@ -248,6 +333,7 @@ export class Interpolation
 
   prepend(...nodes: NewNodeForInterpolation[]): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
+    this._dartInterpolation = undefined;
     const normalized = this._normalizeList(nodes);
     this._nodes!.unshift(...normalized);
 
@@ -264,6 +350,7 @@ export class Interpolation
 
   removeAll(): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
+    this._dartInterpolation = undefined;
     for (const node of this.nodes) {
       if (typeof node !== 'string') node.parent = undefined;
     }
@@ -273,6 +360,7 @@ export class Interpolation
 
   removeChild(child: string | AnyExpression | number): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
+    this._dartInterpolation = undefined;
     const index = this.index(child);
     child = this._nodes![index];
     if (typeof child === 'object') child.parent = undefined;

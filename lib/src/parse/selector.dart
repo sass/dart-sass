@@ -236,7 +236,7 @@ class SelectorParser extends Parser {
         if (_plainCss) {
           error(
             "Placeholder selectors aren't allowed in plain CSS.",
-            scanner.spanFrom(start),
+            spanFrom(start),
           );
         }
         return selector;
@@ -247,7 +247,7 @@ class SelectorParser extends Parser {
         if (!allowParent) {
           error(
             "Parent selectors aren't allowed here.",
-            scanner.spanFrom(start),
+            spanFrom(start),
           );
         }
         return selector;
@@ -273,16 +273,20 @@ class SelectorParser extends Parser {
     var operator = _attributeOperator();
     _whitespace();
 
+    var beforeValue = scanner.state;
     var next = scanner.peekChar();
-    var value = next == $single_quote || next == $double_quote
-        ? string()
-        : identifier();
+    var value = CssValue(
+        next == $single_quote || next == $double_quote
+            ? string()
+            : identifier(),
+        spanFrom(beforeValue));
     _whitespace();
 
-    next = scanner.peekChar();
-    var modifier = next != null && next.isAlphabetic
-        ? String.fromCharCode(scanner.readChar())
+    var beforeModifier = scanner.state;
+    var modifier = lookingAtIdentifier()
+        ? CssValue(identifier(), spanFrom(beforeModifier))
         : null;
+    _whitespace();
 
     scanner.expectChar($rbracket);
     return AttributeSelector.withOperator(
@@ -296,54 +300,58 @@ class SelectorParser extends Parser {
 
   /// Consumes a qualified name as part of an attribute selector.
   QualifiedName _attributeName() {
+    var start = scanner.state;
     if (scanner.scanChar($asterisk)) {
       scanner.expectChar($pipe);
-      return QualifiedName(identifier(), namespace: "*");
+      return QualifiedName(identifier(), spanFrom(start), namespace: "*");
     }
 
     if (scanner.scanChar($pipe)) {
-      return QualifiedName(identifier(), namespace: "");
+      return QualifiedName(identifier(), spanFrom(start), namespace: "");
     }
 
     var nameOrNamespace = identifier();
     if (scanner.peekChar() != $pipe || scanner.peekChar(1) == $equal) {
-      return QualifiedName(nameOrNamespace);
+      return QualifiedName(nameOrNamespace, spanFrom(start));
     }
 
     scanner.readChar();
-    return QualifiedName(identifier(), namespace: nameOrNamespace);
+    return QualifiedName(identifier(), spanFrom(start),
+        namespace: nameOrNamespace);
   }
 
   /// Consumes an attribute selector's operator.
-  AttributeOperator _attributeOperator() {
+  CssValue<AttributeOperator> _attributeOperator() {
     var start = scanner.state;
+    AttributeOperator op;
     switch (scanner.readChar()) {
       case $equal:
-        return AttributeOperator.equal;
+        op = AttributeOperator.equal;
 
       case $tilde:
         scanner.expectChar($equal);
-        return AttributeOperator.include;
+        op = AttributeOperator.include;
 
       case $pipe:
         scanner.expectChar($equal);
-        return AttributeOperator.dash;
+        op = AttributeOperator.dash;
 
       case $caret:
         scanner.expectChar($equal);
-        return AttributeOperator.prefix;
+        op = AttributeOperator.prefix;
 
       case $dollar:
         scanner.expectChar($equal);
-        return AttributeOperator.suffix;
+        op = AttributeOperator.suffix;
 
       case $asterisk:
         scanner.expectChar($equal);
-        return AttributeOperator.substring;
+        op = AttributeOperator.substring;
 
       default:
         scanner.error('Expected "]".', position: start.position);
     }
+    return CssValue(op, spanFrom(start));
   }
 
   /// Consumes a class selector.
@@ -486,28 +494,22 @@ class SelectorParser extends Parser {
       return scanner.scanChar($asterisk)
           ? UniversalSelector(spanFrom(start), namespace: "*")
           : TypeSelector(
-              QualifiedName(identifier(), namespace: "*"),
-              spanFrom(start),
-            );
+              QualifiedName(identifier(), spanFrom(start), namespace: "*"));
     } else if (scanner.scanChar($pipe)) {
       return scanner.scanChar($asterisk)
           ? UniversalSelector(spanFrom(start), namespace: "")
           : TypeSelector(
-              QualifiedName(identifier(), namespace: ""),
-              spanFrom(start),
-            );
+              QualifiedName(identifier(), spanFrom(start), namespace: ""));
     }
 
     var nameOrNamespace = identifier();
     if (!scanner.scanChar($pipe)) {
-      return TypeSelector(QualifiedName(nameOrNamespace), spanFrom(start));
+      return TypeSelector(QualifiedName(nameOrNamespace, spanFrom(start)));
     } else if (scanner.scanChar($asterisk)) {
       return UniversalSelector(spanFrom(start), namespace: nameOrNamespace);
     } else {
-      return TypeSelector(
-        QualifiedName(identifier(), namespace: nameOrNamespace),
-        spanFrom(start),
-      );
+      return TypeSelector(QualifiedName(identifier(), spanFrom(start),
+          namespace: nameOrNamespace));
     }
   }
 

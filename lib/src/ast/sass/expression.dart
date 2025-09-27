@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
+import 'package:sass/src/util/span.dart';
 
 import '../../exception.dart';
 import '../../parse/scss.dart';
@@ -10,6 +11,10 @@ import '../../visitor/interface/expression.dart';
 import '../../visitor/is_calculation_safe.dart';
 import '../../visitor/source_interpolation.dart';
 import '../sass.dart';
+
+/// An expression with a meaningless span that can be used in cases where the
+/// specific meaning of an expression is irrelevant.
+final Expression bogusExpression = NullExpression(bogusSpan);
 
 // Note: this has to be a concrete class so we can expose its accept() function
 // to the JS parser.

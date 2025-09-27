@@ -167,8 +167,10 @@ SimpleSelector? unifyUniversalAndElement(
   SimpleSelector selector1,
   SimpleSelector selector2,
 ) {
-  var (namespace1, name1) = _namespaceAndName(selector1, 'selector1');
-  var (namespace2, name2) = _namespaceAndName(selector2, 'selector2');
+  var (namespace1, name1, span1) =
+      _namespaceNameAndSpan(selector1, 'selector1');
+  var (namespace2, name2, span2) =
+      _namespaceNameAndSpan(selector2, 'selector2');
 
   String? namespace;
   if (namespace1 == namespace2 || namespace2 == '*') {
@@ -179,33 +181,37 @@ SimpleSelector? unifyUniversalAndElement(
     return null;
   }
 
+  FileSpan? span;
   String? name;
   if (name1 == name2 || name2 == null) {
     name = name1;
+    span = span1;
   } else if (name1 == null || name1 == '*') {
     name = name2;
+    span = span2;
   } else {
     return null;
   }
 
   return name == null
       ? UniversalSelector(selector1.span, namespace: namespace)
-      : TypeSelector(QualifiedName(name, namespace: namespace), selector1.span);
+      : TypeSelector(QualifiedName(name, span, namespace: namespace));
 }
 
-/// Returns the namespace and name for [selector], which must be a
+/// Returns the namespace, name, and span for [selector], which must be a
 /// [UniversalSelector] or a [TypeSelector].
 ///
 /// The [name] parameter is used for error reporting.
-(String? namespace, String? name) _namespaceAndName(
+(String? namespace, String? name, FileSpan span) _namespaceNameAndSpan(
   SimpleSelector selector,
   String name,
 ) =>
     switch (selector) {
-      UniversalSelector(:var namespace) => (namespace, null),
-      TypeSelector(name: QualifiedName(:var name, :var namespace)) => (
+      UniversalSelector(:var namespace, :var span) => (namespace, null, span),
+      TypeSelector(name: QualifiedName(:var name, :var namespace, :var span)) => (
           namespace,
           name,
+          span,
         ),
       _ => throw ArgumentError.value(
           selector,

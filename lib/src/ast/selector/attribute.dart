@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../../ast/css.dart';
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
@@ -19,9 +20,8 @@ final class AttributeSelector extends SimpleSelector {
 
   /// The operator that defines the semantics of [value].
   ///
-  /// If this is `null`, this matches any element with the given property,
-  /// regardless of this value. It's `null` if and only if [value] is `null`.
-  final AttributeOperator? op;
+  /// This is `null` if and only if [value] is `null`.
+  final CssValue<AttributeOperator>? op;
 
   /// An assertion about the value of [name].
   ///
@@ -29,7 +29,7 @@ final class AttributeSelector extends SimpleSelector {
   ///
   /// If this is `null`, this matches any element with the given property,
   /// regardless of this value. It's `null` if and only if [op] is `null`.
-  final String? value;
+  final CssValue<String>? value;
 
   /// The modifier which indicates how the attribute selector should be
   /// processed.
@@ -39,7 +39,7 @@ final class AttributeSelector extends SimpleSelector {
   /// [case-sensitivity]: https://www.w3.org/TR/selectors-4/#attribute-case
   ///
   /// If [op] is `null`, this is always `null` as well.
-  final String? modifier;
+  final CssValue<String>? modifier;
 
   /// Creates an attribute selector that matches any element with a property of
   /// the given name.
@@ -74,6 +74,8 @@ final class AttributeSelector extends SimpleSelector {
 }
 
 /// An operator that defines the semantics of an [AttributeSelector].
+///
+/// {@category AST}
 enum AttributeOperator {
   /// The attribute value exactly equals the given value.
   equal('='),

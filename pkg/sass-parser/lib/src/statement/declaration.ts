@@ -24,7 +24,6 @@ import {
 } from '.';
 import {_DeclarationWithChildren} from './declaration-internal';
 import * as sassParser from '../..';
-import {ContainerWithChildren} from 'postcss/lib/container';
 
 // TODO(nweiz): Make sure setting non-identifier strings for prop here and name
 // in GenericAtRule escapes properly.
