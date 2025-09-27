@@ -5,6 +5,7 @@
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/statement.dart';
+import '../interpolated_selector/list.dart';
 import '../interpolation.dart';
 import '../statement.dart';
 import 'parent.dart';
@@ -17,15 +18,33 @@ import 'parent.dart';
 final class StyleRule extends ParentStatement<List<Statement>> {
   /// The selector to which the declaration will be applied.
   ///
-  /// This is only parsed after the interpolation has been resolved.
-  final Interpolation selector;
+  /// This is only parsed after the interpolation has been resolved. This is
+  /// null if and only if [interpolatedSelector] is not null.
+  final Interpolation? selector;
+
+  /// Like [selector], but with as much of the selector parsed as possible.
+  ///
+  /// This isn't used by Sass's internal logic, and is only set when
+  /// `parseSelectors: true` is passed to [Stylesheet.parse]. This is null if
+  /// and only if [selector] is not null.
+  final InterpolatedSelectorList? parsedSelector;
 
   final FileSpan span;
 
+  /// Constructs a style rule with [selector] set and [interpolatedSelector]
+  /// null.
   StyleRule(this.selector, Iterable<Statement> children, this.span)
-      : super(List.unmodifiable(children));
+      : parsedSelector = null,
+        super(List.unmodifiable(children));
+
+  /// Constructs a style rule with [interpolatedSelector] set and [selector]
+  /// null.
+  StyleRule.withParsedSelector(
+      this.parsedSelector, Iterable<Statement> children, this.span)
+      : selector = null,
+        super(List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitStyleRule(this);
 
-  String toString() => "$selector {${children.join(" ")}}";
+  String toString() => "${selector ?? parsedSelector} {${children.join(" ")}}";
 }

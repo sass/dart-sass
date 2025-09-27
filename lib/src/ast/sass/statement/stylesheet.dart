@@ -100,16 +100,23 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   ///
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
+  /// If [parseSelectors] is true, this parses [StyleRule.parsedSelector]s
+  /// rather than [StyleRule.selector]s.
+  ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parse(String contents, Syntax syntax, {Object? url}) {
+  factory Stylesheet.parse(String contents, Syntax syntax,
+      {Object? url, bool parseSelectors = false}) {
     try {
       switch (syntax) {
         case Syntax.sass:
-          return Stylesheet.parseSass(contents, url: url);
+          return Stylesheet.parseSass(contents,
+              url: url, parseSelectors: parseSelectors);
         case Syntax.scss:
-          return Stylesheet.parseScss(contents, url: url);
+          return Stylesheet.parseScss(contents,
+              url: url, parseSelectors: parseSelectors);
         case Syntax.css:
-          return Stylesheet.parseCss(contents, url: url);
+          return Stylesheet.parseCss(contents,
+              url: url, parseSelectors: parseSelectors);
       }
     } on SassException catch (error, stackTrace) {
       var url = error.span.sourceUrl;
@@ -127,25 +134,37 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   ///
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
+  /// If [parseSelectors] is true, this parses [StyleRule.parsedSelector]s
+  /// rather than [StyleRule.selector]s.
+  ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseSass(String contents, {Object? url}) =>
-      SassParser(contents, url: url).parse();
+  factory Stylesheet.parseSass(String contents,
+          {Object? url, bool parseSelectors = false}) =>
+      SassParser(contents, url: url, parseSelectors: parseSelectors).parse();
 
   /// Parses an SCSS stylesheet from [contents].
   ///
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
+  /// If [parseSelectors] is true, this parses [StyleRule.parsedSelector]s
+  /// rather than [StyleRule.selector]s.
+  ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseScss(String contents, {Object? url}) =>
-      ScssParser(contents, url: url).parse();
+  factory Stylesheet.parseScss(String contents,
+          {Object? url, bool parseSelectors = false}) =>
+      ScssParser(contents, url: url, parseSelectors: parseSelectors).parse();
 
   /// Parses a plain CSS stylesheet from [contents].
   ///
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
+  /// If [parseSelectors] is true, this parses [StyleRule.parsedSelector]s
+  /// rather than [StyleRule.selector]s.
+  ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseCss(String contents, {Object? url}) =>
-      CssParser(contents, url: url).parse();
+  factory Stylesheet.parseCss(String contents,
+          {Object? url, bool parseSelectors = false}) =>
+      CssParser(contents, url: url, parseSelectors: parseSelectors).parse();
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitStylesheet(this);
 

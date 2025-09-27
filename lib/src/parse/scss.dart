@@ -15,7 +15,7 @@ class ScssParser extends StylesheetParser {
   bool get indented => false;
   int get currentIndentation => 0;
 
-  ScssParser(super.contents, {super.url});
+  ScssParser(super.contents, {super.url, super.parseSelectors});
 
   Interpolation styleRuleSelector() => almostAnyValue();
 

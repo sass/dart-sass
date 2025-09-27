@@ -2326,7 +2326,7 @@ final class _EvaluateVisitor
     }
 
     var (selectorText, selectorMap) = await _performInterpolationWithMap(
-      node.selector,
+      node.selector!,
       warnForColor: true,
     );
 
@@ -2339,7 +2339,7 @@ final class _EvaluateVisitor
         interpolationMap: selectorMap,
       ).parse();
       var rule = ModifiableCssKeyframeBlock(
-        CssValue(List.unmodifiable(parsedSelector), node.selector.span),
+        CssValue(List.unmodifiable(parsedSelector), node.selector!.span),
         node.span,
       );
       await _withParent(

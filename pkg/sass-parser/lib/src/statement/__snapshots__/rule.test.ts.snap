@@ -12,10 +12,10 @@ exports[`a style rule toJSON with a child 1`] = `
   "nodes": [
     <@bar>,
   ],
+  "parsedSelector": <.foo>,
   "raws": {},
   "sassType": "rule",
-  "selector": ".foo ",
-  "selectorInterpolation": <.foo >,
+  "selector": ".foo",
   "source": <1:1-1:12 in 0>,
   "type": "rule",
 }
@@ -31,10 +31,10 @@ exports[`a style rule toJSON with empty children 1`] = `
     },
   ],
   "nodes": [],
+  "parsedSelector": <.foo>,
   "raws": {},
   "sassType": "rule",
-  "selector": ".foo ",
-  "selectorInterpolation": <.foo >,
+  "selector": ".foo",
   "source": <1:1-1:8 in 0>,
   "type": "rule",
 }

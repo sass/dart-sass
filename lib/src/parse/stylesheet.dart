@@ -8,7 +8,10 @@ import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
+import '../ast/node.dart';
 import '../ast/sass.dart';
+import '../ast/selector.dart';
+import '../ast/css/value.dart';
 import '../color_names.dart';
 import '../deprecation.dart';
 import '../exception.dart';
@@ -19,6 +22,7 @@ import '../util/multi_span.dart';
 import '../util/nullable.dart';
 import '../value.dart';
 import 'parser.dart';
+import 'selector.dart' show selectorPseudoClasses, selectorPseudoElements;
 
 /// The base class for both the SCSS and indented syntax parsers.
 ///
@@ -32,6 +36,10 @@ import 'parser.dart';
 /// private, except where they have to be public for subclasses to refer to
 /// them.
 abstract class StylesheetParser extends Parser {
+  /// Whether to parse the selectors in [StyleRules] as [InterpolatedSelector]s
+  /// rather than raw [Interpolation]s.
+  final bool _parseSelectors;
+
   /// Whether we've consumed a rule other than `@charset`, `@forward`, or
   /// `@use`.
   var _isUseAllowed = true;
@@ -79,7 +87,8 @@ abstract class StylesheetParser extends Parser {
   @protected
   SilentComment? lastSilentComment;
 
-  StylesheetParser(super.contents, {super.url});
+  StylesheetParser(super.contents, {super.url, bool parseSelectors = false})
+      : _parseSelectors = parseSelectors;
 
   // ## Statements
 
@@ -513,13 +522,37 @@ abstract class StylesheetParser extends Parser {
     _isUseAllowed = false;
     var start = start_ ?? scanner.state; // dart-lang/sdk#45348
 
-    var interpolation = styleRuleSelector();
-    if (buffer != null) {
-      buffer.addInterpolation(interpolation);
-      interpolation = buffer.interpolation(spanFrom(start));
-    }
-    if (interpolation.contents.isEmpty) scanner.error('expected "}".');
+    if (_parseSelectors) {
+      if (start_ != null) scanner.state = start;
+      var selector = _selectorList();
+      return _withStyleRuleChildren(
+          selector,
+          start,
+          (children, span) => StyleRule.withParsedSelector(
+              selector, children, spanFrom(start)));
+    } else {
+      var interpolation = styleRuleSelector();
+      if (buffer != null) {
+        buffer.addInterpolation(interpolation);
+        interpolation = buffer.interpolation(spanFrom(start));
+      }
+      if (interpolation.contents.isEmpty) scanner.error('expected "}".');
 
+      return _withStyleRuleChildren(
+          interpolation,
+          start,
+          (children, span) =>
+              StyleRule(interpolation, children, spanFrom(start)));
+    }
+  }
+
+  /// Consumes the children of a style rule and passes them, as well as the span
+  /// from [start] to the end of the child block, to [create].
+  T _withStyleRuleChildren<T>(
+    AstNode nodeWithSpan,
+    LineScannerState start,
+    T create(List<Statement> children, FileSpan span),
+  ) {
     var wasInStyleRule = _inStyleRule;
     _inStyleRule = true;
 
@@ -529,13 +562,12 @@ abstract class StylesheetParser extends Parser {
           deprecation: null,
           message: "This selector doesn't have any properties and won't be "
               "rendered.",
-          span: interpolation.span,
+          span: nodeWithSpan.span,
         ));
       }
 
       _inStyleRule = wasInStyleRule;
-
-      return StyleRule(interpolation, children, spanFrom(start));
+      return create(children, span);
     });
   }
 
@@ -3242,6 +3274,9 @@ abstract class StylesheetParser extends Parser {
   ///
   /// If [allowOpenBrace] is `false`, this stops at opening curly braces.
   ///
+  /// If [endAfterOf] is `true`, this stops *after consuming* a top-level
+  /// identifier with the value "of".
+  ///
   /// If [silentComments] is `true`, this will parse silent comments as
   /// comments. Otherwise, it will preserve two adjacent slashes and emit them
   /// to CSS.
@@ -3250,12 +3285,15 @@ abstract class StylesheetParser extends Parser {
   /// as whitespace. It should only be set to `true` in positions when a
   /// statement can't end.
   ///
+  /// If [
+  ///
   /// Unlike [declarationValue], this allows interpolation.
   Interpolation _interpolatedDeclarationValue({
     bool allowEmpty = false,
     bool allowSemicolon = false,
     bool allowColon = true,
     bool allowOpenBrace = true,
+    bool endAfterOf = false,
     bool silentComments = true,
     bool consumeNewlines = false,
   }) {
@@ -3365,6 +3403,17 @@ abstract class StylesheetParser extends Parser {
           }
           wroteNewline = false;
 
+        case $o || $O:
+          if (endAfterOf && brackets.isEmpty) {
+            var of = rawText(() => scanIdentifier("of", caseSensitive: false));
+            if (of != "") {
+              buffer.write(of);
+              break loop;
+            }
+          }
+          buffer.writeCharCode(scanner.readChar());
+          wroteNewline = false;
+
         case null:
           break loop;
 
@@ -3394,7 +3443,7 @@ abstract class StylesheetParser extends Parser {
 
       if (scanner.scanChar($dash)) {
         buffer.writeCharCode($dash);
-        _interpolatedIdentifierBody(buffer);
+        _interpolatedIdentifierBodyHelper(buffer);
         return buffer.interpolation(spanFrom(start));
       }
     }
@@ -3413,13 +3462,22 @@ abstract class StylesheetParser extends Parser {
         scanner.error("Expected identifier.");
     }
 
-    _interpolatedIdentifierBody(buffer);
+    _interpolatedIdentifierBodyHelper(buffer);
     return buffer.interpolation(spanFrom(start));
   }
 
   /// Consumes a chunk of a possibly-interpolated CSS identifier after the name
-  /// start, and adds the contents to the [buffer] buffer.
-  void _interpolatedIdentifierBody(InterpolationBuffer buffer) {
+  /// start.
+  Interpolation _interpolatedIdentifierBody() {
+    var start = scanner.state;
+    var text = InterpolationBuffer();
+    _interpolatedIdentifierBodyHelper(text);
+    if (text.isEmpty) scanner.error("Expected identifier body.");
+    return text.interpolation(spanFrom(start));
+  }
+
+  /// Like [_interpolatedIdentifierBody], but parses the body into [buffer].
+  void _interpolatedIdentifierBodyHelper(InterpolationBuffer buffer) {
     loop:
     while (true) {
       switch (scanner.peekChar()) {
@@ -3455,6 +3513,416 @@ abstract class StylesheetParser extends Parser {
 
     return (contents, span);
   }
+
+  // ## Selectors
+
+  // What follows is largely duplicated between here and [SelectorParser]. Most
+  // changes here should be mirrored there and vice versa.
+
+  /// Consumes a selector list.
+  InterpolatedSelectorList _selectorList() {
+    var previousLine = scanner.line;
+    var components = <InterpolatedComplexSelector>[_complexSelector()];
+
+    whitespace(consumeNewlines: false);
+    while (scanner.scanChar($comma)) {
+      whitespace(consumeNewlines: true);
+      if (scanner.peekChar() == $comma) continue;
+      if (scanner.isDone) break;
+
+      var lineBreak = scanner.line != previousLine;
+      if (lineBreak) previousLine = scanner.line;
+      components.add(_complexSelector(lineBreak: lineBreak));
+    }
+
+    return InterpolatedSelectorList(components);
+  }
+
+  /// Consumes a complex selector.
+  ///
+  /// If [lineBreak] is `true`, that indicates that there was a line break
+  /// before this selector.
+  InterpolatedComplexSelector _complexSelector(
+      {bool allowLeadingCombinator = true,
+      bool allowTrailingCombinator = true,
+      bool lineBreak = false}) {
+    var start = scanner.state;
+
+    var componentStart = scanner.state;
+    InterpolatedCompoundSelector? lastCompound;
+    CssValue<Combinator>? combinator;
+
+    CssValue<Combinator>? leadingCombinator;
+    var components = <InterpolatedComplexSelectorComponent>[];
+
+    loop:
+    while (true) {
+      whitespace(consumeNewlines: false);
+
+      var allowCombinator = combinator == null &&
+          (allowLeadingCombinator || lastCompound != null);
+      switch (scanner.peekChar()) {
+        case $plus when allowCombinator:
+          var combinatorStart = scanner.state;
+          scanner.readChar();
+          combinator =
+              CssValue(Combinator.nextSibling, spanFrom(combinatorStart));
+
+        case $gt when allowCombinator:
+          var combinatorStart = scanner.state;
+          scanner.readChar();
+          combinator = CssValue(Combinator.child, spanFrom(combinatorStart));
+
+        case $tilde when allowCombinator:
+          var combinatorStart = scanner.state;
+          scanner.readChar();
+          combinator =
+              CssValue(Combinator.followingSibling, spanFrom(combinatorStart));
+
+        case null:
+          break loop;
+
+        case $lbracket ||
+              $dot ||
+              $hash ||
+              $percent ||
+              $colon ||
+              $ampersand ||
+              $asterisk ||
+              $pipe:
+        case _ when _lookingAtInterpolatedIdentifier():
+          if (lastCompound != null) {
+            components.add(
+              InterpolatedComplexSelectorComponent(
+                lastCompound,
+                spanFrom(componentStart),
+                combinator: combinator,
+              ),
+            );
+          } else if (combinator != null) {
+            assert(leadingCombinator == null);
+            leadingCombinator = combinator;
+            componentStart = scanner.state;
+          }
+
+          lastCompound = _compoundSelector();
+          combinator = null;
+          if (scanner.peekChar() == $ampersand) {
+            scanner.error(
+              '"&" may only used at the beginning of a compound selector.',
+            );
+          }
+
+        case _:
+          break loop;
+      }
+    }
+
+    if (combinator != null && (plainCss || !allowTrailingCombinator)) {
+      scanner.error("expected selector.");
+    } else if (lastCompound != null) {
+      components.add(
+        InterpolatedComplexSelectorComponent(
+          lastCompound,
+          spanFrom(componentStart),
+          combinator: combinator,
+        ),
+      );
+    } else if (combinator != null) {
+      leadingCombinator = combinator;
+    } else {
+      scanner.error("expected selector.");
+    }
+
+    return InterpolatedComplexSelector(
+      components,
+      spanFrom(start),
+      leadingCombinator: leadingCombinator,
+    );
+  }
+
+  /// Consumes a compound selector.
+  InterpolatedCompoundSelector _compoundSelector() {
+    var components = <InterpolatedSimpleSelector>[_simpleSelector()];
+
+    while (_isSimpleSelectorStart(scanner.peekChar())) {
+      components.add(_simpleSelector(allowParent: plainCss));
+    }
+
+    return InterpolatedCompoundSelector(components);
+  }
+
+  /// Consumes a simple selector.
+  ///
+  /// If [allowParent] is passed, it controls whether the parent selector `&` is
+  /// allowed. Otherwise, it defaults to [_allowParent].
+  InterpolatedSimpleSelector _simpleSelector({bool allowParent = true}) {
+    var start = scanner.state;
+    switch (scanner.peekChar()) {
+      case $lbracket:
+        return _attributeSelector();
+      case $dot:
+        return _classSelector();
+      case $hash when scanner.peekChar(1) != $lbrace:
+        return _idSelector();
+      case $percent:
+        var selector = _placeholderSelector();
+        if (plainCss) {
+          error(
+            "Placeholder selectors aren't allowed in plain CSS.",
+            spanFrom(start),
+          );
+        }
+        return selector;
+      case $colon:
+        return _pseudoSelector();
+      case $ampersand:
+        var selector = _parentSelector();
+        if (!allowParent) {
+          error(
+            "Parent selectors aren't allowed here.",
+            spanFrom(start),
+          );
+        }
+        return selector;
+
+      default:
+        return _typeOrUniversalSelector();
+    }
+  }
+
+  /// Consumes an attribute selector.
+  InterpolatedAttributeSelector _attributeSelector() {
+    var start = scanner.state;
+    scanner.expectChar($lbracket);
+    whitespace(consumeNewlines: true);
+
+    var name = _attributeName();
+
+    whitespace(consumeNewlines: true);
+    if (scanner.scanChar($rbracket)) {
+      return InterpolatedAttributeSelector(name, spanFrom(start));
+    }
+
+    var operator = _attributeOperator();
+    whitespace(consumeNewlines: true);
+
+    var next = scanner.peekChar();
+    var value = next == $single_quote || next == $double_quote
+        ? interpolatedStringToken()
+        : interpolatedIdentifier();
+    whitespace(consumeNewlines: true);
+
+    var modifier =
+        _lookingAtInterpolatedIdentifier() ? interpolatedIdentifier() : null;
+    whitespace(consumeNewlines: true);
+
+    scanner.expectChar($rbracket);
+    return InterpolatedAttributeSelector.withOperator(
+      name,
+      operator,
+      value,
+      spanFrom(start),
+      modifier: modifier,
+    );
+  }
+
+  /// Consumes a qualified name as part of an attribute selector.
+  InterpolatedQualifiedName _attributeName() {
+    var start = scanner.state;
+    if (scanner.scanChar($asterisk)) {
+      var namespace = Interpolation.plain("*", spanFrom(start));
+      scanner.expectChar($pipe);
+      return InterpolatedQualifiedName(
+          interpolatedIdentifier(), spanFrom(start),
+          namespace: namespace);
+    }
+
+    if (scanner.scanChar($pipe)) {
+      var namespace = Interpolation.plain("", spanFrom(start, start));
+      return InterpolatedQualifiedName(
+          interpolatedIdentifier(), spanFrom(start),
+          namespace: namespace);
+    }
+
+    var nameOrNamespace = interpolatedIdentifier();
+    if (scanner.peekChar() != $pipe || scanner.peekChar(1) == $equal) {
+      return InterpolatedQualifiedName(nameOrNamespace, spanFrom(start));
+    }
+
+    scanner.readChar();
+    return InterpolatedQualifiedName(interpolatedIdentifier(), spanFrom(start),
+        namespace: nameOrNamespace);
+  }
+
+  /// Consumes an attribute selector's operator.
+  CssValue<AttributeOperator> _attributeOperator() {
+    var start = scanner.state;
+    AttributeOperator op;
+    switch (scanner.readChar()) {
+      case $equal:
+        op = AttributeOperator.equal;
+
+      case $tilde:
+        scanner.expectChar($equal);
+        op = AttributeOperator.include;
+
+      case $pipe:
+        scanner.expectChar($equal);
+        op = AttributeOperator.dash;
+
+      case $caret:
+        scanner.expectChar($equal);
+        op = AttributeOperator.prefix;
+
+      case $dollar:
+        scanner.expectChar($equal);
+        op = AttributeOperator.suffix;
+
+      case $asterisk:
+        scanner.expectChar($equal);
+        op = AttributeOperator.substring;
+
+      default:
+        scanner.error('Expected "]".', position: start.position);
+    }
+    return CssValue(op, spanFrom(start));
+  }
+
+  /// Consumes a class selector.
+  InterpolatedClassSelector _classSelector() {
+    scanner.expectChar($dot);
+    var name = interpolatedIdentifier();
+    return InterpolatedClassSelector(name);
+  }
+
+  /// Consumes an ID selector.
+  InterpolatedIDSelector _idSelector() {
+    scanner.expectChar($hash);
+    var name = interpolatedIdentifier();
+    return InterpolatedIDSelector(name);
+  }
+
+  /// Consumes a placeholder selector.
+  InterpolatedPlaceholderSelector _placeholderSelector() {
+    scanner.expectChar($percent);
+    var name = interpolatedIdentifier();
+    return InterpolatedPlaceholderSelector(name);
+  }
+
+  /// Consumes a parent selector.
+  InterpolatedParentSelector _parentSelector() {
+    var start = scanner.state;
+    scanner.expectChar($ampersand);
+    var suffix = _lookingAtInterpolatedIdentifierBody()
+        ? _interpolatedIdentifierBody()
+        : null;
+    if (plainCss && suffix != null) {
+      scanner.error(
+        "Parent selectors can't have suffixes in plain CSS.",
+        position: start.position,
+        length: scanner.position - start.position,
+      );
+    }
+
+    return InterpolatedParentSelector(spanFrom(start), suffix: suffix);
+  }
+
+  /// Consumes a pseudo selector.
+  InterpolatedPseudoSelector _pseudoSelector() {
+    var start = scanner.state;
+    scanner.expectChar($colon);
+    var element = scanner.scanChar($colon);
+    var name = interpolatedIdentifier();
+
+    if (!scanner.scanChar($lparen)) {
+      return InterpolatedPseudoSelector(name, spanFrom(start),
+          element: element);
+    }
+    whitespace(consumeNewlines: true);
+
+    var unvendored = name.asPlain.andThen(unvendor);
+    Interpolation? argument;
+    InterpolatedSelectorList? selector;
+    if (element) {
+      if (selectorPseudoElements.contains(unvendored)) {
+        selector = _selectorList();
+      } else {
+        argument = _interpolatedDeclarationValue(allowEmpty: true);
+      }
+    } else if (selectorPseudoClasses.contains(unvendored)) {
+      selector = _selectorList();
+    } else if (unvendored == "nth-child" || unvendored == "nth-last-child") {
+      argument = _interpolatedDeclarationValue(
+          endAfterOf: true, consumeNewlines: true);
+      if (scanner.peekChar() != $rparen) selector = _selectorList();
+    } else {
+      argument = _interpolatedDeclarationValue(allowEmpty: true);
+    }
+    scanner.expectChar($rparen);
+
+    return InterpolatedPseudoSelector(
+      name,
+      spanFrom(start),
+      element: element,
+      argument: argument,
+      selector: selector,
+    );
+  }
+
+  /// Consumes a type selector or a universal selector.
+  ///
+  /// These are combined because either one could start with `*`.
+  InterpolatedSimpleSelector _typeOrUniversalSelector() {
+    var start = scanner.state;
+    if (scanner.scanChar($asterisk)) {
+      var afterAsterisk = scanner.state;
+      if (!scanner.scanChar($pipe)) {
+        return InterpolatedUniversalSelector(spanFrom(start));
+      }
+      var namespace = Interpolation.plain("*", spanFrom(start, afterAsterisk));
+      return scanner.scanChar($asterisk)
+          ? InterpolatedUniversalSelector(spanFrom(start), namespace: namespace)
+          : InterpolatedTypeSelector(InterpolatedQualifiedName(
+              interpolatedIdentifier(), spanFrom(start),
+              namespace: namespace));
+    } else if (scanner.scanChar($pipe)) {
+      var namespace = Interpolation.plain("", spanFrom(start, start));
+      return scanner.scanChar($asterisk)
+          ? InterpolatedUniversalSelector(spanFrom(start), namespace: namespace)
+          : InterpolatedTypeSelector(InterpolatedQualifiedName(
+              interpolatedIdentifier(), spanFrom(start),
+              namespace: namespace));
+    }
+
+    var nameOrNamespace = interpolatedIdentifier();
+    if (!scanner.scanChar($pipe)) {
+      return InterpolatedTypeSelector(
+          InterpolatedQualifiedName(nameOrNamespace, spanFrom(start)));
+    } else if (scanner.scanChar($asterisk)) {
+      return InterpolatedUniversalSelector(spanFrom(start),
+          namespace: nameOrNamespace);
+    } else {
+      return InterpolatedTypeSelector(InterpolatedQualifiedName(
+          interpolatedIdentifier(), spanFrom(start),
+          namespace: nameOrNamespace));
+    }
+  }
+
+  // Returns whether [character] can start a simple selector in the middle of a
+  // compound selector.
+  bool _isSimpleSelectorStart(int? character) => switch (character) {
+        $asterisk ||
+        $lbracket ||
+        $dot ||
+        $hash ||
+        $percent ||
+        $colon ||
+        $hash =>
+          true,
+        $ampersand => plainCss,
+        _ => false,
+      };
 
   // ## Media Queries
 

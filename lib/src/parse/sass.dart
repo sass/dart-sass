@@ -38,7 +38,7 @@ class SassParser extends StylesheetParser {
 
   bool get indented => true;
 
-  SassParser(super.contents, {super.url});
+  SassParser(super.contents, {super.url, super.parseSelectors});
 
   Interpolation styleRuleSelector() {
     var start = scanner.state;

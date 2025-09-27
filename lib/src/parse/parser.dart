@@ -250,8 +250,9 @@ class Parser {
   @protected
   String string() {
     // NOTE: this logic is largely duplicated in
-    // StylesheetParser.interpolatedString. Most changes here should be mirrored
-    // there.
+    // [StylesheetParser.interpolatedString] and
+    // [StylesheetParser.interpolatedStringToken]. Most changes here should be
+    // mirrored there.
 
     var quote = scanner.readChar();
     if (quote != $single_quote && quote != $double_quote) {
@@ -615,7 +616,7 @@ class Parser {
   /// Returns whether an identifier whose name exactly matches [text] is at the
   /// current scanner position.
   ///
-  /// This doesn't move the scan pointer forward
+  /// This doesn't move the scan pointer forward.
   @protected
   bool matchesIdentifier(String text, {bool caseSensitive = false}) {
     if (!lookingAtIdentifier()) return false;
