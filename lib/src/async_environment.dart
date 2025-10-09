@@ -837,7 +837,7 @@ final class AsyncEnvironment {
     for (var i = 0; i < _variables.length; i++) {
       var modules =
           i == 0 ? _importedModules.keys : _nestedForwardedModules?[i - 1];
-      for (var module in modules ?? <Module>[]) {
+      for (var module in modules ?? const <Module>[]) {
         for (var (name, value) in module.variables.pairs) {
           configuration[name] =
               ConfiguredValue.implicit(value, module.variableNodes[name]!);

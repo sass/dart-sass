@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: a2860c59c051b8353caa4dc0767f7b803b8b5582
+// Checksum: 1a3e8a246997bac547c2c15e5c191aac2132cc5b
 //
 // ignore_for_file: unused_import
 
@@ -845,7 +845,7 @@ final class Environment {
     for (var i = 0; i < _variables.length; i++) {
       var modules =
           i == 0 ? _importedModules.keys : _nestedForwardedModules?[i - 1];
-      for (var module in modules ?? <Module<Callable>>[]) {
+      for (var module in modules ?? const <Module<Callable>>[]) {
         for (var (name, value) in module.variables.pairs) {
           configuration[name] =
               ConfiguredValue.implicit(value, module.variableNodes[name]!);
