@@ -1,3 +1,7 @@
+## 1.93.3
+
+* Additional fixes for implicit configuration when nested imports are involved.
+
 ## 1.93.2
 
 * No user-visible changes.

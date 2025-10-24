@@ -1,3 +1,7 @@
+## 15.12.3
+
+* No user-visible changes.
+
 ## 15.12.2
 
 * No user-visible changes.
