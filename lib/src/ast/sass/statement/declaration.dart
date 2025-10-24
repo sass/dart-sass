@@ -28,20 +28,31 @@ final class Declaration extends ParentStatement {
 
   final FileSpan span;
 
-  /// Returns whether this is a CSS Custom Property declaration.
+  /// Returns whether this declaration's value was parsed as SassScript.
   ///
-  /// Note that this can return `false` for declarations that will ultimately be
+  /// This is `false` for custom properties as well as the `result` property of
+  /// the plain CSS `@function` rule.
+  ///
+  /// Note that this can return `true` for declarations that will ultimately be
   /// serialized as custom properties if they aren't *parsed as* custom
   /// properties, such as `#{--foo}: ...`.
   ///
-  /// If this is `true`, then `value` will be a [StringExpression].
+  /// If this is `false`, then `value` will be an unquoted [StringExpression].
   ///
   /// @nodoc
   @internal
-  bool get isCustomProperty => name.initialPlain.startsWith('--');
+  final bool parsedAsSassScript;
 
   /// Creates a declaration with no children.
-  Declaration(this.name, this.value, this.span) : super(null);
+  Declaration(this.name, this.value, this.span)
+      : parsedAsSassScript = true,
+        super(null);
+
+  /// Creates a declaration with no children whose value is not parsed as
+  /// SassScript.
+  Declaration.notSassScript(this.name, StringExpression this.value, this.span)
+      : parsedAsSassScript = false,
+        super(null);
 
   /// Creates a declaration with children.
   ///
@@ -51,7 +62,8 @@ final class Declaration extends ParentStatement {
     Iterable<Statement> children,
     this.span, {
     this.value,
-  }) : super(List.unmodifiable(children));
+  })  : parsedAsSassScript = true,
+        super(List.unmodifiable(children));
 
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitDeclaration(this);
 
@@ -61,7 +73,7 @@ final class Declaration extends ParentStatement {
     buffer.writeCharCode($colon);
 
     if (value != null) {
-      if (!isCustomProperty) buffer.writeCharCode($space);
+      if (parsedAsSassScript) buffer.writeCharCode($space);
       buffer.write("$value");
     }
 
