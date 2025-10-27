@@ -100,7 +100,7 @@ jobs:
           subject-path: build/*.tar.gz
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: build-${{ matrix.target }}
           path: build/*.tar.gz
