@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: b79ed685f78b8d5356795eb2d1112f830abaf58e
+// Checksum: 02a6149a29eca1d21306e9582a6b7df86f4cd2f2
 //
 // ignore_for_file: unused_import
 
@@ -1379,7 +1379,6 @@ final class _EvaluateVisitor
             CssValue(value, expression.span),
             node.span,
             parsedAsCustomProperty: node.isCustomProperty,
-            trace: _stackTrace(node.span),
             valueSpanForMap:
                 _sourceMap ? node.value.andThen(_expressionNode)?.span : null,
           ),

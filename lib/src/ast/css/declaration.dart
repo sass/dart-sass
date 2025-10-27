@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:source_span/source_span.dart';
-import 'package:stack_trace/stack_trace.dart';
 
 import '../../value.dart';
 import 'node.dart';
@@ -16,12 +15,6 @@ abstract interface class CssDeclaration implements CssNode {
 
   /// The value of this declaration.
   CssValue<Value> get value;
-
-  /// The stack trace indicating where this node was created.
-  ///
-  /// This is used to emit interleaved declaration warnings, and is only set if
-  /// [interleavedRules] isn't empty.
-  Trace? get trace;
 
   /// The span for [value] that should be emitted to the source map.
   ///
