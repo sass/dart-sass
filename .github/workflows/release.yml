@@ -51,7 +51,7 @@ jobs:
 
     steps:
       - name: Download Artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
 
       - name: Release
         run: gh release upload ${{ github.ref_name }} build-*/* --repo ${{ github.repository }}
