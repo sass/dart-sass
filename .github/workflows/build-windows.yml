@@ -39,7 +39,7 @@ jobs:
           subject-path: build/*.zip
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: build-windows-${{ matrix.arch }}
           path: build/*.zip
