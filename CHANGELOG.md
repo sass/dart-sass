@@ -1,3 +1,7 @@
+## 1.93.3-dev
+
+* Fix the span reported for standalone `%` expressions followed by whitespace.
+
 ## 1.93.2
 
 * No user-visible changes.
