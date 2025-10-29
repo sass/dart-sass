@@ -11,7 +11,6 @@ import * as sassInternal from '../sass-internal';
 import {AnyStatement} from '../statement';
 import * as utils from '../utils';
 import {ComplexSelector, ComplexSelectorProps} from './complex';
-import {InterpolationInjector} from './interpolation-injector';
 
 /**
  * The initializer properties for {@link SelectorList} passed as an options
@@ -100,16 +99,8 @@ export class SelectorList
 
   constructor(defaults?: SelectorListProps);
   /** @hidden */
-  constructor(
-    _: undefined,
-    inner: sassInternal.SelectorList,
-    injector: InterpolationInjector,
-  );
-  constructor(
-    defaults?: object,
-    inner?: sassInternal.SelectorList,
-    injector?: InterpolationInjector,
-  ) {
+  constructor(_: undefined, inner: sassInternal.SelectorList);
+  constructor(defaults?: object, inner?: sassInternal.SelectorList) {
     if (Array.isArray(defaults)) {
       defaults = {nodes: defaults};
     } else if (defaults && !('nodes' in defaults)) {
@@ -122,7 +113,7 @@ export class SelectorList
       this.source = new LazySource(inner);
       this.nodes = [];
       for (const complex of inner.components) {
-        this.append(new ComplexSelector(undefined, complex, injector!));
+        this.append(new ComplexSelector(undefined, complex));
       }
     }
   }

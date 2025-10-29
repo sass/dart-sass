@@ -12,7 +12,6 @@ import * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {QualifiedName, QualifiedNameProps} from './qualified-name';
 import {SimpleSelector} from './index';
-import {InterpolationInjector} from './interpolation-injector';
 
 /**
  * An operator that defines the meaning of a {@link AttributeSelector}.
@@ -159,30 +158,18 @@ export class AttributeSelector extends SimpleSelector {
 
   constructor(defaults: AttributeSelectorProps);
   /** @hidden */
-  constructor(
-    _: undefined,
-    inner: sassInternal.AttributeSelector,
-    injector: InterpolationInjector,
-  );
-  constructor(
-    defaults?: object,
-    inner?: sassInternal.AttributeSelector,
-    injector?: InterpolationInjector,
-  ) {
+  constructor(_: undefined, inner: sassInternal.AttributeSelector);
+  constructor(defaults?: object, inner?: sassInternal.AttributeSelector) {
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
-      this.attribute = new QualifiedName(undefined, inner.name, injector!);
-      this.operator = inner.op?.value?.toString() as
+      this.attribute = new QualifiedName(undefined, inner.name);
+      this.operator = inner.op?.toString() as
         | AttributeSelectorOperator
         | undefined;
-      if (inner.value) {
-        // We have to use the span text here because the value text has already
-        // parsed and resolved the string.
-        this.value = injector!.inject(inner.value.span.text);
-      }
+      if (inner.value) this.value = new Interpolation(undefined, inner.value);
       if (inner.modifier) {
-        this.modifier = injector!.inject(inner.modifier.value);
+        this.modifier = new Interpolation(undefined, inner.modifier);
       }
     }
   }

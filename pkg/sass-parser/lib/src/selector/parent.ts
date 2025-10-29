@@ -11,7 +11,6 @@ import type {AnyStatement} from '../statement';
 import * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {SimpleSelector} from './index';
-import {InterpolationInjector} from './interpolation-injector';
 
 /**
  * The initializer properties for {@link ParentSelector}.
@@ -69,20 +68,13 @@ export class ParentSelector extends SimpleSelector {
 
   constructor(defaults?: ParentSelectorProps);
   /** @hidden */
-  constructor(
-    _: undefined,
-    inner: sassInternal.ParentSelector,
-    injector: InterpolationInjector,
-  );
-  constructor(
-    defaults?: object,
-    inner?: sassInternal.ParentSelector,
-    injector?: InterpolationInjector,
-  ) {
+  constructor(_: undefined, inner: sassInternal.ParentSelector);
+  constructor(defaults?: object, inner?: sassInternal.ParentSelector) {
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
-      if (inner.suffix) this.suffix = injector!.inject(inner.suffix);
+      if (inner.suffix)
+        this.suffix = new Interpolation(undefined, inner.suffix);
     }
   }
 

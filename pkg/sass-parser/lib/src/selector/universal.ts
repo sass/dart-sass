@@ -11,7 +11,6 @@ import type {AnyStatement} from '../statement';
 import * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {SimpleSelector} from '.';
-import {InterpolationInjector} from './interpolation-injector';
 
 /**
  * The initializer properties for {@link UniversalSelector}.
@@ -61,20 +60,13 @@ export class UniversalSelector extends SimpleSelector {
 
   constructor(defaults?: UniversalSelectorProps);
   /** @hidden */
-  constructor(
-    _: undefined,
-    inner: sassInternal.UniversalSelector,
-    injector: InterpolationInjector,
-  );
-  constructor(
-    defaults?: object,
-    inner?: sassInternal.UniversalSelector,
-    injector?: InterpolationInjector,
-  ) {
+  constructor(_: undefined, inner: sassInternal.UniversalSelector);
+  constructor(defaults?: object, inner?: sassInternal.UniversalSelector) {
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
-      if (inner.namespace) this.namespace = injector!.inject(inner.namespace);
+      if (inner.namespace)
+        this.namespace = new Interpolation(undefined, inner.namespace);
     }
   }
 

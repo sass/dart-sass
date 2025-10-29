@@ -87,7 +87,9 @@ describe('a class selector', () => {
       () => new ClassSelector({class: 'f\\0aoo'}),
     );
 
-    describeNode('from props', () => fromSimpleSelectorProps({class: 'f\\0aoo'}));
+    describeNode('from props', () =>
+      fromSimpleSelectorProps({class: 'f\\0aoo'}),
+    );
   });
 
   describe('assigned new class', () => {

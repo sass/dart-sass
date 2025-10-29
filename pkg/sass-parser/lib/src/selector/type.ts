@@ -11,7 +11,6 @@ import * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {QualifiedName, QualifiedNameProps} from './qualified-name';
 import {SimpleSelector} from './index';
-import {InterpolationInjector} from './interpolation-injector';
 
 /**
  * The initializer properties for {@link TypeSelector}.
@@ -61,20 +60,12 @@ export class TypeSelector extends SimpleSelector {
 
   constructor(defaults: TypeSelectorProps);
   /** @hidden */
-  constructor(
-    _: undefined,
-    inner: sassInternal.TypeSelector,
-    injector: InterpolationInjector,
-  );
-  constructor(
-    defaults?: object,
-    inner?: sassInternal.TypeSelector,
-    injector?: InterpolationInjector,
-  ) {
+  constructor(_: undefined, inner: sassInternal.TypeSelector);
+  constructor(defaults?: object, inner?: sassInternal.TypeSelector) {
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
-      this.type = new QualifiedName(undefined, inner.name, injector!);
+      this.type = new QualifiedName(undefined, inner.name);
     }
   }
 

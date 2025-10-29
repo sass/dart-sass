@@ -11,16 +11,8 @@ import * as sassInternal from '../sass-internal';
 import {AnyStatement} from '../statement';
 import * as utils from '../utils';
 import {AnySimpleSelector, SimpleSelectorProps} from '.';
-import {AttributeSelector} from './attribute';
-import {ClassSelector} from './class';
-import {IDSelector} from './id';
-import {InterpolationInjector} from './interpolation-injector';
-import {ParentSelector} from './parent';
-import {PlaceholderSelector} from './placeholder';
-import {PseudoSelector} from './pseudo';
-import {TypeSelector} from './type';
-import {UniversalSelector} from './universal';
 import {fromProps} from './from-props';
+import {convertSimpleSelector} from './convert';
 
 /**
  * The initializer properties for {@link CompoundSelector} passed as an options
@@ -100,16 +92,8 @@ export class CompoundSelector
 
   constructor(defaults?: CompoundSelectorProps);
   /** @hidden */
-  constructor(
-    _: undefined,
-    inner: sassInternal.CompoundSelector,
-    injector: InterpolationInjector,
-  );
-  constructor(
-    defaults?: object,
-    inner?: sassInternal.CompoundSelector,
-    injector?: InterpolationInjector,
-  ) {
+  constructor(_: undefined, inner: sassInternal.CompoundSelector);
+  constructor(defaults?: object, inner?: sassInternal.CompoundSelector) {
     if (Array.isArray(defaults)) {
       defaults = {nodes: defaults};
     } else if (defaults && !('nodes' in defaults)) {
@@ -120,28 +104,8 @@ export class CompoundSelector
     this.nodes ??= [];
     if (inner) {
       this.source = new LazySource(inner);
-
-      const visitor =
-        sassInternal.createSimpleSelectorVisitor<AnySimpleSelector>({
-          visitAttributeSelector: inner =>
-            new AttributeSelector(undefined, inner, injector!),
-          visitClassSelector: inner =>
-            new ClassSelector(undefined, inner, injector!),
-          visitIDSelector: inner => new IDSelector(undefined, inner, injector!),
-          visitParentSelector: inner =>
-            new ParentSelector(undefined, inner, injector!),
-          visitPlaceholderSelector: inner =>
-            new PlaceholderSelector(undefined, inner, injector!),
-          visitPseudoSelector: inner =>
-            new PseudoSelector(undefined, inner, injector!),
-          visitTypeSelector: inner =>
-            new TypeSelector(undefined, inner, injector!),
-          visitUniversalSelector: inner =>
-            new UniversalSelector(undefined, inner, injector!),
-        });
-
       for (const simple of inner.components) {
-        this.append(simple.accept(visitor));
+        this.append(convertSimpleSelector(simple));
       }
     }
   }

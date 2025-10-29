@@ -180,7 +180,7 @@ export class Stringifier extends PostCssStringifier {
         node.nodes[0],
         '@at-root' +
           (node.raws.afterName ?? ' ') +
-          node.nodes[0].selectorInterpolation,
+          node.nodes[0].parsedSelector,
       );
       return;
     }
@@ -204,7 +204,7 @@ export class Stringifier extends PostCssStringifier {
   }
 
   private rule(node: Rule): void {
-    this.block(node, node.selectorInterpolation.toString());
+    this.block(node, node.parsedSelector.toString());
   }
 
   private ['sass-comment'](node: SassComment): void {

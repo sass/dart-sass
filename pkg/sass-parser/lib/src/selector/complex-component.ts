@@ -11,7 +11,6 @@ import {AnyStatement} from '../statement';
 import * as utils from '../utils';
 import {SelectorCombinator} from './complex';
 import {CompoundSelector, CompoundSelectorProps} from './compound';
-import {InterpolationInjector} from './interpolation-injector';
 
 /**
  * The initializer properties for {@link ComplexSelectorComponent} passed as an
@@ -92,25 +91,16 @@ export class ComplexSelectorComponent extends Node {
 
   constructor(defaults: ComplexSelectorComponentProps);
   /** @hidden */
-  constructor(
-    _: undefined,
-    inner: sassInternal.ComplexSelectorComponent,
-    injector: InterpolationInjector,
-  );
+  constructor(_: undefined, inner: sassInternal.ComplexSelectorComponent);
   constructor(
     defaults?: object,
     inner?: sassInternal.ComplexSelectorComponent,
-    injector?: InterpolationInjector,
   ) {
     if (defaults && !('compound' in defaults)) defaults = {compound: defaults};
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
-      this.compound = new CompoundSelector(
-        undefined,
-        inner.selector,
-        injector!,
-      );
+      this.compound = new CompoundSelector(undefined, inner.selector);
       // Multiple combinators will be removed soon so we don't bother
       // supporting it here.
       this.combinator = inner.combinators[0]?.toString() as SelectorCombinator;

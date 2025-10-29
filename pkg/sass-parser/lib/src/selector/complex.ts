@@ -14,7 +14,6 @@ import {
   ComplexSelectorComponent,
   ComplexSelectorComponentProps,
 } from './complex-component';
-import {InterpolationInjector} from './interpolation-injector';
 
 /**
  * A selector combinator that can separate {@link CompoundSelector}s in a {@link
@@ -119,16 +118,8 @@ export class ComplexSelector
 
   constructor(defaults?: ComplexSelectorProps);
   /** @hidden */
-  constructor(
-    _: undefined,
-    inner: sassInternal.ComplexSelector,
-    injector: InterpolationInjector,
-  );
-  constructor(
-    defaults?: object,
-    inner?: sassInternal.ComplexSelector,
-    injector?: InterpolationInjector,
-  ) {
+  constructor(_: undefined, inner: sassInternal.ComplexSelector);
+  constructor(defaults?: object, inner?: sassInternal.ComplexSelector) {
     if (Array.isArray(defaults)) {
       defaults = {nodes: defaults};
     } else if (defaults && !('nodes' in defaults)) {
@@ -144,9 +135,7 @@ export class ComplexSelector
       this.leadingCombinator =
         inner.leadingCombinators[0]?.toString() as SelectorCombinator;
       for (const component of inner.components) {
-        this.append(
-          new ComplexSelectorComponent(undefined, component, injector!),
-        );
+        this.append(new ComplexSelectorComponent(undefined, component));
       }
     }
   }

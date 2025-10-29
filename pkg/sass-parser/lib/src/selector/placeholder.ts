@@ -11,7 +11,6 @@ import type {AnyStatement} from '../statement';
 import * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {SimpleSelector} from './index';
-import {InterpolationInjector} from './interpolation-injector';
 
 /**
  * The initializer properties for {@link PlaceholderSelector}.
@@ -59,20 +58,12 @@ export class PlaceholderSelector extends SimpleSelector {
 
   constructor(defaults: PlaceholderSelectorProps);
   /** @hidden */
-  constructor(
-    _: undefined,
-    inner: sassInternal.PlaceholderSelector,
-    injector: InterpolationInjector,
-  );
-  constructor(
-    defaults?: object,
-    inner?: sassInternal.PlaceholderSelector,
-    injector?: InterpolationInjector,
-  ) {
+  constructor(_: undefined, inner: sassInternal.PlaceholderSelector);
+  constructor(defaults?: object, inner?: sassInternal.PlaceholderSelector) {
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
-      this.placeholder = injector!.inject(inner.name);
+      this.placeholder = new Interpolation(undefined, inner.name);
     }
   }
 

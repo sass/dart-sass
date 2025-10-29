@@ -241,8 +241,7 @@ describe('an attribute selector', () => {
           expect(node.value?.nodes?.[2]).toEqual('r"');
         });
 
-        it('has no modifier', () =>
-          expect(node.modifier).toBeUndefined());
+        it('has no modifier', () => expect(node.modifier).toBeUndefined());
       });
     }
 
@@ -371,21 +370,21 @@ describe('an attribute selector', () => {
         node = new AttributeSelector({attribute: 'foo'});
       });
 
-      it('with no raws', () =>        expect(node.toString()).toBe(          '[foo]'        ));
+      it('with no raws', () => expect(node.toString()).toBe('[foo]'));
 
       it('with afterOpen', () => {
         node.raws.afterOpen = '  ';
-        expect(          node.toString()        ).toBe('[  foo]');
+        expect(node.toString()).toBe('[  foo]');
       });
 
       it('with beforeClose', () => {
         node.raws.beforeClose = '  ';
-        expect(          node.toString()).toBe('[foo  ]');
+        expect(node.toString()).toBe('[foo  ]');
       });
 
       it('ignores beforeOperator', () => {
         node.raws.beforeOperator = '  ';
-        expect(          node.toString()        ).toBe('[foo]');
+        expect(node.toString()).toBe('[foo]');
       });
 
       it('ignores afterOperator', () => {
@@ -402,10 +401,10 @@ describe('an attribute selector', () => {
     describe('with a value', () => {
       beforeEach(() => {
         node = new AttributeSelector({
-            attribute: 'foo',
-            operator: '=',
-            value: 'bar',
-          });
+          attribute: 'foo',
+          operator: '=',
+          value: 'bar',
+        });
       });
 
       it('with no raws', () => {
@@ -440,22 +439,21 @@ describe('an attribute selector', () => {
       it('with afterValue and beforeClose', () => {
         node.raws.afterValue = '  ';
         node.raws.beforeClose = '/**/';
-        expect(          node.toString()        ).toBe('[foo=bar  /**/]');
+        expect(node.toString()).toBe('[foo=bar  /**/]');
       });
     });
 
     describe('with a modifier', () => {
       beforeEach(() => {
         node = new AttributeSelector({
-            attribute: 'foo',
-            operator: '=',
-            value: 'bar',
-            modifier: 's',
-          });
+          attribute: 'foo',
+          operator: '=',
+          value: 'bar',
+          modifier: 's',
+        });
       });
 
-      it('with no raws', () =>
-        expect(node.toString()).toBe('[foo=bar s]'));
+      it('with no raws', () => expect(node.toString()).toBe('[foo=bar s]'));
 
       it('with afterOpen', () => {
         node.raws.afterOpen = '  ';
@@ -535,8 +533,7 @@ describe('an attribute selector', () => {
       beforeEach(() => void (clone = original.clone()));
 
       describe('has the same properties:', () => {
-        it('attribute', () =>
-          expect(clone).toHaveNode('attribute', 'foo'));
+        it('attribute', () => expect(clone).toHaveNode('attribute', 'foo'));
 
         it('operator', () => expect(clone.operator).toEqual('='));
 

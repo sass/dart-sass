@@ -11,7 +11,6 @@ import type {AnyStatement} from '../statement';
 import * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {SimpleSelector} from './index';
-import {InterpolationInjector} from './interpolation-injector';
 
 /**
  * The initializer properties for {@link ClassSelector}.
@@ -60,20 +59,12 @@ export class ClassSelector extends SimpleSelector {
 
   constructor(defaults: ClassSelectorProps);
   /** @hidden */
-  constructor(
-    _: undefined,
-    inner: sassInternal.ClassSelector,
-    injector: InterpolationInjector,
-  );
-  constructor(
-    defaults?: object,
-    inner?: sassInternal.ClassSelector,
-    injector?: InterpolationInjector,
-  ) {
+  constructor(_: undefined, inner: sassInternal.ClassSelector);
+  constructor(defaults?: object, inner?: sassInternal.ClassSelector) {
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
-      this.class = injector!.inject(inner.name);
+      this.class = new Interpolation(undefined, inner.name);
     }
   }
 

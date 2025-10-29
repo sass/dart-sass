@@ -11,7 +11,6 @@ import type {AnyStatement} from '../statement';
 import * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {SimpleSelector} from './index';
-import {InterpolationInjector} from './interpolation-injector';
 
 /**
  * The initializer properties for {@link IDSelector}.
@@ -58,20 +57,12 @@ export class IDSelector extends SimpleSelector {
 
   constructor(defaults: IDSelectorProps);
   /** @hidden */
-  constructor(
-    _: undefined,
-    inner: sassInternal.IDSelector,
-    injector: InterpolationInjector,
-  );
-  constructor(
-    defaults?: object,
-    inner?: sassInternal.IDSelector,
-    injector?: InterpolationInjector,
-  ) {
+  constructor(_: undefined, inner: sassInternal.IDSelector);
+  constructor(defaults?: object, inner?: sassInternal.IDSelector) {
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
-      this.id = injector!.inject(inner.name);
+      this.id = new Interpolation(undefined, inner.name);
     }
   }
 

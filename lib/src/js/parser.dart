@@ -36,7 +36,6 @@ class ParserExports {
   external factory ParserExports({
     required Function parse,
     required Function parseIdentifier,
-    required Function parseSelectorList,
     required Function toCssIdentifier,
     required Function createInterpolationForMap,
     required Function createInterpolationMap,
@@ -72,7 +71,6 @@ ParserExports loadParserExports() {
   return ParserExports(
     parse: allowInterop(_parse),
     parseIdentifier: allowInterop(_parseIdentifier),
-    parseSelectorList: allowInterop(_parseSelectorList),
     toCssIdentifier: allowInterop(_toCssIdentifier),
     createInterpolationMap: allowInterop(
         (Interpolation interpolation, List<dynamic> targetOffsets) =>
@@ -202,7 +200,9 @@ Stylesheet _parse(String css, String syntax, String? path) => Stylesheet.parse(
       'css' => Syntax.css,
       _ => throw UnsupportedError('Unknown syntax "$syntax"'),
     },
-    url: path.andThen(p.toUri));
+    url: path.andThen(p.toUri),
+    
+);
 
 /// A JavaScript-friendly method to parse an identifier to its semantic value.
 ///
@@ -214,11 +214,6 @@ String? _parseIdentifier(String identifier) {
     return null;
   }
 }
-
-/// A JavaScript-friendly method to parse a selector list.
-SelectorList _parseSelectorList(
-        String text, String? path, InterpolationMap? map) =>
-    SelectorList.parse(text, url: path.andThen(p.toUri), interpolationMap: map);
 
 /// A JavaScript-friendly method to convert text to a valid CSS identifier with
 /// the same contents.

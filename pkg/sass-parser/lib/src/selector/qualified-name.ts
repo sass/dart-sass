@@ -10,7 +10,6 @@ import {AnyNode, Node, NodeProps} from '../node';
 import * as sassInternal from '../sass-internal';
 import {AnyStatement} from '../statement';
 import * as utils from '../utils';
-import {InterpolationInjector} from './interpolation-injector';
 
 /**
  * The initializer properties for {@link QualifiedName} passed as an options
@@ -97,24 +96,17 @@ export class QualifiedName extends Node {
 
   constructor(defaults?: QualifiedNameProps);
   /** @hidden */
-  constructor(
-    _: undefined,
-    inner: sassInternal.QualifiedName,
-    injector: InterpolationInjector,
-  );
-  constructor(
-    defaults?: object | string,
-    inner?: sassInternal.QualifiedName,
-    injector?: InterpolationInjector,
-  ) {
+  constructor(_: undefined, inner: sassInternal.QualifiedName);
+  constructor(defaults?: object | string, inner?: sassInternal.QualifiedName) {
     if (!(typeof defaults === 'object' && 'name' in defaults)) {
       defaults = {name: defaults};
     }
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
-      if (inner.namespace) this.namespace = injector!.inject(inner.namespace);
-      this.name = injector!.inject(inner.name);
+      if (inner.namespace)
+        this.namespace = new Interpolation(undefined, inner.namespace);
+      this.name = new Interpolation(undefined, inner.name);
     }
   }
 

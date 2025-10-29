@@ -2,7 +2,16 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import {GenericAtRule, Interpolation, Root, Rule, css, sass, scss} from '../..';
+import {
+  GenericAtRule,
+  Interpolation,
+  Root,
+  Rule,
+  SelectorList,
+  css,
+  sass,
+  scss,
+} from '../..';
 import * as utils from '../../../test/utils';
 
 describe('a style rule', () => {
@@ -153,32 +162,27 @@ describe('a style rule', () => {
       node = scss.parse('.foo {}').nodes[0] as Rule;
     });
 
-    it("removes the old interpolation's parent", () => {
-      const oldSelector = node.selectorInterpolation!;
-      node.selectorInterpolation = '.bar';
+    it("removes the old selector's parent", () => {
+      const oldSelector = node.parsedSelector!;
+      node.parsedSelector = {class: 'bar'};
       expect(oldSelector.parent).toBeUndefined();
     });
 
-    it("assigns the new interpolation's parent", () => {
-      const interpolation = new Interpolation({nodes: ['.bar']});
-      node.selectorInterpolation = interpolation;
-      expect(interpolation.parent).toBe(node);
+    it("assigns the new selector's parent", () => {
+      const selector = new SelectorList({class: 'bar'});
+      node.parsedSelector = selector;
+      expect(selector.parent).toBe(node);
     });
 
-    it('assigns the interpolation explicitly', () => {
-      const interpolation = new Interpolation({nodes: ['.bar']});
-      node.selectorInterpolation = interpolation;
-      expect(node.selectorInterpolation).toBe(interpolation);
+    it('assigns the selector explicitly', () => {
+      const selector = new SelectorList({class: 'bar'});
+      node.parsedSelector = selector;
+      expect(node.parsedSelector).toBe(selector);
     });
 
-    it('assigns the interpolation as a string', () => {
-      node.selectorInterpolation = '.bar';
-      expect(node).toHaveInterpolation('selectorInterpolation', '.bar');
-    });
-
-    it('assigns the interpolation as selector', () => {
+    it('assigns the selector as selector', () => {
       node.selector = '.bar';
-      expect(node).toHaveInterpolation('selectorInterpolation', '.bar');
+      expect(node).toHaveNode('parsedSelector', '.bar');
     });
   });
 
@@ -264,11 +268,7 @@ describe('a style rule', () => {
       describe('creates a new', () => {
         it('self', () => expect(clone).not.toBe(original));
 
-        for (const attr of [
-          'selectorInterpolation',
-          'raws',
-          'nodes',
-        ] as const) {
+        for (const attr of ['parsedSelector', 'raws', 'nodes'] as const) {
           it(attr, () => expect(clone[attr]).not.toBe(original[attr]));
         }
       });

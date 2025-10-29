@@ -8,8 +8,7 @@ import type {RuleRaws as PostcssRuleRaws} from 'postcss/lib/rule';
 import {Interpolation} from '../interpolation';
 import {LazySource} from '../lazy-source';
 import * as sassInternal from '../sass-internal';
-import {InterpolationInjector} from '../selector/interpolation-injector';
-import {SelectorList} from '../selector/list';
+import {SelectorList, SelectorListProps} from '../selector/list';
 import * as utils from '../utils';
 import {
   ChildNode,
@@ -58,42 +57,27 @@ export class Rule extends _Rule implements Statement {
   declare raws: RuleRaws;
 
   get selector(): string {
-    return this.selectorInterpolation.toString();
+    return this.parsedSelector.toString();
   }
   set selector(value: string) {
-    this.selectorInterpolation = value;
+    this.parsedSelector = {type: value};
   }
-
-  // TODO BEFORE SUBMIT: Remove this in favor of parsedSelector
-  /** The interpolation that represents this rule's selector. */
-  get selectorInterpolation(): Interpolation {
-    return this._selectorInterpolation!;
-  }
-  set selectorInterpolation(selectorInterpolation: Interpolation | string) {
-    // TODO - postcss/postcss#1957: Mark this as dirty
-    if (this._selectorInterpolation) {
-      this._selectorInterpolation.parent = undefined;
-    }
-    if (typeof selectorInterpolation === 'string') {
-      selectorInterpolation = new Interpolation({
-        nodes: [selectorInterpolation],
-      });
-    }
-    selectorInterpolation.parent = this;
-    this._selectorInterpolation = selectorInterpolation;
-  }
-  private declare _selectorInterpolation?: Interpolation;
 
   get parsedSelector(): SelectorList {
-    const [parseable, map, injector] = InterpolationInjector.extract(
-      this.selectorInterpolation,
-    );
-    return new SelectorList(
-      undefined,
-      sassInternal.parseSelectorList(parseable, this.source?.input?.file, map),
-      injector,
-    );
+    return this._selector!;
   }
+  set parsedSelector(selector: SelectorList | SelectorListProps) {
+    if (this._selector) this._selector.parent = undefined;
+    const built =
+      typeof selector === 'object' &&
+      'sassType' in selector &&
+      selector.sassType === 'selector-list'
+        ? selector
+        : new SelectorList(selector);
+    built.parent = this;
+    this._selector = built;
+  }
+  private declare _selector?: SelectorList;
 
   constructor(defaults: RuleProps);
   constructor(_: undefined, inner: sassInternal.StyleRule);
@@ -104,7 +88,7 @@ export class Rule extends _Rule implements Statement {
     super(defaults as postcss.RuleProps);
     if (inner) {
       this.source = new LazySource(inner);
-      this.selectorInterpolation = new Interpolation(undefined, inner.selector);
+      this._selector = new SelectorList(undefined, inner.parsedSelector);
       appendInternalChildren(this, inner.children);
     }
   }
@@ -117,7 +101,7 @@ export class Rule extends _Rule implements Statement {
     return utils.cloneNode(
       this,
       overrides,
-      ['nodes', 'raws', 'selectorInterpolation'],
+      ['nodes', 'raws', 'parsedSelector'],
       ['selector', 'selectors'],
     );
   }
@@ -126,11 +110,7 @@ export class Rule extends _Rule implements Statement {
   /** @hidden */
   toJSON(_: string, inputs: Map<postcss.Input, number>): object;
   toJSON(_?: string, inputs?: Map<postcss.Input, number>): object {
-    return utils.toJSON(
-      this,
-      ['selector', 'selectorInterpolation', 'nodes'],
-      inputs,
-    );
+    return utils.toJSON(this, ['selector', 'parsedSelector', 'nodes'], inputs);
   }
 
   /** @hidden */
@@ -142,8 +122,8 @@ export class Rule extends _Rule implements Statement {
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<Interpolation> {
-    return [this.selectorInterpolation];
+  get nonStatementChildren(): ReadonlyArray<SelectorList> {
+    return [this.parsedSelector];
   }
 
   /** @hidden */

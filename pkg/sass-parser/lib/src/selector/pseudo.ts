@@ -12,7 +12,6 @@ import * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {SelectorList, SelectorListProps} from './list';
 import {SimpleSelector} from './index';
-import {InterpolationInjector} from './interpolation-injector';
 
 /**
  * The initializer properties for {@link PseudoSelector}.
@@ -160,24 +159,17 @@ export class PseudoSelector extends SimpleSelector {
 
   constructor(defaults: PseudoSelectorProps);
   /** @hidden */
-  constructor(
-    _: undefined,
-    inner: sassInternal.PseudoSelector,
-    injector: InterpolationInjector,
-  );
-  constructor(
-    defaults?: object,
-    inner?: sassInternal.PseudoSelector,
-    injector?: InterpolationInjector,
-  ) {
+  constructor(_: undefined, inner: sassInternal.PseudoSelector);
+  constructor(defaults?: object, inner?: sassInternal.PseudoSelector) {
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
-      this.pseudo = injector!.inject(inner.name);
+      this.pseudo = new Interpolation(undefined, inner.name);
       this.isClass = inner.isSyntacticClass;
-      if (inner.argument) this.argument = injector!.inject(inner.argument);
+      if (inner.argument)
+        this.argument = new Interpolation(undefined, inner.argument);
       if (inner.selector) {
-        this.selector = new SelectorList(undefined, inner.selector, injector!);
+        this.selector = new SelectorList(undefined, inner.selector);
       }
     }
   }

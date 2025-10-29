@@ -208,7 +208,8 @@ SimpleSelector? unifyUniversalAndElement(
 ) =>
     switch (selector) {
       UniversalSelector(:var namespace, :var span) => (namespace, null, span),
-      TypeSelector(name: QualifiedName(:var name, :var namespace, :var span)) => (
+      TypeSelector(name: QualifiedName(:var name, :var namespace, :var span)) =>
+        (
           namespace,
           name,
           span,
