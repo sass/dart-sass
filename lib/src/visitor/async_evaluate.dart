@@ -1371,7 +1371,6 @@ final class _EvaluateVisitor
             CssValue(value, expression.span),
             node.span,
             parsedAsCustomProperty: node.isCustomProperty,
-            trace: _stackTrace(node.span),
             valueSpanForMap:
                 _sourceMap ? node.value.andThen(_expressionNode)?.span : null,
           ),

@@ -1,3 +1,7 @@
+## 1.93.3
+
+* Fix a performance regression that was introduced in 1.92.0.
+
 ## 1.93.2
 
 * No user-visible changes.

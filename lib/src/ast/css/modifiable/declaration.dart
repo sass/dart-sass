@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:source_span/source_span.dart';
-import 'package:stack_trace/stack_trace.dart';
 
 import '../../../value.dart';
 import '../../../visitor/interface/modifiable_css.dart';
@@ -17,7 +16,6 @@ final class ModifiableCssDeclaration extends ModifiableCssNode
   final CssValue<String> name;
   final CssValue<Value> value;
   final bool parsedAsCustomProperty;
-  final Trace? trace;
   final FileSpan valueSpanForMap;
   final FileSpan span;
 
@@ -29,7 +27,6 @@ final class ModifiableCssDeclaration extends ModifiableCssNode
     this.value,
     this.span, {
     required this.parsedAsCustomProperty,
-    this.trace,
     FileSpan? valueSpanForMap,
   }) : valueSpanForMap = valueSpanForMap ?? value.span {
     if (parsedAsCustomProperty) {
