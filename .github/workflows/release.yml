@@ -65,13 +65,14 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/util/initialize
-        with: {github-token: "${{ github.token }}"}
+        with:
+          github-token: ${{ github.token }}
+          for-npm-deploy: true
 
       - name: Deploy
         run: dart run grinder pkg-npm-deploy
         env:
           UPDATE_SASS_SASS_REPO: false
-          NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
 
   deploy_pub:
     name: Deploy Pub
@@ -113,6 +114,10 @@ jobs:
           node-version: 'lts/*'
           check-latest: true
           registry-url: 'https://registry.npmjs.org'
+
+      # npm trusted publisher infrastructure requires npm >=11.5.1
+      - run: npm install -g npm@latest
+
       - name: Get Dart Sass version
         id: dart-sass-version
         run: echo "version=${{ github.ref_name }}" | tee --append "$GITHUB_OUTPUT"
@@ -127,8 +132,6 @@ jobs:
         run: npm pkg set version='${{ steps.dart-sass-version.outputs.version }}'
         working-directory: pkg/sass-types/
       - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: '${{ secrets.NPM_TOKEN }}'
         working-directory: pkg/sass-types/
 
   deploy_sass_parser:
@@ -147,8 +150,8 @@ jobs:
           check-latest: true
           registry-url: 'https://registry.npmjs.org'
 
-        # The repo package has a file dependency, but the released version needs
-        # a real dependency on the released version of Sass.
+      # The repo package has a file dependency, but the released version needs a
+      # real dependency on the released version of Sass.
       - name: Get Dart Sass version
         id: dart-sass-version
         run: echo "version=${{ github.ref_name }}" | tee --append "$GITHUB_OUTPUT"
@@ -158,8 +161,6 @@ jobs:
       - run: npm run compile
         working-directory: pkg/sass-parser/
       - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: '${{ secrets.NPM_TOKEN }}'
         working-directory: pkg/sass-parser/
 
       - name: Get Sass parser version
