@@ -1500,13 +1500,13 @@ abstract class StylesheetParser extends Parser {
             } else {
               scanner.expectChar($lparen);
               whitespace(consumeNewlines: false);
-              var argument = interpolatedString();
+              var argument = interpolatedStringToken();
               scanner.expectChar($rparen);
 
               buffer
                 ..write(identifier)
                 ..writeCharCode($lparen)
-                ..addInterpolation(argument.asInterpolation())
+                ..addInterpolation(argument)
                 ..writeCharCode($rparen);
             }
 
@@ -1522,7 +1522,7 @@ abstract class StylesheetParser extends Parser {
           case "regexp":
             buffer.write("regexp(");
             scanner.expectChar($lparen);
-            buffer.addInterpolation(interpolatedString().asInterpolation());
+            buffer.addInterpolation(interpolatedStringToken());
             scanner.expectChar($rparen);
             buffer.writeCharCode($rparen);
             needsDeprecationWarning = true;
@@ -2816,8 +2816,8 @@ abstract class StylesheetParser extends Parser {
 
   /// Consumes a quoted string expression.
   StringExpression interpolatedString() {
-    // NOTE: this logic is largely duplicated in Parser.string. Most changes
-    // here should be mirrored there.
+    // NOTE: this logic is largely duplicated in [Parser.string] and
+    // [interpolatedStringToken]. Most changes here should be mirrored there.
 
     var start = scanner.state;
     var quote = scanner.readChar();
@@ -2856,6 +2856,50 @@ abstract class StylesheetParser extends Parser {
       buffer.interpolation(scanner.spanFrom(start)),
       quotes: true,
     );
+  }
+
+  /// Consumes a quoted string expression without processing its contents
+  /// semantically.
+  Interpolation interpolatedStringToken() {
+    // NOTE: this logic is largely duplicated in [Parser.string] and
+    // [interpolatedString]. Most changes here should be mirrored there.
+
+    var start = scanner.state;
+    var quote = scanner.readChar();
+
+    if (quote != $single_quote && quote != $double_quote) {
+      scanner.error("Expected string.", position: start.position);
+    }
+
+    var buffer = InterpolationBuffer()..writeCharCode(quote);
+    loop:
+    while (true) {
+      switch (scanner.peekChar()) {
+        case var next when next == quote:
+          buffer.writeCharCode(scanner.readChar());
+          break loop;
+        case null || int(isNewline: true):
+          scanner.error("Expected ${String.fromCharCode(quote)}.");
+        case $backslash:
+          var second = scanner.peekChar(1);
+          if (second.isNewline) {
+            buffer.writeCharCode(scanner.readChar());
+            buffer.writeCharCode(scanner.readChar());
+            if (second == $cr) {
+              if (scanner.scanChar($lf)) buffer.writeCharCode($lf);
+            }
+          } else {
+            buffer.write(rawText(() => escapeCharacter()));
+          }
+        case $hash when scanner.peekChar(1) == $lbrace:
+          var (expression, span) = singleInterpolation();
+          buffer.add(expression, span);
+        case _:
+          buffer.writeCharCode(scanner.readChar());
+      }
+    }
+
+    return buffer.interpolation(spanFrom(start));
   }
 
   /// Consumes an expression that starts like an identifier.
@@ -3111,7 +3155,7 @@ abstract class StylesheetParser extends Parser {
           buffer.writeCharCode(scanner.readChar());
 
         case $double_quote || $single_quote:
-          buffer.addInterpolation(interpolatedString().asInterpolation());
+          buffer.addInterpolation(interpolatedStringToken());
 
         case $slash:
           switch (scanner.peekChar(1)) {
@@ -3234,7 +3278,7 @@ abstract class StylesheetParser extends Parser {
           wroteNewline = false;
 
         case $double_quote || $single_quote:
-          buffer.addInterpolation(interpolatedString().asInterpolation());
+          buffer.addInterpolation(interpolatedStringToken());
           wroteNewline = false;
 
         case $slash:
