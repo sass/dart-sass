@@ -1,3 +1,8 @@
+## 1.94.2
+
+* Using `--fatal-deprecation 1.92.0` no longer emits warnings about
+  deprecations that are obsolete.
+
 ## 1.94.1
 
 * No user-visible changes.
