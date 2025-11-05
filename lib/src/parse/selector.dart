@@ -236,7 +236,7 @@ class SelectorParser extends Parser {
         if (_plainCss) {
           error(
             "Placeholder selectors aren't allowed in plain CSS.",
-            scanner.spanFrom(start),
+            spanFrom(start),
           );
         }
         return selector;
@@ -247,7 +247,7 @@ class SelectorParser extends Parser {
         if (!allowParent) {
           error(
             "Parent selectors aren't allowed here.",
-            scanner.spanFrom(start),
+            spanFrom(start),
           );
         }
         return selector;
@@ -316,7 +316,7 @@ class SelectorParser extends Parser {
 
   /// Consumes an attribute selector's operator.
   AttributeOperator _attributeOperator() {
-    var start = scanner.state;
+    var start = scanner.position;
     switch (scanner.readChar()) {
       case $equal:
         return AttributeOperator.equal;
@@ -342,7 +342,7 @@ class SelectorParser extends Parser {
         return AttributeOperator.substring;
 
       default:
-        scanner.error('Expected "]".', position: start.position);
+        scanner.error('Expected "]".', position: start);
     }
   }
 
@@ -486,16 +486,12 @@ class SelectorParser extends Parser {
       return scanner.scanChar($asterisk)
           ? UniversalSelector(spanFrom(start), namespace: "*")
           : TypeSelector(
-              QualifiedName(identifier(), namespace: "*"),
-              spanFrom(start),
-            );
+              QualifiedName(identifier(), namespace: "*"), spanFrom(start));
     } else if (scanner.scanChar($pipe)) {
       return scanner.scanChar($asterisk)
           ? UniversalSelector(spanFrom(start), namespace: "")
           : TypeSelector(
-              QualifiedName(identifier(), namespace: ""),
-              spanFrom(start),
-            );
+              QualifiedName(identifier(), namespace: ""), spanFrom(start));
     }
 
     var nameOrNamespace = identifier();
@@ -505,9 +501,8 @@ class SelectorParser extends Parser {
       return UniversalSelector(spanFrom(start), namespace: nameOrNamespace);
     } else {
       return TypeSelector(
-        QualifiedName(identifier(), namespace: nameOrNamespace),
-        spanFrom(start),
-      );
+          QualifiedName(identifier(), namespace: nameOrNamespace),
+          spanFrom(start));
     }
   }
 

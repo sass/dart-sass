@@ -669,8 +669,18 @@ class Parser {
   /// Like [scanner.spanFrom], but passes the span through [_interpolationMap]
   /// if it's available.
   @protected
-  FileSpan spanFrom(LineScannerState state) {
-    var span = scanner.spanFrom(state);
+  FileSpan spanFrom(LineScannerState start, [LineScannerState? end]) {
+    var span = scanner.spanFrom(start, end);
+    return _interpolationMap == null
+        ? span
+        : LazyFileSpan(() => _interpolationMap.mapSpan(span));
+  }
+
+  /// Like [scanner.spanFromPosition], but passes the span through
+  /// [_interpolationMap] if it's available.
+  @protected
+  FileSpan spanFromPosition(int start, [int? end]) {
+    var span = scanner.spanFromPosition(start, end);
     return _interpolationMap == null
         ? span
         : LazyFileSpan(() => _interpolationMap.mapSpan(span));
@@ -728,7 +738,10 @@ class Parser {
         var map = _interpolationMap;
         if (map == null) rethrow;
 
-        throwWithTrace(map.mapException(error), error, stackTrace);
+        var mapped = map.mapException(error);
+        if (identical(mapped, error)) rethrow;
+
+        throwWithTrace(mapped, error, stackTrace);
       }
     } on MultiSourceSpanFormatException catch (error, stackTrace) {
       var span = error.span as FileSpan;
