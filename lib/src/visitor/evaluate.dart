@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 02a6149a29eca1d21306e9582a6b7df86f4cd2f2
+// Checksum: deb9d00931542dae02ed23607cb17f1273849432
 //
 // ignore_for_file: unused_import
 
@@ -4234,13 +4234,13 @@ final class _EvaluateVisitor
     required bool sourceMap,
     bool warnForColor = false,
   }) {
-    var targetLocations = sourceMap ? <SourceLocation>[] : null;
+    var targetOffsets = sourceMap ? <int>[] : null;
     var oldInSupportsDeclaration = _inSupportsDeclaration;
     _inSupportsDeclaration = false;
     var buffer = StringBuffer();
     var first = true;
     for (var value in interpolation.contents) {
-      if (!first) targetLocations?.add(SourceLocation(buffer.length));
+      if (!first) targetOffsets?.add(buffer.length);
       first = false;
 
       if (value is String) {
@@ -4278,8 +4278,8 @@ final class _EvaluateVisitor
 
     return (
       buffer.toString(),
-      targetLocations.andThen(
-        (targetLocations) => InterpolationMap(interpolation, targetLocations),
+      targetOffsets.andThen(
+        (targetOffsets) => InterpolationMap(interpolation, targetOffsets),
       ),
     );
   }
