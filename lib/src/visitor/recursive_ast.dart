@@ -169,7 +169,7 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
     visitArgumentList(node.arguments);
   }
 
-  void visitIfExpression(IfExpression node) {
+  void visitLegacyIfExpression(LegacyIfExpression node) {
     visitArgumentList(node.arguments);
   }
 

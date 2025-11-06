@@ -349,7 +349,7 @@ declare namespace SassInternal {
     readonly arguments: ArgumentList;
   }
 
-  class IfExpression extends Expression {
+  class LegacyIfExpression extends Expression {
     readonly arguments: ArgumentList;
   }
 
@@ -539,7 +539,7 @@ export type Interpolation = SassInternal.Interpolation;
 export type Expression = SassInternal.Expression;
 export type BinaryOperationExpression = SassInternal.BinaryOperationExpression;
 export type FunctionExpression = SassInternal.FunctionExpression;
-export type IfExpression = SassInternal.IfExpression;
+export type LegacyIfExpression = SassInternal.LegacyIfExpression;
 export type InterpolatedFunctionExpression =
   SassInternal.InterpolatedFunctionExpression;
 export type ListExpression = SassInternal.ListExpression;
@@ -605,7 +605,7 @@ export interface ExpressionVisitorObject<T> {
   visitBooleanExpression(node: BooleanExpression): T;
   visitColorExpression(node: ColorExpression): T;
   visitFunctionExpression(node: FunctionExpression): T;
-  visitIfExpression(node: IfExpression): T;
+  visitIfExpression(node: LegacyIfExpression): T;
   visitInterpolatedFunctionExpression(node: InterpolatedFunctionExpression): T;
   visitListExpression(node: ListExpression): T;
   visitMapExpression(node: MapExpression): T;

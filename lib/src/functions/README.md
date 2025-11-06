@@ -10,13 +10,13 @@ built-in modules. Each of the files here exports a corresponding
 There are a few functions that Sass supports that aren't defined here:
 
 * The `if()` function is defined directly in the [`functions.dart`] file,
-  although in most cases this is actually parsed as an [`IfExpression`] and
+  although in most cases this is actually parsed as a [`LegacyIfExpression`] and
   handled directly by [the evaluator] since it has special behavior about when
   its arguments are evaluated. The function itself only exists for edge cases
   like `if(...$args)` or `meta.get-function("if")`.
 
   [`functions.dart`]: ../functions.dart
-  [`IfExpression`]: ../ast/sass/expression/if.dart
+  [`LegacyIfExpression`]: ../ast/sass/expression/legacy_if.dart
   [the evaluator]: ../visitor/async_evaluate.dart
 
 * Certain functions in the `sass:meta` module require runtime information that's

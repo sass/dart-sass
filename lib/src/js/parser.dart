@@ -144,8 +144,8 @@ void _updateAstPrototypes() {
     FunctionExpression('a', arguments, bogusSpan),
   ).defineGetter('arguments', (FunctionExpression self) => self.arguments);
   getJSClass(
-    IfExpression(arguments, bogusSpan),
-  ).defineGetter('arguments', (IfExpression self) => self.arguments);
+    LegacyIfExpression(arguments, bogusSpan),
+  ).defineGetter('arguments', (LegacyIfExpression self) => self.arguments);
   getJSClass(
     InterpolatedFunctionExpression(_interpolation, arguments, bogusSpan),
   ).defineGetter(

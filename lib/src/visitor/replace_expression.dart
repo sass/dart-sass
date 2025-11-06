@@ -50,8 +50,8 @@ mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
         node.span,
       );
 
-  Expression visitIfExpression(IfExpression node) =>
-      IfExpression(visitArgumentList(node.arguments), node.span);
+  Expression visitLegacyIfExpression(LegacyIfExpression node) =>
+      LegacyIfExpression(visitArgumentList(node.arguments), node.span);
 
   Expression visitListExpression(ListExpression node) => ListExpression(
         node.contents.map((item) => item.accept(this)),

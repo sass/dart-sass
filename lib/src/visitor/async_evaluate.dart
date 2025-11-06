@@ -2831,9 +2831,10 @@ final class _EvaluateVisitor
   Future<SassBoolean> visitBooleanExpression(BooleanExpression node) async =>
       SassBoolean(node.value);
 
-  Future<Value> visitIfExpression(IfExpression node) async {
+  Future<Value> visitLegacyIfExpression(LegacyIfExpression node) async {
     var (positional, named) = await _evaluateMacroArguments(node);
-    _verifyArguments(positional.length, named, IfExpression.declaration, node);
+    _verifyArguments(
+        positional.length, named, LegacyIfExpression.declaration, node);
 
     // ignore: prefer_is_empty
     var condition = positional.elementAtOrNull(0) ?? named["condition"]!;
@@ -3204,7 +3205,7 @@ final class _EvaluateVisitor
       case NumberExpression() ||
             VariableExpression() ||
             FunctionExpression() ||
-            IfExpression():
+            LegacyIfExpression():
         return switch (await node.accept(this)) {
           SassNumber result => result,
           SassCalculation result => result,
