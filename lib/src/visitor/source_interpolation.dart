@@ -54,7 +54,7 @@ class SourceInterpolationVisitor implements ExpressionVisitor<void> {
     buffer?.write(arguments.span.after(arguments.positional.last.span).text);
   }
 
-  void visitIfExpression(IfExpression node) => buffer = null;
+  void visitLegacyIfExpression(LegacyIfExpression node) => buffer = null;
 
   void visitListExpression(ListExpression node) {
     if (node.contents.length <= 1 && !node.hasBrackets) {

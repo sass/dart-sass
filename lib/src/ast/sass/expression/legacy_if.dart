@@ -14,7 +14,8 @@ import '../../../visitor/interface/expression.dart';
 /// evaluated.
 ///
 /// {@category AST}
-final class IfExpression extends Expression implements CallableInvocation {
+final class LegacyIfExpression extends Expression
+    implements CallableInvocation {
   /// The declaration of `if()`, as though it were a normal function.
   static final declaration = ParameterList.parse(
     r"@function if($condition, $if-true, $if-false) {",
@@ -25,9 +26,10 @@ final class IfExpression extends Expression implements CallableInvocation {
 
   final FileSpan span;
 
-  IfExpression(this.arguments, this.span);
+  LegacyIfExpression(this.arguments, this.span);
 
-  T accept<T>(ExpressionVisitor<T> visitor) => visitor.visitIfExpression(this);
+  T accept<T>(ExpressionVisitor<T> visitor) =>
+      visitor.visitLegacyIfExpression(this);
 
   String toString() => "if$arguments";
 }

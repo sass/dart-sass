@@ -2939,7 +2939,7 @@ abstract class StylesheetParser extends Parser {
     if (plain != null) {
       if (plain == "if" && scanner.peekChar() == $lparen) {
         var invocation = _argumentInvocation();
-        return IfExpression(
+        return LegacyIfExpression(
           invocation,
           identifier.span.expand(invocation.span),
         );

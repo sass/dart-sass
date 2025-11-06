@@ -117,7 +117,8 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
   T? visitInterpolatedFunctionExpression(InterpolatedFunctionExpression node) =>
       visitInterpolation(node.name) ?? visitArgumentList(node.arguments);
 
-  T? visitIfExpression(IfExpression node) => visitArgumentList(node.arguments);
+  T? visitLegacyIfExpression(LegacyIfExpression node) =>
+      visitArgumentList(node.arguments);
 
   T? visitListExpression(ListExpression node) =>
       node.contents.search((item) => item.accept(this));

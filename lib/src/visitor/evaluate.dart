@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 979f29f32c16550e87b78d760d5958b9d2fbe451
+// Checksum: 72aeb044260f1f64f121280996c97a762b7313b0
 //
 // ignore_for_file: unused_import
 
@@ -2834,9 +2834,10 @@ final class _EvaluateVisitor
   SassBoolean visitBooleanExpression(BooleanExpression node) =>
       SassBoolean(node.value);
 
-  Value visitIfExpression(IfExpression node) {
+  Value visitLegacyIfExpression(LegacyIfExpression node) {
     var (positional, named) = _evaluateMacroArguments(node);
-    _verifyArguments(positional.length, named, IfExpression.declaration, node);
+    _verifyArguments(
+        positional.length, named, LegacyIfExpression.declaration, node);
 
     // ignore: prefer_is_empty
     var condition = positional.elementAtOrNull(0) ?? named["condition"]!;
@@ -3205,7 +3206,7 @@ final class _EvaluateVisitor
       case NumberExpression() ||
             VariableExpression() ||
             FunctionExpression() ||
-            IfExpression():
+            LegacyIfExpression():
         return switch (node.accept(this)) {
           SassNumber result => result,
           SassCalculation result => result,
