@@ -8,6 +8,7 @@ import '../ast/sass.dart';
 import '../util/iterable.dart';
 import '../util/nullable.dart';
 import 'interface/expression.dart';
+import 'interface/if_condition_expression.dart';
 import 'interface/interpolated_selector.dart';
 import 'statement_search.dart';
 
@@ -22,7 +23,12 @@ import 'statement_search.dart';
 ///
 /// {@category Visitor}
 mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
-    implements ExpressionVisitor<T?>, InterpolatedSelectorVisitor<T?> {
+    implements
+        ExpressionVisitor<T?>,
+        IfConditionExpressionVisitor<T?>,
+        InterpolatedSelectorVisitor<T?> {
+  // Rules
+
   T? visitAtRootRule(AtRootRule node) =>
       node.query.andThen(visitInterpolation) ?? super.visitAtRootRule(node);
 
@@ -102,6 +108,8 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
   T? visitWhileRule(WhileRule node) =>
       visitExpression(node.condition) ?? super.visitWhileRule(node);
 
+  // Expressions
+
   T? visitExpression(Expression expression) => expression.accept(this);
 
   T? visitBinaryOperationExpression(BinaryOperationExpression node) =>
@@ -113,6 +121,9 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
 
   T? visitFunctionExpression(FunctionExpression node) =>
       visitArgumentList(node.arguments);
+
+  T? visitIfExpression(IfExpression node) => node.branches
+      .search((pair) => pair.$1?.accept(this) ?? pair.$2.accept(this));
 
   T? visitInterpolatedFunctionExpression(InterpolatedFunctionExpression node) =>
       visitInterpolation(node.name) ?? visitArgumentList(node.arguments);
@@ -147,6 +158,26 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
   T? visitValueExpression(ValueExpression node) => null;
 
   T? visitVariableExpression(VariableExpression node) => null;
+
+  // `if()` condition expresions
+
+  T? visitIfConditionParenthesized(IfConditionParenthesized node) =>
+      node.expression.accept(this);
+
+  T? visitIfConditionNegation(IfConditionNegation node) =>
+      node.expression.accept(this);
+
+  T? visitIfConditionOperation(IfConditionOperation node) =>
+      node.expressions.search((expression) => expression.accept(this));
+
+  T? visitIfConditionFunction(IfConditionFunction node) =>
+      visitInterpolation(node.name) ?? visitInterpolation(node.arguments);
+
+  T? visitIfConditionSass(IfConditionSass node) => node.expression.accept(this);
+
+  T? visitIfConditionRaw(IfConditionRaw node) => visitInterpolation(node.text);
+
+  // Interpolated selectors
 
   T? visitAttributeSelector(InterpolatedAttributeSelector node) =>
       visitQualifiedName(node.name) ??

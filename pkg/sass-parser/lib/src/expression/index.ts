@@ -10,6 +10,7 @@ import type {
 import {BooleanExpression, BooleanExpressionProps} from './boolean';
 import {ColorExpression, ColorExpressionProps} from './color';
 import {FunctionExpression, FunctionExpressionProps} from './function';
+import {IfExpression} from './if';
 import {
   InterpolatedFunctionExpression,
   InterpolatedFunctionExpressionProps,
@@ -40,6 +41,7 @@ export type AnyExpression =
   | BooleanExpression
   | ColorExpression
   | FunctionExpression
+  | IfExpression
   | InterpolatedFunctionExpression
   | ListExpression
   | MapExpression
@@ -61,6 +63,7 @@ export type ExpressionType =
   | 'boolean'
   | 'color'
   | 'function-call'
+  | 'if-expr'
   | 'interpolated-function-call'
   | 'list'
   | 'map'
@@ -83,6 +86,8 @@ export type ExpressionProps =
   | BooleanExpressionProps
   | ColorExpressionProps
   | FunctionExpressionProps
+  // Don't include IfExpressionProps because it's potentially ambiguous with
+  // MapExpressionProps.
   | InterpolatedFunctionExpressionProps
   | ListExpressionProps
   | MapExpressionProps

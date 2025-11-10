@@ -612,7 +612,7 @@ final class SassCalculation extends Value {
 
       case (
           (SassString(text: 'nearest' || 'up' || 'down' || 'to-zero') ||
-                  SassString(isVar: true)) &&
+                  SassString(isSpecialVariable: true)) &&
               var strategy,
           var number?,
           var step?,

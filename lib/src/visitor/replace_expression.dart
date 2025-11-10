@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 import '../ast/sass.dart';
 import '../exception.dart';
 import '../util/map.dart';
+import 'interface/if_condition_expression.dart';
 import 'interface/expression.dart';
 
 /// A visitor that recursively traverses each expression in a SassScript AST and
@@ -21,7 +22,10 @@ import 'interface/expression.dart';
 /// * [visitInterpolation]
 ///
 /// {@category Visitor}
-mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
+mixin ReplaceExpressionVisitor
+    implements
+        ExpressionVisitor<Expression>,
+        IfConditionExpressionVisitor<IfConditionExpression> {
   Expression visitBinaryOperationExpression(BinaryOperationExpression node) =>
       BinaryOperationExpression(
         node.operator,
@@ -90,6 +94,34 @@ mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
   Expression visitValueExpression(ValueExpression node) => node;
 
   Expression visitVariableExpression(VariableExpression node) => node;
+
+  // `if()` condition expressions
+
+  IfConditionExpression visitIfConditionParenthesized(
+          IfConditionParenthesized node) =>
+      IfConditionParenthesized(node.expression.accept(this), node.span);
+
+  IfConditionExpression visitIfConditionNegation(IfConditionNegation node) =>
+      IfConditionNegation(node.expression.accept(this), node.span);
+
+  IfConditionExpression visitIfConditionOperation(IfConditionOperation node) =>
+      IfConditionOperation(
+        node.expressions.map((expression) => expression.accept(this)),
+        node.op,
+      );
+
+  IfConditionExpression visitIfConditionFunction(IfConditionFunction node) =>
+      IfConditionFunction(
+        visitInterpolation(node.name),
+        visitInterpolation(node.arguments),
+        node.span,
+      );
+
+  IfConditionExpression visitIfConditionSass(IfConditionSass node) =>
+      IfConditionSass(node.expression.accept(this), node.span);
+
+  IfConditionExpression visitIfConditionRaw(IfConditionRaw node) =>
+      IfConditionRaw(visitInterpolation(node.text));
 
   /// Replaces each expression in an [invocation].
   ///

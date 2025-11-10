@@ -98,20 +98,30 @@ class SassString extends Value {
               text.codeUnitAt(3) == $lparen,
           _ => false,
         },
+      $i || $I => equalsLetterIgnoreCase($f, text.codeUnitAt(1)) &&
+          text.codeUnitAt(2) == $lparen,
       _ => false,
     };
   }
 
   /// @nodoc
   @internal
-  bool get isVar {
+  bool get isSpecialVariable {
     if (hasQuotes) return false;
-    if (text.length < "var(--_)".length) return false;
+    if (text.length < "var(_)".length) return false;
 
-    return equalsLetterIgnoreCase($v, text.codeUnitAt(0)) &&
-        equalsLetterIgnoreCase($a, text.codeUnitAt(1)) &&
-        equalsLetterIgnoreCase($r, text.codeUnitAt(2)) &&
-        text.codeUnitAt(3) == $lparen;
+    return switch (text.codeUnitAt(0)) {
+      $a || $A => equalsLetterIgnoreCase($t, text.codeUnitAt(1)) &&
+          equalsLetterIgnoreCase($t, text.codeUnitAt(2)) &&
+          equalsLetterIgnoreCase($r, text.codeUnitAt(3)) &&
+          text.codeUnitAt(4) == $lparen,
+      $i || $I => equalsLetterIgnoreCase($f, text.codeUnitAt(1)) &&
+          text.codeUnitAt(2) == $lparen,
+      $v || $V => equalsLetterIgnoreCase($a, text.codeUnitAt(1)) &&
+          equalsLetterIgnoreCase($r, text.codeUnitAt(2)) &&
+          text.codeUnitAt(3) == $lparen,
+      _ => false,
+    };
   }
 
   /// @nodoc

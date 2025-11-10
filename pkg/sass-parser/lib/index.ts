@@ -76,6 +76,46 @@ export {
   FunctionExpressionRaws,
 } from './src/expression/function';
 export {
+  IfExpression,
+  IfExpressionProps,
+  IfExpressionRaws,
+  NewNodeForIfExpression,
+} from './src/expression/if';
+export {
+  IfEntry,
+  IfEntryObjectProps,
+  IfEntryProps,
+  IfEntryRaws,
+} from './src/expression/if-entry';
+export {
+  AnyIfConditionExpression,
+  IfConditionExpressionType,
+  IfConditionExpressionProps,
+  IfConditionExpression,
+} from './src/expression/if-condition-expression';
+export {
+  IfConditionNegationRaws,
+  IfConditionNegationProps,
+  IfConditionNegation,
+} from './src/expression/if-condition-expression/negation';
+export {
+  IfConditionOperationRaws,
+  IfConditionOperationProps,
+  IfConditionOperation,
+  NewNodeForIfConditionOperation,
+} from './src/expression/if-condition-expression/operation';
+export {
+  IfConditionParenthesizedRaws,
+  IfConditionParenthesizedProps,
+  IfConditionParenthesized,
+} from './src/expression/if-condition-expression/parenthesized';
+export {
+  IfConditionSassRaws,
+  IfConditionSassObjectProps,
+  IfConditionSassProps,
+  IfConditionSass,
+} from './src/expression/if-condition-expression/sass';
+export {
   InterpolatedFunctionExpression,
   InterpolatedFunctionExpressionProps,
   InterpolatedFunctionExpressionRaws,

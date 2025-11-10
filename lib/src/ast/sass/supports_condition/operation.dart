@@ -7,6 +7,7 @@ import 'package:source_span/source_span.dart';
 
 import '../../../interpolation_buffer.dart';
 import '../../../util/span.dart';
+import '../boolean_operator.dart';
 import '../interpolation.dart';
 import '../supports_condition.dart';
 import 'negation.dart';
@@ -22,22 +23,11 @@ final class SupportsOperation implements SupportsCondition {
   final SupportsCondition right;
 
   /// The operator.
-  ///
-  /// Currently, this can be only `"and"` or `"or"`.
-  final String operator;
+  final BooleanOperator operator;
 
   final FileSpan span;
 
-  SupportsOperation(this.left, this.right, this.operator, this.span) {
-    var lowerOperator = operator.toLowerCase();
-    if (lowerOperator != "and" && lowerOperator != "or") {
-      throw ArgumentError.value(
-        operator,
-        'operator',
-        'may only be "and" or "or".',
-      );
-    }
-  }
+  SupportsOperation(this.left, this.right, this.operator, this.span);
 
   /// @nodoc
   @internal

@@ -22,6 +22,7 @@ import {SelectorExpression} from './selector';
 import {StringExpression} from './string';
 import {UnaryOperationExpression} from './unary-operation';
 import {VariableExpression} from './variable';
+import {IfExpression} from './if';
 
 /** The visitor to use to convert internal Sass nodes to JS. */
 const visitor = sassInternal.createExpressionVisitor<AnyExpression>({
@@ -30,13 +31,14 @@ const visitor = sassInternal.createExpressionVisitor<AnyExpression>({
   visitBooleanExpression: inner => new BooleanExpression(undefined, inner),
   visitColorExpression: inner => new ColorExpression(undefined, inner),
   visitFunctionExpression: inner => new FunctionExpression(undefined, inner),
-  visitIfExpression: inner =>
+  visitIfExpression: inner => new IfExpression(undefined, inner),
+  visitInterpolatedFunctionExpression: inner =>
+    new InterpolatedFunctionExpression(undefined, inner),
+  visitLegacyIfExpression: inner =>
     new FunctionExpression({
       name: 'if',
       arguments: new ArgumentList(undefined, inner.arguments),
     }),
-  visitInterpolatedFunctionExpression: inner =>
-    new InterpolatedFunctionExpression(undefined, inner),
   visitListExpression: inner => new ListExpression(undefined, inner),
   visitMapExpression: inner => new MapExpression(undefined, inner),
   visitNullExpression: inner => new NullExpression(undefined, inner),
