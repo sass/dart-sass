@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 72aeb044260f1f64f121280996c97a762b7313b0
+// Checksum: c023c71210966952be875387530b04128f2d98e7
 //
 // ignore_for_file: unused_import
 
@@ -2833,6 +2833,92 @@ final class _EvaluateVisitor
 
   SassBoolean visitBooleanExpression(BooleanExpression node) =>
       SassBoolean(node.value);
+
+  Value visitIfExpression(IfExpression node) {
+    List<(String, Value)>? results;
+    for (var (condition, expression) in node.branches) {
+      var result = condition.andThen(_visitIfConditionExpression) ?? true;
+      var value = expression.accept(this);
+      switch (result) {
+        case String condition:
+          results ??= [];
+          results.add((result, value));
+
+        case true when results != null:
+          results.add(('else', value));
+
+        case true:
+          return value;
+      }
+    }
+
+    if (results == null) return sassNull;
+    return SassString(
+        'if(' +
+            results.map((pair) => '${pair.$1}: ${pair.$2}').join('; ') +
+            ')',
+        quotes: false);
+  }
+
+  /// Visits an [IfConditionExpression].
+  ///
+  /// Returns the text the condition evaluates to as a [String] if includes
+  /// plain CSS conditions, or `null` if it's pure Sass
+  Object /* String | bool */ _visitIfConditionExpression(
+      IfConditionExpression node) {
+    switch (node) {
+      case IfConditionParenthesized(:var expression):
+        return switch (_visitIfConditionExpression(expression)) {
+          String string => '($string)',
+          var result => result,
+        };
+
+      case IfConditionNegation(:var expression):
+        return switch (_visitIfConditionExpression(expression)) {
+          String string => 'not $string',
+          bool result => !result,
+          _ => throw UnsupportedError('unreachable'),
+        };
+
+      case IfConditionOperation(:var expressions, :var op):
+        List<(IfConditionExpression, String)>? values;
+        for (var expression in expressions) {
+          switch (_visitIfConditionExpression(expression)) {
+            case String right:
+              values ??= [];
+              values.add((expression, right));
+            case false when op == BooleanOperator.and:
+              return false;
+            case true when op == BooleanOperator.or:
+              return true;
+          }
+        }
+
+        return switch (values) {
+          null => op == BooleanOperator.and,
+
+          // If the only CSS node left in the operation is parenthesized, remove
+          // the parentheses. This is guaranteed to be valid because parentheses
+          // contain an `<if-group>` and this operation is itself an
+          // `<if-group>`.
+          [(IfConditionParenthesized(), var string)] =>
+            string.substring(1, string.length - 1),
+          _ => values.map((pair) => pair.$2).join(' $op '),
+        };
+
+      case IfConditionFunction(:var name, :var arguments):
+        return _performInterpolation(name) +
+            '(' +
+            _performInterpolation(arguments) +
+            ')';
+
+      case IfConditionSass(:var expression):
+        return expression.accept(this).isTruthy;
+
+      case IfConditionRaw(:var text):
+        return _performInterpolation(text);
+    }
+  }
 
   Value visitLegacyIfExpression(LegacyIfExpression node) {
     var (positional, named) = _evaluateMacroArguments(node);

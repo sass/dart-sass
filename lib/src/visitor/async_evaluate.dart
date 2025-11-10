@@ -2831,6 +2831,92 @@ final class _EvaluateVisitor
   Future<SassBoolean> visitBooleanExpression(BooleanExpression node) async =>
       SassBoolean(node.value);
 
+  Future<Value> visitIfExpression(IfExpression node) async {
+    List<(String, Value)>? results;
+    for (var (condition, expression) in node.branches) {
+      var result = await condition.andThen(_visitIfConditionExpression) ?? true;
+      var value = await expression.accept(this);
+      switch (result) {
+        case String condition:
+          results ??= [];
+          results.add((result, value));
+
+        case true when results != null:
+          results.add(('else', value));
+
+        case true:
+          return value;
+      }
+    }
+
+    if (results == null) return sassNull;
+    return SassString(
+        'if(' +
+            results.map((pair) => '${pair.$1}: ${pair.$2}').join('; ') +
+            ')',
+        quotes: false);
+  }
+
+  /// Visits an [IfConditionExpression].
+  ///
+  /// Returns the text the condition evaluates to as a [String] if includes
+  /// plain CSS conditions, or `null` if it's pure Sass
+  Future<Object /* String | bool */ > _visitIfConditionExpression(
+      IfConditionExpression node) async {
+    switch (node) {
+      case IfConditionParenthesized(:var expression):
+        return switch (await _visitIfConditionExpression(expression)) {
+          String string => '($string)',
+          var result => result,
+        };
+
+      case IfConditionNegation(:var expression):
+        return switch (await _visitIfConditionExpression(expression)) {
+          String string => 'not $string',
+          bool result => !result,
+          _ => throw UnsupportedError('unreachable'),
+        };
+
+      case IfConditionOperation(:var expressions, :var op):
+        List<(IfConditionExpression, String)>? values;
+        for (var expression in expressions) {
+          switch (await _visitIfConditionExpression(expression)) {
+            case String right:
+              values ??= [];
+              values.add((expression, right));
+            case false when op == BooleanOperator.and:
+              return false;
+            case true when op == BooleanOperator.or:
+              return true;
+          }
+        }
+
+        return switch (values) {
+          null => op == BooleanOperator.and,
+
+          // If the only CSS node left in the operation is parenthesized, remove
+          // the parentheses. This is guaranteed to be valid because parentheses
+          // contain an `<if-group>` and this operation is itself an
+          // `<if-group>`.
+          [(IfConditionParenthesized(), var string)] =>
+            string.substring(1, string.length - 1),
+          _ => values.map((pair) => pair.$2).join(' $op '),
+        };
+
+      case IfConditionFunction(:var name, :var arguments):
+        return (await _performInterpolation(name)) +
+            '(' +
+            (await _performInterpolation(arguments)) +
+            ')';
+
+      case IfConditionSass(:var expression):
+        return (await expression.accept(this)).isTruthy;
+
+      case IfConditionRaw(:var text):
+        return await _performInterpolation(text);
+    }
+  }
+
   Future<Value> visitLegacyIfExpression(LegacyIfExpression node) async {
     var (positional, named) = await _evaluateMacroArguments(node);
     _verifyArguments(

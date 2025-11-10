@@ -4,6 +4,7 @@
 
 export 'sass/argument_list.dart';
 export 'sass/at_root_query.dart';
+export 'sass/boolean_operator.dart';
 export 'sass/callable_invocation.dart';
 export 'sass/configured_variable.dart';
 export 'sass/declaration.dart';
@@ -13,6 +14,7 @@ export 'sass/expression/binary_operation.dart';
 export 'sass/expression/boolean.dart';
 export 'sass/expression/color.dart';
 export 'sass/expression/function.dart';
+export 'sass/expression/if.dart';
 export 'sass/expression/interpolated_function.dart';
 export 'sass/expression/legacy_if.dart';
 export 'sass/expression/list.dart';

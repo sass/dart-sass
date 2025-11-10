@@ -21,6 +21,7 @@ final class SupportsOperation implements SupportsCondition {
   /// The right-hand operand.
   final SupportsCondition right;
 
+  // TODO: Use BooleanOperation
   /// The operator.
   ///
   /// Currently, this can be only `"and"` or `"or"`.
