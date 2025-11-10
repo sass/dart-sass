@@ -3282,8 +3282,6 @@ abstract class StylesheetParser extends Parser {
   /// as whitespace. It should only be set to `true` in positions when a
   /// statement can't end.
   ///
-  /// If [
-  ///
   /// Unlike [declarationValue], this allows interpolation.
   Interpolation _interpolatedDeclarationValue({
     bool allowEmpty = false,
