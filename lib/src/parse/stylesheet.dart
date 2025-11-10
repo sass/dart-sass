@@ -414,8 +414,8 @@ abstract class StylesheetParser extends Parser {
 
     // Parse custom properties as declarations no matter what.
     var name = nameBuffer.interpolation(spanFrom(start, beforeColon));
-    var customProperty = name.initialPlain.startsWith('--');
-    if (customProperty ||
+    var isCustomProperty = name.initialPlain.startsWith('--');
+    if (isCustomProperty ||
         (_inPlainCssFunction &&
             (name.asPlain.andThen((name) => equalsIgnoreCase(name, 'result')) ??
                 false))) {
@@ -425,7 +425,7 @@ abstract class StylesheetParser extends Parser {
             : _interpolatedDeclarationValue(silentComments: false),
       );
       expectStatementSeparator(
-          customProperty ? "custom property" : "@function result");
+          isCustomProperty ? "custom property" : "@function result");
       return Declaration.notSassScript(name, value, spanFrom(start));
     }
 
