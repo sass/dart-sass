@@ -10,6 +10,10 @@ import {Argument} from './argument';
 import {Configuration} from './configuration';
 import {ConfiguredVariable} from './configured-variable';
 import {DynamicImport} from './dynamic-import';
+import {
+  AnyIfConditionExpression,
+  IfConditionExpressionType,
+} from './expression/if-condition-expression';
 import {MapEntry} from './expression/map-entry';
 import {ImportList} from './import-list';
 import {Interpolation} from './interpolation';
@@ -23,10 +27,12 @@ import {ComplexSelectorComponent} from './selector/complex-component';
 import {SelectorList} from './selector/list';
 import {QualifiedName} from './selector/qualified-name';
 import {StaticImport} from './static-import';
+import {IfEntry} from './expression/if-entry';
 
 /** The union type of all Sass nodes. */
 export type AnyNode =
   | AnyExpression
+  | AnyIfConditionExpression
   | AnySimpleSelector
   | AnyStatement
   | Argument
@@ -37,6 +43,7 @@ export type AnyNode =
   | Configuration
   | ConfiguredVariable
   | DynamicImport
+  | IfEntry
   | ImportList
   | Interpolation
   | MapEntry
@@ -56,6 +63,7 @@ export type AnyNode =
 export type NodeType =
   | StatementType
   | ExpressionType
+  | IfConditionExpressionType
   | SimpleSelectorType
   | 'argument'
   | 'argument-list'
@@ -65,6 +73,7 @@ export type NodeType =
   | 'configuration'
   | 'configured-variable'
   | 'dynamic-import'
+  | 'if-entry'
   | 'import-list'
   | 'interpolation'
   | 'map-entry'

@@ -36,6 +36,8 @@ class IsCalculationSafeVisitor implements ExpressionVisitor<bool> {
 
   bool visitFunctionExpression(FunctionExpression node) => true;
 
+  bool visitIfExpression(IfExpression node) => true;
+
   bool visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
   ) =>

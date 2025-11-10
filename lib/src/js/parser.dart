@@ -20,12 +20,14 @@ import '../util/span.dart';
 import '../util/lazy_file_span.dart';
 import '../util/string.dart';
 import '../visitor/interface/expression.dart';
+import '../visitor/interface/if_condition_expression.dart';
 import '../visitor/interface/interpolated_selector.dart';
 import '../visitor/interface/statement.dart';
 import 'reflection.dart';
 import 'set.dart';
 import 'utils.dart';
 import 'visitor/expression.dart';
+import 'visitor/if_condition_expression.dart';
 import 'visitor/statement.dart';
 
 @JS()
@@ -36,6 +38,7 @@ class ParserExports {
     required Function parseIdentifier,
     required Function toCssIdentifier,
     required Function createExpressionVisitor,
+    required Function createIfConditionExpressionVisitor,
     required Function createStatementVisitor,
     required Function createSimpleSelectorVisitor,
     required Function createSourceFile,
@@ -70,6 +73,10 @@ ParserExports loadParserExports() {
     toCssIdentifier: allowInterop(_toCssIdentifier),
     createExpressionVisitor: allowInterop(
       (JSExpressionVisitorObject inner) => JSExpressionVisitor(inner),
+    ),
+    createIfConditionExpressionVisitor: allowInterop(
+      (JSIfConditionExpressionVisitorObject inner) =>
+          JSIfConditionExpressionVisitor(inner),
     ),
     createStatementVisitor: allowInterop(
       (JSStatementVisitorObject inner) => JSStatementVisitor(inner),
@@ -133,6 +140,13 @@ void _updateAstPrototypes() {
                 InterpolatedSelectorVisitor<Object?> visitor) =>
             self.accept(visitor),
       );
+  var ifConditionExpression = IfConditionSass(string, bogusSpan);
+  getJSClass(ifConditionExpression).superclass.defineMethod(
+        'accept',
+        (IfConditionExpression self,
+                IfConditionExpressionVisitor<Object?> visitor) =>
+            self.accept(visitor),
+      );
   var arguments = ArgumentList([], {}, bogusSpan);
   getJSClass(
     IncludeRule('a', arguments, bogusSpan),
@@ -188,7 +202,7 @@ void _addSupportsConditionToInterpolation() {
     SupportsFunction(_interpolation, _interpolation, bogusSpan),
     SupportsInterpolation(_expression, bogusSpan),
     SupportsNegation(anything, bogusSpan),
-    SupportsOperation(anything, anything, "and", bogusSpan),
+    SupportsOperation(anything, anything, BooleanOperator.and, bogusSpan),
   ]) {
     getJSClass(node).defineMethod(
       'toInterpolation',

@@ -11,101 +11,117 @@ import type * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
 import {Expression} from '.';
 import {convertExpression} from './convert';
-import {MapEntry, MapEntryProps} from './map-entry';
+import {convertIfConditionExpression} from './if-condition-expression/convert';
+import {IfEntry, IfEntryProps} from './if-entry';
 
 /**
- * The initializer properties for {@link MapExpression}.
+ * The initializer properties for {@link IfExpression}.
  *
  * @category Expression
  */
-export interface MapExpressionProps extends NodeProps {
-  raws?: MapExpressionRaws;
-  nodes: Array<MapEntry | MapEntryProps>;
+export interface IfExpressionProps extends NodeProps {
+  raws?: IfExpressionRaws;
+  nodes: Array<IfEntry | IfEntryProps>;
 }
 
 // TODO: Parse strings.
 /**
- * The type of new node pairs that can be passed into a map expression.
+ * The type of new node pairs that can be passed into an `if()` expression.
  *
  * @category Expression
  */
-export type NewNodeForMapExpression =
-  | MapEntry
-  | MapEntryProps
-  | ReadonlyArray<MapEntry>
-  | ReadonlyArray<MapEntryProps>
+export type NewNodeForIfExpression =
+  | IfEntry
+  | IfEntryProps
+  | ReadonlyArray<IfEntry>
+  | ReadonlyArray<IfEntryProps>
   | undefined;
 
 /**
- * Raws indicating how to precisely serialize a {@link MapExpression}.
+ * Raws indicating how to precisely serialize a {@link IfExpression}.
  *
  * @category Expression
  */
-export interface MapExpressionRaws {
+export interface IfExpressionRaws {
   /**
    * The whitespace between the opening parenthesis and the first expression.
    */
   afterOpen?: string;
 
   /**
-   * The whitespace between the last comma and the closing bracket.
+   * The whitespace between the last semicolon and the closing bracket.
    *
-   * This is only set automatically for maps with trailing commas.
+   * This is only set automatically for expressions with trailing semicolons.
    */
   beforeClose?: string;
 
   /**
-   * Whether this map has a trailing comma.
+   * Whether this expression has a trailing semicolon.
    *
    * Ignored if the expression has zero elements.
    */
-  trailingComma?: boolean;
+  trailingSemi?: boolean;
 }
 
 /**
- * An expression representing a map literal in Sass.
+ * An expression representing an `if()` function in Sass.
+ *
+ * **Note:** Unlike other expression types, this can't be constructed from a
+ * property object alone, because [IfExpressionProps] may be ambiguous with
+ * [MapExpressionProps]. Instead, call `new IfExpression()` explicitly: For
+ * example:
+ *
+ * ```ts
+ * string.text.append(new IfExpression([
+ *   [{variableName: 'important'}, {text: ' !important'}],
+ *   ['else', {text: ''}],
+ * ]));
+ * ```
  *
  * @category Expression
  */
-export class MapExpression
+export class IfExpression
   extends Expression
-  implements Container<MapEntry, NewNodeForMapExpression>
+  implements Container<IfEntry, NewNodeForIfExpression>
 {
-  readonly sassType = 'map' as const;
-  declare raws: MapExpressionRaws;
+  readonly sassType = 'if-expr' as const;
+  declare raws: IfExpressionRaws;
 
-  get nodes(): ReadonlyArray<MapEntry> {
+  get nodes(): ReadonlyArray<IfEntry> {
     return this._nodes!;
   }
   /** @hidden */
-  set nodes(nodes: Array<MapEntry>) {
+  set nodes(nodes: Array<IfEntry>) {
     // This *should* only ever be called by the superclass constructor.
     this._nodes = nodes;
   }
-  private declare _nodes?: Array<MapEntry>;
+  private declare _nodes?: Array<IfEntry>;
 
   /**
-   * Iterators that are currently active within this map. Their indices refer
-   * to the last position that has already been sent to the callback, and are
-   * updated when {@link _nodes} is modified.
+   * Iterators that are currently active within this expression. Their indices
+   * refer to the last position that has already been sent to the callback, and
+   * are updated when {@link _nodes} is modified.
    */
   readonly #iterators: Array<{index: number}> = [];
 
-  constructor(defaults: MapExpressionProps);
+  constructor(defaults: IfExpressionProps | Array<IfEntry | IfEntryProps>);
   /** @hidden */
-  constructor(_: undefined, inner: sassInternal.MapExpression);
-  constructor(defaults?: object, inner?: sassInternal.MapExpression) {
+  constructor(_: undefined, inner: sassInternal.IfExpression);
+  constructor(defaults?: object, inner?: sassInternal.IfExpression) {
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
       this.nodes = [];
-      for (const pair of inner.pairs) {
-        this.append([convertExpression(pair._0), convertExpression(pair._1)]);
+      for (const branch of inner.branches) {
+        this.append([
+          branch._0 ? convertIfConditionExpression(branch._0) : 'else',
+          convertExpression(branch._1),
+        ]);
       }
     }
   }
 
-  clone(overrides?: Partial<MapExpressionProps>): this {
+  clone(overrides?: Partial<IfExpressionProps>): this {
     return utils.cloneNode(this, overrides, ['nodes', 'raws']);
   }
 
@@ -116,14 +132,14 @@ export class MapExpression
     return utils.toJSON(this, ['nodes'], inputs);
   }
 
-  append(...nodes: NewNodeForMapExpression[]): this {
+  append(...nodes: NewNodeForIfExpression[]): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._nodes!.push(...this._normalizeList(nodes));
     return this;
   }
 
   each(
-    callback: (node: MapEntry, index: number) => false | void,
+    callback: (node: IfEntry, index: number) => false | void,
   ): false | undefined {
     const iterator = {index: 0};
     this.#iterators.push(iterator);
@@ -142,21 +158,21 @@ export class MapExpression
 
   every(
     condition: (
-      node: MapEntry,
+      node: IfEntry,
       index: number,
-      nodes: ReadonlyArray<MapEntry>,
+      nodes: ReadonlyArray<IfEntry>,
     ) => boolean,
   ): boolean {
     return this.nodes.every(condition);
   }
 
-  index(child: MapEntry | number): number {
+  index(child: IfEntry | number): number {
     return typeof child === 'number' ? child : this.nodes.indexOf(child);
   }
 
   insertAfter(
-    oldNode: MapEntry | number,
-    newNode: NewNodeForMapExpression,
+    oldNode: IfEntry | number,
+    newNode: NewNodeForIfExpression,
   ): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
     const index = this.index(oldNode);
@@ -171,8 +187,8 @@ export class MapExpression
   }
 
   insertBefore(
-    oldNode: MapEntry | number,
-    newNode: NewNodeForMapExpression,
+    oldNode: IfEntry | number,
+    newNode: NewNodeForIfExpression,
   ): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
     const index = this.index(oldNode);
@@ -186,7 +202,7 @@ export class MapExpression
     return this;
   }
 
-  prepend(...nodes: NewNodeForMapExpression[]): this {
+  prepend(...nodes: NewNodeForIfExpression[]): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
     const normalized = this._normalizeList(nodes);
     this._nodes!.unshift(...normalized);
@@ -198,7 +214,7 @@ export class MapExpression
     return this;
   }
 
-  push(child: MapEntry): this {
+  push(child: IfEntry): this {
     return this.append(child);
   }
 
@@ -211,7 +227,7 @@ export class MapExpression
     return this;
   }
 
-  removeChild(child: MapEntry | number): this {
+  removeChild(child: IfEntry | number): this {
     // TODO - postcss/postcss#1957: Mark this as dirty
     const index = this.index(child);
     const node = this._nodes![index];
@@ -227,27 +243,25 @@ export class MapExpression
 
   some(
     condition: (
-      node: MapEntry,
+      node: IfEntry,
       index: number,
-      nodes: ReadonlyArray<MapEntry>,
+      nodes: ReadonlyArray<IfEntry>,
     ) => boolean,
   ): boolean {
     return this.nodes.some(condition);
   }
 
-  get first(): MapEntry | undefined {
+  get first(): IfEntry | undefined {
     return this.nodes[0];
   }
 
-  get last(): MapEntry | undefined {
+  get last(): IfEntry | undefined {
     return this.nodes[this.nodes.length - 1];
   }
 
   /** @hidden */
   toString(): string {
-    let result = '';
-
-    result += '(' + (this.raws?.afterOpen ?? '');
+    let result = 'if(' + (this.raws?.afterOpen ?? '');
 
     for (let i = 0; i < this.nodes.length; i++) {
       const entry = this.nodes[i];
@@ -255,10 +269,10 @@ export class MapExpression
         (entry.raws.before ?? (i > 0 ? ' ' : '')) +
         entry +
         (entry.raws.after ?? '') +
-        (i < this.nodes.length - 1 ? ',' : '');
+        (i < this.nodes.length - 1 ? ';' : '');
     }
 
-    if (this.raws.trailingComma && this.nodes.length > 0) result += ',';
+    if (this.raws.trailingSemi && this.nodes.length > 0) result += ';';
     result += (this.raws?.beforeClose ?? '') + ')';
     return result;
   }
@@ -266,43 +280,45 @@ export class MapExpression
   /**
    * Normalizes a single argument declaration or list of arguments.
    */
-  private _normalize(nodes: NewNodeForMapExpression): Array<MapEntry> {
+  private _normalize(nodes: NewNodeForIfExpression): Array<IfEntry> {
     if (nodes === undefined) return [];
-    const normalized: Array<MapEntry> = [];
+    const normalized: Array<IfEntry> = [];
     // We need a lot of weird casts here because TypeScript gets confused by the
     // way these types overlap.
-    const nodesArray: Array<MapEntry | MapEntryProps> = Array.isArray(nodes)
+    const nodesArray: Array<IfEntry | IfEntryProps> = Array.isArray(nodes)
       ? // nodes is now
         // | [Expression | ExpressionProps, Expression | ExpressionProps]
-        // | ReadonlyArray<MapEntry>
-        // | ReadonlyArray<MapEntryProps>
-        // ReadonlyArray<MapEntry>
-        isMapEntry(nodes[0]) ||
-        // ReadonlyArray<MapEntryProps> when the first entry is
+        // | ReadonlyArray<IfEntry>
+        // | ReadonlyArray<IfEntryProps>
+        // ReadonlyArray<IfEntry>
+        isIfEntry(nodes[0]) ||
+        // ReadonlyArray<IfEntryProps> when the first entry is
         // [Expression | ExpressionProps, Expression | ExpressionProps].
         Array.isArray(nodes[0]) ||
-        // ReadonlyArray<MapEntryProps> when the first entry is
-        // MapEntryObjectProps.
-        ('key' in nodes[0] && 'value' in nodes[0])
-        ? (nodes as unknown as Array<MapEntry | MapEntryProps>)
-        : // If it's not one of the above patterns, it must be a raw MapEntryProps
+        // ReadonlyArray<IfEntryProps> when the first entry is
+        // IfEntryObjectProps.
+        (typeof nodes[0] === 'object' &&
+          'condition' in nodes[0] &&
+          'value' in nodes[0])
+        ? (nodes as unknown as Array<IfEntry | IfEntryProps>)
+        : // If it's not one of the above patterns, it must be a raw IfEntryProps
           // of the form [Expression | ExpressionProps, Expression |
           // ExpressionProps].
           [nodes]
-      : [nodes as MapEntryProps];
+      : [nodes as IfEntryProps];
     for (const node of nodesArray) {
       if (node === undefined) {
         continue;
       } else if ('sassType' in node) {
-        if (!isMapEntry(node)) {
+        if (!isIfEntry(node)) {
           throw new Error(
-            `Unexpected "${(node as unknown as Node).sassType}", expected "map-entry".`,
+            `Unexpected "${(node as unknown as Node).sassType}", expected "if-entry".`,
           );
         }
         node.parent = this;
         normalized.push(node);
       } else {
-        const entry = new MapEntry(node);
+        const entry = new IfEntry(node);
         entry.parent = this;
         normalized.push(entry);
       }
@@ -312,9 +328,9 @@ export class MapExpression
 
   /** Like {@link _normalize}, but also flattens a list of nodes. */
   private _normalizeList(
-    nodes: ReadonlyArray<NewNodeForMapExpression>,
-  ): Array<MapEntry> {
-    const result: Array<MapEntry> = [];
+    nodes: ReadonlyArray<NewNodeForIfExpression>,
+  ): Array<IfEntry> {
+    const result: Array<IfEntry> = [];
     for (const node of nodes) {
       result.push(...this._normalize(node));
     }
@@ -322,11 +338,16 @@ export class MapExpression
   }
 
   /** @hidden */
-  get nonStatementChildren(): ReadonlyArray<MapEntry> {
+  get nonStatementChildren(): ReadonlyArray<IfEntry> {
     return this.nodes;
   }
 }
 
-function isMapEntry(value: object): value is MapEntry {
-  return 'sassType' in value && value.sassType === 'map-entry';
+function isIfEntry(value: unknown): value is IfEntry {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    'sassType' in value &&
+    value.sassType === 'if-entry'
+  );
 }

@@ -4,6 +4,7 @@
 
 import {
   AnyExpression,
+  AnyIfConditionExpression,
   AnySimpleSelector,
   ChildNode,
   ChildProps,
@@ -15,6 +16,7 @@ import {
   Rule,
   SelectorList,
   SimpleSelectorProps,
+IfExpression,
   scss,
 } from '../lib';
 
@@ -25,6 +27,15 @@ export function parseExpression<T extends AnyExpression>(text: string): T {
   const expression = interpolation.nodes[0] as T;
   interpolation.removeChild(expression);
   return expression;
+}
+
+/** Parses an `if()` condition expression from {@link text}. */
+export function parseIfConditionExpression<T extends AnyIfConditionExpression>(
+  text: string,
+): T {
+  const ifEntry = (parseExpression(`if(${text}: a)`) as IfExpression).nodes[0];
+  expect(ifEntry.sassType).toEqual('if-entry');
+  return ifEntry.condition! as T;
 }
 
 /** Parses selector list from {@link text}. */

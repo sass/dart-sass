@@ -10,7 +10,7 @@ import {ColorExpression} from './color';
 import {FunctionExpression, FunctionExpressionProps} from './function';
 import {InterpolatedFunctionExpression} from './interpolated-function';
 import {ListExpression} from './list';
-import {MapExpression} from './map';
+import { MapExpression } from './map';
 import {NullExpression} from './null';
 import {NumberExpression} from './number';
 import {ParenthesizedExpression} from './parenthesized';
