@@ -1344,9 +1344,11 @@ final class _EvaluateVisitor
         node.span,
       );
     }
-    if (_declarationName != null && node.isCustomProperty) {
+    if (_declarationName != null && !node.parsedAsSassScript) {
       throw _exception(
-        'Declarations whose names begin with "--" may not be nested.',
+        node.name.initialPlain.startsWith('--')
+            ? 'Declarations whose names begin with "--" may not be nested.'
+            : 'Declarations parsed as raw CSS may not be nested.',
         node.span,
       );
     }
@@ -1370,7 +1372,7 @@ final class _EvaluateVisitor
             name,
             CssValue(value, expression.span),
             node.span,
-            parsedAsCustomProperty: node.isCustomProperty,
+            parsedAsSassScript: node.parsedAsSassScript,
             valueSpanForMap:
                 _sourceMap ? node.value.andThen(_expressionNode)?.span : null,
           ),
@@ -2143,13 +2145,12 @@ final class _EvaluateVisitor
     if (node.originalName.startsWith('--') &&
         mixin is UserDefinedCallable &&
         !mixin.declaration.originalName.startsWith('--')) {
-      _warn(
-        'Sass @mixin names beginning with -- are deprecated for forward-'
+      throw _exception(
+        'Sass @mixin names beginning with -- are forbidden for forward-'
         'compatibility with plain CSS mixins.\n'
         '\n'
         'For details, see https://sass-lang.com/d/css-function-mixin',
         node.nameSpan,
-        Deprecation.cssFunctionMixin,
       );
     }
 
@@ -2901,7 +2902,7 @@ final class _EvaluateVisitor
               namespace: node.namespace,
             ),
           );
-    if (function == null) {
+    if (function == null || node.originalName.startsWith('--')) {
       if (node.namespace != null) {
         throw _exception("Undefined function.", node.span);
       }
@@ -2940,19 +2941,6 @@ final class _EvaluateVisitor
 
       function = (_stylesheet.plainCss ? null : _builtInFunctions[node.name]) ??
           PlainCssCallable(node.originalName);
-    }
-
-    if (node.originalName.startsWith('--') &&
-        function is UserDefinedCallable &&
-        !function.declaration.originalName.startsWith('--')) {
-      _warn(
-        'Sass @function names beginning with -- are deprecated for forward-'
-        'compatibility with plain CSS functions.\n'
-        '\n'
-        'For details, see https://sass-lang.com/d/css-function-mixin',
-        node.nameSpan,
-        Deprecation.cssFunctionMixin,
-      );
     }
 
     var oldInFunction = _inFunction;
@@ -3950,7 +3938,7 @@ final class _EvaluateVisitor
         node.name,
         node.value,
         node.span,
-        parsedAsCustomProperty: node.parsedAsCustomProperty,
+        parsedAsSassScript: node.parsedAsSassScript,
         valueSpanForMap: node.valueSpanForMap,
       ),
     );

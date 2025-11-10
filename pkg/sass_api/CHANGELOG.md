@@ -1,3 +1,8 @@
+## 15.13.0
+
+* Add a `Declaration.notSassScript()` constructor for raw CSS declarations such
+  as custom properties and the `result` property in plain CSS `@function` rules.
+
 ## 15.12.3
 
 * No user-visible changes.

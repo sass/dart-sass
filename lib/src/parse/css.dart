@@ -67,7 +67,6 @@ class CssParser extends ScssParser {
       "error" ||
       "extend" ||
       "for" ||
-      "function" ||
       "if" ||
       "include" ||
       "mixin" ||
@@ -76,6 +75,7 @@ class CssParser extends ScssParser {
       "while" =>
         _forbiddenAtRule(start),
       "import" => _cssImportRule(start),
+      "function" => _cssFunctionRule(start, name),
       "media" => mediaRule(start),
       "-moz-document" => mozDocumentRule(start, name),
       "supports" => supportsRule(start),
@@ -130,6 +130,20 @@ class CssParser extends ScssParser {
     return ImportRule([
       StaticImport(url, spanFrom(urlStart), modifiers: modifiers),
     ], spanFrom(start));
+  }
+
+  /// Consumes a plain CSS function declaration.
+  ///
+  /// [start] should point before the `@`.
+  Statement _cssFunctionRule(LineScannerState start, Interpolation atRuleName) {
+    whitespace(consumeNewlines: true);
+    if (!scanner.matches('--')) {
+      almostAnyValue();
+      error(
+          "This at-rule isn't allowed in plain CSS.", scanner.spanFrom(start));
+    } else {
+      return unknownAtRule(start, atRuleName);
+    }
   }
 
   ParenthesizedExpression parentheses() {

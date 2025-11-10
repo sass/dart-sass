@@ -50,6 +50,9 @@ abstract class StylesheetParser extends Parser {
   /// Whether the parser is currently parsing an unknown rule.
   var _inUnknownAtRule = false;
 
+  /// Whether the parser is currently parsing a plain-CSS `@function` rule.
+  var _inPlainCssFunction = false;
+
   /// Whether the parser is currently parsing a style rule.
   var _inStyleRule = false;
 
@@ -411,14 +414,19 @@ abstract class StylesheetParser extends Parser {
 
     // Parse custom properties as declarations no matter what.
     var name = nameBuffer.interpolation(spanFrom(start, beforeColon));
-    if (name.initialPlain.startsWith('--')) {
+    var isCustomProperty = name.initialPlain.startsWith('--');
+    if (isCustomProperty ||
+        (_inPlainCssFunction &&
+            (name.asPlain.andThen((name) => equalsIgnoreCase(name, 'result')) ??
+                false))) {
       var value = StringExpression(
         atEndOfStatement()
             ? Interpolation(const [], const [], scanner.emptySpan)
             : _interpolatedDeclarationValue(silentComments: false),
       );
-      expectStatementSeparator("custom property");
-      return Declaration(name, value, spanFrom(start));
+      expectStatementSeparator(
+          isCustomProperty ? "custom property" : "@function result");
+      return Declaration.notSassScript(name, value, spanFrom(start));
     }
 
     if (scanner.scanChar($colon)) {
@@ -542,15 +550,12 @@ abstract class StylesheetParser extends Parser {
   /// Consumes either a property declaration or a namespaced variable
   /// declaration.
   ///
-  /// This is only used in contexts where declarations are allowed but style
-  /// rules are not, such as nested declarations. Otherwise,
+  /// This is only used when nested beneath other declarations. Otherwise,
   /// [_declarationOrStyleRule] is used instead.
   ///
   /// If [parseCustomProperties] is `true`, properties that begin with `--` will
   /// be parsed using custom property parsing rules.
-  Statement _propertyOrVariableDeclaration({
-    bool parseCustomProperties = true,
-  }) {
+  Statement _propertyOrVariableDeclaration() {
     var start = scanner.state;
 
     Interpolation name;
@@ -574,12 +579,9 @@ abstract class StylesheetParser extends Parser {
     whitespace(consumeNewlines: false);
     scanner.expectChar($colon);
 
-    if (parseCustomProperties && name.initialPlain.startsWith('--')) {
-      var value = StringExpression(
-        _interpolatedDeclarationValue(silentComments: false),
-      );
-      expectStatementSeparator("custom property");
-      return Declaration(name, value, spanFrom(start));
+    if (name.initialPlain.startsWith('--')) {
+      error('Declarations whose names begin with "--" may not be nested.',
+          name.span);
     }
 
     whitespace(consumeNewlines: false);
@@ -619,7 +621,7 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a statement that's allowed within a declaration.
   Statement _declarationChild() => scanner.peekChar() == $at
       ? _declarationAtRule()
-      : _propertyOrVariableDeclaration(parseCustomProperties: false);
+      : _propertyOrVariableDeclaration();
 
   // ## At Rules
 
@@ -669,7 +671,7 @@ abstract class StylesheetParser extends Parser {
         if (!root) _disallowedAtRule(start);
         return _forwardRule(start);
       case "function":
-        return _functionRule(start);
+        return _functionRule(start, name);
       case "if":
         return _ifRule(start, child);
       case "import":
@@ -914,24 +916,16 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a function declaration.
   ///
   /// [start] should point before the `@`.
-  FunctionRule _functionRule(LineScannerState start) {
+  Statement _functionRule(LineScannerState start, Interpolation atRuleName) {
     whitespace(consumeNewlines: true);
     var precedingComment = lastSilentComment;
     lastSilentComment = null;
     var beforeName = scanner.state;
-    var name = identifier();
 
-    if (name.startsWith('--')) {
-      warnings.add((
-        deprecation: Deprecation.cssFunctionMixin,
-        message:
-            'Sass @function names beginning with -- are deprecated for forward-'
-            'compatibility with plain CSS functions.\n'
-            '\n'
-            'For details, see https://sass-lang.com/d/css-function-mixin',
-        span: spanFrom(beforeName),
-      ));
-    } else if (equalsIgnoreCase(name, 'type')) {
+    if (scanner.matches('--')) return unknownAtRule(start, atRuleName);
+
+    var name = identifier();
+    if (equalsIgnoreCase(name, 'type')) {
       error('This name is reserved for the plain-CSS function.',
           spanFrom(beforeName));
     }
@@ -1427,15 +1421,13 @@ abstract class StylesheetParser extends Parser {
     var name = identifier();
 
     if (name.startsWith('--')) {
-      warnings.add((
-        deprecation: Deprecation.cssFunctionMixin,
-        message:
-            'Sass @mixin names beginning with -- are deprecated for forward-'
-            'compatibility with plain CSS mixins.\n'
-            '\n'
-            'For details, see https://sass-lang.com/d/css-function-mixin',
-        span: spanFrom(beforeName),
-      ));
+      error(
+        'Sass @mixin names beginning with -- are forbidden for forward-'
+        'compatibility with plain CSS mixins.\n'
+        '\n'
+        'For details, see https://sass-lang.com/d/css-function-mixin',
+        spanFrom(beforeName),
+      );
     }
 
     whitespace(consumeNewlines: false);
@@ -1735,22 +1727,27 @@ abstract class StylesheetParser extends Parser {
     if (scanner.peekChar() != $exclamation && !atEndOfStatement()) {
       value = _interpolatedDeclarationValue(allowOpenBrace: false);
     }
-
-    AtRule rule;
-    if (lookingAtChildren()) {
-      rule = _withChildren(
-        _statement,
-        start,
-        (children, span) =>
-            AtRule(name, span, value: value, children: children),
-      );
-    } else {
-      expectStatementSeparator();
-      rule = AtRule(name, spanFrom(start), value: value);
+    var wasInPlainCssFunction = _inPlainCssFunction;
+    if (name.asPlain case var name? when equalsIgnoreCase(name, 'function')) {
+      _inPlainCssFunction = true;
     }
 
-    _inUnknownAtRule = wasInUnknownAtRule;
-    return rule;
+    try {
+      if (lookingAtChildren()) {
+        return _withChildren(
+          _statement,
+          start,
+          (children, span) =>
+              AtRule(name, span, value: value, children: children),
+        );
+      } else {
+        expectStatementSeparator();
+        return AtRule(name, spanFrom(start), value: value);
+      }
+    } finally {
+      _inUnknownAtRule = wasInUnknownAtRule;
+      _inPlainCssFunction = wasInPlainCssFunction;
+    }
   }
 
   /// Throws a [StringScannerException] indicating that the at-rule starting at
