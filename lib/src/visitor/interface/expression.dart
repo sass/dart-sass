@@ -15,6 +15,7 @@ abstract interface class ExpressionVisitor<T> {
   T visitColorExpression(ColorExpression node);
   T visitInterpolatedFunctionExpression(InterpolatedFunctionExpression node);
   T visitFunctionExpression(FunctionExpression node);
+  T visitIfExpression(IfExpression node);
   T visitLegacyIfExpression(LegacyIfExpression node);
   T visitListExpression(ListExpression node);
   T visitMapExpression(MapExpression node);

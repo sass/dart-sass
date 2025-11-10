@@ -45,6 +45,8 @@ class _MakeExpressionCalculationSafe with ReplaceExpressionVisitor {
   ) =>
       node;
 
+  Expression visitIfExpression(IfExpression node) => node;
+
   Expression visitUnaryOperationExpression(UnaryOperationExpression node) =>
       switch (node.operator) {
         // `calc()` doesn't support unary operations.

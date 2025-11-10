@@ -4,12 +4,16 @@
 
 import {
   AnyExpression,
+  AnyIfConditionExpression,
   AnySimpleSelector,
   ChildNode,
   ChildProps,
   CompoundSelector,
   ExpressionProps,
   GenericAtRule,
+  IfConditionExpressionProps,
+  IfConditionParenthesized,
+  IfExpression,
   Interpolation,
   Root,
   Rule,
@@ -25,6 +29,15 @@ export function parseExpression<T extends AnyExpression>(text: string): T {
   const expression = interpolation.nodes[0] as T;
   interpolation.removeChild(expression);
   return expression;
+}
+
+/** Parses an `if()` condition expression from {@link text}. */
+export function parseIfConditionExpression<T extends AnyIfConditionExpression>(
+  text: string,
+): T {
+  const ifEntry = (parseExpression(`if(${text}: a)`) as IfExpression).nodes[0];
+  expect(ifEntry.sassType).toEqual('if-entry');
+  return ifEntry.condition! as T;
 }
 
 /** Parses selector list from {@link text}. */
@@ -59,6 +72,14 @@ export function fromExpressionProps<T extends AnyExpression>(
   props: ExpressionProps,
 ): T {
   return new Interpolation({nodes: [props]}).nodes[0] as T;
+}
+
+/** Constructs a new `if()` conditoin expression from {@link props}. */
+export function fromIfConditionExpressionProps<
+  T extends AnyIfConditionExpression,
+>(props: IfConditionExpressionProps): T {
+  return new IfConditionParenthesized({parenthesized: props})
+    .parenthesized as T;
 }
 
 /** Constructs a new simple selector from {@link props}. */

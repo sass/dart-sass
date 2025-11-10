@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../ast/sass.dart';
@@ -25,6 +26,24 @@ final class LegacyIfExpression extends Expression
   final ArgumentList arguments;
 
   final FileSpan span;
+
+  /// Returns a modern `if()` expression to use instead of this.
+  ///
+  /// @nodoc
+  @internal
+  String? get modernSuggestion => switch (arguments) {
+        ArgumentList(
+          positional: [var condition, var ifTrue, var ifFalse],
+          named: Map(isEmpty: true),
+          rest: null,
+        ) =>
+          ifFalse is NullExpression
+              ? "if(sass($condition): $ifTrue)"
+              : ifTrue is NullExpression
+                  ? "if(not sass($condition): $ifFalse)"
+                  : "if(sass($condition): $ifTrue; else: $ifFalse)",
+        _ => null,
+      };
 
   LegacyIfExpression(this.arguments, this.span);
 
