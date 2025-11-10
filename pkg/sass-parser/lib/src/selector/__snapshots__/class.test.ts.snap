@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`a class selector toJSON 1`] = `
+{
+  "class": <foo>,
+  "inputs": [
+    {
+      "css": ".foo {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "raws": {},
+  "sassType": "class",
+  "source": <1:1-1:5 in 0>,
+}
+`;

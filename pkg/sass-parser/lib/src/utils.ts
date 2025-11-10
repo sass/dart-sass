@@ -84,7 +84,7 @@ export function cloneNode<T extends Pick<postcss.Node, 'source'>>(
       if (
         explicitUndefined
           ? Object.hasOwn(typedOverrides, name)
-          : typedOverrides[name]
+          : typedOverrides[name] !== undefined
       ) {
         // This isn't actually guaranteed to be non-null, but TypeScript
         // (correctly) complains that we could be passing an undefined value to

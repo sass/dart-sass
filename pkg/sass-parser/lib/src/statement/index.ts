@@ -371,7 +371,7 @@ export function normalize(
     } else if ('prop' in node || 'propInterpolation' in node) {
       result.push(new Declaration(node));
     } else if (
-      'selectorInterpolation' in node ||
+      'parsedSelector' in node ||
       'selector' in node ||
       'selectors' in node
     ) {
