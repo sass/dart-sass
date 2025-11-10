@@ -50,7 +50,7 @@ final class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
         node.name,
         node.value,
         node.span,
-        parsedAsCustomProperty: node.parsedAsCustomProperty,
+        parsedAsSassScript: node.parsedAsSassScript,
         valueSpanForMap: node.valueSpanForMap,
       );
 

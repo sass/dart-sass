@@ -1,6 +1,13 @@
-## 1.93.4
+## 1.94.0
 
-* No user-visible changes.
+* **Potentially breaking compatibility fix:** `@function` rules whose names
+  begin with `--` are now parsed as unknown at-rules to support the plain CSS
+  `@function` rule. Within this rule, the `result` property is parsed as raw
+  CSS just like custom properties.
+
+* **Potentially breaking compatibility fix:** `@mixin` rules whose names begin
+  with `--` are now errors. These are not yet parsed as unknown at-rules because
+  no browser currently supports CSS mixins.
 
 ## 1.93.3
 

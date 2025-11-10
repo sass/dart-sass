@@ -12,6 +12,9 @@
   with selectors despite the fact that the Sass implementation doesn't parse
   them until after all interpolation has been resolved.
 
+* Add a `Declaration.notSassScript()` constructor for raw CSS declarations such
+  as custom properties and the `result` property in plain CSS `@function` rules.
+
 ## 15.12.3
 
 * No user-visible changes.

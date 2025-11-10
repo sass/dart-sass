@@ -15,7 +15,7 @@ final class ModifiableCssDeclaration extends ModifiableCssNode
     implements CssDeclaration {
   final CssValue<String> name;
   final CssValue<Value> value;
-  final bool parsedAsCustomProperty;
+  final bool parsedAsSassScript;
   final FileSpan valueSpanForMap;
   final FileSpan span;
 
@@ -26,18 +26,13 @@ final class ModifiableCssDeclaration extends ModifiableCssNode
     this.name,
     this.value,
     this.span, {
-    required this.parsedAsCustomProperty,
+    required this.parsedAsSassScript,
     FileSpan? valueSpanForMap,
   }) : valueSpanForMap = valueSpanForMap ?? value.span {
-    if (parsedAsCustomProperty) {
-      if (!isCustomProperty) {
+    if (!parsedAsSassScript) {
+      if (value.value is! SassString) {
         throw ArgumentError(
-          'parsedAsCustomProperty must be false if name doesn\'t begin with '
-          '"--".',
-        );
-      } else if (value.value is! SassString) {
-        throw ArgumentError(
-          'If parsedAsCustomProperty is true, value must contain a SassString '
+          'If parsedAsSassScript is false, value must contain a SassString '
           '(was `$value` of type ${value.value.runtimeType}).',
         );
       }
