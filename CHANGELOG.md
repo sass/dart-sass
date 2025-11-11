@@ -1,3 +1,7 @@
+## 1.94.1
+
+* No user-visible changes.
+
 ## 1.94.0
 
 * **Potentially breaking compatibility fix:** `@function` rules whose names

@@ -1,3 +1,7 @@
+## 16.0.1
+
+* No user-visible changes.
+
 ## 16.0.0
 
 * **Breaking change:** `InterpolationMap` now takes a list of integer offsets

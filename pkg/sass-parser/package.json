@@ -1,8 +1,8 @@
 {
   "name": "sass-parser",
-  "version": "0.4.33",
+  "version": "0.4.34",
   "description": "A PostCSS-compatible wrapper of the official Sass parser",
-  "repository": "sass/sass",
+  "repository": "sass/dart-sass",
   "author": "Google Inc.",
   "license": "MIT",
   "exports": {
