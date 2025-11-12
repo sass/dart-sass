@@ -8,6 +8,7 @@ library;
 import 'package:test/test.dart';
 
 import 'package:sass/sass.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 void main() {
   // Deprecated in all version of Dart Sass
@@ -148,6 +149,41 @@ void main() {
       _expectDeprecation(
         "@use 'sass:list'; a {b: list.set-nth(1 2, 1px, 3)}",
         Deprecation.functionUnits,
+      );
+    });
+  });
+
+  group('Deprecation.forVersion', () {
+    test('includes deprecations as of that version', () {
+      final version = Version.parse('1.79.0');
+      final deprecations = Deprecation.forVersion(version);
+
+      expect(
+        deprecations,
+        contains(Deprecation.colorFunctions),
+        reason: 'color-functions deprecated in 1.79 (and not obsolete)',
+      );
+    });
+
+    test('excludes deprecations of newer versions', () {
+      final version = Version.parse('1.79.0');
+      final deprecations = Deprecation.forVersion(version);
+
+      expect(
+        deprecations,
+        isNot(contains(Deprecation.import)),
+        reason: 'import deprecated as of 1.80',
+      );
+    });
+
+    test('excludes deprecations that are obsolete', () {
+      final version = Version.parse('1.79.0');
+      final deprecations = Deprecation.forVersion(version);
+
+      expect(
+        deprecations,
+        isNot(contains(Deprecation.mixedDecls)),
+        reason: 'mixed-decls deprecated in 1.77.7 but obsolete in 1.92.0',
       );
     });
   });
