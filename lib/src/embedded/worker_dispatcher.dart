@@ -3,51 +3,49 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:async';
-import 'dart:ffi';
-import 'dart:io';
-import 'dart:isolate';
+import 'dart:io' if (dart.library.js) 'js/io.dart';
 import 'dart:typed_data';
 
-import 'package:native_synchronization/mailbox.dart';
 import 'package:pool/pool.dart';
 import 'package:protobuf/protobuf.dart';
 import 'package:stream_channel/stream_channel.dart';
 
-import 'compilation_dispatcher.dart';
 import 'embedded_sass.pb.dart';
-import 'reusable_isolate.dart';
 import 'util/proto_extensions.dart';
 import 'utils.dart';
+import 'vm/concurrency.dart' if (dart.library.js) 'js/concurrency.dart';
+import 'vm/reusable_worker.dart' if (dart.library.js) 'js/reusable_worker.dart';
 
-/// A class that dispatches messages between the host and various isolates that
+/// A class that dispatches messages between the host and various workers that
 /// are each running an individual compilation.
-class IsolateDispatcher {
+class WorkerDispatcher {
   /// The channel of encoded protocol buffers, connected to the host.
   final StreamChannel<Uint8List> _channel;
 
-  /// All isolates that have been spawned to dispatch to.
+  /// Whether to wait for all worker workers to exit before exiting the main
+  /// worker or not.
+  final bool _gracefulShutdown;
+
+  /// All workers that have been spawned to dispatch to.
   ///
   /// Only used for cleaning up the process when the underlying channel closes.
-  final _allIsolates = StreamController<ReusableIsolate>(sync: true);
+  final _allWorkers = StreamController<ReusableWorker>(sync: true);
 
-  /// The isolates that aren't currently running compilations
-  final _inactiveIsolates = <ReusableIsolate>{};
+  /// The workers that aren't currently running compilations
+  final _inactiveWorkers = <ReusableWorker>{};
 
-  /// A map from active compilationIds to isolates running those compilations.
-  final _activeIsolates = <int, Future<ReusableIsolate>>{};
+  /// A map from active compilationIds to workers running those compilations.
+  final _activeWorkers = <int, Future<ReusableWorker>>{};
 
-  /// A pool controlling how many isolates (and thus concurrent compilations)
+  /// A pool controlling how many workers (and thus concurrent compilations)
   /// may be live at once.
-  ///
-  /// More than MaxMutatorThreadCount isolates in the same isolate group
-  /// can deadlock the Dart VM.
-  /// See https://github.com/sass/dart-sass/pull/2019
-  final _isolatePool = Pool(sizeOf<IntPtr>() <= 4 ? 7 : 15);
+  final _workerPool = Pool(concurrencyLimit);
 
   /// Whether [_channel] has been closed or not.
   var _closed = false;
 
-  IsolateDispatcher(this._channel);
+  WorkerDispatcher(this._channel, {bool gracefulShutdown = true})
+      : _gracefulShutdown = gracefulShutdown;
 
   void listen() {
     _channel.stream.listen(
@@ -59,16 +57,16 @@ class IsolateDispatcher {
           (compilationId, messageBuffer) = parsePacket(packet);
 
           if (compilationId != 0) {
-            var isolate = await _activeIsolates.putIfAbsent(
+            var worker = await _activeWorkers.putIfAbsent(
               compilationId,
-              () => _getIsolate(compilationId!),
+              () => _getWorker(compilationId!),
             );
 
-            // The shutdown may have started by the time the isolate is spawned
+            // The shutdown may have started by the time the worker is spawned
             if (_closed) return;
 
             try {
-              isolate.send(packet);
+              worker.send(packet);
               return;
             } on StateError catch (_) {
               throw paramsError(
@@ -107,62 +105,79 @@ class IsolateDispatcher {
         _handleError(error, stackTrace);
       },
       onDone: () {
-        _closed = true;
-        _allIsolates.stream.listen((isolate) => isolate.kill());
+        if (_gracefulShutdown) {
+          _closed = true;
+          _allWorkers.stream.listen((worker) => worker.kill());
+        } else {
+          exit(exitCode);
+        }
       },
     );
   }
 
-  /// Returns an isolate that's ready to run a new compilation.
+  /// Returns an worker that's ready to run a new compilation.
   ///
-  /// This re-uses an existing isolate if possible, and spawns a new one
+  /// This re-uses an existing worker if possible, and spawns a new one
   /// otherwise.
-  Future<ReusableIsolate> _getIsolate(int compilationId) async {
-    var resource = await _isolatePool.request();
-    ReusableIsolate isolate;
-    if (_inactiveIsolates.isNotEmpty) {
-      isolate = _inactiveIsolates.first;
-      _inactiveIsolates.remove(isolate);
+  Future<ReusableWorker> _getWorker(int compilationId) async {
+    var resource = await _workerPool.request();
+    ReusableWorker worker;
+    if (_inactiveWorkers.isNotEmpty) {
+      worker = _inactiveWorkers.first;
+      _inactiveWorkers.remove(worker);
     } else {
-      var future = ReusableIsolate.spawn(
-        _isolateMain,
+      var future = ReusableWorker.spawn(
         onError: (Object error, StackTrace stackTrace) {
           _handleError(error, stackTrace);
         },
       );
-      isolate = await future;
-      _allIsolates.add(isolate);
+      worker = await future;
+      _allWorkers.add(worker);
     }
 
-    isolate.borrow((message) {
+    worker.borrow((message) {
       var fullBuffer = message as Uint8List;
 
-      // The first byte of messages from isolates indicates whether the entire
+      // The first byte of messages from workers indicates whether the entire
       // compilation is finished (1) or if it encountered an error (2). Sending
       // this as part of the message buffer rather than a separate message
       // avoids a race condition where the host might send a new compilation
       // request with the same ID as one that just finished before the
-      // [IsolateDispatcher] receives word that the isolate with that ID is
-      // done. See sass/dart-sass#2004.
+      // [WorkerDispatcher] receives word that the worker with that ID is done.
+      // See sass/dart-sass#2004.
       var category = fullBuffer[0];
-      var packet = Uint8List.sublistView(fullBuffer, 1);
+      var packet = Uint8List.sublistView(fullBuffer, 2);
 
       switch (category) {
         case 0:
           _channel.sink.add(packet);
         case 1:
-          _activeIsolates.remove(compilationId);
-          isolate.release();
-          _inactiveIsolates.add(isolate);
+          _activeWorkers.remove(compilationId);
+          worker.release();
+          _inactiveWorkers.add(worker);
           resource.release();
           _channel.sink.add(packet);
         case 2:
           _channel.sink.add(packet);
-          exit(exitCode);
+          // The second byte of message is the exitCode when fatal error
+          // occurs. This is needed because in Node.js process.exitCode
+          // is thread local, so that we need to pass it from the worker
+          // thread back to main thread. Using onexit event to retrieve
+          // the exitCode is unrelibale because worker.kill() might get
+          // triggered from main thread before the worker thread finish
+          // exit itself, in which case onexit event will recevie an exit
+          // code 1 regardless of actual process.exitCode value in worker
+          // thread.
+          exitCode = fullBuffer[1];
+          if (_gracefulShutdown) {
+            _channel.sink.close();
+          } else {
+            exit(exitCode);
+          }
       }
     });
 
-    return isolate;
+    return worker;
   }
 
   /// Creates a [OutboundMessage_VersionResponse]
@@ -188,7 +203,11 @@ class IsolateDispatcher {
       compilationId ?? errorId,
       handleError(error, stackTrace, messageId: messageId),
     );
-    _channel.sink.close();
+    if (_gracefulShutdown) {
+      _channel.sink.close();
+    } else {
+      exit(exitCode);
+    }
   }
 
   /// Sends [message] to the host.
@@ -198,8 +217,4 @@ class IsolateDispatcher {
   /// Sends [error] to the host.
   void sendError(int compilationId, ProtocolError error) =>
       _send(compilationId, OutboundMessage()..error = error);
-}
-
-void _isolateMain(Mailbox mailbox, SendPort sendPort) {
-  CompilationDispatcher(mailbox, sendPort).listen();
 }
