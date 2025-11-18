@@ -131,7 +131,7 @@ jobs:
       - name: Set the version of @sass/types
         run: npm pkg set version='${{ steps.dart-sass-version.outputs.version }}'
         working-directory: pkg/sass-types/
-      - run: npm publish
+      - run: npm publish --provenance
         working-directory: pkg/sass-types/
 
   deploy_sass_parser:
@@ -160,7 +160,7 @@ jobs:
 
       - run: npm run compile
         working-directory: pkg/sass-parser/
-      - run: npm publish
+      - run: npm publish --provenance
         working-directory: pkg/sass-parser/
 
       - name: Get Sass parser version
