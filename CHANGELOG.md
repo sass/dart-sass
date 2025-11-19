@@ -1,5 +1,13 @@
 ## 1.94.2
 
+* Using `--fatal-deprecation <version>` no longer emits warnings about
+  deprecations that are obsolete.
+
+### Dart API
+
+* `Deprecation.forVersion` now excludes obsolete deprecations from the set it
+  returns.
+
 ### Node.js Embedded Host
 
 * Fix a bug where a variable could be used before it was initialized during

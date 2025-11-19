@@ -224,7 +224,8 @@ enum Deprecation {
     var range = VersionRange(max: version, includeMax: true);
     return {
       for (var deprecation in Deprecation.values)
-        if (deprecation.deprecatedIn.andThen(range.allows) ?? false)
+        if ((deprecation.deprecatedIn.andThen(range.allows) ?? false) &&
+            deprecation.obsoleteIn == null)
           deprecation,
     };
   }
