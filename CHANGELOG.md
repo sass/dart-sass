@@ -19,8 +19,6 @@
 
 * Fix a bug where a variable could be used before it was initialized during
   async compilation.
-* Excludes obsolete deprecations from `fatalDeprecations` when a `Version` is
-  passed.
 
 ## 1.94.1
 
