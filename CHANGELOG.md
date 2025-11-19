@@ -1,3 +1,13 @@
+## 1.94.2
+
+* Using `--fatal-deprecation <version>` no longer emits warnings about
+  deprecations that are obsolete.
+
+### Dart API
+
+* `Deprecation.forVersion` now excludes obsolete deprecations from the set it
+  returns.
+
 ## 1.94.1
 
 * No user-visible changes.
