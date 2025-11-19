@@ -1,3 +1,10 @@
+## 1.94.2
+
+### Node.js Embedded Host
+
+* Fix a bug where a variable could be used before it was initialized during
+  async compilation.
+
 ## 1.94.1
 
 * No user-visible changes.
