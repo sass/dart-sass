@@ -1,5 +1,7 @@
 ## 1.94.2
 
+### Command-Line Interface
+
 * Using `--fatal-deprecation <version>` no longer emits warnings about
   deprecations that are obsolete.
 
@@ -7,6 +9,11 @@
 
 * `Deprecation.forVersion` now excludes obsolete deprecations from the set it
   returns.
+
+### JS API
+
+* Excludes obsolete deprecations from `fatalDeprecations` when a `Version` is
+  passed.
 
 ### Node.js Embedded Host
 
