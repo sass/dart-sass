@@ -31,7 +31,7 @@ jobs:
     needs: [build_linux, build_macos, build_windows]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/util/initialize
         with:
           github-token: ${{ github.token }}
@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           # We have to use this rather than the implicit GitHub token so that
           # pushing a new tag triggers another action.
@@ -105,7 +105,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.GH_TOKEN }}
       # Set up .npmrc file to publish to npm
@@ -122,7 +122,7 @@ jobs:
         id: dart-sass-version
         run: echo "version=${{ github.ref_name }}" | tee --append "$GITHUB_OUTPUT"
       - name: Check out the language repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with: {repository: sass/sass, path: build/language}
       - name: Copy types from the language repo
         run: cp -r build/language/js-api-doc pkg/sass-types/types
@@ -140,7 +140,7 @@ jobs:
     needs: [deploy_npm]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.GH_TOKEN }}
       # Set up .npmrc file to publish to npm
@@ -175,7 +175,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
 
@@ -190,7 +190,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -204,7 +204,7 @@ jobs:
     needs: [deploy_npm]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           repository: sass/sass-site
           token: ${{ secrets.SASS_SITE_TOKEN }}
@@ -232,7 +232,7 @@ jobs:
     needs: [deploy_github]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           repository: sass/embedded-host-node
           token: ${{ secrets.GH_TOKEN }}
