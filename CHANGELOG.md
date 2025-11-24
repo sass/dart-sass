@@ -1,3 +1,7 @@
+## 1.94.3-dev
+
+* Fix the span reported for standalone `%` expressions followed by whitespace.
+
 ## 1.94.2
 
 ### Command-Line Interface
