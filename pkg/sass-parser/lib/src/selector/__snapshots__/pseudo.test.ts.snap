@@ -1,0 +1,107 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`a pseudo selector toJSON a fake pseudo-element 1`] = `
+{
+  "inputs": [
+    {
+      "css": ":after {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "isElement": false,
+  "pseudo": <after>,
+  "raws": {},
+  "sassType": "pseudo",
+  "source": <1:1-1:7 in 0>,
+}
+`;
+
+exports[`a pseudo selector toJSON a pseudo-element 1`] = `
+{
+  "inputs": [
+    {
+      "css": "::foo {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "isElement": true,
+  "pseudo": <foo>,
+  "raws": {},
+  "sassType": "pseudo",
+  "source": <1:1-1:6 in 0>,
+}
+`;
+
+exports[`a pseudo selector toJSON with a selector and no argument 1`] = `
+{
+  "inputs": [
+    {
+      "css": ":is(.foo) {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "isElement": false,
+  "pseudo": <is>,
+  "raws": {},
+  "sassType": "pseudo",
+  "selector": <.foo>,
+  "source": <1:1-1:10 in 0>,
+}
+`;
+
+exports[`a pseudo selector toJSON with an argument and a selector 1`] = `
+{
+  "argument": <2n of>,
+  "inputs": [
+    {
+      "css": ":nth-child(2n of .foo) {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "isElement": false,
+  "pseudo": <nth-child>,
+  "raws": {},
+  "sassType": "pseudo",
+  "selector": <.foo>,
+  "source": <1:1-1:23 in 0>,
+}
+`;
+
+exports[`a pseudo selector toJSON with an argument and no selector 1`] = `
+{
+  "argument": <&^*#>,
+  "inputs": [
+    {
+      "css": ":foo(&^*#) {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "isElement": false,
+  "pseudo": <foo>,
+  "raws": {},
+  "sassType": "pseudo",
+  "source": <1:1-1:11 in 0>,
+}
+`;
+
+exports[`a pseudo selector toJSON with no argument or selector 1`] = `
+{
+  "inputs": [
+    {
+      "css": ":foo {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "isElement": false,
+  "pseudo": <foo>,
+  "raws": {},
+  "sassType": "pseudo",
+  "source": <1:1-1:5 in 0>,
+}
+`;

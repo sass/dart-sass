@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 0d3df25297a4e76b865aee1e908baf355e26d665
+  // Checksum: fc5363081eb9d8e9e7220b9d5c7fd928d67009fe
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -224,7 +224,8 @@ enum Deprecation {
     var range = VersionRange(max: version, includeMax: true);
     return {
       for (var deprecation in Deprecation.values)
-        if (deprecation.deprecatedIn.andThen(range.allows) ?? false)
+        if ((deprecation.deprecatedIn.andThen(range.allows) ?? false) &&
+            deprecation.obsoleteIn == null)
           deprecation,
     };
   }

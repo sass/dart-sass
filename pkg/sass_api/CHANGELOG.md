@@ -1,3 +1,36 @@
+## 16.0.3-dev
+
+* No user-visible changes.
+
+## 16.0.2
+
+* No user-visible changes.
+
+## 16.0.1
+
+* No user-visible changes.
+
+## 16.0.0
+
+* **Breaking change:** `InterpolationMap` now takes a list of integer offsets
+  rather than a list of `SourceLocation` objects.
+
+* **Breaking change:** `AttributeSelector`'s `op`, `value`, and `modifier`
+  fields are now `CssValue`s rather than plain values.
+
+* Add `Interpolated...` versions of all the selector AST nodes that are
+  available via the `StyleRule.parsedSelector` field if `parseSelectors: true`
+  is passed to `Stylesheet.parse()`. This makes it easier for tools to interact
+  with selectors despite the fact that the Sass implementation doesn't parse
+  them until after all interpolation has been resolved.
+
+* Add a `Declaration.notSassScript()` constructor for raw CSS declarations such
+  as custom properties and the `result` property in plain CSS `@function` rules.
+
+## 15.12.3
+
+* No user-visible changes.
+
 ## 15.12.2
 
 * No user-visible changes.

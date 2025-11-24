@@ -1,6 +1,47 @@
-## 1.93.3-dev
+## 1.94.3-dev
 
 * Fix the span reported for standalone `%` expressions followed by whitespace.
+
+## 1.94.2
+
+### Command-Line Interface
+
+* Using `--fatal-deprecation <version>` no longer emits warnings about
+  deprecations that are obsolete.
+
+### Dart API
+
+* `Deprecation.forVersion` now excludes obsolete deprecations from the set it
+  returns.
+
+### JS API
+
+* Excludes obsolete deprecations from `fatalDeprecations` when a `Version` is
+  passed.
+
+### Node.js Embedded Host
+
+* Fix a bug where a variable could be used before it was initialized during
+  async compilation.
+
+## 1.94.1
+
+* No user-visible changes.
+
+## 1.94.0
+
+* **Potentially breaking compatibility fix:** `@function` rules whose names
+  begin with `--` are now parsed as unknown at-rules to support the plain CSS
+  `@function` rule. Within this rule, the `result` property is parsed as raw
+  CSS just like custom properties.
+
+* **Potentially breaking compatibility fix:** `@mixin` rules whose names begin
+  with `--` are now errors. These are not yet parsed as unknown at-rules because
+  no browser currently supports CSS mixins.
+
+## 1.93.3
+
+* Fix a performance regression that was introduced in 1.92.0.
 
 ## 1.93.2
 

@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 
 import '../ast/css/value.dart';
 import '../ast/selector.dart';
@@ -11,7 +12,8 @@ import '../utils.dart';
 import 'parser.dart';
 
 /// Pseudo-class selectors that take unadorned selectors as arguments.
-final _selectorPseudoClasses = {
+@internal
+final selectorPseudoClasses = {
   "not",
   "is",
   "matches",
@@ -24,9 +26,13 @@ final _selectorPseudoClasses = {
 };
 
 /// Pseudo-element selectors that take unadorned selectors as arguments.
-final _selectorPseudoElements = {"slotted"};
+@internal
+final selectorPseudoElements = {"slotted"};
 
 /// A parser for selectors.
+///
+/// This class is largely duplicated between here and [SelectorParser]. Most
+/// changes here should be mirrored there and vice versa.
 class SelectorParser extends Parser {
   /// Whether this parser allows the parent selector `&`.
   final bool _allowParent;
@@ -236,7 +242,7 @@ class SelectorParser extends Parser {
         if (_plainCss) {
           error(
             "Placeholder selectors aren't allowed in plain CSS.",
-            scanner.spanFrom(start),
+            spanFrom(start),
           );
         }
         return selector;
@@ -247,7 +253,7 @@ class SelectorParser extends Parser {
         if (!allowParent) {
           error(
             "Parent selectors aren't allowed here.",
-            scanner.spanFrom(start),
+            spanFrom(start),
           );
         }
         return selector;
@@ -316,7 +322,7 @@ class SelectorParser extends Parser {
 
   /// Consumes an attribute selector's operator.
   AttributeOperator _attributeOperator() {
-    var start = scanner.state;
+    var start = scanner.position;
     switch (scanner.readChar()) {
       case $equal:
         return AttributeOperator.equal;
@@ -342,7 +348,7 @@ class SelectorParser extends Parser {
         return AttributeOperator.substring;
 
       default:
-        scanner.error('Expected "]".', position: start.position);
+        scanner.error('Expected "]".', position: start);
     }
   }
 
@@ -402,12 +408,12 @@ class SelectorParser extends Parser {
     String? argument;
     SelectorList? selector;
     if (element) {
-      if (_selectorPseudoElements.contains(unvendored)) {
+      if (selectorPseudoElements.contains(unvendored)) {
         selector = _selectorList();
       } else {
         argument = declarationValue(allowEmpty: true);
       }
-    } else if (_selectorPseudoClasses.contains(unvendored)) {
+    } else if (selectorPseudoClasses.contains(unvendored)) {
       selector = _selectorList();
     } else if (unvendored == "nth-child" || unvendored == "nth-last-child") {
       argument = _aNPlusB();
@@ -486,16 +492,12 @@ class SelectorParser extends Parser {
       return scanner.scanChar($asterisk)
           ? UniversalSelector(spanFrom(start), namespace: "*")
           : TypeSelector(
-              QualifiedName(identifier(), namespace: "*"),
-              spanFrom(start),
-            );
+              QualifiedName(identifier(), namespace: "*"), spanFrom(start));
     } else if (scanner.scanChar($pipe)) {
       return scanner.scanChar($asterisk)
           ? UniversalSelector(spanFrom(start), namespace: "")
           : TypeSelector(
-              QualifiedName(identifier(), namespace: ""),
-              spanFrom(start),
-            );
+              QualifiedName(identifier(), namespace: ""), spanFrom(start));
     }
 
     var nameOrNamespace = identifier();
@@ -505,9 +507,8 @@ class SelectorParser extends Parser {
       return UniversalSelector(spanFrom(start), namespace: nameOrNamespace);
     } else {
       return TypeSelector(
-        QualifiedName(identifier(), namespace: nameOrNamespace),
-        spanFrom(start),
-      );
+          QualifiedName(identifier(), namespace: nameOrNamespace),
+          spanFrom(start));
     }
   }
 

@@ -56,7 +56,7 @@ jobs:
             target: android-riscv64
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
@@ -100,7 +100,7 @@ jobs:
           subject-path: build/*.tar.gz
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: build-${{ matrix.target }}
           path: build/*.tar.gz

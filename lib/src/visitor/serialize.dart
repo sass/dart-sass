@@ -363,7 +363,7 @@ final class _SerializeVisitor
     // If `node` is a custom property that was parsed as a normal Sass-syntax
     // property (such as `#{--foo}: ...`), we serialize its value using the
     // normal Sass property logic as well.
-    if (node.isCustomProperty && node.parsedAsCustomProperty) {
+    if (!node.parsedAsSassScript) {
       _for(node.value, () {
         if (_isCompressed) {
           _writeFoldedValue(node);

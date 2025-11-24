@@ -2,7 +2,7 @@
   "name": "@sass/types",
   "version": "auto",
   "description": "A standalone types package for the Sass JS API",
-  "repository": "sass/sass",
+  "repository": "sass/dart-sass",
   "author": "Google Inc.",
   "license": "MIT",
   "exports": {

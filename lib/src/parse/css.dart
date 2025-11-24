@@ -37,7 +37,7 @@ final _disallowedFunctionNames =
 class CssParser extends ScssParser {
   bool get plainCss => true;
 
-  CssParser(super.contents, {super.url});
+  CssParser(super.contents, {super.url, super.parseSelectors});
 
   bool silentComment() {
     if (inExpression) return false;
@@ -46,7 +46,7 @@ class CssParser extends ScssParser {
     super.silentComment();
     error(
       "Silent comments aren't allowed in plain CSS.",
-      scanner.spanFrom(start),
+      spanFrom(start),
     );
   }
 
@@ -67,7 +67,6 @@ class CssParser extends ScssParser {
       "error" ||
       "extend" ||
       "for" ||
-      "function" ||
       "if" ||
       "include" ||
       "mixin" ||
@@ -76,6 +75,7 @@ class CssParser extends ScssParser {
       "while" =>
         _forbiddenAtRule(start),
       "import" => _cssImportRule(start),
+      "function" => _cssFunctionRule(start, name),
       "media" => mediaRule(start),
       "-moz-document" => mozDocumentRule(start, name),
       "supports" => supportsRule(start),
@@ -86,7 +86,7 @@ class CssParser extends ScssParser {
   /// Throws an error for a forbidden at-rule.
   Never _forbiddenAtRule(LineScannerState start) {
     almostAnyValue();
-    error("This at-rule isn't allowed in plain CSS.", scanner.spanFrom(start));
+    error("This at-rule isn't allowed in plain CSS.", spanFrom(start));
   }
 
   /// Consumes a plain-CSS `@import` rule that disallows interpolation.
@@ -128,8 +128,22 @@ class CssParser extends ScssParser {
     var modifiers = tryImportModifiers();
     expectStatementSeparator("@import rule");
     return ImportRule([
-      StaticImport(url, scanner.spanFrom(urlStart), modifiers: modifiers),
-    ], scanner.spanFrom(start));
+      StaticImport(url, spanFrom(urlStart), modifiers: modifiers),
+    ], spanFrom(start));
+  }
+
+  /// Consumes a plain CSS function declaration.
+  ///
+  /// [start] should point before the `@`.
+  Statement _cssFunctionRule(LineScannerState start, Interpolation atRuleName) {
+    whitespace(consumeNewlines: true);
+    if (!scanner.matches('--')) {
+      almostAnyValue();
+      error(
+          "This at-rule isn't allowed in plain CSS.", scanner.spanFrom(start));
+    } else {
+      return unknownAtRule(start, atRuleName);
+    }
   }
 
   ParenthesizedExpression parentheses() {
@@ -140,7 +154,7 @@ class CssParser extends ScssParser {
     _whitespace();
     var expression = expressionUntilComma();
     scanner.expectChar($rparen);
-    return ParenthesizedExpression(expression, scanner.spanFrom(start));
+    return ParenthesizedExpression(expression, spanFrom(start));
   }
 
   Expression identifierLike() {
@@ -179,14 +193,14 @@ class CssParser extends ScssParser {
     if (_disallowedFunctionNames.contains(plain)) {
       error(
         "This function isn't allowed in plain CSS.",
-        scanner.spanFrom(start),
+        spanFrom(start),
       );
     }
 
     return FunctionExpression(
       plain,
-      ArgumentList(arguments, const {}, scanner.spanFrom(beforeArguments)),
-      scanner.spanFrom(start),
+      ArgumentList(arguments, const {}, spanFrom(beforeArguments)),
+      spanFrom(start),
     );
   }
 

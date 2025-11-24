@@ -5,6 +5,7 @@ inputs:
   node-version: {required: false, default: 'lts/*'}
   dart-sdk: {required: false, default: stable}
   architecture: {required: false}
+  for-npm-deploy: {required: false, default: false}
 runs:
   using: composite
   steps:
@@ -14,8 +15,21 @@ runs:
         architecture: "${{ inputs.architecture }}"
 
     - uses: actions/setup-node@v6
+      if: "inputs.for-npm-deploy != true"
       with:
         node-version: "${{ inputs.node-version }}"
+
+    - uses: actions/setup-node@v6
+      if: inputs.for-npm-deploy == true
+      with:
+        node-version: "${{ inputs.node-version }}"
+        check-latest: true
+        registry-url: 'https://registry.npmjs.org'
+
+    # npm trusted publisher infrastructure requires npm >=11.5.1
+    - run: npm install -g npm@latest
+      if: inputs.for-npm-deploy == true
+      shell: ${{ runner.os == 'Windows' && 'powershell' || 'bash' }}
 
     # See: https://github.com/dart-lang/sdk/issues/52266
     - run: Invoke-WebRequest https://pub.dev
@@ -45,7 +59,7 @@ runs:
     # downloading repo via GitHub API.
     - name: Check out the language repo
       if: github.event_name != 'pull_request'
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with: {repository: sass/sass, path: build/language}
 
     - name: Generate Dart from protobuf

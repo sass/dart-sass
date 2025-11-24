@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:source_span/source_span.dart';
-import 'package:stack_trace/stack_trace.dart';
 
 import '../../../value.dart';
 import '../../../visitor/interface/modifiable_css.dart';
@@ -16,8 +15,7 @@ final class ModifiableCssDeclaration extends ModifiableCssNode
     implements CssDeclaration {
   final CssValue<String> name;
   final CssValue<Value> value;
-  final bool parsedAsCustomProperty;
-  final Trace? trace;
+  final bool parsedAsSassScript;
   final FileSpan valueSpanForMap;
   final FileSpan span;
 
@@ -28,19 +26,13 @@ final class ModifiableCssDeclaration extends ModifiableCssNode
     this.name,
     this.value,
     this.span, {
-    required this.parsedAsCustomProperty,
-    this.trace,
+    required this.parsedAsSassScript,
     FileSpan? valueSpanForMap,
   }) : valueSpanForMap = valueSpanForMap ?? value.span {
-    if (parsedAsCustomProperty) {
-      if (!isCustomProperty) {
+    if (!parsedAsSassScript) {
+      if (value.value is! SassString) {
         throw ArgumentError(
-          'parsedAsCustomProperty must be false if name doesn\'t begin with '
-          '"--".',
-        );
-      } else if (value.value is! SassString) {
-        throw ArgumentError(
-          'If parsedAsCustomProperty is true, value must contain a SassString '
+          'If parsedAsSassScript is false, value must contain a SassString '
           '(was `$value` of type ${value.value.runtimeType}).',
         );
       }
