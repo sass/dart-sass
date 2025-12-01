@@ -2154,11 +2154,12 @@ abstract class StylesheetParser extends Parser {
           length: operator.operator.length,
         );
       }
+      var operatorEnd = scanner.position;
       whitespace(consumeNewlines: true);
 
       if (operator == BinaryOperator.modulo && !_lookingAtExpression()) {
         addSingleExpression(StringExpression.plain(
-            '%', spanFromPosition(scanner.position - 1)));
+            '%', spanFromPosition(operatorEnd - 1, operatorEnd)));
       } else {
         operators.add(operator);
         operands.add(singleExpression);
