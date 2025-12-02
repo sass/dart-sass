@@ -1,4 +1,4 @@
-## 0.4.36-dev
+## 0.4.36
 
 * No user-visible changes.
 

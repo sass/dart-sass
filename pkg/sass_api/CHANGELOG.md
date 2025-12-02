@@ -1,6 +1,6 @@
-## 16.0.3-dev
+## 16.0.3
 
-* No user-visible changes.
+* Add the missing members of `RecursiveAstVisitor`.
 
 ## 16.0.2
 
