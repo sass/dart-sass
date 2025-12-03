@@ -134,6 +134,7 @@ mixin ReplaceExpressionVisitor
           for (var (name, value) in invocation.named.pairs)
             name: value.accept(this),
         },
+        invocation.namedSpans,
         invocation.span,
         rest: invocation.rest?.accept(this),
         keywordRest: invocation.keywordRest?.accept(this),

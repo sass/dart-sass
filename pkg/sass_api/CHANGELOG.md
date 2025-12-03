@@ -13,6 +13,8 @@
 * Add an `ExpressionVisitable` interface for anything visitable by an
   `ExpressionVisitor` (currently `Expression` and `IfConditionExpression`).
 
+* Add a `ArgumentList.namedSpans` field.
+
 ## 16.0.3
 
 * Add several members of `RecursiveAstVisitor` which were mising in the previous

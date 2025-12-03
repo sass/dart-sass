@@ -203,7 +203,7 @@ class CssParser extends ScssParser {
 
     return FunctionExpression(
       plain,
-      ArgumentList(arguments, const {}, spanFrom(beforeArguments)),
+      ArgumentList(arguments, const {}, const {}, spanFrom(beforeArguments)),
       spanFrom(start),
     );
   }

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 0f55a90c029d7b2041baf51afba2694bc1aa115d
+// Checksum: aa53924147f65640b94768e22bb339b0d5c5714a
 //
 // ignore_for_file: unused_import
 
@@ -525,8 +525,9 @@ final class _EvaluateVisitor
 
         var callableNode = _callableNode!;
         var invocation = ArgumentList(
-          [],
-          {},
+          const [],
+          const {},
+          const {},
           callableNode.span,
           rest: ValueExpression(args, callableNode.span),
           keywordRest: args.keywords.isEmpty
@@ -632,6 +633,7 @@ final class _EvaluateVisitor
           var callableNode = _callableNode!;
           var invocation = ArgumentList(
             const [],
+            const {},
             const {},
             callableNode.span,
             rest: ValueExpression(args, callableNode.span),

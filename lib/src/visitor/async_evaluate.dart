@@ -517,8 +517,9 @@ final class _EvaluateVisitor
 
         var callableNode = _callableNode!;
         var invocation = ArgumentList(
-          [],
-          {},
+          const [],
+          const {},
+          const {},
           callableNode.span,
           rest: ValueExpression(args, callableNode.span),
           keywordRest: args.keywords.isEmpty
@@ -624,6 +625,7 @@ final class _EvaluateVisitor
           var callableNode = _callableNode!;
           var invocation = ArgumentList(
             const [],
+            const {},
             const {},
             callableNode.span,
             rest: ValueExpression(args, callableNode.span),

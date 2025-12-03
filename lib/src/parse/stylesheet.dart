@@ -1862,6 +1862,7 @@ abstract class StylesheetParser extends Parser {
 
     var positional = <Expression>[];
     var named = <String, Expression>{};
+    var namedSpans = <String, FileSpan>{};
     Expression? rest;
     Expression? keywordRest;
     var emittedRestDeprecation = false;
@@ -1874,7 +1875,9 @@ abstract class StylesheetParser extends Parser {
         if (named.containsKey(expression.name)) {
           error("Duplicate argument.", expression.span);
         }
-        named[expression.name] = expressionUntilComma(singleEquals: !mixin);
+        var value = expressionUntilComma(singleEquals: !mixin);
+        named[expression.name] = value;
+        namedSpans[expression.name] = expression.span.expand(value.span);
 
         if (rest != null && !emittedRestDeprecation) {
           emittedRestDeprecation = true;
@@ -1935,6 +1938,7 @@ abstract class StylesheetParser extends Parser {
     return ArgumentList(
       positional,
       named,
+      namedSpans,
       spanFrom(start),
       rest: rest,
       keywordRest: keywordRest,

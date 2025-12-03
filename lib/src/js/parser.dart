@@ -147,7 +147,7 @@ void _updateAstPrototypes() {
                 IfConditionExpressionVisitor<Object?> visitor) =>
             self.accept(visitor),
       );
-  var arguments = ArgumentList([], {}, bogusSpan);
+  var arguments = ArgumentList(const [], const {}, const {}, bogusSpan);
   getJSClass(
     IncludeRule('a', arguments, bogusSpan),
   ).defineGetter('arguments', (IncludeRule self) => self.arguments);

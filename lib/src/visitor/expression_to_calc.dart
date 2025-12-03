@@ -16,6 +16,7 @@ FunctionExpression expressionToCalc(Expression expression) =>
       ArgumentList(
         [expression.accept(const _MakeExpressionCalculationSafe())],
         const {},
+        const {},
         expression.span,
       ),
       expression.span,
@@ -34,7 +35,7 @@ class _MakeExpressionCalculationSafe with ReplaceExpressionVisitor {
       // to work around it by wrapping the call in a Sass function.
       ? FunctionExpression(
           'max',
-          ArgumentList([node], const {}, node.span),
+          ArgumentList([node], const {}, const {}, node.span),
           node.span,
           namespace: 'math',
         )
