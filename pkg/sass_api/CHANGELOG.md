@@ -1,6 +1,7 @@
 ## 16.0.3
 
-* Add the missing members of `RecursiveAstVisitor`.
+* Add several members of `RecursiveAstVisitor` which were mising in the previous
+  release.
 
 ## 16.0.2
 
