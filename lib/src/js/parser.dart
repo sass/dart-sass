@@ -20,12 +20,14 @@ import '../util/span.dart';
 import '../util/lazy_file_span.dart';
 import '../util/string.dart';
 import '../visitor/interface/expression.dart';
+import '../visitor/interface/if_condition_expression.dart';
 import '../visitor/interface/interpolated_selector.dart';
 import '../visitor/interface/statement.dart';
 import 'reflection.dart';
 import 'set.dart';
 import 'utils.dart';
 import 'visitor/expression.dart';
+import 'visitor/if_condition_expression.dart';
 import 'visitor/statement.dart';
 
 @JS()
@@ -36,6 +38,7 @@ class ParserExports {
     required Function parseIdentifier,
     required Function toCssIdentifier,
     required Function createExpressionVisitor,
+    required Function createIfConditionExpressionVisitor,
     required Function createStatementVisitor,
     required Function createSimpleSelectorVisitor,
     required Function createSourceFile,
@@ -70,6 +73,10 @@ ParserExports loadParserExports() {
     toCssIdentifier: allowInterop(_toCssIdentifier),
     createExpressionVisitor: allowInterop(
       (JSExpressionVisitorObject inner) => JSExpressionVisitor(inner),
+    ),
+    createIfConditionExpressionVisitor: allowInterop(
+      (JSIfConditionExpressionVisitorObject inner) =>
+          JSIfConditionExpressionVisitor(inner),
     ),
     createStatementVisitor: allowInterop(
       (JSStatementVisitorObject inner) => JSStatementVisitor(inner),
@@ -133,7 +140,14 @@ void _updateAstPrototypes() {
                 InterpolatedSelectorVisitor<Object?> visitor) =>
             self.accept(visitor),
       );
-  var arguments = ArgumentList([], {}, bogusSpan);
+  var ifConditionExpression = IfConditionSass(string, bogusSpan);
+  getJSClass(ifConditionExpression).superclass.defineMethod(
+        'accept',
+        (IfConditionExpression self,
+                IfConditionExpressionVisitor<Object?> visitor) =>
+            self.accept(visitor),
+      );
+  var arguments = ArgumentList(const [], const {}, const {}, bogusSpan);
   getJSClass(
     IncludeRule('a', arguments, bogusSpan),
   ).defineGetter('arguments', (IncludeRule self) => self.arguments);
@@ -144,17 +158,21 @@ void _updateAstPrototypes() {
     FunctionExpression('a', arguments, bogusSpan),
   ).defineGetter('arguments', (FunctionExpression self) => self.arguments);
   getJSClass(
-    IfExpression(arguments, bogusSpan),
-  ).defineGetter('arguments', (IfExpression self) => self.arguments);
+    LegacyIfExpression(arguments, bogusSpan),
+  ).defineGetter('arguments', (LegacyIfExpression self) => self.arguments);
   getJSClass(
     InterpolatedFunctionExpression(_interpolation, arguments, bogusSpan),
   ).defineGetter(
       'arguments', (InterpolatedFunctionExpression self) => self.arguments);
+  getJSClass(
+    IfConditionFunction(_interpolation, _interpolation, bogusSpan),
+  ).defineGetter('arguments', (IfConditionFunction self) => self.arguments);
 
   _addSupportsConditionToInterpolation();
 
   var klass = InterpolatedClassSelector(_interpolation);
   var compound = InterpolatedCompoundSelector([klass]);
+  var ifConditionSass = IfConditionSass(string, bogusSpan);
   for (var node in [
     string,
     BinaryOperationExpression(BinaryOperator.plus, string, string),
@@ -171,6 +189,9 @@ void _updateAstPrototypes() {
           [InterpolatedComplexSelectorComponent(compound, bogusSpan)],
           bogusSpan)
     ]),
+    IfConditionOperation(
+        [ifConditionSass, ifConditionSass], BooleanOperator.and),
+    IfConditionRaw(_interpolation),
   ]) {
     getJSClass(node).defineGetter('span', (AstNode self) => self.span);
   }
@@ -188,7 +209,7 @@ void _addSupportsConditionToInterpolation() {
     SupportsFunction(_interpolation, _interpolation, bogusSpan),
     SupportsInterpolation(_expression, bogusSpan),
     SupportsNegation(anything, bogusSpan),
-    SupportsOperation(anything, anything, "and", bogusSpan),
+    SupportsOperation(anything, anything, BooleanOperator.and, bogusSpan),
   ]) {
     getJSClass(node).defineMethod(
       'toInterpolation',

@@ -1,6 +1,6 @@
 ## 0.4.36
 
-* No user-visible changes.
+* Add support for the CSS `if()` expression and its Sass extensions.
 
 ## 0.4.35
 
@@ -12,7 +12,7 @@
 
 ## 0.4.33
 
-* No user-visible changes.
+* Add support for parsing selectors.
 
 ## 0.4.32
 

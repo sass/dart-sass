@@ -1,3 +1,20 @@
+## 17.0.0
+
+* Rename the old `IfExpression` class to `LegacyIfExpression`.
+
+* Add a new `IfExpression` class to represent the CSS `if()` function.
+
+* Add a sealed `IfConditionExpression` class which represents the possible
+  condition components in an `IfExpression`.
+
+* Add a `BinaryOperator` enumeration and use it for
+  `SupportsOperation.operator`.
+
+* Add an `ExpressionVisitable` interface for anything visitable by an
+  `ExpressionVisitor` (currently `Expression` and `IfConditionExpression`).
+
+* Add a `ArgumentList.namedSpans` field.
+
 ## 16.0.3
 
 * Add several members of `RecursiveAstVisitor` which were mising in the previous

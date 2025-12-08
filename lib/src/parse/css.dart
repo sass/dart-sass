@@ -13,7 +13,6 @@ import 'scss.dart';
 /// The set of all function names disallowed in plain CSS.
 final _disallowedFunctionNames =
     globalFunctions.map((function) => function.name).toSet()
-      ..add("if")
       ..remove("abs")
       ..remove("alpha")
       ..remove("color")
@@ -169,8 +168,13 @@ class CssParser extends ScssParser {
 
     var beforeArguments = scanner.state;
     // `namespacedExpression()` is just here to throw a clearer error.
-    if (scanner.scanChar($dot)) return namespacedExpression(plain, start);
-    if (!scanner.scanChar($lparen)) return StringExpression(identifier);
+    if (scanner.scanChar($dot)) {
+      return namespacedExpression(plain, start);
+    } else if (lower == "if" && scanner.peekChar() == $lparen) {
+      return ifExpression(start);
+    } else if (!scanner.scanChar($lparen)) {
+      return StringExpression(identifier);
+    }
 
     var allowEmptySecondArg = lower == 'var';
     var arguments = <Expression>[];
@@ -199,7 +203,7 @@ class CssParser extends ScssParser {
 
     return FunctionExpression(
       plain,
-      ArgumentList(arguments, const {}, spanFrom(beforeArguments)),
+      ArgumentList(arguments, const {}, const {}, spanFrom(beforeArguments)),
       spanFrom(start),
     );
   }

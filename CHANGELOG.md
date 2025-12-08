@@ -1,3 +1,28 @@
+## 1.95.0
+
+* Add support for the [CSS-style `if()` function]. In addition to supporting the
+  plain CSS syntax, this also supports a `sass()` query that takes a Sass
+  expression that evaluates to `true` or `false` at preprocessing time depending
+  on whether the Sass value is truthy. If there are no plain-CSS queries, the
+  function will return the first value whose query returns true during
+  preprocessing. For example, `if(sass(false): 1; sass(true): 2; else: 3)`
+  returns `2`.
+
+  [CSS-style `if()` function]: https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/if
+
+* The old Sass `if()` syntax is now deprecated. Users are encouraged to migrate
+  to the new CSS syntax. `if($condition, $if-true, $if-false)` can be changed to
+  `if(sass($condition): $if-true; else: $if-false)`.
+
+  See [the Sass website](https://sass-lang.com/d/css-if) for details.
+
+* Plain-CSS `if()` functions are now considered "special numbers", meaning that
+  they can be used in place of arguments to CSS color functions.
+
+* Plain-CSS `if()` functions and `attr()` functions are now considered "special
+  variable strings" (like `var()`), meaning they can now be used in place of
+  multiple arguments or syntax fragments in various CSS functions.
+
 ## 1.94.3
 
 * Fix the span reported for standalone `%` expressions followed by whitespace.

@@ -1862,6 +1862,7 @@ abstract class StylesheetParser extends Parser {
 
     var positional = <Expression>[];
     var named = <String, Expression>{};
+    var namedSpans = <String, FileSpan>{};
     Expression? rest;
     Expression? keywordRest;
     var emittedRestDeprecation = false;
@@ -1874,7 +1875,9 @@ abstract class StylesheetParser extends Parser {
         if (named.containsKey(expression.name)) {
           error("Duplicate argument.", expression.span);
         }
-        named[expression.name] = expressionUntilComma(singleEquals: !mixin);
+        var value = expressionUntilComma(singleEquals: !mixin);
+        named[expression.name] = value;
+        namedSpans[expression.name] = expression.span.expand(value.span);
 
         if (rest != null && !emittedRestDeprecation) {
           emittedRestDeprecation = true;
@@ -1935,6 +1938,7 @@ abstract class StylesheetParser extends Parser {
     return ArgumentList(
       positional,
       named,
+      namedSpans,
       spanFrom(start),
       rest: rest,
       keywordRest: keywordRest,
@@ -2938,11 +2942,35 @@ abstract class StylesheetParser extends Parser {
     late String? lower;
     if (plain != null) {
       if (plain == "if" && scanner.peekChar() == $lparen) {
-        var invocation = _argumentInvocation();
-        return IfExpression(
-          invocation,
-          identifier.span.expand(invocation.span),
-        );
+        // Although legacy and modern if syntax isn't ambiguous, we'd need
+        // arbitrary lookahead to disambiguate between them. Doing that manually
+        // would be difficult, so instead we try parsing one and fall back to
+        // the other.
+        var beforeParen = scanner.state;
+        try {
+          var invocation = _argumentInvocation();
+          var expression = LegacyIfExpression(
+              invocation, identifier.span.expand(invocation.span));
+          warnings.add((
+            deprecation: Deprecation.ifFunction,
+            message:
+                'The Sass if() syntax is deprecated in favor of the modern CSS syntax.\n'
+                        '\n' +
+                    switch (expression.modernSuggestion) {
+                      var suggestion? => 'Suggestion: $suggestion\n'
+                          '\n',
+                      _ => ''
+                    } +
+                    'More info: https://sass-lang.com/d/if-function',
+            span: expression.span,
+          ));
+          return expression;
+        } on FormatException {
+          scanner.state = beforeParen;
+          return ifExpression(start);
+        }
+      } else if (plain.toLowerCase() == "if" && scanner.peekChar() == $lparen) {
+        return ifExpression(start);
       } else if (plain == "not") {
         whitespace(consumeNewlines: true);
         var expression = _singleExpression();
@@ -3008,6 +3036,255 @@ abstract class StylesheetParser extends Parser {
       case _:
         return StringExpression(identifier);
     }
+  }
+
+  /// Consumes a modern CSS-style `if()` expression, starting after the name.
+  @protected
+  IfExpression ifExpression(LineScannerState start) {
+    scanner.expectChar($lparen);
+    whitespace(consumeNewlines: true);
+    var branches = <(IfConditionExpression?, Expression)>[];
+    while (scanner.peekChar() != $rparen) {
+      var condition = scanIdentifier("else") ? null : _ifConditionExpression();
+      whitespace(consumeNewlines: true);
+      scanner.expectChar($colon);
+      whitespace(consumeNewlines: true);
+      branches.add((condition, _expression(consumeNewlines: true)));
+      whitespace(consumeNewlines: true);
+      if (!scanner.scanChar($semicolon)) break;
+      whitespace(consumeNewlines: true);
+    }
+    scanner.expectChar($rparen);
+    return IfExpression(branches, scanner.spanFrom(start));
+  }
+
+  /// Consumes a modern CSS-style `if()` condition.
+  IfConditionExpression _ifConditionExpression() {
+    var start = scanner.state;
+    if (scanIdentifier("not")) {
+      if (scanner.peekChar() == $lparen) {
+        scanner.error('Whitespace is required between "not" and "("');
+      }
+
+      whitespace(consumeNewlines: true);
+      var group = _ifGroup();
+      return IfConditionNegation(group, scanner.spanFrom(start));
+    }
+
+    var groups = [_ifGroup()];
+    BooleanOperator? op;
+
+    whitespace(consumeNewlines: true);
+    while (true) {
+      if (op != BooleanOperator.or && scanIdentifier("and")) {
+        if (scanner.peekChar() == $lparen) {
+          scanner.error('Whitespace is required between "and" and "("');
+        }
+
+        whitespace(consumeNewlines: true);
+        op ??= BooleanOperator.and;
+        groups.add(_ifGroup());
+      } else if (op != BooleanOperator.and && scanIdentifier("or")) {
+        if (scanner.peekChar() == $lparen) {
+          scanner.error('Whitespace is required between "and" and "("');
+        }
+
+        whitespace(consumeNewlines: true);
+        op ??= BooleanOperator.or;
+        groups.add(_ifGroup());
+      } else if (scanner.peekChar() case var next?
+          when next != $rparen &&
+              next != $colon &&
+              groups.last.isArbitrarySubstitution) {
+        return _ifConditionRaw(
+            switch (groups) {
+              [var single] => single,
+              _ => IfConditionOperation(groups, op!),
+            },
+            _ifGroup());
+      } else if (_tryArbitrarySubstitution() case var substitution?) {
+        return _ifConditionRaw(
+            switch (groups) {
+              [var single] => single,
+              _ => IfConditionOperation(groups, op!),
+            },
+            substitution);
+      } else {
+        break;
+      }
+
+      whitespace(consumeNewlines: true);
+    }
+
+    return switch (groups) {
+      [var single] => single,
+      _ => IfConditionOperation(groups, op!),
+    };
+  }
+
+  /// Consumes the remainder of what would have been an [IfConditionOperation]
+  /// as an [IfConditionRaw] instead.
+  ///
+  /// This is called immediately after the expression [next] is consumed between
+  /// groups. It expects that one of the following is true:
+  ///
+  /// * [preceding] is an [IfConditionOperation] whose final expression is an
+  ///   arbitrary substitution function, or
+  /// * [preceding] is an arbitrary substitution function, or
+  /// * [next] is an arbitrary substitution function.
+  IfConditionRaw _ifConditionRaw(
+      IfConditionExpression preceding, IfConditionExpression next) {
+    var substitution = switch (preceding) {
+      IfConditionExpression(isArbitrarySubstitution: true) => preceding,
+      IfConditionOperation(expressions: [..., var last])
+          when last.isArbitrarySubstitution =>
+        last,
+      _ when next.isArbitrarySubstitution => next,
+      _ => throw ArgumentError(
+          "Either $preceding must end with an arbitrary substitution or $next "
+          "must be one.")
+    };
+
+    var buffer = InterpolationBuffer()
+      ..addInterpolation(preceding.toInterpolation(substitution))
+      ..writeCharCode($space)
+      ..addInterpolation(next.toInterpolation(substitution));
+
+    var lastGroup = next;
+    var op = preceding is IfConditionOperation ? preceding.op : null;
+
+    whitespace(consumeNewlines: true);
+    while (true) {
+      if (op != BooleanOperator.or && scanIdentifier("and")) {
+        if (scanner.peekChar() == $lparen) {
+          scanner.error('Whitespace is required between "and" and "("');
+        }
+
+        whitespace(consumeNewlines: true);
+        op ??= BooleanOperator.and;
+        var lastGroup = _ifGroup();
+        buffer
+          ..write(" and ")
+          ..addInterpolation(lastGroup.toInterpolation(substitution));
+      } else if (op != BooleanOperator.and && scanIdentifier("or")) {
+        if (scanner.peekChar() == $lparen) {
+          scanner.error('Whitespace is required between "or" and "("');
+        }
+
+        whitespace(consumeNewlines: true);
+        op ??= BooleanOperator.or;
+        lastGroup = _ifGroup();
+        whitespace(consumeNewlines: true);
+        buffer
+          ..write(" or ")
+          ..addInterpolation(lastGroup.toInterpolation(substitution));
+      } else if (scanner.peekChar() case var next?
+          when next != $rparen &&
+              next != $colon &&
+              lastGroup.isArbitrarySubstitution) {
+        lastGroup = _ifGroup();
+        buffer
+          ..writeCharCode($space)
+          ..addInterpolation(lastGroup.toInterpolation(substitution));
+      } else if (_tryArbitrarySubstitution() case var next?) {
+        lastGroup = next;
+        buffer
+          ..writeCharCode($space)
+          ..addInterpolation(lastGroup.toInterpolation(substitution));
+      } else {
+        break;
+      }
+
+      whitespace(consumeNewlines: true);
+    }
+
+    return IfConditionRaw(
+        buffer.interpolation(preceding.span.expand(scanner.emptySpan)));
+  }
+
+  /// Consumes a grouped expression in a CSS-style `if()` condition.
+  IfConditionExpression _ifGroup() {
+    var start = scanner.state;
+    switch (scanner.peekChar()) {
+      case $lparen:
+        scanner.expectChar($lparen);
+        whitespace(consumeNewlines: true);
+        var expression = _ifConditionExpression();
+        whitespace(consumeNewlines: true);
+        scanner.expectChar($rparen);
+        return IfConditionParenthesized(expression, scanner.spanFrom(start));
+
+      case _ when scanIdentifier("sass", caseSensitive: true):
+        scanner.expectChar($lparen);
+        whitespace(consumeNewlines: true);
+        var expression = _expression();
+        whitespace(consumeNewlines: true);
+        scanner.expectChar($rparen);
+
+        if (plainCss) {
+          error("sass() conditions aren't allowed in plain CSS",
+              scanner.spanFrom(start));
+        } else {
+          return IfConditionSass(expression, scanner.spanFrom(start));
+        }
+
+      case _:
+        var identifier = interpolatedIdentifier();
+        switch (identifier) {
+          case Interpolation(contents: [Expression _])
+              when scanner.peekChar() != $lparen:
+            return IfConditionRaw(identifier);
+
+          case Interpolation(asPlain: var plain?)
+              when const {"and", "or", "not"}.contains(plain.toLowerCase()) &&
+                  scanner.peekChar() == $lparen:
+            scanner
+                .error('Whitespace is required between "$identifier" and "("');
+        }
+
+        scanner.expectChar($lparen);
+        whitespace(consumeNewlines: true);
+        var expression = _interpolatedDeclarationValue(
+            allowEmpty: true, allowSemicolon: true, consumeNewlines: true);
+        whitespace(consumeNewlines: true);
+        scanner.expectChar($rparen);
+        return IfConditionFunction(
+            identifier, expression, scanner.spanFrom(start));
+    }
+  }
+
+  /// Consumes an arbitrary substitution expression, or returns null if there
+  /// isn't one to consume.
+  IfConditionExpression? _tryArbitrarySubstitution() {
+    if (scanner.peekChar() == $hash) {
+      var (expression, span) = singleInterpolation();
+      return IfConditionRaw(
+          (InterpolationBuffer()..add(expression, span)).interpolation(span));
+    }
+
+    var start = scanner.state;
+    var name = switch (null) {
+      _ when scanIdentifier("if") =>
+        Interpolation.plain("if", scanner.spanFrom(start)),
+      _ when scanIdentifier("var") =>
+        Interpolation.plain("var", scanner.spanFrom(start)),
+      _ when scanIdentifier("attr") =>
+        Interpolation.plain("attr", scanner.spanFrom(start)),
+      _ when scanner.matches("--") => interpolatedIdentifier(),
+      _ => null,
+    };
+
+    if (name == null) return null;
+    if (!scanner.scanChar($lparen)) {
+      scanner.state = start;
+      return null;
+    }
+
+    var arguments = _interpolatedDeclarationValue(
+        allowEmpty: true, allowSemicolon: true, consumeNewlines: true);
+    scanner.expectChar($rparen);
+
+    return IfConditionFunction(name, arguments, scanner.spanFrom(start));
   }
 
   /// Consumes an expression after a namespace.
@@ -4130,15 +4407,15 @@ abstract class StylesheetParser extends Parser {
 
     var condition = _supportsConditionInParens();
     whitespace(consumeNewlines: inParentheses);
-    String? operator;
+    BooleanOperator? operator;
     while (lookingAtIdentifier()) {
       if (operator != null) {
-        expectIdentifier(operator);
+        expectIdentifier(operator.name);
       } else if (scanIdentifier("or")) {
-        operator = "or";
+        operator = BooleanOperator.or;
       } else {
         expectIdentifier("and");
-        operator = "and";
+        operator = BooleanOperator.and;
       }
 
       whitespace(consumeNewlines: inParentheses);
@@ -4278,14 +4555,14 @@ abstract class StylesheetParser extends Parser {
     whitespace(consumeNewlines: true);
 
     SupportsOperation? operation;
-    String? operator;
+    BooleanOperator? operator;
     while (lookingAtIdentifier()) {
       if (operator != null) {
-        expectIdentifier(operator);
+        expectIdentifier(operator.name);
       } else if (scanIdentifier("and")) {
-        operator = "and";
+        operator = BooleanOperator.and;
       } else if (scanIdentifier("or")) {
-        operator = "or";
+        operator = BooleanOperator.or;
       } else {
         scanner.state = beforeWhitespace;
         return null;

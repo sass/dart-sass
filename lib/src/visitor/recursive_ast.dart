@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 import '../util/nullable.dart';
 import '../ast/sass.dart';
 import 'interface/expression.dart';
+import 'interface/if_condition_expression.dart';
 import 'interface/interpolated_selector.dart';
 import 'recursive_statement.dart';
 
@@ -23,7 +24,10 @@ import 'recursive_statement.dart';
 ///
 /// {@category Visitor}
 mixin RecursiveAstVisitor on RecursiveStatementVisitor
-    implements ExpressionVisitor<void>, InterpolatedSelectorVisitor<void> {
+    implements
+        ExpressionVisitor<void>,
+        IfConditionExpressionVisitor<void>,
+        InterpolatedSelectorVisitor<void> {
   void visitAtRootRule(AtRootRule node) {
     node.query.andThen(visitInterpolation);
     super.visitAtRootRule(node);
@@ -139,6 +143,8 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
     super.visitWhileRule(node);
   }
 
+  // Expressions
+
   void visitExpression(Expression expression) {
     expression.accept(this);
   }
@@ -162,6 +168,13 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
     visitArgumentList(node.arguments);
   }
 
+  void visitIfExpression(IfExpression node) {
+    for (var (condition, value) in node.branches) {
+      condition?.accept(this);
+      value.accept(this);
+    }
+  }
+
   void visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
   ) {
@@ -169,7 +182,7 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
     visitArgumentList(node.arguments);
   }
 
-  void visitIfExpression(IfExpression node) {
+  void visitLegacyIfExpression(LegacyIfExpression node) {
     visitArgumentList(node.arguments);
   }
 
@@ -211,6 +224,37 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
   void visitValueExpression(ValueExpression node) {}
 
   void visitVariableExpression(VariableExpression node) {}
+
+  // `if()` condition expressions
+
+  void visitIfConditionParenthesized(IfConditionParenthesized node) {
+    node.expression.accept(this);
+  }
+
+  void visitIfConditionNegation(IfConditionNegation node) {
+    node.expression.accept(this);
+  }
+
+  void visitIfConditionOperation(IfConditionOperation node) {
+    for (var node in node.expressions) {
+      node.accept(this);
+    }
+  }
+
+  void visitIfConditionFunction(IfConditionFunction node) {
+    visitInterpolation(node.name);
+    visitInterpolation(node.arguments);
+  }
+
+  void visitIfConditionSass(IfConditionSass node) {
+    node.expression.accept(this);
+  }
+
+  void visitIfConditionRaw(IfConditionRaw node) {
+    visitInterpolation(node.text);
+  }
+
+  // Interpolated selectors
 
   void visitAttributeSelector(InterpolatedAttributeSelector node) {
     visitQualifiedName(node.name);

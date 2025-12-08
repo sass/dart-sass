@@ -49,6 +49,7 @@ import '../value.dart';
 import 'expression_to_calc.dart';
 import 'interface/css.dart';
 import 'interface/expression.dart';
+import 'interface/if_condition_expression.dart';
 import 'interface/modifiable_css.dart';
 import 'interface/statement.dart';
 import 'serialize.dart';
@@ -135,6 +136,7 @@ final class _EvaluateVisitor
     implements
         StatementVisitor<Future<Value?>>,
         ExpressionVisitor<Future<Value>>,
+        IfConditionExpressionVisitor<Future<Object /* String | bool */ >>,
         CssVisitor<Future<void>> {
   /// The import cache used to import other stylesheets.
   final AsyncImportCache? _importCache;
@@ -515,8 +517,9 @@ final class _EvaluateVisitor
 
         var callableNode = _callableNode!;
         var invocation = ArgumentList(
-          [],
-          {},
+          const [],
+          const {},
+          const {},
           callableNode.span,
           rest: ValueExpression(args, callableNode.span),
           keywordRest: args.keywords.isEmpty
@@ -622,6 +625,7 @@ final class _EvaluateVisitor
           var callableNode = _callableNode!;
           var invocation = ArgumentList(
             const [],
+            const {},
             const {},
             callableNode.span,
             rest: ValueExpression(args, callableNode.span),
@@ -2564,7 +2568,7 @@ final class _EvaluateVisitor
   /// necessary if [condition] is also a [SupportsOperation].
   Future<String> _parenthesize(
     SupportsCondition condition, [
-    String? operator,
+    BooleanOperator? operator,
   ]) async {
     switch (condition) {
       case SupportsNegation():
@@ -2832,8 +2836,93 @@ final class _EvaluateVisitor
       SassBoolean(node.value);
 
   Future<Value> visitIfExpression(IfExpression node) async {
+    List<(String, Value)>? results;
+    for (var (condition, expression) in node.branches) {
+      var result = await condition?.accept(this) ?? true;
+      var value = await expression.accept(this);
+      switch (result) {
+        case String condition:
+          results ??= [];
+          results.add((condition, value));
+
+        case true when results != null:
+          results.add(('else', value));
+
+        case true:
+          return value;
+      }
+    }
+
+    if (results == null) return sassNull;
+    return SassString(
+        'if(' +
+            results.map((pair) => '${pair.$1}: ${pair.$2}').join('; ') +
+            ')',
+        quotes: false);
+  }
+
+  Future<Object /* String | bool */ > visitIfConditionParenthesized(
+          IfConditionParenthesized node) async =>
+      switch (await node.expression.accept(this)) {
+        String string => '($string)',
+        var result => result,
+      };
+
+  Future<Object /* String | bool */ > visitIfConditionNegation(
+          IfConditionNegation node) async =>
+      switch (await node.expression.accept(this)) {
+        String string => 'not $string',
+        bool result => !result,
+        _ => throw UnsupportedError('unreachable'),
+      };
+
+  Future<Object /* String | bool */ > visitIfConditionOperation(
+      IfConditionOperation node) async {
+    List<(IfConditionExpression, String)>? values;
+    for (var expression in node.expressions) {
+      switch (await expression.accept(this)) {
+        case String right:
+          values ??= [];
+          values.add((expression, right));
+        case false when node.op == BooleanOperator.and:
+          return false;
+        case true when node.op == BooleanOperator.or:
+          return true;
+      }
+    }
+
+    return switch (values) {
+      null => node.op == BooleanOperator.and,
+
+      // If the only CSS node left in the operation is parenthesized, remove
+      // the parentheses. This is guaranteed to be valid because parentheses
+      // contain an `<if-group>` and this operation is itself an
+      // `<if-group>`.
+      [(IfConditionParenthesized(), var string)] =>
+        string.substring(1, string.length - 1),
+      _ => values.map((pair) => pair.$2).join(' ${node.op} '),
+    };
+  }
+
+  Future<Object /* String | bool */ > visitIfConditionFunction(
+          IfConditionFunction node) async =>
+      (await _performInterpolation(node.name)) +
+      '(' +
+      (await _performInterpolation(node.arguments)) +
+      ')';
+
+  Future<Object /* String | bool */ > visitIfConditionSass(
+          IfConditionSass node) async =>
+      (await node.expression.accept(this)).isTruthy;
+
+  Future<Object /* String | bool */ > visitIfConditionRaw(
+          IfConditionRaw node) async =>
+      await _performInterpolation(node.text);
+
+  Future<Value> visitLegacyIfExpression(LegacyIfExpression node) async {
     var (positional, named) = await _evaluateMacroArguments(node);
-    _verifyArguments(positional.length, named, IfExpression.declaration, node);
+    _verifyArguments(
+        positional.length, named, LegacyIfExpression.declaration, node);
 
     // ignore: prefer_is_empty
     var condition = positional.elementAtOrNull(0) ?? named["condition"]!;
@@ -3204,7 +3293,7 @@ final class _EvaluateVisitor
       case NumberExpression() ||
             VariableExpression() ||
             FunctionExpression() ||
-            IfExpression():
+            LegacyIfExpression():
         return switch (await node.accept(this)) {
           SassNumber result => result,
           SassCalculation result => result,

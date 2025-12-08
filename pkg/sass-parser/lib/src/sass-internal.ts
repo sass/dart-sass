@@ -50,6 +50,12 @@ export interface DartPair<E1, E2> {
   _1: E2;
 }
 
+/// An interface representing simple Dart enums whose string values will be used
+/// by JS.
+export interface DartEnum<N extends string> {
+  name: N;
+}
+
 // There may be a better way to declare this, but I can't figure it out.
 // eslint-disable-next-line @typescript-eslint/no-namespace
 declare namespace SassInternal {
@@ -85,6 +91,14 @@ declare namespace SassInternal {
   function createExpressionVisitor<T>(
     inner: ExpressionVisitorObject<T>,
   ): ExpressionVisitor<T>;
+
+  class IfConditionExpressionVisitor<T> {
+    private _fakePropertyToMakeIfConditionExpressionVisitorAUniqueType: T;
+  }
+
+  function createIfConditionExpressionVisitor<T>(
+    inner: IfConditionExpressionVisitorObject<T>,
+  ): IfConditionExpressionVisitor<T>;
 
   class SassNode {
     readonly span: FileSpan;
@@ -254,50 +268,7 @@ declare namespace SassInternal {
     readonly condition: SupportsCondition;
   }
 
-  type SupportsCondition =
-    | SupportsAnything
-    | SupportsDeclaration
-    | SupportsInterpolation
-    | SupportsNegation
-    | SupportsOperation;
-
-  class SupportsAnything extends SassNode {
-    readonly contents: Interpolation;
-
-    toInterpolation(): Interpolation;
-  }
-
-  class SupportsDeclaration extends SassNode {
-    readonly name: Interpolation;
-    readonly value: Interpolation;
-
-    toInterpolation(): Interpolation;
-  }
-
-  class SupportsFunction extends SassNode {
-    readonly name: Interpolation;
-    readonly arguments: Interpolation;
-
-    toInterpolation(): Interpolation;
-  }
-
-  class SupportsInterpolation extends SassNode {
-    readonly expression: Expression;
-
-    toInterpolation(): Interpolation;
-  }
-
-  class SupportsNegation extends SassNode {
-    readonly condition: SupportsCondition;
-
-    toInterpolation(): Interpolation;
-  }
-
-  class SupportsOperation extends SassNode {
-    readonly left: SupportsCondition;
-    readonly right: SupportsCondition;
-    readonly operator: 'and' | 'or';
-
+  interface SupportsCondition extends SassNode {
     toInterpolation(): Interpolation;
   }
 
@@ -329,6 +300,8 @@ declare namespace SassInternal {
     readonly isGuarded: boolean;
   }
 
+  // Expressions
+
   class Expression extends SassNode {
     accept<T>(visitor: ExpressionVisitor<T>): T;
   }
@@ -349,7 +322,7 @@ declare namespace SassInternal {
     readonly arguments: ArgumentList;
   }
 
-  class IfExpression extends Expression {
+  class LegacyIfExpression extends Expression {
     readonly arguments: ArgumentList;
   }
 
@@ -378,6 +351,43 @@ declare namespace SassInternal {
 
   class ColorExpression extends Expression {
     readonly value: sass.SassColor;
+  }
+
+  class IfExpression extends Expression {
+    readonly branches: DartPair<
+      IfConditionExpression | undefined,
+      Expression
+    >[];
+  }
+
+  class IfConditionExpression extends SassNode {
+    accept<T>(visitor: IfConditionExpressionVisitor<T>): T;
+  }
+
+  class IfConditionParenthesized extends IfConditionExpression {
+    readonly expression: IfConditionExpression;
+  }
+
+  class IfConditionNegation extends IfConditionExpression {
+    readonly expression: IfConditionExpression;
+  }
+
+  class IfConditionOperation extends IfConditionExpression {
+    readonly expressions: IfConditionExpression[];
+    readonly op: DartEnum<'and' | 'or'>;
+  }
+
+  class IfConditionFunction extends IfConditionExpression {
+    readonly name: Interpolation;
+    readonly arguments: Interpolation;
+  }
+
+  class IfConditionSass extends IfConditionExpression {
+    readonly expression: Expression;
+  }
+
+  class IfConditionRaw extends IfConditionExpression {
+    readonly text: Interpolation;
   }
 
   class NullExpression extends Expression {}
@@ -536,12 +546,23 @@ export type Parameter = SassInternal.Parameter;
 export type ParameterList = SassInternal.ParameterList;
 export type ConfiguredVariable = SassInternal.ConfiguredVariable;
 export type Interpolation = SassInternal.Interpolation;
+
+// Expressions
 export type Expression = SassInternal.Expression;
 export type BinaryOperationExpression = SassInternal.BinaryOperationExpression;
 export type FunctionExpression = SassInternal.FunctionExpression;
 export type IfExpression = SassInternal.IfExpression;
+export type IfConditionExpression = SassInternal.IfConditionExpression;
+export type IfConditionParenthesized = SassInternal.IfConditionParenthesized;
+export type IfConditionNegation = SassInternal.IfConditionNegation;
+export type IfConditionOperation = SassInternal.IfConditionOperation;
+export type IfConditionFunction = SassInternal.IfConditionFunction;
+export type IfConditionSass = SassInternal.IfConditionSass;
+export type IfConditionRaw = SassInternal.IfConditionRaw;
+
 export type InterpolatedFunctionExpression =
   SassInternal.InterpolatedFunctionExpression;
+export type LegacyIfExpression = SassInternal.LegacyIfExpression;
 export type ListExpression = SassInternal.ListExpression;
 export type ListSeparator = SassInternal.ListSeparator;
 export type MapExpression = SassInternal.MapExpression;
@@ -607,6 +628,7 @@ export interface ExpressionVisitorObject<T> {
   visitFunctionExpression(node: FunctionExpression): T;
   visitIfExpression(node: IfExpression): T;
   visitInterpolatedFunctionExpression(node: InterpolatedFunctionExpression): T;
+  visitLegacyIfExpression(node: LegacyIfExpression): T;
   visitListExpression(node: ListExpression): T;
   visitMapExpression(node: MapExpression): T;
   visitNullExpression(node: NullExpression): T;
@@ -617,6 +639,15 @@ export interface ExpressionVisitorObject<T> {
   visitSupportsExpression(node: SupportsExpression): T;
   visitUnaryOperationExpression(node: UnaryOperationExpression): T;
   visitVariableExpression(node: VariableExpression): T;
+}
+
+export interface IfConditionExpressionVisitorObject<T> {
+  visitIfConditionFunction(node: IfConditionFunction): T;
+  visitIfConditionNegation(node: IfConditionNegation): T;
+  visitIfConditionOperation(node: IfConditionOperation): T;
+  visitIfConditionParenthesized(node: IfConditionParenthesized): T;
+  visitIfConditionRaw(node: IfConditionRaw): T;
+  visitIfConditionSass(node: IfConditionSass): T;
 }
 
 export interface SimpleSelectorVisitorObject<T> {
@@ -631,6 +662,8 @@ export interface SimpleSelectorVisitorObject<T> {
 }
 
 export const createExpressionVisitor = sassInternal.createExpressionVisitor;
+export const createIfConditionExpressionVisitor =
+  sassInternal.createIfConditionExpressionVisitor;
 export const createSimpleSelectorVisitor =
   sassInternal.createSimpleSelectorVisitor;
 export const createSourceFile = sassInternal.createSourceFile;

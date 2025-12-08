@@ -1,0 +1,41 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`an if() condition operation toJSON and 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@#{if(sass($foo) and sass($bar): a)}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "nodes": [
+    <sass($foo)>,
+    <sass($bar)>,
+  ],
+  "operator": "and",
+  "raws": {},
+  "sassType": "if-condition-operation",
+  "source": <1:7-1:32 in 0>,
+}
+`;
+
+exports[`an if() condition operation toJSON or 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@#{if(sass($foo) or sass($bar): a)}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "nodes": [
+    <sass($foo)>,
+    <sass($bar)>,
+  ],
+  "operator": "or",
+  "raws": {},
+  "sassType": "if-condition-operation",
+  "source": <1:7-1:31 in 0>,
+}
+`;
