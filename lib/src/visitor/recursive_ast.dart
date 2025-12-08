@@ -228,6 +228,12 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
     }
   }
 
+  void visitCompoundSelector(InterpolatedCompoundSelector node) {
+    for (var simple in node.components) {
+      simple.accept(this);
+    }
+  }
+
   void visitIDSelector(InterpolatedIDSelector node) {
     visitInterpolation(node.name);
   }
@@ -256,7 +262,7 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
     visitQualifiedName(node.name);
   }
 
-  void visitUniverssalSelector(InterpolatedUniversalSelector node) {
+  void visitUniversalSelector(InterpolatedUniversalSelector node) {
     node.namespace.andThen(visitInterpolation);
   }
 

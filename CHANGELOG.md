@@ -1,4 +1,4 @@
-## 1.94.3-dev
+## 1.94.3
 
 * Fix the span reported for standalone `%` expressions followed by whitespace.
 

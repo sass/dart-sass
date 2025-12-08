@@ -1,6 +1,7 @@
-## 16.0.3-dev
+## 16.0.3
 
-* No user-visible changes.
+* Add several members of `RecursiveAstVisitor` which were mising in the previous
+  release.
 
 ## 16.0.2
 
