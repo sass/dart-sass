@@ -1,6 +1,10 @@
-## 0.4.36
+## 0.4.37
 
 * Add support for the CSS `if()` expression and its Sass extensions.
+
+## 0.4.36
+
+* No user-visible changes.
 
 ## 0.4.35
 
