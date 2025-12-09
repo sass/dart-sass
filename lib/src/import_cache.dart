@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: a0b4e091d7a729fbadceabdb1f51ab2631e2df4a
+// Checksum: bcdb7643d7bd5740fdb4586869f1b4cd362cf902
 //
 // ignore_for_file: unused_import
 
@@ -37,6 +37,10 @@ typedef CanonicalizeResult = (Importer, Uri canonicalUrl, {Uri originalUrl});
 final class ImportCache {
   /// The importers to use when loading new Sass files.
   final List<Importer> _importers;
+
+  /// Whether to parse [StyleRule.parsedSelector]s rather than
+  /// [StyleRule.selector]s when loading new Sass files.
+  final bool _parseSelectors;
 
   /// The canonicalized URLs for each non-canonical URL.
   ///
@@ -95,15 +99,20 @@ final class ImportCache {
     Iterable<Importer>? importers,
     Iterable<String>? loadPaths,
     PackageConfig? packageConfig,
-  }) : _importers = _toImporters(importers, loadPaths, packageConfig);
+    bool parseSelectors = false,
+  })  : _importers = _toImporters(importers, loadPaths, packageConfig),
+        _parseSelectors = parseSelectors;
 
   /// Creates an import cache without any globally-available importers.
-  ImportCache.none() : _importers = const [];
+  ImportCache.none({bool parseSelectors = false})
+      : _importers = const [],
+        _parseSelectors = parseSelectors;
 
   /// Creates an import cache without any globally-available importers, and only
   /// the passed in importers.
-  ImportCache.only(Iterable<Importer> importers)
-      : _importers = List.unmodifiable(importers);
+  ImportCache.only(Iterable<Importer> importers, {bool parseSelectors = false})
+      : _importers = List.unmodifiable(importers),
+        _parseSelectors = parseSelectors;
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.
@@ -331,6 +340,7 @@ final class ImportCache {
         url: originalUrl == null
             ? canonicalUrl
             : originalUrl.resolveUri(canonicalUrl),
+        parseSelectors: _parseSelectors,
       );
     });
   }

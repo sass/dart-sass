@@ -1,3 +1,7 @@
+## 1.95.1
+
+* No user-visible changes.
+
 ## 1.95.0
 
 * Add support for the [CSS-style `if()` function]. In addition to supporting the

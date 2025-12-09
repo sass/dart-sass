@@ -19,7 +19,7 @@ final class StyleRule extends ParentStatement<List<Statement>> {
   /// The selector to which the declaration will be applied.
   ///
   /// This is only parsed after the interpolation has been resolved. This is
-  /// null if and only if [interpolatedSelector] is not null.
+  /// null if and only if [parsedSelector] is not null.
   final Interpolation? selector;
 
   /// Like [selector], but with as much of the selector parsed as possible.
@@ -31,14 +31,12 @@ final class StyleRule extends ParentStatement<List<Statement>> {
 
   final FileSpan span;
 
-  /// Constructs a style rule with [selector] set and [interpolatedSelector]
-  /// null.
+  /// Constructs a style rule with [selector] set and [parsedSelector] null.
   StyleRule(this.selector, Iterable<Statement> children, this.span)
       : parsedSelector = null,
         super(List.unmodifiable(children));
 
-  /// Constructs a style rule with [interpolatedSelector] set and [selector]
-  /// null.
+  /// Constructs a style rule with [parsedSelector] set and [selector].
   StyleRule.withParsedSelector(
       this.parsedSelector, Iterable<Statement> children, this.span)
       : selector = null,

@@ -1,3 +1,8 @@
+## 17.1.0
+
+* Add support for passing `parseSelectors: true` to `ImportCache` and
+  `AsyncImportCache`.
+
 ## 17.0.0
 
 * Rename the old `IfExpression` class to `LegacyIfExpression`.
@@ -17,8 +22,8 @@
 
 ## 16.0.3
 
-* Add several members of `RecursiveAstVisitor` which were mising in the previous
-  release.
+* Add several members of `RecursiveAstVisitor` which were missing in the
+  previous release.
 
 ## 16.0.2
 
