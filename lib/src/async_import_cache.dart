@@ -37,7 +37,7 @@ final class AsyncImportCache {
 
   /// Whether to parse [StyleRule.parsedSelector]s rather than
   /// [StyleRule.selector]s when loading new Sass files.
-  final bool parseSelectors;
+  final bool _parseSelectors;
 
   /// The canonicalized URLs for each non-canonical URL.
   ///
@@ -98,17 +98,21 @@ final class AsyncImportCache {
     Iterable<AsyncImporter>? importers,
     Iterable<String>? loadPaths,
     PackageConfig? packageConfig,
-    this.parseSelectors = false,
-  }) : _importers = _toImporters(importers, loadPaths, packageConfig);
+    bool parseSelectors = false,
+  })  : _importers = _toImporters(importers, loadPaths, packageConfig),
+        _parseSelectors = parseSelectors;
 
   /// Creates an import cache without any globally-available importers.
-  AsyncImportCache.none({this.parseSelectors = false}) : _importers = const [];
+  AsyncImportCache.none({bool parseSelectors = false})
+      : _importers = const [],
+        _parseSelectors = parseSelectors;
 
   /// Creates an import cache without any globally-available importers, and only
   /// the passed in importers.
   AsyncImportCache.only(Iterable<AsyncImporter> importers,
-      {this.parseSelectors = false})
-      : _importers = List.unmodifiable(importers);
+      {bool parseSelectors = false})
+      : _importers = List.unmodifiable(importers),
+        _parseSelectors = parseSelectors;
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.
@@ -339,7 +343,7 @@ final class AsyncImportCache {
         url: originalUrl == null
             ? canonicalUrl
             : originalUrl.resolveUri(canonicalUrl),
-        parseSelectors: parseSelectors,
+        parseSelectors: _parseSelectors,
       );
     });
   }

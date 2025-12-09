@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: d480bfc03e628658e9d61e5138b0e95a999f45e3
+// Checksum: bcdb7643d7bd5740fdb4586869f1b4cd362cf902
 //
 // ignore_for_file: unused_import
 
@@ -40,7 +40,7 @@ final class ImportCache {
 
   /// Whether to parse [StyleRule.parsedSelector]s rather than
   /// [StyleRule.selector]s when loading new Sass files.
-  final bool parseSelectors;
+  final bool _parseSelectors;
 
   /// The canonicalized URLs for each non-canonical URL.
   ///
@@ -99,16 +99,20 @@ final class ImportCache {
     Iterable<Importer>? importers,
     Iterable<String>? loadPaths,
     PackageConfig? packageConfig,
-    this.parseSelectors = false,
-  }) : _importers = _toImporters(importers, loadPaths, packageConfig);
+    bool parseSelectors = false,
+  })  : _importers = _toImporters(importers, loadPaths, packageConfig),
+        _parseSelectors = parseSelectors;
 
   /// Creates an import cache without any globally-available importers.
-  ImportCache.none({this.parseSelectors = false}) : _importers = const [];
+  ImportCache.none({bool parseSelectors = false})
+      : _importers = const [],
+        _parseSelectors = parseSelectors;
 
   /// Creates an import cache without any globally-available importers, and only
   /// the passed in importers.
-  ImportCache.only(Iterable<Importer> importers, {this.parseSelectors = false})
-      : _importers = List.unmodifiable(importers);
+  ImportCache.only(Iterable<Importer> importers, {bool parseSelectors = false})
+      : _importers = List.unmodifiable(importers),
+        _parseSelectors = parseSelectors;
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.
@@ -336,7 +340,7 @@ final class ImportCache {
         url: originalUrl == null
             ? canonicalUrl
             : originalUrl.resolveUri(canonicalUrl),
-        parseSelectors: parseSelectors,
+        parseSelectors: _parseSelectors,
       );
     });
   }
