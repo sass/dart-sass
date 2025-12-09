@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: a0b4e091d7a729fbadceabdb1f51ab2631e2df4a
+// Checksum: d480bfc03e628658e9d61e5138b0e95a999f45e3
 //
 // ignore_for_file: unused_import
 
@@ -37,6 +37,10 @@ typedef CanonicalizeResult = (Importer, Uri canonicalUrl, {Uri originalUrl});
 final class ImportCache {
   /// The importers to use when loading new Sass files.
   final List<Importer> _importers;
+
+  /// Whether to parse [StyleRule.parsedSelector]s rather than
+  /// [StyleRule.selector]s when loading new Sass files.
+  final bool parseSelectors;
 
   /// The canonicalized URLs for each non-canonical URL.
   ///
@@ -95,14 +99,15 @@ final class ImportCache {
     Iterable<Importer>? importers,
     Iterable<String>? loadPaths,
     PackageConfig? packageConfig,
+    this.parseSelectors = false,
   }) : _importers = _toImporters(importers, loadPaths, packageConfig);
 
   /// Creates an import cache without any globally-available importers.
-  ImportCache.none() : _importers = const [];
+  ImportCache.none({this.parseSelectors = false}) : _importers = const [];
 
   /// Creates an import cache without any globally-available importers, and only
   /// the passed in importers.
-  ImportCache.only(Iterable<Importer> importers)
+  ImportCache.only(Iterable<Importer> importers, {this.parseSelectors = false})
       : _importers = List.unmodifiable(importers);
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
@@ -331,6 +336,7 @@ final class ImportCache {
         url: originalUrl == null
             ? canonicalUrl
             : originalUrl.resolveUri(canonicalUrl),
+        parseSelectors: parseSelectors,
       );
     });
   }
