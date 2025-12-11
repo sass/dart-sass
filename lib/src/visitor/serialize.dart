@@ -526,9 +526,6 @@ final class _SerializeVisitor
 
   void _writeCalculationValue(Object value) {
     switch (value) {
-      case SassNumber(hasComplexUnits: true) when !_inspect:
-        throw SassScriptException("$value isn't a valid CSS value.");
-
       case SassNumber(value: double(isFinite: false)):
         switch (value.value) {
           case double.infinity:
@@ -1121,10 +1118,6 @@ final class _SerializeVisitor
     }
 
     if (value.hasComplexUnits) {
-      if (!_inspect) {
-        throw SassScriptException("$value isn't a valid CSS value.");
-      }
-
       visitCalculation(SassCalculation.unsimplified('calc', [value]));
     } else {
       _writeNumber(value.value);

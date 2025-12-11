@@ -1,3 +1,7 @@
+## 17.2.0
+
+* No user-visible changes.
+
 ## 17.1.0
 
 * Add support for passing `parseSelectors: true` to `ImportCache` and

@@ -1,3 +1,9 @@
+## 1.96.0
+
+* Allow numbers with complex units (more than one numerator unit or more than
+  zero denominator units) to be emitted to CSS. These are now emitted as
+  `calc()` expressions, which now support complex units in plain CSS.
+
 ## 1.95.1
 
 * No user-visible changes.
