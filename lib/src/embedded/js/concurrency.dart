@@ -2,4 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-export 'vm/executable.dart' if (dart.library.js) 'js/executable.dart';
+import 'dart:js_interop';
+
+@JS('os.cpus')
+external JSArray _cpus();
+
+int get concurrencyLimit => _cpus().length;
