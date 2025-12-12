@@ -1,3 +1,7 @@
+## 1.97.0
+
+* Add support for the `display-p3-linear` color space.
+
 ## 1.96.0
 
 * Allow numbers with complex units (more than one numerator unit or more than
