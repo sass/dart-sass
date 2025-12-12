@@ -38,7 +38,9 @@ final class A98RgbColorSpace extends ColorSpace {
         ColorSpace.srgb ||
         ColorSpace.rgb =>
           linearA98RgbToLinearSrgb,
-        ColorSpace.displayP3 => linearA98RgbToLinearDisplayP3,
+        ColorSpace.displayP3 ||
+        ColorSpace.displayP3Linear =>
+          linearA98RgbToLinearDisplayP3,
         ColorSpace.prophotoRgb => linearA98RgbToLinearProphotoRgb,
         ColorSpace.rec2020 => linearA98RgbToLinearRec2020,
         ColorSpace.xyzD65 => linearA98RgbToXyzD65,

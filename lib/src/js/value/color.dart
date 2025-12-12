@@ -100,6 +100,13 @@ final JSClass colorClass = () {
           options.blue,
           _handleUndefinedAlpha(options.alpha),
         );
+      case ColorSpace.displayP3Linear:
+        return SassColor.displayP3Linear(
+          options.red,
+          options.green,
+          options.blue,
+          _handleUndefinedAlpha(options.alpha),
+        );
       case ColorSpace.a98Rgb:
         return SassColor.a98Rgb(
           options.red,
@@ -339,6 +346,14 @@ final JSClass colorClass = () {
           break;
         case ColorSpace.displayP3:
           changedColor = SassColor.displayP3(
+            changedValue('red'),
+            changedValue('green'),
+            changedValue('blue'),
+            changedValue('alpha'),
+          );
+          break;
+        case ColorSpace.displayP3Linear:
+          changedColor = SassColor.displayP3Linear(
             changedValue('red'),
             changedValue('green'),
             changedValue('blue'),

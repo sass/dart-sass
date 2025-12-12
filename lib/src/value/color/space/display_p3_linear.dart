@@ -1,4 +1,4 @@
-// Copyright 2022 Google Inc. Use of this source code is governed by an
+// Copyright 2025 Google Inc. Use of this source code is governed by an
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
@@ -13,34 +13,39 @@ import '../../color.dart';
 import '../conversions.dart';
 import 'utils.dart';
 
-/// The display-p3 color space.
+/// The display-p3-linear color space.
 ///
-/// https://www.w3.org/TR/css-color-4/#predefined-display-p3
+/// https://drafts.csswg.org/css-color/#predefined-display-p3-linear
 ///
 /// @nodoc
 @internal
-final class DisplayP3ColorSpace extends ColorSpace {
+final class DisplayP3LinearColorSpace extends ColorSpace {
   bool get isBoundedInternal => true;
 
-  const DisplayP3ColorSpace() : super('display-p3', rgbChannels);
+  const DisplayP3LinearColorSpace() : super('display-p3-linear', rgbChannels);
 
-  SassColor convert(ColorSpace dest, double? red, double? green, double? blue,
-          double? alpha) =>
-      dest == ColorSpace.displayP3Linear
+  SassColor convert(
+    ColorSpace dest,
+    double? red,
+    double? green,
+    double? blue,
+    double? alpha,
+  ) =>
+      dest == ColorSpace.displayP3
           ? SassColor.forSpaceInternal(
               dest,
-              red.andThen(toLinear),
-              green.andThen(toLinear),
-              blue.andThen(toLinear),
+              red.andThen(srgbAndDisplayP3FromLinear),
+              green.andThen(srgbAndDisplayP3FromLinear),
+              blue.andThen(srgbAndDisplayP3FromLinear),
               alpha,
             )
-          : super.convertLinear(dest, red, green, blue, alpha);
+          : super.convert(dest, red, green, blue, alpha);
 
   @protected
-  double toLinear(double channel) => srgbAndDisplayP3ToLinear(channel);
+  double toLinear(double channel) => channel;
 
   @protected
-  double fromLinear(double channel) => srgbAndDisplayP3FromLinear(channel);
+  double fromLinear(double channel) => channel;
 
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {

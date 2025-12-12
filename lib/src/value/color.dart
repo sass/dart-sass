@@ -399,6 +399,23 @@ class SassColor extends Value {
   ]) =>
       SassColor._forSpace(ColorSpace.displayP3, red, green, blue, alpha);
 
+  /// Creates a color in [ColorSpace.displayP3Linear].
+  ///
+  /// If `null` is passed for [alpha], that indicates that it's a [missing
+  /// component]. In most cases, this is equivalent to the color being
+  /// transparent.
+  ///
+  /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
+  ///
+  /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
+  factory SassColor.displayP3Linear(
+    double? red,
+    double? green,
+    double? blue, [
+    double? alpha = 1,
+  ]) =>
+      SassColor._forSpace(ColorSpace.displayP3Linear, red, green, blue, alpha);
+
   /// Creates a color in [ColorSpace.a98Rgb].
   ///
   /// If `null` is passed for [alpha], that indicates that it's a [missing

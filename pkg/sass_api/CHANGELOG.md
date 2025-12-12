@@ -1,3 +1,7 @@
+## 17.3.0
+
+* Add the `SassColor.displayP3Linear` constructor.
+
 ## 17.2.0
 
 * No user-visible changes.

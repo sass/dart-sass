@@ -53,7 +53,9 @@ final class Rec2020ColorSpace extends ColorSpace {
         ColorSpace.rgb =>
           linearRec2020ToLinearSrgb,
         ColorSpace.a98Rgb => linearRec2020ToLinearA98Rgb,
-        ColorSpace.displayP3 => linearRec2020ToLinearDisplayP3,
+        ColorSpace.displayP3 ||
+        ColorSpace.displayP3Linear =>
+          linearRec2020ToLinearDisplayP3,
         ColorSpace.prophotoRgb => linearRec2020ToLinearProphotoRgb,
         ColorSpace.xyzD65 => linearRec2020ToXyzD65,
         ColorSpace.xyzD50 => linearRec2020ToXyzD50,

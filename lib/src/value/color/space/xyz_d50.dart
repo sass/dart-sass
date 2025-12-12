@@ -99,7 +99,9 @@ final class XyzD50ColorSpace extends ColorSpace {
           xyzD50ToLinearSrgb,
         ColorSpace.a98Rgb => xyzD50ToLinearA98Rgb,
         ColorSpace.prophotoRgb => xyzD50ToLinearProphotoRgb,
-        ColorSpace.displayP3 => xyzD50ToLinearDisplayP3,
+        ColorSpace.displayP3 ||
+        ColorSpace.displayP3Linear =>
+          xyzD50ToLinearDisplayP3,
         ColorSpace.rec2020 => xyzD50ToLinearRec2020,
         ColorSpace.xyzD65 => xyzD50ToXyzD65,
         ColorSpace.lms => xyzD50ToLms,

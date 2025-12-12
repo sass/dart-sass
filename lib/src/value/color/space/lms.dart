@@ -128,7 +128,9 @@ final class LmsColorSpace extends ColorSpace {
           lmsToLinearSrgb,
         ColorSpace.a98Rgb => lmsToLinearA98Rgb,
         ColorSpace.prophotoRgb => lmsToLinearProphotoRgb,
-        ColorSpace.displayP3 => lmsToLinearDisplayP3,
+        ColorSpace.displayP3 ||
+        ColorSpace.displayP3Linear =>
+          lmsToLinearDisplayP3,
         ColorSpace.rec2020 => lmsToLinearRec2020,
         ColorSpace.xyzD65 => lmsToXyzD65,
         ColorSpace.xyzD50 => lmsToXyzD50,
