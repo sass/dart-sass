@@ -32,9 +32,13 @@ runs:
       shell: ${{ runner.os == 'Windows' && 'powershell' || 'bash' }}
 
     # See: https://github.com/dart-lang/sdk/issues/52266
-    - run: Invoke-WebRequest https://pub.dev
+    #
+    # We use bash here rather than PowerShell because of a bug (possibly
+    # PowerShell/PowerShell#23948) in which it sometimes has an internal null
+    # pointer exception.
+    - run: curl https://pub.dev > /dev/null
       if: runner.os == 'Windows'
-      shell: powershell
+      shell: bash
 
     # See: https://github.com/orgs/community/discussions/131594
     # The composite action requires an explict shell, but bash is not available on windows-arm64 runner.
