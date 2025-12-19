@@ -2839,17 +2839,16 @@ final class _EvaluateVisitor
     List<(String, Value)>? results;
     for (var (condition, expression) in node.branches) {
       var result = await condition?.accept(this) ?? true;
-      var value = await expression.accept(this);
       switch (result) {
         case String condition:
           results ??= [];
-          results.add((condition, value));
+          results.add((condition, await expression.accept(this)));
 
         case true when results != null:
-          results.add(('else', value));
+          results.add(('else', await expression.accept(this)));
 
         case true:
-          return value;
+          return await expression.accept(this);
       }
     }
 

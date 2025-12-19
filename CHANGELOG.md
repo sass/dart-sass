@@ -1,3 +1,8 @@
+## 1.97.1
+
+* Fix a bug with the new CSS-style `if()` syntax where values would be evaluated
+  even if their conditions didn't match.
+
 ## 1.97.0
 
 * Add support for the `display-p3-linear` color space.

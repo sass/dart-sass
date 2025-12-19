@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: aa53924147f65640b94768e22bb339b0d5c5714a
+// Checksum: 72b4168ae534c17a0a5f083209fddab3646dc6b7
 //
 // ignore_for_file: unused_import
 
@@ -2842,17 +2842,16 @@ final class _EvaluateVisitor
     List<(String, Value)>? results;
     for (var (condition, expression) in node.branches) {
       var result = condition?.accept(this) ?? true;
-      var value = expression.accept(this);
       switch (result) {
         case String condition:
           results ??= [];
-          results.add((condition, value));
+          results.add((condition, expression.accept(this)));
 
         case true when results != null:
-          results.add(('else', value));
+          results.add(('else', expression.accept(this)));
 
         case true:
-          return value;
+          return expression.accept(this);
       }
     }
 
