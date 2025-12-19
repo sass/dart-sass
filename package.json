@@ -9,6 +9,7 @@
     "@parcel/watcher": "^2.4.1",
     "chokidar": "^4.0.0",
     "immutable": "^5.0.2",
-    "intercept-stdout": "^0.1.2"
+    "intercept-stdout": "^0.1.2",
+    "sync-message-port": "^1.1.3"
   }
 }
