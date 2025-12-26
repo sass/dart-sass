@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:convert';
-
 import 'package:meta/meta.dart';
 
 import '../importer.dart';
@@ -17,15 +15,8 @@ class ImporterResult {
   /// The contents of the stylesheet.
   final String contents;
 
-  /// An absolute, browser-accessible URL indicating the resolved location of
-  /// the imported stylesheet.
-  ///
-  /// This should be a `file:` URL if one is available, but an `http:` URL is
-  /// acceptable as well. If no URL is supplied, a `data:` URL is generated
-  /// automatically from [contents].
-  Uri get sourceMapUrl =>
-      _sourceMapUrl ?? Uri.dataFromString(contents, encoding: utf8);
-  final Uri? _sourceMapUrl;
+  /// An absolute URL indicating the resolved location of the imported stylesheet.
+  final Uri? sourceMapUrl;
 
   /// The syntax to use to parse the stylesheet.
   final Syntax syntax;
@@ -40,11 +31,10 @@ class ImporterResult {
   /// parameter instead.
   ImporterResult(
     this.contents, {
-    Uri? sourceMapUrl,
+    this.sourceMapUrl,
     Syntax? syntax,
     @Deprecated("Use the syntax parameter instead.") bool? indented,
-  })  : _sourceMapUrl = sourceMapUrl,
-        syntax = syntax ?? (indented == true ? Syntax.sass : Syntax.scss) {
+  }) : syntax = syntax ?? (indented == true ? Syntax.sass : Syntax.scss) {
     if (sourceMapUrl?.scheme == '') {
       throw ArgumentError.value(
         sourceMapUrl,
