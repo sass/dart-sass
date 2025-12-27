@@ -24,6 +24,7 @@ import '../logger.dart';
 import '../logger/js_to_dart.dart';
 import '../syntax.dart';
 import '../util/nullable.dart';
+import '../util/source_map.dart';
 import '../utils.dart';
 import '../value.dart';
 import '../visitor/serialize.dart';
@@ -118,6 +119,8 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
       verbose: options.verbose ?? false,
       charset: options.charset ?? true,
       sourceMap: _enableSourceMaps(options),
+      sourceMapIncludeSources:
+          parseSourceMapIncludeSources(options.sourceMapContents),
       logger: logger,
     );
   } else if (file != null) {
@@ -145,6 +148,8 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
       verbose: options.verbose ?? false,
       charset: options.charset ?? true,
       sourceMap: _enableSourceMaps(options),
+      sourceMapIncludeSources:
+          parseSourceMapIncludeSources(options.sourceMapContents),
       logger: logger,
     );
   } else {
@@ -202,6 +207,8 @@ RenderResult renderSync(RenderOptions options) {
         verbose: options.verbose ?? false,
         charset: options.charset ?? true,
         sourceMap: _enableSourceMaps(options),
+        sourceMapIncludeSources:
+            parseSourceMapIncludeSources(options.sourceMapContents),
         logger: logger,
       );
     } else if (file != null) {
@@ -232,6 +239,8 @@ RenderResult renderSync(RenderOptions options) {
         verbose: options.verbose ?? false,
         charset: options.charset ?? true,
         sourceMap: _enableSourceMaps(options),
+        sourceMapIncludeSources:
+            parseSourceMapIncludeSources(options.sourceMapContents),
         logger: logger,
       );
     } else {
@@ -506,8 +515,10 @@ RenderResult _newRenderResult(
       sourceMap.urls[i] = p.url.relative(source, from: sourceMapDirUrl);
     }
 
-    var json = sourceMap.toJson(
-      includeSourceContents: isTruthy(options.sourceMapContents),
+    var json = sourceMapToJson(
+      sourceMap,
+      sourceMapIncludeSources:
+          parseSourceMapIncludeSources(options.sourceMapContents),
     );
     sourceMapBytes = utf8Encode(jsonEncode(json));
 
