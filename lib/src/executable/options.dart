@@ -91,6 +91,12 @@ final class ExecutableOptions {
         defaultsTo: true,
       )
       ..addOption(
+        'source-map-include-sources',
+        help: 'Embed source file contents in source maps.',
+        allowed: ['auto', 'always', 'never'],
+        defaultsTo: 'auto',
+      )
+      ..addOption(
         'source-map-urls',
         defaultsTo: 'relative',
         help: 'How to link from source maps to source files.',
@@ -99,6 +105,7 @@ final class ExecutableOptions {
       ..addFlag(
         'embed-sources',
         help: 'Embed source file contents in source maps.',
+        hide: true, // Hide deprecated option
         defaultsTo: false,
       )
       ..addFlag(
@@ -209,8 +216,16 @@ final class ExecutableOptions {
     if (!(_options['interactive'] as bool)) return false;
 
     var invalidOptions = [
-      'stdin', 'indented', 'style', 'source-map', 'source-map-urls', //
-      'embed-sources', 'embed-source-map', 'update', 'watch',
+      'stdin',
+      'indented',
+      'style',
+      'source-map',
+      'source-map-include-sources',
+      'source-map-urls',
+      'embed-sources',
+      'embed-source-map',
+      'update',
+      'watch',
     ];
     if (invalidOptions.firstWhereOrNull(_options.wasParsed) case var option?) {
       throw UsageException("--$option isn't allowed with --interactive.");
@@ -487,7 +502,10 @@ final class ExecutableOptions {
   /// Whether to emit a source map file.
   bool get emitSourceMap {
     if (!(_options['source-map'] as bool)) {
-      if (_options.wasParsed('source-map-urls')) {
+      if (_options.wasParsed('source-map-include-sources')) {
+        _fail(
+            "--source-map-include-sources isn't allowed with --no-source-map.");
+      } else if (_options.wasParsed('source-map-urls')) {
         _fail("--source-map-urls isn't allowed with --no-source-map.");
       } else if (_options.wasParsed('embed-sources')) {
         _fail("--embed-sources isn't allowed with --no-source-map.");
@@ -509,6 +527,11 @@ final class ExecutableOptions {
       _fail(
         "When printing to stdout, --source-map requires --embed-source-map.",
       );
+    } else if (_options['source-map-include-sources'] == 'always') {
+      _fail(
+        "When printing to stdout, --source-map-include-sources=always requires "
+        "--embed-source-map.",
+      );
     } else if (_options.wasParsed('source-map-urls')) {
       _fail(
         "When printing to stdout, --source-map-urls requires "
@@ -528,7 +551,23 @@ final class ExecutableOptions {
   bool get embedSourceMap => _options['embed-source-map'] as bool;
 
   /// Whether to embed the source files in the generated source map.
-  bool get embedSources => _options['embed-sources'] as bool;
+  SourceMapIncludeSources get sourceMapIncludeSources {
+    if (_options.wasParsed('embed-sources')) {
+      if (_options.wasParsed('source-map-include-sources')) {
+        _fail(
+            '--embed-sources and --source-map-include-sources may not both be used.');
+      }
+      return ((_options['embed-sources'] as bool)
+          ? SourceMapIncludeSources.always
+          : SourceMapIncludeSources.auto);
+    }
+    return switch (_options['source-map-include-sources']) {
+      'auto' => SourceMapIncludeSources.auto,
+      'always' => SourceMapIncludeSources.always,
+      'never' => SourceMapIncludeSources.never,
+      _ => throw '[BUG] Unknown SourceMapIncludeSources'
+    };
+  }
 
   /// Parses options from [args].
   ///
@@ -554,7 +593,9 @@ final class ExecutableOptions {
   ///
   /// If [url] isn't a `file:` URL, returns it as-is.
   Uri sourceMapUrl(Uri url, String? destination) {
-    if (url.scheme.isNotEmpty && url.scheme != 'file') return url;
+    if (url.scheme.isNotEmpty && url.scheme != 'file' || url.toString() == '') {
+      return url;
+    }
 
     var path = p.fromUri(url);
     return p.toUri(

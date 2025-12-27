@@ -109,6 +109,23 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         ]),
       );
     });
+
+    test("includes source contents with --source-map-include-sources=always",
+        () async {
+      await (await runSass([
+        "--source-map-include-sources=always",
+        "test.scss",
+        "out.css",
+      ]))
+          .shouldExit(0);
+      expect(
+        _readJson("out.css.map"),
+        containsPair("sourcesContent", [
+          "a {b: 1 + 2}",
+          readFile(d.path("test.scss")),
+        ]),
+      );
+    });
   });
 
   group("doesn't normalize file case", () {
@@ -170,7 +187,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     });
   });
 
-  test("with --stdin uses a data: URL", () async {
+  test("with --stdin uses an empty URL", () async {
     var sass = await runSass(["--stdin", "out.css"]);
     sass.stdin.writeln("a {b: c}");
     sass.stdin.close();
@@ -178,9 +195,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
     expect(
       _readJson("out.css.map"),
-      containsPair("sources", [
-        Uri.dataFromString("a {b: c}\n", encoding: utf8).toString(),
-      ]),
+      containsPair("sources", ['']),
     );
   });
 
@@ -229,6 +244,25 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       expect(
         sass.stdout,
         emits("--embed-sources isn't allowed with --no-source-map."),
+      );
+      expect(
+        sass.stdout,
+        emitsThrough(contains("Print this usage information.")),
+      );
+      await sass.shouldExit(64);
+    });
+
+    test("--source-map-include-sources is disallowed", () async {
+      var sass = await runSass([
+        "--no-source-map",
+        "--source-map-include-sources=always",
+        "test.scss",
+        "out.css",
+      ]);
+      expect(
+        sass.stdout,
+        emits(
+            "--source-map-include-sources isn't allowed with --no-source-map."),
       );
       expect(
         sass.stdout,

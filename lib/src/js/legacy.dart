@@ -22,6 +22,7 @@ import '../importer/legacy_node.dart';
 import '../io.dart';
 import '../logger.dart';
 import '../logger/js_to_dart.dart';
+import '../source_map_include_sources.dart';
 import '../syntax.dart';
 import '../util/nullable.dart';
 import '../utils.dart';
@@ -118,6 +119,9 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
       verbose: options.verbose ?? false,
       charset: options.charset ?? true,
       sourceMap: _enableSourceMaps(options),
+      sourceMapIncludeSources: isTruthy(options.sourceMapContents)
+          ? SourceMapIncludeSources.always
+          : SourceMapIncludeSources.auto,
       logger: logger,
     );
   } else if (file != null) {
@@ -145,6 +149,9 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
       verbose: options.verbose ?? false,
       charset: options.charset ?? true,
       sourceMap: _enableSourceMaps(options),
+      sourceMapIncludeSources: isTruthy(options.sourceMapContents)
+          ? SourceMapIncludeSources.always
+          : SourceMapIncludeSources.auto,
       logger: logger,
     );
   } else {
@@ -202,6 +209,9 @@ RenderResult renderSync(RenderOptions options) {
         verbose: options.verbose ?? false,
         charset: options.charset ?? true,
         sourceMap: _enableSourceMaps(options),
+        sourceMapIncludeSources: isTruthy(options.sourceMapContents)
+            ? SourceMapIncludeSources.always
+            : SourceMapIncludeSources.auto,
         logger: logger,
       );
     } else if (file != null) {
@@ -232,6 +242,9 @@ RenderResult renderSync(RenderOptions options) {
         verbose: options.verbose ?? false,
         charset: options.charset ?? true,
         sourceMap: _enableSourceMaps(options),
+        sourceMapIncludeSources: isTruthy(options.sourceMapContents)
+            ? SourceMapIncludeSources.always
+            : SourceMapIncludeSources.auto,
         logger: logger,
       );
     } else {
@@ -507,7 +520,8 @@ RenderResult _newRenderResult(
     }
 
     var json = sourceMap.toJson(
-      includeSourceContents: isTruthy(options.sourceMapContents),
+      includeSourceContents: isTruthy(options.sourceMapContents) ||
+          sourceMap.files.any((file) => file != null),
     );
     sourceMapBytes = utf8Encode(jsonEncode(json));
 
