@@ -14,6 +14,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       '--indented',
       '--style=compressed',
       '--source-map',
+      '--source-map-include-sources=always',
       '--source-map-urls=absolute',
       '--embed-sources',
       '--embed-source-map',

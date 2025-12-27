@@ -368,6 +368,11 @@ final class AsyncImportCache {
       // as-is.
       canonicalUrl;
 
+  /// Returns whether `sourceMapUrl` is explictly defined for a given
+  /// [canonicalUrl].
+  bool hasSourceMapUrl(Uri canonicalUrl) =>
+      _resultsCache[canonicalUrl]?.sourceMapUrl != null;
+
   /// Returns the URL to use in the source map to refer to [canonicalUrl].
   ///
   /// Returns [canonicalUrl] as-is if it hasn't been loaded by this cache.

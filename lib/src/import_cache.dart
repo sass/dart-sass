@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: bcdb7643d7bd5740fdb4586869f1b4cd362cf902
+// Checksum: c9ee3e57c97899053fef6893baa2761a113908b4
 //
 // ignore_for_file: unused_import
 
@@ -364,6 +364,11 @@ final class ImportCache {
       // If we don't have an original URL cached, display the canonical URL
       // as-is.
       canonicalUrl;
+
+  /// Returns whether `sourceMapUrl` is explictly defined for a given
+  /// [canonicalUrl].
+  bool hasSourceMapUrl(Uri canonicalUrl) =>
+      _resultsCache[canonicalUrl]?.sourceMapUrl != null;
 
   /// Returns the URL to use in the source map to refer to [canonicalUrl].
   ///
