@@ -15,6 +15,7 @@ import 'package:sass/sass.dart' as sass;
 import 'package:sass/src/importer/node_package.dart' as npi;
 
 import '../logger.dart';
+import '../util/source_map.dart';
 import '../value/function.dart';
 import '../value/mixin.dart';
 import 'embedded_sass.pb.dart';
@@ -164,6 +165,14 @@ final class CompilationDispatcher {
         (signature) => hostCallable(this, functions, mixins, signature),
       );
 
+      var sourceMapIncludeSources = switch (request.sourceMapIncludeSources) {
+        SourceMapIncludeSources.AUTO => sass.SourceMapIncludeSources.auto,
+        SourceMapIncludeSources.ALWAYS => sass.SourceMapIncludeSources.always,
+        SourceMapIncludeSources.NEVER => sass.SourceMapIncludeSources.never,
+        _ =>
+          throw "Unknown SourceMapIncludeSources ${request.sourceMapIncludeSources}.",
+      };
+
       late sass.CompileResult result;
       switch (request.whichInput()) {
         case InboundMessage_CompileRequest_Input.string:
@@ -185,6 +194,7 @@ final class CompilationDispatcher {
             silenceDeprecations: silenceDeprecations,
             futureDeprecations: futureDeprecations,
             sourceMap: request.sourceMap,
+            sourceMapIncludeSources: sourceMapIncludeSources,
             charset: request.charset,
           );
 
@@ -207,6 +217,7 @@ final class CompilationDispatcher {
               silenceDeprecations: silenceDeprecations,
               futureDeprecations: futureDeprecations,
               sourceMap: request.sourceMap,
+              sourceMapIncludeSources: sourceMapIncludeSources,
               charset: request.charset,
             );
           } on FileSystemException catch (error) {
@@ -230,11 +241,8 @@ final class CompilationDispatcher {
 
       var sourceMap = result.sourceMap;
       if (sourceMap != null) {
-        success.sourceMap = json.encode(
-          sourceMap.toJson(
-            includeSourceContents: request.sourceMapIncludeSources,
-          ),
-        );
+        success.sourceMap = json.encode(sourceMapToJson(sourceMap,
+            sourceMapIncludeSources: sourceMapIncludeSources));
       }
       return OutboundMessage_CompileResponse()
         ..success = success

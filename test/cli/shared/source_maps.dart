@@ -170,7 +170,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
     });
   });
 
-  test("with --stdin uses a data: URL", () async {
+  test("with --stdin uses an empty URL", () async {
     var sass = await runSass(["--stdin", "out.css"]);
     sass.stdin.writeln("a {b: c}");
     sass.stdin.close();
@@ -178,9 +178,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
     expect(
       _readJson("out.css.map"),
-      containsPair("sources", [
-        Uri.dataFromString("a {b: c}\n", encoding: utf8).toString(),
-      ]),
+      containsPair("sources", ['']),
     );
   });
 
