@@ -16,6 +16,7 @@ import '../importer/filesystem.dart';
 import '../io.dart';
 import '../stylesheet_graph.dart';
 import '../syntax.dart';
+import '../util/source_map.dart';
 import '../utils.dart';
 import '../visitor/serialize.dart';
 import 'options.dart';
@@ -131,6 +132,7 @@ Future<void> _compileStylesheetWithoutErrorHandling(
               quietDeps: options.quietDeps,
               verbose: options.verbose,
               sourceMap: options.emitSourceMap,
+              sourceMapIncludeSources: options.sourceMapIncludeSources,
               charset: options.charset,
               silenceDeprecations: options.silenceDeprecations,
               fatalDeprecations: options.fatalDeprecations,
@@ -145,6 +147,7 @@ Future<void> _compileStylesheetWithoutErrorHandling(
               quietDeps: options.quietDeps,
               verbose: options.verbose,
               sourceMap: options.emitSourceMap,
+              sourceMapIncludeSources: options.sourceMapIncludeSources,
               charset: options.charset,
               silenceDeprecations: options.silenceDeprecations,
               fatalDeprecations: options.fatalDeprecations,
@@ -166,6 +169,7 @@ Future<void> _compileStylesheetWithoutErrorHandling(
               quietDeps: options.quietDeps,
               verbose: options.verbose,
               sourceMap: options.emitSourceMap,
+              sourceMapIncludeSources: options.sourceMapIncludeSources,
               charset: options.charset,
               silenceDeprecations: options.silenceDeprecations,
               fatalDeprecations: options.fatalDeprecations,
@@ -180,6 +184,7 @@ Future<void> _compileStylesheetWithoutErrorHandling(
               quietDeps: options.quietDeps,
               verbose: options.verbose,
               sourceMap: options.emitSourceMap,
+              sourceMapIncludeSources: options.sourceMapIncludeSources,
               charset: options.charset,
               silenceDeprecations: options.silenceDeprecations,
               fatalDeprecations: options.fatalDeprecations,
@@ -246,15 +251,12 @@ String _writeSourceMap(
     sourceMap.targetUrl = p.toUri(p.basename(destination)).toString();
   }
 
-  // TODO(nweiz): Don't explicitly use a type parameter when dart-lang/sdk#25490
-  // is fixed.
-  mapInPlace<String>(
+  mapInPlace(
     sourceMap.urls,
     (url) => options.sourceMapUrl(Uri.parse(url), destination).toString(),
   );
-  var sourceMapText = jsonEncode(
-    sourceMap.toJson(includeSourceContents: options.embedSources),
-  );
+  var sourceMapText = jsonEncode(sourceMapToJson(sourceMap,
+      sourceMapIncludeSources: options.sourceMapIncludeSources));
 
   Uri url;
   if (options.embedSourceMap) {

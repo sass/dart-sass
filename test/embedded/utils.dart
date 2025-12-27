@@ -26,7 +26,7 @@ InboundMessage compileString(
   OutputStyle? style,
   String? url,
   bool? sourceMap,
-  bool? sourceMapIncludeSources,
+  SourceMapIncludeSources? sourceMapIncludeSources,
   Iterable<InboundMessage_CompileRequest_Importer>? importers,
   InboundMessage_CompileRequest_Importer? importer,
   Iterable<String>? functions,

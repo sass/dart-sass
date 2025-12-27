@@ -9,6 +9,7 @@ import 'package:node_interop/node.dart' hide module;
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 
+import '../source_map_include_sources.dart';
 import '../syntax.dart';
 import '../utils.dart';
 import '../util/map.dart';
@@ -269,6 +270,16 @@ Syntax parseSyntax(String? syntax) => switch (syntax) {
       'indented' => Syntax.sass,
       'css' => Syntax.css,
       _ => jsThrow(JsError('Unknown syntax "$syntax".')),
+    };
+
+SourceMapIncludeSources parseSourceMapIncludeSources(
+        Object? sourceMapIncludeSources) =>
+    switch (sourceMapIncludeSources) {
+      null || 'auto' => SourceMapIncludeSources.auto,
+      true || 'always' => SourceMapIncludeSources.always,
+      false || 'never' => SourceMapIncludeSources.never,
+      _ => jsThrow(JsError(
+          'Unknown sourceMapIncludeSources "$sourceMapIncludeSources".')),
     };
 
 /// The path to the Node.js entrypoint, if one can be located.
