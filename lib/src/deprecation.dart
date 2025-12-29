@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: cb70c693b61a37ecfffb93f16d2fb353bcf0ecee
+  // Checksum: 8784802f050f4282b22d882c3ef18472bb920faa
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -86,6 +86,7 @@ enum Deprecation {
   /// Deprecation for passing percentages to the Sass abs() function.
   absPercent('abs-percent',
       deprecatedIn: '1.65.0',
+      obsoleteIn: '2.0.0',
       description: 'Passing percentages to the Sass abs() function.'),
 
   /// Deprecation for using the current working directory as an implicit load path.

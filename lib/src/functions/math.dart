@@ -8,8 +8,6 @@ import 'dart:math' as math;
 import 'package:collection/collection.dart';
 
 import '../callable.dart';
-import '../deprecation.dart';
-import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
 import '../util/number.dart';
@@ -19,21 +17,8 @@ import '../value.dart';
 final global = UnmodifiableListView([
   _function("abs", r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
-    if (number.hasUnit("%")) {
-      warnForDeprecation(
-        "Passing percentage units to the global abs() function is "
-        "deprecated.\n"
-        "In the future, this will emit a CSS abs() function to be resolved "
-        "by the browser.\n"
-        "To preserve current behavior: math.abs($number)"
-        "\n"
-        "To emit a CSS abs() now: abs(#{$number})\n"
-        "More info: https://sass-lang.com/d/abs-percent",
-        Deprecation.absPercent,
-      );
-    } else {
-      warnForGlobalBuiltIn('math', 'abs');
-    }
+    if (number.hasUnit("%")) return SassCalculation.abs(number);
+    warnForGlobalBuiltIn('math', 'abs');
     return SassNumber.withUnits(
       number.value.abs(),
       numeratorUnits: number.numeratorUnits,
