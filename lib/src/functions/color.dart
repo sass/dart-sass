@@ -110,7 +110,7 @@ final global = UnmodifiableListView([
     r"$hue, $saturation": (arguments) {
       // hsl(123, var(--foo)) is valid CSS because --foo might be `10%, 20%` and
       // functions are parsed after variable substitution.
-      if (arguments[0].isVar || arguments[1].isVar) {
+      if (arguments[0].isSpecialVariable || arguments[1].isSpecialVariable) {
         return _functionString('hsl', arguments);
       } else {
         throw SassScriptException(r"Missing argument $lightness.");
@@ -129,7 +129,7 @@ final global = UnmodifiableListView([
         _hsl("hsla", arguments),
     r"$hue, $saturation, $lightness": (arguments) => _hsl("hsla", arguments),
     r"$hue, $saturation": (arguments) {
-      if (arguments[0].isVar || arguments[1].isVar) {
+      if (arguments[0].isSpecialVariable || arguments[1].isSpecialVariable) {
         return _functionString('hsla', arguments);
       } else {
         throw SassScriptException(r"Missing argument $lightness.");
@@ -1347,7 +1347,8 @@ Value _rgbTwoArg(String name, List<Value> arguments) {
   // and functions are parsed after variable substitution.
   var first = arguments[0];
   var second = arguments[1];
-  if (first.isVar || (first is! SassColor && second.isVar)) {
+  if (first.isSpecialVariable ||
+      (first is! SassColor && second.isSpecialVariable)) {
     return _functionString(name, arguments);
   }
 
@@ -1604,7 +1605,7 @@ Value _parseChannels(
   ColorSpace? space,
   String? name,
 }) {
-  if (input.isVar) return _functionString(functionName, [input]);
+  if (input.isSpecialVariable) return _functionString(functionName, [input]);
 
   var parsedSlash = _parseSlashChannels(input, name: name);
   if (parsedSlash == null) return _functionString(functionName, [input]);
@@ -1620,14 +1621,15 @@ Value _parseChannels(
         when text.toLowerCase() == "from":
       return _functionString(functionName, [input]);
 
-    case _ when components.isVar:
+    case _ when components.isSpecialVariable:
       channels = [components];
 
     case [var first, ...var rest] && var componentList:
       if (space == null) {
         spaceName = first.assertString(name)..assertUnquoted(name);
-        space =
-            spaceName.isVar ? null : ColorSpace.fromName(spaceName.text, name);
+        space = spaceName.isSpecialVariable
+            ? null
+            : ColorSpace.fromName(spaceName.text, name);
         channels = rest;
 
         if (space

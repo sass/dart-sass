@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:source_span/source_span.dart';
-import 'package:stack_trace/stack_trace.dart';
 
 import '../../value.dart';
 import 'node.dart';
@@ -17,12 +16,6 @@ abstract interface class CssDeclaration implements CssNode {
   /// The value of this declaration.
   CssValue<Value> get value;
 
-  /// The stack trace indicating where this node was created.
-  ///
-  /// This is used to emit interleaved declaration warnings, and is only set if
-  /// [interleavedRules] isn't empty.
-  Trace? get trace;
-
   /// The span for [value] that should be emitted to the source map.
   ///
   /// When the declaration's expression is just a variable, this is the span
@@ -33,11 +26,13 @@ abstract interface class CssDeclaration implements CssNode {
   /// Returns whether this is a CSS Custom Property declaration.
   bool get isCustomProperty;
 
-  /// Whether this is was originally parsed as a custom property declaration, as
-  /// opposed to using something like `#{--foo}: ...` to cause it to be parsed
-  /// as a normal Sass declaration.
+  /// Whether this property's value was originally parsed as SassScript, as
+  /// opposed to a custom property which is parsed as an interpolated sequence
+  /// of tokens.
   ///
-  /// If this is `true`, [isCustomProperty] will also be `true` and [value] will
-  /// contain a [SassString].
-  bool get parsedAsCustomProperty;
+  /// If this is `false`, [value] will contain an unquoted [SassString].
+  /// [isCustomProperty] will *usually* be true, but there are other properties
+  /// that may not be parsed as SassScript, like `return` in a plain CSS
+  /// `@function`.
+  bool get parsedAsSassScript;
 }

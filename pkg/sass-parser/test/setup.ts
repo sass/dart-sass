@@ -11,7 +11,7 @@ import type * as pretty from 'pretty-format';
 import * as sass from 'sass';
 import 'jest-extended';
 
-import {Interpolation, StringExpression} from '../lib';
+import {Interpolation, Node, StringExpression} from '../lib';
 
 /**
  * Like {@link MatcherContext.printReceived}, but with special handling for AST
@@ -45,11 +45,43 @@ declare global {
        * `nodes` property of the object being matched.
        */
       toHaveStringExpression(property: string | number, value: string): void;
+
+      /**
+       * Asserts that the object being matched has a property named {@link
+       * property} whose value is a {@link Node}, that that node's `toString()`
+       * returns {@link stringification}, and that the node's parent is the
+       * object being tested.
+       *
+       * If {@link property} is a number, it's treated as an index into the
+       * `nodes` property of the object being matched.
+       *
+       * If {@link sassType} is passed, this also asserts that it matches the
+       * type of the node.
+       */
+      toHaveNode(
+        property: string | number,
+        stringification: string,
+        sassType?: string,
+      ): void;
+
+      /**
+       * Asserts that the object being matched is a Sass node whose `toString()`
+       * returns {@link stringification}.
+       *
+       * If {@link sassType} is passed, this also asserts that it matches the
+       * type of the node.
+       */
+      nodeWithToString(stringification: string, sassType?: string): void;
     }
 
     interface Matchers<R> {
       toHaveInterpolation(property: string, value: string): R;
       toHaveStringExpression(property: string | number, value: string): R;
+      toHaveNode(
+        property: string | number,
+        stringification: string,
+        sassType?: string,
+      ): R;
     }
   }
 }
@@ -198,6 +230,129 @@ function toHaveStringExpression(
 }
 
 expect.extend({toHaveStringExpression});
+
+function toHaveNode(
+  this: MatcherContext,
+  actual: unknown,
+  propertyOrIndex: unknown,
+  value: unknown,
+  sassType: unknown,
+): ExpectationResult {
+  if (
+    typeof propertyOrIndex !== 'string' &&
+    typeof propertyOrIndex !== 'number'
+  ) {
+    throw new TypeError(
+      `Property ${propertyOrIndex} must be a string or number.`,
+    );
+  } else if (typeof value !== 'string') {
+    throw new TypeError(`Value ${value} must be a string.`);
+  } else if (sassType !== undefined && typeof sassType !== 'string') {
+    throw new TypeError(`Type ${sassType} must be a string.`);
+  }
+
+  let index: number | null = null;
+  let property: string;
+  if (typeof propertyOrIndex === 'number') {
+    index = propertyOrIndex;
+    property = 'nodes';
+  } else {
+    property = propertyOrIndex;
+  }
+
+  if (typeof actual !== 'object' || !actual || !(property in actual)) {
+    return {
+      message: () =>
+        `expected ${printValue(
+          this,
+          actual,
+        )} to have a property ${this.utils.printExpected(property)}`,
+      pass: false,
+    };
+  }
+
+  let actualValue = (actual as Record<string, unknown>)[property];
+  if (index !== null) actualValue = (actualValue as unknown[])[index];
+
+  const message = (): string => {
+    let message = `expected (${printValue(this, actual)}).${property}`;
+    if (index !== null) message += `[${index}]`;
+
+    return (
+      message +
+      ` ${printValue(
+        this,
+        actualValue,
+      )} to be a sass.Node with value ${this.utils.printExpected(value)}`
+    );
+  };
+
+  if (!(actualValue instanceof Node) || actualValue.toString() !== value) {
+    return {
+      message,
+      pass: false,
+    };
+  }
+
+  if (!('parent' in actualValue) || actualValue.parent !== actual) {
+    return {
+      message: () =>
+        `expected (${printValue(this, actual)}).${property} ${printValue(
+          this,
+          actualValue,
+        )} to have the correct parent`,
+      pass: false,
+    };
+  }
+
+  if (typeof sassType === 'string' && actualValue.sassType !== sassType) {
+    return {
+      message: () =>
+        `expected (${printValue(this, actual)}).${property} ${printValue(
+          this,
+          actualValue,
+        )} to have sassType ${sassType}, was ${actualValue.sassType}`,
+      pass: false,
+    };
+  }
+
+  return {message, pass: true};
+}
+
+expect.extend({toHaveNode});
+
+function nodeWithToString(
+  this: MatcherContext,
+  actual: unknown,
+  stringification: unknown,
+  sassType: unknown,
+): ExpectationResult {
+  const message = (): string =>
+    `expected ${printValue(
+      this,
+      actual,
+    )} to be a sass.Node with value ${this.utils.printExpected(stringification)}`;
+
+  if (!(actual instanceof Node) || actual.toString() !== stringification) {
+    return {
+      message,
+      pass: false,
+    };
+  }
+
+  if (typeof sassType === 'string' && actual.sassType !== sassType) {
+    return {
+      message: () =>
+        `expected ${printValue(this, actual)} to have sassType ${sassType}, ` +
+        `was ${actual.sassType}`,
+      pass: false,
+    };
+  }
+
+  return {message, pass: true};
+}
+
+expect.extend({nodeWithToString});
 
 // Serialize nodes using toJSON(), but also updating them to avoid run- or
 // machine-specific information in the inputs and to make sources and nested

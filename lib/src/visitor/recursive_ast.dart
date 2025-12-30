@@ -7,6 +7,8 @@ import 'package:meta/meta.dart';
 import '../util/nullable.dart';
 import '../ast/sass.dart';
 import 'interface/expression.dart';
+import 'interface/if_condition_expression.dart';
+import 'interface/interpolated_selector.dart';
 import 'recursive_statement.dart';
 
 /// A visitor that recursively traverses each statement and expression in a Sass
@@ -18,10 +20,14 @@ import 'recursive_statement.dart';
 /// * [visitArgumentList]
 /// * [visitSupportsCondition]
 /// * [visitInterpolation]
+/// * [visitQualifiedname]
 ///
 /// {@category Visitor}
 mixin RecursiveAstVisitor on RecursiveStatementVisitor
-    implements ExpressionVisitor<void> {
+    implements
+        ExpressionVisitor<void>,
+        IfConditionExpressionVisitor<void>,
+        InterpolatedSelectorVisitor<void> {
   void visitAtRootRule(AtRootRule node) {
     node.query.andThen(visitInterpolation);
     super.visitAtRootRule(node);
@@ -109,7 +115,7 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
   }
 
   void visitStyleRule(StyleRule node) {
-    visitInterpolation(node.selector);
+    node.selector.andThen(visitInterpolation);
     super.visitStyleRule(node);
   }
 
@@ -137,6 +143,8 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
     super.visitWhileRule(node);
   }
 
+  // Expressions
+
   void visitExpression(Expression expression) {
     expression.accept(this);
   }
@@ -160,6 +168,13 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
     visitArgumentList(node.arguments);
   }
 
+  void visitIfExpression(IfExpression node) {
+    for (var (condition, value) in node.branches) {
+      condition?.accept(this);
+      value.accept(this);
+    }
+  }
+
   void visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
   ) {
@@ -167,7 +182,7 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
     visitArgumentList(node.arguments);
   }
 
-  void visitIfExpression(IfExpression node) {
+  void visitLegacyIfExpression(LegacyIfExpression node) {
     visitArgumentList(node.arguments);
   }
 
@@ -209,6 +224,91 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
   void visitValueExpression(ValueExpression node) {}
 
   void visitVariableExpression(VariableExpression node) {}
+
+  // `if()` condition expressions
+
+  void visitIfConditionParenthesized(IfConditionParenthesized node) {
+    node.expression.accept(this);
+  }
+
+  void visitIfConditionNegation(IfConditionNegation node) {
+    node.expression.accept(this);
+  }
+
+  void visitIfConditionOperation(IfConditionOperation node) {
+    for (var node in node.expressions) {
+      node.accept(this);
+    }
+  }
+
+  void visitIfConditionFunction(IfConditionFunction node) {
+    visitInterpolation(node.name);
+    visitInterpolation(node.arguments);
+  }
+
+  void visitIfConditionSass(IfConditionSass node) {
+    node.expression.accept(this);
+  }
+
+  void visitIfConditionRaw(IfConditionRaw node) {
+    visitInterpolation(node.text);
+  }
+
+  // Interpolated selectors
+
+  void visitAttributeSelector(InterpolatedAttributeSelector node) {
+    visitQualifiedName(node.name);
+    node.value.andThen(visitInterpolation);
+    node.modifier.andThen(visitInterpolation);
+  }
+
+  void visitClassSelector(InterpolatedClassSelector node) {
+    visitInterpolation(node.name);
+  }
+
+  void visitComplexSelector(InterpolatedComplexSelector node) {
+    for (var component in node.components) {
+      visitCompoundSelector(component.selector);
+    }
+  }
+
+  void visitCompoundSelector(InterpolatedCompoundSelector node) {
+    for (var simple in node.components) {
+      simple.accept(this);
+    }
+  }
+
+  void visitIDSelector(InterpolatedIDSelector node) {
+    visitInterpolation(node.name);
+  }
+
+  void visitParentSelector(InterpolatedParentSelector node) {
+    node.suffix.andThen(visitInterpolation);
+  }
+
+  void visitPlaceholderSelector(InterpolatedPlaceholderSelector node) {
+    visitInterpolation(node.name);
+  }
+
+  void visitPseudoSelector(InterpolatedPseudoSelector node) {
+    visitInterpolation(node.name);
+    node.argument.andThen(visitInterpolation);
+    node.selector.andThen(visitSelectorList);
+  }
+
+  void visitSelectorList(InterpolatedSelectorList node) {
+    for (var component in node.components) {
+      visitComplexSelector(component);
+    }
+  }
+
+  void visitTypeSelector(InterpolatedTypeSelector node) {
+    visitQualifiedName(node.name);
+  }
+
+  void visitUniversalSelector(InterpolatedUniversalSelector node) {
+    node.namespace.andThen(visitInterpolation);
+  }
 
   @protected
   void visitCallableDeclaration(CallableDeclaration node) {
@@ -263,5 +363,15 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
     for (var node in interpolation.contents) {
       if (node is Expression) visitExpression(node);
     }
+  }
+
+  /// Visits each interpolatoin in [node].
+  ///
+  /// The default implementation of the visit methods calls this to visit any
+  /// qualified names in a selector.
+  @protected
+  void visitQualifiedName(InterpolatedQualifiedName node) {
+    node.namespace.andThen(visitInterpolation);
+    visitInterpolation(node.name);
   }
 }

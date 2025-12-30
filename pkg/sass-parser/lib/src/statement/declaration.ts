@@ -247,6 +247,8 @@ export class Declaration
 
   /** @hidden */
   normalize(node: NewNode, sample?: postcss.Node): ChildNode[] {
-    return normalize(this as StatementWithChildren, node, sample);
+    // Casting is necessary because `_Declaration` can't extend
+    // `ContainerWithChildren` because it is a union type.
+    return normalize(this as unknown as StatementWithChildren, node, sample);
   }
 }

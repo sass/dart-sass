@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`a parenthesized if() condition toJSON 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@#{if((sass(true)): a)}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "parenthesized": <sass(true)>,
+  "raws": {},
+  "sassType": "if-condition-parenthesized",
+  "source": <1:7-1:19 in 0>,
+}
+`;

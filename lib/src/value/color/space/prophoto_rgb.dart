@@ -45,7 +45,9 @@ final class ProphotoRgbColorSpace extends ColorSpace {
         ColorSpace.rgb =>
           linearProphotoRgbToLinearSrgb,
         ColorSpace.a98Rgb => linearProphotoRgbToLinearA98Rgb,
-        ColorSpace.displayP3 => linearProphotoRgbToLinearDisplayP3,
+        ColorSpace.displayP3 ||
+        ColorSpace.displayP3Linear =>
+          linearProphotoRgbToLinearDisplayP3,
         ColorSpace.rec2020 => linearProphotoRgbToLinearRec2020,
         ColorSpace.xyzD65 => linearProphotoRgbToXyzD65,
         ColorSpace.xyzD50 => linearProphotoRgbToXyzD50,

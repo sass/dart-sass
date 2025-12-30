@@ -19,12 +19,12 @@ jobs:
       matrix:
         include:
           - arch: x64
-            runner: macos-13
+            runner: macos-15-intel
           - arch: arm64
             runner: macos-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
@@ -34,12 +34,12 @@ jobs:
 
       - name: Generate artifact attestation
         if: github.ref_type == 'tag'
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v3
         with:
           subject-path: build/*.tar.gz
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: build-macos-${{ matrix.arch }}
           path: build/*.tar.gz

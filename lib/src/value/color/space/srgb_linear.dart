@@ -54,7 +54,9 @@ final class SrgbLinearColorSpace extends ColorSpace {
 
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
-        ColorSpace.displayP3 => linearSrgbToLinearDisplayP3,
+        ColorSpace.displayP3 ||
+        ColorSpace.displayP3Linear =>
+          linearSrgbToLinearDisplayP3,
         ColorSpace.a98Rgb => linearSrgbToLinearA98Rgb,
         ColorSpace.prophotoRgb => linearSrgbToLinearProphotoRgb,
         ColorSpace.rec2020 => linearSrgbToLinearRec2020,

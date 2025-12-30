@@ -74,6 +74,8 @@ final class AttributeSelector extends SimpleSelector {
 }
 
 /// An operator that defines the semantics of an [AttributeSelector].
+///
+/// {@category AST}
 enum AttributeOperator {
   /// The attribute value exactly equals the given value.
   equal('='),

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: aab2d0696988ac233a4925bea01a8b2de6ab43b2
+// Checksum: 100008e8850141988b6abeec5dd86919db2f1452
 //
 // ignore_for_file: unused_import
 
@@ -56,6 +56,7 @@ import '../util/span.dart';
 import '../value.dart';
 import 'interface/css.dart';
 import 'interface/expression.dart';
+import 'interface/if_condition_expression.dart';
 import 'interface/modifiable_css.dart';
 import 'interface/statement.dart';
 import 'serialize.dart';
@@ -141,6 +142,7 @@ final class _EvaluateVisitor
     implements
         StatementVisitor<Value?>,
         ExpressionVisitor<Value>,
+        IfConditionExpressionVisitor<Object /* String | bool */ >,
         CssVisitor<void> {
   /// The import cache used to import other stylesheets.
   final ImportCache? _importCache;
@@ -532,8 +534,9 @@ final class _EvaluateVisitor
 
         var callableNode = _callableNode!;
         var invocation = ArgumentList(
-          [],
-          {},
+          const [],
+          const {},
+          const {},
           callableNode.span,
           rest: ValueExpression(args, callableNode.span),
           keywordRest: args.keywords.isEmpty
@@ -597,11 +600,20 @@ final class _EvaluateVisitor
         if (withMap != null) {
           var values = <String, ConfiguredValue>{};
           var span = callableNode.span;
+          var privateDeprecation = false;
           withMap.forEach((variable, value) {
             var name =
                 variable.assertString("with key").text.replaceAll("_", "-");
             if (values.containsKey(name)) {
               throw "The variable \$$name was configured twice.";
+            } else if (name.startsWith("-") && !privateDeprecation) {
+              privateDeprecation = true;
+              warnForDeprecation(
+                "Configuring private variables (such as \$$name) is "
+                "deprecated.\n"
+                "This will be an error in Dart Sass 2.0.0.",
+                Deprecation.withPrivate,
+              );
             }
 
             values[name] = ConfiguredValue.explicit(value, span, callableNode);
@@ -630,6 +642,7 @@ final class _EvaluateVisitor
           var callableNode = _callableNode!;
           var invocation = ArgumentList(
             const [],
+            const {},
             const {},
             callableNode.span,
             rest: ValueExpression(args, callableNode.span),
@@ -1357,9 +1370,11 @@ final class _EvaluateVisitor
         node.span,
       );
     }
-    if (_declarationName != null && node.isCustomProperty) {
+    if (_declarationName != null && !node.parsedAsSassScript) {
       throw _exception(
-        'Declarations whose names begin with "--" may not be nested.',
+        node.name.initialPlain.startsWith('--')
+            ? 'Declarations whose names begin with "--" may not be nested.'
+            : 'Declarations parsed as raw CSS may not be nested.',
         node.span,
       );
     }
@@ -1383,8 +1398,7 @@ final class _EvaluateVisitor
             name,
             CssValue(value, expression.span),
             node.span,
-            parsedAsCustomProperty: node.isCustomProperty,
-            trace: _stackTrace(node.span),
+            parsedAsSassScript: node.parsedAsSassScript,
             valueSpanForMap:
                 _sourceMap ? node.value.andThen(_expressionNode)?.span : null,
           ),
@@ -2142,13 +2156,12 @@ final class _EvaluateVisitor
     if (node.originalName.startsWith('--') &&
         mixin is UserDefinedCallable &&
         !mixin.declaration.originalName.startsWith('--')) {
-      _warn(
-        'Sass @mixin names beginning with -- are deprecated for forward-'
+      throw _exception(
+        'Sass @mixin names beginning with -- are forbidden for forward-'
         'compatibility with plain CSS mixins.\n'
         '\n'
         'For details, see https://sass-lang.com/d/css-function-mixin',
         node.nameSpan,
-        Deprecation.cssFunctionMixin,
       );
     }
 
@@ -2329,7 +2342,7 @@ final class _EvaluateVisitor
     }
 
     var (selectorText, selectorMap) = _performInterpolationWithMap(
-      node.selector,
+      node.selector!,
       warnForColor: true,
     );
 
@@ -2342,7 +2355,7 @@ final class _EvaluateVisitor
         interpolationMap: selectorMap,
       ).parse();
       var rule = ModifiableCssKeyframeBlock(
-        CssValue(List.unmodifiable(parsedSelector), node.selector.span),
+        CssValue(List.unmodifiable(parsedSelector), node.selector!.span),
         node.span,
       );
       _withParent(
@@ -2544,7 +2557,7 @@ final class _EvaluateVisitor
   /// necessary if [condition] is also a [SupportsOperation].
   String _parenthesize(
     SupportsCondition condition, [
-    String? operator,
+    BooleanOperator? operator,
   ]) {
     switch (condition) {
       case SupportsNegation():
@@ -2733,8 +2746,90 @@ final class _EvaluateVisitor
       SassBoolean(node.value);
 
   Value visitIfExpression(IfExpression node) {
+    List<(String, Value)>? results;
+    for (var (condition, expression) in node.branches) {
+      var result = condition?.accept(this) ?? true;
+      switch (result) {
+        case String condition:
+          results ??= [];
+          results.add((condition, expression.accept(this)));
+
+        case true when results != null:
+          results.add(('else', expression.accept(this)));
+
+        case true:
+          return expression.accept(this);
+      }
+    }
+
+    if (results == null) return sassNull;
+    return SassString(
+        'if(' +
+            results.map((pair) => '${pair.$1}: ${pair.$2}').join('; ') +
+            ')',
+        quotes: false);
+  }
+
+  Object /* String | bool */ visitIfConditionParenthesized(
+          IfConditionParenthesized node) =>
+      switch (node.expression.accept(this)) {
+        String string => '($string)',
+        var result => result,
+      };
+
+  Object /* String | bool */ visitIfConditionNegation(
+          IfConditionNegation node) =>
+      switch (node.expression.accept(this)) {
+        String string => 'not $string',
+        bool result => !result,
+        _ => throw UnsupportedError('unreachable'),
+      };
+
+  Object /* String | bool */ visitIfConditionOperation(
+      IfConditionOperation node) {
+    List<(IfConditionExpression, String)>? values;
+    for (var expression in node.expressions) {
+      switch (expression.accept(this)) {
+        case String right:
+          values ??= [];
+          values.add((expression, right));
+        case false when node.op == BooleanOperator.and:
+          return false;
+        case true when node.op == BooleanOperator.or:
+          return true;
+      }
+    }
+
+    return switch (values) {
+      null => node.op == BooleanOperator.and,
+
+      // If the only CSS node left in the operation is parenthesized, remove
+      // the parentheses. This is guaranteed to be valid because parentheses
+      // contain an `<if-group>` and this operation is itself an
+      // `<if-group>`.
+      [(IfConditionParenthesized(), var string)] =>
+        string.substring(1, string.length - 1),
+      _ => values.map((pair) => pair.$2).join(' ${node.op} '),
+    };
+  }
+
+  Object /* String | bool */ visitIfConditionFunction(
+          IfConditionFunction node) =>
+      _performInterpolation(node.name) +
+      '(' +
+      _performInterpolation(node.arguments) +
+      ')';
+
+  Object /* String | bool */ visitIfConditionSass(IfConditionSass node) =>
+      node.expression.accept(this).isTruthy;
+
+  Object /* String | bool */ visitIfConditionRaw(IfConditionRaw node) =>
+      _performInterpolation(node.text);
+
+  Value visitLegacyIfExpression(LegacyIfExpression node) {
     var (positional, named) = _evaluateMacroArguments(node);
-    _verifyParameters(positional.length, named, IfExpression.declaration, node);
+    _verifyParameters(
+        positional.length, named, LegacyIfExpression.declaration, node);
 
     // ignore: prefer_is_empty
     var condition = positional.elementAtOrNull(0) ?? named["condition"]!;
@@ -2802,7 +2897,7 @@ final class _EvaluateVisitor
             ),
             label: "function call",
           );
-    if (function == null) {
+    if (function == null || node.originalName.startsWith('--')) {
       if (node.namespace != null) {
         throw _exception("Undefined function.", node.span);
       }
@@ -2841,19 +2936,6 @@ final class _EvaluateVisitor
 
       function = (_stylesheet.plainCss ? null : _builtInFunctions[node.name]) ??
           PlainCssCallable(node.originalName);
-    }
-
-    if (node.originalName.startsWith('--') &&
-        function is UserDefinedCallable &&
-        !function.declaration.originalName.startsWith('--')) {
-      _warn(
-        'Sass @function names beginning with -- are deprecated for forward-'
-        'compatibility with plain CSS functions.\n'
-        '\n'
-        'For details, see https://sass-lang.com/d/css-function-mixin',
-        node.nameSpan,
-        Deprecation.cssFunctionMixin,
-      );
     }
 
     var oldInFunction = _inFunction;
@@ -3117,7 +3199,7 @@ final class _EvaluateVisitor
       case NumberExpression() ||
             VariableExpression() ||
             FunctionExpression() ||
-            IfExpression():
+            LegacyIfExpression():
         return switch (node.accept(this)) {
           SassNumber result => result,
           SassCalculation result => result,
@@ -4046,7 +4128,7 @@ final class _EvaluateVisitor
         node.name,
         node.value,
         node.span,
-        parsedAsCustomProperty: node.parsedAsCustomProperty,
+        parsedAsSassScript: node.parsedAsSassScript,
         valueSpanForMap: node.valueSpanForMap,
       ),
     );
@@ -4329,13 +4411,13 @@ final class _EvaluateVisitor
     required bool sourceMap,
     bool warnForColor = false,
   }) {
-    var targetLocations = sourceMap ? <SourceLocation>[] : null;
+    var targetOffsets = sourceMap ? <int>[] : null;
     var oldInSupportsDeclaration = _inSupportsDeclaration;
     _inSupportsDeclaration = false;
     var buffer = StringBuffer();
     var first = true;
     for (var value in interpolation.contents) {
-      if (!first) targetLocations?.add(SourceLocation(buffer.length));
+      if (!first) targetOffsets?.add(buffer.length);
       first = false;
 
       if (value is String) {
@@ -4373,8 +4455,8 @@ final class _EvaluateVisitor
 
     return (
       buffer.toString(),
-      targetLocations.andThen(
-        (targetLocations) => InterpolationMap(interpolation, targetLocations),
+      targetOffsets.andThen(
+        (targetOffsets) => InterpolationMap(interpolation, targetOffsets),
       ),
     );
   }
@@ -4748,9 +4830,8 @@ final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
 
   void visitCssComment(ModifiableCssComment node) => _visitor._addChild(node);
 
-  void visitCssDeclaration(ModifiableCssDeclaration node) {
-    assert(false, "visitCssDeclaration() should never be called.");
-  }
+  void visitCssDeclaration(ModifiableCssDeclaration node) =>
+      _visitor._addChild(node);
 
   void visitCssImport(ModifiableCssImport node) {
     if (_visitor._parent != _visitor._root) {

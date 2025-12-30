@@ -372,7 +372,6 @@ export class ListExpression
         constructed.parent = this;
         normalized.push(constructed);
       }
-      node.parent = this;
     }
     return normalized;
   }

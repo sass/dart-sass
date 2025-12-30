@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 212de63e7334243c6de7f9be29bbad0e1eaa2eea
+  // Checksum: cb70c693b61a37ecfffb93f16d2fb353bcf0ecee
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -97,6 +97,7 @@ enum Deprecation {
   /// Deprecation for function and mixin names beginning with --.
   cssFunctionMixin('css-function-mixin',
       deprecatedIn: '1.76.0',
+      obsoleteIn: '1.94.0',
       description: 'Function and mixin names beginning with --.'),
 
   /// Deprecation for declarations after or between nested rules.
@@ -147,6 +148,17 @@ enum Deprecation {
   misplacedRest('misplaced-rest',
       deprecatedIn: '1.91.0',
       description: 'A rest parameter before a positional or named parameter.'),
+
+  /// Deprecation for configuring private variables in @use, @forward, or load-css().
+  withPrivate('with-private',
+      deprecatedIn: '1.92.0',
+      description:
+          'Configuring private variables in @use, @forward, or load-css().'),
+
+  /// Deprecation for the Sass if(\$condition, \$if-true, \$if-false) function.
+  ifFunction('if-function',
+      deprecatedIn: '1.95.0',
+      description: 'The Sass if(\$condition, \$if-true, \$if-false) function.'),
 
   /// Deprecation for the list.slash() function.
   listSlash('list-slash',

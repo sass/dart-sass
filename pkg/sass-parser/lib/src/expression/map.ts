@@ -63,23 +63,6 @@ export interface MapExpressionRaws {
 }
 
 /**
- * Raws indicating how to precisely serialize a single key/value pair in a
- * {@link MapExpression}.
- *
- * @category Expression
- */
-export interface MapExpressionPairRaws {
-  /** The whitespace before the pair's key. */
-  before?: string;
-
-  /** The text (including the colon) between the pair's key and value. */
-  between?: string;
-
-  /** The whitespace after the pair's value and before the comma. */
-  after?: string;
-}
-
-/**
  * An expression representing a map literal in Sass.
  *
  * @category Expression
@@ -281,7 +264,7 @@ export class MapExpression
   }
 
   /**
-   * Normalizes a single argument declaration or map of arguments.
+   * Normalizes a single argument declaration or list of arguments.
    */
   private _normalize(nodes: NewNodeForMapExpression): Array<MapEntry> {
     if (nodes === undefined) return [];
@@ -327,7 +310,7 @@ export class MapExpression
     return normalized;
   }
 
-  /** Like {@link _normalize}, but also flattens a map of nodes. */
+  /** Like {@link _normalize}, but also flattens a list of nodes. */
   private _normalizeList(
     nodes: ReadonlyArray<NewNodeForMapExpression>,
   ): Array<MapEntry> {

@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`a parent selector toJSON with a suffix 1`] = `
+{
+  "inputs": [
+    {
+      "css": "&foo {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "raws": {},
+  "sassType": "parent",
+  "source": <1:1-1:5 in 0>,
+  "suffix": <foo>,
+}
+`;
+
+exports[`a parent selector toJSON with no suffix 1`] = `
+{
+  "inputs": [
+    {
+      "css": "& {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "raws": {},
+  "sassType": "parent",
+  "source": <1:1-1:2 in 0>,
+}
+`;

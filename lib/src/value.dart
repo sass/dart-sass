@@ -96,7 +96,7 @@ abstract class Value {
   ///
   /// @nodoc
   @internal
-  bool get isVar => false;
+  bool get isSpecialVariable => false;
 
   /// Returns Dart's `null` value if this is [sassNull], and returns `this`
   /// otherwise.

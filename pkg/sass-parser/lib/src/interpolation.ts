@@ -45,7 +45,7 @@ export interface InterpolationObjectProps extends NodeProps {
 }
 
 /**
- * The initializer properties for {@link Interpolation} passed.
+ * The initializer properties for {@link Interpolation}.
  *
  * A plain string is interpreted as a plain-text interpolation.
  *

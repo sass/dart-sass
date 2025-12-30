@@ -2,7 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import {GenericAtRule, Interpolation, Root, Rule, css, sass, scss} from '../..';
+import {GenericAtRule, Root, Rule, SelectorList, css, sass, scss} from '../..';
 import * as utils from '../../../test/utils';
 
 describe('a style rule', () => {
@@ -16,10 +16,10 @@ describe('a style rule', () => {
 
         it('has sassType rule', () => expect(node.sassType).toBe('rule'));
 
-        it('has matching selectorInterpolation', () =>
-          expect(node).toHaveInterpolation('selectorInterpolation', '.foo '));
+        it('has matching parsedSelector', () =>
+          expect(node).toHaveNode('parsedSelector', '.foo', 'selector-list'));
 
-        it('has matching selector', () => expect(node.selector).toBe('.foo '));
+        it('has matching selector', () => expect(node.selector).toBe('.foo'));
 
         it('has empty nodes', () => expect(node.nodes).toHaveLength(0));
       });
@@ -34,41 +34,36 @@ describe('a style rule', () => {
 
     describe('parsed as Sass', () => {
       beforeEach(() => {
-        node = sass.parse('.foo').nodes[0] as Rule;
+        node = sass.parse('.foo\n').nodes[0] as Rule;
       });
 
-      it('has matching selectorInterpolation', () =>
-        expect(node).toHaveInterpolation('selectorInterpolation', '.foo\n'));
+      it('has matching parsedSelector', () =>
+        expect(node).toHaveNode('parsedSelector', '.foo', 'selector-list'));
 
-      it('has matching selector', () => expect(node.selector).toBe('.foo\n'));
+      it('has matching selector', () => expect(node.selector).toBe('.foo'));
 
       it('has empty nodes', () => expect(node.nodes).toHaveLength(0));
     });
 
     describe('constructed manually', () => {
       describeNode(
-        'with an interpolation',
-        () =>
-          new Rule({
-            selectorInterpolation: new Interpolation({nodes: ['.foo ']}),
-          }),
+        'with a parsed selector',
+        () => new Rule({parsedSelector: {class: 'foo'}}),
       );
 
       describeNode(
         'with a selector string',
-        () => new Rule({selector: '.foo '}),
+        () => new Rule({selector: '.foo'}),
       );
     });
 
     describe('constructed from ChildProps', () => {
-      describeNode('with an interpolation', () =>
-        utils.fromChildProps({
-          selectorInterpolation: new Interpolation({nodes: ['.foo ']}),
-        }),
+      describeNode('with a parsed selector', () =>
+        utils.fromChildProps({parsedSelector: {class: 'foo'}}),
       );
 
       describeNode('with a selector string', () =>
-        utils.fromChildProps({selector: '.foo '}),
+        utils.fromChildProps({selector: '.foo'}),
       );
     });
   });
@@ -78,10 +73,10 @@ describe('a style rule', () => {
       describe(description, () => {
         beforeEach(() => void (node = create()));
 
-        it('has matching selectorInterpolation', () =>
-          expect(node).toHaveInterpolation('selectorInterpolation', '.foo '));
+        it('has matching parsedSelector', () =>
+          expect(node).toHaveNode('parsedSelector', '.foo', 'selector-list'));
 
-        it('has matching selector', () => expect(node.selector).toBe('.foo '));
+        it('has matching selector', () => expect(node.selector).toBe('.foo'));
 
         it('has a child node', () => {
           expect(node.nodes).toHaveLength(1);
@@ -106,10 +101,10 @@ describe('a style rule', () => {
         node = sass.parse('.foo\n  @bar').nodes[0] as Rule;
       });
 
-      it('has matching selectorInterpolation', () =>
-        expect(node).toHaveInterpolation('selectorInterpolation', '.foo\n'));
+      it('has matching parsedSelector', () =>
+        expect(node).toHaveNode('parsedSelector', '.foo'));
 
-      it('has matching selector', () => expect(node.selector).toBe('.foo\n'));
+      it('has matching selector', () => expect(node.selector).toBe('.foo'));
 
       it('has a child node', () => {
         expect(node.nodes).toHaveLength(1);
@@ -120,30 +115,30 @@ describe('a style rule', () => {
 
     describe('constructed manually', () => {
       describeNode(
-        'with an interpolation',
+        'with a parsedSelector',
         () =>
           new Rule({
-            selectorInterpolation: new Interpolation({nodes: ['.foo ']}),
+            parsedSelector: {class: 'foo'},
             nodes: [{name: 'bar'}],
           }),
       );
 
       describeNode(
         'with a selector string',
-        () => new Rule({selector: '.foo ', nodes: [{name: 'bar'}]}),
+        () => new Rule({selector: '.foo', nodes: [{name: 'bar'}]}),
       );
     });
 
     describe('constructed from ChildProps', () => {
-      describeNode('with an interpolation', () =>
+      describeNode('with a parsedSelector', () =>
         utils.fromChildProps({
-          selectorInterpolation: new Interpolation({nodes: ['.foo ']}),
+          parsedSelector: {class: 'foo'},
           nodes: [{name: 'bar'}],
         }),
       );
 
       describeNode('with a selector string', () =>
-        utils.fromChildProps({selector: '.foo ', nodes: [{name: 'bar'}]}),
+        utils.fromChildProps({selector: '.foo', nodes: [{name: 'bar'}]}),
       );
     });
   });
@@ -153,32 +148,27 @@ describe('a style rule', () => {
       node = scss.parse('.foo {}').nodes[0] as Rule;
     });
 
-    it("removes the old interpolation's parent", () => {
-      const oldSelector = node.selectorInterpolation!;
-      node.selectorInterpolation = '.bar';
+    it("removes the old selector's parent", () => {
+      const oldSelector = node.parsedSelector!;
+      node.parsedSelector = {class: 'bar'};
       expect(oldSelector.parent).toBeUndefined();
     });
 
-    it("assigns the new interpolation's parent", () => {
-      const interpolation = new Interpolation({nodes: ['.bar']});
-      node.selectorInterpolation = interpolation;
-      expect(interpolation.parent).toBe(node);
+    it("assigns the new selector's parent", () => {
+      const selector = new SelectorList({class: 'bar'});
+      node.parsedSelector = selector;
+      expect(selector.parent).toBe(node);
     });
 
-    it('assigns the interpolation explicitly', () => {
-      const interpolation = new Interpolation({nodes: ['.bar']});
-      node.selectorInterpolation = interpolation;
-      expect(node.selectorInterpolation).toBe(interpolation);
+    it('assigns the selector explicitly', () => {
+      const selector = new SelectorList({class: 'bar'});
+      node.parsedSelector = selector;
+      expect(node.parsedSelector).toBe(selector);
     });
 
-    it('assigns the interpolation as a string', () => {
-      node.selectorInterpolation = '.bar';
-      expect(node).toHaveInterpolation('selectorInterpolation', '.bar');
-    });
-
-    it('assigns the interpolation as selector', () => {
+    it('assigns the selector as selector', () => {
       node.selector = '.bar';
-      expect(node).toHaveInterpolation('selectorInterpolation', '.bar');
+      expect(node).toHaveNode('parsedSelector', '.bar');
     });
   });
 
@@ -245,10 +235,10 @@ describe('a style rule', () => {
       });
 
       describe('has the same properties:', () => {
-        it('selectorInterpolation', () =>
-          expect(clone).toHaveInterpolation('selectorInterpolation', '.foo '));
+        it('parsedSelector', () =>
+          expect(clone).toHaveNode('parsedSelector', '.foo'));
 
-        it('selector', () => expect(clone.selector).toBe('.foo '));
+        it('selector', () => expect(clone.selector).toBe('.foo'));
 
         it('raws', () => expect(clone.raws).toEqual({between: '  '}));
 
@@ -264,11 +254,7 @@ describe('a style rule', () => {
       describe('creates a new', () => {
         it('self', () => expect(clone).not.toBe(original));
 
-        for (const attr of [
-          'selectorInterpolation',
-          'raws',
-          'nodes',
-        ] as const) {
+        for (const attr of ['parsedSelector', 'raws', 'nodes'] as const) {
           it(attr, () => expect(clone[attr]).not.toBe(original[attr]));
         }
       });
@@ -288,8 +274,8 @@ describe('a style rule', () => {
 
           it('changes selector', () => expect(clone.selector).toBe('qux'));
 
-          it('changes selectorInterpolation', () =>
-            expect(clone).toHaveInterpolation('selectorInterpolation', 'qux'));
+          it('changes parsedSelector', () =>
+            expect(clone).toHaveNode('parsedSelector', 'qux'));
         });
 
         describe('undefined', () => {
@@ -298,44 +284,38 @@ describe('a style rule', () => {
             clone = original.clone({selector: undefined});
           });
 
-          it('preserves selector', () => expect(clone.selector).toBe('.foo '));
+          it('preserves selector', () => expect(clone.selector).toBe('.foo'));
 
-          it('preserves selectorInterpolation', () =>
-            expect(clone).toHaveInterpolation(
-              'selectorInterpolation',
-              '.foo ',
-            ));
+          it('preserves parsedSelector', () =>
+            expect(clone).toHaveNode('parsedSelector', '.foo'));
         });
       });
 
-      describe('selectorInterpolation', () => {
+      describe('parsedSelector', () => {
         describe('defined', () => {
           let clone: Rule;
           beforeEach(() => {
             clone = original.clone({
-              selectorInterpolation: new Interpolation({nodes: ['.baz']}),
+              parsedSelector: {class: 'baz'},
             });
           });
 
           it('changes selector', () => expect(clone.selector).toBe('.baz'));
 
-          it('changes selectorInterpolation', () =>
-            expect(clone).toHaveInterpolation('selectorInterpolation', '.baz'));
+          it('changes parsedSelector', () =>
+            expect(clone).toHaveNode('parsedSelector', '.baz'));
         });
 
         describe('undefined', () => {
           let clone: Rule;
           beforeEach(() => {
-            clone = original.clone({selectorInterpolation: undefined});
+            clone = original.clone({parsedSelector: undefined});
           });
 
-          it('preserves selector', () => expect(clone.selector).toBe('.foo '));
+          it('preserves selector', () => expect(clone.selector).toBe('.foo'));
 
-          it('preserves selectorInterpolation', () =>
-            expect(clone).toHaveInterpolation(
-              'selectorInterpolation',
-              '.foo ',
-            ));
+          it('preserves parsedSelector', () =>
+            expect(clone).toHaveNode('parsedSelector', '.foo'));
         });
       });
 

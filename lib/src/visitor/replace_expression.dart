@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 import '../ast/sass.dart';
 import '../exception.dart';
 import '../util/map.dart';
+import 'interface/if_condition_expression.dart';
 import 'interface/expression.dart';
 
 /// A visitor that recursively traverses each expression in a SassScript AST and
@@ -21,7 +22,10 @@ import 'interface/expression.dart';
 /// * [visitInterpolation]
 ///
 /// {@category Visitor}
-mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
+mixin ReplaceExpressionVisitor
+    implements
+        ExpressionVisitor<Expression>,
+        IfConditionExpressionVisitor<IfConditionExpression> {
   Expression visitBinaryOperationExpression(BinaryOperationExpression node) =>
       BinaryOperationExpression(
         node.operator,
@@ -50,8 +54,8 @@ mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
         node.span,
       );
 
-  Expression visitIfExpression(IfExpression node) =>
-      IfExpression(visitArgumentList(node.arguments), node.span);
+  Expression visitLegacyIfExpression(LegacyIfExpression node) =>
+      LegacyIfExpression(visitArgumentList(node.arguments), node.span);
 
   Expression visitListExpression(ListExpression node) => ListExpression(
         node.contents.map((item) => item.accept(this)),
@@ -91,6 +95,34 @@ mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
 
   Expression visitVariableExpression(VariableExpression node) => node;
 
+  // `if()` condition expressions
+
+  IfConditionExpression visitIfConditionParenthesized(
+          IfConditionParenthesized node) =>
+      IfConditionParenthesized(node.expression.accept(this), node.span);
+
+  IfConditionExpression visitIfConditionNegation(IfConditionNegation node) =>
+      IfConditionNegation(node.expression.accept(this), node.span);
+
+  IfConditionExpression visitIfConditionOperation(IfConditionOperation node) =>
+      IfConditionOperation(
+        node.expressions.map((expression) => expression.accept(this)),
+        node.op,
+      );
+
+  IfConditionExpression visitIfConditionFunction(IfConditionFunction node) =>
+      IfConditionFunction(
+        visitInterpolation(node.name),
+        visitInterpolation(node.arguments),
+        node.span,
+      );
+
+  IfConditionExpression visitIfConditionSass(IfConditionSass node) =>
+      IfConditionSass(node.expression.accept(this), node.span);
+
+  IfConditionExpression visitIfConditionRaw(IfConditionRaw node) =>
+      IfConditionRaw(visitInterpolation(node.text));
+
   /// Replaces each expression in an [invocation].
   ///
   /// The default implementation of the visit methods calls this to replace any
@@ -102,6 +134,7 @@ mixin ReplaceExpressionVisitor implements ExpressionVisitor<Expression> {
           for (var (name, value) in invocation.named.pairs)
             name: value.accept(this),
         },
+        invocation.namedSpans,
         invocation.span,
         rest: invocation.rest?.accept(this),
         keywordRest: invocation.keywordRest?.accept(this),

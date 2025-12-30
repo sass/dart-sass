@@ -36,15 +36,9 @@ describe('a container node', () => {
         const otherRoot = new Root({nodes: [rule1, rule2]});
         root.append(otherRoot);
         expect(root.nodes[0]).toBeInstanceOf(Rule);
-        expect(root.nodes[0]).toHaveInterpolation(
-          'selectorInterpolation',
-          '.foo',
-        );
+        expect(root.nodes[0]).toHaveNode('parsedSelector', '.foo');
         expect(root.nodes[1]).toBeInstanceOf(Rule);
-        expect(root.nodes[1]).toHaveInterpolation(
-          'selectorInterpolation',
-          '.bar',
-        );
+        expect(root.nodes[1]).toHaveNode('parsedSelector', '.bar');
         expect(root.nodes[0].parent).toBe(root);
         expect(root.nodes[1].parent).toBe(root);
         expect(rule1.parent).toBeUndefined();
@@ -55,10 +49,7 @@ describe('a container node', () => {
         const node = postcss.parse('.foo {}').nodes[0];
         root.append(node);
         expect(root.nodes[0]).toBeInstanceOf(Rule);
-        expect(root.nodes[0]).toHaveInterpolation(
-          'selectorInterpolation',
-          '.foo',
-        );
+        expect(root.nodes[0]).toHaveNode('parsedSelector', '.foo');
         expect(root.nodes[0].parent).toBe(root);
         expect(root.nodes[0].source).toBe(node.source);
         expect(node.parent).toBeUndefined();
@@ -80,15 +71,9 @@ describe('a container node', () => {
         const rule2 = new postcss.Rule({selector: '.bar'});
         root.append([rule1, rule2]);
         expect(root.nodes[0]).toBeInstanceOf(Rule);
-        expect(root.nodes[0]).toHaveInterpolation(
-          'selectorInterpolation',
-          '.foo',
-        );
+        expect(root.nodes[0]).toHaveNode('parsedSelector', '.foo');
         expect(root.nodes[1]).toBeInstanceOf(Rule);
-        expect(root.nodes[1]).toHaveInterpolation(
-          'selectorInterpolation',
-          '.bar',
-        );
+        expect(root.nodes[1]).toHaveNode('parsedSelector', '.bar');
         expect(root.nodes[0].parent).toBe(root);
         expect(root.nodes[1].parent).toBe(root);
         expect(rule1.parent).toBeUndefined();
@@ -101,15 +86,9 @@ describe('a container node', () => {
         const otherRoot = new postcss.Root({nodes: [rule1, rule2]});
         root.append(otherRoot);
         expect(root.nodes[0]).toBeInstanceOf(Rule);
-        expect(root.nodes[0]).toHaveInterpolation(
-          'selectorInterpolation',
-          '.foo',
-        );
+        expect(root.nodes[0]).toHaveNode('parsedSelector', '.foo');
         expect(root.nodes[1]).toBeInstanceOf(Rule);
-        expect(root.nodes[1]).toHaveInterpolation(
-          'selectorInterpolation',
-          '.bar',
-        );
+        expect(root.nodes[1]).toHaveNode('parsedSelector', '.bar');
         expect(root.nodes[0].parent).toBe(root);
         expect(root.nodes[1].parent).toBe(root);
         expect(rule1.parent).toBeUndefined();
@@ -117,40 +96,28 @@ describe('a container node', () => {
       });
 
       it("a single Sass node's properties", () => {
-        root.append({selectorInterpolation: '.foo'});
+        root.append({parsedSelector: {class: 'foo'}});
         expect(root.nodes[0]).toBeInstanceOf(Rule);
-        expect(root.nodes[0]).toHaveInterpolation(
-          'selectorInterpolation',
-          '.foo',
-        );
+        expect(root.nodes[0]).toHaveNode('parsedSelector', '.foo');
         expect(root.nodes[0].parent).toBe(root);
       });
 
       it("a single PostCSS node's properties", () => {
         root.append({selector: '.foo'});
         expect(root.nodes[0]).toBeInstanceOf(Rule);
-        expect(root.nodes[0]).toHaveInterpolation(
-          'selectorInterpolation',
-          '.foo',
-        );
+        expect(root.nodes[0]).toHaveNode('parsedSelector', '.foo');
         expect(root.nodes[0].parent).toBe(root);
       });
 
       it('a list of properties', () => {
         root.append(
-          {selectorInterpolation: '.foo'},
-          {selectorInterpolation: '.bar'},
+          {parsedSelector: {class: 'foo'}},
+          {parsedSelector: {class: 'bar'}},
         );
         expect(root.nodes[0]).toBeInstanceOf(Rule);
-        expect(root.nodes[0]).toHaveInterpolation(
-          'selectorInterpolation',
-          '.foo',
-        );
+        expect(root.nodes[0]).toHaveNode('parsedSelector', '.foo');
         expect(root.nodes[1]).toBeInstanceOf(Rule);
-        expect(root.nodes[1]).toHaveInterpolation(
-          'selectorInterpolation',
-          '.bar',
-        );
+        expect(root.nodes[1]).toHaveNode('parsedSelector', '.bar');
         expect(root.nodes[0].parent).toBe(root);
         expect(root.nodes[1].parent).toBe(root);
       });
@@ -158,25 +125,16 @@ describe('a container node', () => {
       it('a plain CSS string', () => {
         root.append('.foo {}');
         expect(root.nodes[0]).toBeInstanceOf(Rule);
-        expect(root.nodes[0]).toHaveInterpolation(
-          'selectorInterpolation',
-          '.foo',
-        );
+        expect(root.nodes[0]).toHaveNode('parsedSelector', '.foo');
         expect(root.nodes[0].parent).toBe(root);
       });
 
       it('a list of plain CSS strings', () => {
         root.append(['.foo {}', '.bar {}']);
         expect(root.nodes[0]).toBeInstanceOf(Rule);
-        expect(root.nodes[0]).toHaveInterpolation(
-          'selectorInterpolation',
-          '.foo',
-        );
+        expect(root.nodes[0]).toHaveNode('parsedSelector', '.foo');
         expect(root.nodes[1]).toBeInstanceOf(Rule);
-        expect(root.nodes[1]).toHaveInterpolation(
-          'selectorInterpolation',
-          '.bar',
-        );
+        expect(root.nodes[1]).toHaveNode('parsedSelector', '.bar');
         expect(root.nodes[0].parent).toBe(root);
         expect(root.nodes[1].parent).toBe(root);
       });

@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`a complex selector toJSON 1`] = `
+{
+  "inputs": [
+    {
+      "css": ".foo, .bar {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "nodes": [
+    <.foo>,
+    <.bar>,
+  ],
+  "raws": {},
+  "sassType": "selector-list",
+  "source": <1:1-1:12 in 0>,
+}
+`;

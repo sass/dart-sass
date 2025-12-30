@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:sass/src/utils.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../value/list.dart';
@@ -20,6 +21,11 @@ final class ArgumentList implements SassNode {
   /// The arguments passed by name.
   final Map<String, Expression> named;
 
+  /// The spans for the arguments passed by name, including their argument names.
+  ///
+  /// This always has the same keys as [named] in the same order.
+  final Map<String, FileSpan> namedSpans;
+
   /// The first rest argument (as in `$args...`).
   final Expression? rest;
 
@@ -34,18 +40,22 @@ final class ArgumentList implements SassNode {
   ArgumentList(
     Iterable<Expression> positional,
     Map<String, Expression> named,
+    Map<String, FileSpan> namedSpans,
     this.span, {
     this.rest,
     this.keywordRest,
   })  : positional = List.unmodifiable(positional),
-        named = Map.unmodifiable(named) {
+        named = Map.unmodifiable(named),
+        namedSpans = Map.unmodifiable(namedSpans) {
     assert(rest != null || keywordRest == null);
+    assert(iterableEquals(named.keys, namedSpans.keys));
   }
 
   /// Creates an invocation that passes no arguments.
   ArgumentList.empty(this.span)
       : positional = const [],
         named = const {},
+        namedSpans = const {},
         rest = null,
         keywordRest = null;
 
