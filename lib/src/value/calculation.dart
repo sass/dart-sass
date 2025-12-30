@@ -9,7 +9,6 @@ import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../deprecation.dart';
-import '../evaluation_context.dart';
 import '../exception.dart';
 import '../callable.dart';
 import '../util/character.dart';
