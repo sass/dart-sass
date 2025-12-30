@@ -216,6 +216,9 @@ final class Protofier {
               return SassColor.srgbLinear(channel1, channel2, channel3, alpha);
             case ColorSpace.displayP3:
               return SassColor.displayP3(channel1, channel2, channel3, alpha);
+            case ColorSpace.displayP3Linear:
+              return SassColor.displayP3Linear(
+                  channel1, channel2, channel3, alpha);
             case ColorSpace.a98Rgb:
               return SassColor.a98Rgb(channel1, channel2, channel3, alpha);
             case ColorSpace.prophotoRgb:

@@ -2,7 +2,7 @@ name: sass_api
 # Note: Every time we add a new Sass AST node, we need to bump the *major*
 # version because it's a breaking change for anyone who's implementing the
 # visitor interface(s).
-version: 16.0.0-dev
+version: 18.0.0-dev
 description: Additional APIs for Dart Sass.
 homepage: https://github.com/sass/dart-sass
 
@@ -13,7 +13,7 @@ dependencies:
   sass: 2.0.0
 
 dev_dependencies:
-  dartdoc: ^8.0.14
+  dartdoc: ">=8.0.14 <10.0.0"
 
 dependency_overrides:
   sass: { path: ../.. }

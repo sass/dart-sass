@@ -10,6 +10,7 @@ import '../../exception.dart';
 import '../color.dart';
 import 'space/a98_rgb.dart';
 import 'space/display_p3.dart';
+import 'space/display_p3_linear.dart';
 import 'space/hsl.dart';
 import 'space/hwb.dart';
 import 'space/lab.dart';
@@ -53,6 +54,11 @@ abstract base class ColorSpace {
   ///
   /// https://www.w3.org/TR/css-color-4/#predefined-display-p3
   static const ColorSpace displayP3 = DisplayP3ColorSpace();
+
+  /// The display-p3-linear color space.
+  ///
+  /// https://drafts.csswg.org/css-color/#predefined-display-p3-linear
+  static const ColorSpace displayP3Linear = DisplayP3LinearColorSpace();
 
   /// The a98-rgb color space.
   ///
@@ -153,6 +159,7 @@ abstract base class ColorSpace {
         'srgb' => srgb,
         'srgb-linear' => srgbLinear,
         'display-p3' => displayP3,
+        'display-p3-linear' => displayP3Linear,
         'a98-rgb' => a98Rgb,
         'prophoto-rgb' => prophotoRgb,
         'rec2020' => rec2020,

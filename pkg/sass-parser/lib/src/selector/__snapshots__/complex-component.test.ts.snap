@@ -1,0 +1,34 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`a complex selector component toJSON with a combinator 1`] = `
+{
+  "combinator": "+",
+  "compound": <.foo>,
+  "inputs": [
+    {
+      "css": ".foo + {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "raws": {},
+  "sassType": "complex-selector-component",
+  "source": <1:1-1:8 in 0>,
+}
+`;
+
+exports[`a complex selector component toJSON with no combinator 1`] = `
+{
+  "compound": <.foo>,
+  "inputs": [
+    {
+      "css": ".foo {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "raws": {},
+  "sassType": "complex-selector-component",
+  "source": <1:1-1:6 in 0>,
+}
+`;

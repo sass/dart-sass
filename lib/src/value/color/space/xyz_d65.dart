@@ -35,7 +35,9 @@ final class XyzD65ColorSpace extends ColorSpace {
           xyzD65ToLinearSrgb,
         ColorSpace.a98Rgb => xyzD65ToLinearA98Rgb,
         ColorSpace.prophotoRgb => xyzD65ToLinearProphotoRgb,
-        ColorSpace.displayP3 => xyzD65ToLinearDisplayP3,
+        ColorSpace.displayP3 ||
+        ColorSpace.displayP3Linear =>
+          xyzD65ToLinearDisplayP3,
         ColorSpace.rec2020 => xyzD65ToLinearRec2020,
         ColorSpace.xyzD50 => xyzD65ToXyzD50,
         ColorSpace.lms => xyzD65ToLms,

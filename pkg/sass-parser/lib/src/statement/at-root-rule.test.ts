@@ -72,7 +72,7 @@ describe('an @at-root rule', () => {
 
     it('contains a Rule', () => {
       const rule = node.nodes![0] as Rule;
-      expect(rule).toHaveInterpolation('selectorInterpolation', '.foo ');
+      expect(rule).toHaveNode('parsedSelector', '.foo');
       expect(rule.parent).toBe(node);
     });
   });

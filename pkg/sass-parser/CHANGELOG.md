@@ -2,7 +2,59 @@
 
 * `/` is now parsed as slash-separated lists rather than division in SassScript.
 
-## 0.4.27-dev
+## 0.4.40
+
+* No user-visible changes.
+
+## 0.4.39
+
+* No user-visible changes.
+
+## 0.4.38
+
+* No user-visible changes.
+
+## 0.4.37
+
+* Add support for the CSS `if()` expression and its Sass extensions.
+
+## 0.4.36
+
+* No user-visible changes.
+
+## 0.4.35
+
+* No user-visible changes.
+
+## 0.4.34
+
+* No user-visible changes.
+
+## 0.4.33
+
+* Add support for parsing selectors.
+
+## 0.4.32
+
+* No user-visible changes.
+
+## 0.4.31
+
+* No user-visible changes.
+
+## 0.4.30
+
+* No user-visible changes.
+
+## 0.4.29
+
+* No user-visible changes.
+
+## 0.4.28
+
+* No user-visible changes.
+
+## 0.4.27
 
 * No user-visible changes.
 

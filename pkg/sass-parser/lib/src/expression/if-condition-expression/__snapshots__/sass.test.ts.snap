@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`a Sass if() condition toJSON 1`] = `
+{
+  "expression": <true>,
+  "inputs": [
+    {
+      "css": "@#{if(sass(true): a)}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "raws": {},
+  "sassType": "if-condition-sass",
+  "source": <1:7-1:17 in 0>,
+}
+`;

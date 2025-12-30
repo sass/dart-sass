@@ -38,7 +38,7 @@ class SassParser extends StylesheetParser {
 
   bool get indented => true;
 
-  SassParser(super.contents, {super.url});
+  SassParser(super.contents, {super.url, super.parseSelectors});
 
   Interpolation styleRuleSelector() {
     var start = scanner.state;
@@ -50,7 +50,7 @@ class SassParser extends StylesheetParser {
     } while (buffer.trailingString.trimRight().endsWith(',') &&
         scanCharIf((char) => char.isNewline));
 
-    return buffer.interpolation(scanner.spanFrom(start));
+    return buffer.interpolation(spanFrom(start));
   }
 
   void expectStatementSeparator([String? name]) {
@@ -97,7 +97,7 @@ class SassParser extends StylesheetParser {
       next = scanner.peekChar();
     }
     var url = scanner.substring(start.position);
-    var span = scanner.spanFrom(start);
+    var span = spanFrom(start);
 
     if (isPlainImportUrl(url)) {
       // Serialize [url] as a Sass string because [StaticImport] expects it to
@@ -218,7 +218,7 @@ class SassParser extends StylesheetParser {
 
     return lastSilentComment = SilentComment(
       buffer.toString(),
-      scanner.spanFrom(start),
+      spanFrom(start),
     );
   }
 
@@ -269,7 +269,7 @@ class SassParser extends StylesheetParser {
             if (scanner.peekChar(1) == $slash) {
               buffer.writeCharCode(scanner.readChar());
               buffer.writeCharCode(scanner.readChar());
-              var span = scanner.spanFrom(start);
+              var span = spanFrom(start);
               whitespace(consumeNewlines: false);
 
               // For backwards compatibility, allow additional comments after
@@ -290,7 +290,7 @@ class SassParser extends StylesheetParser {
                 }
                 throw MultiSpanSassFormatException(
                   "Unexpected text after end of comment",
-                  scanner.spanFrom(errorStart),
+                  spanFrom(errorStart),
                   "extra text",
                   {span: "comment"},
                 );
@@ -318,7 +318,7 @@ class SassParser extends StylesheetParser {
       _readIndentation();
     }
 
-    return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
+    return LoudComment(buffer.interpolation(spanFrom(start)));
   }
 
   void whitespaceWithoutComments({required bool consumeNewlines}) {

@@ -1,0 +1,18 @@
+{
+  "name": "@sass/types",
+  "version": "auto",
+  "description": "A standalone types package for the Sass JS API",
+  "repository": "sass/dart-sass",
+  "author": "Google Inc.",
+  "license": "MIT",
+  "exports": {
+    "types": "./types/index.d.ts"
+  },
+  "types": "types/index.d.ts",
+  "files": [
+    "types/**/*.d.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

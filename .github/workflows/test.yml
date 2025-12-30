@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - uses: ./.github/util/initialize
       with: {github-token: "${{ github.token }}"}
     - run: dart format .
@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -66,7 +66,7 @@ jobs:
             async_args: '--cmd-args --async'
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -105,7 +105,7 @@ jobs:
             node-version: 'lts/*'
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -150,7 +150,7 @@ jobs:
             node-version: lts/-3
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/util/initialize
         with:
           github-token: ${{ github.token }}
@@ -190,8 +190,8 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: browser-actions/setup-chrome@v1
+      - uses: actions/checkout@v6
+      - uses: browser-actions/setup-chrome@v2
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -233,7 +233,7 @@ jobs:
         # include: [{os: ubuntu-latest, dart_channel: dev}]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -272,7 +272,7 @@ jobs:
             node-version: 'lts/*'
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -294,8 +294,8 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
-    - uses: browser-actions/setup-chrome@v1
+    - uses: actions/checkout@v6
+    - uses: browser-actions/setup-chrome@v2
     - uses: ./.github/util/initialize
       with:
         dart-sdk: ${{ matrix.dart_channel }}
@@ -335,7 +335,7 @@ jobs:
             node-version: 'lts/*'
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -355,8 +355,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with: {node-version: 'lts/*'}
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
@@ -379,8 +379,8 @@ jobs:
   #   runs-on: ubuntu-latest
   #
   #   steps:
-  #     - uses: actions/checkout@v5
-  #     - uses: actions/setup-node@v4
+  #     - uses: actions/checkout@v6
+  #     - uses: actions/setup-node@v6
   #       with: {node-version: 'lts/*'}
   #     - run: npm install
   #       working-directory: pkg/sass-parser/

@@ -166,9 +166,9 @@ In addition to supporting the standard PostCSS properties like
 `Declaration.value` and `Rule.selector`, `sass-parser` provides more detailed
 parsed values. For example, `sassParser.Declaration.valueExpression` provides
 the declaration's value as a fully-parsed syntax tree rather than a string, and
-`sassParser.Rule.selectorInterpolation` provides access to any interpolated
-expressions as in `.prefix-#{$variable} { /*...*/ }`. These parsed values are
-automatically kept up-to-date with the standard PostCSS properties.
+`sassParser.Rule.parsedSelector` provides access to the fully-parsed selectr.
+These parsed values are automatically kept up-to-date with the standard PostCSS
+properties.
 
 ### Expression API
 

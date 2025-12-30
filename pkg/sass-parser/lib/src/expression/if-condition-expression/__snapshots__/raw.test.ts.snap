@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`a raw if() condition toJSON 1`] = `
+{
+  "inputs": [
+    {
+      "css": "@#{if(#{"media(screen)"}: a)}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "rawInterpolation": <#{"media(screen)"}>,
+  "raws": {},
+  "sassType": "if-condition-raw",
+  "source": <1:7-1:25 in 0>,
+}
+`;

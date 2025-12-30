@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import * as postcss from 'postcss';
+import {ContainerWithChildren} from 'postcss/lib/container';
 
 import {Container} from '../container';
 import {Interpolation} from '../interpolation';
@@ -178,7 +179,7 @@ export interface ContainerProps extends NodeProps {
  *
  * @category Statement
  */
-export type StatementWithChildren = postcss.Container<postcss.ChildNode> &
+export type StatementWithChildren = ContainerWithChildren &
   Container<ChildNode, NewNode> &
   AnyStatement;
 
@@ -370,7 +371,7 @@ export function normalize(
     } else if ('prop' in node || 'propInterpolation' in node) {
       result.push(new Declaration(node));
     } else if (
-      'selectorInterpolation' in node ||
+      'parsedSelector' in node ||
       'selector' in node ||
       'selectors' in node
     ) {

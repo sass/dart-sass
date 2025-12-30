@@ -27,6 +27,8 @@ class JSExpressionVisitor implements ExpressionVisitor<Object?> {
       _inner.visitFunctionExpression(node);
   Object? visitIfExpression(IfExpression node) =>
       _inner.visitIfExpression(node);
+  Object? visitLegacyIfExpression(LegacyIfExpression node) =>
+      _inner.visitLegacyIfExpression(node);
   Object? visitListExpression(ListExpression node) =>
       _inner.visitListExpression(node);
   Object? visitMapExpression(MapExpression node) =>
@@ -63,6 +65,7 @@ class JSExpressionVisitorObject {
   );
   external Object? visitFunctionExpression(FunctionExpression node);
   external Object? visitIfExpression(IfExpression node);
+  external Object? visitLegacyIfExpression(LegacyIfExpression node);
   external Object? visitListExpression(ListExpression node);
   external Object? visitMapExpression(MapExpression node);
   external Object? visitNullExpression(NullExpression node);

@@ -58,7 +58,130 @@
   available through the expanded `sass_api` package, since that package also
   exposes the selector AST that it returns.
 
-## 1.92.0-dev
+## 1.97.1
+
+* Fix a bug with the new CSS-style `if()` syntax where values would be evaluated
+  even if their conditions didn't match.
+
+## 1.97.0
+
+* Add support for the `display-p3-linear` color space.
+
+## 1.96.0
+
+* Allow numbers with complex units (more than one numerator unit or more than
+  zero denominator units) to be emitted to CSS. These are now emitted as
+  `calc()` expressions, which now support complex units in plain CSS.
+
+## 1.95.1
+
+* No user-visible changes.
+
+## 1.95.0
+
+* Add support for the [CSS-style `if()` function]. In addition to supporting the
+  plain CSS syntax, this also supports a `sass()` query that takes a Sass
+  expression that evaluates to `true` or `false` at preprocessing time depending
+  on whether the Sass value is truthy. If there are no plain-CSS queries, the
+  function will return the first value whose query returns true during
+  preprocessing. For example, `if(sass(false): 1; sass(true): 2; else: 3)`
+  returns `2`.
+
+  [CSS-style `if()` function]: https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/if
+
+* The old Sass `if()` syntax is now deprecated. Users are encouraged to migrate
+  to the new CSS syntax. `if($condition, $if-true, $if-false)` can be changed to
+  `if(sass($condition): $if-true; else: $if-false)`.
+
+  See [the Sass website](https://sass-lang.com/d/if-function) for details.
+
+* Plain-CSS `if()` functions are now considered "special numbers", meaning that
+  they can be used in place of arguments to CSS color functions.
+
+* Plain-CSS `if()` functions and `attr()` functions are now considered "special
+  variable strings" (like `var()`), meaning they can now be used in place of
+  multiple arguments or syntax fragments in various CSS functions.
+
+## 1.94.3
+
+* Fix the span reported for standalone `%` expressions followed by whitespace.
+
+## 1.94.2
+
+### Command-Line Interface
+
+* Using `--fatal-deprecation <version>` no longer emits warnings about
+  deprecations that are obsolete.
+
+### Dart API
+
+* `Deprecation.forVersion` now excludes obsolete deprecations from the set it
+  returns.
+
+### JS API
+
+* Excludes obsolete deprecations from `fatalDeprecations` when a `Version` is
+  passed.
+
+### Node.js Embedded Host
+
+* Fix a bug where a variable could be used before it was initialized during
+  async compilation.
+
+## 1.94.1
+
+* No user-visible changes.
+
+## 1.94.0
+
+* **Potentially breaking compatibility fix:** `@function` rules whose names
+  begin with `--` are now parsed as unknown at-rules to support the plain CSS
+  `@function` rule. Within this rule, the `result` property is parsed as raw
+  CSS just like custom properties.
+
+* **Potentially breaking compatibility fix:** `@mixin` rules whose names begin
+  with `--` are now errors. These are not yet parsed as unknown at-rules because
+  no browser currently supports CSS mixins.
+
+## 1.93.3
+
+* Fix a performance regression that was introduced in 1.92.0.
+
+## 1.93.2
+
+* No user-visible changes.
+
+### JavaScript API
+
+* Fix another error in the release process for `@sass/types`.
+
+## 1.93.1
+
+* No user-visible changes.
+
+### JavaScript API
+
+* Fix an error in the release process for `@sass/types`.
+
+## 1.93.0
+
+* Fix a crash when a style rule contains a nested `@import`, and the loaded file
+  `@use`s a user-defined module as well as `@include`s a top-level mixin which
+  emits top-level declarations.
+
+### JavaScript API
+
+* Release a `@sass/types` package which contains the type annotations used by
+  both the `sass` and `sass-embedded` package without any additional code or
+  dependencies.
+
+## 1.92.1
+
+* Fix a bug where variable definitions from one imported, forwarded module
+  would not be passed as implicit configuration to a later imported, forwarded
+  module.
+
+## 1.92.0
 
 * **Breaking change:** Emit declarations, childless at-rules, and comments in
   the order they appear in the source even when they're interleaved with nested
@@ -68,6 +191,11 @@
   plain CSS function. This means that `@function` definitions with the name
   `type` will produce errors, while function calls will be parsed as special
   function strings.
+
+* Configuring private variables using `@use ... with`, `@forward ... with`, and
+  `meta.load-css(..., $with: ...)` is now deprecated. Private variables were
+  always intended to be fully encapsulated within the module that defines them,
+  and this helps enforce that encapsulation.
 
 * Fix a bug where `@extend` rules loaded through a mixture of `@import` and
   `@use` rules could fail to apply correctly.

@@ -14,7 +14,7 @@ class ScssParser extends StylesheetParser {
   bool get indented => false;
   int get currentIndentation => 0;
 
-  ScssParser(super.contents, {super.url});
+  ScssParser(super.contents, {super.url, super.parseSelectors});
 
   Interpolation styleRuleSelector() => almostAnyValue();
 
@@ -126,13 +126,13 @@ class ScssParser extends StylesheetParser {
     if (plainCss) {
       error(
         "Silent comments aren't allowed in plain CSS.",
-        scanner.spanFrom(start),
+        spanFrom(start),
       );
     }
 
     return lastSilentComment = SilentComment(
       scanner.substring(start.position),
-      scanner.spanFrom(start),
+      spanFrom(start),
     );
   }
 
@@ -158,7 +158,7 @@ class ScssParser extends StylesheetParser {
           if (scanner.peekChar() != $slash) continue loop;
 
           buffer.writeCharCode(scanner.readChar());
-          return LoudComment(buffer.interpolation(scanner.spanFrom(start)));
+          return LoudComment(buffer.interpolation(spanFrom(start)));
 
         case $cr:
           scanner.readChar();
