@@ -976,7 +976,14 @@ abstract class StylesheetParser extends Parser {
         spanFrom(start),
       );
     }
-
+    else if (caseInsensitiveFunction(name)) {
+  warnings.add((
+    deprecation: Deprecation.caseInsensitiveFunction,
+    message:
+        'Function names that differ from reserved names only by case are deprecated.',
+    span: spanFrom(beforeName),
+  ));
+}
     if (unvendor(name)
         case "calc" ||
             "element" ||

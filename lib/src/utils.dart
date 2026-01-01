@@ -260,7 +260,21 @@ bool equalsIgnoreCase(String? string1, String? string2) {
   }
   return true;
 }
+/// Returns true if [name] differs from a reserved function name only by case.
+bool caseInsensitiveFunction(String? name) {
+  if (name == null) return false;
 
+  const reservedNames = ["url", "expression"];
+
+  for (final reserved in reservedNames) {
+    if (equalsIgnoreCase(name, reserved) &&
+        name != reserved) {
+      return true;
+    }
+  }
+
+  return false;
+}
 /// Returns whether [string] starts with [prefix], ignoring ASCII case.
 bool startsWithIgnoreCase(String string, String prefix) {
   if (string.length < prefix.length) return false;
