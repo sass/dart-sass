@@ -9,7 +9,6 @@ import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../deprecation.dart';
-import '../evaluation_context.dart';
 import '../exception.dart';
 import '../callable.dart';
 import '../util/character.dart';
@@ -257,17 +256,8 @@ final class SassCalculation extends Value {
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value abs(Object argument) {
     argument = _simplify(argument);
-    if (argument is! SassNumber) return SassCalculation._("abs", [argument]);
-    if (argument.hasUnit("%")) {
-      warnForDeprecation(
-        "Passing percentage units to the global abs() function is deprecated.\n"
-        "In the future, this will emit a CSS abs() function to be resolved by the browser.\n"
-        "To preserve current behavior: math.abs($argument)"
-        "\n"
-        "To emit a CSS abs() now: abs(#{$argument})\n"
-        "More info: https://sass-lang.com/d/abs-percent",
-        Deprecation.absPercent,
-      );
+    if (argument is! SassNumber || argument.hasUnit("%")) {
+      return SassCalculation._("abs", [argument]);
     }
     return number_lib.abs(argument);
   }
