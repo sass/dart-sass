@@ -5,6 +5,7 @@ inputs:
   node-version: {required: false, default: 'lts/*'}
   dart-sdk: {required: false, default: stable}
   architecture: {required: false}
+  for-npm-deploy: {required: false, default: false}
 runs:
   using: composite
   steps:
@@ -13,23 +14,36 @@ runs:
         sdk: "${{ inputs.dart-sdk }}"
         architecture: "${{ inputs.architecture }}"
 
-    - uses: actions/setup-node@v5
+    - uses: actions/setup-node@v6
+      if: "inputs.for-npm-deploy != true"
       with:
         node-version: "${{ inputs.node-version }}"
+
+    - uses: actions/setup-node@v6
+      if: inputs.for-npm-deploy == true
+      with:
+        node-version: "${{ inputs.node-version }}"
+        check-latest: true
+        registry-url: 'https://registry.npmjs.org'
+
+    # npm trusted publisher infrastructure requires npm >=11.5.1
+    - run: npm install -g npm@latest
+      if: inputs.for-npm-deploy == true
+      shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
 
     # See: https://github.com/dart-lang/sdk/issues/52266
     - run: Invoke-WebRequest https://pub.dev
       if: runner.os == 'Windows'
-      shell: powershell
+      shell: pwsh
 
     # See: https://github.com/orgs/community/discussions/131594
     # The composite action requires an explict shell, but bash is not available on windows-arm64 runner.
-    # For the following commands conditionally use bash or powershell based on the runner.os:
+    # For the following commands conditionally use bash or pwsh based on the runner.os:
     - run: dart pub get
-      shell: ${{ runner.os == 'Windows' && 'powershell' || 'bash' }}
+      shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
 
     - run: npm install
-      shell: ${{ runner.os == 'Windows' && 'powershell' || 'bash' }}
+      shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
 
     - uses: bufbuild/buf-setup-action@v1.50.0
       with: {github_token: "${{ inputs.github-token }}"}
@@ -45,10 +59,10 @@ runs:
     # downloading repo via GitHub API.
     - name: Check out the language repo
       if: github.event_name != 'pull_request'
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with: {repository: sass/sass, path: build/language}
 
     - name: Generate Dart from protobuf
       run: dart run grinder protobuf
       env: {UPDATE_SASS_SASS_REPO: false}
-      shell: ${{ runner.os == 'Windows' && 'powershell' || 'bash' }}
+      shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}

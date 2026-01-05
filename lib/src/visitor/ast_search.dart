@@ -8,20 +8,27 @@ import '../ast/sass.dart';
 import '../util/iterable.dart';
 import '../util/nullable.dart';
 import 'interface/expression.dart';
-import 'recursive_statement.dart';
+import 'interface/if_condition_expression.dart';
+import 'interface/interpolated_selector.dart';
 import 'statement_search.dart';
 
 /// A visitor that recursively traverses each statement and expression in a Sass
 /// AST whose `visit*` methods default to returning `null`, but which returns
 /// the first non-`null` value returned by any method.
 ///
-/// This extends [RecursiveStatementVisitor] to traverse each expression in
-/// addition to each statement. It supports the same additional methods as
-/// [RecursiveAstVisitor].
+/// This extends [StatementSearchVisitor] to traverse each expression in
+/// addition to each statement, as well as each selector for ASTs where
+/// `parseSelectors: true` was passed to [Stylesheet.parse]. It supports the
+/// same additional methods as [RecursiveAstVisitor].
 ///
 /// {@category Visitor}
 mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
-    implements ExpressionVisitor<T?> {
+    implements
+        ExpressionVisitor<T?>,
+        IfConditionExpressionVisitor<T?>,
+        InterpolatedSelectorVisitor<T?> {
+  // Rules
+
   T? visitAtRootRule(AtRootRule node) =>
       node.query.andThen(visitInterpolation) ?? super.visitAtRootRule(node);
 
@@ -84,7 +91,7 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
   T? visitReturnRule(ReturnRule node) => visitExpression(node.expression);
 
   T? visitStyleRule(StyleRule node) =>
-      visitInterpolation(node.selector) ?? super.visitStyleRule(node);
+      node.selector.andThen(visitInterpolation) ?? super.visitStyleRule(node);
 
   T? visitSupportsRule(SupportsRule node) =>
       visitSupportsCondition(node.condition) ?? super.visitSupportsRule(node);
@@ -101,6 +108,8 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
   T? visitWhileRule(WhileRule node) =>
       visitExpression(node.condition) ?? super.visitWhileRule(node);
 
+  // Expressions
+
   T? visitExpression(Expression expression) => expression.accept(this);
 
   T? visitBinaryOperationExpression(BinaryOperationExpression node) =>
@@ -113,10 +122,14 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
   T? visitFunctionExpression(FunctionExpression node) =>
       visitArgumentList(node.arguments);
 
+  T? visitIfExpression(IfExpression node) => node.branches
+      .search((pair) => pair.$1?.accept(this) ?? pair.$2.accept(this));
+
   T? visitInterpolatedFunctionExpression(InterpolatedFunctionExpression node) =>
       visitInterpolation(node.name) ?? visitArgumentList(node.arguments);
 
-  T? visitIfExpression(IfExpression node) => visitArgumentList(node.arguments);
+  T? visitLegacyIfExpression(LegacyIfExpression node) =>
+      visitArgumentList(node.arguments);
 
   T? visitListExpression(ListExpression node) =>
       node.contents.search((item) => item.accept(this));
@@ -145,6 +158,60 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
   T? visitValueExpression(ValueExpression node) => null;
 
   T? visitVariableExpression(VariableExpression node) => null;
+
+  // `if()` condition expresions
+
+  T? visitIfConditionParenthesized(IfConditionParenthesized node) =>
+      node.expression.accept(this);
+
+  T? visitIfConditionNegation(IfConditionNegation node) =>
+      node.expression.accept(this);
+
+  T? visitIfConditionOperation(IfConditionOperation node) =>
+      node.expressions.search((expression) => expression.accept(this));
+
+  T? visitIfConditionFunction(IfConditionFunction node) =>
+      visitInterpolation(node.name) ?? visitInterpolation(node.arguments);
+
+  T? visitIfConditionSass(IfConditionSass node) => node.expression.accept(this);
+
+  T? visitIfConditionRaw(IfConditionRaw node) => visitInterpolation(node.text);
+
+  // Interpolated selectors
+
+  T? visitAttributeSelector(InterpolatedAttributeSelector node) =>
+      visitQualifiedName(node.name) ??
+      node.value.andThen(visitInterpolation) ??
+      node.modifier.andThen(visitInterpolation);
+
+  T? visitClassSelector(InterpolatedClassSelector node) =>
+      visitInterpolation(node.name);
+
+  T? visitComplexSelector(InterpolatedComplexSelector node) => node.components
+      .search((component) => visitCompoundSelector(component.selector));
+
+  T? visitIDSelector(InterpolatedIDSelector node) =>
+      visitInterpolation(node.name);
+
+  T? visitParentSelector(InterpolatedParentSelector node) =>
+      node.suffix.andThen(visitInterpolation);
+
+  T? visitPlaceholderSelector(InterpolatedPlaceholderSelector node) =>
+      visitInterpolation(node.name);
+
+  T? visitPseudoSelector(InterpolatedPseudoSelector node) =>
+      visitInterpolation(node.name) ??
+      node.argument.andThen(visitInterpolation) ??
+      node.selector.andThen(visitSelectorList);
+
+  T? visitSelectorList(InterpolatedSelectorList node) =>
+      node.components.search((component) => visitComplexSelector(component));
+
+  T? visitTypeSelector(InterpolatedTypeSelector node) =>
+      visitQualifiedName(node.name);
+
+  T? visitUniverssalSelector(InterpolatedUniversalSelector node) =>
+      node.namespace.andThen(visitInterpolation);
 
   @protected
   T? visitCallableDeclaration(CallableDeclaration node) =>
@@ -190,4 +257,13 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
   @protected
   T? visitInterpolation(Interpolation interpolation) => interpolation.contents
       .search((node) => node is Expression ? visitExpression(node) : null);
+
+  /// Visits each expression in [node].
+  ///
+  /// The default implementation of the visit methods call this to visit any
+  /// qualified names in a selector.
+  @protected
+  T? visitQualifiedName(InterpolatedQualifiedName node) =>
+      node.namespace.andThen(visitInterpolation) ??
+      visitInterpolation(node.name);
 }

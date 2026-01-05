@@ -1,0 +1,34 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`a qualified name toJSON with a namespace 1`] = `
+{
+  "inputs": [
+    {
+      "css": "foo|bar {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": <bar>,
+  "namespace": <foo>,
+  "raws": {},
+  "sassType": "qualified-name",
+  "source": <1:1-1:8 in 0>,
+}
+`;
+
+exports[`a qualified name toJSON without a namespace 1`] = `
+{
+  "inputs": [
+    {
+      "css": "foo {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "name": <foo>,
+  "raws": {},
+  "sassType": "qualified-name",
+  "source": <1:1-1:4 in 0>,
+}
+`;

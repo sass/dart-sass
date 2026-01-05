@@ -24,7 +24,7 @@ jobs:
             runner: windows-11-arm
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
@@ -39,7 +39,7 @@ jobs:
           subject-path: build/*.zip
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: build-windows-${{ matrix.arch }}
           path: build/*.zip

@@ -23,6 +23,11 @@ export class LazySource implements postcss.Source {
     this.#inner = inner;
   }
 
+  /** @hidden */
+  get dartSpan(): sassInternal.FileSpan {
+    return this.#inner.span;
+  }
+
   get start(): postcss.Position | undefined {
     if (this.#start === 0) {
       this.#start = locationToPosition(this.#inner.span.start);

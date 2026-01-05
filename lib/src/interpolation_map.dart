@@ -16,27 +16,27 @@ final class InterpolationMap {
   /// The interpolation from which this map was generated.
   final Interpolation _interpolation;
 
-  /// Locations in the generated string.
+  /// Location offsets in the generated string.
   ///
   /// Each of these indicates the location in the generated string that
   /// corresponds to the end of the component at the same index of
   /// [_interpolation.contents]. Its length is always one less than
   /// [_interpolation.contents] because the last element always ends the string.
-  final List<SourceLocation> _targetLocations;
+  final List<int> _targetOffsets;
 
-  /// Creates a new interpolation map that maps the given [targetLocations] in
-  /// the generated string to the contents of the interpolation.
+  /// Creates a new interpolation map that maps the given [targetOffsets] in the
+  /// generated string to the contents of the interpolation.
   ///
-  /// Each target location at index `i` corresponds to the character in the
+  /// Each target offset at index `i` corresponds to the character in the
   /// generated string after `interpolation.contents[i]`.
   InterpolationMap(
     this._interpolation,
-    Iterable<SourceLocation> targetLocations,
-  ) : _targetLocations = List.unmodifiable(targetLocations) {
+    Iterable<int> targetOffsets,
+  ) : _targetOffsets = List.unmodifiable(targetOffsets) {
     var expectedLocations = math.max(0, _interpolation.contents.length - 1);
-    if (_targetLocations.length != expectedLocations) {
+    if (_targetOffsets.length != expectedLocations) {
       throw ArgumentError(
-        "InterpolationMap must have $expectedLocations targetLocations if the "
+        "InterpolationMap must have $expectedLocations targetOffsets if the "
         "interpolation has ${_interpolation.contents.length} components.",
       );
     }
@@ -44,11 +44,14 @@ final class InterpolationMap {
 
   /// Maps [error]'s span in the string generated from this interpolation to its
   /// original source.
+  ///
+  /// Returns [error] if its span is null, or if it's already been mapped.
   FormatException mapException(SourceSpanFormatException error) {
     var target = error.span;
     if (target == null) return error;
 
     if (_interpolation.contents.isEmpty) {
+      if (_isMapped(target)) return error;
       return SourceSpanFormatException(
         error.message,
         _interpolation.span,
@@ -57,6 +60,8 @@ final class InterpolationMap {
     }
 
     var source = mapSpan(target);
+    if (identical(source, target)) return error;
+
     var startIndex = _indexInContents(target.start);
     var endIndex = _indexInContents(target.end);
 
@@ -79,24 +84,36 @@ final class InterpolationMap {
 
   /// Maps a span in the string generated from this interpolation to its
   /// original source.
-  FileSpan mapSpan(SourceSpan target) => switch ((
-        _mapLocation(target.start),
-        _mapLocation(target.end),
-      )) {
-        (FileSpan start, FileSpan end) => start.expand(end),
-        (FileSpan start, FileLocation end) => _interpolation.span.file.span(
-            _expandInterpolationSpanLeft(start.start),
-            end.offset,
-          ),
-        (FileLocation start, FileSpan end) => _interpolation.span.file.span(
-            start.offset,
-            _expandInterpolationSpanRight(end.end),
-          ),
-        (FileLocation start, FileLocation end) => _interpolation.span.file.span(
-            start.offset,
-            end.offset,
-          ),
-        _ => throw '[BUG] Unreachable',
+  ///
+  /// Returns [target] as-is if it's already been mapped.
+  FileSpan mapSpan(SourceSpan target) {
+    if (_isMapped(target)) return target as FileSpan;
+
+    return switch ((
+      _mapLocation(target.start),
+      _mapLocation(target.end),
+    )) {
+      (FileSpan start, FileSpan end) => start.expand(end),
+      (FileSpan start, FileLocation end) => _interpolation.span.file.span(
+          _expandInterpolationSpanLeft(start.start),
+          end.offset,
+        ),
+      (FileLocation start, FileSpan end) => _interpolation.span.file.span(
+          start.offset,
+          _expandInterpolationSpanRight(end.end),
+        ),
+      (FileLocation start, FileLocation end) => _interpolation.span.file.span(
+          start.offset,
+          end.offset,
+        ),
+      _ => throw '[BUG] Unreachable',
+    };
+  }
+
+  /// Returns whether [span] has already been mapped by this mapper.
+  bool _isMapped(SourceSpan span) => switch (span) {
+        FileSpan(:var file) => identical(file, _interpolation.span.file),
+        _ => false,
       };
 
   /// Maps a location in the string generated from this interpolation to its
@@ -122,7 +139,7 @@ final class InterpolationMap {
             ),
           );
     var offsetInString =
-        target.offset - (index == 0 ? 0 : _targetLocations[index - 1].offset);
+        target.offset - (index == 0 ? 0 : _targetOffsets[index - 1]);
 
     // This produces slightly incorrect mappings if there are _unnecessary_
     // escapes in the source file, but that's unlikely enough that it's probably
@@ -134,8 +151,8 @@ final class InterpolationMap {
 
   /// Return the index in [_interpolation.contents] at which [target] points.
   int _indexInContents(SourceLocation target) {
-    for (var i = 0; i < _targetLocations.length; i++) {
-      if (target.offset < _targetLocations[i].offset) return i;
+    for (var i = 0; i < _targetOffsets.length; i++) {
+      if (target.offset < _targetOffsets[i]) return i;
     }
 
     return _interpolation.contents.length - 1;

@@ -2,12 +2,15 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+// ignore_for_file: avoid_renaming_method_parameters
+
 import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 
+import '../../../util/nullable.dart';
+import '../../color.dart';
 import '../conversions.dart';
-import '../space.dart';
 import 'utils.dart';
 
 /// The display-p3 color space.
@@ -20,6 +23,18 @@ final class DisplayP3ColorSpace extends ColorSpace {
   bool get isBoundedInternal => true;
 
   const DisplayP3ColorSpace() : super('display-p3', rgbChannels);
+
+  SassColor convert(ColorSpace dest, double? red, double? green, double? blue,
+          double? alpha) =>
+      dest == ColorSpace.displayP3Linear
+          ? SassColor.forSpaceInternal(
+              dest,
+              red.andThen(toLinear),
+              green.andThen(toLinear),
+              blue.andThen(toLinear),
+              alpha,
+            )
+          : super.convertLinear(dest, red, green, blue, alpha);
 
   @protected
   double toLinear(double channel) => srgbAndDisplayP3ToLinear(channel);

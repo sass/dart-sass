@@ -1,0 +1,54 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`an attribute selector toJSON with a modifier 1`] = `
+{
+  "attribute": <foo>,
+  "inputs": [
+    {
+      "css": "[foo=bar s] {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "modifier": <s>,
+  "operator": "=",
+  "raws": {},
+  "sassType": "attribute",
+  "source": <1:1-1:12 in 0>,
+  "value": <bar>,
+}
+`;
+
+exports[`an attribute selector toJSON with a value 1`] = `
+{
+  "attribute": <foo>,
+  "inputs": [
+    {
+      "css": "[foo=bar] {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "operator": "=",
+  "raws": {},
+  "sassType": "attribute",
+  "source": <1:1-1:10 in 0>,
+  "value": <bar>,
+}
+`;
+
+exports[`an attribute selector toJSON with no value 1`] = `
+{
+  "attribute": <foo>,
+  "inputs": [
+    {
+      "css": "[foo] {}",
+      "hasBOM": false,
+      "id": "<input css _____>",
+    },
+  ],
+  "raws": {},
+  "sassType": "attribute",
+  "source": <1:1-1:6 in 0>,
+}
+`;

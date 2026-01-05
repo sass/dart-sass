@@ -76,6 +76,56 @@ export {
   FunctionExpressionRaws,
 } from './src/expression/function';
 export {
+  IfExpression,
+  IfExpressionProps,
+  IfExpressionRaws,
+  NewNodeForIfExpression,
+} from './src/expression/if';
+export {
+  IfEntry,
+  IfEntryObjectProps,
+  IfEntryProps,
+  IfEntryRaws,
+} from './src/expression/if-entry';
+export {
+  AnyIfConditionExpression,
+  IfConditionExpressionType,
+  IfConditionExpressionProps,
+  IfConditionExpression,
+} from './src/expression/if-condition-expression';
+export {
+  IfConditionFunctionRaws,
+  IfConditionFunctionProps,
+  IfConditionFunction,
+} from './src/expression/if-condition-expression/function';
+export {
+  IfConditionNegationRaws,
+  IfConditionNegationProps,
+  IfConditionNegation,
+} from './src/expression/if-condition-expression/negation';
+export {
+  IfConditionOperationRaws,
+  IfConditionOperationProps,
+  IfConditionOperation,
+  NewNodeForIfConditionOperation,
+} from './src/expression/if-condition-expression/operation';
+export {
+  IfConditionParenthesizedRaws,
+  IfConditionParenthesizedProps,
+  IfConditionParenthesized,
+} from './src/expression/if-condition-expression/parenthesized';
+export {
+  IfConditionRawRaws,
+  IfConditionRawProps,
+  IfConditionRaw,
+} from './src/expression/if-condition-expression/raw';
+export {
+  IfConditionSassRaws,
+  IfConditionSassObjectProps,
+  IfConditionSassProps,
+  IfConditionSass,
+} from './src/expression/if-condition-expression/sass';
+export {
   InterpolatedFunctionExpression,
   InterpolatedFunctionExpressionProps,
   InterpolatedFunctionExpressionRaws,
@@ -150,6 +200,83 @@ export {
   ParameterProps,
   Parameter,
 } from './src/parameter';
+export {
+  AnySimpleSelector,
+  SimpleSelectorType,
+  SimpleSelectorProps,
+  SimpleSelector,
+} from './src/selector';
+export {
+  AttributeSelectorOperator,
+  AttributeSelectorProps,
+  AttributeSelectorRaws,
+  AttributeSelector,
+} from './src/selector/attribute';
+export {
+  ClassSelectorProps,
+  ClassSelectorRaws,
+  ClassSelector,
+} from './src/selector/class';
+export {
+  ComplexSelectorComponentObjectProps,
+  ComplexSelectorComponentProps,
+  ComplexSelectorComponentRaws,
+  ComplexSelectorComponent,
+} from './src/selector/complex-component';
+export {
+  ComplexSelectorObjectProps,
+  ComplexSelectorProps,
+  NewNodeForComplexSelector,
+  ComplexSelectorRaws,
+  ComplexSelector,
+  SelectorCombinator,
+} from './src/selector/complex';
+export {
+  CompoundSelectorObjectProps,
+  CompoundSelectorProps,
+  NewNodeForCompoundSelector,
+  CompoundSelectorRaws,
+  CompoundSelector,
+} from './src/selector/compound';
+export {IDSelectorProps, IDSelectorRaws, IDSelector} from './src/selector/id';
+export {
+  SelectorListObjectProps,
+  SelectorListProps,
+  NewNodeForSelectorList,
+  SelectorListRaws,
+  SelectorList,
+} from './src/selector/list';
+export {
+  ParentSelectorProps,
+  ParentSelectorRaws,
+  ParentSelector,
+} from './src/selector/parent';
+export {
+  PlaceholderSelectorProps,
+  PlaceholderSelectorRaws,
+  PlaceholderSelector,
+} from './src/selector/placeholder';
+export {
+  PseudoSelectorProps,
+  PseudoSelectorRaws,
+  PseudoSelector,
+} from './src/selector/pseudo';
+export {
+  QualifiedNameObjectProps,
+  QualifiedNameProps,
+  QualifiedNameRaws,
+  QualifiedName,
+} from './src/selector/qualified-name';
+export {
+  TypeSelectorProps,
+  TypeSelectorRaws,
+  TypeSelector,
+} from './src/selector/type';
+export {
+  UniversalSelectorProps,
+  UniversalSelectorRaws,
+  UniversalSelector,
+} from './src/selector/universal';
 export {
   ContentRule,
   ContentRuleProps,

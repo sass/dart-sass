@@ -31,7 +31,7 @@ jobs:
     needs: [build_linux, build_macos, build_windows]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -51,7 +51,7 @@ jobs:
 
     steps:
       - name: Download Artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
 
       - name: Release
         run: gh release upload ${{ github.ref_name }} build-*/* --repo ${{ github.repository }}
@@ -63,22 +63,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/util/initialize
-        with: {github-token: "${{ github.token }}"}
+        with:
+          github-token: ${{ github.token }}
+          for-npm-deploy: true
 
       - name: Deploy
         run: dart run grinder pkg-npm-deploy
         env:
           UPDATE_SASS_SASS_REPO: false
-          NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
 
   deploy_pub:
     name: Deploy Pub
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           # We have to use this rather than the implicit GitHub token so that
           # pushing a new tag triggers another action.
@@ -104,20 +105,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.GH_TOKEN }}
       # Set up .npmrc file to publish to npm
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 'lts/*'
           check-latest: true
           registry-url: 'https://registry.npmjs.org'
+
+      # npm trusted publisher infrastructure requires npm >=11.5.1
+      - run: npm install -g npm@latest
+
       - name: Get Dart Sass version
         id: dart-sass-version
         run: echo "version=${{ github.ref_name }}" | tee --append "$GITHUB_OUTPUT"
       - name: Check out the language repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with: {repository: sass/sass, path: build/language}
       - name: Copy types from the language repo
         run: cp -r build/language/js-api-doc pkg/sass-types/types
@@ -126,9 +131,7 @@ jobs:
       - name: Set the version of @sass/types
         run: npm pkg set version='${{ steps.dart-sass-version.outputs.version }}'
         working-directory: pkg/sass-types/
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: '${{ secrets.NPM_TOKEN }}'
+      - run: npm publish --provenance
         working-directory: pkg/sass-types/
 
   deploy_sass_parser:
@@ -137,18 +140,18 @@ jobs:
     needs: [deploy_npm]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.GH_TOKEN }}
       # Set up .npmrc file to publish to npm
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: 'lts/*'
           check-latest: true
           registry-url: 'https://registry.npmjs.org'
 
-        # The repo package has a file dependency, but the released version needs
-        # a real dependency on the released version of Sass.
+      # The repo package has a file dependency, but the released version needs a
+      # real dependency on the released version of Sass.
       - name: Get Dart Sass version
         id: dart-sass-version
         run: echo "version=${{ github.ref_name }}" | tee --append "$GITHUB_OUTPUT"
@@ -157,9 +160,7 @@ jobs:
 
       - run: npm run compile
         working-directory: pkg/sass-parser/
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: '${{ secrets.NPM_TOKEN }}'
+      - run: npm publish --provenance
         working-directory: pkg/sass-parser/
 
       - name: Get Sass parser version
@@ -174,7 +175,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
 
@@ -189,7 +190,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -203,7 +204,7 @@ jobs:
     needs: [deploy_npm]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           repository: sass/sass-site
           token: ${{ secrets.SASS_SITE_TOKEN }}
@@ -231,7 +232,7 @@ jobs:
     needs: [deploy_github]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           repository: sass/embedded-host-node
           token: ${{ secrets.GH_TOKEN }}

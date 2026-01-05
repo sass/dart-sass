@@ -36,12 +36,14 @@ class IsCalculationSafeVisitor implements ExpressionVisitor<bool> {
 
   bool visitFunctionExpression(FunctionExpression node) => true;
 
+  bool visitIfExpression(IfExpression node) => true;
+
   bool visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
   ) =>
       true;
 
-  bool visitIfExpression(IfExpression node) => true;
+  bool visitLegacyIfExpression(LegacyIfExpression node) => true;
 
   bool visitListExpression(ListExpression node) =>
       node.separator == ListSeparator.space &&
