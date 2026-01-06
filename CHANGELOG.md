@@ -1,3 +1,7 @@
+## 1.97.2
+
+* Additional fixes for implicit configuration when nested imports are involved.
+
 ## 1.97.1
 
 * Fix a bug with the new CSS-style `if()` syntax where values would be evaluated

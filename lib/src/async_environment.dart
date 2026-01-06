@@ -223,7 +223,7 @@ final class AsyncEnvironment {
         {},
         _importedModules,
         null,
-        null,
+        _nestedForwardedModules,
         [],
         _variables.toList(),
         _variableNodes.toList(),
@@ -834,13 +834,15 @@ final class AsyncEnvironment {
   /// environment.
   Configuration toImplicitConfiguration() {
     var configuration = <String, ConfiguredValue>{};
-    for (var module in _importedModules.keys) {
-      for (var (name, value) in module.variables.pairs) {
-        configuration[name] =
-            ConfiguredValue.implicit(value, module.variableNodes[name]!);
-      }
-    }
     for (var i = 0; i < _variables.length; i++) {
+      var modules =
+          i == 0 ? _importedModules.keys : _nestedForwardedModules?[i - 1];
+      for (var module in modules ?? const <Module>[]) {
+        for (var (name, value) in module.variables.pairs) {
+          configuration[name] =
+              ConfiguredValue.implicit(value, module.variableNodes[name]!);
+        }
+      }
       var values = _variables[i];
       var nodes = _variableNodes[i];
       for (var (name, value) in values.pairs) {
