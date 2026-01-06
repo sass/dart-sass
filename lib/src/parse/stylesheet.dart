@@ -1942,26 +1942,23 @@ abstract class StylesheetParser extends Parser {
                 ) ==
                 operator.operator &&
             scanner.string.codeUnitAt(left.span.end.offset).isWhitespace) {
-          warnings.add((
-            deprecation: Deprecation.strictUnary,
-            message: "This operation is parsed as:\n"
-                "\n"
-                "    $left ${operator.operator} $right\n"
-                "\n"
-                "but you may have intended it to mean:\n"
-                "\n"
-                "    $left (${operator.operator}$right)\n"
-                "\n"
-                "Add a space after ${operator.operator} to clarify that it's "
-                "meant to be a binary operation, or wrap\n"
-                "it in parentheses to make it a unary operation. This will be "
-                "an error in future\n"
-                "versions of Sass.\n"
-                "\n"
-                "More info and automated migrator: "
-                "https://sass-lang.com/d/strict-unary",
-            span: singleExpression_!.span,
-          ));
+          error(
+            "This operation could either be parsed as:\n"
+            "\n"
+            "    $left ${operator.operator} $right\n"
+            "\n"
+            "or:\n"
+            "\n"
+            "    $left (${operator.operator}$right)\n"
+            "\n"
+            "Add a space after ${operator.operator} to make it a binary "
+            "operation or wrap it in parentheses to\n"
+            "make it a unary operation.\n"
+            "\n"
+            "More info and automated migrator: "
+            "https://sass-lang.com/d/strict-unary",
+            singleExpression_!.span,
+          );
         }
       }
     }
