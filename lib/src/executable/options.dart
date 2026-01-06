@@ -528,7 +528,10 @@ final class ExecutableOptions {
   bool get embedSourceMap => _options['embed-source-map'] as bool;
 
   /// Whether to embed the source files in the generated source map.
-  bool get embedSources => _options['embed-sources'] as bool;
+  SourceMapIncludeSources get sourceMapIncludeSources =>
+      _options['embed-sources'] as bool
+          ? SourceMapIncludeSources.always
+          : SourceMapIncludeSources.never;
 
   /// Parses options from [args].
   ///
@@ -554,7 +557,9 @@ final class ExecutableOptions {
   ///
   /// If [url] isn't a `file:` URL, returns it as-is.
   Uri sourceMapUrl(Uri url, String? destination) {
-    if (url.scheme.isNotEmpty && url.scheme != 'file') return url;
+    if (url.scheme.isNotEmpty && url.scheme != 'file' || url.toString() == '') {
+      return url;
+    }
 
     var path = p.fromUri(url);
     return p.toUri(

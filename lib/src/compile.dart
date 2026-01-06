@@ -5,13 +5,11 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: d305a0f75e329a29f5aff734ac31ce145fd3b8d5
+// Checksum: 989c62e01aba777bc022501357a6f1be4e683c9c
 //
 // ignore_for_file: unused_import
 
 export 'async_compile.dart';
-
-import 'dart:convert';
 
 import 'package:cli_pkg/js.dart';
 import 'package:path/path.dart' as p;
@@ -27,8 +25,8 @@ import 'importer/no_op.dart';
 import 'io.dart';
 import 'logger.dart';
 import 'logger/deprecation_processing.dart';
+import 'source_map_include_sources.dart';
 import 'syntax.dart';
-import 'utils.dart';
 import 'visitor/evaluate.dart';
 import 'visitor/serialize.dart';
 
@@ -51,6 +49,8 @@ CompileResult compile(
   bool quietDeps = false,
   bool verbose = false,
   bool sourceMap = false,
+  SourceMapIncludeSources sourceMapIncludeSources =
+      SourceMapIncludeSources.always,
   bool charset = true,
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
@@ -97,6 +97,7 @@ CompileResult compile(
     lineFeed,
     quietDeps,
     sourceMap,
+    sourceMapIncludeSources,
     charset,
   );
 
@@ -126,6 +127,8 @@ CompileResult compileString(
   bool quietDeps = false,
   bool verbose = false,
   bool sourceMap = false,
+  SourceMapIncludeSources sourceMapIncludeSources =
+      SourceMapIncludeSources.always,
   bool charset = true,
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
@@ -165,6 +168,7 @@ CompileResult compileString(
     lineFeed,
     quietDeps,
     sourceMap,
+    sourceMapIncludeSources,
     charset,
   );
 
@@ -188,6 +192,7 @@ CompileResult _compileStylesheet(
   LineFeed? lineFeed,
   bool quietDeps,
   bool sourceMap,
+  SourceMapIncludeSources sourceMapIncludeSources,
   bool charset,
 ) {
   if (nodeImporter != null) {
@@ -221,16 +226,22 @@ CompileResult _compileStylesheet(
   );
 
   var resultSourceMap = serializeResult.sourceMap;
-  if (resultSourceMap != null && importCache != null) {
-    mapInPlace(
-      resultSourceMap.urls,
-      (url) => url == ''
-          ? Uri.dataFromString(
-              stylesheet.span.file.getText(0),
-              encoding: utf8,
-            ).toString()
-          : importCache.sourceMapUrl(Uri.parse(url)).toString(),
-    );
+  if (resultSourceMap != null) {
+    if (importCache != null) {
+      for (var i = 0, length = resultSourceMap.urls.length; i < length; i++) {
+        var canonicalUrl = Uri.parse(resultSourceMap.urls[i]);
+        var sourceMapUrl = importCache.sourceMapUrl(canonicalUrl);
+        if (sourceMapUrl != null) {
+          resultSourceMap.urls[i] = sourceMapUrl.toString();
+          if (sourceMapIncludeSources == SourceMapIncludeSources.auto) {
+            resultSourceMap.files[i] = null;
+          }
+        }
+      }
+    }
+    if (sourceMapIncludeSources == SourceMapIncludeSources.never) {
+      resultSourceMap.files.fillRange(0, resultSourceMap.files.length, null);
+    }
   }
 
   return CompileResult(evaluateResult, serializeResult);
