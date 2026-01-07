@@ -20,7 +20,7 @@ const _maxRepetitions = 5;
 /// deprecation warnings, silencing, making fatal, enabling future, and/or
 /// limiting repetition based on its inputs.
 @internal
-final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
+final class DeprecationProcessingLogger implements Logger {
   /// A map of how many times each deprecation has been emitted by this logger.
   final _warningCounts = <Deprecation, int>{};
 
@@ -111,7 +111,7 @@ final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
     }
   }
 
-  void internalWarn(
+  void warn(
     String message, {
     FileSpan? span,
     Trace? trace,
@@ -161,16 +161,12 @@ final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
       if (count > _maxRepetitions) return;
     }
 
-    if (_inner case LoggerWithDeprecationType inner) {
-      inner.internalWarn(
-        message,
-        span: span,
-        trace: trace,
-        deprecation: deprecation,
-      );
-    } else {
-      _inner.warn(message, span: span, trace: trace, deprecation: true);
-    }
+    _inner.warn(
+      message,
+      span: span,
+      trace: trace,
+      deprecation: deprecation,
+    );
   }
 
   void debug(String message, SourceSpan span) => _inner.debug(message, span);

@@ -15,7 +15,7 @@ import '../js/logger.dart';
 
 /// A wrapper around a [JSLogger] that exposes it as a Dart [Logger].
 @internal
-final class JSToDartLogger extends LoggerWithDeprecationType {
+final class JSToDartLogger implements Logger {
   /// The wrapped logger object.
   final JSLogger? _node;
 
@@ -31,7 +31,7 @@ final class JSToDartLogger extends LoggerWithDeprecationType {
   JSToDartLogger(this._node, this._fallback, {bool? ascii})
       : _ascii = ascii ?? glyph.ascii;
 
-  void internalWarn(
+  void warn(
     String message, {
     FileSpan? span,
     Trace? trace,
@@ -49,22 +49,12 @@ final class JSToDartLogger extends LoggerWithDeprecationType {
       );
     } else {
       _withAscii(() {
-        switch (_fallback) {
-          case LoggerWithDeprecationType():
-            _fallback.internalWarn(
-              message,
-              span: span,
-              trace: trace,
-              deprecation: deprecation,
-            );
-          case _:
-            _fallback.warn(
-              message,
-              span: span,
-              trace: trace,
-              deprecation: deprecation != null,
-            );
-        }
+        _fallback.warn(
+          message,
+          span: span,
+          trace: trace,
+          deprecation: deprecation,
+        );
       });
     }
   }
