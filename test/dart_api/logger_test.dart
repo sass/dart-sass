@@ -26,12 +26,12 @@ void main() {
           message, {
           span,
           trace,
-          deprecation = false,
+          deprecation,
         }) {
           expect(message, equals("heck"));
           expect(span, isNull);
           expect(trace!.frames.first.member, equals('foo()'));
-          expect(deprecation, isFalse);
+          expect(deprecation, isNull);
           mustBeCalled();
         }),
       );
@@ -45,7 +45,7 @@ void main() {
           message, {
           span,
           trace,
-          deprecation = false,
+          deprecation,
         }) {
           expect(message, equals("#abc"));
           mustBeCalled();
@@ -61,7 +61,7 @@ void main() {
           message, {
           span,
           trace,
-          deprecation = false,
+          deprecation,
         }) {
           expect(message, isEmpty);
           mustBeCalled();
@@ -117,7 +117,7 @@ void main() {
         message, {
         span,
         trace,
-        deprecation = false,
+        deprecation,
       }) {
         expect(message, contains('"&&" means two copies'));
 
@@ -127,7 +127,7 @@ void main() {
         expect(span.end.column, equals(10));
 
         expect(trace!.frames.first.member, equals('root stylesheet'));
-        expect(deprecation, isFalse);
+        expect(deprecation, isNull);
         mustBeCalled();
       }),
     );
@@ -144,7 +144,7 @@ void main() {
         message, {
         span,
         trace,
-        deprecation = false,
+        deprecation,
       }) {
         expect(message, contains("color value blue"));
 
@@ -154,7 +154,7 @@ void main() {
         expect(span.end.column, equals(26));
 
         expect(trace!.frames.first.member, equals('foo()'));
-        expect(deprecation, isFalse);
+        expect(deprecation, isNull);
         mustBeCalled();
       }),
     );
@@ -183,7 +183,7 @@ void main() {
             message, {
             span,
             trace,
-            deprecation = false,
+            deprecation,
           }) {
             expect(message, equals("heck"));
 
@@ -193,7 +193,7 @@ void main() {
             expect(span.end.column, equals(42));
 
             expect(trace!.frames.first.member, equals('bar()'));
-            expect(deprecation, isFalse);
+            expect(deprecation, isNull);
             mustBeCalled();
           }),
         );
@@ -220,7 +220,7 @@ void main() {
             message, {
             span,
             trace,
-            deprecation = false,
+            deprecation,
           }) {
             expect(message, equals("heck"));
 
@@ -230,7 +230,7 @@ void main() {
             expect(span.end.column, equals(42));
 
             expect(trace!.frames.first.member, equals('bar()'));
-            expect(deprecation, isFalse);
+            expect(deprecation, isNull);
             mustBeCalled();
           }),
         );
@@ -258,7 +258,7 @@ void main() {
             message, {
             span,
             trace,
-            deprecation = false,
+            deprecation,
           }) {
             expect(message, equals("heck"));
 
@@ -268,7 +268,7 @@ void main() {
             expect(span.end.column, equals(42));
 
             expect(trace!.frames.first.member, equals('bar()'));
-            expect(deprecation, isFalse);
+            expect(deprecation, isNull);
             mustBeCalled();
           }),
         );
@@ -289,7 +289,7 @@ void main() {
           message, {
           span,
           trace,
-          deprecation = false,
+          deprecation,
         }) {
           expect(message, equals("heck"));
 
@@ -299,7 +299,7 @@ void main() {
           expect(span.end.column, equals(10));
 
           expect(trace!.frames.first.member, equals('@use'));
-          expect(deprecation, isFalse);
+          expect(deprecation, isNull);
           mustBeCalled();
         }),
       );
@@ -323,10 +323,10 @@ void main() {
           message, {
           span,
           trace,
-          deprecation = false,
+          deprecation,
         }) {
           expect(message, equals("heck"));
-          expect(deprecation, isTrue);
+          expect(deprecation, equals(Deprecation.userAuthored));
           mustBeCalled();
         }),
       );
@@ -336,8 +336,8 @@ void main() {
 
 /// A [Logger] whose [warn] and [debug] methods are provided by callbacks.
 final class _TestLogger implements Logger {
-  final void Function(String, {FileSpan? span, Trace? trace, bool deprecation})
-      _warn;
+  final void Function(String,
+      {FileSpan? span, Trace? trace, Deprecation? deprecation}) _warn;
   final void Function(String, SourceSpan) _debug;
 
   _TestLogger.withWarn(this._warn) : _debug = const Logger.stderr().debug;
@@ -348,7 +348,7 @@ final class _TestLogger implements Logger {
     String message, {
     FileSpan? span,
     Trace? trace,
-    bool deprecation = false,
+    Deprecation? deprecation,
   }) =>
       _warn(message, span: span, trace: trace, deprecation: deprecation);
   void debug(String message, SourceSpan span) => _debug(message, span);

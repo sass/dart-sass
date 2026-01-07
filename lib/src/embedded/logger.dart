@@ -17,7 +17,7 @@ import 'utils.dart';
 
 /// A Sass logger that sends log messages as `LogEvent`s.
 @internal
-final class EmbeddedLogger extends LoggerWithDeprecationType {
+final class EmbeddedLogger implements Logger {
   /// The [CompilationDispatcher] to which to send events.
   final CompilationDispatcher _dispatcher;
 
@@ -44,7 +44,7 @@ final class EmbeddedLogger extends LoggerWithDeprecationType {
     );
   }
 
-  void internalWarn(
+  void warn(
     String message, {
     FileSpan? span,
     Trace? trace,

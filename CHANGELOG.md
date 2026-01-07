@@ -69,6 +69,10 @@
 
   [Dart class modifiers]: https://dart.dev/language/class-modifiers
 
+* **Breaking change:** The `deprecation` argument for `Logger.warn()` is now
+  `Deprecation?` rather than `bool`. This is `null` when the warning isn't for a
+  deprecation, and a `Deprecation` object when it is.
+
 * **Breaking change:** Remove `Value.assertSelector()`,
   `.assertSimpleSelector()`, `.assertCompoundSelector()`, and
   `.assertComplexSelector()`. These are now only available through the expanded
