@@ -29,21 +29,18 @@ class Deprecation {
 
 final Map<String, Deprecation?> deprecations = {
   for (var deprecation in dart.Deprecation.values)
-    // `calc-interp` was never actually used, so we don't want to expose it
-    // in the JS API.
-    if (deprecation != dart.Deprecation.calcInterp)
-      deprecation.id: Deprecation(
-        id: deprecation.id,
-        status: (() => switch (deprecation) {
-              dart.Deprecation(isFuture: true) => 'future',
-              dart.Deprecation(deprecatedIn: null, obsoleteIn: null) => 'user',
-              dart.Deprecation(obsoleteIn: null) => 'active',
-              _ => 'obsolete',
-            })(),
-        description: deprecation.description,
-        deprecatedIn: deprecation.deprecatedIn,
-        obsoleteIn: deprecation.obsoleteIn,
-      ),
+    deprecation.id: Deprecation(
+      id: deprecation.id,
+      status: (() => switch (deprecation) {
+            dart.Deprecation(isFuture: true) => 'future',
+            dart.Deprecation(deprecatedIn: null, obsoleteIn: null) => 'user',
+            dart.Deprecation(obsoleteIn: null) => 'active',
+            _ => 'obsolete',
+          })(),
+      description: deprecation.description,
+      deprecatedIn: deprecation.deprecatedIn,
+      obsoleteIn: deprecation.obsoleteIn,
+    ),
 };
 
 /// Parses a list of [deprecations] from JS into an list of Dart [Deprecation]
