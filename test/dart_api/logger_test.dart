@@ -170,7 +170,7 @@ void main() {
             a {b: bar()}
           """,
           functions: [
-            Callable(
+            Callable.function(
               "foo",
               "",
               expectAsync1((_) {
@@ -207,7 +207,7 @@ void main() {
             a {b: bar()}
           """,
           functions: [
-            AsyncCallable(
+            AsyncCallable.function(
               "foo",
               "",
               expectAsync1((_) async {
@@ -244,7 +244,7 @@ void main() {
             a {b: bar()}
           """,
           functions: [
-            AsyncCallable(
+            AsyncCallable.function(
               "foo",
               "",
               expectAsync1((_) async {
@@ -310,7 +310,7 @@ void main() {
       compileString(
         "a {b: foo()}",
         functions: [
-          Callable(
+          Callable.function(
             "foo",
             "",
             expectAsync1((_) {

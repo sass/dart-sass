@@ -82,6 +82,10 @@
   `sass_api` package, since that package also exposes the selector AST that it
   returns.
 
+* **Breaking change:** Remove the unnamed `Callable()` and `AsyncCallable()`
+  constructors. Use `Callable.function()` and `AsyncCallable.function()`
+  instead.
+
 ## 1.97.1
 
 * Fix a bug with the new CSS-style `if()` syntax where values would be evaluated
