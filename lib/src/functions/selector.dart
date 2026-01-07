@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 import '../ast/selector.dart';
 import '../callable.dart';
@@ -15,6 +16,7 @@ import '../module/built_in.dart';
 import '../value.dart';
 
 /// The global definitions of Sass selector functions.
+@internal
 final global = UnmodifiableListView([
   _isSuperselector.withDeprecationWarning('selector'),
   _simpleSelectors.withDeprecationWarning('selector'),
@@ -27,6 +29,7 @@ final global = UnmodifiableListView([
 ]);
 
 /// The Sass selector module.
+@internal
 final module = BuiltInModule(
   "selector",
   functions: <Callable>[

@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 import '../ast/sass.dart';
@@ -33,7 +34,8 @@ final _disallowedFunctionNames =
       ..remove("round")
       ..remove("saturate");
 
-class CssParser extends ScssParser {
+@internal
+final class CssParser extends ScssParser {
   bool get plainCss => true;
 
   CssParser(super.contents, {super.url, super.parseSelectors});

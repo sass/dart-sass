@@ -23,10 +23,8 @@ export 'importer/result.dart';
 /// `compile()` functions, and as such should be extended in preference to
 /// [AsyncImporter] if possible.
 ///
-/// Subclasses should extend [Importer], not implement it.
-///
 /// {@category Importer}
-abstract class Importer extends AsyncImporter {
+abstract base class Importer extends AsyncImporter {
   /// An importer that never imports any stylesheets.
   ///
   /// This is used for stylesheets which don't support relative imports, such as

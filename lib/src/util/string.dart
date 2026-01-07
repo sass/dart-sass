@@ -3,10 +3,12 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 import 'character.dart';
 
+@internal
 extension StringExtension on String {
   /// Returns a minimally-escaped CSS identifiers whose contents evaluates to
   /// [text].

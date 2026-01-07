@@ -2,6 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
+@internal
 extension NullableExtension<T> on T? {
   /// If `this` is `null`, returns `null`. Otherwise, runs [fn] and returns its
   /// result.
@@ -13,6 +16,7 @@ extension NullableExtension<T> on T? {
   }
 }
 
+@internal
 extension SetExtension<T> on Set<T?> {
   /// Destructively removes the `null` element from this set, if it exists, and
   /// returns a view of it casted to a non-nullable type.
@@ -22,6 +26,7 @@ extension SetExtension<T> on Set<T?> {
   }
 }
 
+@internal
 extension StringExtension on String {
   /// Like [String.codeUnitAt], but returns `null` instead of throwing an error
   /// if [index] is past the end of the string.

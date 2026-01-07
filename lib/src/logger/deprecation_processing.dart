@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -18,7 +19,8 @@ const _maxRepetitions = 5;
 /// A logger that wraps an inner logger to have special handling for
 /// deprecation warnings, silencing, making fatal, enabling future, and/or
 /// limiting repetition based on its inputs.
-final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
+@internal
+final class DeprecationProcessingLogger implements Logger {
   /// A map of how many times each deprecation has been emitted by this logger.
   final _warningCounts = <Deprecation, int>{};
 
@@ -109,7 +111,7 @@ final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
     }
   }
 
-  void internalWarn(
+  void warn(
     String message, {
     FileSpan? span,
     Trace? trace,
@@ -159,16 +161,12 @@ final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
       if (count > _maxRepetitions) return;
     }
 
-    if (_inner case LoggerWithDeprecationType inner) {
-      inner.internalWarn(
-        message,
-        span: span,
-        trace: trace,
-        deprecation: deprecation,
-      );
-    } else {
-      _inner.warn(message, span: span, trace: trace, deprecation: true);
-    }
+    _inner.warn(
+      message,
+      span: span,
+      trace: trace,
+      deprecation: deprecation,
+    );
   }
 
   void debug(String message, SourceSpan span) => _inner.debug(message, span);

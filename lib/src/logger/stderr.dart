@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -12,13 +13,14 @@ import '../logger.dart';
 import '../utils.dart';
 
 /// A logger that prints warnings to standard error or browser console.
-final class StderrLogger extends LoggerWithDeprecationType {
+@internal
+final class StderrLogger implements Logger {
   /// Whether to use terminal colors in messages.
   final bool color;
 
   const StderrLogger({this.color = false});
 
-  void internalWarn(
+  void warn(
     String message, {
     FileSpan? span,
     Trace? trace,

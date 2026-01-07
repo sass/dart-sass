@@ -13,7 +13,6 @@ import 'gamut_map_method/local_minde.dart';
 /// the gamut for its color space.
 ///
 /// {@category Value}
-@sealed
 abstract base class GamutMapMethod {
   /// Clamp each color channel that's outside the gamut to the minimum or
   /// maximum value for that channel.

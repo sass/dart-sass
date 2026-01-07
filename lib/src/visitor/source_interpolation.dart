@@ -15,7 +15,7 @@ import 'interface/if_condition_expression.dart';
 /// the given expression.
 ///
 /// This should be used through [Expression.asInterpolation].
-class SourceInterpolationVisitor
+final class SourceInterpolationVisitor
     implements ExpressionVisitor<void>, IfConditionExpressionVisitor<void> {
   /// The buffer to which content is added each time this visitor visits an
   /// expression.

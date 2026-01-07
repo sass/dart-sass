@@ -2,12 +2,15 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../importer.dart';
 
 /// An importer that never imports any stylesheets.
 ///
 /// This is used for stylesheets which don't support relative imports, such as
 /// those created from Dart code with plain strings.
+@internal
 final class NoOpImporter extends Importer {
   Uri? canonicalize(Uri url) => null;
   ImporterResult? load(Uri url) => null;

@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/modifiable_css.dart';
@@ -10,6 +11,7 @@ import '../value.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssImport] for use in the evaluation step.
+@internal
 final class ModifiableCssImport extends ModifiableCssNode implements CssImport {
   /// The URL being imported.
   ///

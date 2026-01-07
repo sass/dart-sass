@@ -16,8 +16,7 @@ import 'value.dart';
 /// An exception thrown by Sass.
 ///
 /// {@category Compile}
-@sealed
-class SassException extends SourceSpanException {
+final class SassException extends SourceSpanException {
   /// The Sass stack trace at the point this exception was thrown.
   ///
   /// This includes [span].
@@ -127,7 +126,7 @@ body::before {
 }
 
 /// A [SassException] that's also a [MultiSourceSpanException].
-class MultiSpanSassException extends SassException
+final class MultiSpanSassException extends SassException
     implements MultiSourceSpanException {
   final String primaryLabel;
   final Map<FileSpan, String> secondarySpans;
@@ -221,7 +220,7 @@ class MultiSpanSassException extends SassException
 }
 
 /// An exception thrown by Sass while evaluating a stylesheet.
-class SassRuntimeException extends SassException {
+final class SassRuntimeException extends SassException {
   final Trace trace;
 
   /// @nodoc
@@ -258,7 +257,7 @@ class SassRuntimeException extends SassException {
 }
 
 /// A [SassRuntimeException] that's also a [MultiSpanSassException].
-class MultiSpanSassRuntimeException extends MultiSpanSassException
+final class MultiSpanSassRuntimeException extends MultiSpanSassException
     implements SassRuntimeException {
   final Trace trace;
 
@@ -309,7 +308,7 @@ class MultiSpanSassRuntimeException extends MultiSpanSassException
 ///
 /// {@category Parsing}
 @sealed
-class SassFormatException extends SassException
+final class SassFormatException extends SassException
     implements SourceSpanFormatException {
   String get source => span.file.getText(0);
 
@@ -346,7 +345,7 @@ class SassFormatException extends SassException
 ///
 /// {@category Parsing}
 @sealed
-class MultiSpanSassFormatException extends MultiSpanSassException
+final class MultiSpanSassFormatException extends MultiSpanSassException
     implements MultiSourceSpanFormatException, SassFormatException {
   String get source => span.file.getText(0);
 
@@ -399,7 +398,7 @@ class MultiSpanSassFormatException extends MultiSpanSassException
 /// This doesn't extends [SassException] because it doesn't (yet) have a
 /// [FileSpan] associated with it. It's caught by Sass's internals and converted
 /// to a [SassRuntimeException] with a source span and a stack trace.
-class SassScriptException {
+final class SassScriptException {
   /// The error message.
   final String message;
 
@@ -419,7 +418,7 @@ class SassScriptException {
 
 /// A [SassScriptException] that contains one or more additional spans to
 /// display as points of reference.
-class MultiSpanSassScriptException extends SassScriptException {
+final class MultiSpanSassScriptException extends SassScriptException {
   /// See [MultiSourceSpanException.primaryLabel].
   final String primaryLabel;
 

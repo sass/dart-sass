@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 
 /// An [Importer] whose [canonicalize] method asserts the value of
 /// [Importer.fromImport].
-class FromImportImporter extends Importer {
+final class FromImportImporter extends Importer {
   /// The expected value of [Importer.fromImport] in the call to [canonicalize].
   final bool _expected;
 

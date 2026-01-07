@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import 'ast/css.dart';
@@ -11,6 +12,7 @@ import 'extend/extension_store.dart';
 import 'value.dart';
 
 /// The interface for a Sass module.
+@internal
 abstract interface class Module<T extends AsyncCallable> {
   /// The canonical URL for this module's source file.
   ///

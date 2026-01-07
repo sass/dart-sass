@@ -20,7 +20,8 @@ import '../utils.dart';
 /// This provides utility methods and common token parsing. Unless specified
 /// otherwise, a parse method throws a [SassFormatException] if it fails to
 /// parse.
-class Parser {
+@internal
+base class Parser {
   /// The scanner that scans through the text being parsed.
   final SpanScanner scanner;
 

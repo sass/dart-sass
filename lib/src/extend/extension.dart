@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../ast/css.dart';
@@ -13,7 +14,8 @@ import '../utils.dart';
 ///
 /// The target of the extension is represented externally, in the map that
 /// contains this extender.
-class Extension {
+@internal
+base class Extension {
   /// The extender (such as `A` in `A {@extend B}`).
   final Extender extender;
 
@@ -59,6 +61,7 @@ class Extension {
 
 /// A selector that's extending another selector, such as `A` in `A {@extend
 /// B}`.
+@internal
 final class Extender {
   /// The selector in which the `@extend` appeared.
   final ComplexSelector selector;

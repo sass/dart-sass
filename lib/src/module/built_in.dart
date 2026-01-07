@@ -4,6 +4,8 @@
 
 import 'dart:collection';
 
+import 'package:meta/meta.dart';
+
 import '../ast/css.dart';
 import '../ast/node.dart';
 import '../callable.dart';
@@ -13,6 +15,7 @@ import '../module.dart';
 import '../value.dart';
 
 /// A module provided by Sass, available under the special `sass:` URL space.
+@internal
 final class BuiltInModule<T extends AsyncCallable> implements Module<T> {
   final Uri url;
   final Map<String, T> functions;

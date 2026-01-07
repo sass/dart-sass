@@ -12,8 +12,7 @@ import 'visitor/serialize.dart';
 /// the compilation process.
 ///
 /// {@category Compile}
-@sealed
-class CompileResult {
+final class CompileResult {
   /// The result of evaluating the source file.
   final EvaluateResult _evaluate;
 

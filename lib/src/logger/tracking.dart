@@ -2,12 +2,15 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
+import '../deprecation.dart';
 import '../logger.dart';
 
 /// An logger that wraps another logger and keeps track of when it is used.
+@internal
 final class TrackingLogger implements Logger {
   final Logger _logger;
 
@@ -25,7 +28,7 @@ final class TrackingLogger implements Logger {
     String message, {
     FileSpan? span,
     Trace? trace,
-    bool deprecation = false,
+    Deprecation? deprecation,
   }) {
     _emittedWarning = true;
     _logger.warn(message, span: span, trace: trace, deprecation: deprecation);

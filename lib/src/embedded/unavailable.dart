@@ -2,8 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../io.dart';
 
+@internal
 void main(List<String> args) async {
   printError('sass --embedded is unavailable in pure JS mode.');
   exitCode = 1;

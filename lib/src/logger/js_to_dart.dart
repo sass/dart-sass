@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:node_interop/js.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -13,7 +14,8 @@ import '../js/deprecations.dart' show deprecations;
 import '../js/logger.dart';
 
 /// A wrapper around a [JSLogger] that exposes it as a Dart [Logger].
-final class JSToDartLogger extends LoggerWithDeprecationType {
+@internal
+final class JSToDartLogger implements Logger {
   /// The wrapped logger object.
   final JSLogger? _node;
 
@@ -29,7 +31,7 @@ final class JSToDartLogger extends LoggerWithDeprecationType {
   JSToDartLogger(this._node, this._fallback, {bool? ascii})
       : _ascii = ascii ?? glyph.ascii;
 
-  void internalWarn(
+  void warn(
     String message, {
     FileSpan? span,
     Trace? trace,
@@ -47,22 +49,12 @@ final class JSToDartLogger extends LoggerWithDeprecationType {
       );
     } else {
       _withAscii(() {
-        switch (_fallback) {
-          case LoggerWithDeprecationType():
-            _fallback.internalWarn(
-              message,
-              span: span,
-              trace: trace,
-              deprecation: deprecation,
-            );
-          case _:
-            _fallback.warn(
-              message,
-              span: span,
-              trace: trace,
-              deprecation: deprecation != null,
-            );
-        }
+        _fallback.warn(
+          message,
+          span: span,
+          trace: trace,
+          deprecation: deprecation,
+        );
       });
     }
   }

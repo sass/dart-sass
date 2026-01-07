@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../exception.dart';
 import '../../importer.dart';
 import '../../importer/utils.dart';
@@ -11,6 +13,7 @@ import '../utils.dart';
 import 'base.dart';
 
 /// An importer that asks the host to resolve imports.
+@internal
 final class HostImporter extends ImporterBase {
   /// The host-provided ID of the importer to invoke.
   final int _importerId;

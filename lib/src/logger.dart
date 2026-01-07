@@ -15,7 +15,7 @@ import 'logger/stderr.dart';
 /// This may be implemented by user code.
 ///
 /// {@category Compile}
-abstract class Logger {
+abstract interface class Logger {
   /// A logger that silently ignores all messages.
   static final Logger quiet = _QuietLogger();
 
@@ -34,56 +34,11 @@ abstract class Logger {
     String message, {
     FileSpan? span,
     Trace? trace,
-    bool deprecation = false,
+    Deprecation? deprecation,
   });
 
   /// Emits a debugging message associated with the given [span].
   void debug(String message, SourceSpan span);
-}
-
-/// A base class for loggers that support the [Deprecation] object, rather than
-/// just a boolean flag for whether a warnings is a deprecation warning or not.
-///
-/// In Dart Sass 2.0.0, we will eliminate this interface and change
-/// [Logger.warn]'s signature to match that of [internalWarn]. This is used
-/// in the meantime to provide access to the [Deprecation] object to internal
-/// loggers.
-///
-/// Implementers should override the protected [internalWarn] method instead of
-/// [warn].
-@internal
-abstract class LoggerWithDeprecationType implements Logger {
-  const LoggerWithDeprecationType();
-
-  /// This forwards all calls to [internalWarn].
-  ///
-  /// For non-user deprecation warnings, the [warnForDeprecation] extension
-  /// method should be called instead.
-  void warn(
-    String message, {
-    FileSpan? span,
-    Trace? trace,
-    bool deprecation = false,
-  }) {
-    internalWarn(
-      message,
-      span: span,
-      trace: trace,
-      deprecation: deprecation ? Deprecation.userAuthored : null,
-    );
-  }
-
-  /// Equivalent to [Logger.warn], but for internal loggers that support
-  /// the [Deprecation] object.
-  ///
-  /// Subclasses of this logger should override this method instead of [warn].
-  @protected
-  void internalWarn(
-    String message, {
-    FileSpan? span,
-    Trace? trace,
-    Deprecation? deprecation,
-  });
 }
 
 /// An extension to add a `warnForDeprecation` method to loggers without
@@ -98,16 +53,12 @@ extension WarnForDeprecation on Logger {
     Trace? trace,
   }) {
     if (deprecation.isFuture && this is! DeprecationProcessingLogger) return;
-    if (this case LoggerWithDeprecationType self) {
-      self.internalWarn(
-        message,
-        span: span,
-        trace: trace,
-        deprecation: deprecation,
-      );
-    } else {
-      warn(message, span: span, trace: trace, deprecation: true);
-    }
+    warn(
+      message,
+      span: span,
+      trace: trace,
+      deprecation: deprecation,
+    );
   }
 }
 
@@ -117,7 +68,7 @@ final class _QuietLogger implements Logger {
     String message, {
     FileSpan? span,
     Trace? trace,
-    bool deprecation = false,
+    Deprecation? deprecation,
   }) {}
   void debug(String message, SourceSpan span) {}
 }

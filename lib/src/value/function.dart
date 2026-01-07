@@ -15,8 +15,7 @@ import '../value.dart';
 /// it may be passed between modules.
 ///
 /// {@category Value}
-@sealed
-class SassFunction extends Value {
+final class SassFunction extends Value {
   /// The callable that this function invokes.
   ///
   /// Note that this is typed as an [AsyncCallable] so that it will work with

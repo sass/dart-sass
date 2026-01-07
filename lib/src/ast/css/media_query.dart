@@ -226,7 +226,7 @@ enum _SingletonCssMediaQueryMergeResult implements MediaQueryMergeResult {
 }
 
 /// A successful result of [CssMediaQuery.merge].
-class MediaQuerySuccessfulMergeResult implements MediaQueryMergeResult {
+final class MediaQuerySuccessfulMergeResult implements MediaQueryMergeResult {
   /// The merged media query.
   final CssMediaQuery query;
 

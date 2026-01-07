@@ -15,7 +15,7 @@ DependencyReport findDependencies(Stylesheet stylesheet) =>
 
 /// A visitor that traverses a stylesheet and records all its dependencies on
 /// other stylesheets.
-class _FindDependenciesVisitor with RecursiveStatementVisitor {
+final class _FindDependenciesVisitor with RecursiveStatementVisitor {
   final _uses = <Uri>{};
   final _forwards = <Uri>{};
   final _metaLoadCss = <Uri>{};

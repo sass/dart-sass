@@ -3,10 +3,12 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 import 'number.dart';
 
-class FuzzyEquality implements Equality<double> {
+@internal
+final class FuzzyEquality implements Equality<double> {
   const FuzzyEquality();
 
   bool equals(double e1, double e2) => fuzzyEquals(e1, e2);

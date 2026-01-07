@@ -13,8 +13,7 @@ import '../value.dart';
 /// arguments.
 ///
 /// {@category Value}
-@sealed
-class SassArgumentList extends SassList {
+final class SassArgumentList extends SassList {
   /// The keyword arguments attached to this argument list.
   ///
   /// The argument names don't include `$`.

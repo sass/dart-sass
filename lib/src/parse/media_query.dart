@@ -3,13 +3,15 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 
 import '../ast/css.dart';
 import '../utils.dart';
 import 'parser.dart';
 
 /// A parser for `@media` queries.
-class MediaQueryParser extends Parser {
+@internal
+final class MediaQueryParser extends Parser {
   MediaQueryParser(super.contents, {super.url, super.interpolationMap});
 
   List<CssMediaQuery> parse() {
