@@ -48,7 +48,7 @@ final class MixinRule extends CallableDeclaration implements SassDeclaration {
 
 /// A visitor for determining whether a [MixinRule] recursively contains a
 /// [ContentRule].
-class _HasContentVisitor with StatementSearchVisitor<bool> {
+final class _HasContentVisitor with StatementSearchVisitor<bool> {
   const _HasContentVisitor();
 
   bool visitContentRule(_) => true;

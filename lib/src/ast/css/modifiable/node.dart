@@ -4,6 +4,8 @@
 
 import 'dart:collection';
 
+import 'package:meta/meta.dart';
+
 import '../../../visitor/interface/modifiable_css.dart';
 import '../node.dart';
 
@@ -12,6 +14,7 @@ import '../node.dart';
 /// Almost all CSS nodes are the modifiable classes under the covers. However,
 /// modification should only be done within the evaluation step, so the
 /// unmodifiable types are used elsewhere to enforce that constraint.
+@internal
 abstract base class ModifiableCssNode extends CssNode {
   ModifiableCssParentNode? get parent => _parent;
   ModifiableCssParentNode? _parent;
@@ -50,6 +53,7 @@ abstract base class ModifiableCssNode extends CssNode {
 }
 
 /// A modifiable version of [CssParentNode] for use in the evaluation step.
+@internal
 abstract base class ModifiableCssParentNode extends ModifiableCssNode
     implements CssParentNode {
   final List<ModifiableCssNode> children;

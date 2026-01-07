@@ -4,6 +4,8 @@
 
 import 'dart:collection';
 
+import 'package:meta/meta.dart';
+
 import '../utils.dart';
 
 /// An unmodifiable view of multiple maps merged together as though they were a
@@ -17,7 +19,8 @@ import '../utils.dart';
 /// index and `length` operations and provides some degree of mutability. It
 /// does so by imposing the additional constraint that the underlying maps' sets
 /// of keys remain unchanged.
-class MergedMapView<K, V> extends MapBase<K, V> {
+@internal
+final class MergedMapView<K, V> extends MapBase<K, V> {
   // A map from keys to the maps in which those keys first appear.
   final _mapsByKey = <K, Map<K, V>>{};
 

@@ -4,6 +4,8 @@
 
 import 'dart:math' as math;
 
+import 'package:meta/meta.dart';
+
 import '../value.dart';
 
 /// The power of ten to which to round Sass numbers to determine if they're
@@ -23,6 +25,7 @@ final _inverseEpsilon = math.pow(10, SassNumber.precision + 1);
 
 /// Returns whether [number1] and [number2] are equal up to the 11th decimal
 /// digit.
+@internal
 bool fuzzyEquals(num number1, num number2) {
   if (number1 == number2) return true;
   return (number1 - number2).abs() <= _epsilon &&
@@ -33,6 +36,7 @@ bool fuzzyEquals(num number1, num number2) {
 /// Like [fuzzyEquals], but allows null values for [number1] and [number2].
 ///
 /// null values are only equal to one another.
+@internal
 bool fuzzyEqualsNullable(num? number1, num? number2) {
   if (number1 == number2) return true;
   if (number1 == null || number2 == null) return false;
@@ -42,28 +46,34 @@ bool fuzzyEqualsNullable(num? number1, num? number2) {
 }
 
 /// Returns a hash code for [number] that matches [fuzzyEquals].
+@internal
 int fuzzyHashCode(double number) {
   if (!number.isFinite) return number.hashCode;
   return (number * _inverseEpsilon).round().hashCode;
 }
 
 /// Returns whether [number1] is less than [number2], and not [fuzzyEquals].
+@internal
 bool fuzzyLessThan(num number1, num number2) =>
     number1 < number2 && !fuzzyEquals(number1, number2);
 
 /// Returns whether [number1] is less than [number2], or [fuzzyEquals].
+@internal
 bool fuzzyLessThanOrEquals(num number1, num number2) =>
     number1 < number2 || fuzzyEquals(number1, number2);
 
 /// Returns whether [number1] is greater than [number2], and not [fuzzyEquals].
+@internal
 bool fuzzyGreaterThan(num number1, num number2) =>
     number1 > number2 && !fuzzyEquals(number1, number2);
 
 /// Returns whether [number1] is greater than [number2], or [fuzzyEquals].
+@internal
 bool fuzzyGreaterThanOrEquals(num number1, num number2) =>
     number1 > number2 || fuzzyEquals(number1, number2);
 
 /// Returns whether [number] is [fuzzyEquals] to an integer.
+@internal
 bool fuzzyIsInt(double number) {
   if (number.isInfinite || number.isNaN) return false;
   return fuzzyEquals(number, number.round());
@@ -73,6 +83,7 @@ bool fuzzyIsInt(double number) {
 /// [int].
 ///
 /// Otherwise, returns `null`.
+@internal
 int? fuzzyAsInt(double number) {
   if (number.isInfinite || number.isNaN) return null;
   var rounded = number.round();
@@ -82,6 +93,7 @@ int? fuzzyAsInt(double number) {
 /// Rounds [number] to the nearest integer.
 ///
 /// This rounds up numbers that are [fuzzyEquals] to `X.5`.
+@internal
 int fuzzyRound(num number) {
   // If the number is within epsilon of X.5, round up (or down for negative
   // numbers).
@@ -96,6 +108,7 @@ int fuzzyRound(num number) {
 
 /// Returns whether [number] is within [min] and [max] inclusive, using fuzzy
 /// equality.
+@internal
 bool fuzzyInRange(double number, num min, num max) =>
     fuzzyGreaterThanOrEquals(number, min) && fuzzyLessThanOrEquals(number, max);
 
@@ -103,6 +116,7 @@ bool fuzzyInRange(double number, num min, num max) =>
 ///
 /// If [number] is [fuzzyEquals] to [min] or [max], it's clamped to the
 /// appropriate value.
+@internal
 double? fuzzyCheckRange(double number, num min, num max) {
   if (fuzzyEquals(number, min)) return min.toDouble();
   if (fuzzyEquals(number, max)) return max.toDouble();
@@ -114,6 +128,7 @@ double? fuzzyCheckRange(double number, num min, num max) {
 ///
 /// If [number] is [fuzzyEquals] to [min] or [max], it's clamped to the
 /// appropriate value. [name] is used in error reporting.
+@internal
 double fuzzyAssertRange(double number, int min, int max, [String? name]) {
   var result = fuzzyCheckRange(number, min, max);
   if (result != null) return result;
@@ -130,6 +145,7 @@ double fuzzyAssertRange(double number, int min, int max, [String? name]) {
 /// semantics, which it inherited from Ruby and which differ from Dart's.
 ///
 /// [floored division]: https://en.wikipedia.org/wiki/Modulo_operation#Variants_of_the_definition
+@internal
 double moduloLikeSass(double num1, double num2) {
   if (num1.isInfinite) return double.nan;
   if (num2.isInfinite) {
@@ -148,50 +164,60 @@ double moduloLikeSass(double num1, double num2) {
 //// Returns [num] clamped between [lowerBound] and [upperBound], with `NaN`
 //// preferring the lower bound (unlike Dart for which it prefers the upper
 //// bound).
+@internal
 double clampLikeCss(double number, double lowerBound, double upperBound) =>
     number.isNaN ? lowerBound : number.clamp(lowerBound, upperBound);
 
 /// Returns the square root of [number].
+@internal
 SassNumber sqrt(SassNumber number) {
   number.assertNoUnits("number");
   return SassNumber(math.sqrt(number.value));
 }
 
 /// Returns the sine of [number].
+@internal
 SassNumber sin(SassNumber number) =>
     SassNumber(math.sin(number.coerceValueToUnit("rad", "number")));
 
 /// Returns the cosine of [number].
+@internal
 SassNumber cos(SassNumber number) =>
     SassNumber(math.cos(number.coerceValueToUnit("rad", "number")));
 
 /// Returns the tangent of [number].
+@internal
 SassNumber tan(SassNumber number) =>
     SassNumber(math.tan(number.coerceValueToUnit("rad", "number")));
 
 /// Returns the arctangent of [number].
+@internal
 SassNumber atan(SassNumber number) {
   number.assertNoUnits("number");
   return _radiansToDegrees(math.atan(number.value));
 }
 
 /// Returns the arcsine of [number].
+@internal
 SassNumber asin(SassNumber number) {
   number.assertNoUnits("number");
   return _radiansToDegrees(math.asin(number.value));
 }
 
 /// Returns the arccosine of [number]
+@internal
 SassNumber acos(SassNumber number) {
   number.assertNoUnits("number");
   return _radiansToDegrees(math.acos(number.value));
 }
 
 /// Returns the absolute value of [number].
+@internal
 SassNumber abs(SassNumber number) =>
     SassNumber(number.value.abs()).coerceToMatch(number);
 
 /// Returns the logarithm of [number] with respect to [base].
+@internal
 SassNumber log(SassNumber number, SassNumber? base) {
   if (base != null) {
     return SassNumber(math.log(number.value) / math.log(base.value));
@@ -200,6 +226,7 @@ SassNumber log(SassNumber number, SassNumber? base) {
 }
 
 /// Returns the value of [base] raised to the power of [exponent].
+@internal
 SassNumber pow(SassNumber base, SassNumber exponent) {
   base.assertNoUnits("base");
   exponent.assertNoUnits("exponent");
@@ -207,6 +234,7 @@ SassNumber pow(SassNumber base, SassNumber exponent) {
 }
 
 /// Returns the arctangent for [y] and [x].
+@internal
 SassNumber atan2(SassNumber y, SassNumber x) =>
     _radiansToDegrees(math.atan2(y.value, x.convertValueToMatch(y, 'x', 'y')));
 
@@ -216,6 +244,7 @@ SassNumber _radiansToDegrees(double radians) =>
 
 /// Extension methods to get the sign of the double's numerical value,
 /// including positive and negative zero.
+@internal
 extension DoubleWithSignedZero on double {
   double get signIncludingZero {
     if (identical(this, -0.0)) return -1.0;

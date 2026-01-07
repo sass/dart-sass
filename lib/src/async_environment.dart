@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
@@ -34,6 +35,7 @@ import 'visitor/clone_css.dart';
 ///
 /// This tracks lexically-scoped information, such as variables, functions, and
 /// mixins.
+@internal
 final class AsyncEnvironment {
   /// The modules used in the current scope, indexed by their namespaces.
   Map<String, Module> get modules => UnmodifiableMapView(_modules);

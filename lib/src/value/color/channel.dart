@@ -7,8 +7,7 @@ import 'package:meta/meta.dart';
 /// Metadata about a single channel in a known color space.
 ///
 /// {@category Value}
-@sealed
-class ColorChannel {
+final class ColorChannel {
   /// The alpha channel that's shared across all colors.
   static const alpha = LinearChannel('alpha', 0, 1);
 
@@ -58,8 +57,7 @@ class ColorChannel {
 /// Metadata about a color channel with a linear (as opposed to polar) value.
 ///
 /// {@category Value}
-@sealed
-class LinearChannel extends ColorChannel {
+final class LinearChannel extends ColorChannel {
   /// The channel's minimum value.
   ///
   /// Unless this color space is strictly bounded, this channel's values may

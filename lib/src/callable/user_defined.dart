@@ -2,12 +2,15 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../ast/sass.dart';
 import '../callable.dart';
 
 /// A callback defined in the user's Sass stylesheet.
 ///
 /// The type parameter [E] should either be `Environment` or `AsyncEnvironment`.
+@internal
 final class UserDefinedCallable<E> implements Callable {
   /// The declaration.
   final CallableDeclaration declaration;

@@ -11,7 +11,7 @@ import '../../value.dart';
 /// Used by [SassColor.interpolate].
 ///
 /// {@category Value}
-class InterpolationMethod {
+final class InterpolationMethod {
   /// The color space in which to perform the interpolation.
   final ColorSpace space;
 

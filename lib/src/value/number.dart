@@ -142,7 +142,7 @@ double? conversionFactor(String unit1, String unit2) {
 ///
 /// {@category Value}
 @sealed
-abstract class SassNumber extends Value {
+abstract base class SassNumber extends Value {
   /// The number of distinct digits that are emitted when converting a number to
   /// CSS.
   static const precision = 10;

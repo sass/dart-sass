@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 import '../callable.dart';
 import '../exception.dart';
@@ -14,6 +15,7 @@ import '../util/number.dart';
 import '../value.dart';
 
 /// The global definitions of Sass math functions.
+@internal
 final global = UnmodifiableListView([
   _function("abs", r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
@@ -38,6 +40,7 @@ final global = UnmodifiableListView([
 ]);
 
 /// The Sass math module.
+@internal
 final module = BuiltInModule(
   "math",
   functions: <Callable>[

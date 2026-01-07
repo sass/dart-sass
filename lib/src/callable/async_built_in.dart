@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:meta/meta.dart';
+
 import '../ast/sass.dart';
 import '../deprecation.dart';
 import '../evaluation_context.dart';
@@ -19,7 +21,8 @@ typedef Callback = FutureOr<Value> Function(List<Value> arguments);
 /// may declare multiple different callbacks with multiple different sets of
 /// parameters. When the callable is invoked, the first callback with matching
 /// parameters is invoked.
-class AsyncBuiltInCallable implements AsyncCallable {
+@internal
+interface class AsyncBuiltInCallable implements AsyncCallable {
   final String name;
 
   /// This callable's parameters.

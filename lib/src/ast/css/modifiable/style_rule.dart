@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../util/box.dart';
@@ -11,6 +12,7 @@ import '../style_rule.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssStyleRule] for use in the evaluation step.
+@internal
 final class ModifiableCssStyleRule extends ModifiableCssParentNode
     implements CssStyleRule {
   SelectorList get selector => _selector.value;

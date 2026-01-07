@@ -2,10 +2,13 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import 'node.dart';
 import 'value.dart';
 
 /// An unknown plain CSS at-rule.
+@sealed
 abstract interface class CssAtRule implements CssParentNode {
   /// The name of this rule.
   CssValue<String> get name;

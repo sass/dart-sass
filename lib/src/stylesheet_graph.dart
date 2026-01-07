@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import 'ast/sass.dart';
@@ -25,7 +26,8 @@ typedef _UpstreamNodes = ({
 
 /// A graph of the import relationships between stylesheets, available via
 /// [nodes].
-class StylesheetGraph {
+@internal
+final class StylesheetGraph {
   /// A map from canonical URLs to the stylesheet nodes for those URLs.
   Map<Uri, StylesheetNode> get nodes => UnmodifiableMapView(_nodes);
   final _nodes = <Uri, StylesheetNode>{};
@@ -410,7 +412,8 @@ class StylesheetGraph {
 ///
 /// A [StylesheetNode] is immutable except for its downstream nodes. When the
 /// stylesheet itself changes, a new node should be generated.
-class StylesheetNode {
+@internal
+final class StylesheetNode {
   /// The parsed stylesheet.
   Stylesheet get stylesheet => _stylesheet;
   Stylesheet _stylesheet;

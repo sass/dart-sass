@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:cli_pkg/js.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import 'ast/sass.dart';
@@ -28,6 +29,7 @@ import 'visitor/serialize.dart';
 ///
 /// If both `importCache` and `nodeImporter` are provided, the importers in
 /// `importCache` will be evaluated before `nodeImporter`.
+@internal
 Future<CompileResult> compileAsync(
   String path, {
   Syntax? syntax,
@@ -99,6 +101,7 @@ Future<CompileResult> compileAsync(
 /// support the node-sass compatible API.
 ///
 /// At most one of `importCache` and `nodeImporter` may be provided at once.
+@internal
 Future<CompileResult> compileStringAsync(
   String source, {
   Syntax? syntax,

@@ -4,13 +4,16 @@
 
 import 'dart:collection';
 
+import 'package:meta/meta.dart';
+
 import '../utils.dart';
 
 /// An unmodifiable map view that hides keys from the original map whose names
 /// begin with `_` or `-`.
 ///
 /// Note that [PublicMemberMap.length] is *not* `O(1)`.
-class PublicMemberMapView<V> extends UnmodifiableMapBase<String, V> {
+@internal
+final class PublicMemberMapView<V> extends UnmodifiableMapBase<String, V> {
   /// The wrapped map.
   final Map<String, V> _inner;
 

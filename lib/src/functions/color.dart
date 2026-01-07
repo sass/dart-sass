@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 import '../callable.dart';
 import '../deprecation.dart';
@@ -27,6 +28,7 @@ final _microsoftFilterStart = RegExp(r'^[a-zA-Z]+\s*=');
 const _specialCommaSpaces = {ColorSpace.rgb, ColorSpace.hsl};
 
 /// The global definitions of Sass color functions.
+@internal
 final global = UnmodifiableListView([
   // ### RGB
   _channelFunction(
@@ -447,6 +449,7 @@ final global = UnmodifiableListView([
 ]);
 
 /// The Sass color module.
+@internal
 final module = BuiltInModule(
   "color",
   functions: <Callable>[

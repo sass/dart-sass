@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
@@ -13,8 +14,10 @@ import 'character.dart';
 ///
 /// This is used for fake AST nodes that will never be presented to the user, as
 /// well as for embedded compilation failures that have no associated spans.
+@internal
 final bogusSpan = SourceFile.decoded([]).span(0);
 
+@internal
 extension SpanExtensions on FileSpan {
   /// Returns this span with all whitespace trimmed from both sides.
   FileSpan trim() => trimLeft().trimRight();

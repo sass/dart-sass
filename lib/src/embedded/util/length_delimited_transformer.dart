@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:async/async.dart';
+import 'package:meta/meta.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 import '../utils.dart';
@@ -15,6 +16,7 @@ import 'varint_builder.dart';
 /// A [StreamChannelTransformer] that converts a channel that sends and receives
 /// arbitrarily-chunked binary data to one that sends and receives packets of
 /// set length using [lengthDelimitedEncoder] and [lengthDelimitedDecoder].
+@internal
 final StreamChannelTransformer<Uint8List, List<int>> lengthDelimited =
     StreamChannelTransformer<Uint8List, List<int>>(
   lengthDelimitedDecoder,
@@ -24,6 +26,7 @@ final StreamChannelTransformer<Uint8List, List<int>> lengthDelimited =
 /// A transformer that converts an arbitrarily-chunked byte stream where each
 /// packet is prefixed with a 32-bit little-endian number indicating its length
 /// into a stream of packet contents.
+@internal
 final lengthDelimitedDecoder =
     StreamTransformer<List<int>, Uint8List>.fromBind((stream) {
   // The builder for the varint indicating the length of the next message.
@@ -101,6 +104,7 @@ final lengthDelimitedDecoder =
 /// A transformer that adds 32-bit little-endian numbers indicating the length
 /// of each packet, so that they can safely be sent over a medium that doesn't
 /// preserve packet boundaries.
+@internal
 final lengthDelimitedEncoder =
     StreamTransformer<Uint8List, List<int>>.fromHandlers(
   handleData: (message, sink) {

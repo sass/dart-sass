@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../visitor/interface/css.dart';
@@ -12,6 +13,7 @@ import 'node.dart';
 /// A plain CSS stylesheet.
 ///
 /// This is the root plain CSS node. It contains top-level statements.
+@sealed
 class CssStylesheet extends CssParentNode {
   CssParentNode? get parent => null;
   final List<CssNode> children;

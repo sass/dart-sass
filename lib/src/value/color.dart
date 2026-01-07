@@ -20,8 +20,7 @@ export 'color/space.dart';
 /// A SassScript color.
 ///
 /// {@category Value}
-@sealed
-class SassColor extends Value {
+final class SassColor extends Value {
   // We don't use public fields because they'd be overridden by the getters of
   // the same name in the JS API.
 
@@ -1186,20 +1185,13 @@ class SassColor extends Value {
 /// When a color is serialized in expanded mode, it should preserve its original
 /// format.
 @internal
-abstract class ColorFormat {
+sealed class ColorFormat {
   /// A color defined using the `rgb()` or `rgba()` functions.
-  static const rgbFunction = _ColorFormatEnum("rgbFunction");
+  static const ColorFormat rgbFunction = _ColorFormatEnum.rgbFunction;
 }
 
 /// The class for enum values of the [ColorFormat] type.
-@sealed
-class _ColorFormatEnum implements ColorFormat {
-  final String _name;
-
-  const _ColorFormatEnum(this._name);
-
-  String toString() => _name;
-}
+enum _ColorFormatEnum implements ColorFormat { rgbFunction }
 
 /// A [ColorFormat] where the color is serialized as the exact same text that
 /// was used to specify it originally.
@@ -1207,8 +1199,7 @@ class _ColorFormatEnum implements ColorFormat {
 /// This is tracked as a span rather than a string to avoid extra substring
 /// allocations.
 @internal
-@sealed
-class SpanColorFormat implements ColorFormat {
+final class SpanColorFormat implements ColorFormat {
   /// The span tracking the location in which this color was originally defined.
   final FileSpan _span;
 

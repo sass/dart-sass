@@ -20,8 +20,7 @@ const sassFalse = SassBoolean._(false);
 /// A SassScript boolean value.
 ///
 /// {@category Value}
-@sealed
-class SassBoolean extends Value {
+final class SassBoolean extends Value {
   /// Whether this value is `true` or `false`.
   final bool value;
 

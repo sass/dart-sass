@@ -2,7 +2,10 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 /// Different modes in which extension can run.
+@internal
 enum ExtendMode {
   /// Normal mode, used with the `@extend` rule.
   ///

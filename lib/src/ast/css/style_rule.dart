@@ -12,6 +12,7 @@ import 'node.dart';
 /// This applies style declarations to elements that match a given selector.
 /// Note that this isn't *strictly* plain CSS, since [selector] may still
 /// contain placeholder selectors.
+@sealed
 abstract interface class CssStyleRule implements CssParentNode {
   /// The selector for this rule.
   SelectorList get selector;

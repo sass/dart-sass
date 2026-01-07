@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: d305a0f75e329a29f5aff734ac31ce145fd3b8d5
+// Checksum: 59e8cdc72511ce8e0ffac284e4b6fcbeca720b25
 //
 // ignore_for_file: unused_import
 
@@ -14,6 +14,7 @@ export 'async_compile.dart';
 import 'dart:convert';
 
 import 'package:cli_pkg/js.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import 'ast/sass.dart';
@@ -37,6 +38,7 @@ import 'visitor/serialize.dart';
 ///
 /// If both `importCache` and `nodeImporter` are provided, the importers in
 /// `importCache` will be evaluated before `nodeImporter`.
+@internal
 CompileResult compile(
   String path, {
   Syntax? syntax,
@@ -108,6 +110,7 @@ CompileResult compile(
 /// support the node-sass compatible API.
 ///
 /// At most one of `importCache` and `nodeImporter` may be provided at once.
+@internal
 CompileResult compileString(
   String source, {
   Syntax? syntax,

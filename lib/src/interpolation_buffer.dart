@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import 'ast/sass.dart';
@@ -11,6 +12,7 @@ import 'ast/sass.dart';
 ///
 /// Add text using [write] and related methods, and [Expression]s using [add].
 /// Once that's done, call [interpolation] to build the result.
+@internal
 final class InterpolationBuffer implements StringSink {
   /// The buffer that accumulates plain text.
   final _text = StringBuffer();

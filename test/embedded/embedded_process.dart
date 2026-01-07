@@ -26,7 +26,7 @@ import 'utils.dart';
 /// buffers from the process to aid debugging.
 ///
 /// This API is based on the `test_process` package.
-class EmbeddedProcess {
+final class EmbeddedProcess {
   /// The underlying process.
   final Process _process;
 

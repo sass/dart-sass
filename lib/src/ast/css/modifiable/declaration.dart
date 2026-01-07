@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../value.dart';
@@ -11,6 +12,7 @@ import '../value.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssDeclaration] for use in the evaluation step.
+@internal
 final class ModifiableCssDeclaration extends ModifiableCssNode
     implements CssDeclaration {
   final CssValue<String> name;

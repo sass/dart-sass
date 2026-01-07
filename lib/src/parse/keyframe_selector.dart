@@ -3,12 +3,14 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 
 import '../util/character.dart';
 import 'parser.dart';
 
 /// A parser for `@keyframes` block selectors.
-class KeyframeSelectorParser extends Parser {
+@internal
+final class KeyframeSelectorParser extends Parser {
   KeyframeSelectorParser(super.contents, {super.url, super.interpolationMap});
 
   List<String> parse() {

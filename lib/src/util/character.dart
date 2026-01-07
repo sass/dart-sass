@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 
 /// The difference between upper- and lowercase ASCII letters.
 ///
@@ -13,10 +14,12 @@ const _asciiCaseBit = 0x20;
 /// The highest character allowed in CSS.
 ///
 /// See https://drafts.csswg.org/css-syntax-3/#maximum-allowed-code-point
+@internal
 const maxAllowedCharacter = 0x10FFFF;
 
 // Define these checks as extension getters so they can be used in pattern
 // matches.
+@internal
 extension CharacterExtension on int {
   /// Returns whether [character] is a letter or number.
   bool get isAlphanumeric => isAlphabetic || isDigit;
@@ -72,6 +75,7 @@ extension CharacterExtension on int {
 //
 // This also extends a few [CharacterExtension] getters to return `false` for
 // null values.
+@internal
 extension NullableCharacterExtension on int? {
   /// Returns whether [character] is an ASCII whitespace character.
   bool get isWhitespace => isSpaceOrTab || isNewline;
@@ -98,6 +102,7 @@ extension NullableCharacterExtension on int? {
 /// Combines a UTF-16 high and low surrogate pair into a single code unit.
 ///
 /// See https://en.wikipedia.org/wiki/UTF-16 for details.
+@internal
 int combineSurrogates(int highSurrogate, int lowSurrogate) =>
     // 0x3FF == 0b0000001111111111, which masks out the six bits that indicate
     // high/low surrogates.
@@ -106,6 +111,7 @@ int combineSurrogates(int highSurrogate, int lowSurrogate) =>
 /// Returns whether [identifier] is module-private.
 ///
 /// Assumes [identifier] is a valid Sass identifier.
+@internal
 bool isPrivate(String identifier) {
   var first = identifier.codeUnitAt(0);
   return first == $dash || first == $underscore;
@@ -114,6 +120,7 @@ bool isPrivate(String identifier) {
 /// Returns the value of [character] as a hex digit.
 ///
 /// Assumes that [character] is a hex digit.
+@internal
 int asHex(int character) {
   assert(character.isHex);
   return switch (character) {
@@ -129,6 +136,7 @@ int asHex(int character) {
 /// Returns the hexadecimal digit for [number].
 ///
 /// Assumes that [number] is less than 16.
+@internal
 int hexCharFor(int number) {
   assert(number < 0x10);
   return number < 0xA ? $0 + number : $a - 0xA + number;
@@ -137,6 +145,7 @@ int hexCharFor(int number) {
 /// Returns the value of [character] as a decimal digit.
 ///
 /// Assumes that [character] is a decimal digit.
+@internal
 int asDecimal(int character) {
   assert(character >= $0 && character <= $9);
   return character - $0;
@@ -145,6 +154,7 @@ int asDecimal(int character) {
 /// Returns the decimal digit for [number].
 ///
 /// Assumes that [number] is less than 10.
+@internal
 int decimalCharFor(int number) {
   assert(number < 10, "Expected $number to be a digit from 0 to 9.");
   return $0 + number;
@@ -152,6 +162,7 @@ int decimalCharFor(int number) {
 
 /// Assumes that [character] is a left-hand brace-like character, and returns
 /// the right-hand version.
+@internal
 int opposite(int character) => switch (character) {
       $lparen => $rparen,
       $lbrace => $rbrace,
@@ -163,17 +174,20 @@ int opposite(int character) => switch (character) {
 
 /// Returns [character], converted to upper case if it's an ASCII lowercase
 /// letter.
+@internal
 int toUpperCase(int character) => (character >= $a && character <= $z)
     ? character & ~_asciiCaseBit
     : character;
 
 /// Returns [character], converted to lower case if it's an ASCII uppercase
 /// letter.
+@internal
 int toLowerCase(int character) => (character >= $A && character <= $Z)
     ? character | _asciiCaseBit
     : character;
 
 /// Returns whether [character1] and [character2] are the same, modulo ASCII case.
+@internal
 bool characterEqualsIgnoreCase(int character1, int character2) {
   if (character1 == character2) return true;
 
@@ -188,6 +202,7 @@ bool characterEqualsIgnoreCase(int character1, int character2) {
 
 /// Like [characterEqualsIgnoreCase], but optimized for the fact that [letter]
 /// is known to be a lowercase ASCII letter.
+@internal
 bool equalsLetterIgnoreCase(int letter, int actual) {
   assert(letter >= $a && letter <= $z);
   return (actual | _asciiCaseBit) == letter;

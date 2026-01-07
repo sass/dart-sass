@@ -2,12 +2,14 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:node_interop/js.dart';
 
 import '../../js/utils.dart';
 import '../utils.dart';
 
 /// Throws a JsError if [scheme] isn't a valid URL scheme.
+@internal
 void validateUrlScheme(String scheme) {
   if (!isValidUrlScheme(scheme)) {
     jsThrow(

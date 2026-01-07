@@ -34,9 +34,11 @@ export 'package:sass/src/visitor/statement_search.dart';
 /// Throws a [SassFormatException] if parsing fails.
 ///
 /// {@category Parsing}
+// ignore: invalid_use_of_internal_member
 String parseIdentifier(String text) => Parser.parseIdentifier(text);
 
 /// Returns whether [text] is a valid CSS identifier.
 ///
 /// {@category Parsing}
+// ignore: invalid_use_of_internal_member
 bool isIdentifier(String text) => Parser.isIdentifier(text);

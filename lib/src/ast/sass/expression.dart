@@ -19,7 +19,7 @@ import '../sass.dart';
 /// {@category AST}
 /// {@category Parsing}
 @sealed
-abstract class Expression implements SassNode {
+abstract base class Expression implements SassNode {
   /// Calls the appropriate visit method on [visitor].
   T accept<T>(ExpressionVisitor<T> visitor);
 

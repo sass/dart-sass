@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 import '../callable.dart';
 import '../deprecation.dart';
@@ -14,6 +15,7 @@ import '../module/built_in.dart';
 import '../value.dart';
 
 /// The global definitions of Sass list functions.
+@internal
 final global = UnmodifiableListView([
   _length.withDeprecationWarning('list'),
   _nth.withDeprecationWarning('list'),
@@ -27,6 +29,7 @@ final global = UnmodifiableListView([
 ]);
 
 /// The Sass list module.
+@internal
 final module = BuiltInModule(
   "list",
   functions: <Callable>[

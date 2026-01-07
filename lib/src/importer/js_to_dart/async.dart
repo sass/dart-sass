@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:cli_pkg/js.dart';
+import 'package:meta/meta.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart';
 
@@ -19,6 +20,7 @@ import 'utils.dart';
 
 /// A wrapper for a potentially-asynchronous JS API importer that exposes it as
 /// a Dart [AsyncImporter].
+@internal
 final class JSToDartAsyncImporter extends AsyncImporter {
   /// The wrapped canonicalize function.
   final Object? Function(String, CanonicalizeContext) _canonicalize;

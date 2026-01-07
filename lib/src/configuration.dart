@@ -3,6 +3,8 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:collection';
+import 'package:meta/meta.dart';
+
 import 'ast/node.dart';
 import 'ast/sass.dart';
 import 'configured_value.dart';
@@ -18,6 +20,7 @@ import 'util/unprefixed_map_view.dart';
 /// meaning that it's created by passing a `with` clause to a `@use` rule.
 /// Explicit configurations have spans associated with them and are represented
 /// by the [ExplicitConfiguration] subclass.
+@internal
 final class Configuration {
   /// A map from variable names (without `$`) to values.
   ///
@@ -113,6 +116,7 @@ final class Configuration {
 /// configurations will cause an error if attempting to use them on a module
 /// that has already been loaded, while implicit configurations will be
 /// silently ignored in this case.
+@internal
 final class ExplicitConfiguration extends Configuration {
   /// The node whose span indicates where the configuration was declared.
   final AstNode nodeWithSpan;
