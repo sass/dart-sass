@@ -85,6 +85,12 @@
 * **Breaking change:** Remove the unnamed `Callable()` and `AsyncCallable()`
   constructors. Use `Callable.function()` and `AsyncCallable.function()`
   instead.
+  
+* **Breaking change:** Remove `Deprecation.calcInterp`. This was never actually
+  emitted as a deprecation.
+
+* **Breaking change:** Remove `Deprecation.duplicateVariableFlags`. Use
+  `Deprecation.duplicateVarFlags`.
 
 ## 1.97.1
 
