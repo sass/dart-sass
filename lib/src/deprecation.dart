@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 8784802f050f4282b22d882c3ef18472bb920faa
+  // Checksum: 263e0d996a55c71535366a16d5f9c363e931c129
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -63,7 +63,9 @@ enum Deprecation {
 
   /// Deprecation for ambiguous + and - operators.
   strictUnary('strict-unary',
-      deprecatedIn: '1.55.0', description: 'Ambiguous + and - operators.'),
+      deprecatedIn: '1.55.0',
+      obsoleteIn: '2.0.0',
+      description: 'Ambiguous + and - operators.'),
 
   /// Deprecation for passing invalid units to built-in functions.
   functionUnits('function-units',

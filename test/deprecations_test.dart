@@ -39,17 +39,6 @@ void main() {
     });
   });
 
-  // Deprecated in 1.55.0
-  group("strictUnary is violated by", () {
-    test("an ambiguous + operator", () {
-      _expectDeprecation(r"a {b: 1 +2}", Deprecation.strictUnary);
-    });
-
-    test("an ambiguous - operator", () {
-      _expectDeprecation(r"a {$x: 2; b: 1 -$x}", Deprecation.strictUnary);
-    });
-  });
-
   group("compileStringRelativeUrl is violated by", () {
     test("a fully relative URL", () {
       _expectDeprecationCallback(

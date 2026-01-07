@@ -14,6 +14,10 @@
 * **Breaking change:** A variable definition may now only have a single
   `!global` flag or `!default` flag, or one of each.
 
+* **Breaking change:** `+` and `-` operators with whitespace before but not
+  after them, as in `$a -$b`, are now forbidden due to being highly ambiguous
+  between `$a - $b` and `$a (-$b)`.
+
 * **Potentially breaking bug fix:** In some cases involving a `:has()` selector
   with a leading combinator being `@extend`ed by a selector that contained its
   own combinators, `@extend` used to generate incorrect selectors. This has been
