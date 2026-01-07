@@ -53,6 +53,13 @@
 
 ### Dart API
 
+* **Breaking change:** Replace the deprecated top-level `compile()`,
+  `compileString()`, `compileAsync()`, and `compileStringAsync()` functions with
+  the functions that used to be named `compileToResult()`,
+  `compileStringToResult()`, `compileToResultAsync()`, and
+  `compileStringToResultAsync()`. The latter function names still exist, but
+  they are now deprecated in favor of the former names.
+
 * Remove `Value.assertSelector()`, `.assertSimpleSelector()`,
   `.assertCompoundSelector()`, and `.assertComplexSelector()`. This is now only
   available through the expanded `sass_api` package, since that package also

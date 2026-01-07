@@ -18,7 +18,7 @@ void main() {
     testCharacter(String escape) {
       test(escape, () {
         expect(
-          compileString("a {b: $escape}"),
+          compileString("a {b: $escape}").css,
           equalsIgnoringWhitespace("a { b: $escape; }"),
         );
       });
@@ -52,14 +52,14 @@ void main() {
     group("adds a space", () {
       test("if followed by a hex character", () {
         expect(
-          compileString(r"a {b: '\e000 a'}"),
+          compileString(r"a {b: '\e000 a'}").css,
           equalsIgnoringWhitespace(r'a { b: "\e000 a"; }'),
         );
       });
 
       test("if followed by a space", () {
         expect(
-          compileString(r"a {b: '\e000  '}"),
+          compileString(r"a {b: '\e000  '}").css,
           equalsIgnoringWhitespace(r'a { b: "\e000  "; }'),
         );
       });
@@ -70,12 +70,13 @@ void main() {
   // because sass-spec normalizes CR LF newlines.
   group("normalizes newlines in a loud comment", () {
     test("in SCSS", () {
-      expect(compileString("/* foo\r\n * bar */"), equals("/* foo\n * bar */"));
+      expect(compileString("/* foo\r\n * bar */").css,
+          equals("/* foo\n * bar */"));
     });
 
     test("in Sass", () {
       expect(
-        compileString("/*\r\n  foo\r\n  bar", syntax: Syntax.sass),
+        compileString("/*\r\n  foo\r\n  bar", syntax: Syntax.sass).css,
         equals("/* foo\n * bar */"),
       );
     });
@@ -87,7 +88,7 @@ void main() {
     group("for integers", () {
       test(">= 1e21", () {
         expect(
-          compileString("a {b: 1e21}"),
+          compileString("a {b: 1e21}").css,
           equalsIgnoringWhitespace("a { b: 1${'0' * 21}; }"),
         );
       });
@@ -98,7 +99,7 @@ void main() {
       // ever changes, we know about it.
       test("< 1e21", () {
         expect(
-          compileString("a {b: 1e20}"),
+          compileString("a {b: 1e20}").css,
           equalsIgnoringWhitespace("a { b: 1${'0' * 20}; }"),
         );
       });
@@ -107,14 +108,14 @@ void main() {
     group("for floating-point numbers", () {
       test("Infinity", () {
         expect(
-          compileString("a {b: 1e999}"),
+          compileString("a {b: 1e999}").css,
           equalsIgnoringWhitespace("a { b: calc(infinity); }"),
         );
       });
 
       test(">= 1e21", () {
         expect(
-          compileString("a {b: 1.01e21}"),
+          compileString("a {b: 1.01e21}").css,
           equalsIgnoringWhitespace("a { b: 101${'0' * 19}; }"),
         );
       });
@@ -125,7 +126,7 @@ void main() {
       // ever changes, we know about it.
       test("< 1e21", () {
         expect(
-          compileString("a {b: 1.01e20}"),
+          compileString("a {b: 1.01e20}").css,
           equalsIgnoringWhitespace("a { b: 101${'0' * 18}; }"),
         );
       });
@@ -143,7 +144,7 @@ void main() {
           compileString("""
             @use 'sass:meta';
             a {b: meta.inspect(1px * 1em)};
-          """),
+          """).css,
           equalsIgnoringWhitespace('a { b: calc(1px * 1em); }'),
         );
       });
@@ -153,7 +154,7 @@ void main() {
           compileString("""
             @use 'sass:meta';
             a {b: meta.inspect(calc(1px * 1em))};
-          """),
+          """).css,
           equalsIgnoringWhitespace('a { b: calc(1px * 1em); }'),
         );
       });
@@ -163,7 +164,7 @@ void main() {
           compileString("""
             @use 'sass:meta';
             a {b: meta.inspect(calc(c / (1px * 1em)))};
-          """),
+          """).css,
           equalsIgnoringWhitespace('a { b: calc(c / (1px * 1em)); }'),
         );
       });
@@ -174,7 +175,7 @@ void main() {
             @use 'sass:math';
             @use 'sass:meta';
             a {b: meta.inspect(1px * math.div(math.div(1em, 1s), 1x))};
-          """),
+          """).css,
           equalsIgnoringWhitespace('a { b: calc(1px * 1em / 1s / 1x); }'),
         );
       });
@@ -185,7 +186,7 @@ void main() {
             @use 'sass:math';
             @use 'sass:meta';
             a {b: meta.inspect(math.div(math.div(1, 1s), 1x))};
-          """),
+          """).css,
           equalsIgnoringWhitespace('a { b: calc(1 / 1s / 1x); }'),
         );
       });
@@ -203,7 +204,7 @@ void main() {
           selector { /* please don't move me */
             name: value;
           }
-        """),
+        """).css,
         equals("""
 selector { /* please don't move me */
   name: value;
@@ -218,7 +219,7 @@ selector { /* please don't move me */
           selector2 { /* please don't move me */
             name: value;
           }
-        """),
+        """).css,
         equals("""
 selector1,
 selector2 { /* please don't move me */
@@ -233,7 +234,7 @@ selector2 { /* please don't move me */
           selector {
             name: value;
           } /* please don't move me */
-        """),
+        """).css,
         equals("""
 selector {
   name: value;
@@ -247,7 +248,7 @@ selector {
           selector {
             /* please don't move me */
           }
-        """),
+        """).css,
         equals("""
 selector {
   /* please don't move me */
@@ -257,7 +258,7 @@ selector {
 
     test("only content in block (no newlines)", () {
       expect(
-        compileString("selector { /* please don't move me */ }"),
+        compileString("selector { /* please don't move me */ }").css,
         equals("selector { /* please don't move me */ }"),
       );
     });
@@ -265,8 +266,9 @@ selector {
     test("double trailing empty block", () {
       expect(
         compileString(
-            "selector { /* please don't move me */ /* please don't move me */ "
-            "}"),
+                "selector { /* please don't move me */ /* please don't move me */ "
+                "}")
+            .css,
         equals("""
 selector { /* please don't move me */ /* please don't move me */
 }"""),
@@ -279,7 +281,7 @@ selector { /* please don't move me */ /* please don't move me */
           selector {
             margin: 1px; /* please don't move me */ /* please don't move me */
           }
-        """),
+        """).css,
         equals("""
 selector {
   margin: 1px; /* please don't move me */ /* please don't move me */
@@ -295,7 +297,7 @@ selector {
             name2: value2; /* please don't move me 2 */
             name3: value3; /* please don't move me 3 */
           }
-        """),
+        """).css,
         equals("""
 selector {
   name1: value1; /* please don't move me 1 */
@@ -313,7 +315,7 @@ selector {
             @rule2; /* please don't move me 2 */
             @rule3; /* please don't move me 3 */
           }
-        """),
+        """).css,
         equals("""
 selector {
   @rule1; /* please don't move me 1 */
@@ -325,7 +327,7 @@ selector {
 
     test("after top-level statement", () {
       expect(
-        compileString("@rule; /* please don't move me */"),
+        compileString("@rule; /* please don't move me */").css,
         equals("@rule; /* please don't move me */"),
       );
     });
@@ -343,7 +345,7 @@ selector {
           { /* please don't move me */ }
 
           @rule3;
-        """),
+        """).css,
         equals("""
 @rule1;
 @rule2;
@@ -364,7 +366,7 @@ selector[href*="{"] { /* please don't move me */ }
             selector {
               @include loudComment;
             }
-          """),
+          """).css,
           equals("""
 selector {
   /* ... */
@@ -377,7 +379,7 @@ selector {
           compileString("""
             @mixin loudComment{/* ... */}
             selector {@include loudComment;}
-          """),
+          """).css,
           equals("""
 selector {
   /* ... */
@@ -395,7 +397,7 @@ selector {
             selector {
               @include loudComment; /* selector */
             }
-          """),
+          """).css,
           """
 /* mixin-out */
 selector {
@@ -426,7 +428,7 @@ selector {
               } /* bar end */
               margin: 1px; /* foo margin */
             } /* foo end */
-          """),
+          """).css,
           equals("""
 foo { /* foo */
   padding: 1px; /* foo padding */
@@ -467,7 +469,7 @@ foo {
                 } /* biz end */
               } /* bar end */
             } /* foo end */
-          """),
+          """).css,
           equals("""
 foo { /* foo */ }
 foo bar { /* bar */ }
