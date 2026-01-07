@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
 import 'package:native_synchronization/mailbox.dart';
 import 'package:pool/pool.dart';
 import 'package:protobuf/protobuf.dart';
@@ -21,7 +22,8 @@ import 'utils.dart';
 
 /// A class that dispatches messages between the host and various isolates that
 /// are each running an individual compilation.
-class IsolateDispatcher {
+@internal
+final class IsolateDispatcher {
   /// The channel of encoded protocol buffers, connected to the host.
   final StreamChannel<Uint8List> _channel;
 

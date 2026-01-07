@@ -35,7 +35,8 @@ import 'selector.dart' show selectorPseudoClasses, selectorPseudoElements;
 /// All methods that are not intended to be accessed by external callers are
 /// private, except where they have to be public for subclasses to refer to
 /// them.
-abstract class StylesheetParser extends Parser {
+@internal
+abstract base class StylesheetParser extends Parser {
   /// Whether to parse the selectors in [StyleRules] as [InterpolatedSelector]s
   /// rather than raw [Interpolation]s.
   final bool _parseSelectors;

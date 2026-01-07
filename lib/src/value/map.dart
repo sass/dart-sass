@@ -12,8 +12,7 @@ import '../util/map.dart';
 /// A SassScript map.
 ///
 /// {@category Value}
-@sealed
-class SassMap extends Value {
+final class SassMap extends Value {
   // We don't use public fields because they'd be overridden by the getters of
   // the same name in the JS API.
 

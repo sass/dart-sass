@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../ast/css.dart';
@@ -27,7 +28,8 @@ import 'mode.dart';
 const _modernPseudos = {'is', 'has', 'where'};
 
 /// Tracks selectors and extensions, and applies the latter to the former.
-class ExtensionStore {
+@internal
+interface class ExtensionStore {
   /// An [ExtensionStore] that contains no extensions and can have no extensions
   /// added.
   static const empty = EmptyExtensionStore();
@@ -1356,7 +1358,7 @@ class ExtensionStore {
   }
 }
 
-class _TrimModernVisitor with ReplaceSelectorVisitor {
+final class _TrimModernVisitor with ReplaceSelectorVisitor {
   /// The [ExtensionStore] that created this visitor.
   final ExtensionStore _store;
 

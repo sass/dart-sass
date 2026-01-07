@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:node_interop/js.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -13,6 +14,7 @@ import '../js/deprecations.dart' show deprecations;
 import '../js/logger.dart';
 
 /// A wrapper around a [JSLogger] that exposes it as a Dart [Logger].
+@internal
 final class JSToDartLogger extends LoggerWithDeprecationType {
   /// The wrapped logger object.
   final JSLogger? _node;

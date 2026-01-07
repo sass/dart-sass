@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../exception.dart';
 import '../utils.dart';
 import 'extension.dart';
@@ -11,6 +13,7 @@ import 'extension.dart';
 ///
 /// This is used when multiple mandatory extensions exist to ensure that both of
 /// them are marked as resolved.
+@internal
 final class MergedExtension extends Extension {
   /// One of the merged extensions.
   final Extension left;

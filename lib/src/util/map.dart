@@ -2,8 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import 'option.dart';
 
+@internal
 extension MapExtensions<K, V> on Map<K, V> {
   /// If `this` doesn't contain the given [key], sets that key to [value] and
   /// returns it.

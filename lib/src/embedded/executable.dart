@@ -5,11 +5,13 @@
 import 'dart:io';
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 import 'isolate_dispatcher.dart';
 import 'util/length_delimited_transformer.dart';
 
+@internal
 void main(List<String> args) {
   switch (args) {
     case ["--version", ...]:

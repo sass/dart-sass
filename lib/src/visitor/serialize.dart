@@ -806,6 +806,8 @@ final class _SerializeVisitor
       case SpanColorFormat format:
         _buffer.write(format.original);
         return;
+
+      case _: // do nothing
     }
 
     // Always emit generated transparent colors in rgba format. This works

@@ -2,11 +2,14 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 /// An unmodifiable reference to a value that may be mutated elsewhere.
 ///
 /// This uses reference equality based on the underlying [ModifiableBox], even
 /// when the underlying type uses value equality.
-class Box<T> {
+@internal
+final class Box<T> {
   final ModifiableBox<T> _inner;
 
   T get value => _inner.value;
@@ -24,7 +27,8 @@ class Box<T> {
 ///
 /// This always uses reference equality, even when the underlying type uses
 /// value equality.
-class ModifiableBox<T> {
+@internal
+final class ModifiableBox<T> {
   T value;
 
   ModifiableBox(this.value);

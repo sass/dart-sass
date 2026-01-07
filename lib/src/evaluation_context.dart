@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import 'deprecation.dart';
@@ -13,6 +14,7 @@ import 'logger.dart';
 ///
 /// This allows us to expose zone-scoped information without having to create a
 /// new zone variable for each piece of information.
+@internal
 abstract interface class EvaluationContext {
   /// The current evaluation context.
   ///
@@ -77,6 +79,7 @@ void warn(String message, {bool deprecation = false}) =>
     };
 
 /// Prints a deprecation warning with [message] of type [deprecation].
+@internal
 void warnForDeprecation(String message, Deprecation deprecation) =>
     switch (EvaluationContext.currentOrNull) {
       var context? => context.warn(message, deprecation),
@@ -85,6 +88,7 @@ void warnForDeprecation(String message, Deprecation deprecation) =>
 
 /// Prints a deprecation warning with [message] of type [deprecation],
 /// using stderr if there is no [EvaluationContext.current].
+@internal
 void warnForDeprecationFromApi(String message, Deprecation deprecation) {
   if (EvaluationContext._currentOrNull case var context?) {
     context.warn(message, deprecation);
@@ -97,5 +101,6 @@ void warnForDeprecationFromApi(String message, Deprecation deprecation) {
 ///
 /// This is zone-based, so if [callback] is asynchronous [warn] is set for the
 /// duration of that callback.
+@internal
 T withEvaluationContext<T>(EvaluationContext context, T callback()) =>
     runZoned(callback, zoneValues: {#_evaluationContext: context});

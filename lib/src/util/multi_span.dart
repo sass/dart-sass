@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 /// A FileSpan wrapper that with secondary spans attached, so that
@@ -12,7 +13,8 @@ import 'package:source_span/source_span.dart';
 /// invocations. To match the `source_span` package, separate APIs should
 /// generally be preferred over this class wherever backwards compatibility
 /// isn't a concern.
-class MultiSpan implements FileSpan {
+@internal
+final class MultiSpan implements FileSpan {
   /// The span to primarily highlight.
   final FileSpan _primary;
 

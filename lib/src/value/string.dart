@@ -23,8 +23,7 @@ final _emptyUnquoted = SassString("", quotes: false);
 /// identifiers, but they may contain any text.
 ///
 /// {@category Value}
-@sealed
-class SassString extends Value {
+final class SassString extends Value {
   // We don't use public fields because they'd be overridden by the getters of
   // the same name in the JS API.
 

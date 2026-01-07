@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -33,6 +34,7 @@ import 'options.dart';
 /// modification time. Note that these modification times are cached by [graph].
 ///
 /// Returns `(exitCode, error, stackTrace)` when an error occurs.
+@internal
 Future<(int, String, String?)?> compileStylesheet(
   ExecutableOptions options,
   StylesheetGraph graph,

@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../ast/css.dart';
 import '../ast/node.dart';
 import '../ast/sass.dart';
@@ -14,7 +16,8 @@ import '../util/prefixed_map_view.dart';
 import '../value.dart';
 
 /// A [Module] that exposes members according to a [ForwardRule].
-class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
+@internal
+final class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
   /// The wrapped module.
   final Module<T> _inner;
 

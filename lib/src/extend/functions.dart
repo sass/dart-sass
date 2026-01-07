@@ -14,6 +14,7 @@ library;
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../ast/css/value.dart';
@@ -34,6 +35,7 @@ final _rootishPseudoClasses = {'root', 'scope', 'host', 'host-context'};
 /// The [span] is used for the unified complex selectors.
 ///
 /// If no such list can be produced, returns `null`.
+@internal
 List<ComplexSelector>? unifyComplex(
   List<ComplexSelector> complexes,
   FileSpan span,
@@ -129,6 +131,7 @@ List<ComplexSelector>? unifyComplex(
 /// selector.
 ///
 /// If no such selector can be produced, returns `null`.
+@internal
 CompoundSelector? unifyCompound(
   CompoundSelector compound1,
   CompoundSelector compound2,
@@ -141,6 +144,7 @@ CompoundSelector? unifyCompound(
 
 /// Like [unifyCompound], but operates directly on [CompoundSelector.components]
 /// to avoid extra allocations.
+@internal
 List<SimpleSelector>? unifyCompoundComponents(
   List<SimpleSelector> compound1,
   List<SimpleSelector> compound2,
@@ -178,6 +182,7 @@ List<SimpleSelector>? unifyCompoundComponents(
 /// The [span] will be used for the new unified selector.
 ///
 /// If no such selector can be produced, returns `null`.
+@internal
 SimpleSelector? unifyUniversalAndElement(
   SimpleSelector selector1,
   SimpleSelector selector2,
@@ -245,6 +250,7 @@ SimpleSelector? unifyUniversalAndElement(
 /// as having line breaks.
 ///
 /// If no selectors can be meaninfully combined, returns `null`.
+@internal
 List<ComplexSelector>? weave(
   List<ComplexSelector> complexes,
   FileSpan span, {
@@ -686,6 +692,7 @@ List<List<T>> _chunks<T>(
 ///  [1, 4, 5],
 ///  [2, 4, 5]]
 /// ```
+@internal
 List<List<T>> paths<T>(Iterable<List<T>> choices) => choices.fold(
       [[]],
       (paths, choice) => choice
@@ -720,6 +727,7 @@ QueueList<List<ComplexSelectorComponent>> _groupSelectors(
 ///
 /// That is, whether [list1] matches every element that [list2] matches, as well
 /// as possibly additional elements.
+@internal
 bool listIsSuperselector(
   List<ComplexSelector> list1,
   List<ComplexSelector> list2,
@@ -753,6 +761,7 @@ bool _complexIsParentSuperselector(
 ///
 /// That is, whether [complex1] matches every element that [complex2] matches, as well
 /// as possibly additional elements.
+@internal
 bool complexIsSuperselector(
   List<ComplexSelectorComponent> complex1,
   List<ComplexSelectorComponent> complex2,
@@ -890,6 +899,7 @@ bool _isSupercombinator(
 /// If [parents] is passed, it represents the parents of [compound2]. This is
 /// relevant for pseudo selectors with selector arguments, where we may need to
 /// know if the parent selectors in the selector argument match [parents].
+@internal
 bool compoundIsSuperselector(
   CompoundSelector compound1,
   CompoundSelector compound2, {

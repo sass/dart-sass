@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -18,6 +19,7 @@ const _maxRepetitions = 5;
 /// A logger that wraps an inner logger to have special handling for
 /// deprecation warnings, silencing, making fatal, enabling future, and/or
 /// limiting repetition based on its inputs.
+@internal
 final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
   /// A map of how many times each deprecation has been emitted by this logger.
   final _warningCounts = <Deprecation, int>{};

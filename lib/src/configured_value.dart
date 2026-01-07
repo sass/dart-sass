@@ -2,12 +2,14 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import 'ast/node.dart';
 import 'value.dart';
 
 /// A variable value that's been configured for a [Configuration].
+@internal
 final class ConfiguredValue {
   /// The value of the variable.
   final Value value;

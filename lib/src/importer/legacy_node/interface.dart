@@ -2,6 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
+@internal
 final class NodeImporter {
   NodeImporter(
     Object options,

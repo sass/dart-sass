@@ -2,6 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
+@internal
 extension IterableExtension<E> on Iterable<E> {
   /// Returns the first `T` returned by [callback] for an element of [iterable],
   /// or `null` if it returns `null` for every element.

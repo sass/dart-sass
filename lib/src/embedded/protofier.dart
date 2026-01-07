@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../util/map.dart';
 import '../util/nullable.dart';
 import '../value.dart';
@@ -16,6 +18,7 @@ import 'utils.dart';
 ///
 /// A given [Protofier] instance is valid only within the scope of a single
 /// custom function call.
+@internal
 final class Protofier {
   /// The dispatcher, for invoking deprotofied [Value_HostFunction]s.
   final CompilationDispatcher _dispatcher;

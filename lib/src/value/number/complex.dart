@@ -11,8 +11,8 @@ import '../number.dart';
 /// [UnitlessSassNumber]s or [SingleUnitSassNumber]s.
 ///
 /// {@category Value}
-@sealed
-class ComplexSassNumber extends SassNumber {
+@internal
+final class ComplexSassNumber extends SassNumber {
   // We don't use public fields because they'd be overridden by the getters of
   // the same name in the JS API.
 

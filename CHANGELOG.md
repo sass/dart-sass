@@ -63,10 +63,17 @@
 
 ### Dart API
 
-* Remove `Value.assertSelector()`, `.assertSimpleSelector()`,
-  `.assertCompoundSelector()`, and `.assertComplexSelector()`. This is now only
-  available through the expanded `sass_api` package, since that package also
-  exposes the selector AST that it returns.
+* **Breaking change:** Use [Dart class modifiers] where applicable for types
+  exposed by this package. This means that users' `Importer` implementations
+  must be marked as `final` or `base`.
+
+  [Dart class modifiers]: https://dart.dev/language/class-modifiers
+
+* **Breaking change:** Remove `Value.assertSelector()`,
+  `.assertSimpleSelector()`, `.assertCompoundSelector()`, and
+  `.assertComplexSelector()`. These are now only available through the expanded
+  `sass_api` package, since that package also exposes the selector AST that it
+  returns.
 
 ## 1.97.1
 

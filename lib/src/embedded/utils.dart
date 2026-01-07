@@ -5,6 +5,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
 import 'package:protobuf/protobuf.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -17,15 +18,18 @@ import 'util/varint_builder.dart';
 
 /// The special ID that indicates an error that's not associated with a specific
 /// inbound request ID.
+@internal
 const errorId = 0xffffffff;
 
 /// Returns a [ProtocolError] indicating that a mandatory field with the given
 /// [fieldName] was missing.
+@internal
 ProtocolError mandatoryError(String fieldName) =>
     paramsError("Missing mandatory field $fieldName");
 
 /// Returns a [ProtocolError] indicating that the parameters for an inbound
 /// message were invalid.
+@internal
 ProtocolError paramsError(String message) => ProtocolError()
   // Set the ID to [errorId] by default. This will be overwritten by the
   // dispatcher if a request ID is available.
@@ -34,11 +38,13 @@ ProtocolError paramsError(String message) => ProtocolError()
   ..message = message;
 
 /// Returns a [ProtocolError] with type `PARSE` and the given [message].
+@internal
 ProtocolError parseError(String message) => ProtocolError()
   ..type = ProtocolErrorType.PARSE
   ..message = message;
 
 /// Converts a Dart source span to a protocol buffer source span.
+@internal
 proto.SourceSpan protofySpan(SourceSpan span) {
   var protoSpan = proto.SourceSpan()
     ..text = span.text
@@ -57,6 +63,7 @@ SourceSpan_SourceLocation _protofyLocation(SourceLocation location) =>
       ..column = location.column;
 
 /// Converts a protocol buffer syntax enum into a Sass API syntax enum.
+@internal
 Syntax syntaxToSyntax(proto.Syntax syntax) => switch (syntax) {
       proto.Syntax.SCSS => Syntax.scss,
       proto.Syntax.INDENTED => Syntax.sass,
@@ -66,6 +73,7 @@ Syntax syntaxToSyntax(proto.Syntax syntax) => switch (syntax) {
 
 /// Returns the result of running [callback] with the global ASCII config set
 /// to [ascii].
+@internal
 T withGlyphs<T>(T callback(), {required bool ascii}) {
   var currentConfig = term_glyph.ascii;
   term_glyph.ascii = ascii;
@@ -75,6 +83,7 @@ T withGlyphs<T>(T callback(), {required bool ascii}) {
 }
 
 /// Serializes [value] to an unsigned varint.
+@internal
 Uint8List serializeVarint(int value) {
   if (value == 0) return Uint8List.fromList([0]);
   RangeError.checkNotNegative(value);
@@ -94,6 +103,7 @@ Uint8List serializeVarint(int value) {
 
 /// Serializes a compilation ID and protobuf message into a packet buffer as
 /// specified in the embedded protocol.
+@internal
 Uint8List serializePacket(int compilationId, GeneratedMessage message) {
   var varint = serializeVarint(compilationId);
   var protobufWriter = CodedBufferWriter();
@@ -111,6 +121,7 @@ final _compilationIdBuilder = VarintBuilder(32, 'compilation ID');
 
 /// Parses a compilation ID and encoded protobuf message from a packet buffer as
 /// specified in the embedded protocol.
+@internal
 (int, Uint8List) parsePacket(Uint8List packet) {
   try {
     var i = 0;
@@ -133,6 +144,7 @@ final _compilationIdBuilder = VarintBuilder(32, 'compilation ID');
 }
 
 /// Wraps error object into ProtocolError, writes error to stderr, and returns the ProtocolError.
+@internal
 ProtocolError handleError(
   Object error,
   StackTrace stackTrace, {

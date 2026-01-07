@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 /// A mostly-unmodifiable view of a map that only allows certain keys to be
 /// accessed.
@@ -17,7 +18,8 @@ import 'package:collection/collection.dart';
 ///
 /// This is unmodifiable *except for the [remove] method*, which is used for
 /// `@used with` to mark configured variables as used.
-class LimitedMapView<K, V> extends UnmodifiableMapBase<K, V> {
+@internal
+final class LimitedMapView<K, V> extends UnmodifiableMapBase<K, V> {
   /// The wrapped map.
   final Map<K, V> _map;
 

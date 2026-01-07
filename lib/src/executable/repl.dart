@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:cli_repl/cli_repl.dart';
+import 'package:meta/meta.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../ast/sass.dart';
@@ -21,6 +22,7 @@ import '../utils.dart';
 import '../visitor/evaluate.dart';
 
 /// Runs an interactive SassScript shell according to [options].
+@internal
 Future<void> repl(ExecutableOptions options) async {
   var repl = Repl(prompt: '>> ');
   var trackingLogger = TrackingLogger(options.logger);

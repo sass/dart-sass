@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:cli_pkg/js.dart';
 import 'package:js/js.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import '../../io.dart';
@@ -39,6 +40,7 @@ import '../utils.dart';
 ///   3. Filesystem imports relative to the working directory.
 ///   4. Filesystem imports relative to an `includePaths` path.
 ///   5. Filesystem imports relative to a `SASS_PATH` path.
+@internal
 final class NodeImporter {
   /// The options for the `this` context in which importer functions are
   /// invoked.

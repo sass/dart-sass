@@ -335,7 +335,7 @@ void main() {
 }
 
 /// A [Logger] whose [warn] and [debug] methods are provided by callbacks.
-class _TestLogger implements Logger {
+final class _TestLogger implements Logger {
   final void Function(String, {FileSpan? span, Trace? trace, bool deprecation})
       _warn;
   final void Function(String, SourceSpan) _debug;

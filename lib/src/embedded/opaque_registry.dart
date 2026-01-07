@@ -2,8 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 /// A registry of some `T` indexed by ID so that the host can invoke
 /// them.
+@internal
 final class OpaqueRegistry<T> {
   /// Instantiations of `T` that have been sent to the host.
   ///

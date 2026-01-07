@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:stream_transform/stream_transform.dart';
 import 'package:watcher/watcher.dart';
@@ -15,6 +16,7 @@ import 'concurrent.dart';
 import 'options.dart';
 
 /// Watches all the files in [graph] for changes and updates them as necessary.
+@internal
 Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
   var directoriesToWatch = [
     ..._sourceDirectoriesToDestinations(options).keys,

@@ -40,7 +40,7 @@ export 'value/string.dart';
 ///
 /// {@category Value}
 @sealed
-abstract class Value {
+abstract base class Value {
   /// Whether the value counts as `true` in an `@if` statement and other
   /// contexts.
   bool get isTruthy => true;

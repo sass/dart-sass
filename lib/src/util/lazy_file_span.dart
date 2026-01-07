@@ -2,11 +2,13 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 /// A wrapper for [FileSpan] that allows an expensive creation process to be
 /// deferred until the span is actually needed.
-class LazyFileSpan implements FileSpan {
+@internal
+final class LazyFileSpan implements FileSpan {
   /// The function that creates the underlying span.
   final FileSpan Function() _builder;
 

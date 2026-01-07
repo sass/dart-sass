@@ -22,10 +22,8 @@ import 'utils.dart' as utils;
 /// methods. If an importer can work synchronously, it should extend [Importer]
 /// instead.
 ///
-/// Subclasses should extend [AsyncImporter], not implement it.
-///
 /// {@category Importer}
-abstract class AsyncImporter {
+abstract base class AsyncImporter {
   /// Whether the current [canonicalize] invocation comes from an `@import`
   /// rule.
   ///

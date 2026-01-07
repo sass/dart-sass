@@ -4,9 +4,12 @@
 
 import 'dart:collection';
 
+import 'package:meta/meta.dart';
+
 /// An unmodifiable view of a map with string keys that allows keys to be
 /// accessed with an additional prefix.
-class PrefixedMapView<V> extends UnmodifiableMapBase<String, V> {
+@internal
+final class PrefixedMapView<V> extends UnmodifiableMapBase<String, V> {
   /// The wrapped map.
   final Map<String, V> _map;
 
@@ -31,7 +34,7 @@ class PrefixedMapView<V> extends UnmodifiableMapBase<String, V> {
 }
 
 /// The implementation of [PrefixedMapViews.keys].
-class _PrefixedKeys extends IterableBase<String> {
+final class _PrefixedKeys extends IterableBase<String> {
   /// The view whose keys are being iterated over.
   final PrefixedMapView<Object?> _view;
 

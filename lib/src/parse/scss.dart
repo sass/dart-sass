@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 
 import '../ast/sass.dart';
 import '../interpolation_buffer.dart';
@@ -10,7 +11,9 @@ import '../util/character.dart';
 import 'stylesheet.dart';
 
 /// A parser for the CSS-compatible syntax.
-class ScssParser extends StylesheetParser {
+@sealed
+@internal
+base class ScssParser extends StylesheetParser {
   bool get indented => false;
   int get currentIndentation => 0;
 

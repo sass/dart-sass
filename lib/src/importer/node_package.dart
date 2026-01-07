@@ -13,7 +13,7 @@ import '../io.dart';
 import 'package:path/path.dart' as p;
 
 /// An [Importer] that resolves `pkg:` URLs using the Node resolution algorithm.
-class NodePackageImporter extends Importer {
+final class NodePackageImporter extends Importer {
   /// The starting path for canonicalizations without a containing URL.
   late final String _entryPointDirectory;
 

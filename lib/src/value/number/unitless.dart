@@ -10,8 +10,8 @@ import '../../value.dart';
 /// A specialized subclass of [SassNumber] for numbers that have no units.
 ///
 /// {@category Value}
-@sealed
-class UnitlessSassNumber extends SassNumber {
+@internal
+final class UnitlessSassNumber extends SassNumber {
   List<String> get numeratorUnits => const [];
 
   List<String> get denominatorUnits => const [];
