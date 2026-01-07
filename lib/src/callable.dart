@@ -69,14 +69,6 @@ export 'callable/user_defined.dart';
 /// {@category Compile}
 @sealed
 abstract interface class Callable implements AsyncCallable {
-  @Deprecated('Use `Callable.function` instead.')
-  factory Callable(
-    String name,
-    String arguments,
-    Value callback(List<Value> arguments),
-  ) =>
-      Callable.function(name, arguments, callback);
-
   /// Creates a function with the given [name] and [arguments] that runs
   /// [callback] when called.
   ///
