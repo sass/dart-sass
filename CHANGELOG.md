@@ -51,6 +51,12 @@
   Leading combinators are still allowed for these functions because they may
   appear in a plain CSS nesting context.
 
+### JavaScript API
+
+* **Breaking change:** The JavaScript API no longer provides access to its
+  members through a default import in ESM. Users must `import * as sass from
+  'sass'` rather than `import sass from 'sass'`.
+
 ### Dart API
 
 * Remove `Value.assertSelector()`, `.assertSimpleSelector()`,
