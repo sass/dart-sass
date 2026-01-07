@@ -69,6 +69,13 @@
 
   [Dart class modifiers]: https://dart.dev/language/class-modifiers
 
+* **Breaking change:** Replace the deprecated top-level `compile()`,
+  `compileString()`, `compileAsync()`, and `compileStringAsync()` functions with
+  the functions that used to be named `compileToResult()`,
+  `compileStringToResult()`, `compileToResultAsync()`, and
+  `compileStringToResultAsync()`. The latter function names still exist, but
+  they are now deprecated in favor of the former names.
+
 * **Breaking change:** Remove `Value.assertSelector()`,
   `.assertSimpleSelector()`, `.assertCompoundSelector()`, and
   `.assertComplexSelector()`. These are now only available through the expanded

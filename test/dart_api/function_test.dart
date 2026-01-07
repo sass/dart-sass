@@ -30,7 +30,7 @@ void main() {
   });
 
   test("passes an argument to a custom function and uses its return value", () {
-    var css = compileString(
+    var result = compileString(
       'a {b: foo(bar)}',
       functions: [
         Callable(
@@ -45,11 +45,11 @@ void main() {
       ],
     );
 
-    expect(css, equalsIgnoringWhitespace("a { b: result; }"));
+    expect(result.css, equalsIgnoringWhitespace("a { b: result; }"));
   });
 
   test("runs a function asynchronously", () async {
-    var css = await compileStringAsync(
+    var result = await compileStringAsync(
       'a {b: foo(bar)}',
       functions: [
         AsyncCallable(
@@ -65,7 +65,7 @@ void main() {
       ],
     );
 
-    expect(css, equalsIgnoringWhitespace("a { b: result; }"));
+    expect(result.css, equalsIgnoringWhitespace("a { b: result; }"));
   });
 
   test("passes no arguments to a custom function", () {
@@ -82,7 +82,7 @@ void main() {
             }),
           ),
         ],
-      ),
+      ).css,
       isEmpty,
     );
   });
@@ -104,7 +104,7 @@ void main() {
             }),
           ),
         ],
-      ),
+      ).css,
       isEmpty,
     );
   });
@@ -119,7 +119,7 @@ void main() {
   });
 
   test("supports default argument values", () {
-    var css = compileString(
+    var result = compileString(
       'a {b: foo()}',
       functions: [
         Callable(
@@ -134,11 +134,11 @@ void main() {
       ],
     );
 
-    expect(css, equalsIgnoringWhitespace("a { b: 1; }"));
+    expect(result.css, equalsIgnoringWhitespace("a { b: 1; }"));
   });
 
   test("supports argument lists", () {
-    var css = compileString(
+    var result = compileString(
       'a {b: foo(1, 2, 3)}',
       functions: [
         Callable(
@@ -157,11 +157,11 @@ void main() {
       ],
     );
 
-    expect(css, equalsIgnoringWhitespace("a { b: 1, 2, 3; }"));
+    expect(result.css, equalsIgnoringWhitespace("a { b: 1, 2, 3; }"));
   });
 
   test("supports keyword arguments", () {
-    var css = compileString(
+    var result = compileString(
       r'a {b: foo($bar: 1)}',
       functions: [
         Callable(
@@ -179,7 +179,7 @@ void main() {
       ],
     );
 
-    expect(css, equalsIgnoringWhitespace("a { b: 1; }"));
+    expect(result.css, equalsIgnoringWhitespace("a { b: 1; }"));
   });
 
   group("are dash-normalized", () {
@@ -197,7 +197,7 @@ void main() {
               }),
             ),
           ],
-        ),
+        ).css,
         isEmpty,
       );
     });
@@ -216,7 +216,7 @@ void main() {
               }),
             ),
           ],
-        ),
+        ).css,
         isEmpty,
       );
     });

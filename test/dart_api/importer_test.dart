@@ -25,7 +25,7 @@ void main() {
           return ImporterResult('.$color {color: $color}', indented: false);
         }),
       ],
-    );
+    ).css;
 
     expect(css, equals(".orange {\n  color: orange;\n}"));
   });
@@ -39,7 +39,7 @@ void main() {
           return ImporterResult('.$color {color: $color}', indented: false);
         }),
       ],
-    );
+    ).css;
 
     expect(css, equals(".blue {\n  color: blue;\n}"));
   });
@@ -59,7 +59,7 @@ void main() {
           }, count: 1),
         ),
       ],
-    );
+    ).css;
 
     expect(
       css,
@@ -102,7 +102,7 @@ void main() {
         ),
       ],
       logger: Logger.quiet,
-    );
+    ).css;
 
     expect(
       css,
@@ -287,7 +287,7 @@ void main() {
   });
 
   test("uses an importer's source map URL", () {
-    var result = compileStringToResult(
+    var result = compileString(
       '@use "orange";',
       importers: [
         TestImporter((url) => Uri.parse("u:$url"), (url) {
@@ -306,7 +306,7 @@ void main() {
   });
 
   test("uses a data: source map URL if the importer doesn't provide one", () {
-    var result = compileStringToResult(
+    var result = compileString(
       '@use "orange";',
       importers: [
         TestImporter((url) => Uri.parse("u:$url"), (url) {
@@ -433,7 +433,7 @@ void main() {
           var color = url.path;
           return ImporterResult('.$color {color: $color}', indented: false);
         }),
-      );
+      ).css;
 
       expect(css, equals(".orange {\n  color: orange;\n}"));
     });
@@ -445,7 +445,7 @@ void main() {
           return ImporterResult('a {result: "${url.path}"}', indented: false);
         }),
         url: Uri.parse("u:foo/bar"),
-      );
+      ).css;
 
       expect(css, equals('a {\n  result: "foo/baz/bang";\n}'));
     });
@@ -463,7 +463,7 @@ void main() {
             return ImporterResult('.$color {color: $color}', indented: false);
           }),
         ],
-      );
+      ).css;
 
       expect(css, equals(".orange {\n  color: orange;\n}"));
     });
@@ -485,7 +485,7 @@ void main() {
             }
           }),
         ],
-      );
+      ).css;
 
       expect(css, equals(".orange {\n  color: orange;\n}"));
     });

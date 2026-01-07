@@ -26,7 +26,7 @@ void main() {
       var css = compile(
         d.path("test.scss"),
         importers: [FilesystemImporter(d.path('subdir'))],
-      );
+      ).css;
       expect(css, equals("a {\n  b: c;\n}"));
     });
 
@@ -45,7 +45,7 @@ void main() {
           FilesystemImporter(d.path('first')),
           FilesystemImporter(d.path('second')),
         ],
-      );
+      ).css;
       expect(css, equals("a {\n  b: from-first;\n}"));
     });
   });
@@ -55,7 +55,7 @@ void main() {
       await d.dir("subdir", [d.file("subtest.scss", "a {b: c}")]).create();
       await d.file("test.scss", '@use "subtest.scss";').create();
 
-      var css = compile(d.path("test.scss"), loadPaths: [d.path('subdir')]);
+      var css = compile(d.path("test.scss"), loadPaths: [d.path('subdir')]).css;
       expect(css, equals("a {\n  b: c;\n}"));
     });
 
@@ -63,7 +63,7 @@ void main() {
       await d.dir("subdir", [d.file("_subtest.scss", "a {b: c}")]).create();
       await d.file("test.scss", '@use "subtest.scss";').create();
 
-      var css = compile(d.path("test.scss"), loadPaths: [d.path('subdir')]);
+      var css = compile(d.path("test.scss"), loadPaths: [d.path('subdir')]).css;
       expect(css, equals("a {\n  b: c;\n}"));
     });
 
@@ -71,7 +71,7 @@ void main() {
       await d.dir("subdir", [d.file("subtest.scss", "a {b: c}")]).create();
       await d.file("test.scss", '@use "subtest";').create();
 
-      var css = compile(d.path("test.scss"), loadPaths: [d.path('subdir')]);
+      var css = compile(d.path("test.scss"), loadPaths: [d.path('subdir')]).css;
       expect(css, equals("a {\n  b: c;\n}"));
     });
 
@@ -79,7 +79,7 @@ void main() {
       await d.dir("subdir", [d.file("subtest.sass", "a\n  b: c")]).create();
       await d.file("test.scss", '@use "subtest";').create();
 
-      var css = compile(d.path("test.scss"), loadPaths: [d.path('subdir')]);
+      var css = compile(d.path("test.scss"), loadPaths: [d.path('subdir')]).css;
       expect(css, equals("a {\n  b: c;\n}"));
     });
 
@@ -95,7 +95,7 @@ void main() {
       var css = compile(
         d.path("test.scss"),
         loadPaths: [d.path('first'), d.path('second')],
-      );
+      ).css;
       expect(css, equals("a {\n  b: from-first;\n}"));
     });
   });
@@ -109,7 +109,7 @@ void main() {
         Package('fake_package', p.toUri(d.path('subdir/'))),
       ]);
 
-      var css = compile(d.path("test.scss"), packageConfig: config);
+      var css = compile(d.path("test.scss"), packageConfig: config).css;
       expect(css, equals("a {\n  b: 3;\n}"));
     });
 
@@ -124,7 +124,7 @@ void main() {
         Package('fake_package', p.toUri(d.path('subdir/'))),
       ]);
 
-      var css = compile(d.path("test.scss"), packageConfig: config);
+      var css = compile(d.path("test.scss"), packageConfig: config).css;
       expect(css, equals("a {\n  b: 3;\n}"));
     });
 
@@ -134,7 +134,8 @@ void main() {
           .create();
 
       expect(
-        () => compile(d.path("test.scss"), packageConfig: PackageConfig([])),
+        () =>
+            compile(d.path("test.scss"), packageConfig: PackageConfig([])).css,
         throwsA(const TypeMatcher<SassRuntimeException>()),
       );
     });
@@ -151,7 +152,7 @@ void main() {
       var css = compile(
         d.path("test.scss"),
         importers: [FilesystemImporter(d.path('subdir'))],
-      );
+      ).css;
       expect(css, equals("a {\n  b: from-relative;\n}"));
     });
 
@@ -170,7 +171,7 @@ void main() {
         importer: FilesystemImporter(d.path('original')),
         url: p.toUri(d.path('original/test.scss')),
         importers: [FilesystemImporter(d.path('other'))],
-      );
+      ).css;
       expect(css, equals("a {\n  b: from-original;\n}"));
     });
 
@@ -193,7 +194,7 @@ void main() {
             (url) => ImporterResult('@use "first:other";', indented: false),
           ),
         ],
-      );
+      ).css;
       expect(css, equals("a {\n  from: first;\n}"));
     });
 
@@ -210,7 +211,7 @@ void main() {
         d.path("test.scss"),
         importers: [FilesystemImporter(d.path('importer'))],
         loadPaths: [d.path('load-path')],
-      );
+      ).css;
       expect(css, equals("a {\n  b: from-importer;\n}"));
     });
 
@@ -235,7 +236,7 @@ void main() {
         packageConfig: PackageConfig([
           Package('fake_package', p.toUri(d.path('package/'))),
         ]),
-      );
+      ).css;
       expect(css, equals("a {\n  b: from-importer;\n}"));
     });
   });
@@ -244,7 +245,7 @@ void main() {
     group("= true", () {
       test("doesn't emit @charset for a pure-ASCII stylesheet", () {
         expect(
-          compileString("a {b: c}"),
+          compileString("a {b: c}").css,
           equalsIgnoringWhitespace("""
             a {
               b: c;
@@ -255,7 +256,7 @@ void main() {
 
       test("emits @charset with expanded output", () async {
         expect(
-          compileString("a {b: 👭}"),
+          compileString("a {b: 👭}").css,
           equalsIgnoringWhitespace("""
             @charset "UTF-8";
             a {
@@ -267,7 +268,7 @@ void main() {
 
       test("emits a BOM with compressed output", () async {
         expect(
-          compileString("a {b: 👭}", style: OutputStyle.compressed),
+          compileString("a {b: 👭}", style: OutputStyle.compressed).css,
           equals("\u{FEFF}a{b:👭}"),
         );
       });
@@ -276,7 +277,7 @@ void main() {
     group("= false", () {
       test("doesn't emit @charset with expanded output", () async {
         expect(
-          compileString("a {b: 👭}", charset: false),
+          compileString("a {b: 👭}", charset: false).css,
           equalsIgnoringWhitespace("""
             a {
               b: 👭;
@@ -291,7 +292,7 @@ void main() {
             "a {b: 👭}",
             charset: false,
             style: OutputStyle.compressed,
-          ),
+          ).css,
           equals("a{b:👭}"),
         );
       });
@@ -300,21 +301,21 @@ void main() {
 
   group("loadedUrls", () {
     group("contains the entrypoint's URL", () {
-      group("in compileStringToResult()", () {
+      group("in compileString()", () {
         test("if it's given", () {
-          var result = compileStringToResult("a {b: c}", url: "source.scss");
+          var result = compileString("a {b: c}", url: "source.scss");
           expect(result.loadedUrls, equals([Uri.parse("source.scss")]));
         });
 
         test("unless it's not given", () {
-          var result = compileStringToResult("a {b: c}");
+          var result = compileString("a {b: c}");
           expect(result.loadedUrls, isEmpty);
         });
       });
 
-      test("in compileToResult()", () async {
+      test("in compile()", () async {
         await d.file("input.scss", "a {b: c};").create();
-        var result = compileToResult(d.path('input.scss'));
+        var result = compile(d.path('input.scss'));
         expect(result.loadedUrls, equals([p.toUri(d.path('input.scss'))]));
       });
     });
@@ -322,7 +323,7 @@ void main() {
     test("contains a URL loaded via @import", () async {
       await d.file("_other.scss", "a {b: c}").create();
       await d.file("input.scss", "@import 'other';").create();
-      var result = compileToResult(
+      var result = compile(
         d.path('input.scss'),
         silenceDeprecations: [Deprecation.import],
       );
@@ -332,14 +333,14 @@ void main() {
     test("contains a URL loaded via @use", () async {
       await d.file("_other.scss", "a {b: c}").create();
       await d.file("input.scss", "@use 'other';").create();
-      var result = compileToResult(d.path('input.scss'));
+      var result = compile(d.path('input.scss'));
       expect(result.loadedUrls, contains(p.toUri(d.path('_other.scss'))));
     });
 
     test("contains a URL loaded via @forward", () async {
       await d.file("_other.scss", "a {b: c}").create();
       await d.file("input.scss", "@forward 'other';").create();
-      var result = compileToResult(d.path('input.scss'));
+      var result = compile(d.path('input.scss'));
       expect(result.loadedUrls, contains(p.toUri(d.path('_other.scss'))));
     });
 
@@ -349,7 +350,7 @@ void main() {
         @use 'sass:meta';
         @include meta.load-css('other');
       """).create();
-      var result = compileToResult(d.path('input.scss'));
+      var result = compile(d.path('input.scss'));
       expect(result.loadedUrls, contains(p.toUri(d.path('_other.scss'))));
     });
 
@@ -362,7 +363,7 @@ void main() {
         @use 'sass:meta';
         @include meta.load-css('venus');
       """).create();
-      var result = compileToResult(
+      var result = compile(
         d.path('mercury.scss'),
         silenceDeprecations: [Deprecation.import],
       );
@@ -389,7 +390,7 @@ void main() {
           @include meta.load-css("other.scss");
         """,
         loadPaths: [d.sandbox],
-      ),
+      ).then((result) => result.css),
       completion(equals("/**/ /**/")),
     );
 
