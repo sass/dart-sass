@@ -282,7 +282,7 @@ void main() {
         importers: [
           TestImporter((url) => Uri.parse("u:$url"), (url) {
             warn("heck");
-            return ImporterResult("", indented: false);
+            return ImporterResult("", syntax: Syntax.scss);
           }),
         ],
         logger: _TestLogger.withWarn((
