@@ -18,7 +18,7 @@ Value parseValue(String source) {
       a {b: foo(($source))}
     """,
     functions: [
-      Callable(
+      Callable.function(
         "foo",
         r"$arg",
         expectAsync1((arguments) {

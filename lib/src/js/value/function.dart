@@ -24,7 +24,7 @@ final JSClass functionClass = () {
     }
 
     return SassFunction(
-      Callable(
+      Callable.function(
         signature.substring(0, paren),
         signature.substring(paren + 1, signature.length - 1),
         callback,
@@ -33,7 +33,7 @@ final JSClass functionClass = () {
   });
 
   getJSClass(
-    SassFunction(Callable('f', '', (_) => sassNull)),
+    SassFunction(Callable.function('f', '', (_) => sassNull)),
   ).injectSuperclass(jsClass);
   return jsClass;
 }();
