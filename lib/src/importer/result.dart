@@ -27,31 +27,18 @@ final class ImporterResult {
   /// The syntax to use to parse the stylesheet.
   final Syntax syntax;
 
-  @Deprecated("Use syntax instead.")
-  bool get isIndented => syntax == Syntax.sass;
-
   /// Creates a new [ImporterResult].
-  ///
-  /// The [syntax] parameter must be passed. It's not marked as required only
-  /// because old clients may still be passing the deprecated [indented]
-  /// parameter instead.
   ImporterResult(
     this.contents, {
     Uri? sourceMapUrl,
-    Syntax? syntax,
-    @Deprecated("Use the syntax parameter instead.") bool? indented,
-  })  : _sourceMapUrl = sourceMapUrl,
-        syntax = syntax ?? (indented == true ? Syntax.sass : Syntax.scss) {
+    required this.syntax,
+  }) : _sourceMapUrl = sourceMapUrl {
     if (sourceMapUrl?.scheme == '') {
       throw ArgumentError.value(
         sourceMapUrl,
         'sourceMapUrl',
         'must be absolute',
       );
-    } else if (syntax == null && indented == null) {
-      throw ArgumentError("The syntax parameter must be passed.");
-    } else if (syntax != null && indented != null) {
-      throw ArgumentError("Only one of syntax and indented may be passed.");
     }
   }
 }

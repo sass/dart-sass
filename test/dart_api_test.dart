@@ -181,7 +181,7 @@ void main() {
         importers: [
           TestImporter(
             (url) => url.scheme == 'first' ? url : null,
-            (url) => ImporterResult('a {from: first}', indented: false),
+            (url) => ImporterResult('a {from: first}', syntax: Syntax.scss),
           ),
           // This importer should only be invoked once, because when the
           // "first:other" import is resolved it should be passed to the first
@@ -191,7 +191,7 @@ void main() {
               (url) => url.scheme == 'second' ? url : null,
               count: 1,
             ),
-            (url) => ImporterResult('@use "first:other";', indented: false),
+            (url) => ImporterResult('@use "first:other";', syntax: Syntax.scss),
           ),
         ],
       ).css;

@@ -92,6 +92,17 @@
 * **Breaking change:** Remove `Deprecation.duplicateVariableFlags`. Use
   `Deprecation.duplicateVarFlags`.
 
+#### `ImporterResult`
+
+* **Breaking change:** Remove `ImporterResult.isIndented`. Use
+  `ImporterResult.syntax` instead.
+
+* **Breaking change:** Remove the `indented` parameter to `ImporterResult()`.
+  Use the `syntax` parameter instead.
+
+* **Breaking change:** The `syntax` parameter to `ImporterResult()` is now
+  `required` and non-nullable.
+
 ## 1.97.1
 
 * Fix a bug with the new CSS-style `if()` syntax where values would be evaluated

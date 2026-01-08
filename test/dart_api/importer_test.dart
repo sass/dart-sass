@@ -22,7 +22,7 @@ void main() {
       importers: [
         TestImporter((url) => Uri.parse("u:$url"), (url) {
           var color = url.path;
-          return ImporterResult('.$color {color: $color}', indented: false);
+          return ImporterResult('.$color {color: $color}', syntax: Syntax.scss);
         }),
       ],
     ).css;
@@ -36,7 +36,7 @@ void main() {
       importers: [
         TestImporter((url) => Uri.parse('u:blue'), (url) {
           var color = url.path;
-          return ImporterResult('.$color {color: $color}', indented: false);
+          return ImporterResult('.$color {color: $color}', syntax: Syntax.scss);
         }),
       ],
     ).css;
@@ -55,7 +55,8 @@ void main() {
           (url) => Uri.parse('u:blue'),
           expectAsync1((url) {
             var color = url.path;
-            return ImporterResult('.$color {color: $color}', indented: false);
+            return ImporterResult('.$color {color: $color}',
+                syntax: Syntax.scss);
           }, count: 1),
         ),
       ],
@@ -96,7 +97,7 @@ void main() {
                         @import "bang";
                       '''
                   : '.second {url: "$url"}',
-              indented: false,
+              syntax: Syntax.scss,
             );
           }, count: 2),
         ),
@@ -157,7 +158,7 @@ void main() {
               expect(importer.publicContainingUrl, isNull);
               return url;
             }),
-            (_) => ImporterResult('', indented: false),
+            (_) => ImporterResult('', syntax: Syntax.scss),
           ),
         ],
         url: 'x:original.scss',
@@ -173,7 +174,7 @@ void main() {
             (url) => Uri.parse("u:$url"),
             expectAsync1((url) {
               expect(() => importer.publicContainingUrl, throwsStateError);
-              return ImporterResult('', indented: false);
+              return ImporterResult('', syntax: Syntax.scss);
             }),
           ),
         ],
@@ -194,7 +195,7 @@ void main() {
                 );
                 return url.replace(scheme: 'x');
               }),
-              (_) => ImporterResult('', indented: false),
+              (_) => ImporterResult('', syntax: Syntax.scss),
               nonCanonicalSchemes: {'u'},
             ),
           ],
@@ -212,7 +213,7 @@ void main() {
                 expect(importer.publicContainingUrl, isNull);
                 return url.replace(scheme: 'x');
               }),
-              (_) => ImporterResult('', indented: false),
+              (_) => ImporterResult('', syntax: Syntax.scss),
               nonCanonicalSchemes: {'u'},
             ),
           ],
@@ -234,7 +235,7 @@ void main() {
                 );
                 return Uri.parse("u:$url");
               }),
-              (_) => ImporterResult('', indented: false),
+              (_) => ImporterResult('', syntax: Syntax.scss),
             ),
           ],
           url: 'x:original.scss',
@@ -251,7 +252,7 @@ void main() {
                 expect(importer.publicContainingUrl, isNull);
                 return Uri.parse("u:$url");
               }),
-              (_) => ImporterResult('', indented: false),
+              (_) => ImporterResult('', syntax: Syntax.scss),
             ),
           ],
         );
@@ -268,7 +269,7 @@ void main() {
         importers: [
           TestImporter(
             expectAsync1((url) => Uri.parse("u:$url")),
-            (_) => ImporterResult('', indented: false),
+            (_) => ImporterResult('', syntax: Syntax.scss),
             nonCanonicalSchemes: {'u'},
           ),
         ],
@@ -295,7 +296,7 @@ void main() {
           return ImporterResult(
             '.$color {color: $color}',
             sourceMapUrl: Uri.parse("u:blue"),
-            indented: false,
+            syntax: Syntax.scss,
           );
         }),
       ],
@@ -311,7 +312,7 @@ void main() {
       importers: [
         TestImporter((url) => Uri.parse("u:$url"), (url) {
           var color = url.path;
-          return ImporterResult('.$color {color: $color}', indented: false);
+          return ImporterResult('.$color {color: $color}', syntax: Syntax.scss);
         }),
       ],
       sourceMap: true,
@@ -431,7 +432,7 @@ void main() {
         '@use "orange";',
         importer: TestImporter((url) => Uri.parse("u:$url"), (url) {
           var color = url.path;
-          return ImporterResult('.$color {color: $color}', indented: false);
+          return ImporterResult('.$color {color: $color}', syntax: Syntax.scss);
         }),
       ).css;
 
@@ -442,7 +443,8 @@ void main() {
       var css = compileString(
         '@use "baz/qux";',
         importer: TestImporter((url) => url.resolve("bang"), (url) {
-          return ImporterResult('a {result: "${url.path}"}', indented: false);
+          return ImporterResult('a {result: "${url.path}"}',
+              syntax: Syntax.scss);
         }),
         url: Uri.parse("u:foo/bar"),
       ).css;
@@ -460,7 +462,8 @@ void main() {
         importers: [
           TestImporter((url) => url, (url) {
             var color = url.path;
-            return ImporterResult('.$color {color: $color}', indented: false);
+            return ImporterResult('.$color {color: $color}',
+                syntax: Syntax.scss);
           }),
         ],
       ).css;
@@ -478,10 +481,11 @@ void main() {
         importers: [
           TestImporter((url) => url, (url) {
             if (url.path == "midstream") {
-              return ImporterResult("@use 'orange';", indented: false);
+              return ImporterResult("@use 'orange';", syntax: Syntax.scss);
             } else {
               var color = url.path;
-              return ImporterResult('.$color {color: $color}', indented: false);
+              return ImporterResult('.$color {color: $color}',
+                  syntax: Syntax.scss);
             }
           }),
         ],
