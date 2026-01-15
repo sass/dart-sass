@@ -84,7 +84,7 @@ export class ArgumentList
     // This *should* only ever be called by the superclass constructor.
     this._nodes = nodes;
   }
-  declare private _nodes?: Array<Argument>;
+  private declare _nodes?: Array<Argument>;
 
   /**
    * Iterators that are currently active within this argument list. Their
