@@ -13,22 +13,22 @@ export default defineConfig([
           allowExpressions: true,
         },
       ],
+
+      'func-style': ['error', 'declaration'],
+
+      'prefer-const': [
+        'error',
+        {
+          destructuring: 'all',
+        },
+      ],
+
+      'sort-imports': [
+        'error',
+        {
+          ignoreDeclarationSort: true,
+        },
+      ],
     },
-
-    'func-style': ['error', 'declaration'],
-
-    'prefer-const': [
-      'error',
-      {
-        destructuring: 'all',
-      },
-    ],
-
-    'sort-imports': [
-      'error',
-      {
-        ignoreDeclarationSort: true,
-      },
-    ],
   },
 ]);
