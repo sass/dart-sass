@@ -170,13 +170,6 @@ export class Declaration
     return typeof first === 'string' && first.startsWith('--');
   }
 
-  /**
-   * Iterators that are currently active within this declaration's children.
-   * Their indices refer to the last position that has already been sent to the
-   * callback, and are updated when {@link _nodes} is modified.
-   */
-  readonly #iterators: Array<{index: number}> = [];
-
   constructor(defaults: DeclarationProps);
   /** @hidden */
   constructor(_: undefined, inner: sassInternal.Declaration);

@@ -189,7 +189,7 @@ declare namespace SassInternal {
   }
 
   class ForwardRule extends Statement {
-    readonly url: Object;
+    readonly url: object;
     readonly shownMixinsAndFunctions?: DartSet<string>;
     readonly shownVariables?: DartSet<string>;
     readonly hiddenMixinsAndFunctions?: DartSet<string>;
@@ -273,7 +273,7 @@ declare namespace SassInternal {
   }
 
   class UseRule extends Statement {
-    readonly url: Object;
+    readonly url: object;
     readonly namespace: string | null;
     readonly configuration: ConfiguredVariable[];
   }
