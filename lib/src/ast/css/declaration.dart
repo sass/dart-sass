@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../value.dart';
@@ -9,6 +10,7 @@ import 'node.dart';
 import 'value.dart';
 
 /// A plain CSS declaration (that is, a `name: value` pair).
+@sealed
 abstract interface class CssDeclaration implements CssNode {
   /// The name of this declaration.
   CssValue<String> get name;

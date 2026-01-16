@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import '../deprecation.dart';
@@ -21,8 +20,7 @@ import 'utils.dart';
 /// URLs relative to the current file.
 ///
 /// {@category Importer}
-@sealed
-class FilesystemImporter extends Importer {
+final class FilesystemImporter extends Importer {
   /// The path relative to which this importer looks for files.
   ///
   /// If this is `null`, this importer will _only_ load absolute `file:` URLs

@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 import '../ast/sass/statement/mixin_rule.dart';
 import '../callable.dart';
@@ -84,12 +85,14 @@ final _shared = UnmodifiableListView([
 ]);
 
 /// The global definitions of Sass introspection functions.
+@internal
 final global = UnmodifiableListView([
   for (var function in _shared) function.withDeprecationWarning('meta'),
 ]);
 
 /// The versions of Sass introspection functions defined in the `sass:meta`
 /// module.
+@internal
 final moduleFunctions = UnmodifiableListView([
   ..._shared,
   _function("calc-name", r"$calc", (arguments) {

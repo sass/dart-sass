@@ -33,7 +33,8 @@ final selectorPseudoElements = {"slotted"};
 ///
 /// This class is largely duplicated between here and [SelectorParser]. Most
 /// changes here should be mirrored there and vice versa.
-class SelectorParser extends Parser {
+@internal
+final class SelectorParser extends Parser {
   /// Whether this parser allows the parent selector `&`.
   final bool _allowParent;
 

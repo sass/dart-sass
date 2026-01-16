@@ -4,6 +4,7 @@
 
 import 'dart:isolate';
 
+import 'package:meta/meta.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
 import '../options.dart';
@@ -13,6 +14,7 @@ import '../compile_stylesheet.dart';
 /// Compiles the stylesheet at [source] to [destination].
 ///
 /// Runs in a new Dart Isolate, unless [source] is `null`.
+@internal
 Future<(int, String, String?)?> compileStylesheetConcurrently(
   ExecutableOptions options,
   StylesheetGraph graph,

@@ -6,7 +6,7 @@ import 'package:sass/sass.dart';
 
 /// An [Importer] whose [canonicalize] and [load] methods are provided by
 /// closures.
-class TestImporter extends Importer {
+final class TestImporter extends Importer {
   final Uri? Function(Uri url) _canonicalize;
   final ImporterResult? Function(Uri url) _load;
   final Set<String> _nonCanonicalSchemes;

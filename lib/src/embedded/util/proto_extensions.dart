@@ -2,8 +2,11 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../embedded_sass.pb.dart';
 
+@internal
 extension InboundMessageExtensions on InboundMessage {
   /// Returns the ID of this message, regardless of its type.
   ///
@@ -18,6 +21,7 @@ extension InboundMessageExtensions on InboundMessage {
       };
 }
 
+@internal
 extension OutboundMessageExtensions on OutboundMessage {
   /// Returns the outbound ID of this message, regardless of its type.
   ///

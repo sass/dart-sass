@@ -4,6 +4,8 @@
 
 import 'dart:collection';
 
+import 'package:meta/meta.dart';
+
 /// A mostly-unmodifiable view of a map with string keys that only allows keys
 /// with a given prefix to be accessed, and presents them as though they didn't
 /// have that prefix.
@@ -13,7 +15,8 @@ import 'dart:collection';
 ///
 /// This is unmodifiable *except for the [remove] method*, which is used for
 /// `@used with` to mark configured variables as used.
-class UnprefixedMapView<V> extends UnmodifiableMapBase<String, V> {
+@internal
+final class UnprefixedMapView<V> extends UnmodifiableMapBase<String, V> {
   /// The wrapped map.
   final Map<String, V> _map;
 
@@ -34,7 +37,7 @@ class UnprefixedMapView<V> extends UnmodifiableMapBase<String, V> {
 }
 
 /// The implementation of [UnprefixedMapViews.keys].
-class _UnprefixedKeys extends IterableBase<String> {
+final class _UnprefixedKeys extends IterableBase<String> {
   /// The view whose keys are being iterated over.
   final UnprefixedMapView<Object?> _view;
 

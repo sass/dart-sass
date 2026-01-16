@@ -15,7 +15,7 @@ import 'logger/stderr.dart';
 /// This may be implemented by user code.
 ///
 /// {@category Compile}
-abstract class Logger {
+abstract interface class Logger {
   /// A logger that silently ignores all messages.
   static final Logger quiet = _QuietLogger();
 
@@ -51,8 +51,7 @@ abstract class Logger {
 ///
 /// Implementers should override the protected [internalWarn] method instead of
 /// [warn].
-@internal
-abstract class LoggerWithDeprecationType implements Logger {
+abstract base class LoggerWithDeprecationType implements Logger {
   const LoggerWithDeprecationType();
 
   /// This forwards all calls to [internalWarn].

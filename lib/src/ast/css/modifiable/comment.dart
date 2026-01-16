@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../visitor/interface/modifiable_css.dart';
@@ -10,6 +11,7 @@ import '../comment.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssComment] for use in the evaluation step.
+@internal
 final class ModifiableCssComment extends ModifiableCssNode
     implements CssComment {
   final String text;

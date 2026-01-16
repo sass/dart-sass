@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 import '../callable.dart';
 import '../exception.dart';
@@ -21,6 +22,7 @@ final _random = math.Random();
 var _previousUniqueId = _random.nextInt(math.pow(36, 6) as int);
 
 /// The global definitions of Sass string functions.
+@internal
 final global = UnmodifiableListView([
   _unquote.withDeprecationWarning('string'),
   _quote.withDeprecationWarning('string'),
@@ -34,6 +36,7 @@ final global = UnmodifiableListView([
 ]);
 
 /// The Sass string module.
+@internal
 final module = BuiltInModule(
   "string",
   functions: <Callable>[

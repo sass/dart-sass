@@ -13,7 +13,7 @@ const Value sassNull = _SassNull();
 /// A SassScript null value.
 ///
 /// This can't be constructed directly; it can only be accessed via [sassNull].
-class _SassNull extends Value {
+final class _SassNull extends Value {
   bool get isTruthy => false;
 
   bool get isBlank => true;

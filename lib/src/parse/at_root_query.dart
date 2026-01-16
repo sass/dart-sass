@@ -3,12 +3,14 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 
 import '../ast/sass.dart';
 import 'parser.dart';
 
 /// A parser for `@at-root` queries.
-class AtRootQueryParser extends Parser {
+@internal
+final class AtRootQueryParser extends Parser {
   AtRootQueryParser(super.contents, {super.url, super.interpolationMap});
 
   AtRootQuery parse() {

@@ -2,10 +2,13 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import 'media_query.dart';
 import 'node.dart';
 
 /// A plain CSS `@media` rule.
+@sealed
 abstract interface class CssMediaRule implements CssParentNode {
   /// The queries for this rule.
   ///

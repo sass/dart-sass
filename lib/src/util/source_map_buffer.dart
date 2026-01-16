@@ -3,12 +3,14 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:source_span/source_span.dart';
 
 import '../utils.dart';
 
 /// A [StringBuffer] that builds a [SourceMap] for the file being written.
+@internal
 class SourceMapBuffer implements StringBuffer {
   /// The buffer that contains the text of the target file.
   final _buffer = StringBuffer();

@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 import '../ast/sass.dart';
@@ -13,7 +14,8 @@ import '../value.dart';
 import 'stylesheet.dart';
 
 /// A parser for the indented syntax.
-class SassParser extends StylesheetParser {
+@internal
+final class SassParser extends StylesheetParser {
   int get currentIndentation => _currentIndentation;
   var _currentIndentation = 0;
 

@@ -2,11 +2,14 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../callable.dart';
 
 /// A callable that emits a plain CSS function.
 ///
 /// This can't be used for mixins.
+@internal
 final class PlainCssCallable implements Callable {
   final String name;
 

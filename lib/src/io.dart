@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import 'io/interface.dart'
@@ -24,6 +25,7 @@ final _realCaseCache = <String, String>{};
 bool get _couldBeCaseInsensitive => isWindows || isMacOS;
 
 /// Returns the canonical form of `path` on disk.
+@internal
 String canonicalize(String path) => _couldBeCaseInsensitive
     ? _realCasePath(p.normalize(p.absolute(path)))
     : p.canonicalize(path);

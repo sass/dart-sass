@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:async/async.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:watcher/watcher.dart';
 
@@ -13,7 +14,8 @@ import 'map.dart';
 ///
 /// This ensures that each directory is only watched once, even if one is a
 /// parent of another.
-class MultiDirWatcher {
+@internal
+final class MultiDirWatcher {
   /// A map from paths to the event streams for those paths.
   ///
   /// No key in this map is a parent directories of any other key in this map.

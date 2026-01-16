@@ -1051,8 +1051,7 @@ enum CalculationOperator {
 ///
 /// {@category Value}
 @Deprecated("Use SassString instead.")
-@sealed
-class CalculationInterpolation {
+final class CalculationInterpolation {
   /// We use a getters to allow overriding the logic in the JS API
   /// implementation.
 

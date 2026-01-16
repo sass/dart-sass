@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
 import 'package:package_config/package_config_types.dart';
 
 import '../importer.dart';
@@ -10,8 +9,7 @@ import '../importer.dart';
 /// An importer that loads stylesheets from `package:` imports.
 ///
 /// {@category Importer}
-@sealed
-class PackageImporter extends Importer {
+final class PackageImporter extends Importer {
   /// The resolver that converts `package:` imports to `file:`.
   final PackageConfig _packageConfig;
 

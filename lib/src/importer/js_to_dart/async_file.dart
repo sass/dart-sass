@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:cli_pkg/js.dart';
+import 'package:meta/meta.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart';
 
@@ -18,6 +19,7 @@ import '../utils.dart';
 
 /// A wrapper for a potentially-asynchronous JS API file importer that exposes
 /// it as a Dart [AsyncImporter].
+@internal
 final class JSToDartAsyncFileImporter extends AsyncImporter {
   /// The wrapped `findFileUrl` function.
   final Object? Function(String, CanonicalizeContext) _findFileUrl;

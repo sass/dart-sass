@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 import '../ast/css.dart';
 import '../ast/selector.dart';
@@ -13,6 +14,7 @@ import 'extension.dart';
 
 /// An [ExtensionStore] that contains no extensions and can have no extensions
 /// added.
+@internal
 final class EmptyExtensionStore implements ExtensionStore {
   bool get isEmpty => true;
 

@@ -2,91 +2,113 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:watcher/watcher.dart';
 
 /// An error thrown by [readFile].
+@internal
 class FileSystemException {
   String get message => throw '';
   String? get path => throw '';
 }
 
 /// Whether the current process is running on Windows.
+@internal
 bool get isWindows => throw '';
 
 /// Whether the current process is running on Mac OS.
+@internal
 bool get isMacOS => throw '';
 
 /// Returns whether or not stdout is connected to an interactive terminal.
+@internal
 bool get hasTerminal => throw '';
 
 /// Whether this process is connected to a terminal that supports ANSI escape
 /// sequences.
+@internal
 bool get supportsAnsiEscapes => throw '';
 
 /// Prints [message] (followed by a newline) to standard output or the
 /// equivalent.
 ///
 /// This method is thread-safe.
+@internal
 void safePrint(Object? message) => throw '';
 
 /// Prints [message] (followed by a newline) to standard error or the
 /// equivalent.
 ///
 /// This method is thread-safe.
+@internal
 void printError(Object? message) => throw '';
 
 /// Reads the file at [path] as a UTF-8 encoded string.
 ///
 /// Throws a [FileSystemException] if reading fails, and a [SassException] if
 /// the file isn't valid UTF-8.
+@internal
 String readFile(String path) => throw '';
 
 /// Writes [contents] to the file at [path], encoded as UTF-8.
 ///
 /// Throws a [FileSystemException] if writing fails.
+@internal
 void writeFile(String path, String contents) => throw '';
 
 /// Deletes the file at [path].
 ///
 /// Throws a [FileSystemException] if deletion fails.
+@internal
 void deleteFile(String path) => throw '';
 
 /// Reads from the standard input for the current process until it closes,
 /// returning the contents.
+@internal
 Future<String> readStdin() async => throw '';
 
 /// Returns whether a file at [path] exists.
+@internal
 bool fileExists(String path) => throw '';
 
 /// Returns whether a dir at [path] exists.
+@internal
 bool dirExists(String path) => throw '';
 
 /// Returns whether a symbolic link at [path] exists.
+@internal
 bool linkExists(String path) => throw '';
 
 /// Ensures that a directory exists at [path], creating it and its ancestors if
 /// necessary.
+@internal
 void ensureDir(String path) => throw '';
 
 /// Lists the files (not sub-directories) in the directory at [path].
 ///
 /// If [recursive] is `true`, this lists files in directories transitively
 /// beneath [path] as well.
+@internal
 Iterable<String> listDir(String path, {bool recursive = false}) => throw '';
 
 /// Returns the resolved physical path of [path] on disk, with symbolic links
 /// resolved and with the same case as the physical file.
+@internal
 String realpath(String path) => throw '';
 
 /// Returns the modification time of the file at [path].
+@internal
 DateTime modificationTime(String path) => throw '';
 
 /// Returns the value of the environment variable with the given [name], or
 /// `null` if it's not set.
+@internal
 String? getEnvironmentVariable(String name) => throw '';
 
 /// Gets and sets the exit code that the process will use when it exits.
+@internal
 int get exitCode => throw '';
+@internal
 set exitCode(int value) => throw '';
 
 /// Recursively watches the directory at [path] for modifications.
@@ -97,5 +119,6 @@ set exitCode(int value) => throw '';
 ///
 /// If [poll] is `true`, this manually checks the filesystem for changes
 /// periodically rather than using a native filesystem monitoring API.
+@internal
 Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) =>
     throw '';

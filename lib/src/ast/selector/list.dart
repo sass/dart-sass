@@ -414,7 +414,7 @@ bool _containsParentSelector(Selector selector) =>
     selector.accept(const _ParentSelectorVisitor()) != null;
 
 /// A visitor for finding the first [ParentSelector] in a given selector.
-class _ParentSelectorVisitor with SelectorSearchVisitor<ParentSelector> {
+final class _ParentSelectorVisitor with SelectorSearchVisitor<ParentSelector> {
   const _ParentSelectorVisitor();
 
   ParentSelector visitParentSelector(ParentSelector selector) => selector;

@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
 import 'package:native_synchronization/mailbox.dart';
 import 'package:path/path.dart' as p;
 import 'package:protobuf/protobuf.dart';
@@ -34,6 +35,7 @@ final _outboundRequestId = 0;
 
 /// A class that dispatches messages to and from the host for a single
 /// compilation.
+@internal
 final class CompilationDispatcher {
   /// The mailbox for receiving messages from the host.
   final Mailbox _mailbox;

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import '../io.dart';
@@ -22,6 +23,7 @@ bool get fromImport =>
         false);
 
 /// The CanonicalizeContext of the current load.
+@internal
 CanonicalizeContext get canonicalizeContext =>
     switch (Zone.current[#_canonicalizeContext]) {
       null => throw StateError(
@@ -35,6 +37,7 @@ CanonicalizeContext get canonicalizeContext =>
 
 /// Runs [callback] in a context where [fromImport] returns `true` and
 /// [resolveImportPath] uses `@import` semantics rather than `@use` semantics.
+@internal
 T inImportRule<T>(T callback()) =>
     switch (Zone.current[#_canonicalizeContext]) {
       null => runZoned(
@@ -48,6 +51,7 @@ T inImportRule<T>(T callback()) =>
     };
 
 /// Runs [callback] in the given context.
+@internal
 T withCanonicalizeContext<T>(CanonicalizeContext? context, T callback()) =>
     runZoned(callback, zoneValues: {#_canonicalizeContext: context});
 
@@ -55,6 +59,7 @@ T withCanonicalizeContext<T>(CanonicalizeContext? context, T callback()) =>
 ///
 /// This tries to fill in extensions and partial prefixes and check for a
 /// directory default. If no file can be found, it returns `null`.
+@internal
 String? resolveImportPath(String path) {
   var extension = p.extension(path);
   if (extension == '.sass' || extension == '.scss' || extension == '.css') {
@@ -121,4 +126,5 @@ T? _ifInImport<T>(T callback()) => fromImport ? callback() : null;
 final _urlSchemeRegExp = RegExp(r"^[a-z0-9+.-]+$");
 
 /// Returns whether [scheme] is a valid URL scheme.
+@internal
 bool isValidUrlScheme(String scheme) => _urlSchemeRegExp.hasMatch(scheme);

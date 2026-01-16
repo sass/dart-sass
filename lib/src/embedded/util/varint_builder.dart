@@ -2,11 +2,14 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../embedded_sass.pb.dart';
 import '../utils.dart';
 
 /// A class that builds up unsigned varints byte-by-byte.
-class VarintBuilder {
+@internal
+final class VarintBuilder {
   /// The maximum length in bits of the varint being parsed.
   final int _maxLength;
 

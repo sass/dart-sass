@@ -2,13 +2,15 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:source_span/source_span.dart';
 
 import 'source_map_buffer.dart';
 
 /// A [SourceMapBuffer] that doesn't actually build a source map.
-class NoSourceMapBuffer implements SourceMapBuffer {
+@internal
+final class NoSourceMapBuffer implements SourceMapBuffer {
   /// The buffer that contains the text of the target file.
   final _buffer = StringBuffer();
 

@@ -39,8 +39,8 @@ final _knownCompatibilitiesByUnit = {
 /// numerator unit.
 ///
 /// {@category Value}
-@sealed
-class SingleUnitSassNumber extends SassNumber {
+@internal
+final class SingleUnitSassNumber extends SassNumber {
   final String _unit;
 
   List<String> get numeratorUnits => List.unmodifiable([_unit]);

@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:cli_pkg/js.dart';
+import 'package:meta/meta.dart';
 import 'package:node_interop/js.dart';
 
 import '../../importer.dart';
@@ -15,6 +16,7 @@ import 'utils.dart';
 
 /// A wrapper for a synchronous JS API importer that exposes it as a Dart
 /// [Importer].
+@internal
 final class JSToDartImporter extends Importer {
   /// The wrapped canonicalize function.
   final Object? Function(String, CanonicalizeContext) _canonicalize;

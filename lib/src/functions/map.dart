@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 import '../callable.dart';
 import '../exception.dart';
@@ -14,6 +15,7 @@ import '../util/map.dart';
 import '../value.dart';
 
 /// The global definitions of Sass map functions.
+@internal
 final global = UnmodifiableListView([
   _get.withDeprecationWarning('map').withName("map-get"),
   _merge.withDeprecationWarning('map').withName("map-merge"),
@@ -24,6 +26,7 @@ final global = UnmodifiableListView([
 ]);
 
 /// The Sass map module.
+@internal
 final module = BuiltInModule(
   "map",
   functions: <Callable>[

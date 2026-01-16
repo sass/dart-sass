@@ -2,11 +2,14 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import 'node.dart';
 
 /// A plain CSS comment.
 ///
 /// This is always a multi-line comment.
+@sealed
 abstract interface class CssComment implements CssNode {
   /// The contents of this comment, including `/*` and `*/`.
   String get text;

@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../ast/css.dart';
 import '../ast/node.dart';
 import '../callable.dart';
@@ -14,6 +16,7 @@ import '../value.dart';
 
 /// A [Module] that only exposes members that aren't shadowed by a given
 /// blocklist of member names.
+@internal
 final class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
   /// The wrapped module.
   final Module<T> _inner;

@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../callable.dart';
 import '../exception.dart';
 import '../value/function.dart';
@@ -20,6 +22,7 @@ import 'utils.dart';
 /// the name defined in the [signature].
 ///
 /// Throws a [SassException] if [signature] is invalid.
+@internal
 Callable hostCallable(
   CompilationDispatcher dispatcher,
   OpaqueRegistry<SassFunction> functions,

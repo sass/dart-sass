@@ -4,6 +4,8 @@
 
 import 'dart:math' as math;
 
+import 'package:meta/meta.dart';
+
 import '../io.dart';
 import '../stylesheet_graph.dart';
 import '../util/map.dart';
@@ -15,6 +17,7 @@ import 'options.dart';
 
 /// Compiles the stylesheets concurrently and returns whether all stylesheets are compiled
 /// successfully.
+@internal
 Future<bool> compileStylesheets(
   ExecutableOptions options,
   StylesheetGraph graph,

@@ -5,6 +5,7 @@
 import 'package:args/args.dart';
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
@@ -18,6 +19,7 @@ import '../util/character.dart';
 ///
 /// The constructor and any members may throw [UsageException]s indicating that
 /// invalid arguments were passed.
+@internal
 final class ExecutableOptions {
   /// The bar character to use in help separators.
   static final _separatorBar = isWindows ? '=' : '━';
@@ -620,7 +622,8 @@ final class ExecutableOptions {
 }
 
 /// An exception indicating that invalid arguments were passed.
-class UsageException implements Exception {
+@internal
+final class UsageException implements Exception {
   final String message;
 
   UsageException(this.message);

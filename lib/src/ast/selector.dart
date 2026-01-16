@@ -64,7 +64,7 @@ abstract base class Selector implements AstNode {
 }
 
 /// The visitor used to implement [Selector.isInvisible].
-class _IsInvisibleVisitor with AnySelectorVisitor {
+final class _IsInvisibleVisitor with AnySelectorVisitor {
   const _IsInvisibleVisitor();
 
   bool visitSelectorList(SelectorList list) =>
@@ -86,7 +86,7 @@ class _IsInvisibleVisitor with AnySelectorVisitor {
 }
 
 /// The visitor used to implement [Selector.containsParentSelector].
-class _ContainsParentSelectorVisitor with AnySelectorVisitor {
+final class _ContainsParentSelectorVisitor with AnySelectorVisitor {
   const _ContainsParentSelectorVisitor();
 
   bool visitParentSelector(ParentSelector _) => true;

@@ -12,7 +12,7 @@ import '../value.dart';
 ///
 /// {@category Value}
 @sealed
-class SassList extends Value {
+base class SassList extends Value {
   // TODO(nweiz): Use persistent data structures rather than copying here. An
   // RRB vector should fit our use-cases well.
   //

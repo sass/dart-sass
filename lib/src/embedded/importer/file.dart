@@ -2,12 +2,15 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../importer.dart';
 import '../embedded_sass.pb.dart' hide SourceSpan;
 import 'base.dart';
 
 /// An importer that asks the host to resolve imports in a simplified,
 /// file-system-centric way.
+@internal
 final class FileImporter extends ImporterBase {
   /// The host-provided ID of the importer to invoke.
   final int _importerId;

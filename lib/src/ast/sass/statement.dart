@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:meta/meta.dart';
+
 import '../../visitor/interface/statement.dart';
 import 'node.dart';
 
@@ -11,7 +13,8 @@ import 'node.dart';
 /// A statement in a Sass syntax tree.
 ///
 /// {@category AST}
-abstract class Statement implements SassNode {
+@sealed
+abstract base class Statement implements SassNode {
   /// Calls the appropriate visit method on [visitor].
   T accept<T>(StatementVisitor<T> visitor);
 }
