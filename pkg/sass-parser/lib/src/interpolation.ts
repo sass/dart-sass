@@ -117,7 +117,7 @@ export class Interpolation
     // This *should* only ever be called by the superclass constructor.
     this._nodes = nodes;
   }
-  private declare _nodes?: Array<string | AnyExpression>;
+  declare private _nodes?: Array<string | AnyExpression>;
 
   /** Returns whether this contains no interpolated expressions. */
   get isPlain(): boolean {

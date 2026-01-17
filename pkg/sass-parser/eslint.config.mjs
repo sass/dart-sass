@@ -15,8 +15,6 @@ export default defineConfig([
       'func-style': ['error', 'declaration'],
       'prefer-const': ['error', {destructuring: 'all'}],
       'sort-imports': ['error', {ignoreDeclarationSort: true}],
-      // TODO: Should this be turned on?
-      'prettier/prettier': ['off'],
     },
   },
 ]);

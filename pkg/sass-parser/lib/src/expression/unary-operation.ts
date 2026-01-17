@@ -53,7 +53,7 @@ export class UnaryOperationExpression extends Expression {
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._operator = operator;
   }
-  private declare _operator: UnaryOperator;
+  declare private _operator: UnaryOperator;
 
   /** The expression that this operation acts on. */
   get operand(): AnyExpression {
@@ -66,7 +66,7 @@ export class UnaryOperationExpression extends Expression {
     built.parent = this;
     this._operand = built;
   }
-  private declare _operand: AnyExpression;
+  declare private _operand: AnyExpression;
 
   constructor(defaults: UnaryOperationExpressionProps);
   /** @hidden */

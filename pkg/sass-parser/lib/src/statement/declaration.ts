@@ -33,8 +33,10 @@ import * as sassParser from '../..';
  *
  * @category Statement
  */
-export interface DeclarationRaws
-  extends Omit<PostcssDeclarationRaws, 'value' | 'important'> {
+export interface DeclarationRaws extends Omit<
+  PostcssDeclarationRaws,
+  'value' | 'important'
+> {
   /**
    * The space symbols between the end of the declaration's value and the
    * semicolon or the opening `{`. Always empty for a declaration that isn't
@@ -118,7 +120,7 @@ export class Declaration
     propInterpolation.parent = this;
     this._propInterpolation = propInterpolation;
   }
-  private declare _propInterpolation?: Interpolation;
+  declare private _propInterpolation?: Interpolation;
 
   /**
    * The declaration's value.
@@ -141,7 +143,7 @@ export class Declaration
       this._expression = built;
     }
   }
-  private declare _expression?: AnyExpression;
+  declare private _expression?: AnyExpression;
 
   get value(): string {
     return this.expression?.toString() ?? '';

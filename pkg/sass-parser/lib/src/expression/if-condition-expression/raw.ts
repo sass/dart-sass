@@ -56,7 +56,7 @@ export class IfConditionRaw extends IfConditionExpression {
     built.parent = this;
     this._rawInterpolation = built;
   }
-  private declare _rawInterpolation?: Interpolation;
+  declare private _rawInterpolation?: Interpolation;
 
   constructor(defaults: IfConditionRawProps);
   /** @hidden */

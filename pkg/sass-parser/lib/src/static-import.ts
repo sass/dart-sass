@@ -70,7 +70,7 @@ export class StaticImport extends Node {
     staticUrl.parent = this;
     this._staticUrl = staticUrl;
   }
-  private declare _staticUrl?: Interpolation;
+  declare private _staticUrl?: Interpolation;
 
   /**
    * The additional modifiers, like media queries and `supports()`, attached to
@@ -90,7 +90,7 @@ export class StaticImport extends Node {
       this._modifiers = undefined;
     }
   }
-  private declare _modifiers?: Interpolation;
+  declare private _modifiers?: Interpolation;
 
   constructor(defaults: string | StaticImportProps);
   /** @hidden */

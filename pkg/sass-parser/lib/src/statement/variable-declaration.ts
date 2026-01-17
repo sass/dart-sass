@@ -22,8 +22,10 @@ import * as sassParser from '../..';
  *
  * @category Statement
  */
-export interface VariableDeclarationRaws
-  extends Omit<DeclarationRaws, 'value' | 'important'> {
+export interface VariableDeclarationRaws extends Omit<
+  DeclarationRaws,
+  'value' | 'important'
+> {
   /**
    * The variable's namespace.
    *
@@ -111,7 +113,7 @@ export class VariableDeclaration
     built.parent = this;
     this._expression = built;
   }
-  private declare _expression: AnyExpression;
+  declare private _expression: AnyExpression;
 
   /** Whether the variable has a `!default` flag. */
   declare guarded: boolean;

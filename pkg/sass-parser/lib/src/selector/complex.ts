@@ -96,7 +96,7 @@ export class ComplexSelector
   set leadingCombinator(value: SelectorCombinator | undefined) {
     this._leadingCombinator = value;
   }
-  private declare _leadingCombinator: SelectorCombinator | undefined;
+  declare private _leadingCombinator: SelectorCombinator | undefined;
 
   /** The components that comprise this selector. */
   get nodes(): ReadonlyArray<ComplexSelectorComponent> {
@@ -107,7 +107,7 @@ export class ComplexSelector
     // This *should* only ever be called by the superclass constructor.
     this._nodes = nodes;
   }
-  private declare _nodes: Array<ComplexSelectorComponent>;
+  declare private _nodes: Array<ComplexSelectorComponent>;
 
   /**
    * Iterators that are currently active within this selector. Their indices

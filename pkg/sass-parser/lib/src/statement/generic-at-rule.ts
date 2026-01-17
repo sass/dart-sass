@@ -94,7 +94,7 @@ export class GenericAtRule
     nameInterpolation.parent = this;
     this._nameInterpolation = nameInterpolation;
   }
-  private declare _nameInterpolation?: Interpolation;
+  declare private _nameInterpolation?: Interpolation;
 
   get params(): string {
     if (this.name !== 'media' || !this.paramsInterpolation) {
@@ -147,7 +147,7 @@ export class GenericAtRule
       this._paramsInterpolation = paramsInterpolation;
     }
   }
-  private declare _paramsInterpolation: Interpolation | undefined;
+  declare private _paramsInterpolation: Interpolation | undefined;
 
   constructor(defaults: GenericAtRuleProps);
   /** @hidden */

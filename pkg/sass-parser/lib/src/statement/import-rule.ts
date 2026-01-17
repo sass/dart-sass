@@ -60,7 +60,7 @@ export class ImportRule
       imports instanceof ImportList ? imports : new ImportList(imports);
     this._imports.parent = this;
   }
-  private declare _imports: ImportList;
+  declare private _imports: ImportList;
 
   get name(): string {
     return 'import';

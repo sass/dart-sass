@@ -81,7 +81,7 @@ export class CompoundSelector
     // This *should* only ever be called by the superclass constructor.
     this._nodes = nodes;
   }
-  private declare _nodes: Array<AnySimpleSelector>;
+  declare private _nodes: Array<AnySimpleSelector>;
 
   /**
    * Iterators that are currently active within this selector. Their indices

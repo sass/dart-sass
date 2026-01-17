@@ -77,7 +77,7 @@ export class WarnRule
     built.parent = this;
     this._warnExpression = built;
   }
-  private declare _warnExpression?: AnyExpression;
+  declare private _warnExpression?: AnyExpression;
 
   constructor(defaults: WarnRuleProps);
   /** @hidden */
