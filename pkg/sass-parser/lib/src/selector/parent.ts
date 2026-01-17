@@ -64,7 +64,7 @@ export class ParentSelector extends SimpleSelector {
     if (built) built.parent = this;
     this._suffix = built;
   }
-  private declare _suffix: Interpolation | undefined;
+  declare private _suffix: Interpolation | undefined;
 
   constructor(defaults?: ParentSelectorProps);
   /** @hidden */

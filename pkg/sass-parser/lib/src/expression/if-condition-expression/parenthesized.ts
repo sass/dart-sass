@@ -62,7 +62,7 @@ export class IfConditionParenthesized extends IfConditionExpression {
     built.parent = this;
     this._parenthesized = built;
   }
-  private declare _parenthesized?: AnyIfConditionExpression;
+  declare private _parenthesized?: AnyIfConditionExpression;
 
   constructor(
     defaults:

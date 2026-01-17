@@ -55,7 +55,7 @@ export class ParenthesizedExpression extends Expression {
     built.parent = this;
     this._inParens = built;
   }
-  private declare _inParens: AnyExpression;
+  declare private _inParens: AnyExpression;
 
   constructor(defaults: ParenthesizedExpressionProps);
   /** @hidden */

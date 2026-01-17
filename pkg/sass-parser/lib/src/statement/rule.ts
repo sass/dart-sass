@@ -76,7 +76,7 @@ export class Rule extends _Rule implements Statement {
     built.parent = this;
     this._selector = built;
   }
-  private declare _selector?: SelectorList;
+  declare private _selector?: SelectorList;
 
   constructor(defaults: RuleProps);
   constructor(_: undefined, inner: sassInternal.StyleRule);

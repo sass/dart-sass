@@ -45,7 +45,7 @@ export class BooleanExpression extends Expression {
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._value = value;
   }
-  private declare _value: boolean;
+  declare private _value: boolean;
 
   constructor(defaults: BooleanExpressionProps);
   /** @hidden */

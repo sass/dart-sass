@@ -69,7 +69,7 @@ export class ContentRule
       : new ArgumentList();
     this._contentArguments.parent = this;
   }
-  private declare _contentArguments: ArgumentList;
+  declare private _contentArguments: ArgumentList;
 
   get name(): string {
     return 'content';

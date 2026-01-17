@@ -72,7 +72,7 @@ export class ComplexSelectorComponent extends Node {
   set combinator(combinator: SelectorCombinator | undefined) {
     this._combinator = combinator;
   }
-  private declare _combinator: SelectorCombinator | undefined;
+  declare private _combinator: SelectorCombinator | undefined;
 
   /** This componnet's compound selector. */
   get compound(): CompoundSelector {
@@ -87,7 +87,7 @@ export class ComplexSelectorComponent extends Node {
     built.parent = this;
     this._compound = built;
   }
-  private declare _compound: CompoundSelector;
+  declare private _compound: CompoundSelector;
 
   constructor(defaults: ComplexSelectorComponentProps);
   /** @hidden */

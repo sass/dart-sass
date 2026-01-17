@@ -106,7 +106,7 @@ export class EachRule
     built.parent = this;
     this._eachExpression = built;
   }
-  private declare _eachExpression?: AnyExpression;
+  declare private _eachExpression?: AnyExpression;
 
   constructor(defaults: EachRuleProps);
   /** @hidden */

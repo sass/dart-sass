@@ -67,7 +67,7 @@ export class VariableExpression extends Expression {
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._namespace = namespace;
   }
-  private declare _namespace: string | undefined;
+  declare private _namespace: string | undefined;
 
   /**
    * This variable's name.
@@ -82,7 +82,7 @@ export class VariableExpression extends Expression {
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._variableName = variableName;
   }
-  private declare _variableName: string;
+  declare private _variableName: string;
 
   constructor(defaults: VariableExpressionProps);
   /** @hidden */

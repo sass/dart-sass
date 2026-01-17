@@ -89,7 +89,7 @@ export class AttributeSelector extends SimpleSelector {
     built.parent = this;
     this._attribute = built;
   }
-  private declare _attribute: QualifiedName;
+  declare private _attribute: QualifiedName;
 
   /**
    * The operator that defines the semantics of {@link value}.
@@ -103,7 +103,7 @@ export class AttributeSelector extends SimpleSelector {
   set operator(operator: AttributeSelectorOperator | undefined) {
     this._operator = operator;
   }
-  private declare _operator: AttributeSelectorOperator | undefined;
+  declare private _operator: AttributeSelectorOperator | undefined;
 
   /**
    * An assertion about the value of {@link attribute}.
@@ -129,7 +129,7 @@ export class AttributeSelector extends SimpleSelector {
     if (built) built.parent = this;
     this._value = built;
   }
-  private declare _value: Interpolation | undefined;
+  declare private _value: Interpolation | undefined;
 
   /**
    * The modifier which indicates how the attribute selector should be
@@ -154,7 +154,7 @@ export class AttributeSelector extends SimpleSelector {
     if (built) built.parent = this;
     this._modifier = built;
   }
-  private declare _modifier: Interpolation | undefined;
+  declare private _modifier: Interpolation | undefined;
 
   constructor(defaults: AttributeSelectorProps);
   /** @hidden */

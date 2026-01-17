@@ -60,7 +60,7 @@ export class ImportRule
       imports instanceof ImportList ? imports : new ImportList(imports);
     this._imports.parent = this;
   }
-  private declare _imports: ImportList;
+  declare private _imports: ImportList;
 
   get name(): string {
     return 'import';
@@ -75,13 +75,6 @@ export class ImportRule
   set params(value: string | number | undefined) {
     throw new Error("ImportRule.params can't be overwritten.");
   }
-
-  /**
-   * Iterators that are currently active within this rule's {@link imports}.
-   * Their indices refer to the last position that has already been sent to the
-   * callback, and are updated when {@link _imports} is modified.
-   */
-  readonly #iterators: Array<{index: number}> = [];
 
   constructor(defaults: ImportRuleProps);
   /** @hidden */

@@ -84,7 +84,7 @@ export class ImportList
     // This *should* only ever be called by the superclass constructor.
     this._nodes = nodes;
   }
-  private declare _nodes?: Array<DynamicImport | StaticImport>;
+  declare private _nodes?: Array<DynamicImport | StaticImport>;
 
   get name(): string {
     return 'import';

@@ -111,7 +111,7 @@ export class ListExpression
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._separator = separator;
   }
-  private declare _separator: ListSeparator;
+  declare private _separator: ListSeparator;
 
   /**
    * Whether the list has square brackets (as opposed to no brackets). This
@@ -124,7 +124,7 @@ export class ListExpression
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._brackets = brackets;
   }
-  private declare _brackets: boolean;
+  declare private _brackets: boolean;
 
   get nodes(): ReadonlyArray<AnyExpression> {
     return this._nodes!;
@@ -134,7 +134,7 @@ export class ListExpression
     // This *should* only ever be called by the superclass constructor.
     this._nodes = nodes;
   }
-  private declare _nodes?: Array<AnyExpression>;
+  declare private _nodes?: Array<AnyExpression>;
 
   /**
    * Iterators that are currently active within this list. Their indices refer

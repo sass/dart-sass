@@ -55,7 +55,7 @@ export class ClassSelector extends SimpleSelector {
     built.parent = this;
     this._class = built;
   }
-  private declare _class: Interpolation;
+  declare private _class: Interpolation;
 
   constructor(defaults: ClassSelectorProps);
   /** @hidden */

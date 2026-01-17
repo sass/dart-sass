@@ -130,7 +130,7 @@ export class Parameter extends Node {
       this._defaultValue = built;
     }
   }
-  private declare _defaultValue?: AnyExpression;
+  declare private _defaultValue?: AnyExpression;
 
   /**
    * Whether this is a rest parameter (indicated by `...` in Sass).
@@ -145,7 +145,7 @@ export class Parameter extends Node {
     if (value) this.defaultValue = undefined;
     this._rest = value;
   }
-  private declare _rest?: boolean;
+  declare private _rest?: boolean;
 
   constructor(defaults: ParameterProps);
   /** @hidden */

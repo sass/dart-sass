@@ -77,7 +77,7 @@ export class BinaryOperationExpression extends Expression {
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._operator = operator;
   }
-  private declare _operator: BinaryOperator;
+  declare private _operator: BinaryOperator;
 
   /** The expression on the left-hand side of this operation. */
   get left(): AnyExpression {
@@ -90,7 +90,7 @@ export class BinaryOperationExpression extends Expression {
     built.parent = this;
     this._left = built;
   }
-  private declare _left: AnyExpression;
+  declare private _left: AnyExpression;
 
   /** The expression on the right-hand side of this operation. */
   get right(): AnyExpression {
@@ -103,7 +103,7 @@ export class BinaryOperationExpression extends Expression {
     built.parent = this;
     this._right = built;
   }
-  private declare _right: AnyExpression;
+  declare private _right: AnyExpression;
 
   constructor(defaults: BinaryOperationExpressionProps);
   /** @hidden */

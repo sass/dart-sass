@@ -56,7 +56,7 @@ export class TypeSelector extends SimpleSelector {
     built.parent = this;
     this._type = built;
   }
-  private declare _type: QualifiedName;
+  declare private _type: QualifiedName;
 
   constructor(defaults: TypeSelectorProps);
   /** @hidden */
