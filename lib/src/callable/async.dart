@@ -26,21 +26,13 @@ abstract interface class AsyncCallable {
   /// The callable's name.
   String get name;
 
-  @Deprecated('Use `AsyncCallable.function` instead.')
-  factory AsyncCallable(
-    String name,
-    String arguments,
-    FutureOr<Value> callback(List<Value> arguments),
-  ) =>
-      AsyncCallable.function(name, arguments, callback);
-
   /// Creates a callable with the given [name] and [arguments] that runs
   /// [callback] when called.
   ///
   /// The argument declaration is parsed from [arguments], which should not
   /// include parentheses. Throws a [SassFormatException] if parsing fails.
   ///
-  /// See [Callable.new] for more details.
+  /// See [Callable.function] for more details.
   factory AsyncCallable.function(
     String name,
     String arguments,

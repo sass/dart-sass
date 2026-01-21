@@ -802,17 +802,16 @@ void main() {
   });
 
   test("doesn't use the source map location for variable errors", () {
-    // When source maps are enabled (by passing a callback to sourceMap), Sass
-    // tracks the original location where each variable was declared so that
-    // browsers can link to variable declarations rather than just usages.
-    // However, we want to refer to the usages when reporting errors because
-    // they have more context.
+    // When source maps are enabled, Sass tracks the original location where
+    // each variable was declared so that browsers can link to variable
+    // declarations rather than just usages. However, we want to refer to the
+    // usages when reporting errors because they have more context.
     expect(
       () {
         compileString(r"""
           $map: (a: b);
           x {y: $map}
-        """, sourceMap: (_) {});
+        """, sourceMap: true);
       },
       throwsA(
         predicate((untypedError) {
@@ -866,16 +865,15 @@ void _expectScssSourceMap(
   var (scssText, scssLocations) = _extractLocations(_reindent(scss));
   var (cssText, cssLocations) = _extractLocations(_reindent(css));
 
-  late SingleMapping scssMap;
-  var scssOutput = compileString(
+  var result = compileString(
     scssText,
-    sourceMap: (map) => scssMap = map,
+    sourceMap: true,
     importer: importer,
     style: style,
   );
-  expect(scssOutput, equals(cssText));
+  expect(result.css, equals(cssText));
   _expectMapMatches(
-    scssMap,
+    result.sourceMap!,
     scssText,
     cssText,
     _pairsToMap(scssLocations),
@@ -893,17 +891,16 @@ void _expectSassSourceMap(
   var (sassText, sassLocations) = _extractLocations(_reindent(sass));
   var (cssText, cssLocations) = _extractLocations(_reindent(css));
 
-  late SingleMapping sassMap;
-  var sassOutput = compileString(
+  var result = compileString(
     sassText,
-    indented: true,
-    sourceMap: (map) => sassMap = map,
+    syntax: Syntax.sass,
+    sourceMap: true,
     importer: importer,
     style: style,
   );
-  expect(sassOutput, equals(cssText));
+  expect(result.css, equals(cssText));
   _expectMapMatches(
-    sassMap,
+    result.sourceMap!,
     sassText,
     cssText,
     _pairsToMap(sassLocations),

@@ -69,11 +69,39 @@
 
   [Dart class modifiers]: https://dart.dev/language/class-modifiers
 
+* **Breaking change:** Replace the deprecated top-level `compile()`,
+  `compileString()`, `compileAsync()`, and `compileStringAsync()` functions with
+  the functions that used to be named `compileToResult()`,
+  `compileStringToResult()`, `compileToResultAsync()`, and
+  `compileStringToResultAsync()`. The latter function names still exist, but
+  they are now deprecated in favor of the former names.
+
 * **Breaking change:** Remove `Value.assertSelector()`,
   `.assertSimpleSelector()`, `.assertCompoundSelector()`, and
   `.assertComplexSelector()`. These are now only available through the expanded
   `sass_api` package, since that package also exposes the selector AST that it
   returns.
+
+* **Breaking change:** Remove the unnamed `Callable()` and `AsyncCallable()`
+  constructors. Use `Callable.function()` and `AsyncCallable.function()`
+  instead.
+  
+* **Breaking change:** Remove `Deprecation.calcInterp`. This was never actually
+  emitted as a deprecation.
+
+* **Breaking change:** Remove `Deprecation.duplicateVariableFlags`. Use
+  `Deprecation.duplicateVarFlags`.
+
+#### `ImporterResult`
+
+* **Breaking change:** Remove `ImporterResult.isIndented`. Use
+  `ImporterResult.syntax` instead.
+
+* **Breaking change:** Remove the `indented` parameter to `ImporterResult()`.
+  Use the `syntax` parameter instead.
+
+* **Breaking change:** The `syntax` parameter to `ImporterResult()` is now
+  `required` and non-nullable.
 
 ## 1.97.1
 
