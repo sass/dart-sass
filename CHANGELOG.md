@@ -71,7 +71,9 @@
 
 * **Breaking change:** The `deprecation` argument for `Logger.warn()` is now
   `Deprecation?` rather than `bool`. This is `null` when the warning isn't for a
-  deprecation, and a `Deprecation` object when it is.
+  deprecation, and a `Deprecation` object when it is. You can change any use of
+  `deprecation` as a boolean to `deprecation != null` to preserve the existing
+  behavior.
 
 * **Breaking change:** Remove `Value.assertSelector()`,
   `.assertSimpleSelector()`, `.assertCompoundSelector()`, and
