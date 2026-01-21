@@ -12,28 +12,28 @@ import 'package:sass/src/exception.dart';
 
 void main() {
   test(
-      "new Callable() throws a SassFormatException if the argument list is "
-      "invalid", () {
+      "Callable.function() throws a SassFormatException if the argument list "
+      "is invalid", () {
     expect(
-      () => Callable("foo", "arg", (_) => sassNull),
+      () => Callable.function("foo", "arg", (_) => sassNull),
       throwsA(const TypeMatcher<SassFormatException>()),
     );
   });
 
   test(
-      "new AsyncCallable() throws a SassFormatException if the argument list "
-      "is invalid", () {
+      "AsyncCallable.function() throws a SassFormatException if the argument "
+      "list is invalid", () {
     expect(
-      () => AsyncCallable("foo", "arg", (_) async => sassNull),
+      () => AsyncCallable.function("foo", "arg", (_) async => sassNull),
       throwsA(const TypeMatcher<SassFormatException>()),
     );
   });
 
   test("passes an argument to a custom function and uses its return value", () {
-    var css = compileString(
+    var result = compileString(
       'a {b: foo(bar)}',
       functions: [
-        Callable(
+        Callable.function(
           "foo",
           r"$arg",
           expectAsync1((arguments) {
@@ -45,14 +45,14 @@ void main() {
       ],
     );
 
-    expect(css, equalsIgnoringWhitespace("a { b: result; }"));
+    expect(result.css, equalsIgnoringWhitespace("a { b: result; }"));
   });
 
   test("runs a function asynchronously", () async {
-    var css = await compileStringAsync(
+    var result = await compileStringAsync(
       'a {b: foo(bar)}',
       functions: [
-        AsyncCallable(
+        AsyncCallable.function(
           "foo",
           r"$arg",
           expectAsync1((arguments) async {
@@ -65,7 +65,7 @@ void main() {
       ],
     );
 
-    expect(css, equalsIgnoringWhitespace("a { b: result; }"));
+    expect(result.css, equalsIgnoringWhitespace("a { b: result; }"));
   });
 
   test("passes no arguments to a custom function", () {
@@ -73,7 +73,7 @@ void main() {
       compileString(
         'a {b: foo()}',
         functions: [
-          Callable(
+          Callable.function(
             "foo",
             "",
             expectAsync1((arguments) {
@@ -82,7 +82,7 @@ void main() {
             }),
           ),
         ],
-      ),
+      ).css,
       isEmpty,
     );
   });
@@ -92,7 +92,7 @@ void main() {
       compileString(
         'a {b: foo(x, y, z)}',
         functions: [
-          Callable(
+          Callable.function(
             "foo",
             r"$arg1, $arg2, $arg3",
             expectAsync1((arguments) {
@@ -104,7 +104,7 @@ void main() {
             }),
           ),
         ],
-      ),
+      ).css,
       isEmpty,
     );
   });
@@ -113,16 +113,16 @@ void main() {
     expect(() {
       compileString(
         'a {b: foo()}',
-        functions: [Callable("foo", "", (arguments) => throw "heck")],
+        functions: [Callable.function("foo", "", (arguments) => throw "heck")],
       );
     }, throwsA(const TypeMatcher<SassException>()));
   });
 
   test("supports default argument values", () {
-    var css = compileString(
+    var result = compileString(
       'a {b: foo()}',
       functions: [
-        Callable(
+        Callable.function(
           "foo",
           r"$arg: 1",
           expectAsync1((arguments) {
@@ -134,14 +134,14 @@ void main() {
       ],
     );
 
-    expect(css, equalsIgnoringWhitespace("a { b: 1; }"));
+    expect(result.css, equalsIgnoringWhitespace("a { b: 1; }"));
   });
 
   test("supports argument lists", () {
-    var css = compileString(
+    var result = compileString(
       'a {b: foo(1, 2, 3)}',
       functions: [
-        Callable(
+        Callable.function(
           "foo",
           r"$args...",
           expectAsync1((arguments) {
@@ -157,14 +157,14 @@ void main() {
       ],
     );
 
-    expect(css, equalsIgnoringWhitespace("a { b: 1, 2, 3; }"));
+    expect(result.css, equalsIgnoringWhitespace("a { b: 1, 2, 3; }"));
   });
 
   test("supports keyword arguments", () {
-    var css = compileString(
+    var result = compileString(
       r'a {b: foo($bar: 1)}',
       functions: [
-        Callable(
+        Callable.function(
           "foo",
           r"$args...",
           expectAsync1((arguments) {
@@ -179,7 +179,7 @@ void main() {
       ],
     );
 
-    expect(css, equalsIgnoringWhitespace("a { b: 1; }"));
+    expect(result.css, equalsIgnoringWhitespace("a { b: 1; }"));
   });
 
   group("are dash-normalized", () {
@@ -188,7 +188,7 @@ void main() {
         compileString(
           'a {b: foo_bar()}',
           functions: [
-            Callable(
+            Callable.function(
               "foo-bar",
               "",
               expectAsync1((arguments) {
@@ -197,7 +197,7 @@ void main() {
               }),
             ),
           ],
-        ),
+        ).css,
         isEmpty,
       );
     });
@@ -207,7 +207,7 @@ void main() {
         compileString(
           'a {b: foo-bar()}',
           functions: [
-            Callable(
+            Callable.function(
               "foo_bar",
               "",
               expectAsync1((arguments) {
@@ -216,7 +216,7 @@ void main() {
               }),
             ),
           ],
-        ),
+        ).css,
         isEmpty,
       );
     });

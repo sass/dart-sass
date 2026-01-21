@@ -40,12 +40,12 @@ void main() {
   });
 
   test("can return a new function", () {
-    var css = compileString(
+    var result = compileString(
       "a {b: call(foo(), 12)}",
       functions: [
-        Callable("foo", "", (_) {
+        Callable.function("foo", "", (_) {
           return SassFunction(
-            Callable(
+            Callable.function(
               "bar",
               r"$arg",
               (arguments) => SassNumber(arguments[0].assertNumber().value + 1),
@@ -55,6 +55,6 @@ void main() {
       ],
     );
 
-    expect(css, equalsIgnoringWhitespace("a { b: 13; }"));
+    expect(result.css, equalsIgnoringWhitespace("a { b: 13; }"));
   });
 }
