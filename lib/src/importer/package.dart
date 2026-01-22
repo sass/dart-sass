@@ -21,7 +21,9 @@ final class PackageImporter extends Importer {
   PackageImporter(PackageConfig packageConfig) : _packageConfig = packageConfig;
 
   Uri? canonicalize(Uri url) {
-    if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);
+    if (url.scheme == 'file') {
+      return FilesystemImporter.noLoadPath.canonicalize(url);
+    }
     if (url.scheme != 'package') return null;
 
     var resolved = _packageConfig.resolve(url);
@@ -31,17 +33,17 @@ final class PackageImporter extends Importer {
       throw "Unsupported URL $resolved.";
     }
 
-    return FilesystemImporter.cwd.canonicalize(resolved);
+    return FilesystemImporter.noLoadPath.canonicalize(resolved);
   }
 
-  ImporterResult? load(Uri url) => FilesystemImporter.cwd.load(url);
+  ImporterResult? load(Uri url) => FilesystemImporter.noLoadPath.load(url);
 
   DateTime modificationTime(Uri url) =>
-      FilesystemImporter.cwd.modificationTime(url);
+      FilesystemImporter.noLoadPath.modificationTime(url);
 
   bool couldCanonicalize(Uri url, Uri canonicalUrl) =>
       (url.scheme == 'file' || url.scheme == 'package' || url.scheme == '') &&
-      FilesystemImporter.cwd.couldCanonicalize(
+      FilesystemImporter.noLoadPath.couldCanonicalize(
         Uri(path: url.path),
         canonicalUrl,
       );

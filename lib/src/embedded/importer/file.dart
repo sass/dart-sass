@@ -18,7 +18,9 @@ final class FileImporter extends ImporterBase {
   FileImporter(super.dispatcher, this._importerId);
 
   Uri? canonicalize(Uri url) {
-    if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);
+    if (url.scheme == 'file') {
+      return FilesystemImporter.noLoadPath.canonicalize(url);
+    }
 
     var request = OutboundMessage_FileImportRequest()
       ..importerId = _importerId
@@ -38,7 +40,7 @@ final class FileImporter extends ImporterBase {
           throw 'The file importer must return a file: URL, was "$url"';
         }
 
-        return FilesystemImporter.cwd.canonicalize(url);
+        return FilesystemImporter.noLoadPath.canonicalize(url);
 
       case InboundMessage_FileImportResponse_Result.error:
         throw response.error;
@@ -48,7 +50,7 @@ final class FileImporter extends ImporterBase {
     }
   }
 
-  ImporterResult? load(Uri url) => FilesystemImporter.cwd.load(url);
+  ImporterResult? load(Uri url) => FilesystemImporter.noLoadPath.load(url);
 
   bool isNonCanonicalScheme(String scheme) => scheme != 'file';
 

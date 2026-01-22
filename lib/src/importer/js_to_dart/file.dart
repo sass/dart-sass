@@ -22,7 +22,9 @@ final class JSToDartFileImporter extends Importer {
   JSToDartFileImporter(this._findFileUrl);
 
   Uri? canonicalize(Uri url) {
-    if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);
+    if (url.scheme == 'file') {
+      return FilesystemImporter.noLoadPath.canonicalize(url);
+    }
 
     var result = wrapJSExceptions(
       () => _findFileUrl(url.toString(), canonicalizeContext),
@@ -50,16 +52,16 @@ final class JSToDartFileImporter extends Importer {
       );
     }
 
-    return FilesystemImporter.cwd.canonicalize(resultUrl);
+    return FilesystemImporter.noLoadPath.canonicalize(resultUrl);
   }
 
-  ImporterResult? load(Uri url) => FilesystemImporter.cwd.load(url);
+  ImporterResult? load(Uri url) => FilesystemImporter.noLoadPath.load(url);
 
   DateTime modificationTime(Uri url) =>
-      FilesystemImporter.cwd.modificationTime(url);
+      FilesystemImporter.noLoadPath.modificationTime(url);
 
   bool couldCanonicalize(Uri url, Uri canonicalUrl) =>
-      FilesystemImporter.cwd.couldCanonicalize(url, canonicalUrl);
+      FilesystemImporter.noLoadPath.couldCanonicalize(url, canonicalUrl);
 
   bool isNonCanonicalScheme(String scheme) => scheme != 'file';
 }

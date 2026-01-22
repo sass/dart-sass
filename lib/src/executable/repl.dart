@@ -44,7 +44,7 @@ Future<void> repl(ExecutableOptions options) async {
   }
 
   var evaluator = Evaluator(
-    importer: FilesystemImporter.cwd,
+    importer: FilesystemImporter('.'),
     importCache: ImportCache(
       importers: options.pkgImporters,
       loadPaths: options.loadPaths,

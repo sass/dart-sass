@@ -88,7 +88,7 @@ Future<void> _compileStylesheetWithoutErrorHandling(
   String? destination, {
   bool ifModified = false,
 }) async {
-  var importer = FilesystemImporter.cwd;
+  var importer = FilesystemImporter.noLoadPath;
   if (ifModified) {
     try {
       if (source != null &&
@@ -128,7 +128,7 @@ Future<void> _compileStylesheetWithoutErrorHandling(
               syntax: syntax,
               logger: options.logger,
               importCache: importCache,
-              importer: FilesystemImporter.cwd,
+              importer: FilesystemImporter.noLoadPath,
               style: options.style,
               quietDeps: options.quietDeps,
               verbose: options.verbose,
@@ -163,7 +163,7 @@ Future<void> _compileStylesheetWithoutErrorHandling(
               syntax: syntax,
               logger: options.logger,
               importCache: graph.importCache,
-              importer: FilesystemImporter.cwd,
+              importer: FilesystemImporter.noLoadPath,
               style: options.style,
               quietDeps: options.quietDeps,
               verbose: options.verbose,

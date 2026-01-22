@@ -35,32 +35,14 @@ final class FilesystemImporter extends Importer {
       : _loadPath = p.absolute(loadPath),
         _loadPathDeprecated = false;
 
-  FilesystemImporter._deprecated(String loadPath)
-      : _loadPath = p.absolute(loadPath),
-        _loadPathDeprecated = true;
-
   /// Creates an importer that _only_ loads absolute `file:` URLs and URLs
   /// relative to the current file.
   FilesystemImporter._noLoadPath()
       : _loadPath = null,
         _loadPathDeprecated = false;
 
-  /// A [FilesystemImporter] that loads files relative to the current working
-  /// directory.
-  ///
-  /// Historically, this was the best default for supporting `file:` URL loads
-  /// when the load path didn't matter. However, adding the current working
-  /// directory to the load path wasn't always desirable, so it's no longer
-  /// recommended. Instead, either use [FilesystemImporter.noLoadPath] if the
-  /// load path doesn't matter, or `FilesystemImporter('.')` to explicitly
-  /// preserve the existing behavior.
-  @Deprecated(
-    "Use FilesystemImporter.noLoadPath or FilesystemImporter('.') instead.",
-  )
-  static final cwd = FilesystemImporter._deprecated('.');
-
-  /// Creates an importer that _only_ loads absolute `file:` URLs and URLs
-  /// relative to the current file.
+  /// An importer that _only_ loads absolute `file:` URLs and URLs relative to
+  /// the current file.
   static final noLoadPath = FilesystemImporter._noLoadPath();
 
   Uri? canonicalize(Uri url) {
