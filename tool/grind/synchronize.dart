@@ -238,8 +238,8 @@ class _Visitor extends RecursiveAstVisitor<void> {
   }
 
   void visitNamedType(NamedType node) {
-    if (node.name2.lexeme case "Future" || "FutureOr") {
-      _skip(node.name2);
+    if (node.name.lexeme case "Future" || "FutureOr") {
+      _skip(node.name);
       if (node.typeArguments case var typeArguments?) {
         _skip(typeArguments.leftBracket);
         typeArguments.arguments.first.accept(this);
@@ -247,12 +247,12 @@ class _Visitor extends RecursiveAstVisitor<void> {
       } else {
         _buffer.write("void");
       }
-    } else if (node.name2.lexeme == "Module") {
+    } else if (node.name.lexeme == "Module") {
       _skipNode(node);
       _buffer.write("Module<Callable>");
     } else if (node.typeArguments == null) {
-      _skip(node.name2);
-      _buffer.write(_synchronizeName(node.name2.lexeme));
+      _skip(node.name);
+      _buffer.write(_synchronizeName(node.name.lexeme));
     } else {
       super.visitNamedType(node);
     }
