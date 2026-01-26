@@ -65,7 +65,7 @@ Future<CompileResult> compileAsync(
       (syntax == null || syntax == Syntax.forPath(path))) {
     importCache ??= AsyncImportCache.none();
     stylesheet = (await importCache.importCanonical(
-      FilesystemImporter.cwd,
+      FilesystemImporter.noLoadPath,
       p.toUri(canonicalize(path)),
       originalUrl: p.toUri(path),
     ))!;
@@ -82,7 +82,7 @@ Future<CompileResult> compileAsync(
     logger,
     importCache,
     nodeImporter,
-    FilesystemImporter.cwd,
+    FilesystemImporter.noLoadPath,
     functions,
     style,
     useSpaces,
@@ -151,7 +151,7 @@ Future<CompileResult> compileStringAsync(
     logger,
     importCache,
     nodeImporter,
-    importer ?? (isBrowser ? NoOpImporter() : FilesystemImporter.cwd),
+    importer ?? (isBrowser ? NoOpImporter() : FilesystemImporter.noLoadPath),
     functions,
     style,
     useSpaces,

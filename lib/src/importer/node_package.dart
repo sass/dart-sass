@@ -30,7 +30,9 @@ final class NodePackageImporter extends Importer {
 
   @override
   Uri? canonicalize(Uri url) {
-    if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);
+    if (url.scheme == 'file') {
+      return FilesystemImporter.noLoadPath.canonicalize(url);
+    }
     if (url.scheme != 'pkg') return null;
 
     if (url.hasAuthority) {
@@ -98,11 +100,11 @@ final class NodePackageImporter extends Importer {
     // If there is a subpath, attempt to resolve the path relative to the
     // package root, and resolve for file extensions and partials.
     var subpathInRoot = p.join(packageRoot, subpath);
-    return FilesystemImporter.cwd.canonicalize(p.toUri(subpathInRoot));
+    return FilesystemImporter.noLoadPath.canonicalize(p.toUri(subpathInRoot));
   }
 
   @override
-  ImporterResult? load(Uri url) => FilesystemImporter.cwd.load(url);
+  ImporterResult? load(Uri url) => FilesystemImporter.noLoadPath.load(url);
 
   /// Splits a [bare import
   /// specifier](https://nodejs.org/api/esm.html#import-specifiers) `specifier`

@@ -18,6 +18,10 @@
   after them, as in `$a -$b`, are now forbidden due to being highly ambiguous
   between `$a - $b` and `$a (-$b)`.
 
+* **Breaking change:** The current working directory is no longer ever
+  implicitly added as a load path. You can add it explicitly with
+  `--load-path=.` or similar options in the APIs.
+
 * **Potentially breaking bug fix:** In some cases involving a `:has()` selector
   with a leading combinator being `@extend`ed by a selector that contained its
   own combinators, `@extend` used to generate incorrect selectors. This has been
@@ -85,7 +89,11 @@
 * **Breaking change:** Remove the unnamed `Callable()` and `AsyncCallable()`
   constructors. Use `Callable.function()` and `AsyncCallable.function()`
   instead.
-  
+
+* **Breaking change:** Remove `FilesystemImporter.cwd`. Instead use
+  `FilesystemImporter.noLoadPath` if you don't need to add the current working
+  directory as a load path, or `FilesystemImporter('.')` if you do.
+
 * **Breaking change:** Remove `Deprecation.calcInterp`. This was never actually
   emitted as a deprecation.
 

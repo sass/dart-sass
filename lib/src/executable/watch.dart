@@ -43,7 +43,7 @@ Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
   var sourcesToDestinations = _sourcesToDestinations(options);
   for (var source in sourcesToDestinations.keys) {
     graph.addCanonical(
-      FilesystemImporter.cwd,
+      FilesystemImporter.noLoadPath,
       p.toUri(canonicalize(source)),
       p.toUri(source),
       recanonicalize: false,
@@ -154,7 +154,7 @@ final class _Watcher {
     var destination = _destinationFor(path);
     if (destination != null) _toRecompile[path] = destination;
     var downstream = _graph.addCanonical(
-      FilesystemImporter.cwd,
+      FilesystemImporter.noLoadPath,
       _canonicalize(path),
       p.toUri(path),
     );
@@ -174,7 +174,7 @@ final class _Watcher {
       }
     }
 
-    var downstream = _graph.remove(FilesystemImporter.cwd, url);
+    var downstream = _graph.remove(FilesystemImporter.noLoadPath, url);
     _recompileDownstream(downstream);
   }
 
