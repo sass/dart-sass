@@ -23,20 +23,14 @@ final class Rec2020ColorSpace extends ColorSpace {
   const Rec2020ColorSpace() : super('rec2020', rgbChannels);
 
   @protected
-  double toLinear(double channel) {
-    // Non-linear transfer function from Rec. ITU-R BT.2020-2 table 4
-    //  Reference electro-optical transfer function from Rec. ITU-R BT.1886 Annex 1
-    //  with b (black lift) = 0 and a (user gain) = 1
-    //  defined over the extended range, not clamped
-    var abs = channel.abs();
-    return channel.sign * math.pow(abs, 2.40);
-  }
+  double toLinear(double channel) =>
+    // Algorithm from https://drafts.csswg.org/css-color-4/#color-conversion-code
+    channel.sign * math.pow(channel.abs(), 2.4);
 
   @protected
-  double fromLinear(double channel) {
-    var abs = channel.abs();
-    return channel.sign * math.pow(abs, 1 / 2.40);
-  }
+  double fromLinear(double channel) =>
+    // Algorithm from https://drafts.csswg.org/css-color-4/#color-conversion-code
+    channel.sign * math.pow(channel.abs(), 1/2.4);
 
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {

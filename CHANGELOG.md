@@ -1,3 +1,10 @@
+## 1.98.0
+
+* **Potentially breaking CSS compatibility fix:** In keeping with the latest CSS
+  specification, this release changes the algorithm for converting colors to and
+  from the `rec2020` color space. This now uses the EOTF algorithm with a gamma
+  of 1.961.
+
 ## 1.97.3
 
 * Fix a bug where nesting an at-rule within multiple style rules in plain CSS
