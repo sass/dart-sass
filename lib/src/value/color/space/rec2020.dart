@@ -24,13 +24,13 @@ final class Rec2020ColorSpace extends ColorSpace {
 
   @protected
   double toLinear(double channel) =>
-    // Algorithm from https://drafts.csswg.org/css-color-4/#color-conversion-code
-    channel.sign * math.pow(channel.abs(), 2.4);
+      // Algorithm from https://drafts.csswg.org/css-color-4/#color-conversion-code
+      channel.sign * math.pow(channel.abs(), 2.4);
 
   @protected
   double fromLinear(double channel) =>
-    // Algorithm from https://drafts.csswg.org/css-color-4/#color-conversion-code
-    channel.sign * math.pow(channel.abs(), 1/2.4);
+      // Algorithm from https://drafts.csswg.org/css-color-4/#color-conversion-code
+      channel.sign * math.pow(channel.abs(), 1 / 2.4);
 
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
