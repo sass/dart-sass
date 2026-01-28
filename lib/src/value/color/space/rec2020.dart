@@ -11,12 +11,6 @@ import '../conversions.dart';
 import '../space.dart';
 import 'utils.dart';
 
-/// A constant used in the rec2020 gamma encoding/decoding functions.
-const _alpha = 1.09929682680944;
-
-/// A constant used in the rec2020 gamma encoding/decoding functions.
-const _beta = 0.018053968510807;
-
 /// The rec2020 color space.
 ///
 /// https://www.w3.org/TR/css-color-4/#predefined-rec2020
@@ -29,22 +23,14 @@ final class Rec2020ColorSpace extends ColorSpace {
   const Rec2020ColorSpace() : super('rec2020', rgbChannels);
 
   @protected
-  double toLinear(double channel) {
-    // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
-    var abs = channel.abs();
-    return abs < _beta * 4.5
-        ? channel / 4.5
-        : channel.sign * (math.pow((abs + _alpha - 1) / _alpha, 1 / 0.45));
-  }
+  double toLinear(double channel) =>
+      // Algorithm from https://drafts.csswg.org/css-color-4/#color-conversion-code
+      channel.sign * math.pow(channel.abs(), 2.4);
 
   @protected
-  double fromLinear(double channel) {
-    // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
-    var abs = channel.abs();
-    return abs > _beta
-        ? channel.sign * (_alpha * math.pow(abs, 0.45) - (_alpha - 1))
-        : 4.5 * channel;
-  }
+  double fromLinear(double channel) =>
+      // Algorithm from https://drafts.csswg.org/css-color-4/#color-conversion-code
+      channel.sign * math.pow(channel.abs(), 1 / 2.4);
 
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
