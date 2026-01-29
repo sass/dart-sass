@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 989c62e01aba777bc022501357a6f1be4e683c9c
+// Checksum: 264147f2a9507ce33b5b2faaea9cbba773047a9c
 //
 // ignore_for_file: unused_import
 
@@ -202,6 +202,23 @@ CompileResult _compileStylesheet(
       'Dart Sass 2.0.0.\n\n'
       'More info: https://sass-lang.com/d/legacy-js-api',
     );
+  } else {
+    if (sourceMapIncludeSources == SourceMapIncludeSources.true_ ||
+        sourceMapIncludeSources == SourceMapIncludeSources.false_) {
+      var boolean = sourceMapIncludeSources == SourceMapIncludeSources.true_;
+      var suggestion = boolean ? 'always' : 'never';
+      logger?.warnForDeprecation(
+        Deprecation.sourceMapIncludeSourcesBoolean,
+        'Passing a boolean value for Options.sourceMapIncludeSources is '
+        'deprecated and will be removed in Dart Sass 2.0.0.\n'
+        "Please use '$suggestion' instead of $boolean.\n\n"
+        'More info: https://sass-lang.com/d/source-map-include-sources-boolean',
+      );
+      sourceMapIncludeSources =
+          sourceMapIncludeSources == SourceMapIncludeSources.true_
+              ? SourceMapIncludeSources.always
+              : SourceMapIncludeSources.never;
+    }
   }
   var evaluateResult = evaluate(
     stylesheet,
