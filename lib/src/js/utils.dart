@@ -276,8 +276,10 @@ SourceMapIncludeSources parseSourceMapIncludeSources(
         Object? sourceMapIncludeSources) =>
     switch (sourceMapIncludeSources) {
       null || 'auto' => SourceMapIncludeSources.auto,
-      true || 'always' => SourceMapIncludeSources.always,
-      false || 'never' => SourceMapIncludeSources.never,
+      'always' => SourceMapIncludeSources.always,
+      'never' => SourceMapIncludeSources.never,
+      true => SourceMapIncludeSources.true_,
+      false => SourceMapIncludeSources.false_,
       _ => jsThrow(JsError(
           'Unknown sourceMapIncludeSources "$sourceMapIncludeSources".')),
     };
