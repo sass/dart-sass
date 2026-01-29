@@ -648,7 +648,8 @@ void main() {
       await process.close();
     });
 
-    test("uses a data: URL rather than an empty source map URL", () async {
+    test("uses the canonical URL rather than an empty source map URL",
+        () async {
       process.send(
         compileString(
           "@use 'other'",
@@ -673,7 +674,7 @@ void main() {
         "a { b: c; }",
         sourceMap: (String map) {
           var mapping = source_maps.parse(map) as source_maps.SingleMapping;
-          expect(mapping.urls, [startsWith("data:")]);
+          expect(mapping.urls, contains("custom:other"));
         },
       );
       await process.close();
