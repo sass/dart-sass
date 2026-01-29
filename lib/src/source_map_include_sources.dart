@@ -14,4 +14,10 @@ enum SourceMapIncludeSources {
 
   /// Never include source contents.
   never,
+
+  @Deprecated('Use always instead.')
+  true_,
+
+  @Deprecated('Use never instead.')
+  false_,
 }

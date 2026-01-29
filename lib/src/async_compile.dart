@@ -193,6 +193,20 @@ Future<CompileResult> _compileStylesheet(
       'Dart Sass 2.0.0.\n\n'
       'More info: https://sass-lang.com/d/legacy-js-api',
     );
+  } else {
+    if (sourceMapIncludeSources == SourceMapIncludeSources.true_ ||
+        sourceMapIncludeSources == SourceMapIncludeSources.false_) {
+      logger?.warnForDeprecation(
+        Deprecation.sourceMapIncludeSourcesBoolean,
+        'Passing boolean value for Options.sourceMapIncludeSources is '
+        'deprecated and will be removed in Dart Sass 2.0.0.\n\n'
+        'More info: https://sass-lang.com/d/source-map-include-sources-boolean',
+      );
+      sourceMapIncludeSources =
+          sourceMapIncludeSources == SourceMapIncludeSources.true_
+              ? SourceMapIncludeSources.always
+              : SourceMapIncludeSources.never;
+    }
   }
   var evaluateResult = await evaluateAsync(
     stylesheet,
