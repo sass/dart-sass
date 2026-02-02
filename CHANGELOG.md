@@ -1,3 +1,32 @@
+## 1.98.0
+
+* User-defined functions named `calc` or `clamp` are no longer forbidden. If
+  such a function exists without a namespace in the current module, it will be
+  used instead of the built-in `calc()` or `clamp()` function.
+
+* User-defined functions whose names begin with `-` and end with `-expression`,
+  `-url`, `-and`, `-or`, or `-not` are no longer forbidden. These were
+  originally intended to match vendor prefixes, but in practice no vendor
+  prefixes for these functions ever existed in real browsers.
+
+* User-defined functions named `EXPRESSION`, `URL`, and `ELEMENT`, those that
+  begin with `-` and end with `-ELEMENT`, as well as the same names with some
+  lowercase letters are now deprecated, These are names conflict with plain CSS
+  functions that have special syntax.
+
+  See [the Sass website](https://sass-lang.com/d/function-name) for details.
+
+* In a future release, calls to functions whose names begin with `-` and end
+  with `-expression` and `-url` will no longer have special parsing. For now,
+  these calls are deprecated if their behavior will change in the future.
+
+  See [the Sass website](https://sass-lang.com/d/function-name) for details.
+
+* Calls to functions whose names begin with `-` and end with `-progid:...` are
+  deprecated.
+
+  See [the Sass website](https://sass-lang.com/d/function-name) for details.
+
 ## 1.97.3
 
 * Fix a bug where nesting an at-rule within multiple style rules in plain CSS

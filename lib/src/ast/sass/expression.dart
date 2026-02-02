@@ -8,6 +8,7 @@ import '../../exception.dart';
 import '../../parse/scss.dart';
 import '../../visitor/interface/expression.dart';
 import '../../visitor/is_calculation_safe.dart';
+import '../../visitor/is_plain_css.dart';
 import '../../visitor/source_interpolation.dart';
 import '../sass.dart';
 
@@ -48,4 +49,12 @@ abstract class Expression implements SassNode {
   /// Throws a [SassFormatException] if parsing fails.
   factory Expression.parse(String contents, {Object? url}) =>
       ScssParser(contents, url: url).parseExpression().$1;
+
+  /// Whether this expression is valid plain CSS that will produce the same
+  /// result as it would in Sass
+  ///
+  /// If [allowInterpolation] is true, interpolated expressions are allowed as
+  /// an exception, even if they contain SassScript.
+  bool isPlainCss({bool allowInterpolation = false}) =>
+      accept(IsPlainCssVisitor(allowInterpolation: allowInterpolation));
 }
