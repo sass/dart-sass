@@ -962,6 +962,25 @@ abstract class StylesheetParser extends Parser {
           spanFrom(beforeName));
     }
 
+    if (switch (name) {
+      "expression" || "url" || "and" || "or" || "not" => true,
+      _ => unvendor(name) == "element"
+    }) {
+      error("Invalid function name.", spanFrom(beforeName));
+    } else if (switch (name.toLowerCase()) {
+      "expression" || "url" => true,
+      var name => unvendor(name) == "element"
+    }) {
+      warnings.add((
+        deprecation: Deprecation.functionName,
+        message: "Custom functions with this name are deprecated and will be "
+            "removed in a future\n"
+            "release. Please choose a different name.\n"
+            "More info: https://sass-lang.com/d/function-name",
+        span: spanFrom(beforeName)
+      ));
+    }
+
     whitespace(consumeNewlines: true);
     var parameters = _parameterList();
 
@@ -975,18 +994,6 @@ abstract class StylesheetParser extends Parser {
         "Functions may not be declared in control directives.",
         spanFrom(start),
       );
-    }
-
-    if (unvendor(name)
-        case "calc" ||
-            "element" ||
-            "expression" ||
-            "url" ||
-            "and" ||
-            "or" ||
-            "not" ||
-            "clamp") {
-      error("Invalid function name.", spanFrom(start));
     }
 
     whitespace(consumeNewlines: false);
@@ -3324,9 +3331,54 @@ abstract class StylesheetParser extends Parser {
         ..writeCharCode($lparen);
     } else {
       var normalized = unvendor(name);
+      var vendored = normalized != name;
       switch (normalized) {
-        case "calc" when normalized != name && scanner.scanChar($lparen):
-        case "element" || "expression" when scanner.scanChar($lparen):
+        case "expression" when vendored && scanner.scanChar($lparen):
+          buffer = InterpolationBuffer()
+            ..write(name)
+            ..writeCharCode($lparen);
+
+          var beforeArg = scanner.state;
+          var invalidSassScript = false;
+          var nonCssSassScript = false;
+          try {
+            var argument = _expression();
+            nonCssSassScript = !argument.isPlainCss(allowInterpolation: true);
+          } on StringScannerException {
+            invalidSassScript = true;
+          }
+          scanner.state = beforeArg;
+
+          var value = _interpolatedDeclarationValue(allowEmpty: true);
+          buffer.addInterpolation(value);
+          scanner.expectChar($rparen);
+          buffer.writeCharCode($rparen);
+
+          if (invalidSassScript || nonCssSassScript) {
+            var suggestion =
+                StringExpression(value, quotes: true).asInterpolation();
+            warnings.add((
+              deprecation: Deprecation.functionName,
+              message: "Vendor-prefixed $normalized() functions will no longer "
+                      "have special parsing in a future release of Dart Sass. "
+                      "Once that happens, this argument will " +
+                  (invalidSassScript
+                      ? "be parsed as SassScript. "
+                      : "no longer be valid syntax. ") +
+                  "To preserve current behavior:\n"
+                      "\n"
+                      "$name(#{$suggestion})\n"
+                      "\n"
+                      "More info: https://sass-lang.com/d/function-name",
+              span: spanFrom(start)
+            ));
+          }
+
+          return StringExpression(buffer.interpolation(spanFrom(start)));
+
+        case "calc" when vendored && scanner.scanChar($lparen):
+        case "expression" when !vendored && scanner.scanChar($lparen):
+        case "element" when scanner.scanChar($lparen):
           buffer = InterpolationBuffer()
             ..write(name)
             ..writeCharCode($lparen);
@@ -3343,9 +3395,36 @@ abstract class StylesheetParser extends Parser {
           scanner.expectChar($lparen);
           buffer.writeCharCode($lparen);
 
+          buffer.addInterpolation(
+              _interpolatedDeclarationValue(allowEmpty: true));
+          scanner.expectChar($rparen);
+          buffer.writeCharCode($rparen);
+
+          if (vendored) {
+            var suggestion = StringExpression(
+                    buffer.interpolation(spanFrom(start)),
+                    quotes: true)
+                .asInterpolation();
+            warnings.add((
+              deprecation: Deprecation.functionName,
+              message:
+                  "Vendor-prefixed progid:...() functions will no longer be "
+                  "supported in a future release of Dart Sass. To preserve "
+                  "current behavior:\n"
+                  "\n"
+                  "#{$suggestion}\n"
+                  "\n"
+                  "More info: https://sass-lang.com/d/function-name",
+              span: spanFrom(start)
+            ));
+          }
+
+          return StringExpression(buffer.interpolation(spanFrom(start)));
+
         case "url":
           return _tryUrlContents(
             start,
+            vendored: vendored,
           ).andThen((contents) => StringExpression(contents));
 
         case _:
@@ -3363,13 +3442,28 @@ abstract class StylesheetParser extends Parser {
   /// Like [_urlContents], but returns `null` if the URL fails to parse.
   ///
   /// [start] is the position before the beginning of the name. [name] is the
-  /// function's name; it defaults to `"url"`.
-  Interpolation? _tryUrlContents(LineScannerState start, {String? name}) {
+  /// function's name; it defaults to `"url"`. [vendored] is true if this is
+  /// being parsed in an expression context as a deprecated vendor-prefixed
+  /// `url()` expression.
+  Interpolation? _tryUrlContents(LineScannerState start,
+      {String? name, bool vendored = false}) {
     // NOTE: this logic is largely duplicated in Parser.tryUrl. Most changes
     // here should be mirrored there.
 
     var beginningOfContents = scanner.state;
     if (!scanner.scanChar($lparen)) return null;
+
+    var invalidSassScript = false;
+    if (vendored) {
+      var beforeArg = scanner.state;
+      try {
+        _expression();
+      } on StringScannerException {
+        invalidSassScript = true;
+      }
+      scanner.state = beforeArg;
+    }
+
     whitespaceWithoutComments(consumeNewlines: true);
 
     // Match Ruby Sass's behavior: parse a raw URL() if possible, and if not
@@ -3391,8 +3485,6 @@ abstract class StylesheetParser extends Parser {
               $percent ||
               $ampersand ||
               $hash ||
-              // dart-lang/sdk#52740
-              // ignore: non_constant_relational_pattern_expression
               (>= $asterisk && <= $tilde) ||
               >= 0x80:
           buffer.writeCharCode(scanner.readChar());
@@ -3401,6 +3493,26 @@ abstract class StylesheetParser extends Parser {
           if (scanner.peekChar() != $rparen) break loop;
         case $rparen:
           buffer.writeCharCode(scanner.readChar());
+
+          if (vendored && invalidSassScript) {
+            var suggestion = StringExpression(
+                    buffer.interpolation(spanFrom(start)),
+                    quotes: true)
+                .asInterpolation();
+            warnings.add((
+              deprecation: Deprecation.functionName,
+              message: "Vendor-prefixed url() functions will no longer have "
+                  "special parsing in a future release of Dart Sass. Once "
+                  "that happens, this argument will be parsed as SassScript. "
+                  "To preserve current behavior:\n"
+                  "\n"
+                  "$name(#{$suggestion})\n"
+                  "\n"
+                  "More info: https://sass-lang.com/d/function-name",
+              span: spanFrom(start)
+            ));
+          }
+
           return buffer.interpolation(spanFrom(start));
         case _:
           break loop;

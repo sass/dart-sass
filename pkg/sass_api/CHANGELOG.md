@@ -1,3 +1,7 @@
+## 17.4.0
+
+* Add an `Expression.isPlainCss()` method.
+
 ## 17.3.3
 
 * No user-visible changes.
