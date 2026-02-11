@@ -961,7 +961,7 @@ abstract class StylesheetParser extends Parser {
       error('This name is reserved for the plain-CSS function.',
           spanFrom(beforeName));
     }
-    else if (functionCase(name)) {
+    if (functionCase(name)) {
   warnings.add((
   deprecation: Deprecation.functionCase,
   message: 'Uppercase reserved function names are now deprecated.',
