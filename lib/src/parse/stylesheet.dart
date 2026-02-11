@@ -991,7 +991,8 @@ abstract class StylesheetParser extends Parser {
             "url" ||
             "and" ||
             "or" ||
-            "not" ) {
+            "not" ||
+           "clamp" ) {
       error("Invalid function name.", spanFrom(start));
     }
 
