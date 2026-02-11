@@ -260,7 +260,22 @@ bool equalsIgnoreCase(String? string1, String? string2) {
   }
   return true;
 }
+// Returns true if [name] matches case insensitive reserved function names or is a vendor prefixed identifier 'element' 
+bool functionCase(String name) {
+  const reservedNames = ["url", "expression", "type", "element"];
 
+  for (var reserved in reservedNames) {
+    if (equalsIgnoreCase(reserved, name) && reserved != name) {
+      return true;
+    }
+  }
+
+  if (unvendor(name) == "element") {
+    return true;
+  }
+
+  return false;
+}
 /// Returns whether [string] starts with [prefix], ignoring ASCII case.
 bool startsWithIgnoreCase(String string, String prefix) {
   if (string.length < prefix.length) return false;

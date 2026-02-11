@@ -961,6 +961,13 @@ abstract class StylesheetParser extends Parser {
       error('This name is reserved for the plain-CSS function.',
           spanFrom(beforeName));
     }
+    else if (functionCase(name)) {
+  warnings.add((
+  deprecation: Deprecation.functionCase,
+  message: 'Uppercase reserved function names are now deprecated.',
+  span: spanFrom(beforeName),
+));
+}
 
     whitespace(consumeNewlines: true);
     var parameters = _parameterList();
@@ -978,14 +985,13 @@ abstract class StylesheetParser extends Parser {
     }
 
     if (unvendor(name)
-        case "calc" ||
+        case 
             "element" ||
             "expression" ||
             "url" ||
             "and" ||
             "or" ||
-            "not" ||
-            "clamp") {
+            "not" ) {
       error("Invalid function name.", spanFrom(start));
     }
 
