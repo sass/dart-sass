@@ -344,6 +344,26 @@ final class _EvaluateVisitor
   /// calculations are likely to be evaluated multiple times.
   final _calcSlashListCache = HashMap<ListExpression, Expression>.identity();
 
+  /// Returns whether the current position in the output stylesheet uses plain
+  /// CSS nesting.
+  ///
+  /// If it does, it's safe to use other features of the CSS nesting spec
+  /// because the user has already opted into a narrower browser compatibility
+  /// window.
+  bool get _hasCssNesting {
+    ModifiableCssParentNode? parent = _styleRule;
+    while (true) {
+      switch (parent?.parent) {
+        case CssStyleRule _:
+          return true;
+        case var grandparent?:
+          parent = grandparent;
+        case null:
+          return false;
+      }
+    }
+  }
+
   /// Creates a new visitor.
   ///
   /// Most arguments are the same as those to [evaluateAsync].
@@ -1556,8 +1576,23 @@ final class _EvaluateVisitor
       _inUnknownAtRule = true;
     }
 
+    // If the user has already opted into plain CSS nesting, don't bother with
+    // any merging or bubbling; this rule is already only usable by browsers
+    // that support nesting natively anyway.
+    var rule = ModifiableCssAtRule(name, node.span, value: value);
+    if (_hasCssNesting) {
+      await _withParent(rule, () async {
+        for (var child in children) {
+          await child.accept(this);
+        }
+      }, scopeWhen: node.hasDeclarations);
+      _inUnknownAtRule = wasInUnknownAtRule;
+      _inKeyframes = wasInKeyframes;
+      return null;
+    }
+
     await _withParent(
-      ModifiableCssAtRule(name, node.span, value: value),
+      rule,
       () async {
         var styleRule = _styleRule;
         if (styleRule == null || _inKeyframes || name.value == 'font-face') {
@@ -2229,6 +2264,19 @@ final class _EvaluateVisitor
     }
 
     var queries = await _visitMediaQueries(node.query);
+
+    // If the user has already opted into plain CSS nesting, don't bother with
+    // any merging or bubbling; this rule is already only usable by browsers
+    // that support nesting natively anyway.
+    if (_hasCssNesting) {
+      await _withParent(ModifiableCssMediaRule(queries, node.span), () async {
+        for (var child in node.children) {
+          await child.accept(this);
+        }
+      }, scopeWhen: false);
+      return null;
+    }
+
     var mergedQueries = _mediaQueries.andThen(
       (mediaQueries) => _mergeMediaQueries(mediaQueries, queries),
     );
@@ -2371,12 +2419,12 @@ final class _EvaluateVisitor
       plainCss: _stylesheet.plainCss,
     );
 
-    var nest = switch (_styleRule) {
+    var merge = switch (_styleRule) {
       null => true,
       CssStyleRule(fromPlainCss: true) => false,
       _ => !(_stylesheet.plainCss && parsedSelector.containsParentSelector)
     };
-    if (nest) {
+    if (merge) {
       if (_stylesheet.plainCss) {
         for (var complex in parsedSelector.components) {
           if (complex.leadingCombinator case var combinator?
@@ -2414,7 +2462,7 @@ final class _EvaluateVisitor
           }
         });
       },
-      through: nest ? (node) => node is CssStyleRule : null,
+      through: merge ? (node) => node is CssStyleRule : null,
       scopeWhen: node.hasDeclarations,
     );
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
@@ -2475,12 +2523,23 @@ final class _EvaluateVisitor
       );
     }
 
-    var condition = CssValue(
-      await _visitSupportsCondition(node.condition),
-      node.condition.span,
-    );
+    var rule = ModifiableCssSupportsRule(
+        CssValue(
+          await _visitSupportsCondition(node.condition),
+          node.condition.span,
+        ),
+        node.span);
+    if (_hasCssNesting) {
+      await _withParent(rule, () async {
+        for (var child in node.children) {
+          await child.accept(this);
+        }
+      }, scopeWhen: node.hasDeclarations);
+      return null;
+    }
+
     await _withParent(
-      ModifiableCssSupportsRule(condition, node.span),
+      rule,
       () async {
         if (_styleRule case var styleRule?) {
           // If we're in a style rule, copy it into the supports rule so that
@@ -4093,8 +4152,23 @@ final class _EvaluateVisitor
       _inUnknownAtRule = true;
     }
 
+    // If the user has already opted into plain CSS nesting, don't bother with
+    // any merging or bubbling; this rule is already only usable by browsers
+    // that support nesting natively anyway.
+    var rule = ModifiableCssAtRule(node.name, node.span, value: node.value);
+    if (_hasCssNesting) {
+      await _withParent(rule, () async {
+        for (var child in node.children) {
+          await child.accept(this);
+        }
+      }, scopeWhen: false);
+      _inUnknownAtRule = wasInUnknownAtRule;
+      _inKeyframes = wasInKeyframes;
+      return;
+    }
+
     await _withParent(
-      ModifiableCssAtRule(node.name, node.span, value: node.value),
+      rule,
       () async {
         // We don't have to check for an unknown at-rule in a style rule here,
         // because the previous compilation has already bubbled the at-rule to the
@@ -4185,6 +4259,19 @@ final class _EvaluateVisitor
       );
     }
 
+    // If the user has already opted into plain CSS nesting, don't bother with
+    // any merging or bubbling; this rule is already only usable by browsers
+    // that support nesting natively anyway.
+    if (_hasCssNesting) {
+      await _withParent(ModifiableCssMediaRule(node.queries, node.span),
+          () async {
+        for (var child in node.children) {
+          await child.accept(this);
+        }
+      }, scopeWhen: false);
+      return;
+    }
+
     var mergedQueries = _mediaQueries.andThen(
       (mediaQueries) => _mergeMediaQueries(mediaQueries, node.queries),
     );
@@ -4246,12 +4333,12 @@ final class _EvaluateVisitor
     }
 
     var styleRule = _styleRule;
-    var nest = switch (_styleRule) {
+    var merge = switch (_styleRule) {
       null => true,
       CssStyleRule(fromPlainCss: true) => false,
       _ => !(node.fromPlainCss && node.selector.containsParentSelector)
     };
-    var originalSelector = nest
+    var originalSelector = merge
         ? node.selector.nestWithin(
             styleRule?.originalSelector,
             implicitParent: !_atRootExcludingStyleRule,
@@ -4276,7 +4363,7 @@ final class _EvaluateVisitor
           }
         });
       },
-      through: nest ? (node) => node is CssStyleRule : null,
+      through: merge ? (node) => node is CssStyleRule : null,
       scopeWhen: false,
     );
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
@@ -4303,8 +4390,18 @@ final class _EvaluateVisitor
       );
     }
 
+    var rule = ModifiableCssSupportsRule(node.condition, node.span);
+    if (_hasCssNesting) {
+      await _withParent(rule, () async {
+        for (var child in node.children) {
+          await child.accept(this);
+        }
+      }, scopeWhen: false);
+      return;
+    }
+
     await _withParent(
-      ModifiableCssSupportsRule(node.condition, node.span),
+      rule,
       () async {
         if (_styleRule case var styleRule?) {
           // If we're in a style rule, copy it into the supports rule so that
@@ -4535,7 +4632,7 @@ final class _EvaluateVisitor
     return result;
   }
 
-  /// If the current [_parent] is not the last child of its grandparent, makes a
+  /// If the current [_parent] is not the last child of its own parent, makes a
   /// new childless copy of it and sets [_parent] to that.
   ///
   /// Otherwise, leaves [_parent] as-is.

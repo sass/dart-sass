@@ -59,7 +59,7 @@ export class IfConditionFunction extends IfConditionExpression {
     built.parent = this;
     this._name = built;
   }
-  private declare _name?: Interpolation;
+  declare private _name?: Interpolation;
 
   /** The function's argument or arguments. */
   get argument(): Interpolation {
@@ -74,7 +74,7 @@ export class IfConditionFunction extends IfConditionExpression {
     built.parent = this;
     this._argument = built;
   }
-  private declare _argument?: Interpolation;
+  declare private _argument?: Interpolation;
 
   constructor(defaults: IfConditionFunctionProps);
   /** @hidden */

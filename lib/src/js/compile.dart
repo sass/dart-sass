@@ -388,7 +388,8 @@ Value _simplifyValue(Value value) => switch (value) {
               .map(_simplifyCalcArg)
               .toList(),
         )) {
-          ('calc', [var first]) => first as Value,
+          ('calc', [Value first]) => first,
+          ('calc', [var first]) => SassCalculation.calc(first),
           ('calc', _) =>
             throw ArgumentError('calc() requires exactly one argument.'),
           ('clamp', [var min, var value, var max]) => SassCalculation.clamp(

@@ -60,7 +60,7 @@ export class IfConditionNegation extends IfConditionExpression {
     built.parent = this;
     this._negated = built;
   }
-  private declare _negated?: AnyIfConditionExpression;
+  declare private _negated?: AnyIfConditionExpression;
 
   constructor(
     defaults:

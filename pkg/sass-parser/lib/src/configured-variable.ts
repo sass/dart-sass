@@ -112,7 +112,7 @@ export class ConfiguredVariable extends Node {
     built.parent = this;
     this._expression = built;
   }
-  private declare _expression: AnyExpression;
+  declare private _expression: AnyExpression;
 
   /** Whether this has a `!default` guard. */
   declare guarded: boolean;

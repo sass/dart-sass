@@ -88,7 +88,7 @@ export class SelectorList
     // This *should* only ever be called by the superclass constructor.
     this._nodes = nodes;
   }
-  private declare _nodes: Array<ComplexSelector>;
+  declare private _nodes: Array<ComplexSelector>;
 
   /**
    * Iterators that are currently active within this selector. Their indices

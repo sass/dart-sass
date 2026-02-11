@@ -33,8 +33,10 @@ import * as sassParser from '../..';
  *
  * @category Statement
  */
-export interface DeclarationRaws
-  extends Omit<PostcssDeclarationRaws, 'value' | 'important'> {
+export interface DeclarationRaws extends Omit<
+  PostcssDeclarationRaws,
+  'value' | 'important'
+> {
   /**
    * The space symbols between the end of the declaration's value and the
    * semicolon or the opening `{`. Always empty for a declaration that isn't
@@ -118,7 +120,7 @@ export class Declaration
     propInterpolation.parent = this;
     this._propInterpolation = propInterpolation;
   }
-  private declare _propInterpolation?: Interpolation;
+  declare private _propInterpolation?: Interpolation;
 
   /**
    * The declaration's value.
@@ -141,7 +143,7 @@ export class Declaration
       this._expression = built;
     }
   }
-  private declare _expression?: AnyExpression;
+  declare private _expression?: AnyExpression;
 
   get value(): string {
     return this.expression?.toString() ?? '';
@@ -169,13 +171,6 @@ export class Declaration
     const first = this.propInterpolation.nodes[0];
     return typeof first === 'string' && first.startsWith('--');
   }
-
-  /**
-   * Iterators that are currently active within this declaration's children.
-   * Their indices refer to the last position that has already been sent to the
-   * callback, and are updated when {@link _nodes} is modified.
-   */
-  readonly #iterators: Array<{index: number}> = [];
 
   constructor(defaults: DeclarationProps);
   /** @hidden */

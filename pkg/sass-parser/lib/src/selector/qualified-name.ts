@@ -78,7 +78,7 @@ export class QualifiedName extends Node {
     if (namespace) namespace.parent = this;
     this._namespace = namespace;
   }
-  private declare _namespace: Interpolation | undefined;
+  declare private _namespace: Interpolation | undefined;
 
   /** The identifier name. */
   get name(): Interpolation {
@@ -92,7 +92,7 @@ export class QualifiedName extends Node {
     name.parent = this;
     this._name = name;
   }
-  private declare _name: Interpolation;
+  declare private _name: Interpolation;
 
   constructor(defaults?: QualifiedNameProps);
   /** @hidden */

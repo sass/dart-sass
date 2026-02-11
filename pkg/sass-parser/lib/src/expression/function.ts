@@ -69,7 +69,7 @@ export class FunctionExpression extends Expression {
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._namespace = namespace;
   }
-  private declare _namespace: string | undefined;
+  declare private _namespace: string | undefined;
 
   /**
    * This function's name.
@@ -84,7 +84,7 @@ export class FunctionExpression extends Expression {
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._name = name;
   }
-  private declare _name: string;
+  declare private _name: string;
 
   /** The arguments to pass to the function. */
   get arguments(): ArgumentList {
@@ -99,7 +99,7 @@ export class FunctionExpression extends Expression {
       : new ArgumentList();
     this._arguments.parent = this;
   }
-  private declare _arguments: ArgumentList;
+  declare private _arguments: ArgumentList;
 
   constructor(defaults: FunctionExpressionProps);
   /** @hidden */

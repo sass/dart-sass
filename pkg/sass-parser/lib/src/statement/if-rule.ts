@@ -79,7 +79,7 @@ export class IfRule extends _AtRule<Partial<IfRuleProps>> implements Statement {
     built.parent = this;
     this._ifCondition = built;
   }
-  private declare _ifCondition?: AnyExpression;
+  declare private _ifCondition?: AnyExpression;
 
   constructor(defaults: IfRuleProps);
   /** @hidden */

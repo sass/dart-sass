@@ -99,7 +99,7 @@ export class ElseRule
       this._elseCondition = built;
     }
   }
-  private declare _elseCondition?: AnyExpression;
+  declare private _elseCondition?: AnyExpression;
 
   constructor(defaults?: ElseRuleProps);
   /** @hidden */

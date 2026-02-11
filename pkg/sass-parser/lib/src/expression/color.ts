@@ -71,7 +71,7 @@ export class ColorExpression extends Expression {
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._value = value;
   }
-  private declare _value: sass.SassColor;
+  declare private _value: sass.SassColor;
 
   constructor(defaults: ColorExpressionProps);
   /** @hidden */

@@ -95,7 +95,7 @@ export class IfExpression
     // This *should* only ever be called by the superclass constructor.
     this._nodes = nodes;
   }
-  private declare _nodes?: Array<IfEntry>;
+  declare private _nodes?: Array<IfEntry>;
 
   /**
    * Iterators that are currently active within this expression. Their indices

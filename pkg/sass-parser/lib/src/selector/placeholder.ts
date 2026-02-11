@@ -54,7 +54,7 @@ export class PlaceholderSelector extends SimpleSelector {
     built.parent = this;
     this._placeholder = built;
   }
-  private declare _placeholder: Interpolation;
+  declare private _placeholder: Interpolation;
 
   constructor(defaults: PlaceholderSelectorProps);
   /** @hidden */

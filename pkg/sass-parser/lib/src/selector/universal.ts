@@ -58,7 +58,7 @@ export class UniversalSelector extends SimpleSelector {
     if (built) built.parent = this;
     this._namespace = built;
   }
-  private declare _namespace: Interpolation | undefined;
+  declare private _namespace: Interpolation | undefined;
 
   constructor(defaults?: UniversalSelectorProps);
   /** @hidden */

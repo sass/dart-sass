@@ -230,7 +230,7 @@ export class ForwardRule
         : new Configuration(configuration);
     this._configuration.parent = this;
   }
-  private declare _configuration: Configuration;
+  declare private _configuration: Configuration;
 
   constructor(defaults: ForwardRuleProps);
   /** @hidden */

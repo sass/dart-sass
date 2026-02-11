@@ -67,7 +67,7 @@ export class IfConditionSass extends IfConditionExpression {
     built.parent = this;
     this._expression = built;
   }
-  private declare _expression?: AnyExpression;
+  declare private _expression?: AnyExpression;
 
   constructor(defaults: IfConditionSassProps);
   /** @hidden */

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: cc613599e8c178c1e77ec6db83e33f72dfc3ff22
+// Checksum: b2f49a534d6f1351c653f84b82bc410cc7ca21d9
 //
 // ignore_for_file: unused_import
 
@@ -232,7 +232,7 @@ final class Environment {
         {},
         _importedModules,
         null,
-        null,
+        _nestedForwardedModules,
         [],
         _variables.toList(),
         _variableNodes.toList(),
@@ -844,13 +844,15 @@ final class Environment {
   /// environment.
   Configuration toImplicitConfiguration() {
     var configuration = <String, ConfiguredValue>{};
-    for (var module in _importedModules.keys) {
-      for (var (name, value) in module.variables.pairs) {
-        configuration[name] =
-            ConfiguredValue.implicit(value, module.variableNodes[name]!);
-      }
-    }
     for (var i = 0; i < _variables.length; i++) {
+      var modules =
+          i == 0 ? _importedModules.keys : _nestedForwardedModules?[i - 1];
+      for (var module in modules ?? const <Module<Callable>>[]) {
+        for (var (name, value) in module.variables.pairs) {
+          configuration[name] =
+              ConfiguredValue.implicit(value, module.variableNodes[name]!);
+        }
+      }
       var values = _variables[i];
       var nodes = _variableNodes[i];
       for (var (name, value) in values.pairs) {

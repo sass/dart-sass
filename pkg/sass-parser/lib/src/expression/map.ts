@@ -82,7 +82,7 @@ export class MapExpression
     // This *should* only ever be called by the superclass constructor.
     this._nodes = nodes;
   }
-  private declare _nodes?: Array<MapEntry>;
+  declare private _nodes?: Array<MapEntry>;
 
   /**
    * Iterators that are currently active within this map. Their indices refer

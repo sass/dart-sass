@@ -77,7 +77,7 @@ describe('an argument list', () => {
 
         it('has a node', () => {
           expect(node.nodes.length).toBe(1);
-          expect(node.nodes[0].name).toBeUndefined;
+          expect(node.nodes[0].name).toBeUndefined();
           expect(node.nodes[0]).toHaveStringExpression('value', 'bar');
           expect(node.nodes[0].parent).toBe(node);
         });

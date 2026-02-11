@@ -57,7 +57,7 @@ export class StringExpression extends Expression {
     text.parent = this;
     this._text = text;
   }
-  private declare _text: Interpolation;
+  declare private _text: Interpolation;
 
   // TODO: provide a utility asPlainIdentifier method that returns the value of
   // an identifier with any escapes resolved, if this is indeed a valid unquoted
@@ -77,7 +77,7 @@ export class StringExpression extends Expression {
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._quotes = quotes;
   }
-  private declare _quotes: boolean;
+  declare private _quotes: boolean;
 
   constructor(defaults: StringExpressionProps);
   /** @hidden */

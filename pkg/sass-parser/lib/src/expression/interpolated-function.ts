@@ -54,7 +54,7 @@ export class InterpolatedFunctionExpression extends Expression {
         : new Interpolation(name);
     this._name.parent = this;
   }
-  private declare _name: Interpolation;
+  declare private _name: Interpolation;
 
   /** The arguments to pass to the function. */
   get arguments(): ArgumentList {
@@ -69,7 +69,7 @@ export class InterpolatedFunctionExpression extends Expression {
       : new ArgumentList();
     this._arguments.parent = this;
   }
-  private declare _arguments: ArgumentList;
+  declare private _arguments: ArgumentList;
 
   constructor(defaults: InterpolatedFunctionExpressionProps);
   /** @hidden */

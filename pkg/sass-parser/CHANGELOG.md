@@ -2,6 +2,18 @@
 
 * `/` is now parsed as slash-separated lists rather than division in SassScript.
 
+## 0.4.43-dev
+
+* No user-visible changes.
+
+## 0.4.42
+
+* No user-visible changes.
+
+## 0.4.41
+
+* No user-visible changes.
+
 ## 0.4.40
 
 * No user-visible changes.
