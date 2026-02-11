@@ -112,7 +112,7 @@ export class Argument extends Node {
     if (name) this._rest = undefined;
     this._name = name;
   }
-  private declare _name?: string;
+  declare private _name?: string;
 
   /** The argument's value. */
   get value(): AnyExpression {
@@ -124,7 +124,7 @@ export class Argument extends Node {
     built.parent = this;
     this._value = built;
   }
-  private declare _value?: AnyExpression;
+  declare private _value?: AnyExpression;
 
   /**
    * Whether this is a rest argument (indicated by `...` in Sass).
@@ -139,7 +139,7 @@ export class Argument extends Node {
     if (value) this._name = undefined;
     this._rest = value;
   }
-  private declare _rest?: boolean;
+  declare private _rest?: boolean;
 
   constructor(defaults: ArgumentProps) {
     if (Array.isArray(defaults)) {

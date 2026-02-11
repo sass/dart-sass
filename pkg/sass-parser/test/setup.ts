@@ -5,8 +5,6 @@
 import type {ExpectationResult, MatcherContext} from 'expect';
 import * as p from 'path';
 import * as postcss from 'postcss';
-// Unclear why eslint considers this extraneous
-// eslint-disable-next-line n/no-extraneous-import
 import type * as pretty from 'pretty-format';
 import * as sass from 'sass';
 import 'jest-extended';

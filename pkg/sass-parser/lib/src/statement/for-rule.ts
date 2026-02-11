@@ -113,7 +113,7 @@ export class ForRule
     built.parent = this;
     this._fromExpression = built;
   }
-  private declare _fromExpression?: AnyExpression;
+  declare private _fromExpression?: AnyExpression;
 
   /** The expression whose value is the ending point of the iteration. */
   get toExpression(): AnyExpression {
@@ -126,7 +126,7 @@ export class ForRule
     built.parent = this;
     this._toExpression = built;
   }
-  private declare _toExpression?: AnyExpression;
+  declare private _toExpression?: AnyExpression;
 
   constructor(defaults: ForRuleProps);
   /** @hidden */

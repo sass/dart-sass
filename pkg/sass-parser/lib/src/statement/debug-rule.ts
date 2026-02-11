@@ -79,7 +79,7 @@ export class DebugRule
     built.parent = this;
     this._debugExpression = built;
   }
-  private declare _debugExpression?: AnyExpression;
+  declare private _debugExpression?: AnyExpression;
 
   constructor(defaults: DebugRuleProps);
   /** @hidden */

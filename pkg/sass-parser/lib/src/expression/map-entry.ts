@@ -71,7 +71,7 @@ export class MapEntry extends Node {
     built.parent = this;
     this._key = built;
   }
-  private declare _key?: AnyExpression;
+  declare private _key?: AnyExpression;
 
   /** The map value. */
   get value(): AnyExpression {
@@ -83,7 +83,7 @@ export class MapEntry extends Node {
     built.parent = this;
     this._value = built;
   }
-  private declare _value?: AnyExpression;
+  declare private _value?: AnyExpression;
 
   constructor(defaults: MapEntryProps) {
     if (Array.isArray(defaults)) {

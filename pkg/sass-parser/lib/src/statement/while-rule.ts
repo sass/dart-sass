@@ -82,7 +82,7 @@ export class WhileRule
     built.parent = this;
     this._whileCondition = built;
   }
-  private declare _whileCondition?: AnyExpression;
+  declare private _whileCondition?: AnyExpression;
 
   constructor(defaults: WhileRuleProps);
   /** @hidden */

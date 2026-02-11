@@ -69,8 +69,7 @@ export type NewNodeForIfConditionOperation =
  */
 export class IfConditionOperation
   extends IfConditionExpression
-  implements
-    Container<AnyIfConditionExpression, NewNodeForIfConditionOperation>
+  implements Container<AnyIfConditionExpression, NewNodeForIfConditionOperation>
 {
   readonly sassType = 'if-condition-operation' as const;
   declare raws: IfConditionOperationRaws;
@@ -84,7 +83,7 @@ export class IfConditionOperation
     // TODO - postcss/postcss#1957: Mark this as dirty
     this._operator = operator;
   }
-  private declare _operator: 'and' | 'or';
+  declare private _operator: 'and' | 'or';
 
   get nodes(): ReadonlyArray<AnyIfConditionExpression> {
     return this._nodes!;
@@ -94,7 +93,7 @@ export class IfConditionOperation
     // This *should* only ever be called by the superclass constructor.
     this._nodes = nodes;
   }
-  private declare _nodes?: Array<AnyIfConditionExpression>;
+  declare private _nodes?: Array<AnyIfConditionExpression>;
 
   /**
    * Iterators that are currently active within this operation. Their indices

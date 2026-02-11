@@ -53,7 +53,7 @@ export class IDSelector extends SimpleSelector {
     built.parent = this;
     this._id = built;
   }
-  private declare _id: Interpolation;
+  declare private _id: Interpolation;
 
   constructor(defaults: IDSelectorProps);
   /** @hidden */

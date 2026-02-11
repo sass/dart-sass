@@ -97,28 +97,25 @@ export type NodeProps = postcss.NodeProps;
  * This does _not_ include methods for adding and modifying siblings of this
  * Node, because these only make sense for expression-level Node types.
  */
-declare abstract class Node
-  implements
-    Omit<
-      postcss.Node,
-      | 'after'
-      | 'assign'
-      | 'before'
-      | 'clone'
-      | 'cloneAfter'
-      | 'cloneBefore'
-      | 'next'
-      | 'prev'
-      | 'remove'
-      // TODO: supporting replaceWith() would be tricky, but it does have
-      // well-defined semantics even without a nodes array and it's awfully
-      // useful. See if we can find a way.
-      | 'replaceWith'
-      | 'type'
-      | 'parent'
-      | 'toString'
-    >
-{
+declare abstract class Node implements Omit<
+  postcss.Node,
+  | 'after'
+  | 'assign'
+  | 'before'
+  | 'clone'
+  | 'cloneAfter'
+  | 'cloneBefore'
+  | 'next'
+  | 'prev'
+  | 'remove'
+  // TODO: supporting replaceWith() would be tricky, but it does have
+  // well-defined semantics even without a nodes array and it's awfully
+  // useful. See if we can find a way.
+  | 'replaceWith'
+  | 'type'
+  | 'parent'
+  | 'toString'
+> {
   abstract readonly sassType: NodeType;
   parent: AnyNode | undefined;
   source?: postcss.Source;

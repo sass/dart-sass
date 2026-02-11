@@ -90,7 +90,7 @@ export class IfEntry extends Node {
       this._condition = condition;
     }
   }
-  private declare _condition?: AnyIfConditionExpression | 'else';
+  declare private _condition?: AnyIfConditionExpression | 'else';
 
   /** The entry's value. */
   get value(): AnyExpression {
@@ -102,7 +102,7 @@ export class IfEntry extends Node {
     built.parent = this;
     this._value = built;
   }
-  private declare _value?: AnyExpression;
+  declare private _value?: AnyExpression;
 
   constructor(defaults: IfEntryProps) {
     if (Array.isArray(defaults)) {

@@ -84,7 +84,7 @@ export class PseudoSelector extends SimpleSelector {
     built.parent = this;
     this._pseudo = built;
   }
-  private declare _pseudo: Interpolation;
+  declare private _pseudo: Interpolation;
 
   /**
    * Whether this is syntactically written as a pseudo-class (as opposed to a
@@ -111,7 +111,7 @@ export class PseudoSelector extends SimpleSelector {
   set isElement(isElement: boolean) {
     this._isElement = isElement;
   }
-  private declare _isElement: boolean;
+  declare private _isElement: boolean;
 
   /**
    * The non-selector argument passed to this selector.
@@ -133,7 +133,7 @@ export class PseudoSelector extends SimpleSelector {
     if (built) built.parent = this;
     this._argument = built;
   }
-  private declare _argument: Interpolation | undefined;
+  declare private _argument: Interpolation | undefined;
 
   /**
    * The non-selector argument passed to this selector.
@@ -155,7 +155,7 @@ export class PseudoSelector extends SimpleSelector {
     if (built) built.parent = this;
     this._selector = built;
   }
-  private declare _selector: SelectorList | undefined;
+  declare private _selector: SelectorList | undefined;
 
   constructor(defaults: PseudoSelectorProps);
   /** @hidden */

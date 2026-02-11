@@ -126,7 +126,7 @@ export class IncludeRule
       : new ArgumentList();
     this._arguments.parent = this;
   }
-  private declare _arguments: ArgumentList;
+  declare private _arguments: ArgumentList;
 
   /** The parameters that the `@content` block takes. */
   get using(): ParameterList | undefined {
@@ -144,7 +144,7 @@ export class IncludeRule
       this._using = undefined;
     }
   }
-  private declare _using?: ParameterList;
+  declare private _using?: ParameterList;
 
   get name(): string {
     return 'include';

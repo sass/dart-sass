@@ -85,7 +85,7 @@ export class MixinRule
       'sassType' in parameters ? parameters : new ParameterList(parameters);
     this._parameters.parent = this;
   }
-  private declare _parameters: ParameterList;
+  declare private _parameters: ParameterList;
 
   get name(): string {
     return 'mixin';

@@ -83,7 +83,7 @@ export class ParameterList
     // This *should* only ever be called by the superclass constructor.
     this._nodes = nodes;
   }
-  private declare _nodes?: Array<Parameter>;
+  declare private _nodes?: Array<Parameter>;
 
   /**
    * Iterators that are currently active within this parameter list. Their
