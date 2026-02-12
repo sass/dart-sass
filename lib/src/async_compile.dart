@@ -238,7 +238,7 @@ Future<CompileResult> _compileStylesheet(
     if (importCache != null) {
       for (var i = 0, length = resultSourceMap.urls.length; i < length; i++) {
         var canonicalUrl = Uri.parse(resultSourceMap.urls[i]);
-        var sourceMapUrl = importCache.sourceMapUrl(canonicalUrl);
+        var sourceMapUrl = importCache.sourceMapUrlOrNull(canonicalUrl);
         if (sourceMapUrl != null) {
           resultSourceMap.urls[i] = sourceMapUrl.toString();
           if (sourceMapIncludeSources == SourceMapIncludeSources.auto) {

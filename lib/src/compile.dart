@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 264147f2a9507ce33b5b2faaea9cbba773047a9c
+// Checksum: 1ff55074bb0b91ced8c0ad971324a48a71a8213a
 //
 // ignore_for_file: unused_import
 
@@ -247,7 +247,7 @@ CompileResult _compileStylesheet(
     if (importCache != null) {
       for (var i = 0, length = resultSourceMap.urls.length; i < length; i++) {
         var canonicalUrl = Uri.parse(resultSourceMap.urls[i]);
-        var sourceMapUrl = importCache.sourceMapUrl(canonicalUrl);
+        var sourceMapUrl = importCache.sourceMapUrlOrNull(canonicalUrl);
         if (sourceMapUrl != null) {
           resultSourceMap.urls[i] = sourceMapUrl.toString();
           if (sourceMapIncludeSources == SourceMapIncludeSources.auto) {
