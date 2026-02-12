@@ -370,8 +370,15 @@ final class AsyncImportCache {
 
   /// Returns the URL to use in the source map to refer to [canonicalUrl].
   ///
+  /// Returns [canonicalUrl] as-is if it hasn't been loaded by this cache.
+  @Deprecated('Use sourceMapUrlOrNull instead.')
+  Uri sourceMapUrl(Uri canonicalUrl) =>
+      _resultsCache[canonicalUrl]?.sourceMapUrl ?? canonicalUrl;
+
+  /// Returns the URL to use in the source map to refer to [canonicalUrl].
+  ///
   /// Returns `null` if it hasn't been loaded by this cache.
-  Uri? sourceMapUrl(Uri canonicalUrl) =>
+  Uri? sourceMapUrlOrNull(Uri canonicalUrl) =>
       _resultsCache[canonicalUrl]?.sourceMapUrl;
 
   /// Returns the most recent time the stylesheet at [canonicalUrl] was loaded

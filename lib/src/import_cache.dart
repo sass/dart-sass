@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 6e9b9c0f00a10f4a33ffe25c1ebc75a8ab0cf5de
+// Checksum: 104c7704a424d58a3071f5d29aea7a42d99aef3b
 //
 // ignore_for_file: unused_import
 
@@ -367,8 +367,15 @@ final class ImportCache {
 
   /// Returns the URL to use in the source map to refer to [canonicalUrl].
   ///
+  /// Returns [canonicalUrl] as-is if it hasn't been loaded by this cache.
+  @Deprecated('Use sourceMapUrlOrNull instead.')
+  Uri sourceMapUrl(Uri canonicalUrl) =>
+      _resultsCache[canonicalUrl]?.sourceMapUrl ?? canonicalUrl;
+
+  /// Returns the URL to use in the source map to refer to [canonicalUrl].
+  ///
   /// Returns `null` if it hasn't been loaded by this cache.
-  Uri? sourceMapUrl(Uri canonicalUrl) =>
+  Uri? sourceMapUrlOrNull(Uri canonicalUrl) =>
       _resultsCache[canonicalUrl]?.sourceMapUrl;
 
   /// Returns the most recent time the stylesheet at [canonicalUrl] was loaded
