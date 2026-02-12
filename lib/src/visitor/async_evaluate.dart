@@ -620,12 +620,8 @@ final class _EvaluateVisitor
               throw "The variable \$$name was configured twice.";
             } else if (name.startsWith("-") && !privateDeprecation) {
               privateDeprecation = true;
-              warnForDeprecation(
-                "Configuring private variables (such as \$$name) is "
-                "deprecated.\n"
-                "This will be an error in Dart Sass 2.0.0.",
-                Deprecation.withPrivate,
-              );
+              throw SassScriptException(
+                  "Private variable \$$name can't be configured.");
             }
 
             values[name] = ConfiguredValue.explicit(value, span, callableNode);

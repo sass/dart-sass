@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 04330e4536750e9355c54fd61fe8332f9ce7e1a6
+// Checksum: 7260583650403a55b8d92fd8d935e43819370fe8
 //
 // ignore_for_file: unused_import
 
@@ -628,12 +628,8 @@ final class _EvaluateVisitor
               throw "The variable \$$name was configured twice.";
             } else if (name.startsWith("-") && !privateDeprecation) {
               privateDeprecation = true;
-              warnForDeprecation(
-                "Configuring private variables (such as \$$name) is "
-                "deprecated.\n"
-                "This will be an error in Dart Sass 2.0.0.",
-                Deprecation.withPrivate,
-              );
+              throw SassScriptException(
+                  "Private variable \$$name can't be configured.");
             }
 
             values[name] = ConfiguredValue.explicit(value, span, callableNode);

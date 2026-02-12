@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 263e0d996a55c71535366a16d5f9c363e931c129
+  // Checksum: e9636ace13dcb8c5dc8243baf6ad36dbce0d694c
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -155,6 +155,7 @@ enum Deprecation {
   /// Deprecation for configuring private variables in @use, @forward, or load-css().
   withPrivate('with-private',
       deprecatedIn: '1.92.0',
+      obsoleteIn: '2.0.0',
       description:
           'Configuring private variables in @use, @forward, or load-css().'),
 
