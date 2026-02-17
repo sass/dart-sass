@@ -228,47 +228,6 @@ final class SassColor extends Value {
       isChannel2Missing ||
       isAlphaMissing;
 
-  /// This color's red channel, between `0` and `255`.
-  ///
-  /// **Note:** This is rounded to the nearest integer, which may be lossy. Use
-  /// [channel] instead to get the true red value.
-  @Deprecated('Use channel() instead.')
-  int get red => _legacyChannel(ColorSpace.rgb, 'red').round();
-
-  /// This color's green channel, between `0` and `255`.
-  ///
-  /// **Note:** This is rounded to the nearest integer, which may be lossy. Use
-  /// [channel] instead to get the true red value.
-  @Deprecated('Use channel() instead.')
-  int get green => _legacyChannel(ColorSpace.rgb, 'green').round();
-
-  /// This color's blue channel, between `0` and `255`.
-  ///
-  /// **Note:** This is rounded to the nearest integer, which may be lossy. Use
-  /// [channel] instead to get the true red value.
-  @Deprecated('Use channel() instead.')
-  int get blue => _legacyChannel(ColorSpace.rgb, 'blue').round();
-
-  /// This color's hue, between `0` and `360`.
-  @Deprecated('Use channel() instead.')
-  double get hue => _legacyChannel(ColorSpace.hsl, 'hue');
-
-  /// This color's saturation, a percentage between `0` and `100`.
-  @Deprecated('Use channel() instead.')
-  double get saturation => _legacyChannel(ColorSpace.hsl, 'saturation');
-
-  /// This color's lightness, a percentage between `0` and `100`.
-  @Deprecated('Use channel() instead.')
-  double get lightness => _legacyChannel(ColorSpace.hsl, 'lightness');
-
-  /// This color's whiteness, a percentage between `0` and `100`.
-  @Deprecated('Use channel() instead.')
-  double get whiteness => _legacyChannel(ColorSpace.hwb, 'whiteness');
-
-  /// This color's blackness, a percentage between `0` and `100`.
-  @Deprecated('Use channel() instead.')
-  double get blackness => _legacyChannel(ColorSpace.hwb, 'blackness');
-
   /// Creates a color in [ColorSpace.rgb].
   ///
   /// If `null` is passed for [alpha], that indicates that it's a [missing
@@ -757,21 +716,6 @@ final class SassColor extends Value {
     );
   }
 
-  /// If this is a legacy color, converts it to the given [space] and then
-  /// returns the given [channel].
-  ///
-  /// Otherwise, throws an exception.
-  double _legacyChannel(ColorSpace space, String channel) {
-    if (!isLegacy) {
-      throw SassScriptException(
-        "color.$channel() is only supported for legacy colors. Please use "
-        "color.channel() instead with an explicit \$space argument.",
-      );
-    }
-
-    return toSpace(space).channel(channel);
-  }
-
   /// Converts this color to [space].
   ///
   /// If [legacyMissing] is false, this will convert missing channels in legacy
@@ -806,60 +750,6 @@ final class SassColor extends Value {
   /// Returns a copy of this color that's in-gamut in the current color space.
   SassColor toGamut(GamutMapMethod method) =>
       isInGamut ? this : method.map(this);
-
-  /// Changes one or more of this color's RGB channels and returns the result.
-  @Deprecated('Use changeChannels() instead.')
-  SassColor changeRgb({int? red, int? green, int? blue, num? alpha}) {
-    if (!isLegacy) {
-      throw SassScriptException(
-        "color.changeRgb() is only supported for legacy colors. Please use "
-        "color.changeChannels() instead with an explicit \$space argument.",
-      );
-    }
-
-    return SassColor.rgb(
-      red?.toDouble() ?? channel('red'),
-      green?.toDouble() ?? channel('green'),
-      blue?.toDouble() ?? channel('blue'),
-      alpha?.toDouble() ?? this.alpha,
-    );
-  }
-
-  /// Changes one or more of this color's HSL channels and returns the result.
-  @Deprecated('Use changeChannels() instead.')
-  SassColor changeHsl({num? hue, num? saturation, num? lightness, num? alpha}) {
-    if (!isLegacy) {
-      throw SassScriptException(
-        "color.changeHsl() is only supported for legacy colors. Please use "
-        "color.changeChannels() instead with an explicit \$space argument.",
-      );
-    }
-
-    return SassColor.hsl(
-      hue?.toDouble() ?? this.hue,
-      saturation?.toDouble() ?? this.saturation,
-      lightness?.toDouble() ?? this.lightness,
-      alpha?.toDouble() ?? this.alpha,
-    ).toSpace(space);
-  }
-
-  /// Changes one or more of this color's HWB channels and returns the result.
-  @Deprecated('Use changeChannels() instead.')
-  SassColor changeHwb({num? hue, num? whiteness, num? blackness, num? alpha}) {
-    if (!isLegacy) {
-      throw SassScriptException(
-        "color.changeHsl() is only supported for legacy colors. Please use "
-        "color.changeChannels() instead with an explicit \$space argument.",
-      );
-    }
-
-    return SassColor.hwb(
-      hue?.toDouble() ?? this.hue,
-      whiteness?.toDouble() ?? this.whiteness,
-      blackness?.toDouble() ?? this.blackness,
-      alpha?.toDouble() ?? this.alpha + 0.0,
-    ).toSpace(space);
-  }
 
   /// Returns a new copy of this color with the alpha channel set to [alpha].
   SassColor changeAlpha(num alpha) => SassColor.forSpaceInternal(

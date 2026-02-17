@@ -4,6 +4,13 @@
   division in SassScript. You can still use it for division within `calc()` and
   other calculation expressions, or use `math.div()` instead.
 
+* **Breaking change:** The global functions `red()`, `green()`, `blue()`,
+  `hue()`, `saturation()`, `lightness()`, `whiteness()`, `blackness()`,
+  `alpha()`, `opacity()`, `adjust-hue()`, `saturate()`, `desaturate()`,
+  `lighten()`, `darken()`, `opacify()`, `fade-in()`, `transparentize()`, and
+  `fade-out()`, as well as their `sass:color` equivalents where they exist, have
+  been removed.
+
 * **Breaking change:** `@elseif` is no longer treated as equivalent to `@else
   if`, and is now treated like any other unknown plain CSS at-rule.
 
@@ -106,6 +113,15 @@
 * **Breaking change:** Remove `Deprecation.duplicateVariableFlags`. Use
   `Deprecation.duplicateVarFlags`.
 
+#### `SassColor`
+
+* **Breaking change:** Remove the `SassColor.red`, `.green`, `.blue`, `.hue`,
+  `.saturation`, `.lightness`, `.whiteness`, and `.blackness` parameters. Use
+  the `SassColor.channel()` method instead.
+
+* **Breaking change:** Remove the `SassColor.changeRgb`, `.changeHsl`, and
+  `.changeHwb` methods. Use `SassColor.changeChannels()` instead.
+
 #### `ImporterResult`
 
 * **Breaking change:** Remove `ImporterResult.isIndented`. Use
@@ -116,6 +132,29 @@
 
 * **Breaking change:** The `syntax` parameter to `ImporterResult()` is now
   `required` and non-nullable.
+
+### JavaScript API
+
+#### `SassColor`
+
+* **Breaking change:** Remove the `SassColor.red`, `.green`, `.blue`, `.hue`,
+  `.saturation`, `.lightness`, `.whiteness`, and `.blackness` parameters. Use
+  the `SassColor.channel()` method instead.
+
+* **Breaking change:** A `null` `alpha` argument for `new SassColor()` for a
+  legacy color space is now interpreted as a missing channel rather than a fully
+  opaque color. Use `undefined` to pass the default value for any channel or `1`
+  to explicitly make the color opaque.
+
+* **Breaking change:** Calling `SassColor.change()` for a legacy color with a
+  `null` value now marks that channel as missing rather than using its previous
+  value. Use `undefined` to retain the previous value.
+
+* **Breaking change:** Calling `SassColor.change()` with a channel name not in
+  the color's current color space is now an error for all colors. Previously,
+  legacy colors would automatically convert between the RGB, HSL, and HWB color
+  spaces. You can pass the `space` parameter to explicitly convert to a new
+  space.
 
 ## 1.97.4-dev
 

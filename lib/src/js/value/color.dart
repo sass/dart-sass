@@ -7,8 +7,7 @@ import 'dart:js_util';
 import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
 
-import '../../deprecation.dart';
-import '../../evaluation_context.dart';
+import '../../util/nullable.dart';
 import '../../value.dart';
 import '../immutable.dart';
 import '../reflection.dart';
@@ -23,7 +22,6 @@ final JSClass colorClass = () {
     var constructionSpace = _constructionSpace(options);
     switch (constructionSpace) {
       case ColorSpace.rgb:
-        _checkNullAlphaDeprecation(options);
         return SassColor.rgb(
           options.red,
           options.green,
@@ -32,7 +30,6 @@ final JSClass colorClass = () {
         );
 
       case ColorSpace.hsl:
-        _checkNullAlphaDeprecation(options);
         return SassColor.hsl(
           options.hue,
           options.saturation,
@@ -41,7 +38,6 @@ final JSClass colorClass = () {
         );
 
       case ColorSpace.hwb:
-        _checkNullAlphaDeprecation(options);
         return SassColor.hwb(
           options.hue,
           options.whiteness,
@@ -171,36 +167,7 @@ final JSClass colorClass = () {
             [_ChannelOptions? options]) =>
         _toSpace(self, options?.space).isChannelPowerless(channel),
     'change': (SassColor self, _ConstructionOptions options) {
-      var spaceSetExplicitly = options.space != null;
-      var space =
-          spaceSetExplicitly ? ColorSpace.fromName(options.space!) : self.space;
-
-      if (self.isLegacy && !spaceSetExplicitly) {
-        if (hasProperty(options, 'whiteness') ||
-            hasProperty(options, 'blackness')) {
-          space = ColorSpace.hwb;
-        } else if (hasProperty(options, 'hue') &&
-            self.space == ColorSpace.hwb) {
-          space = ColorSpace.hwb;
-        } else if (hasProperty(options, 'hue') ||
-            hasProperty(options, 'saturation') ||
-            hasProperty(options, 'lightness')) {
-          space = ColorSpace.hsl;
-        } else if (hasProperty(options, 'red') ||
-            hasProperty(options, 'green') ||
-            hasProperty(options, 'blue')) {
-          space = ColorSpace.rgb;
-        }
-        if (space != self.space) {
-          warnForDeprecationFromApi(
-            "Changing a channel not in this color's space without explicitly specifying "
-            "the `space` option is deprecated."
-            "\n"
-            "More info: https://sass-lang.com/d/color-4-api",
-            Deprecation.color4Api,
-          );
-        }
-      }
+      var space = options.space.andThen(ColorSpace.fromName) ?? self.space;
 
       for (final key in objectKeys(options)) {
         if (['alpha', 'space'].contains(key)) continue;
@@ -218,7 +185,7 @@ final JSClass colorClass = () {
       }
 
       switch (space) {
-        case ColorSpace.hsl when spaceSetExplicitly:
+        case ColorSpace.hsl:
           changedColor = SassColor.hsl(
             changedValue('hue'),
             changedValue('saturation'),
@@ -227,26 +194,7 @@ final JSClass colorClass = () {
           );
           break;
 
-        case ColorSpace.hsl:
-          if (isNull(options.hue)) {
-            _emitColor4ApiNullDeprecation('hue');
-          } else if (isNull(options.saturation)) {
-            _emitColor4ApiNullDeprecation('saturation');
-          } else if (isNull(options.lightness)) {
-            _emitColor4ApiNullDeprecation('lightness');
-          }
-          if (isNull(options.alpha)) {
-            _emitNullAlphaDeprecation();
-          }
-          changedColor = SassColor.hsl(
-            options.hue ?? color.channel('hue'),
-            options.saturation ?? color.channel('saturation'),
-            options.lightness ?? color.channel('lightness'),
-            options.alpha ?? color.channel('alpha'),
-          );
-          break;
-
-        case ColorSpace.hwb when spaceSetExplicitly:
+        case ColorSpace.hwb:
           changedColor = SassColor.hwb(
             changedValue('hue'),
             changedValue('whiteness'),
@@ -255,49 +203,12 @@ final JSClass colorClass = () {
           );
           break;
 
-        case ColorSpace.hwb:
-          if (isNull(options.hue)) {
-            _emitColor4ApiNullDeprecation('hue');
-          } else if (isNull(options.whiteness)) {
-            _emitColor4ApiNullDeprecation('whiteness');
-          } else if (isNull(options.blackness)) {
-            _emitColor4ApiNullDeprecation('blackness');
-          }
-          if (isNull(options.alpha)) _emitNullAlphaDeprecation();
-          changedColor = SassColor.hwb(
-            options.hue ?? color.channel('hue'),
-            options.whiteness ?? color.channel('whiteness'),
-            options.blackness ?? color.channel('blackness'),
-            options.alpha ?? color.channel('alpha'),
-          );
-
-          break;
-
-        case ColorSpace.rgb when spaceSetExplicitly:
+        case ColorSpace.rgb:
           changedColor = SassColor.rgb(
             changedValue('red'),
             changedValue('green'),
             changedValue('blue'),
             changedValue('alpha'),
-          );
-          break;
-
-        case ColorSpace.rgb:
-          if (isNull(options.red)) {
-            _emitColor4ApiNullDeprecation('red');
-          } else if (isNull(options.green)) {
-            _emitColor4ApiNullDeprecation('green');
-          } else if (isNull(options.blue)) {
-            _emitColor4ApiNullDeprecation('blue');
-          }
-          if (isNull(options.alpha)) {
-            _emitNullAlphaDeprecation();
-          }
-          changedColor = SassColor.rgb(
-            options.red ?? color.channel('red'),
-            options.green ?? color.channel('green'),
-            options.blue ?? color.channel('blue'),
-            options.alpha ?? color.channel('alpha'),
           );
           break;
 
@@ -446,38 +357,6 @@ final JSClass colorClass = () {
   });
 
   jsClass.defineGetters({
-    'red': (SassColor self) {
-      _emitColor4ApiChannelDeprecation('red');
-      return self.red;
-    },
-    'green': (SassColor self) {
-      _emitColor4ApiChannelDeprecation('green');
-      return self.green;
-    },
-    'blue': (SassColor self) {
-      _emitColor4ApiChannelDeprecation('blue');
-      return self.blue;
-    },
-    'hue': (SassColor self) {
-      _emitColor4ApiChannelDeprecation('hue');
-      return self.hue;
-    },
-    'saturation': (SassColor self) {
-      _emitColor4ApiChannelDeprecation('saturation');
-      return self.saturation;
-    },
-    'lightness': (SassColor self) {
-      _emitColor4ApiChannelDeprecation('lightness');
-      return self.lightness;
-    },
-    'whiteness': (SassColor self) {
-      _emitColor4ApiChannelDeprecation('whiteness');
-      return self.whiteness;
-    },
-    'blackness': (SassColor self) {
-      _emitColor4ApiChannelDeprecation('blackness');
-      return self.blackness;
-    },
     'alpha': (SassColor self) => self.alpha,
     'space': (SassColor self) => self.space.name,
     'isLegacy': (SassColor self) => self.isLegacy,
@@ -519,45 +398,6 @@ ColorSpace _constructionSpace(_ConstructionOptions options) {
 // Return a SassColor in a named space, or in its original space.
 SassColor _toSpace(SassColor self, String? space) {
   return self.toSpace(ColorSpace.fromName(space ?? self.space.name));
-}
-
-// If alpha is explicitly null and space is not set, emit deprecation.
-void _checkNullAlphaDeprecation(_ConstructionOptions options) {
-  if (!isUndefined(options.alpha) &&
-      identical(options.alpha, null) &&
-      identical(options.space, null)) {
-    _emitNullAlphaDeprecation();
-  }
-}
-
-// Warn users about null-alpha deprecation.
-void _emitNullAlphaDeprecation() {
-  warnForDeprecationFromApi(
-    "Passing `alpha: null` without setting `space` is deprecated."
-    "\n"
-    "More info: https://sass-lang.com/d/null-alpha",
-    Deprecation.nullAlpha,
-  );
-}
-
-// Warn users about `null` channel values without setting `space`.
-void _emitColor4ApiNullDeprecation(String name) {
-  warnForDeprecationFromApi(
-    "Passing `$name: null` without setting `space` is deprecated."
-    "\n"
-    "More info: https://sass-lang.com/d/color-4-api",
-    Deprecation.color4Api,
-  );
-}
-
-// Warn users about legacy color channel getters.
-void _emitColor4ApiChannelDeprecation(String name) {
-  warnForDeprecationFromApi(
-    "$name is deprecated, use `channel` instead."
-    "\n"
-    "More info: https://sass-lang.com/d/color-4-api",
-    Deprecation.color4Api,
-  );
 }
 
 @JS()

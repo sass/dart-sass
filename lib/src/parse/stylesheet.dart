@@ -2868,10 +2868,11 @@ abstract base class StylesheetParser extends Parser {
         }
 
         if (colorsByName[lower] case var color?) {
+          assert(color.space == ColorSpace.rgb);
           color = SassColor.rgbInternal(
-            color.red,
-            color.green,
-            color.blue,
+            color.channel0,
+            color.channel1,
+            color.channel2,
             color.alpha,
             SpanColorFormat(identifier.span),
           );

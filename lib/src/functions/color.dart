@@ -18,10 +18,6 @@ import '../util/number.dart';
 import '../utils.dart';
 import '../value.dart';
 
-/// A regular expression matching the beginning of a proprietary Microsoft
-/// filter declaration.
-final _microsoftFilterStart = RegExp(r'^[a-zA-Z]+\s*=');
-
 /// If a special number string is detected in these color spaces, even if they
 /// were using the one-argument function syntax, we convert it to the three- or
 /// four- argument comma-separated syntax for broader browser compatibility.
@@ -31,24 +27,6 @@ const _specialCommaSpaces = {ColorSpace.rgb, ColorSpace.hsl};
 @internal
 final global = UnmodifiableListView([
   // ### RGB
-  _channelFunction(
-    "red",
-    ColorSpace.rgb,
-    (color) => color.red,
-    global: true,
-  ).withDeprecationWarning("color"),
-  _channelFunction(
-    "green",
-    ColorSpace.rgb,
-    (color) => color.green,
-    global: true,
-  ).withDeprecationWarning("color"),
-  _channelFunction(
-    "blue",
-    ColorSpace.rgb,
-    (color) => color.blue,
-    global: true,
-  ).withDeprecationWarning("color"),
   _mix.withDeprecationWarning("color"),
 
   BuiltInCallable.overloadedFunction("rgb", {
@@ -83,28 +61,6 @@ final global = UnmodifiableListView([
   }),
 
   // ### HSL
-  _channelFunction(
-    "hue",
-    ColorSpace.hsl,
-    (color) => color.hue,
-    unit: 'deg',
-    global: true,
-  ).withDeprecationWarning("color"),
-  _channelFunction(
-    "saturation",
-    ColorSpace.hsl,
-    (color) => color.saturation,
-    unit: '%',
-    global: true,
-  ).withDeprecationWarning("color"),
-  _channelFunction(
-    "lightness",
-    ColorSpace.hsl,
-    (color) => color.lightness,
-    unit: '%',
-    global: true,
-  ).withDeprecationWarning("color"),
-
   BuiltInCallable.overloadedFunction("hsl", {
     r"$hue, $saturation, $lightness, $alpha": (arguments) =>
         _hsl("hsl", arguments),
@@ -154,227 +110,6 @@ final global = UnmodifiableListView([
 
       return _grayscale(arguments[0]);
     }
-  }),
-
-  _function("adjust-hue", r"$color, $degrees", (arguments) {
-    var color = arguments[0].assertColor("color");
-    var degrees = _angleValue(arguments[1], "degrees");
-
-    if (!color.isLegacy) {
-      throw SassScriptException(
-        "adjust-hue() is only supported for legacy colors. Please use "
-        "color.adjust() instead with an explicit \$space argument.",
-      );
-    }
-
-    var suggestedValue = SassNumber(degrees, 'deg');
-    warnForDeprecation(
-      "adjust-hue() is deprecated. Suggestion:\n"
-      "\n"
-      "color.adjust(\$color, \$hue: ${suggestedValue.toCssString()})\n"
-      "\n"
-      "More info: https://sass-lang.com/d/color-functions",
-      Deprecation.colorFunctions,
-    );
-
-    return color.changeHsl(hue: color.hue + degrees);
-  }).withDeprecationWarning('color', 'adjust'),
-
-  _function("lighten", r"$color, $amount", (arguments) {
-    var color = arguments[0].assertColor("color");
-    var amount = arguments[1].assertNumber("amount");
-    if (!color.isLegacy) {
-      throw SassScriptException(
-        "lighten() is only supported for legacy colors. Please use "
-        "color.adjust() instead with an explicit \$space argument.",
-      );
-    }
-
-    var result = color.changeHsl(
-      lightness: clampLikeCss(
-        color.lightness + amount.valueInRange(0, 100, "amount"),
-        0,
-        100,
-      ),
-    );
-
-    warnForDeprecation(
-      "lighten() is deprecated. "
-      "${_suggestScaleAndAdjust(color, amount.value, 'lightness')}\n"
-      "\n"
-      "More info: https://sass-lang.com/d/color-functions",
-      Deprecation.colorFunctions,
-    );
-    return result;
-  }).withDeprecationWarning('color', 'adjust'),
-
-  _function("darken", r"$color, $amount", (arguments) {
-    var color = arguments[0].assertColor("color");
-    var amount = arguments[1].assertNumber("amount");
-    if (!color.isLegacy) {
-      throw SassScriptException(
-        "darken() is only supported for legacy colors. Please use "
-        "color.adjust() instead with an explicit \$space argument.",
-      );
-    }
-
-    var result = color.changeHsl(
-      lightness: clampLikeCss(
-        color.lightness - amount.valueInRange(0, 100, "amount"),
-        0,
-        100,
-      ),
-    );
-
-    warnForDeprecation(
-      "darken() is deprecated. "
-      "${_suggestScaleAndAdjust(color, -amount.value, 'lightness')}\n"
-      "\n"
-      "More info: https://sass-lang.com/d/color-functions",
-      Deprecation.colorFunctions,
-    );
-    return result;
-  }).withDeprecationWarning('color', 'adjust'),
-
-  BuiltInCallable.overloadedFunction("saturate", {
-    r"$amount": (arguments) {
-      if (arguments[0] is SassNumber || arguments[0].isSpecialNumber) {
-        // Use the native CSS `saturate` filter function.
-        return _functionString("saturate", arguments);
-      }
-      var number = arguments[0].assertNumber("amount");
-      return SassString("saturate(${number.toCssString()})", quotes: false);
-    },
-    r"$color, $amount": (arguments) {
-      warnForGlobalBuiltIn('color', 'adjust');
-      var color = arguments[0].assertColor("color");
-      var amount = arguments[1].assertNumber("amount");
-      if (!color.isLegacy) {
-        throw SassScriptException(
-          "saturate() is only supported for legacy colors. Please use "
-          "color.adjust() instead with an explicit \$space argument.",
-        );
-      }
-
-      var result = color.changeHsl(
-        saturation: clampLikeCss(
-          color.saturation + amount.valueInRange(0, 100, "amount"),
-          0,
-          100,
-        ),
-      );
-
-      warnForDeprecation(
-        "saturate() is deprecated. "
-        "${_suggestScaleAndAdjust(color, amount.value, 'saturation')}\n"
-        "\n"
-        "More info: https://sass-lang.com/d/color-functions",
-        Deprecation.colorFunctions,
-      );
-      return result;
-    },
-  }),
-
-  _function("desaturate", r"$color, $amount", (arguments) {
-    var color = arguments[0].assertColor("color");
-    var amount = arguments[1].assertNumber("amount");
-    if (!color.isLegacy) {
-      throw SassScriptException(
-        "desaturate() is only supported for legacy colors. Please use "
-        "color.adjust() instead with an explicit \$space argument.",
-      );
-    }
-
-    var result = color.changeHsl(
-      saturation: clampLikeCss(
-        color.saturation - amount.valueInRange(0, 100, "amount"),
-        0,
-        100,
-      ),
-    );
-
-    warnForDeprecation(
-      "desaturate() is deprecated. "
-      "${_suggestScaleAndAdjust(color, -amount.value, 'saturation')}\n"
-      "\n"
-      "More info: https://sass-lang.com/d/color-functions",
-      Deprecation.colorFunctions,
-    );
-    return result;
-  }).withDeprecationWarning('color', 'adjust'),
-
-  // ### Opacity
-  _function(
-    "opacify",
-    r"$color, $amount",
-    (arguments) => _opacify("opacify", arguments),
-  ).withDeprecationWarning('color', 'adjust'),
-  _function(
-    "fade-in",
-    r"$color, $amount",
-    (arguments) => _opacify("fade-in", arguments),
-  ).withDeprecationWarning('color', 'adjust'),
-  _function(
-    "transparentize",
-    r"$color, $amount",
-    (arguments) => _transparentize("transparentize", arguments),
-  ).withDeprecationWarning('color', 'adjust'),
-  _function(
-    "fade-out",
-    r"$color, $amount",
-    (arguments) => _transparentize("fade-out", arguments),
-  ).withDeprecationWarning('color', 'adjust'),
-
-  BuiltInCallable.overloadedFunction("alpha", {
-    r"$color": (arguments) {
-      switch (arguments[0]) {
-        // Support the proprietary Microsoft alpha() function.
-        case SassString(hasQuotes: false, :var text)
-            when text.contains(_microsoftFilterStart):
-          return _functionString("alpha", arguments);
-        case SassColor(isLegacy: false):
-          throw SassScriptException(
-            "alpha() is only supported for legacy colors. Please use "
-            "color.channel() instead.",
-          );
-        case var argument:
-          warnForGlobalBuiltIn('color', 'alpha');
-          return SassNumber(argument.assertColor("color").alpha);
-      }
-    },
-    r"$args...": (arguments) {
-      var argList = arguments[0].asList;
-      if (argList.isNotEmpty &&
-          argList.every(
-            (argument) =>
-                argument is SassString &&
-                !argument.hasQuotes &&
-                argument.text.contains(_microsoftFilterStart),
-          )) {
-        // Support the proprietary Microsoft alpha() function.
-        return _functionString("alpha", arguments);
-      }
-
-      assert(argList.length != 1);
-      if (argList.isEmpty) {
-        throw SassScriptException("Missing argument \$color.");
-      } else {
-        throw SassScriptException(
-          "Only 1 argument allowed, but ${argList.length} were passed.",
-        );
-      }
-    },
-  }),
-
-  _function("opacity", r"$color", (arguments) {
-    if (arguments[0] is SassNumber || arguments[0].isSpecialNumber) {
-      // Use the native CSS `opacity` filter function.
-      return _functionString("opacity", arguments);
-    }
-
-    warnForGlobalBuiltIn('color', 'opacity');
-    var color = arguments[0].assertColor("color");
-    return SassNumber(color.alpha);
   }),
 
   // ### Color Spaces
@@ -454,9 +189,9 @@ final module = BuiltInModule(
   "color",
   functions: <Callable>[
     // ### RGB
-    _channelFunction("red", ColorSpace.rgb, (color) => color.red),
-    _channelFunction("green", ColorSpace.rgb, (color) => color.green),
-    _channelFunction("blue", ColorSpace.rgb, (color) => color.blue),
+    _removedChannelFunction("red", ColorSpace.rgb),
+    _removedChannelFunction("green", ColorSpace.rgb),
+    _removedChannelFunction("blue", ColorSpace.rgb),
     _mix,
 
     _function("invert", r"$color, $weight: 100%, $space: null", (arguments) {
@@ -474,19 +209,9 @@ final module = BuiltInModule(
     }),
 
     // ### HSL
-    _channelFunction("hue", ColorSpace.hsl, (color) => color.hue, unit: 'deg'),
-    _channelFunction(
-      "saturation",
-      ColorSpace.hsl,
-      (color) => color.saturation,
-      unit: '%',
-    ),
-    _channelFunction(
-      "lightness",
-      ColorSpace.hsl,
-      (color) => color.lightness,
-      unit: '%',
-    ),
+    _removedChannelFunction("hue", ColorSpace.hsl),
+    _removedChannelFunction("saturation", ColorSpace.hsl),
+    _removedChannelFunction("lightness", ColorSpace.hsl),
     _removedColorFunction("adjust-hue", "hue"),
     _removedColorFunction("lighten", "lightness"),
     _removedColorFunction("darken", "lightness", negative: true),
@@ -531,18 +256,8 @@ final module = BuiltInModule(
           ),
     }),
 
-    _channelFunction(
-      "whiteness",
-      ColorSpace.hwb,
-      (color) => color.whiteness,
-      unit: '%',
-    ),
-    _channelFunction(
-      "blackness",
-      ColorSpace.hwb,
-      (color) => color.blackness,
-      unit: '%',
-    ),
+    _removedChannelFunction("whiteness", ColorSpace.hwb),
+    _removedChannelFunction("blackness", ColorSpace.hwb),
 
     // ### Opacity
     _removedColorFunction("opacify", "alpha"),
@@ -550,72 +265,8 @@ final module = BuiltInModule(
     _removedColorFunction("transparentize", "alpha", negative: true),
     _removedColorFunction("fade-out", "alpha", negative: true),
 
-    BuiltInCallable.overloadedFunction("alpha", {
-      r"$color": (arguments) {
-        switch (arguments[0]) {
-          // Support the proprietary Microsoft alpha() function.
-          case SassString(hasQuotes: false, :var text)
-              when text.contains(_microsoftFilterStart):
-            var result = _functionString("alpha", arguments);
-            warnForDeprecation(
-              "Using color.alpha() for a Microsoft filter is deprecated.\n"
-              "\n"
-              "Recommendation: $result",
-              Deprecation.colorModuleCompat,
-            );
-            return result;
-
-          case SassColor(isLegacy: false):
-            throw SassScriptException(
-              "color.alpha() is only supported for legacy colors. Please use "
-              "color.channel() instead.",
-            );
-
-          case var argument:
-            return SassNumber(argument.assertColor("color").alpha);
-        }
-      },
-      r"$args...": (arguments) {
-        if (arguments[0].asList.every(
-              (argument) =>
-                  argument is SassString &&
-                  !argument.hasQuotes &&
-                  argument.text.contains(_microsoftFilterStart),
-            )) {
-          // Support the proprietary Microsoft alpha() function.
-          var result = _functionString("alpha", arguments);
-          warnForDeprecation(
-            "Using color.alpha() for a Microsoft filter is deprecated.\n"
-            "\n"
-            "Recommendation: $result",
-            Deprecation.colorModuleCompat,
-          );
-          return result;
-        }
-
-        assert(arguments.length != 1);
-        throw SassScriptException(
-          "Only 1 argument allowed, but ${arguments.length} were passed.",
-        );
-      },
-    }),
-
-    _function("opacity", r"$color", (arguments) {
-      if (arguments[0] is SassNumber) {
-        var result = _functionString("opacity", arguments);
-        warnForDeprecation(
-          "Passing a number (${arguments[0]} to color.opacity() is "
-          "deprecated.\n"
-          "\n"
-          "Recommendation: $result",
-          Deprecation.colorModuleCompat,
-        );
-        return result;
-      }
-
-      var color = arguments[0].assertColor("color");
-      return SassNumber(color.alpha);
-    }),
+    _removedChannelFunction("alpha", null),
+    _removedChannelFunction("opacity", null),
 
     // ### Color Spaces
     _function(
@@ -1492,64 +1143,6 @@ SassColor _mixLegacy(SassColor color1, SassColor color2, SassNumber weight) {
   );
 }
 
-/// The definition of the `opacify()` and `fade-in()` functions.
-SassColor _opacify(String name, List<Value> arguments) {
-  var color = arguments[0].assertColor("color");
-  var amount = arguments[1].assertNumber("amount");
-  if (!color.isLegacy) {
-    throw SassScriptException(
-      "$name() is only supported for legacy colors. Please use "
-      "color.adjust() instead with an explicit \$space argument.",
-    );
-  }
-
-  var result = color.changeAlpha(
-    clampLikeCss(
-      (color.alpha + amount.valueInRangeWithUnit(0, 1, "amount", "")),
-      0,
-      1,
-    ),
-  );
-
-  warnForDeprecation(
-    "$name() is deprecated. "
-    "${_suggestScaleAndAdjust(color, amount.value, 'alpha')}\n"
-    "\n"
-    "More info: https://sass-lang.com/d/color-functions",
-    Deprecation.colorFunctions,
-  );
-  return result;
-}
-
-/// The definition of the `transparentize()` and `fade-out()` functions.
-SassColor _transparentize(String name, List<Value> arguments) {
-  var color = arguments[0].assertColor("color");
-  var amount = arguments[1].assertNumber("amount");
-  if (!color.isLegacy) {
-    throw SassScriptException(
-      "$name() is only supported for legacy colors. Please use "
-      "color.adjust() instead with an explicit \$space argument.",
-    );
-  }
-
-  var result = color.changeAlpha(
-    clampLikeCss(
-      (color.alpha - amount.valueInRangeWithUnit(0, 1, "amount", "")),
-      0,
-      1,
-    ),
-  );
-
-  warnForDeprecation(
-    "$name() is deprecated. "
-    "${_suggestScaleAndAdjust(color, -amount.value, 'alpha')}\n"
-    "\n"
-    "More info: https://sass-lang.com/d/color-functions",
-    Deprecation.colorFunctions,
-  );
-  return result;
-}
-
 /// Returns the [colorUntyped] as a [SassColor] in the color space specified by
 /// [spaceUntyped].
 ///
@@ -1870,82 +1463,24 @@ bool _isNone(Value value) =>
     !value.hasQuotes &&
     value.text.toLowerCase() == 'none';
 
-/// Returns the implementation of a deprecated function that returns the value
-/// of the channel named [name], implemented with [getter].
+/// Returns the implementation of a removed function that used to return the
+/// value of the channel named [name].
 ///
-/// If [unit] is passed, the channel is returned with that unit. The [global]
-/// parameter indicates whether this was called using the legacy global syntax.
-BuiltInCallable _channelFunction(
-  String name,
-  ColorSpace space,
-  num Function(SassColor color) getter, {
-  String? unit,
-  bool global = false,
-}) {
+/// This implementation throws an error indicating the correct modern call to
+/// use instead.
+BuiltInCallable _removedChannelFunction(String name, ColorSpace? space) {
   return _function(name, r"$color", (arguments) {
-    var result = SassNumber(getter(arguments.first.assertColor("color")), unit);
-
-    warnForDeprecation(
-      "${global ? '' : 'color.'}$name() is deprecated. Suggestion:\n"
+    var suggestion = 'color.channel(\$color, "$name"' +
+        switch (space) { var space? => ', \$space: $space', _ => '' } +
+        ')';
+    throw SassScriptException(
+      "color.$name() is no longer supported. Suggestion:\n"
       "\n"
-      'color.channel(\$color, "$name", \$space: $space)\n'
+      "$suggestion\n"
       "\n"
       "More info: https://sass-lang.com/d/color-functions",
-      Deprecation.colorFunctions,
     );
-
-    return result;
   });
-}
-
-/// Returns suggested translations for deprecated color modification functions
-/// in terms of both `color.scale()` and `color.adjust()`.
-///
-/// [original] is the color that was passed in, [adjustment] is the requested
-/// change, and [channelName] is the name of the modified channel.
-String _suggestScaleAndAdjust(
-  SassColor original,
-  double adjustment,
-  String channelName,
-) {
-  assert(original.isLegacy);
-  var channel = channelName == 'alpha'
-      ? ColorChannel.alpha
-      : ColorSpace.hsl.channels.firstWhere(
-          (channel) => channel.name == channelName,
-        ) as LinearChannel;
-
-  var oldValue = channel == ColorChannel.alpha
-      ? original.alpha
-      : original.toSpace(ColorSpace.hsl).channel(channelName);
-  var newValue = oldValue + adjustment;
-
-  var suggestion = "Suggestion";
-  if (adjustment != 0) {
-    late double factor;
-    if (newValue > channel.max) {
-      factor = 1;
-    } else if (newValue < channel.min) {
-      factor = -1;
-    } else if (adjustment > 0) {
-      factor = adjustment / (channel.max - oldValue);
-    } else {
-      factor = (newValue - oldValue) / (oldValue - channel.min);
-    }
-    var factorNumber = SassNumber(factor * 100, '%');
-    suggestion += "s:\n"
-        "\n"
-        "color.scale(\$color, \$$channelName: ${factorNumber.toCssString()})\n";
-  } else {
-    suggestion += ":\n\n";
-  }
-
-  var difference = SassNumber(
-    adjustment,
-    channel == ColorChannel.alpha ? null : '%',
-  );
-  return suggestion +
-      "color.adjust(\$color, \$$channelName: ${difference.toCssString()})";
 }
 
 /// Throws an error indicating that a missing channel named [name] can't be

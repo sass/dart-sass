@@ -59,22 +59,25 @@ final JSClass legacyColorClass = createJSClass('sass.types.Color', (
   );
 })
   ..defineMethods({
-    'getR': (_NodeSassColor thisArg) => thisArg.dartValue.red,
-    'getG': (_NodeSassColor thisArg) => thisArg.dartValue.green,
-    'getB': (_NodeSassColor thisArg) => thisArg.dartValue.blue,
+    'getR': (_NodeSassColor thisArg) => thisArg.dartValue.channel('red'),
+    'getG': (_NodeSassColor thisArg) => thisArg.dartValue.channel('green'),
+    'getB': (_NodeSassColor thisArg) => thisArg.dartValue.channel('blue'),
     'getA': (_NodeSassColor thisArg) => thisArg.dartValue.alpha,
     'setR': (_NodeSassColor thisArg, num value) {
-      thisArg.dartValue = thisArg.dartValue.changeRgb(red: _clamp(value));
+      thisArg.dartValue =
+          thisArg.dartValue.changeChannels({"red": _clamp(value).toDouble()});
     },
     'setG': (_NodeSassColor thisArg, num value) {
-      thisArg.dartValue = thisArg.dartValue.changeRgb(green: _clamp(value));
+      thisArg.dartValue =
+          thisArg.dartValue.changeChannels({"green": _clamp(value).toDouble()});
     },
     'setB': (_NodeSassColor thisArg, num value) {
-      thisArg.dartValue = thisArg.dartValue.changeRgb(blue: _clamp(value));
+      thisArg.dartValue =
+          thisArg.dartValue.changeChannels({"blue": _clamp(value).toDouble()});
     },
     'setA': (_NodeSassColor thisArg, num value) {
-      thisArg.dartValue = thisArg.dartValue.changeRgb(
-        alpha: clampLikeCss(value.toDouble(), 0, 1),
+      thisArg.dartValue = thisArg.dartValue.changeChannels(
+        {"alpha": clampLikeCss(value.toDouble(), 0, 1)},
       );
     },
   });
