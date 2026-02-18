@@ -15,30 +15,6 @@ void main() {
     _expectDeprecation("a { b: call(random)}", Deprecation.callString);
   });
 
-  // Deprecated in 1.23.0
-  group("colorModuleCompat is violated by", () {
-    var color = "@use 'sass:color'; a { b: color";
-
-    test("passing a number to color.invert", () {
-      _expectDeprecation("$color.invert(0)}", Deprecation.colorModuleCompat);
-    });
-
-    test("passing a number to color.grayscale", () {
-      _expectDeprecation("$color.grayscale(0)}", Deprecation.colorModuleCompat);
-    });
-
-    test("passing a number to color.opacity", () {
-      _expectDeprecation("$color.opacity(0)}", Deprecation.colorModuleCompat);
-    });
-
-    test("using color.alpha for a microsoft filter", () {
-      _expectDeprecation(
-        "$color.alpha(foo=bar)}",
-        Deprecation.colorModuleCompat,
-      );
-    });
-  });
-
   group("compileStringRelativeUrl is violated by", () {
     test("a fully relative URL", () {
       _expectDeprecationCallback(

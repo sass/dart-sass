@@ -14,10 +14,10 @@ import 'utils.dart';
 void main() {
   group("a function value", () {
     late SassFunction value;
-    setUp(() => value = parseValue("get-function('red')") as SassFunction);
+    setUp(() => value = parseValue("get-function('rgb')") as SassFunction);
 
     test("has a callable with the given name", () {
-      expect(value.callable.name, equals("red"));
+      expect(value.callable.name, equals("rgb"));
     });
 
     test("is a function", () {
@@ -25,7 +25,7 @@ void main() {
     });
 
     test("equals the same function", () {
-      expect(value, equalsWithHash(parseValue("get-function('red')")));
+      expect(value, equalsWithHash(parseValue("get-function('rgb')")));
     });
 
     test("isn't any other type", () {
