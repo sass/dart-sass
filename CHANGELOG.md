@@ -1,4 +1,10 @@
-## 1.97.4-dev
+## 1.98.0-dev
+
+### Dart API
+
+* Add a `const Logger.defaultLogger` field. This provides a logger that emits to
+  standard error or the browser console, but automatically chooses whether to
+  use terminal colors.
 
 ### JavaScript API
 
@@ -7,6 +13,9 @@
 
 * Properly emit deprecation warnings as text rather than `StringBuffer` objects
   when running in a browser.
+
+* Emit colored warnings and other messages on the console when running in a
+  browser.
 
 ## 1.97.3
 

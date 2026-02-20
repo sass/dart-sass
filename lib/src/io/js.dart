@@ -278,8 +278,9 @@ bool get isWindows => _process?.platform == 'win32';
 
 bool get isMacOS => _process?.platform == 'darwin';
 
-// Node seems to support ANSI escapes on all terminals.
-bool get supportsAnsiEscapes => hasTerminal;
+// Node seems to support ANSI escapes on all terminals, and browser consoles
+// support them as well..
+bool get supportsAnsiEscapes => hasTerminal || isBrowser;
 
 int get exitCode => _process?.exitCode ?? 0;
 
