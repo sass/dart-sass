@@ -39,7 +39,7 @@ void safePrint(Object? message) {
   if (_process case var process?) {
     process.stdout.write("${message ?? ''}\n");
   } else {
-    console.log(message ?? '');
+    console.log(message?.toString() ?? '');
   }
 }
 
@@ -47,7 +47,7 @@ void printError(Object? message) {
   if (_process case var process?) {
     process.stderr.write("${message ?? ''}\n");
   } else {
-    console.error(message ?? '');
+    console.error(message?.toString() ?? '');
   }
 }
 
