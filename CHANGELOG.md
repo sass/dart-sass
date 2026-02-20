@@ -5,6 +5,9 @@
 * Fix a crash when manually constructing a `SassCalculation` for `'calc'` with
   an argument that can't be simplified.
 
+* Properly emit deprecation warnings as text rather than `StringBuffer` objects
+  when running in a browser.
+
 ## 1.97.3
 
 * Fix a bug where nesting an at-rule within multiple style rules in plain CSS
