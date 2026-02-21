@@ -90,7 +90,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
   var file = options.file.andThen(p.absolute);
   var logger = JSToDartLogger(
     options.logger,
-    Logger.stderr(color: hasTerminal),
+    Logger.defaultLogger,
   );
   if (options.data case var data?) {
     result = await compileStringAsync(
@@ -171,7 +171,7 @@ RenderResult renderSync(RenderOptions options) {
     var file = options.file.andThen(p.absolute);
     var logger = JSToDartLogger(
       options.logger,
-      Logger.stderr(color: hasTerminal),
+      Logger.defaultLogger,
     );
     if (options.data case var data?) {
       result = compileString(

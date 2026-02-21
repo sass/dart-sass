@@ -369,7 +369,7 @@ final class _EvaluateVisitor
   })  : _importCache = importCache ??
             (nodeImporter == null ? AsyncImportCache.none() : null),
         _nodeImporter = nodeImporter,
-        _logger = logger ?? const Logger.stderr(),
+        _logger = logger ?? Logger.defaultLogger,
         _quietDeps = quietDeps,
         _sourceMap = sourceMap,
         // The default environment is overridden in [_execute] for full

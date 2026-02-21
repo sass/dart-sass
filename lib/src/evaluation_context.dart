@@ -69,18 +69,18 @@ void warn(String message, {bool deprecation = false}) =>
           message,
           deprecation ? Deprecation.userAuthored : null,
         ),
-      _ when deprecation => (const Logger.stderr()).warnForDeprecation(
+      _ when deprecation => Logger.defaultLogger.warnForDeprecation(
           Deprecation.userAuthored,
           message,
         ),
-      _ => (const Logger.stderr()).warn(message),
+      _ => Logger.defaultLogger.warn(message),
     };
 
 /// Prints a deprecation warning with [message] of type [deprecation].
 void warnForDeprecation(String message, Deprecation deprecation) =>
     switch (EvaluationContext.currentOrNull) {
       var context? => context.warn(message, deprecation),
-      _ => (const Logger.stderr()).warnForDeprecation(deprecation, message),
+      _ => Logger.defaultLogger.warnForDeprecation(deprecation, message),
     };
 
 /// Prints a deprecation warning with [message] of type [deprecation],
@@ -89,7 +89,7 @@ void warnForDeprecationFromApi(String message, Deprecation deprecation) {
   if (EvaluationContext._currentOrNull case var context?) {
     context.warn(message, deprecation);
   } else {
-    Logger.stderr().warnForDeprecation(deprecation, message);
+    Logger.defaultLogger.warnForDeprecation(deprecation, message);
   }
 }
 
