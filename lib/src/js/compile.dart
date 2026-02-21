@@ -18,6 +18,7 @@ import '../importer/node_package.dart';
 import '../io.dart';
 import '../logger/js_to_dart.dart';
 import '../util/nullable.dart';
+import '../util/source_map.dart';
 import 'compile_options.dart';
 import 'compile_result.dart';
 import 'deprecations.dart';
@@ -42,6 +43,8 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
     ascii: ascii,
   );
   try {
+    var sourceMapIncludeSources =
+        parseSourceMapIncludeSources(options?.sourceMapIncludeSources);
     var result = compileToResult(
       path,
       color: color,
@@ -51,6 +54,7 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
       verbose: options?.verbose ?? false,
       charset: options?.charset ?? true,
       sourceMap: options?.sourceMap ?? false,
+      sourceMapIncludeSources: sourceMapIncludeSources,
       logger: logger,
       importers: options?.importers?.map(_parseImporter),
       functions: _parseFunctions(options?.functions).cast(),
@@ -70,7 +74,7 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
     );
     return _convertResult(
       result,
-      includeSourceContents: options?.sourceMapIncludeSources ?? false,
+      sourceMapIncludeSources: sourceMapIncludeSources,
     );
   } on SassException catch (error, stackTrace) {
     throwNodeException(error, color: color, ascii: ascii, trace: stackTrace);
@@ -90,6 +94,8 @@ NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
     ascii: ascii,
   );
   try {
+    var sourceMapIncludeSources =
+        parseSourceMapIncludeSources(options?.sourceMapIncludeSources);
     var result = compileStringToResult(
       text,
       syntax: parseSyntax(options?.syntax),
@@ -101,6 +107,7 @@ NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
       verbose: options?.verbose ?? false,
       charset: options?.charset ?? true,
       sourceMap: options?.sourceMap ?? false,
+      sourceMapIncludeSources: sourceMapIncludeSources,
       logger: logger,
       importers: options?.importers?.map(_parseImporter),
       importer: options?.importer.andThen(_parseImporter) ??
@@ -122,7 +129,7 @@ NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
     );
     return _convertResult(
       result,
-      includeSourceContents: options?.sourceMapIncludeSources ?? false,
+      sourceMapIncludeSources: sourceMapIncludeSources,
     );
   } on SassException catch (error, stackTrace) {
     throwNodeException(error, color: color, ascii: ascii, trace: stackTrace);
@@ -146,6 +153,8 @@ Promise compileAsync(String path, [CompileOptions? options]) {
   );
   return _wrapAsyncSassExceptions(
     futureToPromise(() async {
+      var sourceMapIncludeSources =
+          parseSourceMapIncludeSources(options?.sourceMapIncludeSources);
       var result = await compileToResultAsync(
         path,
         color: color,
@@ -155,6 +164,7 @@ Promise compileAsync(String path, [CompileOptions? options]) {
         verbose: options?.verbose ?? false,
         charset: options?.charset ?? true,
         sourceMap: options?.sourceMap ?? false,
+        sourceMapIncludeSources: sourceMapIncludeSources,
         logger: logger,
         importers: options?.importers?.map(
           (importer) => _parseAsyncImporter(importer),
@@ -176,7 +186,7 @@ Promise compileAsync(String path, [CompileOptions? options]) {
       );
       return _convertResult(
         result,
-        includeSourceContents: options?.sourceMapIncludeSources ?? false,
+        sourceMapIncludeSources: sourceMapIncludeSources,
       );
     }()),
     color: color,
@@ -198,6 +208,8 @@ Promise compileStringAsync(String text, [CompileStringOptions? options]) {
   );
   return _wrapAsyncSassExceptions(
     futureToPromise(() async {
+      var sourceMapIncludeSources =
+          parseSourceMapIncludeSources(options?.sourceMapIncludeSources);
       var result = await compileStringToResultAsync(
         text,
         syntax: parseSyntax(options?.syntax),
@@ -209,6 +221,7 @@ Promise compileStringAsync(String text, [CompileStringOptions? options]) {
         verbose: options?.verbose ?? false,
         charset: options?.charset ?? true,
         sourceMap: options?.sourceMap ?? false,
+        sourceMapIncludeSources: sourceMapIncludeSources,
         logger: logger,
         importers: options?.importers?.map(
           (importer) => _parseAsyncImporter(importer),
@@ -234,7 +247,7 @@ Promise compileStringAsync(String text, [CompileStringOptions? options]) {
       );
       return _convertResult(
         result,
-        includeSourceContents: options?.sourceMapIncludeSources ?? false,
+        sourceMapIncludeSources: sourceMapIncludeSources,
       );
     }()),
     color: color,
@@ -243,28 +256,28 @@ Promise compileStringAsync(String text, [CompileStringOptions? options]) {
 }
 
 /// Converts a Dart [CompileResult] into a JS API [NodeCompileResult].
-NodeCompileResult _convertResult(
-  CompileResult result, {
-  required bool includeSourceContents,
-}) {
-  var sourceMap = result.sourceMap?.toJson(
-    includeSourceContents: includeSourceContents,
-  );
-  if (sourceMap is Map<String, dynamic> && !sourceMap.containsKey('sources')) {
-    // Dart's source map library can omit the sources key, but JS's type
-    // declaration doesn't allow that.
-    sourceMap['sources'] = <String>[];
+NodeCompileResult _convertResult(CompileResult result,
+    {required SourceMapIncludeSources sourceMapIncludeSources}) {
+  var loadedUrls = toJSArray(result.loadedUrls.map(dartToJSUrl));
+  var sourceMap = result.sourceMap;
+  if (sourceMap == null) {
+    // The JS API tests expects *no* source map here, not a null source map.
+    return NodeCompileResult(css: result.css, loadedUrls: loadedUrls);
   }
 
-  var loadedUrls = toJSArray(result.loadedUrls.map(dartToJSUrl));
-  return sourceMap == null
-      // The JS API tests expects *no* source map here, not a null source map.
-      ? NodeCompileResult(css: result.css, loadedUrls: loadedUrls)
-      : NodeCompileResult(
-          css: result.css,
-          loadedUrls: loadedUrls,
-          sourceMap: jsify(sourceMap),
-        );
+  var sourceMapJson = sourceMapToJson(sourceMap,
+      sourceMapIncludeSources: sourceMapIncludeSources);
+  if (!sourceMapJson.containsKey('sources')) {
+    // Dart's source map library can omit the sources key, but JS's type
+    // declaration doesn't allow that.
+    sourceMapJson['sources'] = <String>[];
+  }
+
+  return NodeCompileResult(
+    css: result.css,
+    loadedUrls: loadedUrls,
+    sourceMap: jsify(sourceMapJson),
+  );
 }
 
 /// Catches `SassException`s thrown by [promise] and rethrows them as JS API

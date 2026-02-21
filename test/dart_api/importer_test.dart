@@ -5,8 +5,6 @@
 @TestOn('vm')
 library;
 
-import 'dart:convert';
-
 import 'package:test/test.dart';
 
 import 'package:sass/sass.dart';
@@ -305,7 +303,7 @@ void main() {
     expect(result.sourceMap!.urls, contains("u:blue"));
   });
 
-  test("uses a data: source map URL if the importer doesn't provide one", () {
+  test("uses the canonical URL if the importer doesn't provide one", () {
     var result = compileStringToResult(
       '@use "orange";',
       importers: [
@@ -320,10 +318,7 @@ void main() {
     expect(
       result.sourceMap!.urls,
       contains(
-        Uri.dataFromString(
-          ".orange {color: orange}",
-          encoding: utf8,
-        ).toString(),
+        "u:orange",
       ),
     );
   });

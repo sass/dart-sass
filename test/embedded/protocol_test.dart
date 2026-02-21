@@ -297,7 +297,7 @@ void main() {
         expect(span.start.column, equals(3));
         expect(span.end, equals(span.start));
         expect(mapping, isA<source_maps.SingleMapping>());
-        expect((mapping as source_maps.SingleMapping).files[0], isNull);
+        expect((mapping as source_maps.SingleMapping).files[0], isNotNull);
         return true;
       },
     );
@@ -305,41 +305,13 @@ void main() {
   });
 
   test(
-    "includes a source map without content if source_map is true and source_map_include_sources is false",
+    "includes a source map with content if source_map is true and source_map_include_sources is auto",
     () async {
       process.send(
         compileString(
           "a {b: 1px + 2px}",
           sourceMap: true,
-          sourceMapIncludeSources: false,
-        ),
-      );
-      await expectSuccess(
-        process,
-        "a { b: 3px; }",
-        sourceMap: (String map) {
-          var mapping = source_maps.parse(map);
-          var span = mapping.spanFor(2, 5)!;
-          expect(span.start.line, equals(0));
-          expect(span.start.column, equals(3));
-          expect(span.end, equals(span.start));
-          expect(mapping, isA<source_maps.SingleMapping>());
-          expect((mapping as source_maps.SingleMapping).files[0], isNull);
-          return true;
-        },
-      );
-      await process.close();
-    },
-  );
-
-  test(
-    "includes a source map with content if source_map is true and source_map_include_sources is true",
-    () async {
-      process.send(
-        compileString(
-          "a {b: 1px + 2px}",
-          sourceMap: true,
-          sourceMapIncludeSources: true,
+          sourceMapIncludeSources: SourceMapIncludeSources.AUTO,
         ),
       );
       await expectSuccess(
@@ -353,6 +325,62 @@ void main() {
           expect(span.end, equals(span.start));
           expect(mapping, isA<source_maps.SingleMapping>());
           expect((mapping as source_maps.SingleMapping).files[0], isNotNull);
+          return true;
+        },
+      );
+      await process.close();
+    },
+  );
+
+  test(
+    "includes a source map with content if source_map is true and source_map_include_sources is always",
+    () async {
+      process.send(
+        compileString(
+          "a {b: 1px + 2px}",
+          sourceMap: true,
+          sourceMapIncludeSources: SourceMapIncludeSources.ALWAYS,
+        ),
+      );
+      await expectSuccess(
+        process,
+        "a { b: 3px; }",
+        sourceMap: (String map) {
+          var mapping = source_maps.parse(map);
+          var span = mapping.spanFor(2, 5)!;
+          expect(span.start.line, equals(0));
+          expect(span.start.column, equals(3));
+          expect(span.end, equals(span.start));
+          expect(mapping, isA<source_maps.SingleMapping>());
+          expect((mapping as source_maps.SingleMapping).files[0], isNotNull);
+          return true;
+        },
+      );
+      await process.close();
+    },
+  );
+
+  test(
+    "includes a source map with content if source_map is true and source_map_include_sources is never",
+    () async {
+      process.send(
+        compileString(
+          "a {b: 1px + 2px}",
+          sourceMap: true,
+          sourceMapIncludeSources: SourceMapIncludeSources.NEVER,
+        ),
+      );
+      await expectSuccess(
+        process,
+        "a { b: 3px; }",
+        sourceMap: (String map) {
+          var mapping = source_maps.parse(map);
+          var span = mapping.spanFor(2, 5)!;
+          expect(span.start.line, equals(0));
+          expect(span.start.column, equals(3));
+          expect(span.end, equals(span.start));
+          expect(mapping, isA<source_maps.SingleMapping>());
+          expect((mapping as source_maps.SingleMapping).files[0], isNull);
           return true;
         },
       );
