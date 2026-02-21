@@ -41,8 +41,7 @@ dev_dependencies:
   analyzer: ">=6.8.0 <11.0.0"
   archive: ">=3.1.2 <5.0.0"
   crypto: ^3.0.0
-  # Limit the upper bound to work around dart-lang#issues/4208
-  dartdoc: ">=8.0.14 <9.0.2"
+  dartdoc: ">=8.0.14 <10.0.0"
   grinder: ^0.9.0
   node_preamble: ^2.0.2
   lints: ">=4.0.0 <7.0.0"

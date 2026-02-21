@@ -13,8 +13,7 @@ dependencies:
   sass: 2.0.0
 
 dev_dependencies:
-  # Limit the upper bound to work around dart-lang#issues/4208
-  dartdoc: ">=8.0.14 <9.0.2"
+  dartdoc: ">=8.0.14 <10.0.0"
 
 dependency_overrides:
   sass: { path: ../.. }
