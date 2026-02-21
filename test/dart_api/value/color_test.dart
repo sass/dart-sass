@@ -16,24 +16,6 @@ void main() {
     late SassColor value;
     setUp(() => value = parseValue("#123456") as SassColor);
 
-    test("has RGB channels", () {
-      expect(value.red, equals(0x12));
-      expect(value.green, equals(0x34));
-      expect(value.blue, equals(0x56));
-    });
-
-    test("has HSL channels", () {
-      expect(value.hue, equals(210));
-      expect(value.saturation, equals(65.3846153846154));
-      expect(value.lightness, equals(20.392156862745097));
-    });
-
-    test("has HWB channels", () {
-      expect(value.hue, equals(210));
-      expect(value.whiteness, equals(7.0588235294117645));
-      expect(value.blackness, equals(66.27450980392157));
-    });
-
     test("has an alpha channel", () {
       expect(value.alpha, equals(1));
     });
@@ -169,96 +151,6 @@ void main() {
       });
     });
 
-    group("changeRgb()", () {
-      test("changes RGB values", () {
-        expect(
-          value.changeRgb(red: 0xAA),
-          equals(SassColor.rgb(0xAA, 0x34, 0x56)),
-        );
-        expect(
-          value.changeRgb(green: 0xAA),
-          equals(SassColor.rgb(0x12, 0xAA, 0x56)),
-        );
-        expect(
-          value.changeRgb(blue: 0xAA),
-          equals(SassColor.rgb(0x12, 0x34, 0xAA)),
-        );
-        expect(
-          value.changeRgb(alpha: 0.5),
-          equals(SassColor.rgb(0x12, 0x34, 0x56, 0.5)),
-        );
-        expect(
-          value.changeRgb(red: 0xAA, green: 0xAA, blue: 0xAA, alpha: 0.5),
-          equals(SassColor.rgb(0xAA, 0xAA, 0xAA, 0.5)),
-        );
-      });
-
-      test("allows in-gamut alpha", () {
-        expect(value.changeRgb(alpha: 1).alpha, equals(1));
-        expect(value.changeRgb(alpha: 0).alpha, equals(0));
-      });
-
-      test("allows out-of-gamut values", () {
-        expect(value.changeRgb(red: -1).red, equals(-1));
-        expect(value.changeRgb(red: 0x100).red, equals(0x100));
-      });
-
-      test("disallows out-of-gamut alpha", () {
-        expect(() => value.changeRgb(alpha: -0.1), throwsRangeError);
-        expect(() => value.changeRgb(alpha: 1.1), throwsRangeError);
-      });
-    });
-
-    test("changeHsl() changes HSL values", () {
-      expect(
-        value.changeHsl(hue: 120),
-        equals(SassColor.hsl(120, 65.3846153846154, 20.392156862745097)),
-      );
-      expect(
-        value.changeHsl(saturation: 42),
-        equals(SassColor.hsl(210, 42, 20.392156862745097)),
-      );
-      expect(
-        value.changeHsl(lightness: 42),
-        equals(SassColor.hsl(210, 65.3846153846154, 42)),
-      );
-      expect(
-        value.changeHsl(alpha: 0.5),
-        equals(SassColor.hsl(210, 65.3846153846154, 20.392156862745097, 0.5)),
-      );
-      expect(
-        value.changeHsl(hue: 120, saturation: 42, lightness: 42, alpha: 0.5),
-        equals(SassColor.hsl(120, 42, 42, 0.5)),
-      );
-    });
-
-    test("changeHwb() changes HWB values", () {
-      expect(
-        value.changeHwb(hue: 120),
-        equals(SassColor.hwb(120, 7.0588235294117645, 66.27450980392157)),
-      );
-      expect(
-        value.changeHwb(whiteness: 20),
-        equals(SassColor.hwb(210, 20, 66.27450980392157)),
-      );
-      expect(
-        value.changeHwb(blackness: 42),
-        equals(SassColor.hwb(210, 7.0588235294117645, 42)),
-      );
-      expect(
-        value.changeHwb(alpha: 0.5),
-        equals(SassColor.hwb(210, 7.0588235294117645, 66.27450980392157, 0.5)),
-      );
-      expect(
-        value.changeHwb(hue: 120, whiteness: 42, blackness: 42, alpha: 0.5),
-        equals(SassColor.hwb(120, 42, 42, 0.5)),
-      );
-      expect(
-        value.changeHwb(whiteness: 50),
-        equals(SassColor.hwb(210, 43.0016863406408, 56.9983136593592)),
-      );
-    });
-
     group("changeChannels()", () {
       test("changes RGB values", () {
         expect(
@@ -294,8 +186,9 @@ void main() {
       });
 
       test("allows out-of-gamut values", () {
-        expect(value.changeChannels({"red": -1}).red, equals(-1));
-        expect(value.changeChannels({"red": 0x100}).red, equals(0x100));
+        expect(value.changeChannels({"red": -1}).channel("red"), equals(-1));
+        expect(
+            value.changeChannels({"red": 0x100}).channel("red"), equals(0x100));
       });
 
       test("disallows out-of-gamut alpha", () {
@@ -389,17 +282,6 @@ void main() {
   group("an LCH color", () {
     late SassColor value;
     setUp(() => value = parseValue("lch(42% 42% 120)") as SassColor);
-
-    test("throws for legacy channels", () {
-      expect(() => value.red, throwsSassScriptException);
-      expect(() => value.green, throwsSassScriptException);
-      expect(() => value.blue, throwsSassScriptException);
-      expect(() => value.hue, throwsSassScriptException);
-      expect(() => value.saturation, throwsSassScriptException);
-      expect(() => value.lightness, throwsSassScriptException);
-      expect(() => value.whiteness, throwsSassScriptException);
-      expect(() => value.blackness, throwsSassScriptException);
-    });
 
     test("has an alpha channel", () {
       expect(value.alpha, equals(1));

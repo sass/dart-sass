@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: e9636ace13dcb8c5dc8243baf6ad36dbce0d694c
+  // Checksum: 731d57cd17d5d00431e3bcb52213e660d1447ca1
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -83,6 +83,7 @@ enum Deprecation {
   /// Deprecation for passing null as alpha in the ${isJS ? 'JS': 'Dart'} API.
   nullAlpha('null-alpha',
       deprecatedIn: '1.62.3',
+      obsoleteIn: '2.0.0',
       description: 'Passing null as alpha in the ${isJS ? 'JS' : 'Dart'} API.'),
 
   /// Deprecation for passing percentages to the Sass abs() function.
@@ -116,11 +117,13 @@ enum Deprecation {
   /// Deprecation for certain uses of built-in sass:color functions.
   color4Api('color-4-api',
       deprecatedIn: '1.79.0',
+      obsoleteIn: '2.0.0',
       description: 'Certain uses of built-in sass:color functions.'),
 
   /// Deprecation for using global color functions instead of sass:color.
   colorFunctions('color-functions',
       deprecatedIn: '1.79.0',
+      obsoleteIn: '2.0.0',
       description: 'Using global color functions instead of sass:color.'),
 
   /// Deprecation for legacy JS API.
