@@ -1,5 +1,9 @@
 ## 1.98.0-dev
 
+### Command-Line Interface
+
+* Gracefully handle dependency loops in `--watch` mode.
+
 ### Dart API
 
 * Add a `const Logger.defaultLogger` field. This provides a logger that emits to
