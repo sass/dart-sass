@@ -17,10 +17,7 @@ import 'package:sass/src/importer/filesystem.dart';
 import 'package:sass/src/io.dart';
 import 'package:sass/src/stylesheet_graph.dart';
 import 'package:sass/src/utils.dart';
-import 'package:sass/src/embedded/executable.dart'
-    // Never load the embedded protocol when compiling to JS.
-    if (dart.library.js) 'package:sass/src/embedded/unavailable.dart'
-    as embedded;
+import 'package:sass/src/embedded/executable.dart' as embedded;
 
 Future<void> main(List<String> args) async {
   if (args case ['--embedded', ...var rest]) {

@@ -3,17 +3,15 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:convert';
-import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:native_synchronization/mailbox.dart';
 import 'package:path/path.dart' as p;
 import 'package:protobuf/protobuf.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:sass/sass.dart' as sass;
 import 'package:sass/src/importer/node_package.dart' as npi;
 
+import '../io.dart';
 import '../logger.dart';
 import '../value/function.dart';
 import '../value/mixin.dart';
@@ -23,6 +21,7 @@ import 'host_callable.dart';
 import 'importer/file.dart';
 import 'importer/host.dart';
 import 'logger.dart';
+import 'sync_receive_port.dart';
 import 'util/proto_extensions.dart';
 import 'utils.dart';
 
@@ -35,8 +34,8 @@ final _outboundRequestId = 0;
 /// A class that dispatches messages to and from the host for a single
 /// compilation.
 final class CompilationDispatcher {
-  /// The mailbox for receiving messages from the host.
-  final Mailbox _mailbox;
+  /// The synchronous receive port for receiving messages from the host.
+  final SyncReceivePort _receivePort;
 
   /// The send port for sending messages to the host.
   final SendPort _sendPort;
@@ -52,8 +51,8 @@ final class CompilationDispatcher {
   late Uint8List _compilationIdVarint;
 
   /// Creates a [CompilationDispatcher] that receives encoded protocol buffers
-  /// through [_mailbox] and sends them through [_sendPort].
-  CompilationDispatcher(this._mailbox, this._sendPort);
+  /// through [_receivePort] and sends them through [_sendPort].
+  CompilationDispatcher(this._receivePort, this._sendPort);
 
   /// Listens for incoming `CompileRequests` and runs their compilations.
   void listen() {
@@ -305,7 +304,7 @@ final class CompilationDispatcher {
   ///
   /// This is used during compilation by other classes like host callable.
   Never sendError(ProtocolError error) {
-    Isolate.exit(_sendPort, _serializePacket(OutboundMessage()..error = error));
+    exitWorker(_sendPort, _serializePacket(OutboundMessage()..error = error));
   }
 
   InboundMessage_CanonicalizeResponse sendCanonicalizeRequest(
@@ -407,31 +406,35 @@ final class CompilationDispatcher {
     var protobufWriter = CodedBufferWriter();
     message.writeToCodedBufferWriter(protobufWriter);
 
-    // Add one additional byte to the beginning to indicate whether or not the
-    // compilation has finished (1) or encountered a fatal error (2), so the
-    // [IsolateDispatcher] knows whether to treat this isolate as inactive or
-    // close out entirely.
+    // Add two bytes to the beginning.
+    //
+    // The first byte indicates whether or not the compilation has finished (1)
+    // or encountered a fatal error (2), so the [WorkerDispatcher] knows
+    // whether to treat this isolate as inactive or close out entirely.
+    //
+    // The second byte is the exitCode when a fatal error occurs.
     var packet = Uint8List(
-      1 + _compilationIdVarint.length + protobufWriter.lengthInBytes,
+      2 + _compilationIdVarint.length + protobufWriter.lengthInBytes,
     );
     packet[0] = switch (message.whichMessage()) {
-      OutboundMessage_Message.compileResponse => 1,
       OutboundMessage_Message.error => 2,
-      _ => 0,
+      OutboundMessage_Message.compileResponse => 1,
+      _ => 0
     };
-    packet.setAll(1, _compilationIdVarint);
-    protobufWriter.writeTo(packet, 1 + _compilationIdVarint.length);
+    packet[1] = exitCode;
+    packet.setAll(2, _compilationIdVarint);
+    protobufWriter.writeTo(packet, 2 + _compilationIdVarint.length);
     return packet;
   }
 
   /// Receive a packet from the host.
   Uint8List _receive() {
     try {
-      return _mailbox.take();
+      return _receivePort.receive();
     } on StateError catch (_) {
-      // The [_mailbox] has been closed, exit the current isolate immediately
+      // The [SyncReceivePort] has been closed, exit the current isolate immediately
       // to avoid bubble the error up as [SassException] during [_sendRequest].
-      Isolate.exit();
+      exitWorker();
     }
   }
 }

@@ -4,6 +4,8 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:isolate' show SendPort;
+export 'dart:isolate' show SendPort;
 
 import 'package:cli_pkg/js.dart';
 import 'package:js/js.dart';
@@ -285,6 +287,13 @@ bool get supportsAnsiEscapes => hasTerminal || isBrowser;
 int get exitCode => _process?.exitCode ?? 0;
 
 set exitCode(int code) => _process?.exitCode = code;
+
+Never exitWorker([SendPort? finalMessagePort, Object? message]) {
+  if (message != null) {
+    finalMessagePort?.send(message);
+  }
+  _process?.exit(exitCode) as Never;
+}
 
 Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
   if (!isNodeJs) {
