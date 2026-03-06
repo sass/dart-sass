@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "chokidar": "^4.0.0",
-    "immutable": "^5.0.2",
+    "immutable": "^5.1.5",
     "source-map-js": ">=0.6.2 <2.0.0"
   },
   "optionalDependencies": {
