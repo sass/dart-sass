@@ -52,17 +52,27 @@ class StylesheetGraph {
     Importer? baseImporter,
     Uri? baseUrl,
   ]) {
+    // Used to track dependency loops when calculating transitive modification
+    // time.
+    var seenNodes = <StylesheetNode>{};
     DateTime transitiveModificationTime(StylesheetNode node) {
+      seenNodes.add(node);
       return _transitiveModificationTimes.putIfAbsent(node.canonicalUrl, () {
         var latest = node.importer.modificationTime(node.canonicalUrl);
         for (var upstream in node.upstream.values.followedBy(
           node.upstreamImports.values,
         )) {
-          // If an import is missing, always recompile so we show the user the
-          // error.
-          var upstreamTime = upstream == null
-              ? DateTime.now()
-              : transitiveModificationTime(upstream);
+          var upstreamTime = switch (upstream) {
+            // If an import is missing, always recompile so we show the user
+            // the error.
+            null => DateTime.now(),
+            // If a dependency loop is encountered, use Unix epoch as a
+            // placeholder to avoid superfluous refreshes without creating a
+            // recursive loop here.
+            _ when seenNodes.contains(upstream) =>
+              DateTime.fromMillisecondsSinceEpoch(0),
+            _ => transitiveModificationTime(upstream)
+          };
           if (upstreamTime.isAfter(latest)) latest = upstreamTime;
         }
         return latest;
@@ -147,12 +157,13 @@ class StylesheetGraph {
   ///
   /// The first map contains stylesheets depended on via module loads while the
   /// second map contains those depended on via `@import`.
+  ///
+  /// The [active] set, if passed, should contain the canonical URLs that are
+  /// currently being imported. It's used to detect circular imports.
   _UpstreamNodes _upstreamNodes(
-    Stylesheet stylesheet,
-    Importer baseImporter,
-    Uri baseUrl,
-  ) {
-    var active = {baseUrl};
+      Stylesheet stylesheet, Importer baseImporter, Uri baseUrl,
+      [Set<Uri>? active]) {
+    active ??= {baseUrl};
     var dependencies = findDependencies(stylesheet);
     return (
       modules: {
@@ -383,7 +394,7 @@ class StylesheetGraph {
       stylesheet,
       importer,
       canonicalUrl,
-      _upstreamNodes(stylesheet, importer, canonicalUrl),
+      _upstreamNodes(stylesheet, importer, canonicalUrl, active),
     );
     active.remove(canonicalUrl);
     _nodes[canonicalUrl] = node;

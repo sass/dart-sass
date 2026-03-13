@@ -1,6 +1,6 @@
 {
   "name": "sass-parser",
-  "version": "0.4.43",
+  "version": "0.4.44",
   "description": "A PostCSS-compatible wrapper of the official Sass parser",
   "repository": "sass/dart-sass",
   "author": "Google Inc.",
@@ -31,7 +31,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "postcss": "8.5.6",
+    "postcss": "8.5.8",
     "sass": "file:../../build/npm"
   },
   "devDependencies": {
@@ -40,7 +40,7 @@
     "@types/jest": "^30.0.0",
     "@typescript-eslint/eslint-plugin": "^8.53.0",
     "copyfiles": "^2.4.1",
-    "eslint": "^9.39.2",
+    "eslint": "^10.0.1",
     "expect": "^30.0.5",
     "gts": "^7.0.0",
     "jest": "^30.0.4",

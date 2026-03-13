@@ -9,6 +9,7 @@ import 'package:stack_trace/stack_trace.dart';
 import 'deprecation.dart';
 import 'logger/deprecation_processing.dart';
 import 'logger/stderr.dart';
+import 'logger/default.dart';
 
 /// An interface for loggers that print messages produced by Sass stylesheets.
 ///
@@ -22,6 +23,11 @@ abstract class Logger {
   /// Creates a logger that prints warnings to standard error, with terminal
   /// colors if [color] is `true` (default `false`).
   const factory Logger.stderr({bool color}) = StderrLogger;
+
+  /// The logger that's used when no others are selected. This is always
+  /// [Logger.stderr], but with the value for `color` chosen based on whether
+  /// the current system supports terminal colors.
+  static const Logger defaultLogger = DefaultLogger();
 
   /// Emits a warning with the given [message].
   ///

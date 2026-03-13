@@ -1,4 +1,4 @@
-## 1.98.0
+## 1.99.0
 
 * User-defined functions named `calc` or `clamp` are no longer forbidden. If
   such a function exists without a namespace in the current module, it will be
@@ -26,6 +26,29 @@
   deprecated.
 
   See [the Sass website](https://sass-lang.com/d/function-name) for details.
+
+## 1.98.0
+
+### Command-Line Interface
+
+* Gracefully handle dependency loops in `--watch` mode.
+
+### Dart API
+
+* Add a `const Logger.defaultLogger` field. This provides a logger that emits to
+  standard error or the browser console, but automatically chooses whether to
+  use terminal colors.
+
+### JavaScript API
+
+* Fix a crash when manually constructing a `SassCalculation` for `'calc'` with
+  an argument that can't be simplified.
+
+* Properly emit deprecation warnings as text rather than `StringBuffer` objects
+  when running in a browser.
+
+* Emit colored warnings and other messages on the console when running in a
+  browser.
 
 ## 1.97.3
 

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: d305a0f75e329a29f5aff734ac31ce145fd3b8d5
+// Checksum: aa378886d9a3d697d466ac916f7902cbc1b282ee
 //
 // ignore_for_file: unused_import
 
@@ -58,7 +58,7 @@ CompileResult compile(
 }) {
   DeprecationProcessingLogger deprecationLogger =
       logger = DeprecationProcessingLogger(
-    logger ?? Logger.stderr(),
+    logger ?? Logger.defaultLogger,
     silenceDeprecations: {...?silenceDeprecations},
     fatalDeprecations: {...?fatalDeprecations},
     futureDeprecations: {...?futureDeprecations},
@@ -133,7 +133,7 @@ CompileResult compileString(
 }) {
   DeprecationProcessingLogger deprecationLogger =
       logger = DeprecationProcessingLogger(
-    logger ?? Logger.stderr(),
+    logger ?? Logger.defaultLogger,
     silenceDeprecations: {...?silenceDeprecations},
     fatalDeprecations: {...?fatalDeprecations},
     futureDeprecations: {...?futureDeprecations},

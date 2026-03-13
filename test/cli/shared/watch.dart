@@ -937,6 +937,60 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         );
       });
 
+      group('gracefully handles dependency loops', () {
+        test('present during initial compilation', () async {
+          await d.file("test.scss", "@use 'other'").create();
+          await d.file("_other.scss", "@use 'test'").create();
+
+          var sass = await watch(['test.scss:out.css']);
+          await expectLater(
+              sass.stderr,
+              emits(
+                  'Error: Module loop: this module is already being loaded.'));
+          await expectLater(sass.stdout, _watchingForChanges);
+          await sass.kill();
+        });
+
+        test('added after initial compilation', () async {
+          await d.file("test.scss", "@use 'other'").create();
+          await d.file("_other.scss", "a {b: c}").create();
+
+          var sass = await watch(['test.scss:out.css']);
+          await expectLater(
+            sass.stdout,
+            emits(endsWith('Compiled test.scss to out.css.')),
+          );
+          await tick;
+
+          await d.file("_other.scss", "@use 'test'").create();
+          await expectLater(
+              sass.stderr,
+              emits(
+                  'Error: Module loop: this module is already being loaded.'));
+          await sass.kill();
+        });
+
+        test('removed after initial compilation', () async {
+          await d.file("test.scss", "@use 'other'").create();
+          await d.file("_other.scss", "@use 'test'").create();
+
+          var sass = await watch(['test.scss:out.css']);
+          await expectLater(
+              sass.stderr,
+              emits(
+                  'Error: Module loop: this module is already being loaded.'));
+          await expectLater(sass.stdout, _watchingForChanges);
+          await tick;
+
+          await d.file("_other.scss", "a {b: c}").create();
+          await expectLater(
+            sass.stdout,
+            emits(endsWith('Compiled test.scss to out.css.')),
+          );
+          await sass.kill();
+        });
+      });
+
       group("deletes the CSS", () {
         test("when a file is deleted", () async {
           await d.file("test.scss", "a {b: c}").create();
