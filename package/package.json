@@ -19,7 +19,8 @@
   "dependencies": {
     "chokidar": "^4.0.0",
     "immutable": "^5.1.5",
-    "source-map-js": ">=0.6.2 <2.0.0"
+    "source-map-js": ">=0.6.2 <2.0.0",
+    "sync-message-port": "^1.2.0"
   },
   "optionalDependencies": {
     "@parcel/watcher": "^2.4.1"
