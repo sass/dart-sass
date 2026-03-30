@@ -120,12 +120,18 @@ final class SelectorList extends Selector {
   }) {
     if (parent == null) {
       if (preserveParentSelectors) return this;
-      var parentSelector = accept(const _ParentSelectorVisitor());
-      if (parentSelector == null) return this;
-      throw SassException(
-        'Top-level selectors may not contain the parent selector "&".',
-        parentSelector.span,
-      );
+      if (accept(const _ParentSelectorVisitor())
+          case ParentSelector(
+            suffix: var _?,
+            :var span,
+          )) {
+        throw SassException(
+          'A top-level selector may not contain a parent selector with a '
+          'suffix.',
+          span,
+        );
+      }
+      return this;
     }
 
     return SelectorList(

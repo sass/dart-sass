@@ -41,24 +41,19 @@ final module = BuiltInModule(
   ],
 );
 
-final _nest = _function("nest", r"$selectors...", (arguments) {
-  var selectors = arguments[0].asList;
-  if (selectors.isEmpty) {
-    throw SassScriptException(
-      "\$selectors: At least one selector must be passed.",
-    );
-  }
-
-  var first = true;
-  return selectors
-      .map((selector) {
-        var result = selector.assertSelector(allowParent: !first);
-        first = false;
-        return result;
-      })
-      .reduce((parent, child) => child.nestWithin(parent))
-      .asSassList;
-});
+final _nest = _function(
+    "nest",
+    r"$selectors...",
+    (arguments) =>
+        arguments[0]
+            .asList
+            .map((selector) => selector.assertSelector(allowParent: true))
+            .fold<SelectorList?>(
+                null, (parent, child) => child.nestWithin(parent))
+            ?.asSassList ??
+        (throw SassScriptException(
+          "\$selectors: At least one selector must be passed.",
+        )));
 
 final _append = _function("append", r"$selectors...", (arguments) {
   var selectors = arguments[0].asList;
