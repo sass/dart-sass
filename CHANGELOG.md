@@ -1,12 +1,10 @@
-## 1.100.0
+## 1.99.0
 
 * Add support for parent selectors (`&`) at the root of the document. These are
   emitted as-is in the CSS output, where they're interpreted as [the scoping
   root].
 
   [the scoping root]: https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/Nesting_selector#using_outside_nested_rule
-
-## 1.99.0
 
 * User-defined functions named `calc` or `clamp` are no longer forbidden. If
   such a function exists without a namespace in the current module, it will be
