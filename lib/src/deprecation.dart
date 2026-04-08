@@ -15,11 +15,12 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 731d57cd17d5d00431e3bcb52213e660d1447ca1
+  // Checksum: 5864f1fa8cda0d44fd31136deb98911258e590a6
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
       deprecatedIn: '0.0.0',
+      obsoleteIn: '2.0.0',
       description: 'Passing a string directly to meta.call().'),
 
   /// Deprecation for @elseif.

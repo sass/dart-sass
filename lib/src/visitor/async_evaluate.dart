@@ -562,24 +562,6 @@ final class _EvaluateVisitor
                 ),
         );
 
-        if (function is SassString) {
-          warnForDeprecation(
-            "Passing a string to call() is deprecated and will be illegal in "
-            "Dart Sass 2.0.0.\n"
-            "\n"
-            "Recommendation: call(get-function($function))",
-            Deprecation.callString,
-          );
-
-          var callableNode = _callableNode!;
-          var expression = FunctionExpression(
-            function.text,
-            invocation,
-            callableNode.span,
-          );
-          return await expression.accept(this);
-        }
-
         var callable = function
             .assertFunction("function")
             .assertCompileContext(_compileContext)

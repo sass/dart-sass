@@ -25,6 +25,9 @@
   after them, as in `$a -$b`, are now forbidden due to being highly ambiguous
   between `$a - $b` and `$a (-$b)`.
 
+* **Breaking change:** Passing a string to `meta.call()` is now an error.
+  Callers must pass a function object instead.
+
 * **Breaking change:** The current working directory is no longer ever
   implicitly added as a load path. You can add it explicitly with
   `--load-path=.` or similar options in the APIs.

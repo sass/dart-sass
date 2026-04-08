@@ -250,7 +250,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         ]),
       );
       await sass.kill();
-    });
+    }, skip: "Re-enable this once we have post-2.0.0 deprecations");
 
     group("with @use", () {
       test("a module load error", () async {
