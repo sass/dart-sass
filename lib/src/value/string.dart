@@ -216,6 +216,11 @@ final class SassString extends Value {
 
   SassString assertString([String? name]) => this;
 
+  SassFunction assertFunction([String? name]) => throw SassScriptException(
+      "$this is not a function reference.\n"
+      "Call meta.get-function() to get a reference for a function name.",
+      name);
+
   /// @nodoc
   @internal
   Value plus(Value other) => other is SassString

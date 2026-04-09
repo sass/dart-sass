@@ -10,11 +10,6 @@ import 'package:test/test.dart';
 import 'package:sass/sass.dart';
 
 void main() {
-  // Deprecated in all version of Dart Sass
-  test("callString is violated by passing a string to call", () {
-    _expectDeprecation("a { b: call(random)}", Deprecation.callString);
-  });
-
   group("compileStringRelativeUrl is violated by", () {
     test("a fully relative URL", () {
       _expectDeprecationCallback(
@@ -33,12 +28,6 @@ void main() {
     });
   });
 }
-
-/// Confirms that [source] will error if [deprecation] is fatal.
-void _expectDeprecation(String source, Deprecation deprecation) =>
-    _expectDeprecationCallback(
-        () => compileStringToResult(source, fatalDeprecations: {deprecation}),
-        deprecation);
 
 /// Confirms that [callback] will produce a fatal deprecation error for
 /// [deprecation].
