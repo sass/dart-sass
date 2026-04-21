@@ -1,3 +1,10 @@
+## 1.102.0
+
+* **Potentially breaking compatibility fix:** Colors now preserve "analogous
+  sets" of missing channels during conversions, per the CSS spec. For example,
+  `color.to-space(lch(50% none none), lab)` now returns `lab(50% none none)`
+  instead of `lab(50% 0 0)`.
+
 ## 1.101.4
 
 * Avoid emitting `rgb()` or `rgba()` functions with non-percent decimal
