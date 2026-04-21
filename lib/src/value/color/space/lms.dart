@@ -43,6 +43,19 @@ final class LmsColorSpace extends ColorSpace {
     bool missingA = false,
     bool missingB = false,
   }) {
+    if (missingA && missingB) {
+      missingChroma = true;
+      missingHue = true;
+    } else if (missingChroma && missingHue) {
+      missingA = true;
+      missingB = true;
+    }
+
+    if ((missingLightness && missingChroma && missingHue) ||
+        (long == null && medium == null && short == null)) {
+      return SassColor.forSpaceInternal(dest, null, null, null, alpha);
+    }
+
     switch (dest) {
       case ColorSpace.oklab:
         // Algorithm from https://drafts.csswg.org/css-color-4/#color-conversion-code

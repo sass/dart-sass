@@ -211,6 +211,26 @@ abstract base class ColorSpace {
     bool missingA = false,
     bool missingB = false,
   }) {
+    // Normalize analogous sets of channels so that the destination color for
+    // any space has its analogous channels set to missing when the source
+    // color's channels are missing. See
+    // https://github.com/w3c/csswg-drafts/issues/10210#issuecomment-4290447477
+    // for some discussion of whether it's appropriate to handle analogous
+    // components as part of color conversion in general rather than just for
+    // interpolation.
+    if (missingA && missingB) {
+      missingChroma = true;
+      missingHue = true;
+    } else if (missingChroma && missingHue) {
+      missingA = true;
+      missingB = true;
+    }
+
+    if ((missingLightness && missingChroma && missingHue) ||
+        (red == null && green == null && blue == null)) {
+      return SassColor.forSpaceInternal(dest, null, null, null, alpha);
+    }
+
     var linearDest = switch (dest) {
       ColorSpace.hsl || ColorSpace.hwb => const SrgbColorSpace(),
       ColorSpace.lab || ColorSpace.lch => const XyzD50ColorSpace(),

@@ -36,6 +36,19 @@ final class XyzD50ColorSpace extends ColorSpace {
     bool missingA = false,
     bool missingB = false,
   }) {
+    if (missingA && missingB) {
+      missingChroma = true;
+      missingHue = true;
+    } else if (missingChroma && missingHue) {
+      missingA = true;
+      missingB = true;
+    }
+
+    if ((missingLightness && missingChroma && missingHue) ||
+        (x == null && y == null && z == null)) {
+      return SassColor.forSpaceInternal(dest, null, null, null, alpha);
+    }
+
     switch (dest) {
       case ColorSpace.lab || ColorSpace.lch:
         // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code

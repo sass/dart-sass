@@ -1,3 +1,10 @@
+## 1.100.0
+
+* **Potentially breaking compatibility fix:** Colors now preserve "analogous
+  sets" of missing channels during conversions. For example,
+  `color.to-space(lch(50% none none), lab)` now returns `lab(50% none none)`
+  instead of `lab(50% 0 0)`.
+
 ## 1.99.0
 
 * Add support for parent selectors (`&`) at the root of the document. These are

@@ -37,6 +37,11 @@ final class SrgbColorSpace extends ColorSpace {
     bool missingChroma = false,
     bool missingHue = false,
   }) {
+    if ((red == null && green == null && blue == null) ||
+        (missingLightness && missingChroma && missingHue)) {
+      return SassColor.forSpaceInternal(dest, null, null, null, alpha);
+    }
+
     switch (dest) {
       case ColorSpace.hsl || ColorSpace.hwb:
         red ??= 0;

@@ -45,6 +45,14 @@ final class LabColorSpace extends ColorSpace {
     bool missingChroma = false,
     bool missingHue = false,
   }) {
+    if (missingChroma && missingHue) {
+      a = null;
+      b = null;
+    } else if (a == null && b == null) {
+      missingChroma = true;
+      missingHue = true;
+    }
+
     switch (dest) {
       case ColorSpace.lab:
         var powerlessAB = lightness == null || fuzzyEquals(lightness, 0);

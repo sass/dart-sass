@@ -57,6 +57,14 @@ final class OklabColorSpace extends ColorSpace {
       );
     }
 
+    if (a == null && b == null) {
+      missingChroma = true;
+      missingHue = true;
+    } else if (missingChroma && missingHue) {
+      a = null;
+      b = null;
+    }
+
     var missingLightness = lightness == null;
     var missingA = a == null;
     var missingB = b == null;

@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
@@ -998,21 +997,12 @@ class SassColor extends Value {
       throw RangeError.range(weight, 0, 1, 'weight');
     }
 
-    // If either color is missing a channel _and_ that channel is analogous with
-    // one in the output space, then the output channel should take on the other
-    // color's value.
-    var missing1_0 = _isAnalogousChannelMissing(this, color1, 0);
-    var missing1_1 = _isAnalogousChannelMissing(this, color1, 1);
-    var missing1_2 = _isAnalogousChannelMissing(this, color1, 2);
-    var missing2_0 = _isAnalogousChannelMissing(other, color2, 0);
-    var missing2_1 = _isAnalogousChannelMissing(other, color2, 1);
-    var missing2_2 = _isAnalogousChannelMissing(other, color2, 2);
-    var channel1_0 = (missing1_0 ? color2 : color1).channel0;
-    var channel1_1 = (missing1_1 ? color2 : color1).channel1;
-    var channel1_2 = (missing1_2 ? color2 : color1).channel2;
-    var channel2_0 = (missing2_0 ? color1 : color2).channel0;
-    var channel2_1 = (missing2_1 ? color1 : color2).channel1;
-    var channel2_2 = (missing2_2 ? color1 : color2).channel2;
+    var channel1_0 = color1.channel0OrNull ?? color2.channel0OrNull;
+    var channel1_1 = color1.channel1OrNull ?? color2.channel1OrNull;
+    var channel1_2 = color1.channel2OrNull ?? color2.channel2OrNull;
+    var channel2_0 = color2.channel0OrNull ?? color1.channel0OrNull;
+    var channel2_1 = color2.channel1OrNull ?? color1.channel1OrNull;
+    var channel2_2 = color2.channel2OrNull ?? color1.channel2OrNull;
     var alpha1 = alphaOrNull ?? other.alpha;
     var alpha2 = other.alphaOrNull ?? alpha;
 
@@ -1021,25 +1011,25 @@ class SassColor extends Value {
     var mixedAlpha = isAlphaMissing && other.isAlphaMissing
         ? null
         : alpha1 * weight + alpha2 * (1 - weight);
-    var mixed0 = missing1_0 && missing2_0
+    var mixed0 = channel1_0 == null
         ? null
-        : (channel1_0 * thisMultiplier + channel2_0 * otherMultiplier) /
+        : (channel1_0 * thisMultiplier + channel2_0! * otherMultiplier) /
             (mixedAlpha ?? 1);
-    var mixed1 = missing1_1 && missing2_1
+    var mixed1 = channel1_1 == null
         ? null
-        : (channel1_1 * thisMultiplier + channel2_1 * otherMultiplier) /
+        : (channel1_1 * thisMultiplier + channel2_1! * otherMultiplier) /
             (mixedAlpha ?? 1);
-    var mixed2 = missing1_2 && missing2_2
+    var mixed2 = channel1_2 == null
         ? null
-        : (channel1_2 * thisMultiplier + channel2_2 * otherMultiplier) /
+        : (channel1_2 * thisMultiplier + channel2_2! * otherMultiplier) /
             (mixedAlpha ?? 1);
 
     return switch (method.space) {
       ColorSpace.hsl || ColorSpace.hwb => SassColor.forSpaceInternal(
           method.space,
-          missing1_0 && missing2_0
+          channel1_0 == null
               ? null
-              : _interpolateHues(channel1_0, channel2_0, method.hue!, weight),
+              : _interpolateHues(channel1_0, channel2_0!, method.hue!, weight),
           mixed1,
           mixed2,
           mixedAlpha,
@@ -1048,9 +1038,9 @@ class SassColor extends Value {
           method.space,
           mixed0,
           mixed1,
-          missing1_2 && missing2_2
+          channel1_2 == null
               ? null
-              : _interpolateHues(channel1_2, channel2_2, method.hue!, weight),
+              : _interpolateHues(channel1_2, channel2_2!, method.hue!, weight),
           mixedAlpha,
         ),
       _ => SassColor.forSpaceInternal(
@@ -1062,29 +1052,6 @@ class SassColor extends Value {
         ),
     }
         .toSpace(space, legacyMissing: legacyMissing);
-  }
-
-  /// Returns whether [output], which was converted to its color space from
-  /// [original], should be considered to have a missing channel at
-  /// [outputChannelIndex].
-  ///
-  /// This includes channels that are analogous to missing channels in
-  /// [original].
-  bool _isAnalogousChannelMissing(
-    SassColor original,
-    SassColor output,
-    int outputChannelIndex,
-  ) {
-    if (output.channelsOrNull[outputChannelIndex] == null) return true;
-    if (identical(original, output)) return false;
-
-    var outputChannel = output.space.channels[outputChannelIndex];
-    var originalChannel = original.space.channels.firstWhereOrNull(
-      outputChannel.isAnalogous,
-    );
-    if (originalChannel == null) return false;
-
-    return original.isChannelMissing(originalChannel.name);
   }
 
   /// Returns a hue partway between [hue1] and [hue2] according to [method].

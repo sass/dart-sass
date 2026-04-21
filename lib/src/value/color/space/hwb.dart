@@ -55,6 +55,8 @@ final class HwbColorSpace extends ColorSpace {
       toRgb(scaledHue),
       toRgb(scaledHue - 1 / 3),
       alpha,
+      missingLightness: whiteness == null && blackness == null,
+      missingChroma: whiteness == null && blackness == null,
       missingHue: hue == null,
     );
   }
