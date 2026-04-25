@@ -457,7 +457,8 @@ extension SassApiValue on Value {
   SelectorList assertSelector({String? name, bool allowParent = false}) {
     var string = _selectorString(name);
     try {
-      return SelectorList.parse(string, allowParent: allowParent);
+      return SelectorList.parse(string,
+          allowParent: allowParent, logger: EvaluationContext.current.logger);
     } on SassFormatException catch (error, stackTrace) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
@@ -484,7 +485,8 @@ extension SassApiValue on Value {
   }) {
     var string = _selectorString(name);
     try {
-      return SimpleSelector.parse(string, allowParent: allowParent);
+      return SimpleSelector.parse(string,
+          allowParent: allowParent, logger: EvaluationContext.current.logger);
     } on SassFormatException catch (error, stackTrace) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
@@ -511,7 +513,8 @@ extension SassApiValue on Value {
   }) {
     var string = _selectorString(name);
     try {
-      return CompoundSelector.parse(string, allowParent: allowParent);
+      return CompoundSelector.parse(string,
+          allowParent: allowParent, logger: EvaluationContext.current.logger);
     } on SassFormatException catch (error, stackTrace) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
@@ -538,7 +541,8 @@ extension SassApiValue on Value {
   }) {
     var string = _selectorString(name);
     try {
-      return ComplexSelector.parse(string, allowParent: allowParent);
+      return ComplexSelector.parse(string,
+          allowParent: allowParent, logger: EvaluationContext.current.logger);
     } on SassFormatException catch (error, stackTrace) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.

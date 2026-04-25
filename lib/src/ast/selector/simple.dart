@@ -5,6 +5,7 @@
 import 'package:meta/meta.dart';
 
 import '../../exception.dart';
+import '../../logger.dart';
 import '../../parse/selector.dart';
 import '../selector.dart';
 
@@ -51,16 +52,21 @@ abstract base class SimpleSelector extends Selector {
   /// [allowParent] controls whether a [ParentSelector] is allowed in this
   /// selector.
   ///
+  /// The [logger] will be used to report deprecation warnings. If it's null,
+  /// they'll be reported using [Logger.defaultLogger].
+  ///
   /// Throws a [SassFormatException] if parsing fails.
   factory SimpleSelector.parse(
     String contents, {
     Object? url,
     bool allowParent = true,
+    Logger? logger,
   }) =>
       SelectorParser(
         contents,
         url: url,
         allowParent: allowParent,
+        logger: logger,
       ).parseSimpleSelector();
 
   /// Returns a new [SimpleSelector] based on `this`, as though it had been

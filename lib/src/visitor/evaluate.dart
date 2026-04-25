@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 4f4c80ef555355f888e134d764121a1117d4020c
+// Checksum: 248b2cfadcd94847e46bd7e6ba9d27ce077c8c20
 //
 // ignore_for_file: unused_import
 
@@ -1514,6 +1514,7 @@ final class _EvaluateVisitor
       trimAscii(targetText, excludeEscape: true),
       interpolationMap: targetMap,
       allowParent: false,
+      logger: _logger,
     );
 
     for (var complex in list.components) {
@@ -2419,6 +2420,7 @@ final class _EvaluateVisitor
       selectorText,
       interpolationMap: selectorMap,
       plainCss: _stylesheet.plainCss,
+      logger: _logger,
     );
 
     var merge = switch (_styleRule) {
@@ -4869,7 +4871,7 @@ final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
 
 /// An implementation of [EvaluationContext] using the information available in
 /// [_EvaluateVisitor].
-final class _EvaluationContext implements EvaluationContext {
+final class _EvaluationContext extends EvaluationContext {
   /// The visitor backing this context.
   final _EvaluateVisitor _visitor;
 
