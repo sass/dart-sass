@@ -81,7 +81,7 @@ If you use [the Homebrew package manager](https://brew.sh/), you
 can install Dart Sass by running
 
 ```sh
-brew install sass/sass/sass
+brew install dart-sass
 ```
 
 That'll give you a `sass` executable on your command line that will run Dart
