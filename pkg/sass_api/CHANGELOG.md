@@ -1,3 +1,9 @@
+## 17.6.0
+
+* Add a `logger` parameter to `SelectorList.parse()`, `ComplexSelector.parse()`,
+  `CompoundSelector.parse()`, and `SimpleSelcetor.parse()`. This is used to
+  report deprecations found when parsing selectors.
+
 ## 17.5.0
 
 * Add an `Expression.isPlainCss()` method.

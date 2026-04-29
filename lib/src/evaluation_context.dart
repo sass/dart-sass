@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:source_span/source_span.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 import 'deprecation.dart';
 import 'logger.dart';
@@ -13,7 +14,7 @@ import 'logger.dart';
 ///
 /// This allows us to expose zone-scoped information without having to create a
 /// new zone variable for each piece of information.
-abstract interface class EvaluationContext {
+abstract class EvaluationContext {
   /// The current evaluation context.
   ///
   /// Throws [StateError] if there isn't a Sass stylesheet currently being
@@ -39,7 +40,12 @@ abstract interface class EvaluationContext {
     }
   }
 
-  /// Returns the span for the currently executing callable.
+  /// A logger that forwards warnings to this evaluation context.
+  ///
+  /// [Logger.debug] should never be called for this logger, only [Logger.warn].
+  Logger get logger => _EvaluationContextLogger(this);
+
+  /// The span for the currently executing callable.
   ///
   /// For normal exception reporting, this should be avoided in favor of
   /// throwing [SassScriptException]s. It should only be used when calling APIs
@@ -99,3 +105,27 @@ void warnForDeprecationFromApi(String message, Deprecation deprecation) {
 /// duration of that callback.
 T withEvaluationContext<T>(EvaluationContext context, T callback()) =>
     runZoned(callback, zoneValues: {#_evaluationContext: context});
+
+/// A [Logger] that forwards warnings to [EvaluationContext.warn].
+///
+/// This should only ever be used for warnings, not debug messages.
+class _EvaluationContextLogger extends LoggerWithDeprecationType {
+  /// The context to which this logger forwards.
+  final EvaluationContext _context;
+
+  _EvaluationContextLogger(this._context);
+
+  void debug(String message, SourceSpan span) {
+    throw UnimplementedError(
+        "EvaluationContext.logger.debug() is not supported");
+  }
+
+  void internalWarn(
+    String message, {
+    FileSpan? span,
+    Trace? trace,
+    Deprecation? deprecation,
+  }) {
+    _context.warn(message, deprecation);
+  }
+}

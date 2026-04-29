@@ -1,3 +1,12 @@
+## 1.100.0
+
+* Writing two compound selectors adjacent to one another without any whitespace
+  between them, such as `[class]a`, is now deprecated. This was always an error
+  in CSS and Sass only supported it by mistake.
+
+  See [the Sass website](https://sass-lang.com/d/adjacent-compounds) for
+  details.
+
 ## 1.99.0
 
 * Add support for parent selectors (`&`) at the root of the document. These are
