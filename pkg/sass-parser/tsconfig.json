@@ -7,7 +7,9 @@
     "resolveJsonModule": true,
     "rootDir": ".",
     "useUnknownInCatchVariables": false,
-    "declaration": true
+    "declaration": true,
+    "types": ["node", "jest"],
+    "resolvePackageJsonExports": false
   },
   "include": ["*.ts", "lib/**/*.ts", "tool/**/*.ts", "test/**/*.ts"]
 }
