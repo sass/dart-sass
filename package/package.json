@@ -17,7 +17,7 @@
     "node": ">=20.19.0"
   },
   "dependencies": {
-    "chokidar": "^4.0.0",
+    "chokidar": "^5.0.0",
     "immutable": "^5.1.5",
     "source-map-js": ">=0.6.2 <2.0.0"
   },
