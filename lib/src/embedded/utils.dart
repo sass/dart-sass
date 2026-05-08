@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:protobuf/protobuf.dart';
@@ -10,6 +9,7 @@ import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
+import '../io.dart';
 import '../syntax.dart';
 import 'embedded_sass.pb.dart' as proto;
 import 'embedded_sass.pb.dart' hide SourceSpan, Syntax;
@@ -140,15 +140,17 @@ ProtocolError handleError(
 }) {
   if (error is ProtocolError) {
     error.id = messageId ?? errorId;
-    stderr.write("Host caused ${error.type.name.toLowerCase()} error");
-    if (error.id != errorId) stderr.write(" with request ${error.id}");
-    stderr.writeln(": ${error.message}");
+    var buffer = StringBuffer();
+    buffer.write("Host caused ${error.type.name.toLowerCase()} error");
+    if (error.id != errorId) buffer.write(" with request ${error.id}");
+    buffer.write(": ${error.message}");
+    printError(buffer.toString());
     // PROTOCOL error from https://bit.ly/2poTt90
     exitCode = 76; // EX_PROTOCOL
     return error;
   } else {
     var errorMessage = "$error\n${Chain.forTrace(stackTrace)}";
-    stderr.write("Internal compiler error: $errorMessage");
+    printError("Internal compiler error: $errorMessage");
     exitCode = 70; // EX_SOFTWARE
     return ProtocolError()
       ..type = ProtocolErrorType.INTERNAL
