@@ -1,3 +1,7 @@
+## 17.7.0
+
+* No user-visible changes.
+
 ## 17.6.0
 
 * Add a `logger` parameter to `SelectorList.parse()`, `ComplexSelector.parse()`,

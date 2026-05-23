@@ -80,7 +80,7 @@ class NodePackageImporter extends Importer {
     )
         case var resolved?) {
       if (_validExtensions.contains(p.extension(resolved))) {
-        return p.toUri(p.canonicalize(resolved));
+        return p.toUri(p.canonicalize(_resolveImportOnly(resolved)));
       } else {
         throw "The export for '${subpath ?? "root"}' in "
             "'$packageName' resolved to '${resolved.toString()}', "
@@ -144,10 +144,10 @@ class NodePackageImporter extends Importer {
   ) {
     if (packageManifest['sass'] case String sassValue
         when _validExtensions.contains(p.url.extension(sassValue))) {
-      return p.join(packageRoot, sassValue);
+      return _resolveImportOnly(p.join(packageRoot, sassValue));
     } else if (packageManifest['style'] case String styleValue
         when _validExtensions.contains(p.url.extension(styleValue))) {
-      return p.join(packageRoot, styleValue);
+      return _resolveImportOnly(p.join(packageRoot, styleValue));
     }
 
     var result = resolveImportPath(p.join(packageRoot, 'index'));
@@ -155,7 +155,7 @@ class NodePackageImporter extends Importer {
   }
 
   /// Returns a file path specified by a `subpath` in the `exports` section of
-  /// package.json.
+  /// `packageManifest`.
   ///
   /// `packageName` is used for error reporting.
   String? _resolvePackageExports(
@@ -283,6 +283,16 @@ class NodePackageImporter extends Importer {
             "\n\nFound:\n"
             "${paths.join('\n')}",
     };
+  }
+
+  /// Returns either [path] or, if necessary, the import-only variant that
+  /// should be loaded instead.
+  String _resolveImportOnly(String path) {
+    if (!fromImport) return path;
+    var extension = p.extension(path);
+    assert(_validExtensions.contains(extension));
+    var importOnly = '${p.withoutExtension(path)}.import$extension';
+    return fileExists(importOnly) ? importOnly : path;
   }
 
   /// Implementation of the `PATTERN_KEY_COMPARE` comparator from
