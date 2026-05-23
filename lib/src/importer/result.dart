@@ -16,6 +16,9 @@ class ImporterResult {
   final String contents;
 
   /// An absolute URL indicating the resolved location of the imported stylesheet.
+  ///
+  /// When `sourceMapIncludeSources` is `auto`, source content for the imported
+  /// stylesheet will be included only if [sourceMapUrl] isn't set.
   final Uri? sourceMapUrl;
 
   /// The syntax to use to parse the stylesheet.

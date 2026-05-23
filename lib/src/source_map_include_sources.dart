@@ -6,7 +6,8 @@
 ///
 /// {@category Compile}
 enum SourceMapIncludeSources {
-  /// Let compiler decide whether to include each source content.
+  /// Source contents are included only for sources for which
+  /// ImporterResult.sourceMapUrl isn't set.
   auto,
 
   /// Always include source contents.

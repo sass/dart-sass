@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 6b54684987dad73a29bc6f18d44639077e51ad7f
+// Checksum: 24489ae0ff07c9b2febb57a82f59fafc525178d5
 //
 // ignore_for_file: unused_import
 
@@ -50,7 +50,7 @@ CompileResult compile(
   bool verbose = false,
   bool sourceMap = false,
   SourceMapIncludeSources sourceMapIncludeSources =
-      SourceMapIncludeSources.always,
+      SourceMapIncludeSources.auto,
   bool charset = true,
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
@@ -128,7 +128,7 @@ CompileResult compileString(
   bool verbose = false,
   bool sourceMap = false,
   SourceMapIncludeSources sourceMapIncludeSources =
-      SourceMapIncludeSources.always,
+      SourceMapIncludeSources.auto,
   bool charset = true,
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
@@ -242,6 +242,7 @@ CompileResult _compileStylesheet(
     charset: charset,
   );
 
+  // Postprocess the sourceMap to remove unwanted source contents.
   var resultSourceMap = serializeResult.sourceMap;
   if (resultSourceMap != null) {
     if (importCache != null) {

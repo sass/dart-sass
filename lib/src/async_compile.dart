@@ -41,7 +41,7 @@ Future<CompileResult> compileAsync(
   bool verbose = false,
   bool sourceMap = false,
   SourceMapIncludeSources sourceMapIncludeSources =
-      SourceMapIncludeSources.always,
+      SourceMapIncludeSources.auto,
   bool charset = true,
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
@@ -119,7 +119,7 @@ Future<CompileResult> compileStringAsync(
   bool verbose = false,
   bool sourceMap = false,
   SourceMapIncludeSources sourceMapIncludeSources =
-      SourceMapIncludeSources.always,
+      SourceMapIncludeSources.auto,
   bool charset = true,
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
@@ -233,6 +233,7 @@ Future<CompileResult> _compileStylesheet(
     charset: charset,
   );
 
+  // Postprocess the sourceMap to remove unwanted source contents.
   var resultSourceMap = serializeResult.sourceMap;
   if (resultSourceMap != null) {
     if (importCache != null) {

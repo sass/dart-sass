@@ -6,8 +6,13 @@ import 'package:source_maps/source_maps.dart';
 
 import '../source_map_include_sources.dart';
 
+/// Returns a JSON map for the SingleMapping sourceMap.
+///
+/// The returned JSON map includes a `sourcesContent` array only if one or more
+/// source content is included.
 Map<String, dynamic> sourceMapToJson(SingleMapping sourceMap,
     {required SourceMapIncludeSources sourceMapIncludeSources}) {
+  // TODO: remove support for deprecated boolean option.
   if (sourceMapIncludeSources == SourceMapIncludeSources.true_) {
     sourceMapIncludeSources = SourceMapIncludeSources.always;
   } else if (sourceMapIncludeSources == SourceMapIncludeSources.false_) {
