@@ -24,7 +24,7 @@ class WorkerDispatcher {
 
   /// Whether to wait for all worker workers to exit before exiting the main
   /// worker or not.
-  final bool _gracefulShutdown;
+  final bool _gracefulWorkerShutdown;
 
   /// All workers that have been spawned to dispatch to.
   ///
@@ -44,8 +44,8 @@ class WorkerDispatcher {
   /// Whether [_channel] has been closed or not.
   var _closed = false;
 
-  WorkerDispatcher(this._channel, {bool gracefulShutdown = true})
-      : _gracefulShutdown = gracefulShutdown;
+  WorkerDispatcher(this._channel, {bool gracefulWorkerShutdown = true})
+      : _gracefulWorkerShutdown = gracefulWorkerShutdown;
 
   void listen() {
     _channel.stream.listen(
@@ -105,7 +105,7 @@ class WorkerDispatcher {
         _handleError(error, stackTrace);
       },
       onDone: () {
-        if (_gracefulShutdown) {
+        if (_gracefulWorkerShutdown) {
           _closed = true;
           _allWorkers.stream.listen((worker) => worker.kill());
         } else {
@@ -169,11 +169,7 @@ class WorkerDispatcher {
           // code 1 regardless of actual process.exitCode value in worker
           // thread.
           exitCode = fullBuffer[1];
-          if (_gracefulShutdown) {
-            _channel.sink.close();
-          } else {
-            exit(exitCode);
-          }
+          _exit();
       }
     });
 
@@ -203,7 +199,17 @@ class WorkerDispatcher {
       compilationId ?? errorId,
       handleError(error, stackTrace, messageId: messageId),
     );
-    if (_gracefulShutdown) {
+    _exit();
+  }
+
+  /// Exits the current process.
+  ///
+  /// For Dart VM process it exits immediately. For Node.js process, it waits
+  /// for all worker threads to shutdown before exits the main thread, to ensure
+  /// the exit code from the worker thread is propagated back to the main thread
+  /// before exiting.
+  void _exit() {
+    if (_gracefulWorkerShutdown) {
       _channel.sink.close();
     } else {
       exit(exitCode);
