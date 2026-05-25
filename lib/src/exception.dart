@@ -9,6 +9,7 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
 import 'util/nullable.dart';
+import 'util/trace.dart';
 import 'utils.dart';
 import 'value.dart';
 
@@ -53,12 +54,12 @@ class SassException extends SourceSpanException {
   SassException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       SassException(message, span, loadedUrls);
 
-  String toString({Object? color}) {
+  String toString({Object? color, bool prettyUri = true}) {
     var buffer = StringBuffer()
       ..writeln("Error: $message")
       ..write(span.highlight(color: color));
 
-    for (var frame in trace.toString().split("\n")) {
+    for (var frame in trace.printString(prettyUri: prettyUri).split("\n")) {
       if (frame.isEmpty) continue;
       buffer.writeln();
       buffer.write("  $frame");
@@ -158,7 +159,8 @@ class MultiSpanSassException extends SassException
         loadedUrls,
       );
 
-  String toString({Object? color, String? secondaryColor}) {
+  String toString(
+      {Object? color, String? secondaryColor, bool prettyUri = true}) {
     var useColor = false;
     String? primaryColor;
     if (color is String) {
@@ -180,7 +182,7 @@ class MultiSpanSassException extends SassException
         )
         .andThen(buffer.write);
 
-    for (var frame in trace.toString().split("\n")) {
+    for (var frame in trace.printString(prettyUri: prettyUri).split("\n")) {
       if (frame.isEmpty) continue;
       buffer.writeln();
       buffer.write("  $frame");

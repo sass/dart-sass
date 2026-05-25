@@ -15,6 +15,7 @@ import 'package:sass/sass.dart' as sass;
 import 'package:sass/src/importer/node_package.dart' as npi;
 
 import '../logger.dart';
+import '../util/trace.dart';
 import '../value/function.dart';
 import '../value/mixin.dart';
 import 'embedded_sass.pb.dart';
@@ -241,14 +242,14 @@ final class CompilationDispatcher {
         ..loadedUrls.addAll(result.loadedUrls.map((url) => url.toString()));
     } on sass.SassException catch (error) {
       var formatted = withGlyphs(
-        () => error.toString(color: request.alertColor),
+        () => error.toString(color: request.alertColor, prettyUri: false),
         ascii: request.alertAscii,
       );
       return OutboundMessage_CompileResponse()
         ..failure = (OutboundMessage_CompileResponse_CompileFailure()
           ..message = error.message
           ..span = protofySpan(error.span)
-          ..stackTrace = error.trace.toString()
+          ..stackTrace = error.trace.printString(prettyUri: false)
           ..formatted = formatted)
         ..loadedUrls.addAll(error.loadedUrls.map((url) => url.toString()));
     }

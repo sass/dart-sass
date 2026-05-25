@@ -2,13 +2,12 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../deprecation.dart';
 import '../logger.dart';
-import '../util/nullable.dart';
+import '../util/trace.dart';
 import '../utils.dart';
 import 'compilation_dispatcher.dart';
 import 'embedded_sass.pb.dart' hide SourceSpan;
@@ -35,7 +34,9 @@ final class EmbeddedLogger extends LoggerWithDeprecationType {
         ..type = LogEventType.DEBUG
         ..message = message
         ..span = protofySpan(span)
-        ..formatted = (span.start.sourceUrl.andThen(p.prettyUri) ?? '-') +
+        ..formatted = (span.start.sourceUrl == null
+                ? '-'
+                : span.start.sourceUrl.toString()) +
             ':${span.start.line + 1} ' +
             (_color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG') +
             ': $message\n',
@@ -70,7 +71,8 @@ final class EmbeddedLogger extends LoggerWithDeprecationType {
         buffer.writeln(' on ${span.message("\n" + message, color: _color)}');
       }
       if (trace != null) {
-        buffer.writeln(indent(trace.toString().trimRight(), 4));
+        buffer.writeln(
+            indent(trace.printString(prettyUri: false).trimRight(), 4));
       }
       return buffer.toString();
     }, ascii: _ascii);
@@ -82,7 +84,7 @@ final class EmbeddedLogger extends LoggerWithDeprecationType {
       ..message = message
       ..formatted = formatted;
     if (span != null) event.span = protofySpan(span);
-    if (trace != null) event.stackTrace = trace.toString();
+    if (trace != null) event.stackTrace = trace.printString(prettyUri: false);
     if (deprecation != null) event.deprecationType = deprecation.id;
     _dispatcher.sendLog(event);
   }
