@@ -356,7 +356,8 @@ final class AsyncImportCache {
       // shortest one.
       minBy<Uri, int>(
         _canonicalizeCache.values.nonNulls
-            .where((result) => result.$2 == canonicalUrl)
+            .where((result) =>
+                result.$2 == canonicalUrl && result.originalUrl.hasScheme)
             .map((result) => result.originalUrl),
         (url) => url.path.length,
       )
