@@ -45,8 +45,9 @@ runs:
     - run: npm install
       shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
 
-    - uses: bufbuild/buf-setup-action@v1.50.0
-      with: {github_token: "${{ inputs.github-token }}"}
+    - uses: bufbuild/buf-action@v1
+      with:
+        setup_only: true
 
     # This composite action requires bash, but bash is not available on windows-arm64 runner.
     # Avoid running this composite action on non-PR, so that we can release on windows-arm64.
