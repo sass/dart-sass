@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 747bf75508e73164190b7308a1560f9f8112e6b2
+// Checksum: 70ac15e60b5571fd9be81ec7bd5706ddb7ff0dbf
 //
 // ignore_for_file: unused_import
 
@@ -353,9 +353,12 @@ final class ImportCache {
       // shortest one.
       minBy<Uri, int>(
         _canonicalizeCache.values.nonNulls
-            .where((result) =>
-                result.$2 == canonicalUrl && result.originalUrl.hasScheme)
-            .map((result) => result.originalUrl),
+            .where((result) => result.$2 == canonicalUrl)
+            .map((result) => result.originalUrl)
+            // Ignore original URLs that don't have schemes, because these can
+            // be ambiguous with `file:` URLs resolved relative to the current
+            // working directory. See sass/dart-sass#2777 for details.
+            .where((url) => url.hasScheme),
         (url) => url.path.length,
       )
           // Use the canonicalized basename so that we display e.g.
