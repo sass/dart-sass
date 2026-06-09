@@ -1,3 +1,12 @@
+## 1.101.1-dev
+
+* Sass stack trace entries are now always either absolute URLs, absolute paths,
+  or paths relative to the current working directory. Previously, if a
+  stylesheet was loaded using a relative URL (as from a load path), that
+  relative URL was listed even if it couldn't be resolved relative to the
+  current working directory. However, this created potential ambiguities, so
+  this behavior has been removed.
+
 ## 1.101.0
 
 * **Potentially breaking bug fix:** The Node package importer now properly
