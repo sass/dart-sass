@@ -4,8 +4,6 @@
 
 import 'package:path/path.dart' as p;
 
-import '../deprecation.dart';
-import '../evaluation_context.dart';
 import '../importer.dart';
 import '../io.dart' as io;
 import '../syntax.dart';
@@ -27,47 +25,24 @@ final class FilesystemImporter extends Importer {
   /// and URLs relative to the current file.
   final String? _loadPath;
 
-  /// Whether loading from files from this importer's [_loadPath] is deprecated.
-  final bool _loadPathDeprecated;
-
   /// Creates an importer that loads files relative to [loadPath].
-  FilesystemImporter(String loadPath)
-      : _loadPath = p.absolute(loadPath),
-        _loadPathDeprecated = false;
+  FilesystemImporter(String loadPath) : _loadPath = p.absolute(loadPath);
 
   /// Creates an importer that _only_ loads absolute `file:` URLs and URLs
   /// relative to the current file.
-  FilesystemImporter._noLoadPath()
-      : _loadPath = null,
-        _loadPathDeprecated = false;
+  FilesystemImporter._noLoadPath() : _loadPath = null;
 
   /// An importer that _only_ loads absolute `file:` URLs and URLs relative to
   /// the current file.
   static final noLoadPath = FilesystemImporter._noLoadPath();
 
-  Uri? canonicalize(Uri url) {
-    String? resolved;
-    if (url.scheme == 'file') {
-      resolved = resolveImportPath(p.fromUri(url));
-    } else if (url.scheme != '') {
-      return null;
-    } else if (_loadPath case var loadPath?) {
-      resolved = resolveImportPath(p.join(loadPath, p.fromUri(url)));
-
-      if (resolved != null && _loadPathDeprecated) {
-        warnForDeprecation(
-          "Using the current working directory as an implicit load path is "
-          "deprecated. Either add it as an explicit load path or importer, or "
-          "load this stylesheet from a different URL.",
-          Deprecation.fsImporterCwd,
-        );
+  Uri? canonicalize(Uri url) => switch ((url, _loadPath)) {
+        (Uri(scheme: 'file'), _) => resolveImportPath(p.fromUri(url)),
+        (Uri(scheme: ''), var loadPath?) =>
+          resolveImportPath(p.join(loadPath, p.fromUri(url))),
+        _ => null,
       }
-    } else {
-      return null;
-    }
-
-    return resolved.andThen((resolved) => p.toUri(io.canonicalize(resolved)));
-  }
+          .andThen((resolved) => p.toUri(io.canonicalize(resolved)));
 
   ImporterResult? load(Uri url) {
     var path = p.fromUri(url);
