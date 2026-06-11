@@ -1,3 +1,11 @@
+## 1.101.0
+
+* **Potentially breaking bug fix:** The Node package importer now properly
+  supports resolving import-only variants of Sass files declared in the
+  `exports`, `sass`, and `style` fields of `package.json`. Previously, these
+  files were ignored even when loaded via `@import`, so any code relying on
+  loading module-system-only files this way may break.
+
 ## 1.100.0
 
 * Writing two compound selectors adjacent to one another without any whitespace
