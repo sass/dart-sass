@@ -14,7 +14,6 @@ import 'callable.dart';
 import 'compile_result.dart';
 import 'deprecation.dart';
 import 'importer.dart';
-import 'importer/legacy_node.dart';
 import 'importer/no_op.dart';
 import 'io.dart';
 import 'logger.dart';
@@ -26,16 +25,12 @@ import 'visitor/serialize.dart';
 
 /// Like [compileAsync] in `lib/sass.dart`, but provides more options to support
 /// the node-sass compatible API and the executable.
-///
-/// If both `importCache` and `nodeImporter` are provided, the importers in
-/// `importCache` will be evaluated before `nodeImporter`.
 @internal
 Future<CompileResult> compileAsync(
   String path, {
   Syntax? syntax,
   Logger? logger,
   AsyncImportCache? importCache,
-  NodeImporter? nodeImporter,
   Iterable<AsyncCallable>? functions,
   OutputStyle? style,
   bool useSpaces = true,
@@ -61,8 +56,7 @@ Future<CompileResult> compileAsync(
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
   Stylesheet? stylesheet;
-  if (nodeImporter == null &&
-      (syntax == null || syntax == Syntax.forPath(path))) {
+  if (syntax == null || syntax == Syntax.forPath(path)) {
     importCache ??= AsyncImportCache.none();
     stylesheet = (await importCache.importCanonical(
       FilesystemImporter.noLoadPath,
@@ -72,7 +66,7 @@ Future<CompileResult> compileAsync(
   } else {
     stylesheet = Stylesheet.parse(
       readFile(path),
-      syntax ?? Syntax.forPath(path),
+      syntax,
       url: p.toUri(path),
     );
   }
@@ -81,7 +75,6 @@ Future<CompileResult> compileAsync(
     stylesheet,
     logger,
     importCache,
-    nodeImporter,
     FilesystemImporter.noLoadPath,
     functions,
     style,
@@ -93,21 +86,18 @@ Future<CompileResult> compileAsync(
     charset,
   );
 
-  deprecationLogger.summarize(js: nodeImporter != null);
+  deprecationLogger.summarize(js: false);
   return result;
 }
 
 /// Like [compileStringAsync] in `lib/sass.dart`, but provides more options to
 /// support the node-sass compatible API.
-///
-/// At most one of `importCache` and `nodeImporter` may be provided at once.
 @internal
 Future<CompileResult> compileStringAsync(
   String source, {
   Syntax? syntax,
   Logger? logger,
   AsyncImportCache? importCache,
-  NodeImporter? nodeImporter,
   Iterable<AsyncImporter>? importers,
   Iterable<String>? loadPaths,
   AsyncImporter? importer,
@@ -136,8 +126,7 @@ Future<CompileResult> compileStringAsync(
 
   var stylesheet = Stylesheet.parse(source, syntax ?? Syntax.scss, url: url);
 
-  if (stylesheet.span.sourceUrl case Uri(scheme: '')
-      when nodeImporter == null) {
+  if (stylesheet.span.sourceUrl case Uri(scheme: '')) {
     deprecationLogger.warnForDeprecation(
       Deprecation.compileStringRelativeUrl,
       'Passing a relative `url` argument (${stylesheet.span.sourceUrl}) to '
@@ -150,7 +139,6 @@ Future<CompileResult> compileStringAsync(
     stylesheet,
     logger,
     importCache,
-    nodeImporter,
     importer ?? (isBrowser ? NoOpImporter() : FilesystemImporter.noLoadPath),
     functions,
     style,
@@ -162,7 +150,7 @@ Future<CompileResult> compileStringAsync(
     charset,
   );
 
-  deprecationLogger.summarize(js: nodeImporter != null);
+  deprecationLogger.summarize(js: false);
   return result;
 }
 
@@ -173,7 +161,6 @@ Future<CompileResult> _compileStylesheet(
   Stylesheet stylesheet,
   Logger? logger,
   AsyncImportCache? importCache,
-  NodeImporter? nodeImporter,
   AsyncImporter importer,
   Iterable<AsyncCallable>? functions,
   OutputStyle? style,
@@ -184,18 +171,9 @@ Future<CompileResult> _compileStylesheet(
   bool sourceMap,
   bool charset,
 ) async {
-  if (nodeImporter != null) {
-    logger?.warnForDeprecation(
-      Deprecation.legacyJsApi,
-      'The legacy JS API is deprecated and will be removed in '
-      'Dart Sass 2.0.0.\n\n'
-      'More info: https://sass-lang.com/d/legacy-js-api',
-    );
-  }
   var evaluateResult = await evaluateAsync(
     stylesheet,
     importCache: importCache,
-    nodeImporter: nodeImporter,
     importer: importer,
     functions: functions,
     logger: logger,

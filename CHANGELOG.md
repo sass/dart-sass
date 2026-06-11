@@ -71,6 +71,10 @@
 
 ### JavaScript API
 
+* **Breaking change:** The legacy JavaScript API (also known as the Node Sass
+  API) is no longer supported. See [the Sass
+  website](https://sass-lang.com/d/legacy-js-api) for details.
+
 * **Breaking change:** The JavaScript API no longer provides access to its
   members through a default import in ESM. Users must `import * as sass from
   'sass'` rather than `import sass from 'sass'`.

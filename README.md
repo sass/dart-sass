@@ -34,7 +34,6 @@ A [Dart][dart] implementation of [Sass][sass]. **Sass makes CSS fun**.
   * [Standalone](#standalone)
   * [From npm](#from-npm)
     * [Dart Sass in the Browser](#dart-sass-in-the-browser)
-    * [Legacy JavaScript API](#legacy-javascript-api)
     * [Using Sass with Jest](#using-sass-with-jest)
   * [From Pub](#from-pub)
     * [`sass_api` Package](#sass_api-package)
@@ -199,41 +198,13 @@ Or even bundled with all its dependencies:
 Since the browser doesn't have access to the filesystem, the [`compile()`] and
 `compileAsync()` functions aren't available for it. If you want to load other
 files, you'll need to pass a [custom importer] to [`compileString()`] or
-[`compileStringAsync()`]. The [legacy API] is also not supported in the browser.
+[`compileStringAsync()`].
 
 [`compile()`]: https://sass-lang.com/documentation/js-api/functions/compile
 [`compileAsync()`]: https://sass-lang.com/documentation/js-api/functions/compileAsync
 [custom importer]: https://sass-lang.com/documentation/js-api/interfaces/stringoptions/#importer
 [`compileString()`]: https://sass-lang.com/documentation/js-api/functions/compileString
 [`compileStringAsync()`]: https://sass-lang.com/documentation/js-api/functions/compileStringAsync
-[legacy API]: #legacy-javascript-api
-
-#### Legacy JavaScript API
-
-Dart Sass also supports an older JavaScript API that's fully compatible with
-[Node Sass] (with a few exceptions listed below), with support for both the
-[`render()`] and [`renderSync()`] functions. This API is considered deprecated
-and will be removed in Dart Sass 2.0.0, so it should be avoided in new projects.
-
-[Node Sass]: https://github.com/sass/node-sass
-[`render()`]: https://sass-lang.com/documentation/js-api/functions/render
-[`renderSync()`]: https://sass-lang.com/documentation/js-api/functions/renderSync
-
-Sass's support for the legacy JavaScript API has the following limitations:
-
-* Only the `"expanded"` and `"compressed"` values of [`outputStyle`] are
-  supported.
-
-* Dart Sass doesn't support the [`precision`] option. Dart Sass defaults to a
-  sufficiently high precision for all existing browsers, and making this
-  customizable would make the code substantially less efficient.
-
-* Dart Sass doesn't support the [`sourceComments`] option. Source maps are the
-  recommended way of locating the origin of generated selectors.
-
-[`outputStyle`]: https://sass-lang.com/documentation/js-api/interfaces/LegacySharedOptions#outputStyle
-[`precision`]: https://github.com/sass/node-sass#precision
-[`sourceComments`]: https://github.com/sass/node-sass#sourcecomments
 
 #### Using Sass with Jest
 
