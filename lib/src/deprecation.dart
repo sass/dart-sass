@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 5864f1fa8cda0d44fd31136deb98911258e590a6
+  // Checksum: 224361d3b3940b6e6929ae7c8e0306f9ba915527
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -113,7 +113,9 @@ enum Deprecation {
 
   /// Deprecation for meta.feature-exists
   featureExists('feature-exists',
-      deprecatedIn: '1.78.0', description: 'meta.feature-exists'),
+      deprecatedIn: '1.78.0',
+      obsoleteIn: '2.0.0',
+      description: 'meta.feature-exists'),
 
   /// Deprecation for certain uses of built-in sass:color functions.
   color4Api('color-4-api',
