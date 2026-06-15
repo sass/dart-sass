@@ -9,7 +9,8 @@
     "useUnknownInCatchVariables": false,
     "declaration": true,
     "types": ["node", "jest"],
-    "resolvePackageJsonExports": false
+    "resolvePackageJsonExports": false,
+    "moduleResolution": "bundler",
   },
   "include": ["*.ts", "lib/**/*.ts", "tool/**/*.ts", "test/**/*.ts"]
 }
