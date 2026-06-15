@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 7b368a604752f92800a1888a5530bd87ba7dbc1b
+  // Checksum: 5a5041c6a237c7917e445bdbeddd72bff705d72c
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -36,6 +36,7 @@ enum Deprecation {
   /// Deprecation for imports using relative canonical URLs.
   relativeCanonical('relative-canonical',
       deprecatedIn: '1.14.2',
+      obsoleteIn: '2.0.0',
       description: 'Imports using relative canonical URLs.'),
 
   /// Deprecation for declaring new variables with !global.
