@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: c52708bb0ca23fc8e95d1393c875524a3264c7e1
+  // Checksum: 7b368a604752f92800a1888a5530bd87ba7dbc1b
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -132,7 +132,9 @@ enum Deprecation {
 
   /// Deprecation for legacy JS API.
   legacyJsApi('legacy-js-api',
-      deprecatedIn: '1.79.0', description: 'Legacy JS API.'),
+      deprecatedIn: '1.79.0',
+      obsoleteIn: '2.0.0',
+      description: 'Legacy JS API.'),
 
   /// Deprecation for @import rules.
   import('import', deprecatedIn: '1.80.0', description: '@import rules.'),

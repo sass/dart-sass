@@ -52,10 +52,6 @@ See [the Sass website][js api] for full API documentation.
 
 [js api]: https://sass-lang.com/documentation/js-api
 
-### Legacy API
-
-<!-- #include ../README.md "Legacy JavaScript API" -->
-
 ## See Also
 
 * [Dart Sass][], from which this package is compiled, can be used either as a

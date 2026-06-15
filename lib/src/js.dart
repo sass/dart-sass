@@ -10,9 +10,6 @@ import 'js/exports.dart';
 import 'js/importer/canonicalize_context.dart';
 import 'js/compile.dart';
 import 'js/compiler.dart';
-import 'js/legacy.dart';
-import 'js/legacy/types.dart';
-import 'js/legacy/value.dart';
 import 'js/logger.dart';
 import 'js/parser.dart';
 import 'js/source_span.dart';
@@ -77,22 +74,4 @@ void main() {
 
   updateCanonicalizeContextPrototype();
   updateSourceSpanPrototype();
-
-  // Legacy API
-  exports.render = allowInteropNamed('sass.render', render);
-  exports.renderSync = allowInteropNamed('sass.renderSync', renderSync);
-
-  exports.types = Types(
-    Boolean: legacyBooleanClass,
-    Color: legacyColorClass,
-    List: legacyListClass,
-    Map: legacyMapClass,
-    Null: legacyNullClass,
-    Number: legacyNumberClass,
-    String: legacyStringClass,
-    Error: jsErrorClass,
-  );
-  exports.NULL = sassNull;
-  exports.TRUE = sassTrue;
-  exports.FALSE = sassFalse;
 }

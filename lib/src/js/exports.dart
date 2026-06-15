@@ -8,7 +8,6 @@
 import 'package:js/js.dart';
 
 import '../value.dart' as value;
-import 'legacy/types.dart';
 import 'logger.dart';
 import 'reflection.dart';
 
@@ -47,14 +46,6 @@ class Exports {
   external set sassNull(value.Value sassNull);
   external set sassTrue(value.SassBoolean sassTrue);
   external set sassFalse(value.SassBoolean sassFalse);
-
-  // Legacy APIs
-  external set run_(Function function);
-  external set render(Function function);
-  external set types(Types types);
-  external set NULL(value.Value sassNull);
-  external set TRUE(value.SassBoolean sassTrue);
-  external set FALSE(value.SassBoolean sassFalse);
 
   // `sass-parser` APIs
   external set loadParserExports_(Function function);

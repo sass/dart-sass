@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c256634c1f3f03762bed8c8e4c31f1aaed06bb7b
+// Checksum: a0afb83831ccb621f2f497c5a9b9322886da8cd4
 //
 // ignore_for_file: unused_import
 
@@ -41,13 +41,11 @@ import '../extend/extension.dart';
 import '../functions.dart';
 import '../functions/meta.dart' as meta;
 import '../importer.dart';
-import '../importer/legacy_node.dart';
 import '../interpolation_map.dart';
 import '../logger.dart';
 import '../module.dart';
 import '../module/built_in.dart';
 import '../parse/keyframe_selector.dart';
-import '../syntax.dart';
 import '../utils.dart';
 import '../util/character.dart';
 import '../util/map.dart';
@@ -66,8 +64,7 @@ typedef _ScopeCallback = void Function(void Function() callback);
 
 /// Converts [stylesheet] to a plain CSS tree.
 ///
-/// If [importCache] (or, on Node.js, [nodeImporter]) is passed, it's used to
-/// resolve imports in the Sass files.
+/// If [importCache] is passed, it's used to resolve imports in the Sass files.
 ///
 /// If [importer] is passed, it's used to resolve relative imports in
 /// [stylesheet] relative to `stylesheet.span.sourceUrl`.
@@ -88,7 +85,6 @@ typedef _ScopeCallback = void Function(void Function() callback);
 EvaluateResult evaluate(
   Stylesheet stylesheet, {
   ImportCache? importCache,
-  NodeImporter? nodeImporter,
   Importer? importer,
   Iterable<Callable>? functions,
   Logger? logger,
@@ -97,7 +93,6 @@ EvaluateResult evaluate(
 }) =>
     _EvaluateVisitor(
       importCache: importCache,
-      nodeImporter: nodeImporter,
       functions: functions,
       logger: logger,
       quietDeps: quietDeps,
@@ -146,10 +141,6 @@ final class _EvaluateVisitor
         CssVisitor<void> {
   /// The import cache used to import other stylesheets.
   final ImportCache? _importCache;
-
-  /// The Node Sass-compatible importer to use when loading new Sass files when
-  /// compiled to Node.js.
-  final NodeImporter? _nodeImporter;
 
   /// Built-in functions that are globally-accessible, even under the new module
   /// system.
@@ -284,9 +275,6 @@ final class _EvaluateVisitor
   /// real work to manufacture a source span.
   final _stack = <(String, AstNode)>[];
 
-  /// Whether we're running in Node Sass-compatibility mode.
-  bool get _asNodeSass => _nodeImporter != null;
-
   // ## Module-Specific Fields
 
   /// The importer that's currently being used to resolve relative imports.
@@ -377,14 +365,11 @@ final class _EvaluateVisitor
   /// Most arguments are the same as those to [evaluate].
   _EvaluateVisitor({
     ImportCache? importCache,
-    NodeImporter? nodeImporter,
     Iterable<Callable>? functions,
     Logger? logger,
     bool quietDeps = false,
     bool sourceMap = false,
-  })  : _importCache =
-            importCache ?? (nodeImporter == null ? ImportCache.none() : null),
-        _nodeImporter = nodeImporter,
+  })  : _importCache = importCache ?? ImportCache.none(),
         _logger = logger ?? const Logger.stderr(),
         _quietDeps = quietDeps,
         _sourceMap = sourceMap,
@@ -703,9 +688,7 @@ final class _EvaluateVisitor
         () {
           if (node.span.sourceUrl case var url?) {
             _activeModules[url] = null;
-            if (!(_asNodeSass && url.toString() == 'stdin')) {
-              _loadedUrls.add(url);
-            }
+            _loadedUrls.add(url);
           }
 
           var module = _addExceptionTrace(() => _execute(importer, node));
@@ -2001,18 +1984,6 @@ final class _EvaluateVisitor
         }
       }
 
-      if (_nodeImporter != null) {
-        if (_importLikeNode(
-          url,
-          baseUrl ?? _stylesheet.span.sourceUrl,
-          forImport,
-        )
-            case var result?) {
-          result.$1.span.sourceUrl.andThen(_loadedUrls.add);
-          return result;
-        }
-      }
-
       if (url.startsWith('package:') && isJS) {
         // Special-case this error message, since it's tripped people up in the
         // past.
@@ -2029,37 +2000,6 @@ final class _EvaluateVisitor
     } finally {
       _importSpan = null;
     }
-  }
-
-  /// Imports a stylesheet using [_nodeImporter].
-  ///
-  /// Returns the [Stylesheet], or `null` if the import failed.
-  _LoadedStylesheet? _importLikeNode(
-    String originalUrl,
-    Uri? previous,
-    bool forImport,
-  ) {
-    var result = _nodeImporter!.loadRelative(originalUrl, previous, forImport);
-
-    bool isDependency;
-    if (result != null) {
-      isDependency = _inDependency;
-    } else {
-      result = _nodeImporter.load(originalUrl, previous, forImport);
-      if (result == null) return null;
-      isDependency = true;
-    }
-
-    var (contents, url) = result;
-    return (
-      Stylesheet.parse(
-        contents,
-        url.startsWith('file') ? Syntax.forPath(url) : Syntax.scss,
-        url: url,
-      ),
-      importer: null,
-      isDependency: isDependency,
-    );
   }
 
   /// Adds a CSS import for [import].

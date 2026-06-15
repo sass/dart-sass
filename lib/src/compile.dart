@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 8182bc2216558397b116ff0d3231a86ac42bf7a7
+// Checksum: b5b4ea14b1b9caaca06670b257265695433a90d5
 //
 // ignore_for_file: unused_import
 
@@ -23,7 +23,6 @@ import 'callable.dart';
 import 'compile_result.dart';
 import 'deprecation.dart';
 import 'importer.dart';
-import 'importer/legacy_node.dart';
 import 'importer/no_op.dart';
 import 'io.dart';
 import 'logger.dart';
@@ -35,16 +34,12 @@ import 'visitor/serialize.dart';
 
 /// Like [compile] in `lib/sass.dart`, but provides more options to support
 /// the node-sass compatible API and the executable.
-///
-/// If both `importCache` and `nodeImporter` are provided, the importers in
-/// `importCache` will be evaluated before `nodeImporter`.
 @internal
 CompileResult compile(
   String path, {
   Syntax? syntax,
   Logger? logger,
   ImportCache? importCache,
-  NodeImporter? nodeImporter,
   Iterable<Callable>? functions,
   OutputStyle? style,
   bool useSpaces = true,
@@ -70,8 +65,7 @@ CompileResult compile(
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
   Stylesheet? stylesheet;
-  if (nodeImporter == null &&
-      (syntax == null || syntax == Syntax.forPath(path))) {
+  if (syntax == null || syntax == Syntax.forPath(path)) {
     importCache ??= ImportCache.none();
     stylesheet = importCache.importCanonical(
       FilesystemImporter.noLoadPath,
@@ -81,7 +75,7 @@ CompileResult compile(
   } else {
     stylesheet = Stylesheet.parse(
       readFile(path),
-      syntax ?? Syntax.forPath(path),
+      syntax,
       url: p.toUri(path),
     );
   }
@@ -90,7 +84,6 @@ CompileResult compile(
     stylesheet,
     logger,
     importCache,
-    nodeImporter,
     FilesystemImporter.noLoadPath,
     functions,
     style,
@@ -102,21 +95,18 @@ CompileResult compile(
     charset,
   );
 
-  deprecationLogger.summarize(js: nodeImporter != null);
+  deprecationLogger.summarize(js: false);
   return result;
 }
 
 /// Like [compileString] in `lib/sass.dart`, but provides more options to
 /// support the node-sass compatible API.
-///
-/// At most one of `importCache` and `nodeImporter` may be provided at once.
 @internal
 CompileResult compileString(
   String source, {
   Syntax? syntax,
   Logger? logger,
   ImportCache? importCache,
-  NodeImporter? nodeImporter,
   Iterable<Importer>? importers,
   Iterable<String>? loadPaths,
   Importer? importer,
@@ -145,8 +135,7 @@ CompileResult compileString(
 
   var stylesheet = Stylesheet.parse(source, syntax ?? Syntax.scss, url: url);
 
-  if (stylesheet.span.sourceUrl case Uri(scheme: '')
-      when nodeImporter == null) {
+  if (stylesheet.span.sourceUrl case Uri(scheme: '')) {
     deprecationLogger.warnForDeprecation(
       Deprecation.compileStringRelativeUrl,
       'Passing a relative `url` argument (${stylesheet.span.sourceUrl}) to '
@@ -159,7 +148,6 @@ CompileResult compileString(
     stylesheet,
     logger,
     importCache,
-    nodeImporter,
     importer ?? (isBrowser ? NoOpImporter() : FilesystemImporter.noLoadPath),
     functions,
     style,
@@ -171,7 +159,7 @@ CompileResult compileString(
     charset,
   );
 
-  deprecationLogger.summarize(js: nodeImporter != null);
+  deprecationLogger.summarize(js: false);
   return result;
 }
 
@@ -182,7 +170,6 @@ CompileResult _compileStylesheet(
   Stylesheet stylesheet,
   Logger? logger,
   ImportCache? importCache,
-  NodeImporter? nodeImporter,
   Importer importer,
   Iterable<Callable>? functions,
   OutputStyle? style,
@@ -193,18 +180,9 @@ CompileResult _compileStylesheet(
   bool sourceMap,
   bool charset,
 ) {
-  if (nodeImporter != null) {
-    logger?.warnForDeprecation(
-      Deprecation.legacyJsApi,
-      'The legacy JS API is deprecated and will be removed in '
-      'Dart Sass 2.0.0.\n\n'
-      'More info: https://sass-lang.com/d/legacy-js-api',
-    );
-  }
   var evaluateResult = evaluate(
     stylesheet,
     importCache: importCache,
-    nodeImporter: nodeImporter,
     importer: importer,
     functions: functions,
     logger: logger,
