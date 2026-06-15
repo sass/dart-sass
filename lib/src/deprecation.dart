@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 9acc231416a8842e945ae2f0ec759b9c31475e1a
+  // Checksum: 7b368a604752f92800a1888a5530bd87ba7dbc1b
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -96,6 +96,7 @@ enum Deprecation {
   /// Deprecation for using the current working directory as an implicit load path.
   fsImporterCwd('fs-importer-cwd',
       deprecatedIn: '1.73.0',
+      obsoleteIn: '2.0.0',
       description:
           'Using the current working directory as an implicit load path.'),
 
@@ -113,7 +114,9 @@ enum Deprecation {
 
   /// Deprecation for meta.feature-exists
   featureExists('feature-exists',
-      deprecatedIn: '1.78.0', description: 'meta.feature-exists'),
+      deprecatedIn: '1.78.0',
+      obsoleteIn: '2.0.0',
+      description: 'meta.feature-exists'),
 
   /// Deprecation for certain uses of built-in sass:color functions.
   color4Api('color-4-api',

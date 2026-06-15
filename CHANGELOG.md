@@ -28,6 +28,9 @@
 * **Breaking change:** Passing a string to `meta.call()` is now an error.
   Callers must pass a function object instead.
 
+* **Brekaing change:** `meta.feature-exists()` has been removed. See [the Sass
+  website](https://sass-lang.com/d/feature-exists) for details.
+
 * **Breaking change:** The current working directory is no longer ever
   implicitly added as a load path. You can add it explicitly with
   `--load-path=.` or similar options in the APIs.
