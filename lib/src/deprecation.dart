@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 224361d3b3940b6e6929ae7c8e0306f9ba915527
+  // Checksum: c52708bb0ca23fc8e95d1393c875524a3264c7e1
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -96,6 +96,7 @@ enum Deprecation {
   /// Deprecation for using the current working directory as an implicit load path.
   fsImporterCwd('fs-importer-cwd',
       deprecatedIn: '1.73.0',
+      obsoleteIn: '2.0.0',
       description:
           'Using the current working directory as an implicit load path.'),
 
