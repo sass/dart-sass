@@ -16,6 +16,7 @@ import 'src/import_cache.dart';
 import 'src/importer.dart';
 import 'src/importer/utils.dart';
 import 'src/logger.dart';
+import 'src/source_map_include_sources.dart';
 import 'src/syntax.dart';
 import 'src/util/nullable.dart';
 import 'src/visitor/serialize.dart';
@@ -26,6 +27,7 @@ export 'src/deprecation.dart';
 export 'src/exception.dart' show SassException;
 export 'src/importer.dart';
 export 'src/logger.dart' show Logger;
+export 'src/source_map_include_sources.dart';
 export 'src/syntax.dart';
 export 'src/value.dart'
     hide
@@ -90,6 +92,9 @@ export 'src/evaluation_context.dart' show warn;
 ///
 /// [`source_maps`]: https://pub.dartlang.org/packages/source_maps
 ///
+/// The [sourceMapIncludeSources] parameter controls the ways in which the
+/// compiler can choose to include source contents in the source map.
+///
 /// If [charset] is `true`, this will include a `@charset` declaration or a
 /// UTF-8 [byte-order mark][] if the stylesheet contains any non-ASCII
 /// characters. Otherwise, it will never include a `@charset` declaration or a
@@ -112,6 +117,8 @@ CompileResult compileToResult(
   bool quietDeps = false,
   bool verbose = false,
   bool sourceMap = false,
+  SourceMapIncludeSources sourceMapIncludeSources =
+      SourceMapIncludeSources.always,
   bool charset = true,
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
@@ -130,6 +137,7 @@ CompileResult compileToResult(
       quietDeps: quietDeps,
       verbose: verbose,
       sourceMap: sourceMap,
+      sourceMapIncludeSources: sourceMapIncludeSources,
       charset: charset,
       silenceDeprecations: silenceDeprecations,
       fatalDeprecations: fatalDeprecations,
@@ -199,6 +207,9 @@ CompileResult compileToResult(
 ///
 /// [`source_maps`]: https://pub.dartlang.org/packages/source_maps
 ///
+/// The [sourceMapIncludeSources] parameter controls the ways in which the
+/// compiler can choose to include source contents in the source map.
+///
 /// If [charset] is `true`, this will include a `@charset` declaration or a
 /// UTF-8 [byte-order mark][] if the stylesheet contains any non-ASCII
 /// characters. Otherwise, it will never include a `@charset` declaration or a
@@ -224,6 +235,8 @@ CompileResult compileStringToResult(
   bool quietDeps = false,
   bool verbose = false,
   bool sourceMap = false,
+  SourceMapIncludeSources sourceMapIncludeSources =
+      SourceMapIncludeSources.always,
   bool charset = true,
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
@@ -245,6 +258,7 @@ CompileResult compileStringToResult(
       quietDeps: quietDeps,
       verbose: verbose,
       sourceMap: sourceMap,
+      sourceMapIncludeSources: sourceMapIncludeSources,
       charset: charset,
       silenceDeprecations: silenceDeprecations,
       fatalDeprecations: fatalDeprecations,
@@ -268,6 +282,8 @@ Future<CompileResult> compileToResultAsync(
   bool quietDeps = false,
   bool verbose = false,
   bool sourceMap = false,
+  SourceMapIncludeSources sourceMapIncludeSources =
+      SourceMapIncludeSources.always,
   bool charset = true,
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
@@ -286,6 +302,7 @@ Future<CompileResult> compileToResultAsync(
       quietDeps: quietDeps,
       verbose: verbose,
       sourceMap: sourceMap,
+      sourceMapIncludeSources: sourceMapIncludeSources,
       charset: charset,
       silenceDeprecations: silenceDeprecations,
       fatalDeprecations: fatalDeprecations,
@@ -314,6 +331,8 @@ Future<CompileResult> compileStringToResultAsync(
   bool quietDeps = false,
   bool verbose = false,
   bool sourceMap = false,
+  SourceMapIncludeSources sourceMapIncludeSources =
+      SourceMapIncludeSources.always,
   bool charset = true,
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
@@ -335,6 +354,7 @@ Future<CompileResult> compileStringToResultAsync(
       quietDeps: quietDeps,
       verbose: verbose,
       sourceMap: sourceMap,
+      sourceMapIncludeSources: sourceMapIncludeSources,
       charset: charset,
       silenceDeprecations: silenceDeprecations,
       fatalDeprecations: fatalDeprecations,

@@ -5,13 +5,11 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: aa378886d9a3d697d466ac916f7902cbc1b282ee
+// Checksum: 24489ae0ff07c9b2febb57a82f59fafc525178d5
 //
 // ignore_for_file: unused_import
 
 export 'async_compile.dart';
-
-import 'dart:convert';
 
 import 'package:cli_pkg/js.dart';
 import 'package:path/path.dart' as p;
@@ -27,8 +25,8 @@ import 'importer/no_op.dart';
 import 'io.dart';
 import 'logger.dart';
 import 'logger/deprecation_processing.dart';
+import 'source_map_include_sources.dart';
 import 'syntax.dart';
-import 'utils.dart';
 import 'visitor/evaluate.dart';
 import 'visitor/serialize.dart';
 
@@ -51,6 +49,8 @@ CompileResult compile(
   bool quietDeps = false,
   bool verbose = false,
   bool sourceMap = false,
+  SourceMapIncludeSources sourceMapIncludeSources =
+      SourceMapIncludeSources.auto,
   bool charset = true,
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
@@ -97,6 +97,7 @@ CompileResult compile(
     lineFeed,
     quietDeps,
     sourceMap,
+    sourceMapIncludeSources,
     charset,
   );
 
@@ -126,6 +127,8 @@ CompileResult compileString(
   bool quietDeps = false,
   bool verbose = false,
   bool sourceMap = false,
+  SourceMapIncludeSources sourceMapIncludeSources =
+      SourceMapIncludeSources.auto,
   bool charset = true,
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
@@ -165,6 +168,7 @@ CompileResult compileString(
     lineFeed,
     quietDeps,
     sourceMap,
+    sourceMapIncludeSources,
     charset,
   );
 
@@ -188,6 +192,7 @@ CompileResult _compileStylesheet(
   LineFeed? lineFeed,
   bool quietDeps,
   bool sourceMap,
+  SourceMapIncludeSources sourceMapIncludeSources,
   bool charset,
 ) {
   if (nodeImporter != null) {
@@ -197,6 +202,23 @@ CompileResult _compileStylesheet(
       'Dart Sass 2.0.0.\n\n'
       'More info: https://sass-lang.com/d/legacy-js-api',
     );
+  } else {
+    if (sourceMapIncludeSources == SourceMapIncludeSources.true_ ||
+        sourceMapIncludeSources == SourceMapIncludeSources.false_) {
+      var boolean = sourceMapIncludeSources == SourceMapIncludeSources.true_;
+      var suggestion = boolean ? 'always' : 'never';
+      logger?.warnForDeprecation(
+        Deprecation.sourceMapIncludeSourcesBoolean,
+        'Passing a boolean value for Options.sourceMapIncludeSources is '
+        'deprecated and will be removed in Dart Sass 2.0.0.\n'
+        "Please use '$suggestion' instead of $boolean.\n\n"
+        'More info: https://sass-lang.com/d/source-map-include-sources-boolean',
+      );
+      sourceMapIncludeSources =
+          sourceMapIncludeSources == SourceMapIncludeSources.true_
+              ? SourceMapIncludeSources.always
+              : SourceMapIncludeSources.never;
+    }
   }
   var evaluateResult = evaluate(
     stylesheet,
@@ -220,17 +242,24 @@ CompileResult _compileStylesheet(
     charset: charset,
   );
 
+  // Postprocess the sourceMap to remove unwanted source contents.
   var resultSourceMap = serializeResult.sourceMap;
-  if (resultSourceMap != null && importCache != null) {
-    mapInPlace(
-      resultSourceMap.urls,
-      (url) => url == ''
-          ? Uri.dataFromString(
-              stylesheet.span.file.getText(0),
-              encoding: utf8,
-            ).toString()
-          : importCache.sourceMapUrl(Uri.parse(url)).toString(),
-    );
+  if (resultSourceMap != null) {
+    if (importCache != null) {
+      for (var i = 0, length = resultSourceMap.urls.length; i < length; i++) {
+        var canonicalUrl = Uri.parse(resultSourceMap.urls[i]);
+        var sourceMapUrl = importCache.sourceMapUrlOrNull(canonicalUrl);
+        if (sourceMapUrl != null) {
+          resultSourceMap.urls[i] = sourceMapUrl.toString();
+          if (sourceMapIncludeSources == SourceMapIncludeSources.auto) {
+            resultSourceMap.files[i] = null;
+          }
+        }
+      }
+    }
+    if (sourceMapIncludeSources == SourceMapIncludeSources.never) {
+      resultSourceMap.files.fillRange(0, resultSourceMap.files.length, null);
+    }
   }
 
   return CompileResult(evaluateResult, serializeResult);
