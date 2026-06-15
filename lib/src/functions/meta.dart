@@ -9,20 +9,9 @@ import 'package:meta/meta.dart';
 
 import '../ast/sass/statement/mixin_rule.dart';
 import '../callable.dart';
-import '../deprecation.dart';
-import '../evaluation_context.dart';
 import '../util/map.dart';
 import '../value.dart';
 import '../visitor/serialize.dart';
-
-/// Feature names supported by Dart sass.
-final _features = {
-  "global-variable-shadowing",
-  "extend-selector-pseudoclass",
-  "units-level-3",
-  "at-error",
-  "custom-property",
-};
 
 /// Sass introspection functions that exist as both global functions and in the
 /// `sass:meta` module that do not require access to context that's only
@@ -33,16 +22,6 @@ final _shared = UnmodifiableListView([
   // This is only a partial list of meta functions. The rest are defined in the
   // evaluator, because they need access to context that's only available at
   // runtime.
-  _function("feature-exists", r"$feature", (arguments) {
-    warnForDeprecation(
-      "The feature-exists() function is deprecated.\n\n"
-      "More info: https://sass-lang.com/d/feature-exists",
-      Deprecation.featureExists,
-    );
-    var feature = arguments[0].assertString("feature");
-    return SassBoolean(_features.contains(feature.text));
-  }),
-
   _function(
     "inspect",
     r"$value",
