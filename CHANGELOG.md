@@ -103,6 +103,9 @@
   `deprecation` as a boolean to `deprecation != null` to preserve the existing
   behavior.
 
+* **Breaking change:** It's now an error to return a relative URL from
+  `AsyncImporter.canonicalize` or `Importer.canonicalize`.
+  
 * **Breaking change:** Remove `Value.assertSelector()`,
   `.assertSimpleSelector()`, `.assertCompoundSelector()`, and
   `.assertComplexSelector()`. These are now only available through the expanded

@@ -76,44 +76,6 @@ void main() {
     );
   });
 
-  test("resolves URLs relative to the pre-canonicalized URL", () {
-    var times = 0;
-    var css = compileString(
-      '@use "foo:bar/baz";',
-      importers: [
-        TestImporter(
-          expectAsync1((url) {
-            times++;
-            if (times == 1) return Uri(path: 'first');
-
-            expect(url, equals(Uri.parse('foo:bar/bang')));
-            return Uri(path: 'second');
-          }, count: 2),
-          expectAsync1((url) {
-            return ImporterResult(
-              times == 1
-                  ? '''
-                        .first {url: "$url"}
-                        @import "bang";
-                      '''
-                  : '.second {url: "$url"}',
-              syntax: Syntax.scss,
-            );
-          }, count: 2),
-        ),
-      ],
-      logger: Logger.quiet,
-    ).css;
-
-    expect(
-      css,
-      equalsIgnoringWhitespace('''
-      .first { url: "first"; }
-      .second { url: "second"; }
-    '''),
-    );
-  });
-
   group("the imported URL", () {
     // Regression test for #1137.
     test("isn't changed if it's root-relative", () {
@@ -260,31 +222,52 @@ void main() {
     });
   });
 
-  test(
-      "throws an error if the importer returns a canonical URL with a "
-      "non-canonical scheme", () {
-    expect(
-      () => compileString(
-        '@use "orange";',
-        importers: [
-          TestImporter(
-            expectAsync1((url) => Uri.parse("u:$url")),
-            (_) => ImporterResult('', syntax: Syntax.scss),
-            nonCanonicalSchemes: {'u'},
-          ),
-        ],
-      ),
-      throwsA(
-        predicate((error) {
-          expect(error, const TypeMatcher<SassException>());
-          expect(
-            error.toString(),
-            contains("uses a scheme declared as non-canonical"),
-          );
-          return true;
-        }),
-      ),
-    );
+  group("throws an error if the importer returns a canonical URL that", () {
+    test("is relative", () {
+      expect(
+        () => compileString(
+          '@use "orange";',
+          importers: [
+            TestImporter(expectAsync1((url) => url), neverCalled),
+          ],
+        ),
+        throwsA(
+          predicate((error) {
+            expect(error, const TypeMatcher<SassException>());
+            expect(
+              error.toString(),
+              contains("which is relative"),
+            );
+            return true;
+          }),
+        ),
+      );
+    });
+
+    test("has a non-canonical scheme", () {
+      expect(
+        () => compileString(
+          '@use "orange";',
+          importers: [
+            TestImporter(
+              expectAsync1((url) => Uri.parse("u:$url")),
+              (_) => ImporterResult('', syntax: Syntax.scss),
+              nonCanonicalSchemes: {'u'},
+            ),
+          ],
+        ),
+        throwsA(
+          predicate((error) {
+            expect(error, const TypeMatcher<SassException>());
+            expect(
+              error.toString(),
+              contains("uses a scheme declared as non-canonical"),
+            );
+            return true;
+          }),
+        ),
+      );
+    });
   });
 
   test("uses an importer's source map URL", () {

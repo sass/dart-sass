@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: a0afb83831ccb621f2f497c5a9b9322886da8cd4
+// Checksum: 5cc27e52100895729b3e9ef7368a97ff6e962d02
 //
 // ignore_for_file: unused_import
 
@@ -1959,14 +1959,6 @@ final class _EvaluateVisitor
           forImport: forImport,
         )
             case (var importer, var canonicalUrl, :var originalUrl)) {
-          if (canonicalUrl.scheme == '') {
-            _logger.warnForDeprecation(
-              Deprecation.relativeCanonical,
-              "Importer $importer canonicalized $url to $canonicalUrl.\n"
-              "Relative canonical URLs are deprecated and will eventually be "
-              "disallowed.",
-            );
-          }
           // Make sure we record the canonical URL as "loaded" even if the
           // actual load fails, because watchers should watch it to see if it
           // changes in a way that allows the load to succeed.

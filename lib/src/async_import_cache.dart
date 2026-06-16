@@ -140,8 +140,8 @@ final class AsyncImportCache {
   /// the load, if it exists.
   ///
   /// Returns the importer that was used to canonicalize [url], the canonical
-  /// URL, and the URL that was passed to the importer (which may be resolved
-  /// relative to [baseUrl] if it's passed).
+  /// URL (which is guaranteed to be absolute), and the URL that was passed to
+  /// the importer (which may be resolved relative to [baseUrl] if it's passed).
   ///
   /// If [baseImporter] is non-`null`, this first tries to use [baseImporter] to
   /// canonicalize [url] (resolved relative to [baseUrl] if it's passed).
@@ -268,11 +268,10 @@ final class AsyncImportCache {
 
     if (result == null) return (null, cacheable);
 
-    // Relative canonical URLs (empty scheme) should throw an error starting in
-    // Dart Sass 2.0.0, but for now, they only emit a deprecation warning in
-    // the evaluator.
-    if (result.scheme != '' &&
-        await importer.isNonCanonicalScheme(result.scheme)) {
+    if (result.scheme == '') {
+      throw "Importer $importer canonicalized $url to $result, which is "
+          "relative.";
+    } else if (await importer.isNonCanonicalScheme(result.scheme)) {
       throw "Importer $importer canonicalized $url to $result, which uses a "
           "scheme declared as non-canonical.";
     }
