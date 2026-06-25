@@ -91,6 +91,11 @@ abstract base class StylesheetParser extends Parser {
   StylesheetParser(super.contents, {super.url, bool parseSelectors = false})
       : _parseSelectors = parseSelectors;
 
+  StylesheetParser.internal(super.contents,
+      {super.url, bool parseSelectors = false})
+      : _parseSelectors = parseSelectors,
+        super.internal();
+
   // ## Statements
 
   Stylesheet parse() {

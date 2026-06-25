@@ -42,6 +42,9 @@ final class SassParser extends StylesheetParser {
 
   SassParser(super.contents, {super.url, super.parseSelectors});
 
+  SassParser.internal(super.contents, {super.url, super.parseSelectors})
+      : super.internal();
+
   Interpolation styleRuleSelector() {
     var start = scanner.state;
 

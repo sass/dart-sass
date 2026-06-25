@@ -40,6 +40,9 @@ final class CssParser extends ScssParser {
 
   CssParser(super.contents, {super.url, super.parseSelectors});
 
+  CssParser.internal(super.contents, {super.url, super.parseSelectors})
+      : super.internal();
+
   bool silentComment() {
     if (inExpression) return false;
 

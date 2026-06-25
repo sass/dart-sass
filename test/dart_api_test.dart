@@ -12,6 +12,7 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 
 import 'package:sass/sass.dart';
 import 'package:sass/src/exception.dart';
+import 'package:sass/src/io.dart';
 
 import 'dart_api/test_importer.dart';
 
@@ -169,7 +170,7 @@ void main() {
       var css = compileString(
         '@use "other";',
         importer: FilesystemImporter(d.path('original')),
-        url: p.toUri(d.path('original/test.scss')),
+        url: p.toUri(p.canonicalize(d.path('original/test.scss'))),
         importers: [FilesystemImporter(d.path('other'))],
       ).css;
       expect(css, equals("a {\n  b: from-original;\n}"));
@@ -303,8 +304,9 @@ void main() {
     group("contains the entrypoint's URL", () {
       group("in compileString()", () {
         test("if it's given", () {
-          var result = compileString("a {b: c}", url: "source.scss");
-          expect(result.loadedUrls, equals([Uri.parse("source.scss")]));
+          var url = p.toUri(canonicalize("source.scss"));
+          var result = compileString("a {b: c}", url: url);
+          expect(result.loadedUrls, equals([url]));
         });
 
         test("unless it's not given", () {

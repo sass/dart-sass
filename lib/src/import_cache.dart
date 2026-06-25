@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c3280c50137f037ee48ad48359be6644dd8d44e3
+// Checksum: bb3c2542686524443034c09447c79df8434acac4
 //
 // ignore_for_file: unused_import
 
@@ -325,6 +325,11 @@ final class ImportCache {
     Uri canonicalUrl, {
     Uri? originalUrl,
   }) {
+    if (!canonicalUrl.isAbsolute) {
+      throw ArgumentError(
+          'Canonical URL "$canonicalUrl" must be absolute.', 'canonicalUrl');
+    }
+
     return _importCache.putIfAbsent(canonicalUrl, () {
       var loadTime = DateTime.now();
       var result = importer.load(canonicalUrl);
@@ -332,14 +337,10 @@ final class ImportCache {
 
       _loadTimes[canonicalUrl] = loadTime;
       _resultsCache[canonicalUrl] = result;
-      return Stylesheet.parse(
+      return Stylesheet.parseInternal(
         result.contents,
         result.syntax,
-        // For backwards-compatibility, relative canonical URLs are resolved
-        // relative to [originalUrl].
-        url: originalUrl == null
-            ? canonicalUrl
-            : originalUrl.resolveUri(canonicalUrl),
+        url: canonicalUrl,
         parseSelectors: _parseSelectors,
       );
     });

@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 5a5041c6a237c7917e445bdbeddd72bff705d72c
+  // Checksum: 35be4ef3f8aa15d4ce18ffca9932c02b544b37f5
 
   /// Deprecation for passing a string directly to meta.call().
   callString('call-string',
@@ -155,6 +155,7 @@ enum Deprecation {
   /// Deprecation for passing a relative url to compileString().
   compileStringRelativeUrl('compile-string-relative-url',
       deprecatedIn: '1.88.0',
+      obsoleteIn: '2.0.0',
       description: 'Passing a relative url to compileString().'),
 
   /// Deprecation for a rest parameter before a positional or named parameter.

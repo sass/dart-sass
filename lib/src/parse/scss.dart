@@ -19,6 +19,9 @@ base class ScssParser extends StylesheetParser {
 
   ScssParser(super.contents, {super.url, super.parseSelectors});
 
+  ScssParser.internal(super.contents, {super.url, super.parseSelectors})
+      : super.internal();
+
   Interpolation styleRuleSelector() => almostAnyValue();
 
   void expectStatementSeparator([String? name]) {

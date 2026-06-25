@@ -327,6 +327,11 @@ final class AsyncImportCache {
     Uri canonicalUrl, {
     Uri? originalUrl,
   }) async {
+    if (!canonicalUrl.isAbsolute) {
+      throw ArgumentError(
+          'Canonical URL "$canonicalUrl" must be absolute.', 'canonicalUrl');
+    }
+
     return await putIfAbsentAsync(_importCache, canonicalUrl, () async {
       var loadTime = DateTime.now();
       var result = await importer.load(canonicalUrl);
@@ -334,14 +339,10 @@ final class AsyncImportCache {
 
       _loadTimes[canonicalUrl] = loadTime;
       _resultsCache[canonicalUrl] = result;
-      return Stylesheet.parse(
+      return Stylesheet.parseInternal(
         result.contents,
         result.syntax,
-        // For backwards-compatibility, relative canonical URLs are resolved
-        // relative to [originalUrl].
-        url: originalUrl == null
-            ? canonicalUrl
-            : originalUrl.resolveUri(canonicalUrl),
+        url: canonicalUrl,
         parseSelectors: _parseSelectors,
       );
     });

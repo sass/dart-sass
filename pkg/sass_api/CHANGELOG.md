@@ -4,6 +4,8 @@
 
 * `/` is now parsed as slash-separated lists rather than division in SassScript.
 
+* All parse methods now canonicalize their `url` parameters.
+
 ### Bogus Selectors
 
 * Drop support for bogus selectors that can never become valid CSS through
