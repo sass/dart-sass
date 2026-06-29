@@ -105,11 +105,9 @@ final class _Watcher {
         }
 
         switch (event.type) {
-          case ChangeType.MODIFY:
-            _handleModify(event.path);
-
-          case ChangeType.ADD:
-            _handleAdd(event.path);
+          // A file may be updated via ADD, when using an atomic-write approach (temp file + rename)
+          case ChangeType.MODIFY || ChangeType.ADD:
+            _handleModifyOrAdd(event.path);
 
           case ChangeType.REMOVE:
             _handleRemove(event.path);
@@ -128,10 +126,10 @@ final class _Watcher {
     }
   }
 
-  /// Handles a modify event for the stylesheet at [path].
+  /// Handles a modify/add event for the stylesheet at [path].
   ///
   /// Returns whether all necessary recompilations succeeded.
-  void _handleModify(String path) {
+  void _handleModifyOrAdd(String path) {
     var url = _canonicalize(path);
 
     // It's important to access the node ahead-of-time because it's possible
@@ -145,7 +143,7 @@ final class _Watcher {
     }
   }
 
-  /// Handles an add event for the stylesheet at [url].
+  /// Adds a newly seen stylesheet at [url].
   ///
   /// Returns whether all necessary recompilations succeeded.
   void _handleAdd(String path) {
