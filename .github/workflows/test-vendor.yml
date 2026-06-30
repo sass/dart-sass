@@ -2,7 +2,17 @@ name: Test Vendor
 
 on:
   workflow_call:
+    secrets:
+      GH_TOKEN:
+        description: 'The GitHub authentication token'
+        required: true
   workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-test-vendor-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   bootstrap:
@@ -15,12 +25,15 @@ jobs:
         bootstrap_version: [4, 5]
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
-      - run: dart run grinder fetch-bootstrap${{matrix.bootstrap_version}}
-        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+      - run: dart run grinder "fetch-bootstrap$VERSION"
+        env:
+          VERSION: ${{matrix.bootstrap_version}}
+          GITHUB_BEARER_TOKEN: ${{ secrets.GH_TOKEN }}
       - name: Build
         run: dart bin/sass.dart --quiet build/bootstrap/scss:build/bootstrap-output
 
@@ -29,12 +42,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
       - run: dart run grinder fetch-bourbon
-        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GH_TOKEN }}"}
       - name: Test
         run: |
           dart bin/sass.dart --quiet -I build/bourbon -I build/bourbon/spec/fixtures \
@@ -45,12 +59,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
       - run: dart run grinder fetch-foundation
-        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GH_TOKEN }}"}
       # TODO(nweiz): Foundation has proper Sass tests, but they're currently not
       # compatible with Dart Sass. Once they are, we should run those rather
       # than just building the CSS output.
@@ -62,11 +77,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
       - run: dart run grinder fetch-bulma
-        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+        env: {GITHUB_BEARER_TOKEN: "${{ secrets.GH_TOKEN }}"}
       - name: Build
         run: dart bin/sass.dart --quiet build/bulma/bulma.scss build/bulma-output.css

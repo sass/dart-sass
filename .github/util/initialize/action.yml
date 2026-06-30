@@ -9,17 +9,17 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: dart-lang/setup-dart@v1
+    - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260 # v1
       with:
         sdk: "${{ inputs.dart-sdk }}"
         architecture: "${{ inputs.architecture }}"
 
-    - uses: actions/setup-node@v6
+    - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
       if: "inputs.for-npm-deploy != true"
       with:
         node-version: "${{ inputs.node-version }}"
 
-    - uses: actions/setup-node@v6
+    - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
       if: inputs.for-npm-deploy == true
       with:
         node-version: "${{ inputs.node-version }}"
@@ -27,7 +27,7 @@ runs:
         registry-url: 'https://registry.npmjs.org'
 
     # npm trusted publisher infrastructure requires npm >=11.5.1
-    - run: npm install -g npm@latest
+    - run: npm install -g npm@latest # zizmor: ignore[adhoc-packages]
       if: inputs.for-npm-deploy == true
       shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
 
@@ -45,7 +45,7 @@ runs:
     - run: npm install
       shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
 
-    - uses: bufbuild/buf-action@v1
+    - uses: bufbuild/buf-action@fd21066df7214747548607aaa45548ba2b9bc1ff # v1
       with:
         setup_only: true
 
@@ -53,15 +53,18 @@ runs:
     # Avoid running this composite action on non-PR, so that we can release on windows-arm64.
     - name: Check out the language repo
       if: github.event_name == 'pull_request'
-      uses: sass/clone-linked-repo@v1
+      uses: sass/clone-linked-repo@ec2dcd11c5eaec56b64855712372056a14e9614d # v1
       with: {repo: sass/sass, path: build/language}
 
     # Git is not pre-installed on windows-arm64 runner, however actions/checkout support
     # downloading repo via GitHub API.
     - name: Check out the language repo
       if: github.event_name != 'pull_request'
-      uses: actions/checkout@v7
-      with: {repository: sass/sass, path: build/language}
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      with:
+        repository: sass/sass
+        path: build/language
+        persist-credentials: false
 
     - name: Generate Dart from protobuf
       run: dart run grinder protobuf

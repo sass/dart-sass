@@ -1,5 +1,5 @@
 # This has to be a separate workflow to satisfy pub.dev's somewhat draconian
-# requirements for when and how GitHub actions are allowed publish packages.
+# requirements for when and how GitHub actions are allowed to publish packages.
 # Specifically, it requires that each publish action be triggered by a tag that
 # contains the version number for that action, so we can't just publish sass_api
 # as part of the standard sass release flow because that was triggered by a tag
@@ -10,6 +10,12 @@ on:
   push:
     tags: ['sass-api-[0-9]+.[0-9]+.*']
 
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-release-sass-api-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy_sass_api:
     if: github.event.repository.fork == false
@@ -17,7 +23,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 

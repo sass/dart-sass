@@ -4,6 +4,12 @@ on:
   workflow_call:
   workflow_dispatch:
 
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-build-linux-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build
@@ -11,8 +17,9 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      attestations: write
-      id-token: write
+      id-token: write # Mints OIDC token to request Sigstore signing certificate
+      attestations: write # Persists attestation
+      artifact-metadata: write # Creates artifact storage record
 
     strategy:
       fail-fast: false
@@ -56,7 +63,8 @@ jobs:
             target: android-riscv64
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with: {persist-credentials: false}
 
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
@@ -68,39 +76,48 @@ jobs:
         if: matrix.image != 'ghcr.io/dart-android/dart'
         run: |
           docker run --rm -i \
-                     --platform ${{ matrix.platform }} \
+                     --platform "$PLATFORM" \
                      --volume "$PWD:$PWD" \
                      --workdir "$PWD" \
-                     ${{ matrix.image }} <<'EOF'
+                     "$IMAGE" <<'EOF'
           set -e
           dart pub get
-          dart run grinder pkg-standalone-${{ matrix.target }}
+          dart run grinder "pkg-standalone-$TARGET"
           EOF
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          IMAGE: ${{ matrix.image }}
+          TARGET: ${{ matrix.target}}
 
       - name: Build
         if: matrix.image == 'ghcr.io/dart-android/dart'
         run: |
           docker run --rm -i \
                      --privileged \
-                     --platform ${{ matrix.platform }} \
+                     --platform "$PLATFORM" \
                      --volume "$PWD:$PWD" \
                      --workdir "$PWD" \
-                     ${{ matrix.image }} <<'EOF'
+                     "$IMAGE" <<'EOF'
           set -e
-          export DART_SDK=/system/${{ matrix.target != 'android-arm' && 'lib64' || 'lib' }}/dart
-          export PATH=$DART_SDK/bin:$PATH
+          export DART_SDK="/system/$LIB/dart"
+          export PATH="$DART_SDK/bin:$PATH"
           dart pub get
-          dart run grinder pkg-standalone-${{ matrix.target }}
+          dart run grinder "pkg-standalone-$TARGET"
           EOF
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          IMAGE: ${{ matrix.image }}
+          LIB: ${{ matrix.target != 'android-arm' && 'lib64' || 'lib' }}
+          TARGET: ${{ matrix.target}}
 
       - name: Generate artifact attestation
         if: github.ref_type == 'tag'
-        uses: actions/attest-build-provenance@v4
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4
         with:
           subject-path: build/*.tar.gz
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: build-${{ matrix.target }}
           path: build/*.tar.gz
