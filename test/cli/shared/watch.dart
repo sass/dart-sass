@@ -2,7 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:io' as io;
+import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:sass/src/io.dart';
 import 'package:test/test.dart';
@@ -1187,10 +1187,13 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
   }
 }
 
-/// Writes [contents] to [path] using atomic operation (temp file + rename)
+/// Writes [contents] to [path] atomically.
+///
+/// This matches the "atomic write" pattern used by various tools in which a
+/// temp file is written first then moved to the desired path.
 void _writeAtomic(String path, String contents) {
   var destination = p.join(d.sandbox, path);
-  io.File('$destination.tmp')
+  File('$destination.tmp')
     ..writeAsStringSync(contents)
     ..renameSync(destination);
 }
