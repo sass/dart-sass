@@ -120,6 +120,10 @@
   `FilesystemImporter.noLoadPath` if you don't need to add the current working
   directory as a load path, or `FilesystemImporter('.')` if you do.
 
+* **Breaking change:** Passing a relative `url` to `compileString()`,
+  `compileStringAsync()`, `compileStringToResult()`, and
+  `compileStringToResultAsync()` is now an error.
+
 * **Breaking change:** Remove `Deprecation.calcInterp`. This was never actually
   emitted as a deprecation.
 

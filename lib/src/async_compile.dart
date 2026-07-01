@@ -124,16 +124,17 @@ Future<CompileResult> compileStringAsync(
     limitRepetition: !verbose,
   )..validate();
 
-  var stylesheet = Stylesheet.parse(source, syntax ?? Syntax.scss, url: url);
-
-  if (stylesheet.span.sourceUrl case Uri(scheme: '')) {
-    deprecationLogger.warnForDeprecation(
-      Deprecation.compileStringRelativeUrl,
-      'Passing a relative `url` argument (${stylesheet.span.sourceUrl}) to '
-      'compileString() or related functions is deprecated and will be an error '
-      'in Dart Sass 2.0.0.',
-    );
+  var parsedUrl = switch (url) {
+    String string => Uri.parse(string),
+    _ => url as Uri?,
+  };
+  if (parsedUrl?.scheme == '') {
+    throw ArgumentError(
+        'The `url` argument ($url) to compileString() and related functions must '
+        'be an absolute, canonical URL.');
   }
+  var stylesheet =
+      Stylesheet.parse(source, syntax ?? Syntax.scss, url: parsedUrl);
 
   var result = await _compileStylesheet(
     stylesheet,

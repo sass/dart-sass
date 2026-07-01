@@ -255,9 +255,9 @@ CompileResult compileStringToResult(
 ///
 /// The [style] parameter controls the style of the resulting CSS.
 ///
-/// The [url] indicates the location from which [source] was loaded. It may be a
-/// [String] or a [Uri]. If [importer] is passed, [url] must be passed as well
-/// and `importer.load(url)` should return `source`.
+/// The [url] indicates the canonical URL from which [source] was loaded. It may
+/// be a [String] or a [Uri]. If [importer] is passed, [url] must be passed as
+/// well and `importer.load(url)` should return `source`
 ///
 /// If [quietDeps] is `true`, this will silence compiler warnings emitted for
 /// stylesheets loaded through [importers], [loadPaths], or [packageConfig].

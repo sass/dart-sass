@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: b5b4ea14b1b9caaca06670b257265695433a90d5
+// Checksum: f44cadc749a0005d58152b2b39c1ced0cc2959b7
 //
 // ignore_for_file: unused_import
 
@@ -133,16 +133,17 @@ CompileResult compileString(
     limitRepetition: !verbose,
   )..validate();
 
-  var stylesheet = Stylesheet.parse(source, syntax ?? Syntax.scss, url: url);
-
-  if (stylesheet.span.sourceUrl case Uri(scheme: '')) {
-    deprecationLogger.warnForDeprecation(
-      Deprecation.compileStringRelativeUrl,
-      'Passing a relative `url` argument (${stylesheet.span.sourceUrl}) to '
-      'compileString() or related functions is deprecated and will be an error '
-      'in Dart Sass 2.0.0.',
-    );
+  var parsedUrl = switch (url) {
+    String string => Uri.parse(string),
+    _ => url as Uri?,
+  };
+  if (parsedUrl?.scheme == '') {
+    throw ArgumentError(
+        'The `url` argument ($url) to compileString() and related functions must '
+        'be an absolute, canonical URL.');
   }
+  var stylesheet =
+      Stylesheet.parseInternal(source, syntax ?? Syntax.scss, url: parsedUrl);
 
   var result = _compileStylesheet(
     stylesheet,

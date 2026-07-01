@@ -130,6 +130,34 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
     }
   }
 
+  /// Like [parse] when [url] is already known to be canonical.
+  ///
+  /// :nodoc:
+  @internal
+  factory Stylesheet.parseInternal(String contents, Syntax syntax,
+      {Uri? url, bool parseSelectors = false}) {
+    try {
+      return switch (syntax) {
+        Syntax.sass => SassParser.internal(contents,
+            url: url, parseSelectors: parseSelectors),
+        Syntax.scss => ScssParser.internal(contents,
+            url: url, parseSelectors: parseSelectors),
+        Syntax.css => CssParser.internal(contents,
+            url: url, parseSelectors: parseSelectors),
+      }
+          .parse();
+    } on SassException catch (error, stackTrace) {
+      var url = error.span.sourceUrl;
+      if (url == null || url.toString() == 'stdin') rethrow;
+
+      throw throwWithTrace(
+        error.withLoadedUrls(Set.unmodifiable({url})),
+        error,
+        stackTrace,
+      );
+    }
+  }
+
   /// Parses an indented-syntax stylesheet from [contents].
   ///
   /// If passed, [url] is the name of the file from which [contents] comes.

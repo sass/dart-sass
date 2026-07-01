@@ -3,7 +3,9 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:cli_pkg/js.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
@@ -53,8 +55,31 @@ base class Parser {
 
   @protected
   Parser(String contents, {Object? url, InterpolationMap? interpolationMap})
-      : scanner = SpanScanner(contents, sourceUrl: url),
+      : scanner = SpanScanner(contents, sourceUrl: _canonicalize(url)),
         _interpolationMap = interpolationMap;
+
+  /// Like [Parser.new], but avoids recanonicalizing [url].
+  ///
+  /// This doesn't support `interpolationMap` because when that's passed, the
+  /// original `url` is unused anyway.
+  Parser.internal(String contents, {Uri? url})
+      : scanner = SpanScanner(contents, sourceUrl: url),
+        _interpolationMap = null;
+
+  /// Canonicalized [urlOrObject] and returns it.
+  ///
+  /// If [urlOrobject] is null, returns it as-is.
+  static Uri? _canonicalize(Object? urlOrObject) {
+    if (urlOrObject == null) return null;
+    var url =
+        urlOrObject is String ? Uri.parse(urlOrObject) : urlOrObject as Uri;
+    // Don't do extra de/reparsing for Sass URLs which we know can't be
+    // canonicalized.
+    if (url.scheme == 'sass') return url;
+    return url.scheme == '' || (!isBrowser && url.scheme == 'file')
+        ? p.toUri(canonicalize(p.fromUri(url)))
+        : Uri.parse(p.url.canonicalize(url.toString()));
+  }
 
   String _parseIdentifier() {
     return wrapSpanFormatException(() {
