@@ -38,7 +38,7 @@ dependencies:
   watcher: ^1.0.0
 
 dev_dependencies:
-  analyzer: "^10.0.1"
+  analyzer: ">=10.0.1 <14.0.0"
   archive: ">=3.1.2 <5.0.0"
   crypto: ^3.0.0
   dartdoc: ">=8.0.14 <10.0.0"
