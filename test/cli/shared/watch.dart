@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:sass/src/io.dart';
 import 'package:test/test.dart';
@@ -179,6 +180,31 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
               .validate();
         });
 
+        test("when it's modified atomically", () async {
+          await d.file("out.css", "x {y: z}").create();
+          await tick;
+          await d.file("test.scss", "a {b: c}").create();
+
+          var sass = await watch(["test.scss:out.css"]);
+          await expectLater(
+            sass.stdout,
+            emits(endsWith('Compiled test.scss to out.css.')),
+          );
+          await expectLater(sass.stdout, _watchingForChanges);
+          await tickIfPoll();
+
+          _writeAtomic("test.scss", "r {o: g}");
+          await expectLater(
+            sass.stdout,
+            emits(endsWith('Compiled test.scss to out.css.')),
+          );
+          await sass.kill();
+
+          await d
+              .file("out.css", equalsIgnoringWhitespace("r { o: g; }"))
+              .validate();
+        });
+
         test("when it's modified when watched from a directory", () async {
           await d.dir("dir", [d.file("test.scss", "a {b: c}")]).create();
 
@@ -282,6 +308,30 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             await tickIfPoll();
 
             await d.file("_other.scss", "x {y: z}").create();
+            await expectLater(
+              sass.stdout,
+              emits(endsWith('Compiled test.scss to out.css.')),
+            );
+            await sass.kill();
+
+            await d
+                .file("out.css", equalsIgnoringWhitespace("x { y: z; }"))
+                .validate();
+          });
+
+          test("through @use atomically", () async {
+            await d.file("_other.scss", "a {b: c}").create();
+            await d.file("test.scss", "@use 'other'").create();
+
+            var sass = await watch(["test.scss:out.css"]);
+            await expectLater(
+              sass.stdout,
+              emits(endsWith('Compiled test.scss to out.css.')),
+            );
+            await expectLater(sass.stdout, _watchingForChanges);
+            await tickIfPoll();
+
+            _writeAtomic("_other.scss", "x {y: z}");
             await expectLater(
               sass.stdout,
               emits(endsWith('Compiled test.scss to out.css.')),
@@ -1135,6 +1185,17 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       });
     });
   }
+}
+
+/// Writes [contents] to [path] atomically.
+///
+/// This matches the "atomic write" pattern used by various tools in which a
+/// temp file is written first then moved to the desired path.
+void _writeAtomic(String path, String contents) {
+  var destination = p.join(d.sandbox, path);
+  File('$destination.tmp')
+    ..writeAsStringSync(contents)
+    ..renameSync(destination);
 }
 
 /// Returns the message that Sass prints indicating that [from] was compiled to

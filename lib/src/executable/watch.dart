@@ -105,11 +105,8 @@ final class _Watcher {
         }
 
         switch (event.type) {
-          case ChangeType.MODIFY:
-            _handleModify(event.path);
-
-          case ChangeType.ADD:
-            _handleAdd(event.path);
+          case ChangeType.MODIFY || ChangeType.ADD:
+            _handleModifyOrAdd(event.path);
 
           case ChangeType.REMOVE:
             _handleRemove(event.path);
@@ -128,10 +125,15 @@ final class _Watcher {
     }
   }
 
-  /// Handles a modify event for the stylesheet at [path].
+  /// Handles a modify or add event for the stylesheet at [path].
+  ///
+  /// @parcel/watcher reports atomic modifications (where a tool writes a temp
+  /// file then renames it over the existing file) as adds rather than
+  /// modifications, so we treat both event types as identical and disambiguate
+  /// based on our model of the filesystem rather than the reported event.
   ///
   /// Returns whether all necessary recompilations succeeded.
-  void _handleModify(String path) {
+  void _handleModifyOrAdd(String path) {
     var url = _canonicalize(path);
 
     // It's important to access the node ahead-of-time because it's possible
@@ -141,22 +143,15 @@ final class _Watcher {
       _graph.reload(url);
       _recompileDownstream([node]);
     } else {
-      _handleAdd(path);
+      var destination = _destinationFor(path);
+      if (destination != null) _toRecompile[path] = destination;
+      var downstream = _graph.addCanonical(
+        FilesystemImporter.cwd,
+        _canonicalize(path),
+        p.toUri(path),
+      );
+      _recompileDownstream(downstream);
     }
-  }
-
-  /// Handles an add event for the stylesheet at [url].
-  ///
-  /// Returns whether all necessary recompilations succeeded.
-  void _handleAdd(String path) {
-    var destination = _destinationFor(path);
-    if (destination != null) _toRecompile[path] = destination;
-    var downstream = _graph.addCanonical(
-      FilesystemImporter.cwd,
-      _canonicalize(path),
-      p.toUri(path),
-    );
-    _recompileDownstream(downstream);
   }
 
   /// Handles a remove event for the stylesheet at [url].

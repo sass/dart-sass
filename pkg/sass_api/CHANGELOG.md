@@ -1,4 +1,4 @@
-## 17.7.1-dev
+## 17.7.1
 
 * No user-visible changes.
 
