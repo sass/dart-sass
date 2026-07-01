@@ -147,19 +147,19 @@ class _Visitor extends RecursiveAstVisitor<void> {
   }
 
   void visitClassDeclaration(ClassDeclaration node) {
-    if (_sharedClasses.contains(node.name.lexeme)) {
+    if (_sharedClasses.contains(node.namePart.typeName.lexeme)) {
       _skipNode(node);
     } else {
       for (var child in node.sortedCommentAndAnnotations) {
         child.accept(this);
       }
-      _rename(node.name);
-      node.typeParameters?.accept(this);
+      _rename(node.namePart.typeName);
+      node.namePart.typeParameters?.accept(this);
       node.extendsClause?.accept(this);
       node.withClause?.accept(this);
       node.implementsClause?.accept(this);
       node.nativeClause?.accept(this);
-      node.members.accept(this);
+      node.body.accept(this);
     }
   }
 
