@@ -165,8 +165,7 @@ export class AttributeSelector extends SimpleSelector {
       this.source = new LazySource(inner);
       this.attribute = new QualifiedName(undefined, inner.name);
       this.operator = inner.op?.toString() as
-        | AttributeSelectorOperator
-        | undefined;
+        AttributeSelectorOperator | undefined;
       if (inner.value) this.value = new Interpolation(undefined, inner.value);
       if (inner.modifier) {
         this.modifier = new Interpolation(undefined, inner.modifier);
