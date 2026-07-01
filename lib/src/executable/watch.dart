@@ -125,7 +125,7 @@ final class _Watcher {
     }
   }
 
-  /// Handles a modifyor add event for the stylesheet at [path].
+  /// Handles a modify or add event for the stylesheet at [path].
   ///
   /// @parcel/watcher reports atomic modifications (where a tool writes a temp
   /// file then renames it over the existing file) as adds rather than
