@@ -40,8 +40,7 @@ export interface ParameterListObjectProps extends NodeProps {
  * @category Statement
  */
 export type ParameterListProps =
-  | ParameterListObjectProps
-  | ReadonlyArray<NewParameters>;
+  ParameterListObjectProps | ReadonlyArray<NewParameters>;
 
 /**
  * Raws indicating how to precisely serialize a {@link ParameterList} node.
