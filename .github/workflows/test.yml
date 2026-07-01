@@ -7,37 +7,59 @@ on:
   workflow_call:
   workflow_dispatch:
 
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   format:
     name: Code formatting
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      with: {persist-credentials: false}
     - uses: ./.github/util/initialize
       with: {github-token: "${{ github.token }}"}
     - run: dart format .
     - run: dart fix --apply
     - run: git diff --exit-code
 
-  static_analysis:
-    name: Static analysis
+  static_analysis_code:
+    name: Static analysis (Code)
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
       - name: Analyze Dart
         run: dart analyze --fatal-warnings ./
 
+  static_analysis_ci:
+    name: Static analysis (GitHub Actions)
+    runs-on: ubuntu-latest
+
+    permissions:
+      security-events: write # Required by upload-sarif
+      actions: read # Required by upload-sarif
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with: {persist-credentials: false}
+      - uses: zizmorcore/zizmor-action@5f14fd08f7cf1cb1609c1e344975f152c7ee938d # v0.5.6
+        with: {persona: pedantic}
+
   dartdoc:
     name: Dartdoc
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
@@ -66,7 +88,8 @@ jobs:
             async_args: '--cmd-args --async'
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -102,7 +125,8 @@ jobs:
             node-version: 'lts/*'
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -115,7 +139,7 @@ jobs:
         env: {UPDATE_SASS_SASS_REPO: false}
 
       - name: Check out Sass specification
-        uses: sass/clone-linked-repo@v1
+        uses: sass/clone-linked-repo@ec2dcd11c5eaec56b64855712372056a14e9614d # v1
         with:
           repo: sass/sass
           path: language
@@ -144,7 +168,8 @@ jobs:
             node-version: lts/-2
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with:
           github-token: ${{ github.token }}
@@ -152,11 +177,11 @@ jobs:
       - uses: ./.github/util/sass-spec
 
       - name: Check out the embedded host
-        uses: sass/clone-linked-repo@v1
+        uses: sass/clone-linked-repo@ec2dcd11c5eaec56b64855712372056a14e9614d # v1
         with: {repo: sass/embedded-host-node}
 
       - name: Check out the language repo
-        uses: sass/clone-linked-repo@v1
+        uses: sass/clone-linked-repo@ec2dcd11c5eaec56b64855712372056a14e9614d # v1
         with: {repo: sass/sass, path: build/language}
 
       - name: Initialize embedded host
@@ -184,8 +209,9 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: browser-actions/setup-chrome@v2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with: {persist-credentials: false}
+      - uses: browser-actions/setup-chrome@2e1d749697dd1612b833dba4a722266286fbefcd # v2
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -201,7 +227,7 @@ jobs:
         working-directory: build/npm
 
       - name: Check out Sass specification
-        uses: sass/clone-linked-repo@v1
+        uses: sass/clone-linked-repo@ec2dcd11c5eaec56b64855712372056a14e9614d # v1
         with:
           repo: sass/sass
           path: language
@@ -227,7 +253,8 @@ jobs:
         # include: [{os: ubuntu-latest, dart_channel: dev}]
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -263,7 +290,8 @@ jobs:
             node-version: 'lts/*'
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -285,8 +313,9 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v7
-    - uses: browser-actions/setup-chrome@v2
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      with: {persist-credentials: false}
+    - uses: browser-actions/setup-chrome@2e1d749697dd1612b833dba4a722266286fbefcd # v2
     - uses: ./.github/util/initialize
       with:
         dart-sdk: ${{ matrix.dart_channel }}
@@ -326,7 +355,8 @@ jobs:
             node-version: 'lts/*'
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
@@ -346,8 +376,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with: {node-version: 'lts/*'}
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
@@ -370,8 +401,9 @@ jobs:
   #   runs-on: ubuntu-latest
   #
   #   steps:
-  #     - uses: actions/checkout@v7
-  #     - uses: actions/setup-node@v6
+  #      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+  #        with: {persist-credentials: false}
+  #      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
   #       with: {node-version: 'lts/*'}
   #     - run: npm install
   #       working-directory: pkg/sass-parser/

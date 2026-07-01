@@ -4,12 +4,16 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
   - package-ecosystem: "github-actions"
     directories:
       - "/"
       - "/.github/util/*/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
   - package-ecosystem: "npm"
     directories:
       - "/"
@@ -19,3 +23,5 @@ updates:
       - dependency-name: "sass"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
