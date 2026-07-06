@@ -604,7 +604,8 @@ void main() {
         var failure = await getCompileFailure(process);
         expect(p.fromUri(failure.span.url), equalsPath(path));
         expect(failure.stackTrace, endsWith(" 1:7  root stylesheet\n"));
-        expect(failure.stackTrace.split(" ").first, equalsPath(path));
+        expect(
+            p.fromUri(failure.stackTrace.split(" ").first), equalsPath(path));
         await process.close();
       });
     });
