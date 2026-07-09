@@ -34,10 +34,12 @@ final _disallowedFunctionNames =
       ..remove("saturate");
 
 class CssParser extends ScssParser {
+  @override
   bool get plainCss => true;
 
   CssParser(super.contents, {super.url, super.parseSelectors});
 
+  @override
   bool silentComment() {
     if (inExpression) return false;
 
@@ -49,6 +51,7 @@ class CssParser extends ScssParser {
     );
   }
 
+  @override
   Statement atRule(Statement child(), {bool root = false}) {
     // NOTE: this logic is largely duplicated in StylesheetParser.atRule. Most changes
     // here should be mirrored there.
@@ -145,6 +148,7 @@ class CssParser extends ScssParser {
     }
   }
 
+  @override
   ParenthesizedExpression parentheses() {
     // Expressions are only allowed within calculations, but we verify this at
     // evaluation time.
@@ -156,6 +160,7 @@ class CssParser extends ScssParser {
     return ParenthesizedExpression(expression, spanFrom(start));
   }
 
+  @override
   Expression identifierLike() {
     var start = scanner.state;
     var identifier = interpolatedIdentifier();
@@ -208,6 +213,7 @@ class CssParser extends ScssParser {
     );
   }
 
+  @override
   Expression namespacedExpression(String namespace, LineScannerState start) {
     var expression = super.namespacedExpression(namespace, start);
     error("Module namespaces aren't allowed in plain CSS.", expression.span);

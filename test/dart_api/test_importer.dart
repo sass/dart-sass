@@ -23,10 +23,13 @@ class TestImporter extends Importer {
             ? const {}
             : Set.unmodifiable(nonCanonicalSchemes);
 
+  @override
   Uri? canonicalize(Uri url) => _canonicalize(url);
 
+  @override
   ImporterResult? load(Uri url) => _load(url);
 
+  @override
   bool isNonCanonicalScheme(String scheme) =>
       _nonCanonicalSchemes.contains(scheme);
 }

@@ -24,16 +24,21 @@ class SourceInterpolationVisitor
   /// with interpolations.
   InterpolationBuffer? buffer = InterpolationBuffer();
 
+  @override
   void visitBinaryOperationExpression(BinaryOperationExpression node) =>
       buffer = null;
 
+  @override
   void visitBooleanExpression(BooleanExpression node) => buffer = null;
 
+  @override
   void visitColorExpression(ColorExpression node) =>
       buffer?.write(node.span.text);
 
+  @override
   void visitFunctionExpression(FunctionExpression node) => buffer = null;
 
+  @override
   void visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
   ) {
@@ -56,6 +61,7 @@ class SourceInterpolationVisitor
     buffer?.write(arguments.span.after(arguments.positional.last.span).text);
   }
 
+  @override
   void visitIfExpression(IfExpression node) {
     FileSpan? lastSpan;
     for (var (condition, expression) in node.branches) {
@@ -73,21 +79,25 @@ class SourceInterpolationVisitor
     }
   }
 
+  @override
   void visitIfConditionParenthesized(IfConditionParenthesized node) {
     buffer?.write(node.span.before(node.expression.span).text);
     node.expression.accept(this);
     buffer?.write(node.span.after(node.expression.span).text);
   }
 
+  @override
   void visitIfConditionNegation(IfConditionNegation node) {
     buffer?.write(node.span.before(node.expression.span).text);
     node.expression.accept(this);
   }
 
+  @override
   void visitIfConditionOperation(IfConditionOperation node) {
     _writeListAndBetween(node.expressions, (node) => node.accept(this));
   }
 
+  @override
   void visitIfConditionFunction(IfConditionFunction node) {
     buffer?.addInterpolation(node.name);
     buffer?.write(node.name.span.between(node.arguments.span).text);
@@ -95,16 +105,20 @@ class SourceInterpolationVisitor
     buffer?.write(node.span.after(node.arguments.span).text);
   }
 
+  @override
   void visitIfConditionSass(IfConditionSass node) {
     buffer = null;
   }
 
+  @override
   void visitIfConditionRaw(IfConditionRaw node) {
     buffer?.addInterpolation(node.text);
   }
 
+  @override
   void visitLegacyIfExpression(LegacyIfExpression node) => buffer = null;
 
+  @override
   void visitListExpression(ListExpression node) {
     if (node.contents.length <= 1 && !node.hasBrackets) {
       buffer = null;
@@ -126,18 +140,24 @@ class SourceInterpolationVisitor
     }
   }
 
+  @override
   void visitMapExpression(MapExpression node) => buffer = null;
 
+  @override
   void visitNullExpression(NullExpression node) => buffer = null;
 
+  @override
   void visitNumberExpression(NumberExpression node) =>
       buffer?.write(node.span.text);
 
+  @override
   void visitParenthesizedExpression(ParenthesizedExpression node) =>
       buffer = null;
 
+  @override
   void visitSelectorExpression(SelectorExpression node) => buffer = null;
 
+  @override
   void visitStringExpression(StringExpression node) {
     if (node.text.isPlain) {
       buffer?.write(node.span.text);
@@ -160,13 +180,17 @@ class SourceInterpolationVisitor
     }
   }
 
+  @override
   void visitSupportsExpression(SupportsExpression node) => buffer = null;
 
+  @override
   void visitUnaryOperationExpression(UnaryOperationExpression node) =>
       buffer = null;
 
+  @override
   void visitValueExpression(ValueExpression node) => buffer = null;
 
+  @override
   void visitVariableExpression(VariableExpression node) => buffer = null;
 
   /// Visits each expression in [nodes] with [visit], and writes whatever text

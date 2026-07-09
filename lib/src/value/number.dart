@@ -276,6 +276,7 @@ abstract class SassNumber extends Value {
   @protected
   SassNumber.protected(this._value, this.asSlash);
 
+  @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitNumber(this);
 
   /// Returns a number with the same units as `this` but with [value] as its
@@ -288,6 +289,7 @@ abstract class SassNumber extends Value {
   /// Returns a copy of `this` without [asSlash] set.
   ///
   /// @nodoc
+  @override
   @internal
   SassNumber withoutSlash() => asSlash == null ? this : withValue(value);
 
@@ -298,6 +300,7 @@ abstract class SassNumber extends Value {
   @internal
   SassNumber withSlash(SassNumber numerator, SassNumber denominator);
 
+  @override
   SassNumber assertNumber([String? name]) => this;
 
   /// Returns [value] as an [int], if it's an integer value according to
@@ -714,6 +717,7 @@ abstract class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   SassBoolean greaterThan(Value other) {
     if (other is SassNumber) {
@@ -723,6 +727,7 @@ abstract class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   SassBoolean greaterThanOrEquals(Value other) {
     if (other is SassNumber) {
@@ -732,6 +737,7 @@ abstract class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   SassBoolean lessThan(Value other) {
     if (other is SassNumber) {
@@ -741,6 +747,7 @@ abstract class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   SassBoolean lessThanOrEquals(Value other) {
     if (other is SassNumber) {
@@ -750,6 +757,7 @@ abstract class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   SassNumber modulo(Value other) {
     if (other is SassNumber) {
@@ -759,6 +767,7 @@ abstract class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   Value plus(Value other) {
     if (other is SassNumber) {
@@ -769,6 +778,7 @@ abstract class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   Value minus(Value other) {
     if (other is SassNumber) {
@@ -779,6 +789,7 @@ abstract class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   Value times(Value other) {
     if (other is SassNumber) {
@@ -793,6 +804,7 @@ abstract class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   Value dividedBy(Value other) {
     if (other is SassNumber) {
@@ -807,6 +819,7 @@ abstract class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   Value unaryPlus() => this;
 
@@ -910,6 +923,7 @@ abstract class SassNumber extends Value {
         _ => "${numerators.join("*")}/(${denominators.join("*")})",
       };
 
+  @override
   bool operator ==(Object other) {
     if (other is! SassNumber) return false;
     if (numeratorUnits.length != other.numeratorUnits.length ||
@@ -939,6 +953,7 @@ abstract class SassNumber extends Value {
     );
   }
 
+  @override
   int get hashCode => hashCache ??= fuzzyHashCode(
         value *
             _canonicalMultiplier(numeratorUnits) /

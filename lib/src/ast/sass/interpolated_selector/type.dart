@@ -19,6 +19,7 @@ final class InterpolatedTypeSelector extends InterpolatedSimpleSelector {
   /// The element name being selected for.
   final InterpolatedQualifiedName name;
 
+  @override
   FileSpan get span => name.span;
 
   /// Creates a type selector that matches any element with a property of
@@ -26,8 +27,10 @@ final class InterpolatedTypeSelector extends InterpolatedSimpleSelector {
   InterpolatedTypeSelector(this.name);
 
   /// Calls the appropriate visit method on [visitor].
+  @override
   T accept<T>(InterpolatedSelectorVisitor<T> visitor) =>
       visitor.visitTypeSelector(this);
 
+  @override
   String toString() => name.toString();
 }

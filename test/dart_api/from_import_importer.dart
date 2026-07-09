@@ -18,11 +18,13 @@ class FromImportImporter extends Importer {
 
   FromImportImporter(this._expected) : _done = expectAsync0(() {});
 
+  @override
   Uri? canonicalize(Uri url) {
     expect(fromImport, equals(_expected));
     _done();
     return Uri.parse('u:');
   }
 
+  @override
   ImporterResult? load(Uri url) => ImporterResult("", syntax: Syntax.scss);
 }

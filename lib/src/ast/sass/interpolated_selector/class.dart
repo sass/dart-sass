@@ -19,14 +19,17 @@ final class InterpolatedClassSelector extends InterpolatedSimpleSelector {
   /// The class name this selects for.
   final Interpolation name;
 
+  @override
   FileSpan get span =>
       name.span.file.span(name.span.start.offset - 1, name.span.end.offset);
 
   InterpolatedClassSelector(this.name);
 
   /// Calls the appropriate visit method on [visitor].
+  @override
   T accept<T>(InterpolatedSelectorVisitor<T> visitor) =>
       visitor.visitClassSelector(this);
 
+  @override
   String toString() => '.$name';
 }

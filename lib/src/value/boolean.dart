@@ -25,6 +25,7 @@ class SassBoolean extends Value {
   /// Whether this value is `true` or `false`.
   final bool value;
 
+  @override
   bool get isTruthy => value;
 
   /// Returns a [SassBoolean] corresponding to [value].
@@ -36,12 +37,15 @@ class SassBoolean extends Value {
   const SassBoolean._(this.value);
 
   /// @nodoc
+  @override
   @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitBoolean(this);
 
+  @override
   SassBoolean assertBoolean([String? name]) => this;
 
   /// @nodoc
+  @override
   @internal
   Value unaryNot() => value ? sassFalse : sassTrue;
 }

@@ -18,20 +18,24 @@ import 'utils.dart';
 /// @nodoc
 @internal
 final class A98RgbColorSpace extends ColorSpace {
+  @override
   bool get isBoundedInternal => true;
 
   const A98RgbColorSpace() : super('a98-rgb', rgbChannels);
 
+  @override
   @protected
   double toLinear(double channel) =>
       // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
       channel.sign * math.pow(channel.abs(), 563 / 256);
 
+  @override
   @protected
   double fromLinear(double channel) =>
       // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
       channel.sign * math.pow(channel.abs(), 256 / 563);
 
+  @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
         ColorSpace.srgbLinear ||

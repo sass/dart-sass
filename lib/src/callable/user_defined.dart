@@ -21,6 +21,7 @@ final class UserDefinedCallable<E> implements Callable {
   /// importer rather than relative to the entrypoint.
   final bool inDependency;
 
+  @override
   String get name => declaration.name;
 
   UserDefinedCallable(

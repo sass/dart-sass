@@ -21,6 +21,7 @@ final class EachRule extends ParentStatement<List<Statement>> {
   /// The expression whose value this iterates through.
   final Expression list;
 
+  @override
   final FileSpan span;
 
   EachRule(
@@ -31,8 +32,10 @@ final class EachRule extends ParentStatement<List<Statement>> {
   )   : variables = List.unmodifiable(variables),
         super(List.unmodifiable(children));
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitEachRule(this);
 
+  @override
   String toString() =>
       "@each ${variables.map((variable) => '\$' + variable).join(', ')} in "
       "$list {${children.join(" ")}}";

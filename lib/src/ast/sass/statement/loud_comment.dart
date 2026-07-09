@@ -15,11 +15,14 @@ final class LoudComment extends Statement {
   /// The interpolated text of this comment, including comment characters.
   final Interpolation text;
 
+  @override
   FileSpan get span => text.span;
 
   LoudComment(this.text);
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitLoudComment(this);
 
+  @override
   String toString() => text.toString();
 }

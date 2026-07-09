@@ -19,14 +19,17 @@ final class InterpolatedUniversalSelector extends InterpolatedSimpleSelector {
   /// The selector namespace.
   final Interpolation? namespace;
 
+  @override
   final FileSpan span;
 
   InterpolatedUniversalSelector(this.span, {this.namespace});
 
   /// Calls the appropriate visit method on [visitor].
+  @override
   T accept<T>(InterpolatedSelectorVisitor<T> visitor) =>
       visitor.visitUniversalSelector(this);
 
+  @override
   String toString() =>
       switch (namespace) { var namespace? => '$namespace|*', _ => '*' };
 }

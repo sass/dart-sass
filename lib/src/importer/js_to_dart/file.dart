@@ -19,6 +19,7 @@ final class JSToDartFileImporter extends Importer {
 
   JSToDartFileImporter(this._findFileUrl);
 
+  @override
   Uri? canonicalize(Uri url) {
     if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);
 
@@ -51,13 +52,17 @@ final class JSToDartFileImporter extends Importer {
     return FilesystemImporter.cwd.canonicalize(resultUrl);
   }
 
+  @override
   ImporterResult? load(Uri url) => FilesystemImporter.cwd.load(url);
 
+  @override
   DateTime modificationTime(Uri url) =>
       FilesystemImporter.cwd.modificationTime(url);
 
+  @override
   bool couldCanonicalize(Uri url, Uri canonicalUrl) =>
       FilesystemImporter.cwd.couldCanonicalize(url, canonicalUrl);
 
+  @override
   bool isNonCanonicalScheme(String scheme) => scheme != 'file';
 }

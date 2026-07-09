@@ -21,9 +21,16 @@ class MergedMapView<K, V> extends MapBase<K, V> {
   // A map from keys to the maps in which those keys first appear.
   final _mapsByKey = <K, Map<K, V>>{};
 
+  @override
   Iterable<K> get keys => _mapsByKey.keys;
+
+  @override
   int get length => _mapsByKey.length;
+
+  @override
   bool get isEmpty => _mapsByKey.isEmpty;
+
+  @override
   bool get isNotEmpty => _mapsByKey.isNotEmpty;
 
   /// Creates a combined view of [maps].
@@ -44,8 +51,10 @@ class MergedMapView<K, V> extends MapBase<K, V> {
     }
   }
 
+  @override
   V? operator [](Object? key) => _mapsByKey[key as K]?[key];
 
+  @override
   operator []=(K key, V value) {
     if (_mapsByKey[key] case var child?) {
       child[key] = value;
@@ -54,13 +63,16 @@ class MergedMapView<K, V> extends MapBase<K, V> {
     }
   }
 
+  @override
   V? remove(Object? key) {
     throw UnsupportedError("Entries may not be removed from MergedMapView.");
   }
 
+  @override
   void clear() {
     throw UnsupportedError("Entries may not be removed from MergedMapView.");
   }
 
+  @override
   bool containsKey(Object? key) => _mapsByKey.containsKey(key);
 }

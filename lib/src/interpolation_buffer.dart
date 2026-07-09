@@ -38,10 +38,17 @@ final class InterpolationBuffer implements StringSink {
     _text.clear();
   }
 
+  @override
   void write(Object? obj) => _text.write(obj);
+
+  @override
   void writeAll(Iterable<Object?> objects, [String separator = '']) =>
       _text.writeAll(objects, separator);
+
+  @override
   void writeCharCode(int character) => _text.writeCharCode(character);
+
+  @override
   void writeln([Object? obj = '']) => _text.writeln(obj);
 
   /// Adds [expression] to this buffer.
@@ -94,6 +101,7 @@ final class InterpolationBuffer implements StringSink {
     );
   }
 
+  @override
   String toString() {
     var buffer = StringBuffer();
     for (var element in _contents) {

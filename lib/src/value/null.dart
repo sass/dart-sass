@@ -14,15 +14,20 @@ const Value sassNull = _SassNull();
 ///
 /// This can't be constructed directly; it can only be accessed via [sassNull].
 class _SassNull extends Value {
+  @override
   bool get isTruthy => false;
 
+  @override
   bool get isBlank => true;
 
+  @override
   Value? get realNull => null;
 
   const _SassNull();
 
+  @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitNull();
 
+  @override
   Value unaryNot() => sassTrue;
 }

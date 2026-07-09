@@ -87,6 +87,7 @@ final class CompoundSelector extends Selector {
         logger: logger,
       ).parseCompoundSelector();
 
+  @override
   T accept<T>(SelectorVisitor<T> visitor) =>
       visitor.visitCompoundSelector(this);
 
@@ -97,8 +98,10 @@ final class CompoundSelector extends Selector {
   bool isSuperselector(CompoundSelector other) =>
       compoundIsSuperselector(this, other);
 
+  @override
   int get hashCode => listHash(components);
 
+  @override
   bool operator ==(Object other) =>
       other is CompoundSelector && listEquals(components, other.components);
 }

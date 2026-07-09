@@ -38,14 +38,25 @@ class _FindDependenciesVisitor with RecursiveStatementVisitor {
   }
 
   // These can never contain imports.
+  @override
   void visitEachRule(EachRule node) {}
+
+  @override
   void visitForRule(ForRule node) {}
+
+  @override
   void visitIfRule(IfRule node) {}
+
+  @override
   void visitWhileRule(WhileRule node) {}
+
+  @override
   void visitCallableDeclaration(CallableDeclaration node) {}
+
   void visitInterpolation(Interpolation interpolation) {}
   void visitSupportsCondition(SupportsCondition condition) {}
 
+  @override
   void visitUseRule(UseRule node) {
     if (node.url.scheme != 'sass') {
       _uses.add(node.url);
@@ -54,16 +65,19 @@ class _FindDependenciesVisitor with RecursiveStatementVisitor {
     }
   }
 
+  @override
   void visitForwardRule(ForwardRule node) {
     if (node.url.scheme != 'sass') _forwards.add(node.url);
   }
 
+  @override
   void visitImportRule(ImportRule node) {
     for (var import in node.imports) {
       if (import is DynamicImport) _imports.add(import.url);
     }
   }
 
+  @override
   void visitIncludeRule(IncludeRule node) {
     if (node.name != 'load-css') return;
     if (!_metaNamespaces.contains(node.namespace)) return;

@@ -14,6 +14,7 @@ import 'stylesheet.dart';
 
 /// A parser for the indented syntax.
 class SassParser extends StylesheetParser {
+  @override
   int get currentIndentation => _currentIndentation;
   var _currentIndentation = 0;
 
@@ -36,10 +37,12 @@ class SassParser extends StylesheetParser {
   /// the indentation character used by the document.
   bool? _spaces;
 
+  @override
   bool get indented => true;
 
   SassParser(super.contents, {super.url, super.parseSelectors});
 
+  @override
   Interpolation styleRuleSelector() {
     var start = scanner.state;
 
@@ -53,6 +56,7 @@ class SassParser extends StylesheetParser {
     return buffer.interpolation(spanFrom(start));
   }
 
+  @override
   void expectStatementSeparator([String? name]) {
     var trailingSemicolon = _tryTrailingSemicolon();
     if (!atEndOfStatement()) {
@@ -65,11 +69,14 @@ class SassParser extends StylesheetParser {
     );
   }
 
+  @override
   bool atEndOfStatement() => scanner.peekChar()?.isNewline ?? true;
 
+  @override
   bool lookingAtChildren() =>
       atEndOfStatement() && _peekIndentation() > currentIndentation;
 
+  @override
   Import importArgument() {
     switch (scanner.peekChar()) {
       case $u || $U:
@@ -115,6 +122,7 @@ class SassParser extends StylesheetParser {
     }
   }
 
+  @override
   bool scanElse(int ifIndentation) {
     if (_peekIndentation() != ifIndentation) return false;
     var start = scanner.state;
@@ -132,6 +140,7 @@ class SassParser extends StylesheetParser {
     return false;
   }
 
+  @override
   List<Statement> children(Statement child()) {
     var children = <Statement>[];
     _whileIndentedLower(() {
@@ -140,6 +149,7 @@ class SassParser extends StylesheetParser {
     return children;
   }
 
+  @override
   List<Statement> statements(Statement? statement()) {
     if (scanner.peekChar() case $tab || $space) {
       scanner.error(
@@ -321,6 +331,7 @@ class SassParser extends StylesheetParser {
     return LoudComment(buffer.interpolation(spanFrom(start)));
   }
 
+  @override
   void whitespaceWithoutComments({required bool consumeNewlines}) {
     // This overrides whitespace consumption to only consume newlines when
     // `consumeNewlines` is true.

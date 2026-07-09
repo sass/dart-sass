@@ -8,12 +8,15 @@ import '../callable.dart';
 ///
 /// This can't be used for mixins.
 final class PlainCssCallable implements Callable {
+  @override
   final String name;
 
   PlainCssCallable(this.name);
 
+  @override
   bool operator ==(Object other) =>
       other is PlainCssCallable && name == other.name;
 
+  @override
   int get hashCode => name.hashCode;
 }

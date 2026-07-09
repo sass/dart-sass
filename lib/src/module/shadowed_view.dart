@@ -18,19 +18,39 @@ final class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
   /// The wrapped module.
   final Module<T> _inner;
 
+  @override
   Uri? get url => _inner.url;
+
+  @override
   List<Module<T>> get upstream => _inner.upstream;
+
+  @override
   ExtensionStore get extensionStore => _inner.extensionStore;
+
+  @override
   CssStylesheet get css => _inner.css;
+
+  @override
   Map<Module<T>, List<CssComment>> get preModuleComments =>
       _inner.preModuleComments;
+
+  @override
   bool get transitivelyContainsCss => _inner.transitivelyContainsCss;
+
+  @override
   bool get transitivelyContainsExtensions =>
       _inner.transitivelyContainsExtensions;
 
+  @override
   final Map<String, Value> variables;
+
+  @override
   final Map<String, AstNode> variableNodes;
+
+  @override
   final Map<String, T> functions;
+
+  @override
   final Map<String, T> mixins;
 
   /// Returns whether this module exposes no members or CSS.
@@ -94,6 +114,7 @@ final class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
   ) =>
       blocklist != null && map.isNotEmpty && blocklist.any(map.containsKey);
 
+  @override
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (!variables.containsKey(name)) {
       throw SassScriptException("Undefined variable.");
@@ -102,11 +123,13 @@ final class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
     }
   }
 
+  @override
   Object variableIdentity(String name) {
     assert(variables.containsKey(name));
     return _inner.variableIdentity(name);
   }
 
+  @override
   bool couldHaveBeenConfigured(Set<String> variables) =>
       this.variables == _inner.variables
           ? _inner.couldHaveBeenConfigured(variables)
@@ -115,6 +138,7 @@ final class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
                 if (variables.contains(name)) name
             });
 
+  @override
   bool operator ==(Object other) =>
       other is ShadowedModuleView &&
       _inner == other._inner &&
@@ -122,8 +146,10 @@ final class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
       iterableEquals(functions.keys, other.functions.keys) &&
       iterableEquals(mixins.keys, other.mixins.keys);
 
+  @override
   int get hashCode => _inner.hashCode;
 
+  @override
   Module<T> cloneCss() => ShadowedModuleView._(
         _inner.cloneCss(),
         variables,
@@ -132,5 +158,6 @@ final class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
         mixins,
       );
 
+  @override
   String toString() => "shadowed $_inner";
 }

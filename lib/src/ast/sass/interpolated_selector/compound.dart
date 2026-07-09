@@ -19,6 +19,7 @@ final class InterpolatedCompoundSelector extends InterpolatedSelector {
   /// The components of this selector.
   final List<InterpolatedSimpleSelector> components;
 
+  @override
   FileSpan get span => components.length == 1
       ? components.first.span
       : components.first.span.expand(components.last.span);
@@ -31,8 +32,10 @@ final class InterpolatedCompoundSelector extends InterpolatedSelector {
   }
 
   /// Calls the appropriate visit method on [visitor].
+  @override
   T accept<T>(InterpolatedSelectorVisitor<T> visitor) =>
       visitor.visitCompoundSelector(this);
 
+  @override
   String toString() => components.join('');
 }

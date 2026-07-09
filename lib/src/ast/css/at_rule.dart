@@ -17,5 +17,6 @@ abstract interface class CssAtRule implements CssParentNode {
   ///
   /// This implies `children.isEmpty`, but the reverse is not true—for a rule
   /// like `@foo {}`, [children] is empty but [isChildless] is `false`.
+  @override
   bool get isChildless;
 }

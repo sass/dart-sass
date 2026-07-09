@@ -435,6 +435,7 @@ abstract class Value {
   /// Note that this is equivalent to calling `inspect()` on the value, and thus
   /// won't reflect the user's output settings. [toCssString] should be used
   /// instead to convert `this` to CSS.
+  @override
   String toString() => serializeValue(this, inspect: true);
 }
 

@@ -26,11 +26,13 @@ final class InterpolatedComplexSelectorComponent implements SassNode {
   /// combinator.
   final CssValue<Combinator>? combinator;
 
+  @override
   final FileSpan span;
 
   InterpolatedComplexSelectorComponent(this.selector, this.span,
       {this.combinator});
 
+  @override
   String toString() => switch (combinator) {
         var combinator? => '$selector $combinator',
         _ => selector.toString()

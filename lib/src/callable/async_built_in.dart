@@ -20,6 +20,7 @@ typedef Callback = FutureOr<Value> Function(List<Value> arguments);
 /// parameters. When the callable is invoked, the first callback with matching
 /// parameters is invoked.
 class AsyncBuiltInCallable implements AsyncCallable {
+  @override
   final String name;
 
   /// This callable's parameters.

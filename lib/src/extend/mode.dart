@@ -26,5 +26,6 @@ enum ExtendMode {
 
   const ExtendMode(this.name);
 
+  @override
   String toString() => name;
 }

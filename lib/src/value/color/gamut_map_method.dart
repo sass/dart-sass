@@ -63,5 +63,6 @@ abstract base class GamutMapMethod {
   @internal
   SassColor map(SassColor color);
 
+  @override
   String toString() => name;
 }

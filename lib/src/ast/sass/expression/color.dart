@@ -15,12 +15,15 @@ final class ColorExpression extends Expression {
   /// The value of this color.
   final SassColor value;
 
+  @override
   final FileSpan span;
 
   ColorExpression(this.value, this.span);
 
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitColorExpression(this);
 
+  @override
   String toString() => value.toString();
 }

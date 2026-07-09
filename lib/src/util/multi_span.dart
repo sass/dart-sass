@@ -30,20 +30,43 @@ class MultiSpan implements FileSpan {
 
   MultiSpan._(this._primary, this.primaryLabel, this.secondarySpans);
 
+  @override
   FileLocation get start => _primary.start;
+
+  @override
   FileLocation get end => _primary.end;
+
+  @override
   String get text => _primary.text;
+
+  @override
   String get context => _primary.context;
+
+  @override
   SourceFile get file => _primary.file;
+
+  @override
   int get length => _primary.length;
+
+  @override
   Uri? get sourceUrl => _primary.sourceUrl;
+
+  @override
   int compareTo(SourceSpan other) => _primary.compareTo(other);
+
+  @override
   String toString() => _primary.toString();
+
+  @override
   MultiSpan expand(FileSpan other) => _withPrimary(_primary.expand(other));
+
+  @override
   SourceSpan union(SourceSpan other) => _primary.union(other);
+
   MultiSpan subspan(int start, [int? end]) =>
       _withPrimary(_primary.subspan(start, end));
 
+  @override
   String highlight({dynamic color}) => _primary.highlightMultiple(
         primaryLabel,
         secondarySpans,
@@ -51,6 +74,7 @@ class MultiSpan implements FileSpan {
         primaryColor: color is String ? color : null,
       );
 
+  @override
   String message(String message, {dynamic color}) => _primary.messageMultiple(
         message,
         primaryLabel,

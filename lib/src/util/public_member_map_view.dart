@@ -14,13 +14,16 @@ class PublicMemberMapView<V> extends UnmodifiableMapBase<String, V> {
   /// The wrapped map.
   final Map<String, V> _inner;
 
+  @override
   Iterable<String> get keys => _inner.keys.where(isPublic);
 
   PublicMemberMapView(this._inner);
 
+  @override
   bool containsKey(Object? key) =>
       key is String && isPublic(key) && _inner.containsKey(key);
 
+  @override
   V? operator [](Object? key) {
     if (key is String && isPublic(key)) return _inner[key];
     return null;

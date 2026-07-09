@@ -108,6 +108,7 @@ final class ComplexSelector extends Selector {
         logger: logger,
       ).parseComplexSelector();
 
+  @override
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitComplexSelector(this);
 
   /// Whether this is a superselector of [other].
@@ -214,8 +215,10 @@ final class ComplexSelector extends Selector {
     }
   }
 
+  @override
   int get hashCode => listHash(leadingCombinators) ^ listHash(components);
 
+  @override
   bool operator ==(Object other) =>
       other is ComplexSelector &&
       listEquals(leadingCombinators, other.leadingCombinators) &&

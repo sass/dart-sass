@@ -514,6 +514,7 @@ class StylesheetNode {
     }
   }
 
+  @override
   String toString() =>
       stylesheet.span.sourceUrl.andThen(p.prettyUri) ?? '<unknown>';
 }

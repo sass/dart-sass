@@ -16,12 +16,15 @@ final class SupportsRule extends ParentStatement<List<Statement>> {
   /// The condition that selects what browsers this rule targets.
   final SupportsCondition condition;
 
+  @override
   final FileSpan span;
 
   SupportsRule(this.condition, Iterable<Statement> children, this.span)
       : super(List.unmodifiable(children));
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitSupportsRule(this);
 
+  @override
   String toString() => "@supports $condition {${children.join(' ')}}";
 }

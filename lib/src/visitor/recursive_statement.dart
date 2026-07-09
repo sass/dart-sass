@@ -19,33 +19,46 @@ import 'interface/statement.dart';
 ///
 /// {@category Visitor}
 mixin RecursiveStatementVisitor implements StatementVisitor<void> {
+  @override
   void visitAtRootRule(AtRootRule node) {
     visitChildren(node.children);
   }
 
+  @override
   void visitAtRule(AtRule node) => node.children.andThen(visitChildren);
 
+  @override
   void visitContentBlock(ContentBlock node) => visitCallableDeclaration(node);
 
+  @override
   void visitContentRule(ContentRule node) {}
 
+  @override
   void visitDebugRule(DebugRule node) {}
 
+  @override
   void visitDeclaration(Declaration node) =>
       node.children.andThen(visitChildren);
 
+  @override
   void visitEachRule(EachRule node) => visitChildren(node.children);
 
+  @override
   void visitErrorRule(ErrorRule node) {}
 
+  @override
   void visitExtendRule(ExtendRule node) {}
 
+  @override
   void visitForRule(ForRule node) => visitChildren(node.children);
 
+  @override
   void visitForwardRule(ForwardRule node) {}
 
+  @override
   void visitFunctionRule(FunctionRule node) => visitCallableDeclaration(node);
 
+  @override
   void visitIfRule(IfRule node) {
     for (var clause in node.clauses) {
       for (var child in clause.children) {
@@ -60,33 +73,47 @@ mixin RecursiveStatementVisitor implements StatementVisitor<void> {
     }
   }
 
+  @override
   void visitImportRule(ImportRule node) {}
 
+  @override
   void visitIncludeRule(IncludeRule node) =>
       node.content.andThen(visitContentBlock);
 
+  @override
   void visitLoudComment(LoudComment node) {}
 
+  @override
   void visitMediaRule(MediaRule node) => visitChildren(node.children);
 
+  @override
   void visitMixinRule(MixinRule node) => visitCallableDeclaration(node);
 
+  @override
   void visitReturnRule(ReturnRule node) {}
 
+  @override
   void visitSilentComment(SilentComment node) {}
 
+  @override
   void visitStyleRule(StyleRule node) => visitChildren(node.children);
 
+  @override
   void visitStylesheet(Stylesheet node) => visitChildren(node.children);
 
+  @override
   void visitSupportsRule(SupportsRule node) => visitChildren(node.children);
 
+  @override
   void visitUseRule(UseRule node) {}
 
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {}
 
+  @override
   void visitWarnRule(WarnRule node) {}
 
+  @override
   void visitWhileRule(WhileRule node) => visitChildren(node.children);
 
   /// Visits each of [node]'s children.

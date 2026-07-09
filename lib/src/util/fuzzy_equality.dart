@@ -9,9 +9,12 @@ import 'number.dart';
 class FuzzyEquality implements Equality<double> {
   const FuzzyEquality();
 
+  @override
   bool equals(double e1, double e2) => fuzzyEquals(e1, e2);
 
+  @override
   int hash(double e1) => fuzzyHashCode(e1);
 
+  @override
   bool isValidKey(Object? o) => o is double;
 }

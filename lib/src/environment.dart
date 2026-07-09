@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 1a3e8a246997bac547c2c15e5c191aac2132cc5b
+// Checksum: 7b3f31ae98a8b0440e2ff26c218414fe9a9961a8
 //
 // ignore_for_file: unused_import
 
@@ -959,17 +959,37 @@ final class Environment {
 
 /// A module that represents the top-level members defined in an [Environment].
 final class _EnvironmentModule implements Module<Callable> {
+  @override
   Uri? get url => css.span.sourceUrl;
 
+  @override
   final List<Module<Callable>> upstream;
+
+  @override
   final Map<String, Value> variables;
+
+  @override
   final Map<String, AstNode> variableNodes;
+
+  @override
   final Map<String, Callable> functions;
+
+  @override
   final Map<String, Callable> mixins;
+
+  @override
   final ExtensionStore extensionStore;
+
+  @override
   final CssStylesheet css;
+
+  @override
   final Map<Module<Callable>, List<CssComment>> preModuleComments;
+
+  @override
   final bool transitivelyContainsCss;
+
+  @override
   final bool transitivelyContainsExtensions;
 
   /// The environment that defines this module's members.
@@ -1085,6 +1105,7 @@ final class _EnvironmentModule implements Module<Callable> {
     required this.transitivelyContainsExtensions,
   }) : upstream = _environment._allModules;
 
+  @override
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (_modulesByVariable[name] case var module?) {
       module.setVariable(name, value, nodeWithSpan);
@@ -1100,12 +1121,14 @@ final class _EnvironmentModule implements Module<Callable> {
     return;
   }
 
+  @override
   Object variableIdentity(String name) {
     assert(variables.containsKey(name));
     var module = _modulesByVariable[name];
     return module == null ? this : module.variableIdentity(name);
   }
 
+  @override
   bool couldHaveBeenConfigured(Set<String> variables) =>
       // Check if this module defines a configurable variable with any of the
       // given names.
@@ -1126,6 +1149,7 @@ final class _EnvironmentModule implements Module<Callable> {
                 })
           .any((module) => module.couldHaveBeenConfigured(variables));
 
+  @override
   Module<Callable> cloneCss() {
     if (!transitivelyContainsCss) return this;
 
@@ -1148,5 +1172,6 @@ final class _EnvironmentModule implements Module<Callable> {
     );
   }
 
+  @override
   String toString() => url == null ? "<unknown url>" : p.prettyUri(url);
 }

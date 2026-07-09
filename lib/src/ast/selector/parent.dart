@@ -23,9 +23,11 @@ final class ParentSelector extends SimpleSelector {
 
   ParentSelector(super.span, {this.suffix});
 
+  @override
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitParentSelector(this);
 
   /// @nodoc
+  @override
   @internal
   List<SimpleSelector> unify(List<SimpleSelector> compound) =>
       throw UnsupportedError("& doesn't support unification.");

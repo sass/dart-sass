@@ -14,12 +14,15 @@ final class ParenthesizedExpression extends Expression {
   /// The internal expression.
   final Expression expression;
 
+  @override
   final FileSpan span;
 
   ParenthesizedExpression(this.expression, this.span);
 
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitParenthesizedExpression(this);
 
+  @override
   String toString() => "($expression)";
 }

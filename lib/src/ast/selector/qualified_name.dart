@@ -20,12 +20,15 @@ final class QualifiedName {
 
   QualifiedName(this.name, {this.namespace});
 
+  @override
   bool operator ==(Object other) =>
       other is QualifiedName &&
       other.name == name &&
       other.namespace == namespace;
 
+  @override
   int get hashCode => name.hashCode ^ namespace.hashCode;
 
+  @override
   String toString() => namespace == null ? name : "$namespace|$name";
 }

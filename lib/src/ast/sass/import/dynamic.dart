@@ -16,6 +16,7 @@ final class DynamicImport implements Import, SassDependency {
   /// The URL of the file to import.
   ///
   /// If this is relative, it's relative to the containing file.
+  @override
   Uri get url => Uri.parse(urlString);
 
   // TODO(nweiz): Make this a [Url] when dart-lang/sdk#32490 is fixed, or when
@@ -29,10 +30,14 @@ final class DynamicImport implements Import, SassDependency {
   @internal
   final String urlString;
 
+  @override
   final FileSpan span;
+
+  @override
   FileSpan get urlSpan => span;
 
   DynamicImport(this.urlString, this.span);
 
+  @override
   String toString() => StringExpression.quoteText(urlString);
 }

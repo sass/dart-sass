@@ -18,12 +18,15 @@ final class ValueExpression extends Expression {
   /// The embedded value.
   final Value value;
 
+  @override
   final FileSpan span;
 
   ValueExpression(this.value, this.span);
 
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitValueExpression(this);
 
+  @override
   String toString() => value.toString();
 }

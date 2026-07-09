@@ -23,6 +23,7 @@ final class ListExpression extends Expression {
   /// Whether the list has square brackets or not.
   final bool hasBrackets;
 
+  @override
   final FileSpan span;
 
   ListExpression(
@@ -33,9 +34,11 @@ final class ListExpression extends Expression {
   })  : contents = List.unmodifiable(contents),
         hasBrackets = brackets;
 
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitListExpression(this);
 
+  @override
   String toString() {
     var buffer = StringBuffer();
     if (hasBrackets) {

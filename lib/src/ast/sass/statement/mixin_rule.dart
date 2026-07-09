@@ -21,6 +21,7 @@ final class MixinRule extends CallableDeclaration implements SassDeclaration {
   late final bool hasContent =
       const _HasContentVisitor().visitMixinRule(this) == true;
 
+  @override
   FileSpan get nameSpan {
     var startSpan = span.text.startsWith('=')
         ? span.subspan(1).trimLeft()
@@ -36,8 +37,10 @@ final class MixinRule extends CallableDeclaration implements SassDeclaration {
     super.comment,
   });
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitMixinRule(this);
 
+  @override
   String toString() {
     var buffer = StringBuffer("@mixin $name");
     if (!parameters.isEmpty) buffer.write("($parameters)");
@@ -51,5 +54,6 @@ final class MixinRule extends CallableDeclaration implements SassDeclaration {
 class _HasContentVisitor with StatementSearchVisitor<bool> {
   const _HasContentVisitor();
 
+  @override
   bool visitContentRule(_) => true;
 }

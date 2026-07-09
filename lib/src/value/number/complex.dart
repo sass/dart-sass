@@ -16,13 +16,18 @@ class ComplexSassNumber extends SassNumber {
   // We don't use public fields because they'd be overridden by the getters of
   // the same name in the JS API.
 
+  @override
   List<String> get numeratorUnits => _numeratorUnits;
   final List<String> _numeratorUnits;
 
+  @override
   List<String> get denominatorUnits => _denominatorUnits;
   final List<String> _denominatorUnits;
 
+  @override
   bool get hasUnits => true;
+
+  @override
   bool get hasComplexUnits => true;
 
   ComplexSassNumber(
@@ -40,10 +45,13 @@ class ComplexSassNumber extends SassNumber {
     assert(numeratorUnits.length > 1 || denominatorUnits.isNotEmpty);
   }
 
+  @override
   bool hasUnit(String unit) => false;
 
+  @override
   bool compatibleWithUnit(String unit) => false;
 
+  @override
   @internal
   bool hasPossiblyCompatibleUnits(SassNumber other) {
     // This logic is well-defined, and we could implement it in principle.
@@ -53,9 +61,11 @@ class ComplexSassNumber extends SassNumber {
     );
   }
 
+  @override
   SassNumber withValue(num value) =>
       ComplexSassNumber._(value.toDouble(), numeratorUnits, denominatorUnits);
 
+  @override
   SassNumber withSlash(SassNumber numerator, SassNumber denominator) =>
       ComplexSassNumber._(value, numeratorUnits, denominatorUnits, (
         numerator,

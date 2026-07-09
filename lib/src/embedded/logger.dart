@@ -29,6 +29,7 @@ final class EmbeddedLogger extends LoggerWithDeprecationType {
       : _color = color,
         _ascii = ascii;
 
+  @override
   void debug(String message, SourceSpan span) {
     _dispatcher.sendLog(
       OutboundMessage_LogEvent()
@@ -42,6 +43,7 @@ final class EmbeddedLogger extends LoggerWithDeprecationType {
     );
   }
 
+  @override
   void internalWarn(
     String message, {
     FileSpan? span,

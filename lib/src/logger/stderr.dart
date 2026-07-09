@@ -18,6 +18,7 @@ final class StderrLogger extends LoggerWithDeprecationType {
 
   const StderrLogger({this.color = false});
 
+  @override
   void internalWarn(
     String message, {
     FileSpan? span,
@@ -54,6 +55,7 @@ final class StderrLogger extends LoggerWithDeprecationType {
     printError(result);
   }
 
+  @override
   void debug(String message, SourceSpan span) {
     var result = StringBuffer();
     var url =

@@ -14,7 +14,10 @@ import 'utils.dart';
 /// @nodoc
 @internal
 final class RgbColorSpace extends ColorSpace {
+  @override
   bool get isBoundedInternal => true;
+
+  @override
   bool get isLegacyInternal => true;
 
   const RgbColorSpace()
@@ -25,6 +28,7 @@ final class RgbColorSpace extends ColorSpace {
           LinearChannel('blue', 0, 255, lowerClamped: true, upperClamped: true),
         ]);
 
+  @override
   SassColor convert(
     ColorSpace dest,
     double? red,
@@ -40,9 +44,11 @@ final class RgbColorSpace extends ColorSpace {
         alpha,
       );
 
+  @override
   @protected
   double toLinear(double channel) => srgbAndDisplayP3ToLinear(channel / 255);
 
+  @override
   @protected
   double fromLinear(double channel) =>
       srgbAndDisplayP3FromLinear(channel) * 255;

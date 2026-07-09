@@ -43,11 +43,16 @@ final _knownCompatibilitiesByUnit = {
 class SingleUnitSassNumber extends SassNumber {
   final String _unit;
 
+  @override
   List<String> get numeratorUnits => List.unmodifiable([_unit]);
 
+  @override
   List<String> get denominatorUnits => const [];
 
+  @override
   bool get hasUnits => true;
+
+  @override
   bool get hasComplexUnits => false;
 
   SingleUnitSassNumber(
@@ -56,17 +61,22 @@ class SingleUnitSassNumber extends SassNumber {
     (SassNumber, SassNumber)? asSlash,
   ]) : super.protected(value, asSlash);
 
+  @override
   SassNumber withValue(num value) =>
       SingleUnitSassNumber(value.toDouble(), _unit);
 
+  @override
   SassNumber withSlash(SassNumber numerator, SassNumber denominator) =>
       SingleUnitSassNumber(value, _unit, (numerator, denominator));
 
+  @override
   bool hasUnit(String unit) => unit == _unit;
 
+  @override
   bool hasCompatibleUnits(SassNumber other) =>
       other is SingleUnitSassNumber && compatibleWithUnit(other._unit);
 
+  @override
   @internal
   bool hasPossiblyCompatibleUnits(SassNumber other) {
     if (other is! SingleUnitSassNumber) return false;
@@ -79,8 +89,10 @@ class SingleUnitSassNumber extends SassNumber {
         !_knownCompatibilitiesByUnit.containsKey(otherUnit);
   }
 
+  @override
   bool compatibleWithUnit(String unit) => conversionFactor(_unit, unit) != null;
 
+  @override
   SassNumber coerceToMatch(
     SassNumber other, [
     String? name,
@@ -90,6 +102,7 @@ class SingleUnitSassNumber extends SassNumber {
       // Call this to generate a consistent error message.
       super.coerceToMatch(other, name, otherName);
 
+  @override
   double coerceValueToMatch(
     SassNumber other, [
     String? name,
@@ -101,11 +114,13 @@ class SingleUnitSassNumber extends SassNumber {
       // Call this to generate a consistent error message.
       super.coerceValueToMatch(other, name, otherName);
 
+  @override
   double convertValueToUnit(String unit, [String? name]) =>
       _coerceValueToUnit(unit) ??
       // Call this to generate a consistent error message.
       super.convertValueToUnit(unit, name);
 
+  @override
   SassNumber convertToMatch(
     SassNumber other, [
     String? name,
@@ -115,6 +130,7 @@ class SingleUnitSassNumber extends SassNumber {
       // Call this to generate a consistent error message.
       super.convertToMatch(other, name, otherName);
 
+  @override
   double convertValueToMatch(
     SassNumber other, [
     String? name,
@@ -126,6 +142,7 @@ class SingleUnitSassNumber extends SassNumber {
       // Call this to generate a consistent error message.
       super.convertValueToMatch(other, name, otherName);
 
+  @override
   SassNumber coerce(
     List<String> newNumerators,
     List<String> newDenominators, [
@@ -137,6 +154,7 @@ class SingleUnitSassNumber extends SassNumber {
       // Call this to generate a consistent error message.
       super.coerce(newNumerators, newDenominators, name);
 
+  @override
   double coerceValue(
     List<String> newNumerators,
     List<String> newDenominators, [
@@ -148,6 +166,7 @@ class SingleUnitSassNumber extends SassNumber {
       // Call this to generate a consistent error message.
       super.coerceValue(newNumerators, newDenominators, name);
 
+  @override
   double coerceValueToUnit(String unit, [String? name]) =>
       _coerceValueToUnit(unit) ??
       // Call this to generate a consistent error message.
@@ -167,6 +186,7 @@ class SingleUnitSassNumber extends SassNumber {
   double? _coerceValueToUnit(String unit) =>
       conversionFactor(unit, _unit).andThen((factor) => value * factor);
 
+  @override
   SassNumber multiplyUnits(
     num value,
     List<String> otherNumerators,
@@ -194,8 +214,10 @@ class SingleUnitSassNumber extends SassNumber {
     );
   }
 
+  @override
   Value unaryMinus() => SingleUnitSassNumber(-value, _unit);
 
+  @override
   bool operator ==(Object other) {
     if (other is SingleUnitSassNumber) {
       var factor = conversionFactor(other._unit, _unit);
@@ -205,6 +227,7 @@ class SingleUnitSassNumber extends SassNumber {
     }
   }
 
+  @override
   int get hashCode =>
       hashCache ??= fuzzyHashCode(value * canonicalMultiplierForUnit(_unit));
 }

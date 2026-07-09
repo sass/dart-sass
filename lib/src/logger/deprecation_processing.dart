@@ -109,6 +109,7 @@ final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
     }
   }
 
+  @override
   void internalWarn(
     String message, {
     FileSpan? span,
@@ -171,6 +172,7 @@ final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
     }
   }
 
+  @override
   void debug(String message, SourceSpan span) => _inner.debug(message, span);
 
   /// Prints a warning indicating the number of deprecation warnings that were

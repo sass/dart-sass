@@ -22,6 +22,7 @@ class PackageImporter extends Importer {
   /// [`PackageConfig`]: https://pub.dev/documentation/package_config/latest/package_config.package_config/PackageConfig-class.html
   PackageImporter(PackageConfig packageConfig) : _packageConfig = packageConfig;
 
+  @override
   Uri? canonicalize(Uri url) {
     if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);
     if (url.scheme != 'package') return null;
@@ -36,11 +37,14 @@ class PackageImporter extends Importer {
     return FilesystemImporter.cwd.canonicalize(resolved);
   }
 
+  @override
   ImporterResult? load(Uri url) => FilesystemImporter.cwd.load(url);
 
+  @override
   DateTime modificationTime(Uri url) =>
       FilesystemImporter.cwd.modificationTime(url);
 
+  @override
   bool couldCanonicalize(Uri url, Uri canonicalUrl) =>
       (url.scheme == 'file' || url.scheme == 'package' || url.scheme == '') &&
       FilesystemImporter.cwd.couldCanonicalize(
@@ -48,5 +52,6 @@ class PackageImporter extends Importer {
         canonicalUrl,
       );
 
+  @override
   String toString() => "package:...";
 }

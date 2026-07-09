@@ -23,12 +23,15 @@ final class ExtendRule extends Statement {
   /// any selectors.
   final bool isOptional;
 
+  @override
   final FileSpan span;
 
   ExtendRule(this.selector, this.span, {bool optional = false})
       : isOptional = optional;
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitExtendRule(this);
 
+  @override
   String toString() => "@extend $selector${isOptional ? ' !optional' : ''};";
 }

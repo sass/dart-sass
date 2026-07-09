@@ -19,13 +19,16 @@ final class AtRule extends ParentStatement {
   /// The value of this rule.
   final Interpolation? value;
 
+  @override
   final FileSpan span;
 
   AtRule(this.name, this.span, {this.value, Iterable<Statement>? children})
       : super(children == null ? null : List.unmodifiable(children));
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitAtRule(this);
 
+  @override
   String toString() {
     var buffer = StringBuffer("@$name");
     if (value != null) buffer.write(" $value");

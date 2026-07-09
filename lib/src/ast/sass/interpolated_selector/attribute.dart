@@ -37,6 +37,7 @@ final class InterpolatedAttributeSelector extends InterpolatedSimpleSelector {
   /// If [op] is `null`, this is always `null` as well.
   final Interpolation? modifier;
 
+  @override
   final FileSpan span;
 
   /// Creates an attribute selector that matches any element with a property of
@@ -57,9 +58,11 @@ final class InterpolatedAttributeSelector extends InterpolatedSimpleSelector {
   });
 
   /// Calls the appropriate visit method on [visitor].
+  @override
   T accept<T>(InterpolatedSelectorVisitor<T> visitor) =>
       visitor.visitAttributeSelector(this);
 
+  @override
   String toString() {
     var result = '[$name';
     if (op != null) {

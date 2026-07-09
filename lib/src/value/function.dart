@@ -36,9 +36,11 @@ class SassFunction extends Value {
   SassFunction.withCompileContext(this.callable, this._compileContext);
 
   /// @nodoc
+  @override
   @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitFunction(this);
 
+  @override
   SassFunction assertFunction([String? name]) => this;
 
   /// Asserts that this SassFunction belongs to [compileContext] and returns it.
@@ -55,8 +57,10 @@ class SassFunction extends Value {
     return this;
   }
 
+  @override
   bool operator ==(Object other) =>
       other is SassFunction && callable == other.callable;
 
+  @override
   int get hashCode => callable.hashCode;
 }

@@ -950,17 +950,37 @@ final class AsyncEnvironment {
 
 /// A module that represents the top-level members defined in an [Environment].
 final class _EnvironmentModule implements Module {
+  @override
   Uri? get url => css.span.sourceUrl;
 
+  @override
   final List<Module> upstream;
+
+  @override
   final Map<String, Value> variables;
+
+  @override
   final Map<String, AstNode> variableNodes;
+
+  @override
   final Map<String, AsyncCallable> functions;
+
+  @override
   final Map<String, AsyncCallable> mixins;
+
+  @override
   final ExtensionStore extensionStore;
+
+  @override
   final CssStylesheet css;
+
+  @override
   final Map<Module, List<CssComment>> preModuleComments;
+
+  @override
   final bool transitivelyContainsCss;
+
+  @override
   final bool transitivelyContainsExtensions;
 
   /// The environment that defines this module's members.
@@ -1075,6 +1095,7 @@ final class _EnvironmentModule implements Module {
     required this.transitivelyContainsExtensions,
   }) : upstream = _environment._allModules;
 
+  @override
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (_modulesByVariable[name] case var module?) {
       module.setVariable(name, value, nodeWithSpan);
@@ -1090,12 +1111,14 @@ final class _EnvironmentModule implements Module {
     return;
   }
 
+  @override
   Object variableIdentity(String name) {
     assert(variables.containsKey(name));
     var module = _modulesByVariable[name];
     return module == null ? this : module.variableIdentity(name);
   }
 
+  @override
   bool couldHaveBeenConfigured(Set<String> variables) =>
       // Check if this module defines a configurable variable with any of the
       // given names.
@@ -1116,6 +1139,7 @@ final class _EnvironmentModule implements Module {
                 })
           .any((module) => module.couldHaveBeenConfigured(variables));
 
+  @override
   Module cloneCss() {
     if (!transitivelyContainsCss) return this;
 
@@ -1138,5 +1162,6 @@ final class _EnvironmentModule implements Module {
     );
   }
 
+  @override
   String toString() => url == null ? "<unknown url>" : p.prettyUri(url);
 }

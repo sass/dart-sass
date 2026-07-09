@@ -30,8 +30,13 @@ class SourceMapBuffer implements StringBuffer {
   SourceLocation get _targetLocation =>
       SourceLocation(_buffer.length, line: _line, column: _column);
 
+  @override
   bool get isEmpty => _buffer.isEmpty;
+
+  @override
   bool get isNotEmpty => _buffer.isNotEmpty;
+
+  @override
   int get length => _buffer.length;
 
   /// Runs [callback] and associates all text written within it with [span].
@@ -77,9 +82,11 @@ class SourceMapBuffer implements StringBuffer {
     _entries.add(Entry(source, target, null));
   }
 
+  @override
   void clear() =>
       throw UnsupportedError("SourceMapBuffer.clear() is not supported.");
 
+  @override
   void write(Object? object) {
     var string = object.toString();
     _buffer.write(string);
@@ -93,9 +100,11 @@ class SourceMapBuffer implements StringBuffer {
     }
   }
 
+  @override
   void writeAll(Iterable<Object?> objects, [String separator = ""]) =>
       write(objects.join(separator));
 
+  @override
   void writeCharCode(int charCode) {
     _buffer.writeCharCode(charCode);
     if (charCode == $lf) {
@@ -105,6 +114,7 @@ class SourceMapBuffer implements StringBuffer {
     }
   }
 
+  @override
   void writeln([Object? object = ""]) {
     // Special-case the common case.
     if (identical(object, "")) {
@@ -141,6 +151,7 @@ class SourceMapBuffer implements StringBuffer {
     }
   }
 
+  @override
   String toString() => _buffer.toString();
 
   /// Returns the source map for the file being written.

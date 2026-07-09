@@ -27,6 +27,7 @@ abstract base class CallableDeclaration
   /// The declared parameters this callable accepts.
   final ParameterList parameters;
 
+  @override
   final FileSpan span;
 
   CallableDeclaration(

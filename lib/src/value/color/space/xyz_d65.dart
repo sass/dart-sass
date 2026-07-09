@@ -17,16 +17,20 @@ import 'utils.dart';
 /// @nodoc
 @internal
 final class XyzD65ColorSpace extends ColorSpace {
+  @override
   bool get isBoundedInternal => false;
 
   const XyzD65ColorSpace() : super('xyz', xyzChannels);
 
+  @override
   @protected
   double toLinear(double channel) => channel;
 
+  @override
   @protected
   double fromLinear(double channel) => channel;
 
+  @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
         ColorSpace.srgbLinear ||

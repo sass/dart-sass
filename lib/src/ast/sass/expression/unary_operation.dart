@@ -20,13 +20,16 @@ final class UnaryOperationExpression extends Expression {
   /// The operand.
   final Expression operand;
 
+  @override
   final FileSpan span;
 
   UnaryOperationExpression(this.operator, this.operand, this.span);
 
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitUnaryOperationExpression(this);
 
+  @override
   String toString() {
     var buffer = StringBuffer(operator.operator);
     if (operator == UnaryOperator.not) buffer.writeCharCode($space);
@@ -71,5 +74,6 @@ enum UnaryOperator {
 
   const UnaryOperator(this.name, this.operator);
 
+  @override
   String toString() => name;
 }

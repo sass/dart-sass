@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 248b2cfadcd94847e46bd7e6ba9d27ce077c8c20
+// Checksum: f4a368efca96a762899b45fe75b33f0dbe607631
 //
 // ignore_for_file: unused_import
 
@@ -1164,6 +1164,7 @@ final class _EvaluateVisitor
 
   // ## Statements
 
+  @override
   Value? visitStylesheet(Stylesheet node) {
     for (var warning in node.parseTimeWarnings) {
       _warn(warning.message, warning.span, warning.deprecation);
@@ -1183,6 +1184,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitAtRootRule(AtRootRule node) {
     var query = AtRootQuery.defaultQuery;
     if (node.query case var unparsedQuery?) {
@@ -1342,10 +1344,12 @@ final class _EvaluateVisitor
     return scope;
   }
 
+  @override
   Value visitContentBlock(ContentBlock node) => throw UnsupportedError(
         "Evaluation handles @include and its content block together.",
       );
 
+  @override
   Value? visitContentRule(ContentRule node) {
     var content = _environment.content;
     if (content == null) return null;
@@ -1360,6 +1364,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitDebugRule(DebugRule node) {
     var value = node.expression.accept(this);
     _logger.debug(
@@ -1369,6 +1374,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitDeclaration(Declaration node) {
     if (_styleRule == null && !_inUnknownAtRule && !_inKeyframes) {
       throw _exception(
@@ -1429,6 +1435,7 @@ final class _EvaluateVisitor
   /// Returns whether [value] is an empty list.
   bool _isEmptyList(Value value) => value.asList.isEmpty;
 
+  @override
   Value? visitEachRule(EachRule node) {
     var list = node.list.accept(this);
     var nodeWithSpan = _expressionNode(node.list);
@@ -1473,6 +1480,7 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   Value visitErrorRule(ErrorRule node) {
     throw _exception(
       node.expression.accept(this).toString(),
@@ -1480,6 +1488,7 @@ final class _EvaluateVisitor
     );
   }
 
+  @override
   Value? visitExtendRule(ExtendRule node) {
     var styleRule = _styleRule;
     if (styleRule == null || _declarationName != null) {
@@ -1549,6 +1558,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitAtRule(AtRule node) {
     // NOTE: this logic is largely duplicated in [visitCssAtRule]. Most changes
     // here should be mirrored there.
@@ -1629,6 +1639,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitForRule(ForRule node) {
     var fromNumber = _addExceptionSpan(
       node.from,
@@ -1675,6 +1686,7 @@ final class _EvaluateVisitor
     }, semiGlobal: true);
   }
 
+  @override
   Value? visitForwardRule(ForwardRule node) {
     var oldConfiguration = _configuration;
     var adjustedConfiguration = oldConfiguration.throughForward(node);
@@ -1812,6 +1824,7 @@ final class _EvaluateVisitor
     );
   }
 
+  @override
   Value? visitFunctionRule(FunctionRule node) {
     _environment.setFunction(
       UserDefinedCallable(
@@ -1823,6 +1836,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitIfRule(IfRule node) {
     IfRuleClause? clause = node.lastClause;
     for (var clauseToCheck in node.clauses) {
@@ -1844,6 +1858,7 @@ final class _EvaluateVisitor
     );
   }
 
+  @override
   Value? visitImportRule(ImportRule node) {
     for (var import in node.imports) {
       if (import is DynamicImport) {
@@ -2184,6 +2199,7 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   Value? visitIncludeRule(IncludeRule node) {
     var mixin = _addExceptionSpan(
       node,
@@ -2224,6 +2240,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitMixinRule(MixinRule node) {
     _environment.setMixin(
       UserDefinedCallable(
@@ -2235,6 +2252,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitLoudComment(LoudComment node) {
     // NOTE: this logic is largely duplicated in [visitCssComment]. Most changes
     // here should be mirrored there.
@@ -2255,6 +2273,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitMediaRule(MediaRule node) {
     // NOTE: this logic is largely duplicated in [visitCssMediaRule]. Most
     // changes here should be mirrored there.
@@ -2365,11 +2384,14 @@ final class _EvaluateVisitor
     return queries;
   }
 
+  @override
   Value visitReturnRule(ReturnRule node) =>
       _withoutSlash(node.expression.accept(this), node.expression);
 
+  @override
   Value? visitSilentComment(SilentComment node) => null;
 
+  @override
   Value? visitStyleRule(StyleRule node) {
     // NOTE: this logic is largely duplicated in [visitCssStyleRule]. Most
     // changes here should be mirrored there.
@@ -2536,6 +2558,7 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   Value? visitSupportsRule(SupportsRule node) {
     // NOTE: this logic is largely duplicated in [visitCssSupportsRule]. Most
     // changes here should be mirrored there.
@@ -2647,6 +2670,7 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   Value? visitVariableDeclaration(VariableDeclaration node) {
     if (node.isGuarded) {
       if (node.namespace == null && _environment.atRoot) {
@@ -2707,6 +2731,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitUseRule(UseRule node) {
     var configuration = const Configuration.empty();
     if (node.configuration.isNotEmpty) {
@@ -2734,6 +2759,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitWarnRule(WarnRule node) {
     var value = _addExceptionSpan(
       node,
@@ -2746,6 +2772,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitWhileRule(WhileRule node) {
     return _environment.scope(
       () {
@@ -2767,6 +2794,7 @@ final class _EvaluateVisitor
 
   // ## Expressions
 
+  @override
   Value visitBinaryOperationExpression(BinaryOperationExpression node) {
     if (_stylesheet.plainCss &&
         node.operator != BinaryOperator.singleEquals &&
@@ -2871,8 +2899,10 @@ final class _EvaluateVisitor
           }.contains(node.name.toLowerCase()) &&
           _environment.getFunction(node.name) == null);
 
+  @override
   Value visitValueExpression(ValueExpression node) => node.value;
 
+  @override
   Value visitVariableExpression(VariableExpression node) {
     var result = _addExceptionSpan(
       node,
@@ -2882,6 +2912,7 @@ final class _EvaluateVisitor
     throw _exception("Undefined variable.", node.span);
   }
 
+  @override
   Value visitUnaryOperationExpression(
     UnaryOperationExpression node,
   ) {
@@ -2896,9 +2927,11 @@ final class _EvaluateVisitor
     });
   }
 
+  @override
   SassBoolean visitBooleanExpression(BooleanExpression node) =>
       SassBoolean(node.value);
 
+  @override
   Value visitIfExpression(IfExpression node) {
     List<(String, Value)>? results;
     for (var (condition, expression) in node.branches) {
@@ -2924,6 +2957,7 @@ final class _EvaluateVisitor
         quotes: false);
   }
 
+  @override
   Object /* String | bool */ visitIfConditionParenthesized(
           IfConditionParenthesized node) =>
       switch (node.expression.accept(this)) {
@@ -2931,6 +2965,7 @@ final class _EvaluateVisitor
         var result => result,
       };
 
+  @override
   Object /* String | bool */ visitIfConditionNegation(
           IfConditionNegation node) =>
       switch (node.expression.accept(this)) {
@@ -2939,6 +2974,7 @@ final class _EvaluateVisitor
         _ => throw UnsupportedError('unreachable'),
       };
 
+  @override
   Object /* String | bool */ visitIfConditionOperation(
       IfConditionOperation node) {
     List<(IfConditionExpression, String)>? values;
@@ -2967,6 +3003,7 @@ final class _EvaluateVisitor
     };
   }
 
+  @override
   Object /* String | bool */ visitIfConditionFunction(
           IfConditionFunction node) =>
       _performInterpolation(node.name) +
@@ -2974,12 +3011,15 @@ final class _EvaluateVisitor
       _performInterpolation(node.arguments) +
       ')';
 
+  @override
   Object /* String | bool */ visitIfConditionSass(IfConditionSass node) =>
       node.expression.accept(this).isTruthy;
 
+  @override
   Object /* String | bool */ visitIfConditionRaw(IfConditionRaw node) =>
       _performInterpolation(node.text);
 
+  @override
   Value visitLegacyIfExpression(LegacyIfExpression node) {
     var (positional, named) = _evaluateMacroArguments(node);
     _verifyArguments(
@@ -2994,11 +3034,14 @@ final class _EvaluateVisitor
     return _withoutSlash(result.accept(this), _expressionNode(result));
   }
 
+  @override
   Value visitNullExpression(NullExpression node) => sassNull;
 
+  @override
   SassNumber visitNumberExpression(NumberExpression node) =>
       SassNumber(node.value, node.unit);
 
+  @override
   Value visitParenthesizedExpression(ParenthesizedExpression node) =>
       _stylesheet.plainCss
           ? throw _exception(
@@ -3007,8 +3050,10 @@ final class _EvaluateVisitor
             )
           : node.expression.accept(this);
 
+  @override
   SassColor visitColorExpression(ColorExpression node) => node.value;
 
+  @override
   SassList visitListExpression(ListExpression node) => SassList(
         node.contents.map(
           (Expression expression) => expression.accept(this),
@@ -3017,6 +3062,7 @@ final class _EvaluateVisitor
         brackets: node.hasBrackets,
       );
 
+  @override
   SassMap visitMapExpression(MapExpression node) {
     var map = <Value, Value>{};
     var keyNodes = <Value, AstNode>{};
@@ -3040,6 +3086,7 @@ final class _EvaluateVisitor
     return SassMap(map);
   }
 
+  @override
   Value visitFunctionExpression(FunctionExpression node) {
     var function = _stylesheet.plainCss
         ? null
@@ -3479,6 +3526,7 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   Value visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
   ) {
@@ -3971,9 +4019,11 @@ final class _EvaluateVisitor
         () => parameters.verify(positional, MapKeySet(named)),
       );
 
+  @override
   Value visitSelectorExpression(SelectorExpression node) =>
       _styleRuleIgnoringAtRoot?.originalSelector.asSassList ?? sassNull;
 
+  @override
   SassString visitStringExpression(StringExpression node) {
     // Don't use [performInterpolation] here because we need to get the raw text
     // from strings, rather than the semantic value.
@@ -3997,6 +4047,7 @@ final class _EvaluateVisitor
     return result;
   }
 
+  @override
   SassString visitSupportsExpression(
     SupportsExpression expression,
   ) =>
@@ -4016,6 +4067,7 @@ final class _EvaluateVisitor
   // into the stylesheet as-is because the `@import` may be nested in other
   // rules). That's what these rules implement.
 
+  @override
   void visitCssAtRule(CssAtRule node) {
     // NOTE: this logic is largely duplicated in [visitAtRule]. Most changes
     // here should be mirrored there.
@@ -4081,6 +4133,7 @@ final class _EvaluateVisitor
     _inKeyframes = wasInKeyframes;
   }
 
+  @override
   void visitCssComment(CssComment node) {
     // NOTE: this logic is largely duplicated in [visitLoudComment]. Most
     // changes here should be mirrored there.
@@ -4094,6 +4147,7 @@ final class _EvaluateVisitor
     _parent.addChild(ModifiableCssComment(node.text, node.span));
   }
 
+  @override
   void visitCssDeclaration(CssDeclaration node) {
     _copyParentAfterSibling();
     _parent.addChild(
@@ -4107,6 +4161,7 @@ final class _EvaluateVisitor
     );
   }
 
+  @override
   void visitCssImport(CssImport node) {
     // NOTE: this logic is largely duplicated in [_visitStaticImport]. Most
     // changes here should be mirrored there.
@@ -4127,6 +4182,7 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   void visitCssKeyframeBlock(CssKeyframeBlock node) {
     // NOTE: this logic is largely duplicated in [visitStyleRule]. Most changes
     // here should be mirrored there.
@@ -4144,6 +4200,7 @@ final class _EvaluateVisitor
     );
   }
 
+  @override
   void visitCssMediaRule(CssMediaRule node) {
     // NOTE: this logic is largely duplicated in [visitMediaRule]. Most changes
     // here should be mirrored there.
@@ -4211,6 +4268,7 @@ final class _EvaluateVisitor
     );
   }
 
+  @override
   void visitCssStyleRule(CssStyleRule node) {
     // NOTE: this logic is largely duplicated in [visitStyleRule]. Most changes
     // here should be mirrored there.
@@ -4268,12 +4326,14 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   void visitCssStylesheet(CssStylesheet node) {
     for (var statement in node.children) {
       statement.accept(this);
     }
   }
 
+  @override
   void visitCssSupportsRule(CssSupportsRule node) {
     // NOTE: this logic is largely duplicated in [visitSupportsRule]. Most
     // changes here should be mirrored there.
@@ -4814,6 +4874,7 @@ final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
 
   _ImportedCssVisitor(this._visitor);
 
+  @override
   void visitCssAtRule(ModifiableCssAtRule node) {
     _visitor._addChild(
       node,
@@ -4821,11 +4882,14 @@ final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
     );
   }
 
+  @override
   void visitCssComment(ModifiableCssComment node) => _visitor._addChild(node);
 
+  @override
   void visitCssDeclaration(ModifiableCssDeclaration node) =>
       _visitor._addChild(node);
 
+  @override
   void visitCssImport(ModifiableCssImport node) {
     if (_visitor._parent != _visitor._root) {
       _visitor._addChild(node);
@@ -4837,10 +4901,12 @@ final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
     }
   }
 
+  @override
   void visitCssKeyframeBlock(ModifiableCssKeyframeBlock node) {
     assert(false, "visitCssKeyframeBlock() should never be called.");
   }
 
+  @override
   void visitCssMediaRule(ModifiableCssMediaRule node) {
     // Whether [node.query] has been merged with [_visitor._mediaQueries]. If it
     // has been merged, merging again is a no-op; if it hasn't been merged,
@@ -4856,15 +4922,18 @@ final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
     );
   }
 
+  @override
   void visitCssStyleRule(ModifiableCssStyleRule node) =>
       _visitor._addChild(node, through: (node) => node is CssStyleRule);
 
+  @override
   void visitCssStylesheet(ModifiableCssStylesheet node) {
     for (var child in node.children) {
       child.accept(this);
     }
   }
 
+  @override
   void visitCssSupportsRule(ModifiableCssSupportsRule node) =>
       _visitor._addChild(node, through: (node) => node is CssStyleRule);
 }
@@ -4881,11 +4950,13 @@ final class _EvaluationContext extends EvaluationContext {
 
   _EvaluationContext(this._visitor, this._defaultWarnNodeWithSpan);
 
+  @override
   FileSpan get currentCallableSpan {
     if (_visitor._callableNode case var callableNode?) return callableNode.span;
     throw StateError("No Sass callable is currently being evaluated.");
   }
 
+  @override
   void warn(String message, [Deprecation? deprecation]) {
     _visitor._warn(
       message,

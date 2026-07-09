@@ -33,13 +33,16 @@ final class IfRule extends Statement {
   /// This is `null` if there is no unconditional `@else`.
   final ElseClause? lastClause;
 
+  @override
   final FileSpan span;
 
   IfRule(Iterable<IfClause> clauses, this.span, {this.lastClause})
       : clauses = List.unmodifiable(clauses);
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIfRule(this);
 
+  @override
   String toString() {
     var result = clauses
         .mapIndexed(
@@ -92,6 +95,7 @@ final class IfClause extends IfRuleClause {
 
   IfClause(this.expression, Iterable<Statement> children) : super(children);
 
+  @override
   String toString() => "@if $expression {${children.join(' ')}}";
 }
 
@@ -101,5 +105,6 @@ final class IfClause extends IfRuleClause {
 final class ElseClause extends IfRuleClause {
   ElseClause(super.children);
 
+  @override
   String toString() => "@else {${children.join(' ')}}";
 }

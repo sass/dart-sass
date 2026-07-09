@@ -14,25 +14,45 @@ class JSSimpleSelectorVisitor implements InterpolatedSelectorVisitor<Object?> {
 
   JSSimpleSelectorVisitor(this._inner);
 
+  @override
   Object? visitAttributeSelector(InterpolatedAttributeSelector node) =>
       _inner.visitAttributeSelector(node);
+
+  @override
   Object? visitClassSelector(InterpolatedClassSelector node) =>
       _inner.visitClassSelector(node);
+
+  @override
   Object? visitIDSelector(InterpolatedIDSelector node) =>
       _inner.visitIDSelector(node);
+
+  @override
   Object? visitParentSelector(InterpolatedParentSelector node) =>
       _inner.visitParentSelector(node);
+
+  @override
   Object? visitPlaceholderSelector(InterpolatedPlaceholderSelector node) =>
       _inner.visitPlaceholderSelector(node);
+
+  @override
   Object? visitPseudoSelector(InterpolatedPseudoSelector node) =>
       _inner.visitPseudoSelector(node);
+
+  @override
   Object? visitTypeSelector(InterpolatedTypeSelector node) =>
       _inner.visitTypeSelector(node);
+
+  @override
   Object? visitUniversalSelector(InterpolatedUniversalSelector node) =>
       _inner.visitUniversalSelector(node);
 
+  @override
   Never visitSelectorList(_) => _simpleSelectorError();
+
+  @override
   Never visitComplexSelector(_) => _simpleSelectorError();
+
+  @override
   Never visitCompoundSelector(_) => _simpleSelectorError();
 
   /// Throws an error for non-simple selectors.

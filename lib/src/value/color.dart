@@ -671,9 +671,11 @@ class SassColor extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitColor(this);
 
+  @override
   SassColor assertColor([String? name]) => this;
 
   /// Throws a [SassScriptException] if this isn't in a legacy color space.
@@ -1128,6 +1130,7 @@ class SassColor extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   Value plus(Value other) {
     if (other is! SassNumber && other is! SassColor) return super.plus(other);
@@ -1135,6 +1138,7 @@ class SassColor extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   Value minus(Value other) {
     if (other is! SassNumber && other is! SassColor) return super.minus(other);
@@ -1142,6 +1146,7 @@ class SassColor extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   Value dividedBy(Value other) {
     if (other is! SassNumber && other is! SassColor) {
@@ -1150,6 +1155,7 @@ class SassColor extends Value {
     throw SassScriptException('Undefined operation "$this / $other".');
   }
 
+  @override
   operator ==(Object other) {
     if (other is! SassColor) return false;
 
@@ -1172,6 +1178,7 @@ class SassColor extends Value {
         fuzzyEqualsNullable(alphaOrNull, other.alphaOrNull);
   }
 
+  @override
   int get hashCode {
     if (isLegacy) {
       var rgb = toSpace(ColorSpace.rgb);
@@ -1207,6 +1214,7 @@ class _ColorFormatEnum implements ColorFormat {
 
   const _ColorFormatEnum(this._name);
 
+  @override
   String toString() => _name;
 }
 

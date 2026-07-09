@@ -21,14 +21,18 @@ final class InterpolatedFunctionExpression extends Expression
   final Interpolation name;
 
   /// The arguments to pass to the function.
+  @override
   final ArgumentList arguments;
 
+  @override
   final FileSpan span;
 
   InterpolatedFunctionExpression(this.name, this.arguments, this.span);
 
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitInterpolatedFunctionExpression(this);
 
+  @override
   String toString() => '$name$arguments';
 }
