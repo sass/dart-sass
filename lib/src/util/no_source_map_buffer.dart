@@ -22,7 +22,7 @@ class NoSourceMapBuffer implements SourceMapBuffer {
   int get length => _buffer.length;
 
   @override
-  T forSpan<T>(SourceSpan span, T callback()) => callback();
+  T forSpan<T>(SourceSpan span, T Function() callback) => callback();
 
   @override
   void write(Object? object) => _buffer.write(object);

@@ -72,7 +72,8 @@ Object? call3(
 external List<String> _keys(Object? object);
 
 /// Invokes [callback] for each key/value pair in [object].
-void jsForEach(Object object, void callback(String key, Object? value)) {
+void jsForEach(
+    Object object, void Function(String key, Object? value) callback) {
   for (var key in _keys(object)) {
     callback(key, getProperty(object, key));
   }

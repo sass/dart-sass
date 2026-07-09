@@ -8,7 +8,7 @@ import 'package:js/js.dart';
 @anonymous
 class FiberClass {
   // Work around sdk#31490.
-  external Fiber call(Object? function());
+  external Fiber call(Object? Function() function);
 
   external Fiber get current;
 

@@ -141,7 +141,7 @@ class SassParser extends StylesheetParser {
   }
 
   @override
-  List<Statement> children(Statement child()) {
+  List<Statement> children(Statement Function() child) {
     var children = <Statement>[];
     _whileIndentedLower(() {
       if (_child(child) case var parsedChild?) children.add(parsedChild);
@@ -150,7 +150,7 @@ class SassParser extends StylesheetParser {
   }
 
   @override
-  List<Statement> statements(Statement? statement()) {
+  List<Statement> statements(Statement? Function() statement) {
     if (scanner.peekChar() case $tab || $space) {
       scanner.error(
         "Indenting at the beginning of the document is illegal.",
@@ -173,7 +173,8 @@ class SassParser extends StylesheetParser {
   /// This consumes children that are allowed at all levels of the document; the
   /// [child] parameter is called to consume any children that are specifically
   /// allowed in the caller's context.
-  Statement? _child(Statement? child()) => switch (scanner.peekChar()) {
+  Statement? _child(Statement? Function() child) =>
+      switch (scanner.peekChar()) {
         // Ignore empty lines.
         $cr || $lf || $ff => null,
         $dollar => variableDeclarationWithoutNamespace(),
@@ -377,7 +378,7 @@ class SassParser extends StylesheetParser {
 
   /// As long as the scanner's position is indented beneath the starting line,
   /// runs [body] to consume the next statement.
-  void _whileIndentedLower(void body()) {
+  void _whileIndentedLower(void Function() body) {
     var parentIndentation = currentIndentation;
     int? childIndentation;
     while (_peekIndentation() > parentIndentation) {

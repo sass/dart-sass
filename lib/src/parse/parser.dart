@@ -506,7 +506,7 @@ class Parser {
   //
   // Returns whether or not the character was consumed.
   @protected
-  bool scanCharIf(bool condition(int? character)) {
+  bool scanCharIf(bool Function(int? character) condition) {
     var next = scanner.peekChar();
     if (!condition(next)) return false;
     scanner.readChar();
@@ -661,7 +661,7 @@ class Parser {
 
   /// Runs [consumer] and returns the source text that it consumes.
   @protected
-  String rawText(void consumer()) {
+  String rawText(void Function() consumer) {
     var start = scanner.position;
     consumer();
     return scanner.substring(start);
@@ -703,7 +703,7 @@ class Parser {
   /// Runs callback and, if it throws a [SourceSpanFormatException], rethrows it
   /// with [message] as its message.
   @protected
-  T withErrorMessage<T>(String message, T callback()) {
+  T withErrorMessage<T>(String message, T Function() callback) {
     try {
       return callback();
     } on SourceSpanFormatException catch (error, stackTrace) {
@@ -731,7 +731,7 @@ class Parser {
   /// Runs [callback] and wraps any [SourceSpanFormatException] it throws in a
   /// [SassFormatException].
   @protected
-  T wrapSpanFormatException<T>(T callback()) {
+  T wrapSpanFormatException<T>(T Function() callback) {
     try {
       try {
         return callback();

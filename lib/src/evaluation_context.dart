@@ -103,7 +103,7 @@ void warnForDeprecationFromApi(String message, Deprecation deprecation) {
 ///
 /// This is zone-based, so if [callback] is asynchronous [warn] is set for the
 /// duration of that callback.
-T withEvaluationContext<T>(EvaluationContext context, T callback()) =>
+T withEvaluationContext<T>(EvaluationContext context, T Function() callback) =>
     runZoned(callback, zoneValues: {#_evaluationContext: context});
 
 /// A [Logger] that forwards warnings to [EvaluationContext.warn].

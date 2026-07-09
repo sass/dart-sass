@@ -124,6 +124,6 @@ final moduleFunctions = UnmodifiableListView([
 BuiltInCallable _function(
   String name,
   String arguments,
-  Value callback(List<Value> arguments),
+  Value Function(List<Value> arguments) callback,
 ) =>
     BuiltInCallable.function(name, arguments, callback, url: "sass:meta");

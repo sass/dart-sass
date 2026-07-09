@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 7b3f31ae98a8b0440e2ff26c218414fe9a9961a8
+// Checksum: d41f715117957e54a5a6c66100f6ee12bdec3bd5
 //
 // ignore_for_file: unused_import
 
@@ -763,7 +763,7 @@ final class Environment {
   /// Sets [content] as [this.content] for the duration of [callback].
   void withContent(
     UserDefinedCallable<Environment>? content,
-    void callback(),
+    void Function() callback,
   ) {
     var oldContent = _content;
     _content = content;
@@ -772,7 +772,7 @@ final class Environment {
   }
 
   /// Sets [inMixin] to `true` for the duration of [callback].
-  void asMixin(void callback()) {
+  void asMixin(void Function() callback) {
     var oldInMixin = _inMixin;
     _inMixin = true;
     callback();
@@ -788,7 +788,7 @@ final class Environment {
   /// If [when] is false, this doesn't create a new scope and instead just
   /// executes [callback] and returns its result.
   T scope<T>(
-    T callback(), {
+    T Function() callback, {
     bool semiGlobal = false,
     bool when = true,
   }) {
@@ -916,7 +916,7 @@ final class Environment {
   /// The [type] should be the singular name of the value type being returned.
   /// It's used to format an appropriate error message.
   T? _fromOneModule<T>(
-      String name, String type, T? callback(Module<Callable> module)) {
+      String name, String type, T? Function(Module<Callable> module) callback) {
     if (_nestedForwardedModules case var nestedForwardedModules?) {
       for (var modules in nestedForwardedModules.reversed) {
         for (var module in modules.reversed) {

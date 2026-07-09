@@ -52,7 +52,7 @@ class CssParser extends ScssParser {
   }
 
   @override
-  Statement atRule(Statement child(), {bool root = false}) {
+  Statement atRule(Statement Function() child, {bool root = false}) {
     // NOTE: this logic is largely duplicated in StylesheetParser.atRule. Most changes
     // here should be mirrored there.
 

@@ -78,7 +78,7 @@ final class JSToDartLogger extends LoggerWithDeprecationType {
   }
 
   /// Sets [glyph.ascii] to [_ascii] within [callback].
-  T _withAscii<T>(T callback()) {
+  T _withAscii<T>(T Function() callback) {
     var wasAscii = glyph.ascii;
     glyph.ascii = _ascii;
     try {

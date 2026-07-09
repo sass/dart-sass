@@ -36,7 +36,7 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   BuiltInCallable.function(
     String name,
     String parameters,
-    Value callback(List<Value> arguments), {
+    Value Function(List<Value> arguments) callback, {
     Object? url,
   }) : this.parsed(
           name,
@@ -55,7 +55,7 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   BuiltInCallable.mixin(
     String name,
     String parameters,
-    void callback(List<Value> arguments), {
+    void Function(List<Value> arguments) callback, {
     Object? url,
     bool acceptsContent = false,
   }) : this.parsed(
@@ -73,7 +73,7 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   BuiltInCallable.parsed(
     this.name,
     ParameterList parameters,
-    Value callback(List<Value> arguments), {
+    Value Function(List<Value> arguments) callback, {
     this.acceptsContent = false,
   }) : _overloads = [(parameters, callback)];
 

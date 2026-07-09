@@ -28,7 +28,7 @@ class Sass {
   external Promise compileAsync(String path, [CompileOptions? options]);
   external void render(
     RenderOptions options,
-    void callback(Error error, RenderResult result),
+    void Function(Error error, RenderResult result) callback,
   );
   external RenderResult renderSync(RenderOptions options);
   external String get info;

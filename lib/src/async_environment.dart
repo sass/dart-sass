@@ -755,7 +755,7 @@ final class AsyncEnvironment {
   /// Sets [content] as [this.content] for the duration of [callback].
   Future<void> withContent(
     UserDefinedCallable<AsyncEnvironment>? content,
-    Future<void> callback(),
+    Future<void> Function() callback,
   ) async {
     var oldContent = _content;
     _content = content;
@@ -764,7 +764,7 @@ final class AsyncEnvironment {
   }
 
   /// Sets [inMixin] to `true` for the duration of [callback].
-  Future<void> asMixin(Future<void> callback()) async {
+  Future<void> asMixin(Future<void> Function() callback) async {
     var oldInMixin = _inMixin;
     _inMixin = true;
     await callback();
@@ -780,7 +780,7 @@ final class AsyncEnvironment {
   /// If [when] is false, this doesn't create a new scope and instead just
   /// executes [callback] and returns its result.
   Future<T> scope<T>(
-    Future<T> callback(), {
+    Future<T> Function() callback, {
     bool semiGlobal = false,
     bool when = true,
   }) async {
@@ -907,7 +907,8 @@ final class AsyncEnvironment {
   ///
   /// The [type] should be the singular name of the value type being returned.
   /// It's used to format an appropriate error message.
-  T? _fromOneModule<T>(String name, String type, T? callback(Module module)) {
+  T? _fromOneModule<T>(
+      String name, String type, T? Function(Module module) callback) {
     if (_nestedForwardedModules case var nestedForwardedModules?) {
       for (var modules in nestedForwardedModules.reversed) {
         for (var module in modules.reversed) {

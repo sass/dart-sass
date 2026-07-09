@@ -35,7 +35,7 @@ CanonicalizeContext get canonicalizeContext =>
 
 /// Runs [callback] in a context where [fromImport] returns `true` and
 /// [resolveImportPath] uses `@import` semantics rather than `@use` semantics.
-T inImportRule<T>(T callback()) =>
+T inImportRule<T>(T Function() callback) =>
     switch (Zone.current[#_canonicalizeContext]) {
       null => runZoned(
           callback,
@@ -48,7 +48,8 @@ T inImportRule<T>(T callback()) =>
     };
 
 /// Runs [callback] in the given context.
-T withCanonicalizeContext<T>(CanonicalizeContext? context, T callback()) =>
+T withCanonicalizeContext<T>(
+        CanonicalizeContext? context, T Function() callback) =>
     runZoned(callback, zoneValues: {#_canonicalizeContext: context});
 
 /// Resolves an imported path using the same logic as the filesystem importer.
@@ -115,7 +116,7 @@ String? _exactlyOne(List<String> paths) => switch (paths) {
 /// If [fromImport] is `true`, invokes callback and returns the result.
 ///
 /// Otherwise, returns `null`.
-T? _ifInImport<T>(T callback()) => fromImport ? callback() : null;
+T? _ifInImport<T>(T Function() callback) => fromImport ? callback() : null;
 
 /// A regular expression matching valid URL schemes.
 final _urlSchemeRegExp = RegExp(r"^[a-z0-9+.-]+$");

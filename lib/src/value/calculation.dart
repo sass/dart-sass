@@ -927,7 +927,7 @@ final class SassCalculation extends Value {
   static Value _singleArgument(
     String name,
     Object argument,
-    SassNumber mathFunc(SassNumber value), {
+    SassNumber Function(SassNumber value) mathFunc, {
     bool forbidUnits = false,
   }) {
     argument = _simplify(argument);

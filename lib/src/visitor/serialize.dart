@@ -1702,7 +1702,8 @@ final class _SerializeVisitor
 
   /// Runs [callback] and associates all text written within it with
   /// [node.span].
-  T _for<T>(AstNode node, T callback()) => _buffer.forSpan(node.span, callback);
+  T _for<T>(AstNode node, T Function() callback) =>
+      _buffer.forSpan(node.span, callback);
 
   /// Writes [value]'s value with the associated source span.
   void _write(CssValue<String> value) =>
@@ -1818,7 +1819,7 @@ final class _SerializeVisitor
   void _writeBetween<T>(
     Iterable<T> iterable,
     String text,
-    void callback(T value),
+    void Function(T value) callback,
   ) {
     var first = true;
     for (var value in iterable) {
@@ -1835,14 +1836,14 @@ final class _SerializeVisitor
   String get _commaSeparator => _isCompressed ? "," : ", ";
 
   /// Runs [callback] with indentation increased one level.
-  void _indent(void callback()) {
+  void _indent(void Function() callback) {
     _indentation++;
     callback();
     _indentation--;
   }
 
   /// Runs [callback] without any indentation.
-  void _withoutIndentation(void callback()) {
+  void _withoutIndentation(void Function() callback) {
     var savedIndentation = _indentation;
     _indentation = 0;
     callback();

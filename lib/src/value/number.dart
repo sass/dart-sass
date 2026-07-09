@@ -830,7 +830,8 @@ abstract class SassNumber extends Value {
   ///
   /// @nodoc
   @protected
-  T _coerceUnits<T>(SassNumber other, T operation(double num1, double num2)) {
+  T _coerceUnits<T>(
+      SassNumber other, T Function(double num1, double num2) operation) {
     try {
       return operation(value, other.coerceValueToMatch(this));
     } on SassScriptException {

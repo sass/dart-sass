@@ -260,7 +260,7 @@ String? getEnvironmentVariable(String name) {
 
 /// Runs callback and converts any [JsSystemError]s it throws into
 /// [FileSystemException]s.
-T _systemErrorToFileSystemException<T>(T callback()) {
+T _systemErrorToFileSystemException<T>(T Function() callback) {
   try {
     return callback();
   } catch (error) {

@@ -69,7 +69,7 @@ class ScssParser extends StylesheetParser {
   }
 
   @override
-  List<Statement> children(Statement child()) {
+  List<Statement> children(Statement Function() child) {
     scanner.expectChar($lbrace);
     _whitespaceWithoutComments();
     var children = <Statement>[];
@@ -105,7 +105,7 @@ class ScssParser extends StylesheetParser {
   }
 
   @override
-  List<Statement> statements(Statement? statement()) {
+  List<Statement> statements(Statement? Function() statement) {
     var statements = <Statement>[];
     _whitespaceWithoutComments();
     while (!scanner.isDone) {

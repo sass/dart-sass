@@ -97,7 +97,7 @@ String cloneOrCheckout(String url, String ref, {String? name}) {
 /// Registers [callback] to run after the task named [taskName].
 ///
 /// This must be called after the base [taskName] is registered.
-void afterTask(String taskName, FutureOr<void> callback()) {
+void afterTask(String taskName, FutureOr<void> Function() callback) {
   // This takes advantage of the fact that Grinder's task list is mutable to
   // override the existing task with our new one.
   var index = grinder.tasks.indexWhere((task) => task.name == taskName);

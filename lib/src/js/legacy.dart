@@ -43,7 +43,7 @@ import 'utils.dart';
 /// [render]: https://github.com/sass/node-sass#options
 void render(
   RenderOptions options,
-  void callback(Object? error, RenderResult? result),
+  void Function(Object? error, RenderResult? result) callback,
 ) {
   if (!isNodeJs) {
     jsThrow(JsError("The render() method is only available in Node.js."));

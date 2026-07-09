@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f4a368efca96a762899b45fe75b33f0dbe607631
+// Checksum: b2fe989fca27e1b70c3f23c2223056de09b945c8
 //
 // ignore_for_file: unused_import
 
@@ -765,7 +765,7 @@ final class _EvaluateVisitor
   T _withFakeStylesheet<T>(
     Importer? importer,
     AstNode nodeWithSpan,
-    T callback(),
+    T Function() callback,
   ) {
     var oldImporter = _importer;
     _importer = importer;
@@ -803,7 +803,7 @@ final class _EvaluateVisitor
     Uri url,
     String stackFrame,
     AstNode nodeWithSpan,
-    void callback(Module<Callable> module, bool firstLoad), {
+    void Function(Module<Callable> module, bool firstLoad) callback, {
     Uri? baseUrl,
     Configuration? configuration,
     bool namesInErrors = false,
@@ -1296,7 +1296,7 @@ final class _EvaluateVisitor
     AtRootQuery query,
     List<ModifiableCssParentNode> included,
   ) {
-    var scope = (void callback()) {
+    var scope = (void Function() callback) {
       // We can't use [_withParent] here because it'll add the node to the tree
       // in the wrong place.
       var oldParent = _parent;
@@ -2639,7 +2639,7 @@ final class _EvaluateVisitor
       };
 
   /// Runs [callback] in a context where [_inSupportsDeclaration] is true.
-  T _withSupportsDeclaration<T>(T callback()) {
+  T _withSupportsDeclaration<T>(T Function() callback) {
     var oldInSupportsDeclaration = _inSupportsDeclaration;
     _inSupportsDeclaration = true;
     try {
@@ -3547,7 +3547,7 @@ final class _EvaluateVisitor
     ArgumentList arguments,
     UserDefinedCallable<Environment> callable,
     AstNode nodeWithSpan,
-    V run(),
+    V Function() run,
   ) {
     // TODO(nweiz): Set [trackSpans] to `null` once we're no longer emitting
     // deprecation warnings for /-as-division.
@@ -3990,7 +3990,7 @@ final class _EvaluateVisitor
     Map<String, T> values,
     SassMap map,
     AstNode nodeWithSpan,
-    T convert(Value value),
+    T Function(Value value) convert,
   ) {
     var expressionNode = _expressionNode(nodeWithSpan);
     map.contents.forEach((key, value) {
@@ -4388,7 +4388,7 @@ final class _EvaluateVisitor
   /// returned `null`.
   Value? _handleReturn<T>(
     List<T> list,
-    Value? callback(T value),
+    Value? Function(T value) callback,
   ) {
     for (var value in list) {
       if (callback(value) case var result?) return result;
@@ -4399,7 +4399,7 @@ final class _EvaluateVisitor
   /// Runs [callback] with [environment] as the current environment.
   T _withEnvironment<T>(
     Environment environment,
-    T callback(),
+    T Function() callback,
   ) {
     var oldEnvironment = _environment;
     _environment = environment;
@@ -4572,8 +4572,8 @@ final class _EvaluateVisitor
   /// Runs [callback] in a new environment scope unless [scopeWhen] is false.
   T _withParent<S extends ModifiableCssParentNode, T>(
     S node,
-    T callback(), {
-    bool through(CssNode node)?,
+    T Function() callback, {
+    bool Function(CssNode node)? through,
     bool scopeWhen = true,
   }) {
     _addChild(node, through: through);
@@ -4604,7 +4604,8 @@ final class _EvaluateVisitor
   /// If [through] is passed, [node] is added as a child of the first parent for
   /// which [through] returns `false` instead. That parent is copied unless it's the
   /// lattermost child of its parent.
-  void _addChild(ModifiableCssNode node, {bool through(CssNode node)?}) {
+  void _addChild(ModifiableCssNode node,
+      {bool Function(CssNode node)? through}) {
     // Go up through parents that match [through].
     var parent = _parent;
     if (through != null) {
@@ -4641,7 +4642,7 @@ final class _EvaluateVisitor
   /// Runs [callback] with [rule] as the current style rule.
   T _withStyleRule<T>(
     ModifiableCssStyleRule rule,
-    T callback(),
+    T Function() callback,
   ) {
     var oldRule = _styleRuleIgnoringAtRoot;
     _styleRuleIgnoringAtRoot = rule;
@@ -4658,7 +4659,7 @@ final class _EvaluateVisitor
   T _withMediaQueries<T>(
     List<CssMediaQuery>? queries,
     Set<CssMediaQuery>? sources,
-    T callback(),
+    T Function() callback,
   ) {
     var oldMediaQueries = _mediaQueries;
     var oldSources = _mediaQuerySources;
@@ -4681,7 +4682,7 @@ final class _EvaluateVisitor
   T _withStackFrame<T>(
     String member,
     AstNode nodeWithSpan,
-    T callback(),
+    T Function() callback,
   ) {
     _stack.add((_member, nodeWithSpan));
     var oldMember = _member;
@@ -4795,7 +4796,7 @@ final class _EvaluateVisitor
   /// frame for [nodeWithSpan]. Otherwise, it will use the existing stack as-is.
   T _addExceptionSpan<T>(
     AstNode nodeWithSpan,
-    T callback(), {
+    T Function() callback, {
     bool addStackFrame = true,
   }) {
     try {
@@ -4814,7 +4815,7 @@ final class _EvaluateVisitor
   /// Runs [callback], and converts any [SassException]s that aren't already
   /// [SassRuntimeException]s to [SassRuntimeException]s with the current stack
   /// trace.
-  T _addExceptionTrace<T>(T callback()) {
+  T _addExceptionTrace<T>(T Function() callback) {
     try {
       return callback();
     } on SassRuntimeException {
@@ -4831,7 +4832,7 @@ final class _EvaluateVisitor
   /// Runs [callback], and converts any [SassRuntimeException]s containing an
   /// @error to throw a more relevant [SassRuntimeException] with [nodeWithSpan]'s
   /// source span.
-  T _addErrorSpan<T>(AstNode nodeWithSpan, T callback()) {
+  T _addErrorSpan<T>(AstNode nodeWithSpan, T Function() callback) {
     try {
       return callback();
     } on SassRuntimeException catch (error, stackTrace) {

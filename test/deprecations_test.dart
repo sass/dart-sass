@@ -197,7 +197,8 @@ void _expectDeprecation(String source, Deprecation deprecation) =>
 
 /// Confirms that [callback] will produce a fatal deprecation error for
 /// [deprecation].
-void _expectDeprecationCallback(void callback(), Deprecation deprecation) {
+void _expectDeprecationCallback(
+    void Function() callback, Deprecation deprecation) {
   try {
     callback();
   } catch (e) {

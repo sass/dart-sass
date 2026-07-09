@@ -757,7 +757,7 @@ final class _EvaluateVisitor
   Future<T> _withFakeStylesheet<T>(
     AsyncImporter? importer,
     AstNode nodeWithSpan,
-    FutureOr<T> callback(),
+    FutureOr<T> Function() callback,
   ) async {
     var oldImporter = _importer;
     _importer = importer;
@@ -795,7 +795,7 @@ final class _EvaluateVisitor
     Uri url,
     String stackFrame,
     AstNode nodeWithSpan,
-    FutureOr<void> callback(Module module, bool firstLoad), {
+    FutureOr<void> Function(Module module, bool firstLoad) callback, {
     Uri? baseUrl,
     Configuration? configuration,
     bool namesInErrors = false,
@@ -1288,7 +1288,7 @@ final class _EvaluateVisitor
     AtRootQuery query,
     List<ModifiableCssParentNode> included,
   ) {
-    var scope = (Future<void> callback()) async {
+    var scope = (Future<void> Function() callback) async {
       // We can't use [_withParent] here because it'll add the node to the tree
       // in the wrong place.
       var oldParent = _parent;
@@ -2634,7 +2634,7 @@ final class _EvaluateVisitor
       };
 
   /// Runs [callback] in a context where [_inSupportsDeclaration] is true.
-  Future<T> _withSupportsDeclaration<T>(FutureOr<T> callback()) async {
+  Future<T> _withSupportsDeclaration<T>(FutureOr<T> Function() callback) async {
     var oldInSupportsDeclaration = _inSupportsDeclaration;
     _inSupportsDeclaration = true;
     try {
@@ -3548,7 +3548,7 @@ final class _EvaluateVisitor
     ArgumentList arguments,
     UserDefinedCallable<AsyncEnvironment> callable,
     AstNode nodeWithSpan,
-    Future<V> run(),
+    Future<V> Function() run,
   ) async {
     // TODO(nweiz): Set [trackSpans] to `null` once we're no longer emitting
     // deprecation warnings for /-as-division.
@@ -3991,7 +3991,7 @@ final class _EvaluateVisitor
     Map<String, T> values,
     SassMap map,
     AstNode nodeWithSpan,
-    T convert(Value value),
+    T Function(Value value) convert,
   ) {
     var expressionNode = _expressionNode(nodeWithSpan);
     map.contents.forEach((key, value) {
@@ -4390,7 +4390,7 @@ final class _EvaluateVisitor
   /// returned `null`.
   Future<Value?> _handleReturn<T>(
     List<T> list,
-    Future<Value?> callback(T value),
+    Future<Value?> Function(T value) callback,
   ) async {
     for (var value in list) {
       if (await callback(value) case var result?) return result;
@@ -4401,7 +4401,7 @@ final class _EvaluateVisitor
   /// Runs [callback] with [environment] as the current environment.
   Future<T> _withEnvironment<T>(
     AsyncEnvironment environment,
-    Future<T> callback(),
+    Future<T> Function() callback,
   ) async {
     var oldEnvironment = _environment;
     _environment = environment;
@@ -4574,8 +4574,8 @@ final class _EvaluateVisitor
   /// Runs [callback] in a new environment scope unless [scopeWhen] is false.
   Future<T> _withParent<S extends ModifiableCssParentNode, T>(
     S node,
-    Future<T> callback(), {
-    bool through(CssNode node)?,
+    Future<T> Function() callback, {
+    bool Function(CssNode node)? through,
     bool scopeWhen = true,
   }) async {
     _addChild(node, through: through);
@@ -4606,7 +4606,8 @@ final class _EvaluateVisitor
   /// If [through] is passed, [node] is added as a child of the first parent for
   /// which [through] returns `false` instead. That parent is copied unless it's the
   /// lattermost child of its parent.
-  void _addChild(ModifiableCssNode node, {bool through(CssNode node)?}) {
+  void _addChild(ModifiableCssNode node,
+      {bool Function(CssNode node)? through}) {
     // Go up through parents that match [through].
     var parent = _parent;
     if (through != null) {
@@ -4643,7 +4644,7 @@ final class _EvaluateVisitor
   /// Runs [callback] with [rule] as the current style rule.
   Future<T> _withStyleRule<T>(
     ModifiableCssStyleRule rule,
-    Future<T> callback(),
+    Future<T> Function() callback,
   ) async {
     var oldRule = _styleRuleIgnoringAtRoot;
     _styleRuleIgnoringAtRoot = rule;
@@ -4660,7 +4661,7 @@ final class _EvaluateVisitor
   Future<T> _withMediaQueries<T>(
     List<CssMediaQuery>? queries,
     Set<CssMediaQuery>? sources,
-    Future<T> callback(),
+    Future<T> Function() callback,
   ) async {
     var oldMediaQueries = _mediaQueries;
     var oldSources = _mediaQuerySources;
@@ -4683,7 +4684,7 @@ final class _EvaluateVisitor
   Future<T> _withStackFrame<T>(
     String member,
     AstNode nodeWithSpan,
-    Future<T> callback(),
+    Future<T> Function() callback,
   ) async {
     _stack.add((_member, nodeWithSpan));
     var oldMember = _member;
@@ -4797,7 +4798,7 @@ final class _EvaluateVisitor
   /// frame for [nodeWithSpan]. Otherwise, it will use the existing stack as-is.
   T _addExceptionSpan<T>(
     AstNode nodeWithSpan,
-    T callback(), {
+    T Function() callback, {
     bool addStackFrame = true,
   }) {
     try {
@@ -4816,7 +4817,7 @@ final class _EvaluateVisitor
   /// Like [_addExceptionSpan], but for an asynchronous [callback].
   Future<T> _addExceptionSpanAsync<T>(
     AstNode nodeWithSpan,
-    FutureOr<T> callback(), {
+    FutureOr<T> Function() callback, {
     bool addStackFrame = true,
   }) async {
     try {
@@ -4835,7 +4836,7 @@ final class _EvaluateVisitor
   /// Runs [callback], and converts any [SassException]s that aren't already
   /// [SassRuntimeException]s to [SassRuntimeException]s with the current stack
   /// trace.
-  Future<T> _addExceptionTrace<T>(FutureOr<T> callback()) async {
+  Future<T> _addExceptionTrace<T>(FutureOr<T> Function() callback) async {
     try {
       return await callback();
     } on SassRuntimeException {
@@ -4852,7 +4853,8 @@ final class _EvaluateVisitor
   /// Runs [callback], and converts any [SassRuntimeException]s containing an
   /// @error to throw a more relevant [SassRuntimeException] with [nodeWithSpan]'s
   /// source span.
-  Future<T> _addErrorSpan<T>(AstNode nodeWithSpan, Future<T> callback()) async {
+  Future<T> _addErrorSpan<T>(
+      AstNode nodeWithSpan, Future<T> Function() callback) async {
     try {
       return await callback();
     } on SassRuntimeException catch (error, stackTrace) {

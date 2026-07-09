@@ -24,7 +24,7 @@ final class EmptyExtensionStore implements ExtensionStore {
 
   @override
   Iterable<Extension> extensionsWhereTarget(
-    bool callback(SimpleSelector target),
+    bool Function(SimpleSelector target) callback,
   ) =>
       const [];
 
