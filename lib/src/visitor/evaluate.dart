@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: b2fe989fca27e1b70c3f23c2223056de09b945c8
+// Checksum: d731d659458005ab865ef9f40f93781786638a37
 //
 // ignore_for_file: unused_import
 
@@ -1501,12 +1501,11 @@ final class _EvaluateVisitor
     for (var complex in styleRule.originalSelector.components) {
       if (!complex.isBogus) continue;
       _warn(
-        'The selector "${complex.toString().trim()}" is invalid CSS and ' +
-            (complex.isUseless ? "can't" : "shouldn't") +
-            ' be an extender.\n'
-                'This will be an error in Dart Sass 2.0.0.\n'
-                '\n'
-                'More info: https://sass-lang.com/d/bogus-combinators',
+        'The selector "${complex.toString().trim()}" is invalid CSS and '
+        '${complex.isUseless ? "can't" : "shouldn't"} be an extender.\n'
+        'This will be an error in Dart Sass 2.0.0.\n'
+        '\n'
+        'More info: https://sass-lang.com/d/bogus-combinators',
         MultiSpan(complex.span.trimRight(), 'invalid selector', {
           node.span: '@extend rule',
         }),
@@ -2534,22 +2533,21 @@ final class _EvaluateVisitor
             );
           }
         } else {
+          var willBeOmitted = complex.isBogusOtherThanLeadingCombinator
+              ? ' It will be omitted from the generated CSS.'
+              : '';
+          var suggestion = rule.children.every((child) => child is CssComment)
+              ? '\n(try converting to a //-style comment)'
+              : '';
           _warn(
             'The selector "${complex.toString().trim()}" is only valid for '
-                    "nesting and shouldn't\n"
-                    'have children other than style rules.' +
-                (complex.isBogusOtherThanLeadingCombinator
-                    ? ' It will be omitted from the generated CSS.'
-                    : '') +
-                '\n'
-                    'This will be an error in Dart Sass 2.0.0.\n'
-                    '\n'
-                    'More info: https://sass-lang.com/d/bogus-combinators',
+            "nesting and shouldn't\n"
+            'have children other than style rules.$willBeOmitted\n'
+            'This will be an error in Dart Sass 2.0.0.\n'
+            '\n'
+            'More info: https://sass-lang.com/d/bogus-combinators',
             MultiSpan(complex.span.trimRight(), 'invalid selector', {
-              rule.children.first.span: "this is not a style rule" +
-                  (rule.children.every((child) => child is CssComment)
-                      ? '\n(try converting to a //-style comment)'
-                      : ''),
+              rule.children.first.span: "this is not a style rule$suggestion",
             }),
             Deprecation.bogusCombinators,
           );
@@ -2951,9 +2949,7 @@ final class _EvaluateVisitor
 
     if (results == null) return sassNull;
     return SassString(
-        'if(' +
-            results.map((pair) => '${pair.$1}: ${pair.$2}').join('; ') +
-            ')',
+        'if(${results.map((pair) => '${pair.$1}: ${pair.$2}').join('; ')})',
         quotes: false);
   }
 
@@ -3006,10 +3002,8 @@ final class _EvaluateVisitor
   @override
   Object /* String | bool */ visitIfConditionFunction(
           IfConditionFunction node) =>
-      _performInterpolation(node.name) +
-      '(' +
-      _performInterpolation(node.arguments) +
-      ')';
+      '${_performInterpolation(node.name)}'
+      '(${_performInterpolation(node.arguments)})';
 
   @override
   Object /* String | bool */ visitIfConditionSass(IfConditionSass node) =>
@@ -3264,13 +3258,11 @@ final class _EvaluateVisitor
           node.arguments.positional.length > maxArgs) {
         throw _exception(
           "Only $maxArgs ${pluralize('argument', maxArgs)} allowed, but "
-                  "${node.arguments.positional.length} " +
-              pluralize(
-                'was',
-                node.arguments.positional.length,
-                plural: 'were',
-              ) +
-              " passed.",
+          "${node.arguments.positional.length} ${pluralize(
+            'was',
+            node.arguments.positional.length,
+            plural: 'were',
+          )} passed.",
           node.span,
         );
       }

@@ -1,3 +1,9 @@
+## 1.101.2
+
+* Fix a bug where the deprecation warning for vendor-prefixed `expression()`
+  functions would incorrectly indicate whether or not the function would be
+  invalid Sass in Dart Sass 2.0.0.
+
 ## 1.101.1
 
 * Sass stack trace entries are now always either absolute URLs, absolute paths,

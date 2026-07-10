@@ -334,13 +334,14 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   SourceSpanException _alreadyEmittedException(SourceSpan span) {
     var lines = _buffer.toString().split("\n");
+    var formattedLines = lines
+        .slice(math.max(lines.length - 3, 0))
+        .map((line) => "  $line")
+        .join("\n");
     return SourceSpanException(
-      "Node was already emitted. Last 3 lines:\n\n" +
-          lines
-              .slice(math.max(lines.length - 3, 0))
-              .map((line) => "  $line")
-              .join("\n") +
-          "\n",
+      "Node was already emitted. Last 3 lines:\n"
+      "\n"
+      "$formattedLines\n",
       span,
     );
   }

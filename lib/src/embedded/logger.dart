@@ -36,10 +36,9 @@ final class EmbeddedLogger extends LoggerWithDeprecationType {
         ..type = LogEventType.DEBUG
         ..message = message
         ..span = protofySpan(span)
-        ..formatted = (span.start.sourceUrl.andThen(p.prettyUri) ?? '-') +
-            ':${span.start.line + 1} ' +
-            (_color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG') +
-            ': $message\n',
+        ..formatted = '${span.start.sourceUrl.andThen(p.prettyUri) ?? '-'}:'
+            '${span.start.line + 1} '
+            '${_color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG'}: $message\n',
     );
   }
 
@@ -69,7 +68,7 @@ final class EmbeddedLogger extends LoggerWithDeprecationType {
       } else if (trace != null) {
         buffer.writeln(': $message\n\n${span.highlight(color: _color)}');
       } else {
-        buffer.writeln(' on ${span.message("\n" + message, color: _color)}');
+        buffer.writeln(' on ${span.message("\n$message", color: _color)}');
       }
       if (trace != null) {
         buffer.writeln(indent(trace.toString().trimRight(), 4));

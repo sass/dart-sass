@@ -101,9 +101,8 @@ final class Configuration {
   Configuration._(this._values, this.__originalConfiguration);
 
   @override
-  String toString() =>
-      "(" +
-      [for (var (name, value) in values.pairs) "\$$name: $value"].join(",") +
+  String toString() => "("
+      "${[for (var (name, value) in values.pairs) "\$$name: $value"].join(",")}"
       ")";
 }
 

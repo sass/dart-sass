@@ -1009,10 +1009,10 @@ abstract class SassNumber extends Value {
   /// allowed for a given function.
   @internal
   String unitSuggestion(String name, [String? unit]) {
-    var result = "\$$name" +
-        denominatorUnits.map((unit) => " * 1$unit").join() +
-        numeratorUnits.map((unit) => " / 1$unit").join() +
-        (unit == null ? "" : " * 1$unit");
+    var result = "\$$name"
+        "${denominatorUnits.map((unit) => " * 1$unit").join()}"
+        "${numeratorUnits.map((unit) => " / 1$unit").join()}"
+        "${unit == null ? "" : " * 1$unit"}";
     return numeratorUnits.isEmpty ? result : "calc($result)";
   }
 }

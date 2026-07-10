@@ -29,10 +29,9 @@ String get githubAuthorization {
   var bearerToken = pkg.githubBearerToken.value;
   return bearerToken != null
       ? "Bearer $bearerToken"
-      : "Basic " +
-          base64.encode(
-            utf8.encode(pkg.githubUser.value + ':' + pkg.githubPassword.value),
-          );
+      : "Basic ${base64.encode(
+          utf8.encode('${pkg.githubUser.value}:${pkg.githubPassword.value}'),
+        )}";
 }
 
 /// Ensure that the `build/` directory exists.

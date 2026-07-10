@@ -99,11 +99,10 @@ abstract base class Selector implements AstNode {
   void assertNotBogus({String? name}) {
     if (!isBogus) return;
     warnForDeprecation(
-      (name == null ? '' : '\$$name: ') +
-          '$this is not valid CSS.\n'
-              'This will be an error in Dart Sass 2.0.0.\n'
-              '\n'
-              'More info: https://sass-lang.com/d/bogus-combinators',
+      '${name == null ? '' : '\$$name: '}$this is not valid CSS.\n'
+      'This will be an error in Dart Sass 2.0.0.\n'
+      '\n'
+      'More info: https://sass-lang.com/d/bogus-combinators',
       Deprecation.bogusCombinators,
     );
   }

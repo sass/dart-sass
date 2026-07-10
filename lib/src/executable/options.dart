@@ -182,15 +182,10 @@ final class ExecutableOptions {
   }();
 
   /// Creates a styled separator with the given [text].
-  static String _separator(String text) =>
-      _separatorBar * 3 +
-      " " +
-      (hasTerminal ? '\u001b[1m' : '') +
-      text +
-      (hasTerminal ? '\u001b[0m' : '') +
-      ' ' +
+  static String _separator(String text) => "${_separatorBar * 3} "
+      "${hasTerminal ? '\u001b[1m' : ''}$text${hasTerminal ? '\u001b[0m' : ''}"
       // Three separators + two spaces = 5
-      _separatorBar * (_separatorLength - 5 - text.length);
+      " ${_separatorBar * (_separatorLength - 5 - text.length)}";
 
   /// A human-readable description of how to invoke the Sass executable.
   static String get usage => _parser.usage;

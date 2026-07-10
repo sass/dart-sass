@@ -187,8 +187,8 @@ final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
         .sum;
     if (total > 0) {
       _inner.warn(
-        "$total repetitive deprecation warnings omitted." +
-            (js ? "" : "\nRun in verbose mode to see all warnings."),
+        "$total repetitive deprecation warnings omitted."
+        "${js ? "" : "\nRun in verbose mode to see all warnings."}",
       );
     }
   }

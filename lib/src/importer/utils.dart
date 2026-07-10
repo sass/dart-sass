@@ -76,8 +76,8 @@ String? resolveImportPath(String path) {
 
 /// Like [_tryPath], but checks `.sass`, `.scss`, and `.css` extensions.
 List<String> _tryPathWithExtensions(String path) {
-  var result = _tryPath(path + '.sass')..addAll(_tryPath(path + '.scss'));
-  return result.isNotEmpty ? result : _tryPath(path + '.css');
+  var result = _tryPath('$path.sass')..addAll(_tryPath('$path.scss'));
+  return result.isNotEmpty ? result : _tryPath('$path.css');
 }
 
 /// Returns the [path] and/or the partial with the same name, if either or both
@@ -109,9 +109,13 @@ String? _tryPathAsDirectory(String path) {
 String? _exactlyOne(List<String> paths) => switch (paths) {
       [] => null,
       [var path] => path,
-      _ => throw "It's not clear which file to import. Found:\n" +
-          paths.map((path) => "  " + p.prettyUri(p.toUri(path))).join("\n"),
+      _ => throw "It's not clear which file to import. Found:\n"
+          "${_pathList(paths)}",
     };
+
+/// Formats [paths] into a human-readable list.
+String _pathList(List<String> paths) =>
+    paths.map((path) => "  ${p.prettyUri(p.toUri(path))}").join("\n");
 
 /// If [fromImport] is `true`, invokes callback and returns the result.
 ///

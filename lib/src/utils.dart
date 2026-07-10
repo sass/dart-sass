@@ -28,7 +28,7 @@ final _traces = Expando<StackTrace>();
 String toSentence(Iterable<Object> iter, [String? conjunction]) {
   conjunction ??= "and";
   if (iter.length == 1) return iter.first.toString();
-  return iter.exceptLast.join(", ") + " $conjunction ${iter.last}";
+  return "${iter.exceptLast.join(", ")} $conjunction ${iter.last}";
 }
 
 /// Returns [string] with every line indented [indentation] spaces.
@@ -53,11 +53,10 @@ String a(String word) =>
 /// Returns a bulleted list of items in [bullets].
 String bulletedList(Iterable<String> bullets) => bullets.map((element) {
       var lines = element.split("\n");
-      return "${glyph.bullet} ${lines.first}" +
-          switch (lines) {
-            [_, ...var rest] => "\n" + indent(rest.join("\n"), 2),
-            _ => "",
-          };
+      return "${glyph.bullet} ${lines.first}${switch (lines) {
+        [_, ...var rest] => "\n${indent(rest.join("\n"), 2)}",
+        _ => "",
+      }}";
     }).join("\n");
 
 /// Returns the number of times [codeUnit] appears in [string].

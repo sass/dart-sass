@@ -37,6 +37,6 @@ final class EachRule extends ParentStatement<List<Statement>> {
 
   @override
   String toString() =>
-      "@each ${variables.map((variable) => '\$' + variable).join(', ')} in "
+      "@each ${variables.map((variable) => '\$$variable').join(', ')} in "
       "$list {${children.join(" ")}}";
 }

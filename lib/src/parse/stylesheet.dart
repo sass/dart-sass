@@ -2961,14 +2961,14 @@ abstract class StylesheetParser extends Parser {
           warnings.add((
             deprecation: Deprecation.ifFunction,
             message:
-                'The Sass if() syntax is deprecated in favor of the modern CSS syntax.\n'
-                        '\n' +
-                    switch (expression.modernSuggestion) {
-                      var suggestion? => 'Suggestion: $suggestion\n'
-                          '\n',
-                      _ => ''
-                    } +
-                    'More info: https://sass-lang.com/d/if-function',
+                'The Sass if() syntax is deprecated in favor of the modern CSS '
+                'syntax.\n'
+                '\n'
+                '${switch (expression.modernSuggestion) {
+              var suggestion? => 'Suggestion: $suggestion\n'
+                  '\n',
+              _ => ''
+            }}More info: https://sass-lang.com/d/if-function',
             span: expression.span,
           ));
           return expression;
@@ -3342,8 +3342,12 @@ abstract class StylesheetParser extends Parser {
           var invalidSassScript = false;
           var nonCssSassScript = false;
           try {
-            var argument = _expression();
-            nonCssSassScript = !argument.isPlainCss(allowInterpolation: true);
+            whitespace(consumeNewlines: true);
+            if (!scanner.scanChar($rparen)) {
+              var argument = _expression();
+              scanner.expectChar($rparen);
+              nonCssSassScript = !argument.isPlainCss(allowInterpolation: true);
+            }
           } on StringScannerException {
             invalidSassScript = true;
           }
@@ -3357,19 +3361,20 @@ abstract class StylesheetParser extends Parser {
           if (invalidSassScript || nonCssSassScript) {
             var suggestion =
                 StringExpression(value, quotes: true).asInterpolation();
+            var whatWillHappen = invalidSassScript
+                ? "no longer be valid syntax"
+                : "be parsed as SassScript";
             warnings.add((
               deprecation: Deprecation.functionName,
-              message: "Vendor-prefixed $normalized() functions will no longer "
-                      "have special parsing in a future release of Dart Sass. "
-                      "Once that happens, this argument will " +
-                  (invalidSassScript
-                      ? "be parsed as SassScript. "
-                      : "no longer be valid syntax. ") +
-                  "To preserve current behavior:\n"
-                      "\n"
-                      "$name(#{$suggestion})\n"
-                      "\n"
-                      "More info: https://sass-lang.com/d/function-name",
+              message:
+                  "Vendor-prefixed $normalized() functions will no longer have "
+                  "special parsing in a future release of Dart Sass. Once that "
+                  "happens, this argument will $whatWillHappen. To preserve "
+                  "current behavior:\n"
+                  "\n"
+                  "$name(#{$suggestion})\n"
+                  "\n"
+                  "More info: https://sass-lang.com/d/function-name",
               span: spanFrom(start)
             ));
           }
