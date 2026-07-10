@@ -165,7 +165,7 @@ abstract class StylesheetParser extends Parser {
       );
 
   /// Parses and returns [production] as the entire contents of [scanner].
-  T _parseSingleProduction<T>(T production()) {
+  T _parseSingleProduction<T>(T Function() production) {
     return wrapSpanFormatException(() {
       var result = production();
       scanner.expectDone();
@@ -559,7 +559,7 @@ abstract class StylesheetParser extends Parser {
   T _withStyleRuleChildren<T>(
     AstNode nodeWithSpan,
     LineScannerState start,
-    T create(List<Statement> children, FileSpan span),
+    T Function(List<Statement> children, FileSpan span) create,
   ) {
     var wasInStyleRule = _inStyleRule;
     _inStyleRule = true;
@@ -666,7 +666,7 @@ abstract class StylesheetParser extends Parser {
   /// If [root] is `true`, this parses at-rules that are allowed only at the
   /// root of the stylesheet.
   @protected
-  Statement atRule(Statement child(), {bool root = false}) {
+  Statement atRule(Statement Function() child, {bool root = false}) {
     // NOTE: this logic is largely duplicated in CssParser.atRule. Most changes
     // here should be mirrored there.
 
@@ -888,7 +888,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`. [child] is called to consume any
   /// children that are specifically allowed in the caller's context.
-  EachRule _eachRule(LineScannerState start, Statement child()) {
+  EachRule _eachRule(LineScannerState start, Statement Function() child) {
     whitespace(consumeNewlines: true);
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
@@ -1014,7 +1014,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`. [child] is called to consume any
   /// children that are specifically allowed in the caller's context.
-  ForRule _forRule(LineScannerState start, Statement child()) {
+  ForRule _forRule(LineScannerState start, Statement Function() child) {
     whitespace(consumeNewlines: true);
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
@@ -1150,7 +1150,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`. [child] is called to consume any
   /// children that are specifically allowed in the caller's context.
-  IfRule _ifRule(LineScannerState start, Statement child()) {
+  IfRule _ifRule(LineScannerState start, Statement Function() child) {
     whitespace(consumeNewlines: true);
     var ifIndentation = currentIndentation;
     var wasInControlDirective = _inControlDirective;
@@ -1741,7 +1741,7 @@ abstract class StylesheetParser extends Parser {
   ///
   /// [start] should point before the `@`. [child] is called to consume any
   /// children that are specifically allowed in the caller's context.
-  WhileRule _whileRule(LineScannerState start, Statement child()) {
+  WhileRule _whileRule(LineScannerState start, Statement Function() child) {
     whitespace(consumeNewlines: true);
     var wasInControlDirective = _inControlDirective;
     _inControlDirective = true;
@@ -1972,7 +1972,7 @@ abstract class StylesheetParser extends Parser {
     bool bracketList = false,
     bool singleEquals = false,
     bool consumeNewlines = false,
-    bool until()?,
+    bool Function()? until,
   }) {
     if (until != null && until()) scanner.error("Expected expression.");
 
@@ -2961,14 +2961,14 @@ abstract class StylesheetParser extends Parser {
           warnings.add((
             deprecation: Deprecation.ifFunction,
             message:
-                'The Sass if() syntax is deprecated in favor of the modern CSS syntax.\n'
-                        '\n' +
-                    switch (expression.modernSuggestion) {
-                      var suggestion? => 'Suggestion: $suggestion\n'
-                          '\n',
-                      _ => ''
-                    } +
-                    'More info: https://sass-lang.com/d/if-function',
+                'The Sass if() syntax is deprecated in favor of the modern CSS '
+                'syntax.\n'
+                '\n'
+                '${switch (expression.modernSuggestion) {
+              var suggestion? => 'Suggestion: $suggestion\n'
+                  '\n',
+              _ => ''
+            }}More info: https://sass-lang.com/d/if-function',
             span: expression.span,
           ));
           return expression;
@@ -3342,8 +3342,12 @@ abstract class StylesheetParser extends Parser {
           var invalidSassScript = false;
           var nonCssSassScript = false;
           try {
-            var argument = _expression();
-            nonCssSassScript = !argument.isPlainCss(allowInterpolation: true);
+            whitespace(consumeNewlines: true);
+            if (!scanner.scanChar($rparen)) {
+              var argument = _expression();
+              scanner.expectChar($rparen);
+              nonCssSassScript = !argument.isPlainCss(allowInterpolation: true);
+            }
           } on StringScannerException {
             invalidSassScript = true;
           }
@@ -3357,19 +3361,20 @@ abstract class StylesheetParser extends Parser {
           if (invalidSassScript || nonCssSassScript) {
             var suggestion =
                 StringExpression(value, quotes: true).asInterpolation();
+            var whatWillHappen = invalidSassScript
+                ? "no longer be valid syntax"
+                : "be parsed as SassScript";
             warnings.add((
               deprecation: Deprecation.functionName,
-              message: "Vendor-prefixed $normalized() functions will no longer "
-                      "have special parsing in a future release of Dart Sass. "
-                      "Once that happens, this argument will " +
-                  (invalidSassScript
-                      ? "be parsed as SassScript. "
-                      : "no longer be valid syntax. ") +
-                  "To preserve current behavior:\n"
-                      "\n"
-                      "$name(#{$suggestion})\n"
-                      "\n"
-                      "More info: https://sass-lang.com/d/function-name",
+              message:
+                  "Vendor-prefixed $normalized() functions will no longer have "
+                  "special parsing in a future release of Dart Sass. Once that "
+                  "happens, this argument will $whatWillHappen. To preserve "
+                  "current behavior:\n"
+                  "\n"
+                  "$name(#{$suggestion})\n"
+                  "\n"
+                  "More info: https://sass-lang.com/d/function-name",
               span: spanFrom(start)
             ));
           }
@@ -4768,9 +4773,9 @@ abstract class StylesheetParser extends Parser {
   /// Consumes a block of [child] statements and passes them, as well as the
   /// span from [start] to the end of the child block, to [create].
   T _withChildren<T>(
-    Statement child(),
+    Statement Function() child,
     LineScannerState start,
-    T create(List<Statement> children, FileSpan span),
+    T Function(List<Statement> children, FileSpan span) create,
   ) {
     var result = create(children(child), spanFrom(start));
     whitespaceWithoutComments(consumeNewlines: false);
@@ -4803,7 +4808,7 @@ abstract class StylesheetParser extends Parser {
   /// Throws an error if [identifier] isn't public.
   ///
   /// Calls [span] to provide the span for an error if one occurs.
-  void _assertPublic(String identifier, FileSpan span()) {
+  void _assertPublic(String identifier, FileSpan Function() span) {
     if (!isPrivate(identifier)) return;
     error(
       "Private members can't be accessed from outside their modules.",
@@ -4875,12 +4880,12 @@ abstract class StylesheetParser extends Parser {
   /// whitespace. This is necessary to ensure that the source span for the
   /// parent rule doesn't cover whitespace after the rule.
   @protected
-  List<Statement> children(Statement child());
+  List<Statement> children(Statement Function() child);
 
   /// Consumes top-level statements.
   ///
   /// The [statement] callback may return `null`, indicating that a statement
   /// was consumed that shouldn't be added to the AST.
   @protected
-  List<Statement> statements(Statement? statement());
+  List<Statement> statements(Statement? Function() statement);
 }

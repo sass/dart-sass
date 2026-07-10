@@ -184,14 +184,17 @@ final class CssMediaQuery {
     );
   }
 
+  @override
   bool operator ==(Object other) =>
       other is CssMediaQuery &&
       other.modifier == modifier &&
       other.type == type &&
       listEquals(other.conditions, conditions);
 
+  @override
   int get hashCode => modifier.hashCode ^ type.hashCode ^ listHash(conditions);
 
+  @override
   String toString() {
     var buffer = StringBuffer();
     if (modifier != null) buffer.write("$modifier ");
@@ -232,5 +235,6 @@ class MediaQuerySuccessfulMergeResult implements MediaQueryMergeResult {
 
   MediaQuerySuccessfulMergeResult._(this.query);
 
+  @override
   String toString() => query.toString();
 }

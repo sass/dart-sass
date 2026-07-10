@@ -757,7 +757,7 @@ final class _EvaluateVisitor
   Future<T> _withFakeStylesheet<T>(
     AsyncImporter? importer,
     AstNode nodeWithSpan,
-    FutureOr<T> callback(),
+    FutureOr<T> Function() callback,
   ) async {
     var oldImporter = _importer;
     _importer = importer;
@@ -795,7 +795,7 @@ final class _EvaluateVisitor
     Uri url,
     String stackFrame,
     AstNode nodeWithSpan,
-    FutureOr<void> callback(Module module, bool firstLoad), {
+    FutureOr<void> Function(Module module, bool firstLoad) callback, {
     Uri? baseUrl,
     Configuration? configuration,
     bool namesInErrors = false,
@@ -1156,6 +1156,7 @@ final class _EvaluateVisitor
 
   // ## Statements
 
+  @override
   Future<Value?> visitStylesheet(Stylesheet node) async {
     for (var warning in node.parseTimeWarnings) {
       _warn(warning.message, warning.span, warning.deprecation);
@@ -1175,6 +1176,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Future<Value?> visitAtRootRule(AtRootRule node) async {
     var query = AtRootQuery.defaultQuery;
     if (node.query case var unparsedQuery?) {
@@ -1286,7 +1288,7 @@ final class _EvaluateVisitor
     AtRootQuery query,
     List<ModifiableCssParentNode> included,
   ) {
-    var scope = (Future<void> callback()) async {
+    var scope = (Future<void> Function() callback) async {
       // We can't use [_withParent] here because it'll add the node to the tree
       // in the wrong place.
       var oldParent = _parent;
@@ -1334,10 +1336,12 @@ final class _EvaluateVisitor
     return scope;
   }
 
+  @override
   Future<Value> visitContentBlock(ContentBlock node) => throw UnsupportedError(
         "Evaluation handles @include and its content block together.",
       );
 
+  @override
   Future<Value?> visitContentRule(ContentRule node) async {
     var content = _environment.content;
     if (content == null) return null;
@@ -1352,6 +1356,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Future<Value?> visitDebugRule(DebugRule node) async {
     var value = await node.expression.accept(this);
     _logger.debug(
@@ -1361,6 +1366,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Future<Value?> visitDeclaration(Declaration node) async {
     if (_styleRule == null && !_inUnknownAtRule && !_inKeyframes) {
       throw _exception(
@@ -1421,6 +1427,7 @@ final class _EvaluateVisitor
   /// Returns whether [value] is an empty list.
   bool _isEmptyList(Value value) => value.asList.isEmpty;
 
+  @override
   Future<Value?> visitEachRule(EachRule node) async {
     var list = await node.list.accept(this);
     var nodeWithSpan = _expressionNode(node.list);
@@ -1465,6 +1472,7 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   Future<Value> visitErrorRule(ErrorRule node) async {
     throw _exception(
       (await node.expression.accept(this)).toString(),
@@ -1472,6 +1480,7 @@ final class _EvaluateVisitor
     );
   }
 
+  @override
   Future<Value?> visitExtendRule(ExtendRule node) async {
     var styleRule = _styleRule;
     if (styleRule == null || _declarationName != null) {
@@ -1484,12 +1493,11 @@ final class _EvaluateVisitor
     for (var complex in styleRule.originalSelector.components) {
       if (!complex.isBogus) continue;
       _warn(
-        'The selector "${complex.toString().trim()}" is invalid CSS and ' +
-            (complex.isUseless ? "can't" : "shouldn't") +
-            ' be an extender.\n'
-                'This will be an error in Dart Sass 2.0.0.\n'
-                '\n'
-                'More info: https://sass-lang.com/d/bogus-combinators',
+        'The selector "${complex.toString().trim()}" is invalid CSS and '
+        '${complex.isUseless ? "can't" : "shouldn't"} be an extender.\n'
+        'This will be an error in Dart Sass 2.0.0.\n'
+        '\n'
+        'More info: https://sass-lang.com/d/bogus-combinators',
         MultiSpan(complex.span.trimRight(), 'invalid selector', {
           node.span: '@extend rule',
         }),
@@ -1541,6 +1549,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Future<Value?> visitAtRule(AtRule node) async {
     // NOTE: this logic is largely duplicated in [visitCssAtRule]. Most changes
     // here should be mirrored there.
@@ -1621,6 +1630,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Future<Value?> visitForRule(ForRule node) async {
     var fromNumber = await _addExceptionSpanAsync(
       node.from,
@@ -1667,6 +1677,7 @@ final class _EvaluateVisitor
     }, semiGlobal: true);
   }
 
+  @override
   Future<Value?> visitForwardRule(ForwardRule node) async {
     var oldConfiguration = _configuration;
     var adjustedConfiguration = oldConfiguration.throughForward(node);
@@ -1804,6 +1815,7 @@ final class _EvaluateVisitor
     );
   }
 
+  @override
   Future<Value?> visitFunctionRule(FunctionRule node) async {
     _environment.setFunction(
       UserDefinedCallable(
@@ -1815,6 +1827,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Future<Value?> visitIfRule(IfRule node) async {
     IfRuleClause? clause = node.lastClause;
     for (var clauseToCheck in node.clauses) {
@@ -1836,6 +1849,7 @@ final class _EvaluateVisitor
     );
   }
 
+  @override
   Future<Value?> visitImportRule(ImportRule node) async {
     for (var import in node.imports) {
       if (import is DynamicImport) {
@@ -2177,6 +2191,7 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   Future<Value?> visitIncludeRule(IncludeRule node) async {
     var mixin = _addExceptionSpan(
       node,
@@ -2217,6 +2232,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Future<Value?> visitMixinRule(MixinRule node) async {
     _environment.setMixin(
       UserDefinedCallable(
@@ -2228,6 +2244,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Future<Value?> visitLoudComment(LoudComment node) async {
     // NOTE: this logic is largely duplicated in [visitCssComment]. Most changes
     // here should be mirrored there.
@@ -2248,6 +2265,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Future<Value?> visitMediaRule(MediaRule node) async {
     // NOTE: this logic is largely duplicated in [visitCssMediaRule]. Most
     // changes here should be mirrored there.
@@ -2358,11 +2376,14 @@ final class _EvaluateVisitor
     return queries;
   }
 
+  @override
   Future<Value> visitReturnRule(ReturnRule node) async =>
       _withoutSlash(await node.expression.accept(this), node.expression);
 
+  @override
   Future<Value?> visitSilentComment(SilentComment node) async => null;
 
+  @override
   Future<Value?> visitStyleRule(StyleRule node) async {
     // NOTE: this logic is largely duplicated in [visitCssStyleRule]. Most
     // changes here should be mirrored there.
@@ -2505,22 +2526,21 @@ final class _EvaluateVisitor
             );
           }
         } else {
+          var willBeOmitted = complex.isBogusOtherThanLeadingCombinator
+              ? ' It will be omitted from the generated CSS.'
+              : '';
+          var suggestion = rule.children.every((child) => child is CssComment)
+              ? '\n(try converting to a //-style comment)'
+              : '';
           _warn(
             'The selector "${complex.toString().trim()}" is only valid for '
-                    "nesting and shouldn't\n"
-                    'have children other than style rules.' +
-                (complex.isBogusOtherThanLeadingCombinator
-                    ? ' It will be omitted from the generated CSS.'
-                    : '') +
-                '\n'
-                    'This will be an error in Dart Sass 2.0.0.\n'
-                    '\n'
-                    'More info: https://sass-lang.com/d/bogus-combinators',
+            "nesting and shouldn't\n"
+            'have children other than style rules.$willBeOmitted\n'
+            'This will be an error in Dart Sass 2.0.0.\n'
+            '\n'
+            'More info: https://sass-lang.com/d/bogus-combinators',
             MultiSpan(complex.span.trimRight(), 'invalid selector', {
-              rule.children.first.span: "this is not a style rule" +
-                  (rule.children.every((child) => child is CssComment)
-                      ? '\n(try converting to a //-style comment)'
-                      : ''),
+              rule.children.first.span: "this is not a style rule$suggestion",
             }),
             Deprecation.bogusCombinators,
           );
@@ -2529,6 +2549,7 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   Future<Value?> visitSupportsRule(SupportsRule node) async {
     // NOTE: this logic is largely duplicated in [visitCssSupportsRule]. Most
     // changes here should be mirrored there.
@@ -2611,7 +2632,7 @@ final class _EvaluateVisitor
       };
 
   /// Runs [callback] in a context where [_inSupportsDeclaration] is true.
-  Future<T> _withSupportsDeclaration<T>(FutureOr<T> callback()) async {
+  Future<T> _withSupportsDeclaration<T>(FutureOr<T> Function() callback) async {
     var oldInSupportsDeclaration = _inSupportsDeclaration;
     _inSupportsDeclaration = true;
     try {
@@ -2642,6 +2663,7 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   Future<Value?> visitVariableDeclaration(VariableDeclaration node) async {
     if (node.isGuarded) {
       if (node.namespace == null && _environment.atRoot) {
@@ -2702,6 +2724,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Future<Value?> visitUseRule(UseRule node) async {
     var configuration = const Configuration.empty();
     if (node.configuration.isNotEmpty) {
@@ -2729,6 +2752,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Future<Value?> visitWarnRule(WarnRule node) async {
     var value = await _addExceptionSpanAsync(
       node,
@@ -2741,6 +2765,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Future<Value?> visitWhileRule(WhileRule node) {
     return _environment.scope(
       () async {
@@ -2762,6 +2787,7 @@ final class _EvaluateVisitor
 
   // ## Expressions
 
+  @override
   Future<Value> visitBinaryOperationExpression(BinaryOperationExpression node) {
     if (_stylesheet.plainCss &&
         node.operator != BinaryOperator.singleEquals &&
@@ -2868,8 +2894,10 @@ final class _EvaluateVisitor
           }.contains(node.name.toLowerCase()) &&
           _environment.getFunction(node.name) == null);
 
+  @override
   Future<Value> visitValueExpression(ValueExpression node) async => node.value;
 
+  @override
   Future<Value> visitVariableExpression(VariableExpression node) async {
     var result = _addExceptionSpan(
       node,
@@ -2879,6 +2907,7 @@ final class _EvaluateVisitor
     throw _exception("Undefined variable.", node.span);
   }
 
+  @override
   Future<Value> visitUnaryOperationExpression(
     UnaryOperationExpression node,
   ) async {
@@ -2893,9 +2922,11 @@ final class _EvaluateVisitor
     });
   }
 
+  @override
   Future<SassBoolean> visitBooleanExpression(BooleanExpression node) async =>
       SassBoolean(node.value);
 
+  @override
   Future<Value> visitIfExpression(IfExpression node) async {
     List<(String, Value)>? results;
     for (var (condition, expression) in node.branches) {
@@ -2915,12 +2946,11 @@ final class _EvaluateVisitor
 
     if (results == null) return sassNull;
     return SassString(
-        'if(' +
-            results.map((pair) => '${pair.$1}: ${pair.$2}').join('; ') +
-            ')',
+        'if(${results.map((pair) => '${pair.$1}: ${pair.$2}').join('; ')})',
         quotes: false);
   }
 
+  @override
   Future<Object /* String | bool */ > visitIfConditionParenthesized(
           IfConditionParenthesized node) async =>
       switch (await node.expression.accept(this)) {
@@ -2928,6 +2958,7 @@ final class _EvaluateVisitor
         var result => result,
       };
 
+  @override
   Future<Object /* String | bool */ > visitIfConditionNegation(
           IfConditionNegation node) async =>
       switch (await node.expression.accept(this)) {
@@ -2936,6 +2967,7 @@ final class _EvaluateVisitor
         _ => throw UnsupportedError('unreachable'),
       };
 
+  @override
   Future<Object /* String | bool */ > visitIfConditionOperation(
       IfConditionOperation node) async {
     List<(IfConditionExpression, String)>? values;
@@ -2964,21 +2996,23 @@ final class _EvaluateVisitor
     };
   }
 
+  @override
   Future<Object /* String | bool */ > visitIfConditionFunction(
           IfConditionFunction node) async =>
-      (await _performInterpolation(node.name)) +
-      '(' +
-      (await _performInterpolation(node.arguments)) +
-      ')';
+      '${await _performInterpolation(node.name)}'
+      '(${await _performInterpolation(node.arguments)})';
 
+  @override
   Future<Object /* String | bool */ > visitIfConditionSass(
           IfConditionSass node) async =>
       (await node.expression.accept(this)).isTruthy;
 
+  @override
   Future<Object /* String | bool */ > visitIfConditionRaw(
           IfConditionRaw node) async =>
       await _performInterpolation(node.text);
 
+  @override
   Future<Value> visitLegacyIfExpression(LegacyIfExpression node) async {
     var (positional, named) = await _evaluateMacroArguments(node);
     _verifyArguments(
@@ -2993,11 +3027,14 @@ final class _EvaluateVisitor
     return _withoutSlash(await result.accept(this), _expressionNode(result));
   }
 
+  @override
   Future<Value> visitNullExpression(NullExpression node) async => sassNull;
 
+  @override
   Future<SassNumber> visitNumberExpression(NumberExpression node) async =>
       SassNumber(node.value, node.unit);
 
+  @override
   Future<Value> visitParenthesizedExpression(ParenthesizedExpression node) =>
       _stylesheet.plainCss
           ? throw _exception(
@@ -3006,9 +3043,11 @@ final class _EvaluateVisitor
             )
           : node.expression.accept(this);
 
+  @override
   Future<SassColor> visitColorExpression(ColorExpression node) async =>
       node.value;
 
+  @override
   Future<SassList> visitListExpression(ListExpression node) async => SassList(
         await mapAsync(
           node.contents,
@@ -3018,6 +3057,7 @@ final class _EvaluateVisitor
         brackets: node.hasBrackets,
       );
 
+  @override
   Future<SassMap> visitMapExpression(MapExpression node) async {
     var map = <Value, Value>{};
     var keyNodes = <Value, AstNode>{};
@@ -3041,6 +3081,7 @@ final class _EvaluateVisitor
     return SassMap(map);
   }
 
+  @override
   Future<Value> visitFunctionExpression(FunctionExpression node) async {
     var function = _stylesheet.plainCss
         ? null
@@ -3218,13 +3259,11 @@ final class _EvaluateVisitor
           node.arguments.positional.length > maxArgs) {
         throw _exception(
           "Only $maxArgs ${pluralize('argument', maxArgs)} allowed, but "
-                  "${node.arguments.positional.length} " +
-              pluralize(
-                'was',
-                node.arguments.positional.length,
-                plural: 'were',
-              ) +
-              " passed.",
+          "${node.arguments.positional.length} ${pluralize(
+            'was',
+            node.arguments.positional.length,
+            plural: 'were',
+          )} passed.",
           node.span,
         );
       }
@@ -3480,6 +3519,7 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   Future<Value> visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
   ) async {
@@ -3500,7 +3540,7 @@ final class _EvaluateVisitor
     ArgumentList arguments,
     UserDefinedCallable<AsyncEnvironment> callable,
     AstNode nodeWithSpan,
-    Future<V> run(),
+    Future<V> Function() run,
   ) async {
     // TODO(nweiz): Set [trackSpans] to `null` once we're no longer emitting
     // deprecation warnings for /-as-division.
@@ -3943,7 +3983,7 @@ final class _EvaluateVisitor
     Map<String, T> values,
     SassMap map,
     AstNode nodeWithSpan,
-    T convert(Value value),
+    T Function(Value value) convert,
   ) {
     var expressionNode = _expressionNode(nodeWithSpan);
     map.contents.forEach((key, value) {
@@ -3972,9 +4012,11 @@ final class _EvaluateVisitor
         () => parameters.verify(positional, MapKeySet(named)),
       );
 
+  @override
   Future<Value> visitSelectorExpression(SelectorExpression node) async =>
       _styleRuleIgnoringAtRoot?.originalSelector.asSassList ?? sassNull;
 
+  @override
   Future<SassString> visitStringExpression(StringExpression node) async {
     // Don't use [performInterpolation] here because we need to get the raw text
     // from strings, rather than the semantic value.
@@ -3998,6 +4040,7 @@ final class _EvaluateVisitor
     return result;
   }
 
+  @override
   Future<SassString> visitSupportsExpression(
     SupportsExpression expression,
   ) async =>
@@ -4017,6 +4060,7 @@ final class _EvaluateVisitor
   // into the stylesheet as-is because the `@import` may be nested in other
   // rules). That's what these rules implement.
 
+  @override
   Future<void> visitCssAtRule(CssAtRule node) async {
     // NOTE: this logic is largely duplicated in [visitAtRule]. Most changes
     // here should be mirrored there.
@@ -4082,6 +4126,7 @@ final class _EvaluateVisitor
     _inKeyframes = wasInKeyframes;
   }
 
+  @override
   Future<void> visitCssComment(CssComment node) async {
     // NOTE: this logic is largely duplicated in [visitLoudComment]. Most
     // changes here should be mirrored there.
@@ -4095,6 +4140,7 @@ final class _EvaluateVisitor
     _parent.addChild(ModifiableCssComment(node.text, node.span));
   }
 
+  @override
   Future<void> visitCssDeclaration(CssDeclaration node) async {
     _copyParentAfterSibling();
     _parent.addChild(
@@ -4108,6 +4154,7 @@ final class _EvaluateVisitor
     );
   }
 
+  @override
   Future<void> visitCssImport(CssImport node) async {
     // NOTE: this logic is largely duplicated in [_visitStaticImport]. Most
     // changes here should be mirrored there.
@@ -4128,6 +4175,7 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   Future<void> visitCssKeyframeBlock(CssKeyframeBlock node) async {
     // NOTE: this logic is largely duplicated in [visitStyleRule]. Most changes
     // here should be mirrored there.
@@ -4145,6 +4193,7 @@ final class _EvaluateVisitor
     );
   }
 
+  @override
   Future<void> visitCssMediaRule(CssMediaRule node) async {
     // NOTE: this logic is largely duplicated in [visitMediaRule]. Most changes
     // here should be mirrored there.
@@ -4213,6 +4262,7 @@ final class _EvaluateVisitor
     );
   }
 
+  @override
   Future<void> visitCssStyleRule(CssStyleRule node) async {
     // NOTE: this logic is largely duplicated in [visitStyleRule]. Most changes
     // here should be mirrored there.
@@ -4270,12 +4320,14 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   Future<void> visitCssStylesheet(CssStylesheet node) async {
     for (var statement in node.children) {
       await statement.accept(this);
     }
   }
 
+  @override
   Future<void> visitCssSupportsRule(CssSupportsRule node) async {
     // NOTE: this logic is largely duplicated in [visitSupportsRule]. Most
     // changes here should be mirrored there.
@@ -4330,7 +4382,7 @@ final class _EvaluateVisitor
   /// returned `null`.
   Future<Value?> _handleReturn<T>(
     List<T> list,
-    Future<Value?> callback(T value),
+    Future<Value?> Function(T value) callback,
   ) async {
     for (var value in list) {
       if (await callback(value) case var result?) return result;
@@ -4341,7 +4393,7 @@ final class _EvaluateVisitor
   /// Runs [callback] with [environment] as the current environment.
   Future<T> _withEnvironment<T>(
     AsyncEnvironment environment,
-    Future<T> callback(),
+    Future<T> Function() callback,
   ) async {
     var oldEnvironment = _environment;
     _environment = environment;
@@ -4514,8 +4566,8 @@ final class _EvaluateVisitor
   /// Runs [callback] in a new environment scope unless [scopeWhen] is false.
   Future<T> _withParent<S extends ModifiableCssParentNode, T>(
     S node,
-    Future<T> callback(), {
-    bool through(CssNode node)?,
+    Future<T> Function() callback, {
+    bool Function(CssNode node)? through,
     bool scopeWhen = true,
   }) async {
     _addChild(node, through: through);
@@ -4546,7 +4598,8 @@ final class _EvaluateVisitor
   /// If [through] is passed, [node] is added as a child of the first parent for
   /// which [through] returns `false` instead. That parent is copied unless it's the
   /// lattermost child of its parent.
-  void _addChild(ModifiableCssNode node, {bool through(CssNode node)?}) {
+  void _addChild(ModifiableCssNode node,
+      {bool Function(CssNode node)? through}) {
     // Go up through parents that match [through].
     var parent = _parent;
     if (through != null) {
@@ -4583,7 +4636,7 @@ final class _EvaluateVisitor
   /// Runs [callback] with [rule] as the current style rule.
   Future<T> _withStyleRule<T>(
     ModifiableCssStyleRule rule,
-    Future<T> callback(),
+    Future<T> Function() callback,
   ) async {
     var oldRule = _styleRuleIgnoringAtRoot;
     _styleRuleIgnoringAtRoot = rule;
@@ -4600,7 +4653,7 @@ final class _EvaluateVisitor
   Future<T> _withMediaQueries<T>(
     List<CssMediaQuery>? queries,
     Set<CssMediaQuery>? sources,
-    Future<T> callback(),
+    Future<T> Function() callback,
   ) async {
     var oldMediaQueries = _mediaQueries;
     var oldSources = _mediaQuerySources;
@@ -4623,7 +4676,7 @@ final class _EvaluateVisitor
   Future<T> _withStackFrame<T>(
     String member,
     AstNode nodeWithSpan,
-    Future<T> callback(),
+    Future<T> Function() callback,
   ) async {
     _stack.add((_member, nodeWithSpan));
     var oldMember = _member;
@@ -4737,7 +4790,7 @@ final class _EvaluateVisitor
   /// frame for [nodeWithSpan]. Otherwise, it will use the existing stack as-is.
   T _addExceptionSpan<T>(
     AstNode nodeWithSpan,
-    T callback(), {
+    T Function() callback, {
     bool addStackFrame = true,
   }) {
     try {
@@ -4756,7 +4809,7 @@ final class _EvaluateVisitor
   /// Like [_addExceptionSpan], but for an asynchronous [callback].
   Future<T> _addExceptionSpanAsync<T>(
     AstNode nodeWithSpan,
-    FutureOr<T> callback(), {
+    FutureOr<T> Function() callback, {
     bool addStackFrame = true,
   }) async {
     try {
@@ -4775,7 +4828,7 @@ final class _EvaluateVisitor
   /// Runs [callback], and converts any [SassException]s that aren't already
   /// [SassRuntimeException]s to [SassRuntimeException]s with the current stack
   /// trace.
-  Future<T> _addExceptionTrace<T>(FutureOr<T> callback()) async {
+  Future<T> _addExceptionTrace<T>(FutureOr<T> Function() callback) async {
     try {
       return await callback();
     } on SassRuntimeException {
@@ -4792,7 +4845,8 @@ final class _EvaluateVisitor
   /// Runs [callback], and converts any [SassRuntimeException]s containing an
   /// @error to throw a more relevant [SassRuntimeException] with [nodeWithSpan]'s
   /// source span.
-  Future<T> _addErrorSpan<T>(AstNode nodeWithSpan, Future<T> callback()) async {
+  Future<T> _addErrorSpan<T>(
+      AstNode nodeWithSpan, Future<T> Function() callback) async {
     try {
       return await callback();
     } on SassRuntimeException catch (error, stackTrace) {
@@ -4835,6 +4889,7 @@ final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
 
   _ImportedCssVisitor(this._visitor);
 
+  @override
   void visitCssAtRule(ModifiableCssAtRule node) {
     _visitor._addChild(
       node,
@@ -4842,11 +4897,14 @@ final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
     );
   }
 
+  @override
   void visitCssComment(ModifiableCssComment node) => _visitor._addChild(node);
 
+  @override
   void visitCssDeclaration(ModifiableCssDeclaration node) =>
       _visitor._addChild(node);
 
+  @override
   void visitCssImport(ModifiableCssImport node) {
     if (_visitor._parent != _visitor._root) {
       _visitor._addChild(node);
@@ -4858,10 +4916,12 @@ final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
     }
   }
 
+  @override
   void visitCssKeyframeBlock(ModifiableCssKeyframeBlock node) {
     assert(false, "visitCssKeyframeBlock() should never be called.");
   }
 
+  @override
   void visitCssMediaRule(ModifiableCssMediaRule node) {
     // Whether [node.query] has been merged with [_visitor._mediaQueries]. If it
     // has been merged, merging again is a no-op; if it hasn't been merged,
@@ -4877,15 +4937,18 @@ final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
     );
   }
 
+  @override
   void visitCssStyleRule(ModifiableCssStyleRule node) =>
       _visitor._addChild(node, through: (node) => node is CssStyleRule);
 
+  @override
   void visitCssStylesheet(ModifiableCssStylesheet node) {
     for (var child in node.children) {
       child.accept(this);
     }
   }
 
+  @override
   void visitCssSupportsRule(ModifiableCssSupportsRule node) =>
       _visitor._addChild(node, through: (node) => node is CssStyleRule);
 }
@@ -4912,11 +4975,13 @@ final class _EvaluationContext extends EvaluationContext {
 
   _EvaluationContext(this._visitor, this._defaultWarnNodeWithSpan);
 
+  @override
   FileSpan get currentCallableSpan {
     if (_visitor._callableNode case var callableNode?) return callableNode.span;
     throw StateError("No Sass callable is currently being evaluated.");
   }
 
+  @override
   void warn(String message, [Deprecation? deprecation]) {
     _visitor._warn(
       message,

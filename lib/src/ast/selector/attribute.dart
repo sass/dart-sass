@@ -59,9 +59,11 @@ final class AttributeSelector extends SimpleSelector {
     this.modifier,
   }) : super(span);
 
+  @override
   T accept<T>(SelectorVisitor<T> visitor) =>
       visitor.visitAttributeSelector(this);
 
+  @override
   bool operator ==(Object other) =>
       other is AttributeSelector &&
       other.name == name &&
@@ -69,6 +71,7 @@ final class AttributeSelector extends SimpleSelector {
       other.value == value &&
       other.modifier == modifier;
 
+  @override
   int get hashCode =>
       name.hashCode ^ op.hashCode ^ value.hashCode ^ modifier.hashCode;
 }
@@ -102,5 +105,6 @@ enum AttributeOperator {
 
   const AttributeOperator(this._text);
 
+  @override
   String toString() => _text;
 }

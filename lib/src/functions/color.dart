@@ -1329,9 +1329,8 @@ ColorSpace? _sniffLegacyColorSpace(Map<String, Value> keywords) {
 /// it were a plain CSS function.
 SassString _functionString(String name, Iterable<Value> arguments) =>
     SassString(
-      "$name(" +
-          arguments.map((argument) => argument.toCssString()).join(', ') +
-          ")",
+      "$name("
+      "${arguments.map((argument) => argument.toCssString()).join(', ')})",
       quotes: false,
     );
 
@@ -2030,8 +2029,8 @@ String _suggestScaleAndAdjust(
     adjustment,
     channel == ColorChannel.alpha ? null : '%',
   );
-  return suggestion +
-      "color.adjust(\$color, \$$channelName: ${difference.toCssString()})";
+  return "${suggestion}color.adjust(\$color, "
+      "\$$channelName: ${difference.toCssString()})";
 }
 
 /// Throws an error indicating that a missing channel named [name] can't be
@@ -2055,6 +2054,6 @@ String _channelName(Value value) =>
 BuiltInCallable _function(
   String name,
   String arguments,
-  Value callback(List<Value> arguments),
+  Value Function(List<Value> arguments) callback,
 ) =>
     BuiltInCallable.function(name, arguments, callback, url: "sass:color");

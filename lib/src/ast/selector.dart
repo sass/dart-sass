@@ -87,6 +87,7 @@ abstract base class Selector implements AstNode {
   @internal
   bool get isUseless => accept(const _IsUselessVisitor());
 
+  @override
   final FileSpan span;
 
   Selector(this.span);
@@ -98,11 +99,10 @@ abstract base class Selector implements AstNode {
   void assertNotBogus({String? name}) {
     if (!isBogus) return;
     warnForDeprecation(
-      (name == null ? '' : '\$$name: ') +
-          '$this is not valid CSS.\n'
-              'This will be an error in Dart Sass 2.0.0.\n'
-              '\n'
-              'More info: https://sass-lang.com/d/bogus-combinators',
+      '${name == null ? '' : '\$$name: '}$this is not valid CSS.\n'
+      'This will be an error in Dart Sass 2.0.0.\n'
+      '\n'
+      'More info: https://sass-lang.com/d/bogus-combinators',
       Deprecation.bogusCombinators,
     );
   }
@@ -110,6 +110,7 @@ abstract base class Selector implements AstNode {
   /// Calls the appropriate visit method on [visitor].
   T accept<T>(SelectorVisitor<T> visitor);
 
+  @override
   String toString() => serializeSelector(this, inspect: true);
 }
 
@@ -120,15 +121,19 @@ class _IsInvisibleVisitor with AnySelectorVisitor {
 
   const _IsInvisibleVisitor({required this.includeBogus});
 
+  @override
   bool visitSelectorList(SelectorList list) =>
       list.components.every(visitComplexSelector);
 
+  @override
   bool visitComplexSelector(ComplexSelector complex) =>
       super.visitComplexSelector(complex) ||
       (includeBogus && complex.isBogusOtherThanLeadingCombinator);
 
+  @override
   bool visitPlaceholderSelector(PlaceholderSelector placeholder) => true;
 
+  @override
   bool visitPseudoSelector(PseudoSelector pseudo) {
     if (pseudo.selector case var selector?) {
       // We don't consider `:not(%foo)` to be invisible because, semantically,
@@ -151,6 +156,7 @@ class _IsBogusVisitor with AnySelectorVisitor {
 
   const _IsBogusVisitor({required this.includeLeadingCombinator});
 
+  @override
   bool visitComplexSelector(ComplexSelector complex) {
     if (complex.components.isEmpty) {
       return complex.leadingCombinators.isNotEmpty;
@@ -166,6 +172,7 @@ class _IsBogusVisitor with AnySelectorVisitor {
     }
   }
 
+  @override
   bool visitPseudoSelector(PseudoSelector pseudo) {
     var selector = pseudo.selector;
     if (selector == null) return false;
@@ -181,6 +188,7 @@ class _IsBogusVisitor with AnySelectorVisitor {
 class _IsUselessVisitor with AnySelectorVisitor {
   const _IsUselessVisitor();
 
+  @override
   bool visitComplexSelector(ComplexSelector complex) =>
       complex.leadingCombinators.length > 1 ||
       complex.components.any(
@@ -188,6 +196,7 @@ class _IsUselessVisitor with AnySelectorVisitor {
             component.combinators.length > 1 || component.selector.accept(this),
       );
 
+  @override
   bool visitPseudoSelector(PseudoSelector pseudo) => pseudo.isBogus;
 }
 
@@ -195,5 +204,6 @@ class _IsUselessVisitor with AnySelectorVisitor {
 class _ContainsParentSelectorVisitor with AnySelectorVisitor {
   const _ContainsParentSelectorVisitor();
 
+  @override
   bool visitParentSelector(ParentSelector _) => true;
 }

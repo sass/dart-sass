@@ -18,12 +18,15 @@ final class NumberExpression extends Expression {
   /// The number's unit, or `null`.
   final String? unit;
 
+  @override
   final FileSpan span;
 
   NumberExpression(this.value, this.span, {this.unit});
 
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitNumberExpression(this);
 
+  @override
   String toString() => SassNumber(value, unit).toString();
 }

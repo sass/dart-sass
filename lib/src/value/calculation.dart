@@ -39,6 +39,7 @@ final class SassCalculation extends Value {
   final List<Object> arguments;
 
   /// @nodoc
+  @override
   @internal
   bool get isSpecialNumber => true;
 
@@ -926,7 +927,7 @@ final class SassCalculation extends Value {
   static Value _singleArgument(
     String name,
     Object argument,
-    SassNumber mathFunc(SassNumber value), {
+    SassNumber Function(SassNumber value) mathFunc, {
     bool forbidUnits = false,
   }) {
     argument = _simplify(argument);
@@ -938,12 +939,15 @@ final class SassCalculation extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitCalculation(this);
 
+  @override
   SassCalculation assertCalculation([String? name]) => this;
 
   /// @nodoc
+  @override
   @internal
   Value plus(Value other) {
     if (other is SassString) return super.plus(other);
@@ -951,25 +955,30 @@ final class SassCalculation extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   Value minus(Value other) =>
       throw SassScriptException('Undefined operation "$this - $other".');
 
   /// @nodoc
+  @override
   @internal
   Value unaryPlus() =>
       throw SassScriptException('Undefined operation "+$this".');
 
   /// @nodoc
+  @override
   @internal
   Value unaryMinus() =>
       throw SassScriptException('Undefined operation "-$this".');
 
+  @override
   bool operator ==(Object other) =>
       other is SassCalculation &&
       name == other.name &&
       listEquals(arguments, other.arguments);
 
+  @override
   int get hashCode => name.hashCode ^ listHash(arguments);
 }
 
@@ -1000,14 +1009,17 @@ final class CalculationOperation {
 
   CalculationOperation._(this._operator, this._left, this._right);
 
+  @override
   bool operator ==(Object other) =>
       other is CalculationOperation &&
       operator == other.operator &&
       left == other.left &&
       right == other.right;
 
+  @override
   int get hashCode => operator.hashCode ^ left.hashCode ^ right.hashCode;
 
+  @override
   String toString() {
     var parenthesized = serializeValue(
       SassCalculation._("", [this]),
@@ -1049,6 +1061,7 @@ enum CalculationOperator {
 
   const CalculationOperator(this.name, this.operator, this.precedence);
 
+  @override
   String toString() => name;
 }
 
@@ -1071,10 +1084,13 @@ class CalculationInterpolation {
 
   CalculationInterpolation(this._value);
 
+  @override
   bool operator ==(Object other) =>
       other is CalculationInterpolation && value == other.value;
 
+  @override
   int get hashCode => value.hashCode;
 
+  @override
   String toString() => value;
 }

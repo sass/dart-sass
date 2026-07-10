@@ -25,6 +25,7 @@ final class IfExpression extends Expression {
   /// A `null` expression indicates an `else` branch that is always evaluated.
   final List<(IfConditionExpression?, Expression)> branches;
 
+  @override
   final FileSpan span;
 
   IfExpression(
@@ -35,8 +36,10 @@ final class IfExpression extends Expression {
     }
   }
 
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) => visitor.visitIfExpression(this);
 
+  @override
   String toString() {
     var buffer = StringBuffer("if(");
     var first = true;
@@ -88,11 +91,13 @@ final class IfConditionParenthesized extends IfConditionExpression {
   /// The parenthesized expression.
   final IfConditionExpression expression;
 
+  @override
   final FileSpan span;
 
   IfConditionParenthesized(this.expression, this.span);
 
   /// @nodoc
+  @override
   @internal
   Interpolation toInterpolation(AstNode arbitrarySubstitution) =>
       (InterpolationBuffer()
@@ -102,9 +107,11 @@ final class IfConditionParenthesized extends IfConditionExpression {
             ..writeCharCode($rparen))
           .interpolation(span);
 
+  @override
   T accept<T>(IfConditionExpressionVisitor<T> visitor) =>
       visitor.visitIfConditionParenthesized(this);
 
+  @override
   String toString() => "($expression)";
 }
 
@@ -115,11 +122,13 @@ final class IfConditionNegation extends IfConditionExpression {
   /// The expression negated by this.
   final IfConditionExpression expression;
 
+  @override
   final FileSpan span;
 
   IfConditionNegation(this.expression, this.span);
 
   /// @nodoc
+  @override
   @internal
   Interpolation toInterpolation(AstNode arbitrarySubstitution) =>
       (InterpolationBuffer()
@@ -128,9 +137,11 @@ final class IfConditionNegation extends IfConditionExpression {
                 expression.toInterpolation(arbitrarySubstitution)))
           .interpolation(span);
 
+  @override
   T accept<T>(IfConditionExpressionVisitor<T> visitor) =>
       visitor.visitIfConditionNegation(this);
 
+  @override
   String toString() => "not $expression";
 }
 
@@ -143,6 +154,7 @@ final class IfConditionOperation extends IfConditionExpression {
 
   final BooleanOperator op;
 
+  @override
   FileSpan get span => expressions.first.span.expand(expressions.last.span);
 
   IfConditionOperation(Iterable<IfConditionExpression> expressions, this.op)
@@ -154,6 +166,7 @@ final class IfConditionOperation extends IfConditionExpression {
   }
 
   /// @nodoc
+  @override
   @internal
   Interpolation toInterpolation(AstNode arbitrarySubstitution) {
     var buffer = InterpolationBuffer();
@@ -170,9 +183,11 @@ final class IfConditionOperation extends IfConditionExpression {
     return buffer.interpolation(LazyFileSpan(() => span));
   }
 
+  @override
   T accept<T>(IfConditionExpressionVisitor<T> visitor) =>
       visitor.visitIfConditionOperation(this);
 
+  @override
   String toString() => expressions.join(" $op ");
 }
 
@@ -186,9 +201,11 @@ final class IfConditionFunction extends IfConditionExpression {
   /// The arguments passed to the function call.
   final Interpolation arguments;
 
+  @override
   final FileSpan span;
 
   /// @nodoc
+  @override
   @internal
   bool get isArbitrarySubstitution => switch (name.asPlain?.toLowerCase()) {
         "if" || "var" || "attr" => true,
@@ -199,6 +216,7 @@ final class IfConditionFunction extends IfConditionExpression {
   IfConditionFunction(this.name, this.arguments, this.span);
 
   /// @nodoc
+  @override
   @internal
   Interpolation toInterpolation(AstNode _) => (InterpolationBuffer()
         ..addInterpolation(name)
@@ -207,9 +225,11 @@ final class IfConditionFunction extends IfConditionExpression {
         ..writeCharCode($rparen))
       .interpolation(span);
 
+  @override
   T accept<T>(IfConditionExpressionVisitor<T> visitor) =>
       visitor.visitIfConditionFunction(this);
 
+  @override
   String toString() => "$name($arguments)";
 }
 
@@ -220,11 +240,13 @@ final class IfConditionSass extends IfConditionExpression {
   /// The expression that determines whether this condition matches.
   final Expression expression;
 
+  @override
   final FileSpan span;
 
   IfConditionSass(this.expression, this.span);
 
   /// @nodoc
+  @override
   @internal
   Interpolation toInterpolation(AstNode arbitrarySubstitution) =>
       throw MultiSourceSpanFormatException(
@@ -234,9 +256,11 @@ final class IfConditionSass extends IfConditionExpression {
           "arbitrary substitution",
           {span: "sass() expression"});
 
+  @override
   T accept<T>(IfConditionExpressionVisitor<T> visitor) =>
       visitor.visitIfConditionSass(this);
 
+  @override
   String toString() => "sass($expression)";
 }
 
@@ -250,20 +274,25 @@ final class IfConditionRaw extends IfConditionExpression {
   /// The text that encompasses this condition.
   final Interpolation text;
 
+  @override
   FileSpan get span => text.span;
 
   /// @nodoc
+  @override
   @internal
   bool get isArbitrarySubstitution => true;
 
   IfConditionRaw(this.text);
 
   /// @nodoc
+  @override
   @internal
   Interpolation toInterpolation(AstNode _) => text;
 
+  @override
   T accept<T>(IfConditionExpressionVisitor<T> visitor) =>
       visitor.visitIfConditionRaw(this);
 
+  @override
   String toString() => text.toString();
 }

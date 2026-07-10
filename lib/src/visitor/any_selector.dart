@@ -13,26 +13,43 @@ import 'interface/selector.dart';
 /// Each method returns `false` by default.
 @internal
 mixin AnySelectorVisitor implements SelectorVisitor<bool> {
+  @override
   bool visitComplexSelector(ComplexSelector complex) => complex.components.any(
         (component) => visitCompoundSelector(component.selector),
       );
 
+  @override
   bool visitCompoundSelector(CompoundSelector compound) =>
       compound.components.any((simple) => simple.accept(this));
 
+  @override
   bool visitPseudoSelector(PseudoSelector pseudo) {
     var selector = pseudo.selector;
     return selector == null ? false : selector.accept(this);
   }
 
+  @override
   bool visitSelectorList(SelectorList list) =>
       list.components.any(visitComplexSelector);
 
+  @override
   bool visitAttributeSelector(AttributeSelector attribute) => false;
+
+  @override
   bool visitClassSelector(ClassSelector klass) => false;
+
+  @override
   bool visitIDSelector(IDSelector id) => false;
+
+  @override
   bool visitParentSelector(ParentSelector parent) => false;
+
+  @override
   bool visitPlaceholderSelector(PlaceholderSelector placeholder) => false;
+
+  @override
   bool visitTypeSelector(TypeSelector type) => false;
+
+  @override
   bool visitUniversalSelector(UniversalSelector universal) => false;
 }

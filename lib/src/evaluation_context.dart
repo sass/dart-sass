@@ -103,7 +103,7 @@ void warnForDeprecationFromApi(String message, Deprecation deprecation) {
 ///
 /// This is zone-based, so if [callback] is asynchronous [warn] is set for the
 /// duration of that callback.
-T withEvaluationContext<T>(EvaluationContext context, T callback()) =>
+T withEvaluationContext<T>(EvaluationContext context, T Function() callback) =>
     runZoned(callback, zoneValues: {#_evaluationContext: context});
 
 /// A [Logger] that forwards warnings to [EvaluationContext.warn].
@@ -115,11 +115,13 @@ class _EvaluationContextLogger extends LoggerWithDeprecationType {
 
   _EvaluationContextLogger(this._context);
 
+  @override
   void debug(String message, SourceSpan span) {
     throw UnimplementedError(
         "EvaluationContext.logger.debug() is not supported");
   }
 
+  @override
   void internalWarn(
     String message, {
     FileSpan? span,

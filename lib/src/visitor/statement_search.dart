@@ -20,30 +20,43 @@ import 'recursive_statement.dart';
 ///
 /// {@category Visitor}
 mixin StatementSearchVisitor<T> implements StatementVisitor<T?> {
+  @override
   T? visitAtRootRule(AtRootRule node) => visitChildren(node.children);
 
+  @override
   T? visitAtRule(AtRule node) => node.children.andThen(visitChildren);
 
+  @override
   T? visitContentBlock(ContentBlock node) => visitCallableDeclaration(node);
 
+  @override
   T? visitContentRule(ContentRule node) => null;
 
+  @override
   T? visitDebugRule(DebugRule node) => null;
 
+  @override
   T? visitDeclaration(Declaration node) => node.children.andThen(visitChildren);
 
+  @override
   T? visitEachRule(EachRule node) => visitChildren(node.children);
 
+  @override
   T? visitErrorRule(ErrorRule node) => null;
 
+  @override
   T? visitExtendRule(ExtendRule node) => null;
 
+  @override
   T? visitForRule(ForRule node) => visitChildren(node.children);
 
+  @override
   T? visitForwardRule(ForwardRule node) => null;
 
+  @override
   T? visitFunctionRule(FunctionRule node) => visitCallableDeclaration(node);
 
+  @override
   T? visitIfRule(IfRule node) =>
       node.clauses.search(
         (clause) => clause.children.search((child) => child.accept(this)),
@@ -53,33 +66,47 @@ mixin StatementSearchVisitor<T> implements StatementVisitor<T?> {
             lastClause.children.search((child) => child.accept(this)),
       );
 
+  @override
   T? visitImportRule(ImportRule node) => null;
 
+  @override
   T? visitIncludeRule(IncludeRule node) =>
       node.content.andThen(visitContentBlock);
 
+  @override
   T? visitLoudComment(LoudComment node) => null;
 
+  @override
   T? visitMediaRule(MediaRule node) => visitChildren(node.children);
 
+  @override
   T? visitMixinRule(MixinRule node) => visitCallableDeclaration(node);
 
+  @override
   T? visitReturnRule(ReturnRule node) => null;
 
+  @override
   T? visitSilentComment(SilentComment node) => null;
 
+  @override
   T? visitStyleRule(StyleRule node) => visitChildren(node.children);
 
+  @override
   T? visitStylesheet(Stylesheet node) => visitChildren(node.children);
 
+  @override
   T? visitSupportsRule(SupportsRule node) => visitChildren(node.children);
 
+  @override
   T? visitUseRule(UseRule node) => null;
 
+  @override
   T? visitVariableDeclaration(VariableDeclaration node) => null;
 
+  @override
   T? visitWarnRule(WarnRule node) => null;
 
+  @override
   T? visitWhileRule(WhileRule node) => visitChildren(node.children);
 
   /// Visits each of [node]'s expressions and children.

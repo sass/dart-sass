@@ -30,7 +30,7 @@ abstract interface class AsyncCallable {
   factory AsyncCallable(
     String name,
     String arguments,
-    FutureOr<Value> callback(List<Value> arguments),
+    FutureOr<Value> Function(List<Value> arguments) callback,
   ) =>
       AsyncCallable.function(name, arguments, callback);
 
@@ -44,7 +44,7 @@ abstract interface class AsyncCallable {
   factory AsyncCallable.function(
     String name,
     String arguments,
-    FutureOr<Value> callback(List<Value> arguments),
+    FutureOr<Value> Function(List<Value> arguments) callback,
   ) =>
       AsyncBuiltInCallable.function(name, arguments, callback);
 
@@ -53,7 +53,7 @@ abstract interface class AsyncCallable {
   /// Throws a [SassFormatException] if parsing fails.
   factory AsyncCallable.fromSignature(
     String signature,
-    FutureOr<Value> callback(List<Value> arguments), {
+    FutureOr<Value> Function(List<Value> arguments) callback, {
     bool requireParens = true,
   }) {
     var (name, declaration) = parseSignature(

@@ -21,6 +21,7 @@ final class UseRule extends Statement implements SassDependency {
   /// The URI of the module to use.
   ///
   /// If this is relative, it's relative to the containing file.
+  @override
   final Uri url;
 
   /// The namespace for members of the used module, or `null` if the members
@@ -30,8 +31,10 @@ final class UseRule extends Statement implements SassDependency {
   /// A list of variable assignments used to configure the loaded modules.
   final List<ConfiguredVariable> configuration;
 
+  @override
   final FileSpan span;
 
+  @override
   FileSpan get urlSpan => span.withoutInitialAtRule().initialQuoted();
 
   UseRule(
@@ -64,8 +67,10 @@ final class UseRule extends Statement implements SassDependency {
   factory UseRule.parse(String contents, {Object? url}) =>
       ScssParser(contents, url: url).parseUseRule().$1;
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitUseRule(this);
 
+  @override
   String toString() {
     var buffer = StringBuffer(
       "@use ${StringExpression.quoteText(url.toString())}",

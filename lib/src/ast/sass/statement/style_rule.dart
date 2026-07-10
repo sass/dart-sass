@@ -29,6 +29,7 @@ final class StyleRule extends ParentStatement<List<Statement>> {
   /// and only if [selector] is not null.
   final InterpolatedSelectorList? parsedSelector;
 
+  @override
   final FileSpan span;
 
   /// Constructs a style rule with [selector] set and [parsedSelector] null.
@@ -42,7 +43,9 @@ final class StyleRule extends ParentStatement<List<Statement>> {
       : selector = null,
         super(List.unmodifiable(children));
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitStyleRule(this);
 
+  @override
   String toString() => "${selector ?? parsedSelector} {${children.join(" ")}}";
 }

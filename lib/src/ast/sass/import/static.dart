@@ -20,9 +20,11 @@ final class StaticImport implements Import {
   /// or `null` if none are attached.
   final Interpolation? modifiers;
 
+  @override
   final FileSpan span;
 
   StaticImport(this.url, this.span, {this.modifiers});
 
+  @override
   String toString() => "$url${modifiers == null ? '' : ' $modifiers'}";
 }

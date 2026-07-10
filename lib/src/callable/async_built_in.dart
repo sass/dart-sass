@@ -20,6 +20,7 @@ typedef Callback = FutureOr<Value> Function(List<Value> arguments);
 /// parameters. When the callable is invoked, the first callback with matching
 /// parameters is invoked.
 class AsyncBuiltInCallable implements AsyncCallable {
+  @override
   final String name;
 
   /// This callable's parameters.
@@ -44,7 +45,7 @@ class AsyncBuiltInCallable implements AsyncCallable {
   AsyncBuiltInCallable.function(
     String name,
     String parameters,
-    FutureOr<Value> callback(List<Value> parameters), {
+    FutureOr<Value> Function(List<Value> parameters) callback, {
     Object? url,
   }) : this.parsed(
           name,
@@ -63,7 +64,7 @@ class AsyncBuiltInCallable implements AsyncCallable {
   AsyncBuiltInCallable.mixin(
     String name,
     String parameters,
-    FutureOr<void> callback(List<Value> parameters), {
+    FutureOr<void> Function(List<Value> parameters) callback, {
     Object? url,
     bool acceptsContent = false,
   }) : this.parsed(

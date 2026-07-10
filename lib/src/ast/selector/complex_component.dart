@@ -51,13 +51,16 @@ final class ComplexSelectorComponent {
               ],
               span);
 
+  @override
   int get hashCode => selector.hashCode ^ listHash(combinators);
 
+  @override
   bool operator ==(Object other) =>
       other is ComplexSelectorComponent &&
       selector == other.selector &&
       listEquals(combinators, other.combinators);
 
+  @override
   String toString() =>
       selector.toString() +
       combinators.map((combinator) => ' $combinator').join('');

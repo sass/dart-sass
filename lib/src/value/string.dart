@@ -65,6 +65,7 @@ class SassString extends Value {
   int? _hashCache;
 
   /// @nodoc
+  @override
   @internal
   bool get isSpecialNumber {
     if (hasQuotes) return false;
@@ -105,6 +106,7 @@ class SassString extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   bool get isSpecialVariable {
     if (hasQuotes) return false;
@@ -125,6 +127,7 @@ class SassString extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   bool get isBlank => !hasQuotes && text.isEmpty;
 
@@ -212,18 +215,23 @@ class SassString extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitString(this);
 
+  @override
   SassString assertString([String? name]) => this;
 
   /// @nodoc
+  @override
   @internal
   Value plus(Value other) => other is SassString
       ? SassString(text + other.text, quotes: hasQuotes)
       : SassString(text + other.toCssString(), quotes: hasQuotes);
 
+  @override
   bool operator ==(Object other) => other is SassString && text == other.text;
 
+  @override
   int get hashCode => _hashCache ??= text.hashCode;
 }

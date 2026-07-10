@@ -375,7 +375,7 @@ String compile(
   bool quietDeps = false,
   bool verbose = false,
   @Deprecated("Use CompileResult.sourceMap from compileToResult() instead.")
-  void sourceMap(SingleMapping map)?,
+  void Function(SingleMapping map)? sourceMap,
   bool charset = true,
 }) {
   var result = compileToResult(
@@ -434,7 +434,7 @@ String compileString(
   @Deprecated(
     "Use CompileResult.sourceMap from compileStringToResult() instead.",
   )
-  void sourceMap(SingleMapping map)?,
+  void Function(SingleMapping map)? sourceMap,
   bool charset = true,
   @Deprecated("Use syntax instead.") bool indented = false,
 }) {
@@ -480,7 +480,7 @@ Future<String> compileAsync(
   @Deprecated(
     "Use CompileResult.sourceMap from compileToResultAsync() instead.",
   )
-  void sourceMap(SingleMapping map)?,
+  void Function(SingleMapping map)? sourceMap,
 }) async {
   var result = await compileToResultAsync(
     path,
@@ -523,7 +523,7 @@ Future<String> compileStringAsync(
   @Deprecated(
     "Use CompileResult.sourceMap from compileStringToResultAsync() instead.",
   )
-  void sourceMap(SingleMapping map)?,
+  void Function(SingleMapping map)? sourceMap,
   bool charset = true,
   @Deprecated("Use syntax instead.") bool indented = false,
 }) async {
@@ -552,4 +552,4 @@ Future<String> compileStringAsync(
 ///
 /// This is only intended for use when testing custom importers.
 @visibleForTesting
-T fakeFromImport<T>(T callback()) => inImportRule(callback);
+T fakeFromImport<T>(T Function() callback) => inImportRule(callback);

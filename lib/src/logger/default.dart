@@ -26,6 +26,7 @@ final class DefaultLogger extends LoggerWithDeprecationType {
     return _default ??= StderrLogger(color: supportsAnsiEscapes);
   }
 
+  @override
   void internalWarn(
     String message, {
     FileSpan? span,
@@ -35,5 +36,6 @@ final class DefaultLogger extends LoggerWithDeprecationType {
       _inner.internalWarn(message,
           span: span, trace: trace, deprecation: deprecation);
 
+  @override
   void debug(String message, SourceSpan span) => _inner.debug(message, span);
 }

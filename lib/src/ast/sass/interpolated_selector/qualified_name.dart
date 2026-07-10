@@ -19,6 +19,7 @@ final class InterpolatedQualifiedName implements SassNode {
   /// The identifier name.
   final Interpolation name;
 
+  @override
   final FileSpan span;
 
   /// The namespace name.
@@ -28,6 +29,7 @@ final class InterpolatedQualifiedName implements SassNode {
   /// the given name.
   InterpolatedQualifiedName(this.name, this.span, {this.namespace});
 
+  @override
   String toString() => switch (namespace) {
         var namespace? => '$namespace|$name',
         _ => name.toString()

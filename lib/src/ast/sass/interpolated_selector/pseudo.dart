@@ -42,6 +42,7 @@ final class InterpolatedPseudoSelector extends InterpolatedSimpleSelector {
   /// both non-`null`, the selector follows the argument.
   final InterpolatedSelectorList? selector;
 
+  @override
   final FileSpan span;
 
   InterpolatedPseudoSelector(
@@ -53,9 +54,11 @@ final class InterpolatedPseudoSelector extends InterpolatedSimpleSelector {
   }) : isSyntacticClass = !element;
 
   /// Calls the appropriate visit method on [visitor].
+  @override
   T accept<T>(InterpolatedSelectorVisitor<T> visitor) =>
       visitor.visitPseudoSelector(this);
 
+  @override
   String toString() {
     var result = '${isSyntacticClass ? ':' : '::'}$name';
     if (argument != null || selector != null) {

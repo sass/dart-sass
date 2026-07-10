@@ -406,7 +406,7 @@ class StylesheetGraph {
   /// If [callback] throws any errors, ignores them and returns `null`. This is
   /// used to wrap calls to the import cache, since importer errors should be
   /// surfaced by the compilation process rather than the graph.
-  T? _ignoreErrors<T>(T callback()) {
+  T? _ignoreErrors<T>(T Function() callback) {
     try {
       return callback();
     } catch (_) {
@@ -514,6 +514,7 @@ class StylesheetNode {
     }
   }
 
+  @override
   String toString() =>
       stylesheet.span.sourceUrl.andThen(p.prettyUri) ?? '<unknown>';
 }

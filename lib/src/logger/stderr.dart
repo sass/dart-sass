@@ -18,6 +18,7 @@ final class StderrLogger extends LoggerWithDeprecationType {
 
   const StderrLogger({this.color = false});
 
+  @override
   void internalWarn(
     String message, {
     FileSpan? span,
@@ -46,7 +47,7 @@ final class StderrLogger extends LoggerWithDeprecationType {
       // probably duplicated in the trace, so we just use it for highlighting.
       result.writeln(': $message\n\n${span.highlight(color: color)}');
     } else {
-      result.writeln(' on ${span.message("\n" + message, color: color)}');
+      result.writeln(' on ${span.message("\n$message", color: color)}');
     }
 
     if (trace != null) result.writeln(indent(trace.toString().trimRight(), 4));
@@ -54,6 +55,7 @@ final class StderrLogger extends LoggerWithDeprecationType {
     printError(result);
   }
 
+  @override
   void debug(String message, SourceSpan span) {
     var result = StringBuffer();
     var url =

@@ -618,7 +618,7 @@ bool _isUnique(SimpleSelector simple) =>
 List<List<T>> _chunks<T>(
   Queue<T> queue1,
   Queue<T> queue2,
-  bool done(Queue<T> queue),
+  bool Function(Queue<T> queue) done,
 ) {
   var chunk1 = <T>[];
   while (!done(queue1)) {

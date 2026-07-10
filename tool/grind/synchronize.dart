@@ -123,6 +123,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
     _position = afterHeader;
   }
 
+  @override
   void visitAwaitExpression(AwaitExpression node) {
     _skip(node.awaitKeyword);
 
@@ -131,6 +132,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
     node.expression.accept(this);
   }
 
+  @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     if (node.expression is AwaitExpression) {
       _skip(node.leftParenthesis);
@@ -141,11 +143,13 @@ class _Visitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     _skip(node.keyword);
     node.visitChildren(this);
   }
 
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     if (_sharedClasses.contains(node.namePart.typeName.lexeme)) {
       _skipNode(node);
@@ -163,6 +167,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
     if (_sharedClasses.contains(node.name.lexeme)) {
       _skipNode(node);
@@ -176,11 +181,13 @@ class _Visitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     _skip(node.keyword);
     node.visitChildren(this);
   }
 
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     for (var child in node.sortedCommentAndAnnotations) {
       child.accept(this);
@@ -190,6 +197,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
     node.functionExpression.accept(this);
   }
 
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (_synchronizeName(node.name.lexeme) != node.name.lexeme) {
       // If the file defines any asynchronous versions of synchronous functions,
@@ -200,6 +208,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  @override
   void visitImportDirective(ImportDirective node) {
     _skipNode(node);
     var text = node.toString();
@@ -208,6 +217,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  @override
   void visitMethodInvocation(MethodInvocation node) {
     // Convert async utility methods to their synchronous equivalents.
     if (node
@@ -232,11 +242,13 @@ class _Visitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     _skip(node.token);
     _buffer.write(_synchronizeName(node.name));
   }
 
+  @override
   void visitNamedType(NamedType node) {
     if (node.name.lexeme case "Future" || "FutureOr") {
       _skip(node.name);
@@ -322,13 +334,14 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   SourceSpanException _alreadyEmittedException(SourceSpan span) {
     var lines = _buffer.toString().split("\n");
+    var formattedLines = lines
+        .slice(math.max(lines.length - 3, 0))
+        .map((line) => "  $line")
+        .join("\n");
     return SourceSpanException(
-      "Node was already emitted. Last 3 lines:\n\n" +
-          lines
-              .slice(math.max(lines.length - 3, 0))
-              .map((line) => "  $line")
-              .join("\n") +
-          "\n",
+      "Node was already emitted. Last 3 lines:\n"
+      "\n"
+      "$formattedLines\n",
       span,
     );
   }

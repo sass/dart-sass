@@ -13,37 +13,90 @@ class JSStatementVisitor implements StatementVisitor<Object?> {
 
   JSStatementVisitor(this._inner);
 
+  @override
   Object? visitAtRootRule(AtRootRule node) => _inner.visitAtRootRule(node);
+
+  @override
   Object? visitAtRule(AtRule node) => _inner.visitAtRule(node);
+
+  @override
   Object? visitContentBlock(ContentBlock node) =>
       _inner.visitContentBlock(node);
+
+  @override
   Object? visitContentRule(ContentRule node) => _inner.visitContentRule(node);
+
+  @override
   Object? visitDebugRule(DebugRule node) => _inner.visitDebugRule(node);
+
+  @override
   Object? visitDeclaration(Declaration node) => _inner.visitDeclaration(node);
+
+  @override
   Object? visitEachRule(EachRule node) => _inner.visitEachRule(node);
+
+  @override
   Object? visitErrorRule(ErrorRule node) => _inner.visitErrorRule(node);
+
+  @override
   Object? visitExtendRule(ExtendRule node) => _inner.visitExtendRule(node);
+
+  @override
   Object? visitForRule(ForRule node) => _inner.visitForRule(node);
+
+  @override
   Object? visitForwardRule(ForwardRule node) => _inner.visitForwardRule(node);
+
+  @override
   Object? visitFunctionRule(FunctionRule node) =>
       _inner.visitFunctionRule(node);
+
+  @override
   Object? visitIfRule(IfRule node) => _inner.visitIfRule(node);
+
+  @override
   Object? visitImportRule(ImportRule node) => _inner.visitImportRule(node);
+
+  @override
   Object? visitIncludeRule(IncludeRule node) => _inner.visitIncludeRule(node);
+
+  @override
   Object? visitLoudComment(LoudComment node) => _inner.visitLoudComment(node);
+
+  @override
   Object? visitMediaRule(MediaRule node) => _inner.visitMediaRule(node);
+
+  @override
   Object? visitMixinRule(MixinRule node) => _inner.visitMixinRule(node);
+
+  @override
   Object? visitReturnRule(ReturnRule node) => _inner.visitReturnRule(node);
+
+  @override
   Object? visitSilentComment(SilentComment node) =>
       _inner.visitSilentComment(node);
+
+  @override
   Object? visitStyleRule(StyleRule node) => _inner.visitStyleRule(node);
+
+  @override
   Object? visitStylesheet(Stylesheet node) => _inner.visitStylesheet(node);
+
+  @override
   Object? visitSupportsRule(SupportsRule node) =>
       _inner.visitSupportsRule(node);
+
+  @override
   Object? visitUseRule(UseRule node) => _inner.visitUseRule(node);
+
+  @override
   Object? visitVariableDeclaration(VariableDeclaration node) =>
       _inner.visitVariableDeclaration(node);
+
+  @override
   Object? visitWarnRule(WarnRule node) => _inner.visitWarnRule(node);
+
+  @override
   Object? visitWhileRule(WhileRule node) => _inner.visitWhileRule(node);
 }
 

@@ -29,6 +29,7 @@ final class JSToDartLogger extends LoggerWithDeprecationType {
   JSToDartLogger(this._node, this._fallback, {bool? ascii})
       : _ascii = ascii ?? glyph.ascii;
 
+  @override
   void internalWarn(
     String message, {
     FileSpan? span,
@@ -67,6 +68,7 @@ final class JSToDartLogger extends LoggerWithDeprecationType {
     }
   }
 
+  @override
   void debug(String message, SourceSpan span) {
     if (_node?.debug case var debug?) {
       debug(message, DebugOptions(span: span));
@@ -76,7 +78,7 @@ final class JSToDartLogger extends LoggerWithDeprecationType {
   }
 
   /// Sets [glyph.ascii] to [_ascii] within [callback].
-  T _withAscii<T>(T callback()) {
+  T _withAscii<T>(T Function() callback) {
     var wasAscii = glyph.ascii;
     glyph.ascii = _ascii;
     try {

@@ -66,7 +66,7 @@ Syntax syntaxToSyntax(proto.Syntax syntax) => switch (syntax) {
 
 /// Returns the result of running [callback] with the global ASCII config set
 /// to [ascii].
-T withGlyphs<T>(T callback(), {required bool ascii}) {
+T withGlyphs<T>(T Function() callback, {required bool ascii}) {
   var currentConfig = term_glyph.ascii;
   term_glyph.ascii = ascii;
   var result = callback();

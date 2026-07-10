@@ -31,6 +31,7 @@ final class BinaryOperationExpression extends Expression {
   @internal
   final bool allowsSlash;
 
+  @override
   FileSpan get span {
     // Avoid creating a bunch of intermediate spans for multiple binary
     // expressions in a row by moving to the left- and right-most expressions.
@@ -69,9 +70,11 @@ final class BinaryOperationExpression extends Expression {
       : operator = BinaryOperator.dividedBy,
         allowsSlash = true;
 
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitBinaryOperationExpression(this);
 
+  @override
   String toString() {
     var buffer = StringBuffer();
 
@@ -179,5 +182,6 @@ enum BinaryOperator {
     bool associative = false,
   }) : isAssociative = associative;
 
+  @override
   String toString() => name;
 }

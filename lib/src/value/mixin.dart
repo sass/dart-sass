@@ -36,9 +36,11 @@ final class SassMixin extends Value {
   SassMixin.withCompileContext(this.callable, this._compileContext);
 
   /// @nodoc
+  @override
   @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitMixin(this);
 
+  @override
   SassMixin assertMixin([String? name]) => this;
 
   /// Asserts that this SassMixin belongs to [compileContext] and returns it.
@@ -55,8 +57,10 @@ final class SassMixin extends Value {
     return this;
   }
 
+  @override
   bool operator ==(Object other) =>
       other is SassMixin && callable == other.callable;
 
+  @override
   int get hashCode => callable.hashCode;
 }

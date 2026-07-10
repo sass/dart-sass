@@ -19,10 +19,12 @@ final class IncludeRule extends Statement
     implements CallableInvocation, SassReference {
   /// The namespace of the mixin being invoked, or `null` if it's invoked
   /// without a namespace.
+  @override
   final String? namespace;
 
   /// The name of the mixin being invoked, with underscores converted to
   /// hyphens.
+  @override
   final String name;
 
   /// The original name of the mixin being invoked, without underscores
@@ -30,12 +32,14 @@ final class IncludeRule extends Statement
   final String originalName;
 
   /// The arguments to pass to the mixin.
+  @override
   final ArgumentList arguments;
 
   /// The block that will be invoked for [ContentRule]s in the mixin being
   /// invoked, or `null` if this doesn't pass a content block.
   final ContentBlock? content;
 
+  @override
   final FileSpan span;
 
   /// Returns this include's span, without its content block (if it has one).
@@ -43,6 +47,7 @@ final class IncludeRule extends Statement
       ? span
       : span.file.span(span.start.offset, arguments.span.end.offset).trim();
 
+  @override
   FileSpan get nameSpan {
     var startSpan = span.text.startsWith('+')
         ? span.subspan(1).trimLeft()
@@ -51,6 +56,7 @@ final class IncludeRule extends Statement
     return startSpan.initialIdentifier();
   }
 
+  @override
   FileSpan? get namespaceSpan {
     if (namespace == null) return null;
     var startSpan = span.text.startsWith('+')
@@ -67,8 +73,10 @@ final class IncludeRule extends Statement
     this.content,
   }) : name = originalName.replaceAll('_', '-');
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIncludeRule(this);
 
+  @override
   String toString() {
     var buffer = StringBuffer("@include ");
     if (namespace != null) buffer.write("$namespace.");

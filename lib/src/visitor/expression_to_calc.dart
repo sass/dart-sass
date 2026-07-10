@@ -27,6 +27,7 @@ FunctionExpression expressionToCalc(Expression expression) =>
 class _MakeExpressionCalculationSafe with ReplaceExpressionVisitor {
   const _MakeExpressionCalculationSafe();
 
+  @override
   Expression visitBinaryOperationExpression(BinaryOperationExpression node) => node
               .operator ==
           BinaryOperator.modulo
@@ -41,13 +42,16 @@ class _MakeExpressionCalculationSafe with ReplaceExpressionVisitor {
         )
       : super.visitBinaryOperationExpression(node);
 
+  @override
   Expression visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
   ) =>
       node;
 
+  @override
   Expression visitIfExpression(IfExpression node) => node;
 
+  @override
   Expression visitUnaryOperationExpression(UnaryOperationExpression node) =>
       switch (node.operator) {
         // `calc()` doesn't support unary operations.

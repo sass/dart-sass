@@ -13,6 +13,7 @@ import '../node.dart';
 /// modification should only be done within the evaluation step, so the
 /// unmodifiable types are used elsewhere to enforce that constraint.
 abstract base class ModifiableCssNode extends CssNode {
+  @override
   ModifiableCssParentNode? get parent => _parent;
   ModifiableCssParentNode? _parent;
 
@@ -21,6 +22,7 @@ abstract base class ModifiableCssNode extends CssNode {
   /// This makes [remove] more efficient.
   int? _indexInParent;
 
+  @override
   var isGroupEnd = false;
 
   /// Whether this node has a visible sibling after it.
@@ -30,6 +32,7 @@ abstract base class ModifiableCssNode extends CssNode {
           .any((sibling) => !sibling.isInvisible) ??
       false;
 
+  @override
   T accept<T>(ModifiableCssVisitor<T> visitor);
 
   /// Removes `this` from [parent]'s child list.
@@ -52,8 +55,11 @@ abstract base class ModifiableCssNode extends CssNode {
 /// A modifiable version of [CssParentNode] for use in the evaluation step.
 abstract base class ModifiableCssParentNode extends ModifiableCssNode
     implements CssParentNode {
+  @override
   final List<ModifiableCssNode> children;
   final List<ModifiableCssNode> _children;
+
+  @override
   bool get isChildless => false;
 
   ModifiableCssParentNode() : this._([]);

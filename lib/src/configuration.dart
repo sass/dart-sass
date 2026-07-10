@@ -100,9 +100,9 @@ final class Configuration {
   /// [_originalConfiguration] reference.
   Configuration._(this._values, this.__originalConfiguration);
 
-  String toString() =>
-      "(" +
-      [for (var (name, value) in values.pairs) "\$$name: $value"].join(",") +
+  @override
+  String toString() => "("
+      "${[for (var (name, value) in values.pairs) "\$$name: $value"].join(",")}"
       ")";
 }
 
@@ -132,6 +132,7 @@ final class ExplicitConfiguration extends Configuration {
   /// Returns a copy of `this` with the given [values] map.
   ///
   /// The copy will have the same [_originalConfiguration] as `this` config.
+  @override
   Configuration _withValues(Map<String, ConfiguredValue> values) =>
       ExplicitConfiguration._(values, nodeWithSpan, _originalConfiguration);
 }

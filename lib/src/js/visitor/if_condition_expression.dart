@@ -15,16 +15,27 @@ class JSIfConditionExpressionVisitor
 
   JSIfConditionExpressionVisitor(this._inner);
 
+  @override
   Object? visitIfConditionParenthesized(IfConditionParenthesized node) =>
       _inner.visitIfConditionParenthesized(node);
+
+  @override
   Object? visitIfConditionNegation(IfConditionNegation node) =>
       _inner.visitIfConditionNegation(node);
+
+  @override
   Object? visitIfConditionOperation(IfConditionOperation node) =>
       _inner.visitIfConditionOperation(node);
+
+  @override
   Object? visitIfConditionFunction(IfConditionFunction node) =>
       _inner.visitIfConditionFunction(node);
+
+  @override
   Object? visitIfConditionSass(IfConditionSass node) =>
       _inner.visitIfConditionSass(node);
+
+  @override
   Object? visitIfConditionRaw(IfConditionRaw node) =>
       _inner.visitIfConditionRaw(node);
 }

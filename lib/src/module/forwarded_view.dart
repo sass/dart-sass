@@ -21,19 +21,39 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
   /// The rule that determines how this module's members should be exposed.
   final ForwardRule _rule;
 
+  @override
   Uri? get url => _inner.url;
+
+  @override
   List<Module<T>> get upstream => _inner.upstream;
+
+  @override
   ExtensionStore get extensionStore => _inner.extensionStore;
+
+  @override
   CssStylesheet get css => _inner.css;
+
+  @override
   Map<Module<T>, List<CssComment>> get preModuleComments =>
       _inner.preModuleComments;
+
+  @override
   bool get transitivelyContainsCss => _inner.transitivelyContainsCss;
+
+  @override
   bool get transitivelyContainsExtensions =>
       _inner.transitivelyContainsExtensions;
 
+  @override
   final Map<String, Value> variables;
+
+  @override
   final Map<String, AstNode> variableNodes;
+
+  @override
   final Map<String, T> functions;
+
+  @override
   final Map<String, T> mixins;
 
   /// Like [ForwardedModuleView], but returns `inner` as-is if it doesn't need
@@ -109,6 +129,7 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
     return map;
   }
 
+  @override
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (_rule.shownVariables case var shownVariables?
         when !shownVariables.contains(name)) {
@@ -129,6 +150,7 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
     return _inner.setVariable(name, value, nodeWithSpan);
   }
 
+  @override
   Object variableIdentity(String name) {
     assert(variables.containsKey(name));
 
@@ -140,6 +162,7 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
     return _inner.variableIdentity(name);
   }
 
+  @override
   bool couldHaveBeenConfigured(Set<String> variables) {
     assert(_rule.shownVariables == null || _rule.hiddenVariables == null);
     if (_rule.prefix == null &&
@@ -165,14 +188,18 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
     }
   }
 
+  @override
   bool operator ==(Object other) =>
       other is ForwardedModuleView &&
       _inner == other._inner &&
       _rule == other._rule;
 
+  @override
   int get hashCode => _inner.hashCode ^ _rule.hashCode;
 
+  @override
   Module<T> cloneCss() => ForwardedModuleView(_inner.cloneCss(), _rule);
 
+  @override
   String toString() => "forwarded $_inner";
 }

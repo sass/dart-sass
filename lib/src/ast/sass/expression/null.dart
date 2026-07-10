@@ -11,12 +11,15 @@ import '../expression.dart';
 ///
 /// {@category AST}
 final class NullExpression extends Expression {
+  @override
   final FileSpan span;
 
   NullExpression(this.span);
 
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitNullExpression(this);
 
+  @override
   String toString() => "null";
 }

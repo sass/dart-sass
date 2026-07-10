@@ -16,18 +16,22 @@ final class SupportsInterpolation implements SupportsCondition {
   /// The expression in the interpolation.
   final Expression expression;
 
+  @override
   final FileSpan span;
 
   SupportsInterpolation(this.expression, this.span);
 
   /// @nodoc
+  @override
   @internal
   Interpolation toInterpolation() => Interpolation([expression], [span], span);
 
   /// @nodoc
+  @override
   @internal
   SupportsInterpolation withSpan(FileSpan span) =>
       SupportsInterpolation(expression, span);
 
+  @override
   String toString() => "#{$expression}";
 }

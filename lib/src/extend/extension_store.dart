@@ -156,7 +156,7 @@ class ExtensionStore {
   /// This un-merges any [MergedExtension] so only base [Extension]s are
   /// returned.
   Iterable<Extension> extensionsWhereTarget(
-    bool callback(SimpleSelector target),
+    bool Function(SimpleSelector target) callback,
   ) sync* {
     for (var (simple, sources) in _extensions.pairs) {
       if (!callback(simple)) continue;
@@ -1014,7 +1014,7 @@ class ExtensionStore {
   // document, and thus should never be trimmed.
   List<ComplexSelector> _trim(
     List<ComplexSelector> selectors,
-    bool isOriginal(ComplexSelector complex),
+    bool Function(ComplexSelector complex) isOriginal,
   ) {
     // Avoid truly horrific quadratic behavior.
     //

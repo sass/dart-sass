@@ -13,42 +13,77 @@ class JSExpressionVisitor implements ExpressionVisitor<Object?> {
 
   JSExpressionVisitor(this._inner);
 
+  @override
   Object? visitBinaryOperationExpression(BinaryOperationExpression node) =>
       _inner.visitBinaryOperationExpression(node);
+
+  @override
   Object? visitBooleanExpression(BooleanExpression node) =>
       _inner.visitBooleanExpression(node);
+
+  @override
   Object? visitColorExpression(ColorExpression node) =>
       _inner.visitColorExpression(node);
+
+  @override
   Object? visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
   ) =>
       _inner.visitInterpolatedFunctionExpression(node);
+
+  @override
   Object? visitFunctionExpression(FunctionExpression node) =>
       _inner.visitFunctionExpression(node);
+
+  @override
   Object? visitIfExpression(IfExpression node) =>
       _inner.visitIfExpression(node);
+
+  @override
   Object? visitLegacyIfExpression(LegacyIfExpression node) =>
       _inner.visitLegacyIfExpression(node);
+
+  @override
   Object? visitListExpression(ListExpression node) =>
       _inner.visitListExpression(node);
+
+  @override
   Object? visitMapExpression(MapExpression node) =>
       _inner.visitMapExpression(node);
+
+  @override
   Object? visitNullExpression(NullExpression node) =>
       _inner.visitNullExpression(node);
+
+  @override
   Object? visitNumberExpression(NumberExpression node) =>
       _inner.visitNumberExpression(node);
+
+  @override
   Object? visitParenthesizedExpression(ParenthesizedExpression node) =>
       _inner.visitParenthesizedExpression(node);
+
+  @override
   Object? visitSelectorExpression(SelectorExpression node) =>
       _inner.visitSelectorExpression(node);
+
+  @override
   Object? visitStringExpression(StringExpression node) =>
       _inner.visitStringExpression(node);
+
+  @override
   Object? visitSupportsExpression(SupportsExpression node) =>
       _inner.visitSupportsExpression(node);
+
+  @override
   Object? visitUnaryOperationExpression(UnaryOperationExpression node) =>
       _inner.visitUnaryOperationExpression(node);
+
+  @override
   Object? visitValueExpression(ValueExpression node) =>
       _inner.visitValueExpression(node);
+
+  @override
   Object? visitVariableExpression(VariableExpression node) =>
       _inner.visitVariableExpression(node);
 }

@@ -81,6 +81,7 @@ class InterpolationMethod {
     return InterpolationMethod(space, hueMethod);
   }
 
+  @override
   String toString() => space.toString() + (hue == null ? '' : ' $hue hue');
 }
 

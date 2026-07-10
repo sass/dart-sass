@@ -23,20 +23,25 @@ class SassList extends Value {
   // We don't use public fields because they'd be overridden by the getters of
   // the same name in the JS API.
 
+  @override
   ListSeparator get separator => _separator;
   final ListSeparator _separator;
 
+  @override
   bool get hasBrackets => _hasBrackets;
   final bool _hasBrackets;
 
   /// @nodoc
+  @override
   @internal
   bool get isBlank =>
       !hasBrackets && asList.every((element) => element.isBlank);
 
+  @override
   List<Value> get asList => _contents;
 
   /// @nodoc
+  @override
   @internal
   int get lengthAsList => asList.length;
 
@@ -61,6 +66,7 @@ class SassList extends Value {
 
   /// Add parentheses to the debug information for lists to help make the list
   /// bounds clear.
+  @override
   String toString() {
     if (hasBrackets ||
         lengthAsList == 0 ||
@@ -72,14 +78,18 @@ class SassList extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitList(this);
 
+  @override
   SassMap assertMap([String? name]) =>
       asList.isEmpty ? const SassMap.empty() : super.assertMap(name);
 
+  @override
   SassMap? tryMap() => asList.isEmpty ? const SassMap.empty() : null;
 
+  @override
   bool operator ==(Object other) =>
       (other is SassList &&
           other.separator == separator &&
@@ -87,6 +97,7 @@ class SassList extends Value {
           listEquals(other.asList, asList)) ||
       (asList.isEmpty && other is SassMap && other.asList.isEmpty);
 
+  @override
   int get hashCode => listHash(asList);
 }
 
@@ -119,5 +130,6 @@ enum ListSeparator {
 
   const ListSeparator(this._name, this.separator);
 
+  @override
   String toString() => _name;
 }

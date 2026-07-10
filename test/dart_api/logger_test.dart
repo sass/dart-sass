@@ -344,6 +344,7 @@ class _TestLogger implements Logger {
 
   _TestLogger.withDebug(this._debug) : _warn = const Logger.stderr().warn;
 
+  @override
   void warn(
     String message, {
     FileSpan? span,
@@ -351,5 +352,7 @@ class _TestLogger implements Logger {
     bool deprecation = false,
   }) =>
       _warn(message, span: span, trace: trace, deprecation: deprecation);
+
+  @override
   void debug(String message, SourceSpan span) => _debug(message, span);
 }

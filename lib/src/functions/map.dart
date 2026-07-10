@@ -197,7 +197,7 @@ final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {
 Value _modify(
   SassMap map,
   Iterable<Value> keys,
-  Value modify(Value old), {
+  Value Function(Value old) modify, {
   bool addNesting = true,
 }) {
   var keyIterator = keys.iterator;
@@ -250,6 +250,6 @@ SassMap _deepMergeImpl(SassMap map1, SassMap map2) {
 BuiltInCallable _function(
   String name,
   String arguments,
-  Value callback(List<Value> arguments),
+  Value Function(List<Value> arguments) callback,
 ) =>
     BuiltInCallable.function(name, arguments, callback, url: "sass:map");

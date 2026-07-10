@@ -17,11 +17,14 @@ final class DebugRule extends Statement {
   /// The expression to print.
   final Expression expression;
 
+  @override
   final FileSpan span;
 
   DebugRule(this.expression, this.span);
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitDebugRule(this);
 
+  @override
   String toString() => "@debug $expression;";
 }

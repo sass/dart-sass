@@ -27,6 +27,7 @@ final class ForRule extends ParentStatement<List<Statement>> {
   /// Whether [to] is exclusive.
   final bool isExclusive;
 
+  @override
   final FileSpan span;
 
   ForRule(
@@ -39,8 +40,10 @@ final class ForRule extends ParentStatement<List<Statement>> {
   })  : isExclusive = exclusive,
         super(List.unmodifiable(children));
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitForRule(this);
 
+  @override
   String toString() =>
       "@for \$$variable from $from ${isExclusive ? 'to' : 'through'} $to "
       "{${children.join(" ")}}";

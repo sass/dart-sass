@@ -26,7 +26,7 @@ void addBumpVersionTasks() {
     for (var dev in [true, false]) {
       addTask(
         GrinderTask(
-          'bump-version-${patch ? 'patch' : 'minor'}' + (dev ? '-dev' : ''),
+          'bump-version-${patch ? 'patch' : 'minor'}${dev ? '-dev' : ''}',
           taskFunction: () => _bumpVersion(patch, dev),
           description: 'Bump the version of all packages to the next '
               '${patch ? 'patch' : 'minor'}${dev ? ' dev' : ''} version',
@@ -127,10 +127,9 @@ void _bumpVersion(bool patch, bool dev) {
     packageJson.nodes["version"]!.span,
   );
   File(packageJsonPath).writeAsStringSync(
-    JsonEncoder.withIndent(
-          "  ",
-        ).convert({...packageJson, "version": version.toString()}) +
-        "\n",
+    "${JsonEncoder.withIndent(
+      "  ",
+    ).convert({...packageJson, "version": version.toString()})}\n",
   );
   addChangelogEntry("pkg/sass-parser", version);
 }

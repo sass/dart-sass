@@ -65,6 +65,7 @@ abstract class LoggerWithDeprecationType implements Logger {
   ///
   /// For non-user deprecation warnings, the [warnForDeprecation] extension
   /// method should be called instead.
+  @override
   void warn(
     String message, {
     FileSpan? span,
@@ -119,11 +120,13 @@ extension WarnForDeprecation on Logger {
 
 /// A logger that emits no messages.
 final class _QuietLogger implements Logger {
+  @override
   void warn(
     String message, {
     FileSpan? span,
     Trace? trace,
     bool deprecation = false,
   }) {}
+  @override
   void debug(String message, SourceSpan span) {}
 }
