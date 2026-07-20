@@ -98,6 +98,7 @@ jobs:
                      --platform "$PLATFORM" \
                      --volume "$PWD:$PWD" \
                      --workdir "$PWD" \
+                     --env "LIB=$LIB" \
                      --env "TARGET=$TARGET" \
                      "$IMAGE" <<'EOF'
           set -e
