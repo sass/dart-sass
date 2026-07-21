@@ -1,3 +1,7 @@
+## 1.101.3
+
+* No user-visible changes.
+
 ## 1.101.2
 
 * Fix a bug where the deprecation warning for vendor-prefixed `expression()`

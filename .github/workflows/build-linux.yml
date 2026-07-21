@@ -79,6 +79,7 @@ jobs:
                      --platform "$PLATFORM" \
                      --volume "$PWD:$PWD" \
                      --workdir "$PWD" \
+                     --env "TARGET=$TARGET" \
                      "$IMAGE" <<'EOF'
           set -e
           dart pub get
@@ -97,6 +98,8 @@ jobs:
                      --platform "$PLATFORM" \
                      --volume "$PWD:$PWD" \
                      --workdir "$PWD" \
+                     --env "LIB=$LIB" \
+                     --env "TARGET=$TARGET" \
                      "$IMAGE" <<'EOF'
           set -e
           export DART_SDK="/system/$LIB/dart"

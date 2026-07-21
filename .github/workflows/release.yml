@@ -76,6 +76,9 @@ jobs:
     name: Deploy npm
     runs-on: ubuntu-latest
 
+    permissions:
+      id-token: write # Authenticating npm trusted publishing
+
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with: {persist-credentials: false}
@@ -92,6 +95,9 @@ jobs:
   deploy_pub:
     name: Deploy Pub
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write # Pushes sass-api tag
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
