@@ -2945,9 +2945,10 @@ final class _EvaluateVisitor
     }
 
     if (results == null) return sassNull;
-    return SassString(
-        'if(${results.map((pair) => '${pair.$1}: ${pair.$2}').join('; ')})',
-        quotes: false);
+    var args = results
+        .map((pair) => '${pair.$1}: ${pair.$2.toCssString()}')
+        .join('; ');
+    return SassString('if($args)', quotes: false);
   }
 
   @override
