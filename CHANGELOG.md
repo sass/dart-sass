@@ -1,3 +1,13 @@
+## 1.101.4
+
+* Avoid emitting `rgb()` or `rgba()` functions with non-percent decimal
+  channels. Older browsers only support integer values or (potentially decimal)
+  percentages for these functions, so in order to preserve
+  backwards-compatibility while retaining full precision for modern browsers,
+  legacy colors that contain at least one non-integer channel will now use
+  percentages for their channels (for example, `rgb(0%, 100%, 50%)` rather than
+  `rgb(0, 255, 127.5)`).
+
 ## 1.101.3
 
 * No user-visible changes.
