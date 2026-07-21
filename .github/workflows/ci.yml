@@ -54,3 +54,4 @@ jobs:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
       PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
       CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
+      SASS_SITE_TOKEN: ${{ secrets.SASS_SITE_TOKEN }}

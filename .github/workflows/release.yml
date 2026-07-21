@@ -12,6 +12,9 @@ on:
       CHOCOLATEY_TOKEN:
         description: 'Credentials for publishing to Chocolatey'
         required: true
+      SASS_SITE_TOKEN:
+        description: 'Credentials for publishing sass-lang.com'
+        required: true
 permissions: {}
 
 concurrency:
@@ -71,6 +74,8 @@ jobs:
 
       - name: Release
         run: gh release upload "$GITHUB_REF_NAME" build-*/* --repo "$GITHUB_ACTION_REPOSITORY"
+        env:
+          GH_TOKEN: "${{ secrets.GH_TOKEN }}" 
 
   deploy_npm:
     name: Deploy npm
@@ -102,7 +107,7 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
-          persist-credentials: false
+          persist-credentials: true
           # We have to use this rather than the implicit GitHub token so that
           # pushing a new tag triggers another action.
           token: ${{ secrets.GH_TOKEN }}
