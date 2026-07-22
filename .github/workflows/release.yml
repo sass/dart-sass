@@ -73,7 +73,7 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
 
       - name: Release
-        run: gh release upload "$GITHUB_REF_NAME" build-*/* --repo "$GITHUB_ACTION_REPOSITORY"
+        run: gh release upload "$GITHUB_REF_NAME" build-*/* --repo "$GITHUB_REPOSITORY"
         env:
           GH_TOKEN: "${{ secrets.GH_TOKEN }}" 
 
@@ -183,7 +183,7 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
-          persist-credentials: false
+          persist-credentials: true
           token: ${{ secrets.GH_TOKEN }}
       # Set up .npmrc file to publish to npm
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
