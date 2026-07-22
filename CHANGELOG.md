@@ -8,6 +8,9 @@
   percentages for their channels (for example, `rgb(0%, 100%, 50%)` rather than
   `rgb(0, 255, 127.5)`).
 
+* Fix a bug where the values of plain-CSS `if()` expressions were emitted using
+  their `meta.inspect()` format rather than their CSS serialization format.
+
 ## 1.101.3
 
 * No user-visible changes.
