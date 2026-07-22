@@ -69,15 +69,11 @@ jobs:
       contents: write # Uploads release
 
     steps:
-      # "gh release" requires itself to be run in a Git repository even when
-      # another repository is specified via `--repo`.
-      - run: git init
-
       - name: Download Artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
 
       - name: Release
-        run: gh release upload "$GITHUB_REF_NAME" build-*/* --repo "$GITHUB_ACTION_REPOSITORY"
+        run: gh release upload "$GITHUB_REF_NAME" build-*/* --repo "$GITHUB_REPOSITORY"
         env:
           GH_TOKEN: "${{ secrets.GH_TOKEN }}" 
 
