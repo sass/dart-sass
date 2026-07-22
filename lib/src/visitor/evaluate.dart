@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: d731d659458005ab865ef9f40f93781786638a37
+// Checksum: 92606b8a948cf4ad5f881b5f63680ab02c32afaa
 //
 // ignore_for_file: unused_import
 
@@ -2948,9 +2948,10 @@ final class _EvaluateVisitor
     }
 
     if (results == null) return sassNull;
-    return SassString(
-        'if(${results.map((pair) => '${pair.$1}: ${pair.$2}').join('; ')})',
-        quotes: false);
+    var args = results
+        .map((pair) => '${pair.$1}: ${pair.$2.toCssString()}')
+        .join('; ');
+    return SassString('if($args)', quotes: false);
   }
 
   @override

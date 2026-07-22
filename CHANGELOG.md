@@ -1,6 +1,7 @@
 ## 1.101.4-dev
 
-* No user-visible changes.
+* Fix a bug where the values of plain-CSS `if()` expressions were emitted using
+  their `meta.inspect()` format rather than their CSS serialization format.
 
 ## 1.101.3
 
