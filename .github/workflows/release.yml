@@ -272,8 +272,12 @@ jobs:
 
       - run:
           git commit --all --allow-empty
-            --author "Sass Bot <sass.bot.beep.boop@gmail.com>"
             --message "Cut a release for a new Dart Sass version"
+        env:
+          GIT_AUTHOR_NAME: Sass Bot
+          GIT_AUTHOR_EMAIL: sass.bot.beep.boop@gmail.com
+          GIT_COMMITTER_NAME: Sass Bot
+          GIT_COMMITTER_EMAIL: sass.bot.beep.boop@gmail.com
       - run: git push
 
   release_embedded_host:
@@ -324,10 +328,12 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
           PROTOCOL_VERSION: ${{ steps.version.outputs.protocol_version }}
 
-      - run:
-          git commit --all
-            --author "Sass Bot <sass.bot.beep.boop@gmail.com>"
-            --message "Update Dart Sass version and release"
+      - run: git commit --all --message "Update Dart Sass version and release"
+        env:
+          GIT_AUTHOR_NAME: Sass Bot
+          GIT_AUTHOR_EMAIL: sass.bot.beep.boop@gmail.com
+          GIT_COMMITTER_NAME: Sass Bot
+          GIT_COMMITTER_EMAIL: sass.bot.beep.boop@gmail.com
       - run: git tag "$VERSION"
         env:
           VERSION: ${{ steps.version.outputs.version }}
