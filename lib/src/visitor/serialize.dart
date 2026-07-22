@@ -114,7 +114,10 @@ String serializeSelector(Selector selector, {bool inspect = false}) {
 final class _SerializeVisitor
     implements CssVisitor<void>, ValueVisitor<void>, SelectorVisitor<void> {
   /// A buffer that contains the CSS produced so far.
-  final SourceMapBuffer _buffer;
+  ///
+  /// This can be temporarily replaced to capture a particular chunk of
+  /// serialization to a string.
+  SourceMapBuffer _buffer;
 
   /// The current indentation of the CSS output.
   var _indentation = 0;
@@ -763,42 +766,17 @@ final class _SerializeVisitor
     // In compressed mode, emit colors in the shortest representation possible.
     if (_isCompressed) {
       var rgb = color.toSpace(ColorSpace.rgb);
-      if (opaque && _tryIntegerRgb(rgb)) return;
+      if (opaque && _tryHexOrNamedRgb(rgb)) return;
 
-      var red = _writeNumberToString(rgb.channel0);
-      var green = _writeNumberToString(rgb.channel1);
-      var blue = _writeNumberToString(rgb.channel2);
-
-      var hsl = color.toSpace(ColorSpace.hsl);
-      var hue = _writeNumberToString(hsl.channel0);
-      var saturation = _writeNumberToString(hsl.channel1);
-      var lightness = _writeNumberToString(hsl.channel2);
+      var rgbString = _capture(() => _writeRgb(rgb));
+      var hslString = _capture(() => _writeHsl(rgb.toSpace(ColorSpace.hsl)));
 
       // Add two characters for HSL for the %s on saturation and lightness.
-      if (red.length + green.length + blue.length <=
-          hue.length + saturation.length + lightness.length + 2) {
-        _buffer
-          ..write(opaque ? 'rgb(' : 'rgba(')
-          ..write(red)
-          ..writeCharCode($comma)
-          ..write(green)
-          ..writeCharCode($comma)
-          ..write(blue);
+      if (rgbString.length <= hslString.length + 2) {
+        _buffer.write(rgbString);
       } else {
-        _buffer
-          ..write(opaque ? 'hsl(' : 'hsla(')
-          ..write(hue)
-          ..writeCharCode($comma)
-          ..write(saturation)
-          ..write('%,')
-          ..write(lightness)
-          ..writeCharCode($percent);
+        _buffer.write(hslString);
       }
-      if (!opaque) {
-        _buffer.writeCharCode($comma);
-        _writeNumber(color.alpha);
-      }
-      _buffer.writeCharCode($rparen);
       return;
     }
 
@@ -852,7 +830,7 @@ final class _SerializeVisitor
   ///
   /// Otherwise, writes nothing and returns `false`. Assumes [value] is in the
   /// RGB space.
-  bool _tryIntegerRgb(SassColor rgb) {
+  bool _tryHexOrNamedRgb(SassColor rgb) {
     assert(rgb.space == ColorSpace.rgb);
     if (!_canUseHex(rgb)) return false;
 
@@ -898,11 +876,14 @@ final class _SerializeVisitor
     var opaque = fuzzyEquals(color.alpha, 1);
     var rgb = color.toSpace(ColorSpace.rgb);
     _buffer.write(opaque ? "rgb(" : "rgba(");
-    _writeNumber(rgb.channel('red'));
-    _buffer.write(_commaSeparator);
-    _writeNumber(rgb.channel('green'));
-    _buffer.write(_commaSeparator);
-    _writeNumber(rgb.channel('blue'));
+
+    if (!_tryIntegerRgbChannels(rgb)) {
+      _writeChannel(color.channel0 * 100 / 255, '%');
+      _buffer.write(_commaSeparator);
+      _writeChannel(color.channel1 * 100 / 255, '%');
+      _buffer.write(_commaSeparator);
+      _writeChannel(color.channel2 * 100 / 255, '%');
+    }
 
     if (!opaque) {
       _buffer.write(_commaSeparator);
@@ -910,6 +891,32 @@ final class _SerializeVisitor
     }
 
     _buffer.writeCharCode($rparen);
+  }
+
+  /// If [value]'s channels are all integers, writes them as such and returns
+  /// `true`.
+  ///
+  /// Otherwise, writes nothing and returns `false`. Assumes [value] is in the
+  /// RGB space.
+  bool _tryIntegerRgbChannels(SassColor rgb) {
+    assert(rgb.space == ColorSpace.rgb);
+
+    var red = _asInt(rgb.channel0);
+    if (red == null) return false;
+
+    var green = _asInt(rgb.channel1);
+    if (green == null) return false;
+
+    var blue = _asInt(rgb.channel2);
+    if (blue == null) return false;
+
+    _buffer.write(_removeExponent(red.toString()));
+    _buffer.write(_commaSeparator);
+    _buffer.write(_removeExponent(green.toString()));
+    _buffer.write(_commaSeparator);
+    _buffer.write(_removeExponent(blue.toString()));
+
+    return true;
   }
 
   /// Writes [value] as an `hsl()` or `hsla()` function.
@@ -1143,30 +1150,23 @@ final class _SerializeVisitor
     }
   }
 
-  /// Like [_writeNumber], but returns a string rather than writing to
-  /// [_buffer].
-  String _writeNumberToString(double number) {
-    var buffer = NoSourceMapBuffer();
-    _writeNumber(number, buffer);
-    return buffer.toString();
-  }
-
   /// Writes [number] without exponent notation and with at most
   /// [SassNumber.precision] digits after the decimal point.
   ///
   /// The number is written to [buffer], which defaults to [_buffer].
-  void _writeNumber(double number, [SourceMapBuffer? buffer]) {
-    buffer ??= _buffer;
+  void _writeNumber(double number) {
+    if (!number.isFinite) {
+      visitCalculation(
+          SassCalculation.unsimplified('calc', [SassNumber(number)]));
+      return;
+    }
 
     // Dart always converts integers to strings in the obvious way, so all we
     // have to do is clamp doubles that are close to being integers.
-    if (fuzzyAsInt(number) case var integer?
-        // In inspect mode, we want to show the full precision of every number,
-        // so we only write them as integers when they're precisely equal.
-        when !_inspect || number == integer) {
+    if (_asInt(number) case var integer?) {
       // JS still uses exponential notation for integers, so we have to handle
       // it here.
-      buffer.write(_removeExponent(integer.toString()));
+      _buffer.write(_removeExponent(integer.toString()));
       return;
     }
 
@@ -1174,7 +1174,7 @@ final class _SerializeVisitor
 
     // Write the number at full precision in inspect mode.
     if (_inspect) {
-      buffer.write(text);
+      _buffer.write(text);
       return;
     }
 
@@ -1185,11 +1185,22 @@ final class _SerializeVisitor
 
     if (canWriteDirectly) {
       if (_isCompressed && text.codeUnitAt(0) == $0) text = text.substring(1);
-      buffer.write(text);
+      _buffer.write(text);
       return;
     }
 
-    _writeRounded(text, buffer);
+    _writeRounded(text, _buffer);
+  }
+
+  /// If [number] is close enough to an integer, returns it as one.
+  ///
+  /// Normally, "close enough" includes fuzzy matching, but in inspect mode we
+  /// want to show the full precision of every number so "close enough" requires
+  /// literally being an integer.
+  int? _asInt(double number) {
+    if (_inspect) return fuzzyAsInt(number);
+    var rounded = number.round();
+    return rounded == number ? rounded : null;
   }
 
   /// If [text] is written in exponent notation, returns a string representation
@@ -1854,6 +1865,19 @@ final class _SerializeVisitor
   bool _isInvisible(CssNode node) =>
       !_inspect &&
       (_isCompressed ? node.isInvisibleHidingComments : node.isInvisible);
+
+  /// Runs [callback] without adding to [_buffer] and returns the text it would
+  /// have emitted.
+  String _capture(void Function() callback) {
+    var oldBuffer = _buffer;
+    _buffer = NoSourceMapBuffer();
+    try {
+      callback();
+      return _buffer.toString();
+    } finally {
+      _buffer = oldBuffer;
+    }
+  }
 }
 
 /// An enum of generated CSS styles.
