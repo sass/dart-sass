@@ -254,7 +254,7 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
-          persist-credentials: false
+          persist-credentials: true
           repository: sass/sass-site
           token: ${{ secrets.SASS_SITE_TOKEN }}
 
@@ -288,7 +288,7 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
-          persist-credentials: false
+          persist-credentials: true
           repository: sass/embedded-host-node
           token: ${{ secrets.GH_TOKEN }}
 
