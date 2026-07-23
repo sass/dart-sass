@@ -16,6 +16,7 @@ final class JSSyncReceivePort implements SyncReceivePort {
 
   JSSyncReceivePort(MessagePort port) : _port = SyncMessagePort(port);
 
+  @override
   Uint8List receive() {
     return (_port.receiveMessage()! as JSUint8Array).toDart;
   }
@@ -26,6 +27,7 @@ final class JSSendPort implements SendPort {
 
   JSSendPort(this._port);
 
+  @override
   void send(Object? message) {
     var array = (message! as Uint8List).toJS;
     _port.postMessage(array, [array.buffer].toJS);

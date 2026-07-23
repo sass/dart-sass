@@ -198,9 +198,11 @@ jobs:
       - name: Initialize embedded host
         run: |
           npm install
-          npm run init -- --compiler-path=.. --language-path=../build/language ${{ matrix.js && '--compiler-js' || '' }}
+          npm run init -- --compiler-path=.. --language-path=../build/language "$COMPILER_JS_OPTION"
           npm run compile
         working-directory: embedded-host-node
+        env:
+          COMPILER_JS_OPTION: ${{ matrix.js && '--compiler-js' || '--no-compiler-js' }}
 
       - name: Version info
         run: node dist/bin/sass.js --version
