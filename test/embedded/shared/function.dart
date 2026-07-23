@@ -16,7 +16,7 @@ final _null = Value()..singleton = SingletonValue.NULL;
 
 late EmbeddedProcess _process;
 
-void sharedTests(Future<EmbeddedProcess> runSassEmbedded()) async {
+void sharedTests(Future<EmbeddedProcess> Function() runSassEmbedded) async {
   setUp(() async {
     _process = await runSassEmbedded();
   });

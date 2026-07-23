@@ -13,6 +13,7 @@ final class MailboxSyncReceivePort implements SyncReceivePort {
 
   MailboxSyncReceivePort(this._mailbox);
 
+  @override
   Uint8List receive() {
     return _mailbox.take();
   }

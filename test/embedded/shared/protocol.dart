@@ -14,7 +14,7 @@ import 'package:sass/src/embedded/utils.dart';
 import 'embedded_process.dart';
 import 'utils.dart';
 
-void sharedTests(Future<EmbeddedProcess> runSassEmbedded()) {
+void sharedTests(Future<EmbeddedProcess> Function() runSassEmbedded) {
   late EmbeddedProcess process;
   setUp(() async {
     process = await runSassEmbedded();
