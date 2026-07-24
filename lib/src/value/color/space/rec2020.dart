@@ -11,12 +11,6 @@ import '../conversions.dart';
 import '../space.dart';
 import 'utils.dart';
 
-/// A constant used in the rec2020 gamma encoding/decoding functions.
-const _alpha = 1.09929682680944;
-
-/// A constant used in the rec2020 gamma encoding/decoding functions.
-const _beta = 0.018053968510807;
-
 /// The rec2020 color space.
 ///
 /// https://www.w3.org/TR/css-color-4/#predefined-rec2020
@@ -34,9 +28,7 @@ final class Rec2020ColorSpace extends ColorSpace {
   double toLinear(double channel) {
     // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
     var abs = channel.abs();
-    return abs < _beta * 4.5
-        ? channel / 4.5
-        : channel.sign * (math.pow((abs + _alpha - 1) / _alpha, 1 / 0.45));
+    return channel.sign * math.pow(abs, 2.40);
   }
 
   @override
@@ -44,9 +36,7 @@ final class Rec2020ColorSpace extends ColorSpace {
   double fromLinear(double channel) {
     // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
     var abs = channel.abs();
-    return abs > _beta
-        ? channel.sign * (_alpha * math.pow(abs, 0.45) - (_alpha - 1))
-        : 4.5 * channel;
+    return channel.sign * math.pow(abs, 1 / 2.40);
   }
 
   @override
