@@ -1,3 +1,8 @@
+## 1.102.0
+
+* Use the 2.4 gamma transfer function for rec2020, as specified by the latest
+  draft of CSS Color 4.
+
 ## 1.101.7
 
 * No user-visible changes.
