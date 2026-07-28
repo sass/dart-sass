@@ -49,7 +49,7 @@ jobs:
     needs: [build_linux, build_macos, build_windows]
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
@@ -85,7 +85,7 @@ jobs:
       id-token: write # Authenticating npm trusted publishing
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with:
@@ -105,7 +105,7 @@ jobs:
       contents: write # Pushes sass-api tag
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: true
           # We have to use this rather than the implicit GitHub token so that
@@ -137,7 +137,7 @@ jobs:
       id-token: write # npm trusted publishing
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
           token: ${{ secrets.GH_TOKEN }}
@@ -155,7 +155,7 @@ jobs:
         id: dart-sass-version
         run: echo "version=${GITHUB_REF_NAME}" | tee --append "$GITHUB_OUTPUT"
       - name: Check out the language repo
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
           repository: sass/sass
@@ -181,7 +181,7 @@ jobs:
       id-token: write # npm trusted publishing
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: true
           token: ${{ secrets.GH_TOKEN }}
@@ -221,7 +221,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
       - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260 # v1
       - run: dart pub get
@@ -237,7 +237,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
@@ -252,7 +252,7 @@ jobs:
     needs: [deploy_npm]
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: true
           repository: sass/sass-site
@@ -286,7 +286,7 @@ jobs:
     needs: [deploy_github]
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: true
           repository: sass/embedded-host-node
