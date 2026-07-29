@@ -204,6 +204,10 @@ jobs:
 
       - run: npm run compile
         working-directory: pkg/sass-parser/
+
+      - name: Wait for npm package scanning and CDN replication
+        run: sleep 20m
+
       - run: npm publish --provenance
         working-directory: pkg/sass-parser/
 
@@ -262,8 +266,8 @@ jobs:
         id: version
         run: echo "version=${GITHUB_REF_NAME}" | tee --append "$GITHUB_OUTPUT"
 
-      - name: Wait for npm registry's CDN to catch up on replications
-        run: sleep 600
+      - name: Wait for npm package scanning and CDN replication
+        run: sleep 20m
 
       - name: Update Dart Sass version
         run: npm install "sass@$VERSION" # zizmor: ignore[adhoc-packages]
