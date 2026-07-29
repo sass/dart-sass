@@ -35,14 +35,11 @@ describe('a container node', () => {
         const rule2 = new Rule({selector: '.bar'});
         const otherRoot = new Root({nodes: [rule1, rule2]});
         root.append(otherRoot);
-        expect(root.nodes[0]).toBeInstanceOf(Rule);
-        expect(root.nodes[0]).toHaveNode('parsedSelector', '.foo');
-        expect(root.nodes[1]).toBeInstanceOf(Rule);
-        expect(root.nodes[1]).toHaveNode('parsedSelector', '.bar');
-        expect(root.nodes[0].parent).toBe(root);
-        expect(root.nodes[1].parent).toBe(root);
-        expect(rule1.parent).toBeUndefined();
-        expect(rule2.parent).toBeUndefined();
+        expect(root.nodes[0]).toBe(rule1);
+        expect(root.nodes[1]).toBe(rule2);
+        expect(rule1.parent).toBe(root);
+        expect(rule2.parent).toBe(root);
+        expect(otherRoot.nodes).toHaveLength(0);
       });
 
       it('a PostCSS rule node', () => {
