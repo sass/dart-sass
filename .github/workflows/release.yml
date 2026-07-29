@@ -210,7 +210,7 @@ jobs:
       - name: Get Sass parser version
         id: sass-parser-version
         run: |
-          echo "version=$(jq .version pkg/sass-parser/package.json)" | tee --append "$GITHUB_OUTPUT"
+          echo "version=$(jq -r .version pkg/sass-parser/package.json)" | tee --append "$GITHUB_OUTPUT"
       - run: git tag "sass-parser/$VERSION"
         env:
           VERSION: ${{ steps.sass-parser-version.outputs.version }}
