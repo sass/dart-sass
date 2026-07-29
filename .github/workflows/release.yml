@@ -192,6 +192,9 @@ jobs:
           check-latest: true
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Wait for npm package scanning and CDN replication
+        run: sleep 20m
+
       # The repo package has a file dependency, but the released version needs a
       # real dependency on the released version of Sass.
       - name: Get Dart Sass version
@@ -204,9 +207,6 @@ jobs:
 
       - run: npm run compile
         working-directory: pkg/sass-parser/
-
-      - name: Wait for npm package scanning and CDN replication
-        run: sleep 20m
 
       - run: npm publish --provenance
         working-directory: pkg/sass-parser/
