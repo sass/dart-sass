@@ -196,6 +196,10 @@ jobs:
       - name: Get Dart Sass version
         id: dart-sass-version
         run: echo "version=${GITHUB_REF_NAME}" | tee --append "$GITHUB_OUTPUT"
+
+      # Run this in a loop until the package has finished its pre-publish checks
+      # and CDN propagation. npm says that in most cases it should be available
+      # in 15 minutes, but we wait 20 to give it some headroom.
       - run: until npm install "sass@$VERSION"; do sleep 60; done # zizmor: ignore[adhoc-packages]
         timeout-minutes: 20
         working-directory: pkg/sass-parser/
@@ -263,7 +267,9 @@ jobs:
         id: version
         run: echo "version=${GITHUB_REF_NAME}" | tee --append "$GITHUB_OUTPUT"
 
-
+      # Run this in a loop until the package has finished its pre-publish checks
+      # and CDN propagation. npm says that in most cases it should be available
+      # in 15 minutes, but we wait 20 to give it some headroom.
       - name: Update Dart Sass version
         run: until npm install "sass@$VERSION"; do sleep 60; done # zizmor: ignore[adhoc-packages]
         timeout-minutes: 20
