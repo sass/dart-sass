@@ -191,19 +191,24 @@ jobs:
           node-version: 'lts/*'
           check-latest: true
           registry-url: 'https://registry.npmjs.org'
-
       # The repo package has a file dependency, but the released version needs a
       # real dependency on the released version of Sass.
       - name: Get Dart Sass version
         id: dart-sass-version
         run: echo "version=${GITHUB_REF_NAME}" | tee --append "$GITHUB_OUTPUT"
-      - run: npm install "sass@$VERSION" # zizmor: ignore[adhoc-packages]
+
+      # Run this in a loop until the package has finished its pre-publish checks
+      # and CDN propagation. npm says that in most cases it should be available
+      # in 15 minutes, but we wait 20 to give it some headroom.
+      - run: until npm install "sass@$VERSION"; do sleep 60; done # zizmor: ignore[adhoc-packages]
+        timeout-minutes: 20
         working-directory: pkg/sass-parser/
         env:
           VERSION: ${{ steps.dart-sass-version.outputs.version }}
 
       - run: npm run compile
         working-directory: pkg/sass-parser/
+
       - run: npm publish --provenance
         working-directory: pkg/sass-parser/
 
@@ -262,11 +267,12 @@ jobs:
         id: version
         run: echo "version=${GITHUB_REF_NAME}" | tee --append "$GITHUB_OUTPUT"
 
-      - name: Wait for npm registry's CDN to catch up on replications
-        run: sleep 600
-
+      # Run this in a loop until the package has finished its pre-publish checks
+      # and CDN propagation. npm says that in most cases it should be available
+      # in 15 minutes, but we wait 20 to give it some headroom.
       - name: Update Dart Sass version
-        run: npm install "sass@$VERSION" # zizmor: ignore[adhoc-packages]
+        run: until npm install "sass@$VERSION"; do sleep 60; done # zizmor: ignore[adhoc-packages]
+        timeout-minutes: 20
         env:
           VERSION: ${{ steps.version.outputs.version }}
 
