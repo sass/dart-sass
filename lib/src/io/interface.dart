@@ -2,6 +2,9 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:isolate' show SendPort;
+export 'dart:isolate' show SendPort;
+
 import 'package:watcher/watcher.dart';
 
 /// An error thrown by [readFile].
@@ -88,6 +91,9 @@ String? getEnvironmentVariable(String name) => throw '';
 /// Gets and sets the exit code that the process will use when it exits.
 int get exitCode => throw '';
 set exitCode(int value) => throw '';
+
+/// Exit the current dart isolate or nodejs thread
+Never exitWorker([SendPort? finalMessagePort, Object? message]) => throw '';
 
 /// Recursively watches the directory at [path] for modifications.
 ///
