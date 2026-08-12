@@ -343,4 +343,4 @@ jobs:
       - run: git tag "$VERSION"
         env:
           VERSION: ${{ steps.version.outputs.version }}
-      - run: git push
+      - run: git push origin main --tags
