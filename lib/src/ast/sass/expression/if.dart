@@ -29,8 +29,9 @@ final class IfExpression extends Expression {
   final FileSpan span;
 
   IfExpression(
-      Iterable<(IfConditionExpression?, Expression)> branches, this.span)
-      : branches = List.unmodifiable(branches) {
+    Iterable<(IfConditionExpression?, Expression)> branches,
+    this.span,
+  ) : branches = List.unmodifiable(branches) {
     if (this.branches.isEmpty) {
       throw ArgumentError.value(this.branches, "branches", "may not be empty");
     }
@@ -103,7 +104,8 @@ final class IfConditionParenthesized extends IfConditionExpression {
       (InterpolationBuffer()
             ..writeCharCode($lparen)
             ..addInterpolation(
-                expression.toInterpolation(arbitrarySubstitution))
+              expression.toInterpolation(arbitrarySubstitution),
+            )
             ..writeCharCode($rparen))
           .interpolation(span);
 
@@ -134,7 +136,8 @@ final class IfConditionNegation extends IfConditionExpression {
       (InterpolationBuffer()
             ..write('not ')
             ..addInterpolation(
-                expression.toInterpolation(arbitrarySubstitution)))
+              expression.toInterpolation(arbitrarySubstitution),
+            ))
           .interpolation(span);
 
   @override
@@ -158,10 +161,13 @@ final class IfConditionOperation extends IfConditionExpression {
   FileSpan get span => expressions.first.span.expand(expressions.last.span);
 
   IfConditionOperation(Iterable<IfConditionExpression> expressions, this.op)
-      : expressions = List.unmodifiable(expressions) {
+    : expressions = List.unmodifiable(expressions) {
     if (this.expressions.length < 2) {
       throw ArgumentError.value(
-          this.expressions, "expressions", "must have length >= 2");
+        this.expressions,
+        "expressions",
+        "must have length >= 2",
+      );
     }
   }
 
@@ -177,8 +183,9 @@ final class IfConditionOperation extends IfConditionExpression {
       } else {
         buffer.write(' $op ');
       }
-      buffer
-          .addInterpolation(expression.toInterpolation(arbitrarySubstitution));
+      buffer.addInterpolation(
+        expression.toInterpolation(arbitrarySubstitution),
+      );
     }
     return buffer.interpolation(LazyFileSpan(() => span));
   }
@@ -208,22 +215,23 @@ final class IfConditionFunction extends IfConditionExpression {
   @override
   @internal
   bool get isArbitrarySubstitution => switch (name.asPlain?.toLowerCase()) {
-        "if" || "var" || "attr" => true,
-        var str? when str.startsWith("--") => true,
-        _ => false,
-      };
+    "if" || "var" || "attr" => true,
+    var str? when str.startsWith("--") => true,
+    _ => false,
+  };
 
   IfConditionFunction(this.name, this.arguments, this.span);
 
   /// @nodoc
   @override
   @internal
-  Interpolation toInterpolation(AstNode _) => (InterpolationBuffer()
-        ..addInterpolation(name)
-        ..writeCharCode($lparen)
-        ..addInterpolation(arguments)
-        ..writeCharCode($rparen))
-      .interpolation(span);
+  Interpolation toInterpolation(AstNode _) =>
+      (InterpolationBuffer()
+            ..addInterpolation(name)
+            ..writeCharCode($lparen)
+            ..addInterpolation(arguments)
+            ..writeCharCode($rparen))
+          .interpolation(span);
 
   @override
   T accept<T>(IfConditionExpressionVisitor<T> visitor) =>
@@ -250,11 +258,12 @@ final class IfConditionSass extends IfConditionExpression {
   @internal
   Interpolation toInterpolation(AstNode arbitrarySubstitution) =>
       throw MultiSourceSpanFormatException(
-          'if() conditions with arbitrary substitutions may not contain sass() '
-              'expressions.',
-          arbitrarySubstitution.span,
-          "arbitrary substitution",
-          {span: "sass() expression"});
+        'if() conditions with arbitrary substitutions may not contain sass() '
+            'expressions.',
+        arbitrarySubstitution.span,
+        "arbitrary substitution",
+        {span: "sass() expression"},
+      );
 
   @override
   T accept<T>(IfConditionExpressionVisitor<T> visitor) =>

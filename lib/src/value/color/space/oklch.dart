@@ -26,18 +26,18 @@ final class OklchColorSpace extends ColorSpace {
   bool get isPolarInternal => true;
 
   const OklchColorSpace()
-      : super('oklch', const [
-          LinearChannel(
-            'lightness',
-            0,
-            1,
-            conventionallyPercent: true,
-            lowerClamped: true,
-            upperClamped: true,
-          ),
-          LinearChannel('chroma', 0, 0.4, lowerClamped: true),
-          hueChannel,
-        ]);
+    : super('oklch', const [
+        LinearChannel(
+          'lightness',
+          0,
+          1,
+          conventionallyPercent: true,
+          lowerClamped: true,
+          upperClamped: true,
+        ),
+        LinearChannel('chroma', 0, 0.4, lowerClamped: true),
+        hueChannel,
+      ]);
 
   @override
   SassColor convert(

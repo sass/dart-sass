@@ -39,10 +39,10 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
     Value Function(List<Value> arguments) callback, {
     Object? url,
   }) : this.parsed(
-          name,
-          ParameterList.parse('@function $name($parameters) {', url: url),
-          callback,
-        );
+         name,
+         ParameterList.parse('@function $name($parameters) {', url: url),
+         callback,
+       );
 
   /// Creates a mixin with a single [parameters] declaration and a single
   /// [callback].
@@ -59,14 +59,14 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
     Object? url,
     bool acceptsContent = false,
   }) : this.parsed(
-          name,
-          ParameterList.parse('@mixin $name($parameters) {', url: url),
-          (arguments) {
-            callback(arguments);
-            return sassNull;
-          },
-          acceptsContent: acceptsContent,
-        );
+         name,
+         ParameterList.parse('@mixin $name($parameters) {', url: url),
+         (arguments) {
+           callback(arguments);
+           return sassNull;
+         },
+         acceptsContent: acceptsContent,
+       );
 
   /// Creates a callable with a single [parameters] declaration and a single
   /// [callback].
@@ -90,14 +90,14 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
     this.name,
     Map<String, Callback> overloads, {
     Object? url,
-  })  : _overloads = [
-          for (var (args, callback) in overloads.pairs)
-            (
-              ParameterList.parse('@function $name($args) {', url: url),
-              callback,
-            ),
-        ],
-        acceptsContent = false;
+  }) : _overloads = [
+         for (var (args, callback) in overloads.pairs)
+           (
+             ParameterList.parse('@function $name($args) {', url: url),
+             callback,
+           ),
+       ],
+       acceptsContent = false;
 
   BuiltInCallable._(this.name, this._overloads, this.acceptsContent);
 
@@ -143,17 +143,14 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// Returns a copy of this callable that emits a deprecation warning.
   @override
   BuiltInCallable withDeprecationWarning(String module, [String? newName]) =>
-      BuiltInCallable._(
-          name,
-          [
-            for (var (declaration, function) in _overloads)
-              (
-                declaration,
-                (args) {
-                  warnForGlobalBuiltIn(module, newName ?? name);
-                  return function(args);
-                },
-              ),
-          ],
-          acceptsContent);
+      BuiltInCallable._(name, [
+        for (var (declaration, function) in _overloads)
+          (
+            declaration,
+            (args) {
+              warnForGlobalBuiltIn(module, newName ?? name);
+              return function(args);
+            },
+          ),
+      ], acceptsContent);
 }

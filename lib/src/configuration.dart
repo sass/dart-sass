@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:collection';
+
 import 'ast/node.dart';
 import 'ast/sass.dart';
 import 'configured_value.dart';
@@ -58,8 +59,8 @@ final class Configuration {
   /// Empty configurations are always considered implicit, since they are
   /// ignored if the module has already been loaded.
   const Configuration.empty()
-      : _values = const {},
-        __originalConfiguration = null;
+    : _values = const {},
+      __originalConfiguration = null;
 
   bool get isEmpty => values.isEmpty;
 
@@ -101,7 +102,8 @@ final class Configuration {
   Configuration._(this._values, this.__originalConfiguration);
 
   @override
-  String toString() => "("
+  String toString() =>
+      "("
       "${[for (var (name, value) in values.pairs) "\$$name: $value"].join(",")}"
       ")";
 }

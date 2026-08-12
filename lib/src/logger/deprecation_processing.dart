@@ -143,7 +143,8 @@ final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
     }
 
     if (fatalDeprecations.contains(deprecation)) {
-      message += "\n\nThis is only an error because you've set the "
+      message +=
+          "\n\nThis is only an error because you've set the "
           '$deprecation deprecation to be fatal.\n'
           'Remove this setting if you need to keep using this feature.';
       throw switch ((span, trace)) {
@@ -155,8 +156,8 @@ final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
     if (silenceDeprecations.contains(deprecation)) return;
 
     if (limitRepetition) {
-      var count =
-          _warningCounts[deprecation] = (_warningCounts[deprecation] ?? 0) + 1;
+      var count = _warningCounts[deprecation] =
+          (_warningCounts[deprecation] ?? 0) + 1;
       if (count > _maxRepetitions) return;
     }
 

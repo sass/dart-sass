@@ -65,24 +65,23 @@ final _join = _function(
 
     var separator = switch (separatorParam.text) {
       "auto" => switch ((list1.separator, list2.separator)) {
-          (ListSeparator.undecided, ListSeparator.undecided) =>
-            ListSeparator.space,
-          (ListSeparator.undecided, var separator) ||
-          (var separator, _) =>
-            separator,
-        },
+        (ListSeparator.undecided, ListSeparator.undecided) =>
+          ListSeparator.space,
+        (ListSeparator.undecided, var separator) ||
+        (var separator, _) => separator,
+      },
       "space" => ListSeparator.space,
       "comma" => ListSeparator.comma,
       "slash" => ListSeparator.slash,
       _ => throw SassScriptException(
-          '\$separator: Must be "space", "comma", "slash", or "auto".',
-        ),
+        '\$separator: Must be "space", "comma", "slash", or "auto".',
+      ),
     };
 
     var bracketed =
         bracketedParam is SassString && bracketedParam.text == 'auto'
-            ? list1.hasBrackets
-            : bracketedParam.isTruthy;
+        ? list1.hasBrackets
+        : bracketedParam.isTruthy;
 
     var newList = [...list1.asList, ...list2.asList];
     return SassList(newList, separator, brackets: bracketed);
@@ -97,15 +96,16 @@ final _append = _function("append", r"$list, $val, $separator: auto", (
   var separatorParam = arguments[2].assertString("separator");
 
   var separator = switch (separatorParam.text) {
-    "auto" => list.separator == ListSeparator.undecided
-        ? ListSeparator.space
-        : list.separator,
+    "auto" =>
+      list.separator == ListSeparator.undecided
+          ? ListSeparator.space
+          : list.separator,
     "space" => ListSeparator.space,
     "comma" => ListSeparator.comma,
     "slash" => ListSeparator.slash,
     _ => throw SassScriptException(
-        '\$separator: Must be "space", "comma", "slash", or "auto".',
-      ),
+      '\$separator: Must be "space", "comma", "slash", or "auto".',
+    ),
   };
 
   var newList = [...list.asList, value];
@@ -165,5 +165,4 @@ BuiltInCallable _function(
   String name,
   String arguments,
   Value Function(List<Value> arguments) callback,
-) =>
-    BuiltInCallable.function(name, arguments, callback, url: "sass:list");
+) => BuiltInCallable.function(name, arguments, callback, url: "sass:list");

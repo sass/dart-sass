@@ -31,8 +31,8 @@ final class ListExpression extends Expression {
     this.separator,
     this.span, {
     bool brackets = false,
-  })  : contents = List.unmodifiable(contents),
-        hasBrackets = brackets;
+  }) : contents = List.unmodifiable(contents),
+       hasBrackets = brackets;
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
@@ -72,18 +72,18 @@ final class ListExpression extends Expression {
   /// Returns whether [expression], contained in `this`, needs parentheses when
   /// printed as Sass source.
   bool _elementNeedsParens(Expression expression) => switch (expression) {
-        ListExpression(
-          contents: [_, _, ...],
-          hasBrackets: false,
-          separator: var childSeparator,
-        ) =>
-          separator == ListSeparator.comma
-              ? childSeparator == ListSeparator.comma
-              : childSeparator != ListSeparator.undecided,
-        UnaryOperationExpression(
-          operator: UnaryOperator.plus || UnaryOperator.minus,
-        ) =>
-          separator == ListSeparator.space,
-        _ => false,
-      };
+    ListExpression(
+      contents: [_, _, ...],
+      hasBrackets: false,
+      separator: var childSeparator,
+    ) =>
+      separator == ListSeparator.comma
+          ? childSeparator == ListSeparator.comma
+          : childSeparator != ListSeparator.undecided,
+    UnaryOperationExpression(
+      operator: UnaryOperator.plus || UnaryOperator.minus,
+    ) =>
+      separator == ListSeparator.space,
+    _ => false,
+  };
 }

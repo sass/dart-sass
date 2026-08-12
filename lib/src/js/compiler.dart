@@ -62,14 +62,11 @@ final JSClass compilerClass = () {
       self._throwIfDisposed();
       return compile(path, options);
     },
-    'compileString': (
-      Compiler self,
-      String source, [
-      CompileStringOptions? options,
-    ]) {
-      self._throwIfDisposed();
-      return compileString(source, options);
-    },
+    'compileString':
+        (Compiler self, String source, [CompileStringOptions? options]) {
+          self._throwIfDisposed();
+          return compileString(source, options);
+        },
     'dispose': (Compiler self) {
       self._disposed = true;
     },
@@ -96,26 +93,20 @@ final JSClass asyncCompilerClass = () {
   );
 
   jsClass.defineMethods({
-    'compileAsync': (
-      AsyncCompiler self,
-      String path, [
-      CompileOptions? options,
-    ]) {
-      self._throwIfDisposed();
-      var compilation = compileAsync(path, options);
-      self.addCompilation(compilation);
-      return compilation;
-    },
-    'compileStringAsync': (
-      AsyncCompiler self,
-      String source, [
-      CompileStringOptions? options,
-    ]) {
-      self._throwIfDisposed();
-      var compilation = compileStringAsync(source, options);
-      self.addCompilation(compilation);
-      return compilation;
-    },
+    'compileAsync':
+        (AsyncCompiler self, String path, [CompileOptions? options]) {
+          self._throwIfDisposed();
+          var compilation = compileAsync(path, options);
+          self.addCompilation(compilation);
+          return compilation;
+        },
+    'compileStringAsync':
+        (AsyncCompiler self, String source, [CompileStringOptions? options]) {
+          self._throwIfDisposed();
+          var compilation = compileStringAsync(source, options);
+          self.addCompilation(compilation);
+          return compilation;
+        },
     'dispose': (AsyncCompiler self) {
       self._disposed = true;
       return futureToPromise(

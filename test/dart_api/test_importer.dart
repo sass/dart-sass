@@ -20,8 +20,8 @@ class TestImporter extends Importer {
     this._load, {
     Iterable<String>? nonCanonicalSchemes,
   }) : _nonCanonicalSchemes = nonCanonicalSchemes == null
-            ? const {}
-            : Set.unmodifiable(nonCanonicalSchemes);
+           ? const {}
+           : Set.unmodifiable(nonCanonicalSchemes);
 
   @override
   Uri? canonicalize(Uri url) => _canonicalize(url);

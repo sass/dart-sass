@@ -30,8 +30,7 @@ class SassException extends SourceSpanException {
   final Set<Uri> loadedUrls;
 
   SassException(super.message, FileSpan super.span, [Iterable<Uri>? loadedUrls])
-      : loadedUrls =
-            loadedUrls == null ? const {} : Set.unmodifiable(loadedUrls);
+    : loadedUrls = loadedUrls == null ? const {} : Set.unmodifiable(loadedUrls);
 
   /// Converts this to a [MultiSpanSassException] with the additional [span] and
   /// [label].
@@ -129,20 +128,15 @@ class MultiSpanSassException extends SassException
     this.primaryLabel,
     Map<FileSpan, String> secondarySpans, [
     Iterable<Uri>? loadedUrls,
-  ])  : secondarySpans = Map.unmodifiable(secondarySpans),
-        super(message, span, loadedUrls);
+  ]) : secondarySpans = Map.unmodifiable(secondarySpans),
+       super(message, span, loadedUrls);
 
   @override
   MultiSpanSassException withAdditionalSpan(FileSpan span, String label) =>
-      MultiSpanSassException(
-          message,
-          this.span,
-          primaryLabel,
-          {
-            ...secondarySpans,
-            span: label,
-          },
-          loadedUrls);
+      MultiSpanSassException(message, this.span, primaryLabel, {
+        ...secondarySpans,
+        span: label,
+      }, loadedUrls);
 
   @override
   MultiSpanSassRuntimeException withTrace(Trace trace) =>
@@ -206,15 +200,14 @@ class SassRuntimeException extends SassException {
   MultiSpanSassRuntimeException withAdditionalSpan(
     FileSpan span,
     String label,
-  ) =>
-      MultiSpanSassRuntimeException(
-        message,
-        this.span,
-        "",
-        {span: label},
-        trace,
-        loadedUrls,
-      );
+  ) => MultiSpanSassRuntimeException(
+    message,
+    this.span,
+    "",
+    {span: label},
+    trace,
+    loadedUrls,
+  );
 
   @override
   SassRuntimeException withLoadedUrls(Iterable<Uri> loadedUrls) =>
@@ -247,15 +240,14 @@ class MultiSpanSassRuntimeException extends MultiSpanSassException
   MultiSpanSassRuntimeException withAdditionalSpan(
     FileSpan span,
     String label,
-  ) =>
-      MultiSpanSassRuntimeException(
-        message,
-        this.span,
-        primaryLabel,
-        {...secondarySpans, span: label},
-        trace,
-        loadedUrls,
-      );
+  ) => MultiSpanSassRuntimeException(
+    message,
+    this.span,
+    primaryLabel,
+    {...secondarySpans, span: label},
+    trace,
+    loadedUrls,
+  );
 
   MultiSpanSassRuntimeException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       MultiSpanSassRuntimeException(
@@ -286,15 +278,9 @@ class SassFormatException extends SassException
   MultiSpanSassFormatException withAdditionalSpan(
     FileSpan span,
     String label,
-  ) =>
-      MultiSpanSassFormatException(
-          message,
-          this.span,
-          "",
-          {
-            span: label,
-          },
-          loadedUrls);
+  ) => MultiSpanSassFormatException(message, this.span, "", {
+    span: label,
+  }, loadedUrls);
 
   /// @nodoc
   @override
@@ -320,16 +306,10 @@ class MultiSpanSassFormatException extends MultiSpanSassException
   MultiSpanSassFormatException withAdditionalSpan(
     FileSpan span,
     String label,
-  ) =>
-      MultiSpanSassFormatException(
-          message,
-          this.span,
-          primaryLabel,
-          {
-            ...secondarySpans,
-            span: label,
-          },
-          loadedUrls);
+  ) => MultiSpanSassFormatException(message, this.span, primaryLabel, {
+    ...secondarySpans,
+    span: label,
+  }, loadedUrls);
 
   MultiSpanSassFormatException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       MultiSpanSassFormatException(
@@ -364,7 +344,7 @@ class SassScriptException {
   /// triggered this exception. If it's not null, it's automatically included in
   /// [message].
   SassScriptException(String message, [String? argumentName])
-      : message = argumentName == null ? message : "\$$argumentName: $message";
+    : message = argumentName == null ? message : "\$$argumentName: $message";
 
   /// Converts this to a [SassException] with the given [span].
   SassException withSpan(FileSpan span) => SassException(message, span);

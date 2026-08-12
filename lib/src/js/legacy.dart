@@ -10,6 +10,7 @@ import 'dart:typed_data';
 import 'package:cli_pkg/js.dart';
 import 'package:node_interop/js.dart';
 import 'package:path/path.dart' as p;
+
 import '../async_import_cache.dart';
 import '../import_cache.dart';
 import '../importer/node_package.dart';
@@ -49,16 +50,18 @@ void render(
     jsThrow(JsError("The render() method is only available in Node.js."));
   }
   if (options.fiber case var fiber?) {
-    fiber.call(
-      allowInterop(() {
-        try {
-          callback(null, renderSync(options));
-        } catch (error) {
-          callback(error, null);
-        }
-        return null;
-      }),
-    ).run();
+    fiber
+        .call(
+          allowInterop(() {
+            try {
+              callback(null, renderSync(options));
+            } catch (error) {
+              callback(error, null);
+            }
+            return null;
+          }),
+        )
+        .run();
   } else {
     _renderAsync(options).then(
       (result) {
@@ -88,10 +91,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
   CompileResult result;
 
   var file = options.file.andThen(p.absolute);
-  var logger = JSToDartLogger(
-    options.logger,
-    Logger.defaultLogger,
-  );
+  var logger = JSToDartLogger(options.logger, Logger.defaultLogger);
   if (options.data case var data?) {
     result = await compileStringAsync(
       data,
@@ -169,10 +169,7 @@ RenderResult renderSync(RenderOptions options) {
     CompileResult result;
 
     var file = options.file.andThen(p.absolute);
-    var logger = JSToDartLogger(
-      options.logger,
-      Logger.defaultLogger,
-    );
+    var logger = JSToDartLogger(options.logger, Logger.defaultLogger);
     if (options.data case var data?) {
       result = compileString(
         data,
@@ -364,8 +361,9 @@ NodeImporter _parseImporter(RenderOptions options, DateTime start) {
     var importer => [importer as JSFunction],
   };
 
-  var contextOptions =
-      importers.isNotEmpty ? _contextOptions(options, start) : Object();
+  var contextOptions = importers.isNotEmpty
+      ? _contextOptions(options, start)
+      : Object();
 
   if (options.fiber case var fiber?) {
     importers = importers.map((importer) {
@@ -444,25 +442,25 @@ RenderContextOptions _contextOptions(RenderOptions options, DateTime start) {
 
 /// Parse [style] into an [OutputStyle].
 OutputStyle _parseOutputStyle(String? style) => switch (style) {
-      null || 'expanded' => OutputStyle.expanded,
-      'compressed' => OutputStyle.compressed,
-      _ => jsThrow(JsError('Unknown output style "$style".')),
-    };
+  null || 'expanded' => OutputStyle.expanded,
+  'compressed' => OutputStyle.compressed,
+  _ => jsThrow(JsError('Unknown output style "$style".')),
+};
 
 /// Parses the indentation width into an [int].
 int? _parseIndentWidth(Object? width) => switch (width) {
-      null => null,
-      int() => width,
-      _ => int.parse(width.toString()),
-    };
+  null => null,
+  int() => width,
+  _ => int.parse(width.toString()),
+};
 
 /// Parses the name of a line feed type into a [LineFeed].
 LineFeed _parseLineFeed(String? str) => switch (str) {
-      'cr' => LineFeed.cr,
-      'crlf' => LineFeed.crlf,
-      'lfcr' => LineFeed.lfcr,
-      _ => LineFeed.lf,
-    };
+  'cr' => LineFeed.cr,
+  'crlf' => LineFeed.crlf,
+  'lfcr' => LineFeed.lfcr,
+  _ => LineFeed.lf,
+};
 
 /// Creates a [RenderResult] that exposes [result] in the Node Sass API format.
 RenderResult _newRenderResult(
@@ -476,8 +474,9 @@ RenderResult _newRenderResult(
   Uint8List? sourceMapBytes = undefined;
   if (_enableSourceMaps(options)) {
     var sourceMapOption = options.sourceMap;
-    var sourceMapPath =
-        sourceMapOption is String ? sourceMapOption : '${options.outFile!}.map';
+    var sourceMapPath = sourceMapOption is String
+        ? sourceMapOption
+        : '${options.outFile!}.map';
     var sourceMapDir = p.dirname(sourceMapPath);
 
     var sourceMap = result.sourceMap!;
@@ -489,8 +488,9 @@ RenderResult _newRenderResult(
         _ => sourceMap.targetUrl = 'stdin.css',
       };
     } else {
-      sourceMap.targetUrl =
-          p.toUri(p.relative(outFile, from: sourceMapDir)).toString();
+      sourceMap.targetUrl = p
+          .toUri(p.relative(outFile, from: sourceMapDir))
+          .toString();
     }
 
     var sourceMapDirUrl = p.toUri(sourceMapDir).toString();

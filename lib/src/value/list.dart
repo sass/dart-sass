@@ -49,14 +49,14 @@ class SassList extends Value {
   ///
   /// The [separator] defaults to [ListSeparator.undecided], and [brackets] defaults to `false`.
   const SassList.empty({ListSeparator? separator, bool brackets = false})
-      : _contents = const [],
-        _separator = separator ?? ListSeparator.undecided,
-        _hasBrackets = brackets;
+    : _contents = const [],
+      _separator = separator ?? ListSeparator.undecided,
+      _hasBrackets = brackets;
 
   /// Returns an empty list with the given [separator] and [brackets].
   SassList(Iterable<Value> contents, this._separator, {bool brackets = false})
-      : _contents = List.unmodifiable(contents),
-        _hasBrackets = brackets {
+    : _contents = List.unmodifiable(contents),
+      _hasBrackets = brackets {
     if (separator == ListSeparator.undecided && asList.length > 1) {
       throw ArgumentError(
         "A list with more than one element must have an explicit separator.",

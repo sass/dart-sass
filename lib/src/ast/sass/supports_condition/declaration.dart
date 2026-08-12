@@ -37,10 +37,10 @@ final class SupportsDeclaration implements SupportsCondition {
   /// @nodoc
   @internal
   bool get isCustomProperty => switch (name) {
-        StringExpression(hasQuotes: false, :var text) =>
-          text.initialPlain.startsWith('--'),
-        _ => false,
-      };
+    StringExpression(hasQuotes: false, :var text) =>
+      text.initialPlain.startsWith('--'),
+    _ => false,
+  };
 
   SupportsDeclaration(this.name, this.value, this.span);
 

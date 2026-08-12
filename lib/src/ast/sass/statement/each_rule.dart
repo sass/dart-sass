@@ -29,8 +29,8 @@ final class EachRule extends ParentStatement<List<Statement>> {
     this.list,
     Iterable<Statement> children,
     this.span,
-  )   : variables = List.unmodifiable(variables),
-        super(List.unmodifiable(children));
+  ) : variables = List.unmodifiable(variables),
+      super(List.unmodifiable(children));
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitEachRule(this);

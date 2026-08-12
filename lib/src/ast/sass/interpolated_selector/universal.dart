@@ -30,6 +30,8 @@ final class InterpolatedUniversalSelector extends InterpolatedSimpleSelector {
       visitor.visitUniversalSelector(this);
 
   @override
-  String toString() =>
-      switch (namespace) { var namespace? => '$namespace|*', _ => '*' };
+  String toString() => switch (namespace) {
+    var namespace? => '$namespace|*',
+    _ => '*',
+  };
 }

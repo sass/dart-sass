@@ -35,11 +35,11 @@ final Map<String, Deprecation?> deprecations = {
       deprecation.id: Deprecation(
         id: deprecation.id,
         status: (() => switch (deprecation) {
-              dart.Deprecation(isFuture: true) => 'future',
-              dart.Deprecation(deprecatedIn: null, obsoleteIn: null) => 'user',
-              dart.Deprecation(obsoleteIn: null) => 'active',
-              _ => 'obsolete',
-            })(),
+          dart.Deprecation(isFuture: true) => 'future',
+          dart.Deprecation(deprecatedIn: null, obsoleteIn: null) => 'user',
+          dart.Deprecation(obsoleteIn: null) => 'active',
+          _ => 'obsolete',
+        })(),
         description: deprecation.description,
         deprecatedIn: deprecation.deprecatedIn,
         obsoleteIn: deprecation.obsoleteIn,

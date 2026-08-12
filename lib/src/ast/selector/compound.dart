@@ -58,7 +58,7 @@ final class CompoundSelector extends Selector {
   );
 
   CompoundSelector(Iterable<SimpleSelector> components, super.span)
-      : components = List.unmodifiable(components) {
+    : components = List.unmodifiable(components) {
     if (this.components.isEmpty) {
       throw ArgumentError("components may not be empty.");
     }
@@ -79,13 +79,12 @@ final class CompoundSelector extends Selector {
     Object? url,
     bool allowParent = true,
     Logger? logger,
-  }) =>
-      SelectorParser(
-        contents,
-        url: url,
-        allowParent: allowParent,
-        logger: logger,
-      ).parseCompoundSelector();
+  }) => SelectorParser(
+    contents,
+    url: url,
+    allowParent: allowParent,
+    logger: logger,
+  ).parseCompoundSelector();
 
   @override
   T accept<T>(SelectorVisitor<T> visitor) =>

@@ -57,14 +57,11 @@ Future<void> deploySassApi() async {
   }
 
   log("dart pub publish ${pubspec.name}");
-  var process = await Process.start(
-      p.join(sdkDir.path, "bin/dart"),
-      [
-        "pub",
-        "publish",
-        "--force",
-      ],
-      workingDirectory: "pkg/sass_api");
+  var process = await Process.start(p.join(sdkDir.path, "bin/dart"), [
+    "pub",
+    "publish",
+    "--force",
+  ], workingDirectory: "pkg/sass_api");
   LineSplitter().bind(utf8.decoder.bind(process.stdout)).listen(log);
   LineSplitter().bind(utf8.decoder.bind(process.stderr)).listen(log);
   if (await process.exitCode != 0) {

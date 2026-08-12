@@ -31,8 +31,7 @@ abstract interface class AsyncCallable {
     String name,
     String arguments,
     FutureOr<Value> Function(List<Value> arguments) callback,
-  ) =>
-      AsyncCallable.function(name, arguments, callback);
+  ) => AsyncCallable.function(name, arguments, callback);
 
   /// Creates a callable with the given [name] and [arguments] that runs
   /// [callback] when called.
@@ -45,8 +44,7 @@ abstract interface class AsyncCallable {
     String name,
     String arguments,
     FutureOr<Value> Function(List<Value> arguments) callback,
-  ) =>
-      AsyncBuiltInCallable.function(name, arguments, callback);
+  ) => AsyncBuiltInCallable.function(name, arguments, callback);
 
   /// Creates a callable with a single [signature] and a single [callback].
   ///

@@ -20,7 +20,7 @@ final class ModifiableCssMediaRule extends ModifiableCssParentNode
   final FileSpan span;
 
   ModifiableCssMediaRule(Iterable<CssMediaQuery> queries, this.span)
-      : queries = List.unmodifiable(queries) {
+    : queries = List.unmodifiable(queries) {
     if (queries.isEmpty) {
       throw ArgumentError.value(queries, "queries", "may not be empty.");
     }

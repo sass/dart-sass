@@ -33,9 +33,9 @@ class SassMap extends Value {
 
   @override
   List<Value> get asList => [
-        for (var (key, value) in contents.pairs)
-          SassList([key, value], ListSeparator.space),
-      ];
+    for (var (key, value) in contents.pairs)
+      SassList([key, value], ListSeparator.space),
+  ];
 
   /// @nodoc
   @override

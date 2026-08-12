@@ -51,7 +51,8 @@ final class SassMixin extends Value {
   SassMixin assertCompileContext(Object compileContext) {
     if (_compileContext != null && _compileContext != compileContext) {
       throw SassScriptException(
-          "$this does not belong to current compilation.");
+        "$this does not belong to current compilation.",
+      );
     }
 
     return this;

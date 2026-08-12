@@ -77,7 +77,7 @@ class VarintBuilder {
 
   /// Returns a [ProtocolError] indicating that the varint exceeded [_maxLength].
   ProtocolError _tooLong() => parseError(
-        "Varint ${_name == null ? '' : '$_name '}was longer than "
-        "$_maxLength bits.",
-      );
+    "Varint ${_name == null ? '' : '$_name '}was longer than "
+    "$_maxLength bits.",
+  );
 }

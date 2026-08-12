@@ -32,9 +32,12 @@ final class DefaultLogger extends LoggerWithDeprecationType {
     FileSpan? span,
     Trace? trace,
     Deprecation? deprecation,
-  }) =>
-      _inner.internalWarn(message,
-          span: span, trace: trace, deprecation: deprecation);
+  }) => _inner.internalWarn(
+    message,
+    span: span,
+    trace: trace,
+    deprecation: deprecation,
+  );
 
   @override
   void debug(String message, SourceSpan span) => _inner.debug(message, span);

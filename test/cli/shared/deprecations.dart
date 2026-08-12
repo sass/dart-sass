@@ -8,7 +8,8 @@ import 'package:test_process/test_process.dart';
 
 /// Defines test that are shared between the Dart and Node.js CLI test suites.
 void sharedTests(
-    Future<TestProcess> Function(Iterable<String> arguments) runSass) {
+  Future<TestProcess> Function(Iterable<String> arguments) runSass,
+) {
   // Test complaining about invalid deprecations, combinations, etc
 
   group("--silence-deprecation", () {
@@ -29,8 +30,10 @@ void sharedTests(
           "--silence-deprecation=mixed-decls",
           "test.scss",
         ]);
-        expect(sass.stderr,
-            emits(contains("mixed-decls deprecation is obsolete")));
+        expect(
+          sass.stderr,
+          emits(contains("mixed-decls deprecation is obsolete")),
+        );
         await sass.shouldExit(0);
       });
 
@@ -216,8 +219,10 @@ void sharedTests(
           "--fatal-deprecation=mixed-decls",
           "test.scss",
         ]);
-        expect(sass.stderr,
-            emits(contains("mixed-decls deprecation is obsolete")));
+        expect(
+          sass.stderr,
+          emits(contains("mixed-decls deprecation is obsolete")),
+        );
         await sass.shouldExit(0);
       });
 
@@ -469,8 +474,10 @@ void sharedTests(
           "--future-deprecation=mixed-decls",
           "test.scss",
         ]);
-        expect(sass.stderr,
-            emits(contains("mixed-decls deprecation is obsolete")));
+        expect(
+          sass.stderr,
+          emits(contains("mixed-decls deprecation is obsolete")),
+        );
         await sass.shouldExit(0);
       });
 

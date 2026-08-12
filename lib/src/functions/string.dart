@@ -43,8 +43,9 @@ final module = BuiltInModule(
     _function("split", r"$string, $separator, $limit: null", (arguments) {
       var string = arguments[0].assertString("string");
       var separator = arguments[1].assertString("separator");
-      var limit =
-          arguments[2].realNull?.assertNumber("limit").assertInt("limit");
+      var limit = arguments[2].realNull
+          ?.assertNumber("limit")
+          .assertInt("limit");
 
       if (limit != null && limit < 1) {
         throw SassScriptException("\$limit: Must be 1 or greater, was $limit.");
@@ -245,5 +246,4 @@ BuiltInCallable _function(
   String name,
   String arguments,
   Value Function(List<Value> arguments) callback,
-) =>
-    BuiltInCallable.function(name, arguments, callback, url: "sass:string");
+) => BuiltInCallable.function(name, arguments, callback, url: "sass:string");

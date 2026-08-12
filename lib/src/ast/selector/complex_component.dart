@@ -40,16 +40,12 @@ final class ComplexSelectorComponent {
   @internal
   ComplexSelectorComponent withAdditionalCombinators(
     List<CssValue<Combinator>> combinators,
-  ) =>
-      combinators.isEmpty
-          ? this
-          : ComplexSelectorComponent(
-              selector,
-              [
-                ...this.combinators,
-                ...combinators,
-              ],
-              span);
+  ) => combinators.isEmpty
+      ? this
+      : ComplexSelectorComponent(selector, [
+          ...this.combinators,
+          ...combinators,
+        ], span);
 
   @override
   int get hashCode => selector.hashCode ^ listHash(combinators);

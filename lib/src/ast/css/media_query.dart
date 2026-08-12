@@ -46,20 +46,20 @@ final class CssMediaQuery {
     String contents, {
     Object? url,
     InterpolationMap? interpolationMap,
-  }) =>
-      MediaQueryParser(
-        contents,
-        url: url,
-        interpolationMap: interpolationMap,
-      ).parse();
+  }) => MediaQueryParser(
+    contents,
+    url: url,
+    interpolationMap: interpolationMap,
+  ).parse();
 
   /// Creates a media query specifies a type and, optionally, conditions.
   ///
   /// This always sets [conjunction] to `true`.
   CssMediaQuery.type(this.type, {this.modifier, Iterable<String>? conditions})
-      : conjunction = true,
-        conditions =
-            conditions == null ? const [] : List.unmodifiable(conditions);
+    : conjunction = true,
+      conditions = conditions == null
+          ? const []
+          : List.unmodifiable(conditions);
 
   /// Creates a media query that matches [conditions] according to
   /// [conjunction].
@@ -67,10 +67,10 @@ final class CssMediaQuery {
   /// The [conjunction] argument may not be null if [conditions] is longer than
   /// a single element.
   CssMediaQuery.condition(Iterable<String> conditions, {bool? conjunction})
-      : modifier = null,
-        type = null,
-        conjunction = conjunction ?? true,
-        conditions = List.unmodifiable(conditions) {
+    : modifier = null,
+      type = null,
+      conjunction = conjunction ?? true,
+      conditions = List.unmodifiable(conditions) {
     if (this.conditions.length > 1 && conjunction == null) {
       throw ArgumentError(
         "If conditions is longer than one element, conjunction may not be "
@@ -105,10 +105,12 @@ final class CssMediaQuery {
     List<String> conditions;
     if ((ourModifier == 'not') != (theirModifier == 'not')) {
       if (ourType == theirType) {
-        var negativeConditions =
-            ourModifier == 'not' ? this.conditions : other.conditions;
-        var positiveConditions =
-            ourModifier == 'not' ? other.conditions : this.conditions;
+        var negativeConditions = ourModifier == 'not'
+            ? this.conditions
+            : other.conditions;
+        var positiveConditions = ourModifier == 'not'
+            ? other.conditions
+            : this.conditions;
 
         // If the negative conditions are a subset of the positive conditions, the
         // query is empty. For example, `not screen and (color)` has no

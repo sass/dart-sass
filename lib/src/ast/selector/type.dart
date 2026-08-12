@@ -30,9 +30,9 @@ final class TypeSelector extends SimpleSelector {
   @override
   @internal
   TypeSelector addSuffix(String suffix) => TypeSelector(
-        QualifiedName(name.name + suffix, namespace: name.namespace),
-        span,
-      );
+    QualifiedName(name.name + suffix, namespace: name.namespace),
+    span,
+  );
 
   /// @nodoc
   @override

@@ -37,8 +37,7 @@ final class UnaryOperationExpression extends Expression {
     var needsParens = switch (operand) {
       BinaryOperationExpression() ||
       UnaryOperationExpression() ||
-      ListExpression(hasBrackets: false, contents: [_, _, ...]) =>
-        true,
+      ListExpression(hasBrackets: false, contents: [_, _, ...]) => true,
       _ => false,
     };
     if (needsParens) buffer.write($lparen);

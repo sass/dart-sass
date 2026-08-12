@@ -26,11 +26,12 @@ final class SupportsAnything implements SupportsCondition {
   /// @nodoc
   @override
   @internal
-  Interpolation toInterpolation() => (InterpolationBuffer()
-        ..write(span.before(contents.span).text)
-        ..addInterpolation(contents)
-        ..write(span.after(contents.span).text))
-      .interpolation(span);
+  Interpolation toInterpolation() =>
+      (InterpolationBuffer()
+            ..write(span.before(contents.span).text)
+            ..addInterpolation(contents)
+            ..write(span.after(contents.span).text))
+          .interpolation(span);
 
   /// @nodoc
   @override

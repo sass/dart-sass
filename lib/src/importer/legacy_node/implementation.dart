@@ -57,8 +57,8 @@ final class NodeImporter {
     this._options,
     Iterable<String> includePaths,
     Iterable<Object> importers,
-  )   : _includePaths = List.unmodifiable(_addSassPath(includePaths)),
-        _importers = List.unmodifiable(importers.cast());
+  ) : _includePaths = List.unmodifiable(_addSassPath(includePaths)),
+      _importers = List.unmodifiable(importers.cast());
 
   /// Returns [includePaths] followed by any paths loaded from the `SASS_PATH`
   /// environment variable.
@@ -109,8 +109,9 @@ final class NodeImporter {
     var previousString = _previousToString(previous);
     for (var importer in _importers) {
       if (wrapJSExceptions(
-        () => call2(importer, _renderContext(forImport), url, previousString),
-      )
+            () =>
+                call2(importer, _renderContext(forImport), url, previousString),
+          )
           case var value?) {
         return _handleImportResult(url, previous, value, forImport);
       }
@@ -144,10 +145,10 @@ final class NodeImporter {
 
   /// Converts [previous] to a string to pass to the importer function.
   String _previousToString(Uri? previous) => switch (previous) {
-        null => 'stdin',
-        Uri(scheme: 'file') => p.fromUri(previous),
-        _ => previous.toString(),
-      };
+    null => 'stdin',
+    Uri(scheme: 'file') => p.fromUri(previous),
+    _ => previous.toString(),
+  };
 
   /// Tries to load a stylesheet at the given [url] from a load path (including
   /// the working directory), if that URL refers to the filesystem.
@@ -156,8 +157,8 @@ final class NodeImporter {
   /// if loading failed.
   (String, String)? _resolveLoadPathFromUrl(Uri url, bool forImport) =>
       url.scheme == '' || url.scheme == 'file'
-          ? _resolveLoadPath(p.fromUri(url), forImport)
-          : null;
+      ? _resolveLoadPath(p.fromUri(url), forImport)
+      : null;
 
   /// Tries to load a stylesheet at the given [path] from a load path (including
   /// the working directory).
@@ -183,12 +184,13 @@ final class NodeImporter {
   ///
   /// Returns the stylesheet at that path and the URL used to load it, or `null`
   /// if loading failed.
-  (String, String)? _tryPath(String path, bool forImport) => (forImport
+  (String, String)? _tryPath(String path, bool forImport) =>
+      (forImport
               ? inImportRule(() => resolveImportPath(path))
               : resolveImportPath(path))
           .andThen(
-        (resolved) => (readFile(resolved), p.toUri(resolved).toString()),
-      );
+            (resolved) => (readFile(resolved), p.toUri(resolved).toString()),
+          );
 
   /// Converts an importer's return [value] to a (contents, url) pair that can
   /// be returned by [load].
@@ -220,7 +222,7 @@ final class NodeImporter {
     } else {
       var resolved =
           loadRelative(p.toUri(file).toString(), previous, forImport) ??
-              _resolveLoadPath(file, forImport);
+          _resolveLoadPath(file, forImport);
       if (resolved != null) return resolved;
       throw "Can't find stylesheet to import.";
     }

@@ -20,7 +20,7 @@ import 'visitor/find_dependencies.dart';
 /// contains those depended on via `@import`.
 typedef _UpstreamNodes = ({
   Map<Uri, StylesheetNode?> modules,
-  Map<Uri, StylesheetNode?> imports
+  Map<Uri, StylesheetNode?> imports,
 });
 
 /// A graph of the import relationships between stylesheets, available via
@@ -71,7 +71,7 @@ class StylesheetGraph {
             // recursive loop here.
             _ when seenNodes.contains(upstream) =>
               DateTime.fromMillisecondsSinceEpoch(0),
-            _ => transitiveModificationTime(upstream)
+            _ => transitiveModificationTime(upstream),
           };
           if (upstreamTime.isAfter(latest)) latest = upstreamTime;
         }
@@ -161,8 +161,11 @@ class StylesheetGraph {
   /// The [active] set, if passed, should contain the canonical URLs that are
   /// currently being imported. It's used to detect circular imports.
   _UpstreamNodes _upstreamNodes(
-      Stylesheet stylesheet, Importer baseImporter, Uri baseUrl,
-      [Set<Uri>? active]) {
+    Stylesheet stylesheet,
+    Importer baseImporter,
+    Uri baseUrl, [
+    Set<Uri>? active,
+  ]) {
     active ??= {baseUrl};
     var dependencies = findDependencies(stylesheet);
     return (
@@ -219,7 +222,8 @@ class StylesheetGraph {
       var modified = false;
       try {
         var loadTime = importCache.loadTime(node.canonicalUrl);
-        modified = loadTime != null &&
+        modified =
+            loadTime != null &&
             node.importer.modificationTime(node.canonicalUrl).isAfter(loadTime);
       } on FileSystemException catch (_) {
         // If the file no longer exists, treat that as a modification.
@@ -456,8 +460,8 @@ class StylesheetNode {
     this.importer,
     this.canonicalUrl,
     _UpstreamNodes allUpstream,
-  )   : _upstream = allUpstream.modules,
-        _upstreamImports = allUpstream.imports {
+  ) : _upstream = allUpstream.modules,
+      _upstreamImports = allUpstream.imports {
     for (var node in upstream.values.followedBy(upstreamImports.values)) {
       node?._downstream.add(this);
     }
@@ -470,10 +474,14 @@ class StylesheetNode {
     Map<Uri, StylesheetNode?> newUpstream,
     Map<Uri, StylesheetNode?> newUpstreamImports,
   ) {
-    var oldUpstream =
-        {...upstream.values, ...upstreamImports.values}.removeNull();
-    var newUpstreamSet =
-        {...newUpstream.values, ...newUpstreamImports.values}.removeNull();
+    var oldUpstream = {
+      ...upstream.values,
+      ...upstreamImports.values,
+    }.removeNull();
+    var newUpstreamSet = {
+      ...newUpstream.values,
+      ...newUpstreamImports.values,
+    }.removeNull();
 
     for (var removed in oldUpstream.difference(newUpstreamSet)) {
       var wasRemoved = removed._downstream.remove(this);

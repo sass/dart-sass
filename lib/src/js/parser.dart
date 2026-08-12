@@ -116,57 +116,51 @@ void _updateAstPrototypes() {
         self.getText(start, end),
     'span': (SourceFile self, int start, [int? end]) => self.span(start, end),
   });
-  getJSClass(
-    file,
-  ).defineGetter('codeUnits', (SourceFile self) => self.codeUnits);
-  getJSClass(
-    _interpolation,
-  ).defineGetter('asPlain', (Interpolation self) => self.asPlain);
+  getJSClass(file)
+      .defineGetter('codeUnits', (SourceFile self) => self.codeUnits);
+  getJSClass(_interpolation)
+      .defineGetter('asPlain', (Interpolation self) => self.asPlain);
   getJSClass(ExtendRule(_interpolation, bogusSpan)).superclass.defineMethod(
-        'accept',
-        (Statement self, StatementVisitor<Object?> visitor) =>
-            self.accept(visitor),
-      );
+    'accept',
+    (Statement self, StatementVisitor<Object?> visitor) => self.accept(visitor),
+  );
   var string = StringExpression(_interpolation);
   getJSClass(string).superclass.defineMethod(
-        'accept',
-        (Expression self, ExpressionVisitor<Object?> visitor) =>
-            self.accept(visitor),
-      );
+    'accept',
+    (Expression self, ExpressionVisitor<Object?> visitor) =>
+        self.accept(visitor),
+  );
   var selector = InterpolatedParentSelector(bogusSpan);
   getJSClass(selector).superclass.defineMethod(
-        'accept',
-        (InterpolatedSelector self,
-                InterpolatedSelectorVisitor<Object?> visitor) =>
-            self.accept(visitor),
-      );
+    'accept',
+    (InterpolatedSelector self, InterpolatedSelectorVisitor<Object?> visitor) =>
+        self.accept(visitor),
+  );
   var ifConditionExpression = IfConditionSass(string, bogusSpan);
   getJSClass(ifConditionExpression).superclass.defineMethod(
-        'accept',
-        (IfConditionExpression self,
-                IfConditionExpressionVisitor<Object?> visitor) =>
-            self.accept(visitor),
-      );
+    'accept',
+    (
+      IfConditionExpression self,
+      IfConditionExpressionVisitor<Object?> visitor,
+    ) => self.accept(visitor),
+  );
   var arguments = ArgumentList(const [], const {}, const {}, bogusSpan);
-  getJSClass(
-    IncludeRule('a', arguments, bogusSpan),
-  ).defineGetter('arguments', (IncludeRule self) => self.arguments);
-  getJSClass(
-    ContentRule(arguments, bogusSpan),
-  ).defineGetter('arguments', (ContentRule self) => self.arguments);
-  getJSClass(
-    FunctionExpression('a', arguments, bogusSpan),
-  ).defineGetter('arguments', (FunctionExpression self) => self.arguments);
-  getJSClass(
-    LegacyIfExpression(arguments, bogusSpan),
-  ).defineGetter('arguments', (LegacyIfExpression self) => self.arguments);
+  getJSClass(IncludeRule('a', arguments, bogusSpan))
+      .defineGetter('arguments', (IncludeRule self) => self.arguments);
+  getJSClass(ContentRule(arguments, bogusSpan))
+      .defineGetter('arguments', (ContentRule self) => self.arguments);
+  getJSClass(FunctionExpression('a', arguments, bogusSpan))
+      .defineGetter('arguments', (FunctionExpression self) => self.arguments);
+  getJSClass(LegacyIfExpression(arguments, bogusSpan))
+      .defineGetter('arguments', (LegacyIfExpression self) => self.arguments);
   getJSClass(
     InterpolatedFunctionExpression(_interpolation, arguments, bogusSpan),
   ).defineGetter(
-      'arguments', (InterpolatedFunctionExpression self) => self.arguments);
-  getJSClass(
-    IfConditionFunction(_interpolation, _interpolation, bogusSpan),
-  ).defineGetter('arguments', (IfConditionFunction self) => self.arguments);
+    'arguments',
+    (InterpolatedFunctionExpression self) => self.arguments,
+  );
+  getJSClass(IfConditionFunction(_interpolation, _interpolation, bogusSpan))
+      .defineGetter('arguments', (IfConditionFunction self) => self.arguments);
 
   _addSupportsConditionToInterpolation();
 
@@ -182,15 +176,18 @@ void _updateAstPrototypes() {
     InterpolatedIDSelector(_interpolation),
     InterpolatedPlaceholderSelector(_interpolation),
     InterpolatedTypeSelector(
-        InterpolatedQualifiedName(_interpolation, bogusSpan)),
+      InterpolatedQualifiedName(_interpolation, bogusSpan),
+    ),
     compound,
     InterpolatedSelectorList([
-      InterpolatedComplexSelector(
-          [InterpolatedComplexSelectorComponent(compound, bogusSpan)],
-          bogusSpan)
+      InterpolatedComplexSelector([
+        InterpolatedComplexSelectorComponent(compound, bogusSpan),
+      ], bogusSpan),
     ]),
-    IfConditionOperation(
-        [ifConditionSass, ifConditionSass], BooleanOperator.and),
+    IfConditionOperation([
+      ifConditionSass,
+      ifConditionSass,
+    ], BooleanOperator.and),
     IfConditionRaw(_interpolation),
   ]) {
     getJSClass(node).defineGetter('span', (AstNode self) => self.span);
@@ -220,16 +217,16 @@ void _addSupportsConditionToInterpolation() {
 
 /// A JavaScript-friendly method to parse a stylesheet.
 Stylesheet _parse(String css, String syntax, String? path) => Stylesheet.parse(
-      css,
-      switch (syntax) {
-        'scss' => Syntax.scss,
-        'sass' => Syntax.sass,
-        'css' => Syntax.css,
-        _ => throw UnsupportedError('Unknown syntax "$syntax"'),
-      },
-      url: path.andThen(p.toUri),
-      parseSelectors: true,
-    );
+  css,
+  switch (syntax) {
+    'scss' => Syntax.scss,
+    'sass' => Syntax.sass,
+    'css' => Syntax.css,
+    _ => throw UnsupportedError('Unknown syntax "$syntax"'),
+  },
+  url: path.andThen(p.toUri),
+  parseSelectors: true,
+);
 
 /// A JavaScript-friendly method to parse an identifier to its semantic value.
 ///

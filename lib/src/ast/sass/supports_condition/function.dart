@@ -28,12 +28,13 @@ final class SupportsFunction implements SupportsCondition {
   /// @nodoc
   @override
   @internal
-  Interpolation toInterpolation() => (InterpolationBuffer()
-        ..addInterpolation(name)
-        ..write(name.span.between(arguments.span).text)
-        ..addInterpolation(arguments)
-        ..write(span.after(arguments.span).text))
-      .interpolation(span);
+  Interpolation toInterpolation() =>
+      (InterpolationBuffer()
+            ..addInterpolation(name)
+            ..write(name.span.between(arguments.span).text)
+            ..addInterpolation(arguments)
+            ..write(span.after(arguments.span).text))
+          .interpolation(span);
 
   /// @nodoc
   @override

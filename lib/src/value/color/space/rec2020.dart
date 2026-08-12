@@ -42,18 +42,16 @@ final class Rec2020ColorSpace extends ColorSpace {
   @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
-        ColorSpace.srgbLinear ||
-        ColorSpace.srgb ||
-        ColorSpace.rgb =>
-          linearRec2020ToLinearSrgb,
-        ColorSpace.a98Rgb => linearRec2020ToLinearA98Rgb,
-        ColorSpace.displayP3 ||
-        ColorSpace.displayP3Linear =>
-          linearRec2020ToLinearDisplayP3,
-        ColorSpace.prophotoRgb => linearRec2020ToLinearProphotoRgb,
-        ColorSpace.xyzD65 => linearRec2020ToXyzD65,
-        ColorSpace.xyzD50 => linearRec2020ToXyzD50,
-        ColorSpace.lms => linearRec2020ToLms,
-        _ => super.transformationMatrix(dest),
-      };
+    ColorSpace.srgbLinear ||
+    ColorSpace.srgb ||
+    ColorSpace.rgb => linearRec2020ToLinearSrgb,
+    ColorSpace.a98Rgb => linearRec2020ToLinearA98Rgb,
+    ColorSpace.displayP3 ||
+    ColorSpace.displayP3Linear => linearRec2020ToLinearDisplayP3,
+    ColorSpace.prophotoRgb => linearRec2020ToLinearProphotoRgb,
+    ColorSpace.xyzD65 => linearRec2020ToXyzD65,
+    ColorSpace.xyzD50 => linearRec2020ToXyzD50,
+    ColorSpace.lms => linearRec2020ToLms,
+    _ => super.transformationMatrix(dest),
+  };
 }

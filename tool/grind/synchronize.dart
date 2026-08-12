@@ -220,11 +220,10 @@ class _Visitor extends RecursiveAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     // Convert async utility methods to their synchronous equivalents.
-    if (node
-        case MethodInvocation(
-          target: null,
-          methodName: SimpleIdentifier(name: "mapAsync" || "putIfAbsentAsync"),
-        )) {
+    if (node case MethodInvocation(
+      target: null,
+      methodName: SimpleIdentifier(name: "mapAsync" || "putIfAbsentAsync"),
+    )) {
       _writeTo(node);
       var arguments = node.argumentList.arguments;
       _write(arguments.first);

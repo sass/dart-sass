@@ -45,8 +45,8 @@ final class StringExpression extends Expression {
 
   /// Returns a string expression with no interpolation.
   StringExpression.plain(String text, FileSpan span, {bool quotes = false})
-      : text = Interpolation.plain(text, span),
-        hasQuotes = quotes;
+    : text = Interpolation.plain(text, span),
+      hasQuotes = quotes;
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

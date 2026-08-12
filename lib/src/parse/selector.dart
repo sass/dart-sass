@@ -62,9 +62,9 @@ class SelectorParser extends Parser {
     bool allowParent = true,
     bool plainCss = false,
     Logger? logger,
-  })  : _allowParent = allowParent,
-        _plainCss = plainCss,
-        _logger = logger ?? Logger.defaultLogger;
+  }) : _allowParent = allowParent,
+       _plainCss = plainCss,
+       _logger = logger ?? Logger.defaultLogger;
 
   SelectorList parse() {
     return wrapSpanFormatException(() {
@@ -164,13 +164,13 @@ class SelectorParser extends Parser {
           break loop;
 
         case $lbracket ||
-              $dot ||
-              $hash ||
-              $percent ||
-              $colon ||
-              $ampersand ||
-              $asterisk ||
-              $pipe:
+            $dot ||
+            $hash ||
+            $percent ||
+            $colon ||
+            $ampersand ||
+            $asterisk ||
+            $pipe:
         case _ when lookingAtIdentifier():
           if (lastCompound != null) {
             components.add(
@@ -280,10 +280,7 @@ class SelectorParser extends Parser {
       case $ampersand:
         var selector = _parentSelector();
         if (!allowParent) {
-          error(
-            "Parent selectors aren't allowed here.",
-            spanFrom(start),
-          );
+          error("Parent selectors aren't allowed here.", spanFrom(start));
         }
         return selector;
 
@@ -521,12 +518,16 @@ class SelectorParser extends Parser {
       return scanner.scanChar($asterisk)
           ? UniversalSelector(spanFrom(start), namespace: "*")
           : TypeSelector(
-              QualifiedName(identifier(), namespace: "*"), spanFrom(start));
+              QualifiedName(identifier(), namespace: "*"),
+              spanFrom(start),
+            );
     } else if (scanner.scanChar($pipe)) {
       return scanner.scanChar($asterisk)
           ? UniversalSelector(spanFrom(start), namespace: "")
           : TypeSelector(
-              QualifiedName(identifier(), namespace: ""), spanFrom(start));
+              QualifiedName(identifier(), namespace: ""),
+              spanFrom(start),
+            );
     }
 
     var nameOrNamespace = identifier();
@@ -536,18 +537,19 @@ class SelectorParser extends Parser {
       return UniversalSelector(spanFrom(start), namespace: nameOrNamespace);
     } else {
       return TypeSelector(
-          QualifiedName(identifier(), namespace: nameOrNamespace),
-          spanFrom(start));
+        QualifiedName(identifier(), namespace: nameOrNamespace),
+        spanFrom(start),
+      );
     }
   }
 
   // Returns whether [character] can start a simple selector in the middle of a
   // compound selector.
   bool _isSimpleSelectorStart(int? character) => switch (character) {
-        $asterisk || $lbracket || $dot || $hash || $percent || $colon => true,
-        $ampersand => _plainCss,
-        _ => false,
-      };
+    $asterisk || $lbracket || $dot || $hash || $percent || $colon => true,
+    $ampersand => _plainCss,
+    _ => false,
+  };
 
   /// The value of `consumeNewlines` is not relevant for this class.
   void _whitespace() {

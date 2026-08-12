@@ -51,13 +51,13 @@ final class MergedExtension extends Extension {
   }
 
   MergedExtension._(this.left, this.right)
-      : super(
-          left.extender.selector,
-          left.target,
-          left.span,
-          mediaContext: left.mediaContext ?? right.mediaContext,
-          optional: true,
-        );
+    : super(
+        left.extender.selector,
+        left.target,
+        left.span,
+        mediaContext: left.mediaContext ?? right.mediaContext,
+        optional: true,
+      );
 
   /// Returns all leaf-node [Extension]s in the tree of [MergedExtension]s.
   Iterable<Extension> unmerge() sync* {

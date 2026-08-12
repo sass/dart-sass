@@ -265,8 +265,9 @@ selector {
     test("double trailing empty block", () {
       expect(
         compileString(
-            "selector { /* please don't move me */ /* please don't move me */ "
-            "}"),
+          "selector { /* please don't move me */ /* please don't move me */ "
+          "}",
+        ),
         equals("""
 selector { /* please don't move me */ /* please don't move me */
 }"""),

@@ -67,8 +67,10 @@ String _realCasePath(String path) {
           // error it's going to throw.
           return path;
         }
-        return p.join(helper(dirname, p.dirname(realPathNonNull)),
-            p.basename(realPathNonNull));
+        return p.join(
+          helper(dirname, p.dirname(realPathNonNull)),
+          p.basename(realPathNonNull),
+        );
       }
 
       var realDirname = helper(dirname);

@@ -32,21 +32,19 @@ final class SrgbLinearColorSpace extends ColorSpace {
     double? green,
     double? blue,
     double? alpha,
-  ) =>
-      switch (dest) {
-        ColorSpace.rgb ||
-        ColorSpace.hsl ||
-        ColorSpace.hwb ||
-        ColorSpace.srgb =>
-          ColorSpace.srgb.convert(
-            dest,
-            red.andThen(srgbAndDisplayP3FromLinear),
-            green.andThen(srgbAndDisplayP3FromLinear),
-            blue.andThen(srgbAndDisplayP3FromLinear),
-            alpha,
-          ),
-        _ => super.convert(dest, red, green, blue, alpha),
-      };
+  ) => switch (dest) {
+    ColorSpace.rgb ||
+    ColorSpace.hsl ||
+    ColorSpace.hwb ||
+    ColorSpace.srgb => ColorSpace.srgb.convert(
+      dest,
+      red.andThen(srgbAndDisplayP3FromLinear),
+      green.andThen(srgbAndDisplayP3FromLinear),
+      blue.andThen(srgbAndDisplayP3FromLinear),
+      alpha,
+    ),
+    _ => super.convert(dest, red, green, blue, alpha),
+  };
 
   @override
   @protected
@@ -59,15 +57,14 @@ final class SrgbLinearColorSpace extends ColorSpace {
   @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
-        ColorSpace.displayP3 ||
-        ColorSpace.displayP3Linear =>
-          linearSrgbToLinearDisplayP3,
-        ColorSpace.a98Rgb => linearSrgbToLinearA98Rgb,
-        ColorSpace.prophotoRgb => linearSrgbToLinearProphotoRgb,
-        ColorSpace.rec2020 => linearSrgbToLinearRec2020,
-        ColorSpace.xyzD65 => linearSrgbToXyzD65,
-        ColorSpace.xyzD50 => linearSrgbToXyzD50,
-        ColorSpace.lms => linearSrgbToLms,
-        _ => super.transformationMatrix(dest),
-      };
+    ColorSpace.displayP3 ||
+    ColorSpace.displayP3Linear => linearSrgbToLinearDisplayP3,
+    ColorSpace.a98Rgb => linearSrgbToLinearA98Rgb,
+    ColorSpace.prophotoRgb => linearSrgbToLinearProphotoRgb,
+    ColorSpace.rec2020 => linearSrgbToLinearRec2020,
+    ColorSpace.xyzD65 => linearSrgbToXyzD65,
+    ColorSpace.xyzD50 => linearSrgbToXyzD50,
+    ColorSpace.lms => linearSrgbToLms,
+    _ => super.transformationMatrix(dest),
+  };
 }

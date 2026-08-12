@@ -38,15 +38,15 @@ final class AtRootQuery {
   bool get excludesStyleRules => (_all || _rule) != include;
 
   AtRootQuery(this.names, {required this.include})
-      : _all = names.contains("all"),
-        _rule = names.contains("rule");
+    : _all = names.contains("all"),
+      _rule = names.contains("rule");
 
   /// The default at-root query, used in [default].
   const AtRootQuery._default()
-      : include = false,
-        names = const UnmodifiableSetView.empty(),
-        _all = false,
-        _rule = true;
+    : include = false,
+      names = const UnmodifiableSetView.empty(),
+      _all = false,
+      _rule = true;
 
   /// Parses an at-root query from [contents].
   ///
@@ -60,8 +60,7 @@ final class AtRootQuery {
     String contents, {
     Object? url,
     InterpolationMap? interpolationMap,
-  }) =>
-      AtRootQueryParser(contents, url: url).parse();
+  }) => AtRootQueryParser(contents, url: url).parse();
 
   /// Returns whether `this` excludes [node].
   ///

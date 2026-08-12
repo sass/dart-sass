@@ -29,10 +29,8 @@ final class InterpolationMap {
   ///
   /// Each target offset at index `i` corresponds to the character in the
   /// generated string after `interpolation.contents[i]`.
-  InterpolationMap(
-    this._interpolation,
-    Iterable<int> targetOffsets,
-  ) : _targetOffsets = List.unmodifiable(targetOffsets) {
+  InterpolationMap(this._interpolation, Iterable<int> targetOffsets)
+    : _targetOffsets = List.unmodifiable(targetOffsets) {
     var expectedLocations = math.max(0, _interpolation.contents.length - 1);
     if (_targetOffsets.length != expectedLocations) {
       throw ArgumentError(
@@ -71,14 +69,9 @@ final class InterpolationMap {
         .any((content) => content is Expression)) {
       return SourceSpanFormatException(error.message, source, error.source);
     } else {
-      return MultiSourceSpanFormatException(
-          error.message,
-          source,
-          "",
-          {
-            target: "error in interpolated output",
-          },
-          error.source);
+      return MultiSourceSpanFormatException(error.message, source, "", {
+        target: "error in interpolated output",
+      }, error.source);
     }
   }
 
@@ -89,32 +82,29 @@ final class InterpolationMap {
   FileSpan mapSpan(SourceSpan target) {
     if (_isMapped(target)) return target as FileSpan;
 
-    return switch ((
-      _mapLocation(target.start),
-      _mapLocation(target.end),
-    )) {
+    return switch ((_mapLocation(target.start), _mapLocation(target.end))) {
       (FileSpan start, FileSpan end) => start.expand(end),
       (FileSpan start, FileLocation end) => _interpolation.span.file.span(
-          _expandInterpolationSpanLeft(start.start),
-          end.offset,
-        ),
+        _expandInterpolationSpanLeft(start.start),
+        end.offset,
+      ),
       (FileLocation start, FileSpan end) => _interpolation.span.file.span(
-          start.offset,
-          _expandInterpolationSpanRight(end.end),
-        ),
+        start.offset,
+        _expandInterpolationSpanRight(end.end),
+      ),
       (FileLocation start, FileLocation end) => _interpolation.span.file.span(
-          start.offset,
-          end.offset,
-        ),
+        start.offset,
+        end.offset,
+      ),
       _ => throw '[BUG] Unreachable',
     };
   }
 
   /// Returns whether [span] has already been mapped by this mapper.
   bool _isMapped(SourceSpan span) => switch (span) {
-        FileSpan(:var file) => identical(file, _interpolation.span.file),
-        _ => false,
-      };
+    FileSpan(:var file) => identical(file, _interpolation.span.file),
+    _ => false,
+  };
 
   /// Maps a location in the string generated from this interpolation to its
   /// original source.

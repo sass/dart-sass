@@ -25,7 +25,7 @@ import 'utils.dart';
 typedef AsyncCanonicalizeResult = (
   AsyncImporter,
   Uri canonicalUrl, {
-  Uri originalUrl
+  Uri originalUrl,
 });
 
 /// An in-memory cache of parsed stylesheets that have been imported by Sass.
@@ -99,20 +99,21 @@ final class AsyncImportCache {
     Iterable<String>? loadPaths,
     PackageConfig? packageConfig,
     bool parseSelectors = false,
-  })  : _importers = _toImporters(importers, loadPaths, packageConfig),
-        _parseSelectors = parseSelectors;
+  }) : _importers = _toImporters(importers, loadPaths, packageConfig),
+       _parseSelectors = parseSelectors;
 
   /// Creates an import cache without any globally-available importers.
   AsyncImportCache.none({bool parseSelectors = false})
-      : _importers = const [],
-        _parseSelectors = parseSelectors;
+    : _importers = const [],
+      _parseSelectors = parseSelectors;
 
   /// Creates an import cache without any globally-available importers, and only
   /// the passed in importers.
-  AsyncImportCache.only(Iterable<AsyncImporter> importers,
-      {bool parseSelectors = false})
-      : _importers = List.unmodifiable(importers),
-        _parseSelectors = parseSelectors;
+  AsyncImportCache.only(
+    Iterable<AsyncImporter> importers, {
+    bool parseSelectors = false,
+  }) : _importers = List.unmodifiable(importers),
+       _parseSelectors = parseSelectors;
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.
@@ -223,10 +224,11 @@ final class AsyncImportCache {
             // future uses of this importer.
             for (var j = 0; j < i; j++) {
               _perImporterCanonicalizeCache[(
-                _importers[j],
-                url,
-                forImport: forImport,
-              )] = null;
+                    _importers[j],
+                    url,
+                    forImport: forImport,
+                  )] =
+                  null;
             }
             cacheable = false;
           }
@@ -250,7 +252,8 @@ final class AsyncImportCache {
     Uri? baseUrl,
     bool forImport,
   ) async {
-    var passContainingUrl = baseUrl != null &&
+    var passContainingUrl =
+        baseUrl != null &&
         (url.scheme == '' || await importer.isNonCanonicalScheme(url.scheme));
 
     var canonicalizeContext = CanonicalizeContext(
@@ -296,18 +299,17 @@ final class AsyncImportCache {
     bool forImport = false,
   }) async {
     if (await canonicalize(
-      url,
-      baseImporter: baseImporter,
-      baseUrl: baseUrl,
-      forImport: forImport,
-    )
+          url,
+          baseImporter: baseImporter,
+          baseUrl: baseUrl,
+          forImport: forImport,
+        )
         case (var importer, var canonicalUrl, :var originalUrl)) {
       return (await importCanonical(
         importer,
         canonicalUrl,
         originalUrl: originalUrl,
-      ))
-          .andThen((stylesheet) => (importer, stylesheet));
+      )).andThen((stylesheet) => (importer, stylesheet));
     } else {
       return null;
     }
@@ -364,10 +366,10 @@ final class AsyncImportCache {
             .where((url) => url.hasScheme),
         (url) => url.path.length,
       )
-          // Use the canonicalized basename so that we display e.g.
-          // package:example/_example.scss rather than package:example/example
-          // in stack traces.
-          .andThen((url) => url.resolve(p.url.basename(canonicalUrl.path))) ??
+      // Use the canonicalized basename so that we display e.g.
+      // package:example/_example.scss rather than package:example/example
+      // in stack traces.
+      .andThen((url) => url.resolve(p.url.basename(canonicalUrl.path))) ??
       // If we don't have an original URL cached, display the canonical URL
       // as-is.
       canonicalUrl;

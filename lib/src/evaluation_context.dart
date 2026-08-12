@@ -72,13 +72,13 @@ abstract class EvaluationContext {
 void warn(String message, {bool deprecation = false}) =>
     switch (EvaluationContext.currentOrNull) {
       var context? => context.warn(
-          message,
-          deprecation ? Deprecation.userAuthored : null,
-        ),
+        message,
+        deprecation ? Deprecation.userAuthored : null,
+      ),
       _ when deprecation => Logger.defaultLogger.warnForDeprecation(
-          Deprecation.userAuthored,
-          message,
-        ),
+        Deprecation.userAuthored,
+        message,
+      ),
       _ => Logger.defaultLogger.warn(message),
     };
 
@@ -118,7 +118,8 @@ class _EvaluationContextLogger extends LoggerWithDeprecationType {
   @override
   void debug(String message, SourceSpan span) {
     throw UnimplementedError(
-        "EvaluationContext.logger.debug() is not supported");
+      "EvaluationContext.logger.debug() is not supported",
+    );
   }
 
   @override

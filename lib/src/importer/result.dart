@@ -43,8 +43,8 @@ class ImporterResult {
     Uri? sourceMapUrl,
     Syntax? syntax,
     @Deprecated("Use the syntax parameter instead.") bool? indented,
-  })  : _sourceMapUrl = sourceMapUrl,
-        syntax = syntax ?? (indented == true ? Syntax.sass : Syntax.scss) {
+  }) : _sourceMapUrl = sourceMapUrl,
+       syntax = syntax ?? (indented == true ? Syntax.sass : Syntax.scss) {
     if (sourceMapUrl?.scheme == '') {
       throw ArgumentError.value(
         sourceMapUrl,

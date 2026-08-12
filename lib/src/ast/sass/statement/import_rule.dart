@@ -19,7 +19,7 @@ final class ImportRule extends Statement {
   final FileSpan span;
 
   ImportRule(Iterable<Import> imports, this.span)
-      : imports = List.unmodifiable(imports);
+    : imports = List.unmodifiable(imports);
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitImportRule(this);

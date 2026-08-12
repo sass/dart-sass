@@ -38,8 +38,8 @@ mixin SelectorSearchVisitor<T> implements SelectorVisitor<T?> {
 
   @override
   T? visitComplexSelector(ComplexSelector complex) => complex.components.search(
-        (component) => visitCompoundSelector(component.selector),
-      );
+    (component) => visitCompoundSelector(component.selector),
+  );
 
   @override
   T? visitCompoundSelector(CompoundSelector compound) =>

@@ -46,14 +46,14 @@ final class Declaration extends ParentStatement {
 
   /// Creates a declaration with no children.
   Declaration(this.name, this.value, this.span)
-      : parsedAsSassScript = true,
-        super(null);
+    : parsedAsSassScript = true,
+      super(null);
 
   /// Creates a declaration with no children whose value is not parsed as
   /// SassScript.
   Declaration.notSassScript(this.name, StringExpression this.value, this.span)
-      : parsedAsSassScript = false,
-        super(null);
+    : parsedAsSassScript = false,
+      super(null);
 
   /// Creates a declaration with children.
   ///
@@ -63,8 +63,8 @@ final class Declaration extends ParentStatement {
     Iterable<Statement> children,
     this.span, {
     this.value,
-  })  : parsedAsSassScript = true,
-        super(List.unmodifiable(children));
+  }) : parsedAsSassScript = true,
+       super(List.unmodifiable(children));
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitDeclaration(this);

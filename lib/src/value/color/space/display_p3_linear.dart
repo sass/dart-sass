@@ -32,16 +32,15 @@ final class DisplayP3LinearColorSpace extends ColorSpace {
     double? green,
     double? blue,
     double? alpha,
-  ) =>
-      dest == ColorSpace.displayP3
-          ? SassColor.forSpaceInternal(
-              dest,
-              red.andThen(srgbAndDisplayP3FromLinear),
-              green.andThen(srgbAndDisplayP3FromLinear),
-              blue.andThen(srgbAndDisplayP3FromLinear),
-              alpha,
-            )
-          : super.convert(dest, red, green, blue, alpha);
+  ) => dest == ColorSpace.displayP3
+      ? SassColor.forSpaceInternal(
+          dest,
+          red.andThen(srgbAndDisplayP3FromLinear),
+          green.andThen(srgbAndDisplayP3FromLinear),
+          blue.andThen(srgbAndDisplayP3FromLinear),
+          alpha,
+        )
+      : super.convert(dest, red, green, blue, alpha);
 
   @override
   @protected
@@ -54,16 +53,15 @@ final class DisplayP3LinearColorSpace extends ColorSpace {
   @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
-        ColorSpace.srgbLinear ||
-        ColorSpace.srgb ||
-        ColorSpace.rgb =>
-          linearDisplayP3ToLinearSrgb,
-        ColorSpace.a98Rgb => linearDisplayP3ToLinearA98Rgb,
-        ColorSpace.prophotoRgb => linearDisplayP3ToLinearProphotoRgb,
-        ColorSpace.rec2020 => linearDisplayP3ToLinearRec2020,
-        ColorSpace.xyzD65 => linearDisplayP3ToXyzD65,
-        ColorSpace.xyzD50 => linearDisplayP3ToXyzD50,
-        ColorSpace.lms => linearDisplayP3ToLms,
-        _ => super.transformationMatrix(dest),
-      };
+    ColorSpace.srgbLinear ||
+    ColorSpace.srgb ||
+    ColorSpace.rgb => linearDisplayP3ToLinearSrgb,
+    ColorSpace.a98Rgb => linearDisplayP3ToLinearA98Rgb,
+    ColorSpace.prophotoRgb => linearDisplayP3ToLinearProphotoRgb,
+    ColorSpace.rec2020 => linearDisplayP3ToLinearRec2020,
+    ColorSpace.xyzD65 => linearDisplayP3ToXyzD65,
+    ColorSpace.xyzD50 => linearDisplayP3ToXyzD50,
+    ColorSpace.lms => linearDisplayP3ToLms,
+    _ => super.transformationMatrix(dest),
+  };
 }

@@ -23,7 +23,7 @@ final class AtRootRule extends ParentStatement<List<Statement>> {
   final FileSpan span;
 
   AtRootRule(Iterable<Statement> children, this.span, {this.query})
-      : super(List.unmodifiable(children));
+    : super(List.unmodifiable(children));
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitAtRootRule(this);

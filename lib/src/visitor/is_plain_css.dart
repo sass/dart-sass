@@ -22,7 +22,7 @@ class IsPlainCssVisitor
   /// If [allowInterpolation] is true, interpolated expressions are allowed as
   /// an exception, even if they contain SassScript.
   const IsPlainCssVisitor({bool allowInterpolation = false})
-      : _allowInterpolation = allowInterpolation;
+    : _allowInterpolation = allowInterpolation;
 
   @override
   bool visitBinaryOperationExpression(BinaryOperationExpression node) => false;
@@ -38,18 +38,18 @@ class IsPlainCssVisitor
       node.namespace == null && _visitArgumentList(node.arguments);
 
   @override
-  bool visitIfExpression(IfExpression node) =>
-      node.branches.every((pair) => switch (pair) {
-            (var condition?, var branch) =>
-              condition.accept(this) && branch.accept(this),
-            (_, var branch) => branch.accept(this),
-          });
+  bool visitIfExpression(IfExpression node) => node.branches.every(
+    (pair) => switch (pair) {
+      (var condition?, var branch) =>
+        condition.accept(this) && branch.accept(this),
+      (_, var branch) => branch.accept(this),
+    },
+  );
 
   @override
   bool visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
-  ) =>
-      _allowInterpolation && _visitArgumentList(node.arguments);
+  ) => _allowInterpolation && _visitArgumentList(node.arguments);
 
   @override
   bool visitLegacyIfExpression(LegacyIfExpression node) => false;

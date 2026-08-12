@@ -43,8 +43,8 @@ final class UseRule extends Statement implements SassDependency {
     this.span, {
     Iterable<ConfiguredVariable>? configuration,
   }) : configuration = configuration == null
-            ? const []
-            : List<ConfiguredVariable>.unmodifiable(configuration) {
+           ? const []
+           : List<ConfiguredVariable>.unmodifiable(configuration) {
     for (var variable in this.configuration) {
       if (variable.isGuarded) {
         throw ArgumentError.value(

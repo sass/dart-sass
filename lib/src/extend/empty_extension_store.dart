@@ -25,8 +25,7 @@ final class EmptyExtensionStore implements ExtensionStore {
   @override
   Iterable<Extension> extensionsWhereTarget(
     bool Function(SimpleSelector target) callback,
-  ) =>
-      const [];
+  ) => const [];
 
   @override
   Box<SelectorList> addSelector(
@@ -58,8 +57,6 @@ final class EmptyExtensionStore implements ExtensionStore {
   }
 
   @override
-  (ExtensionStore, Map<SelectorList, Box<SelectorList>>) clone() => const (
-        EmptyExtensionStore(),
-        {},
-      );
+  (ExtensionStore, Map<SelectorList, Box<SelectorList>>) clone() =>
+      const (EmptyExtensionStore(), {});
 }

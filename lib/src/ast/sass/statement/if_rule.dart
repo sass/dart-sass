@@ -37,7 +37,7 @@ final class IfRule extends Statement {
   final FileSpan span;
 
   IfRule(Iterable<IfClause> clauses, this.span, {this.lastClause})
-      : clauses = List.unmodifiable(clauses);
+    : clauses = List.unmodifiable(clauses);
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIfRule(this);
@@ -72,18 +72,18 @@ sealed class IfRuleClause {
   final bool hasDeclarations;
 
   IfRuleClause(Iterable<Statement> children)
-      : this._(List.unmodifiable(children));
+    : this._(List.unmodifiable(children));
 
   IfRuleClause._(this.children)
-      : hasDeclarations = children.any(
-          (child) => switch (child) {
-            VariableDeclaration() || FunctionRule() || MixinRule() => true,
-            ImportRule(:var imports) => imports.any(
-                (import) => import is DynamicImport,
-              ),
-            _ => false,
-          },
-        );
+    : hasDeclarations = children.any(
+        (child) => switch (child) {
+          VariableDeclaration() || FunctionRule() || MixinRule() => true,
+          ImportRule(:var imports) => imports.any(
+            (import) => import is DynamicImport,
+          ),
+          _ => false,
+        },
+      );
 }
 
 /// An `@if` or `@else if` clause in an `@if` rule.

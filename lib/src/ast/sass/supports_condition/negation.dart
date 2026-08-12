@@ -26,11 +26,12 @@ final class SupportsNegation implements SupportsCondition {
   /// @nodoc
   @override
   @internal
-  Interpolation toInterpolation() => (InterpolationBuffer()
-        ..write(span.before(condition.span).text)
-        ..addInterpolation(condition.toInterpolation())
-        ..write(span.after(condition.span).text))
-      .interpolation(span);
+  Interpolation toInterpolation() =>
+      (InterpolationBuffer()
+            ..write(span.before(condition.span).text)
+            ..addInterpolation(condition.toInterpolation())
+            ..write(span.after(condition.span).text))
+          .interpolation(span);
 
   /// @nodoc
   @override

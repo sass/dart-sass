@@ -24,18 +24,18 @@ final class OklabColorSpace extends ColorSpace {
   bool get isBoundedInternal => false;
 
   const OklabColorSpace()
-      : super('oklab', const [
-          LinearChannel(
-            'lightness',
-            0,
-            1,
-            conventionallyPercent: true,
-            lowerClamped: true,
-            upperClamped: true,
-          ),
-          LinearChannel('a', -0.4, 0.4),
-          LinearChannel('b', -0.4, 0.4),
-        ]);
+    : super('oklab', const [
+        LinearChannel(
+          'lightness',
+          0,
+          1,
+          conventionallyPercent: true,
+          lowerClamped: true,
+          upperClamped: true,
+        ),
+        LinearChannel('a', -0.4, 0.4),
+        LinearChannel('b', -0.4, 0.4),
+      ]);
 
   @override
   SassColor convert(

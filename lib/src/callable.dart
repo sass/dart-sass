@@ -74,8 +74,7 @@ abstract interface class Callable implements AsyncCallable {
     String name,
     String arguments,
     Value Function(List<Value> arguments) callback,
-  ) =>
-      Callable.function(name, arguments, callback);
+  ) => Callable.function(name, arguments, callback);
 
   /// Creates a function with the given [name] and [arguments] that runs
   /// [callback] when called.
@@ -123,8 +122,7 @@ abstract interface class Callable implements AsyncCallable {
     String name,
     String arguments,
     Value Function(List<Value> arguments) callback,
-  ) =>
-      BuiltInCallable.function(name, arguments, callback);
+  ) => BuiltInCallable.function(name, arguments, callback);
 
   /// Creates a callable with a single [signature] and a single [callback].
   ///

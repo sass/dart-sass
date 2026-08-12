@@ -40,18 +40,18 @@ class Extension {
     this.span, {
     this.mediaContext,
     bool optional = false,
-  })  : extender = Extender(extender),
-        isOptional = optional {
+  }) : extender = Extender(extender),
+       isOptional = optional {
     this.extender._extension = this;
   }
 
   Extension withExtender(ComplexSelector newExtender) => Extension(
-        newExtender,
-        target,
-        span,
-        mediaContext: mediaContext,
-        optional: isOptional,
-      );
+    newExtender,
+    target,
+    span,
+    mediaContext: mediaContext,
+    optional: isOptional,
+  );
 
   @override
   String toString() =>
@@ -82,8 +82,8 @@ final class Extender {
   ///
   /// If [specificity] isn't passed, it defaults to `extender.specificity`.
   Extender(this.selector, {int? specificity, bool original = false})
-      : specificity = specificity ?? selector.specificity,
-        isOriginal = original;
+    : specificity = specificity ?? selector.specificity,
+      isOriginal = original;
 
   /// Asserts that the [mediaContext] for a selector is compatible with the
   /// query context for this extender.

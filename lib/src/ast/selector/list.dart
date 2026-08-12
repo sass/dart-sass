@@ -52,7 +52,7 @@ final class SelectorList extends Selector {
   }
 
   SelectorList(Iterable<ComplexSelector> components, super.span)
-      : components = List.unmodifiable(components) {
+    : components = List.unmodifiable(components) {
     if (this.components.isEmpty) {
       throw ArgumentError("components may not be empty.");
     }
@@ -79,15 +79,14 @@ final class SelectorList extends Selector {
     bool allowParent = true,
     bool plainCss = false,
     Logger? logger,
-  }) =>
-      SelectorParser(
-        contents,
-        url: url,
-        interpolationMap: interpolationMap,
-        allowParent: allowParent,
-        plainCss: plainCss,
-        logger: logger,
-      ).parse();
+  }) => SelectorParser(
+    contents,
+    url: url,
+    interpolationMap: interpolationMap,
+    allowParent: allowParent,
+    plainCss: plainCss,
+    logger: logger,
+  ).parse();
 
   @override
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitSelectorList(this);
@@ -127,11 +126,10 @@ final class SelectorList extends Selector {
   }) {
     if (parent == null) {
       if (preserveParentSelectors) return this;
-      if (accept(const _ParentSelectorVisitor())
-          case ParentSelector(
-            suffix: var _?,
-            :var span,
-          )) {
+      if (accept(const _ParentSelectorVisitor()) case ParentSelector(
+        suffix: var _?,
+        :var span,
+      )) {
         throw SassException(
           'A top-level selector may not contain a parent selector with a '
           'suffix.',
@@ -327,15 +325,14 @@ final class SelectorList extends Selector {
   @internal
   SelectorList withAdditionalCombinators(
     List<CssValue<Combinator>> combinators,
-  ) =>
-      combinators.isEmpty
-          ? this
-          : SelectorList(
-              components.map(
-                (complex) => complex.withAdditionalCombinators(combinators),
-              ),
-              span,
-            );
+  ) => combinators.isEmpty
+      ? this
+      : SelectorList(
+          components.map(
+            (complex) => complex.withAdditionalCombinators(combinators),
+          ),
+          span,
+        );
 
   @override
   int get hashCode => listHash(components);

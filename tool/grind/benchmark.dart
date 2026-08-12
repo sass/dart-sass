@@ -79,9 +79,8 @@ Future<void> benchmarkGenerate() async {
   """);
 
   cloneOrCheckout("https://github.com/zaydek/duomo", "v0.7.12");
-  File(
-    "${sources.path}/duomo.scss",
-  ).writeAsStringSync("@import '../duomo/scripts/duomo.scss'");
+  File("${sources.path}/duomo.scss")
+      .writeAsStringSync("@import '../duomo/scripts/duomo.scss'");
 
   var carbon = cloneOrCheckout(
     "https://github.com/carbon-design-system/ibm-cloud-cognitive",
@@ -107,7 +106,8 @@ Future<void> _writeNTimes(
   String? footer,
 }) async {
   var file = File(path);
-  var expectedLength = (header == null ? 0 : header.length + 1) +
+  var expectedLength =
+      (header == null ? 0 : header.length + 1) +
       (text.length + 1) * times +
       (footer == null ? 0 : footer.length + 1);
   if (file.existsSync() && file.lengthSync() == expectedLength) {
@@ -291,21 +291,18 @@ I ran five instances of each configuration and recorded the fastest time.
 
 /// Returns the revision of the Git repository at [path].
 Future<String> _revision(String path) async => (await runAsync(
-      "git",
-      arguments: ["rev-parse", "--short", "HEAD"],
-      quiet: true,
-      workingDirectory: path,
-    ))
-        .trim();
+  "git",
+  arguments: ["rev-parse", "--short", "HEAD"],
+  quiet: true,
+  workingDirectory: path,
+)).trim();
 
 /// Returns the first line of output from `executable --version`.
 Future<String> _version(String executable) async => (await runAsync(
-      executable,
-      arguments: ["--version"],
-      quiet: true,
-    ))
-        .split("\n")
-        .first;
+  executable,
+  arguments: ["--version"],
+  quiet: true,
+)).split("\n").first;
 
 Future<Duration> _benchmark(String executable, List<String> arguments) async {
   log("$executable ${arguments.join(' ')}");
@@ -335,9 +332,8 @@ Future<Duration> _benchmarkOnce(
     fail("Process failed with exit code ${result.exitCode}\n${result.stderr}");
   }
 
-  var match = RegExp(
-    r"(\d+)m(\d+)\.(\d+)s",
-  ).firstMatch(result.stderr as String);
+  var match = RegExp(r"(\d+)m(\d+)\.(\d+)s")
+      .firstMatch(result.stderr as String);
   if (match == null) {
     fail("Process didn't print the expected format:\n${result.stderr}");
   }
@@ -349,7 +345,8 @@ Future<Duration> _benchmarkOnce(
   );
 }
 
-String _formatTime(Duration duration) => "${duration.inSeconds}."
+String _formatTime(Duration duration) =>
+    "${duration.inSeconds}."
     "${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}"
     "s";
 
@@ -361,7 +358,8 @@ String _compare(Duration duration1, Duration duration2) {
       ? duration2.inMilliseconds / duration1.inMilliseconds
       : duration1.inMilliseconds / duration2.inMilliseconds;
   var rounded = (ratio * 10).round().toString();
-  var humanRatio = '${rounded.substring(0, rounded.length - 1)}.'
+  var humanRatio =
+      '${rounded.substring(0, rounded.length - 1)}.'
       '${rounded.substring(rounded.length - 1)}x';
   if (humanRatio == '1.0x') return 'identical to';
 

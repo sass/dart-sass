@@ -179,10 +179,10 @@ class SassParser extends StylesheetParser {
         $cr || $lf || $ff => null,
         $dollar => variableDeclarationWithoutNamespace(),
         $slash => switch (scanner.peekChar(1)) {
-            $slash => _silentComment(),
-            $asterisk => _loudComment(),
-            _ => child(),
-          },
+          $slash => _silentComment(),
+          $asterisk => _loudComment(),
+          _ => child(),
+        },
         _ => child(),
       };
 
@@ -202,9 +202,11 @@ class SassParser extends StylesheetParser {
 
         // Skip the initial characters because we're already writing the
         // slashes.
-        for (var i = commentPrefix.length;
-            i < currentIndentation - parentIndentation;
-            i++) {
+        for (
+          var i = commentPrefix.length;
+          i < currentIndentation - parentIndentation;
+          i++
+        ) {
           buffer.writeCharCode($space);
         }
 
@@ -367,14 +369,14 @@ class SassParser extends StylesheetParser {
 
   /// Returns whether the scanner is immediately before *two* newlines.
   bool _lookingAtDoubleNewline() => switch (scanner.peekChar()) {
-        $cr => switch (scanner.peekChar(1)) {
-            $lf => scanner.peekChar(2).isNewline,
-            $cr || $ff => true,
-            _ => false,
-          },
-        $lf || $ff => scanner.peekChar(1).isNewline,
-        _ => false,
-      };
+    $cr => switch (scanner.peekChar(1)) {
+      $lf => scanner.peekChar(2).isNewline,
+      $cr || $ff => true,
+      _ => false,
+    },
+    $lf || $ff => scanner.peekChar(1).isNewline,
+    _ => false,
+  };
 
   /// As long as the scanner's position is indented beneath the starting line,
   /// runs [body] to consume the next statement.
@@ -399,8 +401,8 @@ class SassParser extends StylesheetParser {
   /// Consumes indentation whitespace and returns the indentation level of the
   /// next line.
   int _readIndentation() {
-    var currentIndentation =
-        _currentIndentation = _nextIndentation ??= _peekIndentation();
+    var currentIndentation = _currentIndentation = _nextIndentation ??=
+        _peekIndentation();
     scanner.state = _nextIndentationEnd!;
     _nextIndentation = null;
     _nextIndentationEnd = null;

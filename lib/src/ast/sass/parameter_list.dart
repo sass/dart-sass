@@ -57,12 +57,10 @@ final class ParameterList implements SassNode {
   bool get isEmpty => parameters.isEmpty && restParameter == null;
 
   ParameterList(Iterable<Parameter> parameters, this.span, {this.restParameter})
-      : parameters = List.unmodifiable(parameters);
+    : parameters = List.unmodifiable(parameters);
 
   /// Creates a declaration that declares no parameters.
-  ParameterList.empty(this.span)
-      : parameters = const [],
-        restParameter = null;
+  ParameterList.empty(this.span) : parameters = const [], restParameter = null;
 
   /// Parses an parameter declaration from [contents], which should be of the
   /// form `@rule name(args) {`.
@@ -162,7 +160,7 @@ final class ParameterList implements SassNode {
 
   @override
   String toString() => [
-        for (var arg in parameters) '\$$arg',
-        if (restParameter != null) '\$$restParameter...',
-      ].join(', ');
+    for (var arg in parameters) '\$$arg',
+    if (restParameter != null) '\$$restParameter...',
+  ].join(', ');
 }

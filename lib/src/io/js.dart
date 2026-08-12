@@ -320,8 +320,7 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
       onCancel: () {
         subscription.unsubscribe();
       },
-    ))
-        .stream;
+    )).stream;
   } else {
     var watcher = chokidar.watch(path, ChokidarOptions(usePolling: poll));
     watcher
@@ -359,8 +358,7 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
           onCancel: () {
             watcher.close();
           },
-        ))
-            .stream;
+        )).stream;
         completer.complete(stream);
       }),
     );

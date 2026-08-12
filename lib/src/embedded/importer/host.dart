@@ -48,9 +48,9 @@ final class HostImporter extends ImporterBase {
 
     return switch (response.whichResult()) {
       InboundMessage_CanonicalizeResponse_Result.url => parseAbsoluteUrl(
-          "The importer",
-          response.url,
-        ),
+        "The importer",
+        response.url,
+      ),
       InboundMessage_CanonicalizeResponse_Result.error => throw response.error,
       InboundMessage_CanonicalizeResponse_Result.notSet => null,
     };
@@ -66,15 +66,12 @@ final class HostImporter extends ImporterBase {
 
     return switch (response.whichResult()) {
       InboundMessage_ImportResponse_Result.success => ImporterResult(
-          response.success.contents,
-          sourceMapUrl: response.success.sourceMapUrl.isEmpty
-              ? null
-              : parseAbsoluteUrl(
-                  "The importer",
-                  response.success.sourceMapUrl,
-                ),
-          syntax: syntaxToSyntax(response.success.syntax),
-        ),
+        response.success.contents,
+        sourceMapUrl: response.success.sourceMapUrl.isEmpty
+            ? null
+            : parseAbsoluteUrl("The importer", response.success.sourceMapUrl),
+        syntax: syntaxToSyntax(response.success.syntax),
+      ),
       InboundMessage_ImportResponse_Result.error => throw response.error,
       InboundMessage_ImportResponse_Result.notSet => null,
     };

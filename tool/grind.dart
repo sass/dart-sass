@@ -126,9 +126,9 @@ void main(List<String> args) {
 
     return {
       ...pkg.environmentConstants.defaultValue,
-      "protocol-version": File(
-        'build/language/spec/EMBEDDED_PROTOCOL_VERSION',
-      ).readAsStringSync().trim(),
+      "protocol-version": File('build/language/spec/EMBEDDED_PROTOCOL_VERSION')
+          .readAsStringSync()
+          .trim(),
       "compiler-version": pkg.pubspec.version!.toString(),
     };
   };
@@ -169,7 +169,8 @@ void npmInstall() =>
 )
 void beforeTest() {}
 
-String get _nuspec => """
+String get _nuspec =>
+    """
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
@@ -204,9 +205,9 @@ final _readAndResolveRegExp = RegExp(
 /// which must appear on its own line. PATH is a relative file: URL to another
 /// Markdown file, and HEADER is the name of a header in that file whose
 /// contents should be included as-is.
-String _readAndResolveMarkdown(String path) => File(
-      path,
-    ).readAsStringSync().replaceAllMapped(_readAndResolveRegExp, (match) {
+String _readAndResolveMarkdown(String path) => File(path)
+    .readAsStringSync()
+    .replaceAllMapped(_readAndResolveRegExp, (match) {
       late String included;
       try {
         included = File(p.join(p.dirname(path), p.fromUri(match[1])))
@@ -245,8 +246,8 @@ Map<String, String> _fetchJSTypes() {
   return {
     for (var entry in Directory(typeRoot).listSync(recursive: true))
       if (entry is File && entry.path.endsWith('.d.ts'))
-        p.join('types', p.relative(entry.path, from: typeRoot)):
-            entry.readAsStringSync(),
+        p.join('types', p.relative(entry.path, from: typeRoot)): entry
+            .readAsStringSync(),
   };
 }
 
@@ -282,7 +283,8 @@ dart run protoc_plugin "\$@"
     arguments: ["generate"],
     runOptions: RunOptions(
       environment: {
-        "PATH": 'build${Platform.isWindows ? ";" : ":"}'
+        "PATH":
+            'build${Platform.isWindows ? ";" : ":"}'
             '${Platform.environment["PATH"]!}',
       },
     ),

@@ -67,7 +67,8 @@ class SourceInterpolationVisitor
     for (var (condition, expression) in node.branches) {
       var firstSpan = condition?.span ?? expression.span;
       buffer?.write(
-          (lastSpan?.between(firstSpan) ?? node.span.before(firstSpan)).text);
+        (lastSpan?.between(firstSpan) ?? node.span.before(firstSpan)).text,
+      );
 
       if (condition != null) {
         condition.accept(this);
@@ -196,7 +197,9 @@ class SourceInterpolationVisitor
   /// Visits each expression in [nodes] with [visit], and writes whatever text
   /// is between them to [buffer].
   void _writeListAndBetween<T extends AstNode>(
-      List<T> nodes, void Function(T) visit) {
+    List<T> nodes,
+    void Function(T) visit,
+  ) {
     FileSpan? lastSpan;
     for (var node in nodes) {
       if (lastSpan != null) {

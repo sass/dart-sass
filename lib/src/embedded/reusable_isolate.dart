@@ -19,7 +19,9 @@ import 'package:native_synchronization/sendable.dart';
 /// If the [sendPort] sends a message before [ReusableIsolate.borrow] is called,
 /// this will throw an unhandled [StateError].
 typedef ReusableIsolateEntryPoint = FutureOr<void> Function(
-    Mailbox mailbox, SendPort sink);
+  Mailbox mailbox,
+  SendPort sink,
+);
 
 class ReusableIsolate {
   /// The wrapped isolate.

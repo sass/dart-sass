@@ -36,6 +36,6 @@ abstract base class CallableDeclaration
     Iterable<Statement> children,
     this.span, {
     this.comment,
-  })  : name = originalName.replaceAll('_', '-'),
-        super(List.unmodifiable(children));
+  }) : name = originalName.replaceAll('_', '-'),
+       super(List.unmodifiable(children));
 }

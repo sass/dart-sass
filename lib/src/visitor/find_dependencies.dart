@@ -82,10 +82,9 @@ class _FindDependenciesVisitor with RecursiveStatementVisitor {
     if (node.name != 'load-css') return;
     if (!_metaNamespaces.contains(node.namespace)) return;
 
-    if (node.arguments.positional
-        case [
-          StringExpression(text: Interpolation(asPlain: var url?)),
-        ]) {
+    if (node.arguments.positional case [
+      StringExpression(text: Interpolation(asPlain: var url?)),
+    ]) {
       try {
         _metaLoadCss.add(Uri.parse(url));
       } on FormatException {

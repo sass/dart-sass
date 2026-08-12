@@ -40,10 +40,10 @@ Value unwrapValue(Object? object) {
 
 /// Wraps a [Value] in a wrapper that exposes the Node Sass API for that value.
 Object wrapValue(Value value) => switch (value) {
-      SassColor() => newNodeSassColor(value),
-      SassList() => newNodeSassList(value),
-      SassMap() => newNodeSassMap(value),
-      SassNumber() => newNodeSassNumber(value),
-      SassString() => newNodeSassString(value),
-      _ => value,
-    };
+  SassColor() => newNodeSassColor(value),
+  SassList() => newNodeSassList(value),
+  SassMap() => newNodeSassMap(value),
+  SassNumber() => newNodeSassNumber(value),
+  SassString() => newNodeSassString(value),
+  _ => value,
+};

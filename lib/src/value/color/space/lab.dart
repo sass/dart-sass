@@ -25,17 +25,17 @@ final class LabColorSpace extends ColorSpace {
   bool get isBoundedInternal => false;
 
   const LabColorSpace()
-      : super('lab', const [
-          LinearChannel(
-            'lightness',
-            0,
-            100,
-            lowerClamped: true,
-            upperClamped: true,
-          ),
-          LinearChannel('a', -125, 125),
-          LinearChannel('b', -125, 125),
-        ]);
+    : super('lab', const [
+        LinearChannel(
+          'lightness',
+          0,
+          100,
+          lowerClamped: true,
+          upperClamped: true,
+        ),
+        LinearChannel('a', -125, 125),
+        LinearChannel('b', -125, 125),
+      ]);
 
   @override
   SassColor convert(

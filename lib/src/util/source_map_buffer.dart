@@ -186,7 +186,8 @@ class SourceMapBuffer implements StringBuffer {
             line: entry.target.line + prefixLines,
             // Only adjust the column for entries that are on the same line as
             // the last chunk of the prefix.
-            column: entry.target.column +
+            column:
+                entry.target.column +
                 (entry.target.line == 0 ? prefixColumn : 0),
           ),
           entry.identifierName,

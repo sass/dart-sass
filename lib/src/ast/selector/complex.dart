@@ -76,8 +76,8 @@ final class ComplexSelector extends Selector {
     Iterable<ComplexSelectorComponent> components,
     super.span, {
     this.lineBreak = false,
-  })  : leadingCombinators = List.unmodifiable(leadingCombinators),
-        components = List.unmodifiable(components) {
+  }) : leadingCombinators = List.unmodifiable(leadingCombinators),
+       components = List.unmodifiable(components) {
     if (this.leadingCombinators.isEmpty && this.components.isEmpty) {
       throw ArgumentError(
         "leadingCombinators and components may not both be empty.",
@@ -100,13 +100,12 @@ final class ComplexSelector extends Selector {
     Object? url,
     bool allowParent = true,
     Logger? logger,
-  }) =>
-      SelectorParser(
-        contents,
-        url: url,
-        allowParent: allowParent,
-        logger: logger,
-      ).parseComplexSelector();
+  }) => SelectorParser(
+    contents,
+    url: url,
+    allowParent: allowParent,
+    logger: logger,
+  ).parseComplexSelector();
 
   @override
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitComplexSelector(this);
@@ -135,17 +134,17 @@ final class ComplexSelector extends Selector {
     if (combinators.isEmpty) return this;
     return switch (components) {
       [...var initial, var last] => ComplexSelector(
-          leadingCombinators,
-          [...initial, last.withAdditionalCombinators(combinators)],
-          span,
-          lineBreak: lineBreak || forceLineBreak,
-        ),
+        leadingCombinators,
+        [...initial, last.withAdditionalCombinators(combinators)],
+        span,
+        lineBreak: lineBreak || forceLineBreak,
+      ),
       [] => ComplexSelector(
-          [...leadingCombinators, ...combinators],
-          const [],
-          span,
-          lineBreak: lineBreak || forceLineBreak,
-        ),
+        [...leadingCombinators, ...combinators],
+        const [],
+        span,
+        lineBreak: lineBreak || forceLineBreak,
+      ),
     };
   }
 
@@ -162,13 +161,12 @@ final class ComplexSelector extends Selector {
     ComplexSelectorComponent component,
     FileSpan span, {
     bool forceLineBreak = false,
-  }) =>
-      ComplexSelector(
-        leadingCombinators,
-        [...components, component],
-        span,
-        lineBreak: lineBreak || forceLineBreak,
-      );
+  }) => ComplexSelector(
+    leadingCombinators,
+    [...components, component],
+    span,
+    lineBreak: lineBreak || forceLineBreak,
+  );
 
   /// Returns a copy of `this` with [child]'s combinators added to the end.
   ///

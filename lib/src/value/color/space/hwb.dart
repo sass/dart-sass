@@ -25,11 +25,11 @@ final class HwbColorSpace extends ColorSpace {
   bool get isPolarInternal => true;
 
   const HwbColorSpace()
-      : super('hwb', const [
-          hueChannel,
-          LinearChannel('whiteness', 0, 100, requiresPercent: true),
-          LinearChannel('blackness', 0, 100, requiresPercent: true),
-        ]);
+    : super('hwb', const [
+        hueChannel,
+        LinearChannel('whiteness', 0, 100, requiresPercent: true),
+        LinearChannel('blackness', 0, 100, requiresPercent: true),
+      ]);
 
   @override
   SassColor convert(

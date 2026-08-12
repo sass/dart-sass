@@ -447,16 +447,15 @@ void main() {
       test("with multiple denominators", () async {
         var value = (await _protofy(
           'math.div(math.div(math.div(1, 1em), 1px), 1foo)',
-        ))
-            .number;
+        )).number;
         expect(value.value, equals(1.0));
         expect(value.numerators, isEmpty);
         expect(value.denominators, unorderedEquals(["em", "px", "foo"]));
       });
 
       test("with numerators and denominators", () async {
-        var value =
-            (await _protofy('1em * math.div(math.div(1px, 1s), 1foo)')).number;
+        var value = (await _protofy('1em * math.div(math.div(1px, 1s), 1foo)'))
+            .number;
         expect(value.value, equals(1.0));
         expect(value.numerators, unorderedEquals(["em", "px"]));
         expect(value.denominators, unorderedEquals(["s", "foo"]));
@@ -610,24 +609,24 @@ void main() {
           });
 
           test("with a comma separator", () async {
-            var list =
-                (await _protofy(r"list.join([], [], $separator: comma)")).list;
+            var list = (await _protofy(r"list.join([], [], $separator: comma)"))
+                .list;
             expect(list.contents, isEmpty);
             expect(list.hasBrackets, isTrue);
             expect(list.separator, equals(ListSeparator.COMMA));
           });
 
           test("with a space separator", () async {
-            var list =
-                (await _protofy(r"list.join([], [], $separator: space)")).list;
+            var list = (await _protofy(r"list.join([], [], $separator: space)"))
+                .list;
             expect(list.contents, isEmpty);
             expect(list.hasBrackets, isTrue);
             expect(list.separator, equals(ListSeparator.SPACE));
           });
 
           test("with a slash separator", () async {
-            var list =
-                (await _protofy(r"list.join([], [], $separator: slash)")).list;
+            var list = (await _protofy(r"list.join([], [], $separator: slash)"))
+                .list;
             expect(list.contents, isEmpty);
             expect(list.hasBrackets, isTrue);
             expect(list.separator, equals(ListSeparator.SLASH));
@@ -643,24 +642,24 @@ void main() {
           });
 
           test("with a comma separator", () async {
-            var list =
-                (await _protofy(r"list.join((), (), $separator: comma)")).list;
+            var list = (await _protofy(r"list.join((), (), $separator: comma)"))
+                .list;
             expect(list.contents, isEmpty);
             expect(list.hasBrackets, isFalse);
             expect(list.separator, equals(ListSeparator.COMMA));
           });
 
           test("with a space separator", () async {
-            var list =
-                (await _protofy(r"list.join((), (), $separator: space)")).list;
+            var list = (await _protofy(r"list.join((), (), $separator: space)"))
+                .list;
             expect(list.contents, isEmpty);
             expect(list.hasBrackets, isFalse);
             expect(list.separator, equals(ListSeparator.SPACE));
           });
 
           test("with a slash separator", () async {
-            var list =
-                (await _protofy(r"list.join((), (), $separator: slash)")).list;
+            var list = (await _protofy(r"list.join((), (), $separator: slash)"))
+                .list;
             expect(list.contents, isEmpty);
             expect(list.hasBrackets, isFalse);
             expect(list.separator, equals(ListSeparator.SLASH));
@@ -687,8 +686,7 @@ void main() {
           test("with a space separator", () async {
             var list = (await _protofy(
               r"list.join([true], [], $separator: space)",
-            ))
-                .list;
+            )).list;
             expect(list.contents, equals([_true]));
             expect(list.hasBrackets, isTrue);
             expect(list.separator, equals(ListSeparator.SPACE));
@@ -697,8 +695,7 @@ void main() {
           test("with a slash separator", () async {
             var list = (await _protofy(
               r"list.join([true], [], $separator: slash)",
-            ))
-                .list;
+            )).list;
             expect(list.contents, equals([_true]));
             expect(list.hasBrackets, isTrue);
             expect(list.separator, equals(ListSeparator.SLASH));
@@ -716,8 +713,7 @@ void main() {
           test("with a space separator", () async {
             var list = (await _protofy(
               r"list.join(true, (), $separator: space)",
-            ))
-                .list;
+            )).list;
             expect(list.contents, equals([_true]));
             expect(list.hasBrackets, isFalse);
             expect(list.separator, equals(ListSeparator.SPACE));
@@ -726,8 +722,7 @@ void main() {
           test("with a slash separator", () async {
             var list = (await _protofy(
               r"list.join(true, (), $separator: slash)",
-            ))
-                .list;
+            )).list;
             expect(list.contents, equals([_true]));
             expect(list.hasBrackets, isFalse);
             expect(list.separator, equals(ListSeparator.SLASH));
@@ -786,16 +781,16 @@ void main() {
       });
 
       test("with arguments", () async {
-        var list =
-            (await _protofy(r"capture-args(true, null, false)")).argumentList;
+        var list = (await _protofy(r"capture-args(true, null, false)"))
+            .argumentList;
         expect(list.contents, [_true, _null, _false]);
         expect(list.keywords, isEmpty);
         expect(list.separator, equals(ListSeparator.COMMA));
       });
 
       test("with a space separator", () async {
-        var list =
-            (await _protofy(r"capture-args(true null false...)")).argumentList;
+        var list = (await _protofy(r"capture-args(true null false...)"))
+            .argumentList;
         expect(list.contents, [_true, _null, _false]);
         expect(list.keywords, isEmpty);
         expect(list.separator, equals(ListSeparator.SPACE));
@@ -804,17 +799,14 @@ void main() {
       test("with a slash separator", () async {
         var list = (await _protofy(
           r"capture-args(list.slash(true, null, false)...)",
-        ))
-            .argumentList;
+        )).argumentList;
         expect(list.contents, [_true, _null, _false]);
         expect(list.keywords, isEmpty);
         expect(list.separator, equals(ListSeparator.SLASH));
       });
 
       test("with keywords", () async {
-        var list = (await _protofy(
-          r"capture-args($arg1: true, $arg2: false)",
-        ))
+        var list = (await _protofy(r"capture-args($arg1: true, $arg2: false)"))
             .argumentList;
         expect(list.contents, isEmpty);
         expect(list.keywords, equals({"arg1": _true, "arg2": _false}));
@@ -1566,8 +1558,8 @@ void main() {
         expect(
           await _roundTrip(
             Value()
-              ..argumentList =
-                  (Value_ArgumentList()..separator = ListSeparator.UNDECIDED),
+              ..argumentList = (Value_ArgumentList()
+                ..separator = ListSeparator.UNDECIDED),
           ),
           equals(
             Value()
@@ -1868,9 +1860,7 @@ void main() {
                                 ..right = (Value_Calculation_CalculationValue()
                                   ..number = (Value_Number()
                                     ..value = 3.0
-                                    ..numerators.add(
-                                      "px",
-                                    )))))),
+                                    ..numerators.add("px")))))),
                   )),
             ),
             "calc(1% + 5px)",
@@ -2336,22 +2326,24 @@ Future<Value> _roundTrip(Value value) async {
 }
 
 /// Returns a [Value] that's an RGB color with the given fields.
-Value _rgb(int red, int green, int blue, double alpha) => Value()
-  ..color = (Value_Color()
-    ..space = 'rgb'
-    ..channel1 = red * 1.0
-    ..channel2 = green * 1.0
-    ..channel3 = blue * 1.0
-    ..alpha = alpha);
+Value _rgb(int red, int green, int blue, double alpha) =>
+    Value()
+      ..color = (Value_Color()
+        ..space = 'rgb'
+        ..channel1 = red * 1.0
+        ..channel2 = green * 1.0
+        ..channel3 = blue * 1.0
+        ..alpha = alpha);
 
 /// Returns a [Value] that's an HSL color with the given fields.
-Value _hsl(num hue, num saturation, num lightness, double alpha) => Value()
-  ..color = (Value_Color()
-    ..space = 'hsl'
-    ..channel1 = hue * 1.0
-    ..channel2 = saturation * 1.0
-    ..channel3 = lightness * 1.0
-    ..alpha = alpha);
+Value _hsl(num hue, num saturation, num lightness, double alpha) =>
+    Value()
+      ..color = (Value_Color()
+        ..space = 'hsl'
+        ..channel1 = hue * 1.0
+        ..channel2 = saturation * 1.0
+        ..channel3 = lightness * 1.0
+        ..alpha = alpha);
 
 /// Asserts that [process] emits a [CompileFailure] result with the given
 /// [message] on its protobuf stream and causes the compilation to fail.

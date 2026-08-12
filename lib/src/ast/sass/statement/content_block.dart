@@ -23,6 +23,7 @@ final class ContentBlock extends CallableDeclaration {
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitContentBlock(this);
 
   @override
-  String toString() => "${parameters.isEmpty ? "" : " using ($parameters)"} "
+  String toString() =>
+      "${parameters.isEmpty ? "" : " using ($parameters)"} "
       "{${children.join(' ')}}";
 }

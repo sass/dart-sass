@@ -49,8 +49,8 @@ final class ModifiableCssStyleRule extends ModifiableCssParentNode
 
   @override
   ModifiableCssStyleRule copyWithoutChildren() => ModifiableCssStyleRule(
-        _selector,
-        span,
-        originalSelector: originalSelector,
-      );
+    _selector,
+    span,
+    originalSelector: originalSelector,
+  );
 }

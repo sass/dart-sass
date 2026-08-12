@@ -31,7 +31,7 @@ final class InterpolatedQualifiedName implements SassNode {
 
   @override
   String toString() => switch (namespace) {
-        var namespace? => '$namespace|$name',
-        _ => name.toString()
-      };
+    var namespace? => '$namespace|$name',
+    _ => name.toString(),
+  };
 }

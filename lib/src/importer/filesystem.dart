@@ -34,18 +34,18 @@ class FilesystemImporter extends Importer {
 
   /// Creates an importer that loads files relative to [loadPath].
   FilesystemImporter(String loadPath)
-      : _loadPath = p.absolute(loadPath),
-        _loadPathDeprecated = false;
+    : _loadPath = p.absolute(loadPath),
+      _loadPathDeprecated = false;
 
   FilesystemImporter._deprecated(String loadPath)
-      : _loadPath = p.absolute(loadPath),
-        _loadPathDeprecated = true;
+    : _loadPath = p.absolute(loadPath),
+      _loadPathDeprecated = true;
 
   /// Creates an importer that _only_ loads absolute `file:` URLs and URLs
   /// relative to the current file.
   FilesystemImporter._noLoadPath()
-      : _loadPath = null,
-        _loadPathDeprecated = false;
+    : _loadPath = null,
+      _loadPathDeprecated = false;
 
   /// A [FilesystemImporter] that loads files relative to the current working
   /// directory.

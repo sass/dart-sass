@@ -32,8 +32,8 @@ abstract class CssNode implements AstNode {
   /// invisible even though they're omitted in compressed mode.
   @internal
   bool get isInvisible => accept(
-        const _IsInvisibleVisitor(includeBogus: true, includeComments: false),
-      );
+    const _IsInvisibleVisitor(includeBogus: true, includeComments: false),
+  );
 
   // Whether this node would be invisible even if style rule selectors within it
   // didn't have bogus combinators.
@@ -42,14 +42,14 @@ abstract class CssNode implements AstNode {
   /// invisible even though they're omitted in compressed mode.
   @internal
   bool get isInvisibleOtherThanBogusCombinators => accept(
-        const _IsInvisibleVisitor(includeBogus: false, includeComments: false),
-      );
+    const _IsInvisibleVisitor(includeBogus: false, includeComments: false),
+  );
 
   // Whether this node will be invisible when loud comments are stripped.
   @internal
   bool get isInvisibleHidingComments => accept(
-        const _IsInvisibleVisitor(includeBogus: true, includeComments: true),
-      );
+    const _IsInvisibleVisitor(includeBogus: true, includeComments: true),
+  );
 
   @override
   String toString() => serialize(this, inspect: true).$1;

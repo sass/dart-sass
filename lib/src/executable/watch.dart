@@ -242,8 +242,9 @@ final class _Watcher {
     }
     if (p.basename(source).startsWith('_')) return null;
 
-    for (var (sourceDir, destinationDir)
-        in _sourceDirectoriesToDestinations(_options).pairs) {
+    for (var (sourceDir, destinationDir) in _sourceDirectoriesToDestinations(
+      _options,
+    ).pairs) {
       if (!p.isWithin(sourceDir, source)) continue;
 
       var destination = p.join(
@@ -268,5 +269,4 @@ Map<String, String> _sourcesToDestinations(ExecutableOptions options) =>
 /// since stdin inputs and stdout outputs aren't allowed in `--watch` mode.
 Map<String, String> _sourceDirectoriesToDestinations(
   ExecutableOptions options,
-) =>
-    options.sourceDirectoriesToDestinations.cast<String, String>();
+) => options.sourceDirectoriesToDestinations.cast<String, String>();

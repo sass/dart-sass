@@ -16,7 +16,7 @@ class RenderOptions {
   external Object? get importer;
   external NodePackageImporter? get pkgImporter;
   external Object? get functions;
-  external List<Object /* String */ >? get includePaths;
+  external List<Object /* String */>? get includePaths;
   external bool? get indentedSyntax;
   external bool? get omitSourceMapUrl;
   external String? get outFile;
@@ -30,9 +30,9 @@ class RenderOptions {
   external bool? get sourceMapEmbed;
   external String? get sourceMapRoot;
   external bool? get quietDeps;
-  external List<Object /*Deprecation|String|Version*/ >? get fatalDeprecations;
-  external List<Object /*Deprecation|String*/ >? get futureDeprecations;
-  external List<Object /*Deprecation|String*/ >? get silenceDeprecations;
+  external List<Object /*Deprecation|String|Version*/>? get fatalDeprecations;
+  external List<Object /*Deprecation|String*/>? get futureDeprecations;
+  external List<Object /*Deprecation|String*/>? get silenceDeprecations;
   external bool? get verbose;
   external bool? get charset;
   external JSLogger? get logger;

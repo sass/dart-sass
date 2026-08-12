@@ -9,13 +9,13 @@ extension InboundMessageExtensions on InboundMessage {
   ///
   /// Returns null if [message] doesn't have an id field.
   int? get id => switch (whichMessage()) {
-        InboundMessage_Message.versionRequest => versionRequest.id,
-        InboundMessage_Message.canonicalizeResponse => canonicalizeResponse.id,
-        InboundMessage_Message.importResponse => importResponse.id,
-        InboundMessage_Message.fileImportResponse => fileImportResponse.id,
-        InboundMessage_Message.functionCallResponse => functionCallResponse.id,
-        _ => null,
-      };
+    InboundMessage_Message.versionRequest => versionRequest.id,
+    InboundMessage_Message.canonicalizeResponse => canonicalizeResponse.id,
+    InboundMessage_Message.importResponse => importResponse.id,
+    InboundMessage_Message.fileImportResponse => fileImportResponse.id,
+    InboundMessage_Message.functionCallResponse => functionCallResponse.id,
+    _ => null,
+  };
 }
 
 extension OutboundMessageExtensions on OutboundMessage {
@@ -23,13 +23,13 @@ extension OutboundMessageExtensions on OutboundMessage {
   ///
   /// Throws an [ArgumentError] if [message] doesn't have an id field.
   int get id => switch (whichMessage()) {
-        OutboundMessage_Message.canonicalizeRequest => canonicalizeRequest.id,
-        OutboundMessage_Message.importRequest => importRequest.id,
-        OutboundMessage_Message.fileImportRequest => fileImportRequest.id,
-        OutboundMessage_Message.functionCallRequest => functionCallRequest.id,
-        OutboundMessage_Message.versionResponse => versionResponse.id,
-        _ => throw ArgumentError("Unknown message type: ${toDebugString()}"),
-      };
+    OutboundMessage_Message.canonicalizeRequest => canonicalizeRequest.id,
+    OutboundMessage_Message.importRequest => importRequest.id,
+    OutboundMessage_Message.fileImportRequest => fileImportRequest.id,
+    OutboundMessage_Message.functionCallRequest => functionCallRequest.id,
+    OutboundMessage_Message.versionResponse => versionResponse.id,
+    _ => throw ArgumentError("Unknown message type: ${toDebugString()}"),
+  };
 
   /// Sets the outbound ID of this message, regardless of its type.
   ///

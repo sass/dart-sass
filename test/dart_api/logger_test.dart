@@ -337,7 +337,7 @@ void main() {
 /// A [Logger] whose [warn] and [debug] methods are provided by callbacks.
 class _TestLogger implements Logger {
   final void Function(String, {FileSpan? span, Trace? trace, bool deprecation})
-      _warn;
+  _warn;
   final void Function(String, SourceSpan) _debug;
 
   _TestLogger.withWarn(this._warn) : _debug = const Logger.stderr().debug;
@@ -350,8 +350,7 @@ class _TestLogger implements Logger {
     FileSpan? span,
     Trace? trace,
     bool deprecation = false,
-  }) =>
-      _warn(message, span: span, trace: trace, deprecation: deprecation);
+  }) => _warn(message, span: span, trace: trace, deprecation: deprecation);
 
   @override
   void debug(String message, SourceSpan span) => _debug(message, span);

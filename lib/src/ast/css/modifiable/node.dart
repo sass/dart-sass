@@ -67,8 +67,8 @@ abstract base class ModifiableCssParentNode extends ModifiableCssNode
   /// A dummy constructor so that [_children] can be passed to the constructor
   /// for [this.children].
   ModifiableCssParentNode._(List<ModifiableCssNode> children)
-      : _children = children,
-        children = UnmodifiableListView(children);
+    : _children = children,
+      children = UnmodifiableListView(children);
 
   /// Returns whether `this` is equal to [other], ignoring their child nodes.
   bool equalsIgnoringChildren(ModifiableCssNode other);

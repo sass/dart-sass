@@ -85,12 +85,13 @@ final class ForwardRule extends Statement implements SassDependency {
     this.span, {
     this.prefix,
     Iterable<ConfiguredVariable>? configuration,
-  })  : shownMixinsAndFunctions = null,
-        shownVariables = null,
-        hiddenMixinsAndFunctions = null,
-        hiddenVariables = null,
-        configuration =
-            configuration == null ? const [] : List.unmodifiable(configuration);
+  }) : shownMixinsAndFunctions = null,
+       shownVariables = null,
+       hiddenMixinsAndFunctions = null,
+       hiddenVariables = null,
+       configuration = configuration == null
+           ? const []
+           : List.unmodifiable(configuration);
 
   /// Creates a `@forward` rule that allows only members included in
   /// [shownMixinsAndFunctions] and [shownVariables] to be accessed.
@@ -101,14 +102,15 @@ final class ForwardRule extends Statement implements SassDependency {
     this.span, {
     this.prefix,
     Iterable<ConfiguredVariable>? configuration,
-  })  : shownMixinsAndFunctions = UnmodifiableSetView(
-          Set.of(shownMixinsAndFunctions),
-        ),
-        shownVariables = UnmodifiableSetView(Set.of(shownVariables)),
-        hiddenMixinsAndFunctions = null,
-        hiddenVariables = null,
-        configuration =
-            configuration == null ? const [] : List.unmodifiable(configuration);
+  }) : shownMixinsAndFunctions = UnmodifiableSetView(
+         Set.of(shownMixinsAndFunctions),
+       ),
+       shownVariables = UnmodifiableSetView(Set.of(shownVariables)),
+       hiddenMixinsAndFunctions = null,
+       hiddenVariables = null,
+       configuration = configuration == null
+           ? const []
+           : List.unmodifiable(configuration);
 
   /// Creates a `@forward` rule that allows only members not included in
   /// [hiddenMixinsAndFunctions] and [hiddenVariables] to be accessed.
@@ -119,14 +121,15 @@ final class ForwardRule extends Statement implements SassDependency {
     this.span, {
     this.prefix,
     Iterable<ConfiguredVariable>? configuration,
-  })  : shownMixinsAndFunctions = null,
-        shownVariables = null,
-        hiddenMixinsAndFunctions = UnmodifiableSetView(
-          Set.of(hiddenMixinsAndFunctions),
-        ),
-        hiddenVariables = UnmodifiableSetView(Set.of(hiddenVariables)),
-        configuration =
-            configuration == null ? const [] : List.unmodifiable(configuration);
+  }) : shownMixinsAndFunctions = null,
+       shownVariables = null,
+       hiddenMixinsAndFunctions = UnmodifiableSetView(
+         Set.of(hiddenMixinsAndFunctions),
+       ),
+       hiddenVariables = UnmodifiableSetView(Set.of(hiddenVariables)),
+       configuration = configuration == null
+           ? const []
+           : List.unmodifiable(configuration);
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitForwardRule(this);

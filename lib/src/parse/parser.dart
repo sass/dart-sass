@@ -52,8 +52,8 @@ class Parser {
 
   @protected
   Parser(String contents, {Object? url, InterpolationMap? interpolationMap})
-      : scanner = SpanScanner(contents, sourceUrl: url),
-        _interpolationMap = interpolationMap;
+    : scanner = SpanScanner(contents, sourceUrl: url),
+      _interpolationMap = interpolationMap;
 
   String _parseIdentifier() {
     return wrapSpanFormatException(() {
@@ -414,12 +414,12 @@ class Parser {
         case $backslash:
           buffer.write(escape());
         case $percent ||
-              $ampersand ||
-              $hash ||
-              // dart-lang/sdk#52740
-              // ignore: non_constant_relational_pattern_expression
-              (>= $asterisk && <= $tilde) ||
-              >= 0x0080:
+            $ampersand ||
+            $hash ||
+            // dart-lang/sdk#52740
+            // ignore: non_constant_relational_pattern_expression
+            (>= $asterisk && <= $tilde) ||
+            >= 0x0080:
           buffer.writeCharCode(scanner.readChar());
         case int(isWhitespace: true):
           whitespace(consumeNewlines: true);
@@ -558,15 +558,15 @@ class Parser {
   /// [the CSS algorithm]: https://drafts.csswg.org/css-syntax-3/#starts-with-a-number
   @protected
   bool lookingAtNumber() => switch (scanner.peekChar()) {
-        int(isDigit: true) => true,
-        $dot => scanner.peekChar(1)?.isDigit ?? false,
-        $plus || $minus => switch (scanner.peekChar(1)) {
-            int(isDigit: true) => true,
-            $dot => scanner.peekChar(2)?.isDigit ?? false,
-            _ => false,
-          },
-        _ => false,
-      };
+    int(isDigit: true) => true,
+    $dot => scanner.peekChar(1)?.isDigit ?? false,
+    $plus || $minus => switch (scanner.peekChar(1)) {
+      int(isDigit: true) => true,
+      $dot => scanner.peekChar(2)?.isDigit ?? false,
+      _ => false,
+    },
+    _ => false,
+  };
 
   /// Returns whether the scanner is immediately before a plain CSS identifier.
   ///
@@ -584,9 +584,9 @@ class Parser {
     return switch (scanner.peekChar(forward)) {
       int(isNameStart: true) || $backslash => true,
       $dash => switch (scanner.peekChar(forward + 1)) {
-          int(isNameStart: true) || $backslash || $dash => true,
-          _ => false,
-        },
+        int(isNameStart: true) || $backslash || $dash => true,
+        _ => false,
+      },
       _ => false,
     };
   }

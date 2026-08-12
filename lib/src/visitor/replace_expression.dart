@@ -52,12 +52,11 @@ mixin ReplaceExpressionVisitor
   @override
   Expression visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
-  ) =>
-      InterpolatedFunctionExpression(
-        visitInterpolation(node.name),
-        visitArgumentList(node.arguments),
-        node.span,
-      );
+  ) => InterpolatedFunctionExpression(
+    visitInterpolation(node.name),
+    visitArgumentList(node.arguments),
+    node.span,
+  );
 
   @override
   Expression visitLegacyIfExpression(LegacyIfExpression node) =>
@@ -65,17 +64,16 @@ mixin ReplaceExpressionVisitor
 
   @override
   Expression visitListExpression(ListExpression node) => ListExpression(
-        node.contents.map((item) => item.accept(this)),
-        node.separator,
-        node.span,
-        brackets: node.hasBrackets,
-      );
+    node.contents.map((item) => item.accept(this)),
+    node.separator,
+    node.span,
+    brackets: node.hasBrackets,
+  );
 
   @override
   Expression visitMapExpression(MapExpression node) => MapExpression([
-        for (var (key, value) in node.pairs)
-          (key.accept(this), value.accept(this)),
-      ], node.span);
+    for (var (key, value) in node.pairs) (key.accept(this), value.accept(this)),
+  ], node.span);
 
   @override
   Expression visitNullExpression(NullExpression node) => node;
@@ -116,8 +114,8 @@ mixin ReplaceExpressionVisitor
 
   @override
   IfConditionExpression visitIfConditionParenthesized(
-          IfConditionParenthesized node) =>
-      IfConditionParenthesized(node.expression.accept(this), node.span);
+    IfConditionParenthesized node,
+  ) => IfConditionParenthesized(node.expression.accept(this), node.span);
 
   @override
   IfConditionExpression visitIfConditionNegation(IfConditionNegation node) =>
@@ -152,16 +150,16 @@ mixin ReplaceExpressionVisitor
   /// argument invocation in an expression.
   @protected
   ArgumentList visitArgumentList(ArgumentList invocation) => ArgumentList(
-        invocation.positional.map((expression) => expression.accept(this)),
-        {
-          for (var (name, value) in invocation.named.pairs)
-            name: value.accept(this),
-        },
-        invocation.namedSpans,
-        invocation.span,
-        rest: invocation.rest?.accept(this),
-        keywordRest: invocation.keywordRest?.accept(this),
-      );
+    invocation.positional.map((expression) => expression.accept(this)),
+    {
+      for (var (name, value) in invocation.named.pairs)
+        name: value.accept(this),
+    },
+    invocation.namedSpans,
+    invocation.span,
+    rest: invocation.rest?.accept(this),
+    keywordRest: invocation.keywordRest?.accept(this),
+  );
 
   /// Replaces each expression in [condition].
   ///

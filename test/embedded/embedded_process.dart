@@ -72,9 +72,9 @@ class EmbeddedProcess {
   /// `null` immediately.
   Future<int?> get _exitCodeOrNull async {
     var exitCode = await this.exitCode.timeout(
-          Duration.zero,
-          onTimeout: () => -1,
-        );
+      Duration.zero,
+      onTimeout: () => -1,
+    );
     return exitCode == -1 ? null : exitCode;
   }
 
@@ -110,29 +110,26 @@ class EmbeddedProcess {
   ///
   /// The [forwardOutput] argument is the same as that to [start].
   EmbeddedProcess._(Process process, {bool forwardOutput = false})
-      : _process = process,
-        _outboundSplitter = StreamSplitter(
-          process.stdout.transform(lengthDelimitedDecoder).map((packet) {
-            var (compilationId, buffer) = parsePacket(packet);
-            return (compilationId, OutboundMessage.fromBuffer(buffer));
-          }),
-        ),
-        _stderrSplitter = StreamSplitter(
-          process.stderr
-              .transform(utf8.decoder)
-              .transform(const LineSplitter()),
-        ),
-        inbound = StreamSinkTransformer<(int, InboundMessage),
-            List<int>>.fromHandlers(
-          handleData: (pair, sink) {
-            var (compilationId, message) = pair;
-            sink.add(serializePacket(compilationId, message));
-          },
-        ).bind(
-          StreamSinkTransformer.fromStreamTransformer(
-            lengthDelimitedEncoder,
-          ).bind(process.stdin),
-        ) {
+    : _process = process,
+      _outboundSplitter = StreamSplitter(
+        process.stdout.transform(lengthDelimitedDecoder).map((packet) {
+          var (compilationId, buffer) = parsePacket(packet);
+          return (compilationId, OutboundMessage.fromBuffer(buffer));
+        }),
+      ),
+      _stderrSplitter = StreamSplitter(
+        process.stderr.transform(utf8.decoder).transform(const LineSplitter()),
+      ),
+      inbound =
+          StreamSinkTransformer<(int, InboundMessage), List<int>>.fromHandlers(
+            handleData: (pair, sink) {
+              var (compilationId, message) = pair;
+              sink.add(serializePacket(compilationId, message));
+            },
+          ).bind(
+            StreamSinkTransformer.fromStreamTransformer(lengthDelimitedEncoder)
+                .bind(process.stdin),
+          ) {
     addTearDown(_tearDown);
     expect(
       _process.exitCode.then((_) => _logOutput()),

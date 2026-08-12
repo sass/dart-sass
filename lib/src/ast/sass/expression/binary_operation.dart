@@ -51,15 +51,16 @@ final class BinaryOperationExpression extends Expression {
   ///
   /// @nodoc
   @internal
-  FileSpan get operatorSpan => left.span.file == right.span.file &&
+  FileSpan get operatorSpan =>
+      left.span.file == right.span.file &&
           left.span.end.offset < right.span.start.offset
       ? left.span.file
-          .span(left.span.end.offset, right.span.start.offset)
-          .trim()
+            .span(left.span.end.offset, right.span.start.offset)
+            .trim()
       : span;
 
   BinaryOperationExpression(this.operator, this.left, this.right)
-      : allowsSlash = false;
+    : allowsSlash = false;
 
   /// Creates a [BinaryOperator.dividedBy] operation that may be interpreted as
   /// slash-separated numbers.
@@ -67,8 +68,8 @@ final class BinaryOperationExpression extends Expression {
   /// @nodoc
   @internal
   BinaryOperationExpression.slash(this.left, this.right)
-      : operator = BinaryOperator.dividedBy,
-        allowsSlash = true;
+    : operator = BinaryOperator.dividedBy,
+      allowsSlash = true;
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

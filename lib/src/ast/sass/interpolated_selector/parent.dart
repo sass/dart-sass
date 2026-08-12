@@ -31,5 +31,8 @@ final class InterpolatedParentSelector extends InterpolatedSimpleSelector {
       visitor.visitParentSelector(this);
 
   @override
-  String toString() => switch (suffix) { var suffix? => '&$suffix', _ => '&' };
+  String toString() => switch (suffix) {
+    var suffix? => '&$suffix',
+    _ => '&',
+  };
 }

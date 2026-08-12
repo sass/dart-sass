@@ -81,9 +81,9 @@ final class CompilationDispatcher {
             throw paramsError("VersionRequest must have compilation ID 0.");
 
           case InboundMessage_Message.canonicalizeResponse ||
-                InboundMessage_Message.importResponse ||
-                InboundMessage_Message.fileImportResponse ||
-                InboundMessage_Message.functionCallResponse:
+              InboundMessage_Message.importResponse ||
+              InboundMessage_Message.fileImportResponse ||
+              InboundMessage_Message.functionCallResponse:
             throw paramsError(
               "Response ID ${message.id} doesn't match any outstanding requests"
               " in compilation $_compilationId.",
@@ -173,7 +173,8 @@ final class CompilationDispatcher {
             color: request.alertColor,
             logger: logger,
             importers: importers,
-            importer: _decodeImporter(input.importer) ??
+            importer:
+                _decodeImporter(input.importer) ??
                 (input.url.startsWith("file:") ? null : sass.Importer.noOp),
             functions: globalFunctions,
             syntax: syntaxToSyntax(input.syntax),
@@ -310,31 +311,27 @@ final class CompilationDispatcher {
 
   InboundMessage_CanonicalizeResponse sendCanonicalizeRequest(
     OutboundMessage_CanonicalizeRequest request,
-  ) =>
-      _sendRequest<InboundMessage_CanonicalizeResponse>(
-        OutboundMessage()..canonicalizeRequest = request,
-      );
+  ) => _sendRequest<InboundMessage_CanonicalizeResponse>(
+    OutboundMessage()..canonicalizeRequest = request,
+  );
 
   InboundMessage_ImportResponse sendImportRequest(
     OutboundMessage_ImportRequest request,
-  ) =>
-      _sendRequest<InboundMessage_ImportResponse>(
-        OutboundMessage()..importRequest = request,
-      );
+  ) => _sendRequest<InboundMessage_ImportResponse>(
+    OutboundMessage()..importRequest = request,
+  );
 
   InboundMessage_FileImportResponse sendFileImportRequest(
     OutboundMessage_FileImportRequest request,
-  ) =>
-      _sendRequest<InboundMessage_FileImportResponse>(
-        OutboundMessage()..fileImportRequest = request,
-      );
+  ) => _sendRequest<InboundMessage_FileImportResponse>(
+    OutboundMessage()..fileImportRequest = request,
+  );
 
   InboundMessage_FunctionCallResponse sendFunctionCallRequest(
     OutboundMessage_FunctionCallRequest request,
-  ) =>
-      _sendRequest<InboundMessage_FunctionCallResponse>(
-        OutboundMessage()..functionCallRequest = request,
-      );
+  ) => _sendRequest<InboundMessage_FunctionCallResponse>(
+    OutboundMessage()..functionCallRequest = request,
+  );
 
   /// Sends [request] to the host and returns the message sent in response.
   T _sendRequest<T extends GeneratedMessage>(OutboundMessage message) {
@@ -362,13 +359,15 @@ final class CompilationDispatcher {
         InboundMessage_Message.functionCallResponse =>
           message.functionCallResponse,
         InboundMessage_Message.compileRequest => throw paramsError(
-            "A CompileRequest with compilation ID $_compilationId is already "
-            "active.",
-          ),
-        InboundMessage_Message.versionRequest =>
-          throw paramsError("VersionRequest must have compilation ID 0."),
-        InboundMessage_Message.notSet =>
-          throw parseError("InboundMessage.message is not set."),
+          "A CompileRequest with compilation ID $_compilationId is already "
+          "active.",
+        ),
+        InboundMessage_Message.versionRequest => throw paramsError(
+          "VersionRequest must have compilation ID 0.",
+        ),
+        InboundMessage_Message.notSet => throw parseError(
+          "InboundMessage.message is not set.",
+        ),
       };
 
       if (message.id != _outboundRequestId) {

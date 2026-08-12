@@ -21,7 +21,7 @@ class InterpolationMethod {
   final HueInterpolationMethod? hue;
 
   InterpolationMethod(this.space, [HueInterpolationMethod? hue])
-      : hue = space.isPolar ? hue ?? HueInterpolationMethod.shorter : null {
+    : hue = space.isPolar ? hue ?? HueInterpolationMethod.shorter : null {
     if (!space.isPolar && hue != null) {
       throw ArgumentError(
         "Hue interpolation method may not be set for rectangular color space "
@@ -57,9 +57,9 @@ class InterpolationMethod {
         'Expected unquoted string "hue" after $value.',
         name,
       );
-    } else if ((list[2].assertString(name)..assertUnquoted(name))
-            .text
-            .toLowerCase() !=
+    } else if ((list[2].assertString(
+          name,
+        )..assertUnquoted(name)).text.toLowerCase() !=
         'hue') {
       throw SassScriptException(
         'Expected unquoted string "hue" at the end of $value, was ${list[2]}.',
@@ -124,8 +124,8 @@ enum HueInterpolationMethod {
         'increasing' => HueInterpolationMethod.increasing,
         'decreasing' => HueInterpolationMethod.decreasing,
         _ => throw SassScriptException(
-            'Unknown hue interpolation method $value.',
-            name,
-          ),
+          'Unknown hue interpolation method $value.',
+          name,
+        ),
       };
 }

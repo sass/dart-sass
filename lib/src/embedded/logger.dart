@@ -26,8 +26,8 @@ final class EmbeddedLogger extends LoggerWithDeprecationType {
   final bool _ascii;
 
   EmbeddedLogger(this._dispatcher, {bool color = false, bool ascii = false})
-      : _color = color,
-        _ascii = ascii;
+    : _color = color,
+      _ascii = ascii;
 
   @override
   void debug(String message, SourceSpan span) {
@@ -36,7 +36,8 @@ final class EmbeddedLogger extends LoggerWithDeprecationType {
         ..type = LogEventType.DEBUG
         ..message = message
         ..span = protofySpan(span)
-        ..formatted = '${span.start.sourceUrl.andThen(p.prettyUri) ?? '-'}:'
+        ..formatted =
+            '${span.start.sourceUrl.andThen(p.prettyUri) ?? '-'}:'
             '${span.start.line + 1} '
             '${_color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG'}: $message\n',
     );

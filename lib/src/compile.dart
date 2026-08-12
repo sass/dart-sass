@@ -56,14 +56,14 @@ CompileResult compile(
   Iterable<Deprecation>? fatalDeprecations,
   Iterable<Deprecation>? futureDeprecations,
 }) {
-  DeprecationProcessingLogger deprecationLogger =
-      logger = DeprecationProcessingLogger(
-    logger ?? Logger.defaultLogger,
-    silenceDeprecations: {...?silenceDeprecations},
-    fatalDeprecations: {...?fatalDeprecations},
-    futureDeprecations: {...?futureDeprecations},
-    limitRepetition: !verbose,
-  )..validate();
+  DeprecationProcessingLogger deprecationLogger = logger =
+      DeprecationProcessingLogger(
+        logger ?? Logger.defaultLogger,
+        silenceDeprecations: {...?silenceDeprecations},
+        fatalDeprecations: {...?fatalDeprecations},
+        futureDeprecations: {...?futureDeprecations},
+        limitRepetition: !verbose,
+      )..validate();
 
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
@@ -131,14 +131,14 @@ CompileResult compileString(
   Iterable<Deprecation>? fatalDeprecations,
   Iterable<Deprecation>? futureDeprecations,
 }) {
-  DeprecationProcessingLogger deprecationLogger =
-      logger = DeprecationProcessingLogger(
-    logger ?? Logger.defaultLogger,
-    silenceDeprecations: {...?silenceDeprecations},
-    fatalDeprecations: {...?fatalDeprecations},
-    futureDeprecations: {...?futureDeprecations},
-    limitRepetition: !verbose,
-  )..validate();
+  DeprecationProcessingLogger deprecationLogger = logger =
+      DeprecationProcessingLogger(
+        logger ?? Logger.defaultLogger,
+        silenceDeprecations: {...?silenceDeprecations},
+        fatalDeprecations: {...?fatalDeprecations},
+        futureDeprecations: {...?futureDeprecations},
+        limitRepetition: !verbose,
+      )..validate();
 
   var stylesheet = Stylesheet.parse(source, syntax ?? Syntax.scss, url: url);
 

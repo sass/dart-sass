@@ -28,8 +28,7 @@ class JSExpressionVisitor implements ExpressionVisitor<Object?> {
   @override
   Object? visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
-  ) =>
-      _inner.visitInterpolatedFunctionExpression(node);
+  ) => _inner.visitInterpolatedFunctionExpression(node);
 
   @override
   Object? visitFunctionExpression(FunctionExpression node) =>

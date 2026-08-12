@@ -57,7 +57,8 @@ class JSSimpleSelectorVisitor implements InterpolatedSelectorVisitor<Object?> {
 
   /// Throws an error for non-simple selectors.
   Never _simpleSelectorError() => throw UnsupportedError(
-      "SimpleSelectorVisitor only supports SimpleSelectors");
+    "SimpleSelectorVisitor only supports SimpleSelectors",
+  );
 }
 
 @JS()
@@ -67,7 +68,8 @@ class JSSimpleSelectorVisitorObject {
   external Object? visitIDSelector(InterpolatedIDSelector node);
   external Object? visitParentSelector(InterpolatedParentSelector node);
   external Object? visitPlaceholderSelector(
-      InterpolatedPlaceholderSelector node);
+    InterpolatedPlaceholderSelector node,
+  );
   external Object? visitPseudoSelector(InterpolatedPseudoSelector node);
   external Object? visitTypeSelector(InterpolatedTypeSelector node);
   external Object? visitUniversalSelector(InterpolatedUniversalSelector node);

@@ -45,20 +45,20 @@ final class ArgumentList implements SassNode {
     this.span, {
     this.rest,
     this.keywordRest,
-  })  : positional = List.unmodifiable(positional),
-        named = Map.unmodifiable(named),
-        namedSpans = Map.unmodifiable(namedSpans) {
+  }) : positional = List.unmodifiable(positional),
+       named = Map.unmodifiable(named),
+       namedSpans = Map.unmodifiable(namedSpans) {
     assert(rest != null || keywordRest == null);
     assert(iterableEquals(named.keys, namedSpans.keys));
   }
 
   /// Creates an invocation that passes no arguments.
   ArgumentList.empty(this.span)
-      : positional = const [],
-        named = const {},
-        namedSpans = const {},
-        rest = null,
-        keywordRest = null;
+    : positional = const [],
+      named = const {},
+      namedSpans = const {},
+      rest = null,
+      keywordRest = null;
 
   @override
   String toString() {
@@ -75,12 +75,12 @@ final class ArgumentList implements SassNode {
 
   /// Wraps [argument] in parentheses if necessary.
   String _parenthesizeArgument(Expression argument) => switch (argument) {
-        ListExpression(
-          separator: ListSeparator.comma,
-          hasBrackets: false,
-          contents: [_, _, ...],
-        ) =>
-          "($argument)",
-        _ => argument.toString(),
-      };
+    ListExpression(
+      separator: ListSeparator.comma,
+      hasBrackets: false,
+      contents: [_, _, ...],
+    ) =>
+      "($argument)",
+    _ => argument.toString(),
+  };
 }

@@ -37,8 +37,8 @@ final class ForRule extends ParentStatement<List<Statement>> {
     Iterable<Statement> children,
     this.span, {
     bool exclusive = true,
-  })  : isExclusive = exclusive,
-        super(List.unmodifiable(children));
+  }) : isExclusive = exclusive,
+       super(List.unmodifiable(children));
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitForRule(this);

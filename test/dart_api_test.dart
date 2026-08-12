@@ -155,8 +155,7 @@ void main() {
       expect(css, equals("a {\n  b: from-relative;\n}"));
     });
 
-    test(
-        "the original importer takes precedence over other importers for "
+    test("the original importer takes precedence over other importers for "
         "relative imports", () async {
       await d.dir("original", [
         d.file("other.scss", "a {b: from-original}"),

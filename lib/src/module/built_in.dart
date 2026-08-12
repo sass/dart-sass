@@ -52,23 +52,23 @@ final class BuiltInModule<T extends AsyncCallable> implements Module<T> {
     Iterable<T>? functions,
     Iterable<T>? mixins,
     Map<String, Value>? variables,
-  })  : url = Uri(scheme: "sass", path: name),
-        functions = _callableMap(functions),
-        mixins = _callableMap(mixins),
-        variables =
-            variables == null ? const {} : UnmodifiableMapView(variables);
+  }) : url = Uri(scheme: "sass", path: name),
+       functions = _callableMap(functions),
+       mixins = _callableMap(mixins),
+       variables = variables == null
+           ? const {}
+           : UnmodifiableMapView(variables);
 
   /// Returns a map from [callables]' names to their values.
   static Map<String, T> _callableMap<T extends AsyncCallable>(
     Iterable<T>? callables,
-  ) =>
-      UnmodifiableMapView(
-        callables == null
-            ? {}
-            : UnmodifiableMapView({
-                for (var callable in callables) callable.name: callable,
-              }),
-      );
+  ) => UnmodifiableMapView(
+    callables == null
+        ? {}
+        : UnmodifiableMapView({
+            for (var callable in callables) callable.name: callable,
+          }),
+  );
 
   @override
   void setVariable(String name, Value value, AstNode nodeWithSpan) {

@@ -26,7 +26,7 @@ final class InterpolatedSelectorList extends InterpolatedSelector {
       : components.first.span.expand(components.last.span);
 
   InterpolatedSelectorList(Iterable<InterpolatedComplexSelector> components)
-      : components = List.unmodifiable(components) {
+    : components = List.unmodifiable(components) {
     if (this.components.isEmpty) {
       throw ArgumentError("components may not be empty.");
     }

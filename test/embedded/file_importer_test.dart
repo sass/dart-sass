@@ -40,8 +40,8 @@ void main() {
     test("for a response without a corresponding request ID", () async {
       process.send(
         InboundMessage()
-          ..fileImportResponse =
-              (InboundMessage_FileImportResponse()..id = request.id + 1),
+          ..fileImportResponse = (InboundMessage_FileImportResponse()
+            ..id = request.id + 1),
       );
 
       await expectParamsError(
@@ -56,8 +56,8 @@ void main() {
     test("for a response that doesn't match the request type", () async {
       process.send(
         InboundMessage()
-          ..canonicalizeResponse =
-              (InboundMessage_CanonicalizeResponse()..id = request.id),
+          ..canonicalizeResponse = (InboundMessage_CanonicalizeResponse()
+            ..id = request.id),
       );
 
       await expectParamsError(
@@ -207,8 +207,8 @@ void main() {
     var request = await getFileImportRequest(process);
     process.send(
       InboundMessage()
-        ..fileImportResponse =
-            (InboundMessage_FileImportResponse()..id = request.id),
+        ..fileImportResponse = (InboundMessage_FileImportResponse()
+          ..id = request.id),
     );
 
     var failure = await getCompileFailure(process);
@@ -234,8 +234,8 @@ void main() {
         expect(request.importerId, equals(i));
         process.send(
           InboundMessage()
-            ..fileImportResponse =
-                (InboundMessage_FileImportResponse()..id = request.id),
+            ..fileImportResponse = (InboundMessage_FileImportResponse()
+              ..id = request.id),
         );
       }
 
@@ -262,16 +262,16 @@ void main() {
           expect(request.importerId, equals(i));
           process.send(
             InboundMessage()
-              ..fileImportResponse =
-                  (InboundMessage_FileImportResponse()..id = request.id),
+              ..fileImportResponse = (InboundMessage_FileImportResponse()
+                ..id = request.id),
           );
         } else {
           var request = await getCanonicalizeRequest(process);
           expect(request.importerId, equals(i));
           process.send(
             InboundMessage()
-              ..canonicalizeResponse =
-                  (InboundMessage_CanonicalizeResponse()..id = request.id),
+              ..canonicalizeResponse = (InboundMessage_CanonicalizeResponse()
+                ..id = request.id),
           );
         }
       }
@@ -300,8 +300,8 @@ void main() {
       expect(request.importerId, equals(i));
       process.send(
         InboundMessage()
-          ..fileImportResponse =
-              (InboundMessage_FileImportResponse()..id = request.id),
+          ..fileImportResponse = (InboundMessage_FileImportResponse()
+            ..id = request.id),
       );
     }
 

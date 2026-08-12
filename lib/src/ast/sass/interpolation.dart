@@ -16,7 +16,7 @@ final class Interpolation implements SassNode {
   ///
   /// This contains [String]s and [Expression]s. It never contains two adjacent
   /// [String]s.
-  final List<Object /* String | Expression */ > contents;
+  final List<Object /* String | Expression */> contents;
 
   /// The source spans for each [Expression] in [contents].
   ///
@@ -37,19 +37,19 @@ final class Interpolation implements SassNode {
   ///
   /// Otherwise, returns `null`.
   String? get asPlain => switch (contents) {
-        [] => '',
-        [String first] => first,
-        _ => null,
-      };
+    [] => '',
+    [String first] => first,
+    _ => null,
+  };
 
   /// Returns the plain text before the interpolation, or the empty string.
   ///
   /// @nodoc
   @internal
   String get initialPlain => switch (contents) {
-        [String first, ...] => first,
-        _ => '',
-      };
+    [String first, ...] => first,
+    _ => '',
+  };
 
   /// Returns the [FileSpan] covering the element of the interpolation at
   /// [index].
@@ -64,17 +64,16 @@ final class Interpolation implements SassNode {
   /// string, including the quote for text at the beginning or end of quoted
   /// strings. Note that the quote is *never* included for expressions.
   FileSpan spanForElement(int index) => switch (contents[index]) {
-        String() => span.file.span(
-            (index == 0 ? span.start : spans[index - 1]!.end).offset,
-            (index + 1 == spans.length ? span.end : spans[index + 1]!.start)
-                .offset,
-          ),
-        _ => spans[index]!,
-      };
+    String() => span.file.span(
+      (index == 0 ? span.start : spans[index - 1]!.end).offset,
+      (index + 1 == spans.length ? span.end : spans[index + 1]!.start).offset,
+    ),
+    _ => spans[index]!,
+  };
 
   Interpolation.plain(String text, this.span)
-      : contents = List.unmodifiable([text]),
-        spans = const [null];
+    : contents = List.unmodifiable([text]),
+      spans = const [null];
 
   /// Creates a new [Interpolation] with the given [contents].
   ///
@@ -84,11 +83,11 @@ final class Interpolation implements SassNode {
   ///
   /// The single [span] must cover the entire interpolation.
   Interpolation(
-    Iterable<Object /* String | Expression */ > contents,
+    Iterable<Object /* String | Expression */> contents,
     Iterable<FileSpan?> spans,
     this.span,
-  )   : contents = List.unmodifiable(contents),
-        spans = List.unmodifiable(spans) {
+  ) : contents = List.unmodifiable(contents),
+      spans = List.unmodifiable(spans) {
     if (spans.length != contents.length) {
       throw ArgumentError.value(
         this.spans,

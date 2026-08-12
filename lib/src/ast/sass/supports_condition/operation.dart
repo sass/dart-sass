@@ -33,13 +33,14 @@ final class SupportsOperation implements SupportsCondition {
   /// @nodoc
   @override
   @internal
-  Interpolation toInterpolation() => (InterpolationBuffer()
-        ..write(span.before(left.span).text)
-        ..addInterpolation(left.toInterpolation())
-        ..write(left.span.between(right.span).text)
-        ..addInterpolation(right.toInterpolation())
-        ..write(span.after(right.span).text))
-      .interpolation(span);
+  Interpolation toInterpolation() =>
+      (InterpolationBuffer()
+            ..write(span.before(left.span).text)
+            ..addInterpolation(left.toInterpolation())
+            ..write(left.span.between(right.span).text)
+            ..addInterpolation(right.toInterpolation())
+            ..write(span.after(right.span).text))
+          .interpolation(span);
 
   /// @nodoc
   @override
@@ -53,7 +54,7 @@ final class SupportsOperation implements SupportsCondition {
 
   String _parenthesize(SupportsCondition condition) =>
       condition is SupportsNegation ||
-              (condition is SupportsOperation && condition.operator == operator)
-          ? "($condition)"
-          : condition.toString();
+          (condition is SupportsOperation && condition.operator == operator)
+      ? "($condition)"
+      : condition.toString();
 }

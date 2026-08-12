@@ -259,8 +259,7 @@ void main() {
     });
   });
 
-  test(
-      "throws an error if the importer returns a canonical URL with a "
+  test("throws an error if the importer returns a canonical URL with a "
       "non-canonical scheme", () {
     expect(
       () => compileString(

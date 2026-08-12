@@ -73,8 +73,8 @@ final class VariableDeclaration extends Statement implements SassDeclaration {
     bool guarded = false,
     bool global = false,
     this.comment,
-  })  : isGuarded = guarded,
-        isGlobal = global {
+  }) : isGuarded = guarded,
+       isGlobal = global {
     if (namespace != null && global) {
       throw ArgumentError(
         "Other modules' members can't be defined with !global.",

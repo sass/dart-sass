@@ -40,16 +40,16 @@ class LimitedMapView<K, V> extends UnmodifiableMapBase<K, V> {
   ///
   /// The [safelist] must have the same notion of equality as the [map].
   LimitedMapView.safelist(this._map, Set<K> safelist)
-      : _keys = safelist.intersection(MapKeySet(_map));
+    : _keys = safelist.intersection(MapKeySet(_map));
 
   /// Returns a [LimitedMapView] that doesn't allow keys in [blocklist].
   ///
   /// The [blocklist] must have the same notion of equality as the [map].
   LimitedMapView.blocklist(this._map, Set<K> blocklist)
-      : _keys = {
-          for (var key in _map.keys)
-            if (!blocklist.contains(key)) key,
-        };
+    : _keys = {
+        for (var key in _map.keys)
+          if (!blocklist.contains(key)) key,
+      };
 
   @override
   V? operator [](Object? key) => _keys.contains(key) ? _map[key] : null;

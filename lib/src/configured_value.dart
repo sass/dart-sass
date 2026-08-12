@@ -30,7 +30,7 @@ final class ConfiguredValue {
   /// Creates a variable value that's implicitly configured by setting a
   /// variable prior to an `@import` of a file that contains a `@forward`.
   ConfiguredValue.implicit(this.value, this.assignmentNode)
-      : configurationSpan = null;
+    : configurationSpan = null;
 
   @override
   String toString() => value.toString();

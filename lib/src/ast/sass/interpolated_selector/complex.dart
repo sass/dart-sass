@@ -31,9 +31,10 @@ final class InterpolatedComplexSelector extends InterpolatedSelector {
   final FileSpan span;
 
   InterpolatedComplexSelector(
-      Iterable<InterpolatedComplexSelectorComponent> components, this.span,
-      {this.leadingCombinator})
-      : components = List.unmodifiable(components) {
+    Iterable<InterpolatedComplexSelectorComponent> components,
+    this.span, {
+    this.leadingCombinator,
+  }) : components = List.unmodifiable(components) {
     if (leadingCombinator == null && this.components.isEmpty) {
       throw ArgumentError(
         "components may not be empty if leadingCombinator is null.",

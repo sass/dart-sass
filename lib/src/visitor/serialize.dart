@@ -75,8 +75,9 @@ SerializeResult serialize(
 
   return (
     prefix + css,
-    sourceMap:
-        sourceMap ? visitor._buffer.buildSourceMap(prefix: prefix) : null,
+    sourceMap: sourceMap
+        ? visitor._buffer.buildSourceMap(prefix: prefix)
+        : null,
   );
 }
 
@@ -162,14 +163,14 @@ final class _SerializeVisitor
     LineFeed? lineFeed,
     Logger? logger,
     bool sourceMap = true,
-  })  : _buffer = sourceMap ? SourceMapBuffer() : NoSourceMapBuffer(),
-        _style = style ?? OutputStyle.expanded,
-        _inspect = inspect,
-        _quote = quote,
-        _indentCharacter = useSpaces ? $space : $tab,
-        _indentWidth = indentWidth ?? 2,
-        _lineFeed = lineFeed ?? LineFeed.lf,
-        _logger = logger ?? Logger.defaultLogger {
+  }) : _buffer = sourceMap ? SourceMapBuffer() : NoSourceMapBuffer(),
+       _style = style ?? OutputStyle.expanded,
+       _inspect = inspect,
+       _quote = quote,
+       _indentCharacter = useSpaces ? $space : $tab,
+       _indentWidth = indentWidth ?? 2,
+       _lineFeed = lineFeed ?? LineFeed.lf,
+       _logger = logger ?? Logger.defaultLogger {
     RangeError.checkValueInInterval(_indentWidth, 0, 10, "indentWidth");
   }
 
@@ -565,7 +566,8 @@ final class _SerializeVisitor
         value.accept(this);
 
       case CalculationOperation(:var operator, :var left, :var right):
-        var parenthesizeLeft = left is CalculationOperation &&
+        var parenthesizeLeft =
+            left is CalculationOperation &&
             left.operator.precedence < operator.precedence;
         if (parenthesizeLeft) _buffer.writeCharCode($lparen);
         _writeCalculationValue(left);
@@ -576,7 +578,8 @@ final class _SerializeVisitor
         _buffer.write(operator.operator);
         if (operatorWhitespace) _buffer.writeCharCode($space);
 
-        var parenthesizeRight = (right is CalculationOperation &&
+        var parenthesizeRight =
+            (right is CalculationOperation &&
                 _parenthesizeCalculationRhs(operator, right.operator)) ||
             (operator == CalculationOperator.dividedBy &&
                 right is SassNumber &&
@@ -619,13 +622,12 @@ final class _SerializeVisitor
   bool _parenthesizeCalculationRhs(
     CalculationOperator outer,
     CalculationOperator right,
-  ) =>
-      switch (outer) {
-        CalculationOperator.dividedBy => true,
-        CalculationOperator.plus => false,
-        _ => right == CalculationOperator.plus ||
-            right == CalculationOperator.minus,
-      };
+  ) => switch (outer) {
+    CalculationOperator.dividedBy => true,
+    CalculationOperator.plus => false,
+    _ =>
+      right == CalculationOperator.plus || right == CalculationOperator.minus,
+  };
 
   @override
   void visitColor(SassColor value) {
@@ -692,9 +694,9 @@ final class _SerializeVisitor
         _buffer.writeCharCode($rparen);
 
       case ColorSpace.lab ||
-            ColorSpace.oklab ||
-            ColorSpace.lch ||
-            ColorSpace.oklch:
+          ColorSpace.oklab ||
+          ColorSpace.lch ||
+          ColorSpace.oklch:
         _buffer
           ..write(value.space)
           ..writeCharCode($lparen);
@@ -1043,7 +1045,8 @@ final class _SerializeVisitor
       return;
     }
 
-    var singleton = _inspect &&
+    var singleton =
+        _inspect &&
         value.asList.length == 1 &&
         (value.separator == ListSeparator.comma ||
             value.separator == ListSeparator.slash);
@@ -1076,24 +1079,25 @@ final class _SerializeVisitor
 
   /// Returns the string to use to separate list items for lists with the given [separator].
   String _separatorString(ListSeparator separator) => switch (separator) {
-        ListSeparator.comma => _commaSeparator,
-        ListSeparator.slash => _isCompressed ? "/" : " / ",
-        ListSeparator.space => " ",
-        // This should never be used, but it may still be returned since
-        // [_separatorString] is invoked eagerly by [writeList] even for lists
-        // with only one elements.
-        _ => "",
-      };
+    ListSeparator.comma => _commaSeparator,
+    ListSeparator.slash => _isCompressed ? "/" : " / ",
+    ListSeparator.space => " ",
+    // This should never be used, but it may still be returned since
+    // [_separatorString] is invoked eagerly by [writeList] even for lists
+    // with only one elements.
+    _ => "",
+  };
 
   /// Returns whether [value] needs parentheses as an element in a list with the
   /// given [separator].
   bool _elementNeedsParens(ListSeparator separator, Value value) =>
       switch (value) {
-        SassList(asList: List(length: > 1), hasBrackets: false) => switch (
-              separator) {
+        SassList(asList: List(length: > 1), hasBrackets: false) =>
+          switch (separator) {
             ListSeparator.comma => value.separator == ListSeparator.comma,
-            ListSeparator.slash => value.separator == ListSeparator.comma ||
-                value.separator == ListSeparator.slash,
+            ListSeparator.slash =>
+              value.separator == ListSeparator.comma ||
+                  value.separator == ListSeparator.slash,
             _ => value.separator != ListSeparator.undecided,
           },
         _ => false,
@@ -1115,7 +1119,8 @@ final class _SerializeVisitor
 
   /// Writes [value] as key or value in a map, with parentheses as necessary.
   void _writeMapElement(Value value) {
-    var needsParens = value is SassList &&
+    var needsParens =
+        value is SassList &&
         value.separator == ListSeparator.comma &&
         !value.hasBrackets;
     if (needsParens) _buffer.writeCharCode($lparen);
@@ -1157,7 +1162,8 @@ final class _SerializeVisitor
   void _writeNumber(double number) {
     if (!number.isFinite) {
       visitCalculation(
-          SassCalculation.unsimplified('calc', [SassNumber(number)]));
+        SassCalculation.unsimplified('calc', [SassNumber(number)]),
+      );
       return;
     }
 
@@ -1421,37 +1427,37 @@ final class _SerializeVisitor
 
         // Write newline characters and unprintable ASCII characters as escapes.
         case $nul ||
-              $soh ||
-              $stx ||
-              $etx ||
-              $eot ||
-              $enq ||
-              $ack ||
-              $bel ||
-              $bs ||
-              $lf ||
-              $vt ||
-              $ff ||
-              $cr ||
-              $so ||
-              $si ||
-              $dle ||
-              $dc1 ||
-              $dc2 ||
-              $dc3 ||
-              $dc4 ||
-              $nak ||
-              $syn ||
-              $etb ||
-              $can ||
-              $em ||
-              $sub ||
-              $esc ||
-              $fs ||
-              $gs ||
-              $rs ||
-              $us ||
-              $del:
+            $soh ||
+            $stx ||
+            $etx ||
+            $eot ||
+            $enq ||
+            $ack ||
+            $bel ||
+            $bs ||
+            $lf ||
+            $vt ||
+            $ff ||
+            $cr ||
+            $so ||
+            $si ||
+            $dle ||
+            $dc1 ||
+            $dc2 ||
+            $dc3 ||
+            $dc4 ||
+            $nak ||
+            $syn ||
+            $etb ||
+            $can ||
+            $em ||
+            $sub ||
+            $esc ||
+            $fs ||
+            $gs ||
+            $rs ||
+            $us ||
+            $del:
           _writeEscape(buffer, char, string, i);
 
         case $backslash:
@@ -1591,11 +1597,10 @@ final class _SerializeVisitor
   @override
   void visitComplexSelector(ComplexSelector complex) {
     _writeCombinators(complex.leadingCombinators);
-    if (complex
-        case ComplexSelector(
-          leadingCombinators: [_, ...],
-          components: [_, ...],
-        )) {
+    if (complex case ComplexSelector(
+      leadingCombinators: [_, ...],
+      components: [_, ...],
+    )) {
       _writeOptionalSpace();
     }
 
@@ -1673,11 +1678,10 @@ final class _SerializeVisitor
   @override
   void visitPseudoSelector(PseudoSelector pseudo) {
     // `:not(%a)` is semantically identical to `*`.
-    if (pseudo
-        case PseudoSelector(
-          name: 'not',
-          selector: SelectorList(isInvisible: true),
-        )) {
+    if (pseudo case PseudoSelector(
+      name: 'not',
+      selector: SelectorList(isInvisible: true),
+    )) {
       return;
     }
 
@@ -1931,6 +1935,7 @@ enum LineFeed {
 typedef SerializeResult = (
   /// The serialized CSS.
   String css, {
+
   /// The source map indicating how the source files map to [css].
   ///
   /// This is `null` if source mapping was disabled for this compilation.

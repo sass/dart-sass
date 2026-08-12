@@ -34,18 +34,18 @@ final class LegacyIfExpression extends Expression
   /// @nodoc
   @internal
   String? get modernSuggestion => switch (arguments) {
-        ArgumentList(
-          positional: [var condition, var ifTrue, var ifFalse],
-          named: Map(isEmpty: true),
-          rest: null,
-        ) =>
-          ifFalse is NullExpression
-              ? "if(sass($condition): $ifTrue)"
-              : ifTrue is NullExpression
-                  ? "if(not sass($condition): $ifFalse)"
-                  : "if(sass($condition): $ifTrue; else: $ifFalse)",
-        _ => null,
-      };
+    ArgumentList(
+      positional: [var condition, var ifTrue, var ifFalse],
+      named: Map(isEmpty: true),
+      rest: null,
+    ) =>
+      ifFalse is NullExpression
+          ? "if(sass($condition): $ifTrue)"
+          : ifTrue is NullExpression
+          ? "if(not sass($condition): $ifFalse)"
+          : "if(sass($condition): $ifTrue; else: $ifFalse)",
+    _ => null,
+  };
 
   LegacyIfExpression(this.arguments, this.span);
 

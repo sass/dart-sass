@@ -230,11 +230,10 @@ SassMap _deepMergeImpl(SassMap map1, SassMap map2) {
 
   var result = Map.of(map1.contents);
   for (var (key, value) in map2.contents.pairs) {
-    if ((result[key]?.tryMap(), value.tryMap())
-        case (
-          var resultMap?,
-          var valueMap?,
-        )) {
+    if ((result[key]?.tryMap(), value.tryMap()) case (
+      var resultMap?,
+      var valueMap?,
+    )) {
       var merged = _deepMergeImpl(resultMap, valueMap);
       if (identical(merged, resultMap)) continue;
       result[key] = merged;
@@ -251,5 +250,4 @@ BuiltInCallable _function(
   String name,
   String arguments,
   Value Function(List<Value> arguments) callback,
-) =>
-    BuiltInCallable.function(name, arguments, callback, url: "sass:map");
+) => BuiltInCallable.function(name, arguments, callback, url: "sass:map");

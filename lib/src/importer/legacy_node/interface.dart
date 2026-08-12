@@ -13,20 +13,17 @@ final class NodeImporter {
     String url,
     Uri? previous,
     bool forImport,
-  ) =>
-      throw '';
+  ) => throw '';
 
   (String contents, String url)? load(
     String url,
     Uri? previous,
     bool forImport,
-  ) =>
-      throw '';
+  ) => throw '';
 
   Future<(String contents, String url)?> loadAsync(
     String url,
     Uri? previous,
     bool forImport,
-  ) =>
-      throw '';
+  ) => throw '';
 }

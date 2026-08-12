@@ -70,10 +70,10 @@ class SassColor extends Value {
   /// @nodoc
   @internal
   bool get isChannel0Powerless => switch (space) {
-        ColorSpace.hsl => fuzzyEquals(channel1, 0),
-        ColorSpace.hwb => fuzzyGreaterThanOrEquals(channel1 + channel2, 100),
-        _ => false,
-      };
+    ColorSpace.hsl => fuzzyEquals(channel1, 0),
+    ColorSpace.hwb => fuzzyGreaterThanOrEquals(channel1 + channel2, 100),
+    _ => false,
+  };
 
   /// This color's first channel.
   ///
@@ -137,9 +137,9 @@ class SassColor extends Value {
   /// @nodoc
   @internal
   bool get isChannel2Powerless => switch (space) {
-        ColorSpace.lch || ColorSpace.oklch => fuzzyEquals(channel1, 0),
-        _ => false,
-      };
+    ColorSpace.lch || ColorSpace.oklch => fuzzyEquals(channel1, 0),
+    _ => false,
+  };
 
   /// This color's third channel.
   ///
@@ -208,10 +208,7 @@ class SassColor extends Value {
   }
 
   /// Returns whether [value] is in-gamut for the given [channel].
-  bool _isChannelInGamut(
-    double value,
-    ColorChannel channel,
-  ) =>
+  bool _isChannelInGamut(double value, ColorChannel channel) =>
       switch (channel) {
         LinearChannel(:var min, :var max) =>
           fuzzyLessThanOrEquals(value, max) &&
@@ -292,15 +289,14 @@ class SassColor extends Value {
     num? blue, [
     num? alpha = 1,
     ColorFormat? format,
-  ]) =>
-      SassColor._forSpace(
-        ColorSpace.rgb,
-        red?.toDouble(),
-        green?.toDouble(),
-        blue?.toDouble(),
-        alpha?.toDouble(),
-        format,
-      );
+  ]) => SassColor._forSpace(
+    ColorSpace.rgb,
+    red?.toDouble(),
+    green?.toDouble(),
+    blue?.toDouble(),
+    alpha?.toDouble(),
+    format,
+  );
 
   /// Creates a color in [ColorSpace.hsl].
   ///
@@ -316,14 +312,13 @@ class SassColor extends Value {
     num? saturation,
     num? lightness, [
     num? alpha = 1,
-  ]) =>
-      SassColor.forSpaceInternal(
-        ColorSpace.hsl,
-        hue?.toDouble(),
-        saturation?.toDouble(),
-        lightness?.toDouble(),
-        alpha?.toDouble(),
-      );
+  ]) => SassColor.forSpaceInternal(
+    ColorSpace.hsl,
+    hue?.toDouble(),
+    saturation?.toDouble(),
+    lightness?.toDouble(),
+    alpha?.toDouble(),
+  );
 
   /// Creates a color in [ColorSpace.hwb].
   ///
@@ -339,14 +334,13 @@ class SassColor extends Value {
     num? whiteness,
     num? blackness, [
     num? alpha = 1,
-  ]) =>
-      SassColor.forSpaceInternal(
-        ColorSpace.hwb,
-        hue?.toDouble(),
-        whiteness?.toDouble(),
-        blackness?.toDouble(),
-        alpha?.toDouble(),
-      );
+  ]) => SassColor.forSpaceInternal(
+    ColorSpace.hwb,
+    hue?.toDouble(),
+    whiteness?.toDouble(),
+    blackness?.toDouble(),
+    alpha?.toDouble(),
+  );
 
   /// Creates a color in [ColorSpace.srgb].
   ///
@@ -362,8 +356,7 @@ class SassColor extends Value {
     double? green,
     double? blue, [
     double? alpha = 1,
-  ]) =>
-      SassColor._forSpace(ColorSpace.srgb, red, green, blue, alpha);
+  ]) => SassColor._forSpace(ColorSpace.srgb, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.srgbLinear].
   ///
@@ -379,8 +372,7 @@ class SassColor extends Value {
     double? green,
     double? blue, [
     double? alpha = 1,
-  ]) =>
-      SassColor._forSpace(ColorSpace.srgbLinear, red, green, blue, alpha);
+  ]) => SassColor._forSpace(ColorSpace.srgbLinear, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.displayP3].
   ///
@@ -396,8 +388,7 @@ class SassColor extends Value {
     double? green,
     double? blue, [
     double? alpha = 1,
-  ]) =>
-      SassColor._forSpace(ColorSpace.displayP3, red, green, blue, alpha);
+  ]) => SassColor._forSpace(ColorSpace.displayP3, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.displayP3Linear].
   ///
@@ -430,8 +421,7 @@ class SassColor extends Value {
     double? green,
     double? blue, [
     double? alpha = 1,
-  ]) =>
-      SassColor._forSpace(ColorSpace.a98Rgb, red, green, blue, alpha);
+  ]) => SassColor._forSpace(ColorSpace.a98Rgb, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.prophotoRgb].
   ///
@@ -447,8 +437,7 @@ class SassColor extends Value {
     double? green,
     double? blue, [
     double? alpha = 1,
-  ]) =>
-      SassColor._forSpace(ColorSpace.prophotoRgb, red, green, blue, alpha);
+  ]) => SassColor._forSpace(ColorSpace.prophotoRgb, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.rec2020].
   ///
@@ -464,8 +453,7 @@ class SassColor extends Value {
     double? green,
     double? blue, [
     double? alpha = 1,
-  ]) =>
-      SassColor._forSpace(ColorSpace.rec2020, red, green, blue, alpha);
+  ]) => SassColor._forSpace(ColorSpace.rec2020, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.xyzD50].
   ///
@@ -481,8 +469,7 @@ class SassColor extends Value {
     double? y,
     double? z, [
     double? alpha = 1,
-  ]) =>
-      SassColor._forSpace(ColorSpace.xyzD50, x, y, z, alpha);
+  ]) => SassColor._forSpace(ColorSpace.xyzD50, x, y, z, alpha);
 
   /// Creates a color in [ColorSpace.xyzD65].
   ///
@@ -498,8 +485,7 @@ class SassColor extends Value {
     double? y,
     double? z, [
     double? alpha = 1,
-  ]) =>
-      SassColor._forSpace(ColorSpace.xyzD65, x, y, z, alpha);
+  ]) => SassColor._forSpace(ColorSpace.xyzD65, x, y, z, alpha);
 
   /// Creates a color in [ColorSpace.lab].
   ///
@@ -515,8 +501,7 @@ class SassColor extends Value {
     double? a,
     double? b, [
     double? alpha = 1,
-  ]) =>
-      SassColor._forSpace(ColorSpace.lab, lightness, a, b, alpha);
+  ]) => SassColor._forSpace(ColorSpace.lab, lightness, a, b, alpha);
 
   /// Creates a color in [ColorSpace.lch].
   ///
@@ -549,8 +534,7 @@ class SassColor extends Value {
     double? a,
     double? b, [
     double? alpha = 1,
-  ]) =>
-      SassColor._forSpace(ColorSpace.oklab, lightness, a, b, alpha);
+  ]) => SassColor._forSpace(ColorSpace.oklab, lightness, a, b, alpha);
 
   /// Creates a color in [ColorSpace.oklch].
   ///
@@ -566,14 +550,13 @@ class SassColor extends Value {
     double? chroma,
     double? hue, [
     double? alpha = 1,
-  ]) =>
-      SassColor.forSpaceInternal(
-        ColorSpace.oklch,
-        lightness,
-        chroma,
-        hue,
-        alpha,
-      );
+  ]) => SassColor.forSpaceInternal(
+    ColorSpace.oklch,
+    lightness,
+    chroma,
+    hue,
+    alpha,
+  );
 
   /// Creates a color in the color space named [space].
   ///
@@ -589,20 +572,19 @@ class SassColor extends Value {
     ColorSpace space,
     List<double?> channels, [
     double? alpha = 1,
-  ]) =>
-      channels.length == space.channels.length
-          ? SassColor.forSpaceInternal(
-              space,
-              channels[0],
-              channels[1],
-              channels[2],
-              alpha,
-            )
-          : throw RangeError.value(
-              channels.length,
-              "channels.length",
-              'must be exactly ${space.channels.length} for color space "$space"',
-            );
+  ]) => channels.length == space.channels.length
+      ? SassColor.forSpaceInternal(
+          space,
+          channels[0],
+          channels[1],
+          channels[2],
+          alpha,
+        )
+      : throw RangeError.value(
+          channels.length,
+          "channels.length",
+          'must be exactly ${space.channels.length} for color space "$space"',
+        );
 
   /// Like [forSpace], but takes three channels explicitly rather than wrapping
   /// and unwrapping them in an array.
@@ -614,37 +596,36 @@ class SassColor extends Value {
     double? channel1,
     double? channel2, [
     double? alpha = 1,
-  ]) =>
-      switch (space) {
-        ColorSpace.hsl => SassColor._forSpace(
-            space,
-            _normalizeHue(
-              channel0,
-              invert: channel1 != null && fuzzyLessThan(channel1, 0),
-            ),
-            channel1?.abs(),
-            channel2,
-            alpha,
-          ),
-        ColorSpace.hwb => SassColor._forSpace(
-            space,
-            _normalizeHue(channel0, invert: false),
-            channel1,
-            channel2,
-            alpha,
-          ),
-        ColorSpace.lch || ColorSpace.oklch => SassColor._forSpace(
-            space,
-            channel0,
-            channel1?.abs(),
-            _normalizeHue(
-              channel2,
-              invert: channel1 != null && fuzzyLessThan(channel1, 0),
-            ),
-            alpha,
-          ),
-        _ => SassColor._forSpace(space, channel0, channel1, channel2, alpha),
-      };
+  ]) => switch (space) {
+    ColorSpace.hsl => SassColor._forSpace(
+      space,
+      _normalizeHue(
+        channel0,
+        invert: channel1 != null && fuzzyLessThan(channel1, 0),
+      ),
+      channel1?.abs(),
+      channel2,
+      alpha,
+    ),
+    ColorSpace.hwb => SassColor._forSpace(
+      space,
+      _normalizeHue(channel0, invert: false),
+      channel1,
+      channel2,
+      alpha,
+    ),
+    ColorSpace.lch || ColorSpace.oklch => SassColor._forSpace(
+      space,
+      channel0,
+      channel1?.abs(),
+      _normalizeHue(
+        channel2,
+        invert: channel1 != null && fuzzyLessThan(channel1, 0),
+      ),
+      alpha,
+    ),
+    _ => SassColor._forSpace(space, channel0, channel1, channel2, alpha),
+  };
 
   /// Like [forSpaceInternal], but doesn't do _any_ pre-processing of any
   /// channels.
@@ -656,8 +637,8 @@ class SassColor extends Value {
     double? alpha, [
     this.format,
   ]) : alphaOrNull = alpha.andThen(
-          (alpha) => fuzzyAssertRange(alpha, 0, 1, "alpha"),
-        ) {
+         (alpha) => fuzzyAssertRange(alpha, 0, 1, "alpha"),
+       ) {
     assert(format == null || _space == ColorSpace.rgb);
     assert(space != ColorSpace.lms);
   }
@@ -784,12 +765,12 @@ class SassColor extends Value {
     if (this.space == space) return this;
 
     var converted = this.space.convert(
-          space,
-          channel0OrNull,
-          channel1OrNull,
-          channel2OrNull,
-          alpha,
-        );
+      space,
+      channel0OrNull,
+      channel1OrNull,
+      channel2OrNull,
+      alpha,
+    );
     return !legacyMissing &&
             converted.isLegacy &&
             (converted.isChannel0Missing ||
@@ -866,12 +847,12 @@ class SassColor extends Value {
 
   /// Returns a new copy of this color with the alpha channel set to [alpha].
   SassColor changeAlpha(num alpha) => SassColor.forSpaceInternal(
-        space,
-        channel0,
-        channel1,
-        channel2,
-        alpha.toDouble(),
-      );
+    space,
+    channel0,
+    channel1,
+    channel2,
+    alpha.toDouble(),
+  );
 
   /// Changes one or more of this color's channels and returns the result.
   ///
@@ -894,9 +875,9 @@ class SassColor extends Value {
     if (newValues.isEmpty) return this;
 
     if (space != null && space != this.space) {
-      return toSpace(
-        space,
-      ).changeChannels(newValues, colorName: colorName).toSpace(this.space);
+      return toSpace(space)
+          .changeChannels(newValues, colorName: colorName)
+          .toSpace(this.space);
     }
 
     double? new0;
@@ -1026,44 +1007,43 @@ class SassColor extends Value {
     var mixed0 = missing1_0 && missing2_0
         ? null
         : (channel1_0 * thisMultiplier + channel2_0 * otherMultiplier) /
-            (mixedAlpha ?? 1);
+              (mixedAlpha ?? 1);
     var mixed1 = missing1_1 && missing2_1
         ? null
         : (channel1_1 * thisMultiplier + channel2_1 * otherMultiplier) /
-            (mixedAlpha ?? 1);
+              (mixedAlpha ?? 1);
     var mixed2 = missing1_2 && missing2_2
         ? null
         : (channel1_2 * thisMultiplier + channel2_2 * otherMultiplier) /
-            (mixedAlpha ?? 1);
+              (mixedAlpha ?? 1);
 
     return switch (method.space) {
       ColorSpace.hsl || ColorSpace.hwb => SassColor.forSpaceInternal(
-          method.space,
-          missing1_0 && missing2_0
-              ? null
-              : _interpolateHues(channel1_0, channel2_0, method.hue!, weight),
-          mixed1,
-          mixed2,
-          mixedAlpha,
-        ),
+        method.space,
+        missing1_0 && missing2_0
+            ? null
+            : _interpolateHues(channel1_0, channel2_0, method.hue!, weight),
+        mixed1,
+        mixed2,
+        mixedAlpha,
+      ),
       ColorSpace.lch || ColorSpace.oklch => SassColor.forSpaceInternal(
-          method.space,
-          mixed0,
-          mixed1,
-          missing1_2 && missing2_2
-              ? null
-              : _interpolateHues(channel1_2, channel2_2, method.hue!, weight),
-          mixedAlpha,
-        ),
+        method.space,
+        mixed0,
+        mixed1,
+        missing1_2 && missing2_2
+            ? null
+            : _interpolateHues(channel1_2, channel2_2, method.hue!, weight),
+        mixedAlpha,
+      ),
       _ => SassColor.forSpaceInternal(
-          method.space,
-          mixed0,
-          mixed1,
-          mixed2,
-          mixedAlpha,
-        ),
-    }
-        .toSpace(space, legacyMissing: legacyMissing);
+        method.space,
+        mixed0,
+        mixed1,
+        mixed2,
+        mixedAlpha,
+      ),
+    }.toSpace(space, legacyMissing: legacyMissing);
   }
 
   /// Returns whether [output], which was converted to its color space from

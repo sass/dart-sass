@@ -48,10 +48,10 @@ class AsyncBuiltInCallable implements AsyncCallable {
     FutureOr<Value> Function(List<Value> parameters) callback, {
     Object? url,
   }) : this.parsed(
-          name,
-          ParameterList.parse('@function $name($parameters) {', url: url),
-          callback,
-        );
+         name,
+         ParameterList.parse('@function $name($parameters) {', url: url),
+         callback,
+       );
 
   /// Creates a mixin with a single [parameters] declaration and a single
   /// [callback].
@@ -68,17 +68,17 @@ class AsyncBuiltInCallable implements AsyncCallable {
     Object? url,
     bool acceptsContent = false,
   }) : this.parsed(
-          name,
-          ParameterList.parse('@mixin $name($parameters) {', url: url),
-          (arguments) async {
-            await callback(arguments);
-            // We could encode the fact that functions return values and mixins
-            // don't in the type system, but that would get very messy very
-            // quickly so it's easier to just return Sass's `null` for mixins and
-            // simply ignore it at the call site.
-            return sassNull;
-          },
-        );
+         name,
+         ParameterList.parse('@mixin $name($parameters) {', url: url),
+         (arguments) async {
+           await callback(arguments);
+           // We could encode the fact that functions return values and mixins
+           // don't in the type system, but that would get very messy very
+           // quickly so it's easier to just return Sass's `null` for mixins and
+           // simply ignore it at the call site.
+           return sassNull;
+         },
+       );
 
   /// Creates a callable with a single [parameters] declaration and a single
   /// [callback].
@@ -95,20 +95,17 @@ class AsyncBuiltInCallable implements AsyncCallable {
   /// If no exact match is found, finds the closest approximation. Note that this
   /// doesn't guarantee that [positional] and [names] are valid for the returned
   /// [ParameterList].
-  (ParameterList, Callback) callbackFor(int positional, Set<String> names) => (
-        _parameters,
-        _callback,
-      );
+  (ParameterList, Callback) callbackFor(int positional, Set<String> names) =>
+      (_parameters, _callback);
 
   /// Returns a copy of this callable that emits a deprecation warning.
   AsyncBuiltInCallable withDeprecationWarning(
     String module, [
     String? newName,
-  ]) =>
-      AsyncBuiltInCallable.parsed(name, _parameters, (args) {
-        warnForGlobalBuiltIn(module, newName ?? name);
-        return _callback(args);
-      }, acceptsContent: acceptsContent);
+  ]) => AsyncBuiltInCallable.parsed(name, _parameters, (args) {
+    warnForGlobalBuiltIn(module, newName ?? name);
+    return _callback(args);
+  }, acceptsContent: acceptsContent);
 }
 
 /// Emits a deprecation warning for a global built-in function that is now

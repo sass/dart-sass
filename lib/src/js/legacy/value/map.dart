@@ -19,52 +19,53 @@ class _NodeSassMap {
 Object newNodeSassMap(SassMap value) => legacyMapClass.construct([null, value]);
 
 /// The JS `sass.types.Map` class.
-final JSClass legacyMapClass = createJSClass('sass.types.Map', (
-  _NodeSassMap thisArg,
-  int? length, [
-  SassMap? dartValue,
-]) {
-  thisArg.dartValue = dartValue ??
-      SassMap(
-        Map.fromIterables(
-          // Either [dartValue] or [length] must be passed.
-          Iterable.generate(length!, (i) => SassNumber(i)),
-          Iterable.generate(length, (_) => sassNull),
-        ),
-      );
-})
-  ..defineMethods({
-    'getKey': (_NodeSassMap thisArg, int index) =>
-        wrapValue(thisArg.dartValue.contents.keys.elementAt(index)),
-    'getValue': (_NodeSassMap thisArg, int index) =>
-        wrapValue(thisArg.dartValue.contents.values.elementAt(index)),
-    'getLength': (_NodeSassMap thisArg) => thisArg.dartValue.contents.length,
-    'setKey': (_NodeSassMap thisArg, int index, Object key) {
-      var oldMap = thisArg.dartValue.contents;
-      RangeError.checkValidIndex(index, oldMap, "index");
+final JSClass legacyMapClass =
+    createJSClass('sass.types.Map', (
+      _NodeSassMap thisArg,
+      int? length, [
+      SassMap? dartValue,
+    ]) {
+      thisArg.dartValue =
+          dartValue ??
+          SassMap(
+            Map.fromIterables(
+              // Either [dartValue] or [length] must be passed.
+              Iterable.generate(length!, (i) => SassNumber(i)),
+              Iterable.generate(length, (_) => sassNull),
+            ),
+          );
+    })..defineMethods({
+      'getKey': (_NodeSassMap thisArg, int index) =>
+          wrapValue(thisArg.dartValue.contents.keys.elementAt(index)),
+      'getValue': (_NodeSassMap thisArg, int index) =>
+          wrapValue(thisArg.dartValue.contents.values.elementAt(index)),
+      'getLength': (_NodeSassMap thisArg) => thisArg.dartValue.contents.length,
+      'setKey': (_NodeSassMap thisArg, int index, Object key) {
+        var oldMap = thisArg.dartValue.contents;
+        RangeError.checkValidIndex(index, oldMap, "index");
 
-      var newKey = unwrapValue(key);
-      var newMap = <Value, Value>{};
-      var i = 0;
-      for (var (oldKey, oldValue) in thisArg.dartValue.contents.pairs) {
-        if (i == index) {
-          newMap[newKey] = oldValue;
-        } else {
-          if (newKey == oldKey) {
-            throw ArgumentError.value(key, 'key', "is already in the map");
+        var newKey = unwrapValue(key);
+        var newMap = <Value, Value>{};
+        var i = 0;
+        for (var (oldKey, oldValue) in thisArg.dartValue.contents.pairs) {
+          if (i == index) {
+            newMap[newKey] = oldValue;
+          } else {
+            if (newKey == oldKey) {
+              throw ArgumentError.value(key, 'key', "is already in the map");
+            }
+            newMap[oldKey] = oldValue;
           }
-          newMap[oldKey] = oldValue;
+          i++;
         }
-        i++;
-      }
 
-      thisArg.dartValue = SassMap(newMap);
-    },
-    'setValue': (_NodeSassMap thisArg, int index, Object value) {
-      var key = thisArg.dartValue.contents.keys.elementAt(index);
-      thisArg.dartValue = SassMap({
-        ...thisArg.dartValue.contents,
-        key: unwrapValue(value),
-      });
-    },
-  });
+        thisArg.dartValue = SassMap(newMap);
+      },
+      'setValue': (_NodeSassMap thisArg, int index, Object value) {
+        var key = thisArg.dartValue.contents.keys.elementAt(index);
+        thisArg.dartValue = SassMap({
+          ...thisArg.dartValue.contents,
+          key: unwrapValue(value),
+        });
+      },
+    });

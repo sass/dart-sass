@@ -66,9 +66,7 @@ Future<List<Map<String, dynamic>>> _fetchReleases(
 }) async {
   var result = json.decode(
     await http.read(
-      Uri.parse(
-        "https://api.github.com/repos/$slug/releases?page=$page",
-      ),
+      Uri.parse("https://api.github.com/repos/$slug/releases?page=$page"),
       headers: {
         "accept": "application/vnd.github.v3+json",
         "authorization": githubAuthorization,

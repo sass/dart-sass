@@ -26,17 +26,17 @@ final class LchColorSpace extends ColorSpace {
   bool get isPolarInternal => true;
 
   const LchColorSpace()
-      : super('lch', const [
-          LinearChannel(
-            'lightness',
-            0,
-            100,
-            lowerClamped: true,
-            upperClamped: true,
-          ),
-          LinearChannel('chroma', 0, 150, lowerClamped: true),
-          hueChannel,
-        ]);
+    : super('lch', const [
+        LinearChannel(
+          'lightness',
+          0,
+          100,
+          lowerClamped: true,
+          upperClamped: true,
+        ),
+        LinearChannel('chroma', 0, 150, lowerClamped: true),
+        hueChannel,
+      ]);
 
   @override
   SassColor convert(

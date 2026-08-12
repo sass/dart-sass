@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:io';
+
 import 'package:path/path.dart' as p;
 import 'package:sass/src/io.dart';
 import 'package:test/test.dart';
@@ -13,7 +14,8 @@ import '../../utils.dart';
 
 /// Defines test that are shared between the Dart and Node.js CLI test suites.
 void sharedTests(
-    Future<TestProcess> Function(Iterable<String> arguments) runSass) {
+  Future<TestProcess> Function(Iterable<String> arguments) runSass,
+) {
   test("--poll may not be passed without --watch", () async {
     var sass = await runSass(["--poll", "-"]);
     await expectLater(
@@ -29,11 +31,11 @@ void sharedTests(
 
   for (var poll in [true, false]) {
     Future<TestProcess> watch(Iterable<String> arguments) => runSass([
-          "--no-source-map",
-          "--watch",
-          ...arguments,
-          if (poll) "--poll",
-        ]);
+      "--no-source-map",
+      "--watch",
+      ...arguments,
+      if (poll) "--poll",
+    ]);
 
     /// Returns a future that completes after a delay if [poll] is `true`.
     ///
@@ -229,8 +231,7 @@ void sharedTests(
           ]).validate();
         });
 
-        test(
-            "when it's modified twice when watched from a directory that is "
+        test("when it's modified twice when watched from a directory that is "
             "also a destination", () async {
           await d.file("test.scss", "a {b: c}").create();
 
@@ -995,9 +996,9 @@ void sharedTests(
 
           var sass = await watch(['test.scss:out.css']);
           await expectLater(
-              sass.stderr,
-              emits(
-                  'Error: Module loop: this module is already being loaded.'));
+            sass.stderr,
+            emits('Error: Module loop: this module is already being loaded.'),
+          );
           await expectLater(sass.stdout, _watchingForChanges);
           await sass.kill();
         });
@@ -1015,9 +1016,9 @@ void sharedTests(
 
           await d.file("_other.scss", "@use 'test'").create();
           await expectLater(
-              sass.stderr,
-              emits(
-                  'Error: Module loop: this module is already being loaded.'));
+            sass.stderr,
+            emits('Error: Module loop: this module is already being loaded.'),
+          );
           await sass.kill();
         });
 
@@ -1027,9 +1028,9 @@ void sharedTests(
 
           var sass = await watch(['test.scss:out.css']);
           await expectLater(
-              sass.stderr,
-              emits(
-                  'Error: Module loop: this module is already being loaded.'));
+            sass.stderr,
+            emits('Error: Module loop: this module is already being loaded.'),
+          );
           await expectLater(sass.stdout, _watchingForChanges);
           await tick;
 
@@ -1095,11 +1096,9 @@ void sharedTests(
 
           d.file("test.scss").io.deleteSync();
           await expectLater(
-              sass.stdout,
-              emitsInOrder([
-                'Deleted out.css.',
-                'Deleted out.css.map.',
-              ]));
+            sass.stdout,
+            emitsInOrder(['Deleted out.css.', 'Deleted out.css.map.']),
+          );
           await sass.kill();
 
           await d.nothing("out.css").validate();

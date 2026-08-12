@@ -116,10 +116,10 @@ final class PseudoSelector extends SimpleSelector {
     bool element = false,
     this.argument,
     this.selector,
-  })  : isClass = !element && !_isFakePseudoElement(name),
-        isSyntacticClass = !element,
-        normalizedName = unvendor(name),
-        super(span);
+  }) : isClass = !element && !_isFakePseudoElement(name),
+       isSyntacticClass = !element,
+       normalizedName = unvendor(name),
+       super(span);
 
   /// Returns whether [name] is the name of a pseudo-element that can be written
   /// with pseudo-class syntax (`:before`, `:after`, `:first-line`, or
@@ -147,12 +147,12 @@ final class PseudoSelector extends SimpleSelector {
   /// Returns a new [PseudoSelector] based on this, but with the selector
   /// replaced with [selector].
   PseudoSelector withSelector(SelectorList selector) => PseudoSelector(
-        name,
-        span,
-        element: isElement,
-        argument: argument,
-        selector: selector,
-      );
+    name,
+    span,
+    element: isElement,
+    argument: argument,
+    selector: selector,
+  );
 
   /// @nodoc
   @override
@@ -222,8 +222,7 @@ final class PseudoSelector extends SimpleSelector {
     // compare selector pseudoclasses against raw selectors.
     return CompoundSelector([
       this,
-    ], span)
-        .isSuperselector(CompoundSelector([other], span));
+    ], span).isSuperselector(CompoundSelector([other], span));
   }
 
   @override

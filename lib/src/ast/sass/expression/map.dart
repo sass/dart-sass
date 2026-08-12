@@ -21,7 +21,7 @@ final class MapExpression extends Expression {
   final FileSpan span;
 
   MapExpression(Iterable<(Expression, Expression)> pairs, this.span)
-      : pairs = List.unmodifiable(pairs);
+    : pairs = List.unmodifiable(pairs);
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) => visitor.visitMapExpression(this);

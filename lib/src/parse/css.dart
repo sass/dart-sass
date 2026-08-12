@@ -45,10 +45,7 @@ class CssParser extends ScssParser {
 
     var start = scanner.state;
     super.silentComment();
-    error(
-      "Silent comments aren't allowed in plain CSS.",
-      spanFrom(start),
-    );
+    error("Silent comments aren't allowed in plain CSS.", spanFrom(start));
   }
 
   @override
@@ -74,8 +71,7 @@ class CssParser extends ScssParser {
       "mixin" ||
       "return" ||
       "warn" ||
-      "while" =>
-        _forbiddenAtRule(start),
+      "while" => _forbiddenAtRule(start),
       "import" => _cssImportRule(start),
       "function" => _cssFunctionRule(start, name),
       "media" => mediaRule(start),
@@ -98,32 +94,32 @@ class CssParser extends ScssParser {
     var urlStart = scanner.state;
     var url = switch (scanner.peekChar()) {
       $u || $U => switch (dynamicUrl()) {
-          StringExpression string => string.text,
-          InterpolatedFunctionExpression(
-            :var name,
-            arguments: ArgumentList(
-              positional: [StringExpression string],
-              named: Map(isEmpty: true),
-              rest: null,
-              keywordRest: null,
-            ),
-            :var span,
-          ) =>
-            (InterpolationBuffer()
-                  ..addInterpolation(name)
-                  ..writeCharCode($lparen)
-                  ..addInterpolation(string.asInterpolation())
-                  ..writeCharCode($rparen))
-                .interpolation(span),
-          // This shouldn't be reachable.
-          var expression => error(
-              "Unsupported plain CSS import.",
-              expression.span,
-            ),
-        },
+        StringExpression string => string.text,
+        InterpolatedFunctionExpression(
+          :var name,
+          arguments: ArgumentList(
+            positional: [StringExpression string],
+            named: Map(isEmpty: true),
+            rest: null,
+            keywordRest: null,
+          ),
+          :var span,
+        ) =>
+          (InterpolationBuffer()
+                ..addInterpolation(name)
+                ..writeCharCode($lparen)
+                ..addInterpolation(string.asInterpolation())
+                ..writeCharCode($rparen))
+              .interpolation(span),
+        // This shouldn't be reachable.
+        var expression => error(
+          "Unsupported plain CSS import.",
+          expression.span,
+        ),
+      },
       _ => StringExpression(
-          interpolatedString().asInterpolation(static: true),
-        ).text,
+        interpolatedString().asInterpolation(static: true),
+      ).text,
     };
 
     _whitespace();
@@ -142,7 +138,9 @@ class CssParser extends ScssParser {
     if (!scanner.matches('--')) {
       almostAnyValue();
       error(
-          "This at-rule isn't allowed in plain CSS.", scanner.spanFrom(start));
+        "This at-rule isn't allowed in plain CSS.",
+        scanner.spanFrom(start),
+      );
     } else {
       return unknownAtRule(start, atRuleName);
     }
@@ -200,10 +198,7 @@ class CssParser extends ScssParser {
     }
 
     if (_disallowedFunctionNames.contains(plain)) {
-      error(
-        "This function isn't allowed in plain CSS.",
-        spanFrom(start),
-      );
+      error("This function isn't allowed in plain CSS.", spanFrom(start));
     }
 
     return FunctionExpression(

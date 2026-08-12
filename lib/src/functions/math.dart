@@ -124,8 +124,9 @@ final _round = _numberFunction("round", (number) => number.round().toDouble());
 ///
 
 final _hypot = _function("hypot", r"$numbers...", (arguments) {
-  var numbers =
-      arguments[0].asList.map((argument) => argument.assertNumber()).toList();
+  var numbers = arguments[0].asList
+      .map((argument) => argument.assertNumber())
+      .toList();
   if (numbers.isEmpty) {
     throw SassScriptException("At least one argument must be passed.");
   }
@@ -289,7 +290,9 @@ BuiltInCallable _singleArgumentMathFunc(
 /// Returns a [Callable] named [name] that transforms a number's value
 /// using [transform] and preserves its units.
 BuiltInCallable _numberFunction(
-    String name, double Function(double value) transform) {
+  String name,
+  double Function(double value) transform,
+) {
   return _function(name, r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
     return SassNumber.withUnits(
@@ -305,5 +308,4 @@ BuiltInCallable _function(
   String name,
   String arguments,
   Value Function(List<Value> arguments) callback,
-) =>
-    BuiltInCallable.function(name, arguments, callback, url: "sass:math");
+) => BuiltInCallable.function(name, arguments, callback, url: "sass:math");

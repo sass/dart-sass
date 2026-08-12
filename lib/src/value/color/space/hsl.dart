@@ -25,17 +25,17 @@ final class HslColorSpace extends ColorSpace {
   bool get isPolarInternal => true;
 
   const HslColorSpace()
-      : super('hsl', const [
-          hueChannel,
-          LinearChannel(
-            'saturation',
-            0,
-            100,
-            requiresPercent: true,
-            lowerClamped: true,
-          ),
-          LinearChannel('lightness', 0, 100, requiresPercent: true),
-        ]);
+    : super('hsl', const [
+        hueChannel,
+        LinearChannel(
+          'saturation',
+          0,
+          100,
+          requiresPercent: true,
+          lowerClamped: true,
+        ),
+        LinearChannel('lightness', 0, 100, requiresPercent: true),
+      ]);
 
   @override
   SassColor convert(
@@ -53,8 +53,8 @@ final class HslColorSpace extends ColorSpace {
     var m2 = scaledLightness <= 0.5
         ? scaledLightness * (scaledSaturation + 1)
         : scaledLightness +
-            scaledSaturation -
-            scaledLightness * scaledSaturation;
+              scaledSaturation -
+              scaledLightness * scaledSaturation;
     var m1 = scaledLightness * 2 - m2;
 
     return const SrgbColorSpace().convert(
