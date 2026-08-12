@@ -16,7 +16,7 @@ class FromImportImporter extends Importer {
   /// This ensures that the test doesn't exit until [canonicalize] is called.
   final void Function() _done;
 
-  FromImportImporter(this._expected) : _done = expectAsync0(() {});
+  new(this._expected) : _done = expectAsync0(() {});
 
   @override
   Uri? canonicalize(Uri url) {

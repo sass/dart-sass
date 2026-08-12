@@ -23,7 +23,7 @@ final class InterpolatedParentSelector extends InterpolatedSimpleSelector {
   @override
   final FileSpan span;
 
-  InterpolatedParentSelector(this.span, {this.suffix});
+  new(this.span, {this.suffix});
 
   /// Calls the appropriate visit method on [visitor].
   @override

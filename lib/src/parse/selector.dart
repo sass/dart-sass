@@ -47,24 +47,22 @@ class SelectorParser extends Parser {
 
   /// Creates a parser that parses CSS selectors.
   ///
-  /// If [allowParent] is `false`, this will throw a [SassFormatException] if
+  /// If [_allowParent] is `false`, this will throw a [SassFormatException] if
   /// the selector includes the parent selector `&`.
   ///
-  /// If [plainCss] is `true`, this will parse the selector as a plain CSS
+  /// If [_plainCss] is `true`, this will parse the selector as a plain CSS
   /// selector rather than a Sass selector.
   ///
   /// The [logger] will be used to report deprecation warnings. If it's null,
   /// they'll be reported using [Logger.defaultLogger].
-  SelectorParser(
+  new(
     super.contents, {
     super.url,
     super.interpolationMap,
-    bool allowParent = true,
-    bool plainCss = false,
+    this._allowParent = true,
+    this._plainCss = false,
     Logger? logger,
-  }) : _allowParent = allowParent,
-       _plainCss = plainCss,
-       _logger = logger ?? Logger.defaultLogger;
+  }) : _logger = logger ?? Logger.defaultLogger;
 
   SelectorList parse() {
     return wrapSpanFormatException(() {

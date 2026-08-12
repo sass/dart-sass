@@ -41,7 +41,7 @@ final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
   /// [_maxRepetitions].
   final bool limitRepetition;
 
-  DeprecationProcessingLogger(
+  new(
     this._inner, {
     required this.silenceDeprecations,
     required this.fatalDeprecations,

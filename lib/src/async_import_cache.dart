@@ -94,26 +94,20 @@ final class AsyncImportCache {
   ///   this is a shorthand for adding a [PackageImporter] to [importers].
   ///
   /// [`PackageConfig`]: https://pub.dev/documentation/package_config/latest/package_config.package_config/PackageConfig-class.html
-  AsyncImportCache({
+  new({
     Iterable<AsyncImporter>? importers,
     Iterable<String>? loadPaths,
     PackageConfig? packageConfig,
-    bool parseSelectors = false,
-  }) : _importers = _toImporters(importers, loadPaths, packageConfig),
-       _parseSelectors = parseSelectors;
+    this._parseSelectors = false,
+  }) : _importers = _toImporters(importers, loadPaths, packageConfig);
 
   /// Creates an import cache without any globally-available importers.
-  AsyncImportCache.none({bool parseSelectors = false})
-    : _importers = const [],
-      _parseSelectors = parseSelectors;
+  new none({this._parseSelectors = false}) : _importers = const [];
 
   /// Creates an import cache without any globally-available importers, and only
   /// the passed in importers.
-  AsyncImportCache.only(
-    Iterable<AsyncImporter> importers, {
-    bool parseSelectors = false,
-  }) : _importers = List.unmodifiable(importers),
-       _parseSelectors = parseSelectors;
+  new only(Iterable<AsyncImporter> importers, {this._parseSelectors = false})
+    : _importers = List.unmodifiable(importers);
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.

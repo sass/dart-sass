@@ -30,7 +30,7 @@ abstract base class CallableDeclaration
   @override
   final FileSpan span;
 
-  CallableDeclaration(
+  new(
     this.originalName,
     this.parameters,
     Iterable<Statement> children,

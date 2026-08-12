@@ -28,9 +28,9 @@ class MultiDirWatcher {
 
   /// Creates a [MultiDirWatcher].
   ///
-  /// If [poll] is `true`, this manually checks the filesystem for changes
+  /// If [_poll] is `true`, this manually checks the filesystem for changes
   /// periodically rather than using a native filesystem monitoring API.
-  MultiDirWatcher({bool poll = false}) : _poll = poll;
+  new({this._poll = false});
 
   /// Watches [directory] for changes.
   ///

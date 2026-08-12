@@ -36,7 +36,7 @@ final class Parameter implements SassNode, SassDeclaration {
   FileSpan get nameSpan =>
       defaultValue == null ? span : span.initialIdentifier(includeLeading: 1);
 
-  Parameter(this.name, this.span, {this.defaultValue});
+  new(this.name, this.span, {this.defaultValue});
 
   @override
   String toString() => defaultValue == null ? name : "$name: $defaultValue";

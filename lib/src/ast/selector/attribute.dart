@@ -43,7 +43,7 @@ final class AttributeSelector extends SimpleSelector {
 
   /// Creates an attribute selector that matches any element with a property of
   /// the given name.
-  AttributeSelector(this.name, FileSpan span)
+  new(this.name, FileSpan span)
     : op = null,
       value = null,
       modifier = null,
@@ -51,7 +51,7 @@ final class AttributeSelector extends SimpleSelector {
 
   /// Creates an attribute selector that matches an element with a property
   /// named [name], whose value matches [value] based on the semantics of [op].
-  AttributeSelector.withOperator(
+  new withOperator(
     this.name,
     this.op,
     this.value,
@@ -103,7 +103,7 @@ enum AttributeOperator {
   /// The operator's token text.
   final String _text;
 
-  const AttributeOperator(this._text);
+  const new(this._text);
 
   @override
   String toString() => _text;

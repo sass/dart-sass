@@ -27,7 +27,7 @@ final class InterpolatedQualifiedName implements SassNode {
 
   /// Creates an attribute selector that matches any element with a property of
   /// the given name.
-  InterpolatedQualifiedName(this.name, this.span, {this.namespace});
+  new(this.name, this.span, {this.namespace});
 
   @override
   String toString() => switch (namespace) {

@@ -19,7 +19,7 @@ final class ModifiableCssKeyframeBlock extends ModifiableCssParentNode
   @override
   final FileSpan span;
 
-  ModifiableCssKeyframeBlock(this.selector, this.span);
+  new(this.selector, this.span);
 
   @override
   T accept<T>(ModifiableCssVisitor<T> visitor) =>

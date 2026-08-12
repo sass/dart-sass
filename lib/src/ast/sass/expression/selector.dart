@@ -14,7 +14,7 @@ final class SelectorExpression extends Expression {
   @override
   final FileSpan span;
 
-  SelectorExpression(this.span);
+  new(this.span);
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

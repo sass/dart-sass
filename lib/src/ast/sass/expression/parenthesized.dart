@@ -17,7 +17,7 @@ final class ParenthesizedExpression extends Expression {
   @override
   final FileSpan span;
 
-  ParenthesizedExpression(this.expression, this.span);
+  new(this.expression, this.span);
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

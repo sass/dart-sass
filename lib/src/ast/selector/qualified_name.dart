@@ -18,7 +18,7 @@ final class QualifiedName {
   /// to any namespace. Otherwise, [name] belongs to the given namespace.
   final String? namespace;
 
-  QualifiedName(this.name, {this.namespace});
+  new(this.name, {this.namespace});
 
   @override
   bool operator ==(Object other) =>

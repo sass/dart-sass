@@ -26,7 +26,7 @@ final class JSToDartLogger extends LoggerWithDeprecationType {
   /// This defaults to [glyph.ascii].
   final bool _ascii;
 
-  JSToDartLogger(this._node, this._fallback, {bool? ascii})
+  new(this._node, this._fallback, {bool? ascii})
     : _ascii = ascii ?? glyph.ascii;
 
   @override

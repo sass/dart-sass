@@ -22,13 +22,13 @@ class MultiSpan implements FileSpan {
   /// The [secondarySpans] map for [SourceSpanExtension.messageMultiple].
   final Map<SourceSpan, String> secondarySpans;
 
-  MultiSpan(
+  new(
     FileSpan primary,
     String primaryLabel,
     Map<SourceSpan, String> secondarySpans,
   ) : this._(primary, primaryLabel, Map.unmodifiable(secondarySpans));
 
-  MultiSpan._(this._primary, this.primaryLabel, this.secondarySpans);
+  new _(this._primary, this.primaryLabel, this.secondarySpans);
 
   @override
   FileLocation get start => _primary.start;

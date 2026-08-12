@@ -27,11 +27,8 @@ final class ComplexSelectorComponent {
 
   final FileSpan span;
 
-  ComplexSelectorComponent(
-    this.selector,
-    Iterable<CssValue<Combinator>> combinators,
-    this.span,
-  ) : combinators = List.unmodifiable(combinators);
+  new(this.selector, Iterable<CssValue<Combinator>> combinators, this.span)
+    : combinators = List.unmodifiable(combinators);
 
   /// Returns a copy of `this` with [combinators] added to the end of
   /// [this.combinators].

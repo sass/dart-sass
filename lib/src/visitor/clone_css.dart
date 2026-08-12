@@ -30,7 +30,7 @@ final class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
   /// the new stylesheet using [ExtensionStore.clone].
   final Map<SelectorList, Box<SelectorList>> _oldToNewSelectors;
 
-  _CloneCssVisitor(this._oldToNewSelectors);
+  new(this._oldToNewSelectors);
 
   @override
   ModifiableCssAtRule visitCssAtRule(CssAtRule node) {

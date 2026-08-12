@@ -150,7 +150,7 @@ final class AsyncEnvironment {
   /// Creates an [AsyncEnvironment].
   ///
   /// If [sourceMap] is `true`, this tracks variables' source locations
-  AsyncEnvironment()
+  new()
     : _modules = {},
       _namespaceNodes = {},
       _globalModules = {},
@@ -167,7 +167,7 @@ final class AsyncEnvironment {
       _mixinIndices = {},
       _configurableVariables = {};
 
-  AsyncEnvironment._(
+  new _(
     this._modules,
     this._namespaceNodes,
     this._globalModules,
@@ -262,7 +262,7 @@ final class AsyncEnvironment {
         throw MultiSpanSassScriptException(
           "There's already a module with namespace \"$namespace\".",
           "new @use",
-          {if (span != null) span: "original @use"},
+          {?span: "original @use"},
         );
       }
 
@@ -339,7 +339,7 @@ final class AsyncEnvironment {
       throw MultiSpanSassScriptException(
         'Two forwarded modules both define a $type named $name.',
         "new @forward",
-        {if (span != null) span: "original @forward"},
+        {?span: "original @forward"},
       );
     }
   }
@@ -1000,7 +1000,7 @@ final class _EnvironmentModule implements Module {
   /// defined at all.
   final Map<String, Module> _modulesByVariable;
 
-  factory _EnvironmentModule(
+  factory(
     AsyncEnvironment environment,
     CssStylesheet css,
     Map<Module, List<CssComment>> preModuleComments,
@@ -1089,7 +1089,7 @@ final class _EnvironmentModule implements Module {
     return MergedMapView(allMaps);
   }
 
-  _EnvironmentModule._(
+  new _(
     this._environment,
     this.css,
     this.preModuleComments,
@@ -1137,10 +1137,7 @@ final class _EnvironmentModule implements Module {
       // check if they define configurable variables with any of the given
       // names.
       (variables.length < _modulesByVariable.length
-              ? {
-                  for (var variable in variables)
-                    if (_modulesByVariable[variable] case var module?) module,
-                }
+              ? {for (var variable in variables) ?_modulesByVariable[variable]}
               : {
                   for (var (variable, module) in _modulesByVariable.pairs)
                     if (variables.contains(variable)) module,

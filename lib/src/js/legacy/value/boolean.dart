@@ -14,7 +14,7 @@ import '../../reflection.dart';
 /// to have a constructor injected into their inheritance chain so that
 /// `instanceof` works properly.
 final JSClass legacyBooleanClass = () {
-  var jsClass = createJSClass('sass.types.Boolean', (dynamic _, [dynamic __]) {
+  var jsClass = createJSClass('sass.types.Boolean', (dynamic _, [dynamic _]) {
     throw "new sass.types.Boolean() isn't allowed.\n"
         "Use sass.types.Boolean.TRUE or sass.types.Boolean.FALSE instead.";
   });

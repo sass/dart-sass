@@ -19,7 +19,7 @@ StderrLogger? _default;
 /// A logger that wraps [StderrLogger] and chooses whether to activate colors
 /// based on whether the current system supports it.
 final class DefaultLogger extends LoggerWithDeprecationType {
-  const DefaultLogger();
+  const new();
 
   /// Ensures [_defaultStderr] is initialized and returns it.
   StderrLogger get _inner {

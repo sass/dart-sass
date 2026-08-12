@@ -44,7 +44,7 @@ abstract base class SimpleSelector extends Selector {
   @internal
   bool get hasComplicatedSuperselectorSemantics => false;
 
-  SimpleSelector(super.span);
+  new(super.span);
 
   /// Parses a simple selector from [contents].
   ///
@@ -56,7 +56,7 @@ abstract base class SimpleSelector extends Selector {
   /// they'll be reported using [Logger.defaultLogger].
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory SimpleSelector.parse(
+  factory parse(
     String contents, {
     Object? url,
     bool allowParent = true,

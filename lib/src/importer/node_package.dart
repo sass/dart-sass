@@ -21,7 +21,7 @@ class NodePackageImporter extends Importer {
   late final String _entryPointDirectory;
 
   /// Creates a Node package importer with the associated entry point.
-  NodePackageImporter(String entryPointDirectory) {
+  new(String entryPointDirectory) {
     if (isBrowser) {
       throw "The Node package importer cannot be used without a filesystem.";
     }

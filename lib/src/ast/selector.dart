@@ -90,7 +90,7 @@ abstract base class Selector implements AstNode {
   @override
   final FileSpan span;
 
-  Selector(this.span);
+  new(this.span);
 
   /// Prints a warning if `this` is a bogus selector.
   ///
@@ -119,7 +119,7 @@ class _IsInvisibleVisitor with AnySelectorVisitor {
   /// Whether to consider selectors with bogus combinators invisible.
   final bool includeBogus;
 
-  const _IsInvisibleVisitor({required this.includeBogus});
+  const new({required this.includeBogus});
 
   @override
   bool visitSelectorList(SelectorList list) =>
@@ -154,7 +154,7 @@ class _IsBogusVisitor with AnySelectorVisitor {
   /// Whether to consider selectors with leading combinators as bogus.
   final bool includeLeadingCombinator;
 
-  const _IsBogusVisitor({required this.includeLeadingCombinator});
+  const new({required this.includeLeadingCombinator});
 
   @override
   bool visitComplexSelector(ComplexSelector complex) {
@@ -186,7 +186,7 @@ class _IsBogusVisitor with AnySelectorVisitor {
 
 /// The visitor used to implement [Selector.isUseless].
 class _IsUselessVisitor with AnySelectorVisitor {
-  const _IsUselessVisitor();
+  const new();
 
   @override
   bool visitComplexSelector(ComplexSelector complex) =>
@@ -202,7 +202,7 @@ class _IsUselessVisitor with AnySelectorVisitor {
 
 /// The visitor used to implement [Selector.containsParentSelector].
 class _ContainsParentSelectorVisitor with AnySelectorVisitor {
-  const _ContainsParentSelectorVisitor();
+  const new();
 
   @override
   bool visitParentSelector(ParentSelector _) => true;

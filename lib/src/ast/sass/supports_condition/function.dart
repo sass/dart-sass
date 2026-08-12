@@ -23,7 +23,7 @@ final class SupportsFunction implements SupportsCondition {
   @override
   final FileSpan span;
 
-  SupportsFunction(this.name, this.arguments, this.span);
+  new(this.name, this.arguments, this.span);
 
   /// @nodoc
   @override

@@ -20,7 +20,7 @@ final class ErrorRule extends Statement {
   @override
   final FileSpan span;
 
-  ErrorRule(this.expression, this.span);
+  new(this.expression, this.span);
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitErrorRule(this);

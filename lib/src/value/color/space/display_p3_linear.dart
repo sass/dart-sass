@@ -23,7 +23,7 @@ final class DisplayP3LinearColorSpace extends ColorSpace {
   @override
   bool get isBoundedInternal => true;
 
-  const DisplayP3LinearColorSpace() : super('display-p3-linear', rgbChannels);
+  const new() : super('display-p3-linear', rgbChannels);
 
   @override
   SassColor convert(

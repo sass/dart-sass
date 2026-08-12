@@ -19,7 +19,7 @@ final class SupportsInterpolation implements SupportsCondition {
   @override
   final FileSpan span;
 
-  SupportsInterpolation(this.expression, this.span);
+  new(this.expression, this.span);
 
   /// @nodoc
   @override

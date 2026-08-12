@@ -14,7 +14,7 @@ final class NullExpression extends Expression {
   @override
   final FileSpan span;
 
-  NullExpression(this.span);
+  new(this.span);
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

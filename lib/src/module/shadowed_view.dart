@@ -80,7 +80,7 @@ final class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
 
   /// Returns a view of [inner] that doesn't include the given [variables],
   /// [functions], or [mixins].
-  ShadowedModuleView(
+  new(
     this._inner, {
     Set<String>? variables,
     Set<String>? functions,
@@ -90,7 +90,7 @@ final class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
        functions = _shadowedMap(_inner.functions, functions),
        mixins = _shadowedMap(_inner.mixins, mixins);
 
-  ShadowedModuleView._(
+  new _(
     this._inner,
     this.variables,
     this.variableNodes,

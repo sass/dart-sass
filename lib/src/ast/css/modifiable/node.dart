@@ -62,11 +62,11 @@ abstract base class ModifiableCssParentNode extends ModifiableCssNode
   @override
   bool get isChildless => false;
 
-  ModifiableCssParentNode() : this._([]);
+  new() : this._([]);
 
   /// A dummy constructor so that [_children] can be passed to the constructor
   /// for [this.children].
-  ModifiableCssParentNode._(List<ModifiableCssNode> children)
+  new _(List<ModifiableCssNode> children)
     : _children = children,
       children = UnmodifiableListView(children);
 

@@ -18,7 +18,7 @@ final class ColorExpression extends Expression {
   @override
   final FileSpan span;
 
-  ColorExpression(this.value, this.span);
+  new(this.value, this.span);
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

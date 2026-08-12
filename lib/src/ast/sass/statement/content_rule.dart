@@ -23,7 +23,7 @@ final class ContentRule extends Statement {
   @override
   final FileSpan span;
 
-  ContentRule(this.arguments, this.span);
+  new(this.arguments, this.span);
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitContentRule(this);

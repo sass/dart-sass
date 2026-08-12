@@ -34,11 +34,7 @@ class ColorChannel {
 
   /// @nodoc
   @internal
-  const ColorChannel(
-    this.name, {
-    required this.isPolarAngle,
-    this.associatedUnit,
-  });
+  const new(this.name, {required this.isPolarAngle, this.associatedUnit});
 
   /// Returns whether this channel is [analogous] to [other].
   ///
@@ -95,7 +91,7 @@ class LinearChannel extends ColorChannel {
   ///
   /// @nodoc
   @internal
-  const LinearChannel(
+  const new(
     super.name,
     this.min,
     this.max, {

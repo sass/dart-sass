@@ -141,7 +141,7 @@ abstract base class ColorSpace {
 
   /// @nodoc
   @internal
-  const ColorSpace(this.name, this._channels);
+  const new(this.name, this._channels);
 
   /// Given a color space name, returns the known color space with that name or
   /// throws a [SassScriptException] if there is none.

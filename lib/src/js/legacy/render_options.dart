@@ -37,7 +37,7 @@ class RenderOptions {
   external bool? get charset;
   external JSLogger? get logger;
 
-  external factory RenderOptions({
+  external factory({
     String? file,
     String? data,
     Object? importer,

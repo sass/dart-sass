@@ -23,7 +23,7 @@ final class StaticImport implements Import {
   @override
   final FileSpan span;
 
-  StaticImport(this.url, this.span, {this.modifiers});
+  new(this.url, this.span, {this.modifiers});
 
   @override
   String toString() => "$url${modifiers == null ? '' : ' $modifiers'}";

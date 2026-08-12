@@ -18,7 +18,7 @@ final class LoudComment extends Statement {
   @override
   FileSpan get span => text.span;
 
-  LoudComment(this.text);
+  new(this.text);
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitLoudComment(this);

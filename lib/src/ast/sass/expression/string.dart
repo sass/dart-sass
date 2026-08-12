@@ -41,10 +41,10 @@ final class StringExpression extends Expression {
     return buffer.toString();
   }
 
-  StringExpression(this.text, {bool quotes = false}) : hasQuotes = quotes;
+  new(this.text, {bool quotes = false}) : hasQuotes = quotes;
 
   /// Returns a string expression with no interpolation.
-  StringExpression.plain(String text, FileSpan span, {bool quotes = false})
+  new plain(String text, FileSpan span, {bool quotes = false})
     : text = Interpolation.plain(text, span),
       hasQuotes = quotes;
 

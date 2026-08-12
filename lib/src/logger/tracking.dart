@@ -19,7 +19,7 @@ final class TrackingLogger implements Logger {
   bool get emittedDebug => _emittedDebug;
   bool _emittedDebug = false;
 
-  TrackingLogger(this._logger);
+  new(this._logger);
 
   @override
   void warn(

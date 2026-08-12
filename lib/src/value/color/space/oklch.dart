@@ -25,7 +25,7 @@ final class OklchColorSpace extends ColorSpace {
   @override
   bool get isPolarInternal => true;
 
-  const OklchColorSpace()
+  const new()
     : super('oklch', const [
         LinearChannel(
           'lightness',

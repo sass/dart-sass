@@ -17,7 +17,7 @@ class PublicMemberMapView<V> extends UnmodifiableMapBase<String, V> {
   @override
   Iterable<String> get keys => _inner.keys.where(isPublic);
 
-  PublicMemberMapView(this._inner);
+  new(this._inner);
 
   @override
   bool containsKey(Object? key) =>

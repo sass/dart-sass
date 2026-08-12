@@ -20,7 +20,7 @@ class InterpolationMethod {
   /// This is non-null if and only if [space] is a color space.
   final HueInterpolationMethod? hue;
 
-  InterpolationMethod(this.space, [HueInterpolationMethod? hue])
+  new(this.space, [HueInterpolationMethod? hue])
     : hue = space.isPolar ? hue ?? HueInterpolationMethod.shorter : null {
     if (!space.isPolar && hue != null) {
       throw ArgumentError(
@@ -36,7 +36,7 @@ class InterpolationMethod {
   /// Throws a [SassScriptException] if [value] isn't a valid interpolation
   /// method. If [value] came from a function argument, [name] is the argument name
   /// (without the `$`). This is used for error reporting.
-  factory InterpolationMethod.fromValue(Value value, [String? name]) {
+  factory fromValue(Value value, [String? name]) {
     var list = value.assertCommonListStyle(name, allowSlash: false);
     if (list.isEmpty) {
       throw SassScriptException(
@@ -117,7 +117,7 @@ enum HueInterpolationMethod {
   /// Throws a [SassScriptException] if [value] isn't a valid hue interpolation
   /// method. If [value] came from a function argument, [name] is the argument
   /// name (without the `$`). This is used for error reporting.
-  factory HueInterpolationMethod._fromValue(Value value, [String? name]) =>
+  factory _fromValue(Value value, [String? name]) =>
       switch ((value.assertString(name)..assertUnquoted()).text.toLowerCase()) {
         'shorter' => HueInterpolationMethod.shorter,
         'longer' => HueInterpolationMethod.longer,

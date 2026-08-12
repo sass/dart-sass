@@ -24,7 +24,7 @@ final class EachRule extends ParentStatement<List<Statement>> {
   @override
   final FileSpan span;
 
-  EachRule(
+  new(
     Iterable<String> variables,
     this.list,
     Iterable<Statement> children,

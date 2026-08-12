@@ -30,11 +30,8 @@ final class JSToDartAsyncImporter extends AsyncImporter {
   /// [canonicalize].
   final Set<String> _nonCanonicalSchemes;
 
-  JSToDartAsyncImporter(
-    this._canonicalize,
-    this._load,
-    Iterable<String>? nonCanonicalSchemes,
-  ) : _nonCanonicalSchemes = nonCanonicalSchemes == null
+  new(this._canonicalize, this._load, Iterable<String>? nonCanonicalSchemes)
+    : _nonCanonicalSchemes = nonCanonicalSchemes == null
           ? const {}
           : Set.unmodifiable(nonCanonicalSchemes) {
     _nonCanonicalSchemes.forEach(validateUrlScheme);

@@ -11,7 +11,7 @@ import '../../visitor/interface/expression.dart';
 class JSExpressionVisitor implements ExpressionVisitor<Object?> {
   final JSExpressionVisitorObject _inner;
 
-  JSExpressionVisitor(this._inner);
+  new(this._inner);
 
   @override
   Object? visitBinaryOperationExpression(BinaryOperationExpression node) =>

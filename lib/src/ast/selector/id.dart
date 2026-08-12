@@ -22,7 +22,7 @@ final class IDSelector extends SimpleSelector {
   @override
   int get specificity => math.pow(super.specificity, 2) as int;
 
-  IDSelector(this.name, FileSpan span) : super(span);
+  new(this.name, FileSpan span) : super(span);
 
   @override
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitIDSelector(this);

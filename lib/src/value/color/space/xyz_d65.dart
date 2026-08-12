@@ -20,7 +20,7 @@ final class XyzD65ColorSpace extends ColorSpace {
   @override
   bool get isBoundedInternal => false;
 
-  const XyzD65ColorSpace() : super('xyz', xyzChannels);
+  const new() : super('xyz', xyzChannels);
 
   @override
   @protected

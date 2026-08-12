@@ -25,7 +25,7 @@ final class LchColorSpace extends ColorSpace {
   @override
   bool get isPolarInternal => true;
 
-  const LchColorSpace()
+  const new()
     : super('lch', const [
         LinearChannel(
           'lightness',

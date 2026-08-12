@@ -51,9 +51,8 @@ class Parser {
       Parser(text)._isVariableDeclarationLike();
 
   @protected
-  Parser(String contents, {Object? url, InterpolationMap? interpolationMap})
-    : scanner = SpanScanner(contents, sourceUrl: url),
-      _interpolationMap = interpolationMap;
+  new(String contents, {Object? url, this._interpolationMap})
+    : scanner = SpanScanner(contents, sourceUrl: url);
 
   String _parseIdentifier() {
     return wrapSpanFormatException(() {

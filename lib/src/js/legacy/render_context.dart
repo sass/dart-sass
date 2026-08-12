@@ -10,10 +10,7 @@ class RenderContext {
   external RenderContextOptions get options;
   external bool? get fromImport;
 
-  external factory RenderContext({
-    required RenderContextOptions options,
-    bool? fromImport,
-  });
+  external factory({required RenderContextOptions options, bool? fromImport});
 }
 
 @JS()
@@ -31,7 +28,7 @@ class RenderContextOptions {
   external set context(RenderContext value);
   external RenderContextResult get result;
 
-  external factory RenderContextOptions({
+  external factory({
     String? file,
     String? data,
     required String includePaths,
@@ -49,9 +46,7 @@ class RenderContextOptions {
 class RenderContextResult {
   external RenderContextResultStats get stats;
 
-  external factory RenderContextResult({
-    required RenderContextResultStats stats,
-  });
+  external factory({required RenderContextResultStats stats});
 }
 
 @JS()
@@ -60,8 +55,5 @@ class RenderContextResultStats {
   external int get start;
   external String get entry;
 
-  external factory RenderContextResultStats({
-    required int start,
-    required String entry,
-  });
+  external factory({required int start, required String entry});
 }

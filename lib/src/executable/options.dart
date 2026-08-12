@@ -535,7 +535,7 @@ final class ExecutableOptions {
   /// Parses options from [args].
   ///
   /// Throws a [UsageException] if parsing fails.
-  factory ExecutableOptions.parse(List<String> args) {
+  factory parse(List<String> args) {
     try {
       var options = ExecutableOptions._(_parser.parse(args));
       if (options._options['help'] as bool) _fail("Compile Sass to CSS.");
@@ -545,7 +545,7 @@ final class ExecutableOptions {
     }
   }
 
-  ExecutableOptions._(this._options) {
+  new _(this._options) {
     if (_options.wasParsed('poll') && !watch) {
       _fail("--poll may not be passed without --watch.");
     }
@@ -625,5 +625,5 @@ final class ExecutableOptions {
 class UsageException implements Exception {
   final String message;
 
-  UsageException(this.message);
+  new(this.message);
 }

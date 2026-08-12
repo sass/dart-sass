@@ -3,7 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 final class NodeImporter {
-  NodeImporter(
+  new(
     Object options,
     Iterable<String> includePaths,
     Iterable<Object> importers,

@@ -23,7 +23,7 @@ final class OklabColorSpace extends ColorSpace {
   @override
   bool get isBoundedInternal => false;
 
-  const OklabColorSpace()
+  const new()
     : super('oklab', const [
         LinearChannel(
           'lightness',

@@ -42,7 +42,7 @@ final class SupportsDeclaration implements SupportsCondition {
     _ => false,
   };
 
-  SupportsDeclaration(this.name, this.value, this.span);
+  new(this.name, this.value, this.span);
 
   /// @nodoc
   @override

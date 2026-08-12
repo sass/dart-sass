@@ -24,7 +24,7 @@ final class InterpolatedTypeSelector extends InterpolatedSimpleSelector {
 
   /// Creates a type selector that matches any element with a property of
   /// the given name.
-  InterpolatedTypeSelector(this.name);
+  new(this.name);
 
   /// Calls the appropriate visit method on [visitor].
   @override

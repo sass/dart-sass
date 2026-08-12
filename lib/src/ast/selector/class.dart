@@ -18,7 +18,7 @@ final class ClassSelector extends SimpleSelector {
   /// The class name this selects for.
   final String name;
 
-  ClassSelector(this.name, FileSpan span) : super(span);
+  new(this.name, FileSpan span) : super(span);
 
   @override
   bool operator ==(Object other) =>

@@ -71,7 +71,7 @@ final class Interpolation implements SassNode {
     _ => spans[index]!,
   };
 
-  Interpolation.plain(String text, this.span)
+  new plain(String text, this.span)
     : contents = List.unmodifiable([text]),
       spans = const [null];
 
@@ -82,7 +82,7 @@ final class Interpolation implements SassNode {
   /// expression.
   ///
   /// The single [span] must cover the entire interpolation.
-  Interpolation(
+  new(
     Iterable<Object /* String | Expression */> contents,
     Iterable<FileSpan?> spans,
     this.span,

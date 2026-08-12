@@ -53,7 +53,7 @@ final class CompilationDispatcher {
 
   /// Creates a [CompilationDispatcher] that receives encoded protocol buffers
   /// through [_mailbox] and sends them through [_sendPort].
-  CompilationDispatcher(this._mailbox, this._sendPort);
+  new(this._mailbox, this._sendPort);
 
   /// Listens for incoming `CompileRequests` and runs their compilations.
   void listen() {

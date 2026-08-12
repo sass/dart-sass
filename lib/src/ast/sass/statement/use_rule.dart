@@ -37,7 +37,7 @@ final class UseRule extends Statement implements SassDependency {
   @override
   FileSpan get urlSpan => span.withoutInitialAtRule().initialQuoted();
 
-  UseRule(
+  new(
     this.url,
     this.namespace,
     this.span, {
@@ -64,7 +64,7 @@ final class UseRule extends Statement implements SassDependency {
   ///
   /// @nodoc
   @internal
-  factory UseRule.parse(String contents, {Object? url}) =>
+  factory parse(String contents, {Object? url}) =>
       ScssParser(contents, url: url).parseUseRule().$1;
 
   @override

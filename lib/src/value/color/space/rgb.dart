@@ -20,7 +20,7 @@ final class RgbColorSpace extends ColorSpace {
   @override
   bool get isLegacyInternal => true;
 
-  const RgbColorSpace()
+  const new()
     : super('rgb', const [
         LinearChannel('red', 0, 255, lowerClamped: true, upperClamped: true),
         LinearChannel('green', 0, 255, lowerClamped: true, upperClamped: true),

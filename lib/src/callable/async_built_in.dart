@@ -42,7 +42,7 @@ class AsyncBuiltInCallable implements AsyncCallable {
   ///
   /// If passed, [url] is the URL of the module in which the function is
   /// defined.
-  AsyncBuiltInCallable.function(
+  new function(
     String name,
     String parameters,
     FutureOr<Value> Function(List<Value> parameters) callback, {
@@ -61,7 +61,7 @@ class AsyncBuiltInCallable implements AsyncCallable {
   ///
   /// If passed, [url] is the URL of the module in which the mixin is
   /// defined.
-  AsyncBuiltInCallable.mixin(
+  new mixin(
     String name,
     String parameters,
     FutureOr<void> Function(List<Value> parameters) callback, {
@@ -82,7 +82,7 @@ class AsyncBuiltInCallable implements AsyncCallable {
 
   /// Creates a callable with a single [parameters] declaration and a single
   /// [callback].
-  AsyncBuiltInCallable.parsed(
+  new parsed(
     this.name,
     this._parameters,
     this._callback, {

@@ -20,7 +20,7 @@ final class DebugRule extends Statement {
   @override
   final FileSpan span;
 
-  DebugRule(this.expression, this.span);
+  new(this.expression, this.span);
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitDebugRule(this);

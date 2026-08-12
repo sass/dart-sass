@@ -31,12 +31,8 @@ final class ConfiguredVariable implements SassNode, SassDeclaration {
   @override
   FileSpan get nameSpan => span.initialIdentifier(includeLeading: 1);
 
-  ConfiguredVariable(
-    this.name,
-    this.expression,
-    this.span, {
-    bool guarded = false,
-  }) : isGuarded = guarded;
+  new(this.name, this.expression, this.span, {bool guarded = false})
+    : isGuarded = guarded;
 
   @override
   String toString() => "\$$name: $expression${isGuarded ? ' !default' : ''}";

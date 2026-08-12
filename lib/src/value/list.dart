@@ -48,13 +48,13 @@ class SassList extends Value {
   /// Returns an empty list with the given [separator] and [brackets].
   ///
   /// The [separator] defaults to [ListSeparator.undecided], and [brackets] defaults to `false`.
-  const SassList.empty({ListSeparator? separator, bool brackets = false})
+  const new empty({ListSeparator? separator, bool brackets = false})
     : _contents = const [],
       _separator = separator ?? ListSeparator.undecided,
       _hasBrackets = brackets;
 
   /// Returns an empty list with the given [separator] and [brackets].
-  SassList(Iterable<Value> contents, this._separator, {bool brackets = false})
+  new(Iterable<Value> contents, this._separator, {bool brackets = false})
     : _contents = List.unmodifiable(contents),
       _hasBrackets = brackets {
     if (separator == ListSeparator.undecided && asList.length > 1) {
@@ -128,7 +128,7 @@ enum ListSeparator {
   /// `null`.
   final String? separator;
 
-  const ListSeparator(this._name, this.separator);
+  const new(this._name, this.separator);
 
   @override
   String toString() => _name;

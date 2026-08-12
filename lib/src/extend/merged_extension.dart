@@ -50,7 +50,7 @@ final class MergedExtension extends Extension {
     return MergedExtension._(left, right);
   }
 
-  MergedExtension._(this.left, this.right)
+  new _(this.left, this.right)
     : super(
         left.extender.selector,
         left.target,

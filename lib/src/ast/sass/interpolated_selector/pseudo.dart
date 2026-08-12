@@ -45,7 +45,7 @@ final class InterpolatedPseudoSelector extends InterpolatedSimpleSelector {
   @override
   final FileSpan span;
 
-  InterpolatedPseudoSelector(
+  new(
     this.name,
     this.span, {
     bool element = false,

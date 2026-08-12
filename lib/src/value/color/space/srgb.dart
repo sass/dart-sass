@@ -26,7 +26,7 @@ final class SrgbColorSpace extends ColorSpace {
   @override
   bool get isBoundedInternal => true;
 
-  const SrgbColorSpace() : super('srgb', rgbChannels);
+  const new() : super('srgb', rgbChannels);
 
   @override
   SassColor convert(

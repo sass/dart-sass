@@ -23,7 +23,7 @@ final class SrgbLinearColorSpace extends ColorSpace {
   @override
   bool get isBoundedInternal => true;
 
-  const SrgbLinearColorSpace() : super('srgb-linear', rgbChannels);
+  const new() : super('srgb-linear', rgbChannels);
 
   @override
   SassColor convert(

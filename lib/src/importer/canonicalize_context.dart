@@ -43,5 +43,5 @@ final class CanonicalizeContext {
     }
   }
 
-  CanonicalizeContext(this._containingUrl, this._fromImport);
+  new(this._containingUrl, this._fromImport);
 }

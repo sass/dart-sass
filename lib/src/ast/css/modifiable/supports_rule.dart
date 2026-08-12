@@ -18,7 +18,7 @@ final class ModifiableCssSupportsRule extends ModifiableCssParentNode
   @override
   final FileSpan span;
 
-  ModifiableCssSupportsRule(this.condition, this.span);
+  new(this.condition, this.span);
 
   @override
   T accept<T>(ModifiableCssVisitor<T> visitor) =>

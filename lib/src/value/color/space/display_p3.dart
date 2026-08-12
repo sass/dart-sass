@@ -23,7 +23,7 @@ final class DisplayP3ColorSpace extends ColorSpace {
   @override
   bool get isBoundedInternal => true;
 
-  const DisplayP3ColorSpace() : super('display-p3', rgbChannels);
+  const new() : super('display-p3', rgbChannels);
 
   @override
   SassColor convert(

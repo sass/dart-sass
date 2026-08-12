@@ -38,7 +38,7 @@ final class ArgumentList implements SassNode {
   /// Returns whether this invocation passes no arguments.
   bool get isEmpty => positional.isEmpty && named.isEmpty && rest == null;
 
-  ArgumentList(
+  new(
     Iterable<Expression> positional,
     Map<String, Expression> named,
     Map<String, FileSpan> namedSpans,
@@ -53,7 +53,7 @@ final class ArgumentList implements SassNode {
   }
 
   /// Creates an invocation that passes no arguments.
-  ArgumentList.empty(this.span)
+  new empty(this.span)
     : positional = const [],
       named = const {},
       namedSpans = const {},

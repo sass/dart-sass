@@ -21,7 +21,7 @@ final class LocalMindeGamutMap extends GamutMapMethod {
   /// A constant from the gamut-mapping algorithm.
   static const _epsilon = 0.0001;
 
-  const LocalMindeGamutMap() : super("local-minde");
+  const new() : super("local-minde");
 
   @override
   SassColor map(SassColor color) {

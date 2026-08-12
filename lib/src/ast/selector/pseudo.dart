@@ -110,7 +110,7 @@ final class PseudoSelector extends SimpleSelector {
     }
   }();
 
-  PseudoSelector(
+  new(
     this.name,
     FileSpan span, {
     bool element = false,

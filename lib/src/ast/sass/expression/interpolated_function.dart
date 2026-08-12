@@ -27,7 +27,7 @@ final class InterpolatedFunctionExpression extends Expression
   @override
   final FileSpan span;
 
-  InterpolatedFunctionExpression(this.name, this.arguments, this.span);
+  new(this.name, this.arguments, this.span);
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

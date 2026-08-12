@@ -11,7 +11,7 @@ import '../../visitor/interface/statement.dart';
 class JSStatementVisitor implements StatementVisitor<Object?> {
   final JSStatementVisitorObject _inner;
 
-  JSStatementVisitor(this._inner);
+  new(this._inner);
 
   @override
   Object? visitAtRootRule(AtRootRule node) => _inner.visitAtRootRule(node);

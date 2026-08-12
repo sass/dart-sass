@@ -25,9 +25,7 @@ final class EmbeddedLogger extends LoggerWithDeprecationType {
   /// Whether the formatted message should use ASCII encoding.
   final bool _ascii;
 
-  EmbeddedLogger(this._dispatcher, {bool color = false, bool ascii = false})
-    : _color = color,
-      _ascii = ascii;
+  new(this._dispatcher, {this._color = false, this._ascii = false});
 
   @override
   void debug(String message, SourceSpan span) {

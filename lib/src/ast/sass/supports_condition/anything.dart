@@ -21,7 +21,7 @@ final class SupportsAnything implements SupportsCondition {
   @override
   final FileSpan span;
 
-  SupportsAnything(this.contents, this.span);
+  new(this.contents, this.span);
 
   /// @nodoc
   @override

@@ -36,7 +36,7 @@ final class DynamicImport implements Import, SassDependency {
   @override
   FileSpan get urlSpan => span;
 
-  DynamicImport(this.urlString, this.span);
+  new(this.urlString, this.span);
 
   @override
   String toString() => StringExpression.quoteText(urlString);

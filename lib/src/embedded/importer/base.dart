@@ -14,7 +14,7 @@ abstract base class ImporterBase extends Importer {
   @protected
   final CompilationDispatcher dispatcher;
 
-  ImporterBase(this.dispatcher);
+  new(this.dispatcher);
 
   /// Parses [url] as a [Uri] and throws an error if it's invalid or relative
   /// (including root-relative).

@@ -41,7 +41,7 @@ final class Protofier {
   ///
   /// Similarly, the [mixins] tracks the IDs of first-class mixins so that the
   /// host can pass them back to the compiler.
-  Protofier(this._dispatcher, this._functions, this._mixins);
+  new(this._dispatcher, this._functions, this._mixins);
 
   /// Converts [value] to its protocol buffer representation.
   proto.Value protofy(Value value) {

@@ -29,7 +29,7 @@ abstract base class ParentStatement<T extends List<Statement>?>
   @internal
   final bool hasDeclarations;
 
-  ParentStatement(this.children)
+  new(this.children)
     : hasDeclarations =
           children?.any(
             (child) => switch (child) {

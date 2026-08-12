@@ -23,7 +23,7 @@ final class UnaryOperationExpression extends Expression {
   @override
   final FileSpan span;
 
-  UnaryOperationExpression(this.operator, this.operand, this.span);
+  new(this.operator, this.operand, this.span);
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
@@ -71,7 +71,7 @@ enum UnaryOperator {
   /// The Sass syntax for `this`.
   final String operator;
 
-  const UnaryOperator(this.name, this.operator);
+  const new(this.name, this.operator);
 
   @override
   String toString() => name;

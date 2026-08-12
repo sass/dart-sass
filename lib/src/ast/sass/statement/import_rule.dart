@@ -18,7 +18,7 @@ final class ImportRule extends Statement {
   @override
   final FileSpan span;
 
-  ImportRule(Iterable<Import> imports, this.span)
+  new(Iterable<Import> imports, this.span)
     : imports = List.unmodifiable(imports);
 
   @override

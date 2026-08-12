@@ -26,7 +26,7 @@ final class ListExpression extends Expression {
   @override
   final FileSpan span;
 
-  ListExpression(
+  new(
     Iterable<Expression> contents,
     this.separator,
     this.span, {

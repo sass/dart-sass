@@ -154,10 +154,10 @@ final class _SerializeVisitor
   /// Whether we're emitting compressed output.
   bool get _isCompressed => _style == OutputStyle.compressed;
 
-  _SerializeVisitor({
+  new({
     OutputStyle? style,
-    bool inspect = false,
-    bool quote = true,
+    this._inspect = false,
+    this._quote = true,
     bool useSpaces = true,
     int? indentWidth,
     LineFeed? lineFeed,
@@ -165,8 +165,6 @@ final class _SerializeVisitor
     bool sourceMap = true,
   }) : _buffer = sourceMap ? SourceMapBuffer() : NoSourceMapBuffer(),
        _style = style ?? OutputStyle.expanded,
-       _inspect = inspect,
-       _quote = quote,
        _indentCharacter = useSpaces ? $space : $tab,
        _indentWidth = indentWidth ?? 2,
        _lineFeed = lineFeed ?? LineFeed.lf,
@@ -1925,7 +1923,7 @@ enum LineFeed {
   /// The text to emit for this line feed.
   final String text;
 
-  const LineFeed(this.name, this.text);
+  const new(this.name, this.text);
 
   @override
   String toString() => name;

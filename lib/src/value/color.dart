@@ -276,14 +276,14 @@ class SassColor extends Value {
   /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.rgb(num? red, num? green, num? blue, [num? alpha = 1]) =>
+  factory rgb(num? red, num? green, num? blue, [num? alpha = 1]) =>
       SassColor.rgbInternal(red, green, blue, alpha);
 
   /// Like [SassColor.rgb], but also takes a [format] parameter.
   ///
   /// @nodoc
   @internal
-  factory SassColor.rgbInternal(
+  factory rgbInternal(
     num? red,
     num? green,
     num? blue, [
@@ -307,18 +307,14 @@ class SassColor extends Value {
   /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.hsl(
-    num? hue,
-    num? saturation,
-    num? lightness, [
-    num? alpha = 1,
-  ]) => SassColor.forSpaceInternal(
-    ColorSpace.hsl,
-    hue?.toDouble(),
-    saturation?.toDouble(),
-    lightness?.toDouble(),
-    alpha?.toDouble(),
-  );
+  factory hsl(num? hue, num? saturation, num? lightness, [num? alpha = 1]) =>
+      SassColor.forSpaceInternal(
+        ColorSpace.hsl,
+        hue?.toDouble(),
+        saturation?.toDouble(),
+        lightness?.toDouble(),
+        alpha?.toDouble(),
+      );
 
   /// Creates a color in [ColorSpace.hwb].
   ///
@@ -329,18 +325,14 @@ class SassColor extends Value {
   /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.hwb(
-    num? hue,
-    num? whiteness,
-    num? blackness, [
-    num? alpha = 1,
-  ]) => SassColor.forSpaceInternal(
-    ColorSpace.hwb,
-    hue?.toDouble(),
-    whiteness?.toDouble(),
-    blackness?.toDouble(),
-    alpha?.toDouble(),
-  );
+  factory hwb(num? hue, num? whiteness, num? blackness, [num? alpha = 1]) =>
+      SassColor.forSpaceInternal(
+        ColorSpace.hwb,
+        hue?.toDouble(),
+        whiteness?.toDouble(),
+        blackness?.toDouble(),
+        alpha?.toDouble(),
+      );
 
   /// Creates a color in [ColorSpace.srgb].
   ///
@@ -351,12 +343,8 @@ class SassColor extends Value {
   /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.srgb(
-    double? red,
-    double? green,
-    double? blue, [
-    double? alpha = 1,
-  ]) => SassColor._forSpace(ColorSpace.srgb, red, green, blue, alpha);
+  factory srgb(double? red, double? green, double? blue, [double? alpha = 1]) =>
+      SassColor._forSpace(ColorSpace.srgb, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.srgbLinear].
   ///
@@ -367,7 +355,7 @@ class SassColor extends Value {
   /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.srgbLinear(
+  factory srgbLinear(
     double? red,
     double? green,
     double? blue, [
@@ -383,7 +371,7 @@ class SassColor extends Value {
   /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.displayP3(
+  factory displayP3(
     double? red,
     double? green,
     double? blue, [
@@ -399,7 +387,7 @@ class SassColor extends Value {
   /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.displayP3Linear(
+  factory displayP3Linear(
     double? red,
     double? green,
     double? blue, [
@@ -416,7 +404,7 @@ class SassColor extends Value {
   /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.a98Rgb(
+  factory a98Rgb(
     double? red,
     double? green,
     double? blue, [
@@ -432,7 +420,7 @@ class SassColor extends Value {
   /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.prophotoRgb(
+  factory prophotoRgb(
     double? red,
     double? green,
     double? blue, [
@@ -448,7 +436,7 @@ class SassColor extends Value {
   /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.rec2020(
+  factory rec2020(
     double? red,
     double? green,
     double? blue, [
@@ -464,12 +452,8 @@ class SassColor extends Value {
   /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.xyzD50(
-    double? x,
-    double? y,
-    double? z, [
-    double? alpha = 1,
-  ]) => SassColor._forSpace(ColorSpace.xyzD50, x, y, z, alpha);
+  factory xyzD50(double? x, double? y, double? z, [double? alpha = 1]) =>
+      SassColor._forSpace(ColorSpace.xyzD50, x, y, z, alpha);
 
   /// Creates a color in [ColorSpace.xyzD65].
   ///
@@ -480,12 +464,8 @@ class SassColor extends Value {
   /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.xyzD65(
-    double? x,
-    double? y,
-    double? z, [
-    double? alpha = 1,
-  ]) => SassColor._forSpace(ColorSpace.xyzD65, x, y, z, alpha);
+  factory xyzD65(double? x, double? y, double? z, [double? alpha = 1]) =>
+      SassColor._forSpace(ColorSpace.xyzD65, x, y, z, alpha);
 
   /// Creates a color in [ColorSpace.lab].
   ///
@@ -496,12 +476,8 @@ class SassColor extends Value {
   /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.lab(
-    double? lightness,
-    double? a,
-    double? b, [
-    double? alpha = 1,
-  ]) => SassColor._forSpace(ColorSpace.lab, lightness, a, b, alpha);
+  factory lab(double? lightness, double? a, double? b, [double? alpha = 1]) =>
+      SassColor._forSpace(ColorSpace.lab, lightness, a, b, alpha);
 
   /// Creates a color in [ColorSpace.lch].
   ///
@@ -512,7 +488,7 @@ class SassColor extends Value {
   /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.lch(
+  factory lch(
     double? lightness,
     double? chroma,
     double? hue, [
@@ -529,12 +505,8 @@ class SassColor extends Value {
   /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.oklab(
-    double? lightness,
-    double? a,
-    double? b, [
-    double? alpha = 1,
-  ]) => SassColor._forSpace(ColorSpace.oklab, lightness, a, b, alpha);
+  factory oklab(double? lightness, double? a, double? b, [double? alpha = 1]) =>
+      SassColor._forSpace(ColorSpace.oklab, lightness, a, b, alpha);
 
   /// Creates a color in [ColorSpace.oklch].
   ///
@@ -545,7 +517,7 @@ class SassColor extends Value {
   /// [missing component]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#missing_color_components
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
-  factory SassColor.oklch(
+  factory oklch(
     double? lightness,
     double? chroma,
     double? hue, [
@@ -568,7 +540,7 @@ class SassColor extends Value {
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1` or if
   /// [channels] is the wrong length for [space].
-  factory SassColor.forSpace(
+  factory forSpace(
     ColorSpace space,
     List<double?> channels, [
     double? alpha = 1,
@@ -590,7 +562,7 @@ class SassColor extends Value {
   /// and unwrapping them in an array.
   ///
   /// @nodoc
-  factory SassColor.forSpaceInternal(
+  factory forSpaceInternal(
     ColorSpace space,
     double? channel0,
     double? channel1,
@@ -629,7 +601,7 @@ class SassColor extends Value {
 
   /// Like [forSpaceInternal], but doesn't do _any_ pre-processing of any
   /// channels.
-  SassColor._forSpace(
+  new _forSpace(
     this._space,
     this.channel0OrNull,
     this.channel1OrNull,
@@ -1192,7 +1164,7 @@ abstract class ColorFormat {
 class _ColorFormatEnum implements ColorFormat {
   final String _name;
 
-  const _ColorFormatEnum(this._name);
+  const new(this._name);
 
   @override
   String toString() => _name;
@@ -1212,5 +1184,5 @@ class SpanColorFormat implements ColorFormat {
   /// The original string that was used to define this color in the Sass source.
   String get original => _span.text;
 
-  SpanColorFormat(this._span);
+  new(this._span);
 }

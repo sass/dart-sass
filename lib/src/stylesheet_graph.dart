@@ -37,7 +37,7 @@ class StylesheetGraph {
   /// of the stylesheets it transitively imports was modified.
   final _transitiveModificationTimes = <Uri, DateTime>{};
 
-  StylesheetGraph(this.importCache);
+  new(this.importCache);
 
   /// Returns whether the stylesheet at [url] or any of the stylesheets it
   /// imports were modified since [since].
@@ -455,7 +455,7 @@ class StylesheetNode {
   Set<StylesheetNode> get downstream => UnmodifiableSetView(_downstream);
   final _downstream = <StylesheetNode>{};
 
-  StylesheetNode._(
+  new _(
     this._stylesheet,
     this.importer,
     this.canonicalUrl,

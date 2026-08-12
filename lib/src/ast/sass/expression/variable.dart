@@ -35,7 +35,7 @@ final class VariableExpression extends Expression implements SassReference {
   FileSpan? get namespaceSpan =>
       namespace == null ? null : span.initialIdentifier();
 
-  VariableExpression(this.name, this.span, {this.namespace});
+  new(this.name, this.span, {this.namespace});
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

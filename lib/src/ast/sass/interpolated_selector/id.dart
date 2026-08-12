@@ -23,7 +23,7 @@ final class InterpolatedIDSelector extends InterpolatedSimpleSelector {
   FileSpan get span =>
       name.span.file.span(name.span.start.offset - 1, name.span.end.offset);
 
-  InterpolatedIDSelector(this.name);
+  new(this.name);
 
   /// Calls the appropriate visit method on [visitor].
   @override

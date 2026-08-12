@@ -27,7 +27,7 @@ enum Syntax {
   /// The name of the syntax.
   final String _name;
 
-  const Syntax(this._name);
+  const new(this._name);
 
   @override
   String toString() => _name;

@@ -97,7 +97,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
     return _buffer.toString();
   }
 
-  _Visitor(this._source, this._path) {
+  new(this._source, this._path) {
     var afterHeader = "\n".allMatches(_source).skip(3).first.end;
     _buffer.writeln(_source.substring(0, afterHeader));
     _buffer.writeln("""

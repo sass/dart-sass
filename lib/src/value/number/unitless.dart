@@ -24,7 +24,7 @@ class UnitlessSassNumber extends SassNumber {
   @override
   bool get hasComplexUnits => false;
 
-  UnitlessSassNumber(super.value, [super.asSlash]) : super.protected();
+  new(super.value, [super.asSlash]) : super.protected();
 
   @override
   SassNumber withValue(num value) => UnitlessSassNumber(value.toDouble());

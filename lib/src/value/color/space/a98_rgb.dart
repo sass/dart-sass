@@ -21,7 +21,7 @@ final class A98RgbColorSpace extends ColorSpace {
   @override
   bool get isBoundedInternal => true;
 
-  const A98RgbColorSpace() : super('a98-rgb', rgbChannels);
+  const new() : super('a98-rgb', rgbChannels);
 
   @override
   @protected

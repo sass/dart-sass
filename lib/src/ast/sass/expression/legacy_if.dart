@@ -47,7 +47,7 @@ final class LegacyIfExpression extends Expression
     _ => null,
   };
 
-  LegacyIfExpression(this.arguments, this.span);
+  new(this.arguments, this.span);
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

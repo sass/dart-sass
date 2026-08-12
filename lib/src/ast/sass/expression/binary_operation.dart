@@ -59,15 +59,14 @@ final class BinaryOperationExpression extends Expression {
             .trim()
       : span;
 
-  BinaryOperationExpression(this.operator, this.left, this.right)
-    : allowsSlash = false;
+  new(this.operator, this.left, this.right) : allowsSlash = false;
 
   /// Creates a [BinaryOperator.dividedBy] operation that may be interpreted as
   /// slash-separated numbers.
   ///
   /// @nodoc
   @internal
-  BinaryOperationExpression.slash(this.left, this.right)
+  new slash(this.left, this.right)
     : operator = BinaryOperator.dividedBy,
       allowsSlash = true;
 
@@ -176,7 +175,7 @@ enum BinaryOperator {
   /// [associative property]: https://en.wikipedia.org/wiki/Associative_property
   final bool isAssociative;
 
-  const BinaryOperator(
+  const new(
     this.name,
     this.operator,
     this.precedence, {

@@ -121,11 +121,7 @@ class _PropertyDescriptor {
   external Function get get;
   external bool get enumerable;
 
-  external factory _PropertyDescriptor({
-    Object? value,
-    Function? get,
-    bool? enumerable,
-  });
+  external factory({Object? value, Function? get, bool? enumerable});
 }
 
 /// Defines a JS getter on [object] named [name].

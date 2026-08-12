@@ -18,7 +18,7 @@ class Deprecation {
   external Version? get deprecatedIn;
   external Version? get obsoleteIn;
 
-  external factory Deprecation({
+  external factory({
     required String id,
     required String status,
     String? description,

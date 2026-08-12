@@ -338,11 +338,7 @@ final class SassCalculation extends Value {
       return value;
     }
 
-    var args = List<Object>.unmodifiable([
-      min,
-      if (value != null) value,
-      if (max != null) max,
-    ]);
+    var args = List<Object>.unmodifiable([min, ?value, ?max]);
     _verifyCompatibleNumbers(args);
     _verifyLength(args, 3);
     return SassCalculation._("clamp", args);
@@ -360,7 +356,7 @@ final class SassCalculation extends Value {
   /// This may be passed fewer than two arguments, but only if one of the
   /// arguments is an unquoted `var()` string.
   static Value pow(Object base, Object? exponent) {
-    var args = [base, if (exponent != null) exponent];
+    var args = [base, ?exponent];
     _verifyLength(args, 2);
     base = _simplify(base);
     exponent = exponent.andThen(_simplify);
@@ -386,7 +382,7 @@ final class SassCalculation extends Value {
   static Value log(Object number, Object? base) {
     number = _simplify(number);
     base = base.andThen(_simplify);
-    var args = [number, if (base != null) base];
+    var args = [number, ?base];
     if (number is! SassNumber || (base != null && base is! SassNumber)) {
       return SassCalculation._("log", args);
     }
@@ -412,7 +408,7 @@ final class SassCalculation extends Value {
   static Value atan2(Object y, Object? x) {
     y = _simplify(y);
     x = x.andThen(_simplify);
-    var args = [y, if (x != null) x];
+    var args = [y, ?x];
     _verifyLength(args, 2);
     _verifyCompatibleNumbers(args);
     if (y is! SassNumber ||
@@ -439,7 +435,7 @@ final class SassCalculation extends Value {
   static Value rem(Object dividend, Object? modulus) {
     dividend = _simplify(dividend);
     modulus = modulus.andThen(_simplify);
-    var args = [dividend, if (modulus != null) modulus];
+    var args = [dividend, ?modulus];
     _verifyLength(args, 2);
     _verifyCompatibleNumbers(args);
     if (dividend is! SassNumber ||
@@ -472,7 +468,7 @@ final class SassCalculation extends Value {
   static Value mod(Object dividend, Object? modulus) {
     dividend = _simplify(dividend);
     modulus = modulus.andThen(_simplify);
-    var args = [dividend, if (modulus != null) modulus];
+    var args = [dividend, ?modulus];
     _verifyLength(args, 2);
     _verifyCompatibleNumbers(args);
     if (dividend is! SassNumber ||
@@ -639,11 +635,11 @@ final class SassCalculation extends Value {
   /// This automatically simplifies the calculation. It throws an exception if
   /// it can determine that the calculation will definitely produce invalid CSS.
   static SassCalculation calcSize(Object basis, Object? value) {
-    var args = [basis, if (value != null) value];
+    var args = [basis, ?value];
     _verifyLength(args, 2);
     basis = _simplify(basis);
     value = value.andThen(_simplify);
-    return SassCalculation._("calc-size", [basis, if (value != null) value]);
+    return SassCalculation._("calc-size", [basis, ?value]);
   }
 
   /// Creates and simplifies a [CalculationOperation] with the given [operator],
@@ -739,7 +735,7 @@ final class SassCalculation extends Value {
 
   /// An internal constructor that doesn't perform any validation or
   /// simplification.
-  SassCalculation._(this.name, this.arguments);
+  new _(this.name, this.arguments);
 
   // Returns [value] coerced to [number]'s units.
   static SassNumber _matchUnits(double value, SassNumber number) =>
@@ -1006,7 +1002,7 @@ final class CalculationOperation {
   Object get right => _right;
   final Object _right;
 
-  CalculationOperation._(this._operator, this._left, this._right);
+  new _(this._operator, this._left, this._right);
 
   @override
   bool operator ==(Object other) =>
@@ -1058,7 +1054,7 @@ enum CalculationOperator {
   @internal
   final int precedence;
 
-  const CalculationOperator(this.name, this.operator, this.precedence);
+  const new(this.name, this.operator, this.precedence);
 
   @override
   String toString() => name;
@@ -1081,7 +1077,7 @@ class CalculationInterpolation {
   String get value => _value;
   final String _value;
 
-  CalculationInterpolation(this._value);
+  new(this._value);
 
   @override
   bool operator ==(Object other) =>

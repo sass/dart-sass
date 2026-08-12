@@ -12,7 +12,7 @@ final class FileImporter extends ImporterBase {
   /// The host-provided ID of the importer to invoke.
   final int _importerId;
 
-  FileImporter(super.dispatcher, this._importerId);
+  new(super.dispatcher, this._importerId);
 
   @override
   Uri? canonicalize(Uri url) {

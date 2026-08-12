@@ -22,7 +22,7 @@ final class JSToDartAsyncFileImporter extends AsyncImporter {
   /// The wrapped `findFileUrl` function.
   final Object? Function(String, CanonicalizeContext) _findFileUrl;
 
-  JSToDartAsyncFileImporter(this._findFileUrl);
+  new(this._findFileUrl);
 
   @override
   FutureOr<Uri?> canonicalize(Uri url) async {

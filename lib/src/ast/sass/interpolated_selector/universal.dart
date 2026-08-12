@@ -22,7 +22,7 @@ final class InterpolatedUniversalSelector extends InterpolatedSimpleSelector {
   @override
   final FileSpan span;
 
-  InterpolatedUniversalSelector(this.span, {this.namespace});
+  new(this.span, {this.namespace});
 
   /// Calls the appropriate visit method on [visitor].
   @override

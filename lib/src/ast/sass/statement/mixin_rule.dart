@@ -29,7 +29,7 @@ final class MixinRule extends CallableDeclaration implements SassDeclaration {
     return startSpan.initialIdentifier();
   }
 
-  MixinRule(
+  new(
     super.name,
     super.parameters,
     super.children,
@@ -52,7 +52,7 @@ final class MixinRule extends CallableDeclaration implements SassDeclaration {
 /// A visitor for determining whether a [MixinRule] recursively contains a
 /// [ContentRule].
 class _HasContentVisitor with StatementSearchVisitor<bool> {
-  const _HasContentVisitor();
+  const new();
 
   @override
   bool visitContentRule(_) => true;

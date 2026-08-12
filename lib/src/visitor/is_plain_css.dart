@@ -19,10 +19,9 @@ class IsPlainCssVisitor
   /// Whether to allow interpolation to as an exception to allowing plain CSS.
   final bool _allowInterpolation;
 
-  /// If [allowInterpolation] is true, interpolated expressions are allowed as
+  /// If [_allowInterpolation] is true, interpolated expressions are allowed as
   /// an exception, even if they contain SassScript.
-  const IsPlainCssVisitor({bool allowInterpolation = false})
-    : _allowInterpolation = allowInterpolation;
+  const new({this._allowInterpolation = false});
 
   @override
   bool visitBinaryOperationExpression(BinaryOperationExpression node) => false;

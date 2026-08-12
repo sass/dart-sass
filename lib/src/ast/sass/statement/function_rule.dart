@@ -19,7 +19,7 @@ final class FunctionRule extends CallableDeclaration
   @override
   FileSpan get nameSpan => span.withoutInitialAtRule().initialIdentifier();
 
-  FunctionRule(
+  new(
     super.name,
     super.parameters,
     super.children,

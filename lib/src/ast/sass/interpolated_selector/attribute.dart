@@ -42,20 +42,11 @@ final class InterpolatedAttributeSelector extends InterpolatedSimpleSelector {
 
   /// Creates an attribute selector that matches any element with a property of
   /// the given name.
-  InterpolatedAttributeSelector(this.name, this.span)
-    : op = null,
-      value = null,
-      modifier = null;
+  new(this.name, this.span) : op = null, value = null, modifier = null;
 
   /// Creates an attribute selector that matches an element with a property
   /// named [name], whose value matches [value] based on the semantics of [op].
-  InterpolatedAttributeSelector.withOperator(
-    this.name,
-    this.op,
-    this.value,
-    this.span, {
-    this.modifier,
-  });
+  new withOperator(this.name, this.op, this.value, this.span, {this.modifier});
 
   /// Calls the appropriate visit method on [visitor].
   @override

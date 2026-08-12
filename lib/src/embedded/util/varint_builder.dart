@@ -26,7 +26,7 @@ class VarintBuilder {
   /// for the integer.
   ///
   /// If [name] is passed, it's used in error reporting.
-  VarintBuilder(this._maxLength, [this._name]);
+  new(this._maxLength, [this._name]);
 
   /// Parses [byte] as a continuation of the varint.
   ///

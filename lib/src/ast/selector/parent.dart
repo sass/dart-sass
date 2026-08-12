@@ -21,7 +21,7 @@ final class ParentSelector extends SimpleSelector {
   /// indicating that the parent selector will not be modified.
   final String? suffix;
 
-  ParentSelector(super.span, {this.suffix});
+  new(super.span, {this.suffix});
 
   @override
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitParentSelector(this);

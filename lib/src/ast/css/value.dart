@@ -18,7 +18,7 @@ final class CssValue<T extends Object> implements AstNode {
   @override
   final FileSpan span;
 
-  CssValue(this.value, this.span);
+  new(this.value, this.span);
 
   @override
   bool operator ==(Object other) =>

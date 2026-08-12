@@ -21,7 +21,7 @@ final class ProphotoRgbColorSpace extends ColorSpace {
   @override
   bool get isBoundedInternal => true;
 
-  const ProphotoRgbColorSpace() : super('prophoto-rgb', rgbChannels);
+  const new() : super('prophoto-rgb', rgbChannels);
 
   @override
   @protected

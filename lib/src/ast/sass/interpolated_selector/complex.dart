@@ -30,7 +30,7 @@ final class InterpolatedComplexSelector extends InterpolatedSelector {
   @override
   final FileSpan span;
 
-  InterpolatedComplexSelector(
+  new(
     Iterable<InterpolatedComplexSelectorComponent> components,
     this.span, {
     this.leadingCombinator,

@@ -90,8 +90,7 @@ abstract class StylesheetParser extends Parser {
   @protected
   SilentComment? lastSilentComment;
 
-  StylesheetParser(super.contents, {super.url, bool parseSelectors = false})
-    : _parseSelectors = parseSelectors;
+  new(super.contents, {super.url, this._parseSelectors = false});
 
   // ## Statements
 

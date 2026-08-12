@@ -30,10 +30,10 @@ class SassFunction extends Value {
   /// This is `null` for functions defined in plugins' Dart code.
   final Object? _compileContext;
 
-  SassFunction(this.callable) : _compileContext = null;
+  new(this.callable) : _compileContext = null;
 
   @internal
-  SassFunction.withCompileContext(this.callable, this._compileContext);
+  new withCompileContext(this.callable, this._compileContext);
 
   /// @nodoc
   @override

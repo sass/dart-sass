@@ -36,7 +36,7 @@ final class IfRule extends Statement {
   @override
   final FileSpan span;
 
-  IfRule(Iterable<IfClause> clauses, this.span, {this.lastClause})
+  new(Iterable<IfClause> clauses, this.span, {this.lastClause})
     : clauses = List.unmodifiable(clauses);
 
   @override
@@ -71,10 +71,9 @@ sealed class IfRuleClause {
   @internal
   final bool hasDeclarations;
 
-  IfRuleClause(Iterable<Statement> children)
-    : this._(List.unmodifiable(children));
+  new(Iterable<Statement> children) : this._(List.unmodifiable(children));
 
-  IfRuleClause._(this.children)
+  new _(this.children)
     : hasDeclarations = children.any(
         (child) => switch (child) {
           VariableDeclaration() || FunctionRule() || MixinRule() => true,
@@ -93,7 +92,7 @@ final class IfClause extends IfRuleClause {
   /// The expression to evaluate to determine whether to run this rule.
   final Expression expression;
 
-  IfClause(this.expression, Iterable<Statement> children) : super(children);
+  new(this.expression, Iterable<Statement> children) : super(children);
 
   @override
   String toString() => "@if $expression {${children.join(' ')}}";
@@ -103,7 +102,7 @@ final class IfClause extends IfRuleClause {
 ///
 /// {@category AST}
 final class ElseClause extends IfRuleClause {
-  ElseClause(super.children);
+  new(super.children);
 
   @override
   String toString() => "@else {${children.join(' ')}}";

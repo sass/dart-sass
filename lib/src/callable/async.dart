@@ -27,7 +27,7 @@ abstract interface class AsyncCallable {
   String get name;
 
   @Deprecated('Use `AsyncCallable.function` instead.')
-  factory AsyncCallable(
+  factory(
     String name,
     String arguments,
     FutureOr<Value> Function(List<Value> arguments) callback,
@@ -40,7 +40,7 @@ abstract interface class AsyncCallable {
   /// include parentheses. Throws a [SassFormatException] if parsing fails.
   ///
   /// See [Callable.new] for more details.
-  factory AsyncCallable.function(
+  factory function(
     String name,
     String arguments,
     FutureOr<Value> Function(List<Value> arguments) callback,
@@ -49,7 +49,7 @@ abstract interface class AsyncCallable {
   /// Creates a callable with a single [signature] and a single [callback].
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory AsyncCallable.fromSignature(
+  factory fromSignature(
     String signature,
     FutureOr<Value> Function(List<Value> arguments) callback, {
     bool requireParens = true,

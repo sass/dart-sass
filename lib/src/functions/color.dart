@@ -1756,10 +1756,7 @@ Value _parseChannels(
   if (space == null) return _functionString(functionName, [input]);
   if (channels.any((channel) => channel.isSpecialNumber)) {
     return channels.length == 3 && _specialCommaSpaces.contains(space)
-        ? _functionString(functionName, [
-            ...channels,
-            if (alphaValue != null) alphaValue,
-          ])
+        ? _functionString(functionName, [...channels, ?alphaValue])
         : _functionString(functionName, [input]);
   }
 

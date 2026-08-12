@@ -23,7 +23,7 @@ final class ModifiableCssImport extends ModifiableCssNode implements CssImport {
   @override
   final FileSpan span;
 
-  ModifiableCssImport(this.url, this.span, {this.modifiers});
+  new(this.url, this.span, {this.modifiers});
 
   @override
   T accept<T>(ModifiableCssVisitor<T> visitor) => visitor.visitCssImport(this);

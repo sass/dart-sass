@@ -59,14 +59,14 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   @internal
   final Map<String, FileSpan> globalVariables;
 
-  Stylesheet(Iterable<Statement> children, FileSpan span)
+  new(Iterable<Statement> children, FileSpan span)
     : this.internal(children, span, []);
 
   /// A separate internal constructor that allows [plainCss] to be set.
   ///
   /// @nodoc
   @internal
-  Stylesheet.internal(
+  new internal(
     Iterable<Statement> children,
     this.span,
     List<ParseTimeWarning> parseTimeWarnings, {
@@ -105,7 +105,7 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   /// rather than [StyleRule.selector]s.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parse(
+  factory parse(
     String contents,
     Syntax syntax, {
     Object? url,
@@ -152,7 +152,7 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   /// rather than [StyleRule.selector]s.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseSass(
+  factory parseSass(
     String contents, {
     Object? url,
     bool parseSelectors = false,
@@ -166,7 +166,7 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   /// rather than [StyleRule.selector]s.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseScss(
+  factory parseScss(
     String contents, {
     Object? url,
     bool parseSelectors = false,
@@ -180,7 +180,7 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   /// rather than [StyleRule.selector]s.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseCss(
+  factory parseCss(
     String contents, {
     Object? url,
     bool parseSelectors = false,

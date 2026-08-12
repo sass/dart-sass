@@ -30,10 +30,10 @@ final class SassMixin extends Value {
   /// current compilation or not.
   final Object? _compileContext;
 
-  SassMixin(this.callable) : _compileContext = null;
+  new(this.callable) : _compileContext = null;
 
   @internal
-  SassMixin.withCompileContext(this.callable, this._compileContext);
+  new withCompileContext(this.callable, this._compileContext);
 
   /// @nodoc
   @override

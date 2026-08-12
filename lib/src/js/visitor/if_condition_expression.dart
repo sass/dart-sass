@@ -13,7 +13,7 @@ class JSIfConditionExpressionVisitor
     implements IfConditionExpressionVisitor<Object?> {
   final JSIfConditionExpressionVisitorObject _inner;
 
-  JSIfConditionExpressionVisitor(this._inner);
+  new(this._inner);
 
   @override
   Object? visitIfConditionParenthesized(IfConditionParenthesized node) =>

@@ -20,7 +20,7 @@ final class ReturnRule extends Statement {
   @override
   final FileSpan span;
 
-  ReturnRule(this.expression, this.span);
+  new(this.expression, this.span);
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitReturnRule(this);

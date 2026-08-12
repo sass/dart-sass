@@ -26,7 +26,7 @@ final class ExtendRule extends Statement {
   @override
   final FileSpan span;
 
-  ExtendRule(this.selector, this.span, {bool optional = false})
+  new(this.selector, this.span, {bool optional = false})
     : isOptional = optional;
 
   @override

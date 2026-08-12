@@ -109,7 +109,7 @@ class EmbeddedProcess {
   /// Creates a [EmbeddedProcess] for [process].
   ///
   /// The [forwardOutput] argument is the same as that to [start].
-  EmbeddedProcess._(Process process, {bool forwardOutput = false})
+  new _(Process process, {bool forwardOutput = false})
     : _process = process,
       _outboundSplitter = StreamSplitter(
         process.stdout.transform(lengthDelimitedDecoder).map((packet) {

@@ -143,11 +143,10 @@ class SassString extends Value {
   bool get isBlank => !hasQuotes && text.isEmpty;
 
   /// Creates an empty string.
-  factory SassString.empty({bool quotes = true}) =>
-      quotes ? _emptyQuoted : _emptyUnquoted;
+  factory empty({bool quotes = true}) => quotes ? _emptyQuoted : _emptyUnquoted;
 
   /// Creates a string with the given [text].
-  SassString(this._text, {bool quotes = true}) : _hasQuotes = quotes;
+  new(this._text, {bool quotes = true}) : _hasQuotes = quotes;
 
   /// Throws a [SassScriptException] if this is an unquoted string.
   ///

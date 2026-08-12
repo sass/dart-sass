@@ -212,12 +212,12 @@ abstract class SassNumber extends Value {
   ///
   /// This matches the numbers that can be written as literals.
   /// [SassNumber.withUnits] can be used to construct more complex units.
-  factory SassNumber(num value, [String? unit]) => unit == null
+  factory(num value, [String? unit]) => unit == null
       ? UnitlessSassNumber(value.toDouble())
       : SingleUnitSassNumber(value.toDouble(), unit);
 
   /// Creates a number with full [numeratorUnits] and [denominatorUnits].
-  factory SassNumber.withUnits(
+  factory withUnits(
     num value, {
     List<String>? numeratorUnits,
     List<String>? denominatorUnits,
@@ -274,7 +274,7 @@ abstract class SassNumber extends Value {
 
   /// @nodoc
   @protected
-  SassNumber.protected(this._value, this.asSlash);
+  new protected(this._value, this.asSlash);
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitNumber(this);

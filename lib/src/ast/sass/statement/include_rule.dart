@@ -65,7 +65,7 @@ final class IncludeRule extends Statement
     return startSpan.initialIdentifier();
   }
 
-  IncludeRule(
+  new(
     this.originalName,
     this.arguments,
     this.span, {

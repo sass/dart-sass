@@ -11,7 +11,7 @@ final class PlainCssCallable implements Callable {
   @override
   final String name;
 
-  PlainCssCallable(this.name);
+  new(this.name);
 
   @override
   bool operator ==(Object other) =>

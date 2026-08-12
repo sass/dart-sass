@@ -75,7 +75,7 @@ final class _Watcher {
   /// the current batch of events has been processed.
   final Map<String, String> _toRecompile = {};
 
-  _Watcher(this._options, this._graph);
+  new(this._options, this._graph);
 
   /// Deletes the file at [path] and prints a message about it.
   void _delete(String path) {

@@ -36,7 +36,7 @@ final class SilentComment extends Statement {
   @override
   final FileSpan span;
 
-  SilentComment(this.text, this.span);
+  new(this.text, this.span);
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitSilentComment(this);

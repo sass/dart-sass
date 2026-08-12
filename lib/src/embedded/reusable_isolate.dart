@@ -39,12 +39,8 @@ class ReusableIsolate {
   /// Whether the current isolate has been borrowed.
   bool _borrowed = false;
 
-  ReusableIsolate._(
-    this._isolate,
-    this._mailbox,
-    this._receivePort, {
-    Function? onError,
-  }) : _subscription = _receivePort.listen(_defaultOnData, onError: onError);
+  new _(this._isolate, this._mailbox, this._receivePort, {Function? onError})
+    : _subscription = _receivePort.listen(_defaultOnData, onError: onError);
 
   /// Spawns a [ReusableIsolate] that runs the given [entryPoint].
   static Future<ReusableIsolate> spawn(

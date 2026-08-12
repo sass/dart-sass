@@ -28,7 +28,7 @@ final class SupportsOperation implements SupportsCondition {
   @override
   final FileSpan span;
 
-  SupportsOperation(this.left, this.right, this.operator, this.span);
+  new(this.left, this.right, this.operator, this.span);
 
   /// @nodoc
   @override

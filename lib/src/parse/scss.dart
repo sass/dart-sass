@@ -18,7 +18,7 @@ class ScssParser extends StylesheetParser {
   @override
   int get currentIndentation => 0;
 
-  ScssParser(super.contents, {super.url, super.parseSelectors});
+  new(super.contents, {super.url, super.parseSelectors});
 
   @override
   Interpolation styleRuleSelector() => almostAnyValue();

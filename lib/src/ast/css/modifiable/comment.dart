@@ -21,7 +21,7 @@ final class ModifiableCssComment extends ModifiableCssNode
   @override
   bool get isPreserved => text.codeUnitAt(2) == $exclamation;
 
-  ModifiableCssComment(this.text, this.span);
+  new(this.text, this.span);
 
   @override
   T accept<T>(ModifiableCssVisitor<T> visitor) => visitor.visitCssComment(this);

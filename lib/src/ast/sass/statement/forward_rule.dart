@@ -80,7 +80,7 @@ final class ForwardRule extends Statement implements SassDependency {
   FileSpan get urlSpan => span.withoutInitialAtRule().initialQuoted();
 
   /// Creates a `@forward` rule that allows all members to be accessed.
-  ForwardRule(
+  new(
     this.url,
     this.span, {
     this.prefix,
@@ -95,7 +95,7 @@ final class ForwardRule extends Statement implements SassDependency {
 
   /// Creates a `@forward` rule that allows only members included in
   /// [shownMixinsAndFunctions] and [shownVariables] to be accessed.
-  ForwardRule.show(
+  new show(
     this.url,
     Iterable<String> shownMixinsAndFunctions,
     Iterable<String> shownVariables,
@@ -114,7 +114,7 @@ final class ForwardRule extends Statement implements SassDependency {
 
   /// Creates a `@forward` rule that allows only members not included in
   /// [hiddenMixinsAndFunctions] and [hiddenVariables] to be accessed.
-  ForwardRule.hide(
+  new hide(
     this.url,
     Iterable<String> hiddenMixinsAndFunctions,
     Iterable<String> hiddenVariables,

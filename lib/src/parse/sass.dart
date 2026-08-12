@@ -40,7 +40,7 @@ class SassParser extends StylesheetParser {
   @override
   bool get indented => true;
 
-  SassParser(super.contents, {super.url, super.parseSelectors});
+  new(super.contents, {super.url, super.parseSelectors});
 
   @override
   Interpolation styleRuleSelector() {

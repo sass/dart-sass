@@ -57,7 +57,7 @@ final class CompoundSelector extends Selector {
     (component) => component.hasComplicatedSuperselectorSemantics,
   );
 
-  CompoundSelector(Iterable<SimpleSelector> components, super.span)
+  new(Iterable<SimpleSelector> components, super.span)
     : components = List.unmodifiable(components) {
     if (this.components.isEmpty) {
       throw ArgumentError("components may not be empty.");
@@ -74,7 +74,7 @@ final class CompoundSelector extends Selector {
   /// they'll be reported using [Logger.defaultLogger].
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory CompoundSelector.parse(
+  factory parse(
     String contents, {
     Object? url,
     bool allowParent = true,

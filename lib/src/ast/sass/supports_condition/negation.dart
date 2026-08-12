@@ -21,7 +21,7 @@ final class SupportsNegation implements SupportsCondition {
   @override
   final FileSpan span;
 
-  SupportsNegation(this.condition, this.span);
+  new(this.condition, this.span);
 
   /// @nodoc
   @override

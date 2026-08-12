@@ -20,7 +20,7 @@ final class MapExpression extends Expression {
   @override
   final FileSpan span;
 
-  MapExpression(Iterable<(Expression, Expression)> pairs, this.span)
+  new(Iterable<(Expression, Expression)> pairs, this.span)
     : pairs = List.unmodifiable(pairs);
 
   @override

@@ -21,7 +21,7 @@ final class ValueExpression extends Expression {
   @override
   final FileSpan span;
 
-  ValueExpression(this.value, this.span);
+  new(this.value, this.span);
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

@@ -33,7 +33,7 @@ import 'visitor/statement.dart';
 @JS()
 @anonymous
 class ParserExports {
-  external factory ParserExports({
+  external factory({
     required Function parse,
     required Function parseIdentifier,
     required Function toCssIdentifier,

@@ -113,7 +113,7 @@ class _EvaluationContextLogger extends LoggerWithDeprecationType {
   /// The context to which this logger forwards.
   final EvaluationContext _context;
 
-  _EvaluationContextLogger(this._context);
+  new(this._context);
 
   @override
   void debug(String message, SourceSpan span) {

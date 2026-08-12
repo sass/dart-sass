@@ -105,7 +105,7 @@ abstract class Value {
   Value? get realNull => this;
 
   /// @nodoc
-  const Value();
+  const new();
 
   /// Calls the appropriate visit method on [visitor].
   ///

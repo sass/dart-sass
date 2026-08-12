@@ -37,7 +37,7 @@ class CssParser extends ScssParser {
   @override
   bool get plainCss => true;
 
-  CssParser(super.contents, {super.url, super.parseSelectors});
+  new(super.contents, {super.url, super.parseSelectors});
 
   @override
   bool silentComment() {

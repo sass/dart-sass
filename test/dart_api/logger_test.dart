@@ -340,9 +340,9 @@ class _TestLogger implements Logger {
   _warn;
   final void Function(String, SourceSpan) _debug;
 
-  _TestLogger.withWarn(this._warn) : _debug = const Logger.stderr().debug;
+  new withWarn(this._warn) : _debug = const Logger.stderr().debug;
 
-  _TestLogger.withDebug(this._debug) : _warn = const Logger.stderr().warn;
+  new withDebug(this._debug) : _warn = const Logger.stderr().warn;
 
   @override
   void warn(

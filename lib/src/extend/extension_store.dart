@@ -129,9 +129,9 @@ class ExtensionStore {
   /// extensions.
   Set<SimpleSelector> get simpleSelectors => MapKeySet(_selectors);
 
-  ExtensionStore() : this._mode(ExtendMode.normal);
+  new() : this._mode(ExtendMode.normal);
 
-  ExtensionStore._mode(this._mode)
+  new _mode(this._mode)
     : _selectors = {},
       _extensions = {},
       _extensionsByExtender = {},
@@ -139,7 +139,7 @@ class ExtensionStore {
       _sourceSpecificity = Map.identity(),
       _originals = Set.identity();
 
-  ExtensionStore._(
+  new _(
     this._selectors,
     this._extensions,
     this._extensionsByExtender,

@@ -55,7 +55,7 @@ final class CssMediaQuery {
   /// Creates a media query specifies a type and, optionally, conditions.
   ///
   /// This always sets [conjunction] to `true`.
-  CssMediaQuery.type(this.type, {this.modifier, Iterable<String>? conditions})
+  new type(this.type, {this.modifier, Iterable<String>? conditions})
     : conjunction = true,
       conditions = conditions == null
           ? const []
@@ -66,7 +66,7 @@ final class CssMediaQuery {
   ///
   /// The [conjunction] argument may not be null if [conditions] is longer than
   /// a single element.
-  CssMediaQuery.condition(Iterable<String> conditions, {bool? conjunction})
+  new condition(Iterable<String> conditions, {bool? conjunction})
     : modifier = null,
       type = null,
       conjunction = conjunction ?? true,
@@ -235,7 +235,7 @@ class MediaQuerySuccessfulMergeResult implements MediaQueryMergeResult {
   /// The merged media query.
   final CssMediaQuery query;
 
-  MediaQuerySuccessfulMergeResult._(this.query);
+  new _(this.query);
 
   @override
   String toString() => query.toString();

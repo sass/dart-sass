@@ -37,12 +37,12 @@ final class AtRootQuery {
   /// Note that this takes [include] into account.
   bool get excludesStyleRules => (_all || _rule) != include;
 
-  AtRootQuery(this.names, {required this.include})
+  new(this.names, {required this.include})
     : _all = names.contains("all"),
       _rule = names.contains("rule");
 
   /// The default at-root query, used in [default].
-  const AtRootQuery._default()
+  const new _default()
     : include = false,
       names = const UnmodifiableSetView.empty(),
       _all = false,
@@ -56,7 +56,7 @@ final class AtRootQuery {
   /// original location of the selector in the source file.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory AtRootQuery.parse(
+  factory parse(
     String contents, {
     Object? url,
     InterpolationMap? interpolationMap,

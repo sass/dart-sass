@@ -71,7 +71,7 @@ final class ComplexSelector extends Selector {
     };
   }
 
-  ComplexSelector(
+  new(
     Iterable<CssValue<Combinator>> leadingCombinators,
     Iterable<ComplexSelectorComponent> components,
     super.span, {
@@ -95,7 +95,7 @@ final class ComplexSelector extends Selector {
   /// they'll be reported using [Logger.defaultLogger].
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory ComplexSelector.parse(
+  factory parse(
     String contents, {
     Object? url,
     bool allowParent = true,

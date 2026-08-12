@@ -30,7 +30,7 @@ final class ForRule extends ParentStatement<List<Statement>> {
   @override
   final FileSpan span;
 
-  ForRule(
+  new(
     this.variable,
     this.from,
     this.to,

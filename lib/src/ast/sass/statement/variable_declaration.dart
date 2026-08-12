@@ -65,7 +65,7 @@ final class VariableDeclaration extends Statement implements SassDeclaration {
   FileSpan? get namespaceSpan =>
       namespace == null ? null : span.initialIdentifier();
 
-  VariableDeclaration(
+  new(
     this.name,
     this.expression,
     this.span, {
@@ -90,7 +90,7 @@ final class VariableDeclaration extends Statement implements SassDeclaration {
   ///
   /// @nodoc
   @internal
-  factory VariableDeclaration.parse(String contents, {Object? url}) =>
+  factory parse(String contents, {Object? url}) =>
       ScssParser(contents, url: url).parseVariableDeclaration().$1;
 
   @override

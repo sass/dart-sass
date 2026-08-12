@@ -20,7 +20,7 @@ final class EmptyExtensionStore implements ExtensionStore {
   @override
   Set<SimpleSelector> get simpleSelectors => const UnmodifiableSetView.empty();
 
-  const EmptyExtensionStore();
+  const new();
 
   @override
   Iterable<Extension> extensionsWhereTarget(

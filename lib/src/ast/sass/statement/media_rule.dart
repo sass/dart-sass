@@ -21,7 +21,7 @@ final class MediaRule extends ParentStatement<List<Statement>> {
   @override
   final FileSpan span;
 
-  MediaRule(this.query, Iterable<Statement> children, this.span)
+  new(this.query, Iterable<Statement> children, this.span)
     : super(List.unmodifiable(children));
 
   @override

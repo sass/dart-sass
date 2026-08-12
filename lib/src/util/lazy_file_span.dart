@@ -17,7 +17,7 @@ class LazyFileSpan implements FileSpan {
 
   /// Creates a new [LazyFileSpan] that defers calling [builder] until the
   /// underlying span is needed.
-  LazyFileSpan(FileSpan Function() builder) : _builder = builder;
+  new(FileSpan Function() builder) : _builder = builder;
 
   @override
   int compareTo(SourceSpan other) => span.compareTo(other);

@@ -23,7 +23,7 @@ final class XyzD50ColorSpace extends ColorSpace {
   @override
   bool get isBoundedInternal => false;
 
-  const XyzD50ColorSpace() : super('xyz-d50', xyzChannels);
+  const new() : super('xyz-d50', xyzChannels);
 
   @override
   SassColor convert(

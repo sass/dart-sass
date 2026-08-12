@@ -12,7 +12,7 @@ import '../../visitor/interface/interpolated_selector.dart';
 class JSSimpleSelectorVisitor implements InterpolatedSelectorVisitor<Object?> {
   final JSSimpleSelectorVisitorObject _inner;
 
-  JSSimpleSelectorVisitor(this._inner);
+  new(this._inner);
 
   @override
   Object? visitAttributeSelector(InterpolatedAttributeSelector node) =>

@@ -28,10 +28,8 @@ final class IfExpression extends Expression {
   @override
   final FileSpan span;
 
-  IfExpression(
-    Iterable<(IfConditionExpression?, Expression)> branches,
-    this.span,
-  ) : branches = List.unmodifiable(branches) {
+  new(Iterable<(IfConditionExpression?, Expression)> branches, this.span)
+    : branches = List.unmodifiable(branches) {
     if (this.branches.isEmpty) {
       throw ArgumentError.value(this.branches, "branches", "may not be empty");
     }
@@ -95,7 +93,7 @@ final class IfConditionParenthesized extends IfConditionExpression {
   @override
   final FileSpan span;
 
-  IfConditionParenthesized(this.expression, this.span);
+  new(this.expression, this.span);
 
   /// @nodoc
   @override
@@ -127,7 +125,7 @@ final class IfConditionNegation extends IfConditionExpression {
   @override
   final FileSpan span;
 
-  IfConditionNegation(this.expression, this.span);
+  new(this.expression, this.span);
 
   /// @nodoc
   @override
@@ -160,7 +158,7 @@ final class IfConditionOperation extends IfConditionExpression {
   @override
   FileSpan get span => expressions.first.span.expand(expressions.last.span);
 
-  IfConditionOperation(Iterable<IfConditionExpression> expressions, this.op)
+  new(Iterable<IfConditionExpression> expressions, this.op)
     : expressions = List.unmodifiable(expressions) {
     if (this.expressions.length < 2) {
       throw ArgumentError.value(
@@ -220,7 +218,7 @@ final class IfConditionFunction extends IfConditionExpression {
     _ => false,
   };
 
-  IfConditionFunction(this.name, this.arguments, this.span);
+  new(this.name, this.arguments, this.span);
 
   /// @nodoc
   @override
@@ -251,7 +249,7 @@ final class IfConditionSass extends IfConditionExpression {
   @override
   final FileSpan span;
 
-  IfConditionSass(this.expression, this.span);
+  new(this.expression, this.span);
 
   /// @nodoc
   @override
@@ -291,7 +289,7 @@ final class IfConditionRaw extends IfConditionExpression {
   @internal
   bool get isArbitrarySubstitution => true;
 
-  IfConditionRaw(this.text);
+  new(this.text);
 
   /// @nodoc
   @override

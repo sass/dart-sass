@@ -21,7 +21,7 @@ final class NumberExpression extends Expression {
   @override
   final FileSpan span;
 
-  NumberExpression(this.value, this.span, {this.unit});
+  new(this.value, this.span, {this.unit});
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

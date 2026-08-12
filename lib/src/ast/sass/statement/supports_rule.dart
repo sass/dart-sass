@@ -19,7 +19,7 @@ final class SupportsRule extends ParentStatement<List<Statement>> {
   @override
   final FileSpan span;
 
-  SupportsRule(this.condition, Iterable<Statement> children, this.span)
+  new(this.condition, Iterable<Statement> children, this.span)
     : super(List.unmodifiable(children));
 
   @override

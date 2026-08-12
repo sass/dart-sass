@@ -23,7 +23,7 @@ class _SassNull extends Value {
   @override
   Value? get realNull => null;
 
-  const _SassNull();
+  const new();
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitNull();

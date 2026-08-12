@@ -51,7 +51,7 @@ final class SelectorList extends Selector {
     );
   }
 
-  SelectorList(Iterable<ComplexSelector> components, super.span)
+  new(Iterable<ComplexSelector> components, super.span)
     : components = List.unmodifiable(components) {
     if (this.components.isEmpty) {
       throw ArgumentError("components may not be empty.");
@@ -72,7 +72,7 @@ final class SelectorList extends Selector {
   /// they'll be reported using [Logger.defaultLogger].
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory SelectorList.parse(
+  factory parse(
     String contents, {
     Object? url,
     InterpolationMap? interpolationMap,
@@ -348,7 +348,7 @@ bool _containsParentSelector(Selector selector) =>
 
 /// A visitor for finding the first [ParentSelector] in a given selector.
 class _ParentSelectorVisitor with SelectorSearchVisitor<ParentSelector> {
-  const _ParentSelectorVisitor();
+  const new();
 
   @override
   ParentSelector visitParentSelector(ParentSelector selector) => selector;

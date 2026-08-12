@@ -272,18 +272,16 @@ enum Deprecation {
   Version? get obsoleteIn => _obsoleteIn?.andThen(Version.parse);
 
   /// Constructs a regular deprecation.
-  const Deprecation(
+  const new(
     this.id, {
-    required String? deprecatedIn,
+    required this._deprecatedIn,
     this.description,
-    String? obsoleteIn,
-  }) : _deprecatedIn = deprecatedIn,
-       _obsoleteIn = obsoleteIn,
-       isFuture = false;
+    this._obsoleteIn,
+  }) : isFuture = false;
 
   /// Constructs a future deprecation.
   // ignore: unused_element, unused_element_parameter
-  const Deprecation.future(this.id, {this.description})
+  const new future(this.id, {this.description})
     : _deprecatedIn = null,
       _obsoleteIn = null,
       isFuture = true;

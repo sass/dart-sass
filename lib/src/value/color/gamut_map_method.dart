@@ -38,22 +38,21 @@ abstract base class GamutMapMethod {
 
   /// @nodoc
   @internal
-  const GamutMapMethod(this.name);
+  const new(this.name);
 
   /// Parses a [GamutMapMethod] from its Sass name.
   ///
   /// Throws a [SassScriptException] if there is no method with the given
   /// [name]. If this came from a function argument, [argumentName] is the
   /// argument name (without the `$`). This is used for error reporting.
-  factory GamutMapMethod.fromName(String name, [String? argumentName]) =>
-      switch (name) {
-        'clip' => GamutMapMethod.clip,
-        'local-minde' => GamutMapMethod.localMinde,
-        _ => throw SassScriptException(
-          'Unknown gamut map method "$name".',
-          argumentName,
-        ),
-      };
+  factory fromName(String name, [String? argumentName]) => switch (name) {
+    'clip' => GamutMapMethod.clip,
+    'local-minde' => GamutMapMethod.localMinde,
+    _ => throw SassScriptException(
+      'Unknown gamut map method "$name".',
+      argumentName,
+    ),
+  };
 
   /// Maps [color] to its gamut using this method's algorithm.
   ///

@@ -16,7 +16,7 @@ final class StderrLogger extends LoggerWithDeprecationType {
   /// Whether to use terminal colors in messages.
   final bool color;
 
-  const StderrLogger({this.color = false});
+  const new({this.color = false});
 
   @override
   void internalWarn(

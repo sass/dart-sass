@@ -23,7 +23,7 @@ final class UniversalSelector extends SimpleSelector {
   @override
   int get specificity => 0;
 
-  UniversalSelector(super.span, {this.namespace});
+  new(super.span, {this.namespace});
 
   @override
   T accept<T>(SelectorVisitor<T> visitor) =>

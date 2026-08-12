@@ -33,7 +33,7 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   ///
   /// If passed, [url] is the URL of the module in which the function is
   /// defined.
-  BuiltInCallable.function(
+  new function(
     String name,
     String parameters,
     Value Function(List<Value> arguments) callback, {
@@ -52,7 +52,7 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   ///
   /// If passed, [url] is the URL of the module in which the mixin is
   /// defined.
-  BuiltInCallable.mixin(
+  new mixin(
     String name,
     String parameters,
     void Function(List<Value> arguments) callback, {
@@ -70,7 +70,7 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
 
   /// Creates a callable with a single [parameters] declaration and a single
   /// [callback].
-  BuiltInCallable.parsed(
+  new parsed(
     this.name,
     ParameterList parameters,
     Value Function(List<Value> arguments) callback, {
@@ -86,7 +86,7 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   ///
   /// If passed, [url] is the URL of the module in which the function is
   /// defined.
-  BuiltInCallable.overloadedFunction(
+  new overloadedFunction(
     this.name,
     Map<String, Callback> overloads, {
     Object? url,
@@ -99,7 +99,7 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
        ],
        acceptsContent = false;
 
-  BuiltInCallable._(this.name, this._overloads, this.acceptsContent);
+  new _(this.name, this._overloads, this.acceptsContent);
 
   /// Returns the parameter declaration and Dart callback for the given
   /// positional and named parameters.

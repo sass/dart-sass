@@ -24,7 +24,7 @@ final class HwbColorSpace extends ColorSpace {
   @override
   bool get isPolarInternal => true;
 
-  const HwbColorSpace()
+  const new()
     : super('hwb', const [
         hueChannel,
         LinearChannel('whiteness', 0, 100, requiresPercent: true),

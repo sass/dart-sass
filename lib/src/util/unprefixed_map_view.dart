@@ -24,7 +24,7 @@ class UnprefixedMapView<V> extends UnmodifiableMapBase<String, V> {
   Iterable<String> get keys => _UnprefixedKeys(this);
 
   /// Creates a new unprefixed map view.
-  UnprefixedMapView(this._map, this._prefix);
+  new(this._map, this._prefix);
 
   @override
   V? operator [](Object? key) => key is String ? _map[_prefix + key] : null;
@@ -48,7 +48,7 @@ class _UnprefixedKeys extends IterableBase<String> {
       .map((key) => key.substring(_view._prefix.length))
       .iterator;
 
-  _UnprefixedKeys(this._view);
+  new(this._view);
 
   @override
   bool contains(Object? key) => _view.containsKey(key);

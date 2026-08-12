@@ -21,7 +21,7 @@ final class TypeSelector extends SimpleSelector {
   @override
   int get specificity => 1;
 
-  TypeSelector(this.name, FileSpan span) : super(span);
+  new(this.name, FileSpan span) : super(span);
 
   @override
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitTypeSelector(this);

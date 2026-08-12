@@ -14,7 +14,7 @@ final class ModifiableCssStylesheet extends ModifiableCssParentNode
   @override
   final FileSpan span;
 
-  ModifiableCssStylesheet(this.span);
+  new(this.span);
 
   @override
   T accept<T>(ModifiableCssVisitor<T> visitor) =>

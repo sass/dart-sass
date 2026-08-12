@@ -17,7 +17,7 @@ final class JSToDartFileImporter extends Importer {
   /// The wrapped `findFileUrl` function.
   final Object? Function(String, CanonicalizeContext) _findFileUrl;
 
-  JSToDartFileImporter(this._findFileUrl);
+  new(this._findFileUrl);
 
   @override
   Uri? canonicalize(Uri url) {

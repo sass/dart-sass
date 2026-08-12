@@ -21,7 +21,7 @@ final class Rec2020ColorSpace extends ColorSpace {
   @override
   bool get isBoundedInternal => true;
 
-  const Rec2020ColorSpace() : super('rec2020', rgbChannels);
+  const new() : super('rec2020', rgbChannels);
 
   @override
   @protected

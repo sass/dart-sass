@@ -117,17 +117,16 @@ final class Evaluator {
   /// Creates an evaluator.
   ///
   /// Arguments are the same as for [evaluate].
-  Evaluator({
+  new({
     ImportCache? importCache,
-    Importer? importer,
+    this._importer,
     Iterable<Callable>? functions,
     Logger? logger,
   }) : _visitor = _EvaluateVisitor(
          importCache: importCache,
          functions: functions,
          logger: logger,
-       ),
-       _importer = importer;
+       );
 
   void use(UseRule use) => _visitor.runStatement(_importer, use);
 
@@ -366,19 +365,17 @@ final class _EvaluateVisitor
   /// Creates a new visitor.
   ///
   /// Most arguments are the same as those to [evaluate].
-  _EvaluateVisitor({
+  new({
     ImportCache? importCache,
     NodeImporter? nodeImporter,
     Iterable<Callable>? functions,
     Logger? logger,
-    bool quietDeps = false,
-    bool sourceMap = false,
+    this._quietDeps = false,
+    this._sourceMap = false,
   }) : _importCache =
            importCache ?? (nodeImporter == null ? ImportCache.none() : null),
        _nodeImporter = nodeImporter,
        _logger = logger ?? Logger.defaultLogger,
-       _quietDeps = quietDeps,
-       _sourceMap = sourceMap,
        // The default environment is overridden in [_execute] for full
        // stylesheets, but for [AsyncEvaluator] this environment is used.
        _environment = Environment() {
@@ -912,8 +909,8 @@ final class _EvaluateVisitor
             ? currentConfiguration.nodeWithSpan.span
             : null;
         var secondarySpans = {
-          if (existingSpan != null) existingSpan: "original load",
-          if (configurationSpan != null) configurationSpan: "configuration",
+          ?existingSpan: "original load",
+          ?configurationSpan: "configuration",
         };
 
         throw secondarySpans.isEmpty
@@ -3034,7 +3031,7 @@ final class _EvaluateVisitor
           'Duplicate key.',
           key.span,
           'second key',
-          {if (oldValueSpan != null) oldValueSpan: 'first key'},
+          {?oldValueSpan: 'first key'},
           _stackTrace(key.span),
         );
       }
@@ -4796,7 +4793,7 @@ final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
   /// The visitor in whose context this was created.
   final _EvaluateVisitor _visitor;
 
-  _ImportedCssVisitor(this._visitor);
+  new(this._visitor);
 
   @override
   void visitCssAtRule(ModifiableCssAtRule node) {
@@ -4873,7 +4870,7 @@ final class _EvaluationContext extends EvaluationContext {
   /// available.
   final AstNode _defaultWarnNodeWithSpan;
 
-  _EvaluationContext(this._visitor, this._defaultWarnNodeWithSpan);
+  new(this._visitor, this._defaultWarnNodeWithSpan);
 
   @override
   FileSpan get currentCallableSpan {

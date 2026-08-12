@@ -38,7 +38,7 @@ class ImporterResult {
   /// The [syntax] parameter must be passed. It's not marked as required only
   /// because old clients may still be passing the deprecated [indented]
   /// parameter instead.
-  ImporterResult(
+  new(
     this.contents, {
     Uri? sourceMapUrl,
     Syntax? syntax,

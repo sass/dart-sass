@@ -20,7 +20,7 @@ final class WarnRule extends Statement {
   @override
   final FileSpan span;
 
-  WarnRule(this.expression, this.span);
+  new(this.expression, this.span);
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitWarnRule(this);

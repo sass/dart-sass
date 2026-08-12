@@ -29,7 +29,7 @@ class SassException extends SourceSpanException {
   /// compilation, before it failed.
   final Set<Uri> loadedUrls;
 
-  SassException(super.message, FileSpan super.span, [Iterable<Uri>? loadedUrls])
+  new(super.message, FileSpan super.span, [Iterable<Uri>? loadedUrls])
     : loadedUrls = loadedUrls == null ? const {} : Set.unmodifiable(loadedUrls);
 
   /// Converts this to a [MultiSpanSassException] with the additional [span] and
@@ -122,7 +122,7 @@ class MultiSpanSassException extends SassException
   @override
   final Map<FileSpan, String> secondarySpans;
 
-  MultiSpanSassException(
+  new(
     String message,
     FileSpan span,
     this.primaryLabel,
@@ -213,12 +213,8 @@ class SassRuntimeException extends SassException {
   SassRuntimeException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       SassRuntimeException(message, span, trace, loadedUrls);
 
-  SassRuntimeException(
-    String message,
-    FileSpan span,
-    this.trace, [
-    Iterable<Uri>? loadedUrls,
-  ]) : super(message, span, loadedUrls);
+  new(String message, FileSpan span, this.trace, [Iterable<Uri>? loadedUrls])
+    : super(message, span, loadedUrls);
 }
 
 /// A [SassRuntimeException] that's also a [MultiSpanSassException].
@@ -227,7 +223,7 @@ class MultiSpanSassRuntimeException extends MultiSpanSassException
   @override
   final Trace trace;
 
-  MultiSpanSassRuntimeException(
+  new(
     String message,
     FileSpan span,
     String primaryLabel,
@@ -287,7 +283,7 @@ class SassFormatException extends SassException
   SassFormatException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       SassFormatException(message, span, loadedUrls);
 
-  SassFormatException(super.message, super.span, [super.loadedUrls]);
+  new(super.message, super.span, [super.loadedUrls]);
 }
 
 /// A [SassFormatException] that's also a [MultiSpanFormatException].
@@ -320,7 +316,7 @@ class MultiSpanSassFormatException extends MultiSpanSassException
         loadedUrls,
       );
 
-  MultiSpanSassFormatException(
+  new(
     super.message,
     super.span,
     super.primaryLabel,
@@ -343,7 +339,7 @@ class SassScriptException {
   /// The [argumentName] is the name of the Sass function argument that
   /// triggered this exception. If it's not null, it's automatically included in
   /// [message].
-  SassScriptException(String message, [String? argumentName])
+  new(String message, [String? argumentName])
     : message = argumentName == null ? message : "\$$argumentName: $message";
 
   /// Converts this to a [SassException] with the given [span].
@@ -362,11 +358,8 @@ class MultiSpanSassScriptException extends SassScriptException {
   /// See [MultiSourceSpanException.secondarySpans].
   final Map<FileSpan, String> secondarySpans;
 
-  MultiSpanSassScriptException(
-    super.message,
-    this.primaryLabel,
-    Map<FileSpan, String> secondarySpans,
-  ) : secondarySpans = Map.unmodifiable(secondarySpans);
+  new(super.message, this.primaryLabel, Map<FileSpan, String> secondarySpans)
+    : secondarySpans = Map.unmodifiable(secondarySpans);
 
   /// Converts this to a [SassException] with the given primary [span].
   @override

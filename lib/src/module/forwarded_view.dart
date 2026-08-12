@@ -73,7 +73,7 @@ class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
     }
   }
 
-  ForwardedModuleView(this._inner, this._rule)
+  new(this._inner, this._rule)
     : variables = _forwardedMap(
         _inner.variables,
         _rule.prefix,

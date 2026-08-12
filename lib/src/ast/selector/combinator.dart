@@ -22,7 +22,7 @@ enum Combinator {
   /// The combinator's token text.
   final String _text;
 
-  const Combinator(this._text);
+  const new(this._text);
 
   @override
   String toString() => _text;

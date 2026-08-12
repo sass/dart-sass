@@ -25,7 +25,7 @@ final class LmsColorSpace extends ColorSpace {
   @override
   bool get isBoundedInternal => false;
 
-  const LmsColorSpace()
+  const new()
     : super('lms', const [
         LinearChannel('long', 0, 1),
         LinearChannel('medium', 0, 1),

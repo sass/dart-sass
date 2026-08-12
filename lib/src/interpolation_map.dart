@@ -29,7 +29,7 @@ final class InterpolationMap {
   ///
   /// Each target offset at index `i` corresponds to the character in the
   /// generated string after `interpolation.contents[i]`.
-  InterpolationMap(this._interpolation, Iterable<int> targetOffsets)
+  new(this._interpolation, Iterable<int> targetOffsets)
     : _targetOffsets = List.unmodifiable(targetOffsets) {
     var expectedLocations = math.max(0, _interpolation.contents.length - 1);
     if (_targetOffsets.length != expectedLocations) {

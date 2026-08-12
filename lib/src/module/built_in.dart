@@ -47,7 +47,7 @@ final class BuiltInModule<T extends AsyncCallable> implements Module<T> {
   @override
   bool get transitivelyContainsExtensions => false;
 
-  BuiltInModule(
+  new(
     String name, {
     Iterable<T>? functions,
     Iterable<T>? mixins,

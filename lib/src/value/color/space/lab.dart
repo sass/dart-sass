@@ -24,7 +24,7 @@ final class LabColorSpace extends ColorSpace {
   @override
   bool get isBoundedInternal => false;
 
-  const LabColorSpace()
+  const new()
     : super('lab', const [
         LinearChannel(
           'lightness',

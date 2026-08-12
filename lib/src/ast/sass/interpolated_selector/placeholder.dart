@@ -23,7 +23,7 @@ final class InterpolatedPlaceholderSelector extends InterpolatedSimpleSelector {
   FileSpan get span =>
       name.span.file.span(name.span.start.offset - 1, name.span.end.offset);
 
-  InterpolatedPlaceholderSelector(this.name);
+  new(this.name);
 
   /// Calls the appropriate visit method on [visitor].
   @override

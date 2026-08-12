@@ -24,7 +24,7 @@ final class HslColorSpace extends ColorSpace {
   @override
   bool get isPolarInternal => true;
 
-  const HslColorSpace()
+  const new()
     : super('hsl', const [
         hueChannel,
         LinearChannel(
