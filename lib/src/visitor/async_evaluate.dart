@@ -586,6 +586,7 @@ final class _EvaluateVisitor
             callable,
             _callableNode!,
           );
+          // ignore: dead_code
         } else {
           throw SassScriptException(
             "The function ${callable.name} is asynchronous.\n"
@@ -672,6 +673,7 @@ final class _EvaluateVisitor
               callableNode,
               callableNode,
             );
+            // ignore: dead_code
           } else {
             throw SassScriptException(
               "The mixin ${callable.name} is asynchronous.\n"
