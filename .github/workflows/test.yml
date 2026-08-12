@@ -73,19 +73,30 @@ jobs:
           --errors unknown-directive,unknown-macro,unresolved-doc-reference
 
   sass_spec_language:
-    name: "Language Tests | Dart ${{ matrix.dart_channel }} | ${{ matrix.async_label }}"
+    name: "Language Tests | Dart ${{ matrix.dart_channel }} | ${{ matrix.async_label }} | ${{ matrix.os }}"
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        dart_channel: [stable, dev]
+        # We expect language test results not to vary from OS to OS. In most
+        # cases, this is trivial, but for operations on very high-precision
+        # floating-point numbers there are cases where float rounding can differ
+        # (see sass/sass-spec#2156). To ensure we don't include these in our
+        # test cases, we test against Windows and MacOS as well.
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        dart_channel: [stable]
         async_label: [synchronous]
         async_args: ['']
         include:
-          - dart_channel: stable
+          - os: ubuntu-latest
+            dart_channel: stable
             async_label: asynchronous
             async_args: '--cmd-args --async'
+          - os: ubuntu-latest
+            dart_channel: dev
+            async_label: synchronous
+            async_args: ''
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
