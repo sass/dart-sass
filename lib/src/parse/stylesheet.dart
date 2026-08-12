@@ -271,7 +271,7 @@ abstract class StylesheetParser extends Parser {
               deprecation: Deprecation.duplicateVarFlags,
               message:
                   '!default should only be written once for each variable.\n'
-                  'This will be an error in Dart Sass 2.0.0.',
+                      'This will be an error in Dart Sass 2.0.0.',
               span: spanFrom(flagStart),
             ));
           }
@@ -288,7 +288,7 @@ abstract class StylesheetParser extends Parser {
               deprecation: Deprecation.duplicateVarFlags,
               message:
                   '!global should only be written once for each variable.\n'
-                  'This will be an error in Dart Sass 2.0.0.',
+                      'This will be an error in Dart Sass 2.0.0.',
               span: spanFrom(flagStart),
             ));
           }
@@ -1192,9 +1192,9 @@ abstract class StylesheetParser extends Parser {
           deprecation: Deprecation.import,
           message:
               'Sass @import rules are deprecated and will be removed in Dart '
-              'Sass 3.0.0.\n\n'
-              'More info and automated migrator: '
-              'https://sass-lang.com/d/import',
+                  'Sass 3.0.0.\n\n'
+                  'More info and automated migrator: '
+                  'https://sass-lang.com/d/import',
           span: argument.span,
         ));
       }
@@ -1576,9 +1576,9 @@ abstract class StylesheetParser extends Parser {
           deprecation: Deprecation.mozDocument,
           message:
               "@-moz-document is deprecated and support will be removed in "
-              "Dart Sass 2.0.0.\n"
-              "\n"
-              "For details, see https://sass-lang.com/d/moz-document.",
+                  "Dart Sass 2.0.0.\n"
+                  "\n"
+                  "For details, see https://sass-lang.com/d/moz-document.",
           span: span,
         ));
       }
@@ -2962,9 +2962,9 @@ abstract class StylesheetParser extends Parser {
             deprecation: Deprecation.ifFunction,
             message:
                 'The Sass if() syntax is deprecated in favor of the modern CSS '
-                'syntax.\n'
-                '\n'
-                '${switch (expression.modernSuggestion) {
+                    'syntax.\n'
+                    '\n'
+                    '${switch (expression.modernSuggestion) {
               var suggestion? => 'Suggestion: $suggestion\n'
                   '\n',
               _ => ''
@@ -3366,8 +3366,7 @@ abstract class StylesheetParser extends Parser {
                 : "be parsed as SassScript";
             warnings.add((
               deprecation: Deprecation.functionName,
-              message:
-                  "Vendor-prefixed $normalized() functions will no longer have "
+              message: "Vendor-prefixed $normalized() functions will no longer have "
                   "special parsing in a future release of Dart Sass. Once that "
                   "happens, this argument will $whatWillHappen. To preserve "
                   "current behavior:\n"
@@ -3414,12 +3413,12 @@ abstract class StylesheetParser extends Parser {
               deprecation: Deprecation.functionName,
               message:
                   "Vendor-prefixed progid:...() functions will no longer be "
-                  "supported in a future release of Dart Sass. To preserve "
-                  "current behavior:\n"
-                  "\n"
-                  "#{$suggestion}\n"
-                  "\n"
-                  "More info: https://sass-lang.com/d/function-name",
+                      "supported in a future release of Dart Sass. To preserve "
+                      "current behavior:\n"
+                      "\n"
+                      "#{$suggestion}\n"
+                      "\n"
+                      "More info: https://sass-lang.com/d/function-name",
               span: spanFrom(start)
             ));
           }

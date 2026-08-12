@@ -55,9 +55,9 @@ class ScssParser extends StylesheetParser {
           deprecation: Deprecation.elseif,
           message:
               '@elseif is deprecated and will not be supported in future Sass '
-              'versions.\n'
-              '\n'
-              'Recommendation: @else if',
+                  'versions.\n'
+                  '\n'
+                  'Recommendation: @else if',
           span: spanFrom(beforeAt),
         ));
         scanner.position -= 2;
