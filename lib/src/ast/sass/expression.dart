@@ -20,11 +20,9 @@ import '../sass.dart';
 /// {@category AST}
 /// {@category Parsing}
 @sealed
-abstract base class Expression implements SassNode {
+abstract base class Expression() implements SassNode {
   /// Calls the appropriate visit method on [visitor].
   T accept<T>(ExpressionVisitor<T> visitor);
-
-  new();
 
   /// Whether this expression can be used in a calculation context.
   bool get isCalculationSafe => accept(const IsCalculationSafeVisitor());

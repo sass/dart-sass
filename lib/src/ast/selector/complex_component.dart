@@ -13,20 +13,18 @@ import '../selector.dart';
 /// This a [CompoundSelector] with one or more trailing [Combinator]s.
 ///
 /// {@category AST}
-final class ComplexSelectorComponent {
+final class ComplexSelectorComponent(
   /// This component's compound selector.
-  final CompoundSelector selector;
+  final CompoundSelector selector,
+
+  final FileSpan span, {
 
   /// This selector's trailing combinator, if it has one.
   ///
   /// If this is null, that indicates that it has an implicit descendent
   /// combinator.
-  final CssValue<Combinator>? combinator;
-
-  final FileSpan span;
-
-  new(this.selector, this.span, {this.combinator});
-
+  final CssValue<Combinator>? combinator,
+}) {
   /// Returns a copy of `this` with [combinator] added to the end.
   ///
   /// Returns `null` if this already has a combinator.

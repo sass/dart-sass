@@ -9,12 +9,8 @@ import 'package:meta/meta.dart';
 /// This uses reference equality based on the underlying [ModifiableBox], even
 /// when the underlying type uses value equality.
 @internal
-final class Box<T> {
-  final ModifiableBox<T> _inner;
-
+final class Box<T>._(final ModifiableBox<T> _inner) {
   T get value => _inner.value;
-
-  new _(this._inner);
 
   @override
   bool operator ==(Object other) => other is Box<T> && other._inner == _inner;
@@ -31,11 +27,7 @@ final class Box<T> {
 /// This always uses reference equality, even when the underlying type uses
 /// value equality.
 @internal
-final class ModifiableBox<T> {
-  T value;
-
-  new(this.value);
-
+final class ModifiableBox<T>(var T value) {
   /// Returns an unmodifiable reference to this box.
   ///
   /// The underlying modifiable box may still be modified.

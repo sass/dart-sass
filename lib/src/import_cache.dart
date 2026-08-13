@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 65e2109b40fe939b7e49dc1f99729f65965c3359
+// Checksum: 0ea48b578a5fba7c687abfcaf65599f3f454c2a2
 //
 // ignore_for_file: unused_import
 
@@ -136,8 +136,8 @@ final class ImportCache {
   /// the load, if it exists.
   ///
   /// Returns the importer that was used to canonicalize [url], the canonical
-  /// URL, and the URL that was passed to the importer (which may be resolved
-  /// relative to [baseUrl] if it's passed).
+  /// URL (which is guaranteed to be absolute), and the URL that was passed to
+  /// the importer (which may be resolved relative to [baseUrl] if it's passed).
   ///
   /// If [baseImporter] is non-`null`, this first tries to use [baseImporter] to
   /// canonicalize [url] (resolved relative to [baseUrl] if it's passed).
@@ -262,10 +262,10 @@ final class ImportCache {
 
     if (result == null) return (null, cacheable);
 
-    // Relative canonical URLs (empty scheme) should throw an error starting in
-    // Dart Sass 2.0.0, but for now, they only emit a deprecation warning in
-    // the evaluator.
-    if (result.scheme != '' && importer.isNonCanonicalScheme(result.scheme)) {
+    if (result.scheme == '') {
+      throw "Importer $importer canonicalized $url to $result, which is "
+          "relative.";
+    } else if (importer.isNonCanonicalScheme(result.scheme)) {
       throw "Importer $importer canonicalized $url to $result, which uses a "
           "scheme declared as non-canonical.";
     }
@@ -320,6 +320,13 @@ final class ImportCache {
     Uri canonicalUrl, {
     Uri? originalUrl,
   }) {
+    if (!canonicalUrl.isAbsolute) {
+      throw ArgumentError(
+        'Canonical URL "$canonicalUrl" must be absolute.',
+        'canonicalUrl',
+      );
+    }
+
     return _importCache.putIfAbsent(canonicalUrl, () {
       var loadTime = DateTime.now();
       var result = importer.load(canonicalUrl);
@@ -327,14 +334,10 @@ final class ImportCache {
 
       _loadTimes[canonicalUrl] = loadTime;
       _resultsCache[canonicalUrl] = result;
-      return Stylesheet.parse(
+      return Stylesheet.parseInternal(
         result.contents,
         result.syntax,
-        // For backwards-compatibility, relative canonical URLs are resolved
-        // relative to [originalUrl].
-        url: originalUrl == null
-            ? canonicalUrl
-            : originalUrl.resolveUri(canonicalUrl),
+        url: canonicalUrl,
         parseSelectors: _parseSelectors,
       );
     });

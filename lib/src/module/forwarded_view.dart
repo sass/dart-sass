@@ -17,13 +17,13 @@ import '../value.dart';
 
 /// A [Module] that exposes members according to a [ForwardRule].
 @internal
-final class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
+final class ForwardedModuleView<T extends AsyncCallable>(
   /// The wrapped module.
-  final Module<T> _inner;
+  final Module<T> _inner,
 
   /// The rule that determines how this module's members should be exposed.
-  final ForwardRule _rule;
-
+  final ForwardRule _rule,
+) implements Module<T> {
   @override
   Uri? get url => _inner.url;
 
@@ -48,16 +48,36 @@ final class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
       _inner.transitivelyContainsExtensions;
 
   @override
-  final Map<String, Value> variables;
+  final Map<String, Value> variables = _forwardedMap(
+    _inner.variables,
+    _rule.prefix,
+    _rule.shownVariables,
+    _rule.hiddenVariables,
+  );
 
   @override
-  final Map<String, AstNode> variableNodes;
+  final Map<String, AstNode> variableNodes = _forwardedMap(
+    _inner.variableNodes,
+    _rule.prefix,
+    _rule.shownVariables,
+    _rule.hiddenVariables,
+  );
 
   @override
-  final Map<String, T> functions;
+  final Map<String, T> functions = _forwardedMap(
+    _inner.functions,
+    _rule.prefix,
+    _rule.shownMixinsAndFunctions,
+    _rule.hiddenMixinsAndFunctions,
+  );
 
   @override
-  final Map<String, T> mixins;
+  final Map<String, T> mixins = _forwardedMap(
+    _inner.mixins,
+    _rule.prefix,
+    _rule.shownMixinsAndFunctions,
+    _rule.hiddenMixinsAndFunctions,
+  );
 
   /// Like [ForwardedModuleView], but returns `inner` as-is if it doesn't need
   /// any modification.
@@ -75,32 +95,6 @@ final class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
       return ForwardedModuleView(inner, rule);
     }
   }
-
-  new(this._inner, this._rule)
-    : variables = _forwardedMap(
-        _inner.variables,
-        _rule.prefix,
-        _rule.shownVariables,
-        _rule.hiddenVariables,
-      ),
-      variableNodes = _forwardedMap(
-        _inner.variableNodes,
-        _rule.prefix,
-        _rule.shownVariables,
-        _rule.hiddenVariables,
-      ),
-      functions = _forwardedMap(
-        _inner.functions,
-        _rule.prefix,
-        _rule.shownMixinsAndFunctions,
-        _rule.hiddenMixinsAndFunctions,
-      ),
-      mixins = _forwardedMap(
-        _inner.mixins,
-        _rule.prefix,
-        _rule.shownMixinsAndFunctions,
-        _rule.hiddenMixinsAndFunctions,
-      );
 
   /// Wraps [map] so that it only shows members allowed by [blocklist] or
   /// [safelist], with the given [prefix], if given.

@@ -10,10 +10,14 @@ import '../syntax.dart';
 /// The result of importing a Sass stylesheet, as returned by [Importer.load].
 ///
 /// {@category Importer}
-final class ImporterResult {
+final class ImporterResult(
   /// The contents of the stylesheet.
-  final String contents;
+  final String contents, {
+  final Uri? _sourceMapUrl,
 
+  /// The syntax to use to parse the stylesheet.
+  required final Syntax syntax,
+}) {
   /// An absolute, browser-accessible URL indicating the resolved location of
   /// the imported stylesheet.
   ///
@@ -22,15 +26,14 @@ final class ImporterResult {
   /// automatically from [contents].
   Uri get sourceMapUrl =>
       _sourceMapUrl ?? Uri.dataFromString(contents, encoding: utf8);
-  final Uri? _sourceMapUrl;
-
-  /// The syntax to use to parse the stylesheet.
-  final Syntax syntax;
 
   /// Creates a new [ImporterResult].
-  new(this.contents, {Uri? sourceMapUrl, required this.syntax})
-    : _sourceMapUrl = sourceMapUrl {
-    if (sourceMapUrl?.scheme == '') {
+  ///
+  /// The [syntax] parameter must be passed. It's not marked as required only
+  /// because old clients may still be passing the deprecated [indented]
+  /// parameter instead.
+  this {
+    if (_sourceMapUrl?.scheme == '') {
       throw ArgumentError.value(
         sourceMapUrl,
         'sourceMapUrl',

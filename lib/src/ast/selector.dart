@@ -38,7 +38,7 @@ export 'selector/universal.dart';
 /// Selectors have structural equality semantics.
 ///
 /// {@category AST}
-abstract base class Selector implements AstNode {
+abstract base class Selector(@override final FileSpan span) implements AstNode {
   /// Whether this selector, and complex selectors containing it, should not be
   /// emitted.
   ///
@@ -53,11 +53,6 @@ abstract base class Selector implements AstNode {
   bool get containsParentSelector =>
       accept(const _ContainsParentSelectorVisitor());
 
-  @override
-  final FileSpan span;
-
-  new(this.span);
-
   /// Calls the appropriate visit method on [visitor].
   T accept<T>(SelectorVisitor<T> visitor);
 
@@ -66,9 +61,10 @@ abstract base class Selector implements AstNode {
 }
 
 /// The visitor used to implement [Selector.isInvisible].
-final class _IsInvisibleVisitor with AnySelectorVisitor {
-  const new();
-
+final class const _IsInvisibleVisitor({
+  /// Whether to consider selectors with bogus combinators invisible.
+  required final bool includeBogus,
+}) with AnySelectorVisitor {
   @override
   bool visitSelectorList(SelectorList list) =>
       list.components.every(visitComplexSelector);
@@ -91,9 +87,7 @@ final class _IsInvisibleVisitor with AnySelectorVisitor {
 }
 
 /// The visitor used to implement [Selector.containsParentSelector].
-final class _ContainsParentSelectorVisitor with AnySelectorVisitor {
-  const new();
-
+final class const _ContainsParentSelectorVisitor() with AnySelectorVisitor {
   @override
   bool visitParentSelector(ParentSelector _) => true;
 }

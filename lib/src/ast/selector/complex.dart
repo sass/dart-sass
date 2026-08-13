@@ -22,10 +22,18 @@ import '../selector.dart';
 ///
 /// {@category AST}
 /// {@category Parsing}
-final class ComplexSelector extends Selector {
+final class ComplexSelector(
   /// This selector's leading combinator, if it has one.
-  final CssValue<Combinator>? leadingCombinator;
+  final CssValue<Combinator>? leadingCombinator,
 
+  Iterable<ComplexSelectorComponent> components,
+  super.span, {
+
+  /// Whether a line break should be emitted *before* this selector.
+  ///
+  /// @nodoc
+  @internal final bool lineBreak = false,
+}) extends Selector {
   /// The components of this selector.
   ///
   /// This is only empty if [leadingCombinator] is not null.
@@ -36,13 +44,9 @@ final class ComplexSelector extends Selector {
   ///
   /// It's possible for multiple [Combinator]s to be adjacent to one another.
   /// This isn't valid CSS, but Sass supports it for CSS hack purposes.
-  final List<ComplexSelectorComponent> components;
-
-  /// Whether a line break should be emitted *before* this selector.
-  ///
-  /// @nodoc
-  @internal
-  final bool lineBreak;
+  final List<ComplexSelectorComponent> components = List.unmodifiable(
+    components,
+  );
 
   /// This selector's specificity.
   ///
@@ -113,12 +117,7 @@ final class ComplexSelector extends Selector {
     };
   }
 
-  new(
-    Iterable<ComplexSelectorComponent> components,
-    super.span, {
-    this.leadingCombinator,
-    this.lineBreak = false,
-  }) : components = List.unmodifiable(components) {
+  this {
     if (leadingCombinator == null && this.components.isEmpty) {
       throw ArgumentError(
         "components may only empty if leadingCombinator is non-null.",

@@ -9,13 +9,13 @@ import 'package:meta/meta.dart';
 /// An unmodifiable view of a map with string keys that allows keys to be
 /// accessed with an additional prefix.
 @internal
-final class PrefixedMapView<V> extends UnmodifiableMapBase<String, V> {
+final class PrefixedMapView<V>(
   /// The wrapped map.
-  final Map<String, V> _map;
+  final Map<String, V> _map,
 
   /// The prefix to add to the map keys.
-  final String _prefix;
-
+  final String _prefix,
+) extends UnmodifiableMapBase<String, V> {
   @override
   Iterable<String> get keys => _PrefixedKeys(this);
 
@@ -27,9 +27,6 @@ final class PrefixedMapView<V> extends UnmodifiableMapBase<String, V> {
 
   @override
   bool get isNotEmpty => _map.isNotEmpty;
-
-  /// Creates a new prefixed map view.
-  new(this._map, this._prefix);
 
   @override
   V? operator [](Object? key) => key is String && key.startsWith(_prefix)
@@ -43,18 +40,16 @@ final class PrefixedMapView<V> extends UnmodifiableMapBase<String, V> {
 }
 
 /// The implementation of [PrefixedMapViews.keys].
-final class _PrefixedKeys extends IterableBase<String> {
+final class _PrefixedKeys(
   /// The view whose keys are being iterated over.
-  final PrefixedMapView<Object?> _view;
-
+  final PrefixedMapView<Object?> _view,
+) extends IterableBase<String> {
   @override
   int get length => _view.length;
 
   @override
   Iterator<String> get iterator =>
       _view._map.keys.map((key) => "${_view._prefix}$key").iterator;
-
-  new(this._view);
 
   @override
   bool contains(Object? key) => _view.containsKey(key);

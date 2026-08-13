@@ -32,6 +32,9 @@ base class Parser {
   /// from source.
   final InterpolationMap? _interpolationMap;
 
+  /// The scanner that scans through the text being parsed.
+  final SpanScanner scanner = SpanScanner(contents, sourceUrl: url);
+
   /// Parses [text] as a CSS identifier and returns the result.
   ///
   /// Throws a [SassFormatException] if parsing fails.
@@ -53,7 +56,6 @@ base class Parser {
   static bool isVariableDeclarationLike(String text) =>
       Parser(text)._isVariableDeclarationLike();
 
-  @protected
   new(String contents, {Object? url, this._interpolationMap})
     : scanner = SpanScanner(contents, sourceUrl: _canonicalize(url));
 

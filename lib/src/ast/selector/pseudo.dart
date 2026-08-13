@@ -20,20 +20,34 @@ import '../selector.dart';
 /// ensure that extension and other selector operations work properly.
 ///
 /// {@category AST}
-final class PseudoSelector extends SimpleSelector {
+final class PseudoSelector(
   /// The name of this selector.
-  final String name;
+  final String name,
+  super.span, {
+  bool element = false,
 
+  /// The non-selector argument passed to this selector.
+  ///
+  /// This is `null` if there's no argument. If [argument] and [selector] are
+  /// both non-`null`, the selector follows the argument.
+  final String? argument,
+
+  /// The selector argument passed to this selector.
+  ///
+  /// This is `null` if there's no selector. If [argument] and [selector] are
+  /// both non-`null`, the selector follows the argument.
+  final SelectorList? selector,
+}) extends SimpleSelector {
   /// Like [name], but without any vendor prefixes.
   ///
   /// @nodoc
   @internal
-  final String normalizedName;
+  final String normalizedName = unvendor(name);
 
   /// Whether this is a pseudo-class selector.
   ///
   /// This is `true` if and only if [isElement] is `false`.
-  final bool isClass;
+  final bool isClass = !element && !_isFakePseudoElement(name);
 
   /// Whether this is a pseudo-element selector.
   ///
@@ -47,7 +61,7 @@ final class PseudoSelector extends SimpleSelector {
   /// `:first-line`, or `:first-letter`).
   ///
   /// This is `true` if and only if [isSyntacticElement] is `false`.
-  final bool isSyntacticClass;
+  final bool isSyntacticClass = !element;
 
   /// Whether this is syntactically a pseudo-element selector.
   ///
@@ -71,18 +85,6 @@ final class PseudoSelector extends SimpleSelector {
   @internal
   bool get hasComplicatedSuperselectorSemantics =>
       isElement || selector != null;
-
-  /// The non-selector argument passed to this selector.
-  ///
-  /// This is `null` if there's no argument. If [argument] and [selector] are
-  /// both non-`null`, the selector follows the argument.
-  final String? argument;
-
-  /// The selector argument passed to this selector.
-  ///
-  /// This is `null` if there's no selector. If [argument] and [selector] are
-  /// both non-`null`, the selector follows the argument.
-  final SelectorList? selector;
 
   @override
   late final int specificity = () {
@@ -109,17 +111,6 @@ final class PseudoSelector extends SimpleSelector {
         return super.specificity;
     }
   }();
-
-  new(
-    this.name,
-    FileSpan span, {
-    bool element = false,
-    this.argument,
-    this.selector,
-  }) : isClass = !element && !_isFakePseudoElement(name),
-       isSyntacticClass = !element,
-       normalizedName = unvendor(name),
-       super(span);
 
   /// A shorthand for creating an `:is()` selector.
   ///

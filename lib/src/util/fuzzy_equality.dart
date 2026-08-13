@@ -8,9 +8,7 @@ import 'package:meta/meta.dart';
 import 'number.dart';
 
 @internal
-final class FuzzyEquality implements Equality<double> {
-  const new();
-
+final class const FuzzyEquality() implements Equality<double> {
   @override
   bool equals(double e1, double e2) => fuzzyEquals(e1, e2);
 

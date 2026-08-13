@@ -14,23 +14,21 @@ import 'package:source_span/source_span.dart';
 /// generally be preferred over this class wherever backwards compatibility
 /// isn't a concern.
 @internal
-final class MultiSpan implements FileSpan {
+final class MultiSpan._(
   /// The span to primarily highlight.
-  final FileSpan _primary;
+  final FileSpan _primary,
 
   /// The label for [primary].
-  final String primaryLabel;
+  final String primaryLabel,
 
   /// The [secondarySpans] map for [SourceSpanExtension.messageMultiple].
-  final Map<SourceSpan, String> secondarySpans;
-
+  final Map<SourceSpan, String> secondarySpans,
+) implements FileSpan {
   new(
     FileSpan primary,
     String primaryLabel,
     Map<SourceSpan, String> secondarySpans,
   ) : this._(primary, primaryLabel, Map.unmodifiable(secondarySpans));
-
-  new _(this._primary, this.primaryLabel, this.secondarySpans);
 
   @override
   FileLocation get start => _primary.start;

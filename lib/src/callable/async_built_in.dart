@@ -22,21 +22,20 @@ typedef Callback = FutureOr<Value> Function(List<Value> arguments);
 /// parameters. When the callable is invoked, the first callback with matching
 /// parameters is invoked.
 @internal
-interface class AsyncBuiltInCallable implements AsyncCallable {
-  @override
-  final String name;
+interface class AsyncBuiltInCallable.parsed(
+  @override final String name,
 
   /// This callable's parameters.
-  final ParameterList _parameters;
+  final ParameterList _parameters,
 
   /// The callback to run when executing this callable.
-  final Callback _callback;
+  final Callback _callback, {
 
   /// Whether this callable could potentially accept an `@content` block.
   ///
   /// This can only be true for mixins.
-  final bool acceptsContent;
-
+  final bool acceptsContent = false,
+}) implements AsyncCallable {
   /// Creates a function with a single [parameters] declaration and a single
   /// [callback].
   ///
@@ -85,12 +84,7 @@ interface class AsyncBuiltInCallable implements AsyncCallable {
 
   /// Creates a callable with a single [parameters] declaration and a single
   /// [callback].
-  new parsed(
-    this.name,
-    this._parameters,
-    this._callback, {
-    this.acceptsContent = false,
-  });
+  this;
 
   /// Returns the parameter declaration and Dart callback for the given
   /// positional and named parameters.

@@ -13,14 +13,13 @@ import 'stylesheet.dart';
 /// A parser for the CSS-compatible syntax.
 @sealed
 @internal
-base class ScssParser extends StylesheetParser {
+base class ScssParser(super.contents, {super.url, super.parseSelectors})
+    extends StylesheetParser {
   @override
   bool get indented => false;
 
   @override
   int get currentIndentation => 0;
-
-  new(super.contents, {super.url, super.parseSelectors});
 
   new internal(super.contents, {super.url, super.parseSelectors})
     : super.internal();

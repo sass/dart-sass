@@ -23,7 +23,7 @@ final _emptyUnquoted = SassString("", quotes: false);
 /// identifiers, but they may contain any text.
 ///
 /// {@category Value}
-final class SassString extends Value {
+final class SassString(final String _text, {bool quotes = true}) extends Value {
   // We don't use public fields because they'd be overridden by the getters of
   // the same name in the JS API.
 
@@ -40,11 +40,10 @@ final class SassString extends Value {
   /// `url(http://example.com)`. Unfortunately, it also means that we don't
   /// consider `foo` and `f\6F\6F` the same string.
   String get text => _text;
-  final String _text;
 
   /// Whether this string has quotes.
   bool get hasQuotes => _hasQuotes;
-  final bool _hasQuotes;
+  final bool _hasQuotes = quotes;
 
   /// Sass's notion of the length of this string.
   ///
@@ -145,7 +144,7 @@ final class SassString extends Value {
   factory empty({bool quotes = true}) => quotes ? _emptyQuoted : _emptyUnquoted;
 
   /// Creates a string with the given [text].
-  new(this._text, {bool quotes = true}) : _hasQuotes = quotes;
+  this;
 
   /// Throws a [SassScriptException] if this is an unquoted string.
   ///

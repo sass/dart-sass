@@ -13,16 +13,14 @@ import 'node.dart';
 
 /// A modifiable version of [CssMediaRule] for use in the evaluation step.
 @internal
-final class ModifiableCssMediaRule extends ModifiableCssParentNode
-    implements CssMediaRule {
+final class ModifiableCssMediaRule(
+  Iterable<CssMediaQuery> queries,
+  @override final FileSpan span,
+) extends ModifiableCssParentNode implements CssMediaRule {
   @override
-  final List<CssMediaQuery> queries;
+  final List<CssMediaQuery> queries = List.unmodifiable(queries);
 
-  @override
-  final FileSpan span;
-
-  new(Iterable<CssMediaQuery> queries, this.span)
-    : queries = List.unmodifiable(queries) {
+  this {
     if (queries.isEmpty) {
       throw ArgumentError.value(queries, "queries", "may not be empty.");
     }

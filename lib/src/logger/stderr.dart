@@ -14,12 +14,10 @@ import '../utils.dart';
 
 /// A logger that prints warnings to standard error or browser console.
 @internal
-final class StderrLogger implements Logger {
+final class const StderrLogger({
   /// Whether to use terminal colors in messages.
-  final bool color;
-
-  const new({this.color = false});
-
+  final bool color = false,
+}) implements Logger {
   @override
   void warn(
     String message, {

@@ -10,9 +10,11 @@ import 'parser.dart';
 
 /// A parser for `@keyframes` block selectors.
 @internal
-final class KeyframeSelectorParser extends Parser {
-  new(super.contents, {super.url, super.interpolationMap});
-
+final class KeyframeSelectorParser(
+  super.contents, {
+  super.url,
+  super.interpolationMap,
+}) extends Parser {
   List<String> parse() {
     return wrapSpanFormatException(() {
       var selectors = <String>[];

@@ -36,11 +36,14 @@ import 'selector.dart' show selectorPseudoClasses, selectorPseudoElements;
 /// private, except where they have to be public for subclasses to refer to
 /// them.
 @internal
-abstract base class StylesheetParser extends Parser {
+abstract class StylesheetParser(
+  super.contents, {
+  super.url,
+
   /// Whether to parse the selectors in [StyleRules] as [InterpolatedSelector]s
   /// rather than raw [Interpolation]s.
-  final bool _parseSelectors;
-
+  final bool _parseSelectors = false,
+}) extends Parser {
   /// Whether we've consumed a rule other than `@charset`, `@forward`, or
   /// `@use`.
   var _isUseAllowed = true;
@@ -87,8 +90,6 @@ abstract base class StylesheetParser extends Parser {
   /// The silent comment this parser encountered previously.
   @protected
   SilentComment? lastSilentComment;
-
-  new(super.contents, {super.url, this._parseSelectors = false});
 
   new internal(super.contents, {super.url, this._parseSelectors = false})
     : super.internal();

@@ -9,13 +9,13 @@ import '../utils.dart';
 
 /// A class that builds up unsigned varints byte-by-byte.
 @internal
-final class VarintBuilder {
+final class VarintBuilder(
   /// The maximum length in bits of the varint being parsed.
-  final int _maxLength;
+  final int _maxLength, [
 
   /// The name of the value being parsed, used for error reporting.
-  final String? _name;
-
+  final String? _name,
+]) {
   /// The value of the varint so far.
   int _value = 0;
 
@@ -29,7 +29,7 @@ final class VarintBuilder {
   /// for the integer.
   ///
   /// If [name] is passed, it's used in error reporting.
-  new(this._maxLength, [this._name]);
+  this;
 
   /// Parses [byte] as a continuation of the varint.
   ///

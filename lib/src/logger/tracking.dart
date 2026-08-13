@@ -11,9 +11,7 @@ import '../logger.dart';
 
 /// An logger that wraps another logger and keeps track of when it is used.
 @internal
-final class TrackingLogger implements Logger {
-  final Logger _logger;
-
+final class TrackingLogger(final Logger _logger) implements Logger {
   /// Whether [warn] has been called on this logger.
   bool get emittedWarning => _emittedWarning;
   bool _emittedWarning = false;
@@ -21,8 +19,6 @@ final class TrackingLogger implements Logger {
   /// Whether [debug] has been called on this logger.
   bool get emittedDebug => _emittedDebug;
   bool _emittedDebug = false;
-
-  new(this._logger);
 
   @override
   void warn(

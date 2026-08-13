@@ -15,21 +15,19 @@ import '../js/logger.dart';
 
 /// A wrapper around a [JSLogger] that exposes it as a Dart [Logger].
 @internal
-final class JSToDartLogger implements Logger {
+final class JSToDartLogger(
   /// The wrapped logger object.
-  final JSLogger? _node;
+  final JSLogger? _node,
 
   /// The fallback logger to use if the [JSLogger] doesn't define a method.
-  final Logger _fallback;
-
+  final Logger _fallback, {
+  bool? ascii,
+}) implements Logger {
   /// Whether to use only ASCII characters when highlighting sections of source
   /// code.
   ///
   /// This defaults to [glyph.ascii].
-  final bool _ascii;
-
-  new(this._node, this._fallback, {bool? ascii})
-    : _ascii = ascii ?? glyph.ascii;
+  final bool _ascii = ascii ?? glyph.ascii;
 
   @override
   void warn(

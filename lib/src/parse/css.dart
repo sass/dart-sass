@@ -35,11 +35,10 @@ final _disallowedFunctionNames =
       ..remove("saturate");
 
 @internal
-final class CssParser extends ScssParser {
+final class CssParser(super.contents, {super.url, super.parseSelectors})
+    extends ScssParser {
   @override
   bool get plainCss => true;
-
-  new(super.contents, {super.url, super.parseSelectors});
 
   new internal(super.contents, {super.url, super.parseSelectors})
     : super.internal();
