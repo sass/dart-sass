@@ -158,7 +158,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
         child.accept(this);
       }
       _rename(node.namePart.typeName);
-      node.namePart.typeParameters?.accept(this);
+      node.namePart.accept(this);
       node.extendsClause?.accept(this);
       node.withClause?.accept(this);
       node.implementsClause?.accept(this);

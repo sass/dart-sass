@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 92606b8a948cf4ad5f881b5f63680ab02c32afaa
+// Checksum: 37648d3b43b1abd909e42ed0098ccd0abc1eb563
 //
 // ignore_for_file: unused_import
 
@@ -586,6 +586,7 @@ final class _EvaluateVisitor
         // ignore: unnecessary_type_check
         if (callable is Callable) {
           return _runFunctionCallable(invocation, callable, _callableNode!);
+          // ignore: dead_code
         } else {
           throw SassScriptException(
             "The function ${callable.name} is asynchronous.\n"
@@ -670,6 +671,7 @@ final class _EvaluateVisitor
               callableNode,
               callableNode,
             );
+            // ignore: dead_code
           } else {
             throw SassScriptException(
               "The mixin ${callable.name} is asynchronous.\n"
