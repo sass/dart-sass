@@ -15,19 +15,16 @@ import '../../../visitor/interface/expression.dart';
 /// evaluated.
 ///
 /// {@category AST}
-final class LegacyIfExpression extends Expression
-    implements CallableInvocation {
+final class LegacyIfExpression(
+  /// The arguments passed to `if()`.
+  @override final ArgumentList arguments,
+
+  @override final FileSpan span,
+) extends Expression implements CallableInvocation {
   /// The declaration of `if()`, as though it were a normal function.
   static final declaration = ParameterList.parse(
     r"@function if($condition, $if-true, $if-false) {",
   );
-
-  /// The arguments passed to `if()`.
-  @override
-  final ArgumentList arguments;
-
-  @override
-  final FileSpan span;
 
   /// Returns a modern `if()` expression to use instead of this.
   ///
@@ -46,8 +43,6 @@ final class LegacyIfExpression extends Expression
           : "if(sass($condition): $ifTrue; else: $ifFalse)",
     _ => null,
   };
-
-  new(this.arguments, this.span);
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

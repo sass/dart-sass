@@ -231,12 +231,10 @@ enum _SingletonCssMediaQueryMergeResult implements MediaQueryMergeResult {
 }
 
 /// A successful result of [CssMediaQuery.merge].
-class MediaQuerySuccessfulMergeResult implements MediaQueryMergeResult {
+class MediaQuerySuccessfulMergeResult._(
   /// The merged media query.
-  final CssMediaQuery query;
-
-  new _(this.query);
-
+  final CssMediaQuery query,
+) implements MediaQueryMergeResult {
   @override
   String toString() => query.toString();
 }

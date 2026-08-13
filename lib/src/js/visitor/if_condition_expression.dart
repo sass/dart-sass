@@ -9,12 +9,9 @@ import '../../visitor/interface/if_condition_expression.dart';
 
 /// A wrapper around a JS object that implements the
 /// [IfConditionExpressionVisitor] methods.
-class JSIfConditionExpressionVisitor
-    implements IfConditionExpressionVisitor<Object?> {
-  final JSIfConditionExpressionVisitorObject _inner;
-
-  new(this._inner);
-
+class JSIfConditionExpressionVisitor(
+  final JSIfConditionExpressionVisitorObject _inner,
+) implements IfConditionExpressionVisitor<Object?> {
   @override
   Object? visitIfConditionParenthesized(IfConditionParenthesized node) =>
       _inner.visitIfConditionParenthesized(node);

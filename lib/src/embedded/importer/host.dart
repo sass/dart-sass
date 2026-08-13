@@ -11,16 +11,20 @@ import '../utils.dart';
 import 'base.dart';
 
 /// An importer that asks the host to resolve imports.
-final class HostImporter extends ImporterBase {
-  /// The host-provided ID of the importer to invoke.
-  final int _importerId;
+final class HostImporter(
+  super.dispatcher,
 
+  /// The host-provided ID of the importer to invoke.
+  final int _importerId,
+  Iterable<String> nonCanonicalSchemes,
+) extends ImporterBase {
   /// The set of URL schemes that this importer promises never to return from
   /// [canonicalize].
-  final Set<String> _nonCanonicalSchemes;
+  final Set<String> _nonCanonicalSchemes = Set.unmodifiable(
+    nonCanonicalSchemes,
+  );
 
-  new(super.dispatcher, this._importerId, Iterable<String> nonCanonicalSchemes)
-    : _nonCanonicalSchemes = Set.unmodifiable(nonCanonicalSchemes) {
+  this {
     for (var scheme in _nonCanonicalSchemes) {
       if (isValidUrlScheme(scheme)) continue;
       throw SassException(

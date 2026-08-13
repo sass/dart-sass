@@ -16,7 +16,13 @@ import 'content_rule.dart';
 /// This declares a mixin that's invoked using `@include`.
 ///
 /// {@category AST}
-final class MixinRule extends CallableDeclaration implements SassDeclaration {
+final class MixinRule(
+  super.name,
+  super.parameters,
+  super.children,
+  super.span, {
+  super.comment,
+}) extends CallableDeclaration implements SassDeclaration {
   /// Whether the mixin contains a `@content` rule.
   late final bool hasContent =
       const _HasContentVisitor().visitMixinRule(this) == true;
@@ -28,14 +34,6 @@ final class MixinRule extends CallableDeclaration implements SassDeclaration {
         : span.withoutInitialAtRule();
     return startSpan.initialIdentifier();
   }
-
-  new(
-    super.name,
-    super.parameters,
-    super.children,
-    super.span, {
-    super.comment,
-  });
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitMixinRule(this);
@@ -51,9 +49,7 @@ final class MixinRule extends CallableDeclaration implements SassDeclaration {
 
 /// A visitor for determining whether a [MixinRule] recursively contains a
 /// [ContentRule].
-class _HasContentVisitor with StatementSearchVisitor<bool> {
-  const new();
-
+class const _HasContentVisitor() with StatementSearchVisitor<bool> {
   @override
   bool visitContentRule(_) => true;
 }

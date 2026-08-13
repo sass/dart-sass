@@ -13,12 +13,10 @@ import '../utils.dart';
 
 /// A wrapper for a potentially-asynchronous JS API file importer that exposes
 /// it as a Dart [AsyncImporter].
-final class JSToDartFileImporter extends Importer {
+final class JSToDartFileImporter(
   /// The wrapped `findFileUrl` function.
-  final Object? Function(String, CanonicalizeContext) _findFileUrl;
-
-  new(this._findFileUrl);
-
+  final Object? Function(String, CanonicalizeContext) _findFileUrl,
+) extends Importer {
   @override
   Uri? canonicalize(Uri url) {
     if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);

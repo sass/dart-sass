@@ -10,18 +10,12 @@ import '../comment.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssComment] for use in the evaluation step.
-final class ModifiableCssComment extends ModifiableCssNode
-    implements CssComment {
-  @override
-  final String text;
-
-  @override
-  final FileSpan span;
-
+final class ModifiableCssComment(
+  @override final String text,
+  @override final FileSpan span,
+) extends ModifiableCssNode implements CssComment {
   @override
   bool get isPreserved => text.codeUnitAt(2) == $exclamation;
-
-  new(this.text, this.span);
 
   @override
   T accept<T>(ModifiableCssVisitor<T> visitor) => visitor.visitCssComment(this);

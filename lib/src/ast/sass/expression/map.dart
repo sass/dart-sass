@@ -10,18 +10,15 @@ import '../expression.dart';
 /// A map literal.
 ///
 /// {@category AST}
-final class MapExpression extends Expression {
+final class MapExpression(
+  Iterable<(Expression, Expression)> pairs,
+  @override final FileSpan span,
+) extends Expression {
   /// The pairs in this map.
   ///
   /// This is a list of pairs rather than a map because a map may have two keys
   /// with the same expression (e.g. `(unique-id(): 1, unique-id(): 2)`).
-  final List<(Expression, Expression)> pairs;
-
-  @override
-  final FileSpan span;
-
-  new(Iterable<(Expression, Expression)> pairs, this.span)
-    : pairs = List.unmodifiable(pairs);
+  final List<(Expression, Expression)> pairs = List.unmodifiable(pairs);
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) => visitor.visitMapExpression(this);

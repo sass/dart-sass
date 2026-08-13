@@ -21,13 +21,54 @@ export 'color/space.dart';
 ///
 /// {@category Value}
 @sealed
-class SassColor extends Value {
+class SassColor._forSpace(
+  final ColorSpace _space,
+
+  /// This color's first channel.
+  ///
+  /// The semantics of this depend on the color space. If this is `null`, that
+  /// indicates a [missing] component.
+  ///
+  /// [missing]: https://www.w3.org/TR/css-color-4/#missing
+  ///
+  /// @nodoc
+  @internal final double? channel0OrNull,
+
+  /// This color's second channel.
+  ///
+  /// The semantics of this depend on the color space. If this is `null`, that
+  /// indicates a [missing] component.
+  ///
+  /// [missing]: https://www.w3.org/TR/css-color-4/#missing
+  ///
+  /// @nodoc
+  @internal final double? channel1OrNull,
+
+  /// This color's third channel.
+  ///
+  /// The semantics of this depend on the color space. If this is `null`, that
+  /// indicates a [missing] component.
+  ///
+  /// [missing]: https://www.w3.org/TR/css-color-4/#missing
+  ///
+  /// @nodoc
+  @internal final double? channel2OrNull,
+  double? alpha, [
+
+  /// The format in which this color was originally written and should be
+  /// serialized in expanded mode, or `null` if the color wasn't written in a
+  /// supported format.
+  ///
+  /// This is only set if `space` is `"rgb"`.
+  ///
+  /// @nodoc
+  @internal final ColorFormat? format,
+]) extends Value {
   // We don't use public fields because they'd be overridden by the getters of
   // the same name in the JS API.
 
   /// This color's space.
   ColorSpace get space => _space;
-  final ColorSpace _space;
 
   /// The values of this color's channels (excluding the alpha channel).
   ///
@@ -75,17 +116,6 @@ class SassColor extends Value {
     _ => false,
   };
 
-  /// This color's first channel.
-  ///
-  /// The semantics of this depend on the color space. If this is `null`, that
-  /// indicates a [missing] component.
-  ///
-  /// [missing]: https://www.w3.org/TR/css-color-4/#missing
-  ///
-  /// @nodoc
-  @internal
-  final double? channel0OrNull;
-
   /// This color's second channel.
   ///
   /// The semantics of this depend on the color space. Returns 0 for a missing
@@ -111,16 +141,14 @@ class SassColor extends Value {
   @internal
   final bool isChannel1Powerless = false;
 
-  /// This color's second channel.
+  /// This color's third channel.
   ///
-  /// The semantics of this depend on the color space. If this is `null`, that
-  /// indicates a [missing] component.
-  ///
-  /// [missing]: https://www.w3.org/TR/css-color-4/#missing
+  /// The semantics of this depend on the color space. Returns 0 for a missing
+  /// channel.
   ///
   /// @nodoc
   @internal
-  final double? channel1OrNull;
+  double get channel2 => channel2OrNull ?? 0;
 
   /// Returns whether this color's third channel is [missing].
   ///
@@ -141,36 +169,6 @@ class SassColor extends Value {
     _ => false,
   };
 
-  /// This color's third channel.
-  ///
-  /// The semantics of this depend on the color space. Returns 0 for a missing
-  /// channel.
-  ///
-  /// @nodoc
-  @internal
-  double get channel2 => channel2OrNull ?? 0;
-
-  /// This color's third channel.
-  ///
-  /// The semantics of this depend on the color space. If this is `null`, that
-  /// indicates a [missing] component.
-  ///
-  /// [missing]: https://www.w3.org/TR/css-color-4/#missing
-  ///
-  /// @nodoc
-  @internal
-  final double? channel2OrNull;
-
-  /// The format in which this color was originally written and should be
-  /// serialized in expanded mode, or `null` if the color wasn't written in a
-  /// supported format.
-  ///
-  /// This is only set if `space` is `"rgb"`.
-  ///
-  /// @nodoc
-  @internal
-  final ColorFormat? format;
-
   /// This color's alpha channel, between `0` and `1`.
   double get alpha => alphaOrNull ?? 0;
 
@@ -181,7 +179,9 @@ class SassColor extends Value {
   /// [missing]: https://www.w3.org/TR/css-color-4/#missing
   ///
   /// @nodoc
-  final double? alphaOrNull;
+  final double? alphaOrNull = alpha.andThen(
+    (alpha) => fuzzyAssertRange(alpha, 0, 1, "alpha"),
+  );
 
   /// Returns whether this color's alpha channel is [missing].
   ///
@@ -601,16 +601,7 @@ class SassColor extends Value {
 
   /// Like [forSpaceInternal], but doesn't do _any_ pre-processing of any
   /// channels.
-  new _forSpace(
-    this._space,
-    this.channel0OrNull,
-    this.channel1OrNull,
-    this.channel2OrNull,
-    double? alpha, [
-    this.format,
-  ]) : alphaOrNull = alpha.andThen(
-         (alpha) => fuzzyAssertRange(alpha, 0, 1, "alpha"),
-       ) {
+  this {
     assert(format == null || _space == ColorSpace.rgb);
     assert(space != ColorSpace.lms);
   }
@@ -1154,18 +1145,14 @@ class SassColor extends Value {
 /// When a color is serialized in expanded mode, it should preserve its original
 /// format.
 @internal
-abstract class ColorFormat {
+abstract class ColorFormat() {
   /// A color defined using the `rgb()` or `rgba()` functions.
   static const rgbFunction = _ColorFormatEnum("rgbFunction");
 }
 
 /// The class for enum values of the [ColorFormat] type.
 @sealed
-class _ColorFormatEnum implements ColorFormat {
-  final String _name;
-
-  const new(this._name);
-
+class const _ColorFormatEnum(final String _name) implements ColorFormat {
   @override
   String toString() => _name;
 }
@@ -1177,12 +1164,10 @@ class _ColorFormatEnum implements ColorFormat {
 /// allocations.
 @internal
 @sealed
-class SpanColorFormat implements ColorFormat {
+class SpanColorFormat(
   /// The span tracking the location in which this color was originally defined.
-  final FileSpan _span;
-
+  final FileSpan _span,
+) implements ColorFormat {
   /// The original string that was used to define this color in the Sass source.
   String get original => _span.text;
-
-  new(this._span);
 }

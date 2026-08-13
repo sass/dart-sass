@@ -14,7 +14,7 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class HwbColorSpace extends ColorSpace {
+final class const HwbColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => true;
 
@@ -24,7 +24,7 @@ final class HwbColorSpace extends ColorSpace {
   @override
   bool get isPolarInternal => true;
 
-  const new()
+  this
     : super('hwb', const [
         hueChannel,
         LinearChannel('whiteness', 0, 100, requiresPercent: true),

@@ -142,7 +142,15 @@ double? conversionFactor(String unit1, String unit2) {
 ///
 /// {@category Value}
 @sealed
-abstract class SassNumber extends Value {
+abstract class SassNumber.protected(
+  final double _value,
+
+  /// The representation of this number as two slash-separated numbers, if it
+  /// has one.
+  ///
+  /// @nodoc
+  @internal final (SassNumber, SassNumber)? asSlash,
+) extends Value {
   /// The number of distinct digits that are emitted when converting a number to
   /// CSS.
   static const precision = 10;
@@ -157,7 +165,6 @@ abstract class SassNumber extends Value {
   /// whether this is an integer, [asInt] to get its integer value, or
   /// [assertInt] to do both at once.
   double get value => _value;
-  final double _value;
 
   /// The cached hash code for this number, if it's been computed.
   ///
@@ -183,13 +190,6 @@ abstract class SassNumber extends Value {
   /// This is `true` for numbers whose units make them unrepresentable as CSS
   /// lengths.
   bool get hasComplexUnits;
-
-  /// The representation of this number as two slash-separated numbers, if it
-  /// has one.
-  ///
-  /// @nodoc
-  @internal
-  final (SassNumber, SassNumber)? asSlash;
 
   /// Whether `this` is an integer, according to [fuzzyEquals].
   ///
@@ -274,7 +274,7 @@ abstract class SassNumber extends Value {
 
   /// @nodoc
   @protected
-  new protected(this._value, this.asSlash);
+  this;
 
   @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitNumber(this);

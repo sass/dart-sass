@@ -11,7 +11,7 @@ import '../../value.dart';
 ///
 /// {@category Value}
 @sealed
-class UnitlessSassNumber extends SassNumber {
+class UnitlessSassNumber(super.value, [super.asSlash]) extends SassNumber {
   @override
   List<String> get numeratorUnits => const [];
 
@@ -24,7 +24,7 @@ class UnitlessSassNumber extends SassNumber {
   @override
   bool get hasComplexUnits => false;
 
-  new(super.value, [super.asSlash]) : super.protected();
+  this : super.protected();
 
   @override
   SassNumber withValue(num value) => UnitlessSassNumber(value.toDouble());

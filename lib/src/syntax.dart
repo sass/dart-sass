@@ -7,7 +7,10 @@ import 'package:path/path.dart' as p;
 /// An enum of syntaxes that Sass can parse.
 ///
 /// {@category Compile}
-enum Syntax {
+enum Syntax(
+  /// The name of the syntax.
+  final String _name,
+) {
   /// The CSS-superset SCSS syntax.
   scss('SCSS'),
 
@@ -23,11 +26,6 @@ enum Syntax {
     '.css' => Syntax.css,
     _ => Syntax.scss,
   };
-
-  /// The name of the syntax.
-  final String _name;
-
-  const new(this._name);
 
   @override
   String toString() => _name;

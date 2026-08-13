@@ -19,11 +19,11 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class XyzD50ColorSpace extends ColorSpace {
+final class const XyzD50ColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => false;
 
-  const new() : super('xyz-d50', xyzChannels);
+  this : super('xyz-d50', xyzChannels);
 
   @override
   SassColor convert(

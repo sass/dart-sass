@@ -13,26 +13,19 @@ import 'unary_operation.dart';
 /// A list literal.
 ///
 /// {@category AST}
-final class ListExpression extends Expression {
-  /// The elements of this list.
-  final List<Expression> contents;
+final class ListExpression(
+  Iterable<Expression> contents,
 
   /// Which separator this list uses.
-  final ListSeparator separator;
+  final ListSeparator separator,
+  @override final FileSpan span, {
+  bool brackets = false,
+}) extends Expression {
+  /// The elements of this list.
+  final List<Expression> contents = List.unmodifiable(contents);
 
   /// Whether the list has square brackets or not.
-  final bool hasBrackets;
-
-  @override
-  final FileSpan span;
-
-  new(
-    Iterable<Expression> contents,
-    this.separator,
-    this.span, {
-    bool brackets = false,
-  }) : contents = List.unmodifiable(contents),
-       hasBrackets = brackets;
+  final bool hasBrackets = brackets;
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

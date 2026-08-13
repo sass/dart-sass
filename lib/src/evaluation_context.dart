@@ -109,12 +109,10 @@ T withEvaluationContext<T>(EvaluationContext context, T Function() callback) =>
 /// A [Logger] that forwards warnings to [EvaluationContext.warn].
 ///
 /// This should only ever be used for warnings, not debug messages.
-class _EvaluationContextLogger extends LoggerWithDeprecationType {
+class _EvaluationContextLogger(
   /// The context to which this logger forwards.
-  final EvaluationContext _context;
-
-  new(this._context);
-
+  final EvaluationContext _context,
+) extends LoggerWithDeprecationType {
   @override
   void debug(String message, SourceSpan span) {
     throw UnimplementedError(

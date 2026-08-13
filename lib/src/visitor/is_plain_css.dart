@@ -14,14 +14,13 @@ import 'interface/if_condition_expression.dart';
 /// produce the same result as it would in Sass.
 ///
 /// This should be used through [Expression.isPlainCss].
-class IsPlainCssVisitor
-    implements ExpressionVisitor<bool>, IfConditionExpressionVisitor<bool> {
+class const IsPlainCssVisitor({
   /// Whether to allow interpolation to as an exception to allowing plain CSS.
-  final bool _allowInterpolation;
-
+  final bool _allowInterpolation = false,
+}) implements ExpressionVisitor<bool>, IfConditionExpressionVisitor<bool> {
   /// If [_allowInterpolation] is true, interpolated expressions are allowed as
   /// an exception, even if they contain SassScript.
-  const new({this._allowInterpolation = false});
+  this;
 
   @override
   bool visitBinaryOperationExpression(BinaryOperationExpression node) => false;

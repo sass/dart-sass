@@ -30,7 +30,13 @@ import 'space/xyz_d65.dart';
 ///
 /// {@category Value}
 @sealed
-abstract base class ColorSpace {
+abstract base class const ColorSpace(
+  /// The CSS name of the color space.
+  final String name,
+
+  /// See [SassApiColorSpace.channels].
+  final List<ColorChannel> _channels,
+) {
   /// The legacy RGB color space.
   static const ColorSpace rgb = RgbColorSpace();
 
@@ -115,12 +121,6 @@ abstract base class ColorSpace {
   /// https://www.w3.org/TR/css-color-4/#ok-lab
   static const ColorSpace oklch = OklchColorSpace();
 
-  /// The CSS name of the color space.
-  final String name;
-
-  /// See [SassApiColorSpace.channels].
-  final List<ColorChannel> _channels;
-
   /// See [SassApiColorSpace.isBounded].
   ///
   /// @nodoc
@@ -141,7 +141,7 @@ abstract base class ColorSpace {
 
   /// @nodoc
   @internal
-  const new(this.name, this._channels);
+  this;
 
   /// Given a color space name, returns the known color space with that name or
   /// throws a [SassScriptException] if there is none.

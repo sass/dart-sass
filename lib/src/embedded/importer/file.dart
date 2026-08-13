@@ -8,12 +8,12 @@ import 'base.dart';
 
 /// An importer that asks the host to resolve imports in a simplified,
 /// file-system-centric way.
-final class FileImporter extends ImporterBase {
+final class FileImporter(
+  super.dispatcher,
+
   /// The host-provided ID of the importer to invoke.
-  final int _importerId;
-
-  new(super.dispatcher, this._importerId);
-
+  final int _importerId,
+) extends ImporterBase {
   @override
   Uri? canonicalize(Uri url) {
     if (url.scheme == 'file') return FilesystemImporter.cwd.canonicalize(url);

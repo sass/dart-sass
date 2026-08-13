@@ -64,18 +64,16 @@ Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
 
 /// Holds state that's shared across functions that react to changes on the
 /// filesystem.
-final class _Watcher {
+final class _Watcher(
   /// The options for the Sass executable.
-  final ExecutableOptions _options;
+  final ExecutableOptions _options,
 
   /// The graph of stylesheets being compiled.
-  final StylesheetGraph _graph;
-
+  final StylesheetGraph _graph,
+) {
   /// A map from source paths to destinations that need to be recompiled once
   /// the current batch of events has been processed.
   final Map<String, String> _toRecompile = {};
-
-  new(this._options, this._graph);
 
   /// Deletes the file at [path] and prints a message about it.
   void _delete(String path) {

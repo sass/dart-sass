@@ -16,25 +16,22 @@ import 'complex_component.dart';
 /// when `parseSelectors: true` is passed to [Stylesheet.parse].
 ///
 /// {@category AST}
-final class InterpolatedComplexSelector extends InterpolatedSelector {
+final class InterpolatedComplexSelector(
+  Iterable<InterpolatedComplexSelectorComponent> components,
+  @override final FileSpan span, {
+
   /// This selector's leading combinator.
   ///
   /// If this is null, that indicates that it has no leading combinator. It's only null if
-  final CssValue<Combinator>? leadingCombinator;
-
+  final CssValue<Combinator>? leadingCombinator,
+}) extends InterpolatedSelector {
   /// The components of this selector.
   ///
   /// This is only empty if [leadingCombinators] is not null.
-  final List<InterpolatedComplexSelectorComponent> components;
+  final List<InterpolatedComplexSelectorComponent> components =
+      List.unmodifiable(components);
 
-  @override
-  final FileSpan span;
-
-  new(
-    Iterable<InterpolatedComplexSelectorComponent> components,
-    this.span, {
-    this.leadingCombinator,
-  }) : components = List.unmodifiable(components) {
+  this {
     if (leadingCombinator == null && this.components.isEmpty) {
       throw ArgumentError(
         "components may not be empty if leadingCombinator is null.",

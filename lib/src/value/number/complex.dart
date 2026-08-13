@@ -12,17 +12,20 @@ import '../number.dart';
 ///
 /// {@category Value}
 @sealed
-class ComplexSassNumber extends SassNumber {
+class ComplexSassNumber._(
+  super.value,
+  final List<String> _numeratorUnits,
+  final List<String> _denominatorUnits, [
+  super.asSlash,
+]) extends SassNumber {
   // We don't use public fields because they'd be overridden by the getters of
   // the same name in the JS API.
 
   @override
   List<String> get numeratorUnits => _numeratorUnits;
-  final List<String> _numeratorUnits;
 
   @override
   List<String> get denominatorUnits => _denominatorUnits;
-  final List<String> _denominatorUnits;
 
   @override
   bool get hasUnits => true;
@@ -33,12 +36,7 @@ class ComplexSassNumber extends SassNumber {
   new(double value, List<String> numeratorUnits, List<String> denominatorUnits)
     : this._(value, numeratorUnits, denominatorUnits);
 
-  new _(
-    double value,
-    this._numeratorUnits,
-    this._denominatorUnits, [
-    (SassNumber, SassNumber)? asSlash,
-  ]) : super.protected(value, asSlash) {
+  this : super.protected() {
     assert(numeratorUnits.length > 1 || denominatorUnits.isNotEmpty);
   }
 

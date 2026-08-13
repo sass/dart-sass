@@ -16,12 +16,12 @@ import '../io.dart';
 import 'package:path/path.dart' as p;
 
 /// An [Importer] that resolves `pkg:` URLs using the Node resolution algorithm.
-class NodePackageImporter extends Importer {
+class NodePackageImporter(String entryPointDirectory) extends Importer {
   /// The starting path for canonicalizations without a containing URL.
   late final String _entryPointDirectory;
 
   /// Creates a Node package importer with the associated entry point.
-  new(String entryPointDirectory) {
+  this {
     if (isBrowser) {
       throw "The Node package importer cannot be used without a filesystem.";
     }

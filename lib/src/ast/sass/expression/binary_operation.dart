@@ -113,7 +113,19 @@ final class BinaryOperationExpression extends Expression {
 /// A binary operator constant.
 ///
 /// {@category AST}
-enum BinaryOperator {
+enum BinaryOperator(
+  /// The English name of `this`.
+  final String name,
+
+  /// The Sass syntax for `this`.
+  final String operator,
+
+  /// The precedence of `this`.
+  ///
+  /// An operator with higher precedence binds tighter.
+  final int precedence, {
+  bool associative = false,
+}) {
   // Note: When updating these operators, also update
   // pkg/sass-parser/lib/src/expression/binary-operation.ts.
 
@@ -159,28 +171,10 @@ enum BinaryOperator {
   /// The modulo operator, `%`.
   modulo('modulo', '%', 6);
 
-  /// The English name of `this`.
-  final String name;
-
-  /// The Sass syntax for `this`.
-  final String operator;
-
-  /// The precedence of `this`.
-  ///
-  /// An operator with higher precedence binds tighter.
-  final int precedence;
-
   /// Whether this operation has the [associative property].
   ///
   /// [associative property]: https://en.wikipedia.org/wiki/Associative_property
-  final bool isAssociative;
-
-  const new(
-    this.name,
-    this.operator,
-    this.precedence, {
-    bool associative = false,
-  }) : isAssociative = associative;
+  final bool isAssociative = associative;
 
   @override
   String toString() => name;

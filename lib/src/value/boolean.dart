@@ -21,10 +21,10 @@ const sassFalse = SassBoolean._(false);
 ///
 /// {@category Value}
 @sealed
-class SassBoolean extends Value {
+class const SassBoolean._(
   /// Whether this value is `true` or `false`.
-  final bool value;
-
+  final bool value,
+) extends Value {
   @override
   bool get isTruthy => value;
 
@@ -33,8 +33,6 @@ class SassBoolean extends Value {
   /// This just returns [sassTrue] or [sassFalse]; it doesn't allocate a new
   /// value.
   factory(bool value) => value ? sassTrue : sassFalse;
-
-  const new _(this.value);
 
   /// @nodoc
   @override

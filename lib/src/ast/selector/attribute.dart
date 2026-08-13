@@ -79,7 +79,10 @@ final class AttributeSelector extends SimpleSelector {
 /// An operator that defines the semantics of an [AttributeSelector].
 ///
 /// {@category AST}
-enum AttributeOperator {
+enum AttributeOperator(
+  /// The operator's token text.
+  final String _text,
+) {
   /// The attribute value exactly equals the given value.
   equal('='),
 
@@ -99,11 +102,6 @@ enum AttributeOperator {
 
   /// The attribute value contains the given value.
   substring('*=');
-
-  /// The operator's token text.
-  final String _text;
-
-  const new(this._text);
 
   @override
   String toString() => _text;

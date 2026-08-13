@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 5057ef3220c2511dfe9b1b70140c151b829dbe52
+// Checksum: 7af7fc2d2147a603f891f926689bd3909cdf908d
 //
 // ignore_for_file: unused_import
 
@@ -966,42 +966,12 @@ final class Environment {
 }
 
 /// A module that represents the top-level members defined in an [Environment].
-final class _EnvironmentModule implements Module<Callable> {
-  @override
-  Uri? get url => css.span.sourceUrl;
-
-  @override
-  final List<Module<Callable>> upstream;
-
-  @override
-  final Map<String, Value> variables;
-
-  @override
-  final Map<String, AstNode> variableNodes;
-
-  @override
-  final Map<String, Callable> functions;
-
-  @override
-  final Map<String, Callable> mixins;
-
-  @override
-  final ExtensionStore extensionStore;
-
-  @override
-  final CssStylesheet css;
-
-  @override
-  final Map<Module<Callable>, List<CssComment>> preModuleComments;
-
-  @override
-  final bool transitivelyContainsCss;
-
-  @override
-  final bool transitivelyContainsExtensions;
-
+final class _EnvironmentModule._(
   /// The environment that defines this module's members.
-  final Environment _environment;
+  final Environment _environment,
+  @override final CssStylesheet css,
+  @override final Map<Module<Callable>, List<CssComment>> preModuleComments,
+  @override final ExtensionStore extensionStore,
 
   /// A map from variable names to the modules in which those variables appear,
   /// used to determine where variables should be set.
@@ -1009,7 +979,19 @@ final class _EnvironmentModule implements Module<Callable> {
   /// Variables that don't appear in this map are either defined directly in
   /// this module (if they appear in `_environment._variables.first`) or not
   /// defined at all.
-  final Map<String, Module<Callable>> _modulesByVariable;
+  final Map<String, Module<Callable>> _modulesByVariable,
+  @override final Map<String, Value> variables,
+  @override final Map<String, AstNode> variableNodes,
+  @override final Map<String, Callable> functions,
+  @override final Map<String, Callable> mixins, {
+  @override required final bool transitivelyContainsCss,
+  @override required final bool transitivelyContainsExtensions,
+}) implements Module<Callable> {
+  @override
+  Uri? get url => css.span.sourceUrl;
+
+  @override
+  final List<Module<Callable>> upstream = _environment._allModules;
 
   factory(
     Environment environment,
@@ -1101,20 +1083,6 @@ final class _EnvironmentModule implements Module<Callable> {
 
     return MergedMapView(allMaps);
   }
-
-  new _(
-    this._environment,
-    this.css,
-    this.preModuleComments,
-    this.extensionStore,
-    this._modulesByVariable,
-    this.variables,
-    this.variableNodes,
-    this.functions,
-    this.mixins, {
-    required this.transitivelyContainsCss,
-    required this.transitivelyContainsExtensions,
-  }) : upstream = _environment._allModules;
 
   @override
   void setVariable(String name, Value value, AstNode nodeWithSpan) {

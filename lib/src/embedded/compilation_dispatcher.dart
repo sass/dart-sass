@@ -34,13 +34,13 @@ final _outboundRequestId = 0;
 
 /// A class that dispatches messages to and from the host for a single
 /// compilation.
-final class CompilationDispatcher {
+final class CompilationDispatcher(
   /// The mailbox for receiving messages from the host.
-  final Mailbox _mailbox;
+  final Mailbox _mailbox,
 
   /// The send port for sending messages to the host.
-  final SendPort _sendPort;
-
+  final SendPort _sendPort,
+) {
   /// The compilation ID for which this dispatcher is running.
   ///
   /// This is used in error messages.
@@ -53,7 +53,7 @@ final class CompilationDispatcher {
 
   /// Creates a [CompilationDispatcher] that receives encoded protocol buffers
   /// through [_mailbox] and sends them through [_sendPort].
-  new(this._mailbox, this._sendPort);
+  this;
 
   /// Listens for incoming `CompileRequests` and runs their compilations.
   void listen() {

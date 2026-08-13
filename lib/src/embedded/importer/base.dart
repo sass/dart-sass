@@ -9,13 +9,10 @@ import '../compilation_dispatcher.dart';
 
 /// An abstract base class for importers that communicate with the host in some
 /// way.
-abstract base class ImporterBase extends Importer {
+abstract base class ImporterBase(
   /// The [CompilationDispatcher] to which to send requests.
-  @protected
-  final CompilationDispatcher dispatcher;
-
-  new(this.dispatcher);
-
+  @protected final CompilationDispatcher dispatcher,
+) extends Importer {
   /// Parses [url] as a [Uri] and throws an error if it's invalid or relative
   /// (including root-relative).
   ///

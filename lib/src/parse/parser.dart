@@ -20,14 +20,17 @@ import '../utils.dart';
 /// This provides utility methods and common token parsing. Unless specified
 /// otherwise, a parse method throws a [SassFormatException] if it fails to
 /// parse.
-class Parser {
-  /// The scanner that scans through the text being parsed.
-  final SpanScanner scanner;
+class Parser(
+  String contents, {
+  Object? url,
 
   /// A map used to map source spans in the text being parsed back to their
   /// original locations in the source file, if this isn't being parsed directly
   /// from source.
-  final InterpolationMap? _interpolationMap;
+  final InterpolationMap? _interpolationMap,
+}) {
+  /// The scanner that scans through the text being parsed.
+  final SpanScanner scanner = SpanScanner(contents, sourceUrl: url);
 
   /// Parses [text] as a CSS identifier and returns the result.
   ///
@@ -51,8 +54,7 @@ class Parser {
       Parser(text)._isVariableDeclarationLike();
 
   @protected
-  new(String contents, {Object? url, this._interpolationMap})
-    : scanner = SpanScanner(contents, sourceUrl: url);
+  this;
 
   String _parseIdentifier() {
     return wrapSpanFormatException(() {

@@ -42,7 +42,7 @@ export 'selector/universal.dart';
 /// Selectors have structural equality semantics.
 ///
 /// {@category AST}
-abstract base class Selector implements AstNode {
+abstract base class Selector(@override final FileSpan span) implements AstNode {
   /// Whether this selector, and complex selectors containing it, should not be
   /// emitted.
   ///
@@ -87,11 +87,6 @@ abstract base class Selector implements AstNode {
   @internal
   bool get isUseless => accept(const _IsUselessVisitor());
 
-  @override
-  final FileSpan span;
-
-  new(this.span);
-
   /// Prints a warning if `this` is a bogus selector.
   ///
   /// This may only be called from within a custom Sass function. This will
@@ -115,12 +110,10 @@ abstract base class Selector implements AstNode {
 }
 
 /// The visitor used to implement [Selector.isInvisible].
-class _IsInvisibleVisitor with AnySelectorVisitor {
+class const _IsInvisibleVisitor({
   /// Whether to consider selectors with bogus combinators invisible.
-  final bool includeBogus;
-
-  const new({required this.includeBogus});
-
+  required final bool includeBogus,
+}) with AnySelectorVisitor {
   @override
   bool visitSelectorList(SelectorList list) =>
       list.components.every(visitComplexSelector);
@@ -150,12 +143,10 @@ class _IsInvisibleVisitor with AnySelectorVisitor {
 }
 
 /// The visitor used to implement [Selector.isBogus].
-class _IsBogusVisitor with AnySelectorVisitor {
+class const _IsBogusVisitor({
   /// Whether to consider selectors with leading combinators as bogus.
-  final bool includeLeadingCombinator;
-
-  const new({required this.includeLeadingCombinator});
-
+  required final bool includeLeadingCombinator,
+}) with AnySelectorVisitor {
   @override
   bool visitComplexSelector(ComplexSelector complex) {
     if (complex.components.isEmpty) {
@@ -185,9 +176,7 @@ class _IsBogusVisitor with AnySelectorVisitor {
 }
 
 /// The visitor used to implement [Selector.isUseless].
-class _IsUselessVisitor with AnySelectorVisitor {
-  const new();
-
+class const _IsUselessVisitor() with AnySelectorVisitor {
   @override
   bool visitComplexSelector(ComplexSelector complex) =>
       complex.leadingCombinators.length > 1 ||
@@ -201,9 +190,7 @@ class _IsUselessVisitor with AnySelectorVisitor {
 }
 
 /// The visitor used to implement [Selector.containsParentSelector].
-class _ContainsParentSelectorVisitor with AnySelectorVisitor {
-  const new();
-
+class const _ContainsParentSelectorVisitor() with AnySelectorVisitor {
   @override
   bool visitParentSelector(ParentSelector _) => true;
 }

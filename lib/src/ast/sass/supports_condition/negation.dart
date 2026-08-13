@@ -14,15 +14,11 @@ import 'operation.dart';
 /// A negated condition.
 ///
 /// {@category AST}
-final class SupportsNegation implements SupportsCondition {
+final class SupportsNegation(
   /// The condition that's been negated.
-  final SupportsCondition condition;
-
-  @override
-  final FileSpan span;
-
-  new(this.condition, this.span);
-
+  final SupportsCondition condition,
+  @override final FileSpan span,
+) implements SupportsCondition {
   /// @nodoc
   @override
   @internal

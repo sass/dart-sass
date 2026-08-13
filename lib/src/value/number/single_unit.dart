@@ -40,9 +40,8 @@ final _knownCompatibilitiesByUnit = {
 ///
 /// {@category Value}
 @sealed
-class SingleUnitSassNumber extends SassNumber {
-  final String _unit;
-
+class SingleUnitSassNumber(super.value, final String _unit, [super.asSlash])
+    extends SassNumber {
   @override
   List<String> get numeratorUnits => List.unmodifiable([_unit]);
 
@@ -55,8 +54,7 @@ class SingleUnitSassNumber extends SassNumber {
   @override
   bool get hasComplexUnits => false;
 
-  new(double value, this._unit, [(SassNumber, SassNumber)? asSlash])
-    : super.protected(value, asSlash);
+  this : super.protected();
 
   @override
   SassNumber withValue(num value) =>

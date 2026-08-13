@@ -6,9 +6,7 @@ import 'package:collection/collection.dart';
 
 import 'number.dart';
 
-class FuzzyEquality implements Equality<double> {
-  const new();
-
+class const FuzzyEquality() implements Equality<double> {
   @override
   bool equals(double e1, double e2) => fuzzyEquals(e1, e2);
 

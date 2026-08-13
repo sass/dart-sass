@@ -8,11 +8,8 @@ import '../../ast/sass.dart';
 import '../../visitor/interface/expression.dart';
 
 /// A wrapper around a JS object that implements the [ExpressionVisitor] methods.
-class JSExpressionVisitor implements ExpressionVisitor<Object?> {
-  final JSExpressionVisitorObject _inner;
-
-  new(this._inner);
-
+class JSExpressionVisitor(final JSExpressionVisitorObject _inner)
+    implements ExpressionVisitor<Object?> {
   @override
   Object? visitBinaryOperationExpression(BinaryOperationExpression node) =>
       _inner.visitBinaryOperationExpression(node);

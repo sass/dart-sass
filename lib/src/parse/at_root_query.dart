@@ -8,9 +8,8 @@ import '../ast/sass.dart';
 import 'parser.dart';
 
 /// A parser for `@at-root` queries.
-class AtRootQueryParser extends Parser {
-  new(super.contents, {super.url, super.interpolationMap});
-
+class AtRootQueryParser(super.contents, {super.url, super.interpolationMap})
+    extends Parser {
   AtRootQuery parse() {
     return wrapSpanFormatException(() {
       scanner.expectChar($lparen);

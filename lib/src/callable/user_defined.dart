@@ -8,21 +8,19 @@ import '../callable.dart';
 /// A callback defined in the user's Sass stylesheet.
 ///
 /// The type parameter [E] should either be `Environment` or `AsyncEnvironment`.
-final class UserDefinedCallable<E> implements Callable {
+final class UserDefinedCallable<E>(
   /// The declaration.
-  final CallableDeclaration declaration;
+  final CallableDeclaration declaration,
 
   /// The environment in which this callable was declared.
-  final E environment;
+  final E environment, {
 
   /// Whether this callable was defined in a dependency.
   ///
   /// That is, whether this was (transitively) loaded through a load path or
   /// importer rather than relative to the entrypoint.
-  final bool inDependency;
-
+  required final bool inDependency,
+}) implements Callable {
   @override
   String get name => declaration.name;
-
-  new(this.declaration, this.environment, {required this.inDependency});
 }

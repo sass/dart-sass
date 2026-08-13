@@ -14,19 +14,22 @@ import 'complex.dart';
 /// when `parseSelectors: true` is passed to [Stylesheet.parse].
 ///
 /// {@category AST}
-final class InterpolatedSelectorList extends InterpolatedSelector {
+final class InterpolatedSelectorList(
+  Iterable<InterpolatedComplexSelector> components,
+) extends InterpolatedSelector {
   /// The components of this selector.
   ///
   /// This is never empty.
-  final List<InterpolatedComplexSelector> components;
+  final List<InterpolatedComplexSelector> components = List.unmodifiable(
+    components,
+  );
 
   @override
   FileSpan get span => components.length == 1
       ? components.first.span
       : components.first.span.expand(components.last.span);
 
-  new(Iterable<InterpolatedComplexSelector> components)
-    : components = List.unmodifiable(components) {
+  this {
     if (this.components.isEmpty) {
       throw ArgumentError("components may not be empty.");
     }

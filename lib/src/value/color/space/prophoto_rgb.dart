@@ -17,11 +17,11 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class ProphotoRgbColorSpace extends ColorSpace {
+final class const ProphotoRgbColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => true;
 
-  const new() : super('prophoto-rgb', rgbChannels);
+  this : super('prophoto-rgb', rgbChannels);
 
   @override
   @protected

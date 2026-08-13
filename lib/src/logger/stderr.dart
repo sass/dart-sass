@@ -12,12 +12,10 @@ import '../logger.dart';
 import '../utils.dart';
 
 /// A logger that prints warnings to standard error or browser console.
-final class StderrLogger extends LoggerWithDeprecationType {
+final class const StderrLogger({
   /// Whether to use terminal colors in messages.
-  final bool color;
-
-  const new({this.color = false});
-
+  final bool color = false,
+}) extends LoggerWithDeprecationType {
   @override
   void internalWarn(
     String message, {

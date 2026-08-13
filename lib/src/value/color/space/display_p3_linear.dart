@@ -19,11 +19,11 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class DisplayP3LinearColorSpace extends ColorSpace {
+final class const DisplayP3LinearColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => true;
 
-  const new() : super('display-p3-linear', rgbChannels);
+  this : super('display-p3-linear', rgbChannels);
 
   @override
   SassColor convert(

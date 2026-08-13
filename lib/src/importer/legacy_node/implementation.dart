@@ -39,23 +39,23 @@ import '../utils.dart';
 ///   3. Filesystem imports relative to the working directory.
 ///   4. Filesystem imports relative to an `includePaths` path.
 ///   5. Filesystem imports relative to a `SASS_PATH` path.
-final class NodeImporter {
+final class NodeImporter(
   /// The options for the `this` context in which importer functions are
   /// invoked.
   ///
   /// This is typed as [Object] because the public interface of [NodeImporter]
   /// is shared with the VM, which can't handle JS interop types.
-  final Object _options;
-
+  final Object _options,
+  Iterable<String> includePaths,
+  Iterable<Object> importers,
+) {
   /// The include paths passed in by the user.
-  final List<String> _includePaths;
+  final List<String> _includePaths = List.unmodifiable(
+    _addSassPath(includePaths),
+  );
 
   /// The importer functions passed in by the user.
-  final List<JSFunction> _importers;
-
-  new(this._options, Iterable<String> includePaths, Iterable<Object> importers)
-    : _includePaths = List.unmodifiable(_addSassPath(includePaths)),
-      _importers = List.unmodifiable(importers.cast());
+  final List<JSFunction> _importers = List.unmodifiable(importers.cast());
 
   /// Returns [includePaths] followed by any paths loaded from the `SASS_PATH`
   /// environment variable.

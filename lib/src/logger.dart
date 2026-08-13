@@ -58,9 +58,7 @@ abstract class Logger {
 /// Implementers should override the protected [internalWarn] method instead of
 /// [warn].
 @internal
-abstract class LoggerWithDeprecationType implements Logger {
-  const new();
-
+abstract class const LoggerWithDeprecationType() implements Logger {
   /// This forwards all calls to [internalWarn].
   ///
   /// For non-user deprecation warnings, the [warnForDeprecation] extension

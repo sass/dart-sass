@@ -13,14 +13,12 @@ import 'extension.dart';
 
 /// An [ExtensionStore] that contains no extensions and can have no extensions
 /// added.
-final class EmptyExtensionStore implements ExtensionStore {
+final class const EmptyExtensionStore() implements ExtensionStore {
   @override
   bool get isEmpty => true;
 
   @override
   Set<SimpleSelector> get simpleSelectors => const UnmodifiableSetView.empty();
-
-  const new();
 
   @override
   Iterable<Extension> extensionsWhereTarget(

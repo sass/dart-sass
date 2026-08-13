@@ -3,7 +3,10 @@
 // https://opensource.org/licenses/MIT.
 
 /// Different modes in which extension can run.
-enum ExtendMode {
+enum ExtendMode(
+  /// The name of the mode.
+  final String name,
+) {
   /// Normal mode, used with the `@extend` rule.
   ///
   /// This preserves existing selectors and extends each target individually.
@@ -20,11 +23,6 @@ enum ExtendMode {
   /// This preserves existing selectors but requires every target to match to
   /// extend a given compound selector.
   allTargets('allTargets');
-
-  /// The name of the mode.
-  final String name;
-
-  const new(this.name);
 
   @override
   String toString() => name;

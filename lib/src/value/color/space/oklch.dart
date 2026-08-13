@@ -18,14 +18,14 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class OklchColorSpace extends ColorSpace {
+final class const OklchColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => false;
 
   @override
   bool get isPolarInternal => true;
 
-  const new()
+  this
     : super('oklch', const [
         LinearChannel(
           'lightness',

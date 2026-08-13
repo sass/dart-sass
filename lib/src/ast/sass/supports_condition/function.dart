@@ -13,18 +13,15 @@ import '../supports_condition.dart';
 /// A function-syntax condition.
 ///
 /// {@category AST}
-final class SupportsFunction implements SupportsCondition {
+final class SupportsFunction(
   /// The name of the function.
-  final Interpolation name;
+  final Interpolation name,
 
   /// The arguments to the function.
-  final Interpolation arguments;
+  final Interpolation arguments,
 
-  @override
-  final FileSpan span;
-
-  new(this.name, this.arguments, this.span);
-
+  @override final FileSpan span,
+) implements SupportsCondition {
   /// @nodoc
   @override
   @internal

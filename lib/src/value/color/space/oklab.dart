@@ -19,11 +19,11 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class OklabColorSpace extends ColorSpace {
+final class const OklabColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => false;
 
-  const new()
+  this
     : super('oklab', const [
         LinearChannel(
           'lightness',

@@ -6,7 +6,10 @@
 /// [ComplexSelector].
 ///
 /// {@category AST}
-enum Combinator {
+enum Combinator(
+  /// The combinator's token text.
+  final String _text,
+) {
   /// Matches the right-hand selector if it's immediately adjacent to the
   /// left-hand selector in the DOM tree.
   nextSibling('+'),
@@ -18,11 +21,6 @@ enum Combinator {
   /// Matches the right-hand selector if it comes after the left-hand selector
   /// in the DOM tree.
   followingSibling('~');
-
-  /// The combinator's token text.
-  final String _text;
-
-  const new(this._text);
 
   @override
   String toString() => _text;

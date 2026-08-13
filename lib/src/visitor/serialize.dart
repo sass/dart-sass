@@ -112,35 +112,41 @@ String serializeSelector(Selector selector, {bool inspect = false}) {
 }
 
 /// A visitor that converts CSS syntax trees to plain strings.
-final class _SerializeVisitor
-    implements CssVisitor<void>, ValueVisitor<void>, SelectorVisitor<void> {
+final class _SerializeVisitor({
+  OutputStyle? style,
+
+  /// Whether we're emitting an unambiguous representation of the source
+  /// structure, as opposed to valid CSS.
+  final bool _inspect = false,
+
+  /// Whether quoted strings should be emitted with quotes.
+  final bool _quote = true,
+  bool useSpaces = true,
+  int? indentWidth,
+  LineFeed? lineFeed,
+  Logger? logger,
+  bool sourceMap = true,
+}) implements CssVisitor<void>, ValueVisitor<void>, SelectorVisitor<void> {
   /// A buffer that contains the CSS produced so far.
   ///
   /// This can be temporarily replaced to capture a particular chunk of
   /// serialization to a string.
-  SourceMapBuffer _buffer;
+  SourceMapBuffer _buffer = sourceMap ? SourceMapBuffer() : NoSourceMapBuffer();
 
   /// The current indentation of the CSS output.
   var _indentation = 0;
 
   /// The style of CSS to generate.
-  final OutputStyle _style;
-
-  /// Whether we're emitting an unambiguous representation of the source
-  /// structure, as opposed to valid CSS.
-  final bool _inspect;
-
-  /// Whether quoted strings should be emitted with quotes.
-  final bool _quote;
+  final OutputStyle _style = style ?? OutputStyle.expanded;
 
   /// The character to use for indentation; either space or tab.
-  final int _indentCharacter;
+  final int _indentCharacter = useSpaces ? $space : $tab;
 
   /// The number of spaces or tabs to be used for indentation.
-  final int _indentWidth;
+  final int _indentWidth = indentWidth ?? 2;
 
   /// The characters to use for a line feed.
-  final LineFeed _lineFeed;
+  final LineFeed _lineFeed = lineFeed ?? LineFeed.lf;
 
   /// The logger to use to print warnings.
   ///
@@ -149,26 +155,12 @@ final class _SerializeVisitor
   // We include this even when it's unused to reduce the churn as deprecations
   // are added and removed.
   // ignore: unused_field
-  final Logger _logger;
+  final Logger _logger = logger ?? Logger.defaultLogger;
 
   /// Whether we're emitting compressed output.
   bool get _isCompressed => _style == OutputStyle.compressed;
 
-  new({
-    OutputStyle? style,
-    this._inspect = false,
-    this._quote = true,
-    bool useSpaces = true,
-    int? indentWidth,
-    LineFeed? lineFeed,
-    Logger? logger,
-    bool sourceMap = true,
-  }) : _buffer = sourceMap ? SourceMapBuffer() : NoSourceMapBuffer(),
-       _style = style ?? OutputStyle.expanded,
-       _indentCharacter = useSpaces ? $space : $tab,
-       _indentWidth = indentWidth ?? 2,
-       _lineFeed = lineFeed ?? LineFeed.lf,
-       _logger = logger ?? Logger.defaultLogger {
+  this {
     RangeError.checkValueInInterval(_indentWidth, 0, 10, "indentWidth");
   }
 
@@ -1904,7 +1896,13 @@ enum OutputStyle {
 }
 
 /// An enum of line feed sequences.
-enum LineFeed {
+enum LineFeed(
+  /// The name of this sequence..
+  final String name,
+
+  /// The text to emit for this line feed.
+  final String text,
+) {
   /// A single carriage return.
   cr('cr', '\r'),
 
@@ -1916,14 +1914,6 @@ enum LineFeed {
 
   /// A line feed followed by a carriage return.
   lfcr('lfcr', '\n\r');
-
-  /// The name of this sequence..
-  final String name;
-
-  /// The text to emit for this line feed.
-  final String text;
-
-  const new(this.name, this.text);
 
   @override
   String toString() => name;

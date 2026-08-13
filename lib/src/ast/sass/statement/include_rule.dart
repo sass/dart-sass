@@ -15,32 +15,27 @@ import 'content_block.dart';
 /// A mixin invocation.
 ///
 /// {@category AST}
-final class IncludeRule extends Statement
-    implements CallableInvocation, SassReference {
-  /// The namespace of the mixin being invoked, or `null` if it's invoked
-  /// without a namespace.
-  @override
-  final String? namespace;
-
-  /// The name of the mixin being invoked, with underscores converted to
-  /// hyphens.
-  @override
-  final String name;
-
+final class IncludeRule(
   /// The original name of the mixin being invoked, without underscores
   /// converted to hyphens.
-  final String originalName;
+  final String originalName,
 
   /// The arguments to pass to the mixin.
-  @override
-  final ArgumentList arguments;
+  @override final ArgumentList arguments,
+  @override final FileSpan span, {
+
+  /// The namespace of the mixin being invoked, or `null` if it's invoked
+  /// without a namespace.
+  @override final String? namespace,
 
   /// The block that will be invoked for [ContentRule]s in the mixin being
   /// invoked, or `null` if this doesn't pass a content block.
-  final ContentBlock? content;
-
+  final ContentBlock? content,
+}) extends Statement implements CallableInvocation, SassReference {
+  /// The name of the mixin being invoked, with underscores converted to
+  /// hyphens.
   @override
-  final FileSpan span;
+  final String name = originalName.replaceAll('_', '-');
 
   /// Returns this include's span, without its content block (if it has one).
   FileSpan get spanWithoutContent => content == null
@@ -64,14 +59,6 @@ final class IncludeRule extends Statement
         : span.withoutInitialAtRule();
     return startSpan.initialIdentifier();
   }
-
-  new(
-    this.originalName,
-    this.arguments,
-    this.span, {
-    this.namespace,
-    this.content,
-  }) : name = originalName.replaceAll('_', '-');
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIncludeRule(this);

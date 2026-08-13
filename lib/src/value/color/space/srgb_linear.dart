@@ -19,11 +19,11 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class SrgbLinearColorSpace extends ColorSpace {
+final class const SrgbLinearColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => true;
 
-  const new() : super('srgb-linear', rgbChannels);
+  this : super('srgb-linear', rgbChannels);
 
   @override
   SassColor convert(

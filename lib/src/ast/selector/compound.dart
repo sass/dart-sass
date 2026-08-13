@@ -18,11 +18,12 @@ import '../selector.dart';
 ///
 /// {@category AST}
 /// {@category Parsing}
-final class CompoundSelector extends Selector {
+final class CompoundSelector(Iterable<SimpleSelector> components, super.span)
+    extends Selector {
   /// The components of this selector.
   ///
   /// This is never empty.
-  final List<SimpleSelector> components;
+  final List<SimpleSelector> components = List.unmodifiable(components);
 
   /// This selector's specificity.
   ///
@@ -57,8 +58,7 @@ final class CompoundSelector extends Selector {
     (component) => component.hasComplicatedSuperselectorSemantics,
   );
 
-  new(Iterable<SimpleSelector> components, super.span)
-    : components = List.unmodifiable(components) {
+  this {
     if (this.components.isEmpty) {
       throw ArgumentError("components may not be empty.");
     }

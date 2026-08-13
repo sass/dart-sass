@@ -17,9 +17,7 @@ import 'interface/expression.dart';
 /// context.
 ///
 /// This should be used through [Expression.isCalculationSafe].
-class IsCalculationSafeVisitor implements ExpressionVisitor<bool> {
-  const new();
-
+class const IsCalculationSafeVisitor() implements ExpressionVisitor<bool> {
   @override
   bool visitBinaryOperationExpression(BinaryOperationExpression node) =>
       (const {

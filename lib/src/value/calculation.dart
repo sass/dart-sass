@@ -28,16 +28,16 @@ import '../visitor/serialize.dart';
 /// works with are always fully simplified.
 ///
 /// {@category Value}
-final class SassCalculation extends Value {
+final class SassCalculation._(
   /// The calculation's name, such as `"calc"`.
-  final String name;
+  final String name,
 
   /// The calculation's arguments.
   ///
   /// Each argument is either a [SassNumber], a [SassCalculation], an unquoted
   /// [SassString], or a [CalculationOperation].
-  final List<Object> arguments;
-
+  final List<Object> arguments,
+) extends Value {
   /// @nodoc
   @override
   @internal
@@ -735,7 +735,7 @@ final class SassCalculation extends Value {
 
   /// An internal constructor that doesn't perform any validation or
   /// simplification.
-  new _(this.name, this.arguments);
+  this;
 
   // Returns [value] coerced to [number]'s units.
   static SassNumber _matchUnits(double value, SassNumber number) =>
@@ -980,29 +980,28 @@ final class SassCalculation extends Value {
 /// A binary operation that can appear in a [SassCalculation].
 ///
 /// {@category Value}
-final class CalculationOperation {
+final class CalculationOperation._(
+  final CalculationOperator _operator,
+  final Object _left,
+  final Object _right,
+) {
   /// We use a getters to allow overriding the logic in the JS API
   /// implementation.
 
   /// The operator.
   CalculationOperator get operator => _operator;
-  final CalculationOperator _operator;
 
   /// The left-hand operand.
   ///
   /// This is either a [SassNumber], a [SassCalculation], an unquoted
   /// [SassString], or a [CalculationOperation].
   Object get left => _left;
-  final Object _left;
 
   /// The right-hand operand.
   ///
   /// This is either a [SassNumber], a [SassCalculation], an unquoted
   /// [SassString], or a [CalculationOperation].
   Object get right => _right;
-  final Object _right;
-
-  new _(this._operator, this._left, this._right);
 
   @override
   bool operator ==(Object other) =>
@@ -1027,7 +1026,20 @@ final class CalculationOperation {
 /// An enumeration of possible operators for [CalculationOperation].
 ///
 /// {@category Value}
-enum CalculationOperator {
+enum CalculationOperator(
+  /// The English name of `this`.
+  final String name,
+
+  /// The CSS syntax for `this`.
+  final String operator,
+
+  /// The precedence of `this`.
+  ///
+  /// An operator with higher precedence binds tighter.
+  ///
+  /// @nodoc
+  @internal final int precedence,
+) {
   /// The addition operator.
   plus('plus', '+', 1),
 
@@ -1039,22 +1051,6 @@ enum CalculationOperator {
 
   /// The division operator.
   dividedBy('divided by', '/', 2);
-
-  /// The English name of `this`.
-  final String name;
-
-  /// The CSS syntax for `this`.
-  final String operator;
-
-  /// The precedence of `this`.
-  ///
-  /// An operator with higher precedence binds tighter.
-  ///
-  /// @nodoc
-  @internal
-  final int precedence;
-
-  const new(this.name, this.operator, this.precedence);
 
   @override
   String toString() => name;
@@ -1070,14 +1066,11 @@ enum CalculationOperator {
 /// {@category Value}
 @Deprecated("Use SassString instead.")
 @sealed
-class CalculationInterpolation {
+class CalculationInterpolation(final String _value) {
   /// We use a getters to allow overriding the logic in the JS API
   /// implementation.
 
   String get value => _value;
-  final String _value;
-
-  new(this._value);
 
   @override
   bool operator ==(Object other) =>

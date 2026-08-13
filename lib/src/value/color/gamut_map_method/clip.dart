@@ -11,8 +11,8 @@ import '../../color.dart';
 ///
 /// @nodoc
 @internal
-final class ClipGamutMap extends GamutMapMethod {
-  const new() : super("clip");
+final class const ClipGamutMap() extends GamutMapMethod {
+  this : super("clip");
 
   @override
   SassColor map(SassColor color) => SassColor.forSpaceInternal(

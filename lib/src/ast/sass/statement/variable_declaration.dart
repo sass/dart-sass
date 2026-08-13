@@ -20,33 +20,32 @@ import 'silent_comment.dart';
 /// This defines or sets a variable.
 ///
 /// {@category AST}
-final class VariableDeclaration extends Statement implements SassDeclaration {
-  /// The namespace of the variable being set, or `null` if it's defined or set
-  /// without a namespace.
-  final String? namespace;
-
+final class VariableDeclaration(
   /// The name of the variable, with underscores converted to hyphens.
-  @override
-  final String name;
-
-  /// The comment immediately preceding this declaration.
-  SilentComment? comment;
+  @override final String name,
 
   /// The value the variable is being assigned to.
-  final Expression expression;
+  final Expression expression,
+  @override final FileSpan span, {
 
+  /// The namespace of the variable being set, or `null` if it's defined or set
+  /// without a namespace.
+  final String? namespace,
+  bool guarded = false,
+  bool global = false,
+
+  /// The comment immediately preceding this declaration.
+  final SilentComment? comment,
+}) extends Statement implements SassDeclaration {
   /// Whether this is a guarded assignment.
   ///
   /// Guarded assignments only happen if the variable is undefined or `null`.
-  final bool isGuarded;
+  final bool isGuarded = guarded;
 
   /// Whether this is a global assignment.
   ///
   /// Global assignments always affect only the global scope.
-  final bool isGlobal;
-
-  @override
-  final FileSpan span;
+  final bool isGlobal = global;
 
   /// The variable name as written in the document, without underscores
   /// converted to hyphens and including the leading `$`.
@@ -65,16 +64,7 @@ final class VariableDeclaration extends Statement implements SassDeclaration {
   FileSpan? get namespaceSpan =>
       namespace == null ? null : span.initialIdentifier();
 
-  new(
-    this.name,
-    this.expression,
-    this.span, {
-    this.namespace,
-    bool guarded = false,
-    bool global = false,
-    this.comment,
-  }) : isGuarded = guarded,
-       isGlobal = global {
+  this {
     if (namespace != null && global) {
       throw ArgumentError(
         "Other modules' members can't be defined with !global.",

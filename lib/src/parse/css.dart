@@ -33,11 +33,10 @@ final _disallowedFunctionNames =
       ..remove("round")
       ..remove("saturate");
 
-class CssParser extends ScssParser {
+class CssParser(super.contents, {super.url, super.parseSelectors})
+    extends ScssParser {
   @override
   bool get plainCss => true;
-
-  new(super.contents, {super.url, super.parseSelectors});
 
   @override
   bool silentComment() {

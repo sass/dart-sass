@@ -18,14 +18,14 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class LchColorSpace extends ColorSpace {
+final class const LchColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => false;
 
   @override
   bool get isPolarInternal => true;
 
-  const new()
+  this
     : super('lch', const [
         LinearChannel(
           'lightness',

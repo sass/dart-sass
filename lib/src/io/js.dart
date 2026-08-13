@@ -26,12 +26,7 @@ external final Process? _nodeJsProcess; // process is null in the browser
 /// This value is `null` when running the script is not run from Node.JS
 Process? get _process => isNodeJs ? _nodeJsProcess : null;
 
-class FileSystemException {
-  final String message;
-  final String path;
-
-  new _(this.message, this.path);
-
+class FileSystemException._(final String message, final String path) {
   @override
   String toString() => "${p.prettyUri(p.toUri(path))}: $message";
 }

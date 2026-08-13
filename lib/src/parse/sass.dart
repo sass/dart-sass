@@ -13,7 +13,8 @@ import '../value.dart';
 import 'stylesheet.dart';
 
 /// A parser for the indented syntax.
-class SassParser extends StylesheetParser {
+class SassParser(super.contents, {super.url, super.parseSelectors})
+    extends StylesheetParser {
   @override
   int get currentIndentation => _currentIndentation;
   var _currentIndentation = 0;
@@ -39,8 +40,6 @@ class SassParser extends StylesheetParser {
 
   @override
   bool get indented => true;
-
-  new(super.contents, {super.url, super.parseSelectors});
 
   @override
   Interpolation styleRuleSelector() {

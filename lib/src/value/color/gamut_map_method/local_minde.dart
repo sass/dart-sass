@@ -14,14 +14,14 @@ import '../../color.dart';
 ///
 /// @nodoc
 @internal
-final class LocalMindeGamutMap extends GamutMapMethod {
+final class const LocalMindeGamutMap() extends GamutMapMethod {
   /// A constant from the gamut-mapping algorithm.
   static const _jnd = 0.02;
 
   /// A constant from the gamut-mapping algorithm.
   static const _epsilon = 0.0001;
 
-  const new() : super("local-minde");
+  this : super("local-minde");
 
   @override
   SassColor map(SassColor color) {

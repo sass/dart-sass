@@ -29,16 +29,17 @@ import 'variable_declaration.dart';
 ///
 /// {@category AST}
 /// {@category Parsing}
-final class Stylesheet extends ParentStatement<List<Statement>> {
-  @override
-  final FileSpan span;
+final class Stylesheet.internal(
+  Iterable<Statement> children,
+  @override final FileSpan span,
+  List<ParseTimeWarning> parseTimeWarnings, {
 
   /// Whether this was parsed from a plain CSS stylesheet.
   ///
   /// @nodoc
-  @internal
-  final bool plainCss;
-
+  @internal final bool plainCss = false,
+  Map<String, FileSpan>? globalVariables,
+}) extends ParentStatement<List<Statement>> {
   /// All the `@use` rules that appear in this stylesheet.
   List<UseRule> get uses => UnmodifiableListView(_uses);
   final _uses = <UseRule>[];
@@ -52,12 +53,16 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   ///
   /// @nodoc
   @internal
-  final List<ParseTimeWarning> parseTimeWarnings;
+  final List<ParseTimeWarning> parseTimeWarnings = UnmodifiableListView(
+    parseTimeWarnings,
+  );
 
   /// The set of (normalized) global variable names defined by this stylesheet
   /// to the spans where they're defined.
   @internal
-  final Map<String, FileSpan> globalVariables;
+  final Map<String, FileSpan> globalVariables = globalVariables == null
+      ? const {}
+      : Map.unmodifiable(globalVariables);
 
   new(Iterable<Statement> children, FileSpan span)
     : this.internal(children, span, []);
@@ -66,17 +71,7 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   ///
   /// @nodoc
   @internal
-  new internal(
-    Iterable<Statement> children,
-    this.span,
-    List<ParseTimeWarning> parseTimeWarnings, {
-    this.plainCss = false,
-    Map<String, FileSpan>? globalVariables,
-  }) : parseTimeWarnings = UnmodifiableListView(parseTimeWarnings),
-       globalVariables = globalVariables == null
-           ? const {}
-           : Map.unmodifiable(globalVariables),
-       super(List.unmodifiable(children)) {
+  this : super(List.unmodifiable(children)) {
     loop:
     for (var child in this.children) {
       switch (child) {

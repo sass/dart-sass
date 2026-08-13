@@ -19,17 +19,18 @@ import '../../../visitor/interface/if_condition_expression.dart';
 /// condition that evaluates SassScript expressions.
 ///
 /// {@category AST}
-final class IfExpression extends Expression {
+final class IfExpression(
+  Iterable<(IfConditionExpression?, Expression)> branches,
+  @override final FileSpan span,
+) extends Expression {
   /// The conditional branches that make up the `if()`.
   ///
   /// A `null` expression indicates an `else` branch that is always evaluated.
-  final List<(IfConditionExpression?, Expression)> branches;
+  final List<(IfConditionExpression?, Expression)> branches = List.unmodifiable(
+    branches,
+  );
 
-  @override
-  final FileSpan span;
-
-  new(Iterable<(IfConditionExpression?, Expression)> branches, this.span)
-    : branches = List.unmodifiable(branches) {
+  this {
     if (this.branches.isEmpty) {
       throw ArgumentError.value(this.branches, "branches", "may not be empty");
     }
@@ -86,15 +87,11 @@ sealed class IfConditionExpression implements SassNode {
 /// A parenthesized condition.
 ///
 /// {@category AST}
-final class IfConditionParenthesized extends IfConditionExpression {
+final class IfConditionParenthesized(
   /// The parenthesized expression.
-  final IfConditionExpression expression;
-
-  @override
-  final FileSpan span;
-
-  new(this.expression, this.span);
-
+  final IfConditionExpression expression,
+  @override final FileSpan span,
+) extends IfConditionExpression {
   /// @nodoc
   @override
   @internal
@@ -118,15 +115,12 @@ final class IfConditionParenthesized extends IfConditionExpression {
 /// A negated condition.
 ///
 /// {@category AST}
-final class IfConditionNegation extends IfConditionExpression {
+final class IfConditionNegation(
   /// The expression negated by this.
-  final IfConditionExpression expression;
+  final IfConditionExpression expression,
 
-  @override
-  final FileSpan span;
-
-  new(this.expression, this.span);
-
+  @override final FileSpan span,
+) extends IfConditionExpression {
   /// @nodoc
   @override
   @internal
@@ -149,17 +143,21 @@ final class IfConditionNegation extends IfConditionExpression {
 /// A sequence of `and`s or `or`s.
 ///
 /// {@category AST}
-final class IfConditionOperation extends IfConditionExpression {
-  /// The expressions conjoined or disjoined by this operation.
-  final List<IfConditionExpression> expressions;
+final class IfConditionOperation(
+  Iterable<IfConditionExpression> expressions,
 
-  final BooleanOperator op;
+  /// The operator separating all expressions.
+  final BooleanOperator op,
+) extends IfConditionExpression {
+  /// The expressions conjoined or disjoined by this operation.
+  final List<IfConditionExpression> expressions = List.unmodifiable(
+    expressions,
+  );
 
   @override
   FileSpan get span => expressions.first.span.expand(expressions.last.span);
 
-  new(Iterable<IfConditionExpression> expressions, this.op)
-    : expressions = List.unmodifiable(expressions) {
+  this {
     if (this.expressions.length < 2) {
       throw ArgumentError.value(
         this.expressions,
@@ -199,16 +197,15 @@ final class IfConditionOperation extends IfConditionExpression {
 /// A plain-CSS function-style condition.
 ///
 /// {@category AST}
-final class IfConditionFunction extends IfConditionExpression {
+final class IfConditionFunction(
   /// The name of the function being called.
-  final Interpolation name;
+  final Interpolation name,
 
   /// The arguments passed to the function call.
-  final Interpolation arguments;
+  final Interpolation arguments,
 
-  @override
-  final FileSpan span;
-
+  @override final FileSpan span,
+) extends IfConditionExpression {
   /// @nodoc
   @override
   @internal
@@ -217,8 +214,6 @@ final class IfConditionFunction extends IfConditionExpression {
     var str? when str.startsWith("--") => true,
     _ => false,
   };
-
-  new(this.name, this.arguments, this.span);
 
   /// @nodoc
   @override
@@ -242,15 +237,12 @@ final class IfConditionFunction extends IfConditionExpression {
 /// A Sass condition that will evaluate to true or false at compile time.
 ///
 /// {@category AST}
-final class IfConditionSass extends IfConditionExpression {
+final class IfConditionSass(
   /// The expression that determines whether this condition matches.
-  final Expression expression;
+  final Expression expression,
 
-  @override
-  final FileSpan span;
-
-  new(this.expression, this.span);
-
+  @override final FileSpan span,
+) extends IfConditionExpression {
   /// @nodoc
   @override
   @internal
@@ -277,10 +269,10 @@ final class IfConditionSass extends IfConditionExpression {
 /// expressions where arbitrary substitutions are used in place of operators.
 ///
 /// {@category AST}
-final class IfConditionRaw extends IfConditionExpression {
+final class IfConditionRaw(
   /// The text that encompasses this condition.
-  final Interpolation text;
-
+  final Interpolation text,
+) extends IfConditionExpression {
   @override
   FileSpan get span => text.span;
 
@@ -288,8 +280,6 @@ final class IfConditionRaw extends IfConditionExpression {
   @override
   @internal
   bool get isArbitrarySubstitution => true;
-
-  new(this.text);
 
   /// @nodoc
   @override

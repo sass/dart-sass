@@ -18,9 +18,7 @@ StderrLogger? _default;
 
 /// A logger that wraps [StderrLogger] and chooses whether to activate colors
 /// based on whether the current system supports it.
-final class DefaultLogger extends LoggerWithDeprecationType {
-  const new();
-
+final class const DefaultLogger() extends LoggerWithDeprecationType {
   /// Ensures [_defaultStderr] is initialized and returns it.
   StderrLogger get _inner {
     return _default ??= StderrLogger(color: supportsAnsiEscapes);

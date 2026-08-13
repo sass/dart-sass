@@ -16,16 +16,17 @@ import '../interpolation.dart';
 /// A string literal.
 ///
 /// {@category AST}
-final class StringExpression extends Expression {
+final class StringExpression(
   /// Interpolation that, when evaluated, produces the contents of this string.
   ///
   /// If this is a quoted string, escapes are resolved and quotes are not
   /// included in this text (unlike [asInterpolation]). If it's an unquoted
   /// string, escapes are *not* resolved.
-  final Interpolation text;
-
+  final Interpolation text, {
+  bool quotes = false,
+}) extends Expression {
   /// Whether `this` has quotes.
-  final bool hasQuotes;
+  final bool hasQuotes = quotes;
 
   @override
   FileSpan get span => text.span;
@@ -41,12 +42,9 @@ final class StringExpression extends Expression {
     return buffer.toString();
   }
 
-  new(this.text, {bool quotes = false}) : hasQuotes = quotes;
-
   /// Returns a string expression with no interpolation.
   new plain(String text, FileSpan span, {bool quotes = false})
-    : text = Interpolation.plain(text, span),
-      hasQuotes = quotes;
+    : this(Interpolation.plain(text, span), quotes: quotes);
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

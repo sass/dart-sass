@@ -13,18 +13,25 @@ import '../module.dart';
 import '../value.dart';
 
 /// A module provided by Sass, available under the special `sass:` URL space.
-final class BuiltInModule<T extends AsyncCallable> implements Module<T> {
+final class BuiltInModule<T extends AsyncCallable>(
+  String name, {
+  Iterable<T>? functions,
+  Iterable<T>? mixins,
+  Map<String, Value>? variables,
+}) implements Module<T> {
   @override
-  final Uri url;
+  final Uri url = Uri(scheme: "sass", path: name);
 
   @override
-  final Map<String, T> functions;
+  final Map<String, T> functions = _callableMap(functions);
 
   @override
-  final Map<String, T> mixins;
+  final Map<String, T> mixins = _callableMap(mixins);
 
   @override
-  final Map<String, Value> variables;
+  final Map<String, Value> variables = variables == null
+      ? const {}
+      : UnmodifiableMapView(variables);
 
   @override
   List<Module<T>> get upstream => const [];
@@ -46,18 +53,6 @@ final class BuiltInModule<T extends AsyncCallable> implements Module<T> {
 
   @override
   bool get transitivelyContainsExtensions => false;
-
-  new(
-    String name, {
-    Iterable<T>? functions,
-    Iterable<T>? mixins,
-    Map<String, Value>? variables,
-  }) : url = Uri(scheme: "sass", path: name),
-       functions = _callableMap(functions),
-       mixins = _callableMap(mixins),
-       variables = variables == null
-           ? const {}
-           : UnmodifiableMapView(variables);
 
   /// Returns a map from [callables]' names to their values.
   static Map<String, T> _callableMap<T extends AsyncCallable>(

@@ -15,20 +15,15 @@ import '../interpolation.dart';
 /// This is always a plain CSS function.
 ///
 /// {@category AST}
-final class InterpolatedFunctionExpression extends Expression
-    implements CallableInvocation {
+final class InterpolatedFunctionExpression(
   /// The name of the function being invoked.
-  final Interpolation name;
+  final Interpolation name,
 
   /// The arguments to pass to the function.
-  @override
-  final ArgumentList arguments;
+  @override final ArgumentList arguments,
 
-  @override
-  final FileSpan span;
-
-  new(this.name, this.arguments, this.span);
-
+  @override final FileSpan span,
+) extends Expression implements CallableInvocation {
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitInterpolatedFunctionExpression(this);

@@ -14,14 +14,12 @@ import '../supports_condition.dart';
 /// doesn't include the function name wrapping the condition.
 ///
 /// {@category AST}
-final class SupportsExpression extends Expression {
+final class SupportsExpression(
   /// The condition itself.
-  final SupportsCondition condition;
-
+  final SupportsCondition condition,
+) extends Expression {
   @override
   FileSpan get span => condition.span;
-
-  new(this.condition);
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

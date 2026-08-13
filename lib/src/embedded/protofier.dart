@@ -16,16 +16,16 @@ import 'utils.dart';
 ///
 /// A given [Protofier] instance is valid only within the scope of a single
 /// custom function call.
-final class Protofier {
+final class Protofier(
   /// The dispatcher, for invoking deprotofied [Value_HostFunction]s.
-  final CompilationDispatcher _dispatcher;
+  final CompilationDispatcher _dispatcher,
 
   /// The IDs of first-class functions.
-  final OpaqueRegistry<SassFunction> _functions;
+  final OpaqueRegistry<SassFunction> _functions,
 
   /// The IDs of first-class mixins.
-  final OpaqueRegistry<SassMixin> _mixins;
-
+  final OpaqueRegistry<SassMixin> _mixins,
+) {
   /// Any argument lists transitively contained in [value].
   ///
   /// The IDs of the [Value_ArgumentList] protobufs are always one greater than
@@ -41,7 +41,7 @@ final class Protofier {
   ///
   /// Similarly, the [mixins] tracks the IDs of first-class mixins so that the
   /// host can pass them back to the compiler.
-  new(this._dispatcher, this._functions, this._mixins);
+  this;
 
   /// Converts [value] to its protocol buffer representation.
   proto.Value protofy(Value value) {

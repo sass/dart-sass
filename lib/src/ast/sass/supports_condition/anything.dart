@@ -14,15 +14,11 @@ import '../supports_condition.dart';
 /// `<general-enclosed>` production.
 ///
 /// {@category AST}
-final class SupportsAnything implements SupportsCondition {
+final class SupportsAnything(
   /// The contents of the condition.
-  final Interpolation contents;
-
-  @override
-  final FileSpan span;
-
-  new(this.contents, this.span);
-
+  final Interpolation contents,
+  @override final FileSpan span,
+) implements SupportsCondition {
   /// @nodoc
   @override
   @internal

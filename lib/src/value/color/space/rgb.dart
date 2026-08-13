@@ -13,14 +13,14 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class RgbColorSpace extends ColorSpace {
+final class const RgbColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => true;
 
   @override
   bool get isLegacyInternal => true;
 
-  const new()
+  this
     : super('rgb', const [
         LinearChannel('red', 0, 255, lowerClamped: true, upperClamped: true),
         LinearChannel('green', 0, 255, lowerClamped: true, upperClamped: true),

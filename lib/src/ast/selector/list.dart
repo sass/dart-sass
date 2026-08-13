@@ -25,11 +25,12 @@ import '../selector.dart';
 ///
 /// {@category AST}
 /// {@category Parsing}
-final class SelectorList extends Selector {
+final class SelectorList(Iterable<ComplexSelector> components, super.span)
+    extends Selector {
   /// The components of this selector.
   ///
   /// This is never empty.
-  final List<ComplexSelector> components;
+  final List<ComplexSelector> components = List.unmodifiable(components);
 
   /// Returns a SassScript list that represents this selector.
   ///
@@ -51,8 +52,7 @@ final class SelectorList extends Selector {
     );
   }
 
-  new(Iterable<ComplexSelector> components, super.span)
-    : components = List.unmodifiable(components) {
+  this {
     if (this.components.isEmpty) {
       throw ArgumentError("components may not be empty.");
     }
@@ -347,9 +347,8 @@ bool _containsParentSelector(Selector selector) =>
     selector.accept(const _ParentSelectorVisitor()) != null;
 
 /// A visitor for finding the first [ParentSelector] in a given selector.
-class _ParentSelectorVisitor with SelectorSearchVisitor<ParentSelector> {
-  const new();
-
+class const _ParentSelectorVisitor()
+    with SelectorSearchVisitor<ParentSelector> {
   @override
   ParentSelector visitParentSelector(ParentSelector selector) => selector;
 }

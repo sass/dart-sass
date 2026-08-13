@@ -14,21 +14,18 @@ import '../selector.dart';
 /// This a [CompoundSelector] with one or more trailing [Combinator]s.
 ///
 /// {@category AST}
-final class ComplexSelectorComponent {
+final class ComplexSelectorComponent(
   /// This component's compound selector.
-  final CompoundSelector selector;
-
+  final CompoundSelector selector,
+  Iterable<CssValue<Combinator>> combinators,
+  final FileSpan span,
+) {
   /// This selector's combinators.
   ///
   /// If this is empty, that indicates that it has an implicit descendent
   /// combinator. If it's more than one element, that means it's invalid CSS;
   /// however, we still support this for backwards-compatibility purposes.
-  final List<CssValue<Combinator>> combinators;
-
-  final FileSpan span;
-
-  new(this.selector, Iterable<CssValue<Combinator>> combinators, this.span)
-    : combinators = List.unmodifiable(combinators);
+  final List<CssValue<Combinator>> combinators = List.unmodifiable(combinators);
 
   /// Returns a copy of `this` with [combinators] added to the end of
   /// [this.combinators].

@@ -15,21 +15,17 @@ import 'negation.dart';
 /// An operation defining the relationship between two conditions.
 ///
 /// {@category AST}
-final class SupportsOperation implements SupportsCondition {
+final class SupportsOperation(
   /// The left-hand operand.
-  final SupportsCondition left;
+  final SupportsCondition left,
 
   /// The right-hand operand.
-  final SupportsCondition right;
+  final SupportsCondition right,
 
   /// The operator.
-  final BooleanOperator operator;
-
-  @override
-  final FileSpan span;
-
-  new(this.left, this.right, this.operator, this.span);
-
+  final BooleanOperator operator,
+  @override final FileSpan span,
+) implements SupportsCondition {
   /// @nodoc
   @override
   @internal

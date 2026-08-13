@@ -35,15 +35,20 @@ final selectorPseudoElements = {"slotted"};
 ///
 /// This class is largely duplicated between here and [SelectorParser]. Most
 /// changes here should be mirrored there and vice versa.
-class SelectorParser extends Parser {
+class SelectorParser(
+  super.contents, {
+  super.url,
+  super.interpolationMap,
+
   /// Whether this parser allows the parent selector `&`.
-  final bool _allowParent;
+  final bool _allowParent = true,
 
   /// Whether to parse the selector as plain CSS.
-  final bool _plainCss;
-
+  final bool _plainCss = false,
+  Logger? logger,
+}) extends Parser {
   /// The logger used to report deprecation warnings.
-  final Logger _logger;
+  final Logger _logger = logger ?? Logger.defaultLogger;
 
   /// Creates a parser that parses CSS selectors.
   ///
@@ -55,14 +60,7 @@ class SelectorParser extends Parser {
   ///
   /// The [logger] will be used to report deprecation warnings. If it's null,
   /// they'll be reported using [Logger.defaultLogger].
-  new(
-    super.contents, {
-    super.url,
-    super.interpolationMap,
-    this._allowParent = true,
-    this._plainCss = false,
-    Logger? logger,
-  }) : _logger = logger ?? Logger.defaultLogger;
+  this;
 
   SelectorList parse() {
     return wrapSpanFormatException(() {

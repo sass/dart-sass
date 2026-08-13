@@ -9,11 +9,8 @@ import '../../visitor/interface/interpolated_selector.dart';
 
 /// A wrapper around a JS object that implements the [SelectorVisitor] methods
 /// for simple selectors.
-class JSSimpleSelectorVisitor implements InterpolatedSelectorVisitor<Object?> {
-  final JSSimpleSelectorVisitorObject _inner;
-
-  new(this._inner);
-
+class JSSimpleSelectorVisitor(final JSSimpleSelectorVisitorObject _inner)
+    implements InterpolatedSelectorVisitor<Object?> {
   @override
   Object? visitAttributeSelector(InterpolatedAttributeSelector node) =>
       _inner.visitAttributeSelector(node);

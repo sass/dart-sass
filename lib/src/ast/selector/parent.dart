@@ -13,16 +13,16 @@ import '../selector.dart';
 /// document.
 ///
 /// {@category AST}
-final class ParentSelector extends SimpleSelector {
+final class ParentSelector(
+  super.span, {
+
   /// The suffix that will be added to the parent selector after it's been
   /// resolved.
   ///
   /// This is assumed to be a valid identifier suffix. It may be `null`,
   /// indicating that the parent selector will not be modified.
-  final String? suffix;
-
-  new(super.span, {this.suffix});
-
+  final String? suffix,
+}) extends SimpleSelector {
   @override
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitParentSelector(this);
 

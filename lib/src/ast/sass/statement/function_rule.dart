@@ -14,18 +14,15 @@ import 'callable_declaration.dart';
 /// This declares a function that's invoked using normal CSS function syntax.
 ///
 /// {@category AST}
-final class FunctionRule extends CallableDeclaration
-    implements SassDeclaration {
+final class FunctionRule(
+  super.name,
+  super.parameters,
+  super.children,
+  super.span, {
+  super.comment,
+}) extends CallableDeclaration implements SassDeclaration {
   @override
   FileSpan get nameSpan => span.withoutInitialAtRule().initialIdentifier();
-
-  new(
-    super.name,
-    super.parameters,
-    super.children,
-    super.span, {
-    super.comment,
-  });
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitFunctionRule(this);

@@ -15,18 +15,16 @@ import 'embedded_sass.pb.dart' hide SourceSpan;
 import 'utils.dart';
 
 /// A Sass logger that sends log messages as `LogEvent`s.
-final class EmbeddedLogger extends LoggerWithDeprecationType {
+final class EmbeddedLogger(
   /// The [CompilationDispatcher] to which to send events.
-  final CompilationDispatcher _dispatcher;
+  final CompilationDispatcher _dispatcher, {
 
   /// Whether the formatted message should contain terminal colors.
-  final bool _color;
+  final bool _color = false,
 
   /// Whether the formatted message should use ASCII encoding.
-  final bool _ascii;
-
-  new(this._dispatcher, {this._color = false, this._ascii = false});
-
+  final bool _ascii = false,
+}) extends LoggerWithDeprecationType {
   @override
   void debug(String message, SourceSpan span) {
     _dispatcher.sendLog(

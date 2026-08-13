@@ -12,7 +12,9 @@ analyzer:
 
 linter:
   rules:
-    - unnecessary_type_name_in_constructor
+    - initialize_in_field_declaration
     - unnecessary_primary_constructor_body
+    - unnecessary_type_name_in_constructor
+    - use_declaring_parameters
 
 include: package:lints/recommended.yaml

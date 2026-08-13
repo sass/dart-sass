@@ -26,7 +26,7 @@ final _subselectorPseudos = {
 ///
 /// {@category AST}
 /// {@category Parsing}
-abstract base class SimpleSelector extends Selector {
+abstract base class SimpleSelector(super.span) extends Selector {
   /// This selector's specificity.
   ///
   /// Specificity is represented in base 1000. The spec says this should be
@@ -43,8 +43,6 @@ abstract base class SimpleSelector extends Selector {
   /// #nodoc
   @internal
   bool get hasComplicatedSuperselectorSemantics => false;
-
-  new(super.span);
 
   /// Parses a simple selector from [contents].
   ///

@@ -26,10 +26,11 @@ import 'utils.dart';
 /// buffers from the process to aid debugging.
 ///
 /// This API is based on the `test_process` package.
-class EmbeddedProcess {
+class EmbeddedProcess._(
   /// The underlying process.
-  final Process _process;
-
+  final Process _process, {
+  bool forwardOutput = false,
+}) {
   /// A [StreamQueue] that emits each outbound protocol buffer from the process.
   ///
   /// The initial int is the compilation ID.
@@ -41,15 +42,32 @@ class EmbeddedProcess {
   late StreamQueue<String> _stderr;
 
   /// A splitter that can emit new copies of [outbound].
-  final StreamSplitter<(int, OutboundMessage)> _outboundSplitter;
+  final StreamSplitter<(int, OutboundMessage)> _outboundSplitter =
+      StreamSplitter(
+        _process.stdout.transform(lengthDelimitedDecoder).map((packet) {
+          var (compilationId, buffer) = parsePacket(packet);
+          return (compilationId, OutboundMessage.fromBuffer(buffer));
+        }),
+      );
 
   /// A splitter that can emit new copies of [stderr].
-  final StreamSplitter<String> _stderrSplitter;
+  final StreamSplitter<String> _stderrSplitter = StreamSplitter(
+    _process.stderr.transform(utf8.decoder).transform(const LineSplitter()),
+  );
 
   /// A sink into which inbound messages can be passed to the process.
   ///
   /// The initial int is the compilation ID.
-  final Sink<(int, InboundMessage)> inbound;
+  final Sink<(int, InboundMessage)> inbound =
+      StreamSinkTransformer<(int, InboundMessage), List<int>>.fromHandlers(
+        handleData: (pair, sink) {
+          var (compilationId, message) = pair;
+          sink.add(serializePacket(compilationId, message));
+        },
+      ).bind(
+        StreamSinkTransformer.fromStreamTransformer(lengthDelimitedEncoder)
+            .bind(_process.stdin),
+      );
 
   /// The raw standard input byte sink.
   IOSink get stdin => _process.stdin;
@@ -109,27 +127,7 @@ class EmbeddedProcess {
   /// Creates a [EmbeddedProcess] for [process].
   ///
   /// The [forwardOutput] argument is the same as that to [start].
-  new _(Process process, {bool forwardOutput = false})
-    : _process = process,
-      _outboundSplitter = StreamSplitter(
-        process.stdout.transform(lengthDelimitedDecoder).map((packet) {
-          var (compilationId, buffer) = parsePacket(packet);
-          return (compilationId, OutboundMessage.fromBuffer(buffer));
-        }),
-      ),
-      _stderrSplitter = StreamSplitter(
-        process.stderr.transform(utf8.decoder).transform(const LineSplitter()),
-      ),
-      inbound =
-          StreamSinkTransformer<(int, InboundMessage), List<int>>.fromHandlers(
-            handleData: (pair, sink) {
-              var (compilationId, message) = pair;
-              sink.add(serializePacket(compilationId, message));
-            },
-          ).bind(
-            StreamSinkTransformer.fromStreamTransformer(lengthDelimitedEncoder)
-                .bind(process.stdin),
-          ) {
+  this {
     addTearDown(_tearDown);
     expect(
       _process.exitCode.then((_) => _logOutput()),

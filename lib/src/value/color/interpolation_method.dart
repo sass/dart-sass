@@ -11,17 +11,19 @@ import '../../value.dart';
 /// Used by [SassColor.interpolate].
 ///
 /// {@category Value}
-class InterpolationMethod {
+class InterpolationMethod(
   /// The color space in which to perform the interpolation.
-  final ColorSpace space;
-
+  final ColorSpace space, [
+  HueInterpolationMethod? hue,
+]) {
   /// How to interpolate the hues between two colors.
   ///
   /// This is non-null if and only if [space] is a color space.
-  final HueInterpolationMethod? hue;
+  final HueInterpolationMethod? hue = space.isPolar
+      ? hue ?? HueInterpolationMethod.shorter
+      : null;
 
-  new(this.space, [HueInterpolationMethod? hue])
-    : hue = space.isPolar ? hue ?? HueInterpolationMethod.shorter : null {
+  this {
     if (!space.isPolar && hue != null) {
       throw ArgumentError(
         "Hue interpolation method may not be set for rectangular color space "

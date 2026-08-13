@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 37648d3b43b1abd909e42ed0098ccd0abc1eb563
+// Checksum: 97f694b7e67424328ecea289606fc7d277e339e7
 //
 // ignore_for_file: unused_import
 
@@ -107,26 +107,25 @@ EvaluateResult evaluate(
 
 /// A class that can evaluate multiple independent statements and expressions
 /// in the context of a single module.
-final class Evaluator {
-  /// The visitor that evaluates each expression and statement.
-  final _EvaluateVisitor _visitor;
+final class Evaluator({
+  ImportCache? importCache,
 
   /// The importer to use to resolve `@use` rules in [_visitor].
-  final Importer? _importer;
+  final Importer? _importer,
+  Iterable<Callable>? functions,
+  Logger? logger,
+}) {
+  /// The visitor that evaluates each expression and statement.
+  final _EvaluateVisitor _visitor = _EvaluateVisitor(
+    importCache: importCache,
+    functions: functions,
+    logger: logger,
+  );
 
   /// Creates an evaluator.
   ///
   /// Arguments are the same as for [evaluate].
-  new({
-    ImportCache? importCache,
-    this._importer,
-    Iterable<Callable>? functions,
-    Logger? logger,
-  }) : _visitor = _EvaluateVisitor(
-         importCache: importCache,
-         functions: functions,
-         logger: logger,
-       );
+  this;
 
   void use(UseRule use) => _visitor.runStatement(_importer, use);
 
@@ -138,18 +137,28 @@ final class Evaluator {
 }
 
 /// A visitor that executes Sass code to produce a CSS tree.
-final class _EvaluateVisitor
-    implements
-        StatementVisitor<Value?>,
-        ExpressionVisitor<Value>,
-        IfConditionExpressionVisitor<Object /* String | bool */>,
-        CssVisitor<void> {
-  /// The import cache used to import other stylesheets.
-  final ImportCache? _importCache;
+final class _EvaluateVisitor({
+  ImportCache? importCache,
 
   /// The Node Sass-compatible importer to use when loading new Sass files when
   /// compiled to Node.js.
-  final NodeImporter? _nodeImporter;
+  final NodeImporter? _nodeImporter,
+  Iterable<Callable>? functions,
+  Logger? logger,
+
+  /// Whether to avoid emitting warnings for files loaded from dependencies.
+  final bool _quietDeps = false,
+
+  /// Whether to track source map information.
+  final bool _sourceMap = false,
+}) implements
+    StatementVisitor<Value?>,
+    ExpressionVisitor<Value>,
+    IfConditionExpressionVisitor<Object /* String | bool */>,
+    CssVisitor<void> {
+  /// The import cache used to import other stylesheets.
+  final ImportCache? _importCache =
+      importCache ?? (_nodeImporter == null ? ImportCache.none() : null);
 
   /// Built-in functions that are globally-accessible, even under the new module
   /// system.
@@ -172,7 +181,7 @@ final class _EvaluateVisitor
   final _moduleNodes = <Uri, AstNode>{};
 
   /// The logger to use to print warnings.
-  final Logger _logger;
+  final Logger _logger = logger ?? Logger.defaultLogger;
 
   /// A set of message/location pairs for warnings that have been emitted via
   /// [_warn].
@@ -180,12 +189,6 @@ final class _EvaluateVisitor
   /// We only want to emit one warning per location, to avoid blowing up users'
   /// consoles with redundant warnings.
   final _warningsEmitted = <(String, SourceSpan)>{};
-
-  /// Whether to avoid emitting warnings for files loaded from dependencies.
-  final bool _quietDeps;
-
-  /// Whether to track source map information.
-  final bool _sourceMap;
 
   /// The unique compile context for tracking if [SassFunction]s and
   /// [SassMixin]s belongs to the current compilation or not.
@@ -365,20 +368,7 @@ final class _EvaluateVisitor
   /// Creates a new visitor.
   ///
   /// Most arguments are the same as those to [evaluate].
-  new({
-    ImportCache? importCache,
-    NodeImporter? nodeImporter,
-    Iterable<Callable>? functions,
-    Logger? logger,
-    this._quietDeps = false,
-    this._sourceMap = false,
-  }) : _importCache =
-           importCache ?? (nodeImporter == null ? ImportCache.none() : null),
-       _nodeImporter = nodeImporter,
-       _logger = logger ?? Logger.defaultLogger,
-       // The default environment is overridden in [_execute] for full
-       // stylesheets, but for [AsyncEvaluator] this environment is used.
-       _environment = Environment() {
+  this : _environment = Environment() {
     var metaFunctions = [
       // These functions are defined in the context of the evaluator because
       // they need access to the [_environment] or other local state.
@@ -4791,12 +4781,10 @@ final class _EvaluateVisitor
 /// because it will add the parent selector to the CSS if the `@import` appeared
 /// in a nested context, but the parent selector was already added when the
 /// imported stylesheet was evaluated.
-final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
+final class _ImportedCssVisitor(
   /// The visitor in whose context this was created.
-  final _EvaluateVisitor _visitor;
-
-  new(this._visitor);
-
+  final _EvaluateVisitor _visitor,
+) implements ModifiableCssVisitor<void> {
   @override
   void visitCssAtRule(ModifiableCssAtRule node) {
     _visitor._addChild(
@@ -4864,16 +4852,14 @@ final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
 
 /// An implementation of [EvaluationContext] using the information available in
 /// [_EvaluateVisitor].
-final class _EvaluationContext extends EvaluationContext {
+final class _EvaluationContext(
   /// The visitor backing this context.
-  final _EvaluateVisitor _visitor;
+  final _EvaluateVisitor _visitor,
 
   /// The AST node whose span should be used for [warn] if no other span is
   /// available.
-  final AstNode _defaultWarnNodeWithSpan;
-
-  new(this._visitor, this._defaultWarnNodeWithSpan);
-
+  final AstNode _defaultWarnNodeWithSpan,
+) extends EvaluationContext {
   @override
   FileSpan get currentCallableSpan {
     if (_visitor._callableNode case var callableNode?) return callableNode.span;

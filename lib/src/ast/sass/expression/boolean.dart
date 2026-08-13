@@ -10,15 +10,12 @@ import '../expression.dart';
 /// A boolean literal, `true` or `false`.
 ///
 /// {@category AST}
-final class BooleanExpression extends Expression {
+final class BooleanExpression(
   /// The value of this expression.
-  final bool value;
+  final bool value,
 
-  @override
-  final FileSpan span;
-
-  new(this.value, this.span);
-
+  @override final FileSpan span,
+) extends Expression {
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitBooleanExpression(this);

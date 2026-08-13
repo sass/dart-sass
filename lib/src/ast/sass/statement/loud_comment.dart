@@ -11,14 +11,12 @@ import '../statement.dart';
 /// A loud CSS-style comment.
 ///
 /// {@category AST}
-final class LoudComment extends Statement {
+final class LoudComment(
   /// The interpolated text of this comment, including comment characters.
-  final Interpolation text;
-
+  final Interpolation text,
+) extends Statement {
   @override
   FileSpan get span => text.span;
-
-  new(this.text);
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitLoudComment(this);

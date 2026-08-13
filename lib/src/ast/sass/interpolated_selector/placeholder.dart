@@ -15,15 +15,13 @@ import 'simple.dart';
 /// parse when `parseSelectors: true` is passed to [Stylesheet.parse].
 ///
 /// {@category AST}
-final class InterpolatedPlaceholderSelector extends InterpolatedSimpleSelector {
+final class InterpolatedPlaceholderSelector(
   /// The name of the placeholder.
-  final Interpolation name;
-
+  final Interpolation name,
+) extends InterpolatedSimpleSelector {
   @override
   FileSpan get span =>
       name.span.file.span(name.span.start.offset - 1, name.span.end.offset);
-
-  new(this.name);
 
   /// Calls the appropriate visit method on [visitor].
   @override

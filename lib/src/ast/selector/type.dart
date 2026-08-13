@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
-import 'package:source_span/source_span.dart';
 
 import '../../extend/functions.dart';
 import '../../visitor/interface/selector.dart';
@@ -14,14 +13,13 @@ import '../selector.dart';
 /// This selects elements whose name equals the given name.
 ///
 /// {@category AST}
-final class TypeSelector extends SimpleSelector {
+final class TypeSelector(
   /// The element name being selected.
-  final QualifiedName name;
-
+  final QualifiedName name,
+  super.span,
+) extends SimpleSelector {
   @override
   int get specificity => 1;
-
-  new(this.name, FileSpan span) : super(span);
 
   @override
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitTypeSelector(this);

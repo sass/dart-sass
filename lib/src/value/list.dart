@@ -104,7 +104,16 @@ class SassList extends Value {
 /// An enum of list separator types.
 ///
 /// {@category Value}
-enum ListSeparator {
+enum ListSeparator(
+  /// The English name of the separator type.
+  final String _name,
+
+  /// The separator character.
+  ///
+  /// If the separator of a list has not been decided, this value will be
+  /// `null`.
+  final String? separator,
+) {
   /// A space-separated list.
   space('space', ' '),
 
@@ -119,16 +128,6 @@ enum ListSeparator {
   /// Singleton lists and empty lists don't have separators defined. This means
   /// that list functions will prefer other lists' separators if possible.
   undecided('undecided', null);
-
-  final String _name;
-
-  /// The separator character.
-  ///
-  /// If the separator of a list has not been decided, this value will be
-  /// `null`.
-  final String? separator;
-
-  const new(this._name, this.separator);
 
   @override
   String toString() => _name;

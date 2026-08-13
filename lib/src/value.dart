@@ -42,7 +42,7 @@ export 'value/string.dart';
 ///
 /// {@category Value}
 @sealed
-abstract class Value {
+abstract class const Value() {
   /// Whether the value counts as `true` in an `@if` statement and other
   /// contexts.
   bool get isTruthy => true;
@@ -105,7 +105,7 @@ abstract class Value {
   Value? get realNull => this;
 
   /// @nodoc
-  const new();
+  this;
 
   /// Calls the appropriate visit method on [visitor].
   ///

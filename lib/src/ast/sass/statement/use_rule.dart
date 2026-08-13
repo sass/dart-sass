@@ -17,34 +17,27 @@ import '../statement.dart';
 /// A `@use` rule.
 ///
 /// {@category AST}
-final class UseRule extends Statement implements SassDependency {
+final class UseRule(
   /// The URI of the module to use.
   ///
   /// If this is relative, it's relative to the containing file.
-  @override
-  final Uri url;
+  @override final Uri url,
 
   /// The namespace for members of the used module, or `null` if the members
   /// can be accessed without a namespace.
-  final String? namespace;
-
+  final String? namespace,
+  @override final FileSpan span, {
+  Iterable<ConfiguredVariable>? configuration,
+}) extends Statement implements SassDependency {
   /// A list of variable assignments used to configure the loaded modules.
-  final List<ConfiguredVariable> configuration;
-
-  @override
-  final FileSpan span;
+  final List<ConfiguredVariable> configuration = configuration == null
+      ? const []
+      : List<ConfiguredVariable>.unmodifiable(configuration);
 
   @override
   FileSpan get urlSpan => span.withoutInitialAtRule().initialQuoted();
 
-  new(
-    this.url,
-    this.namespace,
-    this.span, {
-    Iterable<ConfiguredVariable>? configuration,
-  }) : configuration = configuration == null
-           ? const []
-           : List<ConfiguredVariable>.unmodifiable(configuration) {
+  this {
     for (var variable in this.configuration) {
       if (variable.isGuarded) {
         throw ArgumentError.value(

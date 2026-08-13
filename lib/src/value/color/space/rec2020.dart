@@ -17,11 +17,11 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class Rec2020ColorSpace extends ColorSpace {
+final class const Rec2020ColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => true;
 
-  const new() : super('rec2020', rgbChannels);
+  this : super('rec2020', rgbChannels);
 
   @override
   @protected

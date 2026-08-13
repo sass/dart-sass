@@ -6,19 +6,18 @@ import 'package:sass/sass.dart';
 
 /// An [Importer] whose [canonicalize] and [load] methods are provided by
 /// closures.
-class TestImporter extends Importer {
-  final Uri? Function(Uri url) _canonicalize;
-  final ImporterResult? Function(Uri url) _load;
-  final Set<String> _nonCanonicalSchemes;
+class TestImporter(
+  final Uri? Function(Uri url) _canonicalize,
+  final ImporterResult? Function(Uri url) _load, {
+  Iterable<String>? nonCanonicalSchemes,
+}) extends Importer {
+  final Set<String> _nonCanonicalSchemes = nonCanonicalSchemes == null
+      ? const {}
+      : Set.unmodifiable(nonCanonicalSchemes);
 
   /// Public access to the containing URL so that [canonicalize] and [load]
   /// implementations can access them.
   Uri? get publicContainingUrl => containingUrl;
-
-  new(this._canonicalize, this._load, {Iterable<String>? nonCanonicalSchemes})
-    : _nonCanonicalSchemes = nonCanonicalSchemes == null
-          ? const {}
-          : Set.unmodifiable(nonCanonicalSchemes);
 
   @override
   Uri? canonicalize(Uri url) => _canonicalize(url);

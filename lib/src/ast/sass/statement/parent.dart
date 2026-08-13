@@ -17,28 +17,24 @@ import 'variable_declaration.dart';
 /// not their children lists are nullable.
 ///
 /// {@category AST}
-abstract base class ParentStatement<T extends List<Statement>?>
-    extends Statement {
+abstract base class ParentStatement<T extends List<Statement>?>(
   /// The child statements of this statement.
-  final T children;
-
+  final T children,
+) extends Statement {
   /// Whether any of [children] is a variable, function, or mixin declaration,
   /// or a dynamic import rule.
   ///
   /// @nodoc
   @internal
-  final bool hasDeclarations;
-
-  new(this.children)
-    : hasDeclarations =
-          children?.any(
-            (child) => switch (child) {
-              VariableDeclaration() || FunctionRule() || MixinRule() => true,
-              ImportRule(:var imports) => imports.any(
-                (import) => import is DynamicImport,
-              ),
-              _ => false,
-            },
-          ) ??
-          false;
+  final bool hasDeclarations =
+      children?.any(
+        (child) => switch (child) {
+          VariableDeclaration() || FunctionRule() || MixinRule() => true,
+          ImportRule(:var imports) => imports.any(
+            (import) => import is DynamicImport,
+          ),
+          _ => false,
+        },
+      ) ??
+      false;
 }

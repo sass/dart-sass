@@ -23,24 +23,25 @@ typedef ReusableIsolateEntryPoint = FutureOr<void> Function(
   SendPort sink,
 );
 
-class ReusableIsolate {
+class ReusableIsolate._(
   /// The wrapped isolate.
-  final Isolate _isolate;
+  final Isolate _isolate,
 
   /// The mailbox used to send messages to this isolate.
-  final Mailbox _mailbox;
+  final Mailbox _mailbox,
 
   /// The [ReceivePort] that receives messages from the wrapped isolate.
-  final ReceivePort _receivePort;
-
+  final ReceivePort _receivePort, {
+  Function? onError,
+}) {
   /// The subscription to [_receivePort].
-  final StreamSubscription<dynamic> _subscription;
+  final StreamSubscription<dynamic> _subscription = _receivePort.listen(
+    _defaultOnData,
+    onError: onError,
+  );
 
   /// Whether the current isolate has been borrowed.
   bool _borrowed = false;
-
-  new _(this._isolate, this._mailbox, this._receivePort, {Function? onError})
-    : _subscription = _receivePort.listen(_defaultOnData, onError: onError);
 
   /// Spawns a [ReusableIsolate] that runs the given [entryPoint].
   static Future<ReusableIsolate> spawn(

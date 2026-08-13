@@ -95,34 +95,27 @@ class _FindDependenciesVisitor with RecursiveStatementVisitor {
 }
 
 /// A struct of different types of dependencies a Sass stylesheet can contain.
-final class DependencyReport {
+final class DependencyReport._({
   /// An unmodifiable set of all `@use`d URLs in the stylesheet (excluding
   /// built-in modules).
-  final Set<Uri> uses;
+  required final Set<Uri> uses,
 
   /// An unmodifiable set of all `@forward`ed URLs in the stylesheet (excluding
   /// built-in modules).
-  final Set<Uri> forwards;
+  required final Set<Uri> forwards,
 
   /// An unmodifiable set of all URLs loaded by `meta.load-css()` calls with
   /// static string arguments outside of mixins.
-  final Set<Uri> metaLoadCss;
+  required final Set<Uri> metaLoadCss,
 
   /// An unmodifiable set of all dynamically `@import`ed URLs in the
   /// stylesheet.
-  final Set<Uri> imports;
-
+  required final Set<Uri> imports,
+}) {
   /// An unmodifiable set of all URLs in [uses], [forwards], and [metaLoadCss].
   Set<Uri> get modules => UnionSet({uses, forwards, metaLoadCss});
 
   /// An unmodifiable set of all URLs in [uses], [forwards], [metaLoadCss], and
   /// [imports].
   Set<Uri> get all => UnionSet({uses, forwards, metaLoadCss, imports});
-
-  new _({
-    required this.uses,
-    required this.forwards,
-    required this.metaLoadCss,
-    required this.imports,
-  });
 }

@@ -14,7 +14,7 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class HslColorSpace extends ColorSpace {
+final class const HslColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => true;
 
@@ -24,7 +24,7 @@ final class HslColorSpace extends ColorSpace {
   @override
   bool get isPolarInternal => true;
 
-  const new()
+  this
     : super('hsl', const [
         hueChannel,
         LinearChannel(

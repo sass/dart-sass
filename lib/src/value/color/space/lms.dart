@@ -21,11 +21,11 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class LmsColorSpace extends ColorSpace {
+final class const LmsColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => false;
 
-  const new()
+  this
     : super('lms', const [
         LinearChannel('long', 0, 1),
         LinearChannel('medium', 0, 1),

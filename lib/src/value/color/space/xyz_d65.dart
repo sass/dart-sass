@@ -16,11 +16,11 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class XyzD65ColorSpace extends ColorSpace {
+final class const XyzD65ColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => false;
 
-  const new() : super('xyz', xyzChannels);
+  this : super('xyz', xyzChannels);
 
   @override
   @protected

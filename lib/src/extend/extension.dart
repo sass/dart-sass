@@ -13,35 +13,31 @@ import '../utils.dart';
 ///
 /// The target of the extension is represented externally, in the map that
 /// contains this extender.
-class Extension {
-  /// The extender (such as `A` in `A {@extend B}`).
-  final Extender extender;
+class Extension(
+  ComplexSelector extender,
 
   /// The selector that's being extended.
-  final SimpleSelector target;
-
-  /// The media query context to which this extension is restricted, or `null`
-  /// if it can apply within any context.
-  final List<CssMediaQuery>? mediaContext;
-
-  /// Whether this extension is optional.
-  final bool isOptional;
+  final SimpleSelector target,
 
   /// The span for an `@extend` rule that defined this extension.
   ///
   /// If any extend rule for this is extension is mandatory, this is guaranteed
   /// to be a span for a mandatory rule.
-  final FileSpan span;
+  final FileSpan span, {
+
+  /// The media query context to which this extension is restricted, or `null`
+  /// if it can apply within any context.
+  final List<CssMediaQuery>? mediaContext,
+  bool optional = false,
+}) {
+  /// The extender (such as `A` in `A {@extend B}`).
+  final Extender extender = Extender(extender);
+
+  /// Whether this extension is optional.
+  final bool isOptional = optional;
 
   /// Creates a new extension.
-  new(
-    ComplexSelector extender,
-    this.target,
-    this.span, {
-    this.mediaContext,
-    bool optional = false,
-  }) : extender = Extender(extender),
-       isOptional = optional {
+  this {
     this.extender._extension = this;
   }
 
@@ -60,17 +56,19 @@ class Extension {
 
 /// A selector that's extending another selector, such as `A` in `A {@extend
 /// B}`.
-final class Extender {
+final class Extender(
   /// The selector in which the `@extend` appeared.
-  final ComplexSelector selector;
-
+  final ComplexSelector selector, {
+  int? specificity,
+  bool original = false,
+}) {
   /// The minimum specificity required for any selector generated from this
   /// extender.
-  final int specificity;
+  final int specificity = specificity ?? selector.specificity;
 
   /// Whether this extender represents a selector that was originally in the
   /// document, rather than one defined with `@extend`.
-  final bool isOriginal;
+  final bool isOriginal = original;
 
   /// The extension that created this [Extender].
   ///
@@ -81,9 +79,7 @@ final class Extender {
   /// Creates a new extender.
   ///
   /// If [specificity] isn't passed, it defaults to `extender.specificity`.
-  new(this.selector, {int? specificity, bool original = false})
-    : specificity = specificity ?? selector.specificity,
-      isOriginal = original;
+  this;
 
   /// Asserts that the [mediaContext] for a selector is compatible with the
   /// query context for this extender.

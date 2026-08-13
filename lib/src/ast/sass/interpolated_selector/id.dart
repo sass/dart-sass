@@ -15,15 +15,13 @@ import 'simple.dart';
 /// `parseSelectors: true` is passed to [Stylesheet.parse].
 ///
 /// {@category AST}
-final class InterpolatedIDSelector extends InterpolatedSimpleSelector {
+final class InterpolatedIDSelector(
   /// The id name this selects for.
-  final Interpolation name;
-
+  final Interpolation name,
+) extends InterpolatedSimpleSelector {
   @override
   FileSpan get span =>
       name.span.file.span(name.span.start.offset - 1, name.span.end.offset);
-
-  new(this.name);
 
   /// Calls the appropriate visit method on [visitor].
   @override

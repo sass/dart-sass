@@ -955,42 +955,12 @@ final class AsyncEnvironment {
 }
 
 /// A module that represents the top-level members defined in an [Environment].
-final class _EnvironmentModule implements Module {
-  @override
-  Uri? get url => css.span.sourceUrl;
-
-  @override
-  final List<Module> upstream;
-
-  @override
-  final Map<String, Value> variables;
-
-  @override
-  final Map<String, AstNode> variableNodes;
-
-  @override
-  final Map<String, AsyncCallable> functions;
-
-  @override
-  final Map<String, AsyncCallable> mixins;
-
-  @override
-  final ExtensionStore extensionStore;
-
-  @override
-  final CssStylesheet css;
-
-  @override
-  final Map<Module, List<CssComment>> preModuleComments;
-
-  @override
-  final bool transitivelyContainsCss;
-
-  @override
-  final bool transitivelyContainsExtensions;
-
+final class _EnvironmentModule._(
   /// The environment that defines this module's members.
-  final AsyncEnvironment _environment;
+  final AsyncEnvironment _environment,
+  @override final CssStylesheet css,
+  @override final Map<Module, List<CssComment>> preModuleComments,
+  @override final ExtensionStore extensionStore,
 
   /// A map from variable names to the modules in which those variables appear,
   /// used to determine where variables should be set.
@@ -998,7 +968,19 @@ final class _EnvironmentModule implements Module {
   /// Variables that don't appear in this map are either defined directly in
   /// this module (if they appear in `_environment._variables.first`) or not
   /// defined at all.
-  final Map<String, Module> _modulesByVariable;
+  final Map<String, Module> _modulesByVariable,
+  @override final Map<String, Value> variables,
+  @override final Map<String, AstNode> variableNodes,
+  @override final Map<String, AsyncCallable> functions,
+  @override final Map<String, AsyncCallable> mixins, {
+  @override required final bool transitivelyContainsCss,
+  @override required final bool transitivelyContainsExtensions,
+}) implements Module {
+  @override
+  Uri? get url => css.span.sourceUrl;
+
+  @override
+  final List<Module> upstream = _environment._allModules;
 
   factory(
     AsyncEnvironment environment,
@@ -1088,20 +1070,6 @@ final class _EnvironmentModule implements Module {
 
     return MergedMapView(allMaps);
   }
-
-  new _(
-    this._environment,
-    this.css,
-    this.preModuleComments,
-    this.extensionStore,
-    this._modulesByVariable,
-    this.variables,
-    this.variableNodes,
-    this.functions,
-    this.mixins, {
-    required this.transitivelyContainsCss,
-    required this.transitivelyContainsExtensions,
-  }) : upstream = _environment._allModules;
 
   @override
   void setVariable(String name, Value value, AstNode nodeWithSpan) {

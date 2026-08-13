@@ -16,21 +16,17 @@ import 'compound.dart';
 /// [Stylesheet.parse].
 ///
 /// {@category AST}
-final class InterpolatedComplexSelectorComponent implements SassNode {
+final class InterpolatedComplexSelectorComponent(
   /// This component's compound selector.
-  final InterpolatedCompoundSelector selector;
+  final InterpolatedCompoundSelector selector,
+  @override final FileSpan span, {
 
   /// This selector's combinator.
   ///
   /// If this is null, that indicates that it has an implicit descendent
   /// combinator.
-  final CssValue<Combinator>? combinator;
-
-  @override
-  final FileSpan span;
-
-  new(this.selector, this.span, {this.combinator});
-
+  final CssValue<Combinator>? combinator,
+}) implements SassNode {
   @override
   String toString() => switch (combinator) {
     var combinator? => '$selector $combinator',

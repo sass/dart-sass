@@ -20,11 +20,11 @@ import 'xyz_d50.dart';
 ///
 /// @nodoc
 @internal
-final class LabColorSpace extends ColorSpace {
+final class const LabColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => false;
 
-  const new()
+  this
     : super('lab', const [
         LinearChannel(
           'lightness',

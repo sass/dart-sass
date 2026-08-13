@@ -12,25 +12,25 @@ import 'util/character.dart';
 
 /// A map from locations in a string generated from an [Interpolation] to the
 /// original source code in the interpolation.
-final class InterpolationMap {
+final class InterpolationMap(
   /// The interpolation from which this map was generated.
-  final Interpolation _interpolation;
-
+  final Interpolation _interpolation,
+  Iterable<int> targetOffsets,
+) {
   /// Location offsets in the generated string.
   ///
   /// Each of these indicates the location in the generated string that
   /// corresponds to the end of the component at the same index of
   /// [_interpolation.contents]. Its length is always one less than
   /// [_interpolation.contents] because the last element always ends the string.
-  final List<int> _targetOffsets;
+  final List<int> _targetOffsets = List.unmodifiable(targetOffsets);
 
   /// Creates a new interpolation map that maps the given [targetOffsets] in the
   /// generated string to the contents of the interpolation.
   ///
   /// Each target offset at index `i` corresponds to the character in the
   /// generated string after `interpolation.contents[i]`.
-  new(this._interpolation, Iterable<int> targetOffsets)
-    : _targetOffsets = List.unmodifiable(targetOffsets) {
+  this {
     var expectedLocations = math.max(0, _interpolation.contents.length - 1);
     if (_targetOffsets.length != expectedLocations) {
       throw ArgumentError(

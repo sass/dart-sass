@@ -14,7 +14,10 @@ import 'gamut_map_method/local_minde.dart';
 ///
 /// {@category Value}
 @sealed
-abstract base class GamutMapMethod {
+abstract base class const GamutMapMethod(
+  /// The Sass name of the gamut-mapping algorithm.
+  final String name,
+) {
   /// Clamp each color channel that's outside the gamut to the minimum or
   /// maximum value for that channel.
   ///
@@ -33,12 +36,9 @@ abstract base class GamutMapMethod {
   /// [local-MINDE]: https://www.w3.org/TR/2024/CRD-css-color-4-20240213/#GM-chroma-local-MINDE
   static const GamutMapMethod localMinde = LocalMindeGamutMap();
 
-  /// The Sass name of the gamut-mapping algorithm.
-  final String name;
-
   /// @nodoc
   @internal
-  const new(this.name);
+  this;
 
   /// Parses a [GamutMapMethod] from its Sass name.
   ///

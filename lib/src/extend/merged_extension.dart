@@ -11,13 +11,13 @@ import 'extension.dart';
 ///
 /// This is used when multiple mandatory extensions exist to ensure that both of
 /// them are marked as resolved.
-final class MergedExtension extends Extension {
+final class MergedExtension._(
   /// One of the merged extensions.
-  final Extension left;
+  final Extension left,
 
   /// The other merged extension.
-  final Extension right;
-
+  final Extension right,
+) extends Extension {
   /// Returns an extension that combines [left] and [right].
   ///
   /// Throws a [SassException] if [left] and [right] have incompatible media
@@ -50,7 +50,7 @@ final class MergedExtension extends Extension {
     return MergedExtension._(left, right);
   }
 
-  new _(this.left, this.right)
+  this
     : super(
         left.extender.selector,
         left.target,

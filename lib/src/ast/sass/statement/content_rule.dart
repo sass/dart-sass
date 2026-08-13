@@ -14,17 +14,13 @@ import '../statement.dart';
 /// caller.
 ///
 /// {@category AST}
-final class ContentRule extends Statement {
+final class ContentRule(
   /// The arguments pass to this `@content` rule.
   ///
   /// This will be an empty invocation if `@content` has no arguments.
-  final ArgumentList arguments;
-
-  @override
-  final FileSpan span;
-
-  new(this.arguments, this.span);
-
+  final ArgumentList arguments,
+  @override final FileSpan span,
+) extends Statement {
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitContentRule(this);
 

@@ -24,9 +24,7 @@ FunctionExpression expressionToCalc(Expression expression) =>
 
 /// A visitor that replaces constructs that can't be used in a calculation with
 /// those that can.
-class _MakeExpressionCalculationSafe with ReplaceExpressionVisitor {
-  const new();
-
+class const _MakeExpressionCalculationSafe() with ReplaceExpressionVisitor {
   @override
   Expression visitBinaryOperationExpression(BinaryOperationExpression node) =>
       node.operator == BinaryOperator.modulo

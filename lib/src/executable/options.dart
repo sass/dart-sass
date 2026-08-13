@@ -18,7 +18,10 @@ import '../util/character.dart';
 ///
 /// The constructor and any members may throw [UsageException]s indicating that
 /// invalid arguments were passed.
-final class ExecutableOptions {
+final class ExecutableOptions._(
+  /// The parsed options passed by the user to the executable.
+  final ArgResults _options,
+) {
   /// The bar character to use in help separators.
   static final _separatorBar = isWindows ? '=' : '━';
 
@@ -198,9 +201,6 @@ final class ExecutableOptions {
 
   /// Shorthand for throwing a [UsageException] with the given [message].
   static Never _fail(String message) => throw UsageException(message);
-
-  /// The parsed options passed by the user to the executable.
-  final ArgResults _options;
 
   /// Whether to print the version of Sass and exit.
   bool get version => _options['version'] as bool;
@@ -545,7 +545,7 @@ final class ExecutableOptions {
     }
   }
 
-  new _(this._options) {
+  this {
     if (_options.wasParsed('poll') && !watch) {
       _fail("--poll may not be passed without --watch.");
     }
@@ -622,8 +622,7 @@ final class ExecutableOptions {
 }
 
 /// An exception indicating that invalid arguments were passed.
-class UsageException implements Exception {
-  final String message;
-
-  new(this.message);
-}
+class UsageException(
+  /// The message explaining the specific error.
+  final String message,
+) implements Exception;
