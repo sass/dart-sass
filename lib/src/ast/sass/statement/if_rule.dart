@@ -34,7 +34,7 @@ final class IfRule(
   /// The first clause whose expression evaluates to `true` will have its
   /// statements executed. If no expression evaluates to `true`, `lastClause`
   /// will be executed if it's not `null`.
-  final List<IfClause> clauses = List.unmodifiable(clauses);
+  final List<IfClause> clauses = List.unmodifiableOf(clauses);
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIfRule(this);
@@ -76,7 +76,7 @@ sealed class IfRuleClause._(
     },
   );
 
-  new(Iterable<Statement> children) : this._(List.unmodifiable(children));
+  new(Iterable<Statement> children) : this._(List.unmodifiableOf(children));
 }
 
 /// An `@if` or `@else if` clause in an `@if` rule.

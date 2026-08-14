@@ -16,7 +16,7 @@ final class ModifiableCssMediaRule(
   @override final FileSpan span,
 ) extends ModifiableCssParentNode implements CssMediaRule {
   @override
-  final List<CssMediaQuery> queries = List.unmodifiable(queries);
+  final List<CssMediaQuery> queries = List.unmodifiableOf(queries);
 
   this {
     if (queries.isEmpty) {

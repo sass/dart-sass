@@ -18,7 +18,7 @@ final class SupportsRule(
   Iterable<Statement> children,
   @override final FileSpan span,
 ) extends ParentStatement<List<Statement>> {
-  this : super(List.unmodifiable(children));
+  this : super(List.unmodifiableOf(children));
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitSupportsRule(this);

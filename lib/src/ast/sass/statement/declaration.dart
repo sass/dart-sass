@@ -60,7 +60,7 @@ final class Declaration extends ParentStatement {
   /// For these declarations, a value is optional.
   new nested(this.name, Iterable<Statement> children, this.span, {this.value})
     : parsedAsSassScript = true,
-      super(List.unmodifiable(children));
+      super(List.unmodifiableOf(children));
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitDeclaration(this);

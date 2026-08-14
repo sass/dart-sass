@@ -353,7 +353,7 @@ final class ExecutableOptions._(
         } else if (watch) {
           _fail("--watch is not allowed with --stdin.");
         }
-        _sourcesToDestinations = Map.unmodifiable({
+        _sourcesToDestinations = Map.unmodifiableOf({
           null: _options.rest.isEmpty ? null : _options.rest.first,
         });
       } else if (_options.rest.length > 2) {

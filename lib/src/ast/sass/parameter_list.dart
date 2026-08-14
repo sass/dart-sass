@@ -57,7 +57,7 @@ final class ParameterList implements SassNode {
   bool get isEmpty => parameters.isEmpty && restParameter == null;
 
   new(Iterable<Parameter> parameters, this.span, {this.restParameter})
-    : parameters = List.unmodifiable(parameters);
+    : parameters = List.unmodifiableOf(parameters);
 
   /// Creates a declaration that declares no parameters.
   new empty(this.span) : parameters = const [], restParameter = null;

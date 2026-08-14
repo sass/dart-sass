@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 7af7fc2d2147a603f891f926689bd3909cdf908d
+// Checksum: 91e9fabc7bfb821b54aae73770f445a67674b80f
 //
 // ignore_for_file: unused_import
 
@@ -1004,9 +1004,9 @@ final class _EnvironmentModule._(
     return _EnvironmentModule._(
       environment,
       css,
-      Map.unmodifiable({
+      Map.unmodifiableOf({
         for (var (module, comments) in preModuleComments.pairs)
-          module: List<CssComment>.unmodifiable(comments),
+          module: List.unmodifiableOf(comments),
       }),
       extensionStore,
       _makeModulesByVariable(forwarded),

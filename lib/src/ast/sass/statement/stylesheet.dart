@@ -62,7 +62,7 @@ final class Stylesheet.internal(
   @internal
   final Map<String, FileSpan> globalVariables = globalVariables == null
       ? const {}
-      : Map.unmodifiable(globalVariables);
+      : Map.unmodifiableOf(globalVariables);
 
   new(Iterable<Statement> children, FileSpan span)
     : this.internal(children, span, []);
@@ -71,7 +71,7 @@ final class Stylesheet.internal(
   ///
   /// @nodoc
   @internal
-  this : super(List.unmodifiable(children)) {
+  this : super(List.unmodifiableOf(children)) {
     loop:
     for (var child in this.children) {
       switch (child) {

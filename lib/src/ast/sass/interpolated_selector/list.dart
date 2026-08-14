@@ -20,7 +20,7 @@ final class InterpolatedSelectorList(
   /// The components of this selector.
   ///
   /// This is never empty.
-  final List<InterpolatedComplexSelector> components = List.unmodifiable(
+  final List<InterpolatedComplexSelector> components = List.unmodifiableOf(
     components,
   );
 

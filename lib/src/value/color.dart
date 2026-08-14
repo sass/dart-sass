@@ -75,7 +75,7 @@ class SassColor._forSpace(
   /// Note that the semantics of each of these channels varies significantly
   /// based on the value of [space].
   List<double> get channels =>
-      List.unmodifiable([channel0, channel1, channel2]);
+      List.unmodifiableOf([channel0, channel1, channel2]);
 
   /// The values of this color's channels (excluding the alpha channel), or
   /// `null` for [missing] channels.
@@ -85,7 +85,7 @@ class SassColor._forSpace(
   /// Note that the semantics of each of these channels varies significantly
   /// based on the value of [space].
   List<double?> get channelsOrNull =>
-      List.unmodifiable([channel0OrNull, channel1OrNull, channel2OrNull]);
+      List.unmodifiableOf([channel0OrNull, channel1OrNull, channel2OrNull]);
 
   /// This color's first channel.
   ///

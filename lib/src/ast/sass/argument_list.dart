@@ -45,9 +45,9 @@ final class ArgumentList implements SassNode {
     this.span, {
     this.rest,
     this.keywordRest,
-  }) : positional = List.unmodifiable(positional),
-       named = Map.unmodifiable(named),
-       namedSpans = Map.unmodifiable(namedSpans) {
+  }) : positional = List.unmodifiableOf(positional),
+       named = Map.unmodifiableOf(named),
+       namedSpans = Map.unmodifiableOf(namedSpans) {
     assert(rest != null || keywordRest == null);
     assert(iterableEquals(named.keys, namedSpans.keys));
   }

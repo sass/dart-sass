@@ -18,7 +18,7 @@ final class MapExpression(
   ///
   /// This is a list of pairs rather than a map because a map may have two keys
   /// with the same expression (e.g. `(unique-id(): 1, unique-id(): 2)`).
-  final List<(Expression, Expression)> pairs = List.unmodifiable(pairs);
+  final List<(Expression, Expression)> pairs = List.unmodifiableOf(pairs);
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) => visitor.visitMapExpression(this);

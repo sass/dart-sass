@@ -28,5 +28,5 @@ abstract base class CallableDeclaration(
   /// The name of this callable, with underscores converted to hyphens.
   final String name = originalName.replaceAll('_', '-');
 
-  this : super(List.unmodifiable(children));
+  this : super(List.unmodifiableOf(children));
 }

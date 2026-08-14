@@ -22,7 +22,7 @@ final class ListExpression(
   bool brackets = false,
 }) extends Expression {
   /// The elements of this list.
-  final List<Expression> contents = List.unmodifiable(contents);
+  final List<Expression> contents = List.unmodifiableOf(contents);
 
   /// Whether the list has square brackets or not.
   final bool hasBrackets = brackets;

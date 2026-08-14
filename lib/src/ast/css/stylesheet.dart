@@ -30,7 +30,7 @@ class CssStylesheet extends CssParentNode {
 
   /// Creates an unmodifiable stylesheet containing [children].
   new(Iterable<CssNode> children, this.span)
-    // Use [UnmodifiableListView] rather than [List.unmodifiable] because the
+    // Use [UnmodifiableListView] rather than [List.unmodifiableOf] because the
     // underlying nodes are mutable anyway, so it's better to have the whole
     // thing consistently represent mutation of the underlying data.
     : children = UnmodifiableListView(children);

@@ -55,7 +55,7 @@ class SassList extends Value {
 
   /// Returns an empty list with the given [separator] and [brackets].
   new(Iterable<Value> contents, this._separator, {bool brackets = false})
-    : _contents = List.unmodifiable(contents),
+    : _contents = List.unmodifiableOf(contents),
       _hasBrackets = brackets {
     if (separator == ListSeparator.undecided && asList.length > 1) {
       throw ArgumentError(

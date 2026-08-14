@@ -35,7 +35,7 @@ final class StyleRule extends ParentStatement<List<Statement>> {
   /// Constructs a style rule with [selector] set and [parsedSelector] null.
   new(this.selector, Iterable<Statement> children, this.span)
     : parsedSelector = null,
-      super(List.unmodifiable(children));
+      super(List.unmodifiableOf(children));
 
   /// Constructs a style rule with [parsedSelector] set and [selector].
   new withParsedSelector(
@@ -43,7 +43,7 @@ final class StyleRule extends ParentStatement<List<Statement>> {
     Iterable<Statement> children,
     this.span,
   ) : selector = null,
-      super(List.unmodifiable(children));
+      super(List.unmodifiableOf(children));
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitStyleRule(this);

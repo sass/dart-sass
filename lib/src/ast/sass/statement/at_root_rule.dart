@@ -22,7 +22,7 @@ final class AtRootRule(
   /// through.
   final Interpolation? query,
 }) extends ParentStatement<List<Statement>> {
-  this : super(List.unmodifiable(children));
+  this : super(List.unmodifiableOf(children));
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitAtRootRule(this);

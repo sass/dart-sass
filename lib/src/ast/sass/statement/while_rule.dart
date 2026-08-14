@@ -21,7 +21,7 @@ final class WhileRule(
   Iterable<Statement> children,
   @override final FileSpan span,
 ) extends ParentStatement<List<Statement>> {
-  this : super(List<Statement>.unmodifiable(children));
+  this : super(List.unmodifiableOf(children));
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitWhileRule(this);

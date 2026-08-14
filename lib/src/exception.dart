@@ -126,7 +126,9 @@ class MultiSpanSassException(
   super.loadedUrls,
 ]) extends SassException implements MultiSourceSpanException {
   @override
-  final Map<FileSpan, String> secondarySpans = Map.unmodifiable(secondarySpans);
+  final Map<FileSpan, String> secondarySpans = Map.unmodifiableOf(
+    secondarySpans,
+  );
 
   @override
   MultiSpanSassException withAdditionalSpan(FileSpan span, String label) =>
@@ -347,7 +349,9 @@ class MultiSpanSassScriptException(
   Map<FileSpan, String> secondarySpans,
 ) extends SassScriptException {
   /// See [MultiSourceSpanException.secondarySpans].
-  final Map<FileSpan, String> secondarySpans = Map.unmodifiable(secondarySpans);
+  final Map<FileSpan, String> secondarySpans = Map.unmodifiableOf(
+    secondarySpans,
+  );
 
   /// Converts this to a [SassException] with the given primary [span].
   @override

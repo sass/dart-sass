@@ -26,9 +26,8 @@ final class IfExpression(
   /// The conditional branches that make up the `if()`.
   ///
   /// A `null` expression indicates an `else` branch that is always evaluated.
-  final List<(IfConditionExpression?, Expression)> branches = List.unmodifiable(
-    branches,
-  );
+  final List<(IfConditionExpression?, Expression)> branches =
+      List.unmodifiableOf(branches);
 
   this {
     if (this.branches.isEmpty) {
@@ -150,7 +149,7 @@ final class IfConditionOperation(
   final BooleanOperator op,
 ) extends IfConditionExpression {
   /// The expressions conjoined or disjoined by this operation.
-  final List<IfConditionExpression> expressions = List.unmodifiable(
+  final List<IfConditionExpression> expressions = List.unmodifiableOf(
     expressions,
   );
 

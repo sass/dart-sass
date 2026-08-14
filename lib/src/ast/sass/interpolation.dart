@@ -72,7 +72,7 @@ final class Interpolation implements SassNode {
   };
 
   new plain(String text, this.span)
-    : contents = List.unmodifiable([text]),
+    : contents = List.unmodifiableOf([text]),
       spans = const [null];
 
   /// Creates a new [Interpolation] with the given [contents].
@@ -86,8 +86,8 @@ final class Interpolation implements SassNode {
     Iterable<Object /* String | Expression */> contents,
     Iterable<FileSpan?> spans,
     this.span,
-  ) : contents = List.unmodifiable(contents),
-      spans = List.unmodifiable(spans) {
+  ) : contents = List.unmodifiableOf(contents),
+      spans = List.unmodifiableOf(spans) {
     if (spans.length != contents.length) {
       throw ArgumentError.value(
         this.spans,

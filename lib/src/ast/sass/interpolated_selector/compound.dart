@@ -19,7 +19,7 @@ final class InterpolatedCompoundSelector(
   Iterable<InterpolatedSimpleSelector> components,
 ) extends InterpolatedSelector {
   /// The components of this selector.
-  final List<InterpolatedSimpleSelector> components = List.unmodifiable(
+  final List<InterpolatedSimpleSelector> components = List.unmodifiableOf(
     components,
   );
 

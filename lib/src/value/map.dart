@@ -45,7 +45,7 @@ class SassMap extends Value {
   /// Returns an empty map.
   const new empty() : _contents = const {};
 
-  new(Map<Value, Value> contents) : _contents = Map.unmodifiable(contents);
+  new(Map<Value, Value> contents) : _contents = Map.unmodifiableOf(contents);
 
   /// @nodoc
   @override

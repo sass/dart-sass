@@ -50,12 +50,12 @@ final class NodeImporter(
   Iterable<Object> importers,
 ) {
   /// The include paths passed in by the user.
-  final List<String> _includePaths = List.unmodifiable(
+  final List<String> _includePaths = List.unmodifiableOf(
     _addSassPath(includePaths),
   );
 
   /// The importer functions passed in by the user.
-  final List<JSFunction> _importers = List.unmodifiable(importers.cast());
+  final List<JSFunction> _importers = List.unmodifiableOf(importers.cast());
 
   /// Returns [includePaths] followed by any paths loaded from the `SASS_PATH`
   /// environment variable.

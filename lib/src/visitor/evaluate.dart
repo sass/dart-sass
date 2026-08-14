@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 97f694b7e67424328ecea289606fc7d277e339e7
+// Checksum: e4e764b1f35dd96d320bc5f1eaf9534bf2f6bae3
 //
 // ignore_for_file: unused_import
 
@@ -2392,7 +2392,7 @@ final class _EvaluateVisitor({
         interpolationMap: selectorMap,
       ).parse();
       var rule = ModifiableCssKeyframeBlock(
-        CssValue(List.unmodifiable(parsedSelector), node.selector!.span),
+        CssValue(List.unmodifiableOf(parsedSelector), node.selector!.span),
         node.span,
       );
       _withParent(

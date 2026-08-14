@@ -29,7 +29,7 @@ final class InterpolatedComplexSelector(
   ///
   /// This is only empty if [leadingCombinators] is not null.
   final List<InterpolatedComplexSelectorComponent> components =
-      List.unmodifiable(components);
+      List.unmodifiableOf(components);
 
   this {
     if (leadingCombinator == null && this.components.isEmpty) {

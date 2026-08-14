@@ -35,7 +35,7 @@ final class ComplexSelector(
   /// If this is empty, that indicates that it has no leading combinator. If
   /// it's more than one element, that means it's invalid CSS; however, we still
   /// support this for backwards-compatibility purposes.
-  final List<CssValue<Combinator>> leadingCombinators = List.unmodifiable(
+  final List<CssValue<Combinator>> leadingCombinators = List.unmodifiableOf(
     leadingCombinators,
   );
 
@@ -49,7 +49,7 @@ final class ComplexSelector(
   ///
   /// It's possible for multiple [Combinator]s to be adjacent to one another.
   /// This isn't valid CSS, but Sass supports it for CSS hack purposes.
-  final List<ComplexSelectorComponent> components = List.unmodifiable(
+  final List<ComplexSelectorComponent> components = List.unmodifiableOf(
     components,
   );
 

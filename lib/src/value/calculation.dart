@@ -49,7 +49,7 @@ final class SassCalculation._(
   static SassCalculation unsimplified(
     String name,
     Iterable<Object> arguments,
-  ) => SassCalculation._(name, List.unmodifiable(arguments));
+  ) => SassCalculation._(name, List.unmodifiableOf(arguments));
 
   /// Creates a `calc()` calculation with the given [argument].
   ///
@@ -64,7 +64,7 @@ final class SassCalculation._(
     SassCalculation value => value,
     var simplified => SassCalculation._(
       "calc",
-      List.unmodifiable([simplified]),
+      List.unmodifiableOf([simplified]),
     ),
   };
 
@@ -338,7 +338,7 @@ final class SassCalculation._(
       return value;
     }
 
-    var args = List<Object>.unmodifiable([min, ?value, ?max]);
+    var args = List.unmodifiableOf([min, ?value, ?max]);
     _verifyCompatibleNumbers(args);
     _verifyLength(args, 3);
     return SassCalculation._("clamp", args);
@@ -816,7 +816,7 @@ final class SassCalculation._(
 
   /// Returns an unmodifiable list of [args], with each argument simplified.
   static List<Object> _simplifyArguments(Iterable<Object> args) =>
-      List.unmodifiable(args.map(_simplify));
+      List.unmodifiableOf(args.map(_simplify));
 
   /// Simplifies a calculation argument.
   static Object _simplify(Object arg) => switch (arg) {

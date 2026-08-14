@@ -30,7 +30,7 @@ final class ForRule(
   /// Whether [to] is exclusive.
   final bool isExclusive = exclusive;
 
-  this : super(List.unmodifiable(children));
+  this : super(List.unmodifiableOf(children));
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitForRule(this);

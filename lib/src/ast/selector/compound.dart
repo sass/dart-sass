@@ -23,7 +23,7 @@ final class CompoundSelector(Iterable<SimpleSelector> components, super.span)
   /// The components of this selector.
   ///
   /// This is never empty.
-  final List<SimpleSelector> components = List.unmodifiable(components);
+  final List<SimpleSelector> components = List.unmodifiableOf(components);
 
   /// This selector's specificity.
   ///

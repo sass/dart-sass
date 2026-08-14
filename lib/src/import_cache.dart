@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 969b7998c0f6846c1ad7bbbc275e6d98e7df69a2
+// Checksum: 65e2109b40fe939b7e49dc1f99729f65965c3359
 //
 // ignore_for_file: unused_import
 
@@ -108,7 +108,7 @@ final class ImportCache {
   /// Creates an import cache without any globally-available importers, and only
   /// the passed in importers.
   new only(Iterable<Importer> importers, {this._parseSelectors = false})
-    : _importers = List.unmodifiable(importers);
+    : _importers = List.unmodifiableOf(importers);
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.

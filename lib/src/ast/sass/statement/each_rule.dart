@@ -23,9 +23,9 @@ final class EachRule(
   @override final FileSpan span,
 ) extends ParentStatement<List<Statement>> {
   /// The variables assigned for each iteration.
-  final List<String> variables = List.unmodifiable(variables);
+  final List<String> variables = List.unmodifiableOf(variables);
 
-  this : super(List.unmodifiable(children));
+  this : super(List.unmodifiableOf(children));
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitEachRule(this);

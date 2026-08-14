@@ -43,7 +43,7 @@ final _knownCompatibilitiesByUnit = {
 class SingleUnitSassNumber(super.value, final String _unit, [super.asSlash])
     extends SassNumber {
   @override
-  List<String> get numeratorUnits => List.unmodifiable([_unit]);
+  List<String> get numeratorUnits => List.unmodifiableOf([_unit]);
 
   @override
   List<String> get denominatorUnits => const [];

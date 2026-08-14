@@ -2416,7 +2416,7 @@ final class _EvaluateVisitor({
         interpolationMap: selectorMap,
       ).parse();
       var rule = ModifiableCssKeyframeBlock(
-        CssValue(List.unmodifiable(parsedSelector), node.selector!.span),
+        CssValue(List.unmodifiableOf(parsedSelector), node.selector!.span),
         node.span,
       );
       await _withParent(

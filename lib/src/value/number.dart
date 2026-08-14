@@ -232,14 +232,14 @@ abstract class SassNumber.protected(
       case (var numerators?, null || []):
         return ComplexSassNumber(
           valueDouble,
-          List.unmodifiable(numerators),
+          List.unmodifiableOf(numerators),
           const [],
         );
       case (null || [], var denominators?):
         return ComplexSassNumber(
           valueDouble,
           const [],
-          List.unmodifiable(denominators),
+          List.unmodifiableOf(denominators),
         );
     }
 
@@ -266,8 +266,8 @@ abstract class SassNumber.protected(
       ([var unit], []) => SingleUnitSassNumber(valueDouble, unit),
       _ => ComplexSassNumber(
         valueDouble,
-        List.unmodifiable(numerators),
-        List.unmodifiable(denominators),
+        List.unmodifiableOf(numerators),
+        List.unmodifiableOf(denominators),
       ),
     };
   }

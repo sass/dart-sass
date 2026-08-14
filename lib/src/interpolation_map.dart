@@ -23,7 +23,7 @@ final class InterpolationMap(
   /// corresponds to the end of the component at the same index of
   /// [_interpolation.contents]. Its length is always one less than
   /// [_interpolation.contents] because the last element always ends the string.
-  final List<int> _targetOffsets = List.unmodifiable(targetOffsets);
+  final List<int> _targetOffsets = List.unmodifiableOf(targetOffsets);
 
   /// Creates a new interpolation map that maps the given [targetOffsets] in the
   /// generated string to the contents of the interpolation.

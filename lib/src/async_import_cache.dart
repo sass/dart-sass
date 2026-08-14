@@ -107,7 +107,7 @@ final class AsyncImportCache {
   /// Creates an import cache without any globally-available importers, and only
   /// the passed in importers.
   new only(Iterable<AsyncImporter> importers, {this._parseSelectors = false})
-    : _importers = List.unmodifiable(importers);
+    : _importers = List.unmodifiableOf(importers);
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.

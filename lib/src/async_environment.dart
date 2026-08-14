@@ -993,9 +993,9 @@ final class _EnvironmentModule._(
     return _EnvironmentModule._(
       environment,
       css,
-      Map.unmodifiable({
+      Map.unmodifiableOf({
         for (var (module, comments) in preModuleComments.pairs)
-          module: List<CssComment>.unmodifiable(comments),
+          module: List.unmodifiableOf(comments),
       }),
       extensionStore,
       _makeModulesByVariable(forwarded),

@@ -32,7 +32,7 @@ final class UseRule(
   /// A list of variable assignments used to configure the loaded modules.
   final List<ConfiguredVariable> configuration = configuration == null
       ? const []
-      : List<ConfiguredVariable>.unmodifiable(configuration);
+      : List<ConfiguredVariable>.unmodifiableOf(configuration);
 
   @override
   FileSpan get urlSpan => span.withoutInitialAtRule().initialQuoted();

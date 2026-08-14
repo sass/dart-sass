@@ -59,7 +59,7 @@ final class CssMediaQuery {
     : conjunction = true,
       conditions = conditions == null
           ? const []
-          : List.unmodifiable(conditions);
+          : List.unmodifiableOf(conditions);
 
   /// Creates a media query that matches [conditions] according to
   /// [conjunction].
@@ -70,7 +70,7 @@ final class CssMediaQuery {
     : modifier = null,
       type = null,
       conjunction = conjunction ?? true,
-      conditions = List.unmodifiable(conditions) {
+      conditions = List.unmodifiableOf(conditions) {
     if (this.conditions.length > 1 && conjunction == null) {
       throw ArgumentError(
         "If conditions is longer than one element, conjunction may not be "

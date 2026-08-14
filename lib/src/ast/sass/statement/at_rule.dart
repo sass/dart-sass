@@ -21,7 +21,7 @@ final class AtRule(
   final Interpolation? value,
   Iterable<Statement>? children,
 }) extends ParentStatement {
-  this : super(children == null ? null : List.unmodifiable(children));
+  this : super(children == null ? null : List.unmodifiableOf(children));
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitAtRule(this);

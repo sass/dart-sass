@@ -172,7 +172,7 @@ class EmbeddedProcess._(
 
     // Wait a timer tick to ensure that all available lines have been flushed to
     // [_log].
-    await Future<void>.delayed(Duration.zero);
+    await Future.pause(Duration.zero);
 
     var buffer = StringBuffer();
     buffer.write("Process `dart_sass_embedded` ");

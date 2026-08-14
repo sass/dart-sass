@@ -30,7 +30,7 @@ final class SelectorList(Iterable<ComplexSelector> components, super.span)
   /// The components of this selector.
   ///
   /// This is never empty.
-  final List<ComplexSelector> components = List.unmodifiable(components);
+  final List<ComplexSelector> components = List.unmodifiableOf(components);
 
   /// Returns a SassScript list that represents this selector.
   ///

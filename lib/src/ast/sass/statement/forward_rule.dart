@@ -91,7 +91,7 @@ final class ForwardRule extends Statement implements SassDependency {
        hiddenVariables = null,
        configuration = configuration == null
            ? const []
-           : List.unmodifiable(configuration);
+           : List.unmodifiableOf(configuration);
 
   /// Creates a `@forward` rule that allows only members included in
   /// [shownMixinsAndFunctions] and [shownVariables] to be accessed.
@@ -110,7 +110,7 @@ final class ForwardRule extends Statement implements SassDependency {
        hiddenVariables = null,
        configuration = configuration == null
            ? const []
-           : List.unmodifiable(configuration);
+           : List.unmodifiableOf(configuration);
 
   /// Creates a `@forward` rule that allows only members not included in
   /// [hiddenMixinsAndFunctions] and [hiddenVariables] to be accessed.
@@ -129,7 +129,7 @@ final class ForwardRule extends Statement implements SassDependency {
        hiddenVariables = UnmodifiableSetView(Set.of(hiddenVariables)),
        configuration = configuration == null
            ? const []
-           : List.unmodifiable(configuration);
+           : List.unmodifiableOf(configuration);
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitForwardRule(this);
