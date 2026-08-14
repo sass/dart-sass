@@ -68,7 +68,7 @@ final class DeprecationProcessingLogger(
 
     for (var deprecation in silenceDeprecations) {
       switch (deprecation) {
-        case Deprecation.userAuthored:
+        case .userAuthored:
           warn('User-authored deprecations should not be silenced.');
         case Deprecation(obsoleteIn: Version()):
           warn(

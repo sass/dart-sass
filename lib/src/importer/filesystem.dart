@@ -5,7 +5,6 @@
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
-import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../importer.dart';
 import '../io.dart' as io;
@@ -78,7 +77,7 @@ class FilesystemImporter extends Importer {
           "Using the current working directory as an implicit load path is "
           "deprecated. Either add it as an explicit load path or importer, or "
           "load this stylesheet from a different URL.",
-          Deprecation.fsImporterCwd,
+          .fsImporterCwd,
         );
       }
     } else {

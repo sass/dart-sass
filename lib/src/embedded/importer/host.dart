@@ -48,12 +48,9 @@ final class HostImporter(
     if (!response.containingUrlUnused) canonicalizeContext.containingUrl;
 
     return switch (response.whichResult()) {
-      InboundMessage_CanonicalizeResponse_Result.url => parseAbsoluteUrl(
-        "The importer",
-        response.url,
-      ),
-      InboundMessage_CanonicalizeResponse_Result.error => throw response.error,
-      InboundMessage_CanonicalizeResponse_Result.notSet => null,
+      .url => parseAbsoluteUrl("The importer", response.url),
+      .error => throw response.error,
+      .notSet => null,
     };
   }
 
@@ -66,15 +63,15 @@ final class HostImporter(
     );
 
     return switch (response.whichResult()) {
-      InboundMessage_ImportResponse_Result.success => ImporterResult(
+      .success => ImporterResult(
         response.success.contents,
         sourceMapUrl: response.success.sourceMapUrl.isEmpty
             ? null
             : parseAbsoluteUrl("The importer", response.success.sourceMapUrl),
         syntax: syntaxToSyntax(response.success.syntax),
       ),
-      InboundMessage_ImportResponse_Result.error => throw response.error,
-      InboundMessage_ImportResponse_Result.notSet => null,
+      .error => throw response.error,
+      .notSet => null,
     };
   }
 

@@ -8,7 +8,6 @@ import 'dart:math' as math;
 import 'package:collection/collection.dart';
 
 import '../callable.dart';
-import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
@@ -29,7 +28,7 @@ final global = UnmodifiableListView([
         "\n"
         "To emit a CSS abs() now: abs(#{$number})\n"
         "More info: https://sass-lang.com/d/abs-percent",
-        Deprecation.absPercent,
+        .absPercent,
       );
     } else {
       warnForGlobalBuiltIn('math', 'abs');
@@ -246,7 +245,7 @@ final _randomFunction = _function("random", r"$limit: null", (arguments) {
       "math.random(math.div(\$limit, 1${limit.unitString}))\n"
       "\n"
       "More info: https://sass-lang.com/d/function-units",
-      Deprecation.functionUnits,
+      .functionUnits,
     );
   }
 

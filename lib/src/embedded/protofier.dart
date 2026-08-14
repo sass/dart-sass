@@ -114,10 +114,10 @@ final class Protofier(
   /// Converts [separator] to its protocol buffer representation.
   proto.ListSeparator _protofySeparator(ListSeparator separator) =>
       switch (separator) {
-        ListSeparator.comma => proto.ListSeparator.COMMA,
-        ListSeparator.space => proto.ListSeparator.SPACE,
-        ListSeparator.slash => proto.ListSeparator.SLASH,
-        ListSeparator.undecided => proto.ListSeparator.UNDECIDED,
+        .comma => proto.ListSeparator.COMMA,
+        .space => proto.ListSeparator.SPACE,
+        .slash => proto.ListSeparator.SLASH,
+        .undecided => proto.ListSeparator.UNDECIDED,
       };
 
   /// Converts [calculation] to its protocol buffer representation.
@@ -152,10 +152,10 @@ final class Protofier(
   proto.CalculationOperator _protofyCalculationOperator(
     CalculationOperator operator,
   ) => switch (operator) {
-    CalculationOperator.plus => proto.CalculationOperator.PLUS,
-    CalculationOperator.minus => proto.CalculationOperator.MINUS,
-    CalculationOperator.times => proto.CalculationOperator.TIMES,
-    CalculationOperator.dividedBy => proto.CalculationOperator.DIVIDE,
+    .plus => proto.CalculationOperator.PLUS,
+    .minus => proto.CalculationOperator.MINUS,
+    .times => proto.CalculationOperator.TIMES,
+    .dividedBy => proto.CalculationOperator.DIVIDE,
   };
 
   /// Converts [response]'s return value to its Sass representation.
@@ -321,9 +321,9 @@ final class Protofier(
 
         case Value_Value.singleton:
           return switch (value.singleton) {
-            SingletonValue.TRUE => sassTrue,
-            SingletonValue.FALSE => sassFalse,
-            SingletonValue.NULL => sassNull,
+            .TRUE => sassTrue,
+            .FALSE => sassFalse,
+            .NULL => sassNull,
             _ => throw "Unknown Value.singleton ${value.singleton}",
           };
 
@@ -373,10 +373,10 @@ final class Protofier(
   /// Converts [separator] to its Sass representation.
   ListSeparator _deprotofySeparator(proto.ListSeparator separator) =>
       switch (separator) {
-        proto.ListSeparator.COMMA => ListSeparator.comma,
-        proto.ListSeparator.SPACE => ListSeparator.space,
-        proto.ListSeparator.SLASH => ListSeparator.slash,
-        proto.ListSeparator.UNDECIDED => ListSeparator.undecided,
+        .COMMA => ListSeparator.comma,
+        .SPACE => ListSeparator.space,
+        .SLASH => ListSeparator.slash,
+        .UNDECIDED => ListSeparator.undecided,
         _ => throw "Unknown ListSeparator $separator",
       };
 
@@ -422,38 +422,26 @@ final class Protofier(
   /// Converts [value] to its Sass representation.
   Object _deprotofyCalculationValue(Value_Calculation_CalculationValue value) =>
       switch (value.whichValue()) {
-        Value_Calculation_CalculationValue_Value.number => _deprotofyNumber(
-          value.number,
+        .number => _deprotofyNumber(value.number),
+        .calculation => _deprotofyCalculation(value.calculation),
+        .string => SassString(value.string, quotes: false),
+        .operation => SassCalculation.operate(
+          _deprotofyCalculationOperator(value.operation.operator),
+          _deprotofyCalculationValue(value.operation.left),
+          _deprotofyCalculationValue(value.operation.right),
         ),
-        Value_Calculation_CalculationValue_Value.calculation =>
-          _deprotofyCalculation(value.calculation),
-        Value_Calculation_CalculationValue_Value.string => SassString(
-          value.string,
-          quotes: false,
-        ),
-        Value_Calculation_CalculationValue_Value.operation =>
-          SassCalculation.operate(
-            _deprotofyCalculationOperator(value.operation.operator),
-            _deprotofyCalculationValue(value.operation.left),
-            _deprotofyCalculationValue(value.operation.right),
-          ),
-        Value_Calculation_CalculationValue_Value.interpolation => SassString(
-          '(${value.interpolation})',
-          quotes: false,
-        ),
-        Value_Calculation_CalculationValue_Value.notSet => throw mandatoryError(
-          "Value.Calculation.value",
-        ),
+        .interpolation => SassString('(${value.interpolation})', quotes: false),
+        .notSet => throw mandatoryError("Value.Calculation.value"),
       };
 
   /// Converts [operator] to its Sass representation.
   CalculationOperator _deprotofyCalculationOperator(
     proto.CalculationOperator operator,
   ) => switch (operator) {
-    proto.CalculationOperator.PLUS => CalculationOperator.plus,
-    proto.CalculationOperator.MINUS => CalculationOperator.minus,
-    proto.CalculationOperator.TIMES => CalculationOperator.times,
-    proto.CalculationOperator.DIVIDE => CalculationOperator.dividedBy,
+    .PLUS => .plus,
+    .MINUS => .minus,
+    .TIMES => .times,
+    .DIVIDE => .dividedBy,
     _ => throw "Unknown CalculationOperator $operator",
   };
 }

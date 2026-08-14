@@ -14,7 +14,6 @@ import '../ast/sass.dart';
 import '../exception.dart';
 import '../js/visitor/simple_selector.dart';
 import '../parse/parser.dart';
-import '../syntax.dart';
 import '../util/nullable.dart';
 import '../util/span.dart';
 import '../util/lazy_file_span.dart';
@@ -219,9 +218,9 @@ void _addSupportsConditionToInterpolation() {
 Stylesheet _parse(String css, String syntax, String? path) => Stylesheet.parse(
   css,
   switch (syntax) {
-    'scss' => Syntax.scss,
-    'sass' => Syntax.sass,
-    'css' => Syntax.css,
+    'scss' => .scss,
+    'sass' => .sass,
+    'css' => .css,
     _ => throw UnsupportedError('Unknown syntax "$syntax"'),
   },
   url: path.andThen(p.toUri),

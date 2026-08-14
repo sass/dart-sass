@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 41226270c5e0763d55b731a804ef29f2c4ecc394
+// Checksum: dbbf3a874eada45631cc4660484284affe76858b
 //
 // ignore_for_file: unused_import
 
@@ -58,7 +58,7 @@ CompileResult compile(
 }) {
   DeprecationProcessingLogger deprecationLogger = logger =
       DeprecationProcessingLogger(
-        logger ?? Logger.defaultLogger,
+        logger ?? .defaultLogger,
         silenceDeprecations: {...?silenceDeprecations},
         fatalDeprecations: {...?fatalDeprecations},
         futureDeprecations: {...?futureDeprecations},
@@ -133,19 +133,19 @@ CompileResult compileString(
 }) {
   DeprecationProcessingLogger deprecationLogger = logger =
       DeprecationProcessingLogger(
-        logger ?? Logger.defaultLogger,
+        logger ?? .defaultLogger,
         silenceDeprecations: {...?silenceDeprecations},
         fatalDeprecations: {...?fatalDeprecations},
         futureDeprecations: {...?futureDeprecations},
         limitRepetition: !verbose,
       )..validate();
 
-  var stylesheet = Stylesheet.parse(source, syntax ?? Syntax.scss, url: url);
+  var stylesheet = Stylesheet.parse(source, syntax ?? .scss, url: url);
 
   if (stylesheet.span.sourceUrl case Uri(scheme: '')
       when nodeImporter == null) {
     deprecationLogger.warnForDeprecation(
-      Deprecation.compileStringRelativeUrl,
+      .compileStringRelativeUrl,
       'Passing a relative `url` argument (${stylesheet.span.sourceUrl}) to '
       'compileString() or related functions is deprecated and will be an error '
       'in Dart Sass 2.0.0.',
@@ -192,7 +192,7 @@ CompileResult _compileStylesheet(
 ) {
   if (nodeImporter != null) {
     logger?.warnForDeprecation(
-      Deprecation.legacyJsApi,
+      .legacyJsApi,
       'The legacy JS API is deprecated and will be removed in '
       'Dart Sass 2.0.0.\n\n'
       'More info: https://sass-lang.com/d/legacy-js-api',

@@ -7,7 +7,6 @@ import 'dart:math' as math;
 import 'package:collection/collection.dart';
 
 import '../callable.dart';
-import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
@@ -173,7 +172,7 @@ final global = UnmodifiableListView([
       "color.adjust(\$color, \$hue: ${suggestedValue.toCssString()})\n"
       "\n"
       "More info: https://sass-lang.com/d/color-functions",
-      Deprecation.colorFunctions,
+      .colorFunctions,
     );
 
     return color.changeHsl(hue: color.hue + degrees);
@@ -202,7 +201,7 @@ final global = UnmodifiableListView([
       "${_suggestScaleAndAdjust(color, amount.value, 'lightness')}\n"
       "\n"
       "More info: https://sass-lang.com/d/color-functions",
-      Deprecation.colorFunctions,
+      .colorFunctions,
     );
     return result;
   }).withDeprecationWarning('color', 'adjust'),
@@ -230,7 +229,7 @@ final global = UnmodifiableListView([
       "${_suggestScaleAndAdjust(color, -amount.value, 'lightness')}\n"
       "\n"
       "More info: https://sass-lang.com/d/color-functions",
-      Deprecation.colorFunctions,
+      .colorFunctions,
     );
     return result;
   }).withDeprecationWarning('color', 'adjust'),
@@ -268,7 +267,7 @@ final global = UnmodifiableListView([
         "${_suggestScaleAndAdjust(color, amount.value, 'saturation')}\n"
         "\n"
         "More info: https://sass-lang.com/d/color-functions",
-        Deprecation.colorFunctions,
+        .colorFunctions,
       );
       return result;
     },
@@ -297,7 +296,7 @@ final global = UnmodifiableListView([
       "${_suggestScaleAndAdjust(color, -amount.value, 'saturation')}\n"
       "\n"
       "More info: https://sass-lang.com/d/color-functions",
-      Deprecation.colorFunctions,
+      .colorFunctions,
     );
     return result;
   }).withDeprecationWarning('color', 'adjust'),
@@ -452,9 +451,9 @@ final module = BuiltInModule(
   "color",
   functions: <Callable>[
     // ### RGB
-    _channelFunction("red", ColorSpace.rgb, (color) => color.red),
-    _channelFunction("green", ColorSpace.rgb, (color) => color.green),
-    _channelFunction("blue", ColorSpace.rgb, (color) => color.blue),
+    _channelFunction("red", .rgb, (color) => color.red),
+    _channelFunction("green", .rgb, (color) => color.green),
+    _channelFunction("blue", .rgb, (color) => color.blue),
     _mix,
 
     _function("invert", r"$color, $weight: 100%, $space: null", (arguments) {
@@ -465,7 +464,7 @@ final module = BuiltInModule(
           "deprecated.\n"
           "\n"
           "Recommendation: $result",
-          Deprecation.colorModuleCompat,
+          .colorModuleCompat,
         );
       }
       return result;
@@ -499,7 +498,7 @@ final module = BuiltInModule(
           "deprecated.\n"
           "\n"
           "Recommendation: $result",
-          Deprecation.colorModuleCompat,
+          .colorModuleCompat,
         );
         return result;
       }
@@ -559,7 +558,7 @@ final module = BuiltInModule(
               "Using color.alpha() for a Microsoft filter is deprecated.\n"
               "\n"
               "Recommendation: $result",
-              Deprecation.colorModuleCompat,
+              .colorModuleCompat,
             );
             return result;
 
@@ -586,7 +585,7 @@ final module = BuiltInModule(
             "Using color.alpha() for a Microsoft filter is deprecated.\n"
             "\n"
             "Recommendation: $result",
-            Deprecation.colorModuleCompat,
+            .colorModuleCompat,
           );
           return result;
         }
@@ -606,7 +605,7 @@ final module = BuiltInModule(
           "deprecated.\n"
           "\n"
           "Recommendation: $result",
-          Deprecation.colorModuleCompat,
+          .colorModuleCompat,
         );
         return result;
       }
@@ -719,9 +718,9 @@ final module = BuiltInModule(
 
       /// Converts [color] to the xyz-d65 space without any mising channels.
       SassColor toXyzNoMissing(SassColor color) => switch (color) {
-        SassColor(space: ColorSpace.xyzD65, hasMissingChannel: false) => color,
+        SassColor(space: .xyzD65, hasMissingChannel: false) => color,
         SassColor(
-          space: ColorSpace.xyzD65,
+          space: .xyzD65,
           :var channel0,
           :var channel1,
           :var channel2,
@@ -910,15 +909,13 @@ Value _invert(List<Value> arguments, {bool global = false}) {
 
   var inSpace = color.toSpace(space);
   var inverted = switch (space) {
-    ColorSpace.hwb => SassColor.hwb(
+    .hwb => SassColor.hwb(
       _invertChannel(inSpace, space.channels[0], inSpace.channel0OrNull),
       inSpace.channel2OrNull,
       inSpace.channel1OrNull,
       inSpace.alpha,
     ),
-    ColorSpace.hsl ||
-    ColorSpace.lch ||
-    ColorSpace.oklch => SassColor.forSpaceInternal(
+    .hsl || .lch || .oklch => SassColor.forSpaceInternal(
       space,
       _invertChannel(inSpace, space.channels[0], inSpace.channel0OrNull),
       inSpace.channel1OrNull,
@@ -1110,7 +1107,7 @@ SassColor _changeColor(
         "${alphaArg.unitSuggestion('alpha')}\n"
         "\n"
         "See https://sass-lang.com/d/function-units",
-        Deprecation.functionUnits,
+        .functionUnits,
       );
       return alphaArg.valueInRange(0, 1, "alpha");
     }(),
@@ -1286,7 +1283,7 @@ double? _adjustChannel(
         "${adjustmentArg.unitSuggestion('alpha')}\n"
         "\n"
         "More info: https://sass-lang.com/d/function-units",
-        Deprecation.functionUnits,
+        .functionUnits,
       );
       adjustmentArg = SassNumber(adjustmentArg.value);
   }
@@ -1459,7 +1456,7 @@ double _angleValue(Value angleValue, String name) {
     "To preserve current behavior: ${angle.unitSuggestion(name)}\n"
     "\n"
     "See https://sass-lang.com/d/function-units",
-    Deprecation.functionUnits,
+    .functionUnits,
   );
   return angle.value;
 }
@@ -1474,7 +1471,7 @@ void _checkPercent(SassNumber number, String name) {
     "To preserve current behavior: ${number.unitSuggestion(name, '%')}\n"
     "\n"
     "More info: https://sass-lang.com/d/function-units",
-    Deprecation.functionUnits,
+    .functionUnits,
   );
 }
 
@@ -1574,7 +1571,7 @@ SassColor _opacify(String name, List<Value> arguments) {
     "${_suggestScaleAndAdjust(color, amount.value, 'alpha')}\n"
     "\n"
     "More info: https://sass-lang.com/d/color-functions",
-    Deprecation.colorFunctions,
+    .colorFunctions,
   );
   return result;
 }
@@ -1603,7 +1600,7 @@ SassColor _transparentize(String name, List<Value> arguments) {
     "${_suggestScaleAndAdjust(color, -amount.value, 'alpha')}\n"
     "\n"
     "More info: https://sass-lang.com/d/color-functions",
-    Deprecation.colorFunctions,
+    .colorFunctions,
   );
   return result;
 }
@@ -1793,15 +1790,15 @@ Value _parseChannels(
   Value input, {
   String? name,
 }) => switch (input.assertCommonListStyle(name, allowSlash: true)) {
-  [var components, var alphaValue]
-      when input.separator == ListSeparator.slash =>
-    (components, alphaValue),
-  var inputList when input.separator == ListSeparator.slash =>
-    throw SassScriptException(
-      "Only 2 slash-separated elements allowed, but ${inputList.length} "
-      "${pluralize('was', inputList.length, plural: 'were')} passed.",
-      name,
-    ),
+  [var components, var alphaValue] when input.separator == .slash => (
+    components,
+    alphaValue,
+  ),
+  var inputList when input.separator == .slash => throw SassScriptException(
+    "Only 2 slash-separated elements allowed, but ${inputList.length} "
+    "${pluralize('was', inputList.length, plural: 'were')} passed.",
+    name,
+  ),
   [...var initial, SassString(hasQuotes: false, :var text)] => switch (text
       .split('/')) {
     [_] => (input, null),
@@ -1970,7 +1967,7 @@ BuiltInCallable _channelFunction(
       'color.channel(\$color, "$name", \$space: $space)\n'
       "\n"
       "More info: https://sass-lang.com/d/color-functions",
-      Deprecation.colorFunctions,
+      .colorFunctions,
     );
 
     return result;

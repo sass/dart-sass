@@ -74,7 +74,7 @@ abstract class const LoggerWithDeprecationType() implements Logger {
       message,
       span: span,
       trace: trace,
-      deprecation: deprecation ? Deprecation.userAuthored : null,
+      deprecation: deprecation ? .userAuthored : null,
     );
   }
 

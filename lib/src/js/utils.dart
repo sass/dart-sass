@@ -264,9 +264,9 @@ ListSeparator jsToDartSeparator(String? separator) => switch (separator) {
 
 /// Converts a syntax string to an instance of [Syntax].
 Syntax parseSyntax(String? syntax) => switch (syntax) {
-  null || 'scss' => Syntax.scss,
-  'indented' => Syntax.sass,
-  'css' => Syntax.css,
+  null || 'scss' => .scss,
+  'indented' => .sass,
+  'css' => .css,
   _ => jsThrow(JsError('Unknown syntax "$syntax".')),
 };
 

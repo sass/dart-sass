@@ -24,5 +24,5 @@ class FromImportImporter(
   }
 
   @override
-  ImporterResult? load(Uri url) => ImporterResult("", syntax: Syntax.scss);
+  ImporterResult? load(Uri url) => ImporterResult("", syntax: .scss);
 }

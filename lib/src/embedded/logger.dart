@@ -48,8 +48,7 @@ final class EmbeddedLogger(
   }) {
     var formatted = withGlyphs(() {
       var buffer = StringBuffer();
-      var showDeprecation =
-          deprecation != null && deprecation != Deprecation.userAuthored;
+      var showDeprecation = deprecation != null && deprecation != .userAuthored;
       if (_color) {
         buffer.write('\u001b[33m\u001b[1m');
         if (deprecation != null) buffer.write('Deprecation ');

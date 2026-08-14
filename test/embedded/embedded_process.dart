@@ -89,10 +89,7 @@ class EmbeddedProcess._(
   /// Completes to [_process]'s exit code if it's exited, otherwise completes to
   /// `null` immediately.
   Future<int?> get _exitCodeOrNull async {
-    var exitCode = await this.exitCode.timeout(
-      Duration.zero,
-      onTimeout: () => -1,
-    );
+    var exitCode = await this.exitCode.timeout(.zero, onTimeout: () => -1);
     return exitCode == -1 ? null : exitCode;
   }
 
@@ -172,7 +169,7 @@ class EmbeddedProcess._(
 
     // Wait a timer tick to ensure that all available lines have been flushed to
     // [_log].
-    await Future.pause(Duration.zero);
+    await Future.pause(.zero);
 
     var buffer = StringBuffer();
     buffer.write("Process `dart_sass_embedded` ");

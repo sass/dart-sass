@@ -7,7 +7,6 @@ import 'dart:js_util';
 import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
 
-import '../../deprecation.dart';
 import '../../evaluation_context.dart';
 import '../../value.dart';
 import '../immutable.dart';
@@ -200,7 +199,7 @@ final JSClass colorClass = () {
             "the `space` option is deprecated."
             "\n"
             "More info: https://sass-lang.com/d/color-4-api",
-            Deprecation.color4Api,
+            .color4Api,
           );
         }
       }
@@ -536,7 +535,7 @@ void _emitNullAlphaDeprecation() {
     "Passing `alpha: null` without setting `space` is deprecated."
     "\n"
     "More info: https://sass-lang.com/d/null-alpha",
-    Deprecation.nullAlpha,
+    .nullAlpha,
   );
 }
 
@@ -546,7 +545,7 @@ void _emitColor4ApiNullDeprecation(String name) {
     "Passing `$name: null` without setting `space` is deprecated."
     "\n"
     "More info: https://sass-lang.com/d/color-4-api",
-    Deprecation.color4Api,
+    .color4Api,
   );
 }
 
@@ -556,7 +555,7 @@ void _emitColor4ApiChannelDeprecation(String name) {
     "$name is deprecated, use `channel` instead."
     "\n"
     "More info: https://sass-lang.com/d/color-4-api",
-    Deprecation.color4Api,
+    .color4Api,
   );
 }
 

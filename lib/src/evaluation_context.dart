@@ -71,12 +71,9 @@ abstract class EvaluationContext {
 /// {@category Compile}
 void warn(String message, {bool deprecation = false}) =>
     switch (EvaluationContext.currentOrNull) {
-      var context? => context.warn(
-        message,
-        deprecation ? Deprecation.userAuthored : null,
-      ),
+      var context? => context.warn(message, deprecation ? .userAuthored : null),
       _ when deprecation => Logger.defaultLogger.warnForDeprecation(
-        Deprecation.userAuthored,
+        .userAuthored,
         message,
       ),
       _ => Logger.defaultLogger.warn(message),

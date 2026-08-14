@@ -24,8 +24,7 @@ final class const StderrLogger({
     Deprecation? deprecation,
   }) {
     var result = StringBuffer();
-    var showDeprecation =
-        deprecation != null && deprecation != Deprecation.userAuthored;
+    var showDeprecation = deprecation != null && deprecation != .userAuthored;
     if (color) {
       // Bold yellow.
       result.write('\u001b[33m\u001b[1m');

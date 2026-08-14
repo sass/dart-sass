@@ -63,16 +63,14 @@ final _join = _function(
     var separatorParam = arguments[2].assertString("separator");
     var bracketedParam = arguments[3];
 
-    var separator = switch (separatorParam.text) {
+    ListSeparator separator = switch (separatorParam.text) {
       "auto" => switch ((list1.separator, list2.separator)) {
-        (ListSeparator.undecided, ListSeparator.undecided) =>
-          ListSeparator.space,
-        (ListSeparator.undecided, var separator) ||
-        (var separator, _) => separator,
+        (.undecided, .undecided) => .space,
+        (.undecided, var separator) || (var separator, _) => separator,
       },
-      "space" => ListSeparator.space,
-      "comma" => ListSeparator.comma,
-      "slash" => ListSeparator.slash,
+      "space" => .space,
+      "comma" => .comma,
+      "slash" => .slash,
       _ => throw SassScriptException(
         '\$separator: Must be "space", "comma", "slash", or "auto".',
       ),
@@ -139,8 +137,8 @@ final _separator = _function(
   "separator",
   r"$list",
   (arguments) => switch (arguments[0].separator) {
-    ListSeparator.comma => SassString("comma", quotes: false),
-    ListSeparator.slash => SassString("slash", quotes: false),
+    .comma => SassString("comma", quotes: false),
+    .slash => SassString("slash", quotes: false),
     _ => SassString("space", quotes: false),
   },
 );

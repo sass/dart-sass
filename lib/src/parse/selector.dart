@@ -7,7 +7,6 @@ import 'package:meta/meta.dart';
 
 import '../ast/css/value.dart';
 import '../ast/selector.dart';
-import '../deprecation.dart';
 import '../logger.dart';
 import '../util/character.dart';
 import '../utils.dart';
@@ -48,7 +47,7 @@ class SelectorParser(
   Logger? logger,
 }) extends Parser {
   /// The logger used to report deprecation warnings.
-  final Logger _logger = logger ?? Logger.defaultLogger;
+  final Logger _logger = logger ?? .defaultLogger;
 
   /// Creates a parser that parses CSS selectors.
   ///
@@ -138,22 +137,18 @@ class SelectorParser(
         case $plus:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinators.add(
-            CssValue(Combinator.nextSibling, spanFrom(combinatorStart)),
-          );
+          combinators.add(CssValue(.nextSibling, spanFrom(combinatorStart)));
 
         case $gt:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinators.add(
-            CssValue(Combinator.child, spanFrom(combinatorStart)),
-          );
+          combinators.add(CssValue(.child, spanFrom(combinatorStart)));
 
         case $tilde:
           var combinatorStart = scanner.state;
           scanner.readChar();
           combinators.add(
-            CssValue(Combinator.followingSibling, spanFrom(combinatorStart)),
+            CssValue(.followingSibling, spanFrom(combinatorStart)),
           );
 
         case null:
@@ -188,7 +183,7 @@ class SelectorParser(
               combinators.isEmpty &&
               !consumedWhitespace) {
             _logger.warnForDeprecation(
-              Deprecation.adjacentCompounds,
+              .adjacentCompounds,
               'Adjacent compound selectors must be separated by whitespace. '
               'This will be an error in Dart Sass 2.0.0. Suggestion:\n'
               '\n'

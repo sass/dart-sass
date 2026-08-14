@@ -184,9 +184,9 @@ final class _Watcher(
         var oldType = typeForPath[event.path];
         typeForPath[event.path] = switch ((oldType, event.type)) {
           (null, var newType) => newType,
-          (_, ChangeType.REMOVE) => ChangeType.REMOVE,
-          (ChangeType.ADD, _) => ChangeType.ADD,
-          (_, _) => ChangeType.MODIFY,
+          (_, ChangeType.REMOVE) => .REMOVE,
+          (ChangeType.ADD, _) => .ADD,
+          (_, _) => .MODIFY,
         };
       }
 

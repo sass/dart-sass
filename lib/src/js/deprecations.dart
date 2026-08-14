@@ -31,7 +31,7 @@ final Map<String, Deprecation?> deprecations = {
   for (var deprecation in dart.Deprecation.values)
     // `calc-interp` was never actually used, so we don't want to expose it
     // in the JS API.
-    if (deprecation != dart.Deprecation.calcInterp)
+    if (deprecation != .calcInterp)
       deprecation.id: Deprecation(
         id: deprecation.id,
         status: (() => switch (deprecation) {

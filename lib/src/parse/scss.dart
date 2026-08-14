@@ -5,7 +5,6 @@
 import 'package:charcode/charcode.dart';
 
 import '../ast/sass.dart';
-import '../deprecation.dart';
 import '../interpolation_buffer.dart';
 import '../util/character.dart';
 import 'stylesheet.dart';
@@ -51,7 +50,7 @@ class ScssParser(super.contents, {super.url, super.parseSelectors})
       if (scanIdentifier('else', caseSensitive: true)) return true;
       if (scanIdentifier('elseif', caseSensitive: true)) {
         warnings.add((
-          deprecation: Deprecation.elseif,
+          deprecation: .elseif,
           message:
               '@elseif is deprecated and will not be supported in future Sass '
               'versions.\n'

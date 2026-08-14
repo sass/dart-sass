@@ -248,7 +248,7 @@ void main() {
               "foo",
               "",
               expectAsync1((_) async {
-                await Future.pause(Duration.zero);
+                await Future.pause(.zero);
                 warn("heck");
                 return sassNull;
               }),

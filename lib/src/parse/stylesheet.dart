@@ -13,7 +13,6 @@ import '../ast/sass.dart';
 import '../ast/selector.dart';
 import '../ast/css/value.dart';
 import '../color_names.dart';
-import '../deprecation.dart';
 import '../exception.dart';
 import '../interpolation_buffer.dart';
 import '../util/character.dart';
@@ -263,7 +262,7 @@ abstract class StylesheetParser(
         case 'default':
           if (guarded) {
             warnings.add((
-              deprecation: Deprecation.duplicateVarFlags,
+              deprecation: .duplicateVarFlags,
               message:
                   '!default should only be written once for each variable.\n'
                   'This will be an error in Dart Sass 2.0.0.',
@@ -280,7 +279,7 @@ abstract class StylesheetParser(
             );
           } else if (global) {
             warnings.add((
-              deprecation: Deprecation.duplicateVarFlags,
+              deprecation: .duplicateVarFlags,
               message:
                   '!global should only be written once for each variable.\n'
                   'This will be an error in Dart Sass 2.0.0.',
@@ -974,7 +973,7 @@ abstract class StylesheetParser(
       var name => unvendor(name) == "element",
     }) {
       warnings.add((
-        deprecation: Deprecation.functionName,
+        deprecation: .functionName,
         message:
             "Custom functions with this name are deprecated and will be "
             "removed in a future\n"
@@ -1189,7 +1188,7 @@ abstract class StylesheetParser(
       var argument = importArgument();
       if (argument is DynamicImport) {
         warnings.add((
-          deprecation: Deprecation.import,
+          deprecation: .import,
           message:
               'Sass @import rules are deprecated and will be removed in Dart '
               'Sass 3.0.0.\n\n'
@@ -1567,7 +1566,7 @@ abstract class StylesheetParser(
     return _withChildren(_statement, start, (children, span) {
       if (needsDeprecationWarning) {
         warnings.add((
-          deprecation: Deprecation.mozDocument,
+          deprecation: .mozDocument,
           message:
               "@-moz-document is deprecated and support will be removed in "
               "Dart Sass 2.0.0.\n"
@@ -1678,7 +1677,7 @@ abstract class StylesheetParser(
       var name = variableName();
       if (name.startsWith('-')) {
         warnings.add((
-          deprecation: Deprecation.withPrivate,
+          deprecation: .withPrivate,
           message:
               'Configuring private variables is deprecated.\n'
               'This will be an error in Dart Sass 2.0.0.',
@@ -1880,7 +1879,7 @@ abstract class StylesheetParser(
         if (rest != null && !emittedRestDeprecation) {
           emittedRestDeprecation = true;
           warnings.add((
-            deprecation: Deprecation.misplacedRest,
+            deprecation: .misplacedRest,
             message:
                 'Named arguments must come before rest arguments.\n'
                 'This will be an error in Dart Sass 2.0.0.',
@@ -1913,7 +1912,7 @@ abstract class StylesheetParser(
         if (rest != null && !emittedRestDeprecation) {
           emittedRestDeprecation = true;
           warnings.add((
-            deprecation: Deprecation.misplacedRest,
+            deprecation: .misplacedRest,
             message:
                 'Positional arguments must come before rest arguments.\n'
                 'This will be an error in Dart Sass 2.0.0.',
@@ -2071,7 +2070,7 @@ abstract class StylesheetParser(
                   operator.operator &&
               scanner.string.codeUnitAt(left.span.end.offset).isWhitespace) {
             warnings.add((
-              deprecation: Deprecation.strictUnary,
+              deprecation: .strictUnary,
               message:
                   "This operation is parsed as:\n"
                   "\n"
@@ -2957,7 +2956,7 @@ abstract class StylesheetParser(
             identifier.span.expand(invocation.span),
           );
           warnings.add((
-            deprecation: Deprecation.ifFunction,
+            deprecation: .ifFunction,
             message:
                 'The Sass if() syntax is deprecated in favor of the modern CSS '
                 'syntax.\n'
@@ -3380,7 +3379,7 @@ abstract class StylesheetParser(
                 ? "no longer be valid syntax"
                 : "be parsed as SassScript";
             warnings.add((
-              deprecation: Deprecation.functionName,
+              deprecation: .functionName,
               message:
                   "Vendor-prefixed $normalized() functions will no longer have "
                   "special parsing in a future release of Dart Sass. Once that "
@@ -3427,7 +3426,7 @@ abstract class StylesheetParser(
               quotes: true,
             ).asInterpolation();
             warnings.add((
-              deprecation: Deprecation.functionName,
+              deprecation: .functionName,
               message:
                   "Vendor-prefixed progid:...() functions will no longer be "
                   "supported in a future release of Dart Sass. To preserve "
@@ -3524,7 +3523,7 @@ abstract class StylesheetParser(
               quotes: true,
             ).asInterpolation();
             warnings.add((
-              deprecation: Deprecation.functionName,
+              deprecation: .functionName,
               message:
                   "Vendor-prefixed url() functions will no longer have "
                   "special parsing in a future release of Dart Sass. Once "
@@ -3977,23 +3976,17 @@ abstract class StylesheetParser(
         case $plus when allowCombinator:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinator = CssValue(
-            Combinator.nextSibling,
-            spanFrom(combinatorStart),
-          );
+          combinator = CssValue(.nextSibling, spanFrom(combinatorStart));
 
         case $gt when allowCombinator:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinator = CssValue(Combinator.child, spanFrom(combinatorStart));
+          combinator = CssValue(.child, spanFrom(combinatorStart));
 
         case $tilde when allowCombinator:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinator = CssValue(
-            Combinator.followingSibling,
-            spanFrom(combinatorStart),
-          );
+          combinator = CssValue(.followingSibling, spanFrom(combinatorStart));
 
         case null:
           break loop;

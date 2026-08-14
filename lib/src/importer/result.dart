@@ -30,11 +30,10 @@ class ImporterResult(
       _sourceMapUrl ?? Uri.dataFromString(contents, encoding: utf8);
 
   /// The syntax to use to parse the stylesheet.
-  final Syntax syntax =
-      syntax ?? (indented == true ? Syntax.sass : Syntax.scss);
+  final Syntax syntax = syntax ?? (indented == true ? .sass : .scss);
 
   @Deprecated("Use syntax instead.")
-  bool get isIndented => syntax == Syntax.sass;
+  bool get isIndented => syntax == .sass;
 
   /// Creates a new [ImporterResult].
   ///

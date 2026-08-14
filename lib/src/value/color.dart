@@ -111,8 +111,8 @@ class SassColor._forSpace(
   /// @nodoc
   @internal
   bool get isChannel0Powerless => switch (space) {
-    ColorSpace.hsl => fuzzyEquals(channel1, 0),
-    ColorSpace.hwb => fuzzyGreaterThanOrEquals(channel1 + channel2, 100),
+    .hsl => fuzzyEquals(channel1, 0),
+    .hwb => fuzzyGreaterThanOrEquals(channel1 + channel2, 100),
     _ => false,
   };
 

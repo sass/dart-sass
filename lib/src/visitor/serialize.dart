@@ -155,7 +155,7 @@ final class _SerializeVisitor({
   // We include this even when it's unused to reduce the churn as deprecations
   // are added and removed.
   // ignore: unused_field
-  final Logger _logger = logger ?? Logger.defaultLogger;
+  final Logger _logger = logger ?? .defaultLogger;
 
   /// Whether we're emitting compressed output.
   bool get _isCompressed => _style == OutputStyle.compressed;

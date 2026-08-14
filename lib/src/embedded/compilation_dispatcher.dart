@@ -352,22 +352,18 @@ final class CompilationDispatcher(
       }
 
       var response = switch (message.whichMessage()) {
-        InboundMessage_Message.canonicalizeResponse =>
-          message.canonicalizeResponse,
-        InboundMessage_Message.importResponse => message.importResponse,
-        InboundMessage_Message.fileImportResponse => message.fileImportResponse,
-        InboundMessage_Message.functionCallResponse =>
-          message.functionCallResponse,
-        InboundMessage_Message.compileRequest => throw paramsError(
+        .canonicalizeResponse => message.canonicalizeResponse,
+        .importResponse => message.importResponse,
+        .fileImportResponse => message.fileImportResponse,
+        .functionCallResponse => message.functionCallResponse,
+        .compileRequest => throw paramsError(
           "A CompileRequest with compilation ID $_compilationId is already "
           "active.",
         ),
-        InboundMessage_Message.versionRequest => throw paramsError(
+        .versionRequest => throw paramsError(
           "VersionRequest must have compilation ID 0.",
         ),
-        InboundMessage_Message.notSet => throw parseError(
-          "InboundMessage.message is not set.",
-        ),
+        .notSet => throw parseError("InboundMessage.message is not set."),
       };
 
       if (message.id != _outboundRequestId) {
@@ -414,8 +410,8 @@ final class CompilationDispatcher(
       1 + _compilationIdVarint.length + protobufWriter.lengthInBytes,
     );
     packet[0] = switch (message.whichMessage()) {
-      OutboundMessage_Message.compileResponse => 1,
-      OutboundMessage_Message.error => 2,
+      .compileResponse => 1,
+      .error => 2,
       _ => 0,
     };
     packet.setAll(1, _compilationIdVarint);

@@ -174,7 +174,7 @@ final class _EvaluateVisitor({
   final _moduleNodes = <Uri, AstNode>{};
 
   /// The logger to use to print warnings.
-  final Logger _logger = logger ?? Logger.defaultLogger;
+  final Logger _logger = logger ?? .defaultLogger;
 
   /// A set of message/location pairs for warnings that have been emitted via
   /// [_warn].
@@ -552,7 +552,7 @@ final class _EvaluateVisitor({
             "Dart Sass 2.0.0.\n"
             "\n"
             "Recommendation: call(get-function($function))",
-            Deprecation.callString,
+            .callString,
           );
 
           var callableNode = _callableNode!;
@@ -611,7 +611,7 @@ final class _EvaluateVisitor({
                 "Configuring private variables (such as \$$name) is "
                 "deprecated.\n"
                 "This will be an error in Dart Sass 2.0.0.",
-                Deprecation.withPrivate,
+                .withPrivate,
               );
             }
 
@@ -1503,7 +1503,7 @@ final class _EvaluateVisitor({
         MultiSpan(complex.span.trimRight(), 'invalid selector', {
           node.span: '@extend rule',
         }),
-        Deprecation.bogusCombinators,
+        .bogusCombinators,
       );
     }
 
@@ -2010,7 +2010,7 @@ final class _EvaluateVisitor({
             case (var importer, var canonicalUrl, :var originalUrl)) {
           if (canonicalUrl.scheme == '') {
             _logger.warnForDeprecation(
-              Deprecation.relativeCanonical,
+              .relativeCanonical,
               "Importer $importer canonicalized $url to $canonicalUrl.\n"
               "Relative canonical URLs are deprecated and will eventually be "
               "disallowed.",
@@ -2086,7 +2086,7 @@ final class _EvaluateVisitor({
     return (
       Stylesheet.parse(
         contents,
-        url.startsWith('file') ? Syntax.forPath(url) : Syntax.scss,
+        url.startsWith('file') ? Syntax.forPath(url) : .scss,
         url: url,
       ),
       importer: null,
@@ -2511,7 +2511,7 @@ final class _EvaluateVisitor({
             '\n'
             'More info: https://sass-lang.com/d/bogus-combinators',
             complex.span.trimRight(),
-            Deprecation.bogusCombinators,
+            .bogusCombinators,
           );
         } else if (complex.leadingCombinators.isNotEmpty) {
           if (!_stylesheet.plainCss) {
@@ -2521,7 +2521,7 @@ final class _EvaluateVisitor({
               '\n'
               'More info: https://sass-lang.com/d/bogus-combinators',
               complex.span.trimRight(),
-              Deprecation.bogusCombinators,
+              .bogusCombinators,
             );
           }
         } else {
@@ -2541,7 +2541,7 @@ final class _EvaluateVisitor({
             MultiSpan(complex.span.trimRight(), 'invalid selector', {
               rule.children.first.span: "this is not a style rule$suggestion",
             }),
-            Deprecation.bogusCombinators,
+            .bogusCombinators,
           );
         }
       }
@@ -2705,7 +2705,7 @@ final class _EvaluateVisitor({
                   "Recommendation: add `${node.originalName}: null` at the "
                   "stylesheet root.",
         node.span,
-        Deprecation.newGlobal,
+        .newGlobal,
       );
     }
 
@@ -2871,7 +2871,7 @@ final class _EvaluateVisitor({
           "More info and automated migrator: "
           "https://sass-lang.com/d/slash-div",
           node.span,
-          Deprecation.slashDiv,
+          .slashDiv,
         );
         return result;
 
@@ -4713,7 +4713,7 @@ final class _EvaluateVisitor({
         "More info and automated migrator: "
         "https://sass-lang.com/d/slash-div",
         nodeForSpan.span,
-        Deprecation.slashDiv,
+        .slashDiv,
       );
     }
 

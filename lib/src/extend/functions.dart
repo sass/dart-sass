@@ -459,7 +459,7 @@ List<List<List<ComplexSelectorComponent>>>? _mergeTrailingCombinators(
     components1,
     components2,
   )) {
-    case (Combinator.followingSibling, Combinator.followingSibling, _, _):
+    case (.followingSibling, .followingSibling, _, _):
       var component1 = components1.removeLast();
       var component2 = components2.removeLast();
       if (component1.selector.isSuperselector(component2.selector)) {
@@ -487,14 +487,14 @@ List<List<List<ComplexSelectorComponent>>>? _mergeTrailingCombinators(
       }
 
     case (
-          Combinator.followingSibling,
-          Combinator.nextSibling,
+          .followingSibling,
+          .nextSibling,
           var followingComponents,
           var nextComponents,
         ) ||
         (
-          Combinator.nextSibling,
-          Combinator.followingSibling,
+          .nextSibling,
+          .followingSibling,
           var nextComponents,
           var followingComponents,
         ):
@@ -513,18 +513,8 @@ List<List<List<ComplexSelectorComponent>>>? _mergeTrailingCombinators(
         ]);
       }
 
-    case (
-      Combinator.child,
-      Combinator.nextSibling || Combinator.followingSibling,
-      _,
-      var siblingComponents,
-    ):
-    case (
-      Combinator.nextSibling || Combinator.followingSibling,
-      Combinator.child,
-      var siblingComponents,
-      _,
-    ):
+    case (.child, .nextSibling || .followingSibling, _, var siblingComponents):
+    case (.nextSibling || .followingSibling, .child, var siblingComponents, _):
       result.addFirst([
         [siblingComponents.removeLast()],
       ]);
@@ -554,7 +544,7 @@ List<List<List<ComplexSelectorComponent>>>? _mergeTrailingCombinators(
       var descendantComponents,
       var combinatorComponents,
     ):
-      if (combinator == Combinator.child &&
+      if (combinator == .child &&
           (descendantComponents.lastOrNull?.selector.isSuperselector(
                 combinatorComponents.last.selector,
               ) ??
@@ -794,7 +784,7 @@ bool complexIsSuperselector(
     previousCombinator = combinator1;
 
     if (complex1.length - i1 == 1) {
-      if (combinator1?.value == Combinator.followingSibling) {
+      if (combinator1?.value == .followingSibling) {
         // The selector `.foo ~ .bar` is only a superselector of selectors that
         // *exclusively* contain subcombinators of `~`.
         if (!complex2
@@ -829,15 +819,14 @@ bool _compatibleWithPreviousCombinator(
 
   // The child and next sibling combinators require that the *immediate*
   // following component be a superslector.
-  if (previous.value != Combinator.followingSibling) return false;
+  if (previous.value != .followingSibling) return false;
 
   // The following sibling combinator does allow intermediate components, but
   // only if they're all siblings.
   return parents.every(
     (component) =>
-        component.combinators.firstOrNull?.value ==
-            Combinator.followingSibling ||
-        component.combinators.firstOrNull?.value == Combinator.nextSibling,
+        component.combinators.firstOrNull?.value == .followingSibling ||
+        component.combinators.firstOrNull?.value == .nextSibling,
   );
 }
 
@@ -849,9 +838,9 @@ bool _isSupercombinator(
   CssValue<Combinator>? combinator2,
 ) =>
     combinator1 == combinator2 ||
-    (combinator1 == null && combinator2?.value == Combinator.child) ||
-    (combinator1?.value == Combinator.followingSibling &&
-        combinator2?.value == Combinator.nextSibling);
+    (combinator1 == null && combinator2?.value == .child) ||
+    (combinator1?.value == .followingSibling &&
+        combinator2?.value == .nextSibling);
 
 /// Returns whether [compound1] is a superselector of [compound2].
 ///

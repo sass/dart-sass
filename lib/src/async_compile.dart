@@ -49,7 +49,7 @@ Future<CompileResult> compileAsync(
 }) async {
   DeprecationProcessingLogger deprecationLogger = logger =
       DeprecationProcessingLogger(
-        logger ?? Logger.defaultLogger,
+        logger ?? .defaultLogger,
         silenceDeprecations: {...?silenceDeprecations},
         fatalDeprecations: {...?fatalDeprecations},
         futureDeprecations: {...?futureDeprecations},
@@ -124,19 +124,19 @@ Future<CompileResult> compileStringAsync(
 }) async {
   DeprecationProcessingLogger deprecationLogger = logger =
       DeprecationProcessingLogger(
-        logger ?? Logger.defaultLogger,
+        logger ?? .defaultLogger,
         silenceDeprecations: {...?silenceDeprecations},
         fatalDeprecations: {...?fatalDeprecations},
         futureDeprecations: {...?futureDeprecations},
         limitRepetition: !verbose,
       )..validate();
 
-  var stylesheet = Stylesheet.parse(source, syntax ?? Syntax.scss, url: url);
+  var stylesheet = Stylesheet.parse(source, syntax ?? .scss, url: url);
 
   if (stylesheet.span.sourceUrl case Uri(scheme: '')
       when nodeImporter == null) {
     deprecationLogger.warnForDeprecation(
-      Deprecation.compileStringRelativeUrl,
+      .compileStringRelativeUrl,
       'Passing a relative `url` argument (${stylesheet.span.sourceUrl}) to '
       'compileString() or related functions is deprecated and will be an error '
       'in Dart Sass 2.0.0.',
@@ -183,7 +183,7 @@ Future<CompileResult> _compileStylesheet(
 ) async {
   if (nodeImporter != null) {
     logger?.warnForDeprecation(
-      Deprecation.legacyJsApi,
+      .legacyJsApi,
       'The legacy JS API is deprecated and will be removed in '
       'Dart Sass 2.0.0.\n\n'
       'More info: https://sass-lang.com/d/legacy-js-api',

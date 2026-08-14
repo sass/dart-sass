@@ -108,19 +108,19 @@ final class Stylesheet.internal(
   }) {
     try {
       switch (syntax) {
-        case Syntax.sass:
+        case .sass:
           return Stylesheet.parseSass(
             contents,
             url: url,
             parseSelectors: parseSelectors,
           );
-        case Syntax.scss:
+        case .scss:
           return Stylesheet.parseScss(
             contents,
             url: url,
             parseSelectors: parseSelectors,
           );
-        case Syntax.css:
+        case .css:
           return Stylesheet.parseCss(
             contents,
             url: url,

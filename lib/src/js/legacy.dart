@@ -21,9 +21,7 @@ import '../compile_result.dart';
 import '../exception.dart';
 import '../importer/legacy_node.dart';
 import '../io.dart';
-import '../logger.dart';
 import '../logger/js_to_dart.dart';
-import '../syntax.dart';
 import '../util/nullable.dart';
 import '../utils.dart';
 import '../value.dart';
@@ -91,14 +89,14 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
   CompileResult result;
 
   var file = options.file.andThen(p.absolute);
-  var logger = JSToDartLogger(options.logger, Logger.defaultLogger);
+  var logger = JSToDartLogger(options.logger, .defaultLogger);
   if (options.data case var data?) {
     result = await compileStringAsync(
       data,
       nodeImporter: _parseImporter(options, start),
       importCache: _parsePackageImportersAsync(options, start),
       functions: _parseFunctions(options, start, asynch: true),
-      syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
+      syntax: isTruthy(options.indentedSyntax) ? .sass : null,
       style: _parseOutputStyle(options.outputStyle),
       useSpaces: options.indentType != 'tab',
       indentWidth: _parseIndentWidth(options.indentWidth),
@@ -126,7 +124,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
       nodeImporter: _parseImporter(options, start),
       importCache: _parsePackageImportersAsync(options, start),
       functions: _parseFunctions(options, start, asynch: true),
-      syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
+      syntax: isTruthy(options.indentedSyntax) ? .sass : null,
       style: _parseOutputStyle(options.outputStyle),
       useSpaces: options.indentType != 'tab',
       indentWidth: _parseIndentWidth(options.indentWidth),
@@ -169,14 +167,14 @@ RenderResult renderSync(RenderOptions options) {
     CompileResult result;
 
     var file = options.file.andThen(p.absolute);
-    var logger = JSToDartLogger(options.logger, Logger.defaultLogger);
+    var logger = JSToDartLogger(options.logger, .defaultLogger);
     if (options.data case var data?) {
       result = compileString(
         data,
         nodeImporter: _parseImporter(options, start),
         importCache: _parsePackageImporters(options, start),
         functions: _parseFunctions(options, start).cast(),
-        syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
+        syntax: isTruthy(options.indentedSyntax) ? .sass : null,
         style: _parseOutputStyle(options.outputStyle),
         useSpaces: options.indentType != 'tab',
         indentWidth: _parseIndentWidth(options.indentWidth),
@@ -207,7 +205,7 @@ RenderResult renderSync(RenderOptions options) {
         nodeImporter: _parseImporter(options, start),
         importCache: _parsePackageImporters(options, start),
         functions: _parseFunctions(options, start).cast(),
-        syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
+        syntax: isTruthy(options.indentedSyntax) ? .sass : null,
         style: _parseOutputStyle(options.outputStyle),
         useSpaces: options.indentType != 'tab',
         indentWidth: _parseIndentWidth(options.indentWidth),

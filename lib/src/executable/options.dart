@@ -245,7 +245,7 @@ final class ExecutableOptions._(
   bool get verbose => _options['verbose'] as bool;
 
   /// The logger to use to emit messages from Sass.
-  Logger get logger => quiet ? Logger.quiet : Logger.stderr(color: color);
+  Logger get logger => quiet ? .quiet : Logger.stderr(color: color);
 
   /// The style to use for the generated CSS.
   OutputStyle get style => _options['style'] == 'compressed'

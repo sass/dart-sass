@@ -266,7 +266,7 @@ final class SassCalculation._(
         "\n"
         "To emit a CSS abs() now: abs(#{$argument})\n"
         "More info: https://sass-lang.com/d/abs-percent",
-        Deprecation.absPercent,
+        .absPercent,
       );
     }
     return number_lib.abs(argument);
@@ -543,7 +543,7 @@ final class SassCalculation._(
           "function, call math.round() instead.\n"
           "\n"
           "See https://sass-lang.com/d/import",
-          Deprecation.globalBuiltin,
+          .globalBuiltin,
         );
         return _matchUnits(number.value.round().toDouble(), number);
 
@@ -703,7 +703,7 @@ final class SassCalculation._(
             "math.$inLegacySassFunction() instead.\n"
             "\n"
             "See https://sass-lang.com/d/import",
-            Deprecation.globalBuiltin,
+            .globalBuiltin,
           );
           compatible = true;
         }

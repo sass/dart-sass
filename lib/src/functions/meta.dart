@@ -8,7 +8,6 @@ import 'package:collection/collection.dart';
 
 import '../ast/sass/statement/mixin_rule.dart';
 import '../callable.dart';
-import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../util/map.dart';
 import '../value.dart';
@@ -36,7 +35,7 @@ final _shared = UnmodifiableListView([
     warnForDeprecation(
       "The feature-exists() function is deprecated.\n\n"
       "More info: https://sass-lang.com/d/feature-exists",
-      Deprecation.featureExists,
+      .featureExists,
     );
     var feature = arguments[0].assertString("feature");
     return SassBoolean(_features.contains(feature.text));
