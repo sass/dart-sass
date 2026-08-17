@@ -13,7 +13,7 @@ class RenderResult {
   external Uint8List? get map;
   external RenderResultStats get stats;
 
-  external factory RenderResult({
+  external factory({
     required Uint8List css,
     Uint8List? map,
     required RenderResultStats stats,
@@ -27,9 +27,9 @@ class RenderResultStats {
   external int get start;
   external int get end;
   external int get duration;
-  external List<Object /* String */ > get includedFiles;
+  external List<Object /* String */> get includedFiles;
 
-  external factory RenderResultStats({
+  external factory({
     required String entry,
     required int start,
     required int end,

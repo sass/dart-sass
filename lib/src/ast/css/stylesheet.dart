@@ -29,16 +29,16 @@ class CssStylesheet extends CssParentNode {
   bool get isChildless => false;
 
   /// Creates an unmodifiable stylesheet containing [children].
-  CssStylesheet(Iterable<CssNode> children, this.span)
-      // Use [UnmodifiableListView] rather than [List.unmodifiable] because
-      // the underlying nodes are mutable anyway, so it's better to have the
-      // whole thing consistently represent mutation of the underlying data.
-      : children = UnmodifiableListView(children);
+  new(Iterable<CssNode> children, this.span)
+    // Use [UnmodifiableListView] rather than [List.unmodifiableOf] because the
+    // underlying nodes are mutable anyway, so it's better to have the whole
+    // thing consistently represent mutation of the underlying data.
+    : children = UnmodifiableListView(children);
 
   /// Creates an empty stylesheet with the given source URL.
-  CssStylesheet.empty({Object? url})
-      : children = const [],
-        span = SourceFile.decoded(const [], url: url).span(0, 0);
+  new empty({Object? url})
+    : children = const [],
+      span = SourceFile.decoded(const [], url: url).span(0, 0);
 
   @override
   T accept<T>(CssVisitor<T> visitor) => visitor.visitCssStylesheet(this);

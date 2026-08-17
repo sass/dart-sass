@@ -65,7 +65,7 @@ class Exports {
 class LoggerNamespace {
   external JSLogger get silent;
 
-  external factory LoggerNamespace({required JSLogger silent});
+  external factory({required JSLogger silent});
 }
 
 @JS()

@@ -11,8 +11,7 @@ import 'package:sass/sass.dart';
 import 'package:sass/src/exception.dart';
 
 void main() {
-  test(
-      "new Callable() throws a SassFormatException if the argument list is "
+  test("new Callable() throws a SassFormatException if the argument list is "
       "invalid", () {
     expect(
       () => Callable("foo", "arg", (_) => sassNull),
@@ -20,8 +19,7 @@ void main() {
     );
   });
 
-  test(
-      "new AsyncCallable() throws a SassFormatException if the argument list "
+  test("new AsyncCallable() throws a SassFormatException if the argument list "
       "is invalid", () {
     expect(
       () => AsyncCallable("foo", "arg", (_) async => sassNull),

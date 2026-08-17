@@ -34,13 +34,13 @@ final _outboundRequestId = 0;
 
 /// A class that dispatches messages to and from the host for a single
 /// compilation.
-final class CompilationDispatcher {
+final class CompilationDispatcher(
   /// The mailbox for receiving messages from the host.
-  final Mailbox _mailbox;
+  final Mailbox _mailbox,
 
   /// The send port for sending messages to the host.
-  final SendPort _sendPort;
-
+  final SendPort _sendPort,
+) {
   /// The compilation ID for which this dispatcher is running.
   ///
   /// This is used in error messages.
@@ -53,7 +53,7 @@ final class CompilationDispatcher {
 
   /// Creates a [CompilationDispatcher] that receives encoded protocol buffers
   /// through [_mailbox] and sends them through [_sendPort].
-  CompilationDispatcher(this._mailbox, this._sendPort);
+  this;
 
   /// Listens for incoming `CompileRequests` and runs their compilations.
   void listen() {
@@ -81,9 +81,9 @@ final class CompilationDispatcher {
             throw paramsError("VersionRequest must have compilation ID 0.");
 
           case InboundMessage_Message.canonicalizeResponse ||
-                InboundMessage_Message.importResponse ||
-                InboundMessage_Message.fileImportResponse ||
-                InboundMessage_Message.functionCallResponse:
+              InboundMessage_Message.importResponse ||
+              InboundMessage_Message.fileImportResponse ||
+              InboundMessage_Message.functionCallResponse:
             throw paramsError(
               "Response ID ${message.id} doesn't match any outstanding requests"
               " in compilation $_compilationId.",
@@ -173,7 +173,8 @@ final class CompilationDispatcher {
             color: request.alertColor,
             logger: logger,
             importers: importers,
-            importer: _decodeImporter(input.importer) ??
+            importer:
+                _decodeImporter(input.importer) ??
                 (input.url.startsWith("file:") ? null : sass.Importer.noOp),
             functions: globalFunctions,
             syntax: syntaxToSyntax(input.syntax),
@@ -310,31 +311,27 @@ final class CompilationDispatcher {
 
   InboundMessage_CanonicalizeResponse sendCanonicalizeRequest(
     OutboundMessage_CanonicalizeRequest request,
-  ) =>
-      _sendRequest<InboundMessage_CanonicalizeResponse>(
-        OutboundMessage()..canonicalizeRequest = request,
-      );
+  ) => _sendRequest<InboundMessage_CanonicalizeResponse>(
+    OutboundMessage()..canonicalizeRequest = request,
+  );
 
   InboundMessage_ImportResponse sendImportRequest(
     OutboundMessage_ImportRequest request,
-  ) =>
-      _sendRequest<InboundMessage_ImportResponse>(
-        OutboundMessage()..importRequest = request,
-      );
+  ) => _sendRequest<InboundMessage_ImportResponse>(
+    OutboundMessage()..importRequest = request,
+  );
 
   InboundMessage_FileImportResponse sendFileImportRequest(
     OutboundMessage_FileImportRequest request,
-  ) =>
-      _sendRequest<InboundMessage_FileImportResponse>(
-        OutboundMessage()..fileImportRequest = request,
-      );
+  ) => _sendRequest<InboundMessage_FileImportResponse>(
+    OutboundMessage()..fileImportRequest = request,
+  );
 
   InboundMessage_FunctionCallResponse sendFunctionCallRequest(
     OutboundMessage_FunctionCallRequest request,
-  ) =>
-      _sendRequest<InboundMessage_FunctionCallResponse>(
-        OutboundMessage()..functionCallRequest = request,
-      );
+  ) => _sendRequest<InboundMessage_FunctionCallResponse>(
+    OutboundMessage()..functionCallRequest = request,
+  );
 
   /// Sends [request] to the host and returns the message sent in response.
   T _sendRequest<T extends GeneratedMessage>(OutboundMessage message) {
@@ -355,20 +352,18 @@ final class CompilationDispatcher {
       }
 
       var response = switch (message.whichMessage()) {
-        InboundMessage_Message.canonicalizeResponse =>
-          message.canonicalizeResponse,
-        InboundMessage_Message.importResponse => message.importResponse,
-        InboundMessage_Message.fileImportResponse => message.fileImportResponse,
-        InboundMessage_Message.functionCallResponse =>
-          message.functionCallResponse,
-        InboundMessage_Message.compileRequest => throw paramsError(
-            "A CompileRequest with compilation ID $_compilationId is already "
-            "active.",
-          ),
-        InboundMessage_Message.versionRequest =>
-          throw paramsError("VersionRequest must have compilation ID 0."),
-        InboundMessage_Message.notSet =>
-          throw parseError("InboundMessage.message is not set."),
+        .canonicalizeResponse => message.canonicalizeResponse,
+        .importResponse => message.importResponse,
+        .fileImportResponse => message.fileImportResponse,
+        .functionCallResponse => message.functionCallResponse,
+        .compileRequest => throw paramsError(
+          "A CompileRequest with compilation ID $_compilationId is already "
+          "active.",
+        ),
+        .versionRequest => throw paramsError(
+          "VersionRequest must have compilation ID 0.",
+        ),
+        .notSet => throw parseError("InboundMessage.message is not set."),
       };
 
       if (message.id != _outboundRequestId) {
@@ -415,8 +410,8 @@ final class CompilationDispatcher {
       1 + _compilationIdVarint.length + protobufWriter.lengthInBytes,
     );
     packet[0] = switch (message.whichMessage()) {
-      OutboundMessage_Message.compileResponse => 1,
-      OutboundMessage_Message.error => 2,
+      .compileResponse => 1,
+      .error => 2,
       _ => 0,
     };
     packet.setAll(1, _compilationIdVarint);

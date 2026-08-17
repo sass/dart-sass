@@ -56,13 +56,11 @@ final class ParameterList implements SassNode {
   /// Returns whether this declaration takes no parameters.
   bool get isEmpty => parameters.isEmpty && restParameter == null;
 
-  ParameterList(Iterable<Parameter> parameters, this.span, {this.restParameter})
-      : parameters = List.unmodifiable(parameters);
+  new(Iterable<Parameter> parameters, this.span, {this.restParameter})
+    : parameters = List.unmodifiableOf(parameters);
 
   /// Creates a declaration that declares no parameters.
-  ParameterList.empty(this.span)
-      : parameters = const [],
-        restParameter = null;
+  new empty(this.span) : parameters = const [], restParameter = null;
 
   /// Parses an parameter declaration from [contents], which should be of the
   /// form `@rule name(args) {`.
@@ -70,7 +68,7 @@ final class ParameterList implements SassNode {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory ParameterList.parse(String contents, {Object? url}) =>
+  factory parse(String contents, {Object? url}) =>
       ScssParser(contents, url: url).parseParameterList();
 
   /// Throws a [SassScriptException] if [positional] and [names] aren't valid
@@ -162,7 +160,7 @@ final class ParameterList implements SassNode {
 
   @override
   String toString() => [
-        for (var arg in parameters) '\$$arg',
-        if (restParameter != null) '\$$restParameter...',
-      ].join(', ');
+    for (var arg in parameters) '\$$arg',
+    if (restParameter != null) '\$$restParameter...',
+  ].join(', ');
 }

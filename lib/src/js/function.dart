@@ -31,7 +31,7 @@ class JSFunction {
   /// ```
   ///
   /// [JS Function]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/Function#syntax
-  external JSFunction(String arg1, [String? arg2, String? arg3]);
+  external new(String arg1, [String? arg2, String? arg3]);
 
   // Note that this just invokes the function with the given arguments, rather
   // than calling `Function.prototype.call()`. See sdk#31271.

@@ -13,7 +13,10 @@ import 'map.dart';
 ///
 /// This ensures that each directory is only watched once, even if one is a
 /// parent of another.
-class MultiDirWatcher {
+class MultiDirWatcher({
+  /// Whether to manually check the filesystem for changes periodically.
+  final bool _poll = false,
+}) {
   /// A map from paths to the event streams for those paths.
   ///
   /// No key in this map is a parent directories of any other key in this map.
@@ -23,14 +26,11 @@ class MultiDirWatcher {
   Stream<WatchEvent> get events => _group.stream;
   final _group = StreamGroup<WatchEvent>();
 
-  /// Whether to manually check the filesystem for changes periodically.
-  final bool _poll;
-
   /// Creates a [MultiDirWatcher].
   ///
-  /// If [poll] is `true`, this manually checks the filesystem for changes
+  /// If [_poll] is `true`, this manually checks the filesystem for changes
   /// periodically rather than using a native filesystem monitoring API.
-  MultiDirWatcher({bool poll = false}) : _poll = poll;
+  this;
 
   /// Watches [directory] for changes.
   ///

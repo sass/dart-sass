@@ -10,4 +10,11 @@ analyzer:
     # These are necessary for matching the JS API.
     avoid_types_as_parameter_names: ignore
 
+linter:
+  rules:
+    - initialize_in_field_declaration
+    - unnecessary_primary_constructor_body
+    - unnecessary_type_name_in_constructor
+    - use_declaring_parameters
+
 include: package:lints/recommended.yaml

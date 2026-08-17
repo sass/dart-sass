@@ -105,11 +105,11 @@ Future<void> _compileStylesheetWithoutErrorHandling(
 
   Syntax syntax;
   if (options.indented == true) {
-    syntax = Syntax.sass;
+    syntax = .sass;
   } else if (source != null) {
     syntax = Syntax.forPath(source);
   } else {
-    syntax = Syntax.scss;
+    syntax = .scss;
   }
 
   CompileResult result;

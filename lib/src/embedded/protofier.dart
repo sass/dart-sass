@@ -16,16 +16,16 @@ import 'utils.dart';
 ///
 /// A given [Protofier] instance is valid only within the scope of a single
 /// custom function call.
-final class Protofier {
+final class Protofier(
   /// The dispatcher, for invoking deprotofied [Value_HostFunction]s.
-  final CompilationDispatcher _dispatcher;
+  final CompilationDispatcher _dispatcher,
 
   /// The IDs of first-class functions.
-  final OpaqueRegistry<SassFunction> _functions;
+  final OpaqueRegistry<SassFunction> _functions,
 
   /// The IDs of first-class mixins.
-  final OpaqueRegistry<SassMixin> _mixins;
-
+  final OpaqueRegistry<SassMixin> _mixins,
+) {
   /// Any argument lists transitively contained in [value].
   ///
   /// The IDs of the [Value_ArgumentList] protobufs are always one greater than
@@ -41,7 +41,7 @@ final class Protofier {
   ///
   /// Similarly, the [mixins] tracks the IDs of first-class mixins so that the
   /// host can pass them back to the compiler.
-  Protofier(this._dispatcher, this._functions, this._mixins);
+  this;
 
   /// Converts [value] to its protocol buffer representation.
   proto.Value protofy(Value value) {
@@ -114,10 +114,10 @@ final class Protofier {
   /// Converts [separator] to its protocol buffer representation.
   proto.ListSeparator _protofySeparator(ListSeparator separator) =>
       switch (separator) {
-        ListSeparator.comma => proto.ListSeparator.COMMA,
-        ListSeparator.space => proto.ListSeparator.SPACE,
-        ListSeparator.slash => proto.ListSeparator.SLASH,
-        ListSeparator.undecided => proto.ListSeparator.UNDECIDED,
+        .comma => proto.ListSeparator.COMMA,
+        .space => proto.ListSeparator.SPACE,
+        .slash => proto.ListSeparator.SLASH,
+        .undecided => proto.ListSeparator.UNDECIDED,
       };
 
   /// Converts [calculation] to its protocol buffer representation.
@@ -151,13 +151,12 @@ final class Protofier {
   /// Converts [operator] to its protocol buffer representation.
   proto.CalculationOperator _protofyCalculationOperator(
     CalculationOperator operator,
-  ) =>
-      switch (operator) {
-        CalculationOperator.plus => proto.CalculationOperator.PLUS,
-        CalculationOperator.minus => proto.CalculationOperator.MINUS,
-        CalculationOperator.times => proto.CalculationOperator.TIMES,
-        CalculationOperator.dividedBy => proto.CalculationOperator.DIVIDE,
-      };
+  ) => switch (operator) {
+    .plus => proto.CalculationOperator.PLUS,
+    .minus => proto.CalculationOperator.MINUS,
+    .times => proto.CalculationOperator.TIMES,
+    .dividedBy => proto.CalculationOperator.DIVIDE,
+  };
 
   /// Converts [response]'s return value to its Sass representation.
   Value deprotofyResponse(InboundMessage_FunctionCallResponse response) {
@@ -183,12 +182,15 @@ final class Protofier {
 
         case Value_Value.color:
           var space = ColorSpace.fromName(value.color.space);
-          var channel1 =
-              value.color.hasChannel1() ? value.color.channel1 : null;
-          var channel2 =
-              value.color.hasChannel2() ? value.color.channel2 : null;
-          var channel3 =
-              value.color.hasChannel3() ? value.color.channel3 : null;
+          var channel1 = value.color.hasChannel1()
+              ? value.color.channel1
+              : null;
+          var channel2 = value.color.hasChannel2()
+              ? value.color.channel2
+              : null;
+          var channel3 = value.color.hasChannel3()
+              ? value.color.channel3
+              : null;
           var alpha = value.color.hasAlpha() ? value.color.alpha : null;
           switch (space) {
             case ColorSpace.rgb:
@@ -218,7 +220,11 @@ final class Protofier {
               return SassColor.displayP3(channel1, channel2, channel3, alpha);
             case ColorSpace.displayP3Linear:
               return SassColor.displayP3Linear(
-                  channel1, channel2, channel3, alpha);
+                channel1,
+                channel2,
+                channel3,
+                alpha,
+              );
             case ColorSpace.a98Rgb:
               return SassColor.a98Rgb(channel1, channel2, channel3, alpha);
             case ColorSpace.prophotoRgb:
@@ -249,13 +255,10 @@ final class Protofier {
             );
           }
 
-          return SassArgumentList(
-              value.argumentList.contents.map(_deprotofy),
-              {
-                for (var (name, value) in value.argumentList.keywords.pairs)
-                  name: _deprotofy(value),
-              },
-              separator);
+          return SassArgumentList(value.argumentList.contents.map(_deprotofy), {
+            for (var (name, value) in value.argumentList.keywords.pairs)
+              name: _deprotofy(value),
+          }, separator);
 
         case Value_Value.list:
           var separator = _deprotofySeparator(value.list.separator);
@@ -318,9 +321,9 @@ final class Protofier {
 
         case Value_Value.singleton:
           return switch (value.singleton) {
-            SingletonValue.TRUE => sassTrue,
-            SingletonValue.FALSE => sassFalse,
-            SingletonValue.NULL => sassNull,
+            .TRUE => sassTrue,
+            .FALSE => sassFalse,
+            .NULL => sassNull,
             _ => throw "Unknown Value.singleton ${value.singleton}",
           };
 
@@ -346,10 +349,10 @@ final class Protofier {
 
   /// Converts [number] to its Sass representation.
   SassNumber _deprotofyNumber(Value_Number number) => SassNumber.withUnits(
-        number.value,
-        numeratorUnits: number.numerators,
-        denominatorUnits: number.denominators,
-      );
+    number.value,
+    numeratorUnits: number.numerators,
+    denominatorUnits: number.denominators,
+  );
 
   /// Returns the argument list in [_argumentLists] that corresponds to [id].
   SassArgumentList _argumentListForId(int id) {
@@ -370,10 +373,10 @@ final class Protofier {
   /// Converts [separator] to its Sass representation.
   ListSeparator _deprotofySeparator(proto.ListSeparator separator) =>
       switch (separator) {
-        proto.ListSeparator.COMMA => ListSeparator.comma,
-        proto.ListSeparator.SPACE => ListSeparator.space,
-        proto.ListSeparator.SLASH => ListSeparator.slash,
-        proto.ListSeparator.UNDECIDED => ListSeparator.undecided,
+        .COMMA => ListSeparator.comma,
+        .SPACE => ListSeparator.space,
+        .SLASH => ListSeparator.slash,
+        .UNDECIDED => ListSeparator.undecided,
         _ => throw "Unknown ListSeparator $separator",
       };
 
@@ -383,9 +386,9 @@ final class Protofier {
         Value_Calculation(name: "calc", arguments: [var arg]) =>
           SassCalculation.calc(_deprotofyCalculationValue(arg)),
         Value_Calculation(name: "calc") => throw paramsError(
-            "Value.Calculation.arguments must have exactly one argument for "
-            "calc().",
-          ),
+          "Value.Calculation.arguments must have exactly one argument for "
+          "calc().",
+        ),
         Value_Calculation(
           name: "clamp",
           arguments: [var arg1, ...var rest] && List(length: < 4),
@@ -396,61 +399,49 @@ final class Protofier {
             rest.elementAtOrNull(1).andThen(_deprotofyCalculationValue),
           ),
         Value_Calculation(name: "clamp") => throw paramsError(
-            "Value.Calculation.arguments must have 1 to 3 arguments for "
-            "clamp().",
-          ),
+          "Value.Calculation.arguments must have 1 to 3 arguments for "
+          "clamp().",
+        ),
         Value_Calculation(name: "min" || "max", arguments: []) =>
           throw paramsError(
             "Value.Calculation.arguments must have at least 1 argument for "
             "${calculation.name}().",
           ),
         Value_Calculation(name: "min", :var arguments) => SassCalculation.min(
-            arguments.map(_deprotofyCalculationValue),
-          ),
+          arguments.map(_deprotofyCalculationValue),
+        ),
         Value_Calculation(name: "max", :var arguments) => SassCalculation.max(
-            arguments.map(_deprotofyCalculationValue),
-          ),
+          arguments.map(_deprotofyCalculationValue),
+        ),
         _ => throw paramsError(
-            'Value.Calculation.name "${calculation.name}" is not a recognized '
-            'calculation type.',
-          ),
+          'Value.Calculation.name "${calculation.name}" is not a recognized '
+          'calculation type.',
+        ),
       };
 
   /// Converts [value] to its Sass representation.
   Object _deprotofyCalculationValue(Value_Calculation_CalculationValue value) =>
       switch (value.whichValue()) {
-        Value_Calculation_CalculationValue_Value.number => _deprotofyNumber(
-            value.number,
-          ),
-        Value_Calculation_CalculationValue_Value.calculation =>
-          _deprotofyCalculation(value.calculation),
-        Value_Calculation_CalculationValue_Value.string => SassString(
-            value.string,
-            quotes: false,
-          ),
-        Value_Calculation_CalculationValue_Value.operation =>
-          SassCalculation.operate(
-            _deprotofyCalculationOperator(value.operation.operator),
-            _deprotofyCalculationValue(value.operation.left),
-            _deprotofyCalculationValue(value.operation.right),
-          ),
-        Value_Calculation_CalculationValue_Value.interpolation => SassString(
-            '(${value.interpolation})',
-            quotes: false,
-          ),
-        Value_Calculation_CalculationValue_Value.notSet =>
-          throw mandatoryError("Value.Calculation.value"),
+        .number => _deprotofyNumber(value.number),
+        .calculation => _deprotofyCalculation(value.calculation),
+        .string => SassString(value.string, quotes: false),
+        .operation => SassCalculation.operate(
+          _deprotofyCalculationOperator(value.operation.operator),
+          _deprotofyCalculationValue(value.operation.left),
+          _deprotofyCalculationValue(value.operation.right),
+        ),
+        .interpolation => SassString('(${value.interpolation})', quotes: false),
+        .notSet => throw mandatoryError("Value.Calculation.value"),
       };
 
   /// Converts [operator] to its Sass representation.
   CalculationOperator _deprotofyCalculationOperator(
     proto.CalculationOperator operator,
-  ) =>
-      switch (operator) {
-        proto.CalculationOperator.PLUS => CalculationOperator.plus,
-        proto.CalculationOperator.MINUS => CalculationOperator.minus,
-        proto.CalculationOperator.TIMES => CalculationOperator.times,
-        proto.CalculationOperator.DIVIDE => CalculationOperator.dividedBy,
-        _ => throw "Unknown CalculationOperator $operator",
-      };
+  ) => switch (operator) {
+    .PLUS => .plus,
+    .MINUS => .minus,
+    .TIMES => .times,
+    .DIVIDE => .dividedBy,
+    _ => throw "Unknown CalculationOperator $operator",
+  };
 }

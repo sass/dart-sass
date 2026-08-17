@@ -53,22 +53,19 @@ abstract base class ModifiableCssNode extends CssNode {
 }
 
 /// A modifiable version of [CssParentNode] for use in the evaluation step.
-abstract base class ModifiableCssParentNode extends ModifiableCssNode
-    implements CssParentNode {
+abstract base class ModifiableCssParentNode._(
+  final List<ModifiableCssNode> _children,
+) extends ModifiableCssNode implements CssParentNode {
   @override
-  final List<ModifiableCssNode> children;
-  final List<ModifiableCssNode> _children;
-
+  final List<ModifiableCssNode> children = UnmodifiableListView(_children);
   @override
   bool get isChildless => false;
 
-  ModifiableCssParentNode() : this._([]);
+  new() : this._([]);
 
   /// A dummy constructor so that [_children] can be passed to the constructor
   /// for [this.children].
-  ModifiableCssParentNode._(List<ModifiableCssNode> children)
-      : _children = children,
-        children = UnmodifiableListView(children);
+  this;
 
   /// Returns whether `this` is equal to [other], ignoring their child nodes.
   bool equalsIgnoringChildren(ModifiableCssNode other);

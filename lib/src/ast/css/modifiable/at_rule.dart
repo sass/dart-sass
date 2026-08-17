@@ -10,26 +10,14 @@ import '../value.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssAtRule] for use in the evaluation step.
-final class ModifiableCssAtRule extends ModifiableCssParentNode
-    implements CssAtRule {
+final class ModifiableCssAtRule(
+  @override final CssValue<String> name,
+  @override final FileSpan span, {
+  bool childless = false,
+  @override final CssValue<String>? value,
+}) extends ModifiableCssParentNode implements CssAtRule {
   @override
-  final CssValue<String> name;
-
-  @override
-  final CssValue<String>? value;
-
-  @override
-  final bool isChildless;
-
-  @override
-  final FileSpan span;
-
-  ModifiableCssAtRule(
-    this.name,
-    this.span, {
-    bool childless = false,
-    this.value,
-  }) : isChildless = childless;
+  final bool isChildless = childless;
 
   @override
   T accept<T>(ModifiableCssVisitor<T> visitor) => visitor.visitCssAtRule(this);

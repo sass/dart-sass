@@ -18,9 +18,7 @@ StderrLogger? _default;
 
 /// A logger that wraps [StderrLogger] and chooses whether to activate colors
 /// based on whether the current system supports it.
-final class DefaultLogger extends LoggerWithDeprecationType {
-  const DefaultLogger();
-
+final class const DefaultLogger() extends LoggerWithDeprecationType {
   /// Ensures [_defaultStderr] is initialized and returns it.
   StderrLogger get _inner {
     return _default ??= StderrLogger(color: supportsAnsiEscapes);
@@ -32,9 +30,12 @@ final class DefaultLogger extends LoggerWithDeprecationType {
     FileSpan? span,
     Trace? trace,
     Deprecation? deprecation,
-  }) =>
-      _inner.internalWarn(message,
-          span: span, trace: trace, deprecation: deprecation);
+  }) => _inner.internalWarn(
+    message,
+    span: span,
+    trace: trace,
+    deprecation: deprecation,
+  );
 
   @override
   void debug(String message, SourceSpan span) => _inner.debug(message, span);

@@ -2,31 +2,26 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-final class NodeImporter {
-  NodeImporter(
-    Object options,
-    Iterable<String> includePaths,
-    Iterable<Object> importers,
-  );
-
+final class NodeImporter(
+  Object options,
+  Iterable<String> includePaths,
+  Iterable<Object> importers,
+) {
   (String contents, String url)? loadRelative(
     String url,
     Uri? previous,
     bool forImport,
-  ) =>
-      throw '';
+  ) => throw '';
 
   (String contents, String url)? load(
     String url,
     Uri? previous,
     bool forImport,
-  ) =>
-      throw '';
+  ) => throw '';
 
   Future<(String contents, String url)?> loadAsync(
     String url,
     Uri? previous,
     bool forImport,
-  ) =>
-      throw '';
+  ) => throw '';
 }

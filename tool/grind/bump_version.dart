@@ -28,7 +28,8 @@ void addBumpVersionTasks() {
         GrinderTask(
           'bump-version-${patch ? 'patch' : 'minor'}${dev ? '-dev' : ''}',
           taskFunction: () => _bumpVersion(patch, dev),
-          description: 'Bump the version of all packages to the next '
+          description:
+              'Bump the version of all packages to the next '
               '${patch ? 'patch' : 'minor'}${dev ? ' dev' : ''} version',
         ),
       );
@@ -53,8 +54,9 @@ void _bumpVersion(bool patch, bool dev) {
       return Version(version.major, version.minor, version.patch);
     }
 
-    var nextVersion =
-        patch || version.major == 0 ? version.nextPatch : version.nextMinor;
+    var nextVersion = patch || version.major == 0
+        ? version.nextPatch
+        : version.nextMinor;
     return Version(
       nextVersion.major,
       nextVersion.minor,
@@ -127,9 +129,7 @@ void _bumpVersion(bool patch, bool dev) {
     packageJson.nodes["version"]!.span,
   );
   File(packageJsonPath).writeAsStringSync(
-    "${JsonEncoder.withIndent(
-      "  ",
-    ).convert({...packageJson, "version": version.toString()})}\n",
+    "${JsonEncoder.withIndent("  ").convert({...packageJson, "version": version.toString()})}\n",
   );
   addChangelogEntry("pkg/sass-parser", version);
 }

@@ -11,16 +11,16 @@ import '../importer.dart';
 ///
 /// {@category Importer}
 @sealed
-class PackageImporter extends Importer {
+class PackageImporter(
   /// The resolver that converts `package:` imports to `file:`.
-  final PackageConfig _packageConfig;
-
+  final PackageConfig _packageConfig,
+) extends Importer {
   /// Creates an importer that loads stylesheets from `package:` URLs according
-  /// to [packageConfig], which is a [PackageConfig][] from the `package_config`
-  /// package.
+  /// to [_packageConfig], which is a [PackageConfig][] from the
+  /// `package_config` package.
   ///
   /// [`PackageConfig`]: https://pub.dev/documentation/package_config/latest/package_config.package_config/PackageConfig-class.html
-  PackageImporter(PackageConfig packageConfig) : _packageConfig = packageConfig;
+  this;
 
   @override
   Uri? canonicalize(Uri url) {

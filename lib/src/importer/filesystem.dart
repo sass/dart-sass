@@ -5,7 +5,6 @@
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
-import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../importer.dart';
 import '../io.dart' as io;
@@ -33,19 +32,17 @@ class FilesystemImporter extends Importer {
   final bool _loadPathDeprecated;
 
   /// Creates an importer that loads files relative to [loadPath].
-  FilesystemImporter(String loadPath)
-      : _loadPath = p.absolute(loadPath),
-        _loadPathDeprecated = false;
+  new(String loadPath)
+    : _loadPath = p.absolute(loadPath),
+      _loadPathDeprecated = false;
 
-  FilesystemImporter._deprecated(String loadPath)
-      : _loadPath = p.absolute(loadPath),
-        _loadPathDeprecated = true;
+  new _deprecated(String loadPath)
+    : _loadPath = p.absolute(loadPath),
+      _loadPathDeprecated = true;
 
   /// Creates an importer that _only_ loads absolute `file:` URLs and URLs
   /// relative to the current file.
-  FilesystemImporter._noLoadPath()
-      : _loadPath = null,
-        _loadPathDeprecated = false;
+  new _noLoadPath() : _loadPath = null, _loadPathDeprecated = false;
 
   /// A [FilesystemImporter] that loads files relative to the current working
   /// directory.
@@ -80,7 +77,7 @@ class FilesystemImporter extends Importer {
           "Using the current working directory as an implicit load path is "
           "deprecated. Either add it as an explicit load path or importer, or "
           "load this stylesheet from a different URL.",
-          Deprecation.fsImporterCwd,
+          .fsImporterCwd,
         );
       }
     } else {

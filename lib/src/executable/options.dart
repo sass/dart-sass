@@ -18,7 +18,10 @@ import '../util/character.dart';
 ///
 /// The constructor and any members may throw [UsageException]s indicating that
 /// invalid arguments were passed.
-final class ExecutableOptions {
+final class ExecutableOptions._(
+  /// The parsed options passed by the user to the executable.
+  final ArgResults _options,
+) {
   /// The bar character to use in help separators.
   static final _separatorBar = isWindows ? '=' : '━';
 
@@ -46,7 +49,8 @@ final class ExecutableOptions {
         'load-path',
         abbr: 'I',
         valueHelp: 'PATH',
-        help: 'A path to use when resolving imports.\n'
+        help:
+            'A path to use when resolving imports.\n'
             'May be passed multiple times.',
         splitCommas: false,
       )
@@ -73,7 +77,8 @@ final class ExecutableOptions {
       )
       ..addFlag(
         'error-css',
-        help: 'When an error occurs, emit a stylesheet describing it.\n'
+        help:
+            'When an error occurs, emit a stylesheet describing it.\n'
             'Defaults to true when compiling to a file.',
         defaultsTo: null,
       )
@@ -112,7 +117,8 @@ final class ExecutableOptions {
       ..addFlag('quiet', abbr: 'q', help: "Don't print warnings.")
       ..addFlag(
         'quiet-deps',
-        help: "Don't print compiler warnings from dependencies.\n"
+        help:
+            "Don't print compiler warnings from dependencies.\n"
             "Stylesheets imported through load paths count as dependencies.",
       )
       ..addFlag(
@@ -121,7 +127,8 @@ final class ExecutableOptions {
       )
       ..addMultiOption(
         'fatal-deprecation',
-        help: 'Deprecations to treat as errors. You may also pass a Sass\n'
+        help:
+            'Deprecations to treat as errors. You may also pass a Sass\n'
             'version to include any behavior deprecated in or before it.\n'
             'See https://sass-lang.com/documentation/breaking-changes for \n'
             'a complete list.',
@@ -142,7 +149,8 @@ final class ExecutableOptions {
       )
       ..addFlag(
         'poll',
-        help: 'Manually check for changes rather than using a native '
+        help:
+            'Manually check for changes rather than using a native '
             'watcher.\n'
             'Only valid with --watch.',
       )
@@ -182,7 +190,8 @@ final class ExecutableOptions {
   }();
 
   /// Creates a styled separator with the given [text].
-  static String _separator(String text) => "${_separatorBar * 3} "
+  static String _separator(String text) =>
+      "${_separatorBar * 3} "
       "${hasTerminal ? '\u001b[1m' : ''}$text${hasTerminal ? '\u001b[0m' : ''}"
       // Three separators + two spaces = 5
       " ${_separatorBar * (_separatorLength - 5 - text.length)}";
@@ -192,9 +201,6 @@ final class ExecutableOptions {
 
   /// Shorthand for throwing a [UsageException] with the given [message].
   static Never _fail(String message) => throw UsageException(message);
-
-  /// The parsed options passed by the user to the executable.
-  final ArgResults _options;
 
   /// Whether to print the version of Sass and exit.
   bool get version => _options['version'] as bool;
@@ -239,7 +245,7 @@ final class ExecutableOptions {
   bool get verbose => _options['verbose'] as bool;
 
   /// The logger to use to emit messages from Sass.
-  Logger get logger => quiet ? Logger.quiet : Logger.stderr(color: color);
+  Logger get logger => quiet ? .quiet : Logger.stderr(color: color);
 
   /// The style to use for the generated CSS.
   OutputStyle get style => _options['style'] == 'compressed'
@@ -255,9 +261,9 @@ final class ExecutableOptions {
 
   /// The list of built-in importers to use to load `pkg:` URLs.
   List<Importer> get pkgImporters => [
-        for (var _ in _options['pkg-importer'] as List<String>)
-          NodePackageImporter('.'),
-      ];
+    for (var _ in _options['pkg-importer'] as List<String>)
+      NodePackageImporter('.'),
+  ];
 
   /// Whether to run the evaluator in asynchronous mode, for debugging purposes.
   bool get asynchronous => _options['async'] as bool;
@@ -347,7 +353,7 @@ final class ExecutableOptions {
         } else if (watch) {
           _fail("--watch is not allowed with --stdin.");
         }
-        _sourcesToDestinations = Map.unmodifiable({
+        _sourcesToDestinations = Map.unmodifiableOf({
           null: _options.rest.isEmpty ? null : _options.rest.first,
         });
       } else if (_options.rest.length > 2) {
@@ -361,7 +367,8 @@ final class ExecutableOptions {
         // `sass dir file.scss` or `sass something dir`.
         var target = _options.rest.last;
         if (directories.first == _options.rest.first && !fileExists(target)) {
-          message += '\n'
+          message +=
+              '\n'
               'To compile all CSS in "${directories.first}" to "$target", use '
               '`sass ${directories.first}:$target`.';
         }
@@ -528,7 +535,7 @@ final class ExecutableOptions {
   /// Parses options from [args].
   ///
   /// Throws a [UsageException] if parsing fails.
-  factory ExecutableOptions.parse(List<String> args) {
+  factory parse(List<String> args) {
     try {
       var options = ExecutableOptions._(_parser.parse(args));
       if (options._options['help'] as bool) _fail("Compile Sass to CSS.");
@@ -538,7 +545,7 @@ final class ExecutableOptions {
     }
   }
 
-  ExecutableOptions._(this._options) {
+  this {
     if (_options.wasParsed('poll') && !watch) {
       _fail("--poll may not be passed without --watch.");
     }
@@ -563,50 +570,50 @@ final class ExecutableOptions {
 
   /// The set of deprecations whose warnings should be silenced.
   Set<Deprecation> get silenceDeprecations => {
-        for (var id in _options['silence-deprecation'] as List<String>)
-          Deprecation.fromId(id) ?? _fail('Invalid deprecation "$id".'),
-      };
+    for (var id in _options['silence-deprecation'] as List<String>)
+      Deprecation.fromId(id) ?? _fail('Invalid deprecation "$id".'),
+  };
 
   /// The set of deprecations that cause errors.
   Set<Deprecation> get fatalDeprecations => _fatalDeprecations ??= () {
-        var deprecations = <Deprecation>{};
-        for (var id in _options['fatal-deprecation'] as List<String>) {
-          if (Deprecation.fromId(id) case var deprecation?) {
-            deprecations.add(deprecation);
-            continue;
-          }
+    var deprecations = <Deprecation>{};
+    for (var id in _options['fatal-deprecation'] as List<String>) {
+      if (Deprecation.fromId(id) case var deprecation?) {
+        deprecations.add(deprecation);
+        continue;
+      }
 
-          try {
-            var argVersion = Version.parse(id);
-            // We can't get the version synchronously when running from
-            // source, so we just ignore this check by using a version higher
-            // than any that will ever be used.
-            var sassVersion = Version.parse(
-              const bool.hasEnvironment('version')
-                  ? const String.fromEnvironment('version')
-                  : '1000.0.0',
-            );
-            if (argVersion > sassVersion) {
-              _fail(
-                'Invalid version $argVersion. --fatal-deprecation '
-                'requires a version less than or equal to the current '
-                'Dart Sass version.',
-              );
-            }
-            deprecations.addAll(Deprecation.forVersion(argVersion));
-          } on FormatException {
-            _fail('Invalid deprecation "$id".');
-          }
+      try {
+        var argVersion = Version.parse(id);
+        // We can't get the version synchronously when running from
+        // source, so we just ignore this check by using a version higher
+        // than any that will ever be used.
+        var sassVersion = Version.parse(
+          const bool.hasEnvironment('version')
+              ? const String.fromEnvironment('version')
+              : '1000.0.0',
+        );
+        if (argVersion > sassVersion) {
+          _fail(
+            'Invalid version $argVersion. --fatal-deprecation '
+            'requires a version less than or equal to the current '
+            'Dart Sass version.',
+          );
         }
-        return deprecations;
-      }();
+        deprecations.addAll(Deprecation.forVersion(argVersion));
+      } on FormatException {
+        _fail('Invalid deprecation "$id".');
+      }
+    }
+    return deprecations;
+  }();
   Set<Deprecation>? _fatalDeprecations;
 
   /// The set of future deprecations that should emit warnings anyway.
   Set<Deprecation> get futureDeprecations => {
-        for (var id in _options['future-deprecation'] as List<String>)
-          Deprecation.fromId(id) ?? _fail('Invalid deprecation "$id".'),
-      };
+    for (var id in _options['future-deprecation'] as List<String>)
+      Deprecation.fromId(id) ?? _fail('Invalid deprecation "$id".'),
+  };
 
   /// Returns the value of [name] in [options] if it was explicitly provided by
   /// the user, and `null` otherwise.
@@ -615,8 +622,7 @@ final class ExecutableOptions {
 }
 
 /// An exception indicating that invalid arguments were passed.
-class UsageException implements Exception {
-  final String message;
-
-  UsageException(this.message);
-}
+class UsageException(
+  /// The message explaining the specific error.
+  final String message,
+) implements Exception;

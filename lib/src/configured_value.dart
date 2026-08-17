@@ -21,16 +21,11 @@ final class ConfiguredValue {
 
   /// Creates a variable value that's been configured explicitly with a `with`
   /// clause.
-  ConfiguredValue.explicit(
-    this.value,
-    this.configurationSpan,
-    this.assignmentNode,
-  );
+  new explicit(this.value, this.configurationSpan, this.assignmentNode);
 
   /// Creates a variable value that's implicitly configured by setting a
   /// variable prior to an `@import` of a file that contains a `@forward`.
-  ConfiguredValue.implicit(this.value, this.assignmentNode)
-      : configurationSpan = null;
+  new implicit(this.value, this.assignmentNode) : configurationSpan = null;
 
   @override
   String toString() => value.toString();

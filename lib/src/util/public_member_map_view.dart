@@ -10,14 +10,12 @@ import '../utils.dart';
 /// begin with `_` or `-`.
 ///
 /// Note that [PublicMemberMap.length] is *not* `O(1)`.
-class PublicMemberMapView<V> extends UnmodifiableMapBase<String, V> {
+class PublicMemberMapView<V>(
   /// The wrapped map.
-  final Map<String, V> _inner;
-
+  final Map<String, V> _inner,
+) extends UnmodifiableMapBase<String, V> {
   @override
   Iterable<String> get keys => _inner.keys.where(isPublic);
-
-  PublicMemberMapView(this._inner);
 
   @override
   bool containsKey(Object? key) =>

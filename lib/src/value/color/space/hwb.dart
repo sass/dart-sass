@@ -14,7 +14,7 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class HwbColorSpace extends ColorSpace {
+final class const HwbColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => true;
 
@@ -24,12 +24,12 @@ final class HwbColorSpace extends ColorSpace {
   @override
   bool get isPolarInternal => true;
 
-  const HwbColorSpace()
-      : super('hwb', const [
-          hueChannel,
-          LinearChannel('whiteness', 0, 100, requiresPercent: true),
-          LinearChannel('blackness', 0, 100, requiresPercent: true),
-        ]);
+  this
+    : super('hwb', const [
+        hueChannel,
+        LinearChannel('whiteness', 0, 100, requiresPercent: true),
+        LinearChannel('blackness', 0, 100, requiresPercent: true),
+      ]);
 
   @override
   SassColor convert(

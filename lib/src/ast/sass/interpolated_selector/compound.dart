@@ -15,17 +15,20 @@ import 'simple.dart';
 /// when `parseSelectors: true` is passed to [Stylesheet.parse].
 ///
 /// {@category AST}
-final class InterpolatedCompoundSelector extends InterpolatedSelector {
+final class InterpolatedCompoundSelector(
+  Iterable<InterpolatedSimpleSelector> components,
+) extends InterpolatedSelector {
   /// The components of this selector.
-  final List<InterpolatedSimpleSelector> components;
+  final List<InterpolatedSimpleSelector> components = List.unmodifiableOf(
+    components,
+  );
 
   @override
   FileSpan get span => components.length == 1
       ? components.first.span
       : components.first.span.expand(components.last.span);
 
-  InterpolatedCompoundSelector(Iterable<InterpolatedSimpleSelector> components)
-      : components = List.unmodifiable(components) {
+  this {
     if (this.components.isEmpty) {
       throw ArgumentError("components may not be empty.");
     }

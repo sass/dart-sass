@@ -19,23 +19,23 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class OklabColorSpace extends ColorSpace {
+final class const OklabColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => false;
 
-  const OklabColorSpace()
-      : super('oklab', const [
-          LinearChannel(
-            'lightness',
-            0,
-            1,
-            conventionallyPercent: true,
-            lowerClamped: true,
-            upperClamped: true,
-          ),
-          LinearChannel('a', -0.4, 0.4),
-          LinearChannel('b', -0.4, 0.4),
-        ]);
+  this
+    : super('oklab', const [
+        LinearChannel(
+          'lightness',
+          0,
+          1,
+          conventionallyPercent: true,
+          lowerClamped: true,
+          upperClamped: true,
+        ),
+        LinearChannel('a', -0.4, 0.4),
+        LinearChannel('b', -0.4, 0.4),
+      ]);
 
   @override
   SassColor convert(

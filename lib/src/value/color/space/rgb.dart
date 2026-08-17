@@ -13,20 +13,19 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class RgbColorSpace extends ColorSpace {
+final class const RgbColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => true;
 
   @override
   bool get isLegacyInternal => true;
 
-  const RgbColorSpace()
-      : super('rgb', const [
-          LinearChannel('red', 0, 255, lowerClamped: true, upperClamped: true),
-          LinearChannel('green', 0, 255,
-              lowerClamped: true, upperClamped: true),
-          LinearChannel('blue', 0, 255, lowerClamped: true, upperClamped: true),
-        ]);
+  this
+    : super('rgb', const [
+        LinearChannel('red', 0, 255, lowerClamped: true, upperClamped: true),
+        LinearChannel('green', 0, 255, lowerClamped: true, upperClamped: true),
+        LinearChannel('blue', 0, 255, lowerClamped: true, upperClamped: true),
+      ]);
 
   @override
   SassColor convert(
@@ -35,14 +34,13 @@ final class RgbColorSpace extends ColorSpace {
     double? green,
     double? blue,
     double? alpha,
-  ) =>
-      ColorSpace.srgb.convert(
-        dest,
-        red == null ? null : red / 255,
-        green == null ? null : green / 255,
-        blue == null ? null : blue / 255,
-        alpha,
-      );
+  ) => ColorSpace.srgb.convert(
+    dest,
+    red == null ? null : red / 255,
+    green == null ? null : green / 255,
+    blue == null ? null : blue / 255,
+    alpha,
+  );
 
   @override
   @protected

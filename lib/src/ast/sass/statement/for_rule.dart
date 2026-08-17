@@ -14,31 +14,23 @@ import 'parent.dart';
 /// This iterates a set number of times.
 ///
 /// {@category AST}
-final class ForRule extends ParentStatement<List<Statement>> {
+final class ForRule(
   /// The name of the variable that will contain the index value.
-  final String variable;
+  final String variable,
 
   /// The expression for the start index.
-  final Expression from;
+  final Expression from,
 
   /// The expression for the end index.
-  final Expression to;
-
+  final Expression to,
+  Iterable<Statement> children,
+  @override final FileSpan span, {
+  bool exclusive = true,
+}) extends ParentStatement<List<Statement>> {
   /// Whether [to] is exclusive.
-  final bool isExclusive;
+  final bool isExclusive = exclusive;
 
-  @override
-  final FileSpan span;
-
-  ForRule(
-    this.variable,
-    this.from,
-    this.to,
-    Iterable<Statement> children,
-    this.span, {
-    bool exclusive = true,
-  })  : isExclusive = exclusive,
-        super(List.unmodifiable(children));
+  this : super(List.unmodifiableOf(children));
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitForRule(this);

@@ -13,15 +13,11 @@ import '../statement.dart';
 /// This prints a Sass value—usually a string—to warn the user of something.
 ///
 /// {@category AST}
-final class WarnRule extends Statement {
+final class WarnRule(
   /// The expression to print.
-  final Expression expression;
-
-  @override
-  final FileSpan span;
-
-  WarnRule(this.expression, this.span);
-
+  final Expression expression,
+  @override final FileSpan span,
+) extends Statement {
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitWarnRule(this);
 

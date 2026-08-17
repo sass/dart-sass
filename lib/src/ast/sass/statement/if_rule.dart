@@ -20,24 +20,21 @@ import 'variable_declaration.dart';
 /// This conditionally executes a block of code.
 ///
 /// {@category AST}
-final class IfRule extends Statement {
+final class IfRule(
+  Iterable<IfClause> clauses,
+  @override final FileSpan span, {
+
+  /// The final, unconditional `@else` clause.
+  ///
+  /// This is `null` if there is no unconditional `@else`.
+  final ElseClause? lastClause,
+}) extends Statement {
   /// The `@if` and `@else if` clauses.
   ///
   /// The first clause whose expression evaluates to `true` will have its
   /// statements executed. If no expression evaluates to `true`, `lastClause`
   /// will be executed if it's not `null`.
-  final List<IfClause> clauses;
-
-  /// The final, unconditional `@else` clause.
-  ///
-  /// This is `null` if there is no unconditional `@else`.
-  final ElseClause? lastClause;
-
-  @override
-  final FileSpan span;
-
-  IfRule(Iterable<IfClause> clauses, this.span, {this.lastClause})
-      : clauses = List.unmodifiable(clauses);
+  final List<IfClause> clauses = List.unmodifiableOf(clauses);
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIfRule(this);
@@ -61,40 +58,35 @@ final class IfRule extends Statement {
 /// The superclass of `@if` and `@else` clauses.
 ///
 /// {@category AST}
-sealed class IfRuleClause {
+sealed class IfRuleClause._(
   /// The statements to evaluate if this clause matches.
-  final List<Statement> children;
-
+  final List<Statement> children,
+) {
   /// Whether any of [children] is a variable, function, or mixin declaration.
   ///
   /// @nodoc
   @internal
-  final bool hasDeclarations;
+  final bool hasDeclarations = children.any(
+    (child) => switch (child) {
+      VariableDeclaration() || FunctionRule() || MixinRule() => true,
+      ImportRule(:var imports) => imports.any(
+        (import) => import is DynamicImport,
+      ),
+      _ => false,
+    },
+  );
 
-  IfRuleClause(Iterable<Statement> children)
-      : this._(List.unmodifiable(children));
-
-  IfRuleClause._(this.children)
-      : hasDeclarations = children.any(
-          (child) => switch (child) {
-            VariableDeclaration() || FunctionRule() || MixinRule() => true,
-            ImportRule(:var imports) => imports.any(
-                (import) => import is DynamicImport,
-              ),
-            _ => false,
-          },
-        );
+  new(Iterable<Statement> children) : this._(List.unmodifiableOf(children));
 }
 
 /// An `@if` or `@else if` clause in an `@if` rule.
 ///
 /// {@category AST}
-final class IfClause extends IfRuleClause {
+final class IfClause(
   /// The expression to evaluate to determine whether to run this rule.
-  final Expression expression;
-
-  IfClause(this.expression, Iterable<Statement> children) : super(children);
-
+  final Expression expression,
+  super.children,
+) extends IfRuleClause {
   @override
   String toString() => "@if $expression {${children.join(' ')}}";
 }
@@ -102,9 +94,7 @@ final class IfClause extends IfRuleClause {
 /// An `@else` clause in an `@if` rule.
 ///
 /// {@category AST}
-final class ElseClause extends IfRuleClause {
-  ElseClause(super.children);
-
+final class ElseClause(super.children) extends IfRuleClause {
   @override
   String toString() => "@else {${children.join(' ')}}";
 }

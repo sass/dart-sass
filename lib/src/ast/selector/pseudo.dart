@@ -5,7 +5,6 @@
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
-import 'package:source_span/source_span.dart';
 
 import '../../utils.dart';
 import '../../util/nullable.dart';
@@ -20,20 +19,34 @@ import '../selector.dart';
 /// ensure that extension and other selector operations work properly.
 ///
 /// {@category AST}
-final class PseudoSelector extends SimpleSelector {
+final class PseudoSelector(
   /// The name of this selector.
-  final String name;
+  final String name,
+  super.span, {
+  bool element = false,
 
+  /// The non-selector argument passed to this selector.
+  ///
+  /// This is `null` if there's no argument. If [argument] and [selector] are
+  /// both non-`null`, the selector follows the argument.
+  final String? argument,
+
+  /// The selector argument passed to this selector.
+  ///
+  /// This is `null` if there's no selector. If [argument] and [selector] are
+  /// both non-`null`, the selector follows the argument.
+  final SelectorList? selector,
+}) extends SimpleSelector {
   /// Like [name], but without any vendor prefixes.
   ///
   /// @nodoc
   @internal
-  final String normalizedName;
+  final String normalizedName = unvendor(name);
 
   /// Whether this is a pseudo-class selector.
   ///
   /// This is `true` if and only if [isElement] is `false`.
-  final bool isClass;
+  final bool isClass = !element && !_isFakePseudoElement(name);
 
   /// Whether this is a pseudo-element selector.
   ///
@@ -47,7 +60,7 @@ final class PseudoSelector extends SimpleSelector {
   /// `:first-line`, or `:first-letter`).
   ///
   /// This is `true` if and only if [isSyntacticElement] is `false`.
-  final bool isSyntacticClass;
+  final bool isSyntacticClass = !element;
 
   /// Whether this is syntactically a pseudo-element selector.
   ///
@@ -71,18 +84,6 @@ final class PseudoSelector extends SimpleSelector {
   @internal
   bool get hasComplicatedSuperselectorSemantics =>
       isElement || selector != null;
-
-  /// The non-selector argument passed to this selector.
-  ///
-  /// This is `null` if there's no argument. If [argument] and [selector] are
-  /// both non-`null`, the selector follows the argument.
-  final String? argument;
-
-  /// The selector argument passed to this selector.
-  ///
-  /// This is `null` if there's no selector. If [argument] and [selector] are
-  /// both non-`null`, the selector follows the argument.
-  final SelectorList? selector;
 
   @override
   late final int specificity = () {
@@ -110,17 +111,6 @@ final class PseudoSelector extends SimpleSelector {
     }
   }();
 
-  PseudoSelector(
-    this.name,
-    FileSpan span, {
-    bool element = false,
-    this.argument,
-    this.selector,
-  })  : isClass = !element && !_isFakePseudoElement(name),
-        isSyntacticClass = !element,
-        normalizedName = unvendor(name),
-        super(span);
-
   /// Returns whether [name] is the name of a pseudo-element that can be written
   /// with pseudo-class syntax (`:before`, `:after`, `:first-line`, or
   /// `:first-letter`)
@@ -147,12 +137,12 @@ final class PseudoSelector extends SimpleSelector {
   /// Returns a new [PseudoSelector] based on this, but with the selector
   /// replaced with [selector].
   PseudoSelector withSelector(SelectorList selector) => PseudoSelector(
-        name,
-        span,
-        element: isElement,
-        argument: argument,
-        selector: selector,
-      );
+    name,
+    span,
+    element: isElement,
+    argument: argument,
+    selector: selector,
+  );
 
   /// @nodoc
   @override
@@ -222,8 +212,7 @@ final class PseudoSelector extends SimpleSelector {
     // compare selector pseudoclasses against raw selectors.
     return CompoundSelector([
       this,
-    ], span)
-        .isSuperselector(CompoundSelector([other], span));
+    ], span).isSuperselector(CompoundSelector([other], span));
   }
 
   @override

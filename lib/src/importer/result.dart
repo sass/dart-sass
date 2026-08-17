@@ -13,10 +13,13 @@ import '../syntax.dart';
 ///
 /// {@category Importer}
 @sealed
-class ImporterResult {
+class ImporterResult(
   /// The contents of the stylesheet.
-  final String contents;
-
+  final String contents, {
+  final Uri? _sourceMapUrl,
+  Syntax? syntax,
+  @Deprecated("Use the syntax parameter instead.") bool? indented,
+}) {
   /// An absolute, browser-accessible URL indicating the resolved location of
   /// the imported stylesheet.
   ///
@@ -25,27 +28,20 @@ class ImporterResult {
   /// automatically from [contents].
   Uri get sourceMapUrl =>
       _sourceMapUrl ?? Uri.dataFromString(contents, encoding: utf8);
-  final Uri? _sourceMapUrl;
 
   /// The syntax to use to parse the stylesheet.
-  final Syntax syntax;
+  final Syntax syntax = syntax ?? (indented == true ? .sass : .scss);
 
   @Deprecated("Use syntax instead.")
-  bool get isIndented => syntax == Syntax.sass;
+  bool get isIndented => syntax == .sass;
 
   /// Creates a new [ImporterResult].
   ///
   /// The [syntax] parameter must be passed. It's not marked as required only
   /// because old clients may still be passing the deprecated [indented]
   /// parameter instead.
-  ImporterResult(
-    this.contents, {
-    Uri? sourceMapUrl,
-    Syntax? syntax,
-    @Deprecated("Use the syntax parameter instead.") bool? indented,
-  })  : _sourceMapUrl = sourceMapUrl,
-        syntax = syntax ?? (indented == true ? Syntax.sass : Syntax.scss) {
-    if (sourceMapUrl?.scheme == '') {
+  this {
+    if (_sourceMapUrl?.scheme == '') {
       throw ArgumentError.value(
         sourceMapUrl,
         'sourceMapUrl',

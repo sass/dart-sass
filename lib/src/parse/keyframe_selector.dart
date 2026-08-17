@@ -8,9 +8,11 @@ import '../util/character.dart';
 import 'parser.dart';
 
 /// A parser for `@keyframes` block selectors.
-class KeyframeSelectorParser extends Parser {
-  KeyframeSelectorParser(super.contents, {super.url, super.interpolationMap});
-
+class KeyframeSelectorParser(
+  super.contents, {
+  super.url,
+  super.interpolationMap,
+}) extends Parser {
   List<String> parse() {
     return wrapSpanFormatException(() {
       var selectors = <String>[];

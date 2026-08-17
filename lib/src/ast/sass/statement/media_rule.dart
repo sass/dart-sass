@@ -12,17 +12,15 @@ import 'parent.dart';
 /// A `@media` rule.
 ///
 /// {@category AST}
-final class MediaRule extends ParentStatement<List<Statement>> {
+final class MediaRule(
   /// The query that determines on which platforms the styles will be in effect.
   ///
   /// This is only parsed after the interpolation has been resolved.
-  final Interpolation query;
-
-  @override
-  final FileSpan span;
-
-  MediaRule(this.query, Iterable<Statement> children, this.span)
-      : super(List.unmodifiable(children));
+  final Interpolation query,
+  Iterable<Statement> children,
+  @override final FileSpan span,
+) extends ParentStatement<List<Statement>> {
+  this : super(List.unmodifiableOf(children));
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitMediaRule(this);

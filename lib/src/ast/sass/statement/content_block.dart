@@ -12,17 +12,18 @@ import 'callable_declaration.dart';
 /// An anonymous block of code that's invoked for a [ContentRule].
 ///
 /// {@category AST}
-final class ContentBlock extends CallableDeclaration {
-  ContentBlock(
-    ParameterList parameters,
-    Iterable<Statement> children,
-    FileSpan span,
-  ) : super("@content", parameters, children, span);
+final class ContentBlock(
+  ParameterList parameters,
+  Iterable<Statement> children,
+  FileSpan span,
+) extends CallableDeclaration {
+  this : super("@content", parameters, children, span);
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitContentBlock(this);
 
   @override
-  String toString() => "${parameters.isEmpty ? "" : " using ($parameters)"} "
+  String toString() =>
+      "${parameters.isEmpty ? "" : " using ($parameters)"} "
       "{${children.join(' ')}}";
 }

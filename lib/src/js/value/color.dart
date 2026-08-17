@@ -7,7 +7,6 @@ import 'dart:js_util';
 import 'package:js/js.dart';
 import 'package:node_interop/js.dart';
 
-import '../../deprecation.dart';
 import '../../evaluation_context.dart';
 import '../../value.dart';
 import '../immutable.dart';
@@ -167,13 +166,16 @@ final JSClass colorClass = () {
         _toSpace(self, options?.space).channel(channel),
     'isChannelMissing': (SassColor self, String channel) =>
         self.isChannelMissing(channel),
-    'isChannelPowerless': (SassColor self, String channel,
-            [_ChannelOptions? options]) =>
-        _toSpace(self, options?.space).isChannelPowerless(channel),
+    'isChannelPowerless': (
+      SassColor self,
+      String channel, [
+      _ChannelOptions? options,
+    ]) => _toSpace(self, options?.space).isChannelPowerless(channel),
     'change': (SassColor self, _ConstructionOptions options) {
       var spaceSetExplicitly = options.space != null;
-      var space =
-          spaceSetExplicitly ? ColorSpace.fromName(options.space!) : self.space;
+      var space = spaceSetExplicitly
+          ? ColorSpace.fromName(options.space!)
+          : self.space;
 
       if (self.isLegacy && !spaceSetExplicitly) {
         if (hasProperty(options, 'whiteness') ||
@@ -197,7 +199,7 @@ final JSClass colorClass = () {
             "the `space` option is deprecated."
             "\n"
             "More info: https://sass-lang.com/d/color-4-api",
-            Deprecation.color4Api,
+            .color4Api,
           );
         }
       }
@@ -418,31 +420,28 @@ final JSClass colorClass = () {
 
       return changedColor.toSpace(self.space);
     },
-    'interpolate': (
-      SassColor self,
-      SassColor color2, [
-      _InterpolationOptions? options,
-    ]) {
-      InterpolationMethod interpolationMethod;
+    'interpolate':
+        (SassColor self, SassColor color2, [_InterpolationOptions? options]) {
+          InterpolationMethod interpolationMethod;
 
-      if (options?.method case var method?) {
-        var hue = HueInterpolationMethod.values.byName(method);
-        interpolationMethod = InterpolationMethod(self.space, hue);
-      } else if (!self.space.isPolar) {
-        interpolationMethod = InterpolationMethod(self.space);
-      } else {
-        interpolationMethod = InterpolationMethod(
-          self.space,
-          HueInterpolationMethod.shorter,
-        );
-      }
+          if (options?.method case var method?) {
+            var hue = HueInterpolationMethod.values.byName(method);
+            interpolationMethod = InterpolationMethod(self.space, hue);
+          } else if (!self.space.isPolar) {
+            interpolationMethod = InterpolationMethod(self.space);
+          } else {
+            interpolationMethod = InterpolationMethod(
+              self.space,
+              HueInterpolationMethod.shorter,
+            );
+          }
 
-      return self.interpolate(
-        color2,
-        interpolationMethod,
-        weight: options?.weight,
-      );
-    },
+          return self.interpolate(
+            color2,
+            interpolationMethod,
+            weight: options?.weight,
+          );
+        },
   });
 
   jsClass.defineGetters({
@@ -504,8 +503,8 @@ double? _changeComponentValue(
   _ConstructionOptions changes,
 ) =>
     hasProperty(changes, channel) && !isUndefined(getProperty(changes, channel))
-        ? getProperty(changes, channel)
-        : initial.channel(channel);
+    ? getProperty(changes, channel)
+    : initial.channel(channel);
 
 /// Determines the construction space based on the provided options.
 ColorSpace _constructionSpace(_ConstructionOptions options) {
@@ -536,7 +535,7 @@ void _emitNullAlphaDeprecation() {
     "Passing `alpha: null` without setting `space` is deprecated."
     "\n"
     "More info: https://sass-lang.com/d/null-alpha",
-    Deprecation.nullAlpha,
+    .nullAlpha,
   );
 }
 
@@ -546,7 +545,7 @@ void _emitColor4ApiNullDeprecation(String name) {
     "Passing `$name: null` without setting `space` is deprecated."
     "\n"
     "More info: https://sass-lang.com/d/color-4-api",
-    Deprecation.color4Api,
+    .color4Api,
   );
 }
 
@@ -556,7 +555,7 @@ void _emitColor4ApiChannelDeprecation(String name) {
     "$name is deprecated, use `channel` instead."
     "\n"
     "More info: https://sass-lang.com/d/color-4-api",
-    Deprecation.color4Api,
+    .color4Api,
   );
 }
 

@@ -17,29 +17,24 @@ import '../reference.dart';
 /// interpolation.
 ///
 /// {@category AST}
-final class FunctionExpression extends Expression
-    implements CallableInvocation, SassReference {
+final class FunctionExpression(
+  /// The name of the function being invoked, with underscores left as-is.
+  final String originalName,
+
+  /// The arguments to pass to the function.
+  @override final ArgumentList arguments,
+  @override final FileSpan span, {
+
   /// The namespace of the function being invoked, or `null` if it's invoked
   /// without a namespace.
-  @override
-  final String? namespace;
-
+  @override final String? namespace,
+}) extends Expression implements CallableInvocation, SassReference {
   /// The name of the function being invoked, with underscores converted to
   /// hyphens.
   ///
   /// If this function is a plain CSS function, use [originalName] instead.
   @override
-  final String name;
-
-  /// The name of the function being invoked, with underscores left as-is.
-  final String originalName;
-
-  /// The arguments to pass to the function.
-  @override
-  final ArgumentList arguments;
-
-  @override
-  final FileSpan span;
+  final String name = originalName.replaceAll('_', '-');
 
   @override
   FileSpan get nameSpan {
@@ -50,13 +45,6 @@ final class FunctionExpression extends Expression
   @override
   FileSpan? get namespaceSpan =>
       namespace == null ? null : span.initialIdentifier();
-
-  FunctionExpression(
-    this.originalName,
-    this.arguments,
-    this.span, {
-    this.namespace,
-  }) : name = originalName.replaceAll('_', '-');
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

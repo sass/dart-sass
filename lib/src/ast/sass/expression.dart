@@ -20,11 +20,9 @@ import '../sass.dart';
 /// {@category AST}
 /// {@category Parsing}
 @sealed
-abstract class Expression implements SassNode {
+abstract class Expression() implements SassNode {
   /// Calls the appropriate visit method on [visitor].
   T accept<T>(ExpressionVisitor<T> visitor);
-
-  Expression();
 
   /// Whether this expression can be used in a calculation context.
   bool get isCalculationSafe => accept(const IsCalculationSafeVisitor());
@@ -47,7 +45,7 @@ abstract class Expression implements SassNode {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Expression.parse(String contents, {Object? url}) =>
+  factory parse(String contents, {Object? url}) =>
       ScssParser(contents, url: url).parseExpression().$1;
 
   /// Whether this expression is valid plain CSS that will produce the same

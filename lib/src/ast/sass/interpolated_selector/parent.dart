@@ -15,21 +15,21 @@ import 'simple.dart';
 /// when `parseSelectors: true` is passed to [Stylesheet.parse].
 ///
 /// {@category AST}
-final class InterpolatedParentSelector extends InterpolatedSimpleSelector {
+final class InterpolatedParentSelector(
+  @override final FileSpan span, {
+
   /// The suffix that will be added to the parent selector after it's been
   /// resolved.
-  final Interpolation? suffix;
-
-  @override
-  final FileSpan span;
-
-  InterpolatedParentSelector(this.span, {this.suffix});
-
+  final Interpolation? suffix,
+}) extends InterpolatedSimpleSelector {
   /// Calls the appropriate visit method on [visitor].
   @override
   T accept<T>(InterpolatedSelectorVisitor<T> visitor) =>
       visitor.visitParentSelector(this);
 
   @override
-  String toString() => switch (suffix) { var suffix? => '&$suffix', _ => '&' };
+  String toString() => switch (suffix) {
+    var suffix? => '&$suffix',
+    _ => '&',
+  };
 }

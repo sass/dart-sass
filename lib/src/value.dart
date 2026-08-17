@@ -5,7 +5,6 @@
 import 'package:meta/meta.dart';
 
 import 'ast/selector.dart';
-import 'deprecation.dart';
 import 'evaluation_context.dart';
 import 'exception.dart';
 import 'utils.dart';
@@ -42,7 +41,7 @@ export 'value/string.dart';
 ///
 /// {@category Value}
 @sealed
-abstract class Value {
+abstract class const Value() {
   /// Whether the value counts as `true` in an `@if` statement and other
   /// contexts.
   bool get isTruthy => true;
@@ -105,7 +104,7 @@ abstract class Value {
   Value? get realNull => this;
 
   /// @nodoc
-  const Value();
+  this;
 
   /// Calls the appropriate visit method on [visitor].
   ///
@@ -134,7 +133,7 @@ abstract class Value {
         "${indexValue.unitSuggestion(name ?? 'index')}\n"
         "\n"
         "More info: https://sass-lang.com/d/function-units",
-        Deprecation.functionUnits,
+        .functionUnits,
       );
     }
 
@@ -224,7 +223,8 @@ abstract class Value {
   /// @nodoc
   @internal
   List<Value> assertCommonListStyle(String? name, {required bool allowSlash}) {
-    var invalidSeparator = separator == ListSeparator.comma ||
+    var invalidSeparator =
+        separator == ListSeparator.comma ||
         (!allowSlash && separator == ListSeparator.slash);
     if (!invalidSeparator && !hasBrackets) return asList;
 
@@ -360,14 +360,15 @@ abstract class Value {
   /// @nodoc
   @internal
   Value plus(Value other) => switch (other) {
-        SassString() => SassString(
-            toCssString() + other.text,
-            quotes: other.hasQuotes,
-          ),
-        SassCalculation() =>
-          throw SassScriptException('Undefined operation "$this + $other".'),
-        _ => SassString(toCssString() + other.toCssString(), quotes: false),
-      };
+    SassString() => SassString(
+      toCssString() + other.text,
+      quotes: other.hasQuotes,
+    ),
+    SassCalculation() => throw SassScriptException(
+      'Undefined operation "$this + $other".',
+    ),
+    _ => SassString(toCssString() + other.toCssString(), quotes: false),
+  };
 
   /// The SassScript `-` operation.
   ///
@@ -375,10 +376,7 @@ abstract class Value {
   @internal
   Value minus(Value other) => other is SassCalculation
       ? throw SassScriptException('Undefined operation "$this - $other".')
-      : SassString(
-          "${toCssString()}-${other.toCssString()}",
-          quotes: false,
-        );
+      : SassString("${toCssString()}-${other.toCssString()}", quotes: false);
 
   /// The SassScript `/` operation.
   ///
@@ -458,8 +456,11 @@ extension SassApiValue on Value {
   SelectorList assertSelector({String? name, bool allowParent = false}) {
     var string = _selectorString(name);
     try {
-      return SelectorList.parse(string,
-          allowParent: allowParent, logger: EvaluationContext.current.logger);
+      return SelectorList.parse(
+        string,
+        allowParent: allowParent,
+        logger: EvaluationContext.current.logger,
+      );
     } on SassFormatException catch (error, stackTrace) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
@@ -486,8 +487,11 @@ extension SassApiValue on Value {
   }) {
     var string = _selectorString(name);
     try {
-      return SimpleSelector.parse(string,
-          allowParent: allowParent, logger: EvaluationContext.current.logger);
+      return SimpleSelector.parse(
+        string,
+        allowParent: allowParent,
+        logger: EvaluationContext.current.logger,
+      );
     } on SassFormatException catch (error, stackTrace) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
@@ -514,8 +518,11 @@ extension SassApiValue on Value {
   }) {
     var string = _selectorString(name);
     try {
-      return CompoundSelector.parse(string,
-          allowParent: allowParent, logger: EvaluationContext.current.logger);
+      return CompoundSelector.parse(
+        string,
+        allowParent: allowParent,
+        logger: EvaluationContext.current.logger,
+      );
     } on SassFormatException catch (error, stackTrace) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.
@@ -542,8 +549,11 @@ extension SassApiValue on Value {
   }) {
     var string = _selectorString(name);
     try {
-      return ComplexSelector.parse(string,
-          allowParent: allowParent, logger: EvaluationContext.current.logger);
+      return ComplexSelector.parse(
+        string,
+        allowParent: allowParent,
+        logger: EvaluationContext.current.logger,
+      );
     } on SassFormatException catch (error, stackTrace) {
       // TODO(nweiz): colorize this if we're running in an environment where
       // that works.

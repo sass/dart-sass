@@ -14,23 +14,18 @@ import 'parent.dart';
 /// This iterates over values in a list or map.
 ///
 /// {@category AST}
-final class EachRule extends ParentStatement<List<Statement>> {
-  /// The variables assigned for each iteration.
-  final List<String> variables;
+final class EachRule(
+  Iterable<String> variables,
 
   /// The expression whose value this iterates through.
-  final Expression list;
+  final Expression list,
+  Iterable<Statement> children,
+  @override final FileSpan span,
+) extends ParentStatement<List<Statement>> {
+  /// The variables assigned for each iteration.
+  final List<String> variables = List.unmodifiableOf(variables);
 
-  @override
-  final FileSpan span;
-
-  EachRule(
-    Iterable<String> variables,
-    this.list,
-    Iterable<Statement> children,
-    this.span,
-  )   : variables = List.unmodifiable(variables),
-        super(List.unmodifiable(children));
+  this : super(List.unmodifiableOf(children));
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitEachRule(this);

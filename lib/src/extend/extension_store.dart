@@ -84,8 +84,7 @@ class ExtensionStore {
     SelectorList source,
     SelectorList targets,
     FileSpan span,
-  ) =>
-      _extendOrReplace(selector, source, targets, ExtendMode.allTargets, span);
+  ) => _extendOrReplace(selector, source, targets, ExtendMode.allTargets, span);
 
   /// Returns a copy of [selector] with [targets] replaced by [source].
   static SelectorList replace(
@@ -93,8 +92,7 @@ class ExtensionStore {
     SelectorList source,
     SelectorList targets,
     FileSpan span,
-  ) =>
-      _extendOrReplace(selector, source, targets, ExtendMode.replace, span);
+  ) => _extendOrReplace(selector, source, targets, ExtendMode.replace, span);
 
   /// A helper function for [extend] and [replace].
   static SelectorList _extendOrReplace(
@@ -131,17 +129,17 @@ class ExtensionStore {
   /// extensions.
   Set<SimpleSelector> get simpleSelectors => MapKeySet(_selectors);
 
-  ExtensionStore() : this._mode(ExtendMode.normal);
+  new() : this._mode(ExtendMode.normal);
 
-  ExtensionStore._mode(this._mode)
-      : _selectors = {},
-        _extensions = {},
-        _extensionsByExtender = {},
-        _mediaContexts = {},
-        _sourceSpecificity = Map.identity(),
-        _originals = Set.identity();
+  new _mode(this._mode)
+    : _selectors = {},
+      _extensions = {},
+      _extensionsByExtender = {},
+      _mediaContexts = {},
+      _sourceSpecificity = Map.identity(),
+      _originals = Set.identity();
 
-  ExtensionStore._(
+  new _(
     this._selectors,
     this._extensions,
     this._extensionsByExtender,
@@ -163,8 +161,8 @@ class ExtensionStore {
       for (var extension in sources.values) {
         if (extension is MergedExtension) {
           yield* extension.unmerge().where(
-                (extension) => !extension.isOptional,
-              );
+            (extension) => !extension.isOptional,
+          );
         } else if (!extension.isOptional) {
           yield extension;
         }
@@ -332,7 +330,7 @@ class ExtensionStore {
   ///
   /// Returns `null` if there are no extensions to add.
   Map<SimpleSelector, Map<ComplexSelector, Extension>>?
-      _extendExistingExtensions(
+  _extendExistingExtensions(
     List<Extension> extensions,
     Map<SimpleSelector, Map<ComplexSelector, Extension>> newExtensions,
   ) {
@@ -898,16 +896,16 @@ class ExtensionStore {
 
   /// Returns an [Extender] composed solely of [simple].
   Extender _extenderForSimple(SimpleSelector simple) => Extender(
-        ComplexSelector(const [], [
-          ComplexSelectorComponent(
-            CompoundSelector([simple], simple.span),
-            const [],
-            simple.span,
-          ),
-        ], simple.span),
-        specificity: _sourceSpecificity[simple] ?? 0,
-        original: true,
-      );
+    ComplexSelector(const [], [
+      ComplexSelectorComponent(
+        CompoundSelector([simple], simple.span),
+        const [],
+        simple.span,
+      ),
+    ], simple.span),
+    specificity: _sourceSpecificity[simple] ?? 0,
+    original: true,
+  );
 
   /// Extends [pseudo] using [extensions], and returns a list of resulting
   /// pseudo selectors.
@@ -1071,7 +1069,9 @@ class ExtensionStore {
         continue;
       }
 
-      if (selectors.take(i).any(
+      if (selectors
+          .take(i)
+          .any(
             (complex2) =>
                 complex2.specificity >= maxSpecificity &&
                 complex2.isSuperselector(complex1),
@@ -1112,8 +1112,10 @@ class ExtensionStore {
       newSelectors[simple] = newSelectorSet;
 
       for (var selector in selectors) {
-        var newSelector =
-            newBoxes.putIfAbsent(selector, () => ModifiableBox(selector.value));
+        var newSelector = newBoxes.putIfAbsent(
+          selector,
+          () => ModifiableBox(selector.value),
+        );
         newSelectorSet.add(newSelector);
         oldToNewSelectors[selector.value] = newSelector.seal();
 

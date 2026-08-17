@@ -15,31 +15,28 @@ import 'negation.dart';
 /// An operation defining the relationship between two conditions.
 ///
 /// {@category AST}
-final class SupportsOperation implements SupportsCondition {
+final class SupportsOperation(
   /// The left-hand operand.
-  final SupportsCondition left;
+  final SupportsCondition left,
 
   /// The right-hand operand.
-  final SupportsCondition right;
+  final SupportsCondition right,
 
   /// The operator.
-  final BooleanOperator operator;
-
-  @override
-  final FileSpan span;
-
-  SupportsOperation(this.left, this.right, this.operator, this.span);
-
+  final BooleanOperator operator,
+  @override final FileSpan span,
+) implements SupportsCondition {
   /// @nodoc
   @override
   @internal
-  Interpolation toInterpolation() => (InterpolationBuffer()
-        ..write(span.before(left.span).text)
-        ..addInterpolation(left.toInterpolation())
-        ..write(left.span.between(right.span).text)
-        ..addInterpolation(right.toInterpolation())
-        ..write(span.after(right.span).text))
-      .interpolation(span);
+  Interpolation toInterpolation() =>
+      (InterpolationBuffer()
+            ..write(span.before(left.span).text)
+            ..addInterpolation(left.toInterpolation())
+            ..write(left.span.between(right.span).text)
+            ..addInterpolation(right.toInterpolation())
+            ..write(span.after(right.span).text))
+          .interpolation(span);
 
   /// @nodoc
   @override
@@ -53,7 +50,7 @@ final class SupportsOperation implements SupportsCondition {
 
   String _parenthesize(SupportsCondition condition) =>
       condition is SupportsNegation ||
-              (condition is SupportsOperation && condition.operator == operator)
-          ? "($condition)"
-          : condition.toString();
+          (condition is SupportsOperation && condition.operator == operator)
+      ? "($condition)"
+      : condition.toString();
 }

@@ -33,11 +33,10 @@ void ensureSnapshotUpToDate() => pkg.ensureExecutableUpToDate("sass");
 Future<TestProcess> runSass(
   Iterable<String> arguments, {
   Map<String, String>? environment,
-}) =>
-    pkg.start(
-      "sass",
-      arguments,
-      environment: environment,
-      workingDirectory: d.sandbox,
-      encoding: utf8,
-    );
+}) => pkg.start(
+  "sass",
+  arguments,
+  environment: environment,
+  workingDirectory: d.sandbox,
+  encoding: utf8,
+);

@@ -18,36 +18,28 @@ const _maxRepetitions = 5;
 /// A logger that wraps an inner logger to have special handling for
 /// deprecation warnings, silencing, making fatal, enabling future, and/or
 /// limiting repetition based on its inputs.
-final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
-  /// A map of how many times each deprecation has been emitted by this logger.
-  final _warningCounts = <Deprecation, int>{};
-
-  final Logger _inner;
+final class DeprecationProcessingLogger(
+  final Logger _inner, {
 
   /// Deprecation warnings of these types will be ignored.
-  final Set<Deprecation> silenceDeprecations;
+  required final Set<Deprecation> silenceDeprecations,
 
   /// Deprecation warnings of one of these types will cause an error to be
   /// thrown.
   ///
   /// Future deprecations in this list will still cause an error even if they
   /// are not also in [futureDeprecations].
-  final Set<Deprecation> fatalDeprecations;
+  required final Set<Deprecation> fatalDeprecations,
 
   /// Future deprecations that the user has explicitly opted into.
-  final Set<Deprecation> futureDeprecations;
+  required final Set<Deprecation> futureDeprecations,
 
   /// Whether repetitions of the same warning should be limited to no more than
   /// [_maxRepetitions].
-  final bool limitRepetition;
-
-  DeprecationProcessingLogger(
-    this._inner, {
-    required this.silenceDeprecations,
-    required this.fatalDeprecations,
-    required this.futureDeprecations,
-    this.limitRepetition = true,
-  });
+  final bool limitRepetition = true,
+}) extends LoggerWithDeprecationType {
+  /// A map of how many times each deprecation has been emitted by this logger.
+  final _warningCounts = <Deprecation, int>{};
 
   /// Warns if any of the deprecations options are incompatible or unnecessary.
   void validate() {
@@ -76,7 +68,7 @@ final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
 
     for (var deprecation in silenceDeprecations) {
       switch (deprecation) {
-        case Deprecation.userAuthored:
+        case .userAuthored:
           warn('User-authored deprecations should not be silenced.');
         case Deprecation(obsoleteIn: Version()):
           warn(
@@ -143,7 +135,8 @@ final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
     }
 
     if (fatalDeprecations.contains(deprecation)) {
-      message += "\n\nThis is only an error because you've set the "
+      message +=
+          "\n\nThis is only an error because you've set the "
           '$deprecation deprecation to be fatal.\n'
           'Remove this setting if you need to keep using this feature.';
       throw switch ((span, trace)) {
@@ -155,8 +148,8 @@ final class DeprecationProcessingLogger extends LoggerWithDeprecationType {
     if (silenceDeprecations.contains(deprecation)) return;
 
     if (limitRepetition) {
-      var count =
-          _warningCounts[deprecation] = (_warningCounts[deprecation] ?? 0) + 1;
+      var count = _warningCounts[deprecation] =
+          (_warningCounts[deprecation] ?? 0) + 1;
       if (count > _maxRepetitions) return;
     }
 

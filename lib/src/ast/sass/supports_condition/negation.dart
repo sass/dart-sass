@@ -14,23 +14,20 @@ import 'operation.dart';
 /// A negated condition.
 ///
 /// {@category AST}
-final class SupportsNegation implements SupportsCondition {
+final class SupportsNegation(
   /// The condition that's been negated.
-  final SupportsCondition condition;
-
-  @override
-  final FileSpan span;
-
-  SupportsNegation(this.condition, this.span);
-
+  final SupportsCondition condition,
+  @override final FileSpan span,
+) implements SupportsCondition {
   /// @nodoc
   @override
   @internal
-  Interpolation toInterpolation() => (InterpolationBuffer()
-        ..write(span.before(condition.span).text)
-        ..addInterpolation(condition.toInterpolation())
-        ..write(span.after(condition.span).text))
-      .interpolation(span);
+  Interpolation toInterpolation() =>
+      (InterpolationBuffer()
+            ..write(span.before(condition.span).text)
+            ..addInterpolation(condition.toInterpolation())
+            ..write(span.after(condition.span).text))
+          .interpolation(span);
 
   /// @nodoc
   @override

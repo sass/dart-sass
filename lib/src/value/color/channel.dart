@@ -8,18 +8,15 @@ import 'package:meta/meta.dart';
 ///
 /// {@category Value}
 @sealed
-class ColorChannel {
-  /// The alpha channel that's shared across all colors.
-  static const alpha = LinearChannel('alpha', 0, 1);
-
+class const ColorChannel(
   /// The channel's name.
-  final String name;
+  final String name, {
 
   /// Whether this is a polar angle channel, which represents (in degrees) the
   /// angle around a circle.
   ///
   /// This is true if and only if this is not a [LinearChannel].
-  final bool isPolarAngle;
+  required final bool isPolarAngle,
 
   /// The unit that's associated with this channel.
   ///
@@ -30,43 +27,43 @@ class ColorChannel {
   ///
   /// 1: Unless [LinearChannel.requiresPercent] is set, in which case unitless
   /// values are not allowed.
-  final String? associatedUnit;
+  final String? associatedUnit,
+}) {
+  /// The alpha channel that's shared across all colors.
+  static const alpha = LinearChannel('alpha', 0, 1);
 
   /// @nodoc
   @internal
-  const ColorChannel(
-    this.name, {
-    required this.isPolarAngle,
-    this.associatedUnit,
-  });
+  this;
 
   /// Returns whether this channel is [analogous] to [other].
   ///
   /// [analogous]: https://www.w3.org/TR/css-color-4/#interpolation-missing
   bool isAnalogous(ColorChannel other) => switch ((name, other.name)) {
-        ("red" || "x", "red" || "x") ||
-        ("green" || "y", "green" || "y") ||
-        ("blue" || "z", "blue" || "z") ||
-        ("chroma" || "saturation", "chroma" || "saturation") ||
-        ("lightness", "lightness") ||
-        ("hue", "hue") =>
-          true,
-        _ => false,
-      };
+    ("red" || "x", "red" || "x") ||
+    ("green" || "y", "green" || "y") ||
+    ("blue" || "z", "blue" || "z") ||
+    ("chroma" || "saturation", "chroma" || "saturation") ||
+    ("lightness", "lightness") ||
+    ("hue", "hue") => true,
+    _ => false,
+  };
 }
 
 /// Metadata about a color channel with a linear (as opposed to polar) value.
 ///
 /// {@category Value}
 @sealed
-class LinearChannel extends ColorChannel {
+class const LinearChannel(
+  super.name,
+
   /// The channel's minimum value.
   ///
   /// Unless this color space is strictly bounded, this channel's values may
   /// still be below this minimum value. It just represents a limit to reference
   /// when specifying channels by percentage, as well as a boundary for what's
   /// considered in-gamut if the color space has a bounded gamut.
-  final double min;
+  final double min,
 
   /// The channel's maximum value.
   ///
@@ -74,20 +71,21 @@ class LinearChannel extends ColorChannel {
   /// still be above this maximum value. It just represents a limit to reference
   /// when specifying channels by percentage, as well as a boundary for what's
   /// considered in-gamut if the color space has a bounded gamut.
-  final double max;
+  final double max, {
 
   /// Whether this channel requires values to be specified with unit `%` and
   /// forbids unitless values.
-  final bool requiresPercent;
+  final bool requiresPercent = false,
 
   /// Whether the lower bound of this channel is clamped when the color is
   /// created using the global function syntax.
-  final bool lowerClamped;
+  final bool lowerClamped = false,
 
   /// Whether the upper bound of this channel is clamped when the color is
   /// created using the global function syntax.
-  final bool upperClamped;
-
+  final bool upperClamped = false,
+  bool? conventionallyPercent,
+}) extends ColorChannel {
   /// Creates a linear color channel.
   ///
   /// By default, [ColorChannel.associatedUnit] is set to `%` if and only if
@@ -96,17 +94,11 @@ class LinearChannel extends ColorChannel {
   ///
   /// @nodoc
   @internal
-  const LinearChannel(
-    super.name,
-    this.min,
-    this.max, {
-    this.requiresPercent = false,
-    this.lowerClamped = false,
-    this.upperClamped = false,
-    bool? conventionallyPercent,
-  }) : super(
-          isPolarAngle: false,
-          associatedUnit:
-              (conventionallyPercent ?? (min == 0 && max == 100)) ? '%' : null,
-        );
+  this
+    : super(
+        isPolarAngle: false,
+        associatedUnit: (conventionallyPercent ?? (min == 0 && max == 100))
+            ? '%'
+            : null,
+      );
 }

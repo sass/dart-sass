@@ -10,16 +10,10 @@ import '../value.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssSupportsRule] for use in the evaluation step.
-final class ModifiableCssSupportsRule extends ModifiableCssParentNode
-    implements CssSupportsRule {
-  @override
-  final CssValue<String> condition;
-
-  @override
-  final FileSpan span;
-
-  ModifiableCssSupportsRule(this.condition, this.span);
-
+final class ModifiableCssSupportsRule(
+  @override final CssValue<String> condition,
+  @override final FileSpan span,
+) extends ModifiableCssParentNode implements CssSupportsRule {
   @override
   T accept<T>(ModifiableCssVisitor<T> visitor) =>
       visitor.visitCssSupportsRule(this);

@@ -18,32 +18,32 @@ Object newNodeSassNumber(SassNumber value) =>
     legacyNumberClass.construct([null, null, value]);
 
 /// The JS constructor for the `sass.types.Number` class.
-final JSClass legacyNumberClass = createJSClass('sass.types.Number', (
-  _NodeSassNumber thisArg,
-  num? value, [
-  String? unit,
-  SassNumber? dartValue,
-]) {
-  // Either [dartValue] or [value] must be passed.
-  thisArg.dartValue = dartValue ?? _parseNumber(value!, unit);
-})
-  ..defineMethods({
-    'getValue': (_NodeSassNumber thisArg) => thisArg.dartValue.value,
-    'setValue': (_NodeSassNumber thisArg, num value) {
-      thisArg.dartValue = SassNumber.withUnits(
-        value,
-        numeratorUnits: thisArg.dartValue.numeratorUnits,
-        denominatorUnits: thisArg.dartValue.denominatorUnits,
-      );
-    },
-    'getUnit': (_NodeSassNumber thisArg) =>
-        thisArg.dartValue.numeratorUnits.join('*') +
-        (thisArg.dartValue.denominatorUnits.isEmpty ? '' : '/') +
-        thisArg.dartValue.denominatorUnits.join('*'),
-    'setUnit': (_NodeSassNumber thisArg, String unit) {
-      thisArg.dartValue = _parseNumber(thisArg.dartValue.value, unit);
-    },
-  });
+final JSClass legacyNumberClass =
+    createJSClass('sass.types.Number', (
+      _NodeSassNumber thisArg,
+      num? value, [
+      String? unit,
+      SassNumber? dartValue,
+    ]) {
+      // Either [dartValue] or [value] must be passed.
+      thisArg.dartValue = dartValue ?? _parseNumber(value!, unit);
+    })..defineMethods({
+      'getValue': (_NodeSassNumber thisArg) => thisArg.dartValue.value,
+      'setValue': (_NodeSassNumber thisArg, num value) {
+        thisArg.dartValue = SassNumber.withUnits(
+          value,
+          numeratorUnits: thisArg.dartValue.numeratorUnits,
+          denominatorUnits: thisArg.dartValue.denominatorUnits,
+        );
+      },
+      'getUnit': (_NodeSassNumber thisArg) =>
+          thisArg.dartValue.numeratorUnits.join('*') +
+          (thisArg.dartValue.denominatorUnits.isEmpty ? '' : '/') +
+          thisArg.dartValue.denominatorUnits.join('*'),
+      'setUnit': (_NodeSassNumber thisArg, String unit) {
+        thisArg.dartValue = _parseNumber(thisArg.dartValue.value, unit);
+      },
+    });
 
 /// Parses a [SassNumber] from [value] and [unit], using Node Sass's unit
 /// format.
@@ -64,8 +64,9 @@ SassNumber _parseNumber(num value, String? unit) {
   var numeratorUnits = numerator.isEmpty ? <String>[] : numerator.split('*');
   if (numeratorUnits.any((unit) => unit.isEmpty)) throw invalidUnit;
 
-  var denominatorUnits =
-      denominator == null ? <String>[] : denominator.split('*');
+  var denominatorUnits = denominator == null
+      ? <String>[]
+      : denominator.split('*');
   if (denominatorUnits.any((unit) => unit.isEmpty)) throw invalidUnit;
 
   return SassNumber.withUnits(

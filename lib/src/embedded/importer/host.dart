@@ -11,19 +11,20 @@ import '../utils.dart';
 import 'base.dart';
 
 /// An importer that asks the host to resolve imports.
-final class HostImporter extends ImporterBase {
-  /// The host-provided ID of the importer to invoke.
-  final int _importerId;
+final class HostImporter(
+  super.dispatcher,
 
+  /// The host-provided ID of the importer to invoke.
+  final int _importerId,
+  Iterable<String> nonCanonicalSchemes,
+) extends ImporterBase {
   /// The set of URL schemes that this importer promises never to return from
   /// [canonicalize].
-  final Set<String> _nonCanonicalSchemes;
+  final Set<String> _nonCanonicalSchemes = Set.unmodifiable(
+    nonCanonicalSchemes,
+  );
 
-  HostImporter(
-    super.dispatcher,
-    this._importerId,
-    Iterable<String> nonCanonicalSchemes,
-  ) : _nonCanonicalSchemes = Set.unmodifiable(nonCanonicalSchemes) {
+  this {
     for (var scheme in _nonCanonicalSchemes) {
       if (isValidUrlScheme(scheme)) continue;
       throw SassException(
@@ -47,12 +48,9 @@ final class HostImporter extends ImporterBase {
     if (!response.containingUrlUnused) canonicalizeContext.containingUrl;
 
     return switch (response.whichResult()) {
-      InboundMessage_CanonicalizeResponse_Result.url => parseAbsoluteUrl(
-          "The importer",
-          response.url,
-        ),
-      InboundMessage_CanonicalizeResponse_Result.error => throw response.error,
-      InboundMessage_CanonicalizeResponse_Result.notSet => null,
+      .url => parseAbsoluteUrl("The importer", response.url),
+      .error => throw response.error,
+      .notSet => null,
     };
   }
 
@@ -65,18 +63,15 @@ final class HostImporter extends ImporterBase {
     );
 
     return switch (response.whichResult()) {
-      InboundMessage_ImportResponse_Result.success => ImporterResult(
-          response.success.contents,
-          sourceMapUrl: response.success.sourceMapUrl.isEmpty
-              ? null
-              : parseAbsoluteUrl(
-                  "The importer",
-                  response.success.sourceMapUrl,
-                ),
-          syntax: syntaxToSyntax(response.success.syntax),
-        ),
-      InboundMessage_ImportResponse_Result.error => throw response.error,
-      InboundMessage_ImportResponse_Result.notSet => null,
+      .success => ImporterResult(
+        response.success.contents,
+        sourceMapUrl: response.success.sourceMapUrl.isEmpty
+            ? null
+            : parseAbsoluteUrl("The importer", response.success.sourceMapUrl),
+        syntax: syntaxToSyntax(response.success.syntax),
+      ),
+      .error => throw response.error,
+      .notSet => null,
     };
   }
 

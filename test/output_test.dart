@@ -75,7 +75,7 @@ void main() {
 
     test("in Sass", () {
       expect(
-        compileString("/*\r\n  foo\r\n  bar", syntax: Syntax.sass),
+        compileString("/*\r\n  foo\r\n  bar", syntax: .sass),
         equals("/* foo\n * bar */"),
       );
     });
@@ -265,8 +265,9 @@ selector {
     test("double trailing empty block", () {
       expect(
         compileString(
-            "selector { /* please don't move me */ /* please don't move me */ "
-            "}"),
+          "selector { /* please don't move me */ /* please don't move me */ "
+          "}",
+        ),
         equals("""
 selector { /* please don't move me */ /* please don't move me */
 }"""),

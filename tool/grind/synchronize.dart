@@ -71,13 +71,13 @@ String synchronizeFile(String source) {
 /// original source where possible. It tracks the [_position] at the end of the
 /// text that's been written, and writes from that position to the new position
 /// whenever text needs to be emitted.
-class _Visitor extends RecursiveAstVisitor<void> {
+class _Visitor(
   /// The source of the original asynchronous file.
-  final String _source;
+  final String _source,
 
   /// The path from which [_source] was loaded.
-  final String _path;
-
+  final String _path,
+) extends RecursiveAstVisitor<void> {
   /// The current position in [_source].
   var _position = 0;
 
@@ -97,7 +97,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
     return _buffer.toString();
   }
 
-  _Visitor(this._source, this._path) {
+  this {
     var afterHeader = "\n".allMatches(_source).skip(3).first.end;
     _buffer.writeln(_source.substring(0, afterHeader));
     _buffer.writeln("""
@@ -158,7 +158,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
         child.accept(this);
       }
       _rename(node.namePart.typeName);
-      node.namePart.typeParameters?.accept(this);
+      node.namePart.accept(this);
       node.extendsClause?.accept(this);
       node.withClause?.accept(this);
       node.implementsClause?.accept(this);
@@ -220,11 +220,10 @@ class _Visitor extends RecursiveAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     // Convert async utility methods to their synchronous equivalents.
-    if (node
-        case MethodInvocation(
-          target: null,
-          methodName: SimpleIdentifier(name: "mapAsync" || "putIfAbsentAsync"),
-        )) {
+    if (node case MethodInvocation(
+      target: null,
+      methodName: SimpleIdentifier(name: "mapAsync" || "putIfAbsentAsync"),
+    )) {
       _writeTo(node);
       var arguments = node.argumentList.arguments;
       _write(arguments.first);

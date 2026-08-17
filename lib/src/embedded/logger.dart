@@ -15,20 +15,16 @@ import 'embedded_sass.pb.dart' hide SourceSpan;
 import 'utils.dart';
 
 /// A Sass logger that sends log messages as `LogEvent`s.
-final class EmbeddedLogger extends LoggerWithDeprecationType {
+final class EmbeddedLogger(
   /// The [CompilationDispatcher] to which to send events.
-  final CompilationDispatcher _dispatcher;
+  final CompilationDispatcher _dispatcher, {
 
   /// Whether the formatted message should contain terminal colors.
-  final bool _color;
+  final bool _color = false,
 
   /// Whether the formatted message should use ASCII encoding.
-  final bool _ascii;
-
-  EmbeddedLogger(this._dispatcher, {bool color = false, bool ascii = false})
-      : _color = color,
-        _ascii = ascii;
-
+  final bool _ascii = false,
+}) extends LoggerWithDeprecationType {
   @override
   void debug(String message, SourceSpan span) {
     _dispatcher.sendLog(
@@ -36,7 +32,8 @@ final class EmbeddedLogger extends LoggerWithDeprecationType {
         ..type = LogEventType.DEBUG
         ..message = message
         ..span = protofySpan(span)
-        ..formatted = '${span.start.sourceUrl.andThen(p.prettyUri) ?? '-'}:'
+        ..formatted =
+            '${span.start.sourceUrl.andThen(p.prettyUri) ?? '-'}:'
             '${span.start.line + 1} '
             '${_color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG'}: $message\n',
     );
@@ -51,8 +48,7 @@ final class EmbeddedLogger extends LoggerWithDeprecationType {
   }) {
     var formatted = withGlyphs(() {
       var buffer = StringBuffer();
-      var showDeprecation =
-          deprecation != null && deprecation != Deprecation.userAuthored;
+      var showDeprecation = deprecation != null && deprecation != .userAuthored;
       if (_color) {
         buffer.write('\u001b[33m\u001b[1m');
         if (deprecation != null) buffer.write('Deprecation ');

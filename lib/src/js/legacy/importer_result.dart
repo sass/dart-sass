@@ -10,5 +10,5 @@ class NodeImporterResult {
   external String? get file;
   external String? get contents;
 
-  external factory NodeImporterResult({String? file, String? contents});
+  external factory({String? file, String? contents});
 }

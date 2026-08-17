@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'dart:collection';
+
 import 'ast/node.dart';
 import 'ast/sass.dart';
 import 'configured_value.dart';
@@ -27,7 +28,7 @@ final class Configuration {
   final Map<String, ConfiguredValue> _values;
 
   /// Creates an implicit configuration with the given [values].
-  Configuration.implicit(this._values) : __originalConfiguration = null;
+  new implicit(this._values) : __originalConfiguration = null;
 
   /// The backing value for [_originalConfiguration].
   ///
@@ -57,9 +58,7 @@ final class Configuration {
   ///
   /// Empty configurations are always considered implicit, since they are
   /// ignored if the module has already been loaded.
-  const Configuration.empty()
-      : _values = const {},
-        __originalConfiguration = null;
+  const new empty() : _values = const {}, __originalConfiguration = null;
 
   bool get isEmpty => values.isEmpty;
 
@@ -98,10 +97,11 @@ final class Configuration {
 
   /// Creates a [Configuration] with the given [_values] map and an
   /// [_originalConfiguration] reference.
-  Configuration._(this._values, this.__originalConfiguration);
+  new _(this._values, this.__originalConfiguration);
 
   @override
-  String toString() => "("
+  String toString() =>
+      "("
       "${[for (var (name, value) in values.pairs) "\$$name: $value"].join(",")}"
       ")";
 }
@@ -119,11 +119,11 @@ final class ExplicitConfiguration extends Configuration {
 
   /// Creates a base [ExplicitConfiguration] with a [values] map and a
   /// [nodeWithSpan].
-  ExplicitConfiguration(super.values, this.nodeWithSpan) : super.implicit();
+  new(super.values, this.nodeWithSpan) : super.implicit();
 
   /// Creates an [ExplicitConfiguration] with a [values] map, a [nodeWithSpan]
   /// and if this is a copy a reference to the [_originalConfiguration].
-  ExplicitConfiguration._(
+  new _(
     Map<String, ConfiguredValue> values,
     this.nodeWithSpan,
     Configuration? originalConfiguration,

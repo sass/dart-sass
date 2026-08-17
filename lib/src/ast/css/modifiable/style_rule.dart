@@ -11,33 +11,24 @@ import '../style_rule.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssStyleRule] for use in the evaluation step.
-final class ModifiableCssStyleRule extends ModifiableCssParentNode
-    implements CssStyleRule {
+final class ModifiableCssStyleRule(
+  /// A reference to the modifiable selector list provided by the extension
+  /// store, which may update it over time as new extensions are applied.
+  final Box<SelectorList> _selector,
+  @override final FileSpan span, {
+  SelectorList? originalSelector,
+  @override final bool fromPlainCss = false,
+}) extends ModifiableCssParentNode implements CssStyleRule {
   @override
   SelectorList get selector => _selector.value;
 
-  /// A reference to the modifiable selector list provided by the extension
-  /// store, which may update it over time as new extensions are applied.
-  final Box<SelectorList> _selector;
-
   @override
-  final SelectorList originalSelector;
-
-  @override
-  final FileSpan span;
-
-  @override
-  final bool fromPlainCss;
+  final SelectorList originalSelector = originalSelector ?? _selector.value;
 
   /// Creates a new [ModifiableCssStyleRule].
   ///
   /// If [originalSelector] isn't passed, it defaults to [_selector.value].
-  ModifiableCssStyleRule(
-    this._selector,
-    this.span, {
-    SelectorList? originalSelector,
-    this.fromPlainCss = false,
-  }) : originalSelector = originalSelector ?? _selector.value;
+  this;
 
   @override
   T accept<T>(ModifiableCssVisitor<T> visitor) =>
@@ -49,8 +40,8 @@ final class ModifiableCssStyleRule extends ModifiableCssParentNode
 
   @override
   ModifiableCssStyleRule copyWithoutChildren() => ModifiableCssStyleRule(
-        _selector,
-        span,
-        originalSelector: originalSelector,
-      );
+    _selector,
+    span,
+    originalSelector: originalSelector,
+  );
 }

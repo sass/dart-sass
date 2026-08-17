@@ -33,15 +33,17 @@ final class StyleRule extends ParentStatement<List<Statement>> {
   final FileSpan span;
 
   /// Constructs a style rule with [selector] set and [parsedSelector] null.
-  StyleRule(this.selector, Iterable<Statement> children, this.span)
-      : parsedSelector = null,
-        super(List.unmodifiable(children));
+  new(this.selector, Iterable<Statement> children, this.span)
+    : parsedSelector = null,
+      super(List.unmodifiableOf(children));
 
   /// Constructs a style rule with [parsedSelector] set and [selector].
-  StyleRule.withParsedSelector(
-      this.parsedSelector, Iterable<Statement> children, this.span)
-      : selector = null,
-        super(List.unmodifiable(children));
+  new withParsedSelector(
+    this.parsedSelector,
+    Iterable<Statement> children,
+    this.span,
+  ) : selector = null,
+      super(List.unmodifiableOf(children));
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitStyleRule(this);

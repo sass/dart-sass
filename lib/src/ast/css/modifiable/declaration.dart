@@ -11,34 +11,21 @@ import '../value.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssDeclaration] for use in the evaluation step.
-final class ModifiableCssDeclaration extends ModifiableCssNode
-    implements CssDeclaration {
+final class ModifiableCssDeclaration(
+  @override final CssValue<String> name,
+  @override final CssValue<Value> value,
+  @override final FileSpan span, {
+  @override required final bool parsedAsSassScript,
+  FileSpan? valueSpanForMap,
+}) extends ModifiableCssNode implements CssDeclaration {
   @override
-  final CssValue<String> name;
-
-  @override
-  final CssValue<Value> value;
-
-  @override
-  final bool parsedAsSassScript;
-
-  @override
-  final FileSpan valueSpanForMap;
-
-  @override
-  final FileSpan span;
+  final FileSpan valueSpanForMap = valueSpanForMap ?? value.span;
 
   @override
   bool get isCustomProperty => name.value.startsWith('--');
 
   /// Returns a new CSS declaration with the given properties.
-  ModifiableCssDeclaration(
-    this.name,
-    this.value,
-    this.span, {
-    required this.parsedAsSassScript,
-    FileSpan? valueSpanForMap,
-  }) : valueSpanForMap = valueSpanForMap ?? value.span {
+  this {
     if (!parsedAsSassScript) {
       if (value.value is! SassString) {
         throw ArgumentError(

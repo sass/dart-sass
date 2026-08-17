@@ -8,7 +8,6 @@ import 'package:collection/collection.dart';
 
 import '../ast/sass/statement/mixin_rule.dart';
 import '../callable.dart';
-import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../util/map.dart';
 import '../value.dart';
@@ -36,7 +35,7 @@ final _shared = UnmodifiableListView([
     warnForDeprecation(
       "The feature-exists() function is deprecated.\n\n"
       "More info: https://sass-lang.com/d/feature-exists",
-      Deprecation.featureExists,
+      .featureExists,
     );
     var feature = arguments[0].assertString("feature");
     return SassBoolean(_features.contains(feature.text));
@@ -54,22 +53,20 @@ final _shared = UnmodifiableListView([
   _function(
     "type-of",
     r"$value",
-    (arguments) => SassString(
-        switch (arguments[0]) {
-          SassArgumentList() => "arglist",
-          SassBoolean() => "bool",
-          SassColor() => "color",
-          SassList() => "list",
-          SassMap() => "map",
-          sassNull => "null",
-          SassNumber() => "number",
-          SassFunction() => "function",
-          SassMixin() => "mixin",
-          SassCalculation() => "calculation",
-          SassString() => "string",
-          _ => throw "[BUG] Unknown value type ${arguments[0]}",
-        },
-        quotes: false),
+    (arguments) => SassString(switch (arguments[0]) {
+      SassArgumentList() => "arglist",
+      SassBoolean() => "bool",
+      SassColor() => "color",
+      SassList() => "list",
+      SassMap() => "map",
+      sassNull => "null",
+      SassNumber() => "number",
+      SassFunction() => "function",
+      SassMixin() => "mixin",
+      SassCalculation() => "calculation",
+      SassString() => "string",
+      _ => throw "[BUG] Unknown value type ${arguments[0]}",
+    }, quotes: false),
   ),
   _function("keywords", r"$args", (arguments) {
     if (arguments[0] case SassArgumentList(:var keywords)) {
@@ -111,8 +108,7 @@ final moduleFunctions = UnmodifiableListView([
     var mixin = arguments[0].assertMixin("mixin");
     return SassBoolean(switch (mixin.callable) {
       AsyncBuiltInCallable(acceptsContent: var acceptsContent) ||
-      BuiltInCallable(acceptsContent: var acceptsContent) =>
-        acceptsContent,
+      BuiltInCallable(acceptsContent: var acceptsContent) => acceptsContent,
       UserDefinedCallable(declaration: MixinRule(hasContent: var hasContent)) =>
         hasContent,
       _ => throw UnsupportedError("Unknown callable type $mixin."),
@@ -125,5 +121,4 @@ BuiltInCallable _function(
   String name,
   String arguments,
   Value Function(List<Value> arguments) callback,
-) =>
-    BuiltInCallable.function(name, arguments, callback, url: "sass:meta");
+) => BuiltInCallable.function(name, arguments, callback, url: "sass:meta");

@@ -33,8 +33,8 @@ void main() {
       var request = await getCanonicalizeRequest(process);
       process.send(
         InboundMessage()
-          ..canonicalizeResponse =
-              (InboundMessage_CanonicalizeResponse()..id = request.id + 1),
+          ..canonicalizeResponse = (InboundMessage_CanonicalizeResponse()
+            ..id = request.id + 1),
       );
 
       await expectParamsError(
@@ -261,8 +261,8 @@ void main() {
       var request = await getCanonicalizeRequest(process);
       process.send(
         InboundMessage()
-          ..canonicalizeResponse =
-              (InboundMessage_CanonicalizeResponse()..id = request.id),
+          ..canonicalizeResponse = (InboundMessage_CanonicalizeResponse()
+            ..id = request.id),
       );
 
       var failure = await getCompileFailure(process);
@@ -358,8 +358,7 @@ void main() {
       });
     });
 
-    test(
-        "fails if the importer returns a canonical URL with a non-canonical "
+    test("fails if the importer returns a canonical URL with a non-canonical "
         "scheme", () async {
       process.send(
         compileString(
@@ -406,8 +405,8 @@ void main() {
         expect(request.importerId, equals(i));
         process.send(
           InboundMessage()
-            ..canonicalizeResponse =
-                (InboundMessage_CanonicalizeResponse()..id = request.id),
+            ..canonicalizeResponse = (InboundMessage_CanonicalizeResponse()
+              ..id = request.id),
         );
       }
 
@@ -431,8 +430,8 @@ void main() {
         expect(request.importerId, equals(i));
         process.send(
           InboundMessage()
-            ..canonicalizeResponse =
-                (InboundMessage_CanonicalizeResponse()..id = request.id),
+            ..canonicalizeResponse = (InboundMessage_CanonicalizeResponse()
+              ..id = request.id),
         );
       }
 
@@ -546,8 +545,8 @@ void main() {
       var importRequest = await getImportRequest(process);
       process.send(
         InboundMessage()
-          ..importResponse =
-              (InboundMessage_ImportResponse()..id = importRequest.id),
+          ..importResponse = (InboundMessage_ImportResponse()
+            ..id = importRequest.id),
       );
 
       var failure = await getCompileFailure(process);

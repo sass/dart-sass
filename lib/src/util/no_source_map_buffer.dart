@@ -46,6 +46,6 @@ class NoSourceMapBuffer implements SourceMapBuffer {
 
   @override
   SingleMapping buildSourceMap({String? prefix}) => throw UnsupportedError(
-        "NoSourceMapBuffer.buildSourceMap() is not supported.",
-      );
+    "NoSourceMapBuffer.buildSourceMap() is not supported.",
+  );
 }

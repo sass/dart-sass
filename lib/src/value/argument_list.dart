@@ -14,7 +14,11 @@ import '../value.dart';
 ///
 /// {@category Value}
 @sealed
-class SassArgumentList extends SassList {
+class SassArgumentList(
+  super.contents,
+  Map<String, Value> keywords,
+  super.separator,
+) extends SassList {
   /// The keyword arguments attached to this argument list.
   ///
   /// The argument names don't include `$`.
@@ -23,7 +27,7 @@ class SassArgumentList extends SassList {
     return _keywords;
   }
 
-  final Map<String, Value> _keywords;
+  final Map<String, Value> _keywords = Map.unmodifiableOf(keywords);
 
   /// Returns the same value as [keywords], but doesn't mark them accessed.
   ///
@@ -41,7 +45,4 @@ class SassArgumentList extends SassList {
   @internal
   bool get wereKeywordsAccessed => _wereKeywordsAccessed;
   var _wereKeywordsAccessed = false;
-
-  SassArgumentList(super.contents, Map<String, Value> keywords, super.separator)
-      : _keywords = Map.unmodifiable(keywords);
 }

@@ -14,7 +14,10 @@ import 'gamut_map_method/local_minde.dart';
 ///
 /// {@category Value}
 @sealed
-abstract base class GamutMapMethod {
+abstract base class const GamutMapMethod(
+  /// The Sass name of the gamut-mapping algorithm.
+  final String name,
+) {
   /// Clamp each color channel that's outside the gamut to the minimum or
   /// maximum value for that channel.
   ///
@@ -33,27 +36,23 @@ abstract base class GamutMapMethod {
   /// [local-MINDE]: https://www.w3.org/TR/2024/CRD-css-color-4-20240213/#GM-chroma-local-MINDE
   static const GamutMapMethod localMinde = LocalMindeGamutMap();
 
-  /// The Sass name of the gamut-mapping algorithm.
-  final String name;
-
   /// @nodoc
   @internal
-  const GamutMapMethod(this.name);
+  this;
 
   /// Parses a [GamutMapMethod] from its Sass name.
   ///
   /// Throws a [SassScriptException] if there is no method with the given
   /// [name]. If this came from a function argument, [argumentName] is the
   /// argument name (without the `$`). This is used for error reporting.
-  factory GamutMapMethod.fromName(String name, [String? argumentName]) =>
-      switch (name) {
-        'clip' => GamutMapMethod.clip,
-        'local-minde' => GamutMapMethod.localMinde,
-        _ => throw SassScriptException(
-            'Unknown gamut map method "$name".',
-            argumentName,
-          ),
-      };
+  factory fromName(String name, [String? argumentName]) => switch (name) {
+    'clip' => GamutMapMethod.clip,
+    'local-minde' => GamutMapMethod.localMinde,
+    _ => throw SassScriptException(
+      'Unknown gamut map method "$name".',
+      argumentName,
+    ),
+  };
 
   /// Maps [color] to its gamut using this method's algorithm.
   ///

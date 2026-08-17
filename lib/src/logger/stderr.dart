@@ -12,12 +12,10 @@ import '../logger.dart';
 import '../utils.dart';
 
 /// A logger that prints warnings to standard error or browser console.
-final class StderrLogger extends LoggerWithDeprecationType {
+final class const StderrLogger({
   /// Whether to use terminal colors in messages.
-  final bool color;
-
-  const StderrLogger({this.color = false});
-
+  final bool color = false,
+}) extends LoggerWithDeprecationType {
   @override
   void internalWarn(
     String message, {
@@ -26,8 +24,7 @@ final class StderrLogger extends LoggerWithDeprecationType {
     Deprecation? deprecation,
   }) {
     var result = StringBuffer();
-    var showDeprecation =
-        deprecation != null && deprecation != Deprecation.userAuthored;
+    var showDeprecation = deprecation != null && deprecation != .userAuthored;
     if (color) {
       // Bold yellow.
       result.write('\u001b[33m\u001b[1m');
@@ -58,8 +55,9 @@ final class StderrLogger extends LoggerWithDeprecationType {
   @override
   void debug(String message, SourceSpan span) {
     var result = StringBuffer();
-    var url =
-        span.start.sourceUrl == null ? '-' : p.prettyUri(span.start.sourceUrl);
+    var url = span.start.sourceUrl == null
+        ? '-'
+        : p.prettyUri(span.start.sourceUrl);
     result.write('$url:${span.start.line + 1} ');
     result.write(color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG');
     result.write(': $message');

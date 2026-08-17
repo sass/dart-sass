@@ -12,8 +12,8 @@ extension MapExtensions<K, V> on Map<K, V> {
   /// [key] to the result.
   V putOrMerge(K key, V value, V Function(V oldValue, V newValue) merge) =>
       containsKey(key)
-          ? this[key] = merge(this[key] as V, value)
-          : this[key] = value;
+      ? this[key] = merge(this[key] as V, value)
+      : this[key] = value;
 
   // TODO(nweiz): Remove this once dart-lang/collection#289 is released.
   /// Like [Map.entries], but returns each entry as a record.

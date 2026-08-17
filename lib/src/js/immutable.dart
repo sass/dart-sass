@@ -8,14 +8,14 @@ import '../util/map.dart';
 
 @JS('immutable.List')
 class ImmutableList {
-  external factory ImmutableList([List<Object?>? contents]);
+  external factory([List<Object?>? contents]);
 
   external List<Object?> toArray();
 }
 
 @JS('immutable.OrderedMap')
 class ImmutableMap {
-  external factory ImmutableMap([List<List<Object?>>? entries]);
+  external factory([List<List<Object?>>? entries]);
 
   external ImmutableMap asMutable();
   external ImmutableMap asImmutable();

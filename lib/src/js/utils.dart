@@ -65,15 +65,16 @@ Object? call3(
   Object arg1,
   Object arg2,
   Object arg3,
-) =>
-    function.apply(thisArg, [arg1, arg2, arg3]);
+) => function.apply(thisArg, [arg1, arg2, arg3]);
 
 @JS("Object.keys")
 external List<String> _keys(Object? object);
 
 /// Invokes [callback] for each key/value pair in [object].
 void jsForEach(
-    Object object, void Function(String key, Object? value) callback) {
+  Object object,
+  void Function(String key, Object? value) callback,
+) {
   for (var key in _keys(object)) {
     callback(key, getProperty(object, key));
   }
@@ -96,7 +97,9 @@ String _jsTypeOf(Object? object) =>
 /// [value]'s JS class name.
 String jsType(Object? value) {
   var typeOf = _jsTypeOf(value);
-  return typeOf != 'object' ? typeOf : JSFunction('value', '''
+  return typeOf != 'object'
+      ? typeOf
+      : JSFunction('value', '''
     if (value && value.constructor && value.constructor.name) {
       return value.constructor.name;
     }
@@ -118,11 +121,7 @@ class _PropertyDescriptor {
   external Function get get;
   external bool get enumerable;
 
-  external factory _PropertyDescriptor({
-    Object? value,
-    Function? get,
-    bool? enumerable,
-  });
+  external factory({Object? value, Function? get, bool? enumerable});
 }
 
 /// Defines a JS getter on [object] named [name].
@@ -189,17 +188,16 @@ bool isPromise(Object? object) =>
 /// Like [futureToPromise] from `node_interop`, but stores the stack trace for
 /// errors using [throwWithTrace].
 Promise futureToPromise(Future<Object?> future) => Promise(
-      allowInterop(
-          (void Function(Object?) resolve, void Function(Object?) reject) {
-        future.then(
-          (result) => resolve(result),
-          onError: (Object error, StackTrace stackTrace) {
-            attachTrace(error, stackTrace);
-            reject(error);
-          },
-        );
-      }),
+  allowInterop((void Function(Object?) resolve, void Function(Object?) reject) {
+    future.then(
+      (result) => resolve(result),
+      onError: (Object error, StackTrace stackTrace) {
+        attachTrace(error, stackTrace);
+        reject(error);
+      },
     );
+  }),
+);
 
 @JS('URL')
 external JSClass get _urlClass;
@@ -257,20 +255,20 @@ Object mapToObject(Map<String, Object?> map) {
 
 /// Converts a JavaScript separator string into a [ListSeparator].
 ListSeparator jsToDartSeparator(String? separator) => switch (separator) {
-      ' ' => ListSeparator.space,
-      ',' => ListSeparator.comma,
-      '/' => ListSeparator.slash,
-      null => ListSeparator.undecided,
-      _ => jsThrow(JsError('Unknown separator "$separator".')),
-    };
+  ' ' => ListSeparator.space,
+  ',' => ListSeparator.comma,
+  '/' => ListSeparator.slash,
+  null => ListSeparator.undecided,
+  _ => jsThrow(JsError('Unknown separator "$separator".')),
+};
 
 /// Converts a syntax string to an instance of [Syntax].
 Syntax parseSyntax(String? syntax) => switch (syntax) {
-      null || 'scss' => Syntax.scss,
-      'indented' => Syntax.sass,
-      'css' => Syntax.css,
-      _ => jsThrow(JsError('Unknown syntax "$syntax".')),
-    };
+  null || 'scss' => .scss,
+  'indented' => .sass,
+  'css' => .css,
+  _ => jsThrow(JsError('Unknown syntax "$syntax".')),
+};
 
 /// The path to the Node.js entrypoint, if one can be located.
 String? get entrypointFilename {

@@ -13,18 +13,14 @@ import 'list.dart';
 /// A unary operator, as in `+$var` or `not fn()`.
 ///
 /// {@category AST}
-final class UnaryOperationExpression extends Expression {
+final class UnaryOperationExpression(
   /// The operator being invoked.
-  final UnaryOperator operator;
+  final UnaryOperator operator,
 
   /// The operand.
-  final Expression operand;
-
-  @override
-  final FileSpan span;
-
-  UnaryOperationExpression(this.operator, this.operand, this.span);
-
+  final Expression operand,
+  @override final FileSpan span,
+) extends Expression {
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitUnaryOperationExpression(this);
@@ -37,8 +33,7 @@ final class UnaryOperationExpression extends Expression {
     var needsParens = switch (operand) {
       BinaryOperationExpression() ||
       UnaryOperationExpression() ||
-      ListExpression(hasBrackets: false, contents: [_, _, ...]) =>
-        true,
+      ListExpression(hasBrackets: false, contents: [_, _, ...]) => true,
       _ => false,
     };
     if (needsParens) buffer.write($lparen);
@@ -51,7 +46,13 @@ final class UnaryOperationExpression extends Expression {
 /// A unary operator constant.
 ///
 /// {@category AST}
-enum UnaryOperator {
+enum UnaryOperator(
+  /// The English name of `this`.
+  final String name,
+
+  /// The Sass syntax for `this`.
+  final String operator,
+) {
   /// The numeric identity operator, `+`.
   plus('plus', '+'),
 
@@ -65,14 +66,6 @@ enum UnaryOperator {
 
   /// The boolean negation operator, `not`.
   not('not', 'not');
-
-  /// The English name of `this`.
-  final String name;
-
-  /// The Sass syntax for `this`.
-  final String operator;
-
-  const UnaryOperator(this.name, this.operator);
 
   @override
   String toString() => name;

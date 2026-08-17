@@ -18,25 +18,25 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class LchColorSpace extends ColorSpace {
+final class const LchColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => false;
 
   @override
   bool get isPolarInternal => true;
 
-  const LchColorSpace()
-      : super('lch', const [
-          LinearChannel(
-            'lightness',
-            0,
-            100,
-            lowerClamped: true,
-            upperClamped: true,
-          ),
-          LinearChannel('chroma', 0, 150, lowerClamped: true),
-          hueChannel,
-        ]);
+  this
+    : super('lch', const [
+        LinearChannel(
+          'lightness',
+          0,
+          100,
+          lowerClamped: true,
+          upperClamped: true,
+        ),
+        LinearChannel('chroma', 0, 150, lowerClamped: true),
+        hueChannel,
+      ]);
 
   @override
   SassColor convert(

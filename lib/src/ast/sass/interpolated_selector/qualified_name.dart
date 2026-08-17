@@ -15,23 +15,17 @@ import '../node.dart';
 /// [Stylesheet.parse].
 ///
 /// {@category AST}
-final class InterpolatedQualifiedName implements SassNode {
+final class InterpolatedQualifiedName(
   /// The identifier name.
-  final Interpolation name;
-
-  @override
-  final FileSpan span;
+  final Interpolation name,
+  @override final FileSpan span, {
 
   /// The namespace name.
-  final Interpolation? namespace;
-
-  /// Creates an attribute selector that matches any element with a property of
-  /// the given name.
-  InterpolatedQualifiedName(this.name, this.span, {this.namespace});
-
+  final Interpolation? namespace,
+}) implements SassNode {
   @override
   String toString() => switch (namespace) {
-        var namespace? => '$namespace|$name',
-        _ => name.toString()
-      };
+    var namespace? => '$namespace|$name',
+    _ => name.toString(),
+  };
 }

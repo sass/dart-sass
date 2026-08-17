@@ -63,26 +63,23 @@ final _join = _function(
     var separatorParam = arguments[2].assertString("separator");
     var bracketedParam = arguments[3];
 
-    var separator = switch (separatorParam.text) {
+    ListSeparator separator = switch (separatorParam.text) {
       "auto" => switch ((list1.separator, list2.separator)) {
-          (ListSeparator.undecided, ListSeparator.undecided) =>
-            ListSeparator.space,
-          (ListSeparator.undecided, var separator) ||
-          (var separator, _) =>
-            separator,
-        },
-      "space" => ListSeparator.space,
-      "comma" => ListSeparator.comma,
-      "slash" => ListSeparator.slash,
+        (.undecided, .undecided) => .space,
+        (.undecided, var separator) || (var separator, _) => separator,
+      },
+      "space" => .space,
+      "comma" => .comma,
+      "slash" => .slash,
       _ => throw SassScriptException(
-          '\$separator: Must be "space", "comma", "slash", or "auto".',
-        ),
+        '\$separator: Must be "space", "comma", "slash", or "auto".',
+      ),
     };
 
     var bracketed =
         bracketedParam is SassString && bracketedParam.text == 'auto'
-            ? list1.hasBrackets
-            : bracketedParam.isTruthy;
+        ? list1.hasBrackets
+        : bracketedParam.isTruthy;
 
     var newList = [...list1.asList, ...list2.asList];
     return SassList(newList, separator, brackets: bracketed);
@@ -97,15 +94,16 @@ final _append = _function("append", r"$list, $val, $separator: auto", (
   var separatorParam = arguments[2].assertString("separator");
 
   var separator = switch (separatorParam.text) {
-    "auto" => list.separator == ListSeparator.undecided
-        ? ListSeparator.space
-        : list.separator,
+    "auto" =>
+      list.separator == ListSeparator.undecided
+          ? ListSeparator.space
+          : list.separator,
     "space" => ListSeparator.space,
     "comma" => ListSeparator.comma,
     "slash" => ListSeparator.slash,
     _ => throw SassScriptException(
-        '\$separator: Must be "space", "comma", "slash", or "auto".',
-      ),
+      '\$separator: Must be "space", "comma", "slash", or "auto".',
+    ),
   };
 
   var newList = [...list.asList, value];
@@ -139,8 +137,8 @@ final _separator = _function(
   "separator",
   r"$list",
   (arguments) => switch (arguments[0].separator) {
-    ListSeparator.comma => SassString("comma", quotes: false),
-    ListSeparator.slash => SassString("slash", quotes: false),
+    .comma => SassString("comma", quotes: false),
+    .slash => SassString("slash", quotes: false),
     _ => SassString("space", quotes: false),
   },
 );
@@ -165,5 +163,4 @@ BuiltInCallable _function(
   String name,
   String arguments,
   Value Function(List<Value> arguments) callback,
-) =>
-    BuiltInCallable.function(name, arguments, callback, url: "sass:list");
+) => BuiltInCallable.function(name, arguments, callback, url: "sass:list");

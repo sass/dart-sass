@@ -10,5 +10,5 @@ import 'package:js/js.dart';
 @JS('URL')
 @anonymous
 class JSUrl {
-  external JSUrl(String url, [String base]);
+  external new(String url, [String base]);
 }

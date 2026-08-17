@@ -16,42 +16,33 @@ import 'simple.dart';
 /// when `parseSelectors: true` is passed to [Stylesheet.parse].
 ///
 /// {@category AST}
-final class InterpolatedPseudoSelector extends InterpolatedSimpleSelector {
+final class InterpolatedPseudoSelector(
   /// The name of this selector (including any vendor prefixes).
-  final Interpolation name;
-
-  /// Whether this is syntactically a pseudo-class selector.
-  ///
-  /// This is `true` if and only if [isSyntacticElement] is `false`.
-  final bool isSyntacticClass;
-
-  /// Whether this is syntactically a pseudo-element selector.
-  ///
-  /// This is `true` if and only if [isSyntacticClass] is `false`.
-  bool get isSyntacticElement => !isSyntacticClass;
+  final Interpolation name,
+  @override final FileSpan span, {
+  bool element = false,
 
   /// The non-selector argument passed to this selector.
   ///
   /// This is `null` if there's no argument. If [argument] and [selector] are
   /// both non-`null`, the selector follows the argument.
-  final Interpolation? argument;
+  final Interpolation? argument,
 
   /// The selector argument passed to this selector.
   ///
   /// This is `null` if there's no selector. If [argument] and [selector] are
   /// both non-`null`, the selector follows the argument.
-  final InterpolatedSelectorList? selector;
+  final InterpolatedSelectorList? selector,
+}) extends InterpolatedSimpleSelector {
+  /// Whether this is syntactically a pseudo-class selector.
+  ///
+  /// This is `true` if and only if [isSyntacticElement] is `false`.
+  final bool isSyntacticClass = !element;
 
-  @override
-  final FileSpan span;
-
-  InterpolatedPseudoSelector(
-    this.name,
-    this.span, {
-    bool element = false,
-    this.argument,
-    this.selector,
-  }) : isSyntacticClass = !element;
+  /// Whether this is syntactically a pseudo-element selector.
+  ///
+  /// This is `true` if and only if [isSyntacticClass] is `false`.
+  bool get isSyntacticElement => !isSyntacticClass;
 
   /// Calls the appropriate visit method on [visitor].
   @override

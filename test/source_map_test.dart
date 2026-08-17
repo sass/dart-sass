@@ -668,7 +668,7 @@ void main() {
               (url) => Uri.parse("u:$url"),
               (_) => ImporterResult(
                 r"$var2: default value !default;",
-                syntax: Syntax.scss,
+                syntax: .scss,
               ),
             ),
           );

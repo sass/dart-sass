@@ -12,19 +12,15 @@ import '../reference.dart';
 /// A Sass variable.
 ///
 /// {@category AST}
-final class VariableExpression extends Expression implements SassReference {
+final class VariableExpression(
+  /// The name of this variable, with underscores converted to hyphens.
+  @override final String name,
+  @override final FileSpan span, {
+
   /// The namespace of the variable being referenced, or `null` if it's
   /// referenced without a namespace.
-  @override
-  final String? namespace;
-
-  /// The name of this variable, with underscores converted to hyphens.
-  @override
-  final String name;
-
-  @override
-  final FileSpan span;
-
+  @override final String? namespace,
+}) extends Expression implements SassReference {
   @override
   FileSpan get nameSpan {
     if (namespace == null) return span;
@@ -34,8 +30,6 @@ final class VariableExpression extends Expression implements SassReference {
   @override
   FileSpan? get namespaceSpan =>
       namespace == null ? null : span.initialIdentifier();
-
-  VariableExpression(this.name, this.span, {this.namespace});
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

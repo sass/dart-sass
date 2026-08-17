@@ -15,7 +15,8 @@ void sharedTests(
   Future<TestProcess> Function(
     Iterable<String> arguments, {
     Map<String, String>? environment,
-  }) runSass,
+  })
+  runSass,
 ) {
   /// Runs the executable on [arguments] plus an output file, then verifies that
   /// the contents of the output file match [expected].
@@ -329,8 +330,7 @@ void sharedTests(
   });
 
   // Regression test for an issue mentioned in sass/linter#15
-  test(
-      "gracefully reports errors for binary operations with parenthesized "
+  test("gracefully reports errors for binary operations with parenthesized "
       "operands", () async {
     var sass = await runSass(["--no-unicode", "-"]);
     sass.stdin.writeln("a {b: (#123) + (#456)}");
@@ -777,9 +777,9 @@ void sharedTests(
       // the BOM.
       var bomBytes = utf8.encode("\uFEFF");
       expect(
-        File(
-          p.join(d.sandbox, "test.css"),
-        ).readAsBytesSync().sublist(0, bomBytes.length),
+        File(p.join(d.sandbox, "test.css"))
+            .readAsBytesSync()
+            .sublist(0, bomBytes.length),
         equals(bomBytes),
       );
     });
@@ -810,9 +810,9 @@ void sharedTests(
       // the BOM.
       var bomBytes = utf8.encode("\uFEFF");
       expect(
-        File(
-          p.join(d.sandbox, "test.css"),
-        ).readAsBytesSync().sublist(0, bomBytes.length),
+        File(p.join(d.sandbox, "test.css"))
+            .readAsBytesSync()
+            .sublist(0, bomBytes.length),
         isNot(equals(bomBytes)),
       );
     });

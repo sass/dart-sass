@@ -22,7 +22,7 @@ abstract class Logger {
 
   /// Creates a logger that prints warnings to standard error, with terminal
   /// colors if [color] is `true` (default `false`).
-  const factory Logger.stderr({bool color}) = StderrLogger;
+  const factory stderr({bool color}) = StderrLogger;
 
   /// The logger that's used when no others are selected. This is always
   /// [Logger.stderr], but with the value for `color` chosen based on whether
@@ -58,9 +58,7 @@ abstract class Logger {
 /// Implementers should override the protected [internalWarn] method instead of
 /// [warn].
 @internal
-abstract class LoggerWithDeprecationType implements Logger {
-  const LoggerWithDeprecationType();
-
+abstract class const LoggerWithDeprecationType() implements Logger {
   /// This forwards all calls to [internalWarn].
   ///
   /// For non-user deprecation warnings, the [warnForDeprecation] extension
@@ -76,7 +74,7 @@ abstract class LoggerWithDeprecationType implements Logger {
       message,
       span: span,
       trace: trace,
-      deprecation: deprecation ? Deprecation.userAuthored : null,
+      deprecation: deprecation ? .userAuthored : null,
     );
   }
 

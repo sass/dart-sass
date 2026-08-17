@@ -40,11 +40,11 @@ final throwsSassScriptException = throwsA(
 /// Like [equals], but asserts that the hash codes of the values are the same as
 /// well.
 Matcher equalsWithHash(Object expected) => predicate((actual) {
-      expect(actual, equals(expected));
-      expect(
-        actual.hashCode,
-        equals(expected.hashCode),
-        reason: "Expected $actual's hash code to equal $expected's.",
-      );
-      return true;
-    });
+  expect(actual, equals(expected));
+  expect(
+    actual.hashCode,
+    equals(expected.hashCode),
+    reason: "Expected $actual's hash code to equal $expected's.",
+  );
+  return true;
+});

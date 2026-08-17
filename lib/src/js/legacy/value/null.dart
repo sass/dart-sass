@@ -14,7 +14,7 @@ import '../../reflection.dart';
 /// to have a constructor injected into their inheritance chain so that
 /// `instanceof` works properly.
 final JSClass legacyNullClass = () {
-  var jsClass = createJSClass('sass.types.Null', (dynamic _, [dynamic __]) {
+  var jsClass = createJSClass('sass.types.Null', (dynamic _, [dynamic _]) {
     throw "new sass.types.Null() isn't allowed. Use sass.types.Null.NULL "
         "instead.";
   });

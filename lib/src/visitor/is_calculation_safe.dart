@@ -17,9 +17,7 @@ import 'interface/expression.dart';
 /// context.
 ///
 /// This should be used through [Expression.isCalculationSafe].
-class IsCalculationSafeVisitor implements ExpressionVisitor<bool> {
-  const IsCalculationSafeVisitor();
-
+class const IsCalculationSafeVisitor() implements ExpressionVisitor<bool> {
   @override
   bool visitBinaryOperationExpression(BinaryOperationExpression node) =>
       (const {
@@ -46,8 +44,7 @@ class IsCalculationSafeVisitor implements ExpressionVisitor<bool> {
   @override
   bool visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
-  ) =>
-      true;
+  ) => true;
 
   @override
   bool visitLegacyIfExpression(LegacyIfExpression node) => true;
@@ -84,14 +81,14 @@ class IsCalculationSafeVisitor implements ExpressionVisitor<bool> {
     // cheaper.
     var text = node.text.initialPlain;
     return
-        // !important
-        !text.startsWith("!") &&
-            // ID-style identifiers
-            !text.startsWith("#") &&
-            // Unicode ranges
-            text.codeUnitAtOrNull(1) != $plus &&
-            // url()
-            text.codeUnitAtOrNull(3) != $lparen;
+    // !important
+    !text.startsWith("!") &&
+        // ID-style identifiers
+        !text.startsWith("#") &&
+        // Unicode ranges
+        text.codeUnitAtOrNull(1) != $plus &&
+        // url()
+        text.codeUnitAtOrNull(3) != $lparen;
   }
 
   @override

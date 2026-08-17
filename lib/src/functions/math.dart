@@ -8,7 +8,6 @@ import 'dart:math' as math;
 import 'package:collection/collection.dart';
 
 import '../callable.dart';
-import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
@@ -29,7 +28,7 @@ final global = UnmodifiableListView([
         "\n"
         "To emit a CSS abs() now: abs(#{$number})\n"
         "More info: https://sass-lang.com/d/abs-percent",
-        Deprecation.absPercent,
+        .absPercent,
       );
     } else {
       warnForGlobalBuiltIn('math', 'abs');
@@ -124,8 +123,9 @@ final _round = _numberFunction("round", (number) => number.round().toDouble());
 ///
 
 final _hypot = _function("hypot", r"$numbers...", (arguments) {
-  var numbers =
-      arguments[0].asList.map((argument) => argument.assertNumber()).toList();
+  var numbers = arguments[0].asList
+      .map((argument) => argument.assertNumber())
+      .toList();
   if (numbers.isEmpty) {
     throw SassScriptException("At least one argument must be passed.");
   }
@@ -245,7 +245,7 @@ final _randomFunction = _function("random", r"$limit: null", (arguments) {
       "math.random(math.div(\$limit, 1${limit.unitString}))\n"
       "\n"
       "More info: https://sass-lang.com/d/function-units",
-      Deprecation.functionUnits,
+      .functionUnits,
     );
   }
 
@@ -289,7 +289,9 @@ BuiltInCallable _singleArgumentMathFunc(
 /// Returns a [Callable] named [name] that transforms a number's value
 /// using [transform] and preserves its units.
 BuiltInCallable _numberFunction(
-    String name, double Function(double value) transform) {
+  String name,
+  double Function(double value) transform,
+) {
   return _function(name, r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
     return SassNumber.withUnits(
@@ -305,5 +307,4 @@ BuiltInCallable _function(
   String name,
   String arguments,
   Value Function(List<Value> arguments) callback,
-) =>
-    BuiltInCallable.function(name, arguments, callback, url: "sass:math");
+) => BuiltInCallable.function(name, arguments, callback, url: "sass:math");

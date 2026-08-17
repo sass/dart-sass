@@ -58,11 +58,11 @@ SourceSpan_SourceLocation _protofyLocation(SourceLocation location) =>
 
 /// Converts a protocol buffer syntax enum into a Sass API syntax enum.
 Syntax syntaxToSyntax(proto.Syntax syntax) => switch (syntax) {
-      proto.Syntax.SCSS => Syntax.scss,
-      proto.Syntax.INDENTED => Syntax.sass,
-      proto.Syntax.CSS => Syntax.css,
-      _ => throw "Unknown syntax $syntax.",
-    };
+  .SCSS => .scss,
+  .INDENTED => .sass,
+  .CSS => .css,
+  _ => throw "Unknown syntax $syntax.",
+};
 
 /// Returns the result of running [callback] with the global ASCII config set
 /// to [ascii].

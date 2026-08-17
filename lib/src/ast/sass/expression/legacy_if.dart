@@ -15,39 +15,33 @@ import '../../../visitor/interface/expression.dart';
 /// evaluated.
 ///
 /// {@category AST}
-final class LegacyIfExpression extends Expression
-    implements CallableInvocation {
+final class LegacyIfExpression(
+  /// The arguments passed to `if()`.
+  @override final ArgumentList arguments,
+  @override final FileSpan span,
+) extends Expression implements CallableInvocation {
   /// The declaration of `if()`, as though it were a normal function.
   static final declaration = ParameterList.parse(
     r"@function if($condition, $if-true, $if-false) {",
   );
-
-  /// The arguments passed to `if()`.
-  @override
-  final ArgumentList arguments;
-
-  @override
-  final FileSpan span;
 
   /// Returns a modern `if()` expression to use instead of this.
   ///
   /// @nodoc
   @internal
   String? get modernSuggestion => switch (arguments) {
-        ArgumentList(
-          positional: [var condition, var ifTrue, var ifFalse],
-          named: Map(isEmpty: true),
-          rest: null,
-        ) =>
-          ifFalse is NullExpression
-              ? "if(sass($condition): $ifTrue)"
-              : ifTrue is NullExpression
-                  ? "if(not sass($condition): $ifFalse)"
-                  : "if(sass($condition): $ifTrue; else: $ifFalse)",
-        _ => null,
-      };
-
-  LegacyIfExpression(this.arguments, this.span);
+    ArgumentList(
+      positional: [var condition, var ifTrue, var ifFalse],
+      named: Map(isEmpty: true),
+      rest: null,
+    ) =>
+      ifFalse is NullExpression
+          ? "if(sass($condition): $ifTrue)"
+          : ifTrue is NullExpression
+          ? "if(not sass($condition): $ifFalse)"
+          : "if(sass($condition): $ifTrue; else: $ifFalse)",
+    _ => null,
+  };
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

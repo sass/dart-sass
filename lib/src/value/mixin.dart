@@ -30,10 +30,10 @@ final class SassMixin extends Value {
   /// current compilation or not.
   final Object? _compileContext;
 
-  SassMixin(this.callable) : _compileContext = null;
+  new(this.callable) : _compileContext = null;
 
   @internal
-  SassMixin.withCompileContext(this.callable, this._compileContext);
+  new withCompileContext(this.callable, this._compileContext);
 
   /// @nodoc
   @override
@@ -51,7 +51,8 @@ final class SassMixin extends Value {
   SassMixin assertCompileContext(Object compileContext) {
     if (_compileContext != null && _compileContext != compileContext) {
       throw SassScriptException(
-          "$this does not belong to current compilation.");
+        "$this does not belong to current compilation.",
+      );
     }
 
     return this;

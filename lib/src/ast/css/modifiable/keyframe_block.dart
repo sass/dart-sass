@@ -11,16 +11,10 @@ import '../value.dart';
 import 'node.dart';
 
 /// A modifiable version of [CssKeyframeBlock] for use in the evaluation step.
-final class ModifiableCssKeyframeBlock extends ModifiableCssParentNode
-    implements CssKeyframeBlock {
-  @override
-  final CssValue<List<String>> selector;
-
-  @override
-  final FileSpan span;
-
-  ModifiableCssKeyframeBlock(this.selector, this.span);
-
+final class ModifiableCssKeyframeBlock(
+  @override final CssValue<List<String>> selector,
+  @override final FileSpan span,
+) extends ModifiableCssParentNode implements CssKeyframeBlock {
   @override
   T accept<T>(ModifiableCssVisitor<T> visitor) =>
       visitor.visitCssKeyframeBlock(this);

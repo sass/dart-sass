@@ -30,8 +30,7 @@ final JSClass argumentListClass = () {
     (SassArgumentList self) => dartMapToImmutableMap(self.keywords),
   );
 
-  getJSClass(
-    SassArgumentList([], {}, ListSeparator.undecided),
-  ).injectSuperclass(jsClass);
+  getJSClass(SassArgumentList([], {}, ListSeparator.undecided))
+      .injectSuperclass(jsClass);
   return jsClass;
 }();

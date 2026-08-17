@@ -14,15 +14,13 @@ import 'interface/if_condition_expression.dart';
 /// produce the same result as it would in Sass.
 ///
 /// This should be used through [Expression.isPlainCss].
-class IsPlainCssVisitor
-    implements ExpressionVisitor<bool>, IfConditionExpressionVisitor<bool> {
+class const IsPlainCssVisitor({
   /// Whether to allow interpolation to as an exception to allowing plain CSS.
-  final bool _allowInterpolation;
-
-  /// If [allowInterpolation] is true, interpolated expressions are allowed as
+  final bool _allowInterpolation = false,
+}) implements ExpressionVisitor<bool>, IfConditionExpressionVisitor<bool> {
+  /// If [_allowInterpolation] is true, interpolated expressions are allowed as
   /// an exception, even if they contain SassScript.
-  const IsPlainCssVisitor({bool allowInterpolation = false})
-      : _allowInterpolation = allowInterpolation;
+  this;
 
   @override
   bool visitBinaryOperationExpression(BinaryOperationExpression node) => false;
@@ -38,18 +36,18 @@ class IsPlainCssVisitor
       node.namespace == null && _visitArgumentList(node.arguments);
 
   @override
-  bool visitIfExpression(IfExpression node) =>
-      node.branches.every((pair) => switch (pair) {
-            (var condition?, var branch) =>
-              condition.accept(this) && branch.accept(this),
-            (_, var branch) => branch.accept(this),
-          });
+  bool visitIfExpression(IfExpression node) => node.branches.every(
+    (pair) => switch (pair) {
+      (var condition?, var branch) =>
+        condition.accept(this) && branch.accept(this),
+      (_, var branch) => branch.accept(this),
+    },
+  );
 
   @override
   bool visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
-  ) =>
-      _allowInterpolation && _visitArgumentList(node.arguments);
+  ) => _allowInterpolation && _visitArgumentList(node.arguments);
 
   @override
   bool visitLegacyIfExpression(LegacyIfExpression node) => false;

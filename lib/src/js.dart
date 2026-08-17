@@ -60,8 +60,8 @@ void main() {
   exports.Exception = exceptionClass;
   exports.Logger = LoggerNamespace(
     silent: JSLogger(
-      warn: allowInteropNamed('sass.Logger.silent.warn', (_, __) {}),
-      debug: allowInteropNamed('sass.Logger.silent.debug', (_, __) {}),
+      warn: allowInteropNamed('sass.Logger.silent.warn', (_, _) {}),
+      debug: allowInteropNamed('sass.Logger.silent.debug', (_, _) {}),
     ),
   );
   exports.NodePackageImporter = nodePackageImporterClass;

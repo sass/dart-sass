@@ -5,20 +5,18 @@
 import 'package:charcode/charcode.dart';
 
 import '../ast/sass.dart';
-import '../deprecation.dart';
 import '../interpolation_buffer.dart';
 import '../util/character.dart';
 import 'stylesheet.dart';
 
 /// A parser for the CSS-compatible syntax.
-class ScssParser extends StylesheetParser {
+class ScssParser(super.contents, {super.url, super.parseSelectors})
+    extends StylesheetParser {
   @override
   bool get indented => false;
 
   @override
   int get currentIndentation => 0;
-
-  ScssParser(super.contents, {super.url, super.parseSelectors});
 
   @override
   Interpolation styleRuleSelector() => almostAnyValue();
@@ -52,7 +50,7 @@ class ScssParser extends StylesheetParser {
       if (scanIdentifier('else', caseSensitive: true)) return true;
       if (scanIdentifier('elseif', caseSensitive: true)) {
         warnings.add((
-          deprecation: Deprecation.elseif,
+          deprecation: .elseif,
           message:
               '@elseif is deprecated and will not be supported in future Sass '
               'versions.\n'
@@ -148,10 +146,7 @@ class ScssParser extends StylesheetParser {
     } while (scanner.scan("//"));
 
     if (plainCss) {
-      error(
-        "Silent comments aren't allowed in plain CSS.",
-        spanFrom(start),
-      );
+      error("Silent comments aren't allowed in plain CSS.", spanFrom(start));
     }
 
     return lastSilentComment = SilentComment(

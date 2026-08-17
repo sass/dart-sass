@@ -18,39 +18,40 @@ import './canonicalize_context.dart';
 /// removed, at which point we can delete this and have one consistent behavior.
 bool get fromImport =>
     ((Zone.current[#_canonicalizeContext] as CanonicalizeContext?)
-            ?.fromImport ??
-        false);
+        ?.fromImport ??
+    false);
 
 /// The CanonicalizeContext of the current load.
-CanonicalizeContext get canonicalizeContext =>
-    switch (Zone.current[#_canonicalizeContext]) {
-      null => throw StateError(
-          "canonicalizeContext may only be accessed within a call to canonicalize().",
-        ),
-      CanonicalizeContext context => context,
-      var value => throw StateError(
-          "Unexpected Zone.current[#_canonicalizeContext] value $value.",
-        ),
-    };
+CanonicalizeContext get canonicalizeContext => switch (Zone
+    .current[#_canonicalizeContext]) {
+  null => throw StateError(
+    "canonicalizeContext may only be accessed within a call to canonicalize().",
+  ),
+  CanonicalizeContext context => context,
+  var value => throw StateError(
+    "Unexpected Zone.current[#_canonicalizeContext] value $value.",
+  ),
+};
 
 /// Runs [callback] in a context where [fromImport] returns `true` and
 /// [resolveImportPath] uses `@import` semantics rather than `@use` semantics.
 T inImportRule<T>(T Function() callback) =>
     switch (Zone.current[#_canonicalizeContext]) {
       null => runZoned(
-          callback,
-          zoneValues: {#_canonicalizeContext: CanonicalizeContext(null, true)},
-        ),
+        callback,
+        zoneValues: {#_canonicalizeContext: CanonicalizeContext(null, true)},
+      ),
       CanonicalizeContext context => context.withFromImport(true, callback),
       var value => throw StateError(
-          "Unexpected Zone.current[#_canonicalizeContext] value $value.",
-        ),
+        "Unexpected Zone.current[#_canonicalizeContext] value $value.",
+      ),
     };
 
 /// Runs [callback] in the given context.
 T withCanonicalizeContext<T>(
-        CanonicalizeContext? context, T Function() callback) =>
-    runZoned(callback, zoneValues: {#_canonicalizeContext: context});
+  CanonicalizeContext? context,
+  T Function() callback,
+) => runZoned(callback, zoneValues: {#_canonicalizeContext: context});
 
 /// Resolves an imported path using the same logic as the filesystem importer.
 ///
@@ -107,11 +108,12 @@ String? _tryPathAsDirectory(String path) {
 /// If it contains no paths, returns `null`. If it contains more than one,
 /// throws an exception.
 String? _exactlyOne(List<String> paths) => switch (paths) {
-      [] => null,
-      [var path] => path,
-      _ => throw "It's not clear which file to import. Found:\n"
-          "${_pathList(paths)}",
-    };
+  [] => null,
+  [var path] => path,
+  _ =>
+    throw "It's not clear which file to import. Found:\n"
+        "${_pathList(paths)}",
+};
 
 /// Formats [paths] into a human-readable list.
 String _pathList(List<String> paths) =>

@@ -11,7 +11,7 @@ import '../../value.dart';
 ///
 /// {@category Value}
 @sealed
-class UnitlessSassNumber extends SassNumber {
+class UnitlessSassNumber(super.value, [super.asSlash]) extends SassNumber {
   @override
   List<String> get numeratorUnits => const [];
 
@@ -24,7 +24,7 @@ class UnitlessSassNumber extends SassNumber {
   @override
   bool get hasComplexUnits => false;
 
-  UnitlessSassNumber(super.value, [super.asSlash]) : super.protected();
+  this : super.protected();
 
   @override
   SassNumber withValue(num value) => UnitlessSassNumber(value.toDouble());
@@ -52,58 +52,52 @@ class UnitlessSassNumber extends SassNumber {
     SassNumber other, [
     String? name,
     String? otherName,
-  ]) =>
-      other.withValue(value);
+  ]) => other.withValue(value);
 
   @override
   double coerceValueToMatch(
     SassNumber other, [
     String? name,
     String? otherName,
-  ]) =>
-      value;
+  ]) => value;
 
   @override
   SassNumber convertToMatch(
     SassNumber other, [
     String? name,
     String? otherName,
-  ]) =>
-      other.hasUnits
-          // Call this to generate a consistent error message.
-          ? super.convertToMatch(other, name, otherName)
-          : this;
+  ]) => other.hasUnits
+      // Call this to generate a consistent error message.
+      ? super.convertToMatch(other, name, otherName)
+      : this;
 
   @override
   double convertValueToMatch(
     SassNumber other, [
     String? name,
     String? otherName,
-  ]) =>
-      other.hasUnits
-          // Call this to generate a consistent error message.
-          ? super.convertValueToMatch(other, name, otherName)
-          : value;
+  ]) => other.hasUnits
+      // Call this to generate a consistent error message.
+      ? super.convertValueToMatch(other, name, otherName)
+      : value;
 
   @override
   SassNumber coerce(
     List<String> newNumerators,
     List<String> newDenominators, [
     String? name,
-  ]) =>
-      SassNumber.withUnits(
-        value,
-        numeratorUnits: newNumerators,
-        denominatorUnits: newDenominators,
-      );
+  ]) => SassNumber.withUnits(
+    value,
+    numeratorUnits: newNumerators,
+    denominatorUnits: newDenominators,
+  );
 
   @override
   double coerceValue(
     List<String> newNumerators,
     List<String> newDenominators, [
     String? name,
-  ]) =>
-      value;
+  ]) => value;
 
   @override
   double coerceValueToUnit(String unit, [String? name]) => value;

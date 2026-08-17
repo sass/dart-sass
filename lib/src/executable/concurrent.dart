@@ -25,24 +25,24 @@ Future<bool> compileStylesheets(
     // Concurrency does add some overhead, so avoid it in the common case of
     // compiling a single stylesheet.
     [(var source, var destination)] => [
-        await compileStylesheet(
+      await compileStylesheet(
+        options,
+        graph,
+        source,
+        destination,
+        ifModified: ifModified,
+      ),
+    ],
+    var pairs => await Future.wait([
+      for (var (source, destination) in pairs)
+        compileStylesheetConcurrently(
           options,
           graph,
           source,
           destination,
           ifModified: ifModified,
         ),
-      ],
-    var pairs => await Future.wait([
-        for (var (source, destination) in pairs)
-          compileStylesheetConcurrently(
-            options,
-            graph,
-            source,
-            destination,
-            ifModified: ifModified,
-          ),
-      ], eagerError: options.stopOnError),
+    ], eagerError: options.stopOnError),
   };
 
   var printedError = false;

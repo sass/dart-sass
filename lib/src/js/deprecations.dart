@@ -18,7 +18,7 @@ class Deprecation {
   external Version? get deprecatedIn;
   external Version? get obsoleteIn;
 
-  external factory Deprecation({
+  external factory({
     required String id,
     required String status,
     String? description,
@@ -31,15 +31,15 @@ final Map<String, Deprecation?> deprecations = {
   for (var deprecation in dart.Deprecation.values)
     // `calc-interp` was never actually used, so we don't want to expose it
     // in the JS API.
-    if (deprecation != dart.Deprecation.calcInterp)
+    if (deprecation != .calcInterp)
       deprecation.id: Deprecation(
         id: deprecation.id,
         status: (() => switch (deprecation) {
-              dart.Deprecation(isFuture: true) => 'future',
-              dart.Deprecation(deprecatedIn: null, obsoleteIn: null) => 'user',
-              dart.Deprecation(obsoleteIn: null) => 'active',
-              _ => 'obsolete',
-            })(),
+          dart.Deprecation(isFuture: true) => 'future',
+          dart.Deprecation(deprecatedIn: null, obsoleteIn: null) => 'user',
+          dart.Deprecation(obsoleteIn: null) => 'active',
+          _ => 'obsolete',
+        })(),
         description: deprecation.description,
         deprecatedIn: deprecation.deprecatedIn,
         obsoleteIn: deprecation.obsoleteIn,

@@ -90,7 +90,8 @@ Future<void> expectParamsError(
   expect(actualCompilationId, equals(compilationId));
   expect(actualMessage, isProtocolError(id, ProtocolErrorType.PARAMS, message));
 
-  var stderrPrefix = "Host caused params error"
+  var stderrPrefix =
+      "Host caused params error"
       "${id == errorId ? '' : " with request $id"}: ";
   await expectLater(
     process.stderr,
@@ -260,6 +261,6 @@ SourceSpan_SourceLocation location(int offset, int line, int column) =>
 /// Returns a matcher that verifies whether the given value refers to the same
 /// path as [expected].
 Matcher equalsPath(String expected) => predicate<String>(
-      (actual) => p.equals(actual, expected),
-      "equals $expected",
-    );
+  (actual) => p.equals(actual, expected),
+  "equals $expected",
+);

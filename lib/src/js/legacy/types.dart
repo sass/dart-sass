@@ -21,7 +21,7 @@ class Types {
   external set String(JSClass function);
   external set Error(JSClass function);
 
-  external factory Types({
+  external factory({
     JSClass? Boolean,
     JSClass? Color,
     JSClass? List,

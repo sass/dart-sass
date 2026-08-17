@@ -48,15 +48,15 @@ class SassList extends Value {
   /// Returns an empty list with the given [separator] and [brackets].
   ///
   /// The [separator] defaults to [ListSeparator.undecided], and [brackets] defaults to `false`.
-  const SassList.empty({ListSeparator? separator, bool brackets = false})
-      : _contents = const [],
-        _separator = separator ?? ListSeparator.undecided,
-        _hasBrackets = brackets;
+  const new empty({ListSeparator? separator, bool brackets = false})
+    : _contents = const [],
+      _separator = separator ?? ListSeparator.undecided,
+      _hasBrackets = brackets;
 
   /// Returns an empty list with the given [separator] and [brackets].
-  SassList(Iterable<Value> contents, this._separator, {bool brackets = false})
-      : _contents = List.unmodifiable(contents),
-        _hasBrackets = brackets {
+  new(Iterable<Value> contents, this._separator, {bool brackets = false})
+    : _contents = List.unmodifiableOf(contents),
+      _hasBrackets = brackets {
     if (separator == ListSeparator.undecided && asList.length > 1) {
       throw ArgumentError(
         "A list with more than one element must have an explicit separator.",
@@ -104,7 +104,16 @@ class SassList extends Value {
 /// An enum of list separator types.
 ///
 /// {@category Value}
-enum ListSeparator {
+enum ListSeparator(
+  /// The English name of the separator type.
+  final String _name,
+
+  /// The separator character.
+  ///
+  /// If the separator of a list has not been decided, this value will be
+  /// `null`.
+  final String? separator,
+) {
   /// A space-separated list.
   space('space', ' '),
 
@@ -119,16 +128,6 @@ enum ListSeparator {
   /// Singleton lists and empty lists don't have separators defined. This means
   /// that list functions will prefer other lists' separators if possible.
   undecided('undecided', null);
-
-  final String _name;
-
-  /// The separator character.
-  ///
-  /// If the separator of a list has not been decided, this value will be
-  /// `null`.
-  final String? separator;
-
-  const ListSeparator(this._name, this.separator);
 
   @override
   String toString() => _name;
