@@ -18,7 +18,6 @@ import '../../../visitor/interface/expression.dart';
 final class LegacyIfExpression(
   /// The arguments passed to `if()`.
   @override final ArgumentList arguments,
-
   @override final FileSpan span,
 ) extends Expression implements CallableInvocation {
   /// The declaration of `if()`, as though it were a normal function.
