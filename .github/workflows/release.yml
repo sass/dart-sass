@@ -340,7 +340,7 @@ jobs:
           GIT_AUTHOR_EMAIL: sass.bot.beep.boop@gmail.com
           GIT_COMMITTER_NAME: Sass Bot
           GIT_COMMITTER_EMAIL: sass.bot.beep.boop@gmail.com
-      - run: git tag "$VERSION"
+      - run: git tag -a "$VERSION" -m "$VERSION"
         env:
           VERSION: ${{ steps.version.outputs.version }}
-      - run: git push
+      - run: git push --follow-tags
