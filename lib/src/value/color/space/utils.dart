@@ -83,6 +83,9 @@ SassColor labToLch(
   bool missingChroma = false,
   bool missingHue = false,
 }) {
+  missingChroma = missingChroma || (a == null && b == null);
+  missingHue = missingHue || (a == null && b == null);
+
   // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
   var chroma = math.sqrt(math.pow(a ?? 0, 2) + math.pow(b ?? 0, 2));
   var hue = missingHue || fuzzyEquals(chroma, 0)

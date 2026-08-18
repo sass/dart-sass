@@ -39,6 +39,11 @@ final class const SrgbColorSpace() extends ColorSpace {
     bool missingChroma = false,
     bool missingHue = false,
   }) {
+    if ((red == null && green == null && blue == null) ||
+        (missingLightness && missingChroma && missingHue)) {
+      return SassColor.forSpaceInternal(dest, null, null, null, alpha);
+    }
+
     switch (dest) {
       case ColorSpace.hsl || ColorSpace.hwb:
         red ??= 0;
@@ -88,8 +93,8 @@ final class const SrgbColorSpace() extends ColorSpace {
             missingHue || fuzzyGreaterThanOrEquals(whiteness + blackness, 100)
                 ? null
                 : hue % 360,
-            whiteness,
-            blackness,
+            missingChroma && missingLightness ? null : whiteness,
+            missingChroma && missingLightness ? null : blackness,
             alpha,
           );
         }
