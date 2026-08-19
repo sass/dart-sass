@@ -47,7 +47,7 @@ final class const OklabColorSpace() extends ColorSpace {
     bool missingChroma = false,
     bool missingHue = false,
   }) {
-    if (dest == ColorSpace.oklch) {
+    if (dest == .oklch) {
       return labToLch(
         dest,
         lightness,

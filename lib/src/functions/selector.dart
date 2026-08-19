@@ -157,7 +157,7 @@ final _simpleSelectors = _function("simple-selectors", r"$selector", (
     selector.components.map(
       (simple) => SassString(simple.toString(), quotes: false),
     ),
-    ListSeparator.comma,
+    .comma,
   );
 });
 

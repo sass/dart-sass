@@ -2366,9 +2366,9 @@ final class _EvaluateVisitor({
       inner:
       for (var query2 in queries2) {
         switch (query1.merge(query2)) {
-          case MediaQueryMergeResult.empty:
+          case .empty:
             continue inner;
-          case MediaQueryMergeResult.unrepresentable:
+          case .unrepresentable:
             return null;
           case MediaQuerySuccessfulMergeResult result:
             queries.add(result.query);
@@ -2791,8 +2791,8 @@ final class _EvaluateVisitor({
   @override
   Future<Value> visitBinaryOperationExpression(BinaryOperationExpression node) {
     if (_stylesheet.plainCss &&
-        node.operator != BinaryOperator.singleEquals &&
-        node.operator != BinaryOperator.dividedBy) {
+        node.operator != .singleEquals &&
+        node.operator != .dividedBy) {
       throw _exception(
         "Operators aren't allowed in plain CSS.",
         node.operatorSpan,
@@ -2802,38 +2802,24 @@ final class _EvaluateVisitor({
     return _addExceptionSpanAsync(node, () async {
       var left = await node.left.accept(this);
       return switch (node.operator) {
-        BinaryOperator.singleEquals => left.singleEquals(
+        .singleEquals => left.singleEquals(await node.right.accept(this)),
+        .or => left.isTruthy ? left : await node.right.accept(this),
+        .and => left.isTruthy ? await node.right.accept(this) : left,
+        .equals => SassBoolean(left == await node.right.accept(this)),
+        .notEquals => SassBoolean(left != await node.right.accept(this)),
+        .greaterThan => left.greaterThan(await node.right.accept(this)),
+        .greaterThanOrEquals => left.greaterThanOrEquals(
           await node.right.accept(this),
         ),
-        BinaryOperator.or =>
-          left.isTruthy ? left : await node.right.accept(this),
-        BinaryOperator.and =>
-          left.isTruthy ? await node.right.accept(this) : left,
-        BinaryOperator.equals => SassBoolean(
-          left == await node.right.accept(this),
-        ),
-        BinaryOperator.notEquals => SassBoolean(
-          left != await node.right.accept(this),
-        ),
-        BinaryOperator.greaterThan => left.greaterThan(
+        .lessThan => left.lessThan(await node.right.accept(this)),
+        .lessThanOrEquals => left.lessThanOrEquals(
           await node.right.accept(this),
         ),
-        BinaryOperator.greaterThanOrEquals => left.greaterThanOrEquals(
-          await node.right.accept(this),
-        ),
-        BinaryOperator.lessThan => left.lessThan(await node.right.accept(this)),
-        BinaryOperator.lessThanOrEquals => left.lessThanOrEquals(
-          await node.right.accept(this),
-        ),
-        BinaryOperator.plus => left.plus(await node.right.accept(this)),
-        BinaryOperator.minus => left.minus(await node.right.accept(this)),
-        BinaryOperator.times => left.times(await node.right.accept(this)),
-        BinaryOperator.dividedBy => _slash(
-          left,
-          await node.right.accept(this),
-          node,
-        ),
-        BinaryOperator.modulo => left.modulo(await node.right.accept(this)),
+        .plus => left.plus(await node.right.accept(this)),
+        .minus => left.minus(await node.right.accept(this)),
+        .times => left.times(await node.right.accept(this)),
+        .dividedBy => _slash(left, await node.right.accept(this), node),
+        .modulo => left.modulo(await node.right.accept(this)),
       };
     });
   }
@@ -2852,7 +2838,7 @@ final class _EvaluateVisitor({
       case (SassNumber(), SassNumber()):
         String recommendation(Expression expression) => switch (expression) {
           BinaryOperationExpression(
-            operator: BinaryOperator.dividedBy,
+            operator: .dividedBy,
             :var left,
             :var right,
           ) =>
@@ -2915,10 +2901,10 @@ final class _EvaluateVisitor({
     var operand = await node.operand.accept(this);
     return _addExceptionSpan(node, () {
       return switch (node.operator) {
-        UnaryOperator.plus => operand.unaryPlus(),
-        UnaryOperator.minus => operand.unaryMinus(),
-        UnaryOperator.divide => operand.unaryDivide(),
-        UnaryOperator.not => operand.unaryNot(),
+        .plus => operand.unaryPlus(),
+        .minus => operand.unaryMinus(),
+        .divide => operand.unaryDivide(),
+        .not => operand.unaryNot(),
       };
     });
   }
@@ -2979,15 +2965,15 @@ final class _EvaluateVisitor({
         case String right:
           values ??= [];
           values.add((expression, right));
-        case false when node.op == BooleanOperator.and:
+        case false when node.op == .and:
           return false;
-        case true when node.op == BooleanOperator.or:
+        case true when node.op == .or:
           return true;
       }
     }
 
     return switch (values) {
-      null => node.op == BooleanOperator.and,
+      null => node.op == .and,
 
       // If the only CSS node left in the operation is parenthesized, remove
       // the parentheses. This is guaranteed to be valid because parentheses
@@ -3407,7 +3393,7 @@ final class _EvaluateVisitor({
 
       case ListExpression(
         hasBrackets: false,
-        separator: ListSeparator.space,
+        separator: .space,
         contents: [_, _, ...],
       ):
         var elements = [
@@ -3443,8 +3429,7 @@ final class _EvaluateVisitor({
   void _checkWhitespaceAroundCalculationOperator(
     BinaryOperationExpression node,
   ) {
-    if (node.operator != BinaryOperator.plus &&
-        node.operator != BinaryOperator.minus) {
+    if (node.operator != .plus && node.operator != .minus) {
       return;
     }
 
@@ -3474,10 +3459,10 @@ final class _EvaluateVisitor({
     BinaryOperator operator,
     BinaryOperationExpression node,
   ) => switch (operator) {
-    BinaryOperator.plus => CalculationOperator.plus,
-    BinaryOperator.minus => CalculationOperator.minus,
-    BinaryOperator.times => CalculationOperator.times,
-    BinaryOperator.dividedBy => CalculationOperator.dividedBy,
+    .plus => .plus,
+    .minus => .minus,
+    .times => .times,
+    .dividedBy => .dividedBy,
     _ => throw _exception(
       "This operation can't be used in a calculation.",
       node.operatorSpan,
@@ -3499,9 +3484,7 @@ final class _EvaluateVisitor({
       var previousNode = node.contents[i - 1];
       var currentNode = node.contents[i];
       if (currentNode
-          case UnaryOperationExpression(
-                operator: UnaryOperator.minus || UnaryOperator.plus,
-              ) ||
+          case UnaryOperationExpression(operator: .minus || .plus) ||
               NumberExpression(value: < 0)) {
         // `calc(1 -2)` parses as a space-separated list whose second value is a
         // unary operator or a negative number, but just saying it's an invalid
@@ -3606,9 +3589,7 @@ final class _EvaluateVisitor({
             argumentList = SassArgumentList(
               rest,
               evaluated.named,
-              evaluated.separator == ListSeparator.undecided
-                  ? ListSeparator.comma
-                  : evaluated.separator,
+              evaluated.separator == .undecided ? .comma : evaluated.separator,
             );
             _environment.setLocalVariable(
               restParameter,
@@ -3766,9 +3747,7 @@ final class _EvaluateVisitor({
       argumentList = SassArgumentList(
         rest,
         evaluated.named,
-        evaluated.separator == ListSeparator.undecided
-            ? ListSeparator.comma
-            : evaluated.separator,
+        evaluated.separator == .undecided ? .comma : evaluated.separator,
       );
       evaluated.positional.add(argumentList);
     }
@@ -3835,7 +3814,7 @@ final class _EvaluateVisitor({
         positionalNodes: positionalNodes,
         named: named,
         namedNodes: namedNodes,
-        separator: ListSeparator.undecided,
+        separator: ListSeparator.undecided, // dart-lang/sdk#64092
       );
     }
 
@@ -4484,7 +4463,7 @@ final class _EvaluateVisitor({
 
       if (warnForColor && namesByColor.containsKey(result)) {
         var alternative = BinaryOperationExpression(
-          BinaryOperator.plus,
+          .plus,
           StringExpression(
             Interpolation.plain("", interpolation.span),
             quotes: true,

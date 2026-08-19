@@ -49,14 +49,14 @@ final class const HwbColorSpace() extends ColorSpace {
       // channels.
       var converted = convert(dest, hue, 0, 0, alpha);
       return switch (dest) {
-        ColorSpace.hsl => SassColor.forSpaceInternal(
+        .hsl => SassColor.forSpaceInternal(
           dest,
           converted.channel0,
           null,
           null,
           converted.alpha,
         ),
-        ColorSpace.lch || ColorSpace.oklch => SassColor.forSpaceInternal(
+        .lch || .oklch => SassColor.forSpaceInternal(
           dest,
           null,
           null,

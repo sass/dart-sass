@@ -93,14 +93,11 @@ final _append = _function("append", r"$list, $val, $separator: auto", (
   var value = arguments[1];
   var separatorParam = arguments[2].assertString("separator");
 
-  var separator = switch (separatorParam.text) {
-    "auto" =>
-      list.separator == ListSeparator.undecided
-          ? ListSeparator.space
-          : list.separator,
-    "space" => ListSeparator.space,
-    "comma" => ListSeparator.comma,
-    "slash" => ListSeparator.slash,
+  ListSeparator separator = switch (separatorParam.text) {
+    "auto" => list.separator == .undecided ? .space : list.separator,
+    "space" => .space,
+    "comma" => .comma,
+    "slash" => .slash,
     _ => throw SassScriptException(
       '\$separator: Must be "space", "comma", "slash", or "auto".',
     ),
@@ -113,16 +110,16 @@ final _append = _function("append", r"$list, $val, $separator: auto", (
 final _zip = _function("zip", r"$lists...", (arguments) {
   var lists = arguments[0].asList.map((list) => list.asList).toList();
   if (lists.isEmpty) {
-    return const SassList.empty(separator: ListSeparator.comma);
+    return const SassList.empty(separator: .comma);
   }
 
   var i = 0;
   var results = <SassList>[];
   while (lists.every((list) => i != list.length)) {
-    results.add(SassList(lists.map((list) => list[i]), ListSeparator.space));
+    results.add(SassList(lists.map((list) => list[i]), .space));
     i++;
   }
-  return SassList(results, ListSeparator.comma);
+  return SassList(results, .comma);
 });
 
 final _index = _function("index", r"$list, $value", (arguments) {
@@ -155,7 +152,7 @@ final _slash = _function("slash", r"$elements...", (arguments) {
     throw SassScriptException("At least two elements are required.");
   }
 
-  return SassList(list, ListSeparator.slash);
+  return SassList(list, .slash);
 });
 
 /// Like [BuiltInCallable.function], but always sets the URL to `sass:list`.

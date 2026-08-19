@@ -33,10 +33,7 @@ final class const SrgbLinearColorSpace() extends ColorSpace {
     double? blue,
     double? alpha,
   ) => switch (dest) {
-    ColorSpace.rgb ||
-    ColorSpace.hsl ||
-    ColorSpace.hwb ||
-    ColorSpace.srgb => ColorSpace.srgb.convert(
+    .rgb || .hsl || .hwb || .srgb => ColorSpace.srgb.convert(
       dest,
       red.andThen(srgbAndDisplayP3FromLinear),
       green.andThen(srgbAndDisplayP3FromLinear),
@@ -57,14 +54,13 @@ final class const SrgbLinearColorSpace() extends ColorSpace {
   @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
-    ColorSpace.displayP3 ||
-    ColorSpace.displayP3Linear => linearSrgbToLinearDisplayP3,
-    ColorSpace.a98Rgb => linearSrgbToLinearA98Rgb,
-    ColorSpace.prophotoRgb => linearSrgbToLinearProphotoRgb,
-    ColorSpace.rec2020 => linearSrgbToLinearRec2020,
-    ColorSpace.xyzD65 => linearSrgbToXyzD65,
-    ColorSpace.xyzD50 => linearSrgbToXyzD50,
-    ColorSpace.lms => linearSrgbToLms,
+    .displayP3 || .displayP3Linear => linearSrgbToLinearDisplayP3,
+    .a98Rgb => linearSrgbToLinearA98Rgb,
+    .prophotoRgb => linearSrgbToLinearProphotoRgb,
+    .rec2020 => linearSrgbToLinearRec2020,
+    .xyzD65 => linearSrgbToXyzD65,
+    .xyzD50 => linearSrgbToXyzD50,
+    .lms => linearSrgbToLms,
     _ => super.transformationMatrix(dest),
   };
 }

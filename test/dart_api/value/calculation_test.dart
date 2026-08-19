@@ -68,13 +68,13 @@ void main() {
       expect(
         SassCalculation.calc(
           SassCalculation.operate(
-            CalculationOperator.plus,
+            .plus,
             SassCalculation.operate(
-              CalculationOperator.minus,
+              .minus,
               SassCalculation.operate(
-                CalculationOperator.times,
+                .times,
                 SassCalculation.operate(
-                  CalculationOperator.dividedBy,
+                  .dividedBy,
                   SassNumber(5),
                   SassNumber(2),
                 ),

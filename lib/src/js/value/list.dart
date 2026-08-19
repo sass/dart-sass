@@ -30,7 +30,7 @@ final JSClass listClass = () {
     return SassList(
       contents,
       options == null || isUndefined(options.separator)
-          ? ListSeparator.comma
+          ? .comma
           : jsToDartSeparator(options.separator),
       brackets: options?.brackets ?? false,
     );

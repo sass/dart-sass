@@ -193,48 +193,48 @@ final class Protofier(
               : null;
           var alpha = value.color.hasAlpha() ? value.color.alpha : null;
           switch (space) {
-            case ColorSpace.rgb:
+            case .rgb:
               return SassColor.rgb(channel1, channel2, channel3, alpha);
 
-            case ColorSpace.hsl:
+            case .hsl:
               return SassColor.hsl(channel1, channel2, channel3, alpha);
 
-            case ColorSpace.hwb:
+            case .hwb:
               return SassColor.hwb(channel1, channel2, channel3, alpha);
 
-            case ColorSpace.lab:
+            case .lab:
               return SassColor.lab(channel1, channel2, channel3, alpha);
-            case ColorSpace.oklab:
+            case .oklab:
               return SassColor.oklab(channel1, channel2, channel3, alpha);
 
-            case ColorSpace.lch:
+            case .lch:
               return SassColor.lch(channel1, channel2, channel3, alpha);
-            case ColorSpace.oklch:
+            case .oklch:
               return SassColor.oklch(channel1, channel2, channel3, alpha);
 
-            case ColorSpace.srgb:
+            case .srgb:
               return SassColor.srgb(channel1, channel2, channel3, alpha);
-            case ColorSpace.srgbLinear:
+            case .srgbLinear:
               return SassColor.srgbLinear(channel1, channel2, channel3, alpha);
-            case ColorSpace.displayP3:
+            case .displayP3:
               return SassColor.displayP3(channel1, channel2, channel3, alpha);
-            case ColorSpace.displayP3Linear:
+            case .displayP3Linear:
               return SassColor.displayP3Linear(
                 channel1,
                 channel2,
                 channel3,
                 alpha,
               );
-            case ColorSpace.a98Rgb:
+            case .a98Rgb:
               return SassColor.a98Rgb(channel1, channel2, channel3, alpha);
-            case ColorSpace.prophotoRgb:
+            case .prophotoRgb:
               return SassColor.prophotoRgb(channel1, channel2, channel3, alpha);
-            case ColorSpace.rec2020:
+            case .rec2020:
               return SassColor.rec2020(channel1, channel2, channel3, alpha);
 
-            case ColorSpace.xyzD50:
+            case .xyzD50:
               return SassColor.xyzD50(channel1, channel2, channel3, alpha);
-            case ColorSpace.xyzD65:
+            case .xyzD65:
               return SassColor.xyzD65(channel1, channel2, channel3, alpha);
 
             default:
@@ -248,7 +248,7 @@ final class Protofier(
 
           var separator = _deprotofySeparator(value.argumentList.separator);
           var length = value.argumentList.contents.length;
-          if (separator == ListSeparator.undecided && length > 1) {
+          if (separator == .undecided && length > 1) {
             throw paramsError(
               "List $value can't have an undecided separator because it has "
               "$length elements",
@@ -270,7 +270,7 @@ final class Protofier(
           }
 
           var length = value.list.contents.length;
-          if (separator == ListSeparator.undecided && length > 1) {
+          if (separator == .undecided && length > 1) {
             throw paramsError(
               "List $value can't have an undecided separator because it has "
               "$length elements",
@@ -373,10 +373,10 @@ final class Protofier(
   /// Converts [separator] to its Sass representation.
   ListSeparator _deprotofySeparator(proto.ListSeparator separator) =>
       switch (separator) {
-        .COMMA => ListSeparator.comma,
-        .SPACE => ListSeparator.space,
-        .SLASH => ListSeparator.slash,
-        .UNDECIDED => ListSeparator.undecided,
+        .COMMA => .comma,
+        .SPACE => .space,
+        .SLASH => .slash,
+        .UNDECIDED => .undecided,
         _ => throw "Unknown ListSeparator $separator",
       };
 

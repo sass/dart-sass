@@ -230,9 +230,9 @@ abstract base class const ColorSpace(
     }
 
     var linearDest = switch (dest) {
-      ColorSpace.hsl || ColorSpace.hwb => const SrgbColorSpace(),
-      ColorSpace.lab || ColorSpace.lch => const XyzD50ColorSpace(),
-      ColorSpace.oklab || ColorSpace.oklch => const LmsColorSpace(),
+      .hsl || .hwb => const SrgbColorSpace(),
+      .lab || .lch => const XyzD50ColorSpace(),
+      .oklab || .oklch => const LmsColorSpace(),
       _ => dest,
     };
 
@@ -268,7 +268,7 @@ abstract base class const ColorSpace(
     }
 
     return switch (dest) {
-      ColorSpace.hsl || ColorSpace.hwb => const SrgbColorSpace().convert(
+      .hsl || .hwb => const SrgbColorSpace().convert(
         dest,
         transformedRed,
         transformedGreen,
@@ -278,7 +278,7 @@ abstract base class const ColorSpace(
         missingChroma: missingChroma,
         missingHue: missingHue,
       ),
-      ColorSpace.lab || ColorSpace.lch => const XyzD50ColorSpace().convert(
+      .lab || .lch => const XyzD50ColorSpace().convert(
         dest,
         transformedRed,
         transformedGreen,
@@ -290,7 +290,7 @@ abstract base class const ColorSpace(
         missingA: missingA,
         missingB: missingB,
       ),
-      ColorSpace.oklab || ColorSpace.oklch => const LmsColorSpace().convert(
+      .oklab || .oklch => const LmsColorSpace().convert(
         dest,
         transformedRed,
         transformedGreen,

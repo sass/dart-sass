@@ -27,7 +27,7 @@ FunctionExpression expressionToCalc(Expression expression) =>
 class const _MakeExpressionCalculationSafe() with ReplaceExpressionVisitor {
   @override
   Expression visitBinaryOperationExpression(BinaryOperationExpression node) =>
-      node.operator == BinaryOperator.modulo
+      node.operator == .modulo
       // `calc()` doesn't support `%` for modulo but Sass doesn't yet support the
       // `mod()` calculation function because there's no browser support, so we have
       // to work around it by wrapping the call in a Sass function.
@@ -51,9 +51,9 @@ class const _MakeExpressionCalculationSafe() with ReplaceExpressionVisitor {
   Expression visitUnaryOperationExpression(UnaryOperationExpression node) =>
       switch (node.operator) {
         // `calc()` doesn't support unary operations.
-        UnaryOperator.plus => node.operand,
-        UnaryOperator.minus => BinaryOperationExpression(
-          BinaryOperator.times,
+        .plus => node.operand,
+        .minus => BinaryOperationExpression(
+          .times,
           NumberExpression(-1, node.span),
           node.operand,
         ),

@@ -436,7 +436,7 @@ String compileString(
 }) {
   var result = compileStringToResult(
     source,
-    syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
+    syntax: syntax ?? (indented ? .sass : .scss),
     logger: logger,
     importers: importers,
     packageConfig: packageConfig,
@@ -525,7 +525,7 @@ Future<String> compileStringAsync(
 }) async {
   var result = await compileStringToResultAsync(
     source,
-    syntax: syntax ?? (indented ? Syntax.sass : Syntax.scss),
+    syntax: syntax ?? (indented ? .sass : .scss),
     logger: logger,
     importers: importers,
     packageConfig: packageConfig,

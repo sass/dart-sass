@@ -153,7 +153,7 @@ class EmbeddedProcess._(
     // If the process is already dead, do nothing.
     if (await _exitCodeOrNull != null) return;
 
-    _process.kill(ProcessSignal.sigkill);
+    _process.kill(.sigkill);
 
     // Log output now rather than waiting for the exitCode callback so that
     // it's visible even if we time out waiting for the process to die.
@@ -211,7 +211,7 @@ class EmbeddedProcess._(
   ///
   /// If this is called after the process is already dead, it does nothing.
   Future<void> kill() async {
-    _process.kill(ProcessSignal.sigkill);
+    _process.kill(.sigkill);
     await exitCode;
   }
 

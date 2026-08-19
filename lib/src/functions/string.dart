@@ -52,17 +52,14 @@ final module = BuiltInModule(
       }
 
       if (string.text.isEmpty) {
-        return const SassList.empty(
-          separator: ListSeparator.comma,
-          brackets: true,
-        );
+        return const SassList.empty(separator: .comma, brackets: true);
       } else if (separator.text.isEmpty) {
         return SassList(
           string.text.runes.map(
             (rune) =>
                 SassString(String.fromCharCode(rune), quotes: string.hasQuotes),
           ),
-          ListSeparator.comma,
+          .comma,
           brackets: true,
         );
       }
@@ -81,7 +78,7 @@ final module = BuiltInModule(
 
       return SassList(
         chunks.map((chunk) => SassString(chunk, quotes: string.hasQuotes)),
-        ListSeparator.comma,
+        .comma,
         brackets: true,
       );
     }),

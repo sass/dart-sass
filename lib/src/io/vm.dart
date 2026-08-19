@@ -95,7 +95,7 @@ String realpath(String path) => io.File(path).resolveSymbolicLinksSync();
 
 DateTime modificationTime(String path) {
   var stat = io.FileStat.statSync(path);
-  if (stat.type == io.FileSystemEntityType.notFound) {
+  if (stat.type == .notFound) {
     throw io.FileSystemException("File not found.", path);
   }
   return stat.modified;

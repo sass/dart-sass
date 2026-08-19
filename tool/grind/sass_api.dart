@@ -25,7 +25,7 @@ final String _pubCredentialsPath = p.join(
 Future<void> deploySassApi() async {
   // Write pub credentials
   Directory(p.dirname(_pubCredentialsPath)).createSync(recursive: true);
-  File(_pubCredentialsPath).openSync(mode: FileMode.writeOnlyAppend)
+  File(_pubCredentialsPath).openSync(mode: .writeOnlyAppend)
     ..writeStringSync(pkg.pubCredentials.value)
     ..closeSync();
 

@@ -40,7 +40,7 @@ final class BuiltInModule<T extends AsyncCallable>(
   Map<String, AstNode> get variableNodes => const {};
 
   @override
-  ExtensionStore get extensionStore => ExtensionStore.empty;
+  ExtensionStore get extensionStore => .empty;
 
   @override
   CssStylesheet get css => CssStylesheet.empty(url: url);

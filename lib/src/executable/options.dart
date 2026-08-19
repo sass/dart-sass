@@ -248,9 +248,8 @@ final class ExecutableOptions._(
   Logger get logger => quiet ? .quiet : Logger.stderr(color: color);
 
   /// The style to use for the generated CSS.
-  OutputStyle get style => _options['style'] == 'compressed'
-      ? OutputStyle.compressed
-      : OutputStyle.expanded;
+  OutputStyle get style =>
+      _options['style'] == 'compressed' ? .compressed : .expanded;
 
   /// Whether to include a `@charset` declaration or a BOM if the stylesheet
   /// contains any non-ASCII characters.
