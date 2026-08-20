@@ -377,5 +377,4 @@ void main() {
 }
 
 /// Like [compileString], but always produces compressed output.
-String _compile(String source) =>
-    compileString(source, style: OutputStyle.compressed);
+String _compile(String source) => compileString(source, style: .compressed);

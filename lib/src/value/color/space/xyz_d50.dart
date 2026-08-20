@@ -52,7 +52,7 @@ final class const XyzD50ColorSpace() extends ColorSpace {
     }
 
     switch (dest) {
-      case ColorSpace.lab || ColorSpace.lch:
+      case .lab || .lch:
         // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
         // and http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
         var f0 = _convertComponentToLabF((x ?? 0) / d50[0]);
@@ -62,7 +62,7 @@ final class const XyzD50ColorSpace() extends ColorSpace {
         var a = 500 * (f0 - f1);
         var b = 200 * (f1 - f2);
 
-        return dest == ColorSpace.lab
+        return dest == .lab
             ? SassColor.lab(
                 lightness,
                 missingA ? null : a,
@@ -70,7 +70,7 @@ final class const XyzD50ColorSpace() extends ColorSpace {
                 alpha,
               )
             : labToLch(
-                ColorSpace.lch,
+                .lch,
                 lightness,
                 a,
                 b,
@@ -111,16 +111,13 @@ final class const XyzD50ColorSpace() extends ColorSpace {
   @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
-    ColorSpace.srgbLinear ||
-    ColorSpace.srgb ||
-    ColorSpace.rgb => xyzD50ToLinearSrgb,
-    ColorSpace.a98Rgb => xyzD50ToLinearA98Rgb,
-    ColorSpace.prophotoRgb => xyzD50ToLinearProphotoRgb,
-    ColorSpace.displayP3 ||
-    ColorSpace.displayP3Linear => xyzD50ToLinearDisplayP3,
-    ColorSpace.rec2020 => xyzD50ToLinearRec2020,
-    ColorSpace.xyzD65 => xyzD50ToXyzD65,
-    ColorSpace.lms => xyzD50ToLms,
+    .srgbLinear || .srgb || .rgb => xyzD50ToLinearSrgb,
+    .a98Rgb => xyzD50ToLinearA98Rgb,
+    .prophotoRgb => xyzD50ToLinearProphotoRgb,
+    .displayP3 || .displayP3Linear => xyzD50ToLinearDisplayP3,
+    .rec2020 => xyzD50ToLinearRec2020,
+    .xyzD65 => xyzD50ToXyzD65,
+    .lms => xyzD50ToLms,
     _ => super.transformationMatrix(dest),
   };
 }

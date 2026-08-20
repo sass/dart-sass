@@ -255,10 +255,10 @@ Object mapToObject(Map<String, Object?> map) {
 
 /// Converts a JavaScript separator string into a [ListSeparator].
 ListSeparator jsToDartSeparator(String? separator) => switch (separator) {
-  ' ' => ListSeparator.space,
-  ',' => ListSeparator.comma,
-  '/' => ListSeparator.slash,
-  null => ListSeparator.undecided,
+  ' ' => .space,
+  ',' => .comma,
+  '/' => .slash,
+  null => .undecided,
   _ => jsThrow(JsError('Unknown separator "$separator".')),
 };
 

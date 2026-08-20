@@ -342,27 +342,27 @@ class SelectorParser(
     var start = scanner.position;
     switch (scanner.readChar()) {
       case $equal:
-        return AttributeOperator.equal;
+        return .equal;
 
       case $tilde:
         scanner.expectChar($equal);
-        return AttributeOperator.include;
+        return .include;
 
       case $pipe:
         scanner.expectChar($equal);
-        return AttributeOperator.dash;
+        return .dash;
 
       case $caret:
         scanner.expectChar($equal);
-        return AttributeOperator.prefix;
+        return .prefix;
 
       case $dollar:
         scanner.expectChar($equal);
-        return AttributeOperator.suffix;
+        return .suffix;
 
       case $asterisk:
         scanner.expectChar($equal);
-        return AttributeOperator.substring;
+        return .substring;
 
       default:
         scanner.error('Expected "]".', position: start);

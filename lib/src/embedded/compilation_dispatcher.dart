@@ -109,9 +109,9 @@ final class CompilationDispatcher(
     var functions = OpaqueRegistry<SassFunction>();
     var mixins = OpaqueRegistry<SassMixin>();
 
-    var style = request.style == OutputStyle.COMPRESSED
-        ? sass.OutputStyle.compressed
-        : sass.OutputStyle.expanded;
+    sass.OutputStyle style = request.style == OutputStyle.COMPRESSED
+        ? .compressed
+        : .expanded;
     var logger = request.silent
         ? Logger.quiet
         : EmbeddedLogger(

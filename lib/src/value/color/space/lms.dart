@@ -59,7 +59,7 @@ final class const LmsColorSpace() extends ColorSpace {
     }
 
     switch (dest) {
-      case ColorSpace.oklab:
+      case .oklab:
         // Algorithm from https://drafts.csswg.org/css-color-4/#color-conversion-code
         var longScaled = _cubeRootPreservingSign(long ?? 0);
         var mediumScaled = _cubeRootPreservingSign(medium ?? 0);
@@ -84,7 +84,7 @@ final class const LmsColorSpace() extends ColorSpace {
           alpha,
         );
 
-      case ColorSpace.oklch:
+      case .oklch:
         // This is equivalent to converting to OKLab and then to OKLCH, but we
         // do it inline to avoid extra list allocations since we expect
         // conversions to and from OKLCH to be very common.
@@ -141,15 +141,13 @@ final class const LmsColorSpace() extends ColorSpace {
   @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
-    ColorSpace.srgbLinear ||
-    ColorSpace.srgb ||
-    ColorSpace.rgb => lmsToLinearSrgb,
-    ColorSpace.a98Rgb => lmsToLinearA98Rgb,
-    ColorSpace.prophotoRgb => lmsToLinearProphotoRgb,
-    ColorSpace.displayP3 || ColorSpace.displayP3Linear => lmsToLinearDisplayP3,
-    ColorSpace.rec2020 => lmsToLinearRec2020,
-    ColorSpace.xyzD65 => lmsToXyzD65,
-    ColorSpace.xyzD50 => lmsToXyzD50,
+    .srgbLinear || .srgb || .rgb => lmsToLinearSrgb,
+    .a98Rgb => lmsToLinearA98Rgb,
+    .prophotoRgb => lmsToLinearProphotoRgb,
+    .displayP3 || .displayP3Linear => lmsToLinearDisplayP3,
+    .rec2020 => lmsToLinearRec2020,
+    .xyzD65 => lmsToXyzD65,
+    .xyzD50 => lmsToXyzD50,
     _ => super.transformationMatrix(dest),
   };
 }

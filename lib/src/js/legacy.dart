@@ -440,8 +440,8 @@ RenderContextOptions _contextOptions(RenderOptions options, DateTime start) {
 
 /// Parse [style] into an [OutputStyle].
 OutputStyle _parseOutputStyle(String? style) => switch (style) {
-  null || 'expanded' => OutputStyle.expanded,
-  'compressed' => OutputStyle.compressed,
+  null || 'expanded' => .expanded,
+  'compressed' => .compressed,
   _ => jsThrow(JsError('Unknown output style "$style".')),
 };
 
@@ -454,10 +454,10 @@ int? _parseIndentWidth(Object? width) => switch (width) {
 
 /// Parses the name of a line feed type into a [LineFeed].
 LineFeed _parseLineFeed(String? str) => switch (str) {
-  'cr' => LineFeed.cr,
-  'crlf' => LineFeed.crlf,
-  'lfcr' => LineFeed.lfcr,
-  _ => LineFeed.lf,
+  'cr' => .cr,
+  'crlf' => .crlf,
+  'lfcr' => .lfcr,
+  _ => .lf,
 };
 
 /// Creates a [RenderResult] that exposes [result] in the Node Sass API format.

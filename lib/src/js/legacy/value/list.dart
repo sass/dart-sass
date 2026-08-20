@@ -31,9 +31,7 @@ final JSClass legacyListClass =
           // Either [dartValue] or [length] must be passed.
           SassList(
             Iterable.generate(length!, (_) => sassNull),
-            (commaSeparator ?? true)
-                ? ListSeparator.comma
-                : ListSeparator.space,
+            (commaSeparator ?? true) ? .comma : .space,
           );
     })..defineMethods({
       'getValue': (_NodeSassList thisArg, int index) =>
@@ -44,11 +42,11 @@ final JSClass legacyListClass =
         thisArg.dartValue = thisArg.dartValue.withListContents(mutable);
       },
       'getSeparator': (_NodeSassList thisArg) =>
-          thisArg.dartValue.separator == ListSeparator.comma,
+          thisArg.dartValue.separator == .comma,
       'setSeparator': (_NodeSassList thisArg, bool isComma) {
         thisArg.dartValue = SassList(
           thisArg.dartValue.asList,
-          isComma ? ListSeparator.comma : ListSeparator.space,
+          isComma ? .comma : .space,
           brackets: thisArg.dartValue.hasBrackets,
         );
       },

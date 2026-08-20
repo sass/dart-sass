@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 91e9fabc7bfb821b54aae73770f445a67674b80f
+// Checksum: 6d84948495bad10a2416f6d51fd568322523c5e6
 //
 // ignore_for_file: unused_import
 
@@ -896,7 +896,7 @@ final class Environment {
       SourceFile.decoded(const [], url: "<dummy module>").span(0),
     ),
     const {},
-    ExtensionStore.empty,
+    .empty,
     forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)),
   );
 

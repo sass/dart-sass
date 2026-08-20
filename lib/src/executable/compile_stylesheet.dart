@@ -17,7 +17,6 @@ import '../io.dart';
 import '../stylesheet_graph.dart';
 import '../syntax.dart';
 import '../utils.dart';
-import '../visitor/serialize.dart';
 import 'options.dart';
 
 /// Compiles the stylesheet at [source] to [destination].
@@ -275,7 +274,7 @@ String _writeSourceMap(
 
   var escapedUrl = url.toString().replaceAll("*/", '%2A/');
 
-  return '${options.style == OutputStyle.compressed ? '' : '\n\n'}'
+  return '${options.style == .compressed ? '' : '\n\n'}'
       '/*# sourceMappingURL=$escapedUrl */';
 }
 

@@ -5,7 +5,6 @@
 import 'package:sass/src/utils.dart';
 import 'package:source_span/source_span.dart';
 
-import '../../value/list.dart';
 import '../../util/map.dart';
 import 'expression.dart';
 import 'expression/list.dart';
@@ -76,7 +75,7 @@ final class ArgumentList implements SassNode {
   /// Wraps [argument] in parentheses if necessary.
   String _parenthesizeArgument(Expression argument) => switch (argument) {
     ListExpression(
-      separator: ListSeparator.comma,
+      separator: .comma,
       hasBrackets: false,
       contents: [_, _, ...],
     ) =>

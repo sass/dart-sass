@@ -43,7 +43,7 @@ void main() {
             SassString("a", quotes: false),
             SassString("b", quotes: false),
             SassString("c", quotes: false),
-          ], ListSeparator.comma),
+          ], .comma),
         ),
       );
     });
@@ -57,7 +57,7 @@ void main() {
               SassString("a", quotes: false),
               SassString("b", quotes: false),
               SassString("c", quotes: false),
-            ], ListSeparator.space),
+            ], .space),
           ),
         ),
       );
@@ -72,7 +72,7 @@ void main() {
                 SassString("b", quotes: false),
                 SassString("c", quotes: false),
               ],
-              ListSeparator.comma,
+              .comma,
               brackets: true,
             ),
           ),
@@ -89,7 +89,7 @@ void main() {
               SassString("a", quotes: false),
               SassString("x", quotes: false),
               SassString("c", quotes: false),
-            ], ListSeparator.comma),
+            ], .comma),
           ),
         ),
       );
@@ -290,7 +290,7 @@ void main() {
     });
 
     test("can set the metadata", () {
-      var list = SassList.empty(separator: ListSeparator.space, brackets: true);
+      var list = SassList.empty(separator: .space, brackets: true);
       expect(list.separator, equals(ListSeparator.space));
       expect(list.hasBrackets, isTrue);
     });
@@ -298,9 +298,7 @@ void main() {
 
   group("new SassList()", () {
     test("creates a list with the given contents and metadata", () {
-      var list = SassList([
-        SassString("a", quotes: false),
-      ], ListSeparator.space);
+      var list = SassList([SassString("a", quotes: false)], .space);
       expect(list.asList, equals([SassString("a", quotes: false)]));
       expect(list.separator, equals(ListSeparator.space));
       expect(list.hasBrackets, isFalse);
@@ -310,7 +308,7 @@ void main() {
       expect(
         SassList(
           [SassString("a", quotes: false)],
-          ListSeparator.space,
+          .space,
           brackets: true,
         ).hasBrackets,
         isTrue,
@@ -319,13 +317,11 @@ void main() {
 
     test("can create a short list with an undecided separator", () {
       expect(
-        SassList([
-          SassString("a", quotes: false),
-        ], ListSeparator.undecided).separator,
+        SassList([SassString("a", quotes: false)], .undecided).separator,
         equals(ListSeparator.undecided),
       );
       expect(
-        SassList([], ListSeparator.undecided).separator,
+        SassList([], .undecided).separator,
         equals(ListSeparator.undecided),
       );
     });
@@ -335,7 +331,7 @@ void main() {
         () => SassList([
           SassString("a", quotes: false),
           SassString("b", quotes: false),
-        ], ListSeparator.undecided),
+        ], .undecided),
         throwsArgumentError,
       );
     });

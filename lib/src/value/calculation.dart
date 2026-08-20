@@ -689,7 +689,7 @@ final class SassCalculation._(
     left = _simplify(left);
     right = _simplify(right);
 
-    if (operator case CalculationOperator.plus || CalculationOperator.minus) {
+    if (operator case .plus || .minus) {
       if (left is SassNumber && right is SassNumber) {
         var compatible = left.hasCompatibleUnits(right);
         if (!compatible &&
@@ -708,9 +708,7 @@ final class SassCalculation._(
           compatible = true;
         }
         if (compatible) {
-          return operator == CalculationOperator.plus
-              ? left.plus(right)
-              : left.minus(right);
+          return operator == .plus ? left.plus(right) : left.minus(right);
         }
       }
 
@@ -718,16 +716,12 @@ final class SassCalculation._(
 
       if (right is SassNumber && number_lib.fuzzyLessThan(right.value, 0)) {
         right = right.times(SassNumber(-1));
-        operator = operator == CalculationOperator.plus
-            ? CalculationOperator.minus
-            : CalculationOperator.plus;
+        operator = operator == .plus ? .minus : .plus;
       }
 
       return CalculationOperation._(operator, left, right);
     } else if (left is SassNumber && right is SassNumber) {
-      return operator == CalculationOperator.times
-          ? left.times(right)
-          : left.dividedBy(right);
+      return operator == .times ? left.times(right) : left.dividedBy(right);
     } else {
       return CalculationOperation._(operator, left, right);
     }

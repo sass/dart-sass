@@ -6,7 +6,6 @@ import 'package:charcode/charcode.dart';
 
 import '../ast/sass.dart';
 import '../util/nullable.dart';
-import '../value.dart';
 import 'interface/expression.dart';
 
 // We could use [AstSearchVisitor] to implement this more tersely, but that
@@ -20,11 +19,11 @@ import 'interface/expression.dart';
 class const IsCalculationSafeVisitor() implements ExpressionVisitor<bool> {
   @override
   bool visitBinaryOperationExpression(BinaryOperationExpression node) =>
-      (const {
-        BinaryOperator.times,
-        BinaryOperator.dividedBy,
-        BinaryOperator.plus,
-        BinaryOperator.minus,
+      (const <BinaryOperator>{
+        .times,
+        .dividedBy,
+        .plus,
+        .minus,
       }).contains(node.operator) &&
       node.left.accept(this) &&
       node.right.accept(this);
@@ -51,7 +50,7 @@ class const IsCalculationSafeVisitor() implements ExpressionVisitor<bool> {
 
   @override
   bool visitListExpression(ListExpression node) =>
-      node.separator == ListSeparator.space &&
+      node.separator == .space &&
       !node.hasBrackets &&
       node.contents.length > 1 &&
       node.contents.every((expression) => expression.accept(this));

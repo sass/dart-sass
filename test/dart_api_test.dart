@@ -266,7 +266,7 @@ void main() {
 
       test("emits a BOM with compressed output", () async {
         expect(
-          compileString("a {b: 👭}", style: OutputStyle.compressed),
+          compileString("a {b: 👭}", style: .compressed),
           equals("\u{FEFF}a{b:👭}"),
         );
       });
@@ -286,11 +286,7 @@ void main() {
 
       test("emits a BOM with compressed output", () async {
         expect(
-          compileString(
-            "a {b: 👭}",
-            charset: false,
-            style: OutputStyle.compressed,
-          ),
+          compileString("a {b: 👭}", charset: false, style: .compressed),
           equals("a{b:👭}"),
         );
       });
@@ -323,7 +319,7 @@ void main() {
       await d.file("input.scss", "@import 'other';").create();
       var result = compileToResult(
         d.path('input.scss'),
-        silenceDeprecations: [Deprecation.import],
+        silenceDeprecations: [.import],
       );
       expect(result.loadedUrls, contains(p.toUri(d.path('_other.scss'))));
     });
@@ -363,7 +359,7 @@ void main() {
       """).create();
       var result = compileToResult(
         d.path('mercury.scss'),
-        silenceDeprecations: [Deprecation.import],
+        silenceDeprecations: [.import],
       );
       expect(
         result.loadedUrls,

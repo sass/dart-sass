@@ -50,7 +50,7 @@ abstract class const Value() {
   ///
   /// All SassScript values can be used as lists. Maps count as lists of pairs,
   /// and all other values count as single-value lists.
-  ListSeparator get separator => ListSeparator.undecided;
+  ListSeparator get separator => .undecided;
 
   /// Whether this value as a list has brackets.
   ///
@@ -224,8 +224,7 @@ abstract class const Value() {
   @internal
   List<Value> assertCommonListStyle(String? name, {required bool allowSlash}) {
     var invalidSeparator =
-        separator == ListSeparator.comma ||
-        (!allowSlash && separator == ListSeparator.slash);
+        separator == .comma || (!allowSlash && separator == .slash);
     if (!invalidSeparator && !hasBrackets) return asList;
 
     var buffer = StringBuffer(r"Expected");
@@ -268,12 +267,12 @@ abstract class const Value() {
 
     var result = <String>[];
     switch (self.separator) {
-      case ListSeparator.comma:
+      case .comma:
         for (var complex in self.asList) {
           switch (complex) {
             case SassString():
               result.add(complex.text);
-            case SassList(separator: ListSeparator.space):
+            case SassList(separator: .space):
               var string = complex._selectorStringOrNull();
               if (string == null) return null;
               result.add(string);
@@ -281,7 +280,7 @@ abstract class const Value() {
               return null;
           }
         }
-      case ListSeparator.slash:
+      case .slash:
         return null;
       case _:
         for (var compound in self.asList) {
@@ -289,7 +288,7 @@ abstract class const Value() {
           result.add(compound.text);
         }
     }
-    return result.join(self.separator == ListSeparator.comma ? ', ' : ' ');
+    return result.join(self.separator == .comma ? ', ' : ' ');
   }
 
   /// Returns a new list containing [contents] that defaults to this value's

@@ -38,16 +38,13 @@ final class const A98RgbColorSpace() extends ColorSpace {
   @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
-    ColorSpace.srgbLinear ||
-    ColorSpace.srgb ||
-    ColorSpace.rgb => linearA98RgbToLinearSrgb,
-    ColorSpace.displayP3 ||
-    ColorSpace.displayP3Linear => linearA98RgbToLinearDisplayP3,
-    ColorSpace.prophotoRgb => linearA98RgbToLinearProphotoRgb,
-    ColorSpace.rec2020 => linearA98RgbToLinearRec2020,
-    ColorSpace.xyzD65 => linearA98RgbToXyzD65,
-    ColorSpace.xyzD50 => linearA98RgbToXyzD50,
-    ColorSpace.lms => linearA98RgbToLms,
+    .srgbLinear || .srgb || .rgb => linearA98RgbToLinearSrgb,
+    .displayP3 || .displayP3Linear => linearA98RgbToLinearDisplayP3,
+    .prophotoRgb => linearA98RgbToLinearProphotoRgb,
+    .rec2020 => linearA98RgbToLinearRec2020,
+    .xyzD65 => linearA98RgbToXyzD65,
+    .xyzD50 => linearA98RgbToXyzD50,
+    .lms => linearA98RgbToLms,
     _ => super.transformationMatrix(dest),
   };
 }

@@ -164,7 +164,7 @@ class SassColor._forSpace(
   /// @nodoc
   @internal
   bool get isChannel2Powerless => switch (space) {
-    ColorSpace.lch || ColorSpace.oklch => fuzzyEquals(channel1, 0),
+    .lch || .oklch => fuzzyEquals(channel1, 0),
     _ => false,
   };
 
@@ -230,41 +230,41 @@ class SassColor._forSpace(
   /// **Note:** This is rounded to the nearest integer, which may be lossy. Use
   /// [channel] instead to get the true red value.
   @Deprecated('Use channel() instead.')
-  int get red => _legacyChannel(ColorSpace.rgb, 'red').round();
+  int get red => _legacyChannel(.rgb, 'red').round();
 
   /// This color's green channel, between `0` and `255`.
   ///
   /// **Note:** This is rounded to the nearest integer, which may be lossy. Use
   /// [channel] instead to get the true red value.
   @Deprecated('Use channel() instead.')
-  int get green => _legacyChannel(ColorSpace.rgb, 'green').round();
+  int get green => _legacyChannel(.rgb, 'green').round();
 
   /// This color's blue channel, between `0` and `255`.
   ///
   /// **Note:** This is rounded to the nearest integer, which may be lossy. Use
   /// [channel] instead to get the true red value.
   @Deprecated('Use channel() instead.')
-  int get blue => _legacyChannel(ColorSpace.rgb, 'blue').round();
+  int get blue => _legacyChannel(.rgb, 'blue').round();
 
   /// This color's hue, between `0` and `360`.
   @Deprecated('Use channel() instead.')
-  double get hue => _legacyChannel(ColorSpace.hsl, 'hue');
+  double get hue => _legacyChannel(.hsl, 'hue');
 
   /// This color's saturation, a percentage between `0` and `100`.
   @Deprecated('Use channel() instead.')
-  double get saturation => _legacyChannel(ColorSpace.hsl, 'saturation');
+  double get saturation => _legacyChannel(.hsl, 'saturation');
 
   /// This color's lightness, a percentage between `0` and `100`.
   @Deprecated('Use channel() instead.')
-  double get lightness => _legacyChannel(ColorSpace.hsl, 'lightness');
+  double get lightness => _legacyChannel(.hsl, 'lightness');
 
   /// This color's whiteness, a percentage between `0` and `100`.
   @Deprecated('Use channel() instead.')
-  double get whiteness => _legacyChannel(ColorSpace.hwb, 'whiteness');
+  double get whiteness => _legacyChannel(.hwb, 'whiteness');
 
   /// This color's blackness, a percentage between `0` and `100`.
   @Deprecated('Use channel() instead.')
-  double get blackness => _legacyChannel(ColorSpace.hwb, 'blackness');
+  double get blackness => _legacyChannel(.hwb, 'blackness');
 
   /// Creates a color in [ColorSpace.rgb].
   ///
@@ -289,7 +289,7 @@ class SassColor._forSpace(
     num? alpha = 1,
     ColorFormat? format,
   ]) => SassColor._forSpace(
-    ColorSpace.rgb,
+    .rgb,
     red?.toDouble(),
     green?.toDouble(),
     blue?.toDouble(),
@@ -308,7 +308,7 @@ class SassColor._forSpace(
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory hsl(num? hue, num? saturation, num? lightness, [num? alpha = 1]) =>
       SassColor.forSpaceInternal(
-        ColorSpace.hsl,
+        .hsl,
         hue?.toDouble(),
         saturation?.toDouble(),
         lightness?.toDouble(),
@@ -326,7 +326,7 @@ class SassColor._forSpace(
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory hwb(num? hue, num? whiteness, num? blackness, [num? alpha = 1]) =>
       SassColor.forSpaceInternal(
-        ColorSpace.hwb,
+        .hwb,
         hue?.toDouble(),
         whiteness?.toDouble(),
         blackness?.toDouble(),
@@ -343,7 +343,7 @@ class SassColor._forSpace(
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory srgb(double? red, double? green, double? blue, [double? alpha = 1]) =>
-      SassColor._forSpace(ColorSpace.srgb, red, green, blue, alpha);
+      SassColor._forSpace(.srgb, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.srgbLinear].
   ///
@@ -359,7 +359,7 @@ class SassColor._forSpace(
     double? green,
     double? blue, [
     double? alpha = 1,
-  ]) => SassColor._forSpace(ColorSpace.srgbLinear, red, green, blue, alpha);
+  ]) => SassColor._forSpace(.srgbLinear, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.displayP3].
   ///
@@ -375,7 +375,7 @@ class SassColor._forSpace(
     double? green,
     double? blue, [
     double? alpha = 1,
-  ]) => SassColor._forSpace(ColorSpace.displayP3, red, green, blue, alpha);
+  ]) => SassColor._forSpace(.displayP3, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.displayP3Linear].
   ///
@@ -391,8 +391,7 @@ class SassColor._forSpace(
     double? green,
     double? blue, [
     double? alpha = 1,
-  ]) =>
-      SassColor._forSpace(ColorSpace.displayP3Linear, red, green, blue, alpha);
+  ]) => SassColor._forSpace(.displayP3Linear, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.a98Rgb].
   ///
@@ -408,7 +407,7 @@ class SassColor._forSpace(
     double? green,
     double? blue, [
     double? alpha = 1,
-  ]) => SassColor._forSpace(ColorSpace.a98Rgb, red, green, blue, alpha);
+  ]) => SassColor._forSpace(.a98Rgb, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.prophotoRgb].
   ///
@@ -424,7 +423,7 @@ class SassColor._forSpace(
     double? green,
     double? blue, [
     double? alpha = 1,
-  ]) => SassColor._forSpace(ColorSpace.prophotoRgb, red, green, blue, alpha);
+  ]) => SassColor._forSpace(.prophotoRgb, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.rec2020].
   ///
@@ -440,7 +439,7 @@ class SassColor._forSpace(
     double? green,
     double? blue, [
     double? alpha = 1,
-  ]) => SassColor._forSpace(ColorSpace.rec2020, red, green, blue, alpha);
+  ]) => SassColor._forSpace(.rec2020, red, green, blue, alpha);
 
   /// Creates a color in [ColorSpace.xyzD50].
   ///
@@ -452,7 +451,7 @@ class SassColor._forSpace(
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory xyzD50(double? x, double? y, double? z, [double? alpha = 1]) =>
-      SassColor._forSpace(ColorSpace.xyzD50, x, y, z, alpha);
+      SassColor._forSpace(.xyzD50, x, y, z, alpha);
 
   /// Creates a color in [ColorSpace.xyzD65].
   ///
@@ -464,7 +463,7 @@ class SassColor._forSpace(
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory xyzD65(double? x, double? y, double? z, [double? alpha = 1]) =>
-      SassColor._forSpace(ColorSpace.xyzD65, x, y, z, alpha);
+      SassColor._forSpace(.xyzD65, x, y, z, alpha);
 
   /// Creates a color in [ColorSpace.lab].
   ///
@@ -476,7 +475,7 @@ class SassColor._forSpace(
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory lab(double? lightness, double? a, double? b, [double? alpha = 1]) =>
-      SassColor._forSpace(ColorSpace.lab, lightness, a, b, alpha);
+      SassColor._forSpace(.lab, lightness, a, b, alpha);
 
   /// Creates a color in [ColorSpace.lch].
   ///
@@ -492,8 +491,7 @@ class SassColor._forSpace(
     double? chroma,
     double? hue, [
     double? alpha = 1,
-  ]) =>
-      SassColor.forSpaceInternal(ColorSpace.lch, lightness, chroma, hue, alpha);
+  ]) => SassColor.forSpaceInternal(.lch, lightness, chroma, hue, alpha);
 
   /// Creates a color in [ColorSpace.oklab].
   ///
@@ -505,7 +503,7 @@ class SassColor._forSpace(
   ///
   /// Throws a [RangeError] if [alpha] isn't between `0` and `1`.
   factory oklab(double? lightness, double? a, double? b, [double? alpha = 1]) =>
-      SassColor._forSpace(ColorSpace.oklab, lightness, a, b, alpha);
+      SassColor._forSpace(.oklab, lightness, a, b, alpha);
 
   /// Creates a color in [ColorSpace.oklch].
   ///
@@ -521,13 +519,7 @@ class SassColor._forSpace(
     double? chroma,
     double? hue, [
     double? alpha = 1,
-  ]) => SassColor.forSpaceInternal(
-    ColorSpace.oklch,
-    lightness,
-    chroma,
-    hue,
-    alpha,
-  );
+  ]) => SassColor.forSpaceInternal(.oklch, lightness, chroma, hue, alpha);
 
   /// Creates a color in the color space named [space].
   ///
@@ -568,7 +560,7 @@ class SassColor._forSpace(
     double? channel2, [
     double? alpha = 1,
   ]) => switch (space) {
-    ColorSpace.hsl => SassColor._forSpace(
+    .hsl => SassColor._forSpace(
       space,
       _normalizeHue(
         channel0,
@@ -578,14 +570,14 @@ class SassColor._forSpace(
       channel2,
       alpha,
     ),
-    ColorSpace.hwb => SassColor._forSpace(
+    .hwb => SassColor._forSpace(
       space,
       _normalizeHue(channel0, invert: false),
       channel1,
       channel2,
       alpha,
     ),
-    ColorSpace.lch || ColorSpace.oklch => SassColor._forSpace(
+    .lch || .oklch => SassColor._forSpace(
       space,
       channel0,
       channel1?.abs(),
@@ -600,10 +592,7 @@ class SassColor._forSpace(
 
   /// Like [forSpaceInternal], but doesn't do _any_ pre-processing of any
   /// channels.
-  this {
-    assert(format == null || _space == ColorSpace.rgb);
-    assert(space != ColorSpace.lms);
-  }
+  this : assert(format == null || _space == .rgb), assert(_space != .lms);
 
   /// If [hue] isn't null, normalizes it to the range `[0, 360)`.
   ///
@@ -971,7 +960,7 @@ class SassColor._forSpace(
               (mixedAlpha ?? 1);
 
     return switch (method.space) {
-      ColorSpace.hsl || ColorSpace.hwb => SassColor.forSpaceInternal(
+      .hsl || .hwb => SassColor.forSpaceInternal(
         method.space,
         channel1_0 == null
             ? null
@@ -980,7 +969,7 @@ class SassColor._forSpace(
         mixed2,
         mixedAlpha,
       ),
-      ColorSpace.lch || ColorSpace.oklch => SassColor.forSpaceInternal(
+      .lch || .oklch => SassColor.forSpaceInternal(
         method.space,
         mixed0,
         mixed1,
@@ -1011,7 +1000,7 @@ class SassColor._forSpace(
   ) {
     // Algorithms from https://www.w3.org/TR/css-color-4/#hue-interpolation
     switch (method) {
-      case HueInterpolationMethod.shorter:
+      case .shorter:
         switch (hue2 - hue1) {
           case > 180:
             hue1 += 360;
@@ -1019,7 +1008,7 @@ class SassColor._forSpace(
             hue2 += 360;
         }
 
-      case HueInterpolationMethod.longer:
+      case .longer:
         switch (hue2 - hue1) {
           case > 0 && < 180:
             hue2 += 360;
@@ -1027,10 +1016,10 @@ class SassColor._forSpace(
             hue1 += 360;
         }
 
-      case HueInterpolationMethod.increasing when hue2 < hue1:
+      case .increasing when hue2 < hue1:
         hue2 += 360;
 
-      case HueInterpolationMethod.decreasing when hue1 < hue2:
+      case .decreasing when hue1 < hue2:
         hue1 += 360;
 
       case _: // do nothing
@@ -1077,7 +1066,7 @@ class SassColor._forSpace(
             fuzzyEqualsNullable(channel1OrNull, other.channel1OrNull) &&
             fuzzyEqualsNullable(channel2OrNull, other.channel2OrNull);
       } else {
-        return toSpace(ColorSpace.rgb) == other.toSpace(ColorSpace.rgb);
+        return toSpace(.rgb) == other.toSpace(.rgb);
       }
     }
 
@@ -1091,7 +1080,7 @@ class SassColor._forSpace(
   @override
   int get hashCode {
     if (isLegacy) {
-      var rgb = toSpace(ColorSpace.rgb);
+      var rgb = toSpace(.rgb);
       return fuzzyHashCode(rgb.channel0) ^
           fuzzyHashCode(rgb.channel1) ^
           fuzzyHashCode(rgb.channel2) ^

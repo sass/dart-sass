@@ -28,13 +28,11 @@ class SassMap extends Value {
   final Map<Value, Value> _contents;
 
   @override
-  ListSeparator get separator =>
-      contents.isEmpty ? ListSeparator.undecided : ListSeparator.comma;
+  ListSeparator get separator => contents.isEmpty ? .undecided : .comma;
 
   @override
   List<Value> get asList => [
-    for (var (key, value) in contents.pairs)
-      SassList([key, value], ListSeparator.space),
+    for (var (key, value) in contents.pairs) SassList([key, value], .space),
   ];
 
   /// @nodoc

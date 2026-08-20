@@ -795,7 +795,7 @@ void main() {
             }
           """,
           "\uFEFF{{1}}föö{{{2}}bär:bäz}",
-          style: OutputStyle.compressed,
+          style: .compressed,
         );
       });
     });

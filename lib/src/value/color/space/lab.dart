@@ -56,7 +56,7 @@ final class const LabColorSpace() extends ColorSpace {
     }
 
     switch (dest) {
-      case ColorSpace.lab:
+      case .lab:
         var powerlessAB = lightness == null || fuzzyEquals(lightness, 0);
         return SassColor.lab(
           lightness,
@@ -65,7 +65,7 @@ final class const LabColorSpace() extends ColorSpace {
           alpha,
         );
 
-      case ColorSpace.lch:
+      case .lch:
         return labToLch(dest, lightness, a, b, alpha);
 
       default:

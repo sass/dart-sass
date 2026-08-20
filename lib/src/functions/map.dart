@@ -154,19 +154,14 @@ final _remove = BuiltInCallable.overloadedFunction("remove", {
 final _keys = _function(
   "keys",
   r"$map",
-  (arguments) => SassList(
-    arguments[0].assertMap("map").contents.keys,
-    ListSeparator.comma,
-  ),
+  (arguments) => SassList(arguments[0].assertMap("map").contents.keys, .comma),
 );
 
 final _values = _function(
   "values",
   r"$map",
-  (arguments) => SassList(
-    arguments[0].assertMap("map").contents.values,
-    ListSeparator.comma,
-  ),
+  (arguments) =>
+      SassList(arguments[0].assertMap("map").contents.values, .comma),
 );
 
 final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {

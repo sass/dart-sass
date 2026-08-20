@@ -66,9 +66,7 @@ final class BinaryOperationExpression extends Expression {
   ///
   /// @nodoc
   @internal
-  new slash(this.left, this.right)
-    : operator = BinaryOperator.dividedBy,
-      allowsSlash = true;
+  new slash(this.left, this.right) : operator = .dividedBy, allowsSlash = true;
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>

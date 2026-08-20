@@ -68,7 +68,7 @@ SerializeResult serialize(
   var css = visitor._buffer.toString();
   String prefix;
   if (charset && css.codeUnits.any((codeUnit) => codeUnit > 0x7F)) {
-    prefix = style == OutputStyle.compressed ? '\uFEFF' : '@charset "UTF-8";\n';
+    prefix = style == .compressed ? '\uFEFF' : '@charset "UTF-8";\n';
   } else {
     prefix = '';
   }
@@ -137,7 +137,7 @@ final class _SerializeVisitor({
   var _indentation = 0;
 
   /// The style of CSS to generate.
-  final OutputStyle _style = style ?? OutputStyle.expanded;
+  final OutputStyle _style = style ?? .expanded;
 
   /// The character to use for indentation; either space or tab.
   final int _indentCharacter = useSpaces ? $space : $tab;
@@ -146,7 +146,7 @@ final class _SerializeVisitor({
   final int _indentWidth = indentWidth ?? 2;
 
   /// The characters to use for a line feed.
-  final LineFeed _lineFeed = lineFeed ?? LineFeed.lf;
+  final LineFeed _lineFeed = lineFeed ?? .lf;
 
   /// The logger to use to print warnings.
   ///
@@ -158,7 +158,7 @@ final class _SerializeVisitor({
   final Logger _logger = logger ?? .defaultLogger;
 
   /// Whether we're emitting compressed output.
-  bool get _isCompressed => _style == OutputStyle.compressed;
+  bool get _isCompressed => _style == .compressed;
 
   this {
     RangeError.checkValueInInterval(_indentWidth, 0, 10, "indentWidth");
@@ -571,7 +571,7 @@ final class _SerializeVisitor({
         var parenthesizeRight =
             (right is CalculationOperation &&
                 _parenthesizeCalculationRhs(operator, right.operator)) ||
-            (operator == CalculationOperator.dividedBy &&
+            (operator == .dividedBy &&
                 right is SassNumber &&
                 (right.value.isFinite
                     ? right.hasComplexUnits
@@ -613,23 +613,22 @@ final class _SerializeVisitor({
     CalculationOperator outer,
     CalculationOperator right,
   ) => switch (outer) {
-    CalculationOperator.dividedBy => true,
-    CalculationOperator.plus => false,
-    _ =>
-      right == CalculationOperator.plus || right == CalculationOperator.minus,
+    .dividedBy => true,
+    .plus => false,
+    _ => right == .plus || right == .minus,
   };
 
   @override
   void visitColor(SassColor value) {
     switch (value.space) {
-      case ColorSpace.rgb || ColorSpace.hsl || ColorSpace.hwb
+      case .rgb || .hsl || .hwb
           when !value.isChannel0Missing &&
               !value.isChannel1Missing &&
               !value.isChannel2Missing &&
               !value.isAlphaMissing:
         _writeLegacyColor(value);
 
-      case ColorSpace.rgb:
+      case .rgb:
         _buffer.write('rgb(');
         _writeChannel(value.channel0OrNull);
         _buffer.writeCharCode($space);
@@ -639,7 +638,7 @@ final class _SerializeVisitor({
         _maybeWriteSlashAlpha(value);
         _buffer.writeCharCode($rparen);
 
-      case ColorSpace.hsl || ColorSpace.hwb:
+      case .hsl || .hwb:
         _buffer
           ..write(value.space)
           ..writeCharCode($lparen);
@@ -651,17 +650,17 @@ final class _SerializeVisitor({
         _maybeWriteSlashAlpha(value);
         _buffer.writeCharCode($rparen);
 
-      case ColorSpace.lab || ColorSpace.lch
+      case .lab || .lch
           when !_inspect &&
               !fuzzyInRange(value.channel0, 0, 100) &&
               !value.isChannel1Missing &&
               !value.isChannel2Missing:
-      case ColorSpace.oklab || ColorSpace.oklch
+      case .oklab || .oklch
           when !_inspect &&
               !fuzzyInRange(value.channel0, 0, 1) &&
               !value.isChannel1Missing &&
               !value.isChannel2Missing:
-      case ColorSpace.lch || ColorSpace.oklch
+      case .lch || .oklch
           when !_inspect &&
               fuzzyLessThan(value.channel1, 0) &&
               !value.isChannel0Missing &&
@@ -676,17 +675,14 @@ final class _SerializeVisitor({
         _buffer.write(_commaSeparator);
         // The XYZ space has no gamut restrictions, so we use it to represent
         // the out-of-gamut color before converting into the target space.
-        _writeColorFunction(value.toSpace(ColorSpace.xyzD65));
+        _writeColorFunction(value.toSpace(.xyzD65));
         _writeOptionalSpace();
         _buffer.write('100%');
         _buffer.write(_commaSeparator);
         _buffer.write(_isCompressed ? 'red' : 'black');
         _buffer.writeCharCode($rparen);
 
-      case ColorSpace.lab ||
-          ColorSpace.oklab ||
-          ColorSpace.lch ||
-          ColorSpace.oklch:
+      case .lab || .oklab || .lch || .oklch:
         _buffer
           ..write(value.space)
           ..writeCharCode($lparen);
@@ -757,11 +753,11 @@ final class _SerializeVisitor({
 
     // In compressed mode, emit colors in the shortest representation possible.
     if (_isCompressed) {
-      var rgb = color.toSpace(ColorSpace.rgb);
+      var rgb = color.toSpace(.rgb);
       if (opaque && _tryHexOrNamedRgb(rgb)) return;
 
       var rgbString = _capture(() => _writeRgb(rgb));
-      var hslString = _capture(() => _writeHsl(rgb.toSpace(ColorSpace.hsl)));
+      var hslString = _capture(() => _writeHsl(rgb.toSpace(.hsl)));
 
       // Add two characters for HSL for the %s on saturation and lightness.
       if (rgbString.length <= hslString.length + 2) {
@@ -772,16 +768,16 @@ final class _SerializeVisitor({
       return;
     }
 
-    if (color.space == ColorSpace.hsl) {
+    if (color.space == .hsl) {
       _writeHsl(color);
       return;
-    } else if (_inspect && color.space == ColorSpace.hwb) {
+    } else if (_inspect && color.space == .hwb) {
       _writeHwb(color);
       return;
     }
 
     switch (color.format) {
-      case ColorFormat.rgbFunction:
+      case .rgbFunction:
         _writeRgb(color);
         return;
 
@@ -793,7 +789,7 @@ final class _SerializeVisitor({
     // Always emit generated transparent colors in rgba format. This works
     // around an IE bug. See sass/sass#1782.
     if (opaque) {
-      var rgb = color.toSpace(ColorSpace.rgb);
+      var rgb = color.toSpace(.rgb);
       if (namesByColor[rgb] case var name?) {
         _buffer.write(name);
         return;
@@ -810,7 +806,7 @@ final class _SerializeVisitor({
 
     // If an HWB color can't be represented as a hex color, write is as HSL
     // rather than RGB since that more clearly captures the author's intent.
-    if (color.space == ColorSpace.hwb) {
+    if (color.space == .hwb) {
       _writeHsl(color);
     } else {
       _writeRgb(color);
@@ -823,7 +819,7 @@ final class _SerializeVisitor({
   /// Otherwise, writes nothing and returns `false`. Assumes [value] is in the
   /// RGB space.
   bool _tryHexOrNamedRgb(SassColor rgb) {
-    assert(rgb.space == ColorSpace.rgb);
+    assert(rgb.space == .rgb);
     if (!_canUseHex(rgb)) return false;
 
     var redInt = rgb.channel0.round();
@@ -850,7 +846,7 @@ final class _SerializeVisitor({
 
   /// Whether [rgb] can be represented as a hexadecimal color.
   bool _canUseHex(SassColor rgb) {
-    assert(rgb.space == ColorSpace.rgb);
+    assert(rgb.space == .rgb);
     return _canUseHexForChannel(rgb.channel0) &&
         _canUseHexForChannel(rgb.channel1) &&
         _canUseHexForChannel(rgb.channel2);
@@ -866,7 +862,7 @@ final class _SerializeVisitor({
   /// Writes [value] as an `rgb()` or `rgba()` function.
   void _writeRgb(SassColor color) {
     var opaque = fuzzyEquals(color.alpha, 1);
-    var rgb = color.toSpace(ColorSpace.rgb);
+    var rgb = color.toSpace(.rgb);
     _buffer.write(opaque ? "rgb(" : "rgba(");
 
     if (!_tryIntegerRgbChannels(rgb)) {
@@ -891,7 +887,7 @@ final class _SerializeVisitor({
   /// Otherwise, writes nothing and returns `false`. Assumes [value] is in the
   /// RGB space.
   bool _tryIntegerRgbChannels(SassColor rgb) {
-    assert(rgb.space == ColorSpace.rgb);
+    assert(rgb.space == .rgb);
 
     var red = _asInt(rgb.channel0);
     if (red == null) return false;
@@ -914,7 +910,7 @@ final class _SerializeVisitor({
   /// Writes [value] as an `hsl()` or `hsla()` function.
   void _writeHsl(SassColor color) {
     var opaque = fuzzyEquals(color.alpha, 1);
-    var hsl = color.toSpace(ColorSpace.hsl);
+    var hsl = color.toSpace(.hsl);
     _buffer.write(opaque ? "hsl(" : "hsla(");
     _writeChannel(hsl.channel('hue'));
     _buffer.write(_commaSeparator);
@@ -935,7 +931,7 @@ final class _SerializeVisitor({
   /// This is only used in inspect mode, and so only supports the new color syntax.
   void _writeHwb(SassColor color) {
     _buffer.write("hwb(");
-    var hwb = color.toSpace(ColorSpace.hwb);
+    var hwb = color.toSpace(.hwb);
     _writeNumber(hwb.channel('hue'));
     _buffer.writeCharCode($space);
     _writeNumber(hwb.channel('whiteness'));
@@ -955,14 +951,14 @@ final class _SerializeVisitor({
   /// Writes [color] using the `color()` function syntax.
   void _writeColorFunction(SassColor color) {
     assert(
-      !{
-        ColorSpace.rgb,
-        ColorSpace.hsl,
-        ColorSpace.hwb,
-        ColorSpace.lab,
-        ColorSpace.oklab,
-        ColorSpace.lch,
-        ColorSpace.oklch,
+      !<ColorSpace>{
+        .rgb,
+        .hsl,
+        .hwb,
+        .lab,
+        .oklab,
+        .lch,
+        .oklch,
       }.contains(color.space),
     );
     _buffer
@@ -1038,8 +1034,7 @@ final class _SerializeVisitor({
     var singleton =
         _inspect &&
         value.asList.length == 1 &&
-        (value.separator == ListSeparator.comma ||
-            value.separator == ListSeparator.slash);
+        (value.separator == .comma || value.separator == .slash);
     if (singleton && !value.hasBrackets) _buffer.writeCharCode($lparen);
 
     _writeBetween<Value>(
@@ -1069,9 +1064,9 @@ final class _SerializeVisitor({
 
   /// Returns the string to use to separate list items for lists with the given [separator].
   String _separatorString(ListSeparator separator) => switch (separator) {
-    ListSeparator.comma => _commaSeparator,
-    ListSeparator.slash => _isCompressed ? "/" : " / ",
-    ListSeparator.space => " ",
+    .comma => _commaSeparator,
+    .slash => _isCompressed ? "/" : " / ",
+    .space => " ",
     // This should never be used, but it may still be returned since
     // [_separatorString] is invoked eagerly by [writeList] even for lists
     // with only one elements.
@@ -1084,11 +1079,9 @@ final class _SerializeVisitor({
       switch (value) {
         SassList(asList: List(length: > 1), hasBrackets: false) =>
           switch (separator) {
-            ListSeparator.comma => value.separator == ListSeparator.comma,
-            ListSeparator.slash =>
-              value.separator == ListSeparator.comma ||
-                  value.separator == ListSeparator.slash,
-            _ => value.separator != ListSeparator.undecided,
+            .comma => value.separator == .comma,
+            .slash => value.separator == .comma || value.separator == .slash,
+            _ => value.separator != .undecided,
           },
         _ => false,
       };
@@ -1110,9 +1103,7 @@ final class _SerializeVisitor({
   /// Writes [value] as key or value in a map, with parentheses as necessary.
   void _writeMapElement(Value value) {
     var needsParens =
-        value is SassList &&
-        value.separator == ListSeparator.comma &&
-        !value.hasBrackets;
+        value is SassList && value.separator == .comma && !value.hasBrackets;
     if (needsParens) _buffer.writeCharCode($lparen);
     value.accept(this);
     if (needsParens) _buffer.writeCharCode($rparen);

@@ -885,7 +885,7 @@ final class AsyncEnvironment {
       SourceFile.decoded(const [], url: "<dummy module>").span(0),
     ),
     const {},
-    ExtensionStore.empty,
+    .empty,
     forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)),
   );
 

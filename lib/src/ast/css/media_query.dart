@@ -83,7 +83,7 @@ final class CssMediaQuery {
   /// of both inputs.
   MediaQueryMergeResult merge(CssMediaQuery other) {
     if (!conjunction || !other.conjunction) {
-      return MediaQueryMergeResult.unrepresentable;
+      return .unrepresentable;
     }
 
     var ourModifier = this.modifier?.toLowerCase();
@@ -120,12 +120,12 @@ final class CssMediaQuery {
         // (grid)`, because it means `not (screen and (color))` and so it allows
         // a screen with no color but with a grid.
         if (negativeConditions.every(positiveConditions.contains)) {
-          return MediaQueryMergeResult.empty;
+          return .empty;
         } else {
-          return MediaQueryMergeResult.unrepresentable;
+          return .unrepresentable;
         }
       } else if (matchesAllTypes || other.matchesAllTypes) {
-        return MediaQueryMergeResult.unrepresentable;
+        return .unrepresentable;
       }
 
       if (ourModifier == 'not') {
@@ -140,7 +140,7 @@ final class CssMediaQuery {
     } else if (ourModifier == 'not') {
       assert(theirModifier == 'not');
       // CSS has no way of representing "neither screen nor print".
-      if (ourType != theirType) return MediaQueryMergeResult.unrepresentable;
+      if (ourType != theirType) return .unrepresentable;
 
       var moreConditions = this.conditions.length > other.conditions.length
           ? this.conditions
@@ -157,7 +157,7 @@ final class CssMediaQuery {
         conditions = moreConditions;
       } else {
         // Otherwise, there's no way to represent the intersection.
-        return MediaQueryMergeResult.unrepresentable;
+        return .unrepresentable;
       }
     } else if (matchesAllTypes) {
       modifier = theirModifier;
@@ -170,7 +170,7 @@ final class CssMediaQuery {
       type = ourType;
       conditions = [...this.conditions, ...other.conditions];
     } else if (ourType != theirType) {
-      return MediaQueryMergeResult.empty;
+      return .empty;
     } else {
       modifier = ourModifier ?? theirModifier;
       type = ourType;

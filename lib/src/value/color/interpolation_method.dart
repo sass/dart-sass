@@ -19,9 +19,7 @@ class InterpolationMethod(
   /// How to interpolate the hues between two colors.
   ///
   /// This is non-null if and only if [space] is a color space.
-  final HueInterpolationMethod? hue = space.isPolar
-      ? hue ?? HueInterpolationMethod.shorter
-      : null;
+  final HueInterpolationMethod? hue = space.isPolar ? hue ?? .shorter : null;
 
   this {
     if (!space.isPolar && hue != null) {
@@ -121,10 +119,10 @@ enum HueInterpolationMethod {
   /// name (without the `$`). This is used for error reporting.
   factory _fromValue(Value value, [String? name]) =>
       switch ((value.assertString(name)..assertUnquoted()).text.toLowerCase()) {
-        'shorter' => HueInterpolationMethod.shorter,
-        'longer' => HueInterpolationMethod.longer,
-        'increasing' => HueInterpolationMethod.increasing,
-        'decreasing' => HueInterpolationMethod.decreasing,
+        'shorter' => .shorter,
+        'longer' => .longer,
+        'increasing' => .increasing,
+        'decreasing' => .decreasing,
         _ => throw SassScriptException(
           'Unknown hue interpolation method $value.',
           name,
