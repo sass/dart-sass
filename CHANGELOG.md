@@ -1,3 +1,7 @@
+## 1.103.1
+
+* No user-visible changes.
+
 ## 1.103.0
 
 * **Potentially breaking compatibility fix:** Colors now preserve "analogous
