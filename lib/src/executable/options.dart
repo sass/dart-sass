@@ -464,8 +464,8 @@ final class ExecutableOptions._(
     return {
       for (var path in listDir(source, recursive: true))
         if (_isEntrypoint(path) &&
-            // Don't compile a CSS file to its own location.
-            !(source == destination && p.extension(path) == '.css'))
+            // Don't compile a CSS file that is already in destination.
+            !(p.extension(path) == '.css' && p.isWithin(destination, path)))
           path: p.join(
             destination,
             p.setExtension(p.relative(path, from: source), '.css'),

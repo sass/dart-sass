@@ -210,6 +210,24 @@ void sharedTests(
 
       await d.file("dir/test.css", "a {b: c}").validate();
     });
+
+    test(
+      "ignores a CSS file that is already in the output directory",
+      () async {
+        var desc = d.dir("dir", [
+          d.dir("out", [d.file("test.css", "a {b: c}")]),
+        ]);
+        await desc.create();
+
+        var sass = await runSass(["dir:dir/out"]);
+        expect(sass.stdout, emitsDone);
+        await sass.shouldExit(0);
+
+        await desc.validate();
+        await d.nothing('dir/out/out/test.css').validate();
+        await d.nothing('dir/out/out').validate();
+      },
+    );
   });
 
   group("reports all", () {
