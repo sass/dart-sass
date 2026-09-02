@@ -1,3 +1,9 @@
+## 1.103.2
+
+* Only emit comments that appear before a stylesheet's first `@use` rule once,
+  rather than once for each module that the stylesheet and its dependencies load
+  in common.
+
 ## 1.103.1
 
 * No user-visible changes.

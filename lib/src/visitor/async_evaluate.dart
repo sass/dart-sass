@@ -946,6 +946,10 @@ final class _EvaluateVisitor({
       _parent = root;
       _endOfImports = 0;
       _outOfOrderImports = null;
+      // Each module tracks only the comments that appear in its own source. If
+      // this isn't cleared, a nested load inherits its parent's comments and
+      // emits them again for every module it uses in common with the parent.
+      _preModuleComments = null;
       _extensionStore = extensionStore;
       _styleRuleIgnoringAtRoot = null;
       _mediaQueries = null;
