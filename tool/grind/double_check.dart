@@ -8,7 +8,6 @@ import 'package:cli_pkg/cli_pkg.dart' as pkg;
 import 'package:collection/collection.dart';
 import 'package:grinder/grinder.dart';
 import 'package:pub_api_client/pub_api_client.dart';
-import 'package:pubspec_parse/pubspec_parse.dart';
 
 import 'utils.dart';
 
