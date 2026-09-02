@@ -169,6 +169,8 @@ class SassColor._forSpace(
   };
 
   /// This color's alpha channel, between `0` and `1`.
+  ///
+  /// This is guaranteed never to be `NaN` or negative zero.
   double get alpha => alphaOrNull ?? 0;
 
   /// This color's alpha channel.
@@ -566,41 +568,56 @@ class SassColor._forSpace(
         channel0,
         invert: channel1 != null && fuzzyLessThan(channel1, 0),
       ),
-      channel1?.abs(),
-      channel2,
-      alpha,
+      _normalizeLinear(channel1?.abs()),
+      _normalizeLinear(channel2),
+      _normalizeLinear(alpha),
     ),
     .hwb => SassColor._forSpace(
       space,
       _normalizeHue(channel0, invert: false),
-      channel1,
-      channel2,
-      alpha,
+      _normalizeLinear(channel1),
+      _normalizeLinear(channel2),
+      _normalizeLinear(alpha),
     ),
     .lch || .oklch => SassColor._forSpace(
       space,
-      channel0,
-      channel1?.abs(),
+      _normalizeLinear(channel0),
+      _normalizeLinear(channel1?.abs()),
       _normalizeHue(
         channel2,
         invert: channel1 != null && fuzzyLessThan(channel1, 0),
       ),
-      alpha,
+      _normalizeLinear(alpha),
     ),
-    _ => SassColor._forSpace(space, channel0, channel1, channel2, alpha),
+    _ => SassColor._forSpace(
+      space,
+      _normalizeLinear(channel0),
+      _normalizeLinear(channel1),
+      _normalizeLinear(channel2),
+      _normalizeLinear(alpha),
+    ),
   };
 
   /// Like [forSpaceInternal], but doesn't do _any_ pre-processing of any
   /// channels.
   this : assert(format == null || _space == .rgb), assert(_space != .lms);
 
+  /// If [value] isn't null, normalizes `NaN` and negative zero values.
+  static double? _normalizeLinear(double? value) => switch (value) {
+    null => null,
+    0 || double(isNaN: true) => 0,
+    _ => value,
+  };
+
   /// If [hue] isn't null, normalizes it to the range `[0, 360)`.
   ///
   /// If [invert] is true, this returns the hue 180deg offset from the original value.
-  static double? _normalizeHue(double? hue, {required bool invert}) {
-    if (hue == null) return hue;
-    return (hue % 360 + 360 + (invert ? 180 : 0)) % 360;
-  }
+  static double? _normalizeHue(double? hue, {required bool invert}) =>
+      switch (hue) {
+        null => null,
+        0 || double(isFinite: false) => 0,
+        _ => (hue % 360 + 360 + (invert ? 180 : 0)) % 360,
+      };
 
   /// @nodoc
   @override
@@ -631,6 +648,9 @@ class SassColor._forSpace(
   /// If this came from a function argument, [colorName] is the argument name
   /// for this color and [channelName] is the argument name for [channel]
   /// (without the `$`). These are used for error reporting.
+  ///
+  /// This is guaranteed never to return `NaN` or negative zero. For polar
+  /// channels, it's also guaranteed never to return infinite values.
   double channel(String channel, {String? colorName, String? channelName}) {
     var channels = space.channels;
     if (channel == channels[0].name) return channel0;
