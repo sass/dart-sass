@@ -1,3 +1,9 @@
+## 1.104.1
+
+* Fix a bug in which an invalid selector at the end of an indented syntax
+  stylesheet would cause the parser to crash instead of emitting a useful error
+  message.
+
 ## 1.104.0
 
 * **Potentially breaking compatibility fix:** Colors now convert the special

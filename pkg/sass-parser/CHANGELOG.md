@@ -1,3 +1,8 @@
+## 0.4.55
+
+* Omit an extra newline that was being added to the end of `Rule.selector` in
+  the indented syntax.
+
 ## 0.4.54
 
 * No user-visible changes.
