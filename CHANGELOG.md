@@ -1,3 +1,12 @@
+## 1.104.1-dev
+
+### Command Line Interface
+
+* Many-to-many compilations no longer compile any files that appear in the
+  output directory if the output directory is also within the source directory.
+  This fixes a bug where `--watch` mode could enter an infinite loop recompiling
+  the same CSS file over and over.
+
 ## 1.104.0
 
 * **Potentially breaking compatibility fix:** Colors now convert the special
