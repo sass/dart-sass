@@ -1,3 +1,12 @@
+## 1.104.0
+
+* **Potentially breaking compatibility fix:** Colors now convert the special
+  values NaN and negative zero, as well as infinity and negative infinity for
+  polar-hue channels, to 0 as per the CSS spec.
+
+* The special value negative zero is now serialized as `-0` instead of `0` for
+  greater compatibility when using it in CSS calculations.
+
 ## 1.103.1
 
 * No user-visible changes.

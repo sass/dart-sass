@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import '../value.dart';
+import 'cross_platform.dart';
 
 /// The power of ten to which to round Sass numbers to determine if they're
 /// [fuzzy equal] to one another
@@ -214,11 +215,14 @@ SassNumber atan2(SassNumber y, SassNumber x) =>
 SassNumber _radiansToDegrees(double radians) =>
     SassNumber.withUnits(radians * (180 / math.pi), numeratorUnits: ['deg']);
 
-/// Extension methods to get the sign of the double's numerical value,
-/// including positive and negative zero.
+/// Extension methods for working with negative zero.
 extension DoubleWithSignedZero on double {
+  /// Returns whether this is the special value negative zero.
+  bool get isNegativeZero => crossPlatformIdentical(this, -0.0);
+
+  /// Returns the sign of this double *including* negative zero.
   double get signIncludingZero {
-    if (identical(this, -0.0)) return -1.0;
+    if (isNegativeZero) return -1.0;
     if (this == 0) return 1.0;
     return sign;
   }

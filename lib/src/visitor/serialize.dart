@@ -532,14 +532,12 @@ final class _SerializeVisitor({
   void _writeCalculationValue(Object value) {
     switch (value) {
       case SassNumber(value: double(isFinite: false)):
-        switch (value.value) {
-          case double.infinity:
-            _buffer.write('infinity');
-          case double.negativeInfinity:
-            _buffer.write('-infinity');
-          case double(isNaN: true):
-            _buffer.write('NaN');
-        }
+        _buffer.write(switch (value.value) {
+          double.infinity => 'infinity',
+          double.negativeInfinity => '-infinity',
+          double(isNaN: true) => 'NaN',
+          _ => throw UnsupportedError('Unexpected value ${value.value}'),
+        });
 
         _writeCalculationUnits(value.numeratorUnits, value.denominatorUnits);
 
@@ -584,14 +582,22 @@ final class _SerializeVisitor({
 
   /// Writes the complex numerator and denominator units beyond the first
   /// numerator unit for a number as they appear in a calculation.
+  ///
+  /// If [negative] is true, the resulting unit expression will have a negative
+  /// sign.
   void _writeCalculationUnits(
     List<String> numeratorUnits,
-    List<String> denominatorUnits,
-  ) {
+    List<String> denominatorUnits, {
+    bool negative = false,
+  }) {
     for (var unit in numeratorUnits) {
       _writeOptionalSpace();
       _buffer.writeCharCode($asterisk);
       _writeOptionalSpace();
+      if (negative) {
+        _buffer.writeCharCode($minus);
+        negative = false;
+      }
       _buffer.writeCharCode($1);
       _buffer.write(unit);
     }
@@ -600,6 +606,10 @@ final class _SerializeVisitor({
       _writeOptionalSpace();
       _buffer.writeCharCode($slash);
       _writeOptionalSpace();
+      if (negative) {
+        _buffer.writeCharCode($minus);
+        negative = false;
+      }
       _buffer.writeCharCode($1);
       _buffer.write(unit);
     }
@@ -1145,6 +1155,11 @@ final class _SerializeVisitor({
       visitCalculation(
         SassCalculation.unsimplified('calc', [SassNumber(number)]),
       );
+      return;
+    }
+
+    if (number.isNegativeZero) {
+      _buffer.write('-0');
       return;
     }
 
