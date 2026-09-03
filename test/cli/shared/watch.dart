@@ -1168,15 +1168,18 @@ void sharedTests(
       });
 
       // Regression test for #2846.
-      test("should ignore files in the output directory if it is inside the source directory", () async {
+      test("should ignore files in the output directory if it is inside the "
+          "source directory", () async {
         await d.dir("dir", [d.dir("out")]).create();
 
         var sass = await watch(["dir:dir/out"]);
         await expectLater(sass.stdout, _watchingForChanges);
         await tickIfPoll();
 
-        await d.file("dir/out/test.css", "a {b: c}").create();
-        await d.file("dir/out/test2.scss", "p {q: r}").create();
+        await d.dir("dir/out", [
+          d.file("test.css", "a {b: c}"),
+          d.file("test2.scss", "p {q: r}"),
+        ]).create();
         await tick;
 
         // Create a new file that *will* be compiled so that if the first change
