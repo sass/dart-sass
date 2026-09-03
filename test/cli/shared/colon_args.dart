@@ -211,23 +211,22 @@ void sharedTests(
       await d.file("dir/test.css", "a {b: c}").validate();
     });
 
-    test(
-      "ignores a CSS file that is already in the output directory",
-      () async {
-        var desc = d.dir("dir", [
-          d.dir("out", [d.file("test.css", "a {b: c}")]),
-        ]);
-        await desc.create();
+    test("ignores files already in the output directory", () async {
+      await d.dir("dir", [
+        d.dir("out", [
+          d.file("test.css", "a {b: c}"),
+          d.file("test2.scss", "x {y: z}"),
+        ]),
+      ]).create();
 
-        var sass = await runSass(["dir:dir/out"]);
-        expect(sass.stdout, emitsDone);
-        await sass.shouldExit(0);
+      var sass = await runSass(["dir:dir/out"]);
+      expect(sass.stdout, emitsDone);
+      await sass.shouldExit(0);
 
-        await desc.validate();
-        await d.nothing('dir/out/out/test.css').validate();
-        await d.nothing('dir/out/out').validate();
-      },
-    );
+      await d.nothing('dir/out/out/test.css').validate();
+      await d.nothing('dir/out/out/test2.css').validate();
+      await d.nothing('dir/out/out').validate();
+    });
   });
 
   group("reports all", () {

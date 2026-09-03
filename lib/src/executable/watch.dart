@@ -250,8 +250,11 @@ final class _Watcher(
         p.setExtension(p.relative(source, from: sourceDir), '.css'),
       );
 
-      if (!(p.extension(source) == '.css' &&
-          p.isWithin(destinationDir, source))) {
+      // Don't compile ".css" files to their own locations.
+      if (!p.equals(destination, source) &&
+          // Ignore files already in the destination if it is inside the source.
+          !(p.isWithin(sourceDir, destinationDir) &&
+              p.isWithin(destinationDir, source))) {
         return destination;
       }
     }
