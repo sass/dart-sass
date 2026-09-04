@@ -943,6 +943,7 @@ final class _EvaluateVisitor({
       _importer = importer;
       _stylesheet = stylesheet;
       var root = __root = ModifiableCssStylesheet(stylesheet.span);
+      _preModuleComments = {};
       _parent = root;
       _endOfImports = 0;
       _outOfOrderImports = null;
@@ -1031,27 +1032,32 @@ final class _EvaluateVisitor({
     // The CSS statements in the final document.
     var css = <CssNode>[];
 
-    /// The modules in reverse topological order.
+    // The modules in reverse topological order.
     var sorted = Queue<Module>();
 
-    /// The modules that have been visited so far. Note that if [cloneCss] is
-    /// true, this contains the original modules, not the copies.
+    // The modules that have been visited so far. Note that if [cloneCss] is
+    // true, this contains the original modules, not the copies.
     var seen = <Module>{};
 
     void visitModule(Module module) {
       if (!seen.add(module)) return;
       if (clone) module = module.cloneCss();
 
+      var seenUpstream = <Module>{};
       for (var upstream in module.upstream) {
-        if (upstream.transitivelyContainsCss) {
-          if (module.preModuleComments[upstream] case var comments?) {
-            // Intermix the top-level comments with plain CSS `@import`s until we
-            // start to have actual CSS defined, at which point start treating it as
-            // normal CSS.
-            (css.isEmpty ? imports : css).addAll(comments);
-          }
-          visitModule(upstream);
+        if (!upstream.transitivelyContainsCss) continue;
+
+        // A downstream module can load the same upstream module multiple times,
+        // but we only track pre-module comments for the first load.
+        if (!seenUpstream.add(upstream)) continue;
+
+        if (module.preModuleComments[upstream] case var comments?) {
+          // Intermix the top-level comments with plain CSS `@import`s until we
+          // start to have actual CSS defined, at which point start treating it as
+          // normal CSS.
+          (css.isEmpty ? imports : css).addAll(comments);
         }
+        visitModule(upstream);
       }
 
       sorted.addFirst(module);

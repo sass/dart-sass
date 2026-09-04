@@ -1,5 +1,8 @@
 ## 1.104.1-dev
 
+* Fix a bug where loud comments before `@use` rules could be emitted multiple
+  times under certain circumstances.
+
 ### Command Line Interface
 
 * Many-to-many compilations no longer compile any files that appear in the
