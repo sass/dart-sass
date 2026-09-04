@@ -1,6 +1,7 @@
 ## 0.4.55-dev
 
-* No user-visible changes.
+* Omit an extra newline that was being added to the end of `Rule.selector` in
+  the indented syntax.
 
 ## 0.4.54
 

@@ -1,5 +1,9 @@
 ## 1.104.1-dev
 
+* Fix a bug in which an invalid selector at the end of an indented syntax
+  stylesheet would cause the parser to crash instead of emitting a useful error
+  message.
+
 ### Command Line Interface
 
 * Many-to-many compilations no longer compile any files that appear in the
