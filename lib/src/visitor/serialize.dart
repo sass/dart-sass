@@ -166,7 +166,7 @@ final class _SerializeVisitor
         _indentCharacter = useSpaces ? $space : $tab,
         _indentWidth = indentWidth ?? 2,
         _lineFeed = lineFeed ?? LineFeed.lf,
-        _logger = logger ?? const Logger.stderr() {
+        _logger = logger ?? Logger.defaultLogger {
     RangeError.checkValueInInterval(_indentWidth, 0, 10, "indentWidth");
   }
 

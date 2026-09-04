@@ -5,6 +5,7 @@
 import 'package:meta/meta.dart';
 
 import '../../extend/functions.dart';
+import '../../logger.dart';
 import '../../parse/selector.dart';
 import '../../utils.dart';
 import '../../visitor/interface/selector.dart';
@@ -69,16 +70,21 @@ final class CompoundSelector extends Selector {
   /// [allowParent] controls whether a [ParentSelector] is allowed in this
   /// selector.
   ///
+  /// The [logger] will be used to report deprecation warnings. If it's null,
+  /// they'll be reported using [Logger.defaultLogger].
+  ///
   /// Throws a [SassFormatException] if parsing fails.
   factory CompoundSelector.parse(
     String contents, {
     Object? url,
     bool allowParent = true,
+    Logger? logger,
   }) =>
       SelectorParser(
         contents,
         url: url,
         allowParent: allowParent,
+        logger: logger,
       ).parseCompoundSelector();
 
   T accept<T>(SelectorVisitor<T> visitor) =>

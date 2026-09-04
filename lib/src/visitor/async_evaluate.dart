@@ -362,7 +362,7 @@ final class _EvaluateVisitor
     bool quietDeps = false,
     bool sourceMap = false,
   })  : _importCache = importCache ?? AsyncImportCache.none(),
-        _logger = logger ?? const Logger.stderr(),
+        _logger = logger ?? Logger.defaultLogger,
         _quietDeps = quietDeps,
         _sourceMap = sourceMap,
         // The default environment is overridden in [_execute] for full
@@ -1469,6 +1469,7 @@ final class _EvaluateVisitor
       trimAscii(targetText, excludeEscape: true),
       interpolationMap: targetMap,
       allowParent: false,
+      logger: _logger,
     );
 
     for (var complex in list.components) {
@@ -2327,6 +2328,7 @@ final class _EvaluateVisitor
       selectorText,
       interpolationMap: selectorMap,
       plainCss: _stylesheet.plainCss,
+      logger: _logger,
     );
 
     var merge = switch (_styleRule) {
@@ -4921,7 +4923,7 @@ typedef EvaluateResult = ({
 
 /// An implementation of [EvaluationContext] using the information available in
 /// [_EvaluateVisitor].
-final class _EvaluationContext implements EvaluationContext {
+final class _EvaluationContext extends EvaluationContext {
   /// The visitor backing this context.
   final _EvaluateVisitor _visitor;
 

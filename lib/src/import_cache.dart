@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: bb3c2542686524443034c09447c79df8434acac4
+// Checksum: 70ac15e60b5571fd9be81ec7bd5706ddb7ff0dbf
 //
 // ignore_for_file: unused_import
 
@@ -140,8 +140,8 @@ final class ImportCache {
   /// the load, if it exists.
   ///
   /// Returns the importer that was used to canonicalize [url], the canonical
-  /// URL (which is guaranteed to be absolute), and the URL that was passed to
-  /// the importer (which may be resolved relative to [baseUrl] if it's passed).
+  /// URL, and the URL that was passed to the importer (which may be resolved
+  /// relative to [baseUrl] if it's passed).
   ///
   /// If [baseImporter] is non-`null`, this first tries to use [baseImporter] to
   /// canonicalize [url] (resolved relative to [baseUrl] if it's passed).
@@ -267,10 +267,10 @@ final class ImportCache {
 
     if (result == null) return (null, cacheable);
 
-    if (result.scheme == '') {
-      throw "Importer $importer canonicalized $url to $result, which is "
-          "relative.";
-    } else if (importer.isNonCanonicalScheme(result.scheme)) {
+    // Relative canonical URLs (empty scheme) should throw an error starting in
+    // Dart Sass 2.0.0, but for now, they only emit a deprecation warning in
+    // the evaluator.
+    if (result.scheme != '' && importer.isNonCanonicalScheme(result.scheme)) {
       throw "Importer $importer canonicalized $url to $result, which uses a "
           "scheme declared as non-canonical.";
     }
@@ -325,11 +325,6 @@ final class ImportCache {
     Uri canonicalUrl, {
     Uri? originalUrl,
   }) {
-    if (!canonicalUrl.isAbsolute) {
-      throw ArgumentError(
-          'Canonical URL "$canonicalUrl" must be absolute.', 'canonicalUrl');
-    }
-
     return _importCache.putIfAbsent(canonicalUrl, () {
       var loadTime = DateTime.now();
       var result = importer.load(canonicalUrl);
@@ -337,10 +332,14 @@ final class ImportCache {
 
       _loadTimes[canonicalUrl] = loadTime;
       _resultsCache[canonicalUrl] = result;
-      return Stylesheet.parseInternal(
+      return Stylesheet.parse(
         result.contents,
         result.syntax,
-        url: canonicalUrl,
+        // For backwards-compatibility, relative canonical URLs are resolved
+        // relative to [originalUrl].
+        url: originalUrl == null
+            ? canonicalUrl
+            : originalUrl.resolveUri(canonicalUrl),
         parseSelectors: _parseSelectors,
       );
     });
@@ -355,7 +354,11 @@ final class ImportCache {
       minBy<Uri, int>(
         _canonicalizeCache.values.nonNulls
             .where((result) => result.$2 == canonicalUrl)
-            .map((result) => result.originalUrl),
+            .map((result) => result.originalUrl)
+            // Ignore original URLs that don't have schemes, because these can
+            // be ambiguous with `file:` URLs resolved relative to the current
+            // working directory. See sass/dart-sass#2777 for details.
+            .where((url) => url.hasScheme),
         (url) => url.path.length,
       )
           // Use the canonicalized basename so that we display e.g.

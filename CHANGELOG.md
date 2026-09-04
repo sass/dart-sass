@@ -173,12 +173,93 @@
   spaces. You can pass the `space` parameter to explicitly convert to a new
   space.
 
-## 1.97.4-dev
+## 1.101.1
+
+* Sass stack trace entries are now always either absolute URLs, absolute paths,
+  or paths relative to the current working directory. Previously, if a
+  stylesheet was loaded using a relative URL (as from a load path), that
+  relative URL was listed even if it couldn't be resolved relative to the
+  current working directory. However, this created potential ambiguities, so
+  this behavior has been removed.
+
+### Command Line Interface
+
+* `--watch` mode now handles atomically-written files more gracefully.
+
+## 1.101.0
+
+* **Potentially breaking bug fix:** The Node package importer now properly
+  supports resolving import-only variants of Sass files declared in the
+  `exports`, `sass`, and `style` fields of `package.json`. Previously, these
+  files were ignored even when loaded via `@import`, so any code relying on
+  loading module-system-only files this way may break.
+
+## 1.100.0
+
+* Writing two compound selectors adjacent to one another without any whitespace
+  between them, such as `[class]a`, is now deprecated. This was always an error
+  in CSS and Sass only supported it by mistake.
+
+  See [the Sass website](https://sass-lang.com/d/adjacent-compounds) for
+  details.
+
+## 1.99.0
+
+* Add support for parent selectors (`&`) at the root of the document. These are
+  emitted as-is in the CSS output, where they're interpreted as [the scoping
+  root].
+
+  [the scoping root]: https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/Nesting_selector#using_outside_nested_rule
+
+* User-defined functions named `calc` or `clamp` are no longer forbidden. If
+  such a function exists without a namespace in the current module, it will be
+  used instead of the built-in `calc()` or `clamp()` function.
+
+* User-defined functions whose names begin with `-` and end with `-expression`,
+  `-url`, `-and`, `-or`, or `-not` are no longer forbidden. These were
+  originally intended to match vendor prefixes, but in practice no vendor
+  prefixes for these functions ever existed in real browsers.
+
+* User-defined functions named `EXPRESSION`, `URL`, and `ELEMENT`, those that
+  begin with `-` and end with `-ELEMENT`, as well as the same names with some
+  lowercase letters are now deprecated, These are names conflict with plain CSS
+  functions that have special syntax.
+
+  See [the Sass website](https://sass-lang.com/d/function-name) for details.
+
+* In a future release, calls to functions whose names begin with `-` and end
+  with `-expression` and `-url` will no longer have special parsing. For now,
+  these calls are deprecated if their behavior will change in the future.
+
+  See [the Sass website](https://sass-lang.com/d/function-name) for details.
+
+* Calls to functions whose names begin with `-` and end with `-progid:...` are
+  deprecated.
+
+  See [the Sass website](https://sass-lang.com/d/function-name) for details.
+
+## 1.98.0
+
+### Command-Line Interface
+
+* Gracefully handle dependency loops in `--watch` mode.
+
+### Dart API
+
+* Add a `const Logger.defaultLogger` field. This provides a logger that emits to
+  standard error or the browser console, but automatically chooses whether to
+  use terminal colors.
 
 ### JavaScript API
 
 * Fix a crash when manually constructing a `SassCalculation` for `'calc'` with
   an argument that can't be simplified.
+
+* Properly emit deprecation warnings as text rather than `StringBuffer` objects
+  when running in a browser.
+
+* Emit colored warnings and other messages on the console when running in a
+  browser.
 
 ## 1.97.3
 

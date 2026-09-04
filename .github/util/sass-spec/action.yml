@@ -4,7 +4,7 @@ runs:
   using: composite
   steps:
     - name: Check out sass-spec
-      uses: sass/clone-linked-repo@v1
+      uses: sass/clone-linked-repo@ec2dcd11c5eaec56b64855712372056a14e9614d # v1
       with: {repo: sass/sass-spec}
 
     - run: npm install

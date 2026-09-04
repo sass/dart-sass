@@ -35,7 +35,25 @@
 * `Value.assertSelector()` and `Value.assertComplexSelector()` now forbid
   selectors with leading or trailing combinators by default.
 
-## 17.3.4-dev
+## 17.7.1
+
+* No user-visible changes.
+
+## 17.7.0
+
+* No user-visible changes.
+
+## 17.6.0
+
+* Add a `logger` parameter to `SelectorList.parse()`, `ComplexSelector.parse()`,
+  `CompoundSelector.parse()`, and `SimpleSelcetor.parse()`. This is used to
+  report deprecations found when parsing selectors.
+
+## 17.5.0
+
+* Add an `Expression.isPlainCss()` method.
+
+## 17.4.0
 
 * No user-visible changes.
 

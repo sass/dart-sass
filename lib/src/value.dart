@@ -5,6 +5,7 @@
 import 'package:meta/meta.dart';
 
 import 'ast/selector.dart';
+import 'evaluation_context.dart';
 import 'exception.dart';
 import 'utils.dart';
 import 'value/boolean.dart';
@@ -454,7 +455,7 @@ extension SassApiValue on Value {
   }) {
     var string = _selectorString(name);
     return _addNameToFormatException(
-        name, () => SelectorList.parse(string, allowParent: allowParent))
+        name, () => SelectorList.parse(string, allowParent: allowParent, logger: EvaluationContext.current.logger))
       ..assertValid(
         name: name,
         allowLeadingCombinator: allowLeadingCombinator,
@@ -477,7 +478,7 @@ extension SassApiValue on Value {
   }) {
     var string = _selectorString(name);
     return _addNameToFormatException(
-        name, () => SimpleSelector.parse(string, allowParent: allowParent));
+        name, () => SimpleSelector.parse(string, allowParent: allowParent, logger: EvaluationContext.current.logger));
   }
 
   /// Parses `this` as a compound selector, in the same manner as the
@@ -495,7 +496,7 @@ extension SassApiValue on Value {
   }) {
     var string = _selectorString(name);
     return _addNameToFormatException(
-        name, () => CompoundSelector.parse(string, allowParent: allowParent));
+        name, () => CompoundSelector.parse(string, allowParent: allowParent, logger: EvaluationContext.current.logger));
   }
 
   /// Parses `this` as a complex selector, in the same manner as the
@@ -520,7 +521,7 @@ extension SassApiValue on Value {
   }) {
     var string = _selectorString(name);
     return _addNameToFormatException(
-        name, () => ComplexSelector.parse(string, allowParent: allowParent))
+        name, () => ComplexSelector.parse(string, allowParent: allowParent, logger: EvaluationContext.current.logger))
       ..assertValid(
         name: name,
         allowLeadingCombinator: allowLeadingCombinator,

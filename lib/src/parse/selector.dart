@@ -7,6 +7,8 @@ import 'package:meta/meta.dart';
 
 import '../ast/css/value.dart';
 import '../ast/selector.dart';
+import '../deprecation.dart';
+import '../logger.dart';
 import '../util/character.dart';
 import '../utils.dart';
 import 'parser.dart';
@@ -41,6 +43,9 @@ final class SelectorParser extends Parser {
   /// Whether to parse the selector as plain CSS.
   final bool _plainCss;
 
+  /// The logger used to report deprecation warnings.
+  final Logger _logger;
+
   /// Creates a parser that parses CSS selectors.
   ///
   /// If [allowParent] is `false`, this will throw a [SassFormatException] if
@@ -48,14 +53,19 @@ final class SelectorParser extends Parser {
   ///
   /// If [plainCss] is `true`, this will parse the selector as a plain CSS
   /// selector rather than a Sass selector.
+  ///
+  /// The [logger] will be used to report deprecation warnings. If it's null,
+  /// they'll be reported using [Logger.defaultLogger].
   SelectorParser(
     super.contents, {
     super.url,
     super.interpolationMap,
     bool allowParent = true,
     bool plainCss = false,
+    Logger? logger,
   })  : _allowParent = allowParent,
-        _plainCss = plainCss;
+        _plainCss = plainCss,
+        _logger = logger ?? Logger.defaultLogger;
 
   SelectorList parse() {
     return wrapSpanFormatException(() {
@@ -147,7 +157,9 @@ final class SelectorParser extends Parser {
 
     loop:
     while (true) {
+      var beforeWhitespace = scanner.position;
       _whitespace();
+      var consumedWhitespace = scanner.position != beforeWhitespace;
 
       var allowCombinator = combinator == null &&
           (allowLeadingCombinator || lastCompound != null);
@@ -199,7 +211,24 @@ final class SelectorParser extends Parser {
             componentStart = scanner.state;
           }
 
-          lastCompound = _compoundSelector();
+          var nextCompound = _compoundSelector();
+
+          if (lastCompound != null &&
+              combinator == null &&
+              !consumedWhitespace) {
+            _logger.warnForDeprecation(
+              Deprecation.adjacentCompounds,
+              'Adjacent compound selectors must be separated by whitespace. '
+              'This will be an error in Dart Sass 2.0.0. Suggestion:\n'
+              '\n'
+              '$lastCompound $nextCompound\n'
+              '\n'
+              'More info: https://sass-lang.com/d/adjacent-compounds',
+              span: lastCompound.span.expand(nextCompound.span),
+            );
+          }
+
+          lastCompound = nextCompound;
           combinator = null;
           if (scanner.peekChar() == $ampersand) {
             scanner.error(

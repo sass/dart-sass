@@ -41,8 +41,7 @@ export interface ArgumentListObjectProps extends NodeProps {
  * @category Expression
  */
 export type ArgumentListProps =
-  | ArgumentListObjectProps
-  | ReadonlyArray<NewArguments>;
+  ArgumentListObjectProps | ReadonlyArray<NewArguments>;
 
 /**
  * Raws indicating how to precisely serialize a {@link ArgumentList} node.

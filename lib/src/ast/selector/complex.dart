@@ -7,6 +7,7 @@ import 'package:source_span/source_span.dart';
 
 import '../../exception.dart';
 import '../../extend/functions.dart';
+import '../../logger.dart';
 import '../../parse/selector.dart';
 import '../../util/nullable.dart';
 import '../../utils.dart';
@@ -131,16 +132,21 @@ final class ComplexSelector extends Selector {
   /// [allowParent] controls whether a [ParentSelector] is allowed in this
   /// selector.
   ///
+  /// The [logger] will be used to report deprecation warnings. If it's null,
+  /// they'll be reported using [Logger.defaultLogger].
+  ///
   /// Throws a [SassFormatException] if parsing fails.
   factory ComplexSelector.parse(
     String contents, {
     Object? url,
     bool allowParent = true,
+    Logger? logger,
   }) =>
       SelectorParser(
         contents,
         url: url,
         allowParent: allowParent,
+        logger: logger,
       ).parseComplexSelector();
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitComplexSelector(this);

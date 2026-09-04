@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f44cadc749a0005d58152b2b39c1ced0cc2959b7
+// Checksum: aa378886d9a3d697d466ac916f7902cbc1b282ee
 //
 // ignore_for_file: unused_import
 
@@ -14,7 +14,6 @@ export 'async_compile.dart';
 import 'dart:convert';
 
 import 'package:cli_pkg/js.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import 'ast/sass.dart';
@@ -23,6 +22,7 @@ import 'callable.dart';
 import 'compile_result.dart';
 import 'deprecation.dart';
 import 'importer.dart';
+import 'importer/legacy_node.dart';
 import 'importer/no_op.dart';
 import 'io.dart';
 import 'logger.dart';
@@ -34,12 +34,15 @@ import 'visitor/serialize.dart';
 
 /// Like [compile] in `lib/sass.dart`, but provides more options to support
 /// the node-sass compatible API and the executable.
-@internal
+///
+/// If both `importCache` and `nodeImporter` are provided, the importers in
+/// `importCache` will be evaluated before `nodeImporter`.
 CompileResult compile(
   String path, {
   Syntax? syntax,
   Logger? logger,
   ImportCache? importCache,
+  NodeImporter? nodeImporter,
   Iterable<Callable>? functions,
   OutputStyle? style,
   bool useSpaces = true,
@@ -55,7 +58,7 @@ CompileResult compile(
 }) {
   DeprecationProcessingLogger deprecationLogger =
       logger = DeprecationProcessingLogger(
-    logger ?? Logger.stderr(),
+    logger ?? Logger.defaultLogger,
     silenceDeprecations: {...?silenceDeprecations},
     fatalDeprecations: {...?fatalDeprecations},
     futureDeprecations: {...?futureDeprecations},
@@ -65,17 +68,18 @@ CompileResult compile(
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
   Stylesheet? stylesheet;
-  if (syntax == null || syntax == Syntax.forPath(path)) {
+  if (nodeImporter == null &&
+      (syntax == null || syntax == Syntax.forPath(path))) {
     importCache ??= ImportCache.none();
     stylesheet = importCache.importCanonical(
-      FilesystemImporter.noLoadPath,
+      FilesystemImporter.cwd,
       p.toUri(canonicalize(path)),
       originalUrl: p.toUri(path),
     )!;
   } else {
     stylesheet = Stylesheet.parse(
       readFile(path),
-      syntax,
+      syntax ?? Syntax.forPath(path),
       url: p.toUri(path),
     );
   }
@@ -84,7 +88,8 @@ CompileResult compile(
     stylesheet,
     logger,
     importCache,
-    FilesystemImporter.noLoadPath,
+    nodeImporter,
+    FilesystemImporter.cwd,
     functions,
     style,
     useSpaces,
@@ -95,18 +100,20 @@ CompileResult compile(
     charset,
   );
 
-  deprecationLogger.summarize(js: false);
+  deprecationLogger.summarize(js: nodeImporter != null);
   return result;
 }
 
 /// Like [compileString] in `lib/sass.dart`, but provides more options to
 /// support the node-sass compatible API.
-@internal
+///
+/// At most one of `importCache` and `nodeImporter` may be provided at once.
 CompileResult compileString(
   String source, {
   Syntax? syntax,
   Logger? logger,
   ImportCache? importCache,
+  NodeImporter? nodeImporter,
   Iterable<Importer>? importers,
   Iterable<String>? loadPaths,
   Importer? importer,
@@ -126,30 +133,31 @@ CompileResult compileString(
 }) {
   DeprecationProcessingLogger deprecationLogger =
       logger = DeprecationProcessingLogger(
-    logger ?? Logger.stderr(),
+    logger ?? Logger.defaultLogger,
     silenceDeprecations: {...?silenceDeprecations},
     fatalDeprecations: {...?fatalDeprecations},
     futureDeprecations: {...?futureDeprecations},
     limitRepetition: !verbose,
   )..validate();
 
-  var parsedUrl = switch (url) {
-    String string => Uri.parse(string),
-    _ => url as Uri?,
-  };
-  if (parsedUrl?.scheme == '') {
-    throw ArgumentError(
-        'The `url` argument ($url) to compileString() and related functions must '
-        'be an absolute, canonical URL.');
+  var stylesheet = Stylesheet.parse(source, syntax ?? Syntax.scss, url: url);
+
+  if (stylesheet.span.sourceUrl case Uri(scheme: '')
+      when nodeImporter == null) {
+    deprecationLogger.warnForDeprecation(
+      Deprecation.compileStringRelativeUrl,
+      'Passing a relative `url` argument (${stylesheet.span.sourceUrl}) to '
+      'compileString() or related functions is deprecated and will be an error '
+      'in Dart Sass 2.0.0.',
+    );
   }
-  var stylesheet =
-      Stylesheet.parseInternal(source, syntax ?? Syntax.scss, url: parsedUrl);
 
   var result = _compileStylesheet(
     stylesheet,
     logger,
     importCache,
-    importer ?? (isBrowser ? NoOpImporter() : FilesystemImporter.noLoadPath),
+    nodeImporter,
+    importer ?? (isBrowser ? NoOpImporter() : FilesystemImporter.cwd),
     functions,
     style,
     useSpaces,
@@ -160,7 +168,7 @@ CompileResult compileString(
     charset,
   );
 
-  deprecationLogger.summarize(js: false);
+  deprecationLogger.summarize(js: nodeImporter != null);
   return result;
 }
 
@@ -171,6 +179,7 @@ CompileResult _compileStylesheet(
   Stylesheet stylesheet,
   Logger? logger,
   ImportCache? importCache,
+  NodeImporter? nodeImporter,
   Importer importer,
   Iterable<Callable>? functions,
   OutputStyle? style,
@@ -181,9 +190,18 @@ CompileResult _compileStylesheet(
   bool sourceMap,
   bool charset,
 ) {
+  if (nodeImporter != null) {
+    logger?.warnForDeprecation(
+      Deprecation.legacyJsApi,
+      'The legacy JS API is deprecated and will be removed in '
+      'Dart Sass 2.0.0.\n\n'
+      'More info: https://sass-lang.com/d/legacy-js-api',
+    );
+  }
   var evaluateResult = evaluate(
     stylesheet,
     importCache: importCache,
+    nodeImporter: nodeImporter,
     importer: importer,
     functions: functions,
     logger: logger,

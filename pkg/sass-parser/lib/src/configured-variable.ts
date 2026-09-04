@@ -70,9 +70,7 @@ export interface ConfiguredVariableObjectProps extends NodeProps {
  * creates an unguarded {@link ConfiguredVariable}.
  */
 export type ConfiguredVariableExpressionProps =
-  | AnyExpression
-  | ExpressionProps
-  | Omit<ConfiguredVariableObjectProps, 'name'>;
+  AnyExpression | ExpressionProps | Omit<ConfiguredVariableObjectProps, 'name'>;
 
 /**
  * The initializer properties for {@link ConfiguredVariable}.
@@ -80,8 +78,7 @@ export type ConfiguredVariableExpressionProps =
  * @category Statement
  */
 export type ConfiguredVariableProps =
-  | ConfiguredVariableObjectProps
-  | [string, ConfiguredVariableExpressionProps];
+  ConfiguredVariableObjectProps | [string, ConfiguredVariableExpressionProps];
 
 /**
  * A single variable configured for the `with` clause of a `@use` or `@forward`

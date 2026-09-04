@@ -52,7 +52,7 @@ final class StringExpression extends Expression {
 
   /// Interpolation that, when evaluated, produces the syntax of this string.
   ///
-  /// Unlike [text], his doesn't resolve escapes and does include quotes for
+  /// Unlike [text], this doesn't resolve escapes and does include quotes for
   /// quoted strings.
   ///
   /// If [static] is true, this escapes any `#{` sequences in the string. If

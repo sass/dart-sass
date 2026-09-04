@@ -46,7 +46,7 @@ Future<CompileResult> compileAsync(
 }) async {
   DeprecationProcessingLogger deprecationLogger =
       logger = DeprecationProcessingLogger(
-    logger ?? Logger.stderr(),
+    logger ?? Logger.defaultLogger,
     silenceDeprecations: {...?silenceDeprecations},
     fatalDeprecations: {...?fatalDeprecations},
     futureDeprecations: {...?futureDeprecations},
@@ -117,7 +117,7 @@ Future<CompileResult> compileStringAsync(
 }) async {
   DeprecationProcessingLogger deprecationLogger =
       logger = DeprecationProcessingLogger(
-    logger ?? Logger.stderr(),
+    logger ?? Logger.defaultLogger,
     silenceDeprecations: {...?silenceDeprecations},
     fatalDeprecations: {...?fatalDeprecations},
     futureDeprecations: {...?futureDeprecations},

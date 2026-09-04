@@ -39,7 +39,7 @@ void safePrint(Object? message) {
   if (_process case var process?) {
     process.stdout.write("${message ?? ''}\n");
   } else {
-    console.log(message ?? '');
+    console.log(message?.toString() ?? '');
   }
 }
 
@@ -47,7 +47,7 @@ void printError(Object? message) {
   if (_process case var process?) {
     process.stderr.write("${message ?? ''}\n");
   } else {
-    console.error(message ?? '');
+    console.error(message?.toString() ?? '');
   }
 }
 
@@ -278,8 +278,9 @@ bool get isWindows => _process?.platform == 'win32';
 
 bool get isMacOS => _process?.platform == 'darwin';
 
-// Node seems to support ANSI escapes on all terminals.
-bool get supportsAnsiEscapes => hasTerminal;
+// Node seems to support ANSI escapes on all terminals, and browser consoles
+// support them as well..
+bool get supportsAnsiEscapes => hasTerminal || isBrowser;
 
 int get exitCode => _process?.exitCode ?? 0;
 

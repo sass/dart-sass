@@ -34,7 +34,7 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
   if (!isNodeJs) {
     jsThrow(JsError("The compile() method is only available in Node.js."));
   }
-  var color = options?.alertColor ?? hasTerminal;
+  var color = options?.alertColor ?? supportsAnsiEscapes;
   var ascii = options?.alertAscii ?? glyph.ascii;
   var logger = JSToDartLogger(
     options?.logger,
@@ -82,7 +82,7 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
 /// See https://github.com/sass/sass/spec/tree/main/js-api/compile.d.ts for
 /// details.
 NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
-  var color = options?.alertColor ?? hasTerminal;
+  var color = options?.alertColor ?? supportsAnsiEscapes;
   var ascii = options?.alertAscii ?? glyph.ascii;
   var logger = JSToDartLogger(
     options?.logger,
@@ -137,7 +137,7 @@ Promise compileAsync(String path, [CompileOptions? options]) {
   if (!isNodeJs) {
     jsThrow(JsError("The compileAsync() method is only available in Node.js."));
   }
-  var color = options?.alertColor ?? hasTerminal;
+  var color = options?.alertColor ?? supportsAnsiEscapes;
   var ascii = options?.alertAscii ?? glyph.ascii;
   var logger = JSToDartLogger(
     options?.logger,
@@ -189,7 +189,7 @@ Promise compileAsync(String path, [CompileOptions? options]) {
 /// See https://github.com/sass/sass/spec/tree/main/js-api/compile.d.ts for
 /// details.
 Promise compileStringAsync(String text, [CompileStringOptions? options]) {
-  var color = options?.alertColor ?? hasTerminal;
+  var color = options?.alertColor ?? supportsAnsiEscapes;
   var ascii = options?.alertAscii ?? glyph.ascii;
   var logger = JSToDartLogger(
     options?.logger,

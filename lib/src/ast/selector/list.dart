@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 import '../../exception.dart';
 import '../../extend/functions.dart';
 import '../../interpolation_map.dart';
+import '../../logger.dart';
 import '../../parse/selector.dart';
 import '../../utils.dart';
 import '../../util/iterable.dart';
@@ -114,6 +115,9 @@ final class SelectorList extends Selector {
   /// If passed, [interpolationMap] maps the text of [contents] back to the
   /// original location of the selector in the source file.
   ///
+  /// The [logger] will be used to report deprecation warnings. If it's null,
+  /// they'll be reported using [Logger.defaultLogger].
+  ///
   /// Throws a [SassFormatException] if parsing fails.
   factory SelectorList.parse(
     String contents, {
@@ -121,6 +125,7 @@ final class SelectorList extends Selector {
     InterpolationMap? interpolationMap,
     bool allowParent = true,
     bool plainCss = false,
+    Logger? logger,
   }) =>
       SelectorParser(
         contents,
@@ -128,6 +133,7 @@ final class SelectorList extends Selector {
         interpolationMap: interpolationMap,
         allowParent: allowParent,
         plainCss: plainCss,
+        logger: logger,
       ).parse();
 
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitSelectorList(this);
@@ -167,12 +173,18 @@ final class SelectorList extends Selector {
   }) {
     if (parent == null) {
       if (preserveParentSelectors) return this;
-      var parentSelector = accept(const _ParentSelectorVisitor());
-      if (parentSelector == null) return this;
-      throw SassException(
-        'Top-level selectors may not contain the parent selector "&".',
-        parentSelector.span,
-      );
+      if (accept(const _ParentSelectorVisitor())
+          case ParentSelector(
+            suffix: var _?,
+            :var span,
+          )) {
+        throw SassException(
+          'A top-level selector may not contain a parent selector with a '
+          'suffix.',
+          span,
+        );
+      }
+      return this;
     }
 
     return SelectorList(
