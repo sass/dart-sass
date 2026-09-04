@@ -540,7 +540,17 @@ abstract class StylesheetParser(
         buffer.addInterpolation(interpolation);
         interpolation = buffer.interpolation(spanFrom(start));
       }
-      if (interpolation.contents.isEmpty) scanner.error('expected "}".');
+      if (interpolation.contents.isEmpty) {
+        var unknown = _interpolatedDeclarationValue(
+          allowEmpty: true,
+          allowOpenBrace: false,
+        );
+        if (unknown.contents.isEmpty) {
+          scanner.error('expected end of rule.');
+        } else {
+          error('unrecognized syntax', unknown.span);
+        }
+      }
 
       return _withStyleRuleChildren(
         interpolation,

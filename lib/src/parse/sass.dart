@@ -46,11 +46,15 @@ class SassParser(super.contents, {super.url, super.parseSelectors})
     var start = scanner.state;
 
     var buffer = InterpolationBuffer();
-    do {
+    while (true) {
       buffer.addInterpolation(almostAnyValue(omitComments: true));
-      buffer.writeCharCode($lf);
-    } while (buffer.trailingString.trimRight().endsWith(',') &&
-        scanCharIf((char) => char.isNewline));
+      if (buffer.trailingString.trimRight().endsWith(',') &&
+          scanCharIf((char) => char.isNewline)) {
+        buffer.writeCharCode($lf);
+      } else {
+        break;
+      }
+    }
 
     return buffer.interpolation(spanFrom(start));
   }
