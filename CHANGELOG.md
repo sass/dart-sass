@@ -1,5 +1,8 @@
 ## 1.104.1-dev
 
+* Fix a bug where loud comments before `@use` rules could be emitted multiple
+  times under certain circumstances.
+
 * Fix a bug in which an invalid selector at the end of an indented syntax
   stylesheet would cause the parser to crash instead of emitting a useful error
   message.
