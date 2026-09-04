@@ -251,7 +251,12 @@ final class _Watcher(
       );
 
       // Don't compile ".css" files to their own locations.
-      if (!p.equals(destination, source)) return destination;
+      if (!p.equals(destination, source) &&
+          // Ignore files already in the destination if it is inside the source.
+          !(p.isWithin(sourceDir, destinationDir) &&
+              p.isWithin(destinationDir, source))) {
+        return destination;
+      }
     }
 
     return null;

@@ -1,4 +1,4 @@
-## 0.4.55
+## 0.4.55-dev
 
 * Omit an extra newline that was being added to the end of `Rule.selector` in
   the indented syntax.
