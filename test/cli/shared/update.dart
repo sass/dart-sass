@@ -63,6 +63,52 @@ void sharedTests(
           .validate();
     });
 
+    // Regression test for #2849.
+    test("a source modified during a compilation", () async {
+      await d.file("_slow.scss", _slowSource).create();
+      await d.file("_other.scss", "a {b: c}").create();
+      await d.file("test.scss", "@use 'slow'; @use 'other'").create();
+
+      var watcher = await runSass([
+        "--no-source-map",
+        "--watch",
+        "test.scss:out.css",
+      ]);
+      await expectLater(
+        watcher.stdout,
+        emits(endsWith('Compiled test.scss to out.css.')),
+      );
+      await expectLater(
+        watcher.stdout,
+        emitsInOrder([
+          "Sass is watching for changes. Press Ctrl-C to stop.",
+          "",
+        ]),
+      );
+
+      // Modifying the slow stylesheet starts a compilation that runs for
+      // several seconds. The delay is short enough to land while that
+      // compilation is still in progress.
+      await d.file("_slow.scss", "$_slowSource\n// modified").create();
+      await Future<void>.delayed(Duration(seconds: 3));
+      await d.file("_other.scss", "x {y: z}").create();
+
+      // Stop once the compilation that missed the second modification is
+      // written, leaving the CSS on disk one generation behind.
+      await expectLater(
+        watcher.stdout,
+        emits(endsWith('Compiled test.scss to out.css.')),
+      );
+      await watcher.kill();
+
+      // A later `--update` must pick up the missed generation.
+      var sass = await update(["test.scss:out.css"]);
+      expect(sass.stdout, emits(endsWith('Compiled test.scss to out.css.')));
+      await sass.shouldExit(0);
+
+      await d.file("out.css", contains("y: z")).validate();
+    }, timeout: Timeout.factor(4));
+
     test("files that share a modified import", () async {
       await d.file("other.scss", r"a {b: $var}").create();
       await d.file("test1.scss", r"$var: 1; @import 'other'").create();
@@ -311,3 +357,15 @@ void sharedTests(
     });
   });
 }
+
+/// A stylesheet that takes multiple seconds to compile, so that another file
+/// can be modified while a compilation that includes it is in progress.
+const _slowSource = r"""
+@use "sass:math";
+@for $i from 1 through 80 {
+  .a-#{$i} { %ph-#{$i} { color: red; } }
+  @for $j from 1 through 80 {
+    .b-#{$i}-#{$j} { @extend %ph-#{$i}; width: math.div($i * 100%, $j); }
+  }
+}
+""";
