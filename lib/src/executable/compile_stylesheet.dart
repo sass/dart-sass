@@ -85,6 +85,7 @@ Future<void> _compileStylesheetWithoutErrorHandling(
   String? destination, {
   bool ifModified = false,
 }) async {
+  var compilationStarted = DateTime.now();
   var importer = FilesystemImporter.cwd;
   if (ifModified) {
     try {
@@ -192,18 +193,25 @@ Future<void> _compileStylesheetWithoutErrorHandling(
       } else {
         ensureDir(p.dirname(destination));
         writeFile(destination, "${error.toCssString()}\n");
+        _trySetModificationTime(destination, compilationStarted);
       }
     }
     rethrow;
   }
 
   var css = result.css;
-  css += _writeSourceMap(options, result.sourceMap, destination);
+  css += _writeSourceMap(
+    options,
+    result.sourceMap,
+    destination,
+    compilationStarted,
+  );
   if (destination == null) {
     if (css.isNotEmpty) print(css);
   } else {
     ensureDir(p.dirname(destination));
     writeFile(destination, "$css\n");
+    _trySetModificationTime(destination, compilationStarted);
   }
 
   if (options.quiet || (!options.update && !options.watch)) return;
@@ -238,6 +246,7 @@ String _writeSourceMap(
   ExecutableOptions options,
   SingleMapping? sourceMap,
   String? destination,
+  DateTime compilationStarted,
 ) {
   if (sourceMap == null) return "";
 
@@ -268,6 +277,7 @@ String _writeSourceMap(
     var sourceMapPath = '${destination!}.map';
     ensureDir(p.dirname(sourceMapPath));
     writeFile(sourceMapPath, sourceMapText);
+    _trySetModificationTime(sourceMapPath, compilationStarted);
 
     url = p.toUri(p.relative(sourceMapPath, from: p.dirname(destination)));
   }
@@ -286,6 +296,19 @@ void _tryDelete(String path) {
     deleteFile(path);
   } on FileSystemException {
     // If the file doesn't exist, that's fine.
+  }
+}
+
+/// Backdate [path] to [time], ignoring failures.
+///
+/// Outputs keep the time compilation started so that sources modified during
+/// compilation compare as newer. Best effort on filesystems with coarse
+/// granularity.
+void _trySetModificationTime(String path, DateTime time) {
+  try {
+    setModificationTime(path, time);
+  } on FileSystemException {
+    // The output is still usable with its actual modification time.
   }
 }
 

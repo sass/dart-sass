@@ -208,6 +208,41 @@ void sharedTests(
               .validate();
         });
 
+        // Regression test for #2849.
+        test("when a dependency is modified during a compilation", () async {
+          await d.file("_slow.scss", _slowSource).create();
+          await d.file("_other.scss", "a {b: c}").create();
+          await d.file("test.scss", "@use 'slow'; @use 'other'").create();
+
+          var sass = await watch(["test.scss:out.css"]);
+          await expectLater(
+            sass.stdout,
+            emits(endsWith('Compiled test.scss to out.css.')),
+          );
+          await expectLater(sass.stdout, _watchingForChanges);
+          await tickIfPoll();
+
+          // Modifying the slow stylesheet starts a compilation that runs for
+          // several seconds. The delay is longer than the polling interval so
+          // that the modification below is seen as a separate change, but short
+          // enough that it lands while that compilation is still in progress.
+          await d.file("_slow.scss", "$_slowSource\n// modified").create();
+          await Future<void>.delayed(Duration(seconds: 3));
+          await d.file("_other.scss", "x {y: z}").create();
+
+          await expectLater(
+            sass.stdout,
+            emits(endsWith('Compiled test.scss to out.css.')),
+          );
+          await expectLater(
+            sass.stdout,
+            emits(endsWith('Compiled test.scss to out.css.')),
+          );
+          await sass.kill();
+
+          await d.file("out.css", contains("y: z")).validate();
+        }, timeout: Timeout.factor(4));
+
         test("when it's modified when watched from a directory", () async {
           await d.dir("dir", [d.file("test.scss", "a {b: c}")]).create();
 
@@ -1215,6 +1250,18 @@ void sharedTests(
     });
   }
 }
+
+/// A stylesheet that takes multiple seconds to compile, so that another file
+/// can be modified while a compilation that includes it is in progress.
+const _slowSource = r"""
+@use "sass:math";
+@for $i from 1 through 80 {
+  .a-#{$i} { %ph-#{$i} { color: red; } }
+  @for $j from 1 through 80 {
+    .b-#{$i}-#{$j} { @extend %ph-#{$i}; width: math.div($i * 100%, $j); }
+  }
+}
+""";
 
 /// Writes [contents] to [path] atomically.
 ///
