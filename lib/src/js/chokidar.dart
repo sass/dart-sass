@@ -14,7 +14,7 @@ class Chokidar {
 class ChokidarOptions {
   external bool? get usePolling;
 
-  external factory ChokidarOptions({bool? usePolling});
+  external factory({bool? usePolling});
 }
 
 @JS()

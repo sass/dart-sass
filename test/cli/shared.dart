@@ -15,7 +15,8 @@ void sharedTests(
   Future<TestProcess> Function(
     Iterable<String> arguments, {
     Map<String, String>? environment,
-  }) runSass,
+  })
+  runSass,
 ) {
   /// Runs the executable on [arguments] plus an output file, then verifies that
   /// the contents of the output file match [expected].
@@ -329,8 +330,7 @@ void sharedTests(
   });
 
   // Regression test for an issue mentioned in sass/linter#15
-  test(
-      "gracefully reports errors for binary operations with parenthesized "
+  test("gracefully reports errors for binary operations with parenthesized "
       "operands", () async {
     var sass = await runSass(["--no-unicode", "-"]);
     sass.stdin.writeln("a {b: (#123) + (#456)}");
@@ -713,7 +713,8 @@ void sharedTests(
       expect(
         sass.stderr,
         emitsInOrder(
-            List.filled(5, emitsThrough(contains("[global-builtin]")))),
+          List.filled(5, emitsThrough(contains("[global-builtin]"))),
+        ),
       );
       expect(sass.stderr, neverEmits(contains("[global-builtin]")));
 
@@ -777,9 +778,9 @@ void sharedTests(
       // the BOM.
       var bomBytes = utf8.encode("\uFEFF");
       expect(
-        File(
-          p.join(d.sandbox, "test.css"),
-        ).readAsBytesSync().sublist(0, bomBytes.length),
+        File(p.join(d.sandbox, "test.css"))
+            .readAsBytesSync()
+            .sublist(0, bomBytes.length),
         equals(bomBytes),
       );
     });
@@ -810,9 +811,9 @@ void sharedTests(
       // the BOM.
       var bomBytes = utf8.encode("\uFEFF");
       expect(
-        File(
-          p.join(d.sandbox, "test.css"),
-        ).readAsBytesSync().sublist(0, bomBytes.length),
+        File(p.join(d.sandbox, "test.css"))
+            .readAsBytesSync()
+            .sublist(0, bomBytes.length),
         isNot(equals(bomBytes)),
       );
     });
@@ -868,8 +869,10 @@ void sharedTests(
   group("with --fatal-deprecation", () {
     test("set to a specific deprecation, errors as intended", () async {
       await d.file("test.scss", "a {b: nth(1 2 3, 1)}").create();
-      var sass =
-          await runSass(["--fatal-deprecation=global-builtin", "test.scss"]);
+      var sass = await runSass([
+        "--fatal-deprecation=global-builtin",
+        "test.scss",
+      ]);
       expect(sass.stdout, emitsDone);
       await sass.shouldExit(65);
     });

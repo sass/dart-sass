@@ -13,26 +13,19 @@ import 'unary_operation.dart';
 /// A list literal.
 ///
 /// {@category AST}
-final class ListExpression extends Expression {
-  /// The elements of this list.
-  final List<Expression> contents;
+final class ListExpression(
+  Iterable<Expression> contents,
 
   /// Which separator this list uses.
-  final ListSeparator separator;
+  final ListSeparator separator,
+  @override final FileSpan span, {
+  bool brackets = false,
+}) extends Expression {
+  /// The elements of this list.
+  final List<Expression> contents = List.unmodifiableOf(contents);
 
   /// Whether the list has square brackets or not.
-  final bool hasBrackets;
-
-  @override
-  final FileSpan span;
-
-  ListExpression(
-    Iterable<Expression> contents,
-    this.separator,
-    this.span, {
-    bool brackets = false,
-  })  : contents = List.unmodifiable(contents),
-        hasBrackets = brackets;
+  final bool hasBrackets = brackets;
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
@@ -72,18 +65,18 @@ final class ListExpression extends Expression {
   /// Returns whether [expression], contained in `this`, needs parentheses when
   /// printed as Sass source.
   bool _elementNeedsParens(Expression expression) => switch (expression) {
-        ListExpression(
-          contents: [_, _, ...],
-          hasBrackets: false,
-          separator: var childSeparator,
-        ) =>
-          separator == ListSeparator.comma
-              ? childSeparator == ListSeparator.comma
-              : childSeparator != ListSeparator.undecided,
-        UnaryOperationExpression(
-          operator: UnaryOperator.plus || UnaryOperator.minus,
-        ) =>
-          separator == ListSeparator.space,
-        _ => false,
-      };
+    ListExpression(
+      contents: [_, _, ...],
+      hasBrackets: false,
+      separator: var childSeparator,
+    ) =>
+      separator == ListSeparator.comma
+          ? childSeparator == ListSeparator.comma
+          : childSeparator != ListSeparator.undecided,
+    UnaryOperationExpression(
+      operator: UnaryOperator.plus || UnaryOperator.minus,
+    ) =>
+      separator == ListSeparator.space,
+    _ => false,
+  };
 }

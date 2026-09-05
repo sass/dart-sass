@@ -12,7 +12,7 @@ import 'parser.dart';
 /// A parser for `@media` queries.
 @internal
 final class MediaQueryParser extends Parser {
-  MediaQueryParser(super.contents, {super.url, super.interpolationMap});
+  new(super.contents, {super.url, super.interpolationMap});
 
   List<CssMediaQuery> parse() {
     return wrapSpanFormatException(() {

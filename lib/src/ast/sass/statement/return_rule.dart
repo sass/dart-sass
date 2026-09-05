@@ -13,15 +13,11 @@ import '../statement.dart';
 /// This exits from the current function body with a return value.
 ///
 /// {@category AST}
-final class ReturnRule extends Statement {
+final class ReturnRule(
   /// The value to return from this function.
-  final Expression expression;
-
-  @override
-  final FileSpan span;
-
-  ReturnRule(this.expression, this.span);
-
+  final Expression expression,
+  @override final FileSpan span,
+) extends Statement {
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitReturnRule(this);
 

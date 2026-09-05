@@ -21,16 +21,16 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class LmsColorSpace extends ColorSpace {
+final class const LmsColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => false;
 
-  const LmsColorSpace()
-      : super('lms', const [
-          LinearChannel('long', 0, 1),
-          LinearChannel('medium', 0, 1),
-          LinearChannel('short', 0, 1),
-        ]);
+  this
+    : super('lms', const [
+        LinearChannel('long', 0, 1),
+        LinearChannel('medium', 0, 1),
+        LinearChannel('short', 0, 1),
+      ]);
 
   @override
   SassColor convert(
@@ -51,7 +51,8 @@ final class LmsColorSpace extends ColorSpace {
         var longScaled = _cubeRootPreservingSign(long ?? 0);
         var mediumScaled = _cubeRootPreservingSign(medium ?? 0);
         var shortScaled = _cubeRootPreservingSign(short ?? 0);
-        var lightness = lmsToOklab[0] * longScaled +
+        var lightness =
+            lmsToOklab[0] * longScaled +
             lmsToOklab[1] * mediumScaled +
             lmsToOklab[2] * shortScaled;
 
@@ -60,13 +61,13 @@ final class LmsColorSpace extends ColorSpace {
           missingA
               ? null
               : lmsToOklab[3] * longScaled +
-                  lmsToOklab[4] * mediumScaled +
-                  lmsToOklab[5] * shortScaled,
+                    lmsToOklab[4] * mediumScaled +
+                    lmsToOklab[5] * shortScaled,
           missingB
               ? null
               : lmsToOklab[6] * longScaled +
-                  lmsToOklab[7] * mediumScaled +
-                  lmsToOklab[8] * shortScaled,
+                    lmsToOklab[7] * mediumScaled +
+                    lmsToOklab[8] * shortScaled,
           alpha,
         );
 
@@ -82,8 +83,8 @@ final class LmsColorSpace extends ColorSpace {
           missingLightness
               ? null
               : lmsToOklab[0] * longScaled +
-                  lmsToOklab[1] * mediumScaled +
-                  lmsToOklab[2] * shortScaled,
+                    lmsToOklab[1] * mediumScaled +
+                    lmsToOklab[2] * shortScaled,
           lmsToOklab[3] * longScaled +
               lmsToOklab[4] * mediumScaled +
               lmsToOklab[5] * shortScaled,
@@ -127,18 +128,15 @@ final class LmsColorSpace extends ColorSpace {
   @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
-        ColorSpace.srgbLinear ||
-        ColorSpace.srgb ||
-        ColorSpace.rgb =>
-          lmsToLinearSrgb,
-        ColorSpace.a98Rgb => lmsToLinearA98Rgb,
-        ColorSpace.prophotoRgb => lmsToLinearProphotoRgb,
-        ColorSpace.displayP3 ||
-        ColorSpace.displayP3Linear =>
-          lmsToLinearDisplayP3,
-        ColorSpace.rec2020 => lmsToLinearRec2020,
-        ColorSpace.xyzD65 => lmsToXyzD65,
-        ColorSpace.xyzD50 => lmsToXyzD50,
-        _ => super.transformationMatrix(dest),
-      };
+    ColorSpace.srgbLinear ||
+    ColorSpace.srgb ||
+    ColorSpace.rgb => lmsToLinearSrgb,
+    ColorSpace.a98Rgb => lmsToLinearA98Rgb,
+    ColorSpace.prophotoRgb => lmsToLinearProphotoRgb,
+    ColorSpace.displayP3 || ColorSpace.displayP3Linear => lmsToLinearDisplayP3,
+    ColorSpace.rec2020 => lmsToLinearRec2020,
+    ColorSpace.xyzD65 => lmsToXyzD65,
+    ColorSpace.xyzD50 => lmsToXyzD50,
+    _ => super.transformationMatrix(dest),
+  };
 }

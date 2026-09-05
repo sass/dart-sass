@@ -45,26 +45,22 @@ final class Declaration extends ParentStatement {
   final bool parsedAsSassScript;
 
   /// Creates a declaration with no children.
-  Declaration(this.name, this.value, this.span)
-      : parsedAsSassScript = true,
-        super(null);
+  new(this.name, this.value, this.span)
+    : parsedAsSassScript = true,
+      super(null);
 
   /// Creates a declaration with no children whose value is not parsed as
   /// SassScript.
-  Declaration.notSassScript(this.name, StringExpression this.value, this.span)
-      : parsedAsSassScript = false,
-        super(null);
+  new notSassScript(this.name, StringExpression this.value, this.span)
+    : parsedAsSassScript = false,
+      super(null);
 
   /// Creates a declaration with children.
   ///
   /// For these declarations, a value is optional.
-  Declaration.nested(
-    this.name,
-    Iterable<Statement> children,
-    this.span, {
-    this.value,
-  })  : parsedAsSassScript = true,
-        super(List.unmodifiable(children));
+  new nested(this.name, Iterable<Statement> children, this.span, {this.value})
+    : parsedAsSassScript = true,
+      super(List.unmodifiableOf(children));
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitDeclaration(this);

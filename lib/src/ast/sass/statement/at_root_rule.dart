@@ -14,16 +14,15 @@ import 'parent.dart';
 /// This moves it contents "up" the tree through parent nodes.
 ///
 /// {@category AST}
-final class AtRootRule extends ParentStatement<List<Statement>> {
+final class AtRootRule(
+  Iterable<Statement> children,
+  @override final FileSpan span, {
+
   /// The query specifying which statements this should move its contents
   /// through.
-  final Interpolation? query;
-
-  @override
-  final FileSpan span;
-
-  AtRootRule(Iterable<Statement> children, this.span, {this.query})
-      : super(List.unmodifiable(children));
+  final Interpolation? query,
+}) extends ParentStatement<List<Statement>> {
+  this : super(List.unmodifiableOf(children));
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitAtRootRule(this);

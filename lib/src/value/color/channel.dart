@@ -33,25 +33,20 @@ final class ColorChannel {
 
   /// @nodoc
   @internal
-  const ColorChannel(
-    this.name, {
-    required this.isPolarAngle,
-    this.associatedUnit,
-  });
+  const new(this.name, {required this.isPolarAngle, this.associatedUnit});
 
   /// Returns whether this channel is [analogous] to [other].
   ///
   /// [analogous]: https://www.w3.org/TR/css-color-4/#interpolation-missing
   bool isAnalogous(ColorChannel other) => switch ((name, other.name)) {
-        ("red" || "x", "red" || "x") ||
-        ("green" || "y", "green" || "y") ||
-        ("blue" || "z", "blue" || "z") ||
-        ("chroma" || "saturation", "chroma" || "saturation") ||
-        ("lightness", "lightness") ||
-        ("hue", "hue") =>
-          true,
-        _ => false,
-      };
+    ("red" || "x", "red" || "x") ||
+    ("green" || "y", "green" || "y") ||
+    ("blue" || "z", "blue" || "z") ||
+    ("chroma" || "saturation", "chroma" || "saturation") ||
+    ("lightness", "lightness") ||
+    ("hue", "hue") => true,
+    _ => false,
+  };
 }
 
 /// Metadata about a color channel with a linear (as opposed to polar) value.
@@ -94,7 +89,7 @@ final class LinearChannel extends ColorChannel {
   ///
   /// @nodoc
   @internal
-  const LinearChannel(
+  const new(
     super.name,
     this.min,
     this.max, {
@@ -103,8 +98,9 @@ final class LinearChannel extends ColorChannel {
     this.upperClamped = false,
     bool? conventionallyPercent,
   }) : super(
-          isPolarAngle: false,
-          associatedUnit:
-              (conventionallyPercent ?? (min == 0 && max == 100)) ? '%' : null,
-        );
+         isPolarAngle: false,
+         associatedUnit: (conventionallyPercent ?? (min == 0 && max == 100))
+             ? '%'
+             : null,
+       );
 }

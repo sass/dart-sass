@@ -44,14 +44,14 @@ Future<CompileResult> compileAsync(
   Iterable<Deprecation>? fatalDeprecations,
   Iterable<Deprecation>? futureDeprecations,
 }) async {
-  DeprecationProcessingLogger deprecationLogger =
-      logger = DeprecationProcessingLogger(
-    logger ?? Logger.defaultLogger,
-    silenceDeprecations: {...?silenceDeprecations},
-    fatalDeprecations: {...?fatalDeprecations},
-    futureDeprecations: {...?futureDeprecations},
-    limitRepetition: !verbose,
-  )..validate();
+  DeprecationProcessingLogger deprecationLogger = logger =
+      DeprecationProcessingLogger(
+        logger ?? Logger.defaultLogger,
+        silenceDeprecations: {...?silenceDeprecations},
+        fatalDeprecations: {...?fatalDeprecations},
+        futureDeprecations: {...?futureDeprecations},
+        limitRepetition: !verbose,
+      )..validate();
 
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
@@ -64,11 +64,7 @@ Future<CompileResult> compileAsync(
       originalUrl: p.toUri(path),
     ))!;
   } else {
-    stylesheet = Stylesheet.parse(
-      readFile(path),
-      syntax,
-      url: p.toUri(path),
-    );
+    stylesheet = Stylesheet.parse(readFile(path), syntax, url: p.toUri(path));
   }
 
   var result = await _compileStylesheet(
@@ -115,14 +111,14 @@ Future<CompileResult> compileStringAsync(
   Iterable<Deprecation>? fatalDeprecations,
   Iterable<Deprecation>? futureDeprecations,
 }) async {
-  DeprecationProcessingLogger deprecationLogger =
-      logger = DeprecationProcessingLogger(
-    logger ?? Logger.defaultLogger,
-    silenceDeprecations: {...?silenceDeprecations},
-    fatalDeprecations: {...?fatalDeprecations},
-    futureDeprecations: {...?futureDeprecations},
-    limitRepetition: !verbose,
-  )..validate();
+  DeprecationProcessingLogger deprecationLogger = logger =
+      DeprecationProcessingLogger(
+        logger ?? Logger.defaultLogger,
+        silenceDeprecations: {...?silenceDeprecations},
+        fatalDeprecations: {...?fatalDeprecations},
+        futureDeprecations: {...?futureDeprecations},
+        limitRepetition: !verbose,
+      )..validate();
 
   var parsedUrl = switch (url) {
     String string => Uri.parse(string),
@@ -130,11 +126,15 @@ Future<CompileResult> compileStringAsync(
   };
   if (parsedUrl?.scheme == '') {
     throw ArgumentError(
-        'The `url` argument ($url) to compileString() and related functions must '
-        'be an absolute, canonical URL.');
+      'The `url` argument ($url) to compileString() and related functions must '
+      'be an absolute, canonical URL.',
+    );
   }
-  var stylesheet =
-      Stylesheet.parse(source, syntax ?? Syntax.scss, url: parsedUrl);
+  var stylesheet = Stylesheet.parse(
+    source,
+    syntax ?? Syntax.scss,
+    url: parsedUrl,
+  );
 
   var result = await _compileStylesheet(
     stylesheet,

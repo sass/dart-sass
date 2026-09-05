@@ -55,7 +55,7 @@ final class SingleUnitSassNumber extends SassNumber {
   @override
   bool get hasComplexUnits => false;
 
-  SingleUnitSassNumber(super.value, this._unit) : super.protected();
+  new(super.value, this._unit) : super.protected();
 
   @override
   SassNumber withValue(num value) =>

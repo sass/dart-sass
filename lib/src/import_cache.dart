@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_import_cache.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 70ac15e60b5571fd9be81ec7bd5706ddb7ff0dbf
+// Checksum: 65e2109b40fe939b7e49dc1f99729f65965c3359
 //
 // ignore_for_file: unused_import
 
@@ -95,24 +95,20 @@ final class ImportCache {
   ///   this is a shorthand for adding a [PackageImporter] to [importers].
   ///
   /// [`PackageConfig`]: https://pub.dev/documentation/package_config/latest/package_config.package_config/PackageConfig-class.html
-  ImportCache({
+  new({
     Iterable<Importer>? importers,
     Iterable<String>? loadPaths,
     PackageConfig? packageConfig,
-    bool parseSelectors = false,
-  })  : _importers = _toImporters(importers, loadPaths, packageConfig),
-        _parseSelectors = parseSelectors;
+    this._parseSelectors = false,
+  }) : _importers = _toImporters(importers, loadPaths, packageConfig);
 
   /// Creates an import cache without any globally-available importers.
-  ImportCache.none({bool parseSelectors = false})
-      : _importers = const [],
-        _parseSelectors = parseSelectors;
+  new none({this._parseSelectors = false}) : _importers = const [];
 
   /// Creates an import cache without any globally-available importers, and only
   /// the passed in importers.
-  ImportCache.only(Iterable<Importer> importers, {bool parseSelectors = false})
-      : _importers = List.unmodifiable(importers),
-        _parseSelectors = parseSelectors;
+  new only(Iterable<Importer> importers, {this._parseSelectors = false})
+    : _importers = List.unmodifiableOf(importers);
 
   /// Converts the user's [importers], [loadPaths], and [packageConfig]
   /// options into a single list of importers.
@@ -165,24 +161,21 @@ final class ImportCache {
     if (baseImporter != null && url.scheme == '') {
       var resolvedUrl = baseUrl?.resolveUri(url) ?? url;
       var key = (baseImporter, resolvedUrl, forImport: forImport);
-      var relativeResult = _perImporterCanonicalizeCache.putIfAbsent(
-        key,
-        () {
-          var (result, cacheable) = _canonicalize(
-            baseImporter,
-            resolvedUrl,
-            baseUrl,
-            forImport,
-          );
-          assert(
-            cacheable,
-            "Relative loads should always be cacheable because they never "
-            "provide access to the containing URL.",
-          );
-          if (baseUrl != null) _nonCanonicalRelativeUrls[key] = url;
-          return result;
-        },
-      );
+      var relativeResult = _perImporterCanonicalizeCache.putIfAbsent(key, () {
+        var (result, cacheable) = _canonicalize(
+          baseImporter,
+          resolvedUrl,
+          baseUrl,
+          forImport,
+        );
+        assert(
+          cacheable,
+          "Relative loads should always be cacheable because they never "
+          "provide access to the containing URL.",
+        );
+        if (baseUrl != null) _nonCanonicalRelativeUrls[key] = url;
+        return result;
+      });
       if (relativeResult != null) return relativeResult;
     }
 
@@ -222,10 +215,11 @@ final class ImportCache {
             // future uses of this importer.
             for (var j = 0; j < i; j++) {
               _perImporterCanonicalizeCache[(
-                _importers[j],
-                url,
-                forImport: forImport,
-              )] = null;
+                    _importers[j],
+                    url,
+                    forImport: forImport,
+                  )] =
+                  null;
             }
             cacheable = false;
           }
@@ -249,7 +243,8 @@ final class ImportCache {
     Uri? baseUrl,
     bool forImport,
   ) {
-    var passContainingUrl = baseUrl != null &&
+    var passContainingUrl =
+        baseUrl != null &&
         (url.scheme == '' || importer.isNonCanonicalScheme(url.scheme));
 
     var canonicalizeContext = CanonicalizeContext(
@@ -294,11 +289,11 @@ final class ImportCache {
     bool forImport = false,
   }) {
     if (canonicalize(
-      url,
-      baseImporter: baseImporter,
-      baseUrl: baseUrl,
-      forImport: forImport,
-    )
+          url,
+          baseImporter: baseImporter,
+          baseUrl: baseUrl,
+          forImport: forImport,
+        )
         case (var importer, var canonicalUrl, :var originalUrl)) {
       return importCanonical(
         importer,
@@ -361,10 +356,10 @@ final class ImportCache {
             .where((url) => url.hasScheme),
         (url) => url.path.length,
       )
-          // Use the canonicalized basename so that we display e.g.
-          // package:example/_example.scss rather than package:example/example
-          // in stack traces.
-          .andThen((url) => url.resolve(p.url.basename(canonicalUrl.path))) ??
+      // Use the canonicalized basename so that we display e.g.
+      // package:example/_example.scss rather than package:example/example
+      // in stack traces.
+      .andThen((url) => url.resolve(p.url.basename(canonicalUrl.path))) ??
       // If we don't have an original URL cached, display the canonical URL
       // as-is.
       canonicalUrl;

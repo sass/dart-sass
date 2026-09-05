@@ -28,13 +28,10 @@ final class JSToDartImporter extends Importer {
   /// [canonicalize].
   final Set<String> _nonCanonicalSchemes;
 
-  JSToDartImporter(
-    this._canonicalize,
-    this._load,
-    Iterable<String>? nonCanonicalSchemes,
-  ) : _nonCanonicalSchemes = nonCanonicalSchemes == null
-            ? const {}
-            : Set.unmodifiable(nonCanonicalSchemes) {
+  new(this._canonicalize, this._load, Iterable<String>? nonCanonicalSchemes)
+    : _nonCanonicalSchemes = nonCanonicalSchemes == null
+          ? const {}
+          : Set.unmodifiable(nonCanonicalSchemes) {
     _nonCanonicalSchemes.forEach(validateUrlScheme);
   }
 

@@ -164,13 +164,13 @@ int decimalCharFor(int number) {
 /// the right-hand version.
 @internal
 int opposite(int character) => switch (character) {
-      $lparen => $rparen,
-      $lbrace => $rbrace,
-      $lbracket => $rbracket,
-      _ => throw ArgumentError(
-          '"${String.fromCharCode(character)}" isn\'t a brace-like character.',
-        ),
-    };
+  $lparen => $rparen,
+  $lbrace => $rbrace,
+  $lbracket => $rbracket,
+  _ => throw ArgumentError(
+    '"${String.fromCharCode(character)}" isn\'t a brace-like character.',
+  ),
+};
 
 /// Returns [character], converted to upper case if it's an ASCII lowercase
 /// letter.

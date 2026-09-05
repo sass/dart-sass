@@ -13,10 +13,10 @@ final JSClass stringClass = () {
     'sass.SassString',
     (Object self, [Object? textOrOptions, _ConstructorOptions? options]) =>
         textOrOptions is String
-            ? SassString(textOrOptions, quotes: options?.quotes ?? true)
-            : SassString.empty(
-                quotes: (textOrOptions as _ConstructorOptions?)?.quotes ?? true,
-              ),
+        ? SassString(textOrOptions, quotes: options?.quotes ?? true)
+        : SassString.empty(
+            quotes: (textOrOptions as _ConstructorOptions?)?.quotes ?? true,
+          ),
   );
 
   jsClass.defineGetters({

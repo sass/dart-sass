@@ -11,17 +11,17 @@ import '../../color.dart';
 ///
 /// @nodoc
 @internal
-final class ClipGamutMap extends GamutMapMethod {
-  const ClipGamutMap() : super("clip");
+final class const ClipGamutMap() extends GamutMapMethod {
+  this : super("clip");
 
   @override
   SassColor map(SassColor color) => SassColor.forSpaceInternal(
-        color.space,
-        _clampChannel(color.channel0OrNull, color.space.channels[0]),
-        _clampChannel(color.channel1OrNull, color.space.channels[1]),
-        _clampChannel(color.channel2OrNull, color.space.channels[2]),
-        color.alphaOrNull,
-      );
+    color.space,
+    _clampChannel(color.channel0OrNull, color.space.channels[0]),
+    _clampChannel(color.channel1OrNull, color.space.channels[1]),
+    _clampChannel(color.channel2OrNull, color.space.channels[2]),
+    color.alphaOrNull,
+  );
 
   /// Clamps the channel value [value] within the bounds given by [channel].
   double? _clampChannel(double? value, ColorChannel channel) => value == null

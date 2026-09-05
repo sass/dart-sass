@@ -28,11 +28,8 @@ final class ImporterResult {
   final Syntax syntax;
 
   /// Creates a new [ImporterResult].
-  ImporterResult(
-    this.contents, {
-    Uri? sourceMapUrl,
-    required this.syntax,
-  }) : _sourceMapUrl = sourceMapUrl {
+  new(this.contents, {Uri? sourceMapUrl, required this.syntax})
+    : _sourceMapUrl = sourceMapUrl {
     if (sourceMapUrl?.scheme == '') {
       throw ArgumentError.value(
         sourceMapUrl,

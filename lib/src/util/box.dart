@@ -14,7 +14,7 @@ final class Box<T> {
 
   T get value => _inner.value;
 
-  Box._(this._inner);
+  new _(this._inner);
 
   @override
   bool operator ==(Object other) => other is Box<T> && other._inner == _inner;
@@ -34,7 +34,7 @@ final class Box<T> {
 final class ModifiableBox<T> {
   T value;
 
-  ModifiableBox(this.value);
+  new(this.value);
 
   /// Returns an unmodifiable reference to this box.
   ///

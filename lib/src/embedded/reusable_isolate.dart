@@ -21,7 +21,9 @@ import 'package:native_synchronization/sendable.dart';
 /// this will throw an unhandled [StateError].
 @internal
 typedef ReusableIsolateEntryPoint = FutureOr<void> Function(
-    Mailbox mailbox, SendPort sink);
+  Mailbox mailbox,
+  SendPort sink,
+);
 
 @internal
 final class ReusableIsolate {
@@ -40,12 +42,8 @@ final class ReusableIsolate {
   /// Whether the current isolate has been borrowed.
   bool _borrowed = false;
 
-  ReusableIsolate._(
-    this._isolate,
-    this._mailbox,
-    this._receivePort, {
-    Function? onError,
-  }) : _subscription = _receivePort.listen(_defaultOnData, onError: onError);
+  new _(this._isolate, this._mailbox, this._receivePort, {Function? onError})
+    : _subscription = _receivePort.listen(_defaultOnData, onError: onError);
 
   /// Spawns a [ReusableIsolate] that runs the given [entryPoint].
   static Future<ReusableIsolate> spawn(

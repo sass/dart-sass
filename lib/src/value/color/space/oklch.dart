@@ -18,26 +18,26 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class OklchColorSpace extends ColorSpace {
+final class const OklchColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => false;
 
   @override
   bool get isPolarInternal => true;
 
-  const OklchColorSpace()
-      : super('oklch', const [
-          LinearChannel(
-            'lightness',
-            0,
-            1,
-            conventionallyPercent: true,
-            lowerClamped: true,
-            upperClamped: true,
-          ),
-          LinearChannel('chroma', 0, 0.4, lowerClamped: true),
-          hueChannel,
-        ]);
+  this
+    : super('oklch', const [
+        LinearChannel(
+          'lightness',
+          0,
+          1,
+          conventionallyPercent: true,
+          lowerClamped: true,
+          upperClamped: true,
+        ),
+        LinearChannel('chroma', 0, 0.4, lowerClamped: true),
+        hueChannel,
+      ]);
 
   @override
   SassColor convert(

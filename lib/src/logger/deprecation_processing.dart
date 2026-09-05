@@ -43,7 +43,7 @@ final class DeprecationProcessingLogger implements Logger {
   /// [_maxRepetitions].
   final bool limitRepetition;
 
-  DeprecationProcessingLogger(
+  new(
     this._inner, {
     required this.silenceDeprecations,
     required this.fatalDeprecations,
@@ -145,7 +145,8 @@ final class DeprecationProcessingLogger implements Logger {
     }
 
     if (fatalDeprecations.contains(deprecation)) {
-      message += "\n\nThis is only an error because you've set the "
+      message +=
+          "\n\nThis is only an error because you've set the "
           '$deprecation deprecation to be fatal.\n'
           'Remove this setting if you need to keep using this feature.';
       throw switch ((span, trace)) {
@@ -157,17 +158,12 @@ final class DeprecationProcessingLogger implements Logger {
     if (silenceDeprecations.contains(deprecation)) return;
 
     if (limitRepetition) {
-      var count =
-          _warningCounts[deprecation] = (_warningCounts[deprecation] ?? 0) + 1;
+      var count = _warningCounts[deprecation] =
+          (_warningCounts[deprecation] ?? 0) + 1;
       if (count > _maxRepetitions) return;
     }
 
-    _inner.warn(
-      message,
-      span: span,
-      trace: trace,
-      deprecation: deprecation,
-    );
+    _inner.warn(message, span: span, trace: trace, deprecation: deprecation);
   }
 
   @override

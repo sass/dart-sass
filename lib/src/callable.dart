@@ -111,17 +111,16 @@ abstract interface class Callable implements AsyncCallable {
   /// Note that the argument list is always an instance of [SassArgumentList],
   /// which provides access to keyword arguments using
   /// [SassArgumentList.keywords].
-  factory Callable.function(
+  factory function(
     String name,
     String arguments,
     Value Function(List<Value> arguments) callback,
-  ) =>
-      BuiltInCallable.function(name, arguments, callback);
+  ) => BuiltInCallable.function(name, arguments, callback);
 
   /// Creates a callable with a single [signature] and a single [callback].
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Callable.fromSignature(
+  factory fromSignature(
     String signature,
     Value Function(List<Value> arguments) callback, {
     bool requireParens = true,

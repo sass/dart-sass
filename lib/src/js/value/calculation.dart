@@ -12,25 +12,24 @@ import '../reflection.dart';
 
 /// Check that [arg] is a valid argument to a calculation function.
 void _assertCalculationValue(Object arg) => switch (arg) {
-      SassNumber() ||
-      SassString(hasQuotes: false) ||
-      SassCalculation() ||
-      CalculationOperation() ||
-      CalculationInterpolation() =>
-        null,
-      _ => jsThrow(
-          JsError(
-            'Argument `$arg` must be one of SassNumber, unquoted SassString, '
-            'SassCalculation, CalculationOperation, CalculationInterpolation',
-          ),
-        ),
-    };
+  SassNumber() ||
+  SassString(hasQuotes: false) ||
+  SassCalculation() ||
+  CalculationOperation() ||
+  CalculationInterpolation() => null,
+  _ => jsThrow(
+    JsError(
+      'Argument `$arg` must be one of SassNumber, unquoted SassString, '
+      'SassCalculation, CalculationOperation, CalculationInterpolation',
+    ),
+  ),
+};
 
 /// Check that [arg] is an unquoted string or interpolation.
 bool _isValidClampArg(Object? arg) => switch (arg) {
-      CalculationInterpolation() || SassString(hasQuotes: false) => true,
-      _ => false,
-    };
+  CalculationInterpolation() || SassString(hasQuotes: false) => true,
+  _ => false,
+};
 
 /// The JavaScript `SassCalculation` class.
 final JSClass calculationClass = () {
@@ -80,9 +79,8 @@ final JSClass calculationClass = () {
     'arguments': (SassCalculation self) => ImmutableList(self.arguments),
   });
 
-  getJSClass(
-    SassCalculation.unsimplified('calc', [SassNumber(1)]),
-  ).injectSuperclass(jsClass);
+  getJSClass(SassCalculation.unsimplified('calc', [SassNumber(1)]))
+      .injectSuperclass(jsClass);
   return jsClass;
 }();
 

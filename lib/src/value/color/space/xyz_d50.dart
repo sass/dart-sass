@@ -19,11 +19,11 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class XyzD50ColorSpace extends ColorSpace {
+final class const XyzD50ColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => false;
 
-  const XyzD50ColorSpace() : super('xyz-d50', xyzChannels);
+  this : super('xyz-d50', xyzChannels);
 
   @override
   SassColor convert(
@@ -98,18 +98,16 @@ final class XyzD50ColorSpace extends ColorSpace {
   @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
-        ColorSpace.srgbLinear ||
-        ColorSpace.srgb ||
-        ColorSpace.rgb =>
-          xyzD50ToLinearSrgb,
-        ColorSpace.a98Rgb => xyzD50ToLinearA98Rgb,
-        ColorSpace.prophotoRgb => xyzD50ToLinearProphotoRgb,
-        ColorSpace.displayP3 ||
-        ColorSpace.displayP3Linear =>
-          xyzD50ToLinearDisplayP3,
-        ColorSpace.rec2020 => xyzD50ToLinearRec2020,
-        ColorSpace.xyzD65 => xyzD50ToXyzD65,
-        ColorSpace.lms => xyzD50ToLms,
-        _ => super.transformationMatrix(dest),
-      };
+    ColorSpace.srgbLinear ||
+    ColorSpace.srgb ||
+    ColorSpace.rgb => xyzD50ToLinearSrgb,
+    ColorSpace.a98Rgb => xyzD50ToLinearA98Rgb,
+    ColorSpace.prophotoRgb => xyzD50ToLinearProphotoRgb,
+    ColorSpace.displayP3 ||
+    ColorSpace.displayP3Linear => xyzD50ToLinearDisplayP3,
+    ColorSpace.rec2020 => xyzD50ToLinearRec2020,
+    ColorSpace.xyzD65 => xyzD50ToXyzD65,
+    ColorSpace.lms => xyzD50ToLms,
+    _ => super.transformationMatrix(dest),
+  };
 }

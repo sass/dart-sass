@@ -75,7 +75,7 @@ extension JSClassExtension on JSClass {
     setProperty(
       prototype,
       _inspectSymbol,
-      allowInteropCaptureThis((Object self, _, __, [___]) => inspect(self)),
+      allowInteropCaptureThis((Object self, _, _, [_]) => inspect(self)),
     );
   }
 

@@ -56,7 +56,7 @@ abstract base class Selector implements AstNode {
   @override
   final FileSpan span;
 
-  Selector(this.span);
+  new(this.span);
 
   /// Calls the appropriate visit method on [visitor].
   T accept<T>(SelectorVisitor<T> visitor);
@@ -67,7 +67,7 @@ abstract base class Selector implements AstNode {
 
 /// The visitor used to implement [Selector.isInvisible].
 final class _IsInvisibleVisitor with AnySelectorVisitor {
-  const _IsInvisibleVisitor();
+  const new();
 
   @override
   bool visitSelectorList(SelectorList list) =>
@@ -92,7 +92,7 @@ final class _IsInvisibleVisitor with AnySelectorVisitor {
 
 /// The visitor used to implement [Selector.containsParentSelector].
 final class _ContainsParentSelectorVisitor with AnySelectorVisitor {
-  const _ContainsParentSelectorVisitor();
+  const new();
 
   @override
   bool visitParentSelector(ParentSelector _) => true;

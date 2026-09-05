@@ -110,23 +110,22 @@ final class PseudoSelector extends SimpleSelector {
     }
   }();
 
-  PseudoSelector(
+  new(
     this.name,
     FileSpan span, {
     bool element = false,
     this.argument,
     this.selector,
-  })  : isClass = !element && !_isFakePseudoElement(name),
-        isSyntacticClass = !element,
-        normalizedName = unvendor(name),
-        super(span);
+  }) : isClass = !element && !_isFakePseudoElement(name),
+       isSyntacticClass = !element,
+       normalizedName = unvendor(name),
+       super(span);
 
   /// A shorthand for creating an `:is()` selector.
   ///
   /// @nodoc
   @internal
-  factory PseudoSelector.isSelector(
-          Iterable<ComplexSelector> components, FileSpan span) =>
+  factory isSelector(Iterable<ComplexSelector> components, FileSpan span) =>
       PseudoSelector('is', span, selector: SelectorList(components, span));
 
   /// Returns whether [name] is the name of a pseudo-element that can be written
@@ -244,8 +243,7 @@ final class PseudoSelector extends SimpleSelector {
     // compare selector pseudoclasses against raw selectors.
     return CompoundSelector([
       this,
-    ], span)
-        .isSuperselector(CompoundSelector([other], span));
+    ], span).isSuperselector(CompoundSelector([other], span));
   }
 
   @override

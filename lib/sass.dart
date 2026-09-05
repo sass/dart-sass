@@ -55,22 +55,23 @@ CompileResult compileToResult(
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
   Iterable<Deprecation>? futureDeprecations,
-}) =>
-    compile(path,
-        color: color,
-        logger: logger,
-        importers: importers,
-        loadPaths: loadPaths,
-        packageConfig: packageConfig,
-        functions: functions,
-        style: style,
-        quietDeps: quietDeps,
-        verbose: verbose,
-        sourceMap: sourceMap,
-        charset: charset,
-        silenceDeprecations: silenceDeprecations,
-        fatalDeprecations: fatalDeprecations,
-        futureDeprecations: futureDeprecations);
+}) => compile(
+  path,
+  color: color,
+  logger: logger,
+  importers: importers,
+  loadPaths: loadPaths,
+  packageConfig: packageConfig,
+  functions: functions,
+  style: style,
+  quietDeps: quietDeps,
+  verbose: verbose,
+  sourceMap: sourceMap,
+  charset: charset,
+  silenceDeprecations: silenceDeprecations,
+  fatalDeprecations: fatalDeprecations,
+  futureDeprecations: futureDeprecations,
+);
 
 /// Loads the Sass file at [path], compiles it to CSS, and returns a
 /// [CompileResult] containing the CSS and additional metadata about the
@@ -151,25 +152,24 @@ CompileResult compile(
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
   Iterable<Deprecation>? futureDeprecations,
-}) =>
-    c.compile(
-      path,
-      logger: logger,
-      importCache: ImportCache(
-        importers: importers,
-        loadPaths: loadPaths,
-        packageConfig: packageConfig,
-      ),
-      functions: functions,
-      style: style,
-      quietDeps: quietDeps,
-      verbose: verbose,
-      sourceMap: sourceMap,
-      charset: charset,
-      silenceDeprecations: silenceDeprecations,
-      fatalDeprecations: fatalDeprecations,
-      futureDeprecations: futureDeprecations,
-    );
+}) => c.compile(
+  path,
+  logger: logger,
+  importCache: ImportCache(
+    importers: importers,
+    loadPaths: loadPaths,
+    packageConfig: packageConfig,
+  ),
+  functions: functions,
+  style: style,
+  quietDeps: quietDeps,
+  verbose: verbose,
+  sourceMap: sourceMap,
+  charset: charset,
+  silenceDeprecations: silenceDeprecations,
+  fatalDeprecations: fatalDeprecations,
+  futureDeprecations: futureDeprecations,
+);
 
 /// This is a deprecated alias for [compileString], provided for compatibility
 /// with Dart Sass 1.x.
@@ -193,25 +193,26 @@ CompileResult compileStringToResult(
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
   Iterable<Deprecation>? futureDeprecations,
-}) =>
-    compileString(source,
-        syntax: syntax,
-        color: color,
-        logger: logger,
-        importers: importers,
-        loadPaths: loadPaths,
-        packageConfig: packageConfig,
-        functions: functions,
-        style: style,
-        importer: importer,
-        url: url,
-        quietDeps: quietDeps,
-        verbose: verbose,
-        sourceMap: sourceMap,
-        charset: charset,
-        silenceDeprecations: silenceDeprecations,
-        fatalDeprecations: fatalDeprecations,
-        futureDeprecations: futureDeprecations);
+}) => compileString(
+  source,
+  syntax: syntax,
+  color: color,
+  logger: logger,
+  importers: importers,
+  loadPaths: loadPaths,
+  packageConfig: packageConfig,
+  functions: functions,
+  style: style,
+  importer: importer,
+  url: url,
+  quietDeps: quietDeps,
+  verbose: verbose,
+  sourceMap: sourceMap,
+  charset: charset,
+  silenceDeprecations: silenceDeprecations,
+  fatalDeprecations: fatalDeprecations,
+  futureDeprecations: futureDeprecations,
+);
 
 /// Compiles [source] to CSS and returns a [CompileResult] containing the CSS
 /// and additional metadata about the compilation..
@@ -305,28 +306,27 @@ CompileResult compileString(
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
   Iterable<Deprecation>? futureDeprecations,
-}) =>
-    c.compileString(
-      source,
-      syntax: syntax,
-      logger: logger,
-      importCache: ImportCache(
-        importers: importers,
-        packageConfig: packageConfig,
-        loadPaths: loadPaths,
-      ),
-      functions: functions,
-      style: style,
-      importer: importer,
-      url: url,
-      quietDeps: quietDeps,
-      verbose: verbose,
-      sourceMap: sourceMap,
-      charset: charset,
-      silenceDeprecations: silenceDeprecations,
-      fatalDeprecations: fatalDeprecations,
-      futureDeprecations: futureDeprecations,
-    );
+}) => c.compileString(
+  source,
+  syntax: syntax,
+  logger: logger,
+  importCache: ImportCache(
+    importers: importers,
+    packageConfig: packageConfig,
+    loadPaths: loadPaths,
+  ),
+  functions: functions,
+  style: style,
+  importer: importer,
+  url: url,
+  quietDeps: quietDeps,
+  verbose: verbose,
+  sourceMap: sourceMap,
+  charset: charset,
+  silenceDeprecations: silenceDeprecations,
+  fatalDeprecations: fatalDeprecations,
+  futureDeprecations: futureDeprecations,
+);
 
 /// This is a deprecated alias for [compileAsync], provided for compatibility
 /// with Dart Sass 1.x.
@@ -347,22 +347,23 @@ Future<CompileResult> compileToResultAsync(
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
   Iterable<Deprecation>? futureDeprecations,
-}) =>
-    compileAsync(path,
-        color: color,
-        logger: logger,
-        importers: importers,
-        loadPaths: loadPaths,
-        packageConfig: packageConfig,
-        functions: functions,
-        style: style,
-        quietDeps: quietDeps,
-        verbose: verbose,
-        sourceMap: sourceMap,
-        charset: charset,
-        silenceDeprecations: silenceDeprecations,
-        fatalDeprecations: fatalDeprecations,
-        futureDeprecations: futureDeprecations);
+}) => compileAsync(
+  path,
+  color: color,
+  logger: logger,
+  importers: importers,
+  loadPaths: loadPaths,
+  packageConfig: packageConfig,
+  functions: functions,
+  style: style,
+  quietDeps: quietDeps,
+  verbose: verbose,
+  sourceMap: sourceMap,
+  charset: charset,
+  silenceDeprecations: silenceDeprecations,
+  fatalDeprecations: fatalDeprecations,
+  futureDeprecations: futureDeprecations,
+);
 
 /// Like [compile], except it runs asynchronously.
 ///
@@ -385,25 +386,24 @@ Future<CompileResult> compileAsync(
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
   Iterable<Deprecation>? futureDeprecations,
-}) =>
-    c.compileAsync(
-      path,
-      logger: logger,
-      importCache: AsyncImportCache(
-        importers: importers,
-        loadPaths: loadPaths,
-        packageConfig: packageConfig,
-      ),
-      functions: functions,
-      style: style,
-      quietDeps: quietDeps,
-      verbose: verbose,
-      sourceMap: sourceMap,
-      charset: charset,
-      silenceDeprecations: silenceDeprecations,
-      fatalDeprecations: fatalDeprecations,
-      futureDeprecations: futureDeprecations,
-    );
+}) => c.compileAsync(
+  path,
+  logger: logger,
+  importCache: AsyncImportCache(
+    importers: importers,
+    loadPaths: loadPaths,
+    packageConfig: packageConfig,
+  ),
+  functions: functions,
+  style: style,
+  quietDeps: quietDeps,
+  verbose: verbose,
+  sourceMap: sourceMap,
+  charset: charset,
+  silenceDeprecations: silenceDeprecations,
+  fatalDeprecations: fatalDeprecations,
+  futureDeprecations: futureDeprecations,
+);
 
 /// This is a deprecated alias for [compileStringAsync], provided for compatibility
 /// with Dart Sass 1.x.
@@ -427,25 +427,26 @@ Future<CompileResult> compileStringToResultAsync(
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
   Iterable<Deprecation>? futureDeprecations,
-}) =>
-    compileStringAsync(source,
-        syntax: syntax,
-        color: color,
-        logger: logger,
-        importers: importers,
-        loadPaths: loadPaths,
-        packageConfig: packageConfig,
-        functions: functions,
-        style: style,
-        importer: importer,
-        url: url,
-        quietDeps: quietDeps,
-        verbose: verbose,
-        sourceMap: sourceMap,
-        charset: charset,
-        silenceDeprecations: silenceDeprecations,
-        fatalDeprecations: fatalDeprecations,
-        futureDeprecations: futureDeprecations);
+}) => compileStringAsync(
+  source,
+  syntax: syntax,
+  color: color,
+  logger: logger,
+  importers: importers,
+  loadPaths: loadPaths,
+  packageConfig: packageConfig,
+  functions: functions,
+  style: style,
+  importer: importer,
+  url: url,
+  quietDeps: quietDeps,
+  verbose: verbose,
+  sourceMap: sourceMap,
+  charset: charset,
+  silenceDeprecations: silenceDeprecations,
+  fatalDeprecations: fatalDeprecations,
+  futureDeprecations: futureDeprecations,
+);
 
 /// Like [compileString], except it runs asynchronously.
 ///
@@ -473,28 +474,27 @@ Future<CompileResult> compileStringAsync(
   Iterable<Deprecation>? silenceDeprecations,
   Iterable<Deprecation>? fatalDeprecations,
   Iterable<Deprecation>? futureDeprecations,
-}) =>
-    c.compileStringAsync(
-      source,
-      syntax: syntax,
-      logger: logger,
-      importCache: AsyncImportCache(
-        importers: importers,
-        packageConfig: packageConfig,
-        loadPaths: loadPaths,
-      ),
-      functions: functions,
-      style: style,
-      importer: importer,
-      url: url,
-      quietDeps: quietDeps,
-      verbose: verbose,
-      sourceMap: sourceMap,
-      charset: charset,
-      silenceDeprecations: silenceDeprecations,
-      fatalDeprecations: fatalDeprecations,
-      futureDeprecations: futureDeprecations,
-    );
+}) => c.compileStringAsync(
+  source,
+  syntax: syntax,
+  logger: logger,
+  importCache: AsyncImportCache(
+    importers: importers,
+    packageConfig: packageConfig,
+    loadPaths: loadPaths,
+  ),
+  functions: functions,
+  style: style,
+  importer: importer,
+  url: url,
+  quietDeps: quietDeps,
+  verbose: verbose,
+  sourceMap: sourceMap,
+  charset: charset,
+  silenceDeprecations: silenceDeprecations,
+  fatalDeprecations: fatalDeprecations,
+  futureDeprecations: futureDeprecations,
+);
 
 /// Runs [callback] in a context where [AsyncImporter.fromImport] returns
 /// `true`.

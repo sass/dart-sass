@@ -30,14 +30,11 @@ final class ComplexSassNumber extends SassNumber {
   @override
   bool get hasComplexUnits => true;
 
-  ComplexSassNumber(
-    double value,
-    List<String> numeratorUnits,
-    List<String> denominatorUnits,
-  ) : this._(value, numeratorUnits, denominatorUnits);
+  new(double value, List<String> numeratorUnits, List<String> denominatorUnits)
+    : this._(value, numeratorUnits, denominatorUnits);
 
-  ComplexSassNumber._(super.value, this._numeratorUnits, this._denominatorUnits)
-      : super.protected() {
+  new _(super.value, this._numeratorUnits, this._denominatorUnits)
+    : super.protected() {
     assert(numeratorUnits.length > 1 || denominatorUnits.isNotEmpty);
   }
 

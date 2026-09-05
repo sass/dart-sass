@@ -8,11 +8,8 @@ import '../../ast/sass.dart';
 import '../../visitor/interface/statement.dart';
 
 /// A wrapper around a JS object that implements the [StatementVisitor] methods.
-class JSStatementVisitor implements StatementVisitor<Object?> {
-  final JSStatementVisitorObject _inner;
-
-  JSStatementVisitor(this._inner);
-
+class JSStatementVisitor(final JSStatementVisitorObject _inner)
+    implements StatementVisitor<Object?> {
   @override
   Object? visitAtRootRule(AtRootRule node) => _inner.visitAtRootRule(node);
 

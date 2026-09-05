@@ -159,44 +159,45 @@ final class Environment {
   /// Creates an [Environment].
   ///
   /// If [sourceMap] is `true`, this tracks variables' source locations
-  Environment()
-      : _modules = {},
-        _namespaceNodes = {},
-        _globalModules = {},
-        _importedModules = {},
-        _forwardedModules = null,
-        _nestedForwardedModules = null,
-        _allModules = [],
-        _variables = [{}],
-        _variableNodes = [{}],
-        _variableIndices = {},
-        _functions = [{}],
-        _functionIndices = {},
-        _mixins = [{}],
-        _mixinIndices = {},
-        _configurableVariables = {};
+  new()
+    : _modules = {},
+      _namespaceNodes = {},
+      _globalModules = {},
+      _importedModules = {},
+      _forwardedModules = null,
+      _nestedForwardedModules = null,
+      _allModules = [],
+      _variables = [{}],
+      _variableNodes = [{}],
+      _variableIndices = {},
+      _functions = [{}],
+      _functionIndices = {},
+      _mixins = [{}],
+      _mixinIndices = {},
+      _configurableVariables = {};
 
-  Environment._(
-      this._modules,
-      this._namespaceNodes,
-      this._globalModules,
-      this._importedModules,
-      this._forwardedModules,
-      this._nestedForwardedModules,
-      this._allModules,
-      this._variables,
-      this._variableNodes,
-      this._functions,
-      this._mixins,
-      this._content,
-      this._configurableVariables)
-      // Lazily fill in the indices rather than eagerly copying them from the
-      // existing environment in closure() because the copying took a lot of
-      // time and was rarely helpful. This saves a bunch of time on Susy's
-      // tests.
-      : _variableIndices = {},
-        _functionIndices = {},
-        _mixinIndices = {};
+  new _(
+    this._modules,
+    this._namespaceNodes,
+    this._globalModules,
+    this._importedModules,
+    this._forwardedModules,
+    this._nestedForwardedModules,
+    this._allModules,
+    this._variables,
+    this._variableNodes,
+    this._functions,
+    this._mixins,
+    this._content,
+    this._configurableVariables,
+  )
+    // Lazily fill in the indices rather than eagerly copying them from the
+    // existing environment in closure() because the copying took a lot of
+    // time and was rarely helpful. This saves a bunch of time on Susy's
+    // tests.
+    : _variableIndices = {},
+      _functionIndices = {},
+      _mixinIndices = {};
 
   /// Creates a closure based on this environment.
   ///
@@ -204,22 +205,22 @@ final class Environment {
   /// However, any new declarations or assignments in scopes that are visible
   /// when the closure was created will be reflected.
   Environment closure() => Environment._(
-        _modules,
-        _namespaceNodes,
-        _globalModules,
-        _importedModules,
-        _forwardedModules,
-        _nestedForwardedModules,
-        _allModules,
-        _variables.toList(),
-        _variableNodes.toList(),
-        _functions.toList(),
-        _mixins.toList(),
-        _content,
-        // Closures are always in nested contexts where configurable variables
-        // are never added.
-        const {},
-      );
+    _modules,
+    _namespaceNodes,
+    _globalModules,
+    _importedModules,
+    _forwardedModules,
+    _nestedForwardedModules,
+    _allModules,
+    _variables.toList(),
+    _variableNodes.toList(),
+    _functions.toList(),
+    _mixins.toList(),
+    _content,
+    // Closures are always in nested contexts where configurable variables
+    // are never added.
+    const {},
+  );
 
   /// Returns a new environment to use for an imported file.
   ///
@@ -227,20 +228,20 @@ final class Environment {
   /// and mixins, but excludes most modules (except for global modules that
   /// result from importing a file with forwards).
   Environment forImport() => Environment._(
-        {},
-        {},
-        {},
-        _importedModules,
-        null,
-        _nestedForwardedModules,
-        [],
-        _variables.toList(),
-        _variableNodes.toList(),
-        _functions.toList(),
-        _mixins.toList(),
-        _content,
-        _configurableVariables,
-      );
+    {},
+    {},
+    {},
+    _importedModules,
+    null,
+    _nestedForwardedModules,
+    [],
+    _variables.toList(),
+    _variableNodes.toList(),
+    _functions.toList(),
+    _mixins.toList(),
+    _content,
+    _configurableVariables,
+  );
 
   /// Adds [module] to the set of modules visible in this environment.
   ///
@@ -252,8 +253,11 @@ final class Environment {
   /// Throws a [SassScriptException] if there's already a module with the given
   /// [namespace], or if [namespace] is `null` and [module] defines a variable
   /// with the same name as a variable defined in this environment.
-  void addModule(Module<Callable> module, AstNode nodeWithSpan,
-      {String? namespace}) {
+  void addModule(
+    Module<Callable> module,
+    AstNode nodeWithSpan, {
+    String? namespace,
+  }) {
     if (namespace == null) {
       _globalModules[module] = nodeWithSpan;
       _allModules.add(module);
@@ -271,7 +275,7 @@ final class Environment {
         throw MultiSpanSassScriptException(
           "There's already a module with namespace \"$namespace\".",
           "new @use",
-          {if (span != null) span: "original @use"},
+          {?span: "original @use"},
         );
       }
 
@@ -348,7 +352,7 @@ final class Environment {
       throw MultiSpanSassScriptException(
         'Two forwarded modules both define a $type named $name.',
         "new @forward",
-        {if (span != null) span: "original @forward"},
+        {?span: "original @forward"},
       );
     }
   }
@@ -421,9 +425,7 @@ final class Environment {
       (_nestedForwardedModules ??= List.generate(
         _variables.length - 1,
         (_) => [],
-      ))
-          .last
-          .addAll(forwarded.keys);
+      )).last.addAll(forwarded.keys);
     }
 
     // Remove existing member definitions that are now shadowed by the
@@ -845,12 +847,15 @@ final class Environment {
   Configuration toImplicitConfiguration() {
     var configuration = <String, ConfiguredValue>{};
     for (var i = 0; i < _variables.length; i++) {
-      var modules =
-          i == 0 ? _importedModules.keys : _nestedForwardedModules?[i - 1];
+      var modules = i == 0
+          ? _importedModules.keys
+          : _nestedForwardedModules?[i - 1];
       for (var module in modules ?? const <Module<Callable>>[]) {
         for (var (name, value) in module.variables.pairs) {
-          configuration[name] =
-              ConfiguredValue.implicit(value, module.variableNodes[name]!);
+          configuration[name] = ConfiguredValue.implicit(
+            value,
+            module.variableNodes[name]!,
+          );
         }
       }
       var values = _variables[i];
@@ -887,15 +892,15 @@ final class Environment {
   /// members into the current scope. It's the only situation in which a nested
   /// environment can become a module.
   Module<Callable> toDummyModule() => _EnvironmentModule(
-        this,
-        CssStylesheet(
-          const [],
-          SourceFile.decoded(const [], url: "<dummy module>").span(0),
-        ),
-        const {},
-        ExtensionStore.empty,
-        forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)),
-      );
+    this,
+    CssStylesheet(
+      const [],
+      SourceFile.decoded(const [], url: "<dummy module>").span(0),
+    ),
+    const {},
+    ExtensionStore.empty,
+    forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)),
+  );
 
   /// Returns the module with the given [namespace], or throws a
   /// [SassScriptException] if none exists.
@@ -918,7 +923,10 @@ final class Environment {
   /// The [type] should be the singular name of the value type being returned.
   /// It's used to format an appropriate error message.
   T? _fromOneModule<T>(
-      String name, String type, T? Function(Module<Callable> module) callback) {
+    String name,
+    String type,
+    T? Function(Module<Callable> module) callback,
+  ) {
     if (_nestedForwardedModules case var nestedForwardedModules?) {
       for (var modules in nestedForwardedModules.reversed) {
         for (var module in modules.reversed) {
@@ -1005,7 +1013,7 @@ final class _EnvironmentModule implements Module<Callable> {
   /// defined at all.
   final Map<String, Module<Callable>> _modulesByVariable;
 
-  factory _EnvironmentModule(
+  factory(
     Environment environment,
     CssStylesheet css,
     Map<Module<Callable>, List<CssComment>> preModuleComments,
@@ -1038,12 +1046,14 @@ final class _EnvironmentModule implements Module<Callable> {
         environment._mixins.first,
         forwarded.map((module) => module.mixins),
       ),
-      transitivelyContainsCss: css.children.isNotEmpty ||
+      transitivelyContainsCss:
+          css.children.isNotEmpty ||
           preModuleComments.isNotEmpty ||
           environment._allModules.any(
             (module) => module.transitivelyContainsCss,
           ),
-      transitivelyContainsExtensions: !extensionStore.isEmpty ||
+      transitivelyContainsExtensions:
+          !extensionStore.isEmpty ||
           environment._allModules.any(
             (module) => module.transitivelyContainsExtensions,
           ),
@@ -1052,7 +1062,8 @@ final class _EnvironmentModule implements Module<Callable> {
 
   /// Create [_modulesByVariable] for a set of forwarded modules.
   static Map<String, Module<Callable>> _makeModulesByVariable(
-      Set<Module<Callable>> forwarded) {
+    Set<Module<Callable>> forwarded,
+  ) {
     if (forwarded.isEmpty) return const {};
 
     var modulesByVariable = <String, Module<Callable>>{};
@@ -1093,7 +1104,7 @@ final class _EnvironmentModule implements Module<Callable> {
     return MergedMapView(allMaps);
   }
 
-  _EnvironmentModule._(
+  new _(
     this._environment,
     this.css,
     this.preModuleComments,
@@ -1141,13 +1152,10 @@ final class _EnvironmentModule implements Module<Callable> {
       // check if they define configurable variables with any of the given
       // names.
       (variables.length < _modulesByVariable.length
-              ? {
-                  for (var variable in variables)
-                    if (_modulesByVariable[variable] case var module?) module
-                }
+              ? {for (var variable in variables) ?_modulesByVariable[variable]}
               : {
                   for (var (variable, module) in _modulesByVariable.pairs)
-                    if (variables.contains(variable)) module
+                    if (variables.contains(variable)) module,
                 })
           .any((module) => module.couldHaveBeenConfigured(variables));
 

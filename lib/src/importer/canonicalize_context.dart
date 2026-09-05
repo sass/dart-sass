@@ -8,18 +8,18 @@ import 'package:meta/meta.dart';
 
 /// Contextual information used by importers' `canonicalize` method.
 @internal
-final class CanonicalizeContext {
+final class CanonicalizeContext(
+  final Uri? _containingUrl,
+  var bool _fromImport,
+) {
   /// Whether the Sass compiler is currently evaluating an `@import` rule.
   bool get fromImport => _fromImport;
-  bool _fromImport;
 
   /// The URL of the stylesheet that contains the current load.
   Uri? get containingUrl {
     _wasContainingUrlAccessed = true;
     return _containingUrl;
   }
-
-  final Uri? _containingUrl;
 
   /// Returns the same value as [containingUrl], but doesn't mark it accessed.
   Uri? get containingUrlWithoutMarking => _containingUrl;
@@ -42,6 +42,4 @@ final class CanonicalizeContext {
       _fromImport = oldFromImport;
     }
   }
-
-  CanonicalizeContext(this._containingUrl, this._fromImport);
 }

@@ -68,10 +68,10 @@ final class ComplexSelector extends Selector {
   ///
   /// [relative selector]: https://www.w3.org/TR/selectors-4/#relative-selector
   bool get isRelative => switch (components) {
-        [] => false,
-        [..., ComplexSelectorComponent(combinator: var _?)] => false,
-        _ => true,
-      };
+    [] => false,
+    [..., ComplexSelectorComponent(combinator: var _?)] => false,
+    _ => true,
+  };
 
   /// Throws a [SassException] if `this` isn't a CSS selector that's valid in
   /// various places in the document, depending on the arguments passed.
@@ -113,7 +113,7 @@ final class ComplexSelector extends Selector {
     };
   }
 
-  ComplexSelector(
+  new(
     Iterable<ComplexSelectorComponent> components,
     super.span, {
     this.leadingCombinator,
@@ -136,18 +136,17 @@ final class ComplexSelector extends Selector {
   /// they'll be reported using [Logger.defaultLogger].
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory ComplexSelector.parse(
+  factory parse(
     String contents, {
     Object? url,
     bool allowParent = true,
     Logger? logger,
-  }) =>
-      SelectorParser(
-        contents,
-        url: url,
-        allowParent: allowParent,
-        logger: logger,
-      ).parseComplexSelector();
+  }) => SelectorParser(
+    contents,
+    url: url,
+    allowParent: allowParent,
+    logger: logger,
+  ).parseComplexSelector();
 
   @override
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitComplexSelector(this);
@@ -191,21 +190,22 @@ final class ComplexSelector extends Selector {
   ComplexSelector? withAdditionalCombinator(
     CssValue<Combinator>? combinator, {
     bool forceLineBreak = false,
-  }) =>
-      combinator == null
-          ? this
-          : switch (components) {
-              [...var initial, var last] =>
-                last.withAdditionalCombinator(combinator).andThen(
-                      (newLast) => ComplexSelector(
-                        [...initial, newLast],
-                        span,
-                        leadingCombinator: leadingCombinator,
-                        lineBreak: lineBreak || forceLineBreak,
-                      ),
-                    ),
-              [] => null,
-            };
+  }) => combinator == null
+      ? this
+      : switch (components) {
+          [...var initial, var last] =>
+            last
+                .withAdditionalCombinator(combinator)
+                .andThen(
+                  (newLast) => ComplexSelector(
+                    [...initial, newLast],
+                    span,
+                    leadingCombinator: leadingCombinator,
+                    lineBreak: lineBreak || forceLineBreak,
+                  ),
+                ),
+          [] => null,
+        };
 
   /// Returns a copy of `this` with an additional [component] added to the end.
   ///
@@ -220,15 +220,14 @@ final class ComplexSelector extends Selector {
     ComplexSelectorComponent? component,
     FileSpan span, {
     bool forceLineBreak = false,
-  }) =>
-      component == null
-          ? this
-          : ComplexSelector(
-              [...components, component],
-              span,
-              leadingCombinator: leadingCombinator,
-              lineBreak: lineBreak || forceLineBreak,
-            );
+  }) => component == null
+      ? this
+      : ComplexSelector(
+          [...components, component],
+          span,
+          leadingCombinator: leadingCombinator,
+          lineBreak: lineBreak || forceLineBreak,
+        );
 
   /// Returns a copy of `this` with [child] added to the end.
   ///
@@ -247,29 +246,30 @@ final class ComplexSelector extends Selector {
     ComplexSelector child,
     FileSpan span, {
     bool forceLineBreak = false,
-  }) =>
-      switch (child.leadingCombinator) {
-        null => ComplexSelector(
-            [...components, ...child.components],
-            span,
-            leadingCombinator: leadingCombinator,
-            lineBreak: lineBreak || child.lineBreak || forceLineBreak,
-          ),
-        var childCombinator => switch (components) {
-            [...var initial, var last] =>
-              last.withAdditionalCombinator(childCombinator).andThen(
-                    (newLast) => ComplexSelector(
-                      [...initial, newLast, ...child.components],
-                      span,
-                      leadingCombinator: leadingCombinator,
-                      lineBreak: lineBreak || child.lineBreak || forceLineBreak,
-                    ),
-                  ),
-            // If components is empty, this must have a leading combinator, which
-            // isn't compatible with [childCombinator].
-            _ => null,
-          },
-      };
+  }) => switch (child.leadingCombinator) {
+    null => ComplexSelector(
+      [...components, ...child.components],
+      span,
+      leadingCombinator: leadingCombinator,
+      lineBreak: lineBreak || child.lineBreak || forceLineBreak,
+    ),
+    var childCombinator => switch (components) {
+      [...var initial, var last] =>
+        last
+            .withAdditionalCombinator(childCombinator)
+            .andThen(
+              (newLast) => ComplexSelector(
+                [...initial, newLast, ...child.components],
+                span,
+                leadingCombinator: leadingCombinator,
+                lineBreak: lineBreak || child.lineBreak || forceLineBreak,
+              ),
+            ),
+      // If components is empty, this must have a leading combinator, which
+      // isn't compatible with [childCombinator].
+      _ => null,
+    },
+  };
 
   @override
   int get hashCode => leadingCombinator.hashCode ^ listHash(components);

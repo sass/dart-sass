@@ -6,7 +6,9 @@ import 'package:node_interop/js.dart';
 import 'package:node_interop/util.dart';
 import 'package:sass/src/js/compile_options.dart';
 import 'package:test/test.dart';
+
 import 'ensure_npm_package.dart';
+
 import 'package:sass/src/js/compile_result.dart';
 
 @JS()
@@ -89,8 +91,10 @@ void main() {
   });
 
   test('compileString() produces a sourceMap with source content', () {
-    var opts = jsify({'sourceMap': true, 'sourceMapIncludeSources': true})
-        as CompileStringOptions;
+    var opts = jsify({
+      'sourceMap': true,
+      'sourceMapIncludeSources': true,
+    }) as CompileStringOptions;
     var result = sass.compileString('foo {bar: baz}', opts);
     expect(result.sourceMap, isA<Object>());
 
@@ -125,8 +129,10 @@ void main() {
   test(
     'compileStringAsync() produces a sourceMap with source content',
     () async {
-      var opts = jsify({'sourceMap': true, 'sourceMapIncludeSources': true})
-          as CompileStringOptions;
+      var opts = jsify({
+        'sourceMap': true,
+        'sourceMapIncludeSources': true,
+      }) as CompileStringOptions;
       var result = sass.compileStringAsync('foo {bar: baz}', opts);
       result = await promiseToFuture(result);
       var sourceMap = (result as NodeCompileResult).sourceMap;

@@ -17,11 +17,11 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class ProphotoRgbColorSpace extends ColorSpace {
+final class const ProphotoRgbColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => true;
 
-  const ProphotoRgbColorSpace() : super('prophoto-rgb', rgbChannels);
+  this : super('prophoto-rgb', rgbChannels);
 
   @override
   @protected
@@ -44,18 +44,16 @@ final class ProphotoRgbColorSpace extends ColorSpace {
   @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
-        ColorSpace.srgbLinear ||
-        ColorSpace.srgb ||
-        ColorSpace.rgb =>
-          linearProphotoRgbToLinearSrgb,
-        ColorSpace.a98Rgb => linearProphotoRgbToLinearA98Rgb,
-        ColorSpace.displayP3 ||
-        ColorSpace.displayP3Linear =>
-          linearProphotoRgbToLinearDisplayP3,
-        ColorSpace.rec2020 => linearProphotoRgbToLinearRec2020,
-        ColorSpace.xyzD65 => linearProphotoRgbToXyzD65,
-        ColorSpace.xyzD50 => linearProphotoRgbToXyzD50,
-        ColorSpace.lms => linearProphotoRgbToLms,
-        _ => super.transformationMatrix(dest),
-      };
+    ColorSpace.srgbLinear ||
+    ColorSpace.srgb ||
+    ColorSpace.rgb => linearProphotoRgbToLinearSrgb,
+    ColorSpace.a98Rgb => linearProphotoRgbToLinearA98Rgb,
+    ColorSpace.displayP3 ||
+    ColorSpace.displayP3Linear => linearProphotoRgbToLinearDisplayP3,
+    ColorSpace.rec2020 => linearProphotoRgbToLinearRec2020,
+    ColorSpace.xyzD65 => linearProphotoRgbToXyzD65,
+    ColorSpace.xyzD50 => linearProphotoRgbToXyzD50,
+    ColorSpace.lms => linearProphotoRgbToLms,
+    _ => super.transformationMatrix(dest),
+  };
 }

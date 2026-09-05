@@ -32,5 +32,5 @@ final class CompileResult {
 
   /// @nodoc
   @internal
-  CompileResult(this._evaluate, this._serialize);
+  new(this._evaluate, this._serialize);
 }

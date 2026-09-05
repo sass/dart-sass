@@ -34,7 +34,7 @@ final class ModifiableCssStyleRule extends ModifiableCssParentNode
   /// Creates a new [ModifiableCssStyleRule].
   ///
   /// If [originalSelector] isn't passed, it defaults to [_selector.value].
-  ModifiableCssStyleRule(
+  new(
     this._selector,
     this.span, {
     SelectorList? originalSelector,
@@ -51,8 +51,8 @@ final class ModifiableCssStyleRule extends ModifiableCssParentNode
 
   @override
   ModifiableCssStyleRule copyWithoutChildren() => ModifiableCssStyleRule(
-        _selector,
-        span,
-        originalSelector: originalSelector,
-      );
+    _selector,
+    span,
+    originalSelector: originalSelector,
+  );
 }

@@ -15,8 +15,8 @@ import 'interface/selector.dart';
 mixin AnySelectorVisitor implements SelectorVisitor<bool> {
   @override
   bool visitComplexSelector(ComplexSelector complex) => complex.components.any(
-        (component) => visitCompoundSelector(component.selector),
-      );
+    (component) => visitCompoundSelector(component.selector),
+  );
 
   @override
   bool visitCompoundSelector(CompoundSelector compound) =>

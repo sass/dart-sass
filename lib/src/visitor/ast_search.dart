@@ -69,8 +69,8 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
 
   @override
   T? visitForwardRule(ForwardRule node) => node.configuration.search(
-        (variable) => visitExpression(variable.expression),
-      );
+    (variable) => visitExpression(variable.expression),
+  );
 
   @override
   T? visitIfRule(IfRule node) =>
@@ -86,11 +86,11 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
 
   @override
   T? visitImportRule(ImportRule node) => node.imports.search(
-        (import) => import is StaticImport
-            ? visitInterpolation(import.url) ??
-                import.modifiers.andThen(visitInterpolation)
-            : null,
-      );
+    (import) => import is StaticImport
+        ? visitInterpolation(import.url) ??
+              import.modifiers.andThen(visitInterpolation)
+        : null,
+  );
 
   @override
   T? visitIncludeRule(IncludeRule node) =>
@@ -116,8 +116,8 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
 
   @override
   T? visitUseRule(UseRule node) => node.configuration.search(
-        (variable) => visitExpression(variable.expression),
-      );
+    (variable) => visitExpression(variable.expression),
+  );
 
   @override
   T? visitVariableDeclaration(VariableDeclaration node) =>
@@ -149,8 +149,9 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
       visitArgumentList(node.arguments);
 
   @override
-  T? visitIfExpression(IfExpression node) => node.branches
-      .search((pair) => pair.$1?.accept(this) ?? pair.$2.accept(this));
+  T? visitIfExpression(IfExpression node) => node.branches.search(
+    (pair) => pair.$1?.accept(this) ?? pair.$2.accept(this),
+  );
 
   @override
   T? visitInterpolatedFunctionExpression(InterpolatedFunctionExpression node) =>
@@ -297,14 +298,15 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
   /// [SupportsCondition] they encounter.
   @protected
   T? visitSupportsCondition(SupportsCondition condition) => switch (condition) {
-        SupportsOperation() => visitSupportsCondition(condition.left) ??
-            visitSupportsCondition(condition.right),
-        SupportsNegation() => visitSupportsCondition(condition.condition),
-        SupportsInterpolation() => visitExpression(condition.expression),
-        SupportsDeclaration() =>
-          visitExpression(condition.name) ?? visitExpression(condition.value),
-        _ => null,
-      };
+    SupportsOperation() =>
+      visitSupportsCondition(condition.left) ??
+          visitSupportsCondition(condition.right),
+    SupportsNegation() => visitSupportsCondition(condition.condition),
+    SupportsInterpolation() => visitExpression(condition.expression),
+    SupportsDeclaration() =>
+      visitExpression(condition.name) ?? visitExpression(condition.value),
+    _ => null,
+  };
 
   /// Visits each expression in an [interpolation].
   ///

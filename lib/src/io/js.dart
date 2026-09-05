@@ -26,12 +26,7 @@ external final Process? _nodeJsProcess; // process is null in the browser
 /// This value is `null` when running the script is not run from Node.JS
 Process? get _process => isNodeJs ? _nodeJsProcess : null;
 
-class FileSystemException {
-  final String message;
-  final String path;
-
-  FileSystemException._(this.message, this.path);
-
+class FileSystemException._(final String message, final String path) {
   @override
   String toString() => "${p.prettyUri(p.toUri(path))}: $message";
 }
@@ -320,8 +315,7 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
       onCancel: () {
         subscription.unsubscribe();
       },
-    ))
-        .stream;
+    )).stream;
   } else {
     var watcher = chokidar.watch(path, ChokidarOptions(usePolling: poll));
     watcher
@@ -359,8 +353,7 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
           onCancel: () {
             watcher.close();
           },
-        ))
-            .stream;
+        )).stream;
         completer.complete(stream);
       }),
     );

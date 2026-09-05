@@ -20,8 +20,8 @@ final class InterpolationMethod {
   /// This is non-null if and only if [space] is a color space.
   final HueInterpolationMethod? hue;
 
-  InterpolationMethod(this.space, [HueInterpolationMethod? hue])
-      : hue = space.isPolar ? hue ?? HueInterpolationMethod.shorter : null {
+  new(this.space, [HueInterpolationMethod? hue])
+    : hue = space.isPolar ? hue ?? HueInterpolationMethod.shorter : null {
     if (!space.isPolar && hue != null) {
       throw ArgumentError(
         "Hue interpolation method may not be set for rectangular color space "
@@ -36,7 +36,7 @@ final class InterpolationMethod {
   /// Throws a [SassScriptException] if [value] isn't a valid interpolation
   /// method. If [value] came from a function argument, [name] is the argument name
   /// (without the `$`). This is used for error reporting.
-  factory InterpolationMethod.fromValue(Value value, [String? name]) {
+  factory fromValue(Value value, [String? name]) {
     var list = value.assertCommonListStyle(name, allowSlash: false);
     if (list.isEmpty) {
       throw SassScriptException(
@@ -57,9 +57,9 @@ final class InterpolationMethod {
         'Expected unquoted string "hue" after $value.',
         name,
       );
-    } else if ((list[2].assertString(name)..assertUnquoted(name))
-            .text
-            .toLowerCase() !=
+    } else if ((list[2].assertString(
+          name,
+        )..assertUnquoted(name)).text.toLowerCase() !=
         'hue') {
       throw SassScriptException(
         'Expected unquoted string "hue" at the end of $value, was ${list[2]}.',
@@ -117,15 +117,15 @@ enum HueInterpolationMethod {
   /// Throws a [SassScriptException] if [value] isn't a valid hue interpolation
   /// method. If [value] came from a function argument, [name] is the argument
   /// name (without the `$`). This is used for error reporting.
-  factory HueInterpolationMethod._fromValue(Value value, [String? name]) =>
+  factory _fromValue(Value value, [String? name]) =>
       switch ((value.assertString(name)..assertUnquoted()).text.toLowerCase()) {
         'shorter' => HueInterpolationMethod.shorter,
         'longer' => HueInterpolationMethod.longer,
         'increasing' => HueInterpolationMethod.increasing,
         'decreasing' => HueInterpolationMethod.decreasing,
         _ => throw SassScriptException(
-            'Unknown hue interpolation method $value.',
-            name,
-          ),
+          'Unknown hue interpolation method $value.',
+          name,
+        ),
       };
 }

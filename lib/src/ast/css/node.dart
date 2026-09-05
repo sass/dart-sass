@@ -32,14 +32,14 @@ abstract class CssNode implements AstNode {
   /// invisible even though they're omitted in compressed mode.
   @internal
   bool get isInvisible => accept(
-        const _IsInvisibleVisitor(includeBogus: true, includeComments: false),
-      );
+    const _IsInvisibleVisitor(includeBogus: true, includeComments: false),
+  );
 
   // Whether this node will be invisible when loud comments are stripped.
   @internal
   bool get isInvisibleHidingComments => accept(
-        const _IsInvisibleVisitor(includeBogus: true, includeComments: true),
-      );
+    const _IsInvisibleVisitor(includeBogus: true, includeComments: true),
+  );
 
   @override
   String toString() => serialize(this, inspect: true).$1;
@@ -69,10 +69,7 @@ class _IsInvisibleVisitor with EveryCssVisitor {
   /// Whether to consider comments invisible.
   final bool includeComments;
 
-  const _IsInvisibleVisitor({
-    required this.includeBogus,
-    required this.includeComments,
-  });
+  const new({required this.includeBogus, required this.includeComments});
 
   // An unknown at-rule is never invisible. Because we don't know the semantics
   // of unknown rules, we can't guarantee that (for example) `@foo {}` isn't

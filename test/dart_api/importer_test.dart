@@ -55,8 +55,10 @@ void main() {
           (url) => Uri.parse('u:blue'),
           expectAsync1((url) {
             var color = url.path;
-            return ImporterResult('.$color {color: $color}',
-                syntax: Syntax.scss);
+            return ImporterResult(
+              '.$color {color: $color}',
+              syntax: Syntax.scss,
+            );
           }, count: 1),
         ),
       ],
@@ -227,17 +229,12 @@ void main() {
       expect(
         () => compileString(
           '@use "orange";',
-          importers: [
-            TestImporter(expectAsync1((url) => url), neverCalled),
-          ],
+          importers: [TestImporter(expectAsync1((url) => url), neverCalled)],
         ),
         throwsA(
           predicate((error) {
             expect(error, const TypeMatcher<SassException>());
-            expect(
-              error.toString(),
-              contains("which is relative"),
-            );
+            expect(error.toString(), contains("which is relative"));
             return true;
           }),
         ),
@@ -426,8 +423,10 @@ void main() {
       var css = compileString(
         '@use "baz/qux";',
         importer: TestImporter((url) => url.resolve("bang"), (url) {
-          return ImporterResult('a {result: "${url.path}"}',
-              syntax: Syntax.scss);
+          return ImporterResult(
+            'a {result: "${url.path}"}',
+            syntax: Syntax.scss,
+          );
         }),
         url: Uri.parse("u:foo/bar"),
       ).css;
@@ -445,8 +444,10 @@ void main() {
         importers: [
           TestImporter((url) => url, (url) {
             var color = url.path;
-            return ImporterResult('.$color {color: $color}',
-                syntax: Syntax.scss);
+            return ImporterResult(
+              '.$color {color: $color}',
+              syntax: Syntax.scss,
+            );
           }),
         ],
       ).css;
@@ -467,8 +468,10 @@ void main() {
               return ImporterResult("@use 'orange';", syntax: Syntax.scss);
             } else {
               var color = url.path;
-              return ImporterResult('.$color {color: $color}',
-                  syntax: Syntax.scss);
+              return ImporterResult(
+                '.$color {color: $color}',
+                syntax: Syntax.scss,
+              );
             }
           }),
         ],

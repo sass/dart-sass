@@ -11,10 +11,11 @@ import '../statement.dart';
 /// A silent Sass-style comment.
 ///
 /// {@category AST}
-final class SilentComment extends Statement {
+final class SilentComment(
   /// The text of this comment, including comment characters.
-  final String text;
-
+  final String text,
+  @override final FileSpan span,
+) extends Statement {
   /// The subset of lines in text that are marked as part of the documentation
   /// comments by beginning with '///'.
   ///
@@ -32,11 +33,6 @@ final class SilentComment extends Statement {
 
     return comment.isNotEmpty ? comment : null;
   }
-
-  @override
-  final FileSpan span;
-
-  SilentComment(this.text, this.span);
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitSilentComment(this);

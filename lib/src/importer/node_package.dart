@@ -8,8 +8,11 @@ import 'package:sass/src/util/nullable.dart';
 
 import '../importer.dart';
 import './utils.dart';
+
 import 'dart:convert';
+
 import '../io.dart';
+
 import 'package:path/path.dart' as p;
 
 /// An [Importer] that resolves `pkg:` URLs using the Node resolution algorithm.
@@ -18,7 +21,7 @@ final class NodePackageImporter extends Importer {
   late final String _entryPointDirectory;
 
   /// Creates a Node package importer with the associated entry point.
-  NodePackageImporter(String entryPointDirectory) {
+  new(String entryPointDirectory) {
     if (isBrowser) {
       throw "The Node package importer cannot be used without a filesystem.";
     }
@@ -75,11 +78,11 @@ final class NodePackageImporter extends Importer {
     }
 
     if (_resolvePackageExports(
-      packageRoot,
-      subpath,
-      packageManifest,
-      packageName,
-    )
+          packageRoot,
+          subpath,
+          packageManifest,
+          packageName,
+        )
         case var resolved?) {
       if (_validExtensions.contains(p.extension(resolved))) {
         return p.toUri(p.canonicalize(_resolveImportOnly(resolved)));
@@ -170,12 +173,12 @@ final class NodePackageImporter extends Importer {
     if (exports == null) return null;
     var subpathVariants = _exportsToCheck(subpath);
     if (_nodePackageExportsResolve(
-      packageRoot,
-      subpathVariants,
-      exports,
-      subpath,
-      packageName,
-    )
+          packageRoot,
+          subpathVariants,
+          exports,
+          subpath,
+          packageName,
+        )
         case var path?) {
       return path;
     }
@@ -184,12 +187,12 @@ final class NodePackageImporter extends Importer {
 
     var subpathIndexVariants = _exportsToCheck(subpath, addIndex: true);
     if (_nodePackageExportsResolve(
-      packageRoot,
-      subpathIndexVariants,
-      exports,
-      subpath,
-      packageName,
-    )
+          packageRoot,
+          subpathIndexVariants,
+          exports,
+          subpath,
+          packageName,
+        )
         case var path?) {
       return path;
     }
@@ -341,11 +344,11 @@ final class NodePackageImporter extends Importer {
           if (!const {'sass', 'style', 'default'}.contains(key)) continue;
           if (value == null) continue;
           if (_packageTargetResolve(
-            subpath,
-            value as Object,
-            packageRoot,
-            patternMatch,
-          )
+                subpath,
+                value as Object,
+                packageRoot,
+                patternMatch,
+              )
               case var result?) {
             return result;
           }
@@ -359,11 +362,11 @@ final class NodePackageImporter extends Importer {
         for (var value in array) {
           if (value == null) continue;
           if (_packageTargetResolve(
-            subpath,
-            value as Object,
-            packageRoot,
-            patternMatch,
-          )
+                subpath,
+                value as Object,
+                packageRoot,
+                patternMatch,
+              )
               case var result?) {
             return result;
           }

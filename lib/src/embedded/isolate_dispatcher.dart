@@ -49,7 +49,7 @@ final class IsolateDispatcher {
   /// Whether [_channel] has been closed or not.
   var _closed = false;
 
-  IsolateDispatcher(this._channel);
+  new(this._channel);
 
   void listen() {
     _channel.stream.listen(

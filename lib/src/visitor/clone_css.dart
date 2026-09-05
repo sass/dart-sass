@@ -25,13 +25,11 @@ import 'interface/css.dart';
 }
 
 /// A visitor that creates a deep (and mutable) copy of a [CssStylesheet].
-final class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
+final class _CloneCssVisitor(
   /// A map from selectors in the original stylesheet to selectors generated for
   /// the new stylesheet using [ExtensionStore.clone].
-  final Map<SelectorList, Box<SelectorList>> _oldToNewSelectors;
-
-  _CloneCssVisitor(this._oldToNewSelectors);
-
+  final Map<SelectorList, Box<SelectorList>> _oldToNewSelectors,
+) implements CssVisitor<ModifiableCssNode> {
   @override
   ModifiableCssAtRule visitCssAtRule(CssAtRule node) {
     var rule = ModifiableCssAtRule(

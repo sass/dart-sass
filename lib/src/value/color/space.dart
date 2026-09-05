@@ -30,7 +30,13 @@ import 'space/xyz_d65.dart';
 ///
 /// {@category Value}
 @sealed
-abstract base class ColorSpace {
+abstract base class const ColorSpace(
+  /// The CSS name of the color space.
+  final String name,
+
+  /// See [SassApiColorSpace.channels].
+  final List<ColorChannel> _channels,
+) {
   /// The legacy RGB color space.
   static const ColorSpace rgb = RgbColorSpace();
 
@@ -115,12 +121,6 @@ abstract base class ColorSpace {
   /// https://www.w3.org/TR/css-color-4/#ok-lab
   static const ColorSpace oklch = OklchColorSpace();
 
-  /// The CSS name of the color space.
-  final String name;
-
-  /// See [SassApiColorSpace.channels].
-  final List<ColorChannel> _channels;
-
   /// See [SassApiColorSpace.isBounded].
   ///
   /// @nodoc
@@ -141,17 +141,14 @@ abstract base class ColorSpace {
 
   /// @nodoc
   @internal
-  const ColorSpace(this.name, this._channels);
+  this;
 
   /// Given a color space name, returns the known color space with that name or
   /// throws a [SassScriptException] if there is none.
   ///
   /// If this came from a function argument, [argumentName] is the argument name
   /// (without the `$`). This is used for error reporting.
-  static ColorSpace fromName(
-    String name, [
-    String? argumentName,
-  ]) =>
+  static ColorSpace fromName(String name, [String? argumentName]) =>
       switch (name.toLowerCase()) {
         'rgb' => rgb,
         'hwb' => hwb,
@@ -170,7 +167,9 @@ abstract base class ColorSpace {
         'oklab' => oklab,
         'oklch' => oklch,
         _ => throw SassScriptException(
-            'Unknown color space "$name".', argumentName),
+          'Unknown color space "$name".',
+          argumentName,
+        ),
       };
 
   /// Converts a color with the given channels from this color space to [dest].
@@ -188,8 +187,7 @@ abstract base class ColorSpace {
     double? channel1,
     double? channel2,
     double? alpha,
-  ) =>
-      convertLinear(dest, channel0, channel1, channel2, alpha);
+  ) => convertLinear(dest, channel0, channel1, channel2, alpha);
 
   /// The default implementation of [convert], which always starts with a linear
   /// transformation from RGB or XYZ channels to a linear destination space, and
@@ -251,46 +249,46 @@ abstract base class ColorSpace {
 
     return switch (dest) {
       ColorSpace.hsl || ColorSpace.hwb => const SrgbColorSpace().convert(
-          dest,
-          transformedRed,
-          transformedGreen,
-          transformedBlue,
-          alpha,
-          missingLightness: missingLightness,
-          missingChroma: missingChroma,
-          missingHue: missingHue,
-        ),
+        dest,
+        transformedRed,
+        transformedGreen,
+        transformedBlue,
+        alpha,
+        missingLightness: missingLightness,
+        missingChroma: missingChroma,
+        missingHue: missingHue,
+      ),
       ColorSpace.lab || ColorSpace.lch => const XyzD50ColorSpace().convert(
-          dest,
-          transformedRed,
-          transformedGreen,
-          transformedBlue,
-          alpha,
-          missingLightness: missingLightness,
-          missingChroma: missingChroma,
-          missingHue: missingHue,
-          missingA: missingA,
-          missingB: missingB,
-        ),
+        dest,
+        transformedRed,
+        transformedGreen,
+        transformedBlue,
+        alpha,
+        missingLightness: missingLightness,
+        missingChroma: missingChroma,
+        missingHue: missingHue,
+        missingA: missingA,
+        missingB: missingB,
+      ),
       ColorSpace.oklab || ColorSpace.oklch => const LmsColorSpace().convert(
-          dest,
-          transformedRed,
-          transformedGreen,
-          transformedBlue,
-          alpha,
-          missingLightness: missingLightness,
-          missingChroma: missingChroma,
-          missingHue: missingHue,
-          missingA: missingA,
-          missingB: missingB,
-        ),
+        dest,
+        transformedRed,
+        transformedGreen,
+        transformedBlue,
+        alpha,
+        missingLightness: missingLightness,
+        missingChroma: missingChroma,
+        missingHue: missingHue,
+        missingA: missingA,
+        missingB: missingB,
+      ),
       _ => SassColor.forSpaceInternal(
-          dest,
-          red == null ? null : transformedRed,
-          green == null ? null : transformedGreen,
-          blue == null ? null : transformedBlue,
-          alpha,
-        ),
+        dest,
+        red == null ? null : transformedRed,
+        green == null ? null : transformedGreen,
+        blue == null ? null : transformedBlue,
+        alpha,
+      ),
     };
   }
 
@@ -310,8 +308,8 @@ abstract base class ColorSpace {
   @protected
   @internal
   double toLinear(double channel) => throw UnimplementedError(
-        "[BUG] Color space $this doesn't support linear conversions.",
-      );
+    "[BUG] Color space $this doesn't support linear conversions.",
+  );
 
   /// Converts an element of a 3-element vector that can be linearly transformed
   /// into other color spaces into a channel in this color space.
@@ -329,8 +327,8 @@ abstract base class ColorSpace {
   @protected
   @internal
   double fromLinear(double channel) => throw UnimplementedError(
-        "[BUG] Color space $this doesn't support linear conversions.",
-      );
+    "[BUG] Color space $this doesn't support linear conversions.",
+  );
 
   /// Returns the matrix for performing a linear transformation from this color
   /// space to [dest].
@@ -346,8 +344,8 @@ abstract base class ColorSpace {
   @protected
   @internal
   Float64List transformationMatrix(ColorSpace dest) => throw UnimplementedError(
-        '[BUG] Color space conversion from $this to $dest not implemented.',
-      );
+    '[BUG] Color space conversion from $this to $dest not implemented.',
+  );
 
   @override
   String toString() => name;

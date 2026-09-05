@@ -13,15 +13,11 @@ import '../statement.dart';
 /// This prints a Sass value for debugging purposes.
 ///
 /// {@category AST}
-final class DebugRule extends Statement {
+final class DebugRule(
   /// The expression to print.
-  final Expression expression;
-
-  @override
-  final FileSpan span;
-
-  DebugRule(this.expression, this.span);
-
+  final Expression expression,
+  @override final FileSpan span,
+) extends Statement {
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitDebugRule(this);
 

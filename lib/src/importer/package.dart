@@ -18,7 +18,7 @@ final class PackageImporter extends Importer {
   /// package.
   ///
   /// [`PackageConfig`]: https://pub.dev/documentation/package_config/latest/package_config.package_config/PackageConfig-class.html
-  PackageImporter(PackageConfig packageConfig) : _packageConfig = packageConfig;
+  new(PackageConfig packageConfig) : _packageConfig = packageConfig;
 
   @override
   Uri? canonicalize(Uri url) {

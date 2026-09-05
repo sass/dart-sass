@@ -44,14 +44,15 @@ final class BinaryOperationExpression extends Expression {
   ///
   /// @nodoc
   @internal
-  FileSpan get operatorSpan => left.span.file == right.span.file &&
+  FileSpan get operatorSpan =>
+      left.span.file == right.span.file &&
           left.span.end.offset < right.span.start.offset
       ? left.span.file
-          .span(left.span.end.offset, right.span.start.offset)
-          .trim()
+            .span(left.span.end.offset, right.span.start.offset)
+            .trim()
       : span;
 
-  BinaryOperationExpression(this.operator, this.left, this.right);
+  new(this.operator, this.left, this.right);
 
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
@@ -162,7 +163,7 @@ enum BinaryOperator {
   /// [associative property]: https://en.wikipedia.org/wiki/Associative_property
   final bool isAssociative;
 
-  const BinaryOperator(
+  const new(
     this.name,
     this.operator,
     this.precedence, {

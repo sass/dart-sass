@@ -11,15 +11,10 @@ import '../statement.dart';
 /// An `@import` rule.
 ///
 /// {@category AST}
-final class ImportRule extends Statement {
+final class ImportRule(Iterable<Import> imports, @override final FileSpan span)
+    extends Statement {
   /// The imports imported by this statement.
-  final List<Import> imports;
-
-  @override
-  final FileSpan span;
-
-  ImportRule(Iterable<Import> imports, this.span)
-      : imports = List.unmodifiable(imports);
+  final List<Import> imports = List.unmodifiableOf(imports);
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitImportRule(this);

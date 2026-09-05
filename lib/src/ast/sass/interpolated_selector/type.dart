@@ -15,16 +15,12 @@ import 'simple.dart';
 /// parse when `parseSelectors: true` is passed to [Stylesheet.parse].
 ///
 /// {@category AST}
-final class InterpolatedTypeSelector extends InterpolatedSimpleSelector {
+final class InterpolatedTypeSelector(
   /// The element name being selected for.
-  final InterpolatedQualifiedName name;
-
+  final InterpolatedQualifiedName name,
+) extends InterpolatedSimpleSelector {
   @override
   FileSpan get span => name.span;
-
-  /// Creates a type selector that matches any element with a property of
-  /// the given name.
-  InterpolatedTypeSelector(this.name);
 
   /// Calls the appropriate visit method on [visitor].
   @override

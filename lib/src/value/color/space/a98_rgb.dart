@@ -17,11 +17,11 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class A98RgbColorSpace extends ColorSpace {
+final class const A98RgbColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => true;
 
-  const A98RgbColorSpace() : super('a98-rgb', rgbChannels);
+  this : super('a98-rgb', rgbChannels);
 
   @override
   @protected
@@ -38,18 +38,16 @@ final class A98RgbColorSpace extends ColorSpace {
   @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
-        ColorSpace.srgbLinear ||
-        ColorSpace.srgb ||
-        ColorSpace.rgb =>
-          linearA98RgbToLinearSrgb,
-        ColorSpace.displayP3 ||
-        ColorSpace.displayP3Linear =>
-          linearA98RgbToLinearDisplayP3,
-        ColorSpace.prophotoRgb => linearA98RgbToLinearProphotoRgb,
-        ColorSpace.rec2020 => linearA98RgbToLinearRec2020,
-        ColorSpace.xyzD65 => linearA98RgbToXyzD65,
-        ColorSpace.xyzD50 => linearA98RgbToXyzD50,
-        ColorSpace.lms => linearA98RgbToLms,
-        _ => super.transformationMatrix(dest),
-      };
+    ColorSpace.srgbLinear ||
+    ColorSpace.srgb ||
+    ColorSpace.rgb => linearA98RgbToLinearSrgb,
+    ColorSpace.displayP3 ||
+    ColorSpace.displayP3Linear => linearA98RgbToLinearDisplayP3,
+    ColorSpace.prophotoRgb => linearA98RgbToLinearProphotoRgb,
+    ColorSpace.rec2020 => linearA98RgbToLinearRec2020,
+    ColorSpace.xyzD65 => linearA98RgbToXyzD65,
+    ColorSpace.xyzD50 => linearA98RgbToXyzD50,
+    ColorSpace.lms => linearA98RgbToLms,
+    _ => super.transformationMatrix(dest),
+  };
 }

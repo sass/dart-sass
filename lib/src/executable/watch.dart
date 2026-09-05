@@ -66,18 +66,16 @@ Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
 
 /// Holds state that's shared across functions that react to changes on the
 /// filesystem.
-final class _Watcher {
+final class _Watcher(
   /// The options for the Sass executable.
-  final ExecutableOptions _options;
+  final ExecutableOptions _options,
 
   /// The graph of stylesheets being compiled.
-  final StylesheetGraph _graph;
-
+  final StylesheetGraph _graph,
+) {
   /// A map from source paths to destinations that need to be recompiled once
   /// the current batch of events has been processed.
   final Map<String, String> _toRecompile = {};
-
-  _Watcher(this._options, this._graph);
 
   /// Deletes the file at [path] and prints a message about it.
   void _delete(String path) {
@@ -244,8 +242,9 @@ final class _Watcher {
     }
     if (p.basename(source).startsWith('_')) return null;
 
-    for (var (sourceDir, destinationDir)
-        in _sourceDirectoriesToDestinations(_options).pairs) {
+    for (var (sourceDir, destinationDir) in _sourceDirectoriesToDestinations(
+      _options,
+    ).pairs) {
       if (!p.isWithin(sourceDir, source)) continue;
 
       var destination = p.join(
@@ -270,5 +269,4 @@ Map<String, String> _sourcesToDestinations(ExecutableOptions options) =>
 /// since stdin inputs and stdout outputs aren't allowed in `--watch` mode.
 Map<String, String> _sourceDirectoriesToDestinations(
   ExecutableOptions options,
-) =>
-    options.sourceDirectoriesToDestinations.cast<String, String>();
+) => options.sourceDirectoriesToDestinations.cast<String, String>();

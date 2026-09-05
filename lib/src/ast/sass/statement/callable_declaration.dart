@@ -13,29 +13,20 @@ import 'silent_comment.dart';
 /// user code.
 ///
 /// {@category AST}
-abstract base class CallableDeclaration
-    extends ParentStatement<List<Statement>> {
-  /// The name of this callable, with underscores converted to hyphens.
-  final String name;
-
+abstract base class CallableDeclaration(
   /// The callable's original name, without underscores converted to hyphens.
-  final String originalName;
-
-  /// The comment immediately preceding this declaration.
-  final SilentComment? comment;
+  final String originalName,
 
   /// The declared parameters this callable accepts.
-  final ParameterList parameters;
+  final ParameterList parameters,
+  Iterable<Statement> children,
+  @override final FileSpan span, {
 
-  @override
-  final FileSpan span;
+  /// The comment immediately preceding this declaration.
+  final SilentComment? comment,
+}) extends ParentStatement<List<Statement>> {
+  /// The name of this callable, with underscores converted to hyphens.
+  final String name = originalName.replaceAll('_', '-');
 
-  CallableDeclaration(
-    this.originalName,
-    this.parameters,
-    Iterable<Statement> children,
-    this.span, {
-    this.comment,
-  })  : name = originalName.replaceAll('_', '-'),
-        super(List.unmodifiable(children));
+  this : super(List.unmodifiableOf(children));
 }

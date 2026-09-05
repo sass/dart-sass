@@ -29,7 +29,7 @@ final class VarintBuilder {
   /// for the integer.
   ///
   /// If [name] is passed, it's used in error reporting.
-  VarintBuilder(this._maxLength, [this._name]);
+  new(this._maxLength, [this._name]);
 
   /// Parses [byte] as a continuation of the varint.
   ///
@@ -80,7 +80,7 @@ final class VarintBuilder {
 
   /// Returns a [ProtocolError] indicating that the varint exceeded [_maxLength].
   ProtocolError _tooLong() => parseError(
-        "Varint ${_name == null ? '' : '$_name '}was longer than "
-        "$_maxLength bits.",
-      );
+    "Varint ${_name == null ? '' : '$_name '}was longer than "
+    "$_maxLength bits.",
+  );
 }

@@ -38,27 +38,27 @@ final class ArgumentList implements SassNode {
   /// Returns whether this invocation passes no arguments.
   bool get isEmpty => positional.isEmpty && named.isEmpty && rest == null;
 
-  ArgumentList(
+  new(
     Iterable<Expression> positional,
     Map<String, Expression> named,
     Map<String, FileSpan> namedSpans,
     this.span, {
     this.rest,
     this.keywordRest,
-  })  : positional = List.unmodifiable(positional),
-        named = Map.unmodifiable(named),
-        namedSpans = Map.unmodifiable(namedSpans) {
+  }) : positional = List.unmodifiableOf(positional),
+       named = Map.unmodifiableOf(named),
+       namedSpans = Map.unmodifiableOf(namedSpans) {
     assert(rest != null || keywordRest == null);
     assert(iterableEquals(named.keys, namedSpans.keys));
   }
 
   /// Creates an invocation that passes no arguments.
-  ArgumentList.empty(this.span)
-      : positional = const [],
-        named = const {},
-        namedSpans = const {},
-        rest = null,
-        keywordRest = null;
+  new empty(this.span)
+    : positional = const [],
+      named = const {},
+      namedSpans = const {},
+      rest = null,
+      keywordRest = null;
 
   @override
   String toString() {
@@ -75,12 +75,12 @@ final class ArgumentList implements SassNode {
 
   /// Wraps [argument] in parentheses if necessary.
   String _parenthesizeArgument(Expression argument) => switch (argument) {
-        ListExpression(
-          separator: ListSeparator.comma,
-          hasBrackets: false,
-          contents: [_, _, ...],
-        ) =>
-          "($argument)",
-        _ => argument.toString(),
-      };
+    ListExpression(
+      separator: ListSeparator.comma,
+      hasBrackets: false,
+      contents: [_, _, ...],
+    ) =>
+      "($argument)",
+    _ => argument.toString(),
+  };
 }

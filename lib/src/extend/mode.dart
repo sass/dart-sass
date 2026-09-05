@@ -27,7 +27,7 @@ enum ExtendMode {
   /// The name of the mode.
   final String name;
 
-  const ExtendMode(this.name);
+  const new(this.name);
 
   @override
   String toString() => name;

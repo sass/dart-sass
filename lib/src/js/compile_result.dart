@@ -13,7 +13,7 @@ class NodeCompileResult {
   external Object? get sourceMap;
   external JSArray get loadedUrls;
 
-  external factory NodeCompileResult({
+  external factory({
     required String css,
     Object? sourceMap,
     required JSArray loadedUrls,

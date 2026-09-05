@@ -57,13 +57,15 @@ String a(String word) =>
 
 /// Returns a bulleted list of items in [bullets].
 @internal
-String bulletedList(Iterable<String> bullets) => bullets.map((element) {
+String bulletedList(Iterable<String> bullets) => bullets
+    .map((element) {
       var lines = element.split("\n");
       return "${glyph.bullet} ${lines.first}${switch (lines) {
         [_, ...var rest] => "\n${indent(rest.join("\n"), 2)}",
         _ => "",
       }}";
-    }).join("\n");
+    })
+    .join("\n");
 
 /// Returns the number of times [codeUnit] appears in [string].
 @internal
@@ -234,11 +236,11 @@ int mapHash(Map<Object, Object> map) =>
 /// passed, it's used instead.
 @internal
 Frame frameForSpan(SourceSpan span, String member, {Uri? url}) => Frame(
-      url ?? span.sourceUrl ?? _noSourceUrl,
-      span.start.line + 1,
-      span.start.column + 1,
-      member,
-    );
+  url ?? span.sourceUrl ?? _noSourceUrl,
+  span.start.line + 1,
+  span.start.column + 1,
+  member,
+);
 
 /// Returns the variable name (including the leading `$`) from a [span] that
 /// covers a variable declaration, which includes the variable name as well as
@@ -363,8 +365,11 @@ List<T> longestCommonSubsequence<T>(
 ///
 /// If [orElse] is passed, calls it if no value matches.
 @internal
-void removeFirstWhere<T>(List<T> list, bool Function(T value) test,
-    {void Function()? orElse}) {
+void removeFirstWhere<T>(
+  List<T> list,
+  bool Function(T value) test, {
+  void Function()? orElse,
+}) {
   for (var i = 0; i < list.length; i++) {
     if (!test(list[i])) continue;
     list.removeAt(i);
@@ -416,8 +421,7 @@ void rotateSlice(List<Object> list, int start, int end) {
 Future<Iterable<F>> mapAsync<E, F>(
   Iterable<E> iterable,
   Future<F> Function(E value) callback,
-) async =>
-    [for (var element in iterable) await callback(element)];
+) async => [for (var element in iterable) await callback(element)];
 
 /// Like [Map.putIfAbsent], but for an asynchronous [ifAbsent].
 ///
@@ -438,14 +442,14 @@ Future<V> putIfAbsentAsync<K, V>(
 /// Returns a deep copy of a map that contains maps.
 @internal
 Map<K1, Map<K2, V>> copyMapOfMap<K1, K2, V>(Map<K1, Map<K2, V>> map) => {
-      for (var (key, child) in map.pairs) key: Map.of(child),
-    };
+  for (var (key, child) in map.pairs) key: Map.of(child),
+};
 
 /// Returns a deep copy of a map that contains lists.
 @internal
 Map<K, List<E>> copyMapOfList<K, E>(Map<K, List<E>> map) => {
-      for (var (key, list) in map.pairs) key: list.toList(),
-    };
+  for (var (key, list) in map.pairs) key: list.toList(),
+};
 
 /// Consumes an escape sequence from [scanner] and returns the character it
 /// represents.

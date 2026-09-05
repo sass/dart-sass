@@ -26,11 +26,11 @@ final class FilesystemImporter extends Importer {
   final String? _loadPath;
 
   /// Creates an importer that loads files relative to [loadPath].
-  FilesystemImporter(String loadPath) : _loadPath = p.absolute(loadPath);
+  new(String loadPath) : _loadPath = p.absolute(loadPath);
 
   /// Creates an importer that _only_ loads absolute `file:` URLs and URLs
   /// relative to the current file.
-  FilesystemImporter._noLoadPath() : _loadPath = null;
+  new _noLoadPath() : _loadPath = null;
 
   /// An importer that _only_ loads absolute `file:` URLs and URLs relative to
   /// the current file.
@@ -38,12 +38,12 @@ final class FilesystemImporter extends Importer {
 
   @override
   Uri? canonicalize(Uri url) => switch ((url, _loadPath)) {
-        (Uri(scheme: 'file'), _) => resolveImportPath(p.fromUri(url)),
-        (Uri(scheme: ''), var loadPath?) =>
-          resolveImportPath(p.join(loadPath, p.fromUri(url))),
-        _ => null,
-      }
-          .andThen((resolved) => p.toUri(io.canonicalize(resolved)));
+    (Uri(scheme: 'file'), _) => resolveImportPath(p.fromUri(url)),
+    (Uri(scheme: ''), var loadPath?) => resolveImportPath(
+      p.join(loadPath, p.fromUri(url)),
+    ),
+    _ => null,
+  }.andThen((resolved) => p.toUri(io.canonicalize(resolved)));
 
   @override
   ImporterResult? load(Uri url) {

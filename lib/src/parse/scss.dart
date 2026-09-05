@@ -20,10 +20,10 @@ base class ScssParser extends StylesheetParser {
   @override
   int get currentIndentation => 0;
 
-  ScssParser(super.contents, {super.url, super.parseSelectors});
+  new(super.contents, {super.url, super.parseSelectors});
 
-  ScssParser.internal(super.contents, {super.url, super.parseSelectors})
-      : super.internal();
+  new internal(super.contents, {super.url, super.parseSelectors})
+    : super.internal();
 
   @override
   Interpolation styleRuleSelector() => almostAnyValue();
@@ -140,10 +140,7 @@ base class ScssParser extends StylesheetParser {
     } while (scanner.scan("//"));
 
     if (plainCss) {
-      error(
-        "Silent comments aren't allowed in plain CSS.",
-        spanFrom(start),
-      );
+      error("Silent comments aren't allowed in plain CSS.", spanFrom(start));
     }
 
     return lastSilentComment = SilentComment(

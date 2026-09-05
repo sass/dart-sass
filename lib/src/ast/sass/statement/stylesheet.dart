@@ -29,16 +29,17 @@ import 'variable_declaration.dart';
 ///
 /// {@category AST}
 /// {@category Parsing}
-final class Stylesheet extends ParentStatement<List<Statement>> {
-  @override
-  final FileSpan span;
+final class Stylesheet.internal(
+  Iterable<Statement> children,
+  @override final FileSpan span,
+  List<ParseTimeWarning> parseTimeWarnings, {
 
   /// Whether this was parsed from a plain CSS stylesheet.
   ///
   /// @nodoc
-  @internal
-  final bool plainCss;
-
+  @internal final bool plainCss = false,
+  Map<String, FileSpan>? globalVariables,
+}) extends ParentStatement<List<Statement>> {
   /// All the `@use` rules that appear in this stylesheet.
   List<UseRule> get uses => UnmodifiableListView(_uses);
   final _uses = <UseRule>[];
@@ -52,31 +53,25 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   ///
   /// @nodoc
   @internal
-  final List<ParseTimeWarning> parseTimeWarnings;
+  final List<ParseTimeWarning> parseTimeWarnings = UnmodifiableListView(
+    parseTimeWarnings,
+  );
 
   /// The set of (normalized) global variable names defined by this stylesheet
   /// to the spans where they're defined.
   @internal
-  final Map<String, FileSpan> globalVariables;
+  final Map<String, FileSpan> globalVariables = globalVariables == null
+      ? const {}
+      : Map.unmodifiableOf(globalVariables);
 
-  Stylesheet(Iterable<Statement> children, FileSpan span)
-      : this.internal(children, span, []);
+  new(Iterable<Statement> children, FileSpan span)
+    : this.internal(children, span, []);
 
   /// A separate internal constructor that allows [plainCss] to be set.
   ///
   /// @nodoc
   @internal
-  Stylesheet.internal(
-    Iterable<Statement> children,
-    this.span,
-    List<ParseTimeWarning> parseTimeWarnings, {
-    this.plainCss = false,
-    Map<String, FileSpan>? globalVariables,
-  })  : parseTimeWarnings = UnmodifiableListView(parseTimeWarnings),
-        globalVariables = globalVariables == null
-            ? const {}
-            : Map.unmodifiable(globalVariables),
-        super(List.unmodifiable(children)) {
+  this : super(List.unmodifiableOf(children)) {
     loop:
     for (var child in this.children) {
       switch (child) {
@@ -105,19 +100,32 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   /// rather than [StyleRule.selector]s.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parse(String contents, Syntax syntax,
-      {Object? url, bool parseSelectors = false}) {
+  factory parse(
+    String contents,
+    Syntax syntax, {
+    Object? url,
+    bool parseSelectors = false,
+  }) {
     try {
       switch (syntax) {
         case Syntax.sass:
-          return Stylesheet.parseSass(contents,
-              url: url, parseSelectors: parseSelectors);
+          return Stylesheet.parseSass(
+            contents,
+            url: url,
+            parseSelectors: parseSelectors,
+          );
         case Syntax.scss:
-          return Stylesheet.parseScss(contents,
-              url: url, parseSelectors: parseSelectors);
+          return Stylesheet.parseScss(
+            contents,
+            url: url,
+            parseSelectors: parseSelectors,
+          );
         case Syntax.css:
-          return Stylesheet.parseCss(contents,
-              url: url, parseSelectors: parseSelectors);
+          return Stylesheet.parseCss(
+            contents,
+            url: url,
+            parseSelectors: parseSelectors,
+          );
       }
     } on SassException catch (error, stackTrace) {
       var url = error.span.sourceUrl;
@@ -135,18 +143,30 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   ///
   /// :nodoc:
   @internal
-  factory Stylesheet.parseInternal(String contents, Syntax syntax,
-      {Uri? url, bool parseSelectors = false}) {
+  factory parseInternal(
+    String contents,
+    Syntax syntax, {
+    Uri? url,
+    bool parseSelectors = false,
+  }) {
     try {
       return switch (syntax) {
-        Syntax.sass => SassParser.internal(contents,
-            url: url, parseSelectors: parseSelectors),
-        Syntax.scss => ScssParser.internal(contents,
-            url: url, parseSelectors: parseSelectors),
-        Syntax.css => CssParser.internal(contents,
-            url: url, parseSelectors: parseSelectors),
-      }
-          .parse();
+        Syntax.sass => SassParser.internal(
+          contents,
+          url: url,
+          parseSelectors: parseSelectors,
+        ),
+        Syntax.scss => ScssParser.internal(
+          contents,
+          url: url,
+          parseSelectors: parseSelectors,
+        ),
+        Syntax.css => CssParser.internal(
+          contents,
+          url: url,
+          parseSelectors: parseSelectors,
+        ),
+      }.parse();
     } on SassException catch (error, stackTrace) {
       var url = error.span.sourceUrl;
       if (url == null || url.toString() == 'stdin') rethrow;
@@ -167,9 +187,11 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   /// rather than [StyleRule.selector]s.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseSass(String contents,
-          {Object? url, bool parseSelectors = false}) =>
-      SassParser(contents, url: url, parseSelectors: parseSelectors).parse();
+  factory parseSass(
+    String contents, {
+    Object? url,
+    bool parseSelectors = false,
+  }) => SassParser(contents, url: url, parseSelectors: parseSelectors).parse();
 
   /// Parses an SCSS stylesheet from [contents].
   ///
@@ -179,9 +201,11 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   /// rather than [StyleRule.selector]s.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseScss(String contents,
-          {Object? url, bool parseSelectors = false}) =>
-      ScssParser(contents, url: url, parseSelectors: parseSelectors).parse();
+  factory parseScss(
+    String contents, {
+    Object? url,
+    bool parseSelectors = false,
+  }) => ScssParser(contents, url: url, parseSelectors: parseSelectors).parse();
 
   /// Parses a plain CSS stylesheet from [contents].
   ///
@@ -191,9 +215,11 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
   /// rather than [StyleRule.selector]s.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Stylesheet.parseCss(String contents,
-          {Object? url, bool parseSelectors = false}) =>
-      CssParser(contents, url: url, parseSelectors: parseSelectors).parse();
+  factory parseCss(
+    String contents, {
+    Object? url,
+    bool parseSelectors = false,
+  }) => CssParser(contents, url: url, parseSelectors: parseSelectors).parse();
 
   @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitStylesheet(this);
@@ -206,5 +232,5 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
 typedef ParseTimeWarning = ({
   Deprecation? deprecation,
   FileSpan span,
-  String message
+  String message,
 });

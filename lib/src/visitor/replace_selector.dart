@@ -58,20 +58,28 @@ mixin ReplaceSelectorVisitor implements SelectorVisitor<Selector> {
   @override
   ComplexSelector visitComplexSelector(ComplexSelector complex) =>
       switch (_visitComponents(
-          complex.components, _visitComplexSelectorComponent)) {
-        var components? => ComplexSelector(components, complex.span,
-            leadingCombinator: complex.leadingCombinator,
-            lineBreak: complex.lineBreak),
+        complex.components,
+        _visitComplexSelectorComponent,
+      )) {
+        var components? => ComplexSelector(
+          components,
+          complex.span,
+          leadingCombinator: complex.leadingCombinator,
+          lineBreak: complex.lineBreak,
+        ),
         _ => complex,
       };
 
   ComplexSelectorComponent _visitComplexSelectorComponent(
-          ComplexSelectorComponent component) =>
-      switch (visitCompoundSelector(component.selector)) {
-        var result when identical(component.selector, result) => component,
-        var result => ComplexSelectorComponent(result, component.span,
-            combinator: component.combinator),
-      };
+    ComplexSelectorComponent component,
+  ) => switch (visitCompoundSelector(component.selector)) {
+    var result when identical(component.selector, result) => component,
+    var result => ComplexSelectorComponent(
+      result,
+      component.span,
+      combinator: component.combinator,
+    ),
+  };
 
   @override
   CompoundSelector visitCompoundSelector(CompoundSelector compound) =>
@@ -83,10 +91,13 @@ mixin ReplaceSelectorVisitor implements SelectorVisitor<Selector> {
   @override
   SimpleSelector visitPseudoSelector(PseudoSelector pseudo) =>
       switch (pseudo.selector.andThen(visitSelectorList)) {
-        var selector? => PseudoSelector(pseudo.name, pseudo.span,
-            element: pseudo.isElement,
-            argument: pseudo.argument,
-            selector: selector),
+        var selector? => PseudoSelector(
+          pseudo.name,
+          pseudo.span,
+          element: pseudo.isElement,
+          argument: pseudo.argument,
+          selector: selector,
+        ),
         _ => pseudo,
       };
 
@@ -97,7 +108,9 @@ mixin ReplaceSelectorVisitor implements SelectorVisitor<Selector> {
   /// This allows the caller to avoid allocations when a selector's subtree is
   /// not transformed in practice.
   List<T>? _visitComponents<T>(
-      List<T> components, T Function(T original) visit) {
+    List<T> components,
+    T Function(T original) visit,
+  ) {
     List<T>? newComponents;
     for (var i = 0; i < components.length; i++) {
       var component = components[i];

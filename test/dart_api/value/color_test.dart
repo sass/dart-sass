@@ -188,7 +188,9 @@ void main() {
       test("allows out-of-gamut values", () {
         expect(value.changeChannels({"red": -1}).channel("red"), equals(-1));
         expect(
-            value.changeChannels({"red": 0x100}).channel("red"), equals(0x100));
+          value.changeChannels({"red": 0x100}).channel("red"),
+          equals(0x100),
+        );
       });
 
       test("disallows out-of-gamut alpha", () {

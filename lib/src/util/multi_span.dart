@@ -24,13 +24,13 @@ final class MultiSpan implements FileSpan {
   /// The [secondarySpans] map for [SourceSpanExtension.messageMultiple].
   final Map<SourceSpan, String> secondarySpans;
 
-  MultiSpan(
+  new(
     FileSpan primary,
     String primaryLabel,
     Map<SourceSpan, String> secondarySpans,
   ) : this._(primary, primaryLabel, Map.unmodifiable(secondarySpans));
 
-  MultiSpan._(this._primary, this.primaryLabel, this.secondarySpans);
+  new _(this._primary, this.primaryLabel, this.secondarySpans);
 
   @override
   FileLocation get start => _primary.start;
@@ -70,20 +70,20 @@ final class MultiSpan implements FileSpan {
 
   @override
   String highlight({dynamic color}) => _primary.highlightMultiple(
-        primaryLabel,
-        secondarySpans,
-        color: color == true || color is String,
-        primaryColor: color is String ? color : null,
-      );
+    primaryLabel,
+    secondarySpans,
+    color: color == true || color is String,
+    primaryColor: color is String ? color : null,
+  );
 
   @override
   String message(String message, {dynamic color}) => _primary.messageMultiple(
-        message,
-        primaryLabel,
-        secondarySpans,
-        color: color == true || color is String,
-        primaryColor: color is String ? color : null,
-      );
+    message,
+    primaryLabel,
+    secondarySpans,
+    color: color == true || color is String,
+    primaryColor: color is String ? color : null,
+  );
 
   String highlightMultiple(
     String newLabel,
@@ -91,14 +91,13 @@ final class MultiSpan implements FileSpan {
     bool color = false,
     String? primaryColor,
     String? secondaryColor,
-  }) =>
-      _primary.highlightMultiple(
-        newLabel,
-        {...secondarySpans, ...additionalSecondarySpans},
-        color: color,
-        primaryColor: primaryColor,
-        secondaryColor: secondaryColor,
-      );
+  }) => _primary.highlightMultiple(
+    newLabel,
+    {...secondarySpans, ...additionalSecondarySpans},
+    color: color,
+    primaryColor: primaryColor,
+    secondaryColor: secondaryColor,
+  );
 
   String messageMultiple(
     String message,
@@ -107,15 +106,14 @@ final class MultiSpan implements FileSpan {
     bool color = false,
     String? primaryColor,
     String? secondaryColor,
-  }) =>
-      _primary.messageMultiple(
-        message,
-        newLabel,
-        {...secondarySpans, ...additionalSecondarySpans},
-        color: color,
-        primaryColor: primaryColor,
-        secondaryColor: secondaryColor,
-      );
+  }) => _primary.messageMultiple(
+    message,
+    newLabel,
+    {...secondarySpans, ...additionalSecondarySpans},
+    color: color,
+    primaryColor: primaryColor,
+    secondaryColor: secondaryColor,
+  );
 
   /// Returns a copy of `this` with [newPrimary] as its primary span.
   MultiSpan _withPrimary(FileSpan newPrimary) =>

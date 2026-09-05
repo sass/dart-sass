@@ -31,9 +31,9 @@ final class SassBoolean extends Value {
   ///
   /// This just returns [sassTrue] or [sassFalse]; it doesn't allocate a new
   /// value.
-  factory SassBoolean(bool value) => value ? sassTrue : sassFalse;
+  factory(bool value) => value ? sassTrue : sassFalse;
 
-  const SassBoolean._(this.value);
+  const new _(this.value);
 
   /// @nodoc
   @override

@@ -41,6 +41,6 @@ final class SassArgumentList extends SassList {
   bool get wereKeywordsAccessed => _wereKeywordsAccessed;
   var _wereKeywordsAccessed = false;
 
-  SassArgumentList(super.contents, Map<String, Value> keywords, super.separator)
-      : _keywords = Map.unmodifiable(keywords);
+  new(super.contents, Map<String, Value> keywords, super.separator)
+    : _keywords = Map.unmodifiable(keywords);
 }

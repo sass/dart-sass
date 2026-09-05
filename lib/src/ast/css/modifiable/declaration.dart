@@ -34,7 +34,7 @@ final class ModifiableCssDeclaration extends ModifiableCssNode
   bool get isCustomProperty => name.value.startsWith('--');
 
   /// Returns a new CSS declaration with the given properties.
-  ModifiableCssDeclaration(
+  new(
     this.name,
     this.value,
     this.span, {

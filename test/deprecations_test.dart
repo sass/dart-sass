@@ -92,18 +92,24 @@ void main() {
   group("compileStringRelativeUrl is violated by", () {
     test("a fully relative URL", () {
       _expectDeprecationCallback(
-          () => compileStringToResult("a {b: c}",
-              url: "foo",
-              fatalDeprecations: {Deprecation.compileStringRelativeUrl}),
-          Deprecation.compileStringRelativeUrl);
+        () => compileStringToResult(
+          "a {b: c}",
+          url: "foo",
+          fatalDeprecations: {Deprecation.compileStringRelativeUrl},
+        ),
+        Deprecation.compileStringRelativeUrl,
+      );
     });
 
     test("a root-relative URL", () {
       _expectDeprecationCallback(
-          () => compileStringToResult("a {b: c}",
-              url: "/foo",
-              fatalDeprecations: {Deprecation.compileStringRelativeUrl}),
-          Deprecation.compileStringRelativeUrl);
+        () => compileStringToResult(
+          "a {b: c}",
+          url: "/foo",
+          fatalDeprecations: {Deprecation.compileStringRelativeUrl},
+        ),
+        Deprecation.compileStringRelativeUrl,
+      );
     });
   });
 
@@ -192,13 +198,16 @@ void main() {
 /// Confirms that [source] will error if [deprecation] is fatal.
 void _expectDeprecation(String source, Deprecation deprecation) =>
     _expectDeprecationCallback(
-        () => compileStringToResult(source, fatalDeprecations: {deprecation}),
-        deprecation);
+      () => compileStringToResult(source, fatalDeprecations: {deprecation}),
+      deprecation,
+    );
 
 /// Confirms that [callback] will produce a fatal deprecation error for
 /// [deprecation].
 void _expectDeprecationCallback(
-    void Function() callback, Deprecation deprecation) {
+  void Function() callback,
+  Deprecation deprecation,
+) {
   try {
     callback();
   } catch (e) {

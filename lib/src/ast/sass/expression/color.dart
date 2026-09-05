@@ -11,15 +11,12 @@ import '../expression.dart';
 /// A color literal.
 ///
 /// {@category AST}
-final class ColorExpression extends Expression {
+final class ColorExpression(
   /// The value of this color.
-  final SassColor value;
+  final SassColor value,
 
-  @override
-  final FileSpan span;
-
-  ColorExpression(this.value, this.span);
-
+  @override final FileSpan span,
+) extends Expression {
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitColorExpression(this);

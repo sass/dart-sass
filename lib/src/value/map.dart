@@ -32,9 +32,9 @@ final class SassMap extends Value {
 
   @override
   List<Value> get asList => [
-        for (var (key, value) in contents.pairs)
-          SassList([key, value], ListSeparator.space),
-      ];
+    for (var (key, value) in contents.pairs)
+      SassList([key, value], ListSeparator.space),
+  ];
 
   /// @nodoc
   @override
@@ -42,9 +42,9 @@ final class SassMap extends Value {
   int get lengthAsList => contents.length;
 
   /// Returns an empty map.
-  const SassMap.empty() : _contents = const {};
+  const new empty() : _contents = const {};
 
-  SassMap(Map<Value, Value> contents) : _contents = Map.unmodifiable(contents);
+  new(Map<Value, Value> contents) : _contents = Map.unmodifiableOf(contents);
 
   /// @nodoc
   @override

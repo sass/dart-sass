@@ -10,21 +10,17 @@ import '../interpolation.dart';
 /// An import that produces a plain CSS `@import` rule.
 ///
 /// {@category AST}
-final class StaticImport implements Import {
+final class StaticImport(
   /// The URL for this import.
   ///
   /// This already contains quotes.
-  final Interpolation url;
+  final Interpolation url,
+  @override final FileSpan span, {
 
   /// The modifiers (such as media or supports queries) attached to this import,
   /// or `null` if none are attached.
-  final Interpolation? modifiers;
-
-  @override
-  final FileSpan span;
-
-  StaticImport(this.url, this.span, {this.modifiers});
-
+  final Interpolation? modifiers,
+}) implements Import {
   @override
   String toString() => "$url${modifiers == null ? '' : ' $modifiers'}";
 }

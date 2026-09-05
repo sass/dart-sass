@@ -16,7 +16,8 @@ import '../../utils.dart';
 
 /// Defines test that are shared between the Dart and Node.js CLI test suites.
 void sharedTests(
-    Future<TestProcess> Function(Iterable<String> arguments) runSass) {
+  Future<TestProcess> Function(Iterable<String> arguments) runSass,
+) {
   group("for a simple compilation", () {
     late Map<String, dynamic> map;
     setUp(() async {
@@ -67,8 +68,7 @@ void sharedTests(
           "--source-map-urls=relative",
           "test.scss",
           "out.css",
-        ]))
-            .shouldExit(0);
+        ])).shouldExit(0);
         expect(
           _readJson("out.css.map"),
           containsPair("sources", ["dir/other.scss", "test.scss"]),
@@ -83,8 +83,7 @@ void sharedTests(
           "--source-map-urls=absolute",
           "test.scss",
           "out.css",
-        ]))
-            .shouldExit(0);
+        ])).shouldExit(0);
         expect(
           _readJson("out.css.map"),
           containsPair("sources", [
@@ -96,11 +95,7 @@ void sharedTests(
     );
 
     test("includes source contents with --embed-sources", () async {
-      await (await runSass([
-        "--embed-sources",
-        "test.scss",
-        "out.css",
-      ]))
+      await (await runSass(["--embed-sources", "test.scss", "out.css"]))
           .shouldExit(0);
       expect(
         _readJson("out.css.map"),
@@ -191,11 +186,7 @@ void sharedTests(
     });
 
     test("no source map is generated", () async {
-      await (await runSass([
-        "--no-source-map",
-        "test.scss",
-        "out.css",
-      ]))
+      await (await runSass(["--no-source-map", "test.scss", "out.css"]))
           .shouldExit(0);
 
       await d.file("out.css", isNot(contains("/*#"))).validate();
@@ -309,8 +300,7 @@ void sharedTests(
       await sass.shouldExit(64);
     });
 
-    test(
-        "--source-map-urls=relative is disallowed even with "
+    test("--source-map-urls=relative is disallowed even with "
         "--embed-source-map", () async {
       await d.file("test.scss", "a {b: c}").create();
       var sass = await runSass([
@@ -358,11 +348,7 @@ void sharedTests(
     Map<String, dynamic>? map;
     group("with the target in the same directory", () {
       setUp(() async {
-        await (await runSass([
-          "--embed-source-map",
-          "test.scss",
-          "out.css",
-        ]))
+        await (await runSass(["--embed-source-map", "test.scss", "out.css"]))
             .shouldExit(0);
         var css = readFile(d.path("out.css"));
         map = embeddedSourceMap(css);
@@ -399,8 +385,7 @@ void sharedTests(
           "--embed-sources",
           "test.scss",
           "out.css",
-        ]))
-            .shouldExit(0);
+        ])).shouldExit(0);
         var css = readFile(d.path("out.css"));
         map = embeddedSourceMap(css);
 
@@ -416,8 +401,7 @@ void sharedTests(
           "--embed-source-map",
           "test.scss",
           "dir/out.css",
-        ]))
-            .shouldExit(0);
+        ])).shouldExit(0);
         var css = readFile(d.path("dir/out.css"));
         map = embeddedSourceMap(css);
       });

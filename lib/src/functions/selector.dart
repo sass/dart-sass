@@ -45,22 +45,26 @@ final module = BuiltInModule(
 );
 
 final _nest = _function(
-    "nest",
-    r"$selectors...",
-    (arguments) =>
-        arguments[0]
-            .asList
-            .map((selector) => selector.assertSelector(
-                  allowParent: true,
-                  allowLeadingCombinator: true,
-                  allowTrailingCombinator: true,
-                ))
-            .fold<SelectorList?>(
-                null, (parent, child) => child.nestWithin(parent))
-            ?.asSassList ??
-        (throw SassScriptException(
-          "\$selectors: At least one selector must be passed.",
-        )));
+  "nest",
+  r"$selectors...",
+  (arguments) =>
+      arguments[0].asList
+          .map(
+            (selector) => selector.assertSelector(
+              allowParent: true,
+              allowLeadingCombinator: true,
+              allowTrailingCombinator: true,
+            ),
+          )
+          .fold<SelectorList?>(
+            null,
+            (parent, child) => child.nestWithin(parent),
+          )
+          ?.asSassList ??
+      (throw SassScriptException(
+        "\$selectors: At least one selector must be passed.",
+      )),
+);
 
 final _append = _function("append", r"$selectors...", (arguments) {
   var selectors = arguments[0].asList;
@@ -113,8 +117,10 @@ final _append = _function("append", r"$selectors...", (arguments) {
 final _extend = _function("extend", r"$selector, $extendee, $extender", (
   arguments,
 ) {
-  var selector = arguments[0]
-      .assertSelector(name: "selector", allowLeadingCombinator: true);
+  var selector = arguments[0].assertSelector(
+    name: "selector",
+    allowLeadingCombinator: true,
+  );
   var target = arguments[1].assertSelector(name: "extendee");
   var source = arguments[2].assertSelector(name: "extender");
 
@@ -129,8 +135,10 @@ final _extend = _function("extend", r"$selector, $extendee, $extender", (
 final _replace = _function("replace", r"$selector, $original, $replacement", (
   arguments,
 ) {
-  var selector = arguments[0]
-      .assertSelector(name: "selector", allowLeadingCombinator: true);
+  var selector = arguments[0].assertSelector(
+    name: "selector",
+    allowLeadingCombinator: true,
+  );
   var target = arguments[1].assertSelector(name: "original");
   var source = arguments[2].assertSelector(name: "replacement");
 
@@ -143,10 +151,14 @@ final _replace = _function("replace", r"$selector, $original, $replacement", (
 });
 
 final _unify = _function("unify", r"$selector1, $selector2", (arguments) {
-  var selector1 = arguments[0]
-      .assertSelector(name: "selector1", allowLeadingCombinator: true);
-  var selector2 = arguments[1]
-      .assertSelector(name: "selector2", allowLeadingCombinator: true);
+  var selector1 = arguments[0].assertSelector(
+    name: "selector1",
+    allowLeadingCombinator: true,
+  );
+  var selector2 = arguments[1].assertSelector(
+    name: "selector2",
+    allowLeadingCombinator: true,
+  );
 
   return selector1.unify(selector2)?.asSassList ?? sassNull;
 });
@@ -193,13 +205,13 @@ CompoundSelector? _prependParent(CompoundSelector compound) {
     [UniversalSelector(), ...] => null,
     [TypeSelector type, ...] when type.name.namespace != null => null,
     [TypeSelector type, ...var rest] => CompoundSelector([
-        ParentSelector(span, suffix: type.name.name),
-        ...rest,
-      ], span),
+      ParentSelector(span, suffix: type.name.name),
+      ...rest,
+    ], span),
     var components => CompoundSelector([
-        ParentSelector(span),
-        ...components,
-      ], span),
+      ParentSelector(span),
+      ...components,
+    ], span),
   };
 }
 
@@ -209,5 +221,4 @@ BuiltInCallable _function(
   String name,
   String arguments,
   Value Function(List<Value> arguments) callback,
-) =>
-    BuiltInCallable.function(name, arguments, callback, url: "sass:selector");
+) => BuiltInCallable.function(name, arguments, callback, url: "sass:selector");

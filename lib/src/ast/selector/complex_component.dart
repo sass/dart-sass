@@ -25,7 +25,7 @@ final class ComplexSelectorComponent {
 
   final FileSpan span;
 
-  ComplexSelectorComponent(this.selector, this.span, {this.combinator});
+  new(this.selector, this.span, {this.combinator});
 
   /// Returns a copy of `this` with [combinator] added to the end.
   ///
@@ -35,13 +35,15 @@ final class ComplexSelectorComponent {
   @internal
   ComplexSelectorComponent? withAdditionalCombinator(
     CssValue<Combinator>? combinator,
-  ) =>
-      switch ((this.combinator, combinator)) {
-        (_, null) => this,
-        (null, var combinator?) =>
-          ComplexSelectorComponent(selector, span, combinator: combinator),
-        _ => null,
-      };
+  ) => switch ((this.combinator, combinator)) {
+    (_, null) => this,
+    (null, var combinator?) => ComplexSelectorComponent(
+      selector,
+      span,
+      combinator: combinator,
+    ),
+    _ => null,
+  };
 
   @override
   int get hashCode => selector.hashCode ^ combinator.hashCode;

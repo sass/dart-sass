@@ -20,22 +20,22 @@ import 'xyz_d50.dart';
 ///
 /// @nodoc
 @internal
-final class LabColorSpace extends ColorSpace {
+final class const LabColorSpace() extends ColorSpace {
   @override
   bool get isBoundedInternal => false;
 
-  const LabColorSpace()
-      : super('lab', const [
-          LinearChannel(
-            'lightness',
-            0,
-            100,
-            lowerClamped: true,
-            upperClamped: true,
-          ),
-          LinearChannel('a', -125, 125),
-          LinearChannel('b', -125, 125),
-        ]);
+  this
+    : super('lab', const [
+        LinearChannel(
+          'lightness',
+          0,
+          100,
+          lowerClamped: true,
+          upperClamped: true,
+        ),
+        LinearChannel('a', -125, 125),
+        LinearChannel('b', -125, 125),
+      ]);
 
   @override
   SassColor convert(

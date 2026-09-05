@@ -321,8 +321,7 @@ void main() {
       expect(
         SassList([
           SassString("a", quotes: false),
-        ], ListSeparator.undecided)
-            .separator,
+        ], ListSeparator.undecided).separator,
         equals(ListSeparator.undecided),
       );
       expect(
