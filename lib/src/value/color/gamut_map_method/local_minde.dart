@@ -23,6 +23,7 @@ final class LocalMindeGamutMap extends GamutMapMethod {
 
   const LocalMindeGamutMap() : super("local-minde");
 
+  @override
   SassColor map(SassColor color) {
     // Algorithm from https://www.w3.org/TR/2022/CRD-css-color-4-20221101/#css-gamut-mapping-algorithm
     var originOklch = color.toSpace(ColorSpace.oklch);

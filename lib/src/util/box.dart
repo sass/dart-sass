@@ -16,10 +16,13 @@ final class Box<T> {
 
   Box._(this._inner);
 
+  @override
   bool operator ==(Object other) => other is Box<T> && other._inner == _inner;
 
+  @override
   int get hashCode => _inner.hashCode;
 
+  @override
   String toString() => "<box: $value>";
 }
 
@@ -38,5 +41,6 @@ final class ModifiableBox<T> {
   /// The underlying modifiable box may still be modified.
   Box<T> seal() => Box._(this);
 
+  @override
   String toString() => "<modifiable box: $value>";
 }

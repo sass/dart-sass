@@ -14,7 +14,10 @@ import 'stylesheet.dart';
 @sealed
 @internal
 base class ScssParser extends StylesheetParser {
+  @override
   bool get indented => false;
+
+  @override
   int get currentIndentation => 0;
 
   ScssParser(super.contents, {super.url, super.parseSelectors});
@@ -22,8 +25,10 @@ base class ScssParser extends StylesheetParser {
   ScssParser.internal(super.contents, {super.url, super.parseSelectors})
       : super.internal();
 
+  @override
   Interpolation styleRuleSelector() => almostAnyValue();
 
+  @override
   void expectStatementSeparator([String? name]) {
     _whitespaceWithoutComments();
     if (scanner.isDone) return;
@@ -31,6 +36,7 @@ base class ScssParser extends StylesheetParser {
     scanner.expectChar($semicolon);
   }
 
+  @override
   bool atEndOfStatement() {
     var next = scanner.peekChar();
     return next == null ||
@@ -39,8 +45,10 @@ base class ScssParser extends StylesheetParser {
         next == $lbrace;
   }
 
+  @override
   bool lookingAtChildren() => scanner.peekChar() == $lbrace;
 
+  @override
   bool scanElse(int ifIndentation) {
     var start = scanner.state;
     _whitespace();
@@ -52,7 +60,8 @@ base class ScssParser extends StylesheetParser {
     }
   }
 
-  List<Statement> children(Statement child()) {
+  @override
+  List<Statement> children(Statement Function() child) {
     scanner.expectChar($lbrace);
     _whitespaceWithoutComments();
     var children = <Statement>[];
@@ -87,7 +96,8 @@ base class ScssParser extends StylesheetParser {
     }
   }
 
-  List<Statement> statements(Statement? statement()) {
+  @override
+  List<Statement> statements(Statement? Function() statement) {
     var statements = <Statement>[];
     _whitespaceWithoutComments();
     while (!scanner.isDone) {

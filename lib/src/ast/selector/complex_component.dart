@@ -43,13 +43,16 @@ final class ComplexSelectorComponent {
         _ => null,
       };
 
+  @override
   int get hashCode => selector.hashCode ^ combinator.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is ComplexSelectorComponent &&
       selector == other.selector &&
       combinator == other.combinator;
 
+  @override
   String toString() =>
       selector.toString() + (combinator == null ? '' : ' $combinator');
 }

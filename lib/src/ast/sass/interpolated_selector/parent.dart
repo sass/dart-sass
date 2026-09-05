@@ -20,13 +20,16 @@ final class InterpolatedParentSelector extends InterpolatedSimpleSelector {
   /// resolved.
   final Interpolation? suffix;
 
+  @override
   final FileSpan span;
 
   InterpolatedParentSelector(this.span, {this.suffix});
 
   /// Calls the appropriate visit method on [visitor].
+  @override
   T accept<T>(InterpolatedSelectorVisitor<T> visitor) =>
       visitor.visitParentSelector(this);
 
+  @override
   String toString() => switch (suffix) { var suffix? => '&$suffix', _ => '&' };
 }

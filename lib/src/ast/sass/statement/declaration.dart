@@ -26,6 +26,7 @@ final class Declaration extends ParentStatement {
   /// not be `null`.
   final Expression? value;
 
+  @override
   final FileSpan span;
 
   /// Returns whether this declaration's value was parsed as SassScript.
@@ -65,8 +66,10 @@ final class Declaration extends ParentStatement {
   })  : parsedAsSassScript = true,
         super(List.unmodifiable(children));
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitDeclaration(this);
 
+  @override
   String toString() {
     var buffer = StringBuffer();
     buffer.write(name);

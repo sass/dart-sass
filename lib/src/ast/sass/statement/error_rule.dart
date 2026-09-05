@@ -17,11 +17,14 @@ final class ErrorRule extends Statement {
   /// The expression to evaluate for the error message.
   final Expression expression;
 
+  @override
   final FileSpan span;
 
   ErrorRule(this.expression, this.span);
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitErrorRule(this);
 
+  @override
   String toString() => "@error $expression;";
 }

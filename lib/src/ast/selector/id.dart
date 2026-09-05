@@ -19,17 +19,21 @@ final class IDSelector extends SimpleSelector {
   /// The ID name this selects for.
   final String name;
 
+  @override
   int get specificity => math.pow(super.specificity, 2) as int;
 
   IDSelector(this.name, FileSpan span) : super(span);
 
+  @override
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitIDSelector(this);
 
   /// @nodoc
+  @override
   @internal
   IDSelector addSuffix(String suffix) => IDSelector(name + suffix, span);
 
   /// @nodoc
+  @override
   @internal
   List<SimpleSelector>? unify(List<SimpleSelector> compound) {
     // A given compound selector may only contain one ID.
@@ -40,7 +44,9 @@ final class IDSelector extends SimpleSelector {
     return super.unify(compound);
   }
 
+  @override
   bool operator ==(Object other) => other is IDSelector && other.name == name;
 
+  @override
   int get hashCode => name.hashCode;
 }

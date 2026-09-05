@@ -22,6 +22,7 @@ final class SassException extends SourceSpanException {
   /// This includes [span].
   Trace get trace => Trace([frameForSpan(span, "root stylesheet")]);
 
+  @override
   FileSpan get span => super.span as FileSpan;
 
   /// The set of canonical stylesheet URLs that were loaded in the course of the
@@ -65,6 +66,7 @@ final class SassException extends SourceSpanException {
   @internal
   bool hasSpan(FileSpan span) => this.span.equals(span);
 
+  @override
   String toString({Object? color}) {
     var buffer = StringBuffer()
       ..writeln("Error: $message")
@@ -128,7 +130,10 @@ body::before {
 /// A [SassException] that's also a [MultiSourceSpanException].
 final class MultiSpanSassException extends SassException
     implements MultiSourceSpanException {
+  @override
   final String primaryLabel;
+
+  @override
   final Map<FileSpan, String> secondarySpans;
 
   MultiSpanSassException(
@@ -140,6 +145,7 @@ final class MultiSpanSassException extends SassException
   ])  : secondarySpans = Map.unmodifiable(secondarySpans),
         super(message, span, loadedUrls);
 
+  @override
   @internal
   bool hasSpan(FileSpan span) =>
       super.hasSpan(span) || secondarySpans.keys.any((key) => key.equals(span));
@@ -147,12 +153,14 @@ final class MultiSpanSassException extends SassException
   /// Creates a copy of this exception with the given [message].
   ///
   /// @nodoc
+  @override
   @internal
   MultiSpanSassException withMessage(String message) =>
       MultiSpanSassFormatException(
           message, span, primaryLabel, secondarySpans, loadedUrls);
 
   /// @nodoc
+  @override
   @internal
   MultiSpanSassException withAdditionalSpan(FileSpan span, String label) =>
       MultiSpanSassException(
@@ -166,6 +174,7 @@ final class MultiSpanSassException extends SassException
           loadedUrls);
 
   /// @nodoc
+  @override
   @internal
   MultiSpanSassRuntimeException withTrace(Trace trace) =>
       MultiSpanSassRuntimeException(
@@ -178,6 +187,7 @@ final class MultiSpanSassException extends SassException
       );
 
   /// @nodoc
+  @override
   @internal
   MultiSpanSassException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       MultiSpanSassException(
@@ -188,6 +198,7 @@ final class MultiSpanSassException extends SassException
         loadedUrls,
       );
 
+  @override
   String toString({Object? color, String? secondaryColor}) {
     var useColor = false;
     String? primaryColor;
@@ -221,14 +232,17 @@ final class MultiSpanSassException extends SassException
 
 /// An exception thrown by Sass while evaluating a stylesheet.
 final class SassRuntimeException extends SassException {
+  @override
   final Trace trace;
 
   /// @nodoc
+  @override
   @internal
   SassRuntimeException withMessage(String message) =>
       SassRuntimeException(message, span, trace, loadedUrls);
 
   /// @nodoc
+  @override
   @internal
   MultiSpanSassRuntimeException withAdditionalSpan(
     FileSpan span,
@@ -244,6 +258,7 @@ final class SassRuntimeException extends SassException {
       );
 
   /// @nodoc
+  @override
   @internal
   SassRuntimeException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       SassRuntimeException(message, span, trace, loadedUrls);
@@ -259,6 +274,7 @@ final class SassRuntimeException extends SassException {
 /// A [SassRuntimeException] that's also a [MultiSpanSassException].
 final class MultiSpanSassRuntimeException extends MultiSpanSassException
     implements SassRuntimeException {
+  @override
   final Trace trace;
 
   MultiSpanSassRuntimeException(
@@ -277,6 +293,7 @@ final class MultiSpanSassRuntimeException extends MultiSpanSassException
           message, span, primaryLabel, secondarySpans, trace, loadedUrls);
 
   /// @nodoc
+  @override
   @internal
   MultiSpanSassRuntimeException withAdditionalSpan(
     FileSpan span,
@@ -310,16 +327,20 @@ final class MultiSpanSassRuntimeException extends MultiSpanSassException
 @sealed
 final class SassFormatException extends SassException
     implements SourceSpanFormatException {
+  @override
   String get source => span.file.getText(0);
 
+  @override
   int get offset => span.start.offset;
 
   /// @nodoc
+  @override
   @internal
   SassFormatException withMessage(String message) =>
       SassFormatException(message, span, loadedUrls);
 
   /// @nodoc
+  @override
   @internal
   MultiSpanSassFormatException withAdditionalSpan(
     FileSpan span,
@@ -335,6 +356,7 @@ final class SassFormatException extends SassException
           loadedUrls);
 
   /// @nodoc
+  @override
   SassFormatException withLoadedUrls(Iterable<Uri> loadedUrls) =>
       SassFormatException(message, span, loadedUrls);
 
@@ -347,8 +369,10 @@ final class SassFormatException extends SassException
 @sealed
 final class MultiSpanSassFormatException extends MultiSpanSassException
     implements MultiSourceSpanFormatException, SassFormatException {
+  @override
   String get source => span.file.getText(0);
 
+  @override
   int get offset => span.start.offset;
 
   /// @nodoc
@@ -358,6 +382,7 @@ final class MultiSpanSassFormatException extends MultiSpanSassException
           message, span, primaryLabel, secondarySpans, loadedUrls);
 
   /// @nodoc
+  @override
   @internal
   MultiSpanSassFormatException withAdditionalSpan(
     FileSpan span,
@@ -413,6 +438,7 @@ final class SassScriptException {
   /// Converts this to a [SassException] with the given [span].
   SassException withSpan(FileSpan span) => SassException(message, span);
 
+  @override
   String toString() => "$message\n\nBUG: This should include a source span!";
 }
 
@@ -432,6 +458,7 @@ final class MultiSpanSassScriptException extends SassScriptException {
   ) : secondarySpans = Map.unmodifiable(secondarySpans);
 
   /// Converts this to a [SassException] with the given primary [span].
+  @override
   MultiSpanSassException withSpan(FileSpan span) =>
       MultiSpanSassException(message, span, primaryLabel, secondarySpans);
 }

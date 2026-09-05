@@ -26,16 +26,20 @@ final class PlaceholderSelector extends SimpleSelector {
 
   PlaceholderSelector(this.name, FileSpan span) : super(span);
 
+  @override
   T accept<T>(SelectorVisitor<T> visitor) =>
       visitor.visitPlaceholderSelector(this);
 
   /// @nodoc
+  @override
   @internal
   PlaceholderSelector addSuffix(String suffix) =>
       PlaceholderSelector(name + suffix, span);
 
+  @override
   bool operator ==(Object other) =>
       other is PlaceholderSelector && other.name == name;
 
+  @override
   int get hashCode => name.hashCode;
 }

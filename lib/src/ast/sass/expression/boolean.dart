@@ -14,12 +14,15 @@ final class BooleanExpression extends Expression {
   /// The value of this expression.
   final bool value;
 
+  @override
   final FileSpan span;
 
   BooleanExpression(this.value, this.span);
 
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitBooleanExpression(this);
 
+  @override
   String toString() => value.toString();
 }

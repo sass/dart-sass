@@ -41,6 +41,7 @@ abstract class CssNode implements AstNode {
         const _IsInvisibleVisitor(includeBogus: true, includeComments: true),
       );
 
+  @override
   String toString() => serialize(this, inspect: true).$1;
 }
 
@@ -76,11 +77,14 @@ class _IsInvisibleVisitor with EveryCssVisitor {
   // An unknown at-rule is never invisible. Because we don't know the semantics
   // of unknown rules, we can't guarantee that (for example) `@foo {}` isn't
   // meaningful.
+  @override
   bool visitCssAtRule(CssAtRule rule) => false;
 
+  @override
   bool visitCssComment(CssComment comment) =>
       includeComments && !comment.isPreserved;
 
+  @override
   bool visitCssStyleRule(CssStyleRule rule) =>
       rule.selector.isInvisible || super.visitCssStyleRule(rule);
 }

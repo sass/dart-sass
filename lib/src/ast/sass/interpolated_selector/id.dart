@@ -19,14 +19,17 @@ final class InterpolatedIDSelector extends InterpolatedSimpleSelector {
   /// The id name this selects for.
   final Interpolation name;
 
+  @override
   FileSpan get span =>
       name.span.file.span(name.span.start.offset - 1, name.span.end.offset);
 
   InterpolatedIDSelector(this.name);
 
   /// Calls the appropriate visit method on [visitor].
+  @override
   T accept<T>(InterpolatedSelectorVisitor<T> visitor) =>
       visitor.visitIDSelector(this);
 
+  @override
   String toString() => '#$name';
 }

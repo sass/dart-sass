@@ -18,12 +18,15 @@ final class MediaRule extends ParentStatement<List<Statement>> {
   /// This is only parsed after the interpolation has been resolved.
   final Interpolation query;
 
+  @override
   final FileSpan span;
 
   MediaRule(this.query, Iterable<Statement> children, this.span)
       : super(List.unmodifiable(children));
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitMediaRule(this);
 
+  @override
   String toString() => "@media $query {${children.join(" ")}}";
 }

@@ -18,11 +18,13 @@ final class SupportsNegation implements SupportsCondition {
   /// The condition that's been negated.
   final SupportsCondition condition;
 
+  @override
   final FileSpan span;
 
   SupportsNegation(this.condition, this.span);
 
   /// @nodoc
+  @override
   @internal
   Interpolation toInterpolation() => (InterpolationBuffer()
         ..write(span.before(condition.span).text)
@@ -31,9 +33,11 @@ final class SupportsNegation implements SupportsCondition {
       .interpolation(span);
 
   /// @nodoc
+  @override
   @internal
   SupportsNegation withSpan(FileSpan span) => SupportsNegation(condition, span);
 
+  @override
   String toString() {
     if (condition is SupportsNegation || condition is SupportsOperation) {
       return "not ($condition)";

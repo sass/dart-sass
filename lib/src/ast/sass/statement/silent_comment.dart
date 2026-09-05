@@ -33,11 +33,14 @@ final class SilentComment extends Statement {
     return comment.isNotEmpty ? comment : null;
   }
 
+  @override
   final FileSpan span;
 
   SilentComment(this.text, this.span);
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitSilentComment(this);
 
+  @override
   String toString() => text;
 }

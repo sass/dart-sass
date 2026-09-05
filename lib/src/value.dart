@@ -421,6 +421,7 @@ abstract base class Value {
   /// Note that this is equivalent to calling `inspect()` on the value, and thus
   /// won't reflect the user's output settings. [toCssString] should be used
   /// instead to convert `this` to CSS.
+  @override
   String toString() => serializeValue(this, inspect: true);
 }
 
@@ -455,7 +456,9 @@ extension SassApiValue on Value {
   }) {
     var string = _selectorString(name);
     return _addNameToFormatException(
-        name, () => SelectorList.parse(string, allowParent: allowParent, logger: EvaluationContext.current.logger))
+        name,
+        () => SelectorList.parse(string,
+            allowParent: allowParent, logger: EvaluationContext.current.logger))
       ..assertValid(
         name: name,
         allowLeadingCombinator: allowLeadingCombinator,
@@ -478,7 +481,10 @@ extension SassApiValue on Value {
   }) {
     var string = _selectorString(name);
     return _addNameToFormatException(
-        name, () => SimpleSelector.parse(string, allowParent: allowParent, logger: EvaluationContext.current.logger));
+        name,
+        () => SimpleSelector.parse(string,
+            allowParent: allowParent,
+            logger: EvaluationContext.current.logger));
   }
 
   /// Parses `this` as a compound selector, in the same manner as the
@@ -496,7 +502,10 @@ extension SassApiValue on Value {
   }) {
     var string = _selectorString(name);
     return _addNameToFormatException(
-        name, () => CompoundSelector.parse(string, allowParent: allowParent, logger: EvaluationContext.current.logger));
+        name,
+        () => CompoundSelector.parse(string,
+            allowParent: allowParent,
+            logger: EvaluationContext.current.logger));
   }
 
   /// Parses `this` as a complex selector, in the same manner as the
@@ -521,7 +530,9 @@ extension SassApiValue on Value {
   }) {
     var string = _selectorString(name);
     return _addNameToFormatException(
-        name, () => ComplexSelector.parse(string, allowParent: allowParent, logger: EvaluationContext.current.logger))
+        name,
+        () => ComplexSelector.parse(string,
+            allowParent: allowParent, logger: EvaluationContext.current.logger))
       ..assertValid(
         name: name,
         allowLeadingCombinator: allowLeadingCombinator,
@@ -532,7 +543,7 @@ extension SassApiValue on Value {
 
 /// Runs [callback], and if it throws a [SassFormatException], adds [name] to
 /// tbe beginning of the message.
-T _addNameToFormatException<T>(String? name, T callback()) {
+T _addNameToFormatException<T>(String? name, T Function() callback) {
   try {
     return callback();
   } on SassFormatException catch (error, stackTrace) {

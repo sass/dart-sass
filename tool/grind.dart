@@ -279,9 +279,8 @@ dart run protoc_plugin "\$@"
     arguments: ["generate"],
     runOptions: RunOptions(
       environment: {
-        "PATH": 'build' +
-            (Platform.isWindows ? ";" : ":") +
-            Platform.environment["PATH"]!,
+        "PATH": 'build${Platform.isWindows ? ";" : ":"}'
+            '${Platform.environment["PATH"]!}',
       },
     ),
   );

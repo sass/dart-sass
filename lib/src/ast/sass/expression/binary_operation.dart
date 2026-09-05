@@ -24,6 +24,7 @@ final class BinaryOperationExpression extends Expression {
   /// The right-hand operand.
   final Expression right;
 
+  @override
   FileSpan get span {
     // Avoid creating a bunch of intermediate spans for multiple binary
     // expressions in a row by moving to the left- and right-most expressions.
@@ -52,9 +53,11 @@ final class BinaryOperationExpression extends Expression {
 
   BinaryOperationExpression(this.operator, this.left, this.right);
 
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitBinaryOperationExpression(this);
 
+  @override
   String toString() {
     var buffer = StringBuffer();
 
@@ -166,5 +169,6 @@ enum BinaryOperator {
     bool associative = false,
   }) : isAssociative = associative;
 
+  @override
   String toString() => name;
 }

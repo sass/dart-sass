@@ -30,7 +30,7 @@ final _traces = Expando<StackTrace>();
 String toSentence(Iterable<Object> iter, [String? conjunction]) {
   conjunction ??= "and";
   if (iter.length == 1) return iter.first.toString();
-  return iter.exceptLast.join(", ") + " $conjunction ${iter.last}";
+  return "${iter.exceptLast.join(", ")} $conjunction ${iter.last}";
 }
 
 /// Returns [string] with every line indented [indentation] spaces.
@@ -59,11 +59,10 @@ String a(String word) =>
 @internal
 String bulletedList(Iterable<String> bullets) => bullets.map((element) {
       var lines = element.split("\n");
-      return "${glyph.bullet} ${lines.first}" +
-          switch (lines) {
-            [_, ...var rest] => "\n" + indent(rest.join("\n"), 2),
-            _ => "",
-          };
+      return "${glyph.bullet} ${lines.first}${switch (lines) {
+        [_, ...var rest] => "\n${indent(rest.join("\n"), 2)}",
+        _ => "",
+      }}";
     }).join("\n");
 
 /// Returns the number of times [codeUnit] appears in [string].
@@ -303,7 +302,7 @@ bool startsWithIgnoreCase(String string, String prefix) {
 
 /// Destructively updates every element of [list] with the result of [function].
 @internal
-void mapInPlace<T>(List<T> list, T function(T element)) {
+void mapInPlace<T>(List<T> list, T Function(T element) function) {
   for (var i = 0; i < list.length; i++) {
     list[i] = function(list[i]);
   }
@@ -321,7 +320,7 @@ void mapInPlace<T>(List<T> list, T function(T element)) {
 List<T> longestCommonSubsequence<T>(
   List<T> list1,
   List<T> list2, {
-  T? select(T element1, T element2)?,
+  T? Function(T element1, T element2)? select,
 }) {
   select ??= (element1, element2) => element1 == element2 ? element1 : null;
 
@@ -364,7 +363,8 @@ List<T> longestCommonSubsequence<T>(
 ///
 /// If [orElse] is passed, calls it if no value matches.
 @internal
-void removeFirstWhere<T>(List<T> list, bool test(T value), {void orElse()?}) {
+void removeFirstWhere<T>(List<T> list, bool Function(T value) test,
+    {void Function()? orElse}) {
   for (var i = 0; i < list.length; i++) {
     if (!test(list[i])) continue;
     list.removeAt(i);
@@ -415,7 +415,7 @@ void rotateSlice(List<Object> list, int start, int end) {
 @internal
 Future<Iterable<F>> mapAsync<E, F>(
   Iterable<E> iterable,
-  Future<F> callback(E value),
+  Future<F> Function(E value) callback,
 ) async =>
     [for (var element in iterable) await callback(element)];
 
@@ -427,7 +427,7 @@ Future<Iterable<F>> mapAsync<E, F>(
 Future<V> putIfAbsentAsync<K, V>(
   Map<K, V> map,
   K key,
-  Future<V> ifAbsent(),
+  Future<V> Function() ifAbsent,
 ) async {
   if (map.containsKey(key)) return map[key] as V;
   var value = await ifAbsent();

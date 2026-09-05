@@ -16,11 +16,13 @@ typedef Callback = Value Function(List<Value> arguments);
 /// parameters. When the callable is invoked, the first callback with matching
 /// parameters is invoked.
 final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
+  @override
   final String name;
 
   /// The overloads declared for this callable.
   final List<(ParameterList, Callback)> _overloads;
 
+  @override
   final bool acceptsContent;
 
   /// Creates a function with a single [parameters] declaration and a single
@@ -34,7 +36,7 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   BuiltInCallable.function(
     String name,
     String parameters,
-    Value callback(List<Value> arguments), {
+    Value Function(List<Value> arguments) callback, {
     Object? url,
   }) : this.parsed(
           name,
@@ -53,7 +55,7 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   BuiltInCallable.mixin(
     String name,
     String parameters,
-    void callback(List<Value> arguments), {
+    void Function(List<Value> arguments) callback, {
     Object? url,
     bool acceptsContent = false,
   }) : this.parsed(
@@ -71,7 +73,7 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   BuiltInCallable.parsed(
     this.name,
     ParameterList parameters,
-    Value callback(List<Value> arguments), {
+    Value Function(List<Value> arguments) callback, {
     this.acceptsContent = false,
   }) : _overloads = [(parameters, callback)];
 
@@ -105,6 +107,7 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// If no exact match is found, finds the closest approximation. Note that this
   /// doesn't guarantee that [positional] and [names] are valid for the returned
   /// [ParameterList].
+  @override
   (ParameterList, Callback) callbackFor(int positional, Set<String> names) {
     (ParameterList, Callback)? fuzzyMatch;
     int? minMismatchDistance;
@@ -138,6 +141,7 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
       BuiltInCallable._(name, _overloads, acceptsContent);
 
   /// Returns a copy of this callable that emits a deprecation warning.
+  @override
   BuiltInCallable withDeprecationWarning(String module, [String? newName]) =>
       BuiltInCallable._(
           name,

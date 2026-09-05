@@ -20,10 +20,12 @@ import 'utils.dart';
 /// @nodoc
 @internal
 final class XyzD50ColorSpace extends ColorSpace {
+  @override
   bool get isBoundedInternal => false;
 
   const XyzD50ColorSpace() : super('xyz-d50', xyzChannels);
 
+  @override
   SassColor convert(
     ColorSpace dest,
     double? x,
@@ -85,12 +87,15 @@ final class XyzD50ColorSpace extends ColorSpace {
       ? math.pow(component, 1 / 3) + 0.0
       : (labKappa * component + 16) / 116;
 
+  @override
   @protected
   double toLinear(double channel) => channel;
 
+  @override
   @protected
   double fromLinear(double channel) => channel;
 
+  @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
         ColorSpace.srgbLinear ||

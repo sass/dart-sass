@@ -26,6 +26,7 @@ final class JSToDartAsyncFileImporter extends AsyncImporter {
 
   JSToDartAsyncFileImporter(this._findFileUrl);
 
+  @override
   FutureOr<Uri?> canonicalize(Uri url) async {
     if (url.scheme == 'file') {
       return FilesystemImporter.noLoadPath.canonicalize(url);
@@ -53,13 +54,17 @@ final class JSToDartAsyncFileImporter extends AsyncImporter {
     return FilesystemImporter.noLoadPath.canonicalize(resultUrl);
   }
 
+  @override
   ImporterResult? load(Uri url) => FilesystemImporter.noLoadPath.load(url);
 
+  @override
   DateTime modificationTime(Uri url) =>
       FilesystemImporter.noLoadPath.modificationTime(url);
 
+  @override
   bool couldCanonicalize(Uri url, Uri canonicalUrl) =>
       FilesystemImporter.noLoadPath.couldCanonicalize(url, canonicalUrl);
 
+  @override
   bool isNonCanonicalScheme(String scheme) => scheme != 'file';
 }

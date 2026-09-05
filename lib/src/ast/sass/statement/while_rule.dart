@@ -19,12 +19,15 @@ final class WhileRule extends ParentStatement<List<Statement>> {
   /// The condition that determines whether the block will be executed.
   final Expression condition;
 
+  @override
   final FileSpan span;
 
   WhileRule(this.condition, Iterable<Statement> children, this.span)
       : super(List<Statement>.unmodifiable(children));
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitWhileRule(this);
 
+  @override
   String toString() => "@while $condition {${children.join(" ")}}";
 }

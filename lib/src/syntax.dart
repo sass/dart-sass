@@ -29,5 +29,6 @@ enum Syntax {
 
   const Syntax(this._name);
 
+  @override
   String toString() => _name;
 }

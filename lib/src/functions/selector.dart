@@ -50,9 +50,11 @@ final _nest = _function(
     (arguments) =>
         arguments[0]
             .asList
-            .map((selector) => selector.assertSelector(allowParent: true,           allowLeadingCombinator: true,
-          allowTrailingCombinator: true,
-))
+            .map((selector) => selector.assertSelector(
+                  allowParent: true,
+                  allowLeadingCombinator: true,
+                  allowTrailingCombinator: true,
+                ))
             .fold<SelectorList?>(
                 null, (parent, child) => child.nestWithin(parent))
             ?.asSassList ??
@@ -206,6 +208,6 @@ CompoundSelector? _prependParent(CompoundSelector compound) {
 BuiltInCallable _function(
   String name,
   String arguments,
-  Value callback(List<Value> arguments),
+  Value Function(List<Value> arguments) callback,
 ) =>
     BuiltInCallable.function(name, arguments, callback, url: "sass:selector");

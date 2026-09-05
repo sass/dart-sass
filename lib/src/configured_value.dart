@@ -34,5 +34,6 @@ final class ConfiguredValue {
   ConfiguredValue.implicit(this.value, this.assignmentNode)
       : configurationSpan = null;
 
+  @override
   String toString() => value.toString();
 }

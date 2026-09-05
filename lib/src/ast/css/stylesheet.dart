@@ -15,10 +15,19 @@ import 'node.dart';
 /// This is the root plain CSS node. It contains top-level statements.
 @sealed
 class CssStylesheet extends CssParentNode {
+  @override
   CssParentNode? get parent => null;
+
+  @override
   final List<CssNode> children;
+
+  @override
   final FileSpan span;
+
+  @override
   bool get isGroupEnd => false;
+
+  @override
   bool get isChildless => false;
 
   /// Creates an unmodifiable stylesheet containing [children].
@@ -33,5 +42,6 @@ class CssStylesheet extends CssParentNode {
       : children = const [],
         span = SourceFile.decoded(const [], url: url).span(0, 0);
 
+  @override
   T accept<T>(CssVisitor<T> visitor) => visitor.visitCssStylesheet(this);
 }

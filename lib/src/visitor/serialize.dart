@@ -170,6 +170,7 @@ final class _SerializeVisitor
     RangeError.checkValueInInterval(_indentWidth, 0, 10, "indentWidth");
   }
 
+  @override
   void visitCssStylesheet(CssStylesheet node) {
     CssNode? previous;
     for (var child in node.children) {
@@ -193,6 +194,7 @@ final class _SerializeVisitor
     }
   }
 
+  @override
   void visitCssComment(CssComment node) {
     _for(node, () {
       // Preserve comments that start with `/*!`.
@@ -217,6 +219,7 @@ final class _SerializeVisitor
     });
   }
 
+  @override
   void visitCssAtRule(CssAtRule node) {
     _writeIndentation();
 
@@ -236,6 +239,7 @@ final class _SerializeVisitor
     }
   }
 
+  @override
   void visitCssMediaRule(CssMediaRule node) {
     _writeIndentation();
 
@@ -258,6 +262,7 @@ final class _SerializeVisitor
     _visitChildren(node);
   }
 
+  @override
   void visitCssImport(CssImport node) {
     _writeIndentation();
 
@@ -293,6 +298,7 @@ final class _SerializeVisitor
     }
   }
 
+  @override
   void visitCssKeyframeBlock(CssKeyframeBlock node) {
     _writeIndentation();
 
@@ -329,6 +335,7 @@ final class _SerializeVisitor
     }
   }
 
+  @override
   void visitCssStyleRule(CssStyleRule node) {
     _writeIndentation();
 
@@ -337,6 +344,7 @@ final class _SerializeVisitor
     _visitChildren(node);
   }
 
+  @override
   void visitCssSupportsRule(CssSupportsRule node) {
     _writeIndentation();
 
@@ -354,6 +362,7 @@ final class _SerializeVisitor
     _visitChildren(node);
   }
 
+  @override
   void visitCssDeclaration(CssDeclaration node) {
     _writeIndentation();
 
@@ -515,8 +524,10 @@ final class _SerializeVisitor
 
   // ## Values
 
+  @override
   void visitBoolean(SassBoolean value) => _buffer.write(value.value.toString());
 
+  @override
   void visitCalculation(SassCalculation value) {
     _buffer.write(value.name);
     _buffer.writeCharCode($lparen);
@@ -613,6 +624,7 @@ final class _SerializeVisitor
             right == CalculationOperator.minus,
       };
 
+  @override
   void visitColor(SassColor value) {
     switch (value.space) {
       case ColorSpace.rgb || ColorSpace.hsl || ColorSpace.hwb
@@ -992,6 +1004,7 @@ final class _SerializeVisitor
     _writeChannel(color.alphaOrNull);
   }
 
+  @override
   void visitFunction(SassFunction function) {
     if (!_inspect) {
       throw SassScriptException("$function isn't a valid CSS value.");
@@ -1002,6 +1015,7 @@ final class _SerializeVisitor
     _buffer.writeCharCode($rparen);
   }
 
+  @override
   void visitMixin(SassMixin mixin) {
     if (!_inspect) {
       throw SassScriptException("$mixin isn't a valid CSS value.");
@@ -1012,6 +1026,7 @@ final class _SerializeVisitor
     _buffer.writeCharCode($rparen);
   }
 
+  @override
   void visitList(SassList value) {
     if (value.hasBrackets) {
       _buffer.writeCharCode($lbracket);
@@ -1125,6 +1140,7 @@ final class _SerializeVisitor
         _ => false,
       };
 
+  @override
   void visitMap(SassMap map) {
     if (!_inspect) {
       throw SassScriptException("$map isn't a valid CSS value.");
@@ -1148,10 +1164,12 @@ final class _SerializeVisitor
     if (needsParens) _buffer.writeCharCode($rparen);
   }
 
+  @override
   void visitNull() {
     if (_inspect) _buffer.write("null");
   }
 
+  @override
   void visitNumber(SassNumber value) {
     if (!value.value.isFinite) {
       visitCalculation(SassCalculation.unsimplified('calc', [value]));
@@ -1385,6 +1403,7 @@ final class _SerializeVisitor
     }
   }
 
+  @override
   void visitString(SassString string) {
     if (_quote && string.hasQuotes) {
       _visitQuotedString(string.text);
@@ -1570,6 +1589,7 @@ final class _SerializeVisitor
 
   // ## Selectors
 
+  @override
   void visitAttributeSelector(AttributeSelector attribute) {
     _buffer.writeCharCode($lbracket);
     _buffer.write(attribute.name);
@@ -1592,11 +1612,13 @@ final class _SerializeVisitor
     _buffer.writeCharCode($rbracket);
   }
 
+  @override
   void visitClassSelector(ClassSelector klass) {
     _buffer.writeCharCode($dot);
     _buffer.write(klass.name);
   }
 
+  @override
   void visitComplexSelector(ComplexSelector complex) {
     if (complex.leadingCombinator case var combinator?) {
       _buffer.write(combinator);
@@ -1625,6 +1647,7 @@ final class _SerializeVisitor
     }
   }
 
+  @override
   void visitCompoundSelector(CompoundSelector compound) {
     var start = _buffer.length;
     for (var simple in compound.components) {
@@ -1637,11 +1660,13 @@ final class _SerializeVisitor
     if (_buffer.length == start) _buffer.writeCharCode($asterisk);
   }
 
+  @override
   void visitIDSelector(IDSelector id) {
     _buffer.writeCharCode($hash);
     _buffer.write(id.name);
   }
 
+  @override
   void visitSelectorList(SelectorList list) {
     var complexes = _inspect
         ? list.components
@@ -1664,16 +1689,19 @@ final class _SerializeVisitor
     }
   }
 
+  @override
   void visitParentSelector(ParentSelector parent) {
     _buffer.writeCharCode($ampersand);
     parent.suffix.andThen(_buffer.write);
   }
 
+  @override
   void visitPlaceholderSelector(PlaceholderSelector placeholder) {
     _buffer.writeCharCode($percent);
     _buffer.write(placeholder.name);
   }
 
+  @override
   void visitPseudoSelector(PseudoSelector pseudo) {
     // `:not(%a)` is semantically identical to `*`.
     if (pseudo
@@ -1698,10 +1726,12 @@ final class _SerializeVisitor
     _buffer.writeCharCode($rparen);
   }
 
+  @override
   void visitTypeSelector(TypeSelector type) {
     _buffer.write(type.name);
   }
 
+  @override
   void visitUniversalSelector(UniversalSelector universal) {
     if (universal.namespace != null) {
       _buffer.write(universal.namespace);
@@ -1714,7 +1744,8 @@ final class _SerializeVisitor
 
   /// Runs [callback] and associates all text written within it with
   /// [node.span].
-  T _for<T>(AstNode node, T callback()) => _buffer.forSpan(node.span, callback);
+  T _for<T>(AstNode node, T Function() callback) =>
+      _buffer.forSpan(node.span, callback);
 
   /// Writes [value]'s value with the associated source span.
   void _write(CssValue<String> value) =>
@@ -1830,7 +1861,7 @@ final class _SerializeVisitor
   void _writeBetween<T>(
     Iterable<T> iterable,
     String text,
-    void callback(T value),
+    void Function(T value) callback,
   ) {
     var first = true;
     for (var value in iterable) {
@@ -1847,14 +1878,14 @@ final class _SerializeVisitor
   String get _commaSeparator => _isCompressed ? "," : ", ";
 
   /// Runs [callback] with indentation increased one level.
-  void _indent(void callback()) {
+  void _indent(void Function() callback) {
     _indentation++;
     callback();
     _indentation--;
   }
 
   /// Runs [callback] without any indentation.
-  void _withoutIndentation(void callback()) {
+  void _withoutIndentation(void Function() callback) {
     var savedIndentation = _indentation;
     _indentation = 0;
     callback();
@@ -1910,6 +1941,7 @@ enum LineFeed {
 
   const LineFeed(this.name, this.text);
 
+  @override
   String toString() => name;
 }
 

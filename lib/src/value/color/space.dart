@@ -349,6 +349,7 @@ abstract base class ColorSpace {
         '[BUG] Color space conversion from $this to $dest not implemented.',
       );
 
+  @override
   String toString() => name;
 }
 

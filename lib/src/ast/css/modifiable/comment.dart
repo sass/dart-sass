@@ -14,12 +14,17 @@ import 'node.dart';
 @internal
 final class ModifiableCssComment extends ModifiableCssNode
     implements CssComment {
+  @override
   final String text;
+
+  @override
   final FileSpan span;
 
+  @override
   bool get isPreserved => text.codeUnitAt(2) == $exclamation;
 
   ModifiableCssComment(this.text, this.span);
 
+  @override
   T accept<T>(ModifiableCssVisitor<T> visitor) => visitor.visitCssComment(this);
 }

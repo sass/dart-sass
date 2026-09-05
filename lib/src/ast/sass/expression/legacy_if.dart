@@ -23,8 +23,10 @@ final class LegacyIfExpression extends Expression
   );
 
   /// The arguments passed to `if()`.
+  @override
   final ArgumentList arguments;
 
+  @override
   final FileSpan span;
 
   /// Returns a modern `if()` expression to use instead of this.
@@ -47,8 +49,10 @@ final class LegacyIfExpression extends Expression
 
   LegacyIfExpression(this.arguments, this.span);
 
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitLegacyIfExpression(this);
 
+  @override
   String toString() => "if$arguments";
 }

@@ -12,7 +12,8 @@ import 'package:test_process/test_process.dart';
 import '../../utils.dart';
 
 /// Defines test that are shared between the Dart and Node.js CLI test suites.
-void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
+void sharedTests(
+    Future<TestProcess> Function(Iterable<String> arguments) runSass) {
   test("--poll may not be passed without --watch", () async {
     var sass = await runSass(["--poll", "-"]);
     await expectLater(

@@ -15,7 +15,10 @@ import 'node.dart';
 @internal
 final class ModifiableCssMediaRule extends ModifiableCssParentNode
     implements CssMediaRule {
+  @override
   final List<CssMediaQuery> queries;
+
+  @override
   final FileSpan span;
 
   ModifiableCssMediaRule(Iterable<CssMediaQuery> queries, this.span)
@@ -25,12 +28,15 @@ final class ModifiableCssMediaRule extends ModifiableCssParentNode
     }
   }
 
+  @override
   T accept<T>(ModifiableCssVisitor<T> visitor) =>
       visitor.visitCssMediaRule(this);
 
+  @override
   bool equalsIgnoringChildren(ModifiableCssNode other) =>
       other is ModifiableCssMediaRule && listEquals(queries, other.queries);
 
+  @override
   ModifiableCssMediaRule copyWithoutChildren() =>
       ModifiableCssMediaRule(queries, span);
 }

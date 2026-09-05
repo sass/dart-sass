@@ -114,7 +114,7 @@ abstract interface class Callable implements AsyncCallable {
   factory Callable.function(
     String name,
     String arguments,
-    Value callback(List<Value> arguments),
+    Value Function(List<Value> arguments) callback,
   ) =>
       BuiltInCallable.function(name, arguments, callback);
 
@@ -123,7 +123,7 @@ abstract interface class Callable implements AsyncCallable {
   /// Throws a [SassFormatException] if parsing fails.
   factory Callable.fromSignature(
     String signature,
-    Value callback(List<Value> arguments), {
+    Value Function(List<Value> arguments) callback, {
     bool requireParens = true,
   }) {
     var (name, declaration) = parseSignature(

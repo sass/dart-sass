@@ -24,6 +24,7 @@ final class TrackingLogger implements Logger {
 
   TrackingLogger(this._logger);
 
+  @override
   void warn(
     String message, {
     FileSpan? span,
@@ -34,6 +35,7 @@ final class TrackingLogger implements Logger {
     _logger.warn(message, span: span, trace: trace, deprecation: deprecation);
   }
 
+  @override
   void debug(String message, SourceSpan span) {
     _emittedDebug = true;
     _logger.debug(message, span);

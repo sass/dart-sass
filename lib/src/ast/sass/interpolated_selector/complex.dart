@@ -27,6 +27,7 @@ final class InterpolatedComplexSelector extends InterpolatedSelector {
   /// This is only empty if [leadingCombinators] is not null.
   final List<InterpolatedComplexSelectorComponent> components;
 
+  @override
   final FileSpan span;
 
   InterpolatedComplexSelector(
@@ -41,8 +42,10 @@ final class InterpolatedComplexSelector extends InterpolatedSelector {
   }
 
   /// Calls the appropriate visit method on [visitor].
+  @override
   T accept<T>(InterpolatedSelectorVisitor<T> visitor) =>
       visitor.visitComplexSelector(this);
 
+  @override
   String toString() => components.join(' ');
 }

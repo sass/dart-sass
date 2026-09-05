@@ -20,6 +20,7 @@ import 'interface/expression.dart';
 final class IsCalculationSafeVisitor implements ExpressionVisitor<bool> {
   const IsCalculationSafeVisitor();
 
+  @override
   bool visitBinaryOperationExpression(BinaryOperationExpression node) =>
       (const {
         BinaryOperator.times,
@@ -30,21 +31,28 @@ final class IsCalculationSafeVisitor implements ExpressionVisitor<bool> {
       node.left.accept(this) &&
       node.right.accept(this);
 
+  @override
   bool visitBooleanExpression(BooleanExpression node) => false;
 
+  @override
   bool visitColorExpression(ColorExpression node) => false;
 
+  @override
   bool visitFunctionExpression(FunctionExpression node) => true;
 
+  @override
   bool visitIfExpression(IfExpression node) => true;
 
+  @override
   bool visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
   ) =>
       true;
 
+  @override
   bool visitLegacyIfExpression(LegacyIfExpression node) => true;
 
+  @override
   bool visitListExpression(ListExpression node) =>
       (node.separator == ListSeparator.space ||
           node.separator == ListSeparator.slash) &&
@@ -52,17 +60,23 @@ final class IsCalculationSafeVisitor implements ExpressionVisitor<bool> {
       node.contents.length > 1 &&
       node.contents.every((expression) => expression.accept(this));
 
+  @override
   bool visitMapExpression(MapExpression node) => false;
 
+  @override
   bool visitNullExpression(NullExpression node) => false;
 
+  @override
   bool visitNumberExpression(NumberExpression node) => true;
 
+  @override
   bool visitParenthesizedExpression(ParenthesizedExpression node) =>
       node.expression.accept(this);
 
+  @override
   bool visitSelectorExpression(SelectorExpression node) => false;
 
+  @override
   bool visitStringExpression(StringExpression node) {
     if (node.hasQuotes) return false;
 
@@ -81,11 +95,15 @@ final class IsCalculationSafeVisitor implements ExpressionVisitor<bool> {
             text.codeUnitAtOrNull(3) != $lparen;
   }
 
+  @override
   bool visitSupportsExpression(SupportsExpression node) => false;
 
+  @override
   bool visitUnaryOperationExpression(UnaryOperationExpression node) => false;
 
+  @override
   bool visitValueExpression(ValueExpression node) => false;
 
+  @override
   bool visitVariableExpression(VariableExpression node) => true;
 }

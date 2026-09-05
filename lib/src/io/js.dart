@@ -32,6 +32,7 @@ class FileSystemException {
 
   FileSystemException._(this.message, this.path);
 
+  @override
   String toString() => "${p.prettyUri(p.toUri(path))}: $message";
 }
 
@@ -259,7 +260,7 @@ String? getEnvironmentVariable(String name) {
 
 /// Runs callback and converts any [JsSystemError]s it throws into
 /// [FileSystemException]s.
-T _systemErrorToFileSystemException<T>(T callback()) {
+T _systemErrorToFileSystemException<T>(T Function() callback) {
   try {
     return callback();
   } catch (error) {

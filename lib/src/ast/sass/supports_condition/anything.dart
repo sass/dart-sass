@@ -18,11 +18,13 @@ final class SupportsAnything implements SupportsCondition {
   /// The contents of the condition.
   final Interpolation contents;
 
+  @override
   final FileSpan span;
 
   SupportsAnything(this.contents, this.span);
 
   /// @nodoc
+  @override
   @internal
   Interpolation toInterpolation() => (InterpolationBuffer()
         ..write(span.before(contents.span).text)
@@ -31,8 +33,10 @@ final class SupportsAnything implements SupportsCondition {
       .interpolation(span);
 
   /// @nodoc
+  @override
   @internal
   SupportsAnything withSpan(FileSpan span) => SupportsAnything(contents, span);
 
+  @override
   String toString() => "($contents)";
 }

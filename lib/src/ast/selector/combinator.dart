@@ -24,5 +24,6 @@ enum Combinator {
 
   const Combinator(this._text);
 
+  @override
   String toString() => _text;
 }

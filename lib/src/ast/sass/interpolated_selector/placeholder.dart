@@ -19,14 +19,17 @@ final class InterpolatedPlaceholderSelector extends InterpolatedSimpleSelector {
   /// The name of the placeholder.
   final Interpolation name;
 
+  @override
   FileSpan get span =>
       name.span.file.span(name.span.start.offset - 1, name.span.end.offset);
 
   InterpolatedPlaceholderSelector(this.name);
 
   /// Calls the appropriate visit method on [visitor].
+  @override
   T accept<T>(InterpolatedSelectorVisitor<T> visitor) =>
       visitor.visitPlaceholderSelector(this);
 
+  @override
   String toString() => '%$name';
 }

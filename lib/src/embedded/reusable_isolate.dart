@@ -63,7 +63,7 @@ final class ReusableIsolate {
   }
 
   /// Subscribe to messages from [_receivePort].
-  void borrow(void onData(dynamic event)?) {
+  void borrow(void Function(dynamic event)? onData) {
     if (_borrowed) {
       throw StateError('ReusableIsolate has already been borrowed.');
     }

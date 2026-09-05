@@ -17,17 +17,37 @@ import '../value.dart';
 /// A module provided by Sass, available under the special `sass:` URL space.
 @internal
 final class BuiltInModule<T extends AsyncCallable> implements Module<T> {
+  @override
   final Uri url;
+
+  @override
   final Map<String, T> functions;
+
+  @override
   final Map<String, T> mixins;
+
+  @override
   final Map<String, Value> variables;
 
+  @override
   List<Module<T>> get upstream => const [];
+
+  @override
   Map<String, AstNode> get variableNodes => const {};
+
+  @override
   ExtensionStore get extensionStore => ExtensionStore.empty;
+
+  @override
   CssStylesheet get css => CssStylesheet.empty(url: url);
+
+  @override
   Map<Module<T>, List<CssComment>> get preModuleComments => const {};
+
+  @override
   bool get transitivelyContainsCss => false;
+
+  @override
   bool get transitivelyContainsExtensions => false;
 
   BuiltInModule(
@@ -53,6 +73,7 @@ final class BuiltInModule<T extends AsyncCallable> implements Module<T> {
               }),
       );
 
+  @override
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (!variables.containsKey(name)) {
       throw SassScriptException("Undefined variable.");
@@ -60,12 +81,15 @@ final class BuiltInModule<T extends AsyncCallable> implements Module<T> {
     throw SassScriptException("Cannot modify built-in variable.");
   }
 
+  @override
   Object variableIdentity(String name) {
     assert(variables.containsKey(name));
     return this;
   }
 
+  @override
   bool couldHaveBeenConfigured(Set<String> _) => false;
 
+  @override
   Module<T> cloneCss() => this;
 }

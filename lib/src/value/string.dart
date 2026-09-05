@@ -64,6 +64,7 @@ final class SassString extends Value {
   int? _hashCache;
 
   /// @nodoc
+  @override
   @internal
   bool get isSpecialNumber {
     if (hasQuotes) return false;
@@ -104,6 +105,7 @@ final class SassString extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   bool get isSpecialVariable {
     if (hasQuotes) return false;
@@ -124,6 +126,7 @@ final class SassString extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   bool get isBlank => !hasQuotes && text.isEmpty;
 
@@ -211,23 +214,29 @@ final class SassString extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitString(this);
 
+  @override
   SassString assertString([String? name]) => this;
 
+  @override
   SassFunction assertFunction([String? name]) => throw SassScriptException(
       "$this is not a function reference.\n"
       "Call meta.get-function() to get a reference for a function name.",
       name);
 
   /// @nodoc
+  @override
   @internal
   Value plus(Value other) => other is SassString
       ? SassString(text + other.text, quotes: hasQuotes)
       : SassString(text + other.toCssString(), quotes: hasQuotes);
 
+  @override
   bool operator ==(Object other) => other is SassString && text == other.text;
 
+  @override
   int get hashCode => _hashCache ??= text.hashCode;
 }

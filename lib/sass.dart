@@ -501,4 +501,4 @@ Future<CompileResult> compileStringAsync(
 ///
 /// This is only intended for use when testing custom importers.
 @visibleForTesting
-T fakeFromImport<T>(T callback()) => inImportRule(callback);
+T fakeFromImport<T>(T Function() callback) => inImportRule(callback);

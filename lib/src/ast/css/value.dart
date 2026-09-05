@@ -15,14 +15,18 @@ final class CssValue<T extends Object> implements AstNode {
   final T value;
 
   /// The span associated with the value.
+  @override
   final FileSpan span;
 
   CssValue(this.value, this.span);
 
+  @override
   bool operator ==(Object other) =>
       other is CssValue<T> && other.value == value;
 
+  @override
   int get hashCode => value.hashCode;
 
+  @override
   String toString() => value.toString();
 }

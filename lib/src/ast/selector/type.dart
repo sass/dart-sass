@@ -18,13 +18,16 @@ final class TypeSelector extends SimpleSelector {
   /// The element name being selected.
   final QualifiedName name;
 
+  @override
   int get specificity => 1;
 
   TypeSelector(this.name, FileSpan span) : super(span);
 
+  @override
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitTypeSelector(this);
 
   /// @nodoc
+  @override
   @internal
   TypeSelector addSuffix(String suffix) => TypeSelector(
         QualifiedName(name.name + suffix, namespace: name.namespace),
@@ -32,6 +35,7 @@ final class TypeSelector extends SimpleSelector {
       );
 
   /// @nodoc
+  @override
   @internal
   List<SimpleSelector>? unify(List<SimpleSelector> compound) {
     if (compound.firstOrNull case UniversalSelector() || TypeSelector()) {
@@ -43,13 +47,16 @@ final class TypeSelector extends SimpleSelector {
     }
   }
 
+  @override
   bool isSuperselector(SimpleSelector other) =>
       super.isSuperselector(other) ||
       (other is TypeSelector &&
           name.name == other.name.name &&
           (name.namespace == '*' || name.namespace == other.name.namespace));
 
+  @override
   bool operator ==(Object other) => other is TypeSelector && other.name == name;
 
+  @override
   int get hashCode => name.hashCode;
 }

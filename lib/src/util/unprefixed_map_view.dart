@@ -23,16 +23,20 @@ final class UnprefixedMapView<V> extends UnmodifiableMapBase<String, V> {
   /// The prefix to remove from the map keys.
   final String _prefix;
 
+  @override
   Iterable<String> get keys => _UnprefixedKeys(this);
 
   /// Creates a new unprefixed map view.
   UnprefixedMapView(this._map, this._prefix);
 
+  @override
   V? operator [](Object? key) => key is String ? _map[_prefix + key] : null;
 
+  @override
   bool containsKey(Object? key) =>
       key is String ? _map.containsKey(_prefix + key) : false;
 
+  @override
   V? remove(Object? key) => key is String ? _map.remove(_prefix + key) : null;
 }
 
@@ -41,6 +45,7 @@ final class _UnprefixedKeys extends IterableBase<String> {
   /// The view whose keys are being iterated over.
   final UnprefixedMapView<Object?> _view;
 
+  @override
   Iterator<String> get iterator => _view._map.keys
       .where((key) => key.startsWith(_view._prefix))
       .map((key) => key.substring(_view._prefix.length))
@@ -48,5 +53,6 @@ final class _UnprefixedKeys extends IterableBase<String> {
 
   _UnprefixedKeys(this._view);
 
+  @override
   bool contains(Object? key) => _view.containsKey(key);
 }

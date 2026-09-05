@@ -36,6 +36,7 @@ final class HostImporter extends ImporterBase {
     }
   }
 
+  @override
   Uri? canonicalize(Uri url) {
     var request = OutboundMessage_CanonicalizeRequest()
       ..importerId = _importerId
@@ -58,6 +59,7 @@ final class HostImporter extends ImporterBase {
     };
   }
 
+  @override
   ImporterResult? load(Uri url) {
     var response = dispatcher.sendImportRequest(
       OutboundMessage_ImportRequest()
@@ -81,8 +83,10 @@ final class HostImporter extends ImporterBase {
     };
   }
 
+  @override
   bool isNonCanonicalScheme(String scheme) =>
       _nonCanonicalSchemes.contains(scheme);
 
+  @override
   String toString() => "HostImporter";
 }

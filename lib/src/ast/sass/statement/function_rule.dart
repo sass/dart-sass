@@ -16,6 +16,7 @@ import 'callable_declaration.dart';
 /// {@category AST}
 final class FunctionRule extends CallableDeclaration
     implements SassDeclaration {
+  @override
   FileSpan get nameSpan => span.withoutInitialAtRule().initialIdentifier();
 
   FunctionRule(
@@ -26,7 +27,9 @@ final class FunctionRule extends CallableDeclaration
     super.comment,
   });
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitFunctionRule(this);
 
+  @override
   String toString() => "@function $name($parameters) {${children.join(' ')}}";
 }

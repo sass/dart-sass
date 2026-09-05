@@ -19,9 +19,10 @@ final class ContentBlock extends CallableDeclaration {
     FileSpan span,
   ) : super("@content", parameters, children, span);
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitContentBlock(this);
 
-  String toString() =>
-      (parameters.isEmpty ? "" : " using ($parameters)") +
-      " {${children.join(' ')}}";
+  @override
+  String toString() => "${parameters.isEmpty ? "" : " using ($parameters)"} "
+      "{${children.join(' ')}}";
 }

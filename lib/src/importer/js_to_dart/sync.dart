@@ -38,6 +38,7 @@ final class JSToDartImporter extends Importer {
     _nonCanonicalSchemes.forEach(validateUrlScheme);
   }
 
+  @override
   Uri? canonicalize(Uri url) {
     var result = wrapJSExceptions(
       () => _canonicalize(url.toString(), canonicalizeContext),
@@ -57,6 +58,7 @@ final class JSToDartImporter extends Importer {
     }
   }
 
+  @override
   ImporterResult? load(Uri url) {
     var result = wrapJSExceptions(() => _load(dartToJSUrl(url)));
     if (result == null) return null;
@@ -99,6 +101,7 @@ final class JSToDartImporter extends Importer {
     );
   }
 
+  @override
   bool isNonCanonicalScheme(String scheme) =>
       _nonCanonicalSchemes.contains(scheme);
 }

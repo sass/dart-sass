@@ -32,6 +32,7 @@ final class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
 
   _CloneCssVisitor(this._oldToNewSelectors);
 
+  @override
   ModifiableCssAtRule visitCssAtRule(CssAtRule node) {
     var rule = ModifiableCssAtRule(
       node.name,
@@ -42,9 +43,11 @@ final class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
     return node.isChildless ? rule : _visitChildren(rule, node);
   }
 
+  @override
   ModifiableCssComment visitCssComment(CssComment node) =>
       ModifiableCssComment(node.text, node.span);
 
+  @override
   ModifiableCssDeclaration visitCssDeclaration(CssDeclaration node) =>
       ModifiableCssDeclaration(
         node.name,
@@ -54,18 +57,22 @@ final class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
         valueSpanForMap: node.valueSpanForMap,
       );
 
+  @override
   ModifiableCssImport visitCssImport(CssImport node) =>
       ModifiableCssImport(node.url, node.span, modifiers: node.modifiers);
 
+  @override
   ModifiableCssKeyframeBlock visitCssKeyframeBlock(CssKeyframeBlock node) =>
       _visitChildren(
         ModifiableCssKeyframeBlock(node.selector, node.span),
         node,
       );
 
+  @override
   ModifiableCssMediaRule visitCssMediaRule(CssMediaRule node) =>
       _visitChildren(ModifiableCssMediaRule(node.queries, node.span), node);
 
+  @override
   ModifiableCssStyleRule visitCssStyleRule(CssStyleRule node) {
     if (_oldToNewSelectors[node.selector] case var newSelector?) {
       return _visitChildren(
@@ -84,9 +91,11 @@ final class _CloneCssVisitor implements CssVisitor<ModifiableCssNode> {
     }
   }
 
+  @override
   ModifiableCssStylesheet visitCssStylesheet(CssStylesheet node) =>
       _visitChildren(ModifiableCssStylesheet(node.span), node);
 
+  @override
   ModifiableCssSupportsRule visitCssSupportsRule(CssSupportsRule node) =>
       _visitChildren(
         ModifiableCssSupportsRule(node.condition, node.span),

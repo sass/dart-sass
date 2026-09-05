@@ -13,16 +13,20 @@ import 'node.dart';
 @internal
 final class ModifiableCssStylesheet extends ModifiableCssParentNode
     implements CssStylesheet {
+  @override
   final FileSpan span;
 
   ModifiableCssStylesheet(this.span);
 
+  @override
   T accept<T>(ModifiableCssVisitor<T> visitor) =>
       visitor.visitCssStylesheet(this);
 
+  @override
   bool equalsIgnoringChildren(ModifiableCssNode other) =>
       other is ModifiableCssStylesheet;
 
+  @override
   ModifiableCssStylesheet copyWithoutChildren() =>
       ModifiableCssStylesheet(span);
 }

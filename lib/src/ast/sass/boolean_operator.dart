@@ -9,5 +9,6 @@ enum BooleanOperator {
   and,
   or;
 
+  @override
   String toString() => name;
 }

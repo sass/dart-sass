@@ -22,6 +22,7 @@ import 'utils.dart';
 /// @nodoc
 @internal
 final class LmsColorSpace extends ColorSpace {
+  @override
   bool get isBoundedInternal => false;
 
   const LmsColorSpace()
@@ -31,6 +32,7 @@ final class LmsColorSpace extends ColorSpace {
           LinearChannel('short', 0, 1),
         ]);
 
+  @override
   SassColor convert(
     ColorSpace dest,
     double? long,
@@ -114,12 +116,15 @@ final class LmsColorSpace extends ColorSpace {
   double _cubeRootPreservingSign(double number) =>
       math.pow(number.abs(), 1 / 3) * number.sign;
 
+  @override
   @protected
   double toLinear(double channel) => channel;
 
+  @override
   @protected
   double fromLinear(double channel) => channel;
 
+  @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
         ColorSpace.srgbLinear ||

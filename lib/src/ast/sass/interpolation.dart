@@ -27,6 +27,7 @@ final class Interpolation implements SassNode {
   @internal
   final List<FileSpan?> spans;
 
+  @override
   final FileSpan span;
 
   /// Returns whether this contains no interpolated expressions.
@@ -128,6 +129,7 @@ final class Interpolation implements SassNode {
     }
   }
 
+  @override
   String toString() =>
       contents.map((value) => value is String ? value : "#{$value}").join();
 }

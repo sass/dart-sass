@@ -7,7 +7,8 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
 
 /// Defines test that are shared between the Dart and Node.js CLI test suites.
-void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
+void sharedTests(
+    Future<TestProcess> Function(Iterable<String> arguments) runSass) {
   test("from invalid arguments", () async {
     var sass = await runSass(["--asdf"]);
     expect(

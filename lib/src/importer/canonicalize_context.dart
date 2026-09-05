@@ -31,7 +31,7 @@ final class CanonicalizeContext {
   var _wasContainingUrlAccessed = false;
 
   /// Runs [callback] in a context with specificed [fromImport].
-  T withFromImport<T>(bool fromImport, T callback()) {
+  T withFromImport<T>(bool fromImport, T Function() callback) {
     assert(Zone.current[#_canonicalizeContext] == this);
 
     var oldFromImport = _fromImport;

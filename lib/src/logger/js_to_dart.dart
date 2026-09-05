@@ -31,6 +31,7 @@ final class JSToDartLogger implements Logger {
   JSToDartLogger(this._node, this._fallback, {bool? ascii})
       : _ascii = ascii ?? glyph.ascii;
 
+  @override
   void warn(
     String message, {
     FileSpan? span,
@@ -59,6 +60,7 @@ final class JSToDartLogger implements Logger {
     }
   }
 
+  @override
   void debug(String message, SourceSpan span) {
     if (_node?.debug case var debug?) {
       debug(message, DebugOptions(span: span));
@@ -68,7 +70,7 @@ final class JSToDartLogger implements Logger {
   }
 
   /// Sets [glyph.ascii] to [_ascii] within [callback].
-  T _withAscii<T>(T callback()) {
+  T _withAscii<T>(T Function() callback) {
     var wasAscii = glyph.ascii;
     glyph.ascii = _ascii;
     try {

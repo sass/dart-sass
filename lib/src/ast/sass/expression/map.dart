@@ -17,13 +17,16 @@ final class MapExpression extends Expression {
   /// with the same expression (e.g. `(unique-id(): 1, unique-id(): 2)`).
   final List<(Expression, Expression)> pairs;
 
+  @override
   final FileSpan span;
 
   MapExpression(Iterable<(Expression, Expression)> pairs, this.span)
       : pairs = List.unmodifiable(pairs);
 
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) => visitor.visitMapExpression(this);
 
+  @override
   String toString() =>
       '(${[for (var (key, value) in pairs) '$key: $value'].join(', ')})';
 }

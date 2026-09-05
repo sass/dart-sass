@@ -53,6 +53,7 @@ abstract base class Selector implements AstNode {
   bool get containsParentSelector =>
       accept(const _ContainsParentSelectorVisitor());
 
+  @override
   final FileSpan span;
 
   Selector(this.span);
@@ -60,6 +61,7 @@ abstract base class Selector implements AstNode {
   /// Calls the appropriate visit method on [visitor].
   T accept<T>(SelectorVisitor<T> visitor);
 
+  @override
   String toString() => serializeSelector(this, inspect: true);
 }
 
@@ -67,11 +69,14 @@ abstract base class Selector implements AstNode {
 final class _IsInvisibleVisitor with AnySelectorVisitor {
   const _IsInvisibleVisitor();
 
+  @override
   bool visitSelectorList(SelectorList list) =>
       list.components.every(visitComplexSelector);
 
+  @override
   bool visitPlaceholderSelector(PlaceholderSelector placeholder) => true;
 
+  @override
   bool visitPseudoSelector(PseudoSelector pseudo) {
     if (pseudo.selector case var selector?) {
       // We don't consider `:not(%foo)` to be invisible because, semantically,
@@ -89,5 +94,6 @@ final class _IsInvisibleVisitor with AnySelectorVisitor {
 final class _ContainsParentSelectorVisitor with AnySelectorVisitor {
   const _ContainsParentSelectorVisitor();
 
+  @override
   bool visitParentSelector(ParentSelector _) => true;
 }

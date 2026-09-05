@@ -19,7 +19,10 @@ import 'utils.dart';
 /// @nodoc
 @internal
 final class OklchColorSpace extends ColorSpace {
+  @override
   bool get isBoundedInternal => false;
+
+  @override
   bool get isPolarInternal => true;
 
   const OklchColorSpace()
@@ -36,6 +39,7 @@ final class OklchColorSpace extends ColorSpace {
           hueChannel,
         ]);
 
+  @override
   SassColor convert(
     ColorSpace dest,
     double? lightness,

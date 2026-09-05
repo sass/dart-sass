@@ -67,6 +67,7 @@ final class PseudoSelector extends SimpleSelector {
   bool get isHostContext =>
       isClass && name == 'host-context' && selector != null;
 
+  @override
   @internal
   bool get hasComplicatedSuperselectorSemantics =>
       isElement || selector != null;
@@ -83,6 +84,7 @@ final class PseudoSelector extends SimpleSelector {
   /// both non-`null`, the selector follows the argument.
   final SelectorList? selector;
 
+  @override
   late final int specificity = () {
     if (isElement) return 1;
     var selector = this.selector;
@@ -175,6 +177,7 @@ final class PseudoSelector extends SimpleSelector {
   }
 
   /// @nodoc
+  @override
   @internal
   PseudoSelector addSuffix(String suffix) {
     if (argument != null || selector != null) super.addSuffix(suffix);
@@ -182,6 +185,7 @@ final class PseudoSelector extends SimpleSelector {
   }
 
   /// @nodoc
+  @override
   @internal
   List<SimpleSelector>? unify(List<SimpleSelector> compound) {
     if (name == 'host' || name == 'host-context') {
@@ -222,6 +226,7 @@ final class PseudoSelector extends SimpleSelector {
     return result;
   }
 
+  @override
   bool isSuperselector(SimpleSelector other) {
     if (super.isSuperselector(other)) return true;
 
@@ -243,9 +248,11 @@ final class PseudoSelector extends SimpleSelector {
         .isSuperselector(CompoundSelector([other], span));
   }
 
+  @override
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitPseudoSelector(this);
 
   // This intentionally uses identity for the selector list, if one is available.
+  @override
   bool operator ==(Object other) =>
       other is PseudoSelector &&
       other.name == name &&
@@ -253,6 +260,7 @@ final class PseudoSelector extends SimpleSelector {
       other.argument == argument &&
       other.selector == selector;
 
+  @override
   int get hashCode =>
       name.hashCode ^
       isElement.hashCode ^

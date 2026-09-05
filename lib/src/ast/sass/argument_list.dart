@@ -32,6 +32,7 @@ final class ArgumentList implements SassNode {
   /// The second rest argument, which is expected to only contain a keyword map.
   final Expression? keywordRest;
 
+  @override
   final FileSpan span;
 
   /// Returns whether this invocation passes no arguments.
@@ -59,6 +60,7 @@ final class ArgumentList implements SassNode {
         rest = null,
         keywordRest = null;
 
+  @override
   String toString() {
     var components = [
       for (var argument in positional) _parenthesizeArgument(argument),

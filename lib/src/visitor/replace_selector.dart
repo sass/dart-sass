@@ -21,25 +21,41 @@ import 'interface/selector.dart';
 ///
 /// {@category Visitor}
 mixin ReplaceSelectorVisitor implements SelectorVisitor<Selector> {
+  @override
   SimpleSelector visitAttributeSelector(AttributeSelector attribute) =>
       attribute;
+
+  @override
   SimpleSelector visitClassSelector(ClassSelector klass) => klass;
+
+  @override
   SimpleSelector visitIDSelector(IDSelector id) => id;
+
+  @override
   SimpleSelector visitParentSelector(ParentSelector parent) => parent;
+
+  @override
   SimpleSelector visitPlaceholderSelector(PlaceholderSelector placeholder) =>
       placeholder;
+
+  @override
   SimpleSelector visitTypeSelector(TypeSelector type) => type;
+
+  @override
   SimpleSelector visitUniversalSelector(UniversalSelector universal) =>
       universal;
+
   SimpleSelector visitSimpleSelector(SimpleSelector selector) =>
       selector.accept(this) as SimpleSelector;
 
+  @override
   SelectorList visitSelectorList(SelectorList list) =>
       switch (_visitComponents(list.components, visitComplexSelector)) {
         var components? => SelectorList(components, list.span),
         _ => list,
       };
 
+  @override
   ComplexSelector visitComplexSelector(ComplexSelector complex) =>
       switch (_visitComponents(
           complex.components, _visitComplexSelectorComponent)) {
@@ -57,12 +73,14 @@ mixin ReplaceSelectorVisitor implements SelectorVisitor<Selector> {
             combinator: component.combinator),
       };
 
+  @override
   CompoundSelector visitCompoundSelector(CompoundSelector compound) =>
       switch (_visitComponents(compound.components, visitSimpleSelector)) {
         var components? => CompoundSelector(components, compound.span),
         _ => compound,
       };
 
+  @override
   SimpleSelector visitPseudoSelector(PseudoSelector pseudo) =>
       switch (pseudo.selector.andThen(visitSelectorList)) {
         var selector? => PseudoSelector(pseudo.name, pseudo.span,
@@ -78,7 +96,8 @@ mixin ReplaceSelectorVisitor implements SelectorVisitor<Selector> {
   ///
   /// This allows the caller to avoid allocations when a selector's subtree is
   /// not transformed in practice.
-  List<T>? _visitComponents<T>(List<T> components, T visit(T original)) {
+  List<T>? _visitComponents<T>(
+      List<T> components, T Function(T original) visit) {
     List<T>? newComponents;
     for (var i = 0; i < components.length; i++) {
       var component = components[i];

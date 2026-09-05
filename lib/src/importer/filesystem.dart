@@ -36,6 +36,7 @@ final class FilesystemImporter extends Importer {
   /// the current file.
   static final noLoadPath = FilesystemImporter._noLoadPath();
 
+  @override
   Uri? canonicalize(Uri url) => switch ((url, _loadPath)) {
         (Uri(scheme: 'file'), _) => resolveImportPath(p.fromUri(url)),
         (Uri(scheme: ''), var loadPath?) =>
@@ -44,6 +45,7 @@ final class FilesystemImporter extends Importer {
       }
           .andThen((resolved) => p.toUri(io.canonicalize(resolved)));
 
+  @override
   ImporterResult? load(Uri url) {
     var path = p.fromUri(url);
     return ImporterResult(
@@ -53,8 +55,10 @@ final class FilesystemImporter extends Importer {
     );
   }
 
+  @override
   DateTime modificationTime(Uri url) => io.modificationTime(p.fromUri(url));
 
+  @override
   bool couldCanonicalize(Uri url, Uri canonicalUrl) {
     if (url.scheme != 'file' && url.scheme != '') return false;
     if (canonicalUrl.scheme != 'file') return false;
@@ -69,5 +73,6 @@ final class FilesystemImporter extends Importer {
         basename == p.url.withoutExtension(canonicalBasename);
   }
 
+  @override
   String toString() => _loadPath ?? '<absolute file importer>';
 }

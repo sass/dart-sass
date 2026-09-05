@@ -14,6 +14,7 @@ import 'node.dart';
 /// {@category AST}
 final class ConfiguredVariable implements SassNode, SassDeclaration {
   /// The name of the variable being configured.
+  @override
   final String name;
 
   /// The variable's value.
@@ -24,8 +25,10 @@ final class ConfiguredVariable implements SassNode, SassDeclaration {
   /// This is always `false` for `@use` rules.
   final bool isGuarded;
 
+  @override
   final FileSpan span;
 
+  @override
   FileSpan get nameSpan => span.initialIdentifier(includeLeading: 1);
 
   ConfiguredVariable(
@@ -35,5 +38,6 @@ final class ConfiguredVariable implements SassNode, SassDeclaration {
     bool guarded = false,
   }) : isGuarded = guarded;
 
+  @override
   String toString() => "\$$name: $expression${isGuarded ? ' !default' : ''}";
 }

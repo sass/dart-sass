@@ -24,6 +24,7 @@ final class ParameterList implements SassNode {
   /// declared.
   final String? restParameter;
 
+  @override
   final FileSpan span;
 
   /// Returns [span] expanded to include an identifier immediately before the
@@ -159,6 +160,7 @@ final class ParameterList implements SassNode {
     return true;
   }
 
+  @override
   String toString() => [
         for (var arg in parameters) '\$$arg',
         if (restParameter != null) '\$$restParameter...',

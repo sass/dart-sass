@@ -15,12 +15,22 @@ import 'node.dart';
 @internal
 final class ModifiableCssDeclaration extends ModifiableCssNode
     implements CssDeclaration {
+  @override
   final CssValue<String> name;
+
+  @override
   final CssValue<Value> value;
+
+  @override
   final bool parsedAsSassScript;
+
+  @override
   final FileSpan valueSpanForMap;
+
+  @override
   final FileSpan span;
 
+  @override
   bool get isCustomProperty => name.value.startsWith('--');
 
   /// Returns a new CSS declaration with the given properties.
@@ -41,8 +51,10 @@ final class ModifiableCssDeclaration extends ModifiableCssNode
     }
   }
 
+  @override
   T accept<T>(ModifiableCssVisitor<T> visitor) =>
       visitor.visitCssDeclaration(this);
 
+  @override
   String toString() => "$name: $value;";
 }

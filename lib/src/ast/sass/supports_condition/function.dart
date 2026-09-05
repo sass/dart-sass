@@ -20,11 +20,13 @@ final class SupportsFunction implements SupportsCondition {
   /// The arguments to the function.
   final Interpolation arguments;
 
+  @override
   final FileSpan span;
 
   SupportsFunction(this.name, this.arguments, this.span);
 
   /// @nodoc
+  @override
   @internal
   Interpolation toInterpolation() => (InterpolationBuffer()
         ..addInterpolation(name)
@@ -34,9 +36,11 @@ final class SupportsFunction implements SupportsCondition {
       .interpolation(span);
 
   /// @nodoc
+  @override
   @internal
   SupportsFunction withSpan(FileSpan span) =>
       SupportsFunction(name, arguments, span);
 
+  @override
   String toString() => "$name($arguments)";
 }

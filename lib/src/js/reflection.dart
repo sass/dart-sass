@@ -70,7 +70,7 @@ extension JSClassExtension on JSClass {
   }
 
   /// Sets the custom inspect logic for this class to [body].
-  void setCustomInspect(String inspect(Object self)) {
+  void setCustomInspect(String Function(Object self) inspect) {
     if (_util == null) return;
     setProperty(
       prototype,

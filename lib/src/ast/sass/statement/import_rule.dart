@@ -15,12 +15,15 @@ final class ImportRule extends Statement {
   /// The imports imported by this statement.
   final List<Import> imports;
 
+  @override
   final FileSpan span;
 
   ImportRule(Iterable<Import> imports, this.span)
       : imports = List.unmodifiable(imports);
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitImportRule(this);
 
+  @override
   String toString() => "@import ${imports.join(', ')};";
 }

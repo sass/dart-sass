@@ -25,11 +25,13 @@ final class SupportsOperation implements SupportsCondition {
   /// The operator.
   final BooleanOperator operator;
 
+  @override
   final FileSpan span;
 
   SupportsOperation(this.left, this.right, this.operator, this.span);
 
   /// @nodoc
+  @override
   @internal
   Interpolation toInterpolation() => (InterpolationBuffer()
         ..write(span.before(left.span).text)
@@ -40,10 +42,12 @@ final class SupportsOperation implements SupportsCondition {
       .interpolation(span);
 
   /// @nodoc
+  @override
   @internal
   SupportsOperation withSpan(FileSpan span) =>
       SupportsOperation(left, right, operator, span);
 
+  @override
   String toString() =>
       "${_parenthesize(left)} $operator ${_parenthesize(right)}";
 

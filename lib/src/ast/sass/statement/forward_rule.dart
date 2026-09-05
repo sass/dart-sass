@@ -19,6 +19,7 @@ final class ForwardRule extends Statement implements SassDependency {
   /// The URI of the module to forward.
   ///
   /// If this is relative, it's relative to the containing file.
+  @override
   final Uri url;
 
   /// The set of mixin and function names that may be accessed from the
@@ -72,8 +73,10 @@ final class ForwardRule extends Statement implements SassDependency {
   /// A list of variable assignments used to configure the loaded modules.
   final List<ConfiguredVariable> configuration;
 
+  @override
   final FileSpan span;
 
+  @override
   FileSpan get urlSpan => span.withoutInitialAtRule().initialQuoted();
 
   /// Creates a `@forward` rule that allows all members to be accessed.
@@ -125,8 +128,10 @@ final class ForwardRule extends Statement implements SassDependency {
         configuration =
             configuration == null ? const [] : List.unmodifiable(configuration);
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitForwardRule(this);
 
+  @override
   String toString() {
     var buffer = StringBuffer(
       "@forward ${StringExpression.quoteText(url.toString())}",

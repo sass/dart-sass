@@ -186,7 +186,7 @@ interface class ExtensionStore {
   /// This un-merges any [MergedExtension] so only base [Extension]s are
   /// returned.
   Iterable<Extension> extensionsWhereTarget(
-    bool callback(SimpleSelector target),
+    bool Function(SimpleSelector target) callback,
   ) sync* {
     for (var (simple, sources) in _extensions.pairs) {
       if (!callback(simple)) continue;
@@ -1218,7 +1218,7 @@ interface class ExtensionStore {
   // document, and thus should never be trimmed.
   List<ComplexSelector> _trim(
     List<ComplexSelector> selectors,
-    bool isOriginal(ComplexSelector complex),
+    bool Function(ComplexSelector complex) isOriginal,
   ) {
     // Avoid truly horrific quadratic behavior.
     //
@@ -1381,6 +1381,7 @@ final class _TrimModernVisitor with ReplaceSelectorVisitor {
   _TrimModernVisitor(this._store, {bool ignoreSpecificity = false})
       : _ignoreSpecificity = ignoreSpecificity;
 
+  @override
   ComplexSelector visitComplexSelector(ComplexSelector selector) {
     var setCurrentSpecificity = false;
     if (_currentSpecificity == null) {
@@ -1395,6 +1396,7 @@ final class _TrimModernVisitor with ReplaceSelectorVisitor {
     }
   }
 
+  @override
   CompoundSelector visitCompoundSelector(CompoundSelector compound) {
     List<SimpleSelector>? unified;
     // The original selectors in the list as well as any `:is()` selectors that
@@ -1453,6 +1455,7 @@ final class _TrimModernVisitor with ReplaceSelectorVisitor {
     };
   }
 
+  @override
   SimpleSelector visitPseudoSelector(PseudoSelector pseudo) {
     var whereSelector = pseudo.name == 'where';
     var oldIgnoreSpecificity = _ignoreSpecificity;

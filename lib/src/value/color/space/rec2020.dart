@@ -24,10 +24,12 @@ const _beta = 0.018053968510807;
 /// @nodoc
 @internal
 final class Rec2020ColorSpace extends ColorSpace {
+  @override
   bool get isBoundedInternal => true;
 
   const Rec2020ColorSpace() : super('rec2020', rgbChannels);
 
+  @override
   @protected
   double toLinear(double channel) {
     // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
@@ -37,6 +39,7 @@ final class Rec2020ColorSpace extends ColorSpace {
         : channel.sign * (math.pow((abs + _alpha - 1) / _alpha, 1 / 0.45));
   }
 
+  @override
   @protected
   double fromLinear(double channel) {
     // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
@@ -46,6 +49,7 @@ final class Rec2020ColorSpace extends ColorSpace {
         : 4.5 * channel;
   }
 
+  @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
         ColorSpace.srgbLinear ||

@@ -55,6 +55,7 @@ base class Extension {
         optional: isOptional,
       );
 
+  @override
   String toString() =>
       "$extender {@extend $target${isOptional ? ' !optional' : ''}}";
 }
@@ -106,5 +107,6 @@ final class Extender {
     );
   }
 
+  @override
   String toString() => selector.toString();
 }

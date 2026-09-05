@@ -42,6 +42,7 @@ final class JSToDartAsyncImporter extends AsyncImporter {
     _nonCanonicalSchemes.forEach(validateUrlScheme);
   }
 
+  @override
   FutureOr<Uri?> canonicalize(Uri url) async {
     var result = wrapJSExceptions(
       () => _canonicalize(url.toString(), canonicalizeContext),
@@ -54,6 +55,7 @@ final class JSToDartAsyncImporter extends AsyncImporter {
     jsThrow(JsError("The canonicalize() method must return a URL."));
   }
 
+  @override
   FutureOr<ImporterResult?> load(Uri url) async {
     var result = wrapJSExceptions(() => _load(dartToJSUrl(url)));
     if (isPromise(result)) result = await promiseToFuture(result as Promise);
@@ -88,6 +90,7 @@ final class JSToDartAsyncImporter extends AsyncImporter {
     );
   }
 
+  @override
   bool isNonCanonicalScheme(String scheme) =>
       _nonCanonicalSchemes.contains(scheme);
 }

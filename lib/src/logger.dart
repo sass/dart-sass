@@ -70,11 +70,13 @@ extension WarnForDeprecation on Logger {
 
 /// A logger that emits no messages.
 final class _QuietLogger implements Logger {
+  @override
   void warn(
     String message, {
     FileSpan? span,
     Trace? trace,
     Deprecation? deprecation,
   }) {}
+  @override
   void debug(String message, SourceSpan span) {}
 }

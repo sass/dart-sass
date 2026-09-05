@@ -12,10 +12,10 @@ import 'package:test_process/test_process.dart';
 
 /// Defines test that are shared between the Dart and Node.js CLI test suites.
 void sharedTests(
-  Future<TestProcess> runSass(
+  Future<TestProcess> Function(
     Iterable<String> arguments, {
     Map<String, String>? environment,
-  }),
+  }) runSass,
 ) {
   /// Runs the executable on [arguments] plus an output file, then verifies that
   /// the contents of the output file match [expected].

@@ -136,6 +136,7 @@ final class SelectorList extends Selector {
         logger: logger,
       ).parse();
 
+  @override
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitSelectorList(this);
 
   /// Returns a [SelectorList] that matches only elements that are matched by
@@ -415,8 +416,10 @@ final class SelectorList extends Selector {
     return newComponents.isEmpty ? null : SelectorList(newComponents, span);
   }
 
+  @override
   int get hashCode => listHash(components);
 
+  @override
   bool operator ==(Object other) =>
       other is SelectorList && listEquals(components, other.components);
 }
@@ -429,5 +432,6 @@ bool _containsParentSelector(Selector selector) =>
 final class _ParentSelectorVisitor with SelectorSearchVisitor<ParentSelector> {
   const _ParentSelectorVisitor();
 
+  @override
   ParentSelector visitParentSelector(ParentSelector selector) => selector;
 }

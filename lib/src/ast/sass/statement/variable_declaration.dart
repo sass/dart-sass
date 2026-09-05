@@ -26,6 +26,7 @@ final class VariableDeclaration extends Statement implements SassDeclaration {
   final String? namespace;
 
   /// The name of the variable, with underscores converted to hyphens.
+  @override
   final String name;
 
   /// The comment immediately preceding this declaration.
@@ -44,6 +45,7 @@ final class VariableDeclaration extends Statement implements SassDeclaration {
   /// Global assignments always affect only the global scope.
   final bool isGlobal;
 
+  @override
   final FileSpan span;
 
   /// The variable name as written in the document, without underscores
@@ -53,6 +55,7 @@ final class VariableDeclaration extends Statement implements SassDeclaration {
   /// messages.
   String get originalName => declarationName(span);
 
+  @override
   FileSpan get nameSpan {
     var span = this.span;
     if (namespace != null) span = span.withoutNamespace();
@@ -90,9 +93,11 @@ final class VariableDeclaration extends Statement implements SassDeclaration {
   factory VariableDeclaration.parse(String contents, {Object? url}) =>
       ScssParser(contents, url: url).parseVariableDeclaration().$1;
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) =>
       visitor.visitVariableDeclaration(this);
 
+  @override
   String toString() {
     var buffer = StringBuffer();
     if (namespace != null) buffer.write("$namespace.");

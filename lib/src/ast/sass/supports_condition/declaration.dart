@@ -23,6 +23,7 @@ final class SupportsDeclaration implements SupportsCondition {
   /// The value of the declaration being tested.
   final Expression value;
 
+  @override
   final FileSpan span;
 
   /// Returns whether this is a CSS Custom Property declaration.
@@ -44,6 +45,7 @@ final class SupportsDeclaration implements SupportsCondition {
   SupportsDeclaration(this.name, this.value, this.span);
 
   /// @nodoc
+  @override
   @internal
   Interpolation toInterpolation() {
     var buffer = InterpolationBuffer();
@@ -66,9 +68,11 @@ final class SupportsDeclaration implements SupportsCondition {
   }
 
   /// @nodoc
+  @override
   @internal
   SupportsDeclaration withSpan(FileSpan span) =>
       SupportsDeclaration(name, value, span);
 
+  @override
   String toString() => "($name: $value)";
 }

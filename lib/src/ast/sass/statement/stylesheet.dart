@@ -30,6 +30,7 @@ import 'variable_declaration.dart';
 /// {@category AST}
 /// {@category Parsing}
 final class Stylesheet extends ParentStatement<List<Statement>> {
+  @override
   final FileSpan span;
 
   /// Whether this was parsed from a plain CSS stylesheet.
@@ -194,8 +195,10 @@ final class Stylesheet extends ParentStatement<List<Statement>> {
           {Object? url, bool parseSelectors = false}) =>
       CssParser(contents, url: url, parseSelectors: parseSelectors).parse();
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitStylesheet(this);
 
+  @override
   String toString() => children.join(" ");
 }
 

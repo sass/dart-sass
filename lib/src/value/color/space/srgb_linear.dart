@@ -20,10 +20,12 @@ import 'utils.dart';
 /// @nodoc
 @internal
 final class SrgbLinearColorSpace extends ColorSpace {
+  @override
   bool get isBoundedInternal => true;
 
   const SrgbLinearColorSpace() : super('srgb-linear', rgbChannels);
 
+  @override
   SassColor convert(
     ColorSpace dest,
     double? red,
@@ -46,12 +48,15 @@ final class SrgbLinearColorSpace extends ColorSpace {
         _ => super.convert(dest, red, green, blue, alpha),
       };
 
+  @override
   @protected
   double toLinear(double channel) => channel;
 
+  @override
   @protected
   double fromLinear(double channel) => channel;
 
+  @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
         ColorSpace.displayP3 ||

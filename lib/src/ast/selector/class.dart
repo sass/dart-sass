@@ -20,14 +20,18 @@ final class ClassSelector extends SimpleSelector {
 
   ClassSelector(this.name, FileSpan span) : super(span);
 
+  @override
   bool operator ==(Object other) =>
       other is ClassSelector && other.name == name;
 
+  @override
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitClassSelector(this);
 
   /// @nodoc
+  @override
   @internal
   ClassSelector addSuffix(String suffix) => ClassSelector(name + suffix, span);
 
+  @override
   int get hashCode => name.hashCode;
 }

@@ -20,12 +20,15 @@ final class ContentRule extends Statement {
   /// This will be an empty invocation if `@content` has no arguments.
   final ArgumentList arguments;
 
+  @override
   final FileSpan span;
 
   ContentRule(this.arguments, this.span);
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitContentRule(this);
 
+  @override
   String toString() =>
       arguments.isEmpty ? "@content;" : "@content($arguments);";
 }

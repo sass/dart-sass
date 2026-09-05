@@ -15,11 +15,13 @@ import 'node.dart';
 /// {@category AST}
 final class Parameter implements SassNode, SassDeclaration {
   /// The parameter name.
+  @override
   final String name;
 
   /// The default value of this parameter, or `null` if none was declared.
   final Expression? defaultValue;
 
+  @override
   final FileSpan span;
 
   /// The variable name as written in the document, without underscores
@@ -30,10 +32,12 @@ final class Parameter implements SassNode, SassDeclaration {
   String get originalName =>
       defaultValue == null ? span.text : declarationName(span);
 
+  @override
   FileSpan get nameSpan =>
       defaultValue == null ? span : span.initialIdentifier(includeLeading: 1);
 
   Parameter(this.name, this.span, {this.defaultValue});
 
+  @override
   String toString() => defaultValue == null ? name : "$name: $defaultValue";
 }

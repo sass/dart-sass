@@ -17,11 +17,14 @@ final class ReturnRule extends Statement {
   /// The value to return from this function.
   final Expression expression;
 
+  @override
   final FileSpan span;
 
   ReturnRule(this.expression, this.span);
 
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitReturnRule(this);
 
+  @override
   String toString() => "@return $expression;";
 }

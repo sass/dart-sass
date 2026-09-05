@@ -27,6 +27,7 @@ final class StringExpression extends Expression {
   /// Whether `this` has quotes.
   final bool hasQuotes;
 
+  @override
   FileSpan get span => text.span;
 
   /// Returns Sass source for a quoted string that, when evaluated, will have
@@ -47,6 +48,7 @@ final class StringExpression extends Expression {
       : text = Interpolation.plain(text, span),
         hasQuotes = quotes;
 
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitStringExpression(this);
 
@@ -130,5 +132,6 @@ final class StringExpression extends Expression {
     return containsDoubleQuote ? $single_quote : $double_quote;
   }
 
+  @override
   String toString() => asInterpolation().toString();
 }

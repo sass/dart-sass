@@ -18,12 +18,15 @@ final class SupportsExpression extends Expression {
   /// The condition itself.
   final SupportsCondition condition;
 
+  @override
   FileSpan get span => condition.span;
 
   SupportsExpression(this.condition);
 
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitSupportsExpression(this);
 
+  @override
   String toString() => condition.toString();
 }

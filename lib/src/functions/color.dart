@@ -940,9 +940,7 @@ ColorSpace? _sniffLegacyColorSpace(Map<String, Value> keywords) {
 /// it were a plain CSS function.
 SassString _functionString(String name, Iterable<Value> arguments) =>
     SassString(
-      "$name(" +
-          arguments.map((argument) => argument.toCssString()).join(', ') +
-          ")",
+      "$name(${arguments.map((argument) => argument.toCssString()).join(', ')})",
       quotes: false,
     );
 
@@ -1470,9 +1468,10 @@ bool _isNone(Value value) =>
 /// use instead.
 BuiltInCallable _removedChannelFunction(String name, ColorSpace? space) {
   return _function(name, r"$color", (arguments) {
-    var suggestion = 'color.channel(\$color, "$name"' +
-        switch (space) { var space? => ', \$space: $space', _ => '' } +
-        ')';
+    var suggestion = 'color.channel(\$color, "$name"${switch (space) {
+      var space? => ', \$space: $space',
+      _ => ''
+    }})';
     throw SassScriptException(
       "color.$name() is no longer supported. Suggestion:\n"
       "\n"
@@ -1504,6 +1503,6 @@ String _channelName(Value value) =>
 BuiltInCallable _function(
   String name,
   String arguments,
-  Value callback(List<Value> arguments),
+  Value Function(List<Value> arguments) callback,
 ) =>
     BuiltInCallable.function(name, arguments, callback, url: "sass:color");

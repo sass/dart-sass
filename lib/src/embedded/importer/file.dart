@@ -17,6 +17,7 @@ final class FileImporter extends ImporterBase {
 
   FileImporter(super.dispatcher, this._importerId);
 
+  @override
   Uri? canonicalize(Uri url) {
     if (url.scheme == 'file') {
       return FilesystemImporter.noLoadPath.canonicalize(url);
@@ -50,9 +51,12 @@ final class FileImporter extends ImporterBase {
     }
   }
 
+  @override
   ImporterResult? load(Uri url) => FilesystemImporter.noLoadPath.load(url);
 
+  @override
   bool isNonCanonicalScheme(String scheme) => scheme != 'file';
 
+  @override
   String toString() => "FileImporter";
 }

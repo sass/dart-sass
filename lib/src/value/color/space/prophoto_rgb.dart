@@ -18,10 +18,12 @@ import 'utils.dart';
 /// @nodoc
 @internal
 final class ProphotoRgbColorSpace extends ColorSpace {
+  @override
   bool get isBoundedInternal => true;
 
   const ProphotoRgbColorSpace() : super('prophoto-rgb', rgbChannels);
 
+  @override
   @protected
   double toLinear(double channel) {
     // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
@@ -29,6 +31,7 @@ final class ProphotoRgbColorSpace extends ColorSpace {
     return abs <= 16 / 512 ? channel / 16 : channel.sign * math.pow(abs, 1.8);
   }
 
+  @override
   @protected
   double fromLinear(double channel) {
     // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
@@ -38,6 +41,7 @@ final class ProphotoRgbColorSpace extends ColorSpace {
         : 16 * channel;
   }
 
+  @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
         ColorSpace.srgbLinear ||

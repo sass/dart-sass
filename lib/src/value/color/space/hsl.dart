@@ -15,8 +15,13 @@ import 'utils.dart';
 /// @nodoc
 @internal
 final class HslColorSpace extends ColorSpace {
+  @override
   bool get isBoundedInternal => true;
+
+  @override
   bool get isLegacyInternal => true;
+
+  @override
   bool get isPolarInternal => true;
 
   const HslColorSpace()
@@ -32,6 +37,7 @@ final class HslColorSpace extends ColorSpace {
           LinearChannel('lightness', 0, 100, requiresPercent: true),
         ]);
 
+  @override
   SassColor convert(
     ColorSpace dest,
     double? hue,

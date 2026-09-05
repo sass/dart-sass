@@ -11,12 +11,15 @@ import '../expression.dart';
 ///
 /// {@category AST}
 final class SelectorExpression extends Expression {
+  @override
   final FileSpan span;
 
   SelectorExpression(this.span);
 
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitSelectorExpression(this);
 
+  @override
   String toString() => "&";
 }

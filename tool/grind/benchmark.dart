@@ -349,10 +349,9 @@ Future<Duration> _benchmarkOnce(
   );
 }
 
-String _formatTime(Duration duration) =>
-    "${duration.inSeconds}." +
-    (duration.inMilliseconds % 1000).toString().padLeft(3, '0') +
-    's';
+String _formatTime(Duration duration) => "${duration.inSeconds}."
+    "${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}"
+    "s";
 
 /// Returns an approximate, human-readable comparison between [duration1] and
 /// [duration2].
