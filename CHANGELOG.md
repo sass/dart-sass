@@ -173,6 +173,40 @@
   spaces. You can pass the `space` parameter to explicitly convert to a new
   space.
 
+## 1.102.0
+
+* Use the 2.4 gamma transfer function for rec2020, as specified by the latest
+  draft of CSS Color 4.
+
+## 1.101.7
+
+* No user-visible changes.
+
+## 1.101.6
+
+* No user-visible changes.
+
+## 1.101.5
+
+* No user-visible changes.
+
+## 1.101.4
+
+* Avoid emitting `rgb()` or `rgba()` functions with non-percent decimal
+  channels. Older browsers only support integer values or (potentially decimal)
+  percentages for these functions, so in order to preserve
+  backwards-compatibility while retaining full precision for modern browsers,
+  legacy colors that contain at least one non-integer channel will now use
+  percentages for their channels (for example, `rgb(0%, 100%, 50%)` rather than
+  `rgb(0, 255, 127.5)`).
+
+* Fix a bug where the values of plain-CSS `if()` expressions were emitted using
+  their `meta.inspect()` format rather than their CSS serialization format.
+
+## 1.101.3
+
+* No user-visible changes.
+
 ## 1.101.2
 
 * Fix a bug where the deprecation warning for vendor-prefixed `expression()`

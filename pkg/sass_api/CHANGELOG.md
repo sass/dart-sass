@@ -6,6 +6,32 @@
 
 * All parse methods now canonicalize their `url` parameters.
 
+## 17.8.0
+
+* No user-visible changes.
+
+## 17.7.7
+
+* No user-visible changes.
+
+## 17.7.6
+
+* No user-visible changes.
+
+## 17.7.5
+
+* No user-visible changes.
+
+## 17.7.4
+
+* No user-visible changes.
+
+## 17.7.3
+
+* No user-visible changes.
+
+## 17.7.2
+
 ### Bogus Selectors
 
 * Drop support for bogus selectors that can never become valid CSS through

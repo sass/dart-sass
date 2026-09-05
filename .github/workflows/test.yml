@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       with: {persist-credentials: false}
     - uses: ./.github/util/initialize
       with: {github-token: "${{ github.token }}"}
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
@@ -48,9 +48,9 @@ jobs:
       security-events: write # Required by upload-sarif
       actions: read # Required by upload-sarif
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
-      - uses: zizmorcore/zizmor-action@192e21d79ab29983730a13d1382995c2307fbcaa # v0.5.7
+      - uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054 # v0.6.2
         with: {persona: pedantic}
 
   dartdoc:
@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
@@ -73,22 +73,33 @@ jobs:
           --errors unknown-directive,unknown-macro,unresolved-doc-reference
 
   sass_spec_language:
-    name: "Language Tests | Dart ${{ matrix.dart_channel }} | ${{ matrix.async_label }}"
+    name: "Language Tests | Dart ${{ matrix.dart_channel }} | ${{ matrix.async_label }} | ${{ matrix.os }}"
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        dart_channel: [stable, dev]
+        # We expect language test results not to vary from OS to OS. In most
+        # cases, this is trivial, but for operations on very high-precision
+        # floating-point numbers there are cases where float rounding can differ
+        # (see sass/sass-spec#2156). To ensure we don't include these in our
+        # test cases, we test against Windows and MacOS as well.
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        dart_channel: [stable]
         async_label: [synchronous]
         async_args: ['']
         include:
-          - dart_channel: stable
+          - os: ubuntu-latest
+            dart_channel: stable
             async_label: asynchronous
             async_args: '--cmd-args --async'
+          - os: ubuntu-latest
+            dart_channel: dev
+            async_label: synchronous
+            async_args: ''
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with:
@@ -125,7 +136,7 @@ jobs:
             node-version: 'lts/*'
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with:
@@ -168,7 +179,7 @@ jobs:
             node-version: lts/-2
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with:
@@ -209,7 +220,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
       - uses: browser-actions/setup-chrome@2e1d749697dd1612b833dba4a722266286fbefcd # v2
       - uses: ./.github/util/initialize
@@ -253,7 +264,7 @@ jobs:
         # include: [{os: ubuntu-latest, dart_channel: dev}]
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with:
@@ -290,7 +301,7 @@ jobs:
             node-version: 'lts/*'
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with:
@@ -313,7 +324,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       with: {persist-credentials: false}
     - uses: browser-actions/setup-chrome@2e1d749697dd1612b833dba4a722266286fbefcd # v2
     - uses: ./.github/util/initialize
@@ -355,7 +366,7 @@ jobs:
             node-version: 'lts/*'
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with:
@@ -376,9 +387,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with: {node-version: 'lts/*'}
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
@@ -401,9 +412,9 @@ jobs:
   #   runs-on: ubuntu-latest
   #
   #   steps:
-  #      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+  #      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
   #        with: {persist-credentials: false}
-  #      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+  #      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
   #       with: {node-version: 'lts/*'}
   #     - run: npm install
   #       working-directory: pkg/sass-parser/

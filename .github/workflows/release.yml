@@ -12,6 +12,9 @@ on:
       CHOCOLATEY_TOKEN:
         description: 'Credentials for publishing to Chocolatey'
         required: true
+      SASS_SITE_TOKEN:
+        description: 'Credentials for publishing sass-lang.com'
+        required: true
 permissions: {}
 
 concurrency:
@@ -46,7 +49,7 @@ jobs:
     needs: [build_linux, build_macos, build_windows]
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
@@ -70,14 +73,19 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
 
       - name: Release
-        run: gh release upload "$GITHUB_REF_NAME" build-*/* --repo "$GITHUB_ACTION_REPOSITORY"
+        run: gh release upload "$GITHUB_REF_NAME" build-*/* --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: "${{ secrets.GH_TOKEN }}" 
 
   deploy_npm:
     name: Deploy npm
     runs-on: ubuntu-latest
 
+    permissions:
+      id-token: write # Authenticating npm trusted publishing
+
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with:
@@ -93,10 +101,13 @@ jobs:
     name: Deploy Pub
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write # Pushes sass-api tag
+
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          persist-credentials: false
+          persist-credentials: true
           # We have to use this rather than the implicit GitHub token so that
           # pushing a new tag triggers another action.
           token: ${{ secrets.GH_TOKEN }}
@@ -126,12 +137,12 @@ jobs:
       id-token: write # npm trusted publishing
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
           token: ${{ secrets.GH_TOKEN }}
       # Set up .npmrc file to publish to npm
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 'lts/*'
           check-latest: true
@@ -144,7 +155,7 @@ jobs:
         id: dart-sass-version
         run: echo "version=${GITHUB_REF_NAME}" | tee --append "$GITHUB_OUTPUT"
       - name: Check out the language repo
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
           repository: sass/sass
@@ -170,36 +181,41 @@ jobs:
       id-token: write # npm trusted publishing
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          persist-credentials: false
+          persist-credentials: true
           token: ${{ secrets.GH_TOKEN }}
       # Set up .npmrc file to publish to npm
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 'lts/*'
           check-latest: true
           registry-url: 'https://registry.npmjs.org'
-
       # The repo package has a file dependency, but the released version needs a
       # real dependency on the released version of Sass.
       - name: Get Dart Sass version
         id: dart-sass-version
         run: echo "version=${GITHUB_REF_NAME}" | tee --append "$GITHUB_OUTPUT"
-      - run: npm install "sass@$VERSION" # zizmor: ignore[adhoc-packages]
+
+      # Run this in a loop until the package has finished its pre-publish checks
+      # and CDN propagation. npm says that in most cases it should be available
+      # in 15 minutes, but we wait 20 to give it some headroom.
+      - run: until npm install "sass@$VERSION"; do sleep 60; done # zizmor: ignore[adhoc-packages]
+        timeout-minutes: 20
         working-directory: pkg/sass-parser/
         env:
           VERSION: ${{ steps.dart-sass-version.outputs.version }}
 
       - run: npm run compile
         working-directory: pkg/sass-parser/
+
       - run: npm publish --provenance
         working-directory: pkg/sass-parser/
 
       - name: Get Sass parser version
         id: sass-parser-version
         run: |
-          echo "version=$(jq .version pkg/sass-parser/package.json)" | tee --append "$GITHUB_OUTPUT"
+          echo "version=$(jq -r .version pkg/sass-parser/package.json)" | tee --append "$GITHUB_OUTPUT"
       - run: git tag "sass-parser/$VERSION"
         env:
           VERSION: ${{ steps.sass-parser-version.outputs.version }}
@@ -210,9 +226,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
-      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260 # v1
+      - uses: dart-lang/setup-dart@7654d458321ee25acccccfdb86cd48bd95768ff1 # v1.8.0
       - run: dart pub get
 
       - name: Deploy
@@ -226,7 +242,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
       - uses: ./.github/util/initialize
         with: {github-token: "${{ github.token }}"}
@@ -241,9 +257,9 @@ jobs:
     needs: [deploy_npm]
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          persist-credentials: false
+          persist-credentials: true
           repository: sass/sass-site
           token: ${{ secrets.SASS_SITE_TOKEN }}
 
@@ -251,18 +267,23 @@ jobs:
         id: version
         run: echo "version=${GITHUB_REF_NAME}" | tee --append "$GITHUB_OUTPUT"
 
-      - name: Wait for npm registry's CDN to catch up on replications
-        run: sleep 600
-
+      # Run this in a loop until the package has finished its pre-publish checks
+      # and CDN propagation. npm says that in most cases it should be available
+      # in 15 minutes, but we wait 20 to give it some headroom.
       - name: Update Dart Sass version
-        run: npm install "sass@$VERSION" # zizmor: ignore[adhoc-packages]
+        run: until npm install "sass@$VERSION"; do sleep 60; done # zizmor: ignore[adhoc-packages]
+        timeout-minutes: 20
         env:
           VERSION: ${{ steps.version.outputs.version }}
 
       - run:
           git commit --all --allow-empty
-            --author "Sass Bot <sass.bot.beep.boop@gmail.com>"
             --message "Cut a release for a new Dart Sass version"
+        env:
+          GIT_AUTHOR_NAME: Sass Bot
+          GIT_AUTHOR_EMAIL: sass.bot.beep.boop@gmail.com
+          GIT_COMMITTER_NAME: Sass Bot
+          GIT_COMMITTER_EMAIL: sass.bot.beep.boop@gmail.com
       - run: git push
 
   release_embedded_host:
@@ -271,9 +292,9 @@ jobs:
     needs: [deploy_github]
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          persist-credentials: false
+          persist-credentials: true
           repository: sass/embedded-host-node
           token: ${{ secrets.GH_TOKEN }}
 
@@ -313,10 +334,12 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
           PROTOCOL_VERSION: ${{ steps.version.outputs.protocol_version }}
 
-      - run:
-          git commit --all
-            --author "Sass Bot <sass.bot.beep.boop@gmail.com>"
-            --message "Update Dart Sass version and release"
+      - run: git commit --all --message "Update Dart Sass version and release"
+        env:
+          GIT_AUTHOR_NAME: Sass Bot
+          GIT_AUTHOR_EMAIL: sass.bot.beep.boop@gmail.com
+          GIT_COMMITTER_NAME: Sass Bot
+          GIT_COMMITTER_EMAIL: sass.bot.beep.boop@gmail.com
       - run: git tag "$VERSION"
         env:
           VERSION: ${{ steps.version.outputs.version }}
