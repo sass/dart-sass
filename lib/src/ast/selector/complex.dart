@@ -44,7 +44,7 @@ final class ComplexSelector(
   ///
   /// It's possible for multiple [Combinator]s to be adjacent to one another.
   /// This isn't valid CSS, but Sass supports it for CSS hack purposes.
-  final List<ComplexSelectorComponent> components = List.unmodifiable(
+  final List<ComplexSelectorComponent> components = List.unmodifiableOf(
     components,
   );
 

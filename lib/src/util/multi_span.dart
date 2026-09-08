@@ -28,7 +28,7 @@ final class MultiSpan._(
     FileSpan primary,
     String primaryLabel,
     Map<SourceSpan, String> secondarySpans,
-  ) : this._(primary, primaryLabel, Map.unmodifiable(secondarySpans));
+  ) : this._(primary, primaryLabel, Map.unmodifiableOf(secondarySpans));
 
   @override
   FileLocation get start => _primary.start;

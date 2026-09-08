@@ -26,7 +26,7 @@ final class SassArgumentList(
     return _keywords;
   }
 
-  final Map<String, Value> _keywords = Map.unmodifiable(keywords);
+  final Map<String, Value> _keywords = Map.unmodifiableOf(keywords);
 
   /// Returns the same value as [keywords], but doesn't mark them accessed.
   ///
