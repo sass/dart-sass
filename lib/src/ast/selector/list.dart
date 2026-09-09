@@ -46,9 +46,9 @@ final class SelectorList(Iterable<ComplexSelector> components, super.span)
             if (component.combinator case var combinator?)
               SassString(combinator.toString(), quotes: false),
           ],
-        ], ListSeparator.space);
+        ], .space);
       }),
-      ListSeparator.comma,
+      .comma,
     );
   }
 

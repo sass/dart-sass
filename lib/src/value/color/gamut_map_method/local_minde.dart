@@ -26,7 +26,7 @@ final class const LocalMindeGamutMap() extends GamutMapMethod {
   @override
   SassColor map(SassColor color) {
     // Algorithm from https://www.w3.org/TR/2022/CRD-css-color-4-20221101/#css-gamut-mapping-algorithm
-    var originOklch = color.toSpace(ColorSpace.oklch);
+    var originOklch = color.toSpace(.oklch);
 
     // The channel equivalents to `current` in the Color 4 algorithm.
     var lightness = originOklch.channel0OrNull;
@@ -53,13 +53,7 @@ final class const LocalMindeGamutMap() extends GamutMapMethod {
       // In the Color 4 algorithm `current` is in Oklch, but all its actual uses
       // other than modifying chroma convert it to `color.space` first so we
       // just store it in that space to begin with.
-      var current = ColorSpace.oklch.convert(
-        color.space,
-        lightness,
-        chroma,
-        hue,
-        alpha,
-      );
+      var current = .oklch.convert(color.space, lightness, chroma, hue, alpha);
 
       // Per [this comment], the intention of the algorithm is to fall through
       // this clause if `minInGamut = false` without checking
@@ -89,8 +83,8 @@ final class const LocalMindeGamutMap() extends GamutMapMethod {
   /// Returns the ΔEOK measure between [color1] and [color2].
   double _deltaEOK(SassColor color1, SassColor color2) {
     // Algorithm from https://www.w3.org/TR/css-color-4/#color-difference-OK
-    var lab1 = color1.toSpace(ColorSpace.oklab);
-    var lab2 = color2.toSpace(ColorSpace.oklab);
+    var lab1 = color1.toSpace(.oklab);
+    var lab2 = color2.toSpace(.oklab);
 
     return math.sqrt(
       math.pow(lab1.channel0 - lab2.channel0, 2) +

@@ -28,7 +28,7 @@ final class UnaryOperationExpression(
   @override
   String toString() {
     var buffer = StringBuffer(operator.operator);
-    if (operator == UnaryOperator.not) buffer.writeCharCode($space);
+    if (operator == .not) buffer.writeCharCode($space);
     var operand = this.operand;
     var needsParens = switch (operand) {
       BinaryOperationExpression() ||

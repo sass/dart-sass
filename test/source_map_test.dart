@@ -668,7 +668,7 @@ void main() {
               (url) => Uri.parse("u:$url"),
               (_) => ImporterResult(
                 r"$var2: default value !default;",
-                syntax: Syntax.scss,
+                syntax: .scss,
               ),
             ),
           );
@@ -795,7 +795,7 @@ void main() {
             }
           """,
           "\uFEFF{{1}}föö{{{2}}bär:bäz}",
-          style: OutputStyle.compressed,
+          style: .compressed,
         );
       });
     });
@@ -893,7 +893,7 @@ void _expectSassSourceMap(
 
   var result = compileString(
     sassText,
-    syntax: Syntax.sass,
+    syntax: .sass,
     sourceMap: true,
     importer: importer,
     style: style,

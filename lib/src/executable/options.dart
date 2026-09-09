@@ -247,12 +247,11 @@ final class ExecutableOptions._(
   bool get verbose => _options['verbose'] as bool;
 
   /// The logger to use to emit messages from Sass.
-  Logger get logger => quiet ? Logger.quiet : Logger.stderr(color: color);
+  Logger get logger => quiet ? .quiet : .stderr(color: color);
 
   /// The style to use for the generated CSS.
-  OutputStyle get style => _options['style'] == 'compressed'
-      ? OutputStyle.compressed
-      : OutputStyle.expanded;
+  OutputStyle get style =>
+      _options['style'] == 'compressed' ? .compressed : .expanded;
 
   /// Whether to include a `@charset` declaration or a BOM if the stylesheet
   /// contains any non-ASCII characters.

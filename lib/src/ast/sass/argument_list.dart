@@ -76,7 +76,7 @@ final class ArgumentList implements SassNode {
   /// Wraps [argument] in parentheses if necessary.
   String _parenthesizeArgument(Expression argument) => switch (argument) {
     ListExpression(
-      separator: ListSeparator.comma,
+      separator: .comma,
       hasBrackets: false,
       contents: [_, _, ...],
     ) =>

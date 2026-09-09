@@ -84,7 +84,7 @@ final class IsolateDispatcher(
           }
 
           if (message.whichMessage() case var type
-              when type != InboundMessage_Message.versionRequest) {
+              when type != .versionRequest) {
             throw paramsError(
               "Only VersionRequest may have wire ID 0, was $type.",
             );

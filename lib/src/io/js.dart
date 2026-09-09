@@ -301,11 +301,11 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
         for (var event in events) {
           switch (event.type) {
             case 'create':
-              controller?.add(WatchEvent(ChangeType.ADD, event.path));
+              controller?.add(WatchEvent(.ADD, event.path));
             case 'update':
-              controller?.add(WatchEvent(ChangeType.MODIFY, event.path));
+              controller?.add(WatchEvent(.MODIFY, event.path));
             case 'delete':
-              controller?.add(WatchEvent(ChangeType.REMOVE, event.path));
+              controller?.add(WatchEvent(.REMOVE, event.path));
           }
         }
       }
@@ -322,21 +322,19 @@ Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {
       ..on(
         'add',
         allowInterop(
-          (String path, [void _]) =>
-              controller?.add(WatchEvent(ChangeType.ADD, path)),
+          (String path, [void _]) => controller?.add(WatchEvent(.ADD, path)),
         ),
       )
       ..on(
         'change',
         allowInterop(
-          (String path, [void _]) =>
-              controller?.add(WatchEvent(ChangeType.MODIFY, path)),
+          (String path, [void _]) => controller?.add(WatchEvent(.MODIFY, path)),
         ),
       )
       ..on(
         'unlink',
         allowInterop(
-          (String path) => controller?.add(WatchEvent(ChangeType.REMOVE, path)),
+          (String path) => controller?.add(WatchEvent(.REMOVE, path)),
         ),
       )
       ..on(

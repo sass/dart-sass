@@ -967,7 +967,7 @@ abstract class StylesheetParser(
       var name => unvendor(name) == "element",
     }) {
       warnings.add((
-        deprecation: Deprecation.functionName,
+        deprecation: .functionName,
         message:
             "Custom functions with this name are deprecated and will be "
             "removed in a future\n"
@@ -1182,7 +1182,7 @@ abstract class StylesheetParser(
       var argument = importArgument();
       if (argument is DynamicImport) {
         warnings.add((
-          deprecation: Deprecation.import,
+          deprecation: .import,
           message:
               'Sass @import rules are deprecated and will be removed in Dart '
               'Sass 3.0.0.\n\n'
@@ -1784,7 +1784,7 @@ abstract class StylesheetParser(
         if (rest != null && !emittedRestDeprecation) {
           emittedRestDeprecation = true;
           warnings.add((
-            deprecation: Deprecation.misplacedRest,
+            deprecation: .misplacedRest,
             message:
                 'Named arguments must come before rest arguments.\n'
                 'This will be an error in Dart Sass 2.0.0.',
@@ -1817,7 +1817,7 @@ abstract class StylesheetParser(
         if (rest != null && !emittedRestDeprecation) {
           emittedRestDeprecation = true;
           warnings.add((
-            deprecation: Deprecation.misplacedRest,
+            deprecation: .misplacedRest,
             message:
                 'Positional arguments must come before rest arguments.\n'
                 'This will be an error in Dart Sass 2.0.0.',
@@ -1886,7 +1886,7 @@ abstract class StylesheetParser(
       if (scanner.scanChar($rbracket)) {
         return ListExpression(
           [],
-          ListSeparator.undecided,
+          .undecided,
           spanFrom(beforeBracket),
           brackets: true,
         );
@@ -1944,7 +1944,7 @@ abstract class StylesheetParser(
 
       singleExpression_ = BinaryOperationExpression(operator, left, right);
 
-      if (operator case BinaryOperator.plus || BinaryOperator.minus) {
+      if (operator case .plus || .minus) {
         if (scanner.string.substring(
                   right.span.start.offset - 1,
                   right.span.start.offset,
@@ -1995,12 +1995,12 @@ abstract class StylesheetParser(
 
     void addOperator(BinaryOperator operator) {
       if (plainCss &&
-          operator != BinaryOperator.singleEquals &&
+          operator != .singleEquals &&
           // These are allowed in calculations, so we have to check them at
           // evaluation time.
-          operator != BinaryOperator.plus &&
-          operator != BinaryOperator.minus &&
-          operator != BinaryOperator.times) {
+          operator != .plus &&
+          operator != .minus &&
+          operator != .times) {
         scanner.error(
           "Operators aren't allowed in plain CSS.",
           position: scanner.position - operator.operator.length,
@@ -2026,7 +2026,7 @@ abstract class StylesheetParser(
       var operatorEnd = scanner.position;
       whitespace(consumeNewlines: true);
 
-      if (operator == BinaryOperator.modulo && !_lookingAtExpression()) {
+      if (operator == .modulo && !_lookingAtExpression()) {
         addSingleExpression(
           StringExpression.plain(
             '%',
@@ -2056,7 +2056,7 @@ abstract class StylesheetParser(
       spaceExpressions.add(singleExpression);
       singleExpression_ = ListExpression(
         spaceExpressions,
-        ListSeparator.space,
+        .space,
         spaceExpressions.first.span.expand(singleExpression.span),
       );
       spaceExpressions_ = null;
@@ -2074,7 +2074,7 @@ abstract class StylesheetParser(
       slashExpressions.add(singleExpression);
       singleExpression_ = ListExpression(
         slashExpressions,
-        ListSeparator.slash,
+        .slash,
         slashExpressions.first.span.expand(singleExpression.span),
       );
       slashExpressions_ = null;
@@ -2111,10 +2111,10 @@ abstract class StylesheetParser(
         case $equal:
           scanner.readChar();
           if (singleEquals && scanner.peekChar() != $equal) {
-            addOperator(BinaryOperator.singleEquals);
+            addOperator(.singleEquals);
           } else {
             scanner.expectChar($equal);
-            addOperator(BinaryOperator.equals);
+            addOperator(.equals);
           }
 
         case $exclamation:
@@ -2122,7 +2122,7 @@ abstract class StylesheetParser(
             case $equal:
               scanner.readChar();
               scanner.readChar();
-              addOperator(BinaryOperator.notEquals);
+              addOperator(.notEquals);
             case null || $i || $I || int(isWhitespace: true):
               addSingleExpression(_importantExpression());
             case _:
@@ -2131,30 +2131,24 @@ abstract class StylesheetParser(
 
         case $langle:
           scanner.readChar();
-          addOperator(
-            scanner.scanChar($equal)
-                ? BinaryOperator.lessThanOrEquals
-                : BinaryOperator.lessThan,
-          );
+          addOperator(scanner.scanChar($equal) ? .lessThanOrEquals : .lessThan);
 
         case $rangle:
           scanner.readChar();
           addOperator(
-            scanner.scanChar($equal)
-                ? BinaryOperator.greaterThanOrEquals
-                : BinaryOperator.greaterThan,
+            scanner.scanChar($equal) ? .greaterThanOrEquals : .greaterThan,
           );
 
         case $asterisk:
           scanner.readChar();
-          addOperator(BinaryOperator.times);
+          addOperator(.times);
 
         case $plus when singleExpression_ == null:
           addSingleExpression(_unaryOperation());
 
         case $plus:
           scanner.readChar();
-          addOperator(BinaryOperator.plus);
+          addOperator(.plus);
 
         case $minus:
           if (scanner.peekChar(1) case int(isDigit: true) || $dot
@@ -2168,12 +2162,12 @@ abstract class StylesheetParser(
             addSingleExpression(_unaryOperation());
           } else {
             scanner.readChar();
-            addOperator(BinaryOperator.minus);
+            addOperator(.minus);
           }
 
         case $percent:
           scanner.readChar();
-          addOperator(BinaryOperator.modulo);
+          addOperator(.modulo);
 
         // dart-lang/sdk#52740
         // ignore: non_constant_relational_pattern_expression
@@ -2187,10 +2181,10 @@ abstract class StylesheetParser(
           addSingleExpression(_number());
 
         case $a when !plainCss && scanIdentifier("and"):
-          addOperator(BinaryOperator.and);
+          addOperator(.and);
 
         case $o when !plainCss && scanIdentifier("or"):
-          addOperator(BinaryOperator.or);
+          addOperator(.or);
 
         // dart-lang/sdk#52740
         // ignore: non_constant_relational_pattern_expression
@@ -2259,7 +2253,7 @@ abstract class StylesheetParser(
       _inExpression = wasInExpression;
       return ListExpression(
         commaExpressions,
-        ListSeparator.comma,
+        .comma,
         spanFrom(beforeBracket ?? start),
         brackets: bracketList,
       );
@@ -2269,7 +2263,7 @@ abstract class StylesheetParser(
       _inExpression = wasInExpression;
       return ListExpression(
         slashExpressions..add(singleExpression_!),
-        ListSeparator.slash,
+        .slash,
         scanner.spanFrom(beforeBracket!),
         brackets: true,
       );
@@ -2279,7 +2273,7 @@ abstract class StylesheetParser(
       _inExpression = wasInExpression;
       return ListExpression(
         spaceExpressions..add(singleExpression_!),
-        ListSeparator.space,
+        .space,
         spanFrom(beforeBracket!),
         brackets: true,
       );
@@ -2289,7 +2283,7 @@ abstract class StylesheetParser(
         scanner.expectChar($rbracket);
         singleExpression_ = ListExpression(
           [singleExpression_!],
-          ListSeparator.undecided,
+          .undecided,
           spanFrom(beforeBracket!),
           brackets: true,
         );
@@ -2353,7 +2347,7 @@ abstract class StylesheetParser(
     var inside = scanner.state;
     if (!_lookingAtExpression()) {
       scanner.expectChar($rparen);
-      return ListExpression([], ListSeparator.undecided, spanFrom(start));
+      return ListExpression([], .undecided, spanFrom(start));
     }
 
     var first = expressionUntilComma();
@@ -2376,11 +2370,7 @@ abstract class StylesheetParser(
       whitespace(consumeNewlines: true);
     }
 
-    var list = ListExpression(
-      expressions,
-      ListSeparator.comma,
-      scanner.spanFrom(inside),
-    );
+    var list = ListExpression(expressions, .comma, scanner.spanFrom(inside));
     scanner.expectChar($rparen);
     return ParenthesizedExpression(list, scanner.spanFrom(start));
   }
@@ -2535,7 +2525,7 @@ abstract class StylesheetParser(
     var operator = _unaryOperatorFor(scanner.readChar());
     if (operator == null) {
       scanner.error("Expected unary operator.", position: scanner.position - 1);
-    } else if (plainCss && operator != UnaryOperator.divide) {
+    } else if (plainCss && operator != .divide) {
       scanner.error(
         "Operators aren't allowed in plain CSS.",
         position: scanner.position - 1,
@@ -2551,9 +2541,9 @@ abstract class StylesheetParser(
   /// Returns the unary operator corresponding to [character], or `null` if
   /// the character is not a unary operator.
   UnaryOperator? _unaryOperatorFor(int character) => switch (character) {
-    $plus => UnaryOperator.plus,
-    $minus => UnaryOperator.minus,
-    $slash => UnaryOperator.divide,
+    $plus => .plus,
+    $minus => .minus,
+    $slash => .divide,
     _ => null,
   };
 
@@ -2840,7 +2830,7 @@ abstract class StylesheetParser(
             identifier.span.expand(invocation.span),
           );
           warnings.add((
-            deprecation: Deprecation.ifFunction,
+            deprecation: .ifFunction,
             message:
                 'The Sass if() syntax is deprecated in favor of the modern CSS '
                 'syntax.\n'
@@ -2863,7 +2853,7 @@ abstract class StylesheetParser(
         whitespace(consumeNewlines: true);
         var expression = _singleExpression();
         return UnaryOperationExpression(
-          UnaryOperator.not,
+          .not,
           expression,
           identifier.span.expand(expression.span),
         );
@@ -2881,8 +2871,8 @@ abstract class StylesheetParser(
         }
 
         if (colorsByName[lower] case var color?) {
-          assert(color.space == ColorSpace.rgb);
-          color = SassColor.rgbInternal(
+          assert(color.space == .rgb);
+          color = .rgbInternal(
             color.channel0,
             color.channel1,
             color.channel2,
@@ -2965,21 +2955,21 @@ abstract class StylesheetParser(
 
     whitespace(consumeNewlines: true);
     while (true) {
-      if (op != BooleanOperator.or && scanIdentifier("and")) {
+      if (op != .or && scanIdentifier("and")) {
         if (scanner.peekChar() == $lparen) {
           scanner.error('Whitespace is required between "and" and "("');
         }
 
         whitespace(consumeNewlines: true);
-        op ??= BooleanOperator.and;
+        op ??= .and;
         groups.add(_ifGroup());
-      } else if (op != BooleanOperator.and && scanIdentifier("or")) {
+      } else if (op != .and && scanIdentifier("or")) {
         if (scanner.peekChar() == $lparen) {
           scanner.error('Whitespace is required between "and" and "("');
         }
 
         whitespace(consumeNewlines: true);
-        op ??= BooleanOperator.or;
+        op ??= .or;
         groups.add(_ifGroup());
       } else if (scanner.peekChar() case var next?
           when next != $rparen &&
@@ -3043,24 +3033,24 @@ abstract class StylesheetParser(
 
     whitespace(consumeNewlines: true);
     while (true) {
-      if (op != BooleanOperator.or && scanIdentifier("and")) {
+      if (op != .or && scanIdentifier("and")) {
         if (scanner.peekChar() == $lparen) {
           scanner.error('Whitespace is required between "and" and "("');
         }
 
         whitespace(consumeNewlines: true);
-        op ??= BooleanOperator.and;
+        op ??= .and;
         var lastGroup = _ifGroup();
         buffer
           ..write(" and ")
           ..addInterpolation(lastGroup.toInterpolation(substitution));
-      } else if (op != BooleanOperator.and && scanIdentifier("or")) {
+      } else if (op != .and && scanIdentifier("or")) {
         if (scanner.peekChar() == $lparen) {
           scanner.error('Whitespace is required between "or" and "("');
         }
 
         whitespace(consumeNewlines: true);
-        op ??= BooleanOperator.or;
+        op ??= .or;
         lastGroup = _ifGroup();
         whitespace(consumeNewlines: true);
         buffer
@@ -3264,7 +3254,7 @@ abstract class StylesheetParser(
                 ? "no longer be valid syntax"
                 : "be parsed as SassScript";
             warnings.add((
-              deprecation: Deprecation.functionName,
+              deprecation: .functionName,
               message:
                   "Vendor-prefixed $normalized() functions will no longer have "
                   "special parsing in a future release of Dart Sass. Once that "
@@ -3311,7 +3301,7 @@ abstract class StylesheetParser(
               quotes: true,
             ).asInterpolation();
             warnings.add((
-              deprecation: Deprecation.functionName,
+              deprecation: .functionName,
               message:
                   "Vendor-prefixed progid:...() functions will no longer be "
                   "supported in a future release of Dart Sass. To preserve "
@@ -3408,7 +3398,7 @@ abstract class StylesheetParser(
               quotes: true,
             ).asInterpolation();
             warnings.add((
-              deprecation: Deprecation.functionName,
+              deprecation: .functionName,
               message:
                   "Vendor-prefixed url() functions will no longer have "
                   "special parsing in a future release of Dart Sass. Once "
@@ -3861,23 +3851,17 @@ abstract class StylesheetParser(
         case $plus when allowCombinator:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinator = CssValue(
-            Combinator.nextSibling,
-            spanFrom(combinatorStart),
-          );
+          combinator = CssValue(.nextSibling, spanFrom(combinatorStart));
 
         case $gt when allowCombinator:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinator = CssValue(Combinator.child, spanFrom(combinatorStart));
+          combinator = CssValue(.child, spanFrom(combinatorStart));
 
         case $tilde when allowCombinator:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinator = CssValue(
-            Combinator.followingSibling,
-            spanFrom(combinatorStart),
-          );
+          combinator = CssValue(.followingSibling, spanFrom(combinatorStart));
 
         case null:
           break loop;
@@ -4066,27 +4050,27 @@ abstract class StylesheetParser(
     AttributeOperator op;
     switch (scanner.readChar()) {
       case $equal:
-        op = AttributeOperator.equal;
+        op = .equal;
 
       case $tilde:
         scanner.expectChar($equal);
-        op = AttributeOperator.include;
+        op = .include;
 
       case $pipe:
         scanner.expectChar($equal);
-        op = AttributeOperator.dash;
+        op = .dash;
 
       case $caret:
         scanner.expectChar($equal);
-        op = AttributeOperator.prefix;
+        op = .prefix;
 
       case $dollar:
         scanner.expectChar($equal);
-        op = AttributeOperator.suffix;
+        op = .suffix;
 
       case $asterisk:
         scanner.expectChar($equal);
-        op = AttributeOperator.substring;
+        op = .substring;
 
       default:
         scanner.error('Expected "]".', position: start.position);
@@ -4460,10 +4444,10 @@ abstract class StylesheetParser(
       if (operator != null) {
         expectIdentifier(operator.name);
       } else if (scanIdentifier("or")) {
-        operator = BooleanOperator.or;
+        operator = .or;
       } else {
         expectIdentifier("and");
-        operator = BooleanOperator.and;
+        operator = .and;
       }
 
       whitespace(consumeNewlines: inParentheses);
@@ -4604,9 +4588,9 @@ abstract class StylesheetParser(
       if (operator != null) {
         expectIdentifier(operator.name);
       } else if (scanIdentifier("and")) {
-        operator = BooleanOperator.and;
+        operator = .and;
       } else if (scanIdentifier("or")) {
-        operator = BooleanOperator.or;
+        operator = .or;
       } else {
         scanner.state = beforeWhitespace;
         return null;

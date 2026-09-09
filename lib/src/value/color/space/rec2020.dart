@@ -42,16 +42,13 @@ final class const Rec2020ColorSpace() extends ColorSpace {
   @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
-    ColorSpace.srgbLinear ||
-    ColorSpace.srgb ||
-    ColorSpace.rgb => linearRec2020ToLinearSrgb,
-    ColorSpace.a98Rgb => linearRec2020ToLinearA98Rgb,
-    ColorSpace.displayP3 ||
-    ColorSpace.displayP3Linear => linearRec2020ToLinearDisplayP3,
-    ColorSpace.prophotoRgb => linearRec2020ToLinearProphotoRgb,
-    ColorSpace.xyzD65 => linearRec2020ToXyzD65,
-    ColorSpace.xyzD50 => linearRec2020ToXyzD50,
-    ColorSpace.lms => linearRec2020ToLms,
+    .srgbLinear || .srgb || .rgb => linearRec2020ToLinearSrgb,
+    .a98Rgb => linearRec2020ToLinearA98Rgb,
+    .displayP3 || .displayP3Linear => linearRec2020ToLinearDisplayP3,
+    .prophotoRgb => linearRec2020ToLinearProphotoRgb,
+    .xyzD65 => linearRec2020ToXyzD65,
+    .xyzD50 => linearRec2020ToXyzD50,
+    .lms => linearRec2020ToLms,
     _ => super.transformationMatrix(dest),
   };
 }

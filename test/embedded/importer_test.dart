@@ -617,7 +617,7 @@ void main() {
             ..id = request.id
             ..success = (InboundMessage_ImportResponse_ImportSuccess()
               ..contents = "a\n  b: 1px + 2px"
-              ..syntax = Syntax.INDENTED)),
+              ..syntax = .INDENTED)),
       );
 
       await expectSuccess(process, "a { b: 3px; }");
@@ -640,7 +640,7 @@ void main() {
             ..id = request.id
             ..success = (InboundMessage_ImportResponse_ImportSuccess()
               ..contents = "a {b: c}"
-              ..syntax = Syntax.CSS)),
+              ..syntax = .CSS)),
       );
 
       await expectSuccess(process, "a { b: c; }");

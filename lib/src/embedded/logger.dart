@@ -31,7 +31,7 @@ final class EmbeddedLogger(
   void debug(String message, SourceSpan span) {
     _dispatcher.sendLog(
       OutboundMessage_LogEvent()
-        ..type = LogEventType.DEBUG
+        ..type = .DEBUG
         ..message = message
         ..span = protofySpan(span)
         ..formatted =
@@ -48,8 +48,7 @@ final class EmbeddedLogger(
   }) {
     var formatted = withGlyphs(() {
       var buffer = StringBuffer();
-      var showDeprecation =
-          deprecation != null && deprecation != Deprecation.userAuthored;
+      var showDeprecation = deprecation != null && deprecation != .userAuthored;
       if (_color) {
         buffer.write('\u001b[33m\u001b[1m');
         if (deprecation != null) buffer.write('Deprecation ');
@@ -74,9 +73,7 @@ final class EmbeddedLogger(
     }, ascii: _ascii);
 
     var event = OutboundMessage_LogEvent()
-      ..type = deprecation != null
-          ? LogEventType.DEPRECATION_WARNING
-          : LogEventType.WARNING
+      ..type = deprecation != null ? .DEPRECATION_WARNING : .WARNING
       ..message = message
       ..formatted = formatted;
     if (span != null) event.span = protofySpan(span);

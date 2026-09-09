@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 44cb890885fb71df04b591f9998b7e902ef13c4d
+// Checksum: e2e96002a186faacdf1921782e732c69b67c1004
 //
 // ignore_for_file: unused_import
 
@@ -55,7 +55,7 @@ CompileResult compile(
 }) {
   DeprecationProcessingLogger deprecationLogger = logger =
       DeprecationProcessingLogger(
-        logger ?? Logger.defaultLogger,
+        logger ?? .defaultLogger,
         silenceDeprecations: {...?silenceDeprecations},
         fatalDeprecations: {...?fatalDeprecations},
         futureDeprecations: {...?futureDeprecations},
@@ -122,7 +122,7 @@ CompileResult compileString(
 }) {
   DeprecationProcessingLogger deprecationLogger = logger =
       DeprecationProcessingLogger(
-        logger ?? Logger.defaultLogger,
+        logger ?? .defaultLogger,
         silenceDeprecations: {...?silenceDeprecations},
         fatalDeprecations: {...?fatalDeprecations},
         futureDeprecations: {...?futureDeprecations},
@@ -139,11 +139,7 @@ CompileResult compileString(
       'be an absolute, canonical URL.',
     );
   }
-  var stylesheet = Stylesheet.parse(
-    source,
-    syntax ?? Syntax.scss,
-    url: parsedUrl,
-  );
+  var stylesheet = Stylesheet.parse(source, syntax ?? .scss, url: parsedUrl);
 
   var result = _compileStylesheet(
     stylesheet,

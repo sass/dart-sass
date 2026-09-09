@@ -40,7 +40,7 @@ final class const SrgbColorSpace() extends ColorSpace {
     bool missingHue = false,
   }) {
     switch (dest) {
-      case ColorSpace.hsl || ColorSpace.hwb:
+      case .hsl || .hwb:
         red ??= 0;
         green ??= 0;
         blue ??= 0;
@@ -62,7 +62,7 @@ final class const SrgbColorSpace() extends ColorSpace {
           hue = 60 * (red - green) / delta + 240;
         }
 
-        if (dest == ColorSpace.hsl) {
+        if (dest == .hsl) {
           var lightness = (min + max) / 2;
 
           var saturation = lightness == 0 || lightness == 1
@@ -94,7 +94,7 @@ final class const SrgbColorSpace() extends ColorSpace {
           );
         }
 
-      case ColorSpace.rgb:
+      case .rgb:
         return SassColor.rgb(
           red == null ? null : red * 255,
           green == null ? null : green * 255,
@@ -102,7 +102,7 @@ final class const SrgbColorSpace() extends ColorSpace {
           alpha,
         );
 
-      case ColorSpace.srgbLinear:
+      case .srgbLinear:
         return SassColor.forSpaceInternal(
           dest,
           red.andThen(toLinear),
@@ -136,14 +136,13 @@ final class const SrgbColorSpace() extends ColorSpace {
   @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
-    ColorSpace.displayP3 ||
-    ColorSpace.displayP3Linear => linearSrgbToLinearDisplayP3,
-    ColorSpace.a98Rgb => linearSrgbToLinearA98Rgb,
-    ColorSpace.prophotoRgb => linearSrgbToLinearProphotoRgb,
-    ColorSpace.rec2020 => linearSrgbToLinearRec2020,
-    ColorSpace.xyzD65 => linearSrgbToXyzD65,
-    ColorSpace.xyzD50 => linearSrgbToXyzD50,
-    ColorSpace.lms => linearSrgbToLms,
+    .displayP3 || .displayP3Linear => linearSrgbToLinearDisplayP3,
+    .a98Rgb => linearSrgbToLinearA98Rgb,
+    .prophotoRgb => linearSrgbToLinearProphotoRgb,
+    .rec2020 => linearSrgbToLinearRec2020,
+    .xyzD65 => linearSrgbToXyzD65,
+    .xyzD50 => linearSrgbToXyzD50,
+    .lms => linearSrgbToLms,
     _ => super.transformationMatrix(dest),
   };
 }

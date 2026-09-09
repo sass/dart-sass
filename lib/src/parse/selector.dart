@@ -49,7 +49,7 @@ final class SelectorParser(
   Logger? logger,
 }) extends Parser {
   /// The logger used to report deprecation warnings.
-  final Logger _logger = logger ?? Logger.defaultLogger;
+  final Logger _logger = logger ?? .defaultLogger;
 
   /// Creates a parser that parses CSS selectors.
   ///
@@ -164,23 +164,17 @@ final class SelectorParser(
         case $plus when allowCombinator:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinator = CssValue(
-            Combinator.nextSibling,
-            spanFrom(combinatorStart),
-          );
+          combinator = CssValue(.nextSibling, spanFrom(combinatorStart));
 
         case $gt when allowCombinator:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinator = CssValue(Combinator.child, spanFrom(combinatorStart));
+          combinator = CssValue(.child, spanFrom(combinatorStart));
 
         case $tilde when allowCombinator:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinator = CssValue(
-            Combinator.followingSibling,
-            spanFrom(combinatorStart),
-          );
+          combinator = CssValue(.followingSibling, spanFrom(combinatorStart));
 
         case null:
           break loop;
@@ -214,7 +208,7 @@ final class SelectorParser(
               combinator == null &&
               !consumedWhitespace) {
             _logger.warnForDeprecation(
-              Deprecation.adjacentCompounds,
+              .adjacentCompounds,
               'Adjacent compound selectors must be separated by whitespace. '
               'This will be an error in Dart Sass 2.0.0. Suggestion:\n'
               '\n'
@@ -373,27 +367,27 @@ final class SelectorParser(
     var start = scanner.position;
     switch (scanner.readChar()) {
       case $equal:
-        return AttributeOperator.equal;
+        return .equal;
 
       case $tilde:
         scanner.expectChar($equal);
-        return AttributeOperator.include;
+        return .include;
 
       case $pipe:
         scanner.expectChar($equal);
-        return AttributeOperator.dash;
+        return .dash;
 
       case $caret:
         scanner.expectChar($equal);
-        return AttributeOperator.prefix;
+        return .prefix;
 
       case $dollar:
         scanner.expectChar($equal);
-        return AttributeOperator.suffix;
+        return .suffix;
 
       case $asterisk:
         scanner.expectChar($equal);
-        return AttributeOperator.substring;
+        return .substring;
 
       default:
         scanner.error('Expected "]".', position: start);

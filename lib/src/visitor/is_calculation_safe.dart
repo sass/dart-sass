@@ -21,11 +21,11 @@ final class const IsCalculationSafeVisitor()
     implements ExpressionVisitor<bool> {
   @override
   bool visitBinaryOperationExpression(BinaryOperationExpression node) =>
-      (const {
-        BinaryOperator.times,
-        BinaryOperator.dividedBy,
-        BinaryOperator.plus,
-        BinaryOperator.minus,
+      (const <BinaryOperator>{
+        .times,
+        .dividedBy,
+        .plus,
+        .minus,
       }).contains(node.operator) &&
       node.left.accept(this) &&
       node.right.accept(this);
@@ -52,8 +52,7 @@ final class const IsCalculationSafeVisitor()
 
   @override
   bool visitListExpression(ListExpression node) =>
-      (node.separator == ListSeparator.space ||
-          node.separator == ListSeparator.slash) &&
+      (node.separator == .space || node.separator == .slash) &&
       !node.hasBrackets &&
       node.contents.length > 1 &&
       node.contents.every((expression) => expression.accept(this));

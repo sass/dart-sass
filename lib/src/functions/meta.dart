@@ -84,7 +84,7 @@ final moduleFunctions = UnmodifiableListView([
             ? argument
             : SassString(argument.toString(), quotes: false),
       ),
-      ListSeparator.comma,
+      .comma,
     );
   }),
   _function("accepts-content", r"$mixin", (arguments) {

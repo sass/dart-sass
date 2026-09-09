@@ -123,7 +123,7 @@ final JSClass calculationOperationClass = () {
 
   getJSClass(
     SassCalculation.operateInternal(
-      CalculationOperator.plus,
+      .plus,
       SassNumber(1),
       SassNumber(1),
       inLegacySassFunction: null,

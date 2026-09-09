@@ -46,7 +46,7 @@ Future<CompileResult> compileAsync(
 }) async {
   DeprecationProcessingLogger deprecationLogger = logger =
       DeprecationProcessingLogger(
-        logger ?? Logger.defaultLogger,
+        logger ?? .defaultLogger,
         silenceDeprecations: {...?silenceDeprecations},
         fatalDeprecations: {...?fatalDeprecations},
         futureDeprecations: {...?futureDeprecations},
@@ -113,7 +113,7 @@ Future<CompileResult> compileStringAsync(
 }) async {
   DeprecationProcessingLogger deprecationLogger = logger =
       DeprecationProcessingLogger(
-        logger ?? Logger.defaultLogger,
+        logger ?? .defaultLogger,
         silenceDeprecations: {...?silenceDeprecations},
         fatalDeprecations: {...?fatalDeprecations},
         futureDeprecations: {...?futureDeprecations},
@@ -130,11 +130,7 @@ Future<CompileResult> compileStringAsync(
       'be an absolute, canonical URL.',
     );
   }
-  var stylesheet = Stylesheet.parse(
-    source,
-    syntax ?? Syntax.scss,
-    url: parsedUrl,
-  );
+  var stylesheet = Stylesheet.parse(source, syntax ?? .scss, url: parsedUrl);
 
   var result = await _compileStylesheet(
     stylesheet,

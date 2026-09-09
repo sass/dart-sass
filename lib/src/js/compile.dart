@@ -286,8 +286,8 @@ Promise _wrapAsyncSassExceptions(
 
 /// Converts an output style string to an instance of [OutputStyle].
 OutputStyle _parseOutputStyle(String? style) => switch (style) {
-  null || 'expanded' => OutputStyle.expanded,
-  'compressed' => OutputStyle.compressed,
+  null || 'expanded' => .expanded,
+  'compressed' => .compressed,
   _ => jsThrow(JsError('Unknown output style "$style".')),
 };
 

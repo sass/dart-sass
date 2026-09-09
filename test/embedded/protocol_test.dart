@@ -122,19 +122,19 @@ void main() {
     });
 
     test("an SCSS string explicitly", () async {
-      process.send(compileString("a {b: 1px + 2px}", syntax: Syntax.SCSS));
+      process.send(compileString("a {b: 1px + 2px}", syntax: .SCSS));
       await expectSuccess(process, "a { b: 3px; }");
       await process.close();
     });
 
     test("an indented syntax string", () async {
-      process.send(compileString("a\n  b: 1px + 2px", syntax: Syntax.INDENTED));
+      process.send(compileString("a\n  b: 1px + 2px", syntax: .INDENTED));
       await expectSuccess(process, "a { b: 3px; }");
       await process.close();
     });
 
     test("a plain CSS string", () async {
-      process.send(compileString("a {b: c}", syntax: Syntax.CSS));
+      process.send(compileString("a {b: c}", syntax: .CSS));
       await expectSuccess(process, "a { b: c; }");
       await process.close();
     });
@@ -166,17 +166,13 @@ void main() {
 
   group("compiles CSS in", () {
     test("expanded mode", () async {
-      process.send(
-        compileString("a {b: 1px + 2px}", style: OutputStyle.EXPANDED),
-      );
+      process.send(compileString("a {b: 1px + 2px}", style: .EXPANDED));
       await expectSuccess(process, equals("a {\n  b: 3px;\n}"));
       await process.close();
     });
 
     test("compressed mode", () async {
-      process.send(
-        compileString("a {b: 1px + 2px}", style: OutputStyle.COMPRESSED),
-      );
+      process.send(compileString("a {b: 1px + 2px}", style: .COMPRESSED));
       await expectSuccess(process, equals("a{b:3px}"));
       await process.close();
     });
@@ -589,7 +585,7 @@ void main() {
     });
 
     test("caused by using Sass features in CSS", () async {
-      process.send(compileString("a {b: 1px + 2px}", syntax: Syntax.CSS));
+      process.send(compileString("a {b: 1px + 2px}", syntax: .CSS));
 
       var failure = await getCompileFailure(process);
       expect(failure.message, equals("Operators aren't allowed in plain CSS."));

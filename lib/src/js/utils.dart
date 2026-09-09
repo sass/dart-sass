@@ -255,18 +255,18 @@ Object mapToObject(Map<String, Object?> map) {
 
 /// Converts a JavaScript separator string into a [ListSeparator].
 ListSeparator jsToDartSeparator(String? separator) => switch (separator) {
-  ' ' => ListSeparator.space,
-  ',' => ListSeparator.comma,
-  '/' => ListSeparator.slash,
-  null => ListSeparator.undecided,
+  ' ' => .space,
+  ',' => .comma,
+  '/' => .slash,
+  null => .undecided,
   _ => jsThrow(JsError('Unknown separator "$separator".')),
 };
 
 /// Converts a syntax string to an instance of [Syntax].
 Syntax parseSyntax(String? syntax) => switch (syntax) {
-  null || 'scss' => Syntax.scss,
-  'indented' => Syntax.sass,
-  'css' => Syntax.css,
+  null || 'scss' => .scss,
+  'indented' => .sass,
+  'css' => .css,
   _ => jsThrow(JsError('Unknown syntax "$syntax".')),
 };
 

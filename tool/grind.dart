@@ -34,23 +34,14 @@ void main(List<String> args) {
   pkg.homebrewFormula.value = "Formula/sass.rb";
   pkg.homebrewEditFormula.value = _updateHomebrewLanguageRevision;
   pkg.jsRequires.value = [
-    pkg.JSRequire(
-      "@parcel/watcher",
-      target: pkg.JSRequireTarget.cli,
-      lazy: true,
-      optional: true,
-    ),
-    pkg.JSRequire("immutable", target: pkg.JSRequireTarget.all),
-    pkg.JSRequire("chokidar", target: pkg.JSRequireTarget.cli),
-    pkg.JSRequire("readline", target: pkg.JSRequireTarget.cli),
-    pkg.JSRequire("fs", target: pkg.JSRequireTarget.node),
-    pkg.JSRequire(
-      "module",
-      target: pkg.JSRequireTarget.node,
-      identifier: 'nodeModule',
-    ),
-    pkg.JSRequire("stream", target: pkg.JSRequireTarget.node),
-    pkg.JSRequire("util", target: pkg.JSRequireTarget.node),
+    pkg.JSRequire("@parcel/watcher", target: .cli, lazy: true, optional: true),
+    pkg.JSRequire("immutable", target: .all),
+    pkg.JSRequire("chokidar", target: .cli),
+    pkg.JSRequire("readline", target: .cli),
+    pkg.JSRequire("fs", target: .node),
+    pkg.JSRequire("module", target: .node, identifier: 'nodeModule'),
+    pkg.JSRequire("stream", target: .node),
+    pkg.JSRequire("util", target: .node),
   ];
   pkg.jsModuleMainLibrary.value = "lib/src/js.dart";
   pkg.npmPackageJson.fn = () =>

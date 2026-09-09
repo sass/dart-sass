@@ -35,7 +35,7 @@ final class FileImporter(
     if (!response.containingUrlUnused) canonicalizeContext.containingUrl;
 
     switch (response.whichResult()) {
-      case InboundMessage_FileImportResponse_Result.fileUrl:
+      case .fileUrl:
         var url = parseAbsoluteUrl("The file importer", response.fileUrl);
         if (url.scheme != 'file') {
           throw 'The file importer must return a file: URL, was "$url"';
@@ -43,10 +43,10 @@ final class FileImporter(
 
         return FilesystemImporter.noLoadPath.canonicalize(url);
 
-      case InboundMessage_FileImportResponse_Result.error:
+      case .error:
         throw response.error;
 
-      case InboundMessage_FileImportResponse_Result.notSet:
+      case .notSet:
         return null;
     }
   }

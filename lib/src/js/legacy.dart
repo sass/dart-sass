@@ -91,14 +91,14 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
   CompileResult result;
 
   var file = options.file.andThen(p.absolute);
-  var logger = JSToDartLogger(options.logger, Logger.defaultLogger);
+  var logger = JSToDartLogger(options.logger, .defaultLogger);
   if (options.data case var data?) {
     result = await compileStringAsync(
       data,
       nodeImporter: _parseImporter(options, start),
       importCache: _parsePackageImportersAsync(options, start),
       functions: _parseFunctions(options, start, asynch: true),
-      syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
+      syntax: isTruthy(options.indentedSyntax) ? .sass : null,
       style: _parseOutputStyle(options.outputStyle),
       useSpaces: options.indentType != 'tab',
       indentWidth: _parseIndentWidth(options.indentWidth),
@@ -126,7 +126,7 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
       nodeImporter: _parseImporter(options, start),
       importCache: _parsePackageImportersAsync(options, start),
       functions: _parseFunctions(options, start, asynch: true),
-      syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
+      syntax: isTruthy(options.indentedSyntax) ? .sass : null,
       style: _parseOutputStyle(options.outputStyle),
       useSpaces: options.indentType != 'tab',
       indentWidth: _parseIndentWidth(options.indentWidth),
@@ -169,14 +169,14 @@ RenderResult renderSync(RenderOptions options) {
     CompileResult result;
 
     var file = options.file.andThen(p.absolute);
-    var logger = JSToDartLogger(options.logger, Logger.defaultLogger);
+    var logger = JSToDartLogger(options.logger, .defaultLogger);
     if (options.data case var data?) {
       result = compileString(
         data,
         nodeImporter: _parseImporter(options, start),
         importCache: _parsePackageImporters(options, start),
         functions: _parseFunctions(options, start).cast(),
-        syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
+        syntax: isTruthy(options.indentedSyntax) ? .sass : null,
         style: _parseOutputStyle(options.outputStyle),
         useSpaces: options.indentType != 'tab',
         indentWidth: _parseIndentWidth(options.indentWidth),
@@ -207,7 +207,7 @@ RenderResult renderSync(RenderOptions options) {
         nodeImporter: _parseImporter(options, start),
         importCache: _parsePackageImporters(options, start),
         functions: _parseFunctions(options, start).cast(),
-        syntax: isTruthy(options.indentedSyntax) ? Syntax.sass : null,
+        syntax: isTruthy(options.indentedSyntax) ? .sass : null,
         style: _parseOutputStyle(options.outputStyle),
         useSpaces: options.indentType != 'tab',
         indentWidth: _parseIndentWidth(options.indentWidth),
@@ -442,8 +442,8 @@ RenderContextOptions _contextOptions(RenderOptions options, DateTime start) {
 
 /// Parse [style] into an [OutputStyle].
 OutputStyle _parseOutputStyle(String? style) => switch (style) {
-  null || 'expanded' => OutputStyle.expanded,
-  'compressed' => OutputStyle.compressed,
+  null || 'expanded' => .expanded,
+  'compressed' => .compressed,
   _ => jsThrow(JsError('Unknown output style "$style".')),
 };
 
@@ -456,10 +456,10 @@ int? _parseIndentWidth(Object? width) => switch (width) {
 
 /// Parses the name of a line feed type into a [LineFeed].
 LineFeed _parseLineFeed(String? str) => switch (str) {
-  'cr' => LineFeed.cr,
-  'crlf' => LineFeed.crlf,
-  'lfcr' => LineFeed.lfcr,
-  _ => LineFeed.lf,
+  'cr' => .cr,
+  'crlf' => .crlf,
+  'lfcr' => .lfcr,
+  _ => .lf,
 };
 
 /// Creates a [RenderResult] that exposes [result] in the Node Sass API format.

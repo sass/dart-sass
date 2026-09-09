@@ -107,7 +107,7 @@ interface class ExtensionStore {
     SelectorList source,
     SelectorList targets,
     FileSpan span,
-  ) => _extendOrReplace(selector, source, targets, ExtendMode.allTargets, span);
+  ) => _extendOrReplace(selector, source, targets, .allTargets, span);
 
   /// Returns a copy of [selector] with [targets] replaced by [source].
   static SelectorList replace(
@@ -115,7 +115,7 @@ interface class ExtensionStore {
     SelectorList source,
     SelectorList targets,
     FileSpan span,
-  ) => _extendOrReplace(selector, source, targets, ExtendMode.replace, span);
+  ) => _extendOrReplace(selector, source, targets, .replace, span);
 
   /// A helper function for [extend] and [replace].
   static SelectorList _extendOrReplace(
@@ -157,7 +157,7 @@ interface class ExtensionStore {
   /// extensions.
   Set<SimpleSelector> get simpleSelectors => MapKeySet(_selectors);
 
-  new() : this._mode(ExtendMode.normal);
+  new() : this._mode(.normal);
 
   new _mode(this._mode)
     : _selectors = {},
@@ -178,7 +178,7 @@ interface class ExtensionStore {
     this._originals,
     this._selectorsWithModernPseudos,
     this._extensionsWithModernPseudos,
-  ) : _mode = ExtendMode.normal;
+  ) : _mode = .normal;
 
   /// Returns all mandatory extensions in this extender for whose targets
   /// [callback] returns `true`.
@@ -541,11 +541,7 @@ interface class ExtensionStore {
         // Add [newSources] to [_extensions].
         if (_extensions[target] case var existingSources?) {
           for (var (extender, extension) in newSources.pairs) {
-            extension = existingSources.putOrMerge(
-              extender,
-              extension,
-              MergedExtension.merge,
-            );
+            extension = existingSources.putOrMerge(extender, extension, .merge);
 
             if (extensionsForTarget != null || selectorsForTarget != null) {
               (newExtensions ??= {}).putIfAbsent(target, () => {})[extender] =
@@ -753,7 +749,7 @@ interface class ExtensionStore {
   }) {
     // If there's more than one target and they all need to match, we track
     // which targets are actually extended.
-    var targetsUsed = _mode == ExtendMode.normal || extensions.length < 2
+    var targetsUsed = _mode == .normal || extensions.length < 2
         ? null
         : <SimpleSelector>{};
 
@@ -902,7 +898,7 @@ interface class ExtensionStore {
     //     ]
     var extenderPaths = paths(options);
     var result = [
-      if (_mode != ExtendMode.replace)
+      if (_mode != .replace)
         // The first path is always the original selector. We can't just return
         // [component] directly because selector pseudos may be modified, but we
         // don't have to do any unification.
@@ -921,7 +917,7 @@ interface class ExtensionStore {
         ], component.span),
     ];
 
-    for (var path in extenderPaths.skip(_mode == ExtendMode.replace ? 0 : 1)) {
+    for (var path in extenderPaths.skip(_mode == .replace ? 0 : 1)) {
       var extended = _unifyExtenders(path, mediaQueryContext, component.span);
       if (extended == null) continue;
 
@@ -936,7 +932,7 @@ interface class ExtensionStore {
     // If we're preserving the original selector, mark the first unification as
     // such so [_trim] doesn't get rid of it.
     var isOriginal = (ComplexSelector _) => false;
-    if (inOriginal && _mode != ExtendMode.replace) {
+    if (inOriginal && _mode != .replace) {
       var original = result.first;
       isOriginal = (complex) => complex == original;
     }
@@ -1007,7 +1003,7 @@ interface class ExtensionStore {
       targetsUsed?.add(simple);
 
       return [
-        if (_mode != ExtendMode.replace) _extenderForSimple(simple),
+        if (_mode != .replace) _extenderForSimple(simple),
         for (var extension in extensionsForSimple.values) extension.extender,
       ];
     }

@@ -13,9 +13,9 @@ import 'package:sass/src/embedded/utils.dart';
 import 'embedded_process.dart';
 import 'utils.dart';
 
-final _true = Value()..singleton = SingletonValue.TRUE;
-final _false = Value()..singleton = SingletonValue.FALSE;
-final _null = Value()..singleton = SingletonValue.NULL;
+final _true = Value()..singleton = .TRUE;
+final _false = Value()..singleton = .FALSE;
+final _null = Value()..singleton = .NULL;
 
 late EmbeddedProcess _process;
 
@@ -159,7 +159,7 @@ void main() {
               Value()
                 ..argumentList = (Value_ArgumentList()
                   ..id = 1
-                  ..separator = ListSeparator.COMMA
+                  ..separator = .COMMA
                   ..contents.addAll([_false, _null])),
             ]),
           );
@@ -181,7 +181,7 @@ void main() {
               Value()
                 ..argumentList = (Value_ArgumentList()
                   ..id = 1
-                  ..separator = ListSeparator.COMMA
+                  ..separator = .COMMA
                   ..contents.addAll([_true])
                   ..keywords.addAll({"arg": _false})),
             ]),
@@ -950,7 +950,7 @@ void main() {
               ..arguments.add(
                 Value_Calculation_CalculationValue()
                   ..operation = (Value_Calculation_CalculationOperation()
-                    ..operator = CalculationOperator.PLUS
+                    ..operator = .PLUS
                     ..left = (Value_Calculation_CalculationValue()
                       ..number = (Value_Number()
                         ..value = 1.0
@@ -1278,7 +1278,7 @@ void main() {
               Value()
                 ..list = (Value_List()
                   ..hasBrackets = true
-                  ..separator = ListSeparator.UNDECIDED),
+                  ..separator = .UNDECIDED),
               "[]",
             );
           });
@@ -1288,7 +1288,7 @@ void main() {
               Value()
                 ..list = (Value_List()
                   ..hasBrackets = true
-                  ..separator = ListSeparator.COMMA),
+                  ..separator = .COMMA),
               "[]",
             );
           });
@@ -1298,7 +1298,7 @@ void main() {
               Value()
                 ..list = (Value_List()
                   ..hasBrackets = true
-                  ..separator = ListSeparator.SPACE),
+                  ..separator = .SPACE),
               "[]",
             );
           });
@@ -1308,7 +1308,7 @@ void main() {
               Value()
                 ..list = (Value_List()
                   ..hasBrackets = true
-                  ..separator = ListSeparator.SLASH),
+                  ..separator = .SLASH),
               "[]",
             );
           });
@@ -1320,7 +1320,7 @@ void main() {
               Value()
                 ..list = (Value_List()
                   ..hasBrackets = false
-                  ..separator = ListSeparator.UNDECIDED),
+                  ..separator = .UNDECIDED),
               "()",
               inspect: true,
             );
@@ -1331,7 +1331,7 @@ void main() {
               Value()
                 ..list = (Value_List()
                   ..hasBrackets = false
-                  ..separator = ListSeparator.COMMA),
+                  ..separator = .COMMA),
               "()",
               inspect: true,
             );
@@ -1342,7 +1342,7 @@ void main() {
               Value()
                 ..list = (Value_List()
                   ..hasBrackets = false
-                  ..separator = ListSeparator.SPACE),
+                  ..separator = .SPACE),
               "()",
               inspect: true,
             );
@@ -1353,7 +1353,7 @@ void main() {
               Value()
                 ..list = (Value_List()
                   ..hasBrackets = false
-                  ..separator = ListSeparator.SLASH),
+                  ..separator = .SLASH),
               "()",
               inspect: true,
             );
@@ -1369,7 +1369,7 @@ void main() {
                 ..list = (Value_List()
                   ..contents.add(_true)
                   ..hasBrackets = true
-                  ..separator = ListSeparator.UNDECIDED),
+                  ..separator = .UNDECIDED),
               "[true]",
             );
           });
@@ -1381,7 +1381,7 @@ void main() {
                   ..list = (Value_List()
                     ..contents.add(_true)
                     ..hasBrackets = true
-                    ..separator = ListSeparator.COMMA),
+                    ..separator = .COMMA),
                 inspect: true,
               ),
               "[true,]",
@@ -1394,7 +1394,7 @@ void main() {
                 ..list = (Value_List()
                   ..contents.add(_true)
                   ..hasBrackets = true
-                  ..separator = ListSeparator.SPACE),
+                  ..separator = .SPACE),
               "[true]",
             );
           });
@@ -1405,7 +1405,7 @@ void main() {
                 ..list = (Value_List()
                   ..contents.add(_true)
                   ..hasBrackets = true
-                  ..separator = ListSeparator.SLASH),
+                  ..separator = .SLASH),
               "[true]",
             );
           });
@@ -1418,7 +1418,7 @@ void main() {
                 ..list = (Value_List()
                   ..contents.add(_true)
                   ..hasBrackets = false
-                  ..separator = ListSeparator.UNDECIDED),
+                  ..separator = .UNDECIDED),
               "true",
             );
           });
@@ -1430,7 +1430,7 @@ void main() {
                   ..list = (Value_List()
                     ..contents.add(_true)
                     ..hasBrackets = false
-                    ..separator = ListSeparator.COMMA),
+                    ..separator = .COMMA),
                 inspect: true,
               ),
               "(true,)",
@@ -1443,7 +1443,7 @@ void main() {
                 ..list = (Value_List()
                   ..contents.add(_true)
                   ..hasBrackets = false
-                  ..separator = ListSeparator.SPACE),
+                  ..separator = .SPACE),
               "true",
             );
           });
@@ -1454,7 +1454,7 @@ void main() {
                 ..list = (Value_List()
                   ..contents.add(_true)
                   ..hasBrackets = false
-                  ..separator = ListSeparator.SLASH),
+                  ..separator = .SLASH),
               "true",
             );
           });
@@ -1470,7 +1470,7 @@ void main() {
                   ..list = (Value_List()
                     ..contents.addAll([_true, _null, _false])
                     ..hasBrackets = true
-                    ..separator = ListSeparator.COMMA),
+                    ..separator = .COMMA),
                 inspect: true,
               ),
               "[true, null, false]",
@@ -1484,7 +1484,7 @@ void main() {
                   ..list = (Value_List()
                     ..contents.addAll([_true, _null, _false])
                     ..hasBrackets = true
-                    ..separator = ListSeparator.SPACE),
+                    ..separator = .SPACE),
                 inspect: true,
               ),
               "[true null false]",
@@ -1498,7 +1498,7 @@ void main() {
                   ..list = (Value_List()
                     ..contents.addAll([_true, _null, _false])
                     ..hasBrackets = true
-                    ..separator = ListSeparator.SLASH),
+                    ..separator = .SLASH),
                 inspect: true,
               ),
               "[true / null / false]",
@@ -1514,7 +1514,7 @@ void main() {
                   ..list = (Value_List()
                     ..contents.addAll([_true, _null, _false])
                     ..hasBrackets = false
-                    ..separator = ListSeparator.COMMA),
+                    ..separator = .COMMA),
                 inspect: true,
               ),
               "true, null, false",
@@ -1528,7 +1528,7 @@ void main() {
                   ..list = (Value_List()
                     ..contents.addAll([_true, _null, _false])
                     ..hasBrackets = false
-                    ..separator = ListSeparator.SPACE),
+                    ..separator = .SPACE),
                 inspect: true,
               ),
               "true null false",
@@ -1542,7 +1542,7 @@ void main() {
                   ..list = (Value_List()
                     ..contents.addAll([_true, _null, _false])
                     ..hasBrackets = false
-                    ..separator = ListSeparator.SLASH),
+                    ..separator = .SLASH),
                 inspect: true,
               ),
               "true / null / false",
@@ -1557,14 +1557,13 @@ void main() {
         expect(
           await _roundTrip(
             Value()
-              ..argumentList = (Value_ArgumentList()
-                ..separator = ListSeparator.UNDECIDED),
+              ..argumentList = (Value_ArgumentList()..separator = .UNDECIDED),
           ),
           equals(
             Value()
               ..argumentList = (Value_ArgumentList()
                 ..id = 1
-                ..separator = ListSeparator.UNDECIDED),
+                ..separator = .UNDECIDED),
           ),
         );
       });
@@ -1575,14 +1574,14 @@ void main() {
             Value()
               ..argumentList = (Value_ArgumentList()
                 ..contents.addAll([_true, _false, _null])
-                ..separator = ListSeparator.COMMA),
+                ..separator = .COMMA),
           ),
           equals(
             Value()
               ..argumentList = (Value_ArgumentList()
                 ..id = 1
                 ..contents.addAll([_true, _false, _null])
-                ..separator = ListSeparator.COMMA),
+                ..separator = .COMMA),
           ),
         );
       });
@@ -1593,14 +1592,14 @@ void main() {
             Value()
               ..argumentList = (Value_ArgumentList()
                 ..contents.addAll([_true, _false, _null])
-                ..separator = ListSeparator.SPACE),
+                ..separator = .SPACE),
           ),
           equals(
             Value()
               ..argumentList = (Value_ArgumentList()
                 ..id = 1
                 ..contents.addAll([_true, _false, _null])
-                ..separator = ListSeparator.SPACE),
+                ..separator = .SPACE),
           ),
         );
       });
@@ -1611,14 +1610,14 @@ void main() {
             Value()
               ..argumentList = (Value_ArgumentList()
                 ..contents.addAll([_true, _false, _null])
-                ..separator = ListSeparator.SLASH),
+                ..separator = .SLASH),
           ),
           equals(
             Value()
               ..argumentList = (Value_ArgumentList()
                 ..id = 1
                 ..contents.addAll([_true, _false, _null])
-                ..separator = ListSeparator.SLASH),
+                ..separator = .SLASH),
           ),
         );
       });
@@ -1629,14 +1628,14 @@ void main() {
             Value()
               ..argumentList = (Value_ArgumentList()
                 ..keywords.addAll({"arg1": _true, "arg2": _false})
-                ..separator = ListSeparator.COMMA),
+                ..separator = .COMMA),
           ),
           equals(
             Value()
               ..argumentList = (Value_ArgumentList()
                 ..id = 1
                 ..keywords.addAll({"arg1": _true, "arg2": _false})
-                ..separator = ListSeparator.COMMA),
+                ..separator = .COMMA),
           ),
         );
       });
@@ -1798,7 +1797,7 @@ void main() {
                 ..arguments.add(
                   Value_Calculation_CalculationValue()
                     ..operation = (Value_Calculation_CalculationOperation()
-                      ..operator = CalculationOperator.PLUS
+                      ..operator = .PLUS
                       ..left = (Value_Calculation_CalculationValue()
                         ..number = (Value_Number()
                           ..value = 1.0
@@ -1823,7 +1822,7 @@ void main() {
                   ..arguments.add(
                     Value_Calculation_CalculationValue()
                       ..operation = (Value_Calculation_CalculationOperation()
-                        ..operator = CalculationOperator.PLUS
+                        ..operator = .PLUS
                         ..left = (Value_Calculation_CalculationValue()
                           ..number = (Value_Number()..value = 1.0))
                         ..right = (Value_Calculation_CalculationValue()
@@ -1843,7 +1842,7 @@ void main() {
                   ..arguments.add(
                     Value_Calculation_CalculationValue()
                       ..operation = (Value_Calculation_CalculationOperation()
-                        ..operator = CalculationOperator.PLUS
+                        ..operator = .PLUS
                         ..left = (Value_Calculation_CalculationValue()
                           ..number = (Value_Number()
                             ..value = 1.0
@@ -1851,7 +1850,7 @@ void main() {
                         ..right = (Value_Calculation_CalculationValue()
                           ..operation =
                               (Value_Calculation_CalculationOperation()
-                                ..operator = CalculationOperator.PLUS
+                                ..operator = .PLUS
                                 ..left = (Value_Calculation_CalculationValue()
                                   ..number = (Value_Number()
                                     ..value = 2.0
@@ -1985,7 +1984,7 @@ void main() {
           Value()
             ..list = (Value_List()
               ..contents.addAll([_true, _false])
-              ..separator = ListSeparator.UNDECIDED),
+              ..separator = .UNDECIDED),
           endsWith(
             "can't have an undecided separator because it has 2 "
             "elements",

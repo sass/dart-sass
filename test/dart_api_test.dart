@@ -181,7 +181,7 @@ void main() {
         importers: [
           TestImporter(
             (url) => url.scheme == 'first' ? url : null,
-            (url) => ImporterResult('a {from: first}', syntax: Syntax.scss),
+            (url) => ImporterResult('a {from: first}', syntax: .scss),
           ),
           // This importer should only be invoked once, because when the
           // "first:other" import is resolved it should be passed to the first
@@ -191,7 +191,7 @@ void main() {
               (url) => url.scheme == 'second' ? url : null,
               count: 1,
             ),
-            (url) => ImporterResult('@use "first:other";', syntax: Syntax.scss),
+            (url) => ImporterResult('@use "first:other";', syntax: .scss),
           ),
         ],
       ).css;
@@ -268,7 +268,7 @@ void main() {
 
       test("emits a BOM with compressed output", () async {
         expect(
-          compileString("a {b: 👭}", style: OutputStyle.compressed).css,
+          compileString("a {b: 👭}", style: .compressed).css,
           equals("\u{FEFF}a{b:👭}"),
         );
       });
@@ -288,11 +288,7 @@ void main() {
 
       test("emits a BOM with compressed output", () async {
         expect(
-          compileString(
-            "a {b: 👭}",
-            charset: false,
-            style: OutputStyle.compressed,
-          ).css,
+          compileString("a {b: 👭}", charset: false, style: .compressed).css,
           equals("a{b:👭}"),
         );
       });

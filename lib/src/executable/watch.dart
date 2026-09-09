@@ -105,10 +105,10 @@ final class _Watcher(
         }
 
         switch (event.type) {
-          case ChangeType.MODIFY || ChangeType.ADD:
+          case .MODIFY || .ADD:
             _handleModifyOrAdd(event.path);
 
-          case ChangeType.REMOVE:
+          case .REMOVE:
             _handleRemove(event.path);
         }
       }
@@ -186,9 +186,9 @@ final class _Watcher(
         var oldType = typeForPath[event.path];
         typeForPath[event.path] = switch ((oldType, event.type)) {
           (null, var newType) => newType,
-          (_, ChangeType.REMOVE) => ChangeType.REMOVE,
-          (ChangeType.ADD, _) => ChangeType.ADD,
-          (_, _) => ChangeType.MODIFY,
+          (_, .REMOVE) => .REMOVE,
+          (.ADD, _) => .ADD,
+          (_, _) => .MODIFY,
         };
       }
 

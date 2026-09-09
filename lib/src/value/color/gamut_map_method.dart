@@ -46,8 +46,8 @@ abstract base class const GamutMapMethod(
   /// [name]. If this came from a function argument, [argumentName] is the
   /// argument name (without the `$`). This is used for error reporting.
   factory fromName(String name, [String? argumentName]) => switch (name) {
-    'clip' => GamutMapMethod.clip,
-    'local-minde' => GamutMapMethod.localMinde,
+    'clip' => .clip,
+    'local-minde' => .localMinde,
     _ => throw SassScriptException(
       'Unknown gamut map method "$name".',
       argumentName,

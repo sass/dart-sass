@@ -22,9 +22,9 @@ enum Syntax(
 
   /// Returns the default syntax to use for a file loaded from [path].
   static Syntax forPath(String path) => switch (p.extension(path)) {
-    '.sass' => Syntax.sass,
-    '.css' => Syntax.css,
-    _ => Syntax.scss,
+    '.sass' => .sass,
+    '.css' => .css,
+    _ => .scss,
   };
 
   @override

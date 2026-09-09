@@ -78,7 +78,7 @@ void main() {
 
     test("in Sass", () {
       expect(
-        compileString("/*\r\n  foo\r\n  bar", syntax: Syntax.sass).css,
+        compileString("/*\r\n  foo\r\n  bar", syntax: .sass).css,
         equals("/* foo\n * bar */"),
       );
     });

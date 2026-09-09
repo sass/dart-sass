@@ -168,7 +168,7 @@ void _updateAstPrototypes() {
   var ifConditionSass = IfConditionSass(string, bogusSpan);
   for (var node in [
     string,
-    BinaryOperationExpression(BinaryOperator.plus, string, string),
+    BinaryOperationExpression(.plus, string, string),
     SupportsExpression(SupportsAnything(_interpolation, bogusSpan)),
     LoudComment(_interpolation),
     klass,
@@ -183,10 +183,7 @@ void _updateAstPrototypes() {
         InterpolatedComplexSelectorComponent(compound, bogusSpan),
       ], bogusSpan),
     ]),
-    IfConditionOperation([
-      ifConditionSass,
-      ifConditionSass,
-    ], BooleanOperator.and),
+    IfConditionOperation([ifConditionSass, ifConditionSass], .and),
     IfConditionRaw(_interpolation),
   ]) {
     getJSClass(node).defineGetter('span', (AstNode self) => self.span);
@@ -205,7 +202,7 @@ void _addSupportsConditionToInterpolation() {
     SupportsFunction(_interpolation, _interpolation, bogusSpan),
     SupportsInterpolation(_expression, bogusSpan),
     SupportsNegation(anything, bogusSpan),
-    SupportsOperation(anything, anything, BooleanOperator.and, bogusSpan),
+    SupportsOperation(anything, anything, .and, bogusSpan),
   ]) {
     getJSClass(node).defineMethod(
       'toInterpolation',

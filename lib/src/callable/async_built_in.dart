@@ -113,6 +113,6 @@ void warnForGlobalBuiltIn(String module, String name) {
     'Sass 3.0.0.\n'
     'Use $module.$name instead.\n\n'
     'More info and automated migrator: https://sass-lang.com/d/import',
-    Deprecation.globalBuiltin,
+    .globalBuiltin,
   );
 }

@@ -70,14 +70,12 @@ final _join = _function(
 
     ListSeparator separator = switch (separatorParam.text) {
       "auto" => switch ((list1.separator, list2.separator)) {
-        (ListSeparator.undecided, ListSeparator.undecided) =>
-          ListSeparator.space,
-        (ListSeparator.undecided, var separator) ||
-        (var separator, _) => separator,
+        (.undecided, .undecided) => .space,
+        (.undecided, var separator) || (var separator, _) => separator,
       },
-      "space" => ListSeparator.space,
-      "comma" => ListSeparator.comma,
-      "slash" => ListSeparator.slash,
+      "space" => .space,
+      "comma" => .comma,
+      "slash" => .slash,
       _ => throw SassScriptException(
         '\$separator: Must be "space", "comma", "slash", or "auto".',
       ),
@@ -101,13 +99,10 @@ final _append = _function("append", r"$list, $val, $separator: auto", (
   var separatorParam = arguments[2].assertString("separator");
 
   var separator = switch (separatorParam.text) {
-    "auto" =>
-      list.separator == ListSeparator.undecided
-          ? ListSeparator.space
-          : list.separator,
-    "space" => ListSeparator.space,
-    "comma" => ListSeparator.comma,
-    "slash" => ListSeparator.slash,
+    "auto" => list.separator == .undecided ? .space : list.separator,
+    "space" => .space,
+    "comma" => .comma,
+    "slash" => .slash,
     _ => throw SassScriptException(
       '\$separator: Must be "space", "comma", "slash", or "auto".',
     ),
@@ -120,16 +115,16 @@ final _append = _function("append", r"$list, $val, $separator: auto", (
 final _zip = _function("zip", r"$lists...", (arguments) {
   var lists = arguments[0].asList.map((list) => list.asList).toList();
   if (lists.isEmpty) {
-    return const SassList.empty(separator: ListSeparator.comma);
+    return const SassList.empty(separator: .comma);
   }
 
   var i = 0;
   var results = <SassList>[];
   while (lists.every((list) => i != list.length)) {
-    results.add(SassList(lists.map((list) => list[i]), ListSeparator.space));
+    results.add(SassList(lists.map((list) => list[i]), .space));
     i++;
   }
-  return SassList(results, ListSeparator.comma);
+  return SassList(results, .comma);
 });
 
 final _index = _function("index", r"$list, $value", (arguments) {
@@ -144,8 +139,8 @@ final _separator = _function(
   "separator",
   r"$list",
   (arguments) => switch (arguments[0].separator) {
-    ListSeparator.comma => SassString("comma", quotes: false),
-    ListSeparator.slash => SassString("slash", quotes: false),
+    .comma => SassString("comma", quotes: false),
+    .slash => SassString("slash", quotes: false),
     _ => SassString("space", quotes: false),
   },
 );
@@ -162,7 +157,7 @@ final _slash = _function("slash", r"$elements...", (arguments) {
     'list literals.\n'
     'This function is deprecated and will be removed in Dart 3.0.0.\n'
     'More info and automated migrator: https://sass-lang.com/d/slash-div',
-    Deprecation.listSlash,
+    .listSlash,
   );
 
   var list = arguments[0].asList;
@@ -170,7 +165,7 @@ final _slash = _function("slash", r"$elements...", (arguments) {
     throw SassScriptException("At least two elements are required.");
   }
 
-  return SassList(list, ListSeparator.slash);
+  return SassList(list, .slash);
 });
 
 /// Like [BuiltInCallable.function], but always sets the URL to `sass:list`.

@@ -34,13 +34,13 @@ ProtocolError paramsError(String message) => ProtocolError()
   // Set the ID to [errorId] by default. This will be overwritten by the
   // dispatcher if a request ID is available.
   ..id = errorId
-  ..type = ProtocolErrorType.PARAMS
+  ..type = .PARAMS
   ..message = message;
 
 /// Returns a [ProtocolError] with type `PARSE` and the given [message].
 @internal
 ProtocolError parseError(String message) => ProtocolError()
-  ..type = ProtocolErrorType.PARSE
+  ..type = .PARSE
   ..message = message;
 
 /// Converts a Dart source span to a protocol buffer source span.
@@ -65,9 +65,9 @@ SourceSpan_SourceLocation _protofyLocation(SourceLocation location) =>
 /// Converts a protocol buffer syntax enum into a Sass API syntax enum.
 @internal
 Syntax syntaxToSyntax(proto.Syntax syntax) => switch (syntax) {
-  proto.Syntax.SCSS => Syntax.scss,
-  proto.Syntax.INDENTED => Syntax.sass,
-  proto.Syntax.CSS => Syntax.css,
+  .SCSS => .scss,
+  .INDENTED => .sass,
+  .CSS => .css,
   _ => throw "Unknown syntax $syntax.",
 };
 
@@ -163,7 +163,7 @@ ProtocolError handleError(
     stderr.write("Internal compiler error: $errorMessage");
     exitCode = 70; // EX_SOFTWARE
     return ProtocolError()
-      ..type = ProtocolErrorType.INTERNAL
+      ..type = .INTERNAL
       ..id = messageId ?? errorId
       ..message = errorMessage;
   }

@@ -213,7 +213,7 @@ void main() {
               "foo",
               "",
               expectAsync1((_) async {
-                await Future<void>.delayed(Duration.zero);
+                await Future.pause();
                 warn("heck");
                 return sassNull;
               }),
@@ -242,7 +242,7 @@ void main() {
         importers: [
           TestImporter((url) => Uri.parse("u:$url"), (url) {
             warn("heck");
-            return ImporterResult("", syntax: Syntax.scss);
+            return ImporterResult("", syntax: .scss);
           }),
         ],
         logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
@@ -276,7 +276,7 @@ void main() {
         ],
         logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
           expect(message, equals("heck"));
-          expect(deprecation, equals(Deprecation.userAuthored));
+          expect(deprecation, equals(.userAuthored));
           mustBeCalled();
         }),
       );

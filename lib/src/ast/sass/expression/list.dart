@@ -37,7 +37,7 @@ final class ListExpression(
     if (hasBrackets) {
       buffer.writeCharCode($lbracket);
     } else if (contents.isEmpty ||
-        (contents.length == 1 && separator == ListSeparator.comma)) {
+        (contents.length == 1 && separator == .comma)) {
       buffer.writeCharCode($lparen);
     }
 
@@ -48,14 +48,14 @@ final class ListExpression(
                 ? "($element)"
                 : element.toString(),
           )
-          .join(separator == ListSeparator.comma ? ", " : " "),
+          .join(separator == .comma ? ", " : " "),
     );
 
     if (hasBrackets) {
       buffer.writeCharCode($rbracket);
     } else if (contents.isEmpty) {
       buffer.writeCharCode($rparen);
-    } else if (contents.length == 1 && separator == ListSeparator.comma) {
+    } else if (contents.length == 1 && separator == .comma) {
       buffer.write(",)");
     }
 
@@ -70,13 +70,10 @@ final class ListExpression(
       hasBrackets: false,
       separator: var childSeparator,
     ) =>
-      separator == ListSeparator.comma
-          ? childSeparator == ListSeparator.comma
-          : childSeparator != ListSeparator.undecided,
-    UnaryOperationExpression(
-      operator: UnaryOperator.plus || UnaryOperator.minus,
-    ) =>
-      separator == ListSeparator.space,
+      separator == .comma
+          ? childSeparator == .comma
+          : childSeparator != .undecided,
+    UnaryOperationExpression(operator: .plus || .minus) => separator == .space,
     _ => false,
   };
 }

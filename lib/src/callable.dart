@@ -89,9 +89,10 @@ abstract interface class Callable implements AsyncCallable {
   ///   var string = arguments[0].assertString("string");
   ///   var divider = arguments[1].assertString("divider");
   ///   return new SassList(
-  ///       string.value.split(divider.value).map((substring) =>
-  ///           new SassString(substring, quotes: string.hasQuotes)),
-  ///       ListSeparator.comma);
+  ///     string.value.split(divider.value).map((substring) =>
+  ///         new SassString(substring, quotes: string.hasQuotes)),
+  ///     .comma,
+  ///   );
   /// });
   /// ```
   ///
@@ -103,8 +104,10 @@ abstract interface class Callable implements AsyncCallable {
   /// new Callable.function("str-join", r'$strings...', (arguments) {
   ///   var args = arguments.first as SassArgumentList;
   ///   var strings = args.map((arg) => arg.assertString()).toList();
-  ///   return new SassString(strings.map((string) => string.text).join(),
-  ///       quotes: strings.any((string) => string.hasQuotes));
+  ///   return new SassString(
+  ///     strings.map((string) => string.text).join(),
+  ///     quotes: strings.any((string) => string.hasQuotes),
+  ///   );
   /// });
   /// ```
   ///

@@ -34,7 +34,7 @@ final class const RgbColorSpace() extends ColorSpace {
     double? green,
     double? blue,
     double? alpha,
-  ) => ColorSpace.srgb.convert(
+  ) => .srgb.convert(
     dest,
     red == null ? null : red / 255,
     green == null ? null : green / 255,

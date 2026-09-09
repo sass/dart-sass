@@ -64,10 +64,7 @@ Future<void> expectParseError(
 }) async {
   var (actualCompilationId, actualMessage) = await process.outbound.next;
   expect(actualCompilationId, equals(compilationId));
-  expect(
-    actualMessage,
-    isProtocolError(errorId, ProtocolErrorType.PARSE, message),
-  );
+  expect(actualMessage, isProtocolError(errorId, .PARSE, message));
 
   var stderrPrefix = "Host caused parse error: ";
   await expectLater(
@@ -88,7 +85,7 @@ Future<void> expectParamsError(
 }) async {
   var (actualCompilationId, actualMessage) = await process.outbound.next;
   expect(actualCompilationId, equals(compilationId));
-  expect(actualMessage, isProtocolError(id, ProtocolErrorType.PARAMS, message));
+  expect(actualMessage, isProtocolError(id, .PARAMS, message));
 
   var stderrPrefix =
       "Host caused params error"
