@@ -32,9 +32,6 @@ base class Parser {
   /// from source.
   final InterpolationMap? _interpolationMap;
 
-  /// The scanner that scans through the text being parsed.
-  final SpanScanner scanner = SpanScanner(contents, sourceUrl: url);
-
   /// Parses [text] as a CSS identifier and returns the result.
   ///
   /// Throws a [SassFormatException] if parsing fails.

@@ -33,7 +33,7 @@ final class const SrgbLinearColorSpace() extends ColorSpace {
     double? blue,
     double? alpha,
   ) => switch (dest) {
-    .rgb || .hsl || .hwb || .srgb => .srgb.convert(
+    .rgb || .hsl || .hwb || .srgb => ColorSpace.srgb.convert(
       dest,
       red.andThen(srgbAndDisplayP3FromLinear),
       green.andThen(srgbAndDisplayP3FromLinear),

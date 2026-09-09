@@ -14,16 +14,16 @@ import 'list.dart';
 /// A binary operator, as in `1 + 2` or `$this and $other`.
 ///
 /// {@category AST}
-final class BinaryOperationExpression extends Expression {
+final class BinaryOperationExpression(
   /// The operator being invoked.
-  final BinaryOperator operator;
+  final BinaryOperator operator,
 
   /// The left-hand operand.
-  final Expression left;
+  final Expression left,
 
   /// The right-hand operand.
-  final Expression right;
-
+  final Expression right,
+) extends Expression {
   @override
   FileSpan get span {
     // Avoid creating a bunch of intermediate spans for multiple binary
@@ -51,9 +51,6 @@ final class BinaryOperationExpression extends Expression {
             .span(left.span.end.offset, right.span.start.offset)
             .trim()
       : span;
-
-  new(this.operator, this.left, this.right);
-
   @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitBinaryOperationExpression(this);

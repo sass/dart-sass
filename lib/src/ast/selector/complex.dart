@@ -23,11 +23,11 @@ import '../selector.dart';
 /// {@category AST}
 /// {@category Parsing}
 final class ComplexSelector(
-  /// This selector's leading combinator, if it has one.
-  final CssValue<Combinator>? leadingCombinator,
-
   Iterable<ComplexSelectorComponent> components,
   super.span, {
+
+  /// This selector's leading combinator, if it has one.
+  final CssValue<Combinator>? leadingCombinator,
 
   /// Whether a line break should be emitted *before* this selector.
   ///

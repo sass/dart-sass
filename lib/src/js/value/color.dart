@@ -84,7 +84,7 @@ final JSClass colorClass = () {
       _ChannelOptions? options,
     ]) => _toSpace(self, options?.space).isChannelPowerless(channel),
     'change': (SassColor self, _ConstructionOptions options) {
-      var space = options.space.andThen(.fromName) ?? self.space;
+      var space = options.space.andThen(ColorSpace.fromName) ?? self.space;
 
       for (final key in objectKeys(options)) {
         if (['alpha', 'space'].contains(key)) continue;

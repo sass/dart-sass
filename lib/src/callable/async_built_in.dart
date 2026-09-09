@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 
 import '../ast/sass.dart';
-import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../value.dart';
 import 'async.dart';

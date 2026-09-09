@@ -5,7 +5,6 @@
 import 'package:sass/src/utils.dart';
 import 'package:source_span/source_span.dart';
 
-import '../../value/list.dart';
 import '../../util/map.dart';
 import 'expression.dart';
 import 'expression/list.dart';

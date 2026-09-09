@@ -16,7 +16,7 @@ import 'logger.dart';
 /// This allows us to expose zone-scoped information without having to create a
 /// new zone variable for each piece of information.
 @internal
-abstract interface class EvaluationContext {
+abstract base class EvaluationContext {
   /// The current evaluation context.
   ///
   /// Throws [StateError] if there isn't a Sass stylesheet currently being
@@ -114,7 +114,7 @@ T withEvaluationContext<T>(EvaluationContext context, T Function() callback) =>
 class _EvaluationContextLogger(
   /// The context to which this logger forwards.
   final EvaluationContext _context,
-) extends LoggerWithDeprecationType {
+) implements Logger {
   @override
   void debug(String message, SourceSpan span) {
     throw UnimplementedError(
@@ -122,7 +122,8 @@ class _EvaluationContextLogger(
     );
   }
 
-  void internalWarn(
+  @override
+  void warn(
     String message, {
     FileSpan? span,
     Trace? trace,

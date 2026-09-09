@@ -8,7 +8,6 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 import '../callable.dart';
-import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
@@ -98,7 +97,7 @@ final _append = _function("append", r"$list, $val, $separator: auto", (
   var value = arguments[1];
   var separatorParam = arguments[2].assertString("separator");
 
-  var separator = switch (separatorParam.text) {
+  ListSeparator separator = switch (separatorParam.text) {
     "auto" => list.separator == .undecided ? .space : list.separator,
     "space" => .space,
     "comma" => .comma,

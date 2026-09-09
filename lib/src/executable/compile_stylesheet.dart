@@ -18,7 +18,6 @@ import '../io.dart';
 import '../stylesheet_graph.dart';
 import '../syntax.dart';
 import '../utils.dart';
-import '../visitor/serialize.dart';
 import 'options.dart';
 
 /// Compiles the stylesheet at [source] to [destination].

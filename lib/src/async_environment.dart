@@ -984,7 +984,7 @@ final class _EnvironmentModule._(
   @override
   final List<Module> upstream = _environment._allModules;
 
-  _EnvironmentModule factory(
+  factory(
     AsyncEnvironment environment,
     CssStylesheet css,
     Map<Module, List<CssComment>> preModuleComments,

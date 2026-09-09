@@ -541,7 +541,11 @@ interface class ExtensionStore {
         // Add [newSources] to [_extensions].
         if (_extensions[target] case var existingSources?) {
           for (var (extender, extension) in newSources.pairs) {
-            extension = existingSources.putOrMerge(extender, extension, .merge);
+            extension = existingSources.putOrMerge(
+              extender,
+              extension,
+              MergedExtension.merge,
+            );
 
             if (extensionsForTarget != null || selectorsForTarget != null) {
               (newExtensions ??= {}).putIfAbsent(target, () => {})[extender] =

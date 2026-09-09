@@ -13,7 +13,6 @@ import '../ast/sass.dart';
 import '../ast/selector.dart';
 import '../ast/css/value.dart';
 import '../color_names.dart';
-import '../deprecation.dart';
 import '../exception.dart';
 import '../interpolation_buffer.dart';
 import '../util/character.dart';
@@ -36,14 +35,11 @@ import 'selector.dart' show selectorPseudoClasses, selectorPseudoElements;
 /// private, except where they have to be public for subclasses to refer to
 /// them.
 @internal
-abstract class StylesheetParser(
-  super.contents, {
-  super.url,
-
+abstract base class StylesheetParser extends Parser {
   /// Whether to parse the selectors in [StyleRules] as [InterpolatedSelector]s
   /// rather than raw [Interpolation]s.
-  final bool _parseSelectors = false,
-}) extends Parser {
+  final bool _parseSelectors;
+
   /// Whether we've consumed a rule other than `@charset`, `@forward`, or
   /// `@use`.
   var _isUseAllowed = true;
@@ -90,6 +86,8 @@ abstract class StylesheetParser(
   /// The silent comment this parser encountered previously.
   @protected
   SilentComment? lastSilentComment;
+
+  new(super.contents, {super.url, this._parseSelectors = false});
 
   new internal(super.contents, {super.url, this._parseSelectors = false})
     : super.internal();
@@ -536,7 +534,17 @@ abstract class StylesheetParser(
         buffer.addInterpolation(interpolation);
         interpolation = buffer.interpolation(spanFrom(start));
       }
-      if (interpolation.contents.isEmpty) scanner.error('expected "}".');
+      if (interpolation.contents.isEmpty) {
+        var unknown = _interpolatedDeclarationValue(
+          allowEmpty: true,
+          allowOpenBrace: false,
+        );
+        if (unknown.contents.isEmpty) {
+          scanner.error('expected end of rule.');
+        } else {
+          error('unrecognized syntax', unknown.span);
+        }
+      }
 
       return _withStyleRuleChildren(
         interpolation,

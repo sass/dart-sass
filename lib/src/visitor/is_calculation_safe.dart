@@ -6,7 +6,6 @@ import 'package:charcode/charcode.dart';
 
 import '../ast/sass.dart';
 import '../util/nullable.dart';
-import '../value.dart';
 import 'interface/expression.dart';
 
 // We could use [AstSearchVisitor] to implement this more tersely, but that

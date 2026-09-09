@@ -322,7 +322,7 @@ void main() {
       await d.file("input.scss", "@import 'other';").create();
       var result = compile(
         d.path('input.scss'),
-        silenceDeprecations: [Deprecation.import],
+        silenceDeprecations: [.import],
       );
       expect(result.loadedUrls, contains(p.toUri(d.path('_other.scss'))));
     });
@@ -362,7 +362,7 @@ void main() {
       """).create();
       var result = compile(
         d.path('mercury.scss'),
-        silenceDeprecations: [Deprecation.import],
+        silenceDeprecations: [.import],
       );
       expect(
         result.loadedUrls,

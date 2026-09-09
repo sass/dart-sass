@@ -6,19 +6,24 @@
 
 * All parse methods now canonicalize their `url` parameters.
 
+## 17.10.1-dev
+
+* Omit an extra newline that was being added to the end of `StyleRule.selector`
+  in the indented syntax.
+
+## 17.10.0
+
+* No user-visible changes.
+
+## 17.9.1
+
+* No user-visible changes.
+
+## 17.9.0
+
+* No user-visible changes.
+
 ## 17.8.0
-
-* No user-visible changes.
-
-## 17.7.7
-
-* No user-visible changes.
-
-## 17.7.6
-
-* No user-visible changes.
-
-## 17.7.5
 
 * No user-visible changes.
 

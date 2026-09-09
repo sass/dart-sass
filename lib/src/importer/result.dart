@@ -28,10 +28,6 @@ final class ImporterResult(
       _sourceMapUrl ?? Uri.dataFromString(contents, encoding: utf8);
 
   /// Creates a new [ImporterResult].
-  ///
-  /// The [syntax] parameter must be passed. It's not marked as required only
-  /// because old clients may still be passing the deprecated [indented]
-  /// parameter instead.
   this {
     if (_sourceMapUrl?.scheme == '') {
       throw ArgumentError.value(

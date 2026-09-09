@@ -276,7 +276,7 @@ void main() {
         ],
         logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
           expect(message, equals("heck"));
-          expect(deprecation, equals(.userAuthored));
+          expect(deprecation, equals(Deprecation.userAuthored));
           mustBeCalled();
         }),
       );

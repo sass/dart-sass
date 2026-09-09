@@ -8,7 +8,6 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 import '../callable.dart';
-import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
@@ -21,7 +20,7 @@ import '../value.dart';
 /// If a special number string is detected in these color spaces, even if they
 /// were using the one-argument function syntax, we convert it to the three- or
 /// four- argument comma-separated syntax for broader browser compatibility.
-const _specialCommaSpaces = {.rgb, .hsl};
+const _specialCommaSpaces = <ColorSpace>{.rgb, .hsl};
 
 /// The global definitions of Sass color functions.
 @internal
@@ -423,7 +422,7 @@ final _complement = _function("complement", r"$color, $space: null", (
   arguments,
 ) {
   var color = arguments[0].assertColor("color");
-  var space = color.isLegacy && arguments[1] == sassNull
+  ColorSpace space = color.isLegacy && arguments[1] == sassNull
       ? .hsl
       : .fromName(
           (arguments[1].assertString("space")..assertUnquoted("space")).text,
@@ -497,7 +496,7 @@ Value _invert(List<Value> arguments, {bool global = false}) {
 
     _checkPercent(weightNumber, "weight");
     var rgb = color.toSpace(.rgb);
-    var [channel0, channel1, channel2] = .rgb.channels;
+    var [channel0, channel1, channel2] = ColorSpace.rgb.channels;
     return _mixLegacy(
       SassColor.rgb(
         _invertChannel(rgb, channel0, rgb.channel0OrNull),
@@ -510,7 +509,7 @@ Value _invert(List<Value> arguments, {bool global = false}) {
     ).toSpace(color.space);
   }
 
-  var space = .fromName(
+  var space = ColorSpace.fromName(
     (arguments[2].assertString('space')..assertUnquoted('space')).text,
     'space',
   );
@@ -770,7 +769,7 @@ SassColor _scaleColor(
     color.channel2OrNull,
     channelArgs[2],
   ),
-  _scaleChannel(color, ColorChannel.alpha, color.alphaOrNull, alphaArg),
+  _scaleChannel(color, .alpha, color.alphaOrNull, alphaArg),
 );
 
 /// Returns [oldValue] scaled by [factorArg] according to the definition in
@@ -839,7 +838,7 @@ SassColor _adjustColor(
   // strictly bounded.
   _adjustChannel(
     color,
-    ColorChannel.alpha,
+    .alpha,
     color.alphaOrNull,
     alphaArg,
   ).andThen((alpha) => clampLikeCss(alpha, 0, 1)),

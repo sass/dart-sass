@@ -173,6 +173,39 @@
   spaces. You can pass the `space` parameter to explicitly convert to a new
   space.
 
+## 1.104.1-dev
+
+* Fix a bug in which an invalid selector at the end of an indented syntax
+  stylesheet would cause the parser to crash instead of emitting a useful error
+  message.
+
+### Command Line Interface
+
+* Many-to-many compilations no longer compile any files that appear in the
+  output directory if the output directory is also within the source directory.
+  This fixes a bug where `--watch` mode could enter an infinite loop recompiling
+  the same CSS file over and over.
+
+## 1.104.0
+
+* **Potentially breaking compatibility fix:** Colors now convert the special
+  values NaN and negative zero, as well as infinity and negative infinity for
+  polar-hue channels, to 0 as per the CSS spec.
+
+* The special value negative zero is now serialized as `-0` instead of `0` for
+  greater compatibility when using it in CSS calculations.
+
+## 1.103.1
+
+* No user-visible changes.
+
+## 1.103.0
+
+* **Potentially breaking compatibility fix:** Colors now preserve "analogous
+  sets" of missing channels during conversions, per the CSS spec. For example,
+  `color.to-space(lch(50% none none), lab)` now returns `lab(50% none none)`
+  instead of `lab(50% 0 0)`.
+
 ## 1.102.0
 
 * Use the 2.4 gamma transfer function for rec2020, as specified by the latest

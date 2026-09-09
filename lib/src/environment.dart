@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_environment.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 52ef90cd1ea03df32a21f17584505f4276bdaad8
+// Checksum: 911d210cc6b0d1cd2f029cde13f4e83e28fe51b7
 //
 // ignore_for_file: unused_import
 
@@ -995,7 +995,7 @@ final class _EnvironmentModule._(
   @override
   final List<Module<Callable>> upstream = _environment._allModules;
 
-  _EnvironmentModule factory(
+  factory(
     Environment environment,
     CssStylesheet css,
     Map<Module<Callable>, List<CssComment>> preModuleComments,

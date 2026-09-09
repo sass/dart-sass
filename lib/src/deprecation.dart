@@ -15,22 +15,29 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 1e05e728d95255e2e9fadbe9696baf751fc7ef66
+  // Checksum: 3d41bea8a4f4c90069be1d4d21548ce9a20d33d3
 
   /// Deprecation for passing a string directly to meta.call().
   callString(
     'call-string',
     deprecatedIn: '0.0.0',
+    obsoleteIn: '2.0.0',
     description: 'Passing a string directly to meta.call().',
   ),
 
   /// Deprecation for @elseif.
-  elseif('elseif', deprecatedIn: '1.3.2', description: '@elseif.'),
+  elseif(
+    'elseif',
+    deprecatedIn: '1.3.2',
+    obsoleteIn: '2.0.0',
+    description: '@elseif.',
+  ),
 
   /// Deprecation for @-moz-document.
   mozDocument(
     'moz-document',
     deprecatedIn: '1.7.2',
+    obsoleteIn: '2.0.0',
     description: '@-moz-document.',
   ),
 
@@ -38,6 +45,7 @@ enum Deprecation {
   relativeCanonical(
     'relative-canonical',
     deprecatedIn: '1.14.2',
+    obsoleteIn: '2.0.0',
     description: 'Imports using relative canonical URLs.',
   ),
 
@@ -45,6 +53,7 @@ enum Deprecation {
   newGlobal(
     'new-global',
     deprecatedIn: '1.17.2',
+    obsoleteIn: '2.0.0',
     description: 'Declaring new variables with !global.',
   ),
 
@@ -60,6 +69,7 @@ enum Deprecation {
   slashDiv(
     'slash-div',
     deprecatedIn: '1.33.0',
+    obsoleteIn: '2.0.0',
     description: '/ operator for division.',
   ),
 
@@ -67,6 +77,7 @@ enum Deprecation {
   bogusCombinators(
     'bogus-combinators',
     deprecatedIn: '1.54.0',
+    obsoleteIn: '2.0.0',
     description: 'Leading, trailing, and repeated combinators.',
   ),
 
@@ -74,6 +85,7 @@ enum Deprecation {
   strictUnary(
     'strict-unary',
     deprecatedIn: '1.55.0',
+    obsoleteIn: '2.0.0',
     description: 'Ambiguous + and - operators.',
   ),
 
@@ -81,6 +93,7 @@ enum Deprecation {
   functionUnits(
     'function-units',
     deprecatedIn: '1.56.0',
+    obsoleteIn: '2.0.0',
     description: 'Passing invalid units to built-in functions.',
   ),
 
@@ -88,6 +101,7 @@ enum Deprecation {
   duplicateVarFlags(
     'duplicate-var-flags',
     deprecatedIn: '1.62.0',
+    obsoleteIn: '2.0.0',
     description: 'Using !default or !global multiple times for one variable.',
   ),
 
@@ -95,6 +109,7 @@ enum Deprecation {
   nullAlpha(
     'null-alpha',
     deprecatedIn: '1.62.3',
+    obsoleteIn: '2.0.0',
     description: 'Passing null as alpha in the ${isJS ? 'JS' : 'Dart'} API.',
   ),
 
@@ -102,6 +117,7 @@ enum Deprecation {
   absPercent(
     'abs-percent',
     deprecatedIn: '1.65.0',
+    obsoleteIn: '2.0.0',
     description: 'Passing percentages to the Sass abs() function.',
   ),
 
@@ -109,6 +125,7 @@ enum Deprecation {
   fsImporterCwd(
     'fs-importer-cwd',
     deprecatedIn: '1.73.0',
+    obsoleteIn: '2.0.0',
     description:
         'Using the current working directory as an implicit load path.',
   ),
@@ -133,6 +150,7 @@ enum Deprecation {
   featureExists(
     'feature-exists',
     deprecatedIn: '1.78.0',
+    obsoleteIn: '2.0.0',
     description: 'meta.feature-exists',
   ),
 
@@ -140,6 +158,7 @@ enum Deprecation {
   color4Api(
     'color-4-api',
     deprecatedIn: '1.79.0',
+    obsoleteIn: '2.0.0',
     description: 'Certain uses of built-in sass:color functions.',
   ),
 
@@ -147,6 +166,7 @@ enum Deprecation {
   colorFunctions(
     'color-functions',
     deprecatedIn: '1.79.0',
+    obsoleteIn: '2.0.0',
     description: 'Using global color functions instead of sass:color.',
   ),
 
@@ -154,6 +174,7 @@ enum Deprecation {
   legacyJsApi(
     'legacy-js-api',
     deprecatedIn: '1.79.0',
+    obsoleteIn: '2.0.0',
     description: 'Legacy JS API.',
   ),
 
@@ -180,6 +201,7 @@ enum Deprecation {
   compileStringRelativeUrl(
     'compile-string-relative-url',
     deprecatedIn: '1.88.0',
+    obsoleteIn: '2.0.0',
     description: 'Passing a relative url to compileString().',
   ),
 
@@ -194,6 +216,7 @@ enum Deprecation {
   withPrivate(
     'with-private',
     deprecatedIn: '1.92.0',
+    obsoleteIn: '2.0.0',
     description:
         'Configuring private variables in @use, @forward, or load-css().',
   ),
@@ -203,6 +226,13 @@ enum Deprecation {
     'if-function',
     deprecatedIn: '1.95.0',
     description: 'The Sass if(\$condition, \$if-true, \$if-false) function.',
+  ),
+
+  /// Deprecation for the list.slash() function.
+  listSlash(
+    'list-slash',
+    deprecatedIn: '2.0.0',
+    description: 'The list.slash() function.',
   ),
 
   /// Deprecation for uppercase reserved function names.
@@ -272,9 +302,12 @@ enum Deprecation {
   Version? get obsoleteIn => _obsoleteIn?.andThen(Version.parse);
 
   /// Constructs a regular deprecation.
-  const new(this.id, {required this._deprecatedIn, this.description})
-    : _obsoleteIn = null,
-      isFuture = false;
+  const new(
+    this.id, {
+    required this._deprecatedIn,
+    this.description,
+    this._obsoleteIn,
+  }) : isFuture = false;
 
   /// Constructs a future deprecation.
   // ignore: unused_element, unused_element_parameter

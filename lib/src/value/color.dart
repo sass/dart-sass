@@ -2,7 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
@@ -169,6 +168,8 @@ final class SassColor._forSpace(
   };
 
   /// This color's alpha channel, between `0` and `1`.
+  ///
+  /// This is guaranteed never to be `NaN` or negative zero.
   double get alpha => alphaOrNull ?? 0;
 
   /// This color's alpha channel.
@@ -225,7 +226,7 @@ final class SassColor._forSpace(
       isChannel2Missing ||
       isAlphaMissing;
 
-  /// Creates a color in [.rgb].
+  /// Creates a color in [SassColor.rgb].
   ///
   /// If `null` is passed for [alpha], that indicates that it's a [missing
   /// component]. In most cases, this is equivalent to the color being
@@ -256,7 +257,7 @@ final class SassColor._forSpace(
     format,
   );
 
-  /// Creates a color in [.hsl].
+  /// Creates a color in [SassColor.hsl].
   ///
   /// If `null` is passed for [alpha], that indicates that it's a [missing
   /// component]. In most cases, this is equivalent to the color being
@@ -274,7 +275,7 @@ final class SassColor._forSpace(
         alpha?.toDouble(),
       );
 
-  /// Creates a color in [.hwb].
+  /// Creates a color in [SassColor.hwb].
   ///
   /// If `null` is passed for [alpha], that indicates that it's a [missing
   /// component]. In most cases, this is equivalent to the color being
@@ -292,7 +293,7 @@ final class SassColor._forSpace(
         alpha?.toDouble(),
       );
 
-  /// Creates a color in [.srgb].
+  /// Creates a color in [SassColor.srgb].
   ///
   /// If `null` is passed for [alpha], that indicates that it's a [missing
   /// component]. In most cases, this is equivalent to the color being
@@ -304,7 +305,7 @@ final class SassColor._forSpace(
   factory srgb(double? red, double? green, double? blue, [double? alpha = 1]) =>
       SassColor._forSpace(.srgb, red, green, blue, alpha);
 
-  /// Creates a color in [.srgbLinear].
+  /// Creates a color in [SassColor.srgbLinear].
   ///
   /// If `null` is passed for [alpha], that indicates that it's a [missing
   /// component]. In most cases, this is equivalent to the color being
@@ -320,7 +321,7 @@ final class SassColor._forSpace(
     double? alpha = 1,
   ]) => SassColor._forSpace(.srgbLinear, red, green, blue, alpha);
 
-  /// Creates a color in [.displayP3].
+  /// Creates a color in [SassColor.displayP3].
   ///
   /// If `null` is passed for [alpha], that indicates that it's a [missing
   /// component]. In most cases, this is equivalent to the color being
@@ -336,7 +337,7 @@ final class SassColor._forSpace(
     double? alpha = 1,
   ]) => SassColor._forSpace(.displayP3, red, green, blue, alpha);
 
-  /// Creates a color in [.displayP3Linear].
+  /// Creates a color in [SassColor.displayP3Linear].
   ///
   /// If `null` is passed for [alpha], that indicates that it's a [missing
   /// component]. In most cases, this is equivalent to the color being
@@ -352,7 +353,7 @@ final class SassColor._forSpace(
     double? alpha = 1,
   ]) => SassColor._forSpace(.displayP3Linear, red, green, blue, alpha);
 
-  /// Creates a color in [.a98Rgb].
+  /// Creates a color in [SassColor.a98Rgb].
   ///
   /// If `null` is passed for [alpha], that indicates that it's a [missing
   /// component]. In most cases, this is equivalent to the color being
@@ -368,7 +369,7 @@ final class SassColor._forSpace(
     double? alpha = 1,
   ]) => SassColor._forSpace(.a98Rgb, red, green, blue, alpha);
 
-  /// Creates a color in [.prophotoRgb].
+  /// Creates a color in [SassColor.prophotoRgb].
   ///
   /// If `null` is passed for [alpha], that indicates that it's a [missing
   /// component]. In most cases, this is equivalent to the color being
@@ -384,7 +385,7 @@ final class SassColor._forSpace(
     double? alpha = 1,
   ]) => SassColor._forSpace(.prophotoRgb, red, green, blue, alpha);
 
-  /// Creates a color in [.rec2020].
+  /// Creates a color in [SassColor.rec2020].
   ///
   /// If `null` is passed for [alpha], that indicates that it's a [missing
   /// component]. In most cases, this is equivalent to the color being
@@ -400,7 +401,7 @@ final class SassColor._forSpace(
     double? alpha = 1,
   ]) => SassColor._forSpace(.rec2020, red, green, blue, alpha);
 
-  /// Creates a color in [.xyzD50].
+  /// Creates a color in [SassColor.xyzD50].
   ///
   /// If `null` is passed for [alpha], that indicates that it's a [missing
   /// component]. In most cases, this is equivalent to the color being
@@ -412,7 +413,7 @@ final class SassColor._forSpace(
   factory xyzD50(double? x, double? y, double? z, [double? alpha = 1]) =>
       SassColor._forSpace(.xyzD50, x, y, z, alpha);
 
-  /// Creates a color in [.xyzD65].
+  /// Creates a color in [SassColor.xyzD65].
   ///
   /// If `null` is passed for [alpha], that indicates that it's a [missing
   /// component]. In most cases, this is equivalent to the color being
@@ -424,7 +425,7 @@ final class SassColor._forSpace(
   factory xyzD65(double? x, double? y, double? z, [double? alpha = 1]) =>
       SassColor._forSpace(.xyzD65, x, y, z, alpha);
 
-  /// Creates a color in [.lab].
+  /// Creates a color in [SassColor.lab].
   ///
   /// If `null` is passed for [alpha], that indicates that it's a [missing
   /// component]. In most cases, this is equivalent to the color being
@@ -436,7 +437,7 @@ final class SassColor._forSpace(
   factory lab(double? lightness, double? a, double? b, [double? alpha = 1]) =>
       SassColor._forSpace(.lab, lightness, a, b, alpha);
 
-  /// Creates a color in [.lch].
+  /// Creates a color in [SassColor.lch].
   ///
   /// If `null` is passed for [alpha], that indicates that it's a [missing
   /// component]. In most cases, this is equivalent to the color being
@@ -452,7 +453,7 @@ final class SassColor._forSpace(
     double? alpha = 1,
   ]) => SassColor.forSpaceInternal(.lch, lightness, chroma, hue, alpha);
 
-  /// Creates a color in [.oklab].
+  /// Creates a color in [SassColor.oklab].
   ///
   /// If `null` is passed for [alpha], that indicates that it's a [missing
   /// component]. In most cases, this is equivalent to the color being
@@ -464,7 +465,7 @@ final class SassColor._forSpace(
   factory oklab(double? lightness, double? a, double? b, [double? alpha = 1]) =>
       SassColor._forSpace(.oklab, lightness, a, b, alpha);
 
-  /// Creates a color in [.oklch].
+  /// Creates a color in [SassColor.oklch].
   ///
   /// If `null` is passed for [alpha], that indicates that it's a [missing
   /// component]. In most cases, this is equivalent to the color being
@@ -525,44 +526,56 @@ final class SassColor._forSpace(
         channel0,
         invert: channel1 != null && fuzzyLessThan(channel1, 0),
       ),
-      channel1?.abs(),
-      channel2,
-      alpha,
+      _normalizeLinear(channel1?.abs()),
+      _normalizeLinear(channel2),
+      _normalizeLinear(alpha),
     ),
     .hwb => SassColor._forSpace(
       space,
       _normalizeHue(channel0, invert: false),
-      channel1,
-      channel2,
-      alpha,
+      _normalizeLinear(channel1),
+      _normalizeLinear(channel2),
+      _normalizeLinear(alpha),
     ),
     .lch || .oklch => SassColor._forSpace(
       space,
-      channel0,
-      channel1?.abs(),
+      _normalizeLinear(channel0),
+      _normalizeLinear(channel1?.abs()),
       _normalizeHue(
         channel2,
         invert: channel1 != null && fuzzyLessThan(channel1, 0),
       ),
-      alpha,
+      _normalizeLinear(alpha),
     ),
-    _ => SassColor._forSpace(space, channel0, channel1, channel2, alpha),
+    _ => SassColor._forSpace(
+      space,
+      _normalizeLinear(channel0),
+      _normalizeLinear(channel1),
+      _normalizeLinear(channel2),
+      _normalizeLinear(alpha),
+    ),
   };
 
   /// Like [forSpaceInternal], but doesn't do _any_ pre-processing of any
   /// channels.
-  this {
-    assert(format == null || _space == .rgb);
-    assert(space != .lms);
-  }
+  this : assert(format == null || _space == .rgb), assert(_space != .lms);
+
+  /// If [value] isn't null, normalizes `NaN` and negative zero values.
+  static double? _normalizeLinear(double? value) => switch (value) {
+    null => null,
+    0 || double(isNaN: true) => 0,
+    _ => value,
+  };
 
   /// If [hue] isn't null, normalizes it to the range `[0, 360)`.
   ///
   /// If [invert] is true, this returns the hue 180deg offset from the original value.
-  static double? _normalizeHue(double? hue, {required bool invert}) {
-    if (hue == null) return hue;
-    return (hue % 360 + 360 + (invert ? 180 : 0)) % 360;
-  }
+  static double? _normalizeHue(double? hue, {required bool invert}) =>
+      switch (hue) {
+        null => null,
+        0 || double(isFinite: false) => 0,
+        _ => (hue % 360 + 360 + (invert ? 180 : 0)) % 360,
+      };
 
   /// @nodoc
   @override
@@ -593,6 +606,9 @@ final class SassColor._forSpace(
   /// If this came from a function argument, [colorName] is the argument name
   /// for this color and [channelName] is the argument name for [channel]
   /// (without the `$`). These are used for error reporting.
+  ///
+  /// This is guaranteed never to return `NaN` or negative zero. For polar
+  /// channels, it's also guaranteed never to return infinite values.
   double channel(String channel, {String? colorName, String? channelName}) {
     var channels = space.channels;
     if (channel == channels[0].name) return channel0;
@@ -825,21 +841,12 @@ final class SassColor._forSpace(
       throw RangeError.range(weight, 0, 1, 'weight');
     }
 
-    // If either color is missing a channel _and_ that channel is analogous with
-    // one in the output space, then the output channel should take on the other
-    // color's value.
-    var missing1_0 = _isAnalogousChannelMissing(this, color1, 0);
-    var missing1_1 = _isAnalogousChannelMissing(this, color1, 1);
-    var missing1_2 = _isAnalogousChannelMissing(this, color1, 2);
-    var missing2_0 = _isAnalogousChannelMissing(other, color2, 0);
-    var missing2_1 = _isAnalogousChannelMissing(other, color2, 1);
-    var missing2_2 = _isAnalogousChannelMissing(other, color2, 2);
-    var channel1_0 = (missing1_0 ? color2 : color1).channel0;
-    var channel1_1 = (missing1_1 ? color2 : color1).channel1;
-    var channel1_2 = (missing1_2 ? color2 : color1).channel2;
-    var channel2_0 = (missing2_0 ? color1 : color2).channel0;
-    var channel2_1 = (missing2_1 ? color1 : color2).channel1;
-    var channel2_2 = (missing2_2 ? color1 : color2).channel2;
+    var channel1_0 = color1.channel0OrNull ?? color2.channel0OrNull;
+    var channel1_1 = color1.channel1OrNull ?? color2.channel1OrNull;
+    var channel1_2 = color1.channel2OrNull ?? color2.channel2OrNull;
+    var channel2_0 = color2.channel0OrNull ?? color1.channel0OrNull;
+    var channel2_1 = color2.channel1OrNull ?? color1.channel1OrNull;
+    var channel2_2 = color2.channel2OrNull ?? color1.channel2OrNull;
     var alpha1 = alphaOrNull ?? other.alpha;
     var alpha2 = other.alphaOrNull ?? alpha;
 
@@ -848,25 +855,25 @@ final class SassColor._forSpace(
     var mixedAlpha = isAlphaMissing && other.isAlphaMissing
         ? null
         : alpha1 * weight + alpha2 * (1 - weight);
-    var mixed0 = missing1_0 && missing2_0
+    var mixed0 = channel1_0 == null
         ? null
-        : (channel1_0 * thisMultiplier + channel2_0 * otherMultiplier) /
+        : (channel1_0 * thisMultiplier + channel2_0! * otherMultiplier) /
               (mixedAlpha ?? 1);
-    var mixed1 = missing1_1 && missing2_1
+    var mixed1 = channel1_1 == null
         ? null
-        : (channel1_1 * thisMultiplier + channel2_1 * otherMultiplier) /
+        : (channel1_1 * thisMultiplier + channel2_1! * otherMultiplier) /
               (mixedAlpha ?? 1);
-    var mixed2 = missing1_2 && missing2_2
+    var mixed2 = channel1_2 == null
         ? null
-        : (channel1_2 * thisMultiplier + channel2_2 * otherMultiplier) /
+        : (channel1_2 * thisMultiplier + channel2_2! * otherMultiplier) /
               (mixedAlpha ?? 1);
 
     return switch (method.space) {
       .hsl || .hwb => SassColor.forSpaceInternal(
         method.space,
-        missing1_0 && missing2_0
+        channel1_0 == null
             ? null
-            : _interpolateHues(channel1_0, channel2_0, method.hue!, weight),
+            : _interpolateHues(channel1_0, channel2_0!, method.hue!, weight),
         mixed1,
         mixed2,
         mixedAlpha,
@@ -875,9 +882,9 @@ final class SassColor._forSpace(
         method.space,
         mixed0,
         mixed1,
-        missing1_2 && missing2_2
+        channel1_2 == null
             ? null
-            : _interpolateHues(channel1_2, channel2_2, method.hue!, weight),
+            : _interpolateHues(channel1_2, channel2_2!, method.hue!, weight),
         mixedAlpha,
       ),
       _ => SassColor.forSpaceInternal(
@@ -888,29 +895,6 @@ final class SassColor._forSpace(
         mixedAlpha,
       ),
     }.toSpace(space, legacyMissing: legacyMissing);
-  }
-
-  /// Returns whether [output], which was converted to its color space from
-  /// [original], should be considered to have a missing channel at
-  /// [outputChannelIndex].
-  ///
-  /// This includes channels that are analogous to missing channels in
-  /// [original].
-  bool _isAnalogousChannelMissing(
-    SassColor original,
-    SassColor output,
-    int outputChannelIndex,
-  ) {
-    if (output.channelsOrNull[outputChannelIndex] == null) return true;
-    if (identical(original, output)) return false;
-
-    var outputChannel = output.space.channels[outputChannelIndex];
-    var originalChannel = original.space.channels.firstWhereOrNull(
-      outputChannel.isAnalogous,
-    );
-    if (originalChannel == null) return false;
-
-    return original.isChannelMissing(originalChannel.name);
   }
 
   /// Returns a hue partway between [hue1] and [hue2] according to [method].

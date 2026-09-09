@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 92647caa0205ee2b5e5e0816d532314b773ecfe6
+// Checksum: d68fe16adc9c0c2496cc7977d77301ecbb55d66a
 //
 // ignore_for_file: unused_import
 
@@ -147,7 +147,7 @@ final class _EvaluateVisitor({
     IfConditionExpressionVisitor<Object /* String | bool */>,
     CssVisitor<void> {
   /// The import cache used to import other stylesheets.
-  final ImportCache? _importCache = importCache ?? ImportCache.none();
+  final ImportCache _importCache = importCache ?? ImportCache.none();
 
   /// Built-in functions that are globally-accessible, even under the new module
   /// system.
@@ -555,6 +555,7 @@ final class _EvaluateVisitor({
         // ignore: unnecessary_type_check
         if (callable is Callable) {
           return _runFunctionCallable(invocation, callable, _callableNode!);
+          // ignore: dead_code
         } else {
           throw SassScriptException(
             "The function ${callable.name} is asynchronous.\n"
@@ -636,6 +637,7 @@ final class _EvaluateVisitor({
               callableNode,
               callableNode,
             );
+            // ignore: dead_code
           } else {
             throw SassScriptException(
               "The mixin ${callable.name} is asynchronous.\n"
@@ -1955,7 +1957,7 @@ final class _EvaluateVisitor({
       assert(_importSpan == null);
       _importSpan = span;
 
-      if (_importCache case var importCache?) {
+      if (_importCache case var importCache) {
         baseUrl ??= _stylesheet.span.sourceUrl;
         if (importCache.canonicalize(
               Uri.parse(url),
@@ -2804,7 +2806,12 @@ final class _EvaluateVisitor({
   @override
   Value visitLegacyIfExpression(LegacyIfExpression node) {
     var (positional, named) = _evaluateMacroArguments(node);
-    _verifyParameters(positional.length, named, .declaration, node);
+    _verifyParameters(
+      positional.length,
+      named,
+      LegacyIfExpression.declaration,
+      node,
+    );
 
     // ignore: prefer_is_empty
     var condition = positional.elementAtOrNull(0) ?? named["condition"]!;
@@ -3792,13 +3799,13 @@ final class _EvaluateVisitor({
         positionalNodes: positionalNodes,
         named: named,
         namedNodes: namedNodes,
-        separator: .undecided,
+        separator: ListSeparator.undecided, // dart-lang/sdk#64092
       );
     }
 
     var rest = restArgs.accept(this);
     var restNodeForSpan = _expressionNode(restArgs);
-    var separator = .undecided;
+    var separator = ListSeparator.undecided;
     if (rest is SassMap) {
       _addRestMap(named, rest, restArgs, (value) => value);
       namedNodes.addAll({
@@ -4612,7 +4619,7 @@ final class _EvaluateVisitor({
   Frame _stackFrame(String member, FileSpan span) => frameForSpan(
     span,
     member,
-    url: span.sourceUrl.andThen((url) => _importCache?.humanize(url) ?? url),
+    url: span.sourceUrl.andThen((url) => _importCache.humanize(url)),
   );
 
   /// Returns a stack trace at the current point.

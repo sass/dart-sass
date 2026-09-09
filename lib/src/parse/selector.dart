@@ -7,7 +7,6 @@ import 'package:meta/meta.dart';
 
 import '../ast/css/value.dart';
 import '../ast/selector.dart';
-import '../deprecation.dart';
 import '../logger.dart';
 import '../util/character.dart';
 import '../utils.dart';

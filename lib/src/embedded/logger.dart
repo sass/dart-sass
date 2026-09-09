@@ -26,7 +26,7 @@ final class EmbeddedLogger(
 
   /// Whether the formatted message should use ASCII encoding.
   final bool _ascii = false,
-}) extends LoggerWithDeprecationType {
+}) implements Logger {
   @override
   void debug(String message, SourceSpan span) {
     _dispatcher.sendLog(

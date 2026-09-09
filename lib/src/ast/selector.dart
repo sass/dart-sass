@@ -61,10 +61,7 @@ abstract base class Selector(@override final FileSpan span) implements AstNode {
 }
 
 /// The visitor used to implement [Selector.isInvisible].
-final class const _IsInvisibleVisitor({
-  /// Whether to consider selectors with bogus combinators invisible.
-  required final bool includeBogus,
-}) with AnySelectorVisitor {
+final class const _IsInvisibleVisitor() with AnySelectorVisitor {
   @override
   bool visitSelectorList(SelectorList list) =>
       list.components.every(visitComplexSelector);

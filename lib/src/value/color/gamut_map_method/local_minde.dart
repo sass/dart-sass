@@ -41,7 +41,7 @@ final class const LocalMindeGamutMap() extends GamutMapMethod {
       return SassColor.rgb(0, 0, 0, color.alphaOrNull).toSpace(color.space);
     }
 
-    var clipped = color.toGamut(GamutMapMethod.clip);
+    var clipped = color.toGamut(.clip);
     if (_deltaEOK(clipped, color) < _jnd) return clipped;
 
     var min = 0.0;
@@ -53,7 +53,13 @@ final class const LocalMindeGamutMap() extends GamutMapMethod {
       // In the Color 4 algorithm `current` is in Oklch, but all its actual uses
       // other than modifying chroma convert it to `color.space` first so we
       // just store it in that space to begin with.
-      var current = .oklch.convert(color.space, lightness, chroma, hue, alpha);
+      var current = ColorSpace.oklch.convert(
+        color.space,
+        lightness,
+        chroma,
+        hue,
+        alpha,
+      );
 
       // Per [this comment], the intention of the algorithm is to fall through
       // this clause if `minInGamut = false` without checking
@@ -67,7 +73,7 @@ final class const LocalMindeGamutMap() extends GamutMapMethod {
         continue;
       }
 
-      clipped = current.toGamut(GamutMapMethod.clip);
+      clipped = current.toGamut(.clip);
       var e = _deltaEOK(clipped, current);
       if (e < _jnd) {
         if (_jnd - e < _epsilon) return clipped;
