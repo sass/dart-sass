@@ -25,6 +25,7 @@ jobs:
       contents: write # Needed to merge PR
       pull-requests: write # Needed to merge PR
     runs-on: ubuntu-latest
+    needs: [test]
     if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'sass/dart-sass'
 
     steps:
@@ -34,7 +35,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - if: steps.metadata.outputs.update-type != 'version-update:semver-major'
-        run: gh pr merge --auto --merge "$PR_URL"
+        run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
