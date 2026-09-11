@@ -9,17 +9,17 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260 # v1
+    - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260 # v1.7.2
       with:
         sdk: "${{ inputs.dart-sdk }}"
         architecture: "${{ inputs.architecture }}"
 
-    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
       if: "inputs.for-npm-deploy != true"
       with:
         node-version: "${{ inputs.node-version }}"
 
-    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
       if: inputs.for-npm-deploy == true
       with:
         node-version: "${{ inputs.node-version }}"
@@ -45,7 +45,7 @@ runs:
     - run: npm install
       shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
 
-    - uses: bufbuild/buf-action@8c6a16e16f12ba20b6470afa9c2ba9b5ba8c97c3 # v1
+    - uses: bufbuild/buf-action@8c6a16e16f12ba20b6470afa9c2ba9b5ba8c97c3 # v1.5.0
       with:
         setup_only: true
 
@@ -53,14 +53,14 @@ runs:
     # Avoid running this composite action on non-PR, so that we can release on windows-arm64.
     - name: Check out the language repo
       if: github.event_name == 'pull_request'
-      uses: sass/clone-linked-repo@ec2dcd11c5eaec56b64855712372056a14e9614d # v1
+      uses: sass/clone-linked-repo@ec2dcd11c5eaec56b64855712372056a14e9614d # v1.0.0
       with: {repo: sass/sass, path: build/language}
 
     # Git is not pre-installed on windows-arm64 runner, however actions/checkout support
     # downloading repo via GitHub API.
     - name: Check out the language repo
       if: github.event_name != 'pull_request'
-      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: sass/sass
         path: build/language
