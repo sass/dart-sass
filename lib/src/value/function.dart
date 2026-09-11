@@ -29,15 +29,17 @@ final class SassFunction extends Value {
   /// This is `null` for functions defined in plugins' Dart code.
   final Object? _compileContext;
 
-  SassFunction(this.callable) : _compileContext = null;
+  new(this.callable) : _compileContext = null;
 
   @internal
-  SassFunction.withCompileContext(this.callable, this._compileContext);
+  new withCompileContext(this.callable, this._compileContext);
 
   /// @nodoc
+  @override
   @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitFunction(this);
 
+  @override
   SassFunction assertFunction([String? name]) => this;
 
   /// Asserts that this SassFunction belongs to [compileContext] and returns it.
@@ -48,14 +50,17 @@ final class SassFunction extends Value {
   SassFunction assertCompileContext(Object compileContext) {
     if (_compileContext != null && _compileContext != compileContext) {
       throw SassScriptException(
-          "$this does not belong to current compilation.");
+        "$this does not belong to current compilation.",
+      );
     }
 
     return this;
   }
 
+  @override
   bool operator ==(Object other) =>
       other is SassFunction && callable == other.callable;
 
+  @override
   int get hashCode => callable.hashCode;
 }

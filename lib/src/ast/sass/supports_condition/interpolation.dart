@@ -12,22 +12,22 @@ import '../supports_condition.dart';
 /// An interpolated condition.
 ///
 /// {@category AST}
-final class SupportsInterpolation implements SupportsCondition {
+final class SupportsInterpolation(
   /// The expression in the interpolation.
-  final Expression expression;
-
-  final FileSpan span;
-
-  SupportsInterpolation(this.expression, this.span);
-
+  final Expression expression,
+  @override final FileSpan span,
+) implements SupportsCondition {
   /// @nodoc
+  @override
   @internal
   Interpolation toInterpolation() => Interpolation([expression], [span], span);
 
   /// @nodoc
+  @override
   @internal
   SupportsInterpolation withSpan(FileSpan span) =>
       SupportsInterpolation(expression, span);
 
+  @override
   String toString() => "#{$expression}";
 }

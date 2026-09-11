@@ -14,11 +14,11 @@
     "url": "https://github.com/nex3"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=20.19.0"
   },
   "dependencies": {
-    "chokidar": "^4.0.0",
-    "immutable": "^5.0.2",
+    "chokidar": "^5.0.0",
+    "immutable": "^5.1.5",
     "source-map-js": ">=0.6.2 <2.0.0"
   },
   "optionalDependencies": {

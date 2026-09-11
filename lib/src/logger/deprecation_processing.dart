@@ -20,36 +20,28 @@ const _maxRepetitions = 5;
 /// deprecation warnings, silencing, making fatal, enabling future, and/or
 /// limiting repetition based on its inputs.
 @internal
-final class DeprecationProcessingLogger implements Logger {
-  /// A map of how many times each deprecation has been emitted by this logger.
-  final _warningCounts = <Deprecation, int>{};
-
-  final Logger _inner;
+final class DeprecationProcessingLogger(
+  final Logger _inner, {
 
   /// Deprecation warnings of these types will be ignored.
-  final Set<Deprecation> silenceDeprecations;
+  required final Set<Deprecation> silenceDeprecations,
 
   /// Deprecation warnings of one of these types will cause an error to be
   /// thrown.
   ///
   /// Future deprecations in this list will still cause an error even if they
   /// are not also in [futureDeprecations].
-  final Set<Deprecation> fatalDeprecations;
+  required final Set<Deprecation> fatalDeprecations,
 
   /// Future deprecations that the user has explicitly opted into.
-  final Set<Deprecation> futureDeprecations;
+  required final Set<Deprecation> futureDeprecations,
 
   /// Whether repetitions of the same warning should be limited to no more than
   /// [_maxRepetitions].
-  final bool limitRepetition;
-
-  DeprecationProcessingLogger(
-    this._inner, {
-    required this.silenceDeprecations,
-    required this.fatalDeprecations,
-    required this.futureDeprecations,
-    this.limitRepetition = true,
-  });
+  final bool limitRepetition = true,
+}) implements Logger {
+  /// A map of how many times each deprecation has been emitted by this logger.
+  final _warningCounts = <Deprecation, int>{};
 
   /// Warns if any of the deprecations options are incompatible or unnecessary.
   void validate() {
@@ -78,7 +70,7 @@ final class DeprecationProcessingLogger implements Logger {
 
     for (var deprecation in silenceDeprecations) {
       switch (deprecation) {
-        case Deprecation.userAuthored:
+        case .userAuthored:
           warn('User-authored deprecations should not be silenced.');
         case Deprecation(obsoleteIn: Version()):
           warn(
@@ -111,6 +103,7 @@ final class DeprecationProcessingLogger implements Logger {
     }
   }
 
+  @override
   void warn(
     String message, {
     FileSpan? span,
@@ -144,7 +137,8 @@ final class DeprecationProcessingLogger implements Logger {
     }
 
     if (fatalDeprecations.contains(deprecation)) {
-      message += "\n\nThis is only an error because you've set the "
+      message +=
+          "\n\nThis is only an error because you've set the "
           '$deprecation deprecation to be fatal.\n'
           'Remove this setting if you need to keep using this feature.';
       throw switch ((span, trace)) {
@@ -156,19 +150,15 @@ final class DeprecationProcessingLogger implements Logger {
     if (silenceDeprecations.contains(deprecation)) return;
 
     if (limitRepetition) {
-      var count =
-          _warningCounts[deprecation] = (_warningCounts[deprecation] ?? 0) + 1;
+      var count = _warningCounts[deprecation] =
+          (_warningCounts[deprecation] ?? 0) + 1;
       if (count > _maxRepetitions) return;
     }
 
-    _inner.warn(
-      message,
-      span: span,
-      trace: trace,
-      deprecation: deprecation,
-    );
+    _inner.warn(message, span: span, trace: trace, deprecation: deprecation);
   }
 
+  @override
   void debug(String message, SourceSpan span) => _inner.debug(message, span);
 
   /// Prints a warning indicating the number of deprecation warnings that were
@@ -183,8 +173,7 @@ final class DeprecationProcessingLogger implements Logger {
         .sum;
     if (total > 0) {
       _inner.warn(
-        "$total repetitive deprecation warnings omitted." +
-            (js ? "" : "\nRun in verbose mode to see all warnings."),
+        "$total repetitive deprecation warnings omitted.${js ? "" : "\nRun in verbose mode to see all warnings."}",
       );
     }
   }

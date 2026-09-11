@@ -17,27 +17,67 @@ import '../value.dart';
 
 /// A [Module] that exposes members according to a [ForwardRule].
 @internal
-final class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
+final class ForwardedModuleView<T extends AsyncCallable>(
   /// The wrapped module.
-  final Module<T> _inner;
+  final Module<T> _inner,
 
   /// The rule that determines how this module's members should be exposed.
-  final ForwardRule _rule;
-
+  final ForwardRule _rule,
+) implements Module<T> {
+  @override
   Uri? get url => _inner.url;
+
+  @override
   List<Module<T>> get upstream => _inner.upstream;
+
+  @override
   ExtensionStore get extensionStore => _inner.extensionStore;
+
+  @override
   CssStylesheet get css => _inner.css;
+
+  @override
   Map<Module<T>, List<CssComment>> get preModuleComments =>
       _inner.preModuleComments;
+
+  @override
   bool get transitivelyContainsCss => _inner.transitivelyContainsCss;
+
+  @override
   bool get transitivelyContainsExtensions =>
       _inner.transitivelyContainsExtensions;
 
-  final Map<String, Value> variables;
-  final Map<String, AstNode> variableNodes;
-  final Map<String, T> functions;
-  final Map<String, T> mixins;
+  @override
+  final Map<String, Value> variables = _forwardedMap(
+    _inner.variables,
+    _rule.prefix,
+    _rule.shownVariables,
+    _rule.hiddenVariables,
+  );
+
+  @override
+  final Map<String, AstNode> variableNodes = _forwardedMap(
+    _inner.variableNodes,
+    _rule.prefix,
+    _rule.shownVariables,
+    _rule.hiddenVariables,
+  );
+
+  @override
+  final Map<String, T> functions = _forwardedMap(
+    _inner.functions,
+    _rule.prefix,
+    _rule.shownMixinsAndFunctions,
+    _rule.hiddenMixinsAndFunctions,
+  );
+
+  @override
+  final Map<String, T> mixins = _forwardedMap(
+    _inner.mixins,
+    _rule.prefix,
+    _rule.shownMixinsAndFunctions,
+    _rule.hiddenMixinsAndFunctions,
+  );
 
   /// Like [ForwardedModuleView], but returns `inner` as-is if it doesn't need
   /// any modification.
@@ -55,32 +95,6 @@ final class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
       return ForwardedModuleView(inner, rule);
     }
   }
-
-  ForwardedModuleView(this._inner, this._rule)
-      : variables = _forwardedMap(
-          _inner.variables,
-          _rule.prefix,
-          _rule.shownVariables,
-          _rule.hiddenVariables,
-        ),
-        variableNodes = _forwardedMap(
-          _inner.variableNodes,
-          _rule.prefix,
-          _rule.shownVariables,
-          _rule.hiddenVariables,
-        ),
-        functions = _forwardedMap(
-          _inner.functions,
-          _rule.prefix,
-          _rule.shownMixinsAndFunctions,
-          _rule.hiddenMixinsAndFunctions,
-        ),
-        mixins = _forwardedMap(
-          _inner.mixins,
-          _rule.prefix,
-          _rule.shownMixinsAndFunctions,
-          _rule.hiddenMixinsAndFunctions,
-        );
 
   /// Wraps [map] so that it only shows members allowed by [blocklist] or
   /// [safelist], with the given [prefix], if given.
@@ -112,6 +126,7 @@ final class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
     return map;
   }
 
+  @override
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (_rule.shownVariables case var shownVariables?
         when !shownVariables.contains(name)) {
@@ -132,6 +147,7 @@ final class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
     return _inner.setVariable(name, value, nodeWithSpan);
   }
 
+  @override
   Object variableIdentity(String name) {
     assert(variables.containsKey(name));
 
@@ -143,6 +159,7 @@ final class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
     return _inner.variableIdentity(name);
   }
 
+  @override
   bool couldHaveBeenConfigured(Set<String> variables) {
     assert(_rule.shownVariables == null || _rule.hiddenVariables == null);
     if (_rule.prefix == null &&
@@ -154,7 +171,7 @@ final class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
     if (_rule.prefix case var prefix?) {
       variables = {
         for (var name in variables)
-          if (name.startsWith(prefix)) name.substring(prefix.length)
+          if (name.startsWith(prefix)) name.substring(prefix.length),
       };
     }
 
@@ -168,14 +185,18 @@ final class ForwardedModuleView<T extends AsyncCallable> implements Module<T> {
     }
   }
 
+  @override
   bool operator ==(Object other) =>
       other is ForwardedModuleView &&
       _inner == other._inner &&
       _rule == other._rule;
 
+  @override
   int get hashCode => _inner.hashCode ^ _rule.hashCode;
 
+  @override
   Module<T> cloneCss() => ForwardedModuleView(_inner.cloneCss(), _rule);
 
+  @override
   String toString() => "forwarded $_inner";
 }

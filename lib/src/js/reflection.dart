@@ -70,12 +70,12 @@ extension JSClassExtension on JSClass {
   }
 
   /// Sets the custom inspect logic for this class to [body].
-  void setCustomInspect(String inspect(Object self)) {
+  void setCustomInspect(String Function(Object self) inspect) {
     if (_util == null) return;
     setProperty(
       prototype,
       _inspectSymbol,
-      allowInteropCaptureThis((Object self, _, __, [___]) => inspect(self)),
+      allowInteropCaptureThis((Object self, _, _, [_]) => inspect(self)),
     );
   }
 

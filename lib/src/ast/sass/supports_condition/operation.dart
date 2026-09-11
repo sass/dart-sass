@@ -15,41 +15,42 @@ import 'negation.dart';
 /// An operation defining the relationship between two conditions.
 ///
 /// {@category AST}
-final class SupportsOperation implements SupportsCondition {
+final class SupportsOperation(
   /// The left-hand operand.
-  final SupportsCondition left;
+  final SupportsCondition left,
 
   /// The right-hand operand.
-  final SupportsCondition right;
+  final SupportsCondition right,
 
   /// The operator.
-  final BooleanOperator operator;
-
-  final FileSpan span;
-
-  SupportsOperation(this.left, this.right, this.operator, this.span);
-
+  final BooleanOperator operator,
+  @override final FileSpan span,
+) implements SupportsCondition {
   /// @nodoc
+  @override
   @internal
-  Interpolation toInterpolation() => (InterpolationBuffer()
-        ..write(span.before(left.span).text)
-        ..addInterpolation(left.toInterpolation())
-        ..write(left.span.between(right.span).text)
-        ..addInterpolation(right.toInterpolation())
-        ..write(span.after(right.span).text))
-      .interpolation(span);
+  Interpolation toInterpolation() =>
+      (InterpolationBuffer()
+            ..write(span.before(left.span).text)
+            ..addInterpolation(left.toInterpolation())
+            ..write(left.span.between(right.span).text)
+            ..addInterpolation(right.toInterpolation())
+            ..write(span.after(right.span).text))
+          .interpolation(span);
 
   /// @nodoc
+  @override
   @internal
   SupportsOperation withSpan(FileSpan span) =>
       SupportsOperation(left, right, operator, span);
 
+  @override
   String toString() =>
       "${_parenthesize(left)} $operator ${_parenthesize(right)}";
 
   String _parenthesize(SupportsCondition condition) =>
       condition is SupportsNegation ||
-              (condition is SupportsOperation && condition.operator == operator)
-          ? "($condition)"
-          : condition.toString();
+          (condition is SupportsOperation && condition.operator == operator)
+      ? "($condition)"
+      : condition.toString();
 }

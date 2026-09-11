@@ -11,12 +11,13 @@ import 'base.dart';
 /// An importer that asks the host to resolve imports in a simplified,
 /// file-system-centric way.
 @internal
-final class FileImporter extends ImporterBase {
+final class FileImporter(
+  super.dispatcher,
+
   /// The host-provided ID of the importer to invoke.
-  final int _importerId;
-
-  FileImporter(super.dispatcher, this._importerId);
-
+  final int _importerId,
+) extends ImporterBase {
+  @override
   Uri? canonicalize(Uri url) {
     if (url.scheme == 'file') {
       return FilesystemImporter.noLoadPath.canonicalize(url);
@@ -34,7 +35,7 @@ final class FileImporter extends ImporterBase {
     if (!response.containingUrlUnused) canonicalizeContext.containingUrl;
 
     switch (response.whichResult()) {
-      case InboundMessage_FileImportResponse_Result.fileUrl:
+      case .fileUrl:
         var url = parseAbsoluteUrl("The file importer", response.fileUrl);
         if (url.scheme != 'file') {
           throw 'The file importer must return a file: URL, was "$url"';
@@ -42,17 +43,20 @@ final class FileImporter extends ImporterBase {
 
         return FilesystemImporter.noLoadPath.canonicalize(url);
 
-      case InboundMessage_FileImportResponse_Result.error:
+      case .error:
         throw response.error;
 
-      case InboundMessage_FileImportResponse_Result.notSet:
+      case .notSet:
         return null;
     }
   }
 
+  @override
   ImporterResult? load(Uri url) => FilesystemImporter.noLoadPath.load(url);
 
+  @override
   bool isNonCanonicalScheme(String scheme) => scheme != 'file';
 
+  @override
   String toString() => "FileImporter";
 }

@@ -19,50 +19,48 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class SrgbLinearColorSpace extends ColorSpace {
+final class const SrgbLinearColorSpace() extends ColorSpace {
+  @override
   bool get isBoundedInternal => true;
 
-  const SrgbLinearColorSpace() : super('srgb-linear', rgbChannels);
+  this : super('srgb-linear', rgbChannels);
 
+  @override
   SassColor convert(
     ColorSpace dest,
     double? red,
     double? green,
     double? blue,
     double? alpha,
-  ) =>
-      switch (dest) {
-        ColorSpace.rgb ||
-        ColorSpace.hsl ||
-        ColorSpace.hwb ||
-        ColorSpace.srgb =>
-          ColorSpace.srgb.convert(
-            dest,
-            red.andThen(srgbAndDisplayP3FromLinear),
-            green.andThen(srgbAndDisplayP3FromLinear),
-            blue.andThen(srgbAndDisplayP3FromLinear),
-            alpha,
-          ),
-        _ => super.convert(dest, red, green, blue, alpha),
-      };
+  ) => switch (dest) {
+    .rgb || .hsl || .hwb || .srgb => ColorSpace.srgb.convert(
+      dest,
+      red.andThen(srgbAndDisplayP3FromLinear),
+      green.andThen(srgbAndDisplayP3FromLinear),
+      blue.andThen(srgbAndDisplayP3FromLinear),
+      alpha,
+    ),
+    _ => super.convert(dest, red, green, blue, alpha),
+  };
 
+  @override
   @protected
   double toLinear(double channel) => channel;
 
+  @override
   @protected
   double fromLinear(double channel) => channel;
 
+  @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
-        ColorSpace.displayP3 ||
-        ColorSpace.displayP3Linear =>
-          linearSrgbToLinearDisplayP3,
-        ColorSpace.a98Rgb => linearSrgbToLinearA98Rgb,
-        ColorSpace.prophotoRgb => linearSrgbToLinearProphotoRgb,
-        ColorSpace.rec2020 => linearSrgbToLinearRec2020,
-        ColorSpace.xyzD65 => linearSrgbToXyzD65,
-        ColorSpace.xyzD50 => linearSrgbToXyzD50,
-        ColorSpace.lms => linearSrgbToLms,
-        _ => super.transformationMatrix(dest),
-      };
+    .displayP3 || .displayP3Linear => linearSrgbToLinearDisplayP3,
+    .a98Rgb => linearSrgbToLinearA98Rgb,
+    .prophotoRgb => linearSrgbToLinearProphotoRgb,
+    .rec2020 => linearSrgbToLinearRec2020,
+    .xyzD65 => linearSrgbToXyzD65,
+    .xyzD50 => linearSrgbToXyzD50,
+    .lms => linearSrgbToLms,
+    _ => super.transformationMatrix(dest),
+  };
 }

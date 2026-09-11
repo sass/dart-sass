@@ -9,6 +9,7 @@ import 'package:stack_trace/stack_trace.dart';
 import 'deprecation.dart';
 import 'logger/deprecation_processing.dart';
 import 'logger/stderr.dart';
+import 'logger/default.dart';
 
 /// An interface for loggers that print messages produced by Sass stylesheets.
 ///
@@ -21,7 +22,12 @@ abstract interface class Logger {
 
   /// Creates a logger that prints warnings to standard error, with terminal
   /// colors if [color] is `true` (default `false`).
-  const factory Logger.stderr({bool color}) = StderrLogger;
+  const factory stderr({bool color}) = StderrLogger;
+
+  /// The logger that's used when no others are selected. This is always
+  /// [Logger.stderr], but with the value for `color` chosen based on whether
+  /// the current system supports terminal colors.
+  static const Logger defaultLogger = DefaultLogger();
 
   /// Emits a warning with the given [message].
   ///
@@ -53,22 +59,19 @@ extension WarnForDeprecation on Logger {
     Trace? trace,
   }) {
     if (deprecation.isFuture && this is! DeprecationProcessingLogger) return;
-    warn(
-      message,
-      span: span,
-      trace: trace,
-      deprecation: deprecation,
-    );
+    warn(message, span: span, trace: trace, deprecation: deprecation);
   }
 }
 
 /// A logger that emits no messages.
 final class _QuietLogger implements Logger {
+  @override
   void warn(
     String message, {
     FileSpan? span,
     Trace? trace,
     Deprecation? deprecation,
   }) {}
+  @override
   void debug(String message, SourceSpan span) {}
 }

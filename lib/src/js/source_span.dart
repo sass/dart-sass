@@ -23,10 +23,10 @@ void updateSourceSpanPrototype() {
       'start': (FileSpan span) => span.start,
       'end': (FileSpan span) => span.end,
       'url': (FileSpan span) => span.sourceUrl.andThen(
-            (url) => dartToJSUrl(
-              url.scheme == '' ? p.toUri(p.absolute(p.fromUri(url))) : url,
-            ),
-          ),
+        (url) => dartToJSUrl(
+          url.scheme == '' ? p.toUri(p.absolute(p.fromUri(url))) : url,
+        ),
+      ),
       'text': (FileSpan span) => span.text,
       'context': (FileSpan span) => span.context,
     });

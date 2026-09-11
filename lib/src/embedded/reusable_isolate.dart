@@ -21,31 +21,30 @@ import 'package:native_synchronization/sendable.dart';
 /// this will throw an unhandled [StateError].
 @internal
 typedef ReusableIsolateEntryPoint = FutureOr<void> Function(
-    Mailbox mailbox, SendPort sink);
+  Mailbox mailbox,
+  SendPort sink,
+);
 
 @internal
-final class ReusableIsolate {
+final class ReusableIsolate._(
   /// The wrapped isolate.
-  final Isolate _isolate;
+  final Isolate _isolate,
 
   /// The mailbox used to send messages to this isolate.
-  final Mailbox _mailbox;
+  final Mailbox _mailbox,
 
   /// The [ReceivePort] that receives messages from the wrapped isolate.
-  final ReceivePort _receivePort;
-
+  final ReceivePort _receivePort, {
+  Function? onError,
+}) {
   /// The subscription to [_receivePort].
-  final StreamSubscription<dynamic> _subscription;
+  final StreamSubscription<dynamic> _subscription = _receivePort.listen(
+    _defaultOnData,
+    onError: onError,
+  );
 
   /// Whether the current isolate has been borrowed.
   bool _borrowed = false;
-
-  ReusableIsolate._(
-    this._isolate,
-    this._mailbox,
-    this._receivePort, {
-    Function? onError,
-  }) : _subscription = _receivePort.listen(_defaultOnData, onError: onError);
 
   /// Spawns a [ReusableIsolate] that runs the given [entryPoint].
   static Future<ReusableIsolate> spawn(
@@ -63,7 +62,7 @@ final class ReusableIsolate {
   }
 
   /// Subscribe to messages from [_receivePort].
-  void borrow(void onData(dynamic event)?) {
+  void borrow(void Function(dynamic event)? onData) {
     if (_borrowed) {
       throw StateError('ReusableIsolate has already been borrowed.');
     }

@@ -68,15 +68,16 @@ SerializeResult serialize(
   var css = visitor._buffer.toString();
   String prefix;
   if (charset && css.codeUnits.any((codeUnit) => codeUnit > 0x7F)) {
-    prefix = style == OutputStyle.compressed ? '\uFEFF' : '@charset "UTF-8";\n';
+    prefix = style == .compressed ? '\uFEFF' : '@charset "UTF-8";\n';
   } else {
     prefix = '';
   }
 
   return (
     prefix + css,
-    sourceMap:
-        sourceMap ? visitor._buffer.buildSourceMap(prefix: prefix) : null,
+    sourceMap: sourceMap
+        ? visitor._buffer.buildSourceMap(prefix: prefix)
+        : null,
   );
 }
 
@@ -111,32 +112,41 @@ String serializeSelector(Selector selector, {bool inspect = false}) {
 }
 
 /// A visitor that converts CSS syntax trees to plain strings.
-final class _SerializeVisitor
-    implements CssVisitor<void>, ValueVisitor<void>, SelectorVisitor<void> {
+final class _SerializeVisitor({
+  OutputStyle? style,
+
+  /// Whether we're emitting an unambiguous representation of the source
+  /// structure, as opposed to valid CSS.
+  final bool _inspect = false,
+
+  /// Whether quoted strings should be emitted with quotes.
+  final bool _quote = true,
+  bool useSpaces = true,
+  int? indentWidth,
+  LineFeed? lineFeed,
+  Logger? logger,
+  bool sourceMap = true,
+}) implements CssVisitor<void>, ValueVisitor<void>, SelectorVisitor<void> {
   /// A buffer that contains the CSS produced so far.
-  final SourceMapBuffer _buffer;
+  ///
+  /// This can be temporarily replaced to capture a particular chunk of
+  /// serialization to a string.
+  SourceMapBuffer _buffer = sourceMap ? SourceMapBuffer() : NoSourceMapBuffer();
 
   /// The current indentation of the CSS output.
   var _indentation = 0;
 
   /// The style of CSS to generate.
-  final OutputStyle _style;
-
-  /// Whether we're emitting an unambiguous representation of the source
-  /// structure, as opposed to valid CSS.
-  final bool _inspect;
-
-  /// Whether quoted strings should be emitted with quotes.
-  final bool _quote;
+  final OutputStyle _style = style ?? .expanded;
 
   /// The character to use for indentation; either space or tab.
-  final int _indentCharacter;
+  final int _indentCharacter = useSpaces ? $space : $tab;
 
   /// The number of spaces or tabs to be used for indentation.
-  final int _indentWidth;
+  final int _indentWidth = indentWidth ?? 2;
 
   /// The characters to use for a line feed.
-  final LineFeed _lineFeed;
+  final LineFeed _lineFeed = lineFeed ?? .lf;
 
   /// The logger to use to print warnings.
   ///
@@ -145,31 +155,16 @@ final class _SerializeVisitor
   // We include this even when it's unused to reduce the churn as deprecations
   // are added and removed.
   // ignore: unused_field
-  final Logger _logger;
+  final Logger _logger = logger ?? .defaultLogger;
 
   /// Whether we're emitting compressed output.
-  bool get _isCompressed => _style == OutputStyle.compressed;
+  bool get _isCompressed => _style == .compressed;
 
-  _SerializeVisitor({
-    OutputStyle? style,
-    bool inspect = false,
-    bool quote = true,
-    bool useSpaces = true,
-    int? indentWidth,
-    LineFeed? lineFeed,
-    Logger? logger,
-    bool sourceMap = true,
-  })  : _buffer = sourceMap ? SourceMapBuffer() : NoSourceMapBuffer(),
-        _style = style ?? OutputStyle.expanded,
-        _inspect = inspect,
-        _quote = quote,
-        _indentCharacter = useSpaces ? $space : $tab,
-        _indentWidth = indentWidth ?? 2,
-        _lineFeed = lineFeed ?? LineFeed.lf,
-        _logger = logger ?? const Logger.stderr() {
+  this {
     RangeError.checkValueInInterval(_indentWidth, 0, 10, "indentWidth");
   }
 
+  @override
   void visitCssStylesheet(CssStylesheet node) {
     CssNode? previous;
     for (var child in node.children) {
@@ -193,6 +188,7 @@ final class _SerializeVisitor
     }
   }
 
+  @override
   void visitCssComment(CssComment node) {
     _for(node, () {
       // Preserve comments that start with `/*!`.
@@ -217,6 +213,7 @@ final class _SerializeVisitor
     });
   }
 
+  @override
   void visitCssAtRule(CssAtRule node) {
     _writeIndentation();
 
@@ -236,6 +233,7 @@ final class _SerializeVisitor
     }
   }
 
+  @override
   void visitCssMediaRule(CssMediaRule node) {
     _writeIndentation();
 
@@ -258,6 +256,7 @@ final class _SerializeVisitor
     _visitChildren(node);
   }
 
+  @override
   void visitCssImport(CssImport node) {
     _writeIndentation();
 
@@ -293,6 +292,7 @@ final class _SerializeVisitor
     }
   }
 
+  @override
   void visitCssKeyframeBlock(CssKeyframeBlock node) {
     _writeIndentation();
 
@@ -329,6 +329,7 @@ final class _SerializeVisitor
     }
   }
 
+  @override
   void visitCssStyleRule(CssStyleRule node) {
     _writeIndentation();
 
@@ -337,6 +338,7 @@ final class _SerializeVisitor
     _visitChildren(node);
   }
 
+  @override
   void visitCssSupportsRule(CssSupportsRule node) {
     _writeIndentation();
 
@@ -354,6 +356,7 @@ final class _SerializeVisitor
     _visitChildren(node);
   }
 
+  @override
   void visitCssDeclaration(CssDeclaration node) {
     _writeIndentation();
 
@@ -515,8 +518,10 @@ final class _SerializeVisitor
 
   // ## Values
 
+  @override
   void visitBoolean(SassBoolean value) => _buffer.write(value.value.toString());
 
+  @override
   void visitCalculation(SassCalculation value) {
     _buffer.write(value.name);
     _buffer.writeCharCode($lparen);
@@ -527,14 +532,12 @@ final class _SerializeVisitor
   void _writeCalculationValue(Object value) {
     switch (value) {
       case SassNumber(value: double(isFinite: false)):
-        switch (value.value) {
-          case double.infinity:
-            _buffer.write('infinity');
-          case double.negativeInfinity:
-            _buffer.write('-infinity');
-          case double(isNaN: true):
-            _buffer.write('NaN');
-        }
+        _buffer.write(switch (value.value) {
+          double.infinity => 'infinity',
+          double.negativeInfinity => '-infinity',
+          double(isNaN: true) => 'NaN',
+          _ => throw UnsupportedError('Unexpected value ${value.value}'),
+        });
 
         _writeCalculationUnits(value.numeratorUnits, value.denominatorUnits);
 
@@ -551,7 +554,8 @@ final class _SerializeVisitor
         value.accept(this);
 
       case CalculationOperation(:var operator, :var left, :var right):
-        var parenthesizeLeft = left is CalculationOperation &&
+        var parenthesizeLeft =
+            left is CalculationOperation &&
             left.operator.precedence < operator.precedence;
         if (parenthesizeLeft) _buffer.writeCharCode($lparen);
         _writeCalculationValue(left);
@@ -562,9 +566,10 @@ final class _SerializeVisitor
         _buffer.write(operator.operator);
         if (operatorWhitespace) _buffer.writeCharCode($space);
 
-        var parenthesizeRight = (right is CalculationOperation &&
+        var parenthesizeRight =
+            (right is CalculationOperation &&
                 _parenthesizeCalculationRhs(operator, right.operator)) ||
-            (operator == CalculationOperator.dividedBy &&
+            (operator == .dividedBy &&
                 right is SassNumber &&
                 (right.value.isFinite
                     ? right.hasComplexUnits
@@ -577,14 +582,22 @@ final class _SerializeVisitor
 
   /// Writes the complex numerator and denominator units beyond the first
   /// numerator unit for a number as they appear in a calculation.
+  ///
+  /// If [negative] is true, the resulting unit expression will have a negative
+  /// sign.
   void _writeCalculationUnits(
     List<String> numeratorUnits,
-    List<String> denominatorUnits,
-  ) {
+    List<String> denominatorUnits, {
+    bool negative = false,
+  }) {
     for (var unit in numeratorUnits) {
       _writeOptionalSpace();
       _buffer.writeCharCode($asterisk);
       _writeOptionalSpace();
+      if (negative) {
+        _buffer.writeCharCode($minus);
+        negative = false;
+      }
       _buffer.writeCharCode($1);
       _buffer.write(unit);
     }
@@ -593,6 +606,10 @@ final class _SerializeVisitor
       _writeOptionalSpace();
       _buffer.writeCharCode($slash);
       _writeOptionalSpace();
+      if (negative) {
+        _buffer.writeCharCode($minus);
+        negative = false;
+      }
       _buffer.writeCharCode($1);
       _buffer.write(unit);
     }
@@ -605,24 +622,23 @@ final class _SerializeVisitor
   bool _parenthesizeCalculationRhs(
     CalculationOperator outer,
     CalculationOperator right,
-  ) =>
-      switch (outer) {
-        CalculationOperator.dividedBy => true,
-        CalculationOperator.plus => false,
-        _ => right == CalculationOperator.plus ||
-            right == CalculationOperator.minus,
-      };
+  ) => switch (outer) {
+    .dividedBy => true,
+    .plus => false,
+    _ => right == .plus || right == .minus,
+  };
 
+  @override
   void visitColor(SassColor value) {
     switch (value.space) {
-      case ColorSpace.rgb || ColorSpace.hsl || ColorSpace.hwb
+      case .rgb || .hsl || .hwb
           when !value.isChannel0Missing &&
               !value.isChannel1Missing &&
               !value.isChannel2Missing &&
               !value.isAlphaMissing:
         _writeLegacyColor(value);
 
-      case ColorSpace.rgb:
+      case .rgb:
         _buffer.write('rgb(');
         _writeChannel(value.channel0OrNull);
         _buffer.writeCharCode($space);
@@ -632,7 +648,7 @@ final class _SerializeVisitor
         _maybeWriteSlashAlpha(value);
         _buffer.writeCharCode($rparen);
 
-      case ColorSpace.hsl || ColorSpace.hwb:
+      case .hsl || .hwb:
         _buffer
           ..write(value.space)
           ..writeCharCode($lparen);
@@ -644,17 +660,17 @@ final class _SerializeVisitor
         _maybeWriteSlashAlpha(value);
         _buffer.writeCharCode($rparen);
 
-      case ColorSpace.lab || ColorSpace.lch
+      case .lab || .lch
           when !_inspect &&
               !fuzzyInRange(value.channel0, 0, 100) &&
               !value.isChannel1Missing &&
               !value.isChannel2Missing:
-      case ColorSpace.oklab || ColorSpace.oklch
+      case .oklab || .oklch
           when !_inspect &&
               !fuzzyInRange(value.channel0, 0, 1) &&
               !value.isChannel1Missing &&
               !value.isChannel2Missing:
-      case ColorSpace.lch || ColorSpace.oklch
+      case .lch || .oklch
           when !_inspect &&
               fuzzyLessThan(value.channel1, 0) &&
               !value.isChannel0Missing &&
@@ -669,17 +685,14 @@ final class _SerializeVisitor
         _buffer.write(_commaSeparator);
         // The XYZ space has no gamut restrictions, so we use it to represent
         // the out-of-gamut color before converting into the target space.
-        _writeColorFunction(value.toSpace(ColorSpace.xyzD65));
+        _writeColorFunction(value.toSpace(.xyzD65));
         _writeOptionalSpace();
         _buffer.write('100%');
         _buffer.write(_commaSeparator);
         _buffer.write(_isCompressed ? 'red' : 'black');
         _buffer.writeCharCode($rparen);
 
-      case ColorSpace.lab ||
-            ColorSpace.oklab ||
-            ColorSpace.lch ||
-            ColorSpace.oklch:
+      case .lab || .oklab || .lch || .oklch:
         _buffer
           ..write(value.space)
           ..writeCharCode($lparen);
@@ -750,56 +763,31 @@ final class _SerializeVisitor
 
     // In compressed mode, emit colors in the shortest representation possible.
     if (_isCompressed) {
-      var rgb = color.toSpace(ColorSpace.rgb);
-      if (opaque && _tryIntegerRgb(rgb)) return;
+      var rgb = color.toSpace(.rgb);
+      if (opaque && _tryHexOrNamedRgb(rgb)) return;
 
-      var red = _writeNumberToString(rgb.channel0);
-      var green = _writeNumberToString(rgb.channel1);
-      var blue = _writeNumberToString(rgb.channel2);
-
-      var hsl = color.toSpace(ColorSpace.hsl);
-      var hue = _writeNumberToString(hsl.channel0);
-      var saturation = _writeNumberToString(hsl.channel1);
-      var lightness = _writeNumberToString(hsl.channel2);
+      var rgbString = _capture(() => _writeRgb(rgb));
+      var hslString = _capture(() => _writeHsl(rgb.toSpace(.hsl)));
 
       // Add two characters for HSL for the %s on saturation and lightness.
-      if (red.length + green.length + blue.length <=
-          hue.length + saturation.length + lightness.length + 2) {
-        _buffer
-          ..write(opaque ? 'rgb(' : 'rgba(')
-          ..write(red)
-          ..writeCharCode($comma)
-          ..write(green)
-          ..writeCharCode($comma)
-          ..write(blue);
+      if (rgbString.length <= hslString.length + 2) {
+        _buffer.write(rgbString);
       } else {
-        _buffer
-          ..write(opaque ? 'hsl(' : 'hsla(')
-          ..write(hue)
-          ..writeCharCode($comma)
-          ..write(saturation)
-          ..write('%,')
-          ..write(lightness)
-          ..writeCharCode($percent);
+        _buffer.write(hslString);
       }
-      if (!opaque) {
-        _buffer.writeCharCode($comma);
-        _writeNumber(color.alpha);
-      }
-      _buffer.writeCharCode($rparen);
       return;
     }
 
-    if (color.space == ColorSpace.hsl) {
+    if (color.space == .hsl) {
       _writeHsl(color);
       return;
-    } else if (_inspect && color.space == ColorSpace.hwb) {
+    } else if (_inspect && color.space == .hwb) {
       _writeHwb(color);
       return;
     }
 
     switch (color.format) {
-      case ColorFormat.rgbFunction:
+      case .rgbFunction:
         _writeRgb(color);
         return;
 
@@ -813,7 +801,7 @@ final class _SerializeVisitor
     // Always emit generated transparent colors in rgba format. This works
     // around an IE bug. See sass/sass#1782.
     if (opaque) {
-      var rgb = color.toSpace(ColorSpace.rgb);
+      var rgb = color.toSpace(.rgb);
       if (namesByColor[rgb] case var name?) {
         _buffer.write(name);
         return;
@@ -830,7 +818,7 @@ final class _SerializeVisitor
 
     // If an HWB color can't be represented as a hex color, write is as HSL
     // rather than RGB since that more clearly captures the author's intent.
-    if (color.space == ColorSpace.hwb) {
+    if (color.space == .hwb) {
       _writeHsl(color);
     } else {
       _writeRgb(color);
@@ -842,8 +830,8 @@ final class _SerializeVisitor
   ///
   /// Otherwise, writes nothing and returns `false`. Assumes [value] is in the
   /// RGB space.
-  bool _tryIntegerRgb(SassColor rgb) {
-    assert(rgb.space == ColorSpace.rgb);
+  bool _tryHexOrNamedRgb(SassColor rgb) {
+    assert(rgb.space == .rgb);
     if (!_canUseHex(rgb)) return false;
 
     var redInt = rgb.channel0.round();
@@ -870,7 +858,7 @@ final class _SerializeVisitor
 
   /// Whether [rgb] can be represented as a hexadecimal color.
   bool _canUseHex(SassColor rgb) {
-    assert(rgb.space == ColorSpace.rgb);
+    assert(rgb.space == .rgb);
     return _canUseHexForChannel(rgb.channel0) &&
         _canUseHexForChannel(rgb.channel1) &&
         _canUseHexForChannel(rgb.channel2);
@@ -886,13 +874,16 @@ final class _SerializeVisitor
   /// Writes [value] as an `rgb()` or `rgba()` function.
   void _writeRgb(SassColor color) {
     var opaque = fuzzyEquals(color.alpha, 1);
-    var rgb = color.toSpace(ColorSpace.rgb);
+    var rgb = color.toSpace(.rgb);
     _buffer.write(opaque ? "rgb(" : "rgba(");
-    _writeNumber(rgb.channel('red'));
-    _buffer.write(_commaSeparator);
-    _writeNumber(rgb.channel('green'));
-    _buffer.write(_commaSeparator);
-    _writeNumber(rgb.channel('blue'));
+
+    if (!_tryIntegerRgbChannels(rgb)) {
+      _writeChannel(color.channel0 * 100 / 255, '%');
+      _buffer.write(_commaSeparator);
+      _writeChannel(color.channel1 * 100 / 255, '%');
+      _buffer.write(_commaSeparator);
+      _writeChannel(color.channel2 * 100 / 255, '%');
+    }
 
     if (!opaque) {
       _buffer.write(_commaSeparator);
@@ -902,10 +893,36 @@ final class _SerializeVisitor
     _buffer.writeCharCode($rparen);
   }
 
+  /// If [value]'s channels are all integers, writes them as such and returns
+  /// `true`.
+  ///
+  /// Otherwise, writes nothing and returns `false`. Assumes [value] is in the
+  /// RGB space.
+  bool _tryIntegerRgbChannels(SassColor rgb) {
+    assert(rgb.space == .rgb);
+
+    var red = _asInt(rgb.channel0);
+    if (red == null) return false;
+
+    var green = _asInt(rgb.channel1);
+    if (green == null) return false;
+
+    var blue = _asInt(rgb.channel2);
+    if (blue == null) return false;
+
+    _buffer.write(_removeExponent(red.toString()));
+    _buffer.write(_commaSeparator);
+    _buffer.write(_removeExponent(green.toString()));
+    _buffer.write(_commaSeparator);
+    _buffer.write(_removeExponent(blue.toString()));
+
+    return true;
+  }
+
   /// Writes [value] as an `hsl()` or `hsla()` function.
   void _writeHsl(SassColor color) {
     var opaque = fuzzyEquals(color.alpha, 1);
-    var hsl = color.toSpace(ColorSpace.hsl);
+    var hsl = color.toSpace(.hsl);
     _buffer.write(opaque ? "hsl(" : "hsla(");
     _writeChannel(hsl.channel('hue'));
     _buffer.write(_commaSeparator);
@@ -926,7 +943,7 @@ final class _SerializeVisitor
   /// This is only used in inspect mode, and so only supports the new color syntax.
   void _writeHwb(SassColor color) {
     _buffer.write("hwb(");
-    var hwb = color.toSpace(ColorSpace.hwb);
+    var hwb = color.toSpace(.hwb);
     _writeNumber(hwb.channel('hue'));
     _buffer.writeCharCode($space);
     _writeNumber(hwb.channel('whiteness'));
@@ -946,14 +963,14 @@ final class _SerializeVisitor
   /// Writes [color] using the `color()` function syntax.
   void _writeColorFunction(SassColor color) {
     assert(
-      !{
-        ColorSpace.rgb,
-        ColorSpace.hsl,
-        ColorSpace.hwb,
-        ColorSpace.lab,
-        ColorSpace.oklab,
-        ColorSpace.lch,
-        ColorSpace.oklch,
+      !<ColorSpace>{
+        .rgb,
+        .hsl,
+        .hwb,
+        .lab,
+        .oklab,
+        .lch,
+        .oklch,
       }.contains(color.space),
     );
     _buffer
@@ -992,6 +1009,7 @@ final class _SerializeVisitor
     _writeChannel(color.alphaOrNull);
   }
 
+  @override
   void visitFunction(SassFunction function) {
     if (!_inspect) {
       throw SassScriptException("$function isn't a valid CSS value.");
@@ -1002,6 +1020,7 @@ final class _SerializeVisitor
     _buffer.writeCharCode($rparen);
   }
 
+  @override
   void visitMixin(SassMixin mixin) {
     if (!_inspect) {
       throw SassScriptException("$mixin isn't a valid CSS value.");
@@ -1012,6 +1031,7 @@ final class _SerializeVisitor
     _buffer.writeCharCode($rparen);
   }
 
+  @override
   void visitList(SassList value) {
     if (value.hasBrackets) {
       _buffer.writeCharCode($lbracket);
@@ -1023,13 +1043,13 @@ final class _SerializeVisitor
       return;
     }
 
-    var singleton = _inspect &&
+    var singleton =
+        _inspect &&
         value.asList.length == 1 &&
-        (value.separator == ListSeparator.comma ||
-            value.separator == ListSeparator.slash);
+        (value.separator == .comma || value.separator == .slash);
     if (singleton && !value.hasBrackets) _buffer.writeCharCode($lparen);
 
-    if (!_isCompressed && value.separator == ListSeparator.slash) {
+    if (!_isCompressed && value.separator == .slash) {
       _writeUncompressedSlashListContents(value);
     } else {
       _writeBetween<Value>(
@@ -1068,7 +1088,7 @@ final class _SerializeVisitor
         ? value.asList
         : [
             for (var element in value.asList)
-              if (!element.isBlank) element
+              if (!element.isBlank) element,
           ];
     var lastElementEmpty = false;
     for (var i = 0; i < contents.length; i++) {
@@ -1102,29 +1122,29 @@ final class _SerializeVisitor
 
   /// Returns the string to use to separate list items for lists with the given [separator].
   String _separatorString(ListSeparator separator) => switch (separator) {
-        ListSeparator.comma => _commaSeparator,
-        ListSeparator.slash => _isCompressed ? "/" : " / ",
-        ListSeparator.space => " ",
-        // This should never be used, but it may still be returned since
-        // [_separatorString] is invoked eagerly by [writeList] even for lists
-        // with only one elements.
-        _ => "",
-      };
+    .comma => _commaSeparator,
+    .slash => _isCompressed ? "/" : " / ",
+    .space => " ",
+    // This should never be used, but it may still be returned since
+    // [_separatorString] is invoked eagerly by [writeList] even for lists
+    // with only one elements.
+    _ => "",
+  };
 
   /// Returns whether [value] needs parentheses as an element in a list with the
   /// given [separator].
   bool _elementNeedsParens(ListSeparator separator, Value value) =>
       switch (value) {
-        SassList(asList: List(length: > 1), hasBrackets: false) => switch (
-              separator) {
-            ListSeparator.comma => value.separator == ListSeparator.comma,
-            ListSeparator.slash => value.separator == ListSeparator.comma ||
-                value.separator == ListSeparator.slash,
-            _ => value.separator != ListSeparator.undecided,
+        SassList(asList: List(length: > 1), hasBrackets: false) =>
+          switch (separator) {
+            .comma => value.separator == .comma,
+            .slash => value.separator == .comma || value.separator == .slash,
+            _ => value.separator != .undecided,
           },
         _ => false,
       };
 
+  @override
   void visitMap(SassMap map) {
     if (!_inspect) {
       throw SassScriptException("$map isn't a valid CSS value.");
@@ -1140,18 +1160,19 @@ final class _SerializeVisitor
 
   /// Writes [value] as key or value in a map, with parentheses as necessary.
   void _writeMapElement(Value value) {
-    var needsParens = value is SassList &&
-        value.separator == ListSeparator.comma &&
-        !value.hasBrackets;
+    var needsParens =
+        value is SassList && value.separator == .comma && !value.hasBrackets;
     if (needsParens) _buffer.writeCharCode($lparen);
     value.accept(this);
     if (needsParens) _buffer.writeCharCode($rparen);
   }
 
+  @override
   void visitNull() {
     if (_inspect) _buffer.write("null");
   }
 
+  @override
   void visitNumber(SassNumber value) {
     if (!value.value.isFinite) {
       visitCalculation(SassCalculation.unsimplified('calc', [value]));
@@ -1166,30 +1187,29 @@ final class _SerializeVisitor
     }
   }
 
-  /// Like [_writeNumber], but returns a string rather than writing to
-  /// [_buffer].
-  String _writeNumberToString(double number) {
-    var buffer = NoSourceMapBuffer();
-    _writeNumber(number, buffer);
-    return buffer.toString();
-  }
-
   /// Writes [number] without exponent notation and with at most
   /// [SassNumber.precision] digits after the decimal point.
   ///
   /// The number is written to [buffer], which defaults to [_buffer].
-  void _writeNumber(double number, [SourceMapBuffer? buffer]) {
-    buffer ??= _buffer;
+  void _writeNumber(double number) {
+    if (!number.isFinite) {
+      visitCalculation(
+        SassCalculation.unsimplified('calc', [SassNumber(number)]),
+      );
+      return;
+    }
+
+    if (number.isNegativeZero) {
+      _buffer.write('-0');
+      return;
+    }
 
     // Dart always converts integers to strings in the obvious way, so all we
     // have to do is clamp doubles that are close to being integers.
-    if (fuzzyAsInt(number) case var integer?
-        // In inspect mode, we want to show the full precision of every number,
-        // so we only write them as integers when they're precisely equal.
-        when !_inspect || number == integer) {
+    if (_asInt(number) case var integer?) {
       // JS still uses exponential notation for integers, so we have to handle
       // it here.
-      buffer.write(_removeExponent(integer.toString()));
+      _buffer.write(_removeExponent(integer.toString()));
       return;
     }
 
@@ -1197,7 +1217,7 @@ final class _SerializeVisitor
 
     // Write the number at full precision in inspect mode.
     if (_inspect) {
-      buffer.write(text);
+      _buffer.write(text);
       return;
     }
 
@@ -1208,11 +1228,22 @@ final class _SerializeVisitor
 
     if (canWriteDirectly) {
       if (_isCompressed && text.codeUnitAt(0) == $0) text = text.substring(1);
-      buffer.write(text);
+      _buffer.write(text);
       return;
     }
 
-    _writeRounded(text, buffer);
+    _writeRounded(text, _buffer);
+  }
+
+  /// If [number] is close enough to an integer, returns it as one.
+  ///
+  /// Normally, "close enough" includes fuzzy matching, but in inspect mode we
+  /// want to show the full precision of every number so "close enough" requires
+  /// literally being an integer.
+  int? _asInt(double number) {
+    if (_inspect) return fuzzyAsInt(number);
+    var rounded = number.round();
+    return rounded == number ? rounded : null;
   }
 
   /// If [text] is written in exponent notation, returns a string representation
@@ -1385,6 +1416,7 @@ final class _SerializeVisitor
     }
   }
 
+  @override
   void visitString(SassString string) {
     if (_quote && string.hasQuotes) {
       _visitQuotedString(string.text);
@@ -1432,37 +1464,37 @@ final class _SerializeVisitor
 
         // Write newline characters and unprintable ASCII characters as escapes.
         case $nul ||
-              $soh ||
-              $stx ||
-              $etx ||
-              $eot ||
-              $enq ||
-              $ack ||
-              $bel ||
-              $bs ||
-              $lf ||
-              $vt ||
-              $ff ||
-              $cr ||
-              $so ||
-              $si ||
-              $dle ||
-              $dc1 ||
-              $dc2 ||
-              $dc3 ||
-              $dc4 ||
-              $nak ||
-              $syn ||
-              $etb ||
-              $can ||
-              $em ||
-              $sub ||
-              $esc ||
-              $fs ||
-              $gs ||
-              $rs ||
-              $us ||
-              $del:
+            $soh ||
+            $stx ||
+            $etx ||
+            $eot ||
+            $enq ||
+            $ack ||
+            $bel ||
+            $bs ||
+            $lf ||
+            $vt ||
+            $ff ||
+            $cr ||
+            $so ||
+            $si ||
+            $dle ||
+            $dc1 ||
+            $dc2 ||
+            $dc3 ||
+            $dc4 ||
+            $nak ||
+            $syn ||
+            $etb ||
+            $can ||
+            $em ||
+            $sub ||
+            $esc ||
+            $fs ||
+            $gs ||
+            $rs ||
+            $us ||
+            $del:
           _writeEscape(buffer, char, string, i);
 
         case $backslash:
@@ -1570,6 +1602,7 @@ final class _SerializeVisitor
 
   // ## Selectors
 
+  @override
   void visitAttributeSelector(AttributeSelector attribute) {
     _buffer.writeCharCode($lbracket);
     _buffer.write(attribute.name);
@@ -1592,20 +1625,21 @@ final class _SerializeVisitor
     _buffer.writeCharCode($rbracket);
   }
 
+  @override
   void visitClassSelector(ClassSelector klass) {
     _buffer.writeCharCode($dot);
     _buffer.write(klass.name);
   }
 
+  @override
   void visitComplexSelector(ComplexSelector complex) {
     if (complex.leadingCombinator case var combinator?) {
       _buffer.write(combinator);
     }
-    if (complex
-        case ComplexSelector(
-          leadingCombinator: var _?,
-          components: [_, ...],
-        )) {
+    if (complex case ComplexSelector(
+      leadingCombinator: var _?,
+      components: [_, ...],
+    )) {
       _writeOptionalSpace();
     }
 
@@ -1625,6 +1659,7 @@ final class _SerializeVisitor
     }
   }
 
+  @override
   void visitCompoundSelector(CompoundSelector compound) {
     var start = _buffer.length;
     for (var simple in compound.components) {
@@ -1637,11 +1672,13 @@ final class _SerializeVisitor
     if (_buffer.length == start) _buffer.writeCharCode($asterisk);
   }
 
+  @override
   void visitIDSelector(IDSelector id) {
     _buffer.writeCharCode($hash);
     _buffer.write(id.name);
   }
 
+  @override
   void visitSelectorList(SelectorList list) {
     var complexes = _inspect
         ? list.components
@@ -1664,23 +1701,25 @@ final class _SerializeVisitor
     }
   }
 
+  @override
   void visitParentSelector(ParentSelector parent) {
     _buffer.writeCharCode($ampersand);
     parent.suffix.andThen(_buffer.write);
   }
 
+  @override
   void visitPlaceholderSelector(PlaceholderSelector placeholder) {
     _buffer.writeCharCode($percent);
     _buffer.write(placeholder.name);
   }
 
+  @override
   void visitPseudoSelector(PseudoSelector pseudo) {
     // `:not(%a)` is semantically identical to `*`.
-    if (pseudo
-        case PseudoSelector(
-          name: 'not',
-          selector: SelectorList(isInvisible: true),
-        )) {
+    if (pseudo case PseudoSelector(
+      name: 'not',
+      selector: SelectorList(isInvisible: true),
+    )) {
       return;
     }
 
@@ -1698,10 +1737,12 @@ final class _SerializeVisitor
     _buffer.writeCharCode($rparen);
   }
 
+  @override
   void visitTypeSelector(TypeSelector type) {
     _buffer.write(type.name);
   }
 
+  @override
   void visitUniversalSelector(UniversalSelector universal) {
     if (universal.namespace != null) {
       _buffer.write(universal.namespace);
@@ -1714,7 +1755,8 @@ final class _SerializeVisitor
 
   /// Runs [callback] and associates all text written within it with
   /// [node.span].
-  T _for<T>(AstNode node, T callback()) => _buffer.forSpan(node.span, callback);
+  T _for<T>(AstNode node, T Function() callback) =>
+      _buffer.forSpan(node.span, callback);
 
   /// Writes [value]'s value with the associated source span.
   void _write(CssValue<String> value) =>
@@ -1830,7 +1872,7 @@ final class _SerializeVisitor
   void _writeBetween<T>(
     Iterable<T> iterable,
     String text,
-    void callback(T value),
+    void Function(T value) callback,
   ) {
     var first = true;
     for (var value in iterable) {
@@ -1847,14 +1889,14 @@ final class _SerializeVisitor
   String get _commaSeparator => _isCompressed ? "," : ", ";
 
   /// Runs [callback] with indentation increased one level.
-  void _indent(void callback()) {
+  void _indent(void Function() callback) {
     _indentation++;
     callback();
     _indentation--;
   }
 
   /// Runs [callback] without any indentation.
-  void _withoutIndentation(void callback()) {
+  void _withoutIndentation(void Function() callback) {
     var savedIndentation = _indentation;
     _indentation = 0;
     callback();
@@ -1865,6 +1907,19 @@ final class _SerializeVisitor
   bool _isInvisible(CssNode node) =>
       !_inspect &&
       (_isCompressed ? node.isInvisibleHidingComments : node.isInvisible);
+
+  /// Runs [callback] without adding to [_buffer] and returns the text it would
+  /// have emitted.
+  String _capture(void Function() callback) {
+    var oldBuffer = _buffer;
+    _buffer = NoSourceMapBuffer();
+    try {
+      callback();
+      return _buffer.toString();
+    } finally {
+      _buffer = oldBuffer;
+    }
+  }
 }
 
 /// An enum of generated CSS styles.
@@ -1889,7 +1944,13 @@ enum OutputStyle {
 }
 
 /// An enum of line feed sequences.
-enum LineFeed {
+enum LineFeed(
+  /// The name of this sequence..
+  final String name,
+
+  /// The text to emit for this line feed.
+  final String text,
+) {
   /// A single carriage return.
   cr('cr', '\r'),
 
@@ -1902,14 +1963,7 @@ enum LineFeed {
   /// A line feed followed by a carriage return.
   lfcr('lfcr', '\n\r');
 
-  /// The name of this sequence..
-  final String name;
-
-  /// The text to emit for this line feed.
-  final String text;
-
-  const LineFeed(this.name, this.text);
-
+  @override
   String toString() => name;
 }
 
@@ -1917,6 +1971,7 @@ enum LineFeed {
 typedef SerializeResult = (
   /// The serialized CSS.
   String css, {
+
   /// The source map indicating how the source files map to [css].
   ///
   /// This is `null` if source mapping was disabled for this compilation.

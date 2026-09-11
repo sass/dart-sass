@@ -14,13 +14,13 @@ import 'extension.dart';
 /// This is used when multiple mandatory extensions exist to ensure that both of
 /// them are marked as resolved.
 @internal
-final class MergedExtension extends Extension {
+final class MergedExtension._(
   /// One of the merged extensions.
-  final Extension left;
+  final Extension left,
 
   /// The other merged extension.
-  final Extension right;
-
+  final Extension right,
+) extends Extension {
   /// Returns an extension that combines [left] and [right].
   ///
   /// Throws a [SassException] if [left] and [right] have incompatible media
@@ -53,14 +53,14 @@ final class MergedExtension extends Extension {
     return MergedExtension._(left, right);
   }
 
-  MergedExtension._(this.left, this.right)
-      : super(
-          left.extender.selector,
-          left.target,
-          left.span,
-          mediaContext: left.mediaContext ?? right.mediaContext,
-          optional: true,
-        );
+  this
+    : super(
+        left.extender.selector,
+        left.target,
+        left.span,
+        mediaContext: left.mediaContext ?? right.mediaContext,
+        optional: true,
+      );
 
   /// Returns all leaf-node [Extension]s in the tree of [MergedExtension]s.
   Iterable<Extension> unmerge() sync* {

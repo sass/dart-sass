@@ -142,7 +142,15 @@ double? conversionFactor(String unit1, String unit2) {
 ///
 /// {@category Value}
 @sealed
-abstract base class SassNumber extends Value {
+abstract base class SassNumber.protected(
+  final double _value,
+
+  /// The representation of this number as two slash-separated numbers, if it
+  /// has one.
+  ///
+  /// @nodoc
+  @internal final (SassNumber, SassNumber)? asSlash,
+) extends Value {
   /// The number of distinct digits that are emitted when converting a number to
   /// CSS.
   static const precision = 10;
@@ -157,7 +165,6 @@ abstract base class SassNumber extends Value {
   /// whether this is an integer, [asInt] to get its integer value, or
   /// [assertInt] to do both at once.
   double get value => _value;
-  final double _value;
 
   /// The cached hash code for this number, if it's been computed.
   ///
@@ -205,12 +212,12 @@ abstract base class SassNumber extends Value {
   ///
   /// This matches the numbers that can be written as literals.
   /// [SassNumber.withUnits] can be used to construct more complex units.
-  factory SassNumber(num value, [String? unit]) => unit == null
+  factory(num value, [String? unit]) => unit == null
       ? UnitlessSassNumber(value.toDouble())
       : SingleUnitSassNumber(value.toDouble(), unit);
 
   /// Creates a number with full [numeratorUnits] and [denominatorUnits].
-  factory SassNumber.withUnits(
+  factory withUnits(
     num value, {
     List<String>? numeratorUnits,
     List<String>? denominatorUnits,
@@ -258,17 +265,18 @@ abstract base class SassNumber extends Value {
       ([], []) => UnitlessSassNumber(valueDouble),
       ([var unit], []) => SingleUnitSassNumber(valueDouble, unit),
       _ => ComplexSassNumber(
-          valueDouble,
-          List.unmodifiable(numerators),
-          List.unmodifiable(denominators),
-        ),
+        valueDouble,
+        List.unmodifiable(numerators),
+        List.unmodifiable(denominators),
+      ),
     };
   }
 
   /// @nodoc
   @protected
-  SassNumber.protected(this._value);
+  this;
 
+  @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitNumber(this);
 
   /// Returns a number with the same units as `this` but with [value] as its
@@ -278,6 +286,7 @@ abstract base class SassNumber extends Value {
   @protected
   SassNumber withValue(num value);
 
+  @override
   SassNumber assertNumber([String? name]) => this;
 
   /// Returns [value] as an [int], if it's an integer value according to
@@ -380,12 +389,11 @@ abstract base class SassNumber extends Value {
     List<String> newNumerators,
     List<String> newDenominators, [
     String? name,
-  ]) =>
-      SassNumber.withUnits(
-        convertValue(newNumerators, newDenominators, name),
-        numeratorUnits: newNumerators,
-        denominatorUnits: newDenominators,
-      );
+  ]) => SassNumber.withUnits(
+    convertValue(newNumerators, newDenominators, name),
+    numeratorUnits: newNumerators,
+    denominatorUnits: newDenominators,
+  );
 
   /// Returns [value], converted to the units represented by [newNumerators] and
   /// [newDenominators].
@@ -399,13 +407,12 @@ abstract base class SassNumber extends Value {
     List<String> newNumerators,
     List<String> newDenominators, [
     String? name,
-  ]) =>
-      _coerceOrConvertValue(
-        newNumerators,
-        newDenominators,
-        coerceUnitless: false,
-        name: name,
-      );
+  ]) => _coerceOrConvertValue(
+    newNumerators,
+    newDenominators,
+    coerceUnitless: false,
+    name: name,
+  );
 
   /// A shorthand for [convertValue] with only one numerator unit.
   double convertValueToUnit(String unit, [String? name]) =>
@@ -427,12 +434,11 @@ abstract base class SassNumber extends Value {
     SassNumber other, [
     String? name,
     String? otherName,
-  ]) =>
-      SassNumber.withUnits(
-        convertValueToMatch(other, name, otherName),
-        numeratorUnits: other.numeratorUnits,
-        denominatorUnits: other.denominatorUnits,
-      );
+  ]) => SassNumber.withUnits(
+    convertValueToMatch(other, name, otherName),
+    numeratorUnits: other.numeratorUnits,
+    denominatorUnits: other.denominatorUnits,
+  );
 
   /// Returns [value], converted to the same units as [other].
   ///
@@ -447,15 +453,14 @@ abstract base class SassNumber extends Value {
     SassNumber other, [
     String? name,
     String? otherName,
-  ]) =>
-      _coerceOrConvertValue(
-        other.numeratorUnits,
-        other.denominatorUnits,
-        coerceUnitless: false,
-        name: name,
-        other: other,
-        otherName: otherName,
-      );
+  ]) => _coerceOrConvertValue(
+    other.numeratorUnits,
+    other.denominatorUnits,
+    coerceUnitless: false,
+    name: name,
+    other: other,
+    otherName: otherName,
+  );
 
   /// Returns a copy of this number, converted to the units represented by
   /// [newNumerators] and [newDenominators].
@@ -477,12 +482,11 @@ abstract base class SassNumber extends Value {
     List<String> newNumerators,
     List<String> newDenominators, [
     String? name,
-  ]) =>
-      SassNumber.withUnits(
-        coerceValue(newNumerators, newDenominators, name),
-        numeratorUnits: newNumerators,
-        denominatorUnits: newDenominators,
-      );
+  ]) => SassNumber.withUnits(
+    coerceValue(newNumerators, newDenominators, name),
+    numeratorUnits: newNumerators,
+    denominatorUnits: newDenominators,
+  );
 
   /// Returns [value], converted to the units represented by [newNumerators] and
   /// [newDenominators].
@@ -501,13 +505,12 @@ abstract base class SassNumber extends Value {
     List<String> newNumerators,
     List<String> newDenominators, [
     String? name,
-  ]) =>
-      _coerceOrConvertValue(
-        newNumerators,
-        newDenominators,
-        coerceUnitless: true,
-        name: name,
-      );
+  ]) => _coerceOrConvertValue(
+    newNumerators,
+    newDenominators,
+    coerceUnitless: true,
+    name: name,
+  );
 
   /// A shorthand for [coerceValue] with only one numerator unit.
   double coerceValueToUnit(String unit, [String? name]) =>
@@ -533,12 +536,11 @@ abstract base class SassNumber extends Value {
     SassNumber other, [
     String? name,
     String? otherName,
-  ]) =>
-      SassNumber.withUnits(
-        coerceValueToMatch(other, name, otherName),
-        numeratorUnits: other.numeratorUnits,
-        denominatorUnits: other.denominatorUnits,
-      );
+  ]) => SassNumber.withUnits(
+    coerceValueToMatch(other, name, otherName),
+    numeratorUnits: other.numeratorUnits,
+    denominatorUnits: other.denominatorUnits,
+  );
 
   /// Returns [value], converted to the same units as [other].
   ///
@@ -557,15 +559,14 @@ abstract base class SassNumber extends Value {
     SassNumber other, [
     String? name,
     String? otherName,
-  ]) =>
-      _coerceOrConvertValue(
-        other.numeratorUnits,
-        other.denominatorUnits,
-        coerceUnitless: true,
-        name: name,
-        other: other,
-        otherName: otherName,
-      );
+  ]) => _coerceOrConvertValue(
+    other.numeratorUnits,
+    other.denominatorUnits,
+    coerceUnitless: true,
+    name: name,
+    other: other,
+    otherName: otherName,
+  );
 
   /// This has been renamed [coerceValue] for consistency with [coerceToMatch],
   /// [coerceValueToMatch], [convertToMatch], and [convertValueToMatch].
@@ -574,8 +575,7 @@ abstract base class SassNumber extends Value {
     List<String> newNumerators,
     List<String> newDenominators, [
     String? name,
-  ]) =>
-      coerceValue(newNumerators, newDenominators, name);
+  ]) => coerceValue(newNumerators, newDenominators, name);
 
   /// Converts [value] to [newNumerators] and [newDenominators].
   ///
@@ -694,6 +694,7 @@ abstract base class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   SassBoolean greaterThan(Value other) {
     if (other is SassNumber) {
@@ -703,6 +704,7 @@ abstract base class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   SassBoolean greaterThanOrEquals(Value other) {
     if (other is SassNumber) {
@@ -712,6 +714,7 @@ abstract base class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   SassBoolean lessThan(Value other) {
     if (other is SassNumber) {
@@ -721,6 +724,7 @@ abstract base class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   SassBoolean lessThanOrEquals(Value other) {
     if (other is SassNumber) {
@@ -730,6 +734,7 @@ abstract base class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   SassNumber modulo(Value other) {
     if (other is SassNumber) {
@@ -739,6 +744,7 @@ abstract base class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   Value plus(Value other) {
     if (other is SassNumber) {
@@ -749,6 +755,7 @@ abstract base class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   Value minus(Value other) {
     if (other is SassNumber) {
@@ -759,6 +766,7 @@ abstract base class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   Value times(Value other) {
     if (other is SassNumber) {
@@ -773,6 +781,7 @@ abstract base class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   Value dividedBy(Value other) {
     if (other is SassNumber) {
@@ -787,6 +796,7 @@ abstract base class SassNumber extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   Value unaryPlus() => this;
 
@@ -797,7 +807,10 @@ abstract base class SassNumber extends Value {
   ///
   /// @nodoc
   @protected
-  T _coerceUnits<T>(SassNumber other, T operation(double num1, double num2)) {
+  T _coerceUnits<T>(
+    SassNumber other,
+    T Function(double num1, double num2) operation,
+  ) {
     try {
       return operation(value, other.coerceValueToMatch(this));
     } on SassScriptException {
@@ -828,7 +841,7 @@ abstract base class SassNumber extends Value {
       otherDenominators,
     )) {
       case (var numerators, var denominators, [], []) ||
-            ([], [], var numerators, var denominators):
+          ([], [], var numerators, var denominators):
       case ([], var denominators, var numerators, []) ||
               (var numerators, [], [], var denominators)
           when !_areAnyConvertible(numerators, denominators):
@@ -890,6 +903,7 @@ abstract base class SassNumber extends Value {
         _ => "${numerators.join("*")}/(${denominators.join("*")})",
       };
 
+  @override
   bool operator ==(Object other) {
     if (other is! SassNumber) return false;
     if (numeratorUnits.length != other.numeratorUnits.length ||
@@ -919,11 +933,12 @@ abstract base class SassNumber extends Value {
     );
   }
 
+  @override
   int get hashCode => hashCache ??= fuzzyHashCode(
-        value *
-            _canonicalMultiplier(numeratorUnits) /
-            _canonicalMultiplier(denominatorUnits),
-      );
+    value *
+        _canonicalMultiplier(numeratorUnits) /
+        _canonicalMultiplier(denominatorUnits),
+  );
 
   /// Converts a unit list (such as [numeratorUnits]) into an equivalent list in
   /// a canonical form, to make it easier to check whether two numbers have
@@ -938,8 +953,7 @@ abstract base class SassNumber extends Value {
     return units.map((unit) {
       var type = _typesByUnit[unit];
       return type == null ? unit : _unitsByType[type]!.first;
-    }).toList()
-      ..sort();
+    }).toList()..sort();
   }
 
   /// Returns a multiplier that encapsulates unit equivalence in [units].
@@ -947,9 +961,9 @@ abstract base class SassNumber extends Value {
   /// That is, if `X units1 == Y units2`, `X * _canonicalMultiplier(units1) == Y
   /// * _canonicalMultiplier(units2)`.
   double _canonicalMultiplier(List<String> units) => units.fold(
-        1,
-        (multiplier, unit) => multiplier * canonicalMultiplierForUnit(unit),
-      );
+    1,
+    (multiplier, unit) => multiplier * canonicalMultiplierForUnit(unit),
+  );
 
   /// Returns a multiplier that encapsulates unit equivalence with [unit].
   ///

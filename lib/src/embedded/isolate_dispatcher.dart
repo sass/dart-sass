@@ -23,10 +23,10 @@ import 'utils.dart';
 /// A class that dispatches messages between the host and various isolates that
 /// are each running an individual compilation.
 @internal
-final class IsolateDispatcher {
+final class IsolateDispatcher(
   /// The channel of encoded protocol buffers, connected to the host.
-  final StreamChannel<Uint8List> _channel;
-
+  final StreamChannel<Uint8List> _channel,
+) {
   /// All isolates that have been spawned to dispatch to.
   ///
   /// Only used for cleaning up the process when the underlying channel closes.
@@ -48,8 +48,6 @@ final class IsolateDispatcher {
 
   /// Whether [_channel] has been closed or not.
   var _closed = false;
-
-  IsolateDispatcher(this._channel);
 
   void listen() {
     _channel.stream.listen(
@@ -86,7 +84,7 @@ final class IsolateDispatcher {
           }
 
           if (message.whichMessage() case var type
-              when type != InboundMessage_Message.versionRequest) {
+              when type != .versionRequest) {
             throw paramsError(
               "Only VersionRequest may have wire ID 0, was $type.",
             );

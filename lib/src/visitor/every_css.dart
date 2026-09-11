@@ -13,19 +13,36 @@ import 'interface/css.dart';
 /// Each method returns `false` by default.
 @internal
 mixin EveryCssVisitor implements CssVisitor<bool> {
+  @override
   bool visitCssAtRule(CssAtRule node) =>
       node.children.every((child) => child.accept(this));
+
+  @override
   bool visitCssComment(CssComment node) => false;
+
+  @override
   bool visitCssDeclaration(CssDeclaration node) => false;
+
+  @override
   bool visitCssImport(CssImport node) => false;
+
+  @override
   bool visitCssKeyframeBlock(CssKeyframeBlock node) =>
       node.children.every((child) => child.accept(this));
+
+  @override
   bool visitCssMediaRule(CssMediaRule node) =>
       node.children.every((child) => child.accept(this));
+
+  @override
   bool visitCssStyleRule(CssStyleRule node) =>
       node.children.every((child) => child.accept(this));
+
+  @override
   bool visitCssStylesheet(CssStylesheet node) =>
       node.children.every((child) => child.accept(this));
+
+  @override
   bool visitCssSupportsRule(CssSupportsRule node) =>
       node.children.every((child) => child.accept(this));
 }

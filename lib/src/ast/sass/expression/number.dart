@@ -11,19 +11,18 @@ import '../expression.dart';
 /// A number literal.
 ///
 /// {@category AST}
-final class NumberExpression extends Expression {
+final class NumberExpression(
   /// The numeric value.
-  final double value;
+  final double value,
+  @override final FileSpan span, {
 
   /// The number's unit, or `null`.
-  final String? unit;
-
-  final FileSpan span;
-
-  NumberExpression(this.value, this.span, {this.unit});
-
+  final String? unit,
+}) extends Expression {
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitNumberExpression(this);
 
+  @override
   String toString() => SassNumber(value, unit).toString();
 }

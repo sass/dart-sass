@@ -64,8 +64,8 @@ void main() {
     test("caused by a response to an inactive compilation", () async {
       process.send(
         InboundMessage()
-          ..canonicalizeResponse =
-              (InboundMessage_CanonicalizeResponse()..id = 1),
+          ..canonicalizeResponse = (InboundMessage_CanonicalizeResponse()
+            ..id = 1),
       );
       await expectParamsError(
         process,
@@ -122,19 +122,19 @@ void main() {
     });
 
     test("an SCSS string explicitly", () async {
-      process.send(compileString("a {b: 1px + 2px}", syntax: Syntax.SCSS));
+      process.send(compileString("a {b: 1px + 2px}", syntax: .SCSS));
       await expectSuccess(process, "a { b: 3px; }");
       await process.close();
     });
 
     test("an indented syntax string", () async {
-      process.send(compileString("a\n  b: 1px + 2px", syntax: Syntax.INDENTED));
+      process.send(compileString("a\n  b: 1px + 2px", syntax: .INDENTED));
       await expectSuccess(process, "a { b: 3px; }");
       await process.close();
     });
 
     test("a plain CSS string", () async {
-      process.send(compileString("a {b: c}", syntax: Syntax.CSS));
+      process.send(compileString("a {b: c}", syntax: .CSS));
       await expectSuccess(process, "a { b: c; }");
       await process.close();
     });
@@ -166,17 +166,13 @@ void main() {
 
   group("compiles CSS in", () {
     test("expanded mode", () async {
-      process.send(
-        compileString("a {b: 1px + 2px}", style: OutputStyle.EXPANDED),
-      );
+      process.send(compileString("a {b: 1px + 2px}", style: .EXPANDED));
       await expectSuccess(process, equals("a {\n  b: 3px;\n}"));
       await process.close();
     });
 
     test("compressed mode", () async {
-      process.send(
-        compileString("a {b: 1px + 2px}", style: OutputStyle.COMPRESSED),
-      );
+      process.send(compileString("a {b: 1px + 2px}", style: .COMPRESSED));
       await expectSuccess(process, equals("a{b:3px}"));
       await process.close();
     });
@@ -304,61 +300,55 @@ void main() {
     await process.close();
   });
 
-  test(
-    "includes a source map without content if source_map is true and source_map_include_sources is false",
-    () async {
-      process.send(
-        compileString(
-          "a {b: 1px + 2px}",
-          sourceMap: true,
-          sourceMapIncludeSources: false,
-        ),
-      );
-      await expectSuccess(
-        process,
-        "a { b: 3px; }",
-        sourceMap: (String map) {
-          var mapping = source_maps.parse(map);
-          var span = mapping.spanFor(2, 5)!;
-          expect(span.start.line, equals(0));
-          expect(span.start.column, equals(3));
-          expect(span.end, equals(span.start));
-          expect(mapping, isA<source_maps.SingleMapping>());
-          expect((mapping as source_maps.SingleMapping).files[0], isNull);
-          return true;
-        },
-      );
-      await process.close();
-    },
-  );
+  test("includes a source map without content if source_map is true and source_map_include_sources is false", () async {
+    process.send(
+      compileString(
+        "a {b: 1px + 2px}",
+        sourceMap: true,
+        sourceMapIncludeSources: false,
+      ),
+    );
+    await expectSuccess(
+      process,
+      "a { b: 3px; }",
+      sourceMap: (String map) {
+        var mapping = source_maps.parse(map);
+        var span = mapping.spanFor(2, 5)!;
+        expect(span.start.line, equals(0));
+        expect(span.start.column, equals(3));
+        expect(span.end, equals(span.start));
+        expect(mapping, isA<source_maps.SingleMapping>());
+        expect((mapping as source_maps.SingleMapping).files[0], isNull);
+        return true;
+      },
+    );
+    await process.close();
+  });
 
-  test(
-    "includes a source map with content if source_map is true and source_map_include_sources is true",
-    () async {
-      process.send(
-        compileString(
-          "a {b: 1px + 2px}",
-          sourceMap: true,
-          sourceMapIncludeSources: true,
-        ),
-      );
-      await expectSuccess(
-        process,
-        "a { b: 3px; }",
-        sourceMap: (String map) {
-          var mapping = source_maps.parse(map);
-          var span = mapping.spanFor(2, 5)!;
-          expect(span.start.line, equals(0));
-          expect(span.start.column, equals(3));
-          expect(span.end, equals(span.start));
-          expect(mapping, isA<source_maps.SingleMapping>());
-          expect((mapping as source_maps.SingleMapping).files[0], isNotNull);
-          return true;
-        },
-      );
-      await process.close();
-    },
-  );
+  test("includes a source map with content if source_map is true and source_map_include_sources is true", () async {
+    process.send(
+      compileString(
+        "a {b: 1px + 2px}",
+        sourceMap: true,
+        sourceMapIncludeSources: true,
+      ),
+    );
+    await expectSuccess(
+      process,
+      "a { b: 3px; }",
+      sourceMap: (String map) {
+        var mapping = source_maps.parse(map);
+        var span = mapping.spanFor(2, 5)!;
+        expect(span.start.line, equals(0));
+        expect(span.start.column, equals(3));
+        expect(span.end, equals(span.start));
+        expect(mapping, isA<source_maps.SingleMapping>());
+        expect((mapping as source_maps.SingleMapping).files[0], isNotNull);
+        return true;
+      },
+    );
+    await process.close();
+  });
 
   group("emits a log event", () {
     group("for a @debug rule", () {
@@ -499,8 +489,8 @@ void main() {
     test("from a missing file", () async {
       process.send(
         InboundMessage()
-          ..compileRequest =
-              (InboundMessage_CompileRequest()..path = d.path("test.scss")),
+          ..compileRequest = (InboundMessage_CompileRequest()
+            ..path = d.path("test.scss")),
       );
 
       var failure = await getCompileFailure(process);
@@ -533,8 +523,10 @@ void main() {
       expect(failure.span.start, equals(location(29, 1, 15)));
       expect(failure.span.end, equals(location(54, 2, 19)));
       expect(failure.span.url, isEmpty);
-      expect(failure.span.context,
-          equals("            b: 1px +\n                1em;\n"));
+      expect(
+        failure.span.context,
+        equals("            b: 1px +\n                1em;\n"),
+      );
       expect(failure.stackTrace, equals("- 2:16  root stylesheet\n"));
       await process.close();
     });
@@ -593,7 +585,7 @@ void main() {
     });
 
     test("caused by using Sass features in CSS", () async {
-      process.send(compileString("a {b: 1px + 2px}", syntax: Syntax.CSS));
+      process.send(compileString("a {b: 1px + 2px}", syntax: .CSS));
 
       var failure = await getCompileFailure(process);
       expect(failure.message, equals("Operators aren't allowed in plain CSS."));

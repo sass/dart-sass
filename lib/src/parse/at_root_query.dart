@@ -10,9 +10,11 @@ import 'parser.dart';
 
 /// A parser for `@at-root` queries.
 @internal
-final class AtRootQueryParser extends Parser {
-  AtRootQueryParser(super.contents, {super.url, super.interpolationMap});
-
+final class AtRootQueryParser(
+  super.contents, {
+  super.url,
+  super.interpolationMap,
+}) extends Parser {
   AtRootQuery parse() {
     return wrapSpanFormatException(() {
       scanner.expectChar($lparen);

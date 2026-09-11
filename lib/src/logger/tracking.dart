@@ -11,9 +11,7 @@ import '../logger.dart';
 
 /// An logger that wraps another logger and keeps track of when it is used.
 @internal
-final class TrackingLogger implements Logger {
-  final Logger _logger;
-
+final class TrackingLogger(final Logger _logger) implements Logger {
   /// Whether [warn] has been called on this logger.
   bool get emittedWarning => _emittedWarning;
   bool _emittedWarning = false;
@@ -22,8 +20,7 @@ final class TrackingLogger implements Logger {
   bool get emittedDebug => _emittedDebug;
   bool _emittedDebug = false;
 
-  TrackingLogger(this._logger);
-
+  @override
   void warn(
     String message, {
     FileSpan? span,
@@ -34,6 +31,7 @@ final class TrackingLogger implements Logger {
     _logger.warn(message, span: span, trace: trace, deprecation: deprecation);
   }
 
+  @override
   void debug(String message, SourceSpan span) {
     _emittedDebug = true;
     _logger.debug(message, span);

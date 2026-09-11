@@ -96,7 +96,8 @@ Future<String> _loadVersion() async {
   if (const bool.hasEnvironment('version')) {
     var version = const String.fromEnvironment('version');
     if (const bool.fromEnvironment('node')) {
-      version += " compiled with dart2js "
+      version +=
+          " compiled with dart2js "
           "${const String.fromEnvironment('dart-version')}";
     }
     return version;

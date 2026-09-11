@@ -16,6 +16,7 @@ import 'stylesheet.dart';
 /// A parser for the indented syntax.
 @internal
 final class SassParser extends StylesheetParser {
+  @override
   int get currentIndentation => _currentIndentation;
   var _currentIndentation = 0;
 
@@ -38,26 +39,33 @@ final class SassParser extends StylesheetParser {
   /// the indentation character used by the document.
   bool? _spaces;
 
+  @override
   bool get indented => true;
 
-  SassParser(super.contents, {super.url, super.parseSelectors});
+  new(super.contents, {super.url, super.parseSelectors});
 
-  SassParser.internal(super.contents, {super.url, super.parseSelectors})
-      : super.internal();
+  new internal(super.contents, {super.url, super.parseSelectors})
+    : super.internal();
 
+  @override
   Interpolation styleRuleSelector() {
     var start = scanner.state;
 
     var buffer = InterpolationBuffer();
-    do {
+    while (true) {
       buffer.addInterpolation(almostAnyValue(omitComments: true));
-      buffer.writeCharCode($lf);
-    } while (buffer.trailingString.trimRight().endsWith(',') &&
-        scanCharIf((char) => char.isNewline));
+      if (buffer.trailingString.trimRight().endsWith(',') &&
+          scanCharIf((char) => char.isNewline)) {
+        buffer.writeCharCode($lf);
+      } else {
+        break;
+      }
+    }
 
     return buffer.interpolation(spanFrom(start));
   }
 
+  @override
   void expectStatementSeparator([String? name]) {
     var trailingSemicolon = _tryTrailingSemicolon();
     if (!atEndOfStatement()) {
@@ -70,11 +78,14 @@ final class SassParser extends StylesheetParser {
     );
   }
 
+  @override
   bool atEndOfStatement() => scanner.peekChar()?.isNewline ?? true;
 
+  @override
   bool lookingAtChildren() =>
       atEndOfStatement() && _peekIndentation() > currentIndentation;
 
+  @override
   Import importArgument() {
     switch (scanner.peekChar()) {
       case $u || $U:
@@ -120,6 +131,7 @@ final class SassParser extends StylesheetParser {
     }
   }
 
+  @override
   bool scanElse(int ifIndentation) {
     if (_peekIndentation() != ifIndentation) return false;
     var start = scanner.state;
@@ -137,7 +149,8 @@ final class SassParser extends StylesheetParser {
     return false;
   }
 
-  List<Statement> children(Statement child()) {
+  @override
+  List<Statement> children(Statement Function() child) {
     var children = <Statement>[];
     _whileIndentedLower(() {
       if (_child(child) case var parsedChild?) children.add(parsedChild);
@@ -145,7 +158,8 @@ final class SassParser extends StylesheetParser {
     return children;
   }
 
-  List<Statement> statements(Statement? statement()) {
+  @override
+  List<Statement> statements(Statement? Function() statement) {
     if (scanner.peekChar() case $tab || $space) {
       scanner.error(
         "Indenting at the beginning of the document is illegal.",
@@ -168,15 +182,16 @@ final class SassParser extends StylesheetParser {
   /// This consumes children that are allowed at all levels of the document; the
   /// [child] parameter is called to consume any children that are specifically
   /// allowed in the caller's context.
-  Statement? _child(Statement? child()) => switch (scanner.peekChar()) {
+  Statement? _child(Statement? Function() child) =>
+      switch (scanner.peekChar()) {
         // Ignore empty lines.
         $cr || $lf || $ff => null,
         $dollar => variableDeclarationWithoutNamespace(),
         $slash => switch (scanner.peekChar(1)) {
-            $slash => _silentComment(),
-            $asterisk => _loudComment(),
-            _ => child(),
-          },
+          $slash => _silentComment(),
+          $asterisk => _loudComment(),
+          _ => child(),
+        },
         _ => child(),
       };
 
@@ -196,9 +211,11 @@ final class SassParser extends StylesheetParser {
 
         // Skip the initial characters because we're already writing the
         // slashes.
-        for (var i = commentPrefix.length;
-            i < currentIndentation - parentIndentation;
-            i++) {
+        for (
+          var i = commentPrefix.length;
+          i < currentIndentation - parentIndentation;
+          i++
+        ) {
           buffer.writeCharCode($space);
         }
 
@@ -326,6 +343,7 @@ final class SassParser extends StylesheetParser {
     return LoudComment(buffer.interpolation(spanFrom(start)));
   }
 
+  @override
   void whitespaceWithoutComments({required bool consumeNewlines}) {
     // This overrides whitespace consumption to only consume newlines when
     // `consumeNewlines` is true.
@@ -360,18 +378,18 @@ final class SassParser extends StylesheetParser {
 
   /// Returns whether the scanner is immediately before *two* newlines.
   bool _lookingAtDoubleNewline() => switch (scanner.peekChar()) {
-        $cr => switch (scanner.peekChar(1)) {
-            $lf => scanner.peekChar(2).isNewline,
-            $cr || $ff => true,
-            _ => false,
-          },
-        $lf || $ff => scanner.peekChar(1).isNewline,
-        _ => false,
-      };
+    $cr => switch (scanner.peekChar(1)) {
+      $lf => scanner.peekChar(2).isNewline,
+      $cr || $ff => true,
+      _ => false,
+    },
+    $lf || $ff => scanner.peekChar(1).isNewline,
+    _ => false,
+  };
 
   /// As long as the scanner's position is indented beneath the starting line,
   /// runs [body] to consume the next statement.
-  void _whileIndentedLower(void body()) {
+  void _whileIndentedLower(void Function() body) {
     var parentIndentation = currentIndentation;
     int? childIndentation;
     while (_peekIndentation() > parentIndentation) {
@@ -392,8 +410,8 @@ final class SassParser extends StylesheetParser {
   /// Consumes indentation whitespace and returns the indentation level of the
   /// next line.
   int _readIndentation() {
-    var currentIndentation =
-        _currentIndentation = _nextIndentation ??= _peekIndentation();
+    var currentIndentation = _currentIndentation = _nextIndentation ??=
+        _peekIndentation();
     scanner.state = _nextIndentationEnd!;
     _nextIndentation = null;
     _nextIndentationEnd = null;

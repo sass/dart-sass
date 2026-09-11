@@ -10,19 +10,20 @@ import '../node.dart';
 ///
 /// This is used to associate a span with a value that doesn't otherwise track
 /// its span. It has value equality semantics.
-final class CssValue<T extends Object> implements AstNode {
+final class CssValue<T extends Object>(
   /// The value.
-  final T value;
+  final T value,
 
   /// The span associated with the value.
-  final FileSpan span;
-
-  CssValue(this.value, this.span);
-
+  @override final FileSpan span,
+) implements AstNode {
+  @override
   bool operator ==(Object other) =>
       other is CssValue<T> && other.value == value;
 
+  @override
   int get hashCode => value.hashCode;
 
+  @override
   String toString() => value.toString();
 }

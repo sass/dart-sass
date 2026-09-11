@@ -18,7 +18,6 @@ import '../io.dart';
 import '../stylesheet_graph.dart';
 import '../syntax.dart';
 import '../utils.dart';
-import '../visitor/serialize.dart';
 import 'options.dart';
 
 /// Compiles the stylesheet at [source] to [destination].
@@ -107,11 +106,11 @@ Future<void> _compileStylesheetWithoutErrorHandling(
 
   Syntax syntax;
   if (options.indented == true) {
-    syntax = Syntax.sass;
+    syntax = .sass;
   } else if (source != null) {
     syntax = Syntax.forPath(source);
   } else {
-    syntax = Syntax.scss;
+    syntax = .scss;
   }
 
   CompileResult result;
@@ -194,7 +193,7 @@ Future<void> _compileStylesheetWithoutErrorHandling(
         print(error.toCssString());
       } else {
         ensureDir(p.dirname(destination));
-        writeFile(destination, error.toCssString() + "\n");
+        writeFile(destination, "${error.toCssString()}\n");
       }
     }
     rethrow;
@@ -206,7 +205,7 @@ Future<void> _compileStylesheetWithoutErrorHandling(
     if (css.isNotEmpty) print(css);
   } else {
     ensureDir(p.dirname(destination));
-    writeFile(destination, css + "\n");
+    writeFile(destination, "$css\n");
   }
 
   if (options.quiet || (!options.update && !options.watch)) return;
@@ -268,7 +267,7 @@ String _writeSourceMap(
   } else {
     // [destination] can't be null here because --embed-source-map is
     // incompatible with writing to stdout.
-    var sourceMapPath = destination! + '.map';
+    var sourceMapPath = '${destination!}.map';
     ensureDir(p.dirname(sourceMapPath));
     writeFile(sourceMapPath, sourceMapText);
 
@@ -277,7 +276,7 @@ String _writeSourceMap(
 
   var escapedUrl = url.toString().replaceAll("*/", '%2A/');
 
-  return (options.style == OutputStyle.compressed ? '' : '\n\n') +
+  return '${options.style == .compressed ? '' : '\n\n'}'
       '/*# sourceMappingURL=$escapedUrl */';
 }
 

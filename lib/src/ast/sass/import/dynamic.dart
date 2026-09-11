@@ -12,12 +12,7 @@ import '../import.dart';
 /// An import that will load a Sass file at runtime.
 ///
 /// {@category AST}
-final class DynamicImport implements Import, SassDependency {
-  /// The URL of the file to import.
-  ///
-  /// If this is relative, it's relative to the containing file.
-  Uri get url => Uri.parse(urlString);
-
+final class DynamicImport(
   // TODO(nweiz): Make this a [Url] when dart-lang/sdk#32490 is fixed, or when
   // Node Sass imports no longer expose a leading `./`.
   /// The URL of the file to import, as a string so that a leading `./` is
@@ -26,13 +21,18 @@ final class DynamicImport implements Import, SassDependency {
   /// If this is relative, it's relative to the containing file.
   ///
   /// @nodoc
-  @internal
-  final String urlString;
+  @internal final String urlString,
+  @override final FileSpan span,
+) implements Import, SassDependency {
+  /// The URL of the file to import.
+  ///
+  /// If this is relative, it's relative to the containing file.
+  @override
+  Uri get url => Uri.parse(urlString);
 
-  final FileSpan span;
+  @override
   FileSpan get urlSpan => span;
 
-  DynamicImport(this.urlString, this.span);
-
+  @override
   String toString() => StringExpression.quoteText(urlString);
 }

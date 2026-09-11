@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_compile.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: f44cadc749a0005d58152b2b39c1ced0cc2959b7
+// Checksum: e2e96002a186faacdf1921782e732c69b67c1004
 //
 // ignore_for_file: unused_import
 
@@ -53,14 +53,14 @@ CompileResult compile(
   Iterable<Deprecation>? fatalDeprecations,
   Iterable<Deprecation>? futureDeprecations,
 }) {
-  DeprecationProcessingLogger deprecationLogger =
-      logger = DeprecationProcessingLogger(
-    logger ?? Logger.stderr(),
-    silenceDeprecations: {...?silenceDeprecations},
-    fatalDeprecations: {...?fatalDeprecations},
-    futureDeprecations: {...?futureDeprecations},
-    limitRepetition: !verbose,
-  )..validate();
+  DeprecationProcessingLogger deprecationLogger = logger =
+      DeprecationProcessingLogger(
+        logger ?? .defaultLogger,
+        silenceDeprecations: {...?silenceDeprecations},
+        fatalDeprecations: {...?fatalDeprecations},
+        futureDeprecations: {...?futureDeprecations},
+        limitRepetition: !verbose,
+      )..validate();
 
   // If the syntax is different than the importer would default to, we have to
   // parse the file manually and we can't store it in the cache.
@@ -73,11 +73,7 @@ CompileResult compile(
       originalUrl: p.toUri(path),
     )!;
   } else {
-    stylesheet = Stylesheet.parse(
-      readFile(path),
-      syntax,
-      url: p.toUri(path),
-    );
+    stylesheet = Stylesheet.parse(readFile(path), syntax, url: p.toUri(path));
   }
 
   var result = _compileStylesheet(
@@ -124,14 +120,14 @@ CompileResult compileString(
   Iterable<Deprecation>? fatalDeprecations,
   Iterable<Deprecation>? futureDeprecations,
 }) {
-  DeprecationProcessingLogger deprecationLogger =
-      logger = DeprecationProcessingLogger(
-    logger ?? Logger.stderr(),
-    silenceDeprecations: {...?silenceDeprecations},
-    fatalDeprecations: {...?fatalDeprecations},
-    futureDeprecations: {...?futureDeprecations},
-    limitRepetition: !verbose,
-  )..validate();
+  DeprecationProcessingLogger deprecationLogger = logger =
+      DeprecationProcessingLogger(
+        logger ?? .defaultLogger,
+        silenceDeprecations: {...?silenceDeprecations},
+        fatalDeprecations: {...?fatalDeprecations},
+        futureDeprecations: {...?futureDeprecations},
+        limitRepetition: !verbose,
+      )..validate();
 
   var parsedUrl = switch (url) {
     String string => Uri.parse(string),
@@ -139,11 +135,11 @@ CompileResult compileString(
   };
   if (parsedUrl?.scheme == '') {
     throw ArgumentError(
-        'The `url` argument ($url) to compileString() and related functions must '
-        'be an absolute, canonical URL.');
+      'The `url` argument ($url) to compileString() and related functions must '
+      'be an absolute, canonical URL.',
+    );
   }
-  var stylesheet =
-      Stylesheet.parseInternal(source, syntax ?? Syntax.scss, url: parsedUrl);
+  var stylesheet = Stylesheet.parse(source, syntax ?? .scss, url: parsedUrl);
 
   var result = _compileStylesheet(
     stylesheet,

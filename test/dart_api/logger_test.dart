@@ -22,12 +22,7 @@ void main() {
           @mixin foo {@warn heck}
           @include foo;
         ''',
-        logger: _TestLogger.withWarn((
-          message, {
-          span,
-          trace,
-          deprecation,
-        }) {
+        logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
           expect(message, equals("heck"));
           expect(span, isNull);
           expect(trace!.frames.first.member, equals('foo()'));
@@ -41,12 +36,7 @@ void main() {
       var mustBeCalled = expectAsync0(() {});
       compileString(
         '@warn #abc',
-        logger: _TestLogger.withWarn((
-          message, {
-          span,
-          trace,
-          deprecation,
-        }) {
+        logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
           expect(message, equals("#abc"));
           mustBeCalled();
         }),
@@ -57,12 +47,7 @@ void main() {
       var mustBeCalled = expectAsync0(() {});
       compileString(
         '@warn null',
-        logger: _TestLogger.withWarn((
-          message, {
-          span,
-          trace,
-          deprecation,
-        }) {
+        logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
           expect(message, isEmpty);
           mustBeCalled();
         }),
@@ -113,12 +98,7 @@ void main() {
     var mustBeCalled = expectAsync0(() {});
     compileString(
       'a {b: c && d}',
-      logger: _TestLogger.withWarn((
-        message, {
-        span,
-        trace,
-        deprecation,
-      }) {
+      logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
         expect(message, contains('"&&" means two copies'));
 
         expect(span!.start.line, equals(0));
@@ -140,12 +120,7 @@ void main() {
         @mixin foo {#{blue} {x: y}}
         @include foo;
       ''',
-      logger: _TestLogger.withWarn((
-        message, {
-        span,
-        trace,
-        deprecation,
-      }) {
+      logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
         expect(message, contains("color value blue"));
 
         expect(span!.start.line, equals(0));
@@ -179,12 +154,7 @@ void main() {
               }),
             ),
           ],
-          logger: _TestLogger.withWarn((
-            message, {
-            span,
-            trace,
-            deprecation,
-          }) {
+          logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
             expect(message, equals("heck"));
 
             expect(span!.start.line, equals(0));
@@ -216,12 +186,7 @@ void main() {
               }),
             ),
           ],
-          logger: _TestLogger.withWarn((
-            message, {
-            span,
-            trace,
-            deprecation,
-          }) {
+          logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
             expect(message, equals("heck"));
 
             expect(span!.start.line, equals(0));
@@ -248,18 +213,13 @@ void main() {
               "foo",
               "",
               expectAsync1((_) async {
-                await Future<void>.delayed(Duration.zero);
+                await Future.pause();
                 warn("heck");
                 return sassNull;
               }),
             ),
           ],
-          logger: _TestLogger.withWarn((
-            message, {
-            span,
-            trace,
-            deprecation,
-          }) {
+          logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
             expect(message, equals("heck"));
 
             expect(span!.start.line, equals(0));
@@ -282,15 +242,10 @@ void main() {
         importers: [
           TestImporter((url) => Uri.parse("u:$url"), (url) {
             warn("heck");
-            return ImporterResult("", syntax: Syntax.scss);
+            return ImporterResult("", syntax: .scss);
           }),
         ],
-        logger: _TestLogger.withWarn((
-          message, {
-          span,
-          trace,
-          deprecation,
-        }) {
+        logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
           expect(message, equals("heck"));
 
           expect(span!.start.line, equals(0));
@@ -319,12 +274,7 @@ void main() {
             }),
           ),
         ],
-        logger: _TestLogger.withWarn((
-          message, {
-          span,
-          trace,
-          deprecation,
-        }) {
+        logger: _TestLogger.withWarn((message, {span, trace, deprecation}) {
           expect(message, equals("heck"));
           expect(deprecation, equals(Deprecation.userAuthored));
           mustBeCalled();
@@ -336,20 +286,27 @@ void main() {
 
 /// A [Logger] whose [warn] and [debug] methods are provided by callbacks.
 final class _TestLogger implements Logger {
-  final void Function(String,
-      {FileSpan? span, Trace? trace, Deprecation? deprecation}) _warn;
+  final void Function(
+    String, {
+    FileSpan? span,
+    Trace? trace,
+    Deprecation? deprecation,
+  })
+  _warn;
   final void Function(String, SourceSpan) _debug;
 
-  _TestLogger.withWarn(this._warn) : _debug = const Logger.stderr().debug;
+  new withWarn(this._warn) : _debug = const Logger.stderr().debug;
 
-  _TestLogger.withDebug(this._debug) : _warn = const Logger.stderr().warn;
+  new withDebug(this._debug) : _warn = const Logger.stderr().warn;
 
+  @override
   void warn(
     String message, {
     FileSpan? span,
     Trace? trace,
     Deprecation? deprecation,
-  }) =>
-      _warn(message, span: span, trace: trace, deprecation: deprecation);
+  }) => _warn(message, span: span, trace: trace, deprecation: deprecation);
+
+  @override
   void debug(String message, SourceSpan span) => _debug(message, span);
 }

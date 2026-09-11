@@ -21,27 +21,25 @@ import 'utils.dart';
 /// A wrapper for a potentially-asynchronous JS API importer that exposes it as
 /// a Dart [AsyncImporter].
 @internal
-final class JSToDartAsyncImporter extends AsyncImporter {
+final class JSToDartAsyncImporter(
   /// The wrapped canonicalize function.
-  final Object? Function(String, CanonicalizeContext) _canonicalize;
+  final Object? Function(String, CanonicalizeContext) _canonicalize,
 
   /// The wrapped load function.
-  final Object? Function(JSUrl) _load;
-
+  final Object? Function(JSUrl) _load,
+  Iterable<String>? nonCanonicalSchemes,
+) extends AsyncImporter {
   /// The set of URL schemes that this importer promises never to return from
   /// [canonicalize].
-  final Set<String> _nonCanonicalSchemes;
+  final Set<String> _nonCanonicalSchemes = nonCanonicalSchemes == null
+      ? const {}
+      : Set.unmodifiable(nonCanonicalSchemes);
 
-  JSToDartAsyncImporter(
-    this._canonicalize,
-    this._load,
-    Iterable<String>? nonCanonicalSchemes,
-  ) : _nonCanonicalSchemes = nonCanonicalSchemes == null
-            ? const {}
-            : Set.unmodifiable(nonCanonicalSchemes) {
+  this {
     _nonCanonicalSchemes.forEach(validateUrlScheme);
   }
 
+  @override
   FutureOr<Uri?> canonicalize(Uri url) async {
     var result = wrapJSExceptions(
       () => _canonicalize(url.toString(), canonicalizeContext),
@@ -54,6 +52,7 @@ final class JSToDartAsyncImporter extends AsyncImporter {
     jsThrow(JsError("The canonicalize() method must return a URL."));
   }
 
+  @override
   FutureOr<ImporterResult?> load(Uri url) async {
     var result = wrapJSExceptions(() => _load(dartToJSUrl(url)));
     if (isPromise(result)) result = await promiseToFuture(result as Promise);
@@ -88,6 +87,7 @@ final class JSToDartAsyncImporter extends AsyncImporter {
     );
   }
 
+  @override
   bool isNonCanonicalScheme(String scheme) =>
       _nonCanonicalSchemes.contains(scheme);
 }

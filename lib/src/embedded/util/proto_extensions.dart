@@ -12,13 +12,13 @@ extension InboundMessageExtensions on InboundMessage {
   ///
   /// Returns null if [message] doesn't have an id field.
   int? get id => switch (whichMessage()) {
-        InboundMessage_Message.versionRequest => versionRequest.id,
-        InboundMessage_Message.canonicalizeResponse => canonicalizeResponse.id,
-        InboundMessage_Message.importResponse => importResponse.id,
-        InboundMessage_Message.fileImportResponse => fileImportResponse.id,
-        InboundMessage_Message.functionCallResponse => functionCallResponse.id,
-        _ => null,
-      };
+    .versionRequest => versionRequest.id,
+    .canonicalizeResponse => canonicalizeResponse.id,
+    .importResponse => importResponse.id,
+    .fileImportResponse => fileImportResponse.id,
+    .functionCallResponse => functionCallResponse.id,
+    _ => null,
+  };
 }
 
 @internal
@@ -27,28 +27,28 @@ extension OutboundMessageExtensions on OutboundMessage {
   ///
   /// Throws an [ArgumentError] if [message] doesn't have an id field.
   int get id => switch (whichMessage()) {
-        OutboundMessage_Message.canonicalizeRequest => canonicalizeRequest.id,
-        OutboundMessage_Message.importRequest => importRequest.id,
-        OutboundMessage_Message.fileImportRequest => fileImportRequest.id,
-        OutboundMessage_Message.functionCallRequest => functionCallRequest.id,
-        OutboundMessage_Message.versionResponse => versionResponse.id,
-        _ => throw ArgumentError("Unknown message type: ${toDebugString()}"),
-      };
+    .canonicalizeRequest => canonicalizeRequest.id,
+    .importRequest => importRequest.id,
+    .fileImportRequest => fileImportRequest.id,
+    .functionCallRequest => functionCallRequest.id,
+    .versionResponse => versionResponse.id,
+    _ => throw ArgumentError("Unknown message type: ${toDebugString()}"),
+  };
 
   /// Sets the outbound ID of this message, regardless of its type.
   ///
   /// Throws an [ArgumentError] if [message] doesn't have an id field.
   set id(int id) {
     switch (whichMessage()) {
-      case OutboundMessage_Message.canonicalizeRequest:
+      case .canonicalizeRequest:
         canonicalizeRequest.id = id;
-      case OutboundMessage_Message.importRequest:
+      case .importRequest:
         importRequest.id = id;
-      case OutboundMessage_Message.fileImportRequest:
+      case .fileImportRequest:
         fileImportRequest.id = id;
-      case OutboundMessage_Message.functionCallRequest:
+      case .functionCallRequest:
         functionCallRequest.id = id;
-      case OutboundMessage_Message.versionResponse:
+      case .versionResponse:
         versionResponse.id = id;
       default:
         throw ArgumentError("Unknown message type: ${toDebugString()}");

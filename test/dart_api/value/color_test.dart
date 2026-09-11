@@ -86,7 +86,7 @@ void main() {
     group("toSpace", () {
       test("converts the color to a given space", () {
         expect(
-          value.toSpace(ColorSpace.lab),
+          value.toSpace(.lab),
           equals(
             SassColor.lab(
               20.675469453386192,
@@ -99,21 +99,13 @@ void main() {
 
       test("with legacyMissing: true, makes a powerless channel missing", () {
         expect(
-          SassColor.rgb(
-            0,
-            0,
-            0,
-          ).toSpace(ColorSpace.hsl).isChannelMissing("hue"),
+          SassColor.rgb(0, 0, 0).toSpace(.hsl).isChannelMissing("hue"),
           isTrue,
         );
       });
 
       test("with legacyMissing: false, makes a powerless channel zero", () {
-        var result = SassColor.rgb(
-          0,
-          0,
-          0,
-        ).toSpace(ColorSpace.hsl, legacyMissing: false);
+        var result = SassColor.rgb(0, 0, 0).toSpace(.hsl, legacyMissing: false);
         expect(result.isChannelMissing("hue"), isFalse);
         expect(result.channel("hue"), equals(0));
       });
@@ -123,9 +115,11 @@ void main() {
         "space",
         () {
           expect(
-            SassColor.rgb(0, null, 0)
-                .toSpace(ColorSpace.rgb, legacyMissing: false)
-                .isChannelMissing("green"),
+            SassColor.rgb(
+              0,
+              null,
+              0,
+            ).toSpace(.rgb, legacyMissing: false).isChannelMissing("green"),
             isTrue,
           );
         },
@@ -136,16 +130,13 @@ void main() {
       setUp(() => value = parseValue("rgb(300 200 100)") as SassColor);
 
       test("with clip", () {
-        expect(
-          value.toGamut(GamutMapMethod.clip),
-          equals(SassColor.rgb(255, 200, 100)),
-        );
+        expect(value.toGamut(.clip), equals(SassColor.rgb(255, 200, 100)));
       });
 
       test("with localMinde", () {
         // TODO: update
         expect(
-          value.toGamut(GamutMapMethod.localMinde),
+          value.toGamut(.localMinde),
           equals(SassColor.rgb(255, 200, 100)),
         );
       });
@@ -188,7 +179,9 @@ void main() {
       test("allows out-of-gamut values", () {
         expect(value.changeChannels({"red": -1}).channel("red"), equals(-1));
         expect(
-            value.changeChannels({"red": 0x100}).channel("red"), equals(0x100));
+          value.changeChannels({"red": 0x100}).channel("red"),
+          equals(0x100),
+        );
       });
 
       test("disallows out-of-gamut alpha", () {

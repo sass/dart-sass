@@ -20,13 +20,21 @@ import '../utils.dart';
 /// does so by imposing the additional constraint that the underlying maps' sets
 /// of keys remain unchanged.
 @internal
-final class MergedMapView<K, V> extends MapBase<K, V> {
+final class MergedMapView<K, V>(Iterable<Map<K, V>> maps)
+    extends MapBase<K, V> {
   // A map from keys to the maps in which those keys first appear.
   final _mapsByKey = <K, Map<K, V>>{};
 
+  @override
   Iterable<K> get keys => _mapsByKey.keys;
+
+  @override
   int get length => _mapsByKey.length;
+
+  @override
   bool get isEmpty => _mapsByKey.isEmpty;
+
+  @override
   bool get isNotEmpty => _mapsByKey.isNotEmpty;
 
   /// Creates a combined view of [maps].
@@ -34,7 +42,7 @@ final class MergedMapView<K, V> extends MapBase<K, V> {
   /// Each map must have the default notion of equality. The underlying maps'
   /// values may change independently of this view, but their set of keys may
   /// not.
-  MergedMapView(Iterable<Map<K, V>> maps) {
+  this {
     for (var map in maps) {
       if (map is MergedMapView<K, V>) {
         // Flatten nested merged views to avoid O(depth) overhead.
@@ -47,8 +55,10 @@ final class MergedMapView<K, V> extends MapBase<K, V> {
     }
   }
 
+  @override
   V? operator [](Object? key) => _mapsByKey[key as K]?[key];
 
+  @override
   operator []=(K key, V value) {
     if (_mapsByKey[key] case var child?) {
       child[key] = value;
@@ -57,13 +67,16 @@ final class MergedMapView<K, V> extends MapBase<K, V> {
     }
   }
 
+  @override
   V? remove(Object? key) {
     throw UnsupportedError("Entries may not be removed from MergedMapView.");
   }
 
+  @override
   void clear() {
     throw UnsupportedError("Entries may not be removed from MergedMapView.");
   }
 
+  @override
   bool containsKey(Object? key) => _mapsByKey.containsKey(key);
 }

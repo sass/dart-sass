@@ -34,7 +34,7 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
   if (!isNodeJs) {
     jsThrow(JsError("The compile() method is only available in Node.js."));
   }
-  var color = options?.alertColor ?? hasTerminal;
+  var color = options?.alertColor ?? supportsAnsiEscapes;
   var ascii = options?.alertAscii ?? glyph.ascii;
   var logger = JSToDartLogger(
     options?.logger,
@@ -82,7 +82,7 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
 /// See https://github.com/sass/sass/spec/tree/main/js-api/compile.d.ts for
 /// details.
 NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
-  var color = options?.alertColor ?? hasTerminal;
+  var color = options?.alertColor ?? supportsAnsiEscapes;
   var ascii = options?.alertAscii ?? glyph.ascii;
   var logger = JSToDartLogger(
     options?.logger,
@@ -103,7 +103,8 @@ NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
       sourceMap: options?.sourceMap ?? false,
       logger: logger,
       importers: options?.importers?.map(_parseImporter),
-      importer: options?.importer.andThen(_parseImporter) ??
+      importer:
+          options?.importer.andThen(_parseImporter) ??
           (options?.url == null ? NoOpImporter() : null),
       functions: _parseFunctions(options?.functions).cast(),
       fatalDeprecations: parseDeprecations(
@@ -137,7 +138,7 @@ Promise compileAsync(String path, [CompileOptions? options]) {
   if (!isNodeJs) {
     jsThrow(JsError("The compileAsync() method is only available in Node.js."));
   }
-  var color = options?.alertColor ?? hasTerminal;
+  var color = options?.alertColor ?? supportsAnsiEscapes;
   var ascii = options?.alertAscii ?? glyph.ascii;
   var logger = JSToDartLogger(
     options?.logger,
@@ -189,7 +190,7 @@ Promise compileAsync(String path, [CompileOptions? options]) {
 /// See https://github.com/sass/sass/spec/tree/main/js-api/compile.d.ts for
 /// details.
 Promise compileStringAsync(String text, [CompileStringOptions? options]) {
-  var color = options?.alertColor ?? hasTerminal;
+  var color = options?.alertColor ?? supportsAnsiEscapes;
   var ascii = options?.alertAscii ?? glyph.ascii;
   var logger = JSToDartLogger(
     options?.logger,
@@ -213,7 +214,8 @@ Promise compileStringAsync(String text, [CompileStringOptions? options]) {
         importers: options?.importers?.map(
           (importer) => _parseAsyncImporter(importer),
         ),
-        importer: options?.importer.andThen(
+        importer:
+            options?.importer.andThen(
               (importer) => _parseAsyncImporter(importer),
             ) ??
             (options?.url == null ? NoOpImporter() : null),
@@ -273,22 +275,21 @@ Promise _wrapAsyncSassExceptions(
   Promise promise, {
   required bool color,
   required bool ascii,
-}) =>
-    promise.then(
-      null,
-      allowInterop(
-        (error) => error is SassException
-            ? throwNodeException(error, color: color, ascii: ascii)
-            : jsThrow(error as Object),
-      ),
-    );
+}) => promise.then(
+  null,
+  allowInterop(
+    (error) => error is SassException
+        ? throwNodeException(error, color: color, ascii: ascii)
+        : jsThrow(error as Object),
+  ),
+);
 
 /// Converts an output style string to an instance of [OutputStyle].
 OutputStyle _parseOutputStyle(String? style) => switch (style) {
-      null || 'expanded' => OutputStyle.expanded,
-      'compressed' => OutputStyle.compressed,
-      _ => jsThrow(JsError('Unknown output style "$style".')),
-    };
+  null || 'expanded' => .expanded,
+  'compressed' => .compressed,
+  _ => jsThrow(JsError('Unknown output style "$style".')),
+};
 
 /// Converts [importer] into an [AsyncImporter] that can be used with
 /// [compileAsync] or [compileStringAsync].
@@ -371,53 +372,55 @@ List<String>? _normalizeNonCanonicalSchemes(Object? schemes) =>
       List<dynamic> schemes => schemes.cast<String>(),
       null => null,
       _ => jsThrow(
-          JsError(
-            'nonCanonicalScheme must be a string or list of strings, was '
-            '"$schemes"',
-          ),
+        JsError(
+          'nonCanonicalScheme must be a string or list of strings, was '
+          '"$schemes"',
         ),
+      ),
     };
 
 /// Implements the simplification algorithm for custom function return `Value`s.
 /// See https://github.com/sass/sass/blob/main/spec/types/calculation.md#simplifying-a-calculationvalue
 Value _simplifyValue(Value value) => switch (value) {
-      SassCalculation() => switch ((
-          // Match against...
-          value.name, // ...the calculation name
-          value.arguments // ...and simplified arguments
-              .map(_simplifyCalcArg)
-              .toList(),
-        )) {
-          ('calc', [Value first]) => first,
-          ('calc', [var first]) => SassCalculation.calc(first),
-          ('calc', _) =>
-            throw ArgumentError('calc() requires exactly one argument.'),
-          ('clamp', [var min, var value, var max]) => SassCalculation.clamp(
-              min,
-              value,
-              max,
-            ),
-          ('clamp', _) =>
-            throw ArgumentError('clamp() requires exactly 3 arguments.'),
-          ('min', var args) => SassCalculation.min(args),
-          ('max', var args) => SassCalculation.max(args),
-          (var name, _) => throw ArgumentError(
-              '"$name" is not a recognized calculation type.'),
-        },
-      _ => value,
-    };
+  SassCalculation() => switch ((
+    // Match against...
+    value.name, // ...the calculation name
+    value
+        .arguments // ...and simplified arguments
+        .map(_simplifyCalcArg)
+        .toList(),
+  )) {
+    ('calc', [Value first]) => first,
+    ('calc', [var first]) => SassCalculation.calc(first),
+    ('calc', _) => throw ArgumentError('calc() requires exactly one argument.'),
+    ('clamp', [var min, var value, var max]) => SassCalculation.clamp(
+      min,
+      value,
+      max,
+    ),
+    ('clamp', _) => throw ArgumentError(
+      'clamp() requires exactly 3 arguments.',
+    ),
+    ('min', var args) => SassCalculation.min(args),
+    ('max', var args) => SassCalculation.max(args),
+    (var name, _) => throw ArgumentError(
+      '"$name" is not a recognized calculation type.',
+    ),
+  },
+  _ => value,
+};
 
 /// Handles simplifying calculation arguments, which are not guaranteed to be
 /// Value instances.
 Object _simplifyCalcArg(Object value) => switch (value) {
-      SassCalculation() => _simplifyValue(value),
-      CalculationOperation() => SassCalculation.operate(
-          value.operator,
-          _simplifyCalcArg(value.left),
-          _simplifyCalcArg(value.right),
-        ),
-      _ => value,
-    };
+  SassCalculation() => _simplifyValue(value),
+  CalculationOperation() => SassCalculation.operate(
+    value.operator,
+    _simplifyCalcArg(value.left),
+    _simplifyCalcArg(value.right),
+  ),
+  _ => value,
+};
 
 /// Parses `functions` from [record] into a list of [Callable]s or
 /// [AsyncCallable]s.
@@ -476,9 +479,10 @@ final JSClass nodePackageImporterClass = () {
       switch ((entrypointDirectory, entrypointFilename)) {
         ((var directory?, _)) => directory,
         (_, var filename?) => p.dirname(filename),
-        _ => throw "The Node package importer cannot determine an entry "
-            "point because `require.main.filename` is not defined. Please "
-            "provide an `entryPointDirectory` to the `NodePackageImporter`.",
+        _ =>
+          throw "The Node package importer cannot determine an entry "
+              "point because `require.main.filename` is not defined. Please "
+              "provide an `entryPointDirectory` to the `NodePackageImporter`.",
       },
     ),
   );

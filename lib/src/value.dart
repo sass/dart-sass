@@ -5,6 +5,7 @@
 import 'package:meta/meta.dart';
 
 import 'ast/selector.dart';
+import 'evaluation_context.dart';
 import 'exception.dart';
 import 'utils.dart';
 import 'value/boolean.dart';
@@ -40,7 +41,7 @@ export 'value/string.dart';
 ///
 /// {@category Value}
 @sealed
-abstract base class Value {
+abstract base class const Value() {
   /// Whether the value counts as `true` in an `@if` statement and other
   /// contexts.
   bool get isTruthy => true;
@@ -49,7 +50,7 @@ abstract base class Value {
   ///
   /// All SassScript values can be used as lists. Maps count as lists of pairs,
   /// and all other values count as single-value lists.
-  ListSeparator get separator => ListSeparator.undecided;
+  ListSeparator get separator => .undecided;
 
   /// Whether this value as a list has brackets.
   ///
@@ -103,7 +104,7 @@ abstract base class Value {
   Value? get realNull => this;
 
   /// @nodoc
-  const Value();
+  this;
 
   /// Calls the appropriate visit method on [visitor].
   ///
@@ -122,8 +123,9 @@ abstract base class Value {
   /// [asList]. If [sassIndex] came from a function argument, [name] is the
   /// argument name (without the `$`). It's used for error reporting.
   int sassIndexToListIndex(Value sassIndex, [String? name]) {
-    var index =
-        (sassIndex.assertNumber(name)..assertNoUnits(name)).assertInt(name);
+    var index = (sassIndex.assertNumber(
+      name,
+    )..assertNoUnits(name)).assertInt(name);
     if (index == 0) throw SassScriptException("List index may not be 0.", name);
     if (index.abs() > lengthAsList) {
       throw SassScriptException(
@@ -209,8 +211,8 @@ abstract base class Value {
   /// @nodoc
   @internal
   List<Value> assertCommonListStyle(String? name, {required bool allowSlash}) {
-    var invalidSeparator = separator == ListSeparator.comma ||
-        (!allowSlash && separator == ListSeparator.slash);
+    var invalidSeparator =
+        separator == .comma || (!allowSlash && separator == .slash);
     if (!invalidSeparator && !hasBrackets) return asList;
 
     var buffer = StringBuffer(r"Expected");
@@ -253,12 +255,12 @@ abstract base class Value {
 
     var result = <String>[];
     switch (self.separator) {
-      case ListSeparator.comma:
+      case .comma:
         for (var complex in self.asList) {
           switch (complex) {
             case SassString():
               result.add(complex.text);
-            case SassList(separator: ListSeparator.space):
+            case SassList(separator: .space):
               var string = complex._selectorStringOrNull();
               if (string == null) return null;
               result.add(string);
@@ -266,7 +268,7 @@ abstract base class Value {
               return null;
           }
         }
-      case ListSeparator.slash:
+      case .slash:
         return null;
       case _:
         for (var compound in self.asList) {
@@ -274,7 +276,7 @@ abstract base class Value {
           result.add(compound.text);
         }
     }
-    return result.join(self.separator == ListSeparator.comma ? ', ' : ' ');
+    return result.join(self.separator == .comma ? ', ' : ' ');
   }
 
   /// Returns a new list containing [contents] that defaults to this value's
@@ -345,14 +347,15 @@ abstract base class Value {
   /// @nodoc
   @internal
   Value plus(Value other) => switch (other) {
-        SassString() => SassString(
-            toCssString() + other.text,
-            quotes: other.hasQuotes,
-          ),
-        SassCalculation() =>
-          throw SassScriptException('Undefined operation "$this + $other".'),
-        _ => SassString(toCssString() + other.toCssString(), quotes: false),
-      };
+    SassString() => SassString(
+      toCssString() + other.text,
+      quotes: other.hasQuotes,
+    ),
+    SassCalculation() => throw SassScriptException(
+      'Undefined operation "$this + $other".',
+    ),
+    _ => SassString(toCssString() + other.toCssString(), quotes: false),
+  };
 
   /// The SassScript `-` operation.
   ///
@@ -360,10 +363,7 @@ abstract base class Value {
   @internal
   Value minus(Value other) => other is SassCalculation
       ? throw SassScriptException('Undefined operation "$this - $other".')
-      : SassString(
-          "${toCssString()}-${other.toCssString()}",
-          quotes: false,
-        );
+      : SassString("${toCssString()}-${other.toCssString()}", quotes: false);
 
   /// The SassScript `/` operation.
   ///
@@ -420,6 +420,7 @@ abstract base class Value {
   /// Note that this is equivalent to calling `inspect()` on the value, and thus
   /// won't reflect the user's output settings. [toCssString] should be used
   /// instead to convert `this` to CSS.
+  @override
   String toString() => serializeValue(this, inspect: true);
 }
 
@@ -454,12 +455,17 @@ extension SassApiValue on Value {
   }) {
     var string = _selectorString(name);
     return _addNameToFormatException(
-        name, () => SelectorList.parse(string, allowParent: allowParent))
-      ..assertValid(
-        name: name,
-        allowLeadingCombinator: allowLeadingCombinator,
-        allowTrailingCombinator: allowTrailingCombinator,
-      );
+      name,
+      () => SelectorList.parse(
+        string,
+        allowParent: allowParent,
+        logger: EvaluationContext.current.logger,
+      ),
+    )..assertValid(
+      name: name,
+      allowLeadingCombinator: allowLeadingCombinator,
+      allowTrailingCombinator: allowTrailingCombinator,
+    );
   }
 
   /// Parses `this` as a simple selector, in the same manner as the
@@ -477,7 +483,13 @@ extension SassApiValue on Value {
   }) {
     var string = _selectorString(name);
     return _addNameToFormatException(
-        name, () => SimpleSelector.parse(string, allowParent: allowParent));
+      name,
+      () => SimpleSelector.parse(
+        string,
+        allowParent: allowParent,
+        logger: EvaluationContext.current.logger,
+      ),
+    );
   }
 
   /// Parses `this` as a compound selector, in the same manner as the
@@ -495,7 +507,13 @@ extension SassApiValue on Value {
   }) {
     var string = _selectorString(name);
     return _addNameToFormatException(
-        name, () => CompoundSelector.parse(string, allowParent: allowParent));
+      name,
+      () => CompoundSelector.parse(
+        string,
+        allowParent: allowParent,
+        logger: EvaluationContext.current.logger,
+      ),
+    );
   }
 
   /// Parses `this` as a complex selector, in the same manner as the
@@ -520,23 +538,31 @@ extension SassApiValue on Value {
   }) {
     var string = _selectorString(name);
     return _addNameToFormatException(
-        name, () => ComplexSelector.parse(string, allowParent: allowParent))
-      ..assertValid(
-        name: name,
-        allowLeadingCombinator: allowLeadingCombinator,
-        allowTrailingCombinator: allowTrailingCombinator,
-      );
+      name,
+      () => ComplexSelector.parse(
+        string,
+        allowParent: allowParent,
+        logger: EvaluationContext.current.logger,
+      ),
+    )..assertValid(
+      name: name,
+      allowLeadingCombinator: allowLeadingCombinator,
+      allowTrailingCombinator: allowTrailingCombinator,
+    );
   }
 }
 
 /// Runs [callback], and if it throws a [SassFormatException], adds [name] to
 /// tbe beginning of the message.
-T _addNameToFormatException<T>(String? name, T callback()) {
+T _addNameToFormatException<T>(String? name, T Function() callback) {
   try {
     return callback();
   } on SassFormatException catch (error, stackTrace) {
     if (name == null) rethrow;
     throwWithTrace(
-        error.withMessage("\$$name: ${error.message}"), error, stackTrace);
+      error.withMessage("\$$name: ${error.message}"),
+      error,
+      stackTrace,
+    );
   }
 }

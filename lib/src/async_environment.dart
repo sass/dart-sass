@@ -152,44 +152,45 @@ final class AsyncEnvironment {
   /// Creates an [AsyncEnvironment].
   ///
   /// If [sourceMap] is `true`, this tracks variables' source locations
-  AsyncEnvironment()
-      : _modules = {},
-        _namespaceNodes = {},
-        _globalModules = {},
-        _importedModules = {},
-        _forwardedModules = null,
-        _nestedForwardedModules = null,
-        _allModules = [],
-        _variables = [{}],
-        _variableNodes = [{}],
-        _variableIndices = {},
-        _functions = [{}],
-        _functionIndices = {},
-        _mixins = [{}],
-        _mixinIndices = {},
-        _configurableVariables = {};
+  new()
+    : _modules = {},
+      _namespaceNodes = {},
+      _globalModules = {},
+      _importedModules = {},
+      _forwardedModules = null,
+      _nestedForwardedModules = null,
+      _allModules = [],
+      _variables = [{}],
+      _variableNodes = [{}],
+      _variableIndices = {},
+      _functions = [{}],
+      _functionIndices = {},
+      _mixins = [{}],
+      _mixinIndices = {},
+      _configurableVariables = {};
 
-  AsyncEnvironment._(
-      this._modules,
-      this._namespaceNodes,
-      this._globalModules,
-      this._importedModules,
-      this._forwardedModules,
-      this._nestedForwardedModules,
-      this._allModules,
-      this._variables,
-      this._variableNodes,
-      this._functions,
-      this._mixins,
-      this._content,
-      this._configurableVariables)
-      // Lazily fill in the indices rather than eagerly copying them from the
-      // existing environment in closure() because the copying took a lot of
-      // time and was rarely helpful. This saves a bunch of time on Susy's
-      // tests.
-      : _variableIndices = {},
-        _functionIndices = {},
-        _mixinIndices = {};
+  new _(
+    this._modules,
+    this._namespaceNodes,
+    this._globalModules,
+    this._importedModules,
+    this._forwardedModules,
+    this._nestedForwardedModules,
+    this._allModules,
+    this._variables,
+    this._variableNodes,
+    this._functions,
+    this._mixins,
+    this._content,
+    this._configurableVariables,
+  )
+    // Lazily fill in the indices rather than eagerly copying them from the
+    // existing environment in closure() because the copying took a lot of
+    // time and was rarely helpful. This saves a bunch of time on Susy's
+    // tests.
+    : _variableIndices = {},
+      _functionIndices = {},
+      _mixinIndices = {};
 
   /// Creates a closure based on this environment.
   ///
@@ -197,22 +198,22 @@ final class AsyncEnvironment {
   /// However, any new declarations or assignments in scopes that are visible
   /// when the closure was created will be reflected.
   AsyncEnvironment closure() => AsyncEnvironment._(
-        _modules,
-        _namespaceNodes,
-        _globalModules,
-        _importedModules,
-        _forwardedModules,
-        _nestedForwardedModules,
-        _allModules,
-        _variables.toList(),
-        _variableNodes.toList(),
-        _functions.toList(),
-        _mixins.toList(),
-        _content,
-        // Closures are always in nested contexts where configurable variables
-        // are never added.
-        const {},
-      );
+    _modules,
+    _namespaceNodes,
+    _globalModules,
+    _importedModules,
+    _forwardedModules,
+    _nestedForwardedModules,
+    _allModules,
+    _variables.toList(),
+    _variableNodes.toList(),
+    _functions.toList(),
+    _mixins.toList(),
+    _content,
+    // Closures are always in nested contexts where configurable variables
+    // are never added.
+    const {},
+  );
 
   /// Returns a new environment to use for an imported file.
   ///
@@ -220,20 +221,20 @@ final class AsyncEnvironment {
   /// and mixins, but excludes most modules (except for global modules that
   /// result from importing a file with forwards).
   AsyncEnvironment forImport() => AsyncEnvironment._(
-        {},
-        {},
-        {},
-        _importedModules,
-        null,
-        _nestedForwardedModules,
-        [],
-        _variables.toList(),
-        _variableNodes.toList(),
-        _functions.toList(),
-        _mixins.toList(),
-        _content,
-        _configurableVariables,
-      );
+    {},
+    {},
+    {},
+    _importedModules,
+    null,
+    _nestedForwardedModules,
+    [],
+    _variables.toList(),
+    _variableNodes.toList(),
+    _functions.toList(),
+    _mixins.toList(),
+    _content,
+    _configurableVariables,
+  );
 
   /// Adds [module] to the set of modules visible in this environment.
   ///
@@ -263,7 +264,7 @@ final class AsyncEnvironment {
         throw MultiSpanSassScriptException(
           "There's already a module with namespace \"$namespace\".",
           "new @use",
-          {if (span != null) span: "original @use"},
+          {?span: "original @use"},
         );
       }
 
@@ -340,7 +341,7 @@ final class AsyncEnvironment {
       throw MultiSpanSassScriptException(
         'Two forwarded modules both define a $type named $name.',
         "new @forward",
-        {if (span != null) span: "original @forward"},
+        {?span: "original @forward"},
       );
     }
   }
@@ -413,9 +414,7 @@ final class AsyncEnvironment {
       (_nestedForwardedModules ??= List.generate(
         _variables.length - 1,
         (_) => [],
-      ))
-          .last
-          .addAll(forwarded.keys);
+      )).last.addAll(forwarded.keys);
     }
 
     // Remove existing member definitions that are now shadowed by the
@@ -757,7 +756,7 @@ final class AsyncEnvironment {
   /// Sets [content] as [this.content] for the duration of [callback].
   Future<void> withContent(
     UserDefinedCallable<AsyncEnvironment>? content,
-    Future<void> callback(),
+    Future<void> Function() callback,
   ) async {
     var oldContent = _content;
     _content = content;
@@ -766,7 +765,7 @@ final class AsyncEnvironment {
   }
 
   /// Sets [inMixin] to `true` for the duration of [callback].
-  Future<void> asMixin(Future<void> callback()) async {
+  Future<void> asMixin(Future<void> Function() callback) async {
     var oldInMixin = _inMixin;
     _inMixin = true;
     await callback();
@@ -782,7 +781,7 @@ final class AsyncEnvironment {
   /// If [when] is false, this doesn't create a new scope and instead just
   /// executes [callback] and returns its result.
   Future<T> scope<T>(
-    Future<T> callback(), {
+    Future<T> Function() callback, {
     bool semiGlobal = false,
     bool when = true,
   }) async {
@@ -837,12 +836,15 @@ final class AsyncEnvironment {
   Configuration toImplicitConfiguration() {
     var configuration = <String, ConfiguredValue>{};
     for (var i = 0; i < _variables.length; i++) {
-      var modules =
-          i == 0 ? _importedModules.keys : _nestedForwardedModules?[i - 1];
+      var modules = i == 0
+          ? _importedModules.keys
+          : _nestedForwardedModules?[i - 1];
       for (var module in modules ?? const <Module>[]) {
         for (var (name, value) in module.variables.pairs) {
-          configuration[name] =
-              ConfiguredValue.implicit(value, module.variableNodes[name]!);
+          configuration[name] = ConfiguredValue.implicit(
+            value,
+            module.variableNodes[name]!,
+          );
         }
       }
       var values = _variables[i];
@@ -879,15 +881,15 @@ final class AsyncEnvironment {
   /// members into the current scope. It's the only situation in which a nested
   /// environment can become a module.
   Module toDummyModule() => _EnvironmentModule(
-        this,
-        CssStylesheet(
-          const [],
-          SourceFile.decoded(const [], url: "<dummy module>").span(0),
-        ),
-        const {},
-        ExtensionStore.empty,
-        forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)),
-      );
+    this,
+    CssStylesheet(
+      const [],
+      SourceFile.decoded(const [], url: "<dummy module>").span(0),
+    ),
+    const {},
+    .empty,
+    forwarded: _forwardedModules.andThen((modules) => MapKeySet(modules)),
+  );
 
   /// Returns the module with the given [namespace], or throws a
   /// [SassScriptException] if none exists.
@@ -909,7 +911,11 @@ final class AsyncEnvironment {
   ///
   /// The [type] should be the singular name of the value type being returned.
   /// It's used to format an appropriate error message.
-  T? _fromOneModule<T>(String name, String type, T? callback(Module module)) {
+  T? _fromOneModule<T>(
+    String name,
+    String type,
+    T? Function(Module module) callback,
+  ) {
     if (_nestedForwardedModules case var nestedForwardedModules?) {
       for (var modules in nestedForwardedModules.reversed) {
         for (var module in modules.reversed) {
@@ -951,22 +957,12 @@ final class AsyncEnvironment {
 }
 
 /// A module that represents the top-level members defined in an [Environment].
-final class _EnvironmentModule implements Module {
-  Uri? get url => css.span.sourceUrl;
-
-  final List<Module> upstream;
-  final Map<String, Value> variables;
-  final Map<String, AstNode> variableNodes;
-  final Map<String, AsyncCallable> functions;
-  final Map<String, AsyncCallable> mixins;
-  final ExtensionStore extensionStore;
-  final CssStylesheet css;
-  final Map<Module, List<CssComment>> preModuleComments;
-  final bool transitivelyContainsCss;
-  final bool transitivelyContainsExtensions;
-
+final class _EnvironmentModule._(
   /// The environment that defines this module's members.
-  final AsyncEnvironment _environment;
+  final AsyncEnvironment _environment,
+  @override final CssStylesheet css,
+  @override final Map<Module, List<CssComment>> preModuleComments,
+  @override final ExtensionStore extensionStore,
 
   /// A map from variable names to the modules in which those variables appear,
   /// used to determine where variables should be set.
@@ -974,9 +970,21 @@ final class _EnvironmentModule implements Module {
   /// Variables that don't appear in this map are either defined directly in
   /// this module (if they appear in `_environment._variables.first`) or not
   /// defined at all.
-  final Map<String, Module> _modulesByVariable;
+  final Map<String, Module> _modulesByVariable,
+  @override final Map<String, Value> variables,
+  @override final Map<String, AstNode> variableNodes,
+  @override final Map<String, AsyncCallable> functions,
+  @override final Map<String, AsyncCallable> mixins, {
+  @override required final bool transitivelyContainsCss,
+  @override required final bool transitivelyContainsExtensions,
+}) implements Module {
+  @override
+  Uri? get url => css.span.sourceUrl;
 
-  factory _EnvironmentModule(
+  @override
+  final List<Module> upstream = _environment._allModules;
+
+  factory(
     AsyncEnvironment environment,
     CssStylesheet css,
     Map<Module, List<CssComment>> preModuleComments,
@@ -987,9 +995,9 @@ final class _EnvironmentModule implements Module {
     return _EnvironmentModule._(
       environment,
       css,
-      Map.unmodifiable({
+      Map.unmodifiableOf({
         for (var (module, comments) in preModuleComments.pairs)
-          module: List<CssComment>.unmodifiable(comments),
+          module: List.unmodifiableOf(comments),
       }),
       extensionStore,
       _makeModulesByVariable(forwarded),
@@ -1009,12 +1017,14 @@ final class _EnvironmentModule implements Module {
         environment._mixins.first,
         forwarded.map((module) => module.mixins),
       ),
-      transitivelyContainsCss: css.children.isNotEmpty ||
+      transitivelyContainsCss:
+          css.children.isNotEmpty ||
           preModuleComments.isNotEmpty ||
           environment._allModules.any(
             (module) => module.transitivelyContainsCss,
           ),
-      transitivelyContainsExtensions: !extensionStore.isEmpty ||
+      transitivelyContainsExtensions:
+          !extensionStore.isEmpty ||
           environment._allModules.any(
             (module) => module.transitivelyContainsExtensions,
           ),
@@ -1063,20 +1073,7 @@ final class _EnvironmentModule implements Module {
     return MergedMapView(allMaps);
   }
 
-  _EnvironmentModule._(
-    this._environment,
-    this.css,
-    this.preModuleComments,
-    this.extensionStore,
-    this._modulesByVariable,
-    this.variables,
-    this.variableNodes,
-    this.functions,
-    this.mixins, {
-    required this.transitivelyContainsCss,
-    required this.transitivelyContainsExtensions,
-  }) : upstream = _environment._allModules;
-
+  @override
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (_modulesByVariable[name] case var module?) {
       module.setVariable(name, value, nodeWithSpan);
@@ -1092,12 +1089,14 @@ final class _EnvironmentModule implements Module {
     return;
   }
 
+  @override
   Object variableIdentity(String name) {
     assert(variables.containsKey(name));
     var module = _modulesByVariable[name];
     return module == null ? this : module.variableIdentity(name);
   }
 
+  @override
   bool couldHaveBeenConfigured(Set<String> variables) =>
       // Check if this module defines a configurable variable with any of the
       // given names.
@@ -1108,16 +1107,14 @@ final class _EnvironmentModule implements Module {
       // check if they define configurable variables with any of the given
       // names.
       (variables.length < _modulesByVariable.length
-              ? {
-                  for (var variable in variables)
-                    if (_modulesByVariable[variable] case var module?) module
-                }
+              ? {for (var variable in variables) ?_modulesByVariable[variable]}
               : {
                   for (var (variable, module) in _modulesByVariable.pairs)
-                    if (variables.contains(variable)) module
+                    if (variables.contains(variable)) module,
                 })
           .any((module) => module.couldHaveBeenConfigured(variables));
 
+  @override
   Module cloneCss() {
     if (!transitivelyContainsCss) return this;
 
@@ -1140,5 +1137,6 @@ final class _EnvironmentModule implements Module {
     );
   }
 
+  @override
   String toString() => url == null ? "<unknown url>" : p.prettyUri(url);
 }

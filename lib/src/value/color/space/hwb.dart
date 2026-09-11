@@ -14,18 +14,24 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class HwbColorSpace extends ColorSpace {
+final class const HwbColorSpace() extends ColorSpace {
+  @override
   bool get isBoundedInternal => true;
+
+  @override
   bool get isLegacyInternal => true;
+
+  @override
   bool get isPolarInternal => true;
 
-  const HwbColorSpace()
-      : super('hwb', const [
-          hueChannel,
-          LinearChannel('whiteness', 0, 100, requiresPercent: true),
-          LinearChannel('blackness', 0, 100, requiresPercent: true),
-        ]);
+  this
+    : super('hwb', const [
+        hueChannel,
+        LinearChannel('whiteness', 0, 100, requiresPercent: true),
+        LinearChannel('blackness', 0, 100, requiresPercent: true),
+      ]);
 
+  @override
   SassColor convert(
     ColorSpace dest,
     double? hue,
@@ -33,6 +39,34 @@ final class HwbColorSpace extends ColorSpace {
     double? blackness,
     double? alpha,
   ) {
+    if (whiteness == null && blackness == null) {
+      if (hue == null) {
+        return SassColor.forSpaceInternal(dest, null, null, null, alpha);
+      }
+
+      // Handle this manually to avoid having to pipe `missingWhiteness` and
+      // `missingBlackness` everywhere even though they're not analogous to any
+      // channels.
+      var converted = convert(dest, hue, 0, 0, alpha);
+      return switch (dest) {
+        .hsl => SassColor.forSpaceInternal(
+          dest,
+          converted.channel0,
+          null,
+          null,
+          converted.alpha,
+        ),
+        .lch || .oklch => SassColor.forSpaceInternal(
+          dest,
+          null,
+          null,
+          converted.channel2,
+          converted.alpha,
+        ),
+        _ => converted,
+      };
+    }
+
     // From https://www.w3.org/TR/css-color-4/#hwb-to-rgb
     var scaledHue = (hue ?? 0) % 360 / 360;
     var scaledWhiteness = (whiteness ?? 0) / 100;

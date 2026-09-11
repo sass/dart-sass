@@ -107,8 +107,7 @@ interface class ExtensionStore {
     SelectorList source,
     SelectorList targets,
     FileSpan span,
-  ) =>
-      _extendOrReplace(selector, source, targets, ExtendMode.allTargets, span);
+  ) => _extendOrReplace(selector, source, targets, .allTargets, span);
 
   /// Returns a copy of [selector] with [targets] replaced by [source].
   static SelectorList replace(
@@ -116,8 +115,7 @@ interface class ExtensionStore {
     SelectorList source,
     SelectorList targets,
     FileSpan span,
-  ) =>
-      _extendOrReplace(selector, source, targets, ExtendMode.replace, span);
+  ) => _extendOrReplace(selector, source, targets, .replace, span);
 
   /// A helper function for [extend] and [replace].
   static SelectorList _extendOrReplace(
@@ -147,8 +145,10 @@ interface class ExtensionStore {
 
     // Ignore specificity because the extend functions don't have a notion of
     // "source specificity" in the first place.
-    return _TrimModernVisitor(extender, ignoreSpecificity: true)
-        .visitSelectorList(selector);
+    return _TrimModernVisitor(
+      extender,
+      ignoreSpecificity: true,
+    ).visitSelectorList(selector);
   }
 
   /// The set of all simple selectors in selectors handled by this extender.
@@ -157,19 +157,19 @@ interface class ExtensionStore {
   /// extensions.
   Set<SimpleSelector> get simpleSelectors => MapKeySet(_selectors);
 
-  ExtensionStore() : this._mode(ExtendMode.normal);
+  new() : this._mode(.normal);
 
-  ExtensionStore._mode(this._mode)
-      : _selectors = {},
-        _extensions = {},
-        _extensionsByExtender = {},
-        _mediaContexts = {},
-        _sourceSpecificity = Map.identity(),
-        _originals = Set.identity(),
-        _selectorsWithModernPseudos = Set.identity(),
-        _extensionsWithModernPseudos = Set.identity();
+  new _mode(this._mode)
+    : _selectors = {},
+      _extensions = {},
+      _extensionsByExtender = {},
+      _mediaContexts = {},
+      _sourceSpecificity = Map.identity(),
+      _originals = Set.identity(),
+      _selectorsWithModernPseudos = Set.identity(),
+      _extensionsWithModernPseudos = Set.identity();
 
-  ExtensionStore._(
+  new _(
     this._selectors,
     this._extensions,
     this._extensionsByExtender,
@@ -178,7 +178,7 @@ interface class ExtensionStore {
     this._originals,
     this._selectorsWithModernPseudos,
     this._extensionsWithModernPseudos,
-  ) : _mode = ExtendMode.normal;
+  ) : _mode = .normal;
 
   /// Returns all mandatory extensions in this extender for whose targets
   /// [callback] returns `true`.
@@ -186,15 +186,15 @@ interface class ExtensionStore {
   /// This un-merges any [MergedExtension] so only base [Extension]s are
   /// returned.
   Iterable<Extension> extensionsWhereTarget(
-    bool callback(SimpleSelector target),
+    bool Function(SimpleSelector target) callback,
   ) sync* {
     for (var (simple, sources) in _extensions.pairs) {
       if (!callback(simple)) continue;
       for (var extension in sources.values) {
         if (extension is MergedExtension) {
           yield* extension.unmerge().where(
-                (extension) => !extension.isOptional,
-              );
+            (extension) => !extension.isOptional,
+          );
         } else if (!extension.isOptional) {
           yield extension;
         }
@@ -222,8 +222,11 @@ interface class ExtensionStore {
     _extendedModernPseudo = false;
     if (_extensions.isNotEmpty) {
       try {
-        selector = _extendList(originalSelector, _extensions,
-            mediaQueryContext: mediaContext);
+        selector = _extendList(
+          originalSelector,
+          _extensions,
+          mediaQueryContext: mediaContext,
+        );
       } on SassException catch (error, stackTrace) {
         throwWithTrace(
           SassException(
@@ -384,7 +387,7 @@ interface class ExtensionStore {
   ///
   /// Returns `null` if there are no extensions to add.
   Map<SimpleSelector, Map<ComplexSelector, Extension>>?
-      _extendExistingExtensions(
+  _extendExistingExtensions(
     List<Extension> extensions,
     Map<SimpleSelector, Map<ComplexSelector, Extension>> newExtensions,
   ) {
@@ -421,10 +424,7 @@ interface class ExtensionStore {
       for (var complex in selectors) {
         var withExtender = extension.withExtender(complex);
         if (sources[complex] case var existingExtension?) {
-          var merged = MergedExtension.merge(
-            existingExtension,
-            withExtender,
-          );
+          var merged = MergedExtension.merge(existingExtension, withExtender);
           sources[complex] = merged;
           _extensionsWithModernPseudos.add(merged);
         } else {
@@ -606,9 +606,10 @@ interface class ExtensionStore {
   /// Extends [complex] using [extensions], and returns the contents of a
   /// [SelectorList].
   List<ComplexSelector>? _extendComplex(
-      ComplexSelector complex,
-      Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
-      List<CssMediaQuery>? mediaQueryContext) {
+    ComplexSelector complex,
+    Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
+    List<CssMediaQuery>? mediaQueryContext,
+  ) {
     // The complex selectors that each compound selector in [complex.components]
     // can expand to.
     //
@@ -691,39 +692,34 @@ interface class ExtensionStore {
         ComplexSelector(
           [
             for (var options in extendedNotExpanded)
-              if (options
-                  case [
-                    ComplexSelector(
-                      // We can ignore leading combinators here because in
-                      // practice they're always either null or inherited directly
-                      // from the original complex, which we handle explicitly
-                      // below.
-                      components: [var component],
-                    )
-                  ])
+              if (options case [
+                ComplexSelector(
+                  // We can ignore leading combinators here because in
+                  // practice they're always either null or inherited directly
+                  // from the original complex, which we handle explicitly
+                  // below.
+                  components: [var component],
+                ),
+              ])
                 component
               else
                 ComplexSelectorComponent(
-                  CompoundSelector(
-                      [PseudoSelector.isSelector(options, complex.span)],
-                      complex.span),
+                  CompoundSelector([
+                    PseudoSelector.isSelector(options, complex.span),
+                  ], complex.span),
                   complex.span,
-                )
+                ),
           ],
           complex.span,
           leadingCombinator: complex.leadingCombinator,
           lineBreak: complex.lineBreak,
-        )
+        ),
       ];
     }
 
     var first = true;
     var result = paths(extendedNotExpanded).expand<ComplexSelector>((path) {
-      var woven = weave(
-        path,
-        complex.span,
-        forceLineBreak: complex.lineBreak,
-      );
+      var woven = weave(path, complex.span, forceLineBreak: complex.lineBreak);
       if (woven == null) return [];
 
       return woven.map((outputComplex) {
@@ -757,7 +753,7 @@ interface class ExtensionStore {
   }) {
     // If there's more than one target and they all need to match, we track
     // which targets are actually extended.
-    var targetsUsed = _mode == ExtendMode.normal || extensions.length < 2
+    var targetsUsed = _mode == .normal || extensions.length < 2
         ? null
         : <SimpleSelector>{};
 
@@ -808,10 +804,9 @@ interface class ExtensionStore {
       List<SimpleSelector>? unified;
       List<SimpleSelector>? isSelectors;
       for (var simpleOptions in options) {
-        if (simpleOptions
-            case [
-              Extender(selector: ComplexSelector(singleCompound: var compound?))
-            ]) {
+        if (simpleOptions case [
+          Extender(selector: ComplexSelector(singleCompound: var compound?)),
+        ]) {
           if (unified == null) {
             unified = compound.components;
           } else if (unifyCompoundComponents(unified, compound.components)
@@ -826,9 +821,12 @@ interface class ExtensionStore {
           }
         } else {
           isSelectors ??= [];
-          isSelectors.add(PseudoSelector.isSelector(
+          isSelectors.add(
+            PseudoSelector.isSelector(
               simpleOptions.map((option) => option.selector),
-              component.selector.span));
+              component.selector.span,
+            ),
+          );
         }
       }
 
@@ -844,15 +842,12 @@ interface class ExtensionStore {
           simples = components;
       }
       return [
-        ComplexSelector(
-          [
-            ComplexSelectorComponent(
-              CompoundSelector(simples, component.selector.span),
-              component.span,
-            ),
-          ],
-          component.span,
-        ),
+        ComplexSelector([
+          ComplexSelectorComponent(
+            CompoundSelector(simples, component.selector.span),
+            component.span,
+          ),
+        ], component.span),
       ];
     }
 
@@ -907,7 +902,7 @@ interface class ExtensionStore {
     //     ]
     var extenderPaths = paths(options);
     var result = [
-      if (_mode != ExtendMode.replace)
+      if (_mode != .replace)
         // The first path is always the original selector. We can't just return
         // [component] directly because selector pseudos may be modified, but we
         // don't have to do any unification.
@@ -926,7 +921,7 @@ interface class ExtensionStore {
         ], component.span),
     ];
 
-    for (var path in extenderPaths.skip(_mode == ExtendMode.replace ? 0 : 1)) {
+    for (var path in extenderPaths.skip(_mode == .replace ? 0 : 1)) {
       var extended = _unifyExtenders(path, mediaQueryContext, component.span);
       if (extended == null) continue;
 
@@ -941,7 +936,7 @@ interface class ExtensionStore {
     // If we're preserving the original selector, mark the first unification as
     // such so [_trim] doesn't get rid of it.
     var isOriginal = (ComplexSelector _) => false;
-    if (inOriginal && _mode != ExtendMode.replace) {
+    if (inOriginal && _mode != .replace) {
       var original = result.first;
       isOriginal = (complex) => complex == original;
     }
@@ -999,10 +994,11 @@ interface class ExtensionStore {
   /// Each element of the returned iterable is a list of choices, which will be
   /// combined using [paths].
   Iterable<List<Extender>>? _extendSimple(
-      SimpleSelector simple,
-      Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
-      List<CssMediaQuery>? mediaQueryContext,
-      Set<SimpleSelector>? targetsUsed) {
+    SimpleSelector simple,
+    Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
+    List<CssMediaQuery>? mediaQueryContext,
+    Set<SimpleSelector>? targetsUsed,
+  ) {
     // Extends [simple] without extending the contents of any selector pseudos
     // it contains.
     List<Extender>? withoutPseudo(SimpleSelector simple) {
@@ -1011,7 +1007,7 @@ interface class ExtensionStore {
       targetsUsed?.add(simple);
 
       return [
-        if (_mode != ExtendMode.replace) _extenderForSimple(simple),
+        if (_mode != .replace) _extenderForSimple(simple),
         for (var extension in extensionsForSimple.values) extension.extender,
       ];
     }
@@ -1044,24 +1040,25 @@ interface class ExtensionStore {
 
   /// Returns an [Extender] composed solely of [simple].
   Extender _extenderForSimple(SimpleSelector simple) => Extender(
-        ComplexSelector([
-          ComplexSelectorComponent(
-            CompoundSelector([simple], simple.span),
-            simple.span,
-          ),
-        ], simple.span),
-        specificity: _sourceSpecificity[simple] ?? 0,
-        original: true,
-      );
+    ComplexSelector([
+      ComplexSelectorComponent(
+        CompoundSelector([simple], simple.span),
+        simple.span,
+      ),
+    ], simple.span),
+    specificity: _sourceSpecificity[simple] ?? 0,
+    original: true,
+  );
 
   /// Extends [pseudo] using [extensions], and returns a list of resulting
   /// pseudo selectors.
   ///
   /// This requires that [pseudo] have a selector argument.
   List<PseudoSelector>? _extendPseudo(
-      PseudoSelector pseudo,
-      Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
-      List<CssMediaQuery>? mediaQueryContext) {
+    PseudoSelector pseudo,
+    Map<SimpleSelector, Map<ComplexSelector, Extension>> extensions,
+    List<CssMediaQuery>? mediaQueryContext,
+  ) {
     var selector = pseudo.selector;
     if (selector == null) {
       throw ArgumentError("Selector $pseudo must have a selector argument.");
@@ -1070,8 +1067,11 @@ interface class ExtensionStore {
     var oldInModernPseudo = _inModernPseudo;
     try {
       _inModernPseudo |= pseudo.isClass && _modernPseudos.contains(pseudo.name);
-      var extended = _extendList(selector, extensions,
-          mediaQueryContext: mediaQueryContext);
+      var extended = _extendList(
+        selector,
+        extensions,
+        mediaQueryContext: mediaQueryContext,
+      );
       if (identical(extended, selector)) return null;
 
       // In a modern pseudo-selector we just replace the target with `:is()`,
@@ -1090,35 +1090,37 @@ interface class ExtensionStore {
         }
 
         return [
-          pseudo.withSelector(SelectorList([
-            for (var complex in extended.components)
-              // If [complex] contains a single `:is()` selector, expand its
-              // contents rather than nesting it.
-              if (complex
-                  case ComplexSelector(
-                    singleCompound: CompoundSelector(
-                      singleSimple: PseudoSelector(
-                        name: 'is',
-                        isClass: true,
-                        :var selector?,
-                      ),
+          pseudo.withSelector(
+            SelectorList([
+              for (var complex in extended.components)
+                // If [complex] contains a single `:is()` selector, expand its
+                // contents rather than nesting it.
+                if (complex case ComplexSelector(
+                  singleCompound: CompoundSelector(
+                    singleSimple: PseudoSelector(
+                      name: 'is',
+                      isClass: true,
+                      :var selector?,
                     ),
-                  ))
-                ...selector.components
-              else if (complex
-                  case ComplexSelector(
-                    singleCompound: CompoundSelector(
-                      singleSimple: PseudoSelector(
-                        name: 'where',
-                        isClass: true,
-                        :var selector?,
+                  ),
+                ))
+                  ...selector.components
+                else if (complex
+                    case ComplexSelector(
+                      singleCompound: CompoundSelector(
+                        singleSimple: PseudoSelector(
+                          name: 'where',
+                          isClass: true,
+                          :var selector?,
+                        ),
                       ),
-                    ),
-                  ) when pseudo.name == 'where')
-                ...selector.components
-              else
-                complex
-          ], extended.span))!
+                    )
+                    when pseudo.name == 'where')
+                  ...selector.components
+                else
+                  complex,
+            ], extended.span),
+          )!,
         ];
       }
 
@@ -1130,10 +1132,12 @@ interface class ExtensionStore {
       // already broken.
       Iterable<ComplexSelector> complexes = extended.components;
       if (pseudo.normalizedName == "not" &&
-          !selector.components
-              .any((complex) => complex.components.length > 1) &&
-          extended.components
-              .any((complex) => complex.components.length == 1)) {
+          !selector.components.any(
+            (complex) => complex.components.length > 1,
+          ) &&
+          extended.components.any(
+            (complex) => complex.components.length == 1,
+          )) {
         complexes = extended.components.where(
           (complex) => complex.components.length <= 1,
         );
@@ -1196,9 +1200,7 @@ interface class ExtensionStore {
       if (pseudo.normalizedName == 'not' && selector.components.length == 1) {
         var result = [
           for (var complex in complexes)
-            if (pseudo.withSelector(SelectorList([complex], selector.span))
-                case var newPseudo?)
-              newPseudo,
+            ?pseudo.withSelector(SelectorList([complex], selector.span)),
         ];
         return result.isEmpty ? null : result;
       } else {
@@ -1218,7 +1220,7 @@ interface class ExtensionStore {
   // document, and thus should never be trimmed.
   List<ComplexSelector> _trim(
     List<ComplexSelector> selectors,
-    bool isOriginal(ComplexSelector complex),
+    bool Function(ComplexSelector complex) isOriginal,
   ) {
     // Avoid truly horrific quadratic behavior.
     //
@@ -1275,7 +1277,9 @@ interface class ExtensionStore {
         continue;
       }
 
-      if (selectors.take(i).any(
+      if (selectors
+          .take(i)
+          .any(
             (complex2) =>
                 complex2.specificity >= maxSpecificity &&
                 complex2.isSuperselector(complex1),
@@ -1291,17 +1295,25 @@ interface class ExtensionStore {
   /// Returns the maximum specificity for sources that went into producing
   /// [compound].
   int _sourceSpecificityFor(CompoundSelector compound) => compound.components
-      .map((simple) =>
-          _sourceSpecificity[simple] ??
-          switch (simple) {
-            PseudoSelector(selector: var selector?) => selector.components
-                .map((complex) => complex.components
-                    .map((complexComponent) =>
-                        _sourceSpecificityFor(complexComponent.selector))
-                    .max)
-                .max,
-            _ => 0
-          })
+      .map(
+        (simple) =>
+            _sourceSpecificity[simple] ??
+            switch (simple) {
+              PseudoSelector(selector: var selector?) =>
+                selector.components
+                    .map(
+                      (complex) => complex.components
+                          .map(
+                            (complexComponent) => _sourceSpecificityFor(
+                              complexComponent.selector,
+                            ),
+                          )
+                          .max,
+                    )
+                    .max,
+              _ => 0,
+            },
+      )
       .max;
 
   /// Returns a copy of `this` that extends new selectors, as well as a map
@@ -1322,8 +1334,10 @@ interface class ExtensionStore {
       newSelectors[simple] = newSelectorSet;
 
       for (var selector in selectors) {
-        var newSelector =
-            newBoxes.putIfAbsent(selector, () => ModifiableBox(selector.value));
+        var newSelector = newBoxes.putIfAbsent(
+          selector,
+          () => ModifiableBox(selector.value),
+        );
         newSelectorSet.add(newSelector);
         oldToNewSelectors[selector.value] = newSelector.seal();
 
@@ -1378,9 +1392,9 @@ final class _TrimModernVisitor with ReplaceSelectorVisitor {
   /// case specificity doesn't matter at all.
   bool _ignoreSpecificity;
 
-  _TrimModernVisitor(this._store, {bool ignoreSpecificity = false})
-      : _ignoreSpecificity = ignoreSpecificity;
+  new(this._store, {this._ignoreSpecificity = false});
 
+  @override
   ComplexSelector visitComplexSelector(ComplexSelector selector) {
     var setCurrentSpecificity = false;
     if (_currentSpecificity == null) {
@@ -1395,6 +1409,7 @@ final class _TrimModernVisitor with ReplaceSelectorVisitor {
     }
   }
 
+  @override
   CompoundSelector visitCompoundSelector(CompoundSelector compound) {
     List<SimpleSelector>? unified;
     // The original selectors in the list as well as any `:is()` selectors that
@@ -1406,14 +1421,13 @@ final class _TrimModernVisitor with ReplaceSelectorVisitor {
       var extended = visitSimpleSelector(simple);
       if (!identical(simple, extended)) {
         unified ??= [...compound.components.take(i)];
-        if (extended
-            case PseudoSelector(
-              isClass: true,
-              name: 'is',
-              selector: SelectorList(
-                singleComplex: ComplexSelector(singleCompound: var inner?)
-              )
-            )) {
+        if (extended case PseudoSelector(
+          isClass: true,
+          name: 'is',
+          selector: SelectorList(
+            singleComplex: ComplexSelector(singleCompound: var inner?),
+          ),
+        )) {
           if (unified.isEmpty) {
             unified.addAll(inner.components);
           } else if (unifyCompoundComponents(unified, inner.components)
@@ -1433,26 +1447,28 @@ final class _TrimModernVisitor with ReplaceSelectorVisitor {
     }
 
     return switch ((unified, ununified)) {
-      (var unified?, var ununified?) => switch (
-            unifyCompoundComponents(unified, ununified)) {
-          var result? => CompoundSelector(result, compound.span),
-          // There can be cases where the simplified version fails to unify,
-          // particularly when the original stylesheet uses `:is()` to represent
-          // a selector that matched nothing to begin with such as `a:is(b)`. In
-          // that case, we just return the original without further processing
-          // and allow it to be invalid on its own merits.
-          //
-          // We _could_ omit it entirely by replacing it with a placeholder
-          // selector, but doing that would likely be more confusing to users.
-          _ => compound,
-        },
+      (var unified?, var ununified?) => switch (unifyCompoundComponents(
+        unified,
+        ununified,
+      )) {
+        var result? => CompoundSelector(result, compound.span),
+        // There can be cases where the simplified version fails to unify,
+        // particularly when the original stylesheet uses `:is()` to represent
+        // a selector that matched nothing to begin with such as `a:is(b)`. In
+        // that case, we just return the original without further processing
+        // and allow it to be invalid on its own merits.
+        //
+        // We _could_ omit it entirely by replacing it with a placeholder
+        // selector, but doing that would likely be more confusing to users.
+        _ => compound,
+      },
       (var components?, _) ||
-      (_, var components?) =>
-        CompoundSelector(components, compound.span),
+      (_, var components?) => CompoundSelector(components, compound.span),
       _ => compound,
     };
   }
 
+  @override
   SimpleSelector visitPseudoSelector(PseudoSelector pseudo) {
     var whereSelector = pseudo.name == 'where';
     var oldIgnoreSpecificity = _ignoreSpecificity;
@@ -1468,14 +1484,17 @@ final class _TrimModernVisitor with ReplaceSelectorVisitor {
 
       var withSelector = whereSelector;
       var components = _flattenComplexSelectors(
-          withSelector
-              ? visitSelectorList(originalSelector).components
-              : (_visitModernSelectorPseudo(originalSelector) ??
+        withSelector
+            ? visitSelectorList(originalSelector).components
+            : (_visitModernSelectorPseudo(originalSelector) ??
                   originalSelector.components),
-          flattenWhere: whereSelector);
+        flattenWhere: whereSelector,
+      );
 
-      var baseSpecificity =
-          math.max(_currentSpecificity! - pseudo.specificity, _minSpecificity);
+      var baseSpecificity = math.max(
+        _currentSpecificity! - pseudo.specificity,
+        _minSpecificity,
+      );
       QueueList<ComplexSelector>? result;
       for (var i = components.length - 1; i >= 0; i--) {
         var complex1 = components[i];
@@ -1484,8 +1503,9 @@ final class _TrimModernVisitor with ReplaceSelectorVisitor {
         // This ensures that we aren't comparing against a selector that's
         // already been trimmed, and thus that if there are two identical
         // selectors only one is trimmed.
-        var otherSelectors =
-            components.take(i).followedBy(result ?? components.skip(i + 1));
+        var otherSelectors = components
+            .take(i)
+            .followedBy(result ?? components.skip(i + 1));
 
         // Because `:where()` always has zero specificity, we can trim freely
         // inside it without worrying about changing the specificity.
@@ -1506,23 +1526,26 @@ final class _TrimModernVisitor with ReplaceSelectorVisitor {
           // selector after removing [complex1] is lower than its maximum source
           // specificity, we definitely can't remove it.
           var remainingSpecificity = math.max(
-              baseSpecificity +
-                  (otherSelectors
-                          .map((complex2) => complex2.specificity)
-                          .maxOrNull ??
-                      0),
-              _minSpecificity);
+            baseSpecificity +
+                (otherSelectors
+                        .map((complex2) => complex2.specificity)
+                        .maxOrNull ??
+                    0),
+            _minSpecificity,
+          );
           if (remainingSpecificity >= maxSpecificity &&
               // Otherwise, we can remove it as long as another selector is a
               // superselector.
-              otherSelectors
-                  .any((complex2) => complex2.isSuperselector(complex1))) {
+              otherSelectors.any(
+                (complex2) => complex2.isSuperselector(complex1),
+              )) {
             result ??= QueueList.from(components.skip(i + 1));
             _currentSpecificity = remainingSpecificity;
             continue;
           }
-        } else if (otherSelectors
-            .any((complex2) => complex2.isSuperselector(complex1))) {
+        } else if (otherSelectors.any(
+          (complex2) => complex2.isSuperselector(complex1),
+        )) {
           result ??= QueueList.from(components.skip(i + 1));
           continue;
         }
@@ -1534,8 +1557,9 @@ final class _TrimModernVisitor with ReplaceSelectorVisitor {
               identical(components, originalSelector.components)
           ? pseudo
           : pseudo.withSelector(
-                  SelectorList(result ?? components, originalSelector.span)) ??
-              pseudo;
+                  SelectorList(result ?? components, originalSelector.span),
+                ) ??
+                pseudo;
     } finally {
       _ignoreSpecificity = oldIgnoreSpecificity;
     }
@@ -1547,8 +1571,9 @@ final class _TrimModernVisitor with ReplaceSelectorVisitor {
   /// This only flattens the outermost layer. It's assumed that nested layers have
   /// already been flattened.
   List<ComplexSelector> _flattenComplexSelectors(
-      List<ComplexSelector> components,
-      {required bool flattenWhere}) {
+    List<ComplexSelector> components, {
+    required bool flattenWhere,
+  }) {
     List<ComplexSelector>? result;
     for (var i = 0; i < components.length; i++) {
       switch (components[i]) {
@@ -1558,8 +1583,8 @@ final class _TrimModernVisitor with ReplaceSelectorVisitor {
                   isClass: true,
                   :var name,
                   :var selector?,
-                )
-              )
+                ),
+              ),
             )
             when name == 'is' || (flattenWhere && name == 'where'):
           result ??= [...components.take(i)];
@@ -1581,19 +1606,21 @@ final class _TrimModernVisitor with ReplaceSelectorVisitor {
   /// [_minSpecificity] when visiting each of the complex selectors.
   List<ComplexSelector>? _visitModernSelectorPseudo(SelectorList list) {
     List<ComplexSelector>? newComponents;
-    var baseSpecificity = _currentSpecificity! -
+    var baseSpecificity =
+        _currentSpecificity! -
         list.components.map((complex) => complex.specificity).max;
     for (var i = 0; i < list.components.length; i++) {
       var complex1 = list.components[i];
 
       var oldMinSpecificity = _minSpecificity;
       _minSpecificity = math.max(
-          _minSpecificity,
-          baseSpecificity +
-              (newComponents ?? list.components.take(i))
-                  .followedBy(list.components.skip(i + 1))
-                  .map((complex2) => complex2.specificity)
-                  .max);
+        _minSpecificity,
+        baseSpecificity +
+            (newComponents ?? list.components.take(i))
+                .followedBy(list.components.skip(i + 1))
+                .map((complex2) => complex2.specificity)
+                .max,
+      );
       ComplexSelector? result;
       try {
         result = visitComplexSelector(complex1);

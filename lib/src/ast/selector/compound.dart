@@ -5,6 +5,7 @@
 import 'package:meta/meta.dart';
 
 import '../../extend/functions.dart';
+import '../../logger.dart';
 import '../../parse/selector.dart';
 import '../../utils.dart';
 import '../../visitor/interface/selector.dart';
@@ -17,11 +18,12 @@ import '../selector.dart';
 ///
 /// {@category AST}
 /// {@category Parsing}
-final class CompoundSelector extends Selector {
+final class CompoundSelector(Iterable<SimpleSelector> components, super.span)
+    extends Selector {
   /// The components of this selector.
   ///
   /// This is never empty.
-  final List<SimpleSelector> components;
+  final List<SimpleSelector> components = List.unmodifiableOf(components);
 
   /// This selector's specificity.
   ///
@@ -56,8 +58,7 @@ final class CompoundSelector extends Selector {
     (component) => component.hasComplicatedSuperselectorSemantics,
   );
 
-  CompoundSelector(Iterable<SimpleSelector> components, super.span)
-      : components = List.unmodifiable(components) {
+  this {
     if (this.components.isEmpty) {
       throw ArgumentError("components may not be empty.");
     }
@@ -69,18 +70,23 @@ final class CompoundSelector extends Selector {
   /// [allowParent] controls whether a [ParentSelector] is allowed in this
   /// selector.
   ///
+  /// The [logger] will be used to report deprecation warnings. If it's null,
+  /// they'll be reported using [Logger.defaultLogger].
+  ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory CompoundSelector.parse(
+  factory parse(
     String contents, {
     Object? url,
     bool allowParent = true,
-  }) =>
-      SelectorParser(
-        contents,
-        url: url,
-        allowParent: allowParent,
-      ).parseCompoundSelector();
+    Logger? logger,
+  }) => SelectorParser(
+    contents,
+    url: url,
+    allowParent: allowParent,
+    logger: logger,
+  ).parseCompoundSelector();
 
+  @override
   T accept<T>(SelectorVisitor<T> visitor) =>
       visitor.visitCompoundSelector(this);
 
@@ -91,8 +97,10 @@ final class CompoundSelector extends Selector {
   bool isSuperselector(CompoundSelector other) =>
       compoundIsSuperselector(this, other);
 
+  @override
   int get hashCode => listHash(components);
 
+  @override
   bool operator ==(Object other) =>
       other is CompoundSelector && listEquals(components, other.components);
 }

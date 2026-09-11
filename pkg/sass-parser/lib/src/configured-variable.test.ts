@@ -41,20 +41,16 @@ describe('a configured variable', () => {
       });
     }
 
-    describeNode(
-      'parsed as SCSS',
-      () =>
-        (
-          scss.parse('@use "baz" with ($foo: "bar")').nodes[0] as UseRule
-        ).configuration.get('foo')!,
+    describeNode('parsed as SCSS', () =>
+      (
+        scss.parse('@use "baz" with ($foo: "bar")').nodes[0] as UseRule
+      ).configuration.get('foo')!,
     );
 
-    describeNode(
-      'parsed as Sass',
-      () =>
-        (
-          sass.parse('@use "baz" with ($foo: "bar")').nodes[0] as UseRule
-        ).configuration.get('foo')!,
+    describeNode('parsed as Sass', () =>
+      (
+        sass.parse('@use "baz" with ($foo: "bar")').nodes[0] as UseRule
+      ).configuration.get('foo')!,
     );
 
     describe('constructed manually', () => {
@@ -136,22 +132,18 @@ describe('a configured variable', () => {
       });
     }
 
-    describeNode(
-      'parsed as SCSS',
-      () =>
-        (
-          scss.parse('@forward "baz" with ($foo: "bar" !default)')
-            .nodes[0] as ForwardRule
-        ).configuration.get('foo')!,
+    describeNode('parsed as SCSS', () =>
+      (
+        scss.parse('@forward "baz" with ($foo: "bar" !default)')
+          .nodes[0] as ForwardRule
+      ).configuration.get('foo')!,
     );
 
-    describeNode(
-      'parsed as Sass',
-      () =>
-        (
-          sass.parse('@forward "baz" with ($foo: "bar" !default)')
-            .nodes[0] as ForwardRule
-        ).configuration.get('foo')!,
+    describeNode('parsed as Sass', () =>
+      (
+        sass.parse('@forward "baz" with ($foo: "bar" !default)')
+          .nodes[0] as ForwardRule
+      ).configuration.get('foo')!,
     );
 
     describe('constructed manually', () => {

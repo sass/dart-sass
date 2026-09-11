@@ -27,17 +27,18 @@ import '../visitor/serialize.dart';
 /// works with are always fully simplified.
 ///
 /// {@category Value}
-final class SassCalculation extends Value {
+final class SassCalculation._(
   /// The calculation's name, such as `"calc"`.
-  final String name;
+  final String name,
 
   /// The calculation's arguments.
   ///
   /// Each argument is either a [SassNumber], a [SassCalculation], an unquoted
   /// [SassString], or a [CalculationOperation].
-  final List<Object> arguments;
-
+  final List<Object> arguments,
+) extends Value {
   /// @nodoc
+  @override
   @internal
   bool get isSpecialNumber => true;
 
@@ -47,8 +48,7 @@ final class SassCalculation extends Value {
   static SassCalculation unsimplified(
     String name,
     Iterable<Object> arguments,
-  ) =>
-      SassCalculation._(name, List.unmodifiable(arguments));
+  ) => SassCalculation._(name, List.unmodifiableOf(arguments));
 
   /// Creates a `calc()` calculation with the given [argument].
   ///
@@ -59,13 +59,13 @@ final class SassCalculation extends Value {
   /// [SassNumber] rather than a [SassCalculation]. It throws an exception if it
   /// can determine that the calculation will definitely produce invalid CSS.
   static Value calc(Object argument) => switch (_simplify(argument)) {
-        SassNumber value => value,
-        SassCalculation value => value,
-        var simplified => SassCalculation._(
-            "calc",
-            List.unmodifiable([simplified]),
-          ),
-      };
+    SassNumber value => value,
+    SassCalculation value => value,
+    var simplified => SassCalculation._(
+      "calc",
+      List.unmodifiableOf([simplified]),
+    ),
+  };
 
   /// Creates a `min()` calculation with the given [arguments].
   ///
@@ -292,8 +292,8 @@ final class SassCalculation extends Value {
     return switch (argument) {
       SassNumber(value: double(isNaN: true) || 0) => argument,
       SassNumber arg when !arg.hasUnit('%') => SassNumber(
-          arg.value.sign,
-        ).coerceToMatch(argument),
+        arg.value.sign,
+      ).coerceToMatch(argument),
       _ => SassCalculation._("sign", [argument]),
     };
   }
@@ -328,11 +328,7 @@ final class SassCalculation extends Value {
       return value;
     }
 
-    var args = List<Object>.unmodifiable([
-      min,
-      if (value != null) value,
-      if (max != null) max,
-    ]);
+    var args = List.unmodifiableOf([min, ?value, ?max]);
     _verifyCompatibleNumbers(args);
     _verifyLength(args, 3);
     return SassCalculation._("clamp", args);
@@ -350,7 +346,7 @@ final class SassCalculation extends Value {
   /// This may be passed fewer than two arguments, but only if one of the
   /// arguments is an unquoted `var()` string.
   static Value pow(Object base, Object? exponent) {
-    var args = [base, if (exponent != null) exponent];
+    var args = [base, ?exponent];
     _verifyLength(args, 2);
     base = _simplify(base);
     exponent = exponent.andThen(_simplify);
@@ -376,7 +372,7 @@ final class SassCalculation extends Value {
   static Value log(Object number, Object? base) {
     number = _simplify(number);
     base = base.andThen(_simplify);
-    var args = [number, if (base != null) base];
+    var args = [number, ?base];
     if (number is! SassNumber || (base != null && base is! SassNumber)) {
       return SassCalculation._("log", args);
     }
@@ -402,7 +398,7 @@ final class SassCalculation extends Value {
   static Value atan2(Object y, Object? x) {
     y = _simplify(y);
     x = x.andThen(_simplify);
-    var args = [y, if (x != null) x];
+    var args = [y, ?x];
     _verifyLength(args, 2);
     _verifyCompatibleNumbers(args);
     if (y is! SassNumber ||
@@ -429,7 +425,7 @@ final class SassCalculation extends Value {
   static Value rem(Object dividend, Object? modulus) {
     dividend = _simplify(dividend);
     modulus = modulus.andThen(_simplify);
-    var args = [dividend, if (modulus != null) modulus];
+    var args = [dividend, ?modulus];
     _verifyLength(args, 2);
     _verifyCompatibleNumbers(args);
     if (dividend is! SassNumber ||
@@ -462,7 +458,7 @@ final class SassCalculation extends Value {
   static Value mod(Object dividend, Object? modulus) {
     dividend = _simplify(dividend);
     modulus = modulus.andThen(_simplify);
-    var args = [dividend, if (modulus != null) modulus];
+    var args = [dividend, ?modulus];
     _verifyLength(args, 2);
     _verifyCompatibleNumbers(args);
     if (dividend is! SassNumber ||
@@ -490,15 +486,14 @@ final class SassCalculation extends Value {
     Object strategyOrNumber, [
     Object? numberOrStep,
     Object? step,
-  ]) =>
-      roundInternal(
-        strategyOrNumber,
-        numberOrStep,
-        step,
-        span: null,
-        inLegacySassFunction: null,
-        warn: null,
-      );
+  ]) => roundInternal(
+    strategyOrNumber,
+    numberOrStep,
+    step,
+    span: null,
+    inLegacySassFunction: null,
+    warn: null,
+  );
 
   /// Like [round], but with the internal-only [inLegacySassFunction] and
   /// [warn] parameters.
@@ -538,7 +533,7 @@ final class SassCalculation extends Value {
           "function, call math.round() instead.\n"
           "\n"
           "See https://sass-lang.com/d/import",
-          Deprecation.globalBuiltin,
+          .globalBuiltin,
         );
         return _matchUnits(number.value.round().toDouble(), number);
 
@@ -562,34 +557,34 @@ final class SassCalculation extends Value {
         return SassCalculation._("round", [strategy, number, step]);
 
       case (
-          SassString(text: 'nearest' || 'up' || 'down' || 'to-zero') &&
-              var strategy,
-          SassNumber number,
-          SassNumber step,
-        ):
+        SassString(text: 'nearest' || 'up' || 'down' || 'to-zero') &&
+            var strategy,
+        SassNumber number,
+        SassNumber step,
+      ):
         _verifyCompatibleNumbers([number, step]);
         return _roundWithStep(strategy.text, number, step);
 
       case (
-          SassString(text: 'nearest' || 'up' || 'down' || 'to-zero') &&
-              var strategy,
-          SassString rest,
-          null,
-        ):
+        SassString(text: 'nearest' || 'up' || 'down' || 'to-zero') &&
+            var strategy,
+        SassString rest,
+        null,
+      ):
         return SassCalculation._("round", [strategy, rest]);
 
       case (
-          SassString(text: 'nearest' || 'up' || 'down' || 'to-zero'),
-          _?,
-          null,
-        ):
+        SassString(text: 'nearest' || 'up' || 'down' || 'to-zero'),
+        _?,
+        null,
+      ):
         throw SassScriptException("If strategy is not null, step is required.");
 
       case (
-          SassString(text: 'nearest' || 'up' || 'down' || 'to-zero'),
-          null,
-          null,
-        ):
+        SassString(text: 'nearest' || 'up' || 'down' || 'to-zero'),
+        null,
+        null,
+      ):
         throw SassScriptException(
           "Number to round and step arguments are required.",
         );
@@ -601,12 +596,12 @@ final class SassCalculation extends Value {
         return SassCalculation._("round", [number, step]);
 
       case (
-          (SassString(text: 'nearest' || 'up' || 'down' || 'to-zero') ||
-                  SassString(isSpecialVariable: true)) &&
-              var strategy,
-          var number?,
-          var step?,
-        ):
+        (SassString(text: 'nearest' || 'up' || 'down' || 'to-zero') ||
+                SassString(isSpecialVariable: true)) &&
+            var strategy,
+        var number?,
+        var step?,
+      ):
         return SassCalculation._("round", [strategy, number, step]);
 
       case (_, _?, _?):
@@ -630,11 +625,11 @@ final class SassCalculation extends Value {
   /// This automatically simplifies the calculation. It throws an exception if
   /// it can determine that the calculation will definitely produce invalid CSS.
   static SassCalculation calcSize(Object basis, Object? value) {
-    var args = [basis, if (value != null) value];
+    var args = [basis, ?value];
     _verifyLength(args, 2);
     basis = _simplify(basis);
     value = value.andThen(_simplify);
-    return SassCalculation._("calc-size", [basis, if (value != null) value]);
+    return SassCalculation._("calc-size", [basis, ?value]);
   }
 
   /// Creates and simplifies a [CalculationOperation] with the given [operator],
@@ -649,15 +644,14 @@ final class SassCalculation extends Value {
     CalculationOperator operator,
     Object left,
     Object right,
-  ) =>
-      operateInternal(
-        operator,
-        left,
-        right,
-        inLegacySassFunction: null,
-        simplify: true,
-        warn: null,
-      );
+  ) => operateInternal(
+    operator,
+    left,
+    right,
+    inLegacySassFunction: null,
+    simplify: true,
+    warn: null,
+  );
 
   /// Like [operate], but with the internal-only [inLegacySassFunction] and
   /// [warn] parameters.
@@ -685,7 +679,7 @@ final class SassCalculation extends Value {
     left = _simplify(left);
     right = _simplify(right);
 
-    if (operator case CalculationOperator.plus || CalculationOperator.minus) {
+    if (operator case .plus || .minus) {
       if (left is SassNumber && right is SassNumber) {
         var compatible = left.hasCompatibleUnits(right);
         if (!compatible &&
@@ -699,14 +693,12 @@ final class SassCalculation extends Value {
             "math.$inLegacySassFunction() instead.\n"
             "\n"
             "See https://sass-lang.com/d/import",
-            Deprecation.globalBuiltin,
+            .globalBuiltin,
           );
           compatible = true;
         }
         if (compatible) {
-          return operator == CalculationOperator.plus
-              ? left.plus(right)
-              : left.minus(right);
+          return operator == .plus ? left.plus(right) : left.minus(right);
         }
       }
 
@@ -714,16 +706,12 @@ final class SassCalculation extends Value {
 
       if (right is SassNumber && number_lib.fuzzyLessThan(right.value, 0)) {
         right = right.times(SassNumber(-1));
-        operator = operator == CalculationOperator.plus
-            ? CalculationOperator.minus
-            : CalculationOperator.plus;
+        operator = operator == .plus ? .minus : .plus;
       }
 
       return CalculationOperation._(operator, left, right);
     } else if (left is SassNumber && right is SassNumber) {
-      return operator == CalculationOperator.times
-          ? left.times(right)
-          : left.dividedBy(right);
+      return operator == .times ? left.times(right) : left.dividedBy(right);
     } else {
       return CalculationOperation._(operator, left, right);
     }
@@ -731,7 +719,7 @@ final class SassCalculation extends Value {
 
   /// An internal constructor that doesn't perform any validation or
   /// simplification.
-  SassCalculation._(this.name, this.arguments);
+  this;
 
   // Returns [value] coerced to [number]'s units.
   static SassNumber _matchUnits(double value, SassNumber number) =>
@@ -778,32 +766,34 @@ final class SassCalculation extends Value {
     var stepWithNumberUnit = step.convertValueToMatch(number);
     return switch (strategy) {
       'nearest' => _matchUnits(
-          (number.value / stepWithNumberUnit).round() * stepWithNumberUnit,
-          number,
-        ),
+        (number.value / stepWithNumberUnit).round() * stepWithNumberUnit,
+        number,
+      ),
       'up' => _matchUnits(
-          (step.value < 0
-                  ? (number.value / stepWithNumberUnit).floor()
-                  : (number.value / stepWithNumberUnit).ceil()) *
-              stepWithNumberUnit,
-          number,
-        ),
+        (step.value < 0
+                ? (number.value / stepWithNumberUnit).floor()
+                : (number.value / stepWithNumberUnit).ceil()) *
+            stepWithNumberUnit,
+        number,
+      ),
       'down' => _matchUnits(
-          (step.value < 0
-                  ? (number.value / stepWithNumberUnit).ceil()
-                  : (number.value / stepWithNumberUnit).floor()) *
-              stepWithNumberUnit,
-          number,
-        ),
-      'to-zero' => number.value < 0
-          ? _matchUnits(
-              (number.value / stepWithNumberUnit).ceil() * stepWithNumberUnit,
-              number,
-            )
-          : _matchUnits(
-              (number.value / stepWithNumberUnit).floor() * stepWithNumberUnit,
-              number,
-            ),
+        (step.value < 0
+                ? (number.value / stepWithNumberUnit).ceil()
+                : (number.value / stepWithNumberUnit).floor()) *
+            stepWithNumberUnit,
+        number,
+      ),
+      'to-zero' =>
+        number.value < 0
+            ? _matchUnits(
+                (number.value / stepWithNumberUnit).ceil() * stepWithNumberUnit,
+                number,
+              )
+            : _matchUnits(
+                (number.value / stepWithNumberUnit).floor() *
+                    stepWithNumberUnit,
+                number,
+              ),
       _ => _matchUnits(double.nan, number),
     };
   }
@@ -814,25 +804,25 @@ final class SassCalculation extends Value {
 
   /// Simplifies a calculation argument.
   static Object _simplify(Object arg) => switch (arg) {
-        SassNumber() || CalculationOperation() => arg,
-        CalculationInterpolation() =>
-          SassString('(${arg.value})', quotes: false),
-        SassString(hasQuotes: false) => arg,
-        SassString() => throw SassScriptException(
-            "Quoted string $arg can't be used in a calculation.",
-          ),
-        SassCalculation(
-          name: 'calc',
-          arguments: [SassString(hasQuotes: false, :var text)],
-        )
-            when _needsParentheses(text) =>
-          SassString('($text)', quotes: false),
-        SassCalculation(name: 'calc', arguments: [var value]) => value,
-        SassCalculation() => arg,
-        Value() => throw SassScriptException(
-            "Value $arg can't be used in a calculation."),
-        _ => throw ArgumentError("Unexpected calculation argument $arg."),
-      };
+    SassNumber() || CalculationOperation() => arg,
+    CalculationInterpolation() => SassString('(${arg.value})', quotes: false),
+    SassString(hasQuotes: false) => arg,
+    SassString() => throw SassScriptException(
+      "Quoted string $arg can't be used in a calculation.",
+    ),
+    SassCalculation(
+      name: 'calc',
+      arguments: [SassString(hasQuotes: false, :var text)],
+    )
+        when _needsParentheses(text) =>
+      SassString('($text)', quotes: false),
+    SassCalculation(name: 'calc', arguments: [var value]) => value,
+    SassCalculation() => arg,
+    Value() => throw SassScriptException(
+      "Value $arg can't be used in a calculation.",
+    ),
+    _ => throw ArgumentError("Unexpected calculation argument $arg."),
+  };
 
   /// Returns whether [text] needs parentheses if it's the contents of a
   /// `calc()` being embedded in another calculation.
@@ -916,7 +906,7 @@ final class SassCalculation extends Value {
   static Value _singleArgument(
     String name,
     Object argument,
-    SassNumber mathFunc(SassNumber value), {
+    SassNumber Function(SassNumber value) mathFunc, {
     bool forbidUnits = false,
   }) {
     argument = _simplify(argument);
@@ -928,12 +918,15 @@ final class SassCalculation extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitCalculation(this);
 
+  @override
   SassCalculation assertCalculation([String? name]) => this;
 
   /// @nodoc
+  @override
   @internal
   Value plus(Value other) {
     if (other is SassString) return super.plus(other);
@@ -941,63 +934,70 @@ final class SassCalculation extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   Value minus(Value other) =>
       throw SassScriptException('Undefined operation "$this - $other".');
 
   /// @nodoc
+  @override
   @internal
   Value unaryPlus() =>
       throw SassScriptException('Undefined operation "+$this".');
 
   /// @nodoc
+  @override
   @internal
   Value unaryMinus() =>
       throw SassScriptException('Undefined operation "-$this".');
 
+  @override
   bool operator ==(Object other) =>
       other is SassCalculation &&
       name == other.name &&
       listEquals(arguments, other.arguments);
 
+  @override
   int get hashCode => name.hashCode ^ listHash(arguments);
 }
 
 /// A binary operation that can appear in a [SassCalculation].
 ///
 /// {@category Value}
-final class CalculationOperation {
+final class CalculationOperation._(
+  final CalculationOperator _operator,
+  final Object _left,
+  final Object _right,
+) {
   /// We use a getters to allow overriding the logic in the JS API
   /// implementation.
 
   /// The operator.
   CalculationOperator get operator => _operator;
-  final CalculationOperator _operator;
 
   /// The left-hand operand.
   ///
   /// This is either a [SassNumber], a [SassCalculation], an unquoted
   /// [SassString], or a [CalculationOperation].
   Object get left => _left;
-  final Object _left;
 
   /// The right-hand operand.
   ///
   /// This is either a [SassNumber], a [SassCalculation], an unquoted
   /// [SassString], or a [CalculationOperation].
   Object get right => _right;
-  final Object _right;
 
-  CalculationOperation._(this._operator, this._left, this._right);
-
+  @override
   bool operator ==(Object other) =>
       other is CalculationOperation &&
       operator == other.operator &&
       left == other.left &&
       right == other.right;
 
+  @override
   int get hashCode => operator.hashCode ^ left.hashCode ^ right.hashCode;
 
+  @override
   String toString() {
     var parenthesized = serializeValue(
       SassCalculation._("", [this]),
@@ -1010,7 +1010,20 @@ final class CalculationOperation {
 /// An enumeration of possible operators for [CalculationOperation].
 ///
 /// {@category Value}
-enum CalculationOperator {
+enum CalculationOperator(
+  /// The English name of `this`.
+  final String name,
+
+  /// The CSS syntax for `this`.
+  final String operator,
+
+  /// The precedence of `this`.
+  ///
+  /// An operator with higher precedence binds tighter.
+  ///
+  /// @nodoc
+  @internal final int precedence,
+) {
   /// The addition operator.
   plus('plus', '+', 1),
 
@@ -1023,22 +1036,7 @@ enum CalculationOperator {
   /// The division operator.
   dividedBy('divided by', '/', 2);
 
-  /// The English name of `this`.
-  final String name;
-
-  /// The CSS syntax for `this`.
-  final String operator;
-
-  /// The precedence of `this`.
-  ///
-  /// An operator with higher precedence binds tighter.
-  ///
-  /// @nodoc
-  @internal
-  final int precedence;
-
-  const CalculationOperator(this.name, this.operator, this.precedence);
-
+  @override
   String toString() => name;
 }
 
@@ -1051,19 +1049,19 @@ enum CalculationOperator {
 ///
 /// {@category Value}
 @Deprecated("Use SassString instead.")
-final class CalculationInterpolation {
+final class CalculationInterpolation(final String _value) {
   /// We use a getters to allow overriding the logic in the JS API
   /// implementation.
 
   String get value => _value;
-  final String _value;
 
-  CalculationInterpolation(this._value);
-
+  @override
   bool operator ==(Object other) =>
       other is CalculationInterpolation && value == other.value;
 
+  @override
   int get hashCode => value.hashCode;
 
+  @override
   String toString() => value;
 }

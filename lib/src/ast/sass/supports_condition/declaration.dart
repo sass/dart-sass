@@ -16,15 +16,14 @@ import '../supports_condition.dart';
 /// supported.
 ///
 /// {@category AST}
-final class SupportsDeclaration implements SupportsCondition {
+final class SupportsDeclaration(
   /// The name of the declaration being tested.
-  final Expression name;
+  final Expression name,
 
   /// The value of the declaration being tested.
-  final Expression value;
-
-  final FileSpan span;
-
+  final Expression value,
+  @override final FileSpan span,
+) implements SupportsCondition {
   /// Returns whether this is a CSS Custom Property declaration.
   ///
   /// Note that this can return `false` for declarations that will ultimately be
@@ -36,14 +35,13 @@ final class SupportsDeclaration implements SupportsCondition {
   /// @nodoc
   @internal
   bool get isCustomProperty => switch (name) {
-        StringExpression(hasQuotes: false, :var text) =>
-          text.initialPlain.startsWith('--'),
-        _ => false,
-      };
-
-  SupportsDeclaration(this.name, this.value, this.span);
+    StringExpression(hasQuotes: false, :var text) =>
+      text.initialPlain.startsWith('--'),
+    _ => false,
+  };
 
   /// @nodoc
+  @override
   @internal
   Interpolation toInterpolation() {
     var buffer = InterpolationBuffer();
@@ -66,9 +64,11 @@ final class SupportsDeclaration implements SupportsCondition {
   }
 
   /// @nodoc
+  @override
   @internal
   SupportsDeclaration withSpan(FileSpan span) =>
       SupportsDeclaration(name, value, span);
 
+  @override
   String toString() => "($name: $value)";
 }

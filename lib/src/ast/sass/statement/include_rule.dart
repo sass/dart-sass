@@ -15,34 +15,34 @@ import 'content_block.dart';
 /// A mixin invocation.
 ///
 /// {@category AST}
-final class IncludeRule extends Statement
-    implements CallableInvocation, SassReference {
-  /// The namespace of the mixin being invoked, or `null` if it's invoked
-  /// without a namespace.
-  final String? namespace;
-
-  /// The name of the mixin being invoked, with underscores converted to
-  /// hyphens.
-  final String name;
-
+final class IncludeRule(
   /// The original name of the mixin being invoked, without underscores
   /// converted to hyphens.
-  final String originalName;
+  final String originalName,
 
   /// The arguments to pass to the mixin.
-  final ArgumentList arguments;
+  @override final ArgumentList arguments,
+  @override final FileSpan span, {
+
+  /// The namespace of the mixin being invoked, or `null` if it's invoked
+  /// without a namespace.
+  @override final String? namespace,
 
   /// The block that will be invoked for [ContentRule]s in the mixin being
   /// invoked, or `null` if this doesn't pass a content block.
-  final ContentBlock? content;
-
-  final FileSpan span;
+  final ContentBlock? content,
+}) extends Statement implements CallableInvocation, SassReference {
+  /// The name of the mixin being invoked, with underscores converted to
+  /// hyphens.
+  @override
+  final String name = originalName.replaceAll('_', '-');
 
   /// Returns this include's span, without its content block (if it has one).
   FileSpan get spanWithoutContent => content == null
       ? span
       : span.file.span(span.start.offset, arguments.span.end.offset).trim();
 
+  @override
   FileSpan get nameSpan {
     var startSpan = span.text.startsWith('+')
         ? span.subspan(1).trimLeft()
@@ -51,6 +51,7 @@ final class IncludeRule extends Statement
     return startSpan.initialIdentifier();
   }
 
+  @override
   FileSpan? get namespaceSpan {
     if (namespace == null) return null;
     var startSpan = span.text.startsWith('+')
@@ -59,16 +60,10 @@ final class IncludeRule extends Statement
     return startSpan.initialIdentifier();
   }
 
-  IncludeRule(
-    this.originalName,
-    this.arguments,
-    this.span, {
-    this.namespace,
-    this.content,
-  }) : name = originalName.replaceAll('_', '-');
-
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitIncludeRule(this);
 
+  @override
   String toString() {
     var buffer = StringBuffer("@include ");
     if (namespace != null) buffer.write("$namespace.");

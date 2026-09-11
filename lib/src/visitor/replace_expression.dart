@@ -26,6 +26,7 @@ mixin ReplaceExpressionVisitor
     implements
         ExpressionVisitor<Expression>,
         IfConditionExpressionVisitor<IfConditionExpression> {
+  @override
   Expression visitBinaryOperationExpression(BinaryOperationExpression node) =>
       BinaryOperationExpression(
         node.operator,
@@ -33,10 +34,13 @@ mixin ReplaceExpressionVisitor
         node.right.accept(this),
       );
 
+  @override
   Expression visitBooleanExpression(BooleanExpression node) => node;
 
+  @override
   Expression visitColorExpression(ColorExpression node) => node;
 
+  @override
   Expression visitFunctionExpression(FunctionExpression node) =>
       FunctionExpression(
         node.originalName,
@@ -45,45 +49,54 @@ mixin ReplaceExpressionVisitor
         namespace: node.namespace,
       );
 
+  @override
   Expression visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
-  ) =>
-      InterpolatedFunctionExpression(
-        visitInterpolation(node.name),
-        visitArgumentList(node.arguments),
-        node.span,
-      );
+  ) => InterpolatedFunctionExpression(
+    visitInterpolation(node.name),
+    visitArgumentList(node.arguments),
+    node.span,
+  );
 
+  @override
   Expression visitLegacyIfExpression(LegacyIfExpression node) =>
       LegacyIfExpression(visitArgumentList(node.arguments), node.span);
 
+  @override
   Expression visitListExpression(ListExpression node) => ListExpression(
-        node.contents.map((item) => item.accept(this)),
-        node.separator,
-        node.span,
-        brackets: node.hasBrackets,
-      );
+    node.contents.map((item) => item.accept(this)),
+    node.separator,
+    node.span,
+    brackets: node.hasBrackets,
+  );
 
+  @override
   Expression visitMapExpression(MapExpression node) => MapExpression([
-        for (var (key, value) in node.pairs)
-          (key.accept(this), value.accept(this)),
-      ], node.span);
+    for (var (key, value) in node.pairs) (key.accept(this), value.accept(this)),
+  ], node.span);
 
+  @override
   Expression visitNullExpression(NullExpression node) => node;
 
+  @override
   Expression visitNumberExpression(NumberExpression node) => node;
 
+  @override
   Expression visitParenthesizedExpression(ParenthesizedExpression node) =>
       ParenthesizedExpression(node.expression.accept(this), node.span);
 
+  @override
   Expression visitSelectorExpression(SelectorExpression node) => node;
 
+  @override
   Expression visitStringExpression(StringExpression node) =>
       StringExpression(visitInterpolation(node.text), quotes: node.hasQuotes);
 
+  @override
   Expression visitSupportsExpression(SupportsExpression node) =>
       SupportsExpression(visitSupportsCondition(node.condition));
 
+  @override
   Expression visitUnaryOperationExpression(UnaryOperationExpression node) =>
       UnaryOperationExpression(
         node.operator,
@@ -91,25 +104,31 @@ mixin ReplaceExpressionVisitor
         node.span,
       );
 
+  @override
   Expression visitValueExpression(ValueExpression node) => node;
 
+  @override
   Expression visitVariableExpression(VariableExpression node) => node;
 
   // `if()` condition expressions
 
+  @override
   IfConditionExpression visitIfConditionParenthesized(
-          IfConditionParenthesized node) =>
-      IfConditionParenthesized(node.expression.accept(this), node.span);
+    IfConditionParenthesized node,
+  ) => IfConditionParenthesized(node.expression.accept(this), node.span);
 
+  @override
   IfConditionExpression visitIfConditionNegation(IfConditionNegation node) =>
       IfConditionNegation(node.expression.accept(this), node.span);
 
+  @override
   IfConditionExpression visitIfConditionOperation(IfConditionOperation node) =>
       IfConditionOperation(
         node.expressions.map((expression) => expression.accept(this)),
         node.op,
       );
 
+  @override
   IfConditionExpression visitIfConditionFunction(IfConditionFunction node) =>
       IfConditionFunction(
         visitInterpolation(node.name),
@@ -117,9 +136,11 @@ mixin ReplaceExpressionVisitor
         node.span,
       );
 
+  @override
   IfConditionExpression visitIfConditionSass(IfConditionSass node) =>
       IfConditionSass(node.expression.accept(this), node.span);
 
+  @override
   IfConditionExpression visitIfConditionRaw(IfConditionRaw node) =>
       IfConditionRaw(visitInterpolation(node.text));
 
@@ -129,16 +150,16 @@ mixin ReplaceExpressionVisitor
   /// argument invocation in an expression.
   @protected
   ArgumentList visitArgumentList(ArgumentList invocation) => ArgumentList(
-        invocation.positional.map((expression) => expression.accept(this)),
-        {
-          for (var (name, value) in invocation.named.pairs)
-            name: value.accept(this),
-        },
-        invocation.namedSpans,
-        invocation.span,
-        rest: invocation.rest?.accept(this),
-        keywordRest: invocation.keywordRest?.accept(this),
-      );
+    invocation.positional.map((expression) => expression.accept(this)),
+    {
+      for (var (name, value) in invocation.named.pairs)
+        name: value.accept(this),
+    },
+    invocation.namedSpans,
+    invocation.span,
+    rest: invocation.rest?.accept(this),
+    keywordRest: invocation.keywordRest?.accept(this),
+  );
 
   /// Replaces each expression in [condition].
   ///

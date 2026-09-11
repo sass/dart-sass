@@ -32,9 +32,7 @@ export interface QualifiedNameObjectProps extends NodeProps {
  * @category Selector
  */
 export type QualifiedNameProps =
-  | QualifiedNameObjectProps
-  | Interpolation
-  | InterpolationProps;
+  QualifiedNameObjectProps | Interpolation | InterpolationProps;
 
 /**
  * Raws indicating how to precisely serialize a {@link QualifiedName}.

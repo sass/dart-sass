@@ -6,7 +6,10 @@ import 'package:meta/meta.dart';
 
 /// Different modes in which extension can run.
 @internal
-enum ExtendMode {
+enum ExtendMode(
+  /// The name of the mode.
+  final String name,
+) {
   /// Normal mode, used with the `@extend` rule.
   ///
   /// This preserves existing selectors and extends each target individually.
@@ -24,10 +27,6 @@ enum ExtendMode {
   /// extend a given compound selector.
   allTargets('allTargets');
 
-  /// The name of the mode.
-  final String name;
-
-  const ExtendMode(this.name);
-
+  @override
   String toString() => name;
 }

@@ -19,11 +19,13 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class XyzD50ColorSpace extends ColorSpace {
+final class const XyzD50ColorSpace() extends ColorSpace {
+  @override
   bool get isBoundedInternal => false;
 
-  const XyzD50ColorSpace() : super('xyz-d50', xyzChannels);
+  this : super('xyz-d50', xyzChannels);
 
+  @override
   SassColor convert(
     ColorSpace dest,
     double? x,
@@ -36,8 +38,21 @@ final class XyzD50ColorSpace extends ColorSpace {
     bool missingA = false,
     bool missingB = false,
   }) {
+    if (missingA && missingB) {
+      missingChroma = true;
+      missingHue = true;
+    } else if (missingChroma && missingHue) {
+      missingA = true;
+      missingB = true;
+    }
+
+    if ((missingLightness && missingChroma && missingHue) ||
+        (x == null && y == null && z == null)) {
+      return SassColor.forSpaceInternal(dest, null, null, null, alpha);
+    }
+
     switch (dest) {
-      case ColorSpace.lab || ColorSpace.lch:
+      case .lab || .lch:
         // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
         // and http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
         var f0 = _convertComponentToLabF((x ?? 0) / d50[0]);
@@ -47,7 +62,7 @@ final class XyzD50ColorSpace extends ColorSpace {
         var a = 500 * (f0 - f1);
         var b = 200 * (f1 - f2);
 
-        return dest == ColorSpace.lab
+        return dest == .lab
             ? SassColor.lab(
                 lightness,
                 missingA ? null : a,
@@ -55,7 +70,7 @@ final class XyzD50ColorSpace extends ColorSpace {
                 alpha,
               )
             : labToLch(
-                ColorSpace.lch,
+                .lch,
                 lightness,
                 a,
                 b,
@@ -85,26 +100,24 @@ final class XyzD50ColorSpace extends ColorSpace {
       ? math.pow(component, 1 / 3) + 0.0
       : (labKappa * component + 16) / 116;
 
+  @override
   @protected
   double toLinear(double channel) => channel;
 
+  @override
   @protected
   double fromLinear(double channel) => channel;
 
+  @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
-        ColorSpace.srgbLinear ||
-        ColorSpace.srgb ||
-        ColorSpace.rgb =>
-          xyzD50ToLinearSrgb,
-        ColorSpace.a98Rgb => xyzD50ToLinearA98Rgb,
-        ColorSpace.prophotoRgb => xyzD50ToLinearProphotoRgb,
-        ColorSpace.displayP3 ||
-        ColorSpace.displayP3Linear =>
-          xyzD50ToLinearDisplayP3,
-        ColorSpace.rec2020 => xyzD50ToLinearRec2020,
-        ColorSpace.xyzD65 => xyzD50ToXyzD65,
-        ColorSpace.lms => xyzD50ToLms,
-        _ => super.transformationMatrix(dest),
-      };
+    .srgbLinear || .srgb || .rgb => xyzD50ToLinearSrgb,
+    .a98Rgb => xyzD50ToLinearA98Rgb,
+    .prophotoRgb => xyzD50ToLinearProphotoRgb,
+    .displayP3 || .displayP3Linear => xyzD50ToLinearDisplayP3,
+    .rec2020 => xyzD50ToLinearRec2020,
+    .xyzD65 => xyzD50ToXyzD65,
+    .lms => xyzD50ToLms,
+    _ => super.transformationMatrix(dest),
+  };
 }

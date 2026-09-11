@@ -32,15 +32,16 @@ abstract class CssNode implements AstNode {
   /// invisible even though they're omitted in compressed mode.
   @internal
   bool get isInvisible => accept(
-        const _IsInvisibleVisitor(includeBogus: true, includeComments: false),
-      );
+    const _IsInvisibleVisitor(includeBogus: true, includeComments: false),
+  );
 
   // Whether this node will be invisible when loud comments are stripped.
   @internal
   bool get isInvisibleHidingComments => accept(
-        const _IsInvisibleVisitor(includeBogus: true, includeComments: true),
-      );
+    const _IsInvisibleVisitor(includeBogus: true, includeComments: true),
+  );
 
+  @override
   String toString() => serialize(this, inspect: true).$1;
 }
 
@@ -61,26 +62,24 @@ abstract class CssParentNode extends CssNode {
 }
 
 /// The visitor used to implement [CssNode.isInvisible]
-class _IsInvisibleVisitor with EveryCssVisitor {
+class const _IsInvisibleVisitor({
   /// Whether to consider selectors with bogus combinators invisible.
-  final bool includeBogus;
+  required final bool includeBogus,
 
   /// Whether to consider comments invisible.
-  final bool includeComments;
-
-  const _IsInvisibleVisitor({
-    required this.includeBogus,
-    required this.includeComments,
-  });
-
+  required final bool includeComments,
+}) with EveryCssVisitor {
   // An unknown at-rule is never invisible. Because we don't know the semantics
   // of unknown rules, we can't guarantee that (for example) `@foo {}` isn't
   // meaningful.
+  @override
   bool visitCssAtRule(CssAtRule rule) => false;
 
+  @override
   bool visitCssComment(CssComment comment) =>
       includeComments && !comment.isPreserved;
 
+  @override
   bool visitCssStyleRule(CssStyleRule rule) =>
       rule.selector.isInvisible || super.visitCssStyleRule(rule);
 }

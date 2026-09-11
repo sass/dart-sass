@@ -16,17 +16,19 @@ import '../interpolation.dart';
 /// A string literal.
 ///
 /// {@category AST}
-final class StringExpression extends Expression {
+final class StringExpression(
   /// Interpolation that, when evaluated, produces the contents of this string.
   ///
   /// If this is a quoted string, escapes are resolved and quotes are not
   /// included in this text (unlike [asInterpolation]). If it's an unquoted
   /// string, escapes are *not* resolved.
-  final Interpolation text;
-
+  final Interpolation text, {
+  bool quotes = false,
+}) extends Expression {
   /// Whether `this` has quotes.
-  final bool hasQuotes;
+  final bool hasQuotes = quotes;
 
+  @override
   FileSpan get span => text.span;
 
   /// Returns Sass source for a quoted string that, when evaluated, will have
@@ -40,19 +42,17 @@ final class StringExpression extends Expression {
     return buffer.toString();
   }
 
-  StringExpression(this.text, {bool quotes = false}) : hasQuotes = quotes;
-
   /// Returns a string expression with no interpolation.
-  StringExpression.plain(String text, FileSpan span, {bool quotes = false})
-      : text = Interpolation.plain(text, span),
-        hasQuotes = quotes;
+  new plain(String text, FileSpan span, {bool quotes = false})
+    : this(Interpolation.plain(text, span), quotes: quotes);
 
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitStringExpression(this);
 
   /// Interpolation that, when evaluated, produces the syntax of this string.
   ///
-  /// Unlike [text], his doesn't resolve escapes and does include quotes for
+  /// Unlike [text], this doesn't resolve escapes and does include quotes for
   /// quoted strings.
   ///
   /// If [static] is true, this escapes any `#{` sequences in the string. If
@@ -130,5 +130,6 @@ final class StringExpression extends Expression {
     return containsDoubleQuote ? $single_quote : $double_quote;
   }
 
+  @override
   String toString() => asInterpolation().toString();
 }

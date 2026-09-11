@@ -6,7 +6,6 @@ import 'package:charcode/charcode.dart';
 
 import '../ast/sass.dart';
 import '../util/nullable.dart';
-import '../value.dart';
 import 'interface/expression.dart';
 
 // We could use [AstSearchVisitor] to implement this more tersely, but that
@@ -17,52 +16,63 @@ import 'interface/expression.dart';
 /// context.
 ///
 /// This should be used through [Expression.isCalculationSafe].
-final class IsCalculationSafeVisitor implements ExpressionVisitor<bool> {
-  const IsCalculationSafeVisitor();
-
+final class const IsCalculationSafeVisitor()
+    implements ExpressionVisitor<bool> {
+  @override
   bool visitBinaryOperationExpression(BinaryOperationExpression node) =>
-      (const {
-        BinaryOperator.times,
-        BinaryOperator.dividedBy,
-        BinaryOperator.plus,
-        BinaryOperator.minus,
+      (const <BinaryOperator>{
+        .times,
+        .dividedBy,
+        .plus,
+        .minus,
       }).contains(node.operator) &&
       node.left.accept(this) &&
       node.right.accept(this);
 
+  @override
   bool visitBooleanExpression(BooleanExpression node) => false;
 
+  @override
   bool visitColorExpression(ColorExpression node) => false;
 
+  @override
   bool visitFunctionExpression(FunctionExpression node) => true;
 
+  @override
   bool visitIfExpression(IfExpression node) => true;
 
+  @override
   bool visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
-  ) =>
-      true;
+  ) => true;
 
+  @override
   bool visitLegacyIfExpression(LegacyIfExpression node) => true;
 
+  @override
   bool visitListExpression(ListExpression node) =>
-      (node.separator == ListSeparator.space ||
-          node.separator == ListSeparator.slash) &&
+      (node.separator == .space || node.separator == .slash) &&
       !node.hasBrackets &&
       node.contents.length > 1 &&
       node.contents.every((expression) => expression.accept(this));
 
+  @override
   bool visitMapExpression(MapExpression node) => false;
 
+  @override
   bool visitNullExpression(NullExpression node) => false;
 
+  @override
   bool visitNumberExpression(NumberExpression node) => true;
 
+  @override
   bool visitParenthesizedExpression(ParenthesizedExpression node) =>
       node.expression.accept(this);
 
+  @override
   bool visitSelectorExpression(SelectorExpression node) => false;
 
+  @override
   bool visitStringExpression(StringExpression node) {
     if (node.hasQuotes) return false;
 
@@ -71,21 +81,25 @@ final class IsCalculationSafeVisitor implements ExpressionVisitor<bool> {
     // cheaper.
     var text = node.text.initialPlain;
     return
-        // !important
-        !text.startsWith("!") &&
-            // ID-style identifiers
-            !text.startsWith("#") &&
-            // Unicode ranges
-            text.codeUnitAtOrNull(1) != $plus &&
-            // url()
-            text.codeUnitAtOrNull(3) != $lparen;
+    // !important
+    !text.startsWith("!") &&
+        // ID-style identifiers
+        !text.startsWith("#") &&
+        // Unicode ranges
+        text.codeUnitAtOrNull(1) != $plus &&
+        // url()
+        text.codeUnitAtOrNull(3) != $lparen;
   }
 
+  @override
   bool visitSupportsExpression(SupportsExpression node) => false;
 
+  @override
   bool visitUnaryOperationExpression(UnaryOperationExpression node) => false;
 
+  @override
   bool visitValueExpression(ValueExpression node) => false;
 
+  @override
   bool visitVariableExpression(VariableExpression node) => true;
 }

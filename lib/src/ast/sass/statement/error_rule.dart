@@ -13,15 +13,14 @@ import '../statement.dart';
 /// This emits an error and stops execution.
 ///
 /// {@category AST}
-final class ErrorRule extends Statement {
+final class ErrorRule(
   /// The expression to evaluate for the error message.
-  final Expression expression;
-
-  final FileSpan span;
-
-  ErrorRule(this.expression, this.span);
-
+  final Expression expression,
+  @override final FileSpan span,
+) extends Statement {
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitErrorRule(this);
 
+  @override
   String toString() => "@error $expression;";
 }

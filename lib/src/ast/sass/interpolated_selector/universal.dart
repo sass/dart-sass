@@ -15,18 +15,20 @@ import 'simple.dart';
 /// parse when `parseSelectors: true` is passed to [Stylesheet.parse].
 ///
 /// {@category AST}
-final class InterpolatedUniversalSelector extends InterpolatedSimpleSelector {
+final class InterpolatedUniversalSelector(
+  @override final FileSpan span, {
+
   /// The selector namespace.
-  final Interpolation? namespace;
-
-  final FileSpan span;
-
-  InterpolatedUniversalSelector(this.span, {this.namespace});
-
+  final Interpolation? namespace,
+}) extends InterpolatedSimpleSelector {
   /// Calls the appropriate visit method on [visitor].
+  @override
   T accept<T>(InterpolatedSelectorVisitor<T> visitor) =>
       visitor.visitUniversalSelector(this);
 
-  String toString() =>
-      switch (namespace) { var namespace? => '$namespace|*', _ => '*' };
+  @override
+  String toString() => switch (namespace) {
+    var namespace? => '$namespace|*',
+    _ => '*',
+  };
 }

@@ -17,8 +17,9 @@ void main() {
           $vary: 5.16em;
         ''';
         final stylesheet = Stylesheet.parseScss(contents);
-        final variable =
-            stylesheet.children.whereType<VariableDeclaration>().first;
+        final variable = stylesheet.children
+            .whereType<VariableDeclaration>()
+            .first;
 
         expect(variable.comment!.docComment, equals('Results may vary.'));
       });
@@ -58,8 +59,9 @@ void main() {
           $vary: 5.16em;
         ''';
         final stylesheet = Stylesheet.parseScss(contents);
-        final variable =
-            stylesheet.children.whereType<VariableDeclaration>().first;
+        final variable = stylesheet.children
+            .whereType<VariableDeclaration>()
+            .first;
 
         expect(variable.comment!.docComment, isNull);
       });
@@ -98,8 +100,9 @@ void main() {
           $vary: 5.16em;
         ''';
         final stylesheet = Stylesheet.parseScss(contents);
-        final variable =
-            stylesheet.children.whereType<VariableDeclaration>().first;
+        final variable = stylesheet.children
+            .whereType<VariableDeclaration>()
+            .first;
 
         expect(variable.comment!.docComment, equals('Line 1\nLine 2\nLine 3'));
       });
@@ -112,8 +115,9 @@ void main() {
 $vary: 5.16em
 ''';
         final stylesheet = Stylesheet.parseSass(contents);
-        final variable =
-            stylesheet.children.whereType<VariableDeclaration>().first;
+        final variable = stylesheet.children
+            .whereType<VariableDeclaration>()
+            .first;
 
         expect(variable.comment!.docComment, equals('Results may vary.'));
       });
@@ -151,8 +155,9 @@ $vary: 5.16em
 $vary: 5.16em
 ''';
         final stylesheet = Stylesheet.parseSass(contents);
-        final variable =
-            stylesheet.children.whereType<VariableDeclaration>().first;
+        final variable = stylesheet.children
+            .whereType<VariableDeclaration>()
+            .first;
 
         expect(variable.comment!.docComment, isNull);
       });
@@ -188,8 +193,9 @@ $vary: 5.16em
 $vary: 5.16em
 ''';
         final stylesheet = Stylesheet.parseSass(contents);
-        final variable =
-            stylesheet.children.whereType<VariableDeclaration>().first;
+        final variable = stylesheet.children
+            .whereType<VariableDeclaration>()
+            .first;
 
         expect(variable.comment!.docComment, equals('Line 1\nLine 2'));
       });
@@ -204,8 +210,9 @@ $vary: 5.16em
 $vary: 5.16em
 ''';
         final stylesheet = Stylesheet.parseSass(contents);
-        final variable =
-            stylesheet.children.whereType<VariableDeclaration>().first;
+        final variable = stylesheet.children
+            .whereType<VariableDeclaration>()
+            .first;
 
         expect(stylesheet.children.length, equals(2));
         expect(

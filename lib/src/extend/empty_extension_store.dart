@@ -15,18 +15,19 @@ import 'extension.dart';
 /// An [ExtensionStore] that contains no extensions and can have no extensions
 /// added.
 @internal
-final class EmptyExtensionStore implements ExtensionStore {
+final class const EmptyExtensionStore() implements ExtensionStore {
+  @override
   bool get isEmpty => true;
 
+  @override
   Set<SimpleSelector> get simpleSelectors => const UnmodifiableSetView.empty();
 
-  const EmptyExtensionStore();
-
+  @override
   Iterable<Extension> extensionsWhereTarget(
-    bool callback(SimpleSelector target),
-  ) =>
-      const [];
+    bool Function(SimpleSelector target) callback,
+  ) => const [];
 
+  @override
   Box<SelectorList> addSelector(
     SelectorList selector, [
     List<CssMediaQuery>? mediaContext,
@@ -36,6 +37,7 @@ final class EmptyExtensionStore implements ExtensionStore {
     );
   }
 
+  @override
   void addExtension(
     SelectorList extender,
     SimpleSelector target,
@@ -47,16 +49,17 @@ final class EmptyExtensionStore implements ExtensionStore {
     );
   }
 
+  @override
   void addExtensions(Iterable<ExtensionStore> extenders) {
     throw UnsupportedError(
       "addExtensions() can't be called for a const ExtensionStore.",
     );
   }
 
-  (ExtensionStore, Map<SelectorList, Box<SelectorList>>) clone() => const (
-        EmptyExtensionStore(),
-        {},
-      );
+  @override
+  (ExtensionStore, Map<SelectorList, Box<SelectorList>>) clone() =>
+      const (EmptyExtensionStore(), {});
 
+  @override
   void trimModernSelectors() {}
 }

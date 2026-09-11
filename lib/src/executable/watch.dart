@@ -66,18 +66,16 @@ Future<void> watch(ExecutableOptions options, StylesheetGraph graph) async {
 
 /// Holds state that's shared across functions that react to changes on the
 /// filesystem.
-final class _Watcher {
+final class _Watcher(
   /// The options for the Sass executable.
-  final ExecutableOptions _options;
+  final ExecutableOptions _options,
 
   /// The graph of stylesheets being compiled.
-  final StylesheetGraph _graph;
-
+  final StylesheetGraph _graph,
+) {
   /// A map from source paths to destinations that need to be recompiled once
   /// the current batch of events has been processed.
   final Map<String, String> _toRecompile = {};
-
-  _Watcher(this._options, this._graph);
 
   /// Deletes the file at [path] and prints a message about it.
   void _delete(String path) {
@@ -107,13 +105,10 @@ final class _Watcher {
         }
 
         switch (event.type) {
-          case ChangeType.MODIFY:
-            _handleModify(event.path);
+          case .MODIFY || .ADD:
+            _handleModifyOrAdd(event.path);
 
-          case ChangeType.ADD:
-            _handleAdd(event.path);
-
-          case ChangeType.REMOVE:
+          case .REMOVE:
             _handleRemove(event.path);
         }
       }
@@ -130,10 +125,15 @@ final class _Watcher {
     }
   }
 
-  /// Handles a modify event for the stylesheet at [path].
+  /// Handles a modify or add event for the stylesheet at [path].
+  ///
+  /// @parcel/watcher reports atomic modifications (where a tool writes a temp
+  /// file then renames it over the existing file) as adds rather than
+  /// modifications, so we treat both event types as identical and disambiguate
+  /// based on our model of the filesystem rather than the reported event.
   ///
   /// Returns whether all necessary recompilations succeeded.
-  void _handleModify(String path) {
+  void _handleModifyOrAdd(String path) {
     var url = _canonicalize(path);
 
     // It's important to access the node ahead-of-time because it's possible
@@ -143,22 +143,15 @@ final class _Watcher {
       _graph.reload(url);
       _recompileDownstream([node]);
     } else {
-      _handleAdd(path);
+      var destination = _destinationFor(path);
+      if (destination != null) _toRecompile[path] = destination;
+      var downstream = _graph.addCanonical(
+        FilesystemImporter.noLoadPath,
+        _canonicalize(path),
+        p.toUri(path),
+      );
+      _recompileDownstream(downstream);
     }
-  }
-
-  /// Handles an add event for the stylesheet at [url].
-  ///
-  /// Returns whether all necessary recompilations succeeded.
-  void _handleAdd(String path) {
-    var destination = _destinationFor(path);
-    if (destination != null) _toRecompile[path] = destination;
-    var downstream = _graph.addCanonical(
-      FilesystemImporter.noLoadPath,
-      _canonicalize(path),
-      p.toUri(path),
-    );
-    _recompileDownstream(downstream);
   }
 
   /// Handles a remove event for the stylesheet at [url].
@@ -193,9 +186,9 @@ final class _Watcher {
         var oldType = typeForPath[event.path];
         typeForPath[event.path] = switch ((oldType, event.type)) {
           (null, var newType) => newType,
-          (_, ChangeType.REMOVE) => ChangeType.REMOVE,
-          (ChangeType.ADD, _) => ChangeType.ADD,
-          (_, _) => ChangeType.MODIFY,
+          (_, .REMOVE) => .REMOVE,
+          (.ADD, _) => .ADD,
+          (_, _) => .MODIFY,
         };
       }
 
@@ -249,8 +242,9 @@ final class _Watcher {
     }
     if (p.basename(source).startsWith('_')) return null;
 
-    for (var (sourceDir, destinationDir)
-        in _sourceDirectoriesToDestinations(_options).pairs) {
+    for (var (sourceDir, destinationDir) in _sourceDirectoriesToDestinations(
+      _options,
+    ).pairs) {
       if (!p.isWithin(sourceDir, source)) continue;
 
       var destination = p.join(
@@ -259,7 +253,12 @@ final class _Watcher {
       );
 
       // Don't compile ".css" files to their own locations.
-      if (!p.equals(destination, source)) return destination;
+      if (!p.equals(destination, source) &&
+          // Ignore files already in the destination if it is inside the source.
+          !(p.isWithin(sourceDir, destinationDir) &&
+              p.isWithin(destinationDir, source))) {
+        return destination;
+      }
     }
 
     return null;
@@ -275,5 +274,4 @@ Map<String, String> _sourcesToDestinations(ExecutableOptions options) =>
 /// since stdin inputs and stdout outputs aren't allowed in `--watch` mode.
 Map<String, String> _sourceDirectoriesToDestinations(
   ExecutableOptions options,
-) =>
-    options.sourceDirectoriesToDestinations.cast<String, String>();
+) => options.sourceDirectoriesToDestinations.cast<String, String>();

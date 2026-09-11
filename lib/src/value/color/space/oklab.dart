@@ -19,23 +19,25 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class OklabColorSpace extends ColorSpace {
+final class const OklabColorSpace() extends ColorSpace {
+  @override
   bool get isBoundedInternal => false;
 
-  const OklabColorSpace()
-      : super('oklab', const [
-          LinearChannel(
-            'lightness',
-            0,
-            1,
-            conventionallyPercent: true,
-            lowerClamped: true,
-            upperClamped: true,
-          ),
-          LinearChannel('a', -0.4, 0.4),
-          LinearChannel('b', -0.4, 0.4),
-        ]);
+  this
+    : super('oklab', const [
+        LinearChannel(
+          'lightness',
+          0,
+          1,
+          conventionallyPercent: true,
+          lowerClamped: true,
+          upperClamped: true,
+        ),
+        LinearChannel('a', -0.4, 0.4),
+        LinearChannel('b', -0.4, 0.4),
+      ]);
 
+  @override
   SassColor convert(
     ColorSpace dest,
     double? lightness,
@@ -45,7 +47,7 @@ final class OklabColorSpace extends ColorSpace {
     bool missingChroma = false,
     bool missingHue = false,
   }) {
-    if (dest == ColorSpace.oklch) {
+    if (dest == .oklch) {
       return labToLch(
         dest,
         lightness,
@@ -55,6 +57,14 @@ final class OklabColorSpace extends ColorSpace {
         missingChroma: missingChroma,
         missingHue: missingHue,
       );
+    }
+
+    if (a == null && b == null) {
+      missingChroma = true;
+      missingHue = true;
+    } else if (missingChroma && missingHue) {
+      a = null;
+      b = null;
     }
 
     var missingLightness = lightness == null;

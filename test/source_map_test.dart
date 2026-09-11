@@ -668,7 +668,7 @@ void main() {
               (url) => Uri.parse("u:$url"),
               (_) => ImporterResult(
                 r"$var2: default value !default;",
-                syntax: Syntax.scss,
+                syntax: .scss,
               ),
             ),
           );
@@ -795,7 +795,7 @@ void main() {
             }
           """,
           "\uFEFF{{1}}föö{{{2}}bär:bäz}",
-          style: OutputStyle.compressed,
+          style: .compressed,
         );
       });
     });
@@ -893,7 +893,7 @@ void _expectSassSourceMap(
 
   var result = compileString(
     sassText,
-    syntax: Syntax.sass,
+    syntax: .sass,
     sourceMap: true,
     importer: importer,
     style: style,
@@ -982,7 +982,7 @@ void _expectMapMatches(
   );
 
   String actualMap() =>
-      "\nActual map:\n\n" + _mapToString(map, sourceText, targetText) + "\n";
+      "\nActual map:\n\n${_mapToString(map, sourceText, targetText)}\n";
 
   var entryIter = _entriesForMap(map).iterator;
   for (var (name, expectedTarget) in targetLocations) {
@@ -991,8 +991,8 @@ void _expectMapMatches(
     if (!entryIter.moveNext()) {
       fail(
         'Missing mapping "$name", expected '
-                '${_mapping(expectedSource, expectedTarget)}.\n' +
-            actualMap(),
+        '${_mapping(expectedSource, expectedTarget)}.\n'
+        '${actualMap()}',
       );
     }
 
@@ -1002,9 +1002,9 @@ void _expectMapMatches(
         expectedTarget.line != entry.target.line ||
         expectedTarget.column != entry.target.column) {
       fail(
-        'Mapping "$name" was ${_mapping(entry.source, entry.target)}, '
-                'expected ${_mapping(expectedSource, expectedTarget)}.\n' +
-            actualMap(),
+        'Mapping "$name" was ${_mapping(entry.source, entry.target)}, expected '
+        '${_mapping(expectedSource, expectedTarget)}.\n'
+        '${actualMap()}',
       );
     }
   }
@@ -1012,7 +1012,7 @@ void _expectMapMatches(
   expect(
     entryIter.moveNext(),
     isFalse,
-    reason: 'Expected no more mappings.\n' + actualMap(),
+    reason: 'Expected no more mappings.\n${actualMap()}',
   );
 }
 
@@ -1082,9 +1082,9 @@ String _mapToString(SingleMapping map, String sourceText, String targetText) {
     targetBuffer.writeCharCode(targetScanner.readChar());
   }
 
-  return sourceBuffer.toString() +
-      "\n\n" +
-      "v" * 50 +
-      "\n\n" +
-      targetBuffer.toString();
+  return "$sourceBuffer\n"
+      "\n"
+      "${"v" * 50}\n"
+      "\n"
+      "$targetBuffer";
 }

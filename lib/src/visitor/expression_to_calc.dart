@@ -24,12 +24,11 @@ FunctionExpression expressionToCalc(Expression expression) =>
 
 /// A visitor that replaces constructs that can't be used in a calculation with
 /// those that can.
-final class _MakeExpressionCalculationSafe with ReplaceExpressionVisitor {
-  const _MakeExpressionCalculationSafe();
-
-  Expression visitBinaryOperationExpression(BinaryOperationExpression node) => node
-              .operator ==
-          BinaryOperator.modulo
+final class const _MakeExpressionCalculationSafe()
+    with ReplaceExpressionVisitor {
+  @override
+  Expression visitBinaryOperationExpression(BinaryOperationExpression node) =>
+      node.operator == .modulo
       // `calc()` doesn't support `%` for modulo but Sass doesn't yet support the
       // `mod()` calculation function because there's no browser support, so we have
       // to work around it by wrapping the call in a Sass function.
@@ -41,22 +40,24 @@ final class _MakeExpressionCalculationSafe with ReplaceExpressionVisitor {
         )
       : super.visitBinaryOperationExpression(node);
 
+  @override
   Expression visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
-  ) =>
-      node;
+  ) => node;
 
+  @override
   Expression visitIfExpression(IfExpression node) => node;
 
+  @override
   Expression visitUnaryOperationExpression(UnaryOperationExpression node) =>
       switch (node.operator) {
         // `calc()` doesn't support unary operations.
-        UnaryOperator.plus => node.operand,
-        UnaryOperator.minus => BinaryOperationExpression(
-            BinaryOperator.times,
-            NumberExpression(-1, node.span),
-            node.operand,
-          ),
+        .plus => node.operand,
+        .minus => BinaryOperationExpression(
+          .times,
+          NumberExpression(-1, node.span),
+          node.operand,
+        ),
         _ =>
           // Other unary operations don't produce numbers, so keep them as-is to
           // give the user a more useful syntax error after serialization.

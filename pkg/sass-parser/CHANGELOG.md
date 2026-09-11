@@ -2,7 +2,54 @@
 
 * `/` is now parsed as slash-separated lists rather than division in SassScript.
 
-## 0.4.43-dev
+## 0.4.55-dev
+
+* Omit an extra newline that was being added to the end of `Rule.selector` in
+  the indented syntax.
+
+## 0.4.54
+
+* No user-visible changes.
+
+## 0.4.53
+
+* No user-visible changes.
+
+## 0.4.52
+
+* No user-visible changes.
+
+## 0.4.51
+
+* No user-visible changes.
+
+## 0.4.50
+
+* No user-visible changes.
+
+## 0.4.49
+
+* No user-visible changes.
+
+## 0.4.48
+
+## 0.4.47
+
+* No user-visible changes.
+
+## 0.4.46
+
+* No user-visible changes.
+
+## 0.4.45
+
+* No user-visible changes.
+
+## 0.4.44
+
+* No user-visible changes.
+
+## 0.4.43
 
 * No user-visible changes.
 

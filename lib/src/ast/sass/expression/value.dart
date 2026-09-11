@@ -14,16 +14,15 @@ import '../expression.dart';
 /// constructed dynamically, as for the `call()` function.
 ///
 /// {@category AST}
-final class ValueExpression extends Expression {
+final class ValueExpression(
   /// The embedded value.
-  final Value value;
-
-  final FileSpan span;
-
-  ValueExpression(this.value, this.span);
-
+  final Value value,
+  @override final FileSpan span,
+) extends Expression {
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitValueExpression(this);
 
+  @override
   String toString() => value.toString();
 }

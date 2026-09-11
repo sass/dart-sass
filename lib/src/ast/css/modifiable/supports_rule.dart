@@ -12,19 +12,19 @@ import 'node.dart';
 
 /// A modifiable version of [CssSupportsRule] for use in the evaluation step.
 @internal
-final class ModifiableCssSupportsRule extends ModifiableCssParentNode
-    implements CssSupportsRule {
-  final CssValue<String> condition;
-  final FileSpan span;
-
-  ModifiableCssSupportsRule(this.condition, this.span);
-
+final class ModifiableCssSupportsRule(
+  @override final CssValue<String> condition,
+  @override final FileSpan span,
+) extends ModifiableCssParentNode implements CssSupportsRule {
+  @override
   T accept<T>(ModifiableCssVisitor<T> visitor) =>
       visitor.visitCssSupportsRule(this);
 
+  @override
   bool equalsIgnoringChildren(ModifiableCssNode other) =>
       other is ModifiableCssSupportsRule && condition == other.condition;
 
+  @override
   ModifiableCssSupportsRule copyWithoutChildren() =>
       ModifiableCssSupportsRule(condition, span);
 }

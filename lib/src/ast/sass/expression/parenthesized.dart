@@ -10,16 +10,15 @@ import '../expression.dart';
 /// An expression wrapped in parentheses.
 ///
 /// {@category AST}
-final class ParenthesizedExpression extends Expression {
+final class ParenthesizedExpression(
   /// The internal expression.
-  final Expression expression;
-
-  final FileSpan span;
-
-  ParenthesizedExpression(this.expression, this.span);
-
+  final Expression expression,
+  @override final FileSpan span,
+) extends Expression {
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitParenthesizedExpression(this);
 
+  @override
   String toString() => "($expression)";
 }

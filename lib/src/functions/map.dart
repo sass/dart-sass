@@ -157,19 +157,14 @@ final _remove = BuiltInCallable.overloadedFunction("remove", {
 final _keys = _function(
   "keys",
   r"$map",
-  (arguments) => SassList(
-    arguments[0].assertMap("map").contents.keys,
-    ListSeparator.comma,
-  ),
+  (arguments) => SassList(arguments[0].assertMap("map").contents.keys, .comma),
 );
 
 final _values = _function(
   "values",
   r"$map",
-  (arguments) => SassList(
-    arguments[0].assertMap("map").contents.values,
-    ListSeparator.comma,
-  ),
+  (arguments) =>
+      SassList(arguments[0].assertMap("map").contents.values, .comma),
 );
 
 final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {
@@ -200,7 +195,7 @@ final _hasKey = _function("has-key", r"$map, $key, $keys...", (arguments) {
 Value _modify(
   SassMap map,
   Iterable<Value> keys,
-  Value modify(Value old), {
+  Value Function(Value old) modify, {
   bool addNesting = true,
 }) {
   var keyIterator = keys.iterator;
@@ -233,11 +228,10 @@ SassMap _deepMergeImpl(SassMap map1, SassMap map2) {
 
   var result = Map.of(map1.contents);
   for (var (key, value) in map2.contents.pairs) {
-    if ((result[key]?.tryMap(), value.tryMap())
-        case (
-          var resultMap?,
-          var valueMap?,
-        )) {
+    if ((result[key]?.tryMap(), value.tryMap()) case (
+      var resultMap?,
+      var valueMap?,
+    )) {
       var merged = _deepMergeImpl(resultMap, valueMap);
       if (identical(merged, resultMap)) continue;
       result[key] = merged;
@@ -253,6 +247,5 @@ SassMap _deepMergeImpl(SassMap map1, SassMap map2) {
 BuiltInCallable _function(
   String name,
   String arguments,
-  Value callback(List<Value> arguments),
-) =>
-    BuiltInCallable.function(name, arguments, callback, url: "sass:map");
+  Value Function(List<Value> arguments) callback,
+) => BuiltInCallable.function(name, arguments, callback, url: "sass:map");

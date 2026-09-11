@@ -32,8 +32,7 @@ final JSClass functionClass = () {
     );
   });
 
-  getJSClass(
-    SassFunction(Callable.function('f', '', (_) => sassNull)),
-  ).injectSuperclass(jsClass);
+  getJSClass(SassFunction(Callable.function('f', '', (_) => sassNull)))
+      .injectSuperclass(jsClass);
   return jsClass;
 }();

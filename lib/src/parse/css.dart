@@ -36,25 +36,25 @@ final _disallowedFunctionNames =
 
 @internal
 final class CssParser extends ScssParser {
+  @override
   bool get plainCss => true;
 
-  CssParser(super.contents, {super.url, super.parseSelectors});
+  new(super.contents, {super.url, super.parseSelectors});
 
-  CssParser.internal(super.contents, {super.url, super.parseSelectors})
-      : super.internal();
+  new internal(super.contents, {super.url, super.parseSelectors})
+    : super.internal();
 
+  @override
   bool silentComment() {
     if (inExpression) return false;
 
     var start = scanner.state;
     super.silentComment();
-    error(
-      "Silent comments aren't allowed in plain CSS.",
-      spanFrom(start),
-    );
+    error("Silent comments aren't allowed in plain CSS.", spanFrom(start));
   }
 
-  Statement atRule(Statement child(), {bool root = false}) {
+  @override
+  Statement atRule(Statement Function() child, {bool root = false}) {
     // NOTE: this logic is largely duplicated in StylesheetParser.atRule. Most changes
     // here should be mirrored there.
 
@@ -76,8 +76,7 @@ final class CssParser extends ScssParser {
       "mixin" ||
       "return" ||
       "warn" ||
-      "while" =>
-        _forbiddenAtRule(start),
+      "while" => _forbiddenAtRule(start),
       "import" => _cssImportRule(start),
       "function" => _cssFunctionRule(start, name),
       "media" => mediaRule(start),
@@ -99,32 +98,32 @@ final class CssParser extends ScssParser {
     var urlStart = scanner.state;
     var url = switch (scanner.peekChar()) {
       $u || $U => switch (dynamicUrl()) {
-          StringExpression string => string.text,
-          InterpolatedFunctionExpression(
-            :var name,
-            arguments: ArgumentList(
-              positional: [StringExpression string],
-              named: Map(isEmpty: true),
-              rest: null,
-              keywordRest: null,
-            ),
-            :var span,
-          ) =>
-            (InterpolationBuffer()
-                  ..addInterpolation(name)
-                  ..writeCharCode($lparen)
-                  ..addInterpolation(string.asInterpolation())
-                  ..writeCharCode($rparen))
-                .interpolation(span),
-          // This shouldn't be reachable.
-          var expression => error(
-              "Unsupported plain CSS import.",
-              expression.span,
-            ),
-        },
+        StringExpression string => string.text,
+        InterpolatedFunctionExpression(
+          :var name,
+          arguments: ArgumentList(
+            positional: [StringExpression string],
+            named: Map(isEmpty: true),
+            rest: null,
+            keywordRest: null,
+          ),
+          :var span,
+        ) =>
+          (InterpolationBuffer()
+                ..addInterpolation(name)
+                ..writeCharCode($lparen)
+                ..addInterpolation(string.asInterpolation())
+                ..writeCharCode($rparen))
+              .interpolation(span),
+        // This shouldn't be reachable.
+        var expression => error(
+          "Unsupported plain CSS import.",
+          expression.span,
+        ),
+      },
       _ => StringExpression(
-          interpolatedString().asInterpolation(static: true),
-        ).text,
+        interpolatedString().asInterpolation(static: true),
+      ).text,
     };
 
     _whitespace();
@@ -143,12 +142,15 @@ final class CssParser extends ScssParser {
     if (!scanner.matches('--')) {
       almostAnyValue();
       error(
-          "This at-rule isn't allowed in plain CSS.", scanner.spanFrom(start));
+        "This at-rule isn't allowed in plain CSS.",
+        scanner.spanFrom(start),
+      );
     } else {
       return unknownAtRule(start, atRuleName);
     }
   }
 
+  @override
   ParenthesizedExpression parentheses() {
     // Expressions are only allowed within calculations, but we verify this at
     // evaluation time.
@@ -160,6 +162,7 @@ final class CssParser extends ScssParser {
     return ParenthesizedExpression(expression, spanFrom(start));
   }
 
+  @override
   Expression identifierLike() {
     var start = scanner.state;
     var identifier = interpolatedIdentifier();
@@ -199,10 +202,7 @@ final class CssParser extends ScssParser {
     }
 
     if (_disallowedFunctionNames.contains(plain)) {
-      error(
-        "This function isn't allowed in plain CSS.",
-        spanFrom(start),
-      );
+      error("This function isn't allowed in plain CSS.", spanFrom(start));
     }
 
     return FunctionExpression(
@@ -212,6 +212,7 @@ final class CssParser extends ScssParser {
     );
   }
 
+  @override
   Expression namespacedExpression(String namespace, LineScannerState start) {
     var expression = super.namespacedExpression(namespace, start);
     error("Module namespaces aren't allowed in plain CSS.", expression.span);
