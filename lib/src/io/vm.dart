@@ -101,6 +101,9 @@ DateTime modificationTime(String path) {
   return stat.modified;
 }
 
+void setModificationTime(String path, DateTime time) =>
+    io.File(path).setLastModifiedSync(time);
+
 String? getEnvironmentVariable(String name) => io.Platform.environment[name];
 
 Future<Stream<WatchEvent>> watchDir(String path, {bool poll = false}) async {

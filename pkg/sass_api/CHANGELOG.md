@@ -1,4 +1,4 @@
-## 17.10.1-dev
+## 17.10.1
 
 * Omit an extra newline that was being added to the end of `StyleRule.selector`
   in the indented syntax.

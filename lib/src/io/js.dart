@@ -248,6 +248,18 @@ DateTime modificationTime(String path) {
   );
 }
 
+void setModificationTime(String path, DateTime time) {
+  if (!isNodeJs) {
+    throw UnsupportedError(
+      "setModificationTime() is only supported on Node.js",
+    );
+  }
+  return _systemErrorToFileSystemException(() {
+    var seconds = time.millisecondsSinceEpoch / 1000;
+    fs.utimesSync(path, seconds, seconds);
+  });
+}
+
 String? getEnvironmentVariable(String name) {
   var env = _process?.env;
   return env == null ? null : getProperty(env as Object, name) as String?;
