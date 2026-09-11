@@ -1254,13 +1254,19 @@ void sharedTests(
 /// A stylesheet that takes multiple seconds to compile, so that another file
 /// can be modified while a compilation that includes it is in progress.
 const _slowSource = r"""
-@use "sass:math";
-@for $i from 1 through 80 {
-  .a-#{$i} { %ph-#{$i} { color: red; } }
-  @for $j from 1 through 80 {
-    .b-#{$i}-#{$j} { @extend %ph-#{$i}; width: math.div($i * 100%, $j); }
+  @use "sass:math";
+  @for $i from 1 through 80 {
+    .a-#{$i} {
+      %ph-#{$i} {color: red}
+    }
+
+    @for $j from 1 through 80 {
+      .b-#{$i}-#{$j} {
+        @extend %ph-#{$i};
+        width: math.div($i * 100%, $j);
+      }
+    }
   }
-}
 """;
 
 /// Writes [contents] to [path] atomically.

@@ -301,9 +301,10 @@ void _tryDelete(String path) {
 
 /// Backdate [path] to [time], ignoring failures.
 ///
-/// Outputs keep the time compilation started so that sources modified during
-/// compilation compare as newer. Best effort on filesystems with coarse
-/// granularity.
+/// We use the time that a compilation started as the modification time for
+/// output files so that if a source file is modified during compilation, it
+/// will be considered newer than the output and compilation will run again
+/// (immediately for `--watch` or on the next invocation for `--update`).
 void _trySetModificationTime(String path, DateTime time) {
   try {
     setModificationTime(path, time);
