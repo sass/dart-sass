@@ -40,8 +40,11 @@ void main(List<String> args) {
     pkg.JSRequire("readline", target: .cli),
     pkg.JSRequire("fs", target: .node),
     pkg.JSRequire("module", target: .node, identifier: 'nodeModule'),
+    pkg.JSRequire("os", target: .cli),
     pkg.JSRequire("stream", target: .node),
     pkg.JSRequire("util", target: .node),
+    pkg.JSRequire("worker_threads", target: .cli),
+    pkg.JSRequire("sync-message-port", target: .cli),
   ];
   pkg.jsModuleMainLibrary.value = "lib/src/js.dart";
   pkg.npmPackageJson.fn = () =>
