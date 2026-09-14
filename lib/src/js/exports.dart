@@ -40,6 +40,7 @@ class Exports {
   external set SassColor(JSClass function);
   external set SassFunction(JSClass function);
   external set SassMixin(JSClass mixin);
+  external set SassModule(JSClass mixin);
   external set SassList(JSClass function);
   external set SassMap(JSClass function);
   external set SassNumber(JSClass function);

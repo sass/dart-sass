@@ -6,6 +6,7 @@ import '../callable.dart';
 import '../exception.dart';
 import '../value/function.dart';
 import '../value/mixin.dart';
+import '../value/module.dart';
 import 'compilation_dispatcher.dart';
 import 'embedded_sass.pb.dart';
 import 'opaque_registry.dart';
@@ -24,12 +25,13 @@ Callable hostCallable(
   CompilationDispatcher dispatcher,
   OpaqueRegistry<SassFunction> functions,
   OpaqueRegistry<SassMixin> mixins,
+  OpaqueRegistry<SassModule> modules,
   String signature, {
   int? id,
 }) {
   late Callable callable;
   callable = Callable.fromSignature(signature, (arguments) {
-    var protofier = Protofier(dispatcher, functions, mixins);
+    var protofier = Protofier(dispatcher, functions, mixins, modules);
     var request = OutboundMessage_FunctionCallRequest()
       ..arguments.addAll([
         for (var argument in arguments) protofier.protofy(argument),

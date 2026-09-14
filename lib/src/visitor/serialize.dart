@@ -1030,6 +1030,21 @@ final class _SerializeVisitor({
   }
 
   @override
+  void visitModule(SassModule module) {
+    if (!_inspect) {
+      throw SassScriptException("$module isn't a valid CSS value.");
+    }
+
+    _buffer.write("get-module(");
+    if (module.module.url.andThen(defaultNamespace) case DefaultNamespace(
+      :var namespace,
+    )) {
+      _visitQuotedString(namespace);
+    }
+    _buffer.writeCharCode($rparen);
+  }
+
+  @override
   void visitList(SassList value) {
     if (value.hasBrackets) {
       _buffer.writeCharCode($lbracket);

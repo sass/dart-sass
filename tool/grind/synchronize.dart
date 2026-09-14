@@ -259,7 +259,7 @@ class _Visitor(
         _buffer.write("void");
       }
     } else if (node.name.lexeme == "Module") {
-      _skipNode(node);
+      _skip(node.name);
       _buffer.write("Module<Callable>");
     } else if (node.typeArguments == null) {
       _skip(node.name);

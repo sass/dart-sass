@@ -13,6 +13,7 @@ import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import 'ast/sass.dart';
 import 'exception.dart';
+import 'parse/parser.dart';
 import 'parse/scss.dart';
 import 'util/character.dart';
 import 'util/iterable.dart';
@@ -496,3 +497,35 @@ StackTrace? getTrace(Object error) =>
     );
   }
 }
+
+/// Returns the default Sass namespace of the given stylesheet URL.
+DefaultNamespaceResult defaultNamespace(Uri url) {
+  var basename = url.pathSegments.isEmpty ? "" : url.pathSegments.last;
+  var dot = basename.indexOf(".");
+  var namespace = basename.substring(
+    basename.startsWith("_") ? 1 : 0,
+    dot == -1 ? basename.length : dot,
+  );
+  try {
+    return DefaultNamespace._(Parser.parseIdentifier(namespace));
+  } on SassFormatException {
+    return InvalidDefaultNamespace._(namespace);
+  }
+}
+
+/// The result of calling [defaultNamespace], either a [DefaultNamspace] or an
+/// [InvalidDefaultNamespace].
+sealed class DefaultNamespaceResult {}
+
+/// A successful result from [defaultNamespace].
+final class DefaultNamespace._(
+  /// The identifier value of the parsed namespace.
+  final String namespace,
+) extends DefaultNamespaceResult {}
+
+/// An unsuccessful result from [defaultNamespace].
+final class InvalidDefaultNamespace._(
+  /// The namespace that would have been parsed if it were a valid Sass
+  /// identifier.
+  final String namespace,
+) extends DefaultNamespaceResult {}
