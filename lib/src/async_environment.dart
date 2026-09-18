@@ -438,7 +438,7 @@ final class AsyncEnvironment {
   /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose variables named [name].
   Value? getVariable(String name, {String? namespace}) {
-    if (namespace != null) return _getModule(namespace).variables[name];
+    if (namespace != null) return getModule(namespace).variables[name];
 
     if (_lastVariableName == name) {
       return _variables[_lastVariableIndex!][name] ??
@@ -477,7 +477,7 @@ final class AsyncEnvironment {
   /// required, since some nodes need to do real work to manufacture a source
   /// span.
   AstNode? getVariableNode(String name, {String? namespace}) {
-    if (namespace != null) return _getModule(namespace).variableNodes[name];
+    if (namespace != null) return getModule(namespace).variableNodes[name];
 
     if (_lastVariableName == name) {
       return _variableNodes[_lastVariableIndex!][name] ??
@@ -526,7 +526,7 @@ final class AsyncEnvironment {
   /// if multiple global modules expose functions named [name].
   bool globalVariableExists(String name, {String? namespace}) {
     if (namespace != null) {
-      return _getModule(namespace).variables.containsKey(name);
+      return getModule(namespace).variables.containsKey(name);
     }
     if (_variables.first.containsKey(name)) return true;
     return _getVariableFromGlobalModule(name) != null;
@@ -567,7 +567,7 @@ final class AsyncEnvironment {
     bool global = false,
   }) {
     if (namespace != null) {
-      _getModule(namespace).setVariable(name, value, nodeWithSpan);
+      getModule(namespace).setVariable(name, value, nodeWithSpan);
       return;
     }
 
@@ -663,7 +663,7 @@ final class AsyncEnvironment {
   /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose functions named [name].
   AsyncCallable? getFunction(String name, {String? namespace}) {
-    if (namespace != null) return _getModule(namespace).functions[name];
+    if (namespace != null) return getModule(namespace).functions[name];
 
     if (_functionIndices[name] case var index?) {
       return _functions[index][name] ?? _getFunctionFromGlobalModule(name);
@@ -710,7 +710,7 @@ final class AsyncEnvironment {
   /// Throws a [SassScriptException] if there is no module named [namespace], or
   /// if multiple global modules expose mixins named [name].
   AsyncCallable? getMixin(String name, {String? namespace}) {
-    if (namespace != null) return _getModule(namespace).mixins[name];
+    if (namespace != null) return getModule(namespace).mixins[name];
 
     if (_mixinIndices[name] case var index?) {
       return _mixins[index][name] ?? _getMixinFromGlobalModule(name);
@@ -891,10 +891,10 @@ final class AsyncEnvironment {
 
   /// Returns the module with the given [namespace], or throws a
   /// [SassScriptException] if none exists.
-  Module _getModule(String namespace) {
+  Module getModule(String namespace) {
     if (_modules[namespace] case var module?) return module;
     throw SassScriptException(
-      'There is no module with the namespace "$namespace".',
+      'There is no module with namespace "$namespace".',
     );
   }
 

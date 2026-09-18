@@ -1,3 +1,7 @@
+## 17.11.0
+
+* No user-visible changes.
+
 ## 17.10.1
 
 * Omit an extra newline that was being added to the end of `StyleRule.selector`

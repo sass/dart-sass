@@ -50,6 +50,7 @@ void main() {
   exports.SassColor = colorClass;
   exports.SassFunction = functionClass;
   exports.SassMixin = mixinClass;
+  exports.SassModule = moduleClass;
   exports.SassList = listClass;
   exports.SassMap = mapClass;
   exports.SassNumber = numberClass;

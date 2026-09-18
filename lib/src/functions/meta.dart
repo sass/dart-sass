@@ -63,6 +63,7 @@ final _shared = UnmodifiableListView([
       SassNumber() => "number",
       SassFunction() => "function",
       SassMixin() => "mixin",
+      SassModule() => "module",
       SassCalculation() => "calculation",
       SassString() => "string",
       _ => throw "[BUG] Unknown value type ${arguments[0]}",

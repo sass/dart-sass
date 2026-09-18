@@ -1,3 +1,7 @@
+## 0.4.56
+
+* No user-visible changes.
+
 ## 0.4.55
 
 * Omit an extra newline that was being added to the end of `Rule.selector` in

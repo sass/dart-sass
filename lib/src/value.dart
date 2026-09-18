@@ -15,6 +15,7 @@ import 'value/function.dart';
 import 'value/list.dart';
 import 'value/map.dart';
 import 'value/mixin.dart';
+import 'value/module.dart';
 import 'value/number.dart';
 import 'value/string.dart';
 import 'visitor/interface/value.dart';
@@ -28,6 +29,7 @@ export 'value/function.dart';
 export 'value/list.dart';
 export 'value/map.dart';
 export 'value/mixin.dart';
+export 'value/module.dart';
 export 'value/null.dart';
 export 'value/number.dart' hide conversionFactor;
 export 'value/string.dart';
@@ -186,6 +188,13 @@ abstract class const Value() {
   /// (without the `$`). It's used for error reporting.
   SassMixin assertMixin([String? name]) =>
       throw SassScriptException("$this is not a mixin reference.", name);
+
+  /// Throws a [SassScriptException] if `this` isn't a module reference.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
+  SassModule assertModule([String? name]) =>
+      throw SassScriptException("$this is not a module reference.", name);
 
   /// Throws a [SassScriptException] if `this` isn't a map.
   ///
@@ -363,7 +372,7 @@ abstract class const Value() {
       toCssString() + other.text,
       quotes: other.hasQuotes,
     ),
-    SassCalculation() => throw SassScriptException(
+    SassCalculation() || SassModule() => throw SassScriptException(
       'Undefined operation "$this + $other".',
     ),
     _ => SassString(toCssString() + other.toCssString(), quotes: false),
@@ -373,16 +382,23 @@ abstract class const Value() {
   ///
   /// @nodoc
   @internal
-  Value minus(Value other) => other is SassCalculation
-      ? throw SassScriptException('Undefined operation "$this - $other".')
-      : SassString("${toCssString()}-${other.toCssString()}", quotes: false);
+  Value minus(Value other) => switch (other) {
+    SassCalculation() || SassModule() => throw SassScriptException(
+      'Undefined operation "$this - $other".',
+    ),
+    _ => SassString("${toCssString()}-${other.toCssString()}", quotes: false),
+  };
 
   /// The SassScript `/` operation.
   ///
   /// @nodoc
   @internal
-  Value dividedBy(Value other) =>
-      SassString("${toCssString()}/${other.toCssString()}", quotes: false);
+  Value dividedBy(Value other) => switch (other) {
+    SassModule() => throw SassScriptException(
+      'Undefined operation "$this / $other".',
+    ),
+    _ => SassString("${toCssString()}/${other.toCssString()}", quotes: false),
+  };
 
   /// The SassScript unary `+` operation.
   ///

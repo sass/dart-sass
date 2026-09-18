@@ -13,7 +13,6 @@ import '../ast/sass.dart';
 import '../ast/selector.dart';
 import '../ast/css/value.dart';
 import '../color_names.dart';
-import '../exception.dart';
 import '../interpolation_buffer.dart';
 import '../util/character.dart';
 import '../utils.dart';
@@ -1647,22 +1646,15 @@ abstract class StylesheetParser(
       return scanner.scanChar($asterisk) ? null : identifier();
     }
 
-    var basename = url.pathSegments.isEmpty ? "" : url.pathSegments.last;
-    var dot = basename.indexOf(".");
-    var namespace = basename.substring(
-      basename.startsWith("_") ? 1 : 0,
-      dot == -1 ? basename.length : dot,
-    );
-    try {
-      return Parser.parseIdentifier(namespace);
-    } on SassFormatException {
-      error(
+    return switch (defaultNamespace(url)) {
+      DefaultNamespace(:var namespace) => namespace,
+      InvalidDefaultNamespace(:var namespace) => error(
         'The default namespace "$namespace" is not a valid Sass identifier.\n'
         "\n"
         'Recommendation: add an "as" clause to define an explicit namespace.',
         spanFrom(start),
-      );
-    }
+      ),
+    };
   }
 
   /// Returns the list of configured variables from a `@use` or `@forward`

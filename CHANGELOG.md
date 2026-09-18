@@ -1,3 +1,19 @@
+## 1.105.0
+
+* Add support for first-class modules. These can be accessed using the new
+  `meta.load()` and `meta.get-module()` functions, and may be passed as the
+  `$module` argument to numerous eisting `sass:meta` functions.
+
+* Add the `meta.css()` mixin, which includes CSS from a first-class module.
+
+### JS API
+
+* Add a `SassModule` class and a corresponding `Value.assertModule()` method.
+
+### Dart API
+
+* Add a `SassModule` class and a corresponding `Value.assertModule()` method.
+
 ## 1.104.1
 
 * Fix a bug where loud comments before `@use` rules could be emitted multiple

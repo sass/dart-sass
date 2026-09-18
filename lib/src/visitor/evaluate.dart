@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: df69c482a73d1ce15448bd3cf9acd3277886d1b6
+// Checksum: 95c4f36c4b598ff4f5cc93d9ea94f389493b41d4
 //
 // ignore_for_file: unused_import
 
@@ -376,14 +376,14 @@ final class _EvaluateVisitor({
         "global-variable-exists",
         r"$name, $module: null",
         (arguments) {
-          var variable = arguments[0].assertString("name");
-          var module = arguments[1].realNull?.assertString("module");
-          return SassBoolean(
-            _environment.globalVariableExists(
-              variable.text.replaceAll("_", "-"),
-              namespace: module?.text,
-            ),
-          );
+          var name = arguments[0]
+              .assertString("name")
+              .text
+              .replaceAll("_", "-");
+          return SassBoolean(switch (_getNullableModule(arguments[1])) {
+            var module? => module.variables.containsKey(name),
+            _ => _environment.globalVariableExists(name),
+          });
         },
         url: "sass:meta",
       ),
@@ -398,28 +398,23 @@ final class _EvaluateVisitor({
       BuiltInCallable.function("function-exists", r"$name, $module: null", (
         arguments,
       ) {
-        var variable = arguments[0].assertString("name");
-        var module = arguments[1].realNull?.assertString("module");
-        return SassBoolean(
-          _environment.functionExists(
-                variable.text.replaceAll("_", "-"),
-                namespace: module?.text,
-              ) ||
-              _builtInFunctions.containsKey(variable.text),
-        );
+        var name = arguments[0].assertString("name").text.replaceAll("_", "-");
+        return SassBoolean(switch (_getNullableModule(arguments[1])) {
+          var module? => module.functions.containsKey(name),
+          _ =>
+            _environment.functionExists(name) ||
+                _builtInFunctions.containsKey(name),
+        });
       }, url: "sass:meta"),
 
       BuiltInCallable.function("mixin-exists", r"$name, $module: null", (
         arguments,
       ) {
-        var variable = arguments[0].assertString("name");
-        var module = arguments[1].realNull?.assertString("module");
-        return SassBoolean(
-          _environment.mixinExists(
-            variable.text.replaceAll("_", "-"),
-            namespace: module?.text,
-          ),
-        );
+        var name = arguments[0].assertString("name").text.replaceAll("_", "-");
+        return SassBoolean(switch (_getNullableModule(arguments[1])) {
+          var module? => module.mixins.containsKey(name),
+          _ => _environment.mixinExists(name),
+        });
       }, url: "sass:meta"),
 
       BuiltInCallable.function("content-exists", "", (arguments) {
@@ -431,50 +426,41 @@ final class _EvaluateVisitor({
         return SassBoolean(_environment.content != null);
       }, url: "sass:meta"),
 
-      BuiltInCallable.function("module-variables", r"$module", (arguments) {
-        var namespace = arguments[0].assertString("module");
-        var module = _environment.modules[namespace.text];
-        if (module == null) {
-          throw 'There is no module with namespace "${namespace.text}".';
-        }
-
-        return SassMap({
-          for (var (name, value) in module.variables.pairs)
+      BuiltInCallable.function(
+        "module-variables",
+        r"$module",
+        (arguments) => SassMap({
+          for (var (name, value) in _getModule(arguments[0]).variables.pairs)
             SassString(name): value,
-        });
-      }, url: "sass:meta"),
+        }),
+        url: "sass:meta",
+      ),
 
-      BuiltInCallable.function("module-functions", r"$module", (arguments) {
-        var namespace = arguments[0].assertString("module");
-        var module = _environment.modules[namespace.text];
-        if (module == null) {
-          throw 'There is no module with namespace "${namespace.text}".';
-        }
-
-        return SassMap({
-          for (var (name, value) in module.functions.pairs)
+      BuiltInCallable.function(
+        "module-functions",
+        r"$module",
+        (arguments) => SassMap({
+          for (var (name, value) in _getModule(arguments[0]).functions.pairs)
             SassString(name): SassFunction.withCompileContext(
               value,
               _compileContext,
             ),
-        });
-      }, url: "sass:meta"),
+        }),
+        url: "sass:meta",
+      ),
 
-      BuiltInCallable.function("module-mixins", r"$module", (arguments) {
-        var namespace = arguments[0].assertString("module");
-        var module = _environment.modules[namespace.text];
-        if (module == null) {
-          throw 'There is no module with namespace "${namespace.text}".';
-        }
-
-        return SassMap({
-          for (var (name, value) in module.mixins.pairs)
+      BuiltInCallable.function(
+        "module-mixins",
+        r"$module",
+        (arguments) => SassMap({
+          for (var (name, value) in _getModule(arguments[0]).mixins.pairs)
             SassString(name): SassMixin.withCompileContext(
               value,
               _compileContext,
             ),
-        });
-      }, url: "sass:meta"),
+        }),
+        url: "sass:meta",
+      ),
 
       BuiltInCallable.function(
         "get-function",
@@ -482,7 +468,8 @@ final class _EvaluateVisitor({
         (arguments) {
           var name = arguments[0].assertString("name");
           var css = arguments[1].isTruthy;
-          var module = arguments[2].realNull?.assertString("module");
+
+          var module = _getNullableModule(arguments[2]);
 
           if (css) {
             if (module != null) {
@@ -494,16 +481,15 @@ final class _EvaluateVisitor({
             );
           }
 
-          var callable = _addExceptionSpan(_callableNode!, () {
-            var normalizedName = name.text.replaceAll("_", "-");
-            var namespace = module?.text;
-            var local = _environment.getFunction(
-              normalizedName,
-              namespace: namespace,
-            );
-            if (local != null || namespace != null) return local;
-            return _builtInFunctions[normalizedName];
-          });
+          var normalizedName = name.text.replaceAll("_", "-");
+          var callable = module == null
+              ? _addExceptionSpan(
+                  _callableNode!,
+                  () =>
+                      _environment.getFunction(normalizedName) ??
+                      _builtInFunctions[normalizedName],
+                )
+              : module.functions[normalizedName];
           if (callable == null) throw "Function not found: $name";
 
           return SassFunction.withCompileContext(callable, _compileContext);
@@ -515,19 +501,39 @@ final class _EvaluateVisitor({
         arguments,
       ) {
         var name = arguments[0].assertString("name");
-        var module = arguments[1].realNull?.assertString("module");
 
-        var callable = _addExceptionSpan(
-          _callableNode!,
-          () => _environment.getMixin(
-            name.text.replaceAll("_", "-"),
-            namespace: module?.text,
+        var normalizedName = name.text.replaceAll("_", "-");
+        var callable = switch (_getNullableModule(arguments[1])) {
+          var module? => module.mixins[normalizedName],
+          _ => _addExceptionSpan(
+            _callableNode!,
+            () => _environment.getMixin(normalizedName),
           ),
-        );
+        };
         if (callable == null) throw "Mixin not found: $name";
 
         return SassMixin.withCompileContext(callable, _compileContext);
       }, url: "sass:meta"),
+
+      BuiltInCallable.function(
+        "get-module",
+        r"$module",
+        (arguments) => SassModule.withCompileContext(
+          _getModule(arguments[0]),
+          _compileContext,
+        ),
+        url: "sass:meta",
+      ),
+
+      BuiltInCallable.function(
+        "load",
+        r"$url, $with: null",
+        (arguments) => SassModule.withCompileContext(
+          _loadModuleForSassScript(arguments[0], arguments[1], "load"),
+          _compileContext,
+        ),
+        url: "sass:meta",
+      ),
 
       BuiltInCallable.function("call", r"$function, $args...", (arguments) {
         var function = arguments[0];
@@ -587,48 +593,26 @@ final class _EvaluateVisitor({
     ];
 
     var metaMixins = [
-      BuiltInCallable.mixin("load-css", r"$url, $with: null", (arguments) {
-        var url = Uri.parse(arguments[0].assertString("url").text);
-        var withMap = arguments[1].realNull?.assertMap("with").contents;
-
-        var callableNode = _callableNode!;
-        var configuration = const Configuration.empty();
-        if (withMap != null) {
-          var values = <String, ConfiguredValue>{};
-          var span = callableNode.span;
-          var privateDeprecation = false;
-          withMap.forEach((variable, value) {
-            var name = variable
-                .assertString("with key")
-                .text
-                .replaceAll("_", "-");
-            if (values.containsKey(name)) {
-              throw "The variable \$$name was configured twice.";
-            } else if (name.startsWith("-") && !privateDeprecation) {
-              privateDeprecation = true;
-              warnForDeprecation(
-                "Configuring private variables (such as \$$name) is "
-                "deprecated.\n"
-                "This will be an error in Dart Sass 2.0.0.",
-                .withPrivate,
-              );
-            }
-
-            values[name] = ConfiguredValue.explicit(value, span, callableNode);
-          });
-          configuration = ExplicitConfiguration(values, callableNode);
-        }
-
-        _loadModule(
-          url,
-          "load-css()",
-          callableNode,
-          (module, _) => _combineCss(module, clone: true).accept(this),
-          baseUrl: callableNode.span.sourceUrl,
-          configuration: configuration,
-          namesInErrors: true,
+      BuiltInCallable.mixin("css", r"$module", (arguments) {
+        var module = _getModule(arguments[0]);
+        _withStackFrame(
+          "css()",
+          _callableNode!,
+          () => _combineCss(module, clone: true).accept(this),
         );
-        _assertConfigurationIsEmpty(configuration, nameInError: true);
+      }, url: "sass:meta"),
+      BuiltInCallable.mixin("load-css", r"$url, $with: null", (arguments) {
+        var module = _loadModuleForSassScript(
+          arguments[0],
+          arguments[1],
+          "load-css",
+        );
+
+        _withStackFrame(
+          "load-css()",
+          _callableNode!,
+          () => _combineCss(module, clone: true).accept(this),
+        );
       }, url: "sass:meta"),
       BuiltInCallable.mixin(
         "apply",
@@ -735,6 +719,28 @@ final class _EvaluateVisitor({
         ),
       );
 
+  /// Loads the module for the given Sass value as for `meta.get-module()`.
+  Module<Callable> _getModule(Value module) =>
+      _getNullableModule(module) ??
+      (throw SassScriptException(
+        "$module is neither a string nor a module reference.",
+        "module",
+      ));
+
+  /// Loads the module for the given Sass value as for `meta.get-module()`, and
+  /// returns `null` if [module] is the Sass `null` value.
+  Module<Callable>? _getNullableModule(Value module) => switch (module) {
+    SassModule module =>
+      // ignore: unnecessary_cast
+      module.assertCompileContext(_compileContext).module as Module<Callable>,
+    SassString(:var text) => _environment.getModule(text),
+    sassNull => null,
+    _ => throw SassScriptException(
+      "$module is neither a string nor a module reference.",
+      "module",
+    ),
+  };
+
   /// Asserts that [value] is not `null` and returns it.
   ///
   /// This is used for fields that are set whenever the evaluator is evaluating
@@ -784,11 +790,11 @@ final class _EvaluateVisitor({
   ///
   /// The [stackFrame] and [nodeWithSpan] are used for the name and location of
   /// the stack frame for the duration of the [callback].
-  void _loadModule(
+  T _loadModule<T>(
     Uri url,
     String stackFrame,
     AstNode nodeWithSpan,
-    void Function(Module<Callable> module, bool firstLoad) callback, {
+    T Function(Module<Callable> module, bool firstLoad) callback, {
     Uri? baseUrl,
     Configuration? configuration,
     bool namesInErrors = false,
@@ -805,11 +811,13 @@ final class _EvaluateVisitor({
 
       // Always consider built-in stylesheets to be "already loaded", since they
       // never require additional execution to load and never produce CSS.
-      _addExceptionSpan(nodeWithSpan, () => callback(builtInModule, false));
-      return;
+      return _addExceptionSpan(
+        nodeWithSpan,
+        () => callback(builtInModule, false),
+      );
     }
 
-    _withStackFrame(stackFrame, nodeWithSpan, () {
+    return _withStackFrame(stackFrame, nodeWithSpan, () {
       var (stylesheet, :importer, :isDependency) = _loadStylesheet(
         url.toString(),
         nodeWithSpan.span,
@@ -852,12 +860,62 @@ final class _EvaluateVisitor({
         _inDependency = oldInDependency;
       }
 
-      _addExceptionSpan(
+      return _addExceptionSpan(
         nodeWithSpan,
         () => callback(module, firstLoad),
         addStackFrame: false,
       );
     });
+  }
+
+  /// Loads a module as for `meta.load()`.
+  ///
+  /// The [caller] is the name of the SassScript function calling this, used for
+  /// error reporting.
+  Module<Callable> _loadModuleForSassScript(
+    Value urlArg,
+    Value withArg,
+    String caller,
+  ) {
+    var url = Uri.parse(urlArg.assertString("url").text);
+    var withMap = withArg.realNull?.assertMap("with").contents;
+
+    var callableNode = _callableNode!;
+    var configuration = const Configuration.empty();
+    if (withMap != null) {
+      var values = <String, ConfiguredValue>{};
+      var span = callableNode.span;
+      var privateDeprecation = false;
+      withMap.forEach((variable, value) {
+        var name = variable.assertString("with key").text.replaceAll("_", "-");
+        if (values.containsKey(name)) {
+          throw "The variable \$$name was configured twice.";
+        } else if (name.startsWith("-") && !privateDeprecation) {
+          privateDeprecation = true;
+          warnForDeprecation(
+            "Configuring private variables (such as \$$name) is "
+            "deprecated.\n"
+            "This will be an error in Dart Sass 2.0.0.",
+            .withPrivate,
+          );
+        }
+
+        values[name] = ConfiguredValue.explicit(value, span, callableNode);
+      });
+      configuration = ExplicitConfiguration(values, callableNode);
+    }
+
+    var module = _loadModule(
+      url,
+      "$caller()",
+      callableNode,
+      (module, _) => module,
+      baseUrl: callableNode.span.sourceUrl,
+      configuration: configuration,
+      namesInErrors: true,
+    );
+    _assertConfigurationIsEmpty(configuration, nameInError: true);
+    return module;
   }
 
   /// Executes [stylesheet], loaded by [importer], to produce a module.
