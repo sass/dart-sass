@@ -47,7 +47,7 @@ final class SassModule extends Value {
 
   /// Asserts that this SassModule belongs to [compileContext] and returns it.
   ///
-  /// It's checked before interacting with a `SassModule` to prevent sharingx of
+  /// It's checked before interacting with a `SassModule` to prevent sharing of
   /// `SassModule`s across different compilations.
   @internal
   SassModule assertCompileContext(Object compileContext) {
