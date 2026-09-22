@@ -6,7 +6,7 @@ import 'package:js/js.dart';
 
 @JS('Array')
 class JSArray {
-  external JSArray();
+  external new();
 
   external void push(Object? element);
 }

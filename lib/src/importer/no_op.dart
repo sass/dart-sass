@@ -12,9 +12,15 @@ import '../importer.dart';
 /// those created from Dart code with plain strings.
 @internal
 final class NoOpImporter extends Importer {
+  @override
   Uri? canonicalize(Uri url) => null;
+
+  @override
   ImporterResult? load(Uri url) => null;
+
+  @override
   bool couldCanonicalize(Uri url, Uri canonicalUrl) => false;
 
+  @override
   String toString() => "(unknown)";
 }

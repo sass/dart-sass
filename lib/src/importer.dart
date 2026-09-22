@@ -31,13 +31,18 @@ abstract base class Importer extends AsyncImporter {
   /// those created from Dart code with plain strings.
   static final Importer noOp = NoOpImporter();
 
+  @override
   Uri? canonicalize(Uri url);
 
+  @override
   ImporterResult? load(Uri url);
 
+  @override
   DateTime modificationTime(Uri url) => DateTime.now();
 
+  @override
   bool couldCanonicalize(Uri url, Uri canonicalUrl) => true;
 
+  @override
   bool isNonCanonicalScheme(String scheme) => false;
 }

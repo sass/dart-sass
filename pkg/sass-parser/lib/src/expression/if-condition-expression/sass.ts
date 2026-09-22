@@ -43,9 +43,7 @@ export interface IfConditionSassObjectProps extends NodeProps {
  * @category Expression
  */
 export type IfConditionSassProps =
-  | IfConditionSassObjectProps
-  | AnyExpression
-  | ExpressionProps;
+  IfConditionSassObjectProps | AnyExpression | ExpressionProps;
 
 /**
  * A `sass()` expression in an `if()` condition.

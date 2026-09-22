@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
-import 'package:source_span/source_span.dart';
 
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
@@ -14,20 +13,23 @@ import '../selector.dart';
 /// the given name.
 ///
 /// {@category AST}
-final class ClassSelector extends SimpleSelector {
+final class ClassSelector(
   /// The class name this selects for.
-  final String name;
-
-  ClassSelector(this.name, FileSpan span) : super(span);
-
+  final String name,
+  super.span,
+) extends SimpleSelector {
+  @override
   bool operator ==(Object other) =>
       other is ClassSelector && other.name == name;
 
+  @override
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitClassSelector(this);
 
   /// @nodoc
+  @override
   @internal
   ClassSelector addSuffix(String suffix) => ClassSelector(name + suffix, span);
 
+  @override
   int get hashCode => name.hashCode;
 }

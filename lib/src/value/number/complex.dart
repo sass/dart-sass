@@ -12,34 +12,41 @@ import '../number.dart';
 ///
 /// {@category Value}
 @internal
-final class ComplexSassNumber extends SassNumber {
+final class ComplexSassNumber._(
+  super.value,
+  final List<String> _numeratorUnits,
+  final List<String> _denominatorUnits, [
+  super.asSlash,
+]) extends SassNumber {
   // We don't use public fields because they'd be overridden by the getters of
   // the same name in the JS API.
 
+  @override
   List<String> get numeratorUnits => _numeratorUnits;
-  final List<String> _numeratorUnits;
 
+  @override
   List<String> get denominatorUnits => _denominatorUnits;
-  final List<String> _denominatorUnits;
 
+  @override
   bool get hasUnits => true;
+
+  @override
   bool get hasComplexUnits => true;
 
-  ComplexSassNumber(
-    double value,
-    List<String> numeratorUnits,
-    List<String> denominatorUnits,
-  ) : this._(value, numeratorUnits, denominatorUnits);
+  new(double value, List<String> numeratorUnits, List<String> denominatorUnits)
+    : this._(value, numeratorUnits, denominatorUnits);
 
-  ComplexSassNumber._(super.value, this._numeratorUnits, this._denominatorUnits)
-      : super.protected() {
+  this : super.protected() {
     assert(numeratorUnits.length > 1 || denominatorUnits.isNotEmpty);
   }
 
+  @override
   bool hasUnit(String unit) => false;
 
+  @override
   bool compatibleWithUnit(String unit) => false;
 
+  @override
   @internal
   bool hasPossiblyCompatibleUnits(SassNumber other) {
     // This logic is well-defined, and we could implement it in principle.
@@ -49,6 +56,7 @@ final class ComplexSassNumber extends SassNumber {
     );
   }
 
+  @override
   SassNumber withValue(num value) =>
       ComplexSassNumber._(value.toDouble(), numeratorUnits, denominatorUnits);
 }

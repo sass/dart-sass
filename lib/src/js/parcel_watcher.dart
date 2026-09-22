@@ -28,13 +28,12 @@ extension type ParcelWatcher(JSObject _) implements JSObject {
   Future<ParcelWatcherSubscription> subscribe(
     String path,
     void Function(Object? error, List<ParcelWatcherEvent>) callback,
-  ) =>
-      _subscribe(
-        path,
-        (JSObject? error, JSArray<ParcelWatcherEvent> events) {
-          callback(error, events.toDart);
-        }.toJS,
-      ).toDart;
+  ) => _subscribe(
+    path,
+    (JSObject? error, JSArray<ParcelWatcherEvent> events) {
+      callback(error, events.toDart);
+    }.toJS,
+  ).toDart;
 
   @JS('getEventsSince')
   external JSPromise<JSArray<ParcelWatcherEvent>> _getEventsSince(
@@ -44,8 +43,7 @@ extension type ParcelWatcher(JSObject _) implements JSObject {
   Future<List<ParcelWatcherEvent>> getEventsSince(
     String path,
     String snapshotPath,
-  ) async =>
-      (await _getEventsSince(path, snapshotPath).toDart).toDart;
+  ) async => (await _getEventsSince(path, snapshotPath).toDart).toDart;
 
   @JS('writeSnapshot')
   external JSPromise<JSAny> _writeSnapshot(String path, String snapshotPath);

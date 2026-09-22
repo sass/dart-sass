@@ -9,35 +9,53 @@ import '../../visitor/interface/interpolated_selector.dart';
 
 /// A wrapper around a JS object that implements the [SelectorVisitor] methods
 /// for simple selectors.
-class JSSimpleSelectorVisitor implements InterpolatedSelectorVisitor<Object?> {
-  final JSSimpleSelectorVisitorObject _inner;
-
-  JSSimpleSelectorVisitor(this._inner);
-
+class JSSimpleSelectorVisitor(final JSSimpleSelectorVisitorObject _inner)
+    implements InterpolatedSelectorVisitor<Object?> {
+  @override
   Object? visitAttributeSelector(InterpolatedAttributeSelector node) =>
       _inner.visitAttributeSelector(node);
+
+  @override
   Object? visitClassSelector(InterpolatedClassSelector node) =>
       _inner.visitClassSelector(node);
+
+  @override
   Object? visitIDSelector(InterpolatedIDSelector node) =>
       _inner.visitIDSelector(node);
+
+  @override
   Object? visitParentSelector(InterpolatedParentSelector node) =>
       _inner.visitParentSelector(node);
+
+  @override
   Object? visitPlaceholderSelector(InterpolatedPlaceholderSelector node) =>
       _inner.visitPlaceholderSelector(node);
+
+  @override
   Object? visitPseudoSelector(InterpolatedPseudoSelector node) =>
       _inner.visitPseudoSelector(node);
+
+  @override
   Object? visitTypeSelector(InterpolatedTypeSelector node) =>
       _inner.visitTypeSelector(node);
+
+  @override
   Object? visitUniversalSelector(InterpolatedUniversalSelector node) =>
       _inner.visitUniversalSelector(node);
 
+  @override
   Never visitSelectorList(_) => _simpleSelectorError();
+
+  @override
   Never visitComplexSelector(_) => _simpleSelectorError();
+
+  @override
   Never visitCompoundSelector(_) => _simpleSelectorError();
 
   /// Throws an error for non-simple selectors.
   Never _simpleSelectorError() => throw UnsupportedError(
-      "SimpleSelectorVisitor only supports SimpleSelectors");
+    "SimpleSelectorVisitor only supports SimpleSelectors",
+  );
 }
 
 @JS()
@@ -47,7 +65,8 @@ class JSSimpleSelectorVisitorObject {
   external Object? visitIDSelector(InterpolatedIDSelector node);
   external Object? visitParentSelector(InterpolatedParentSelector node);
   external Object? visitPlaceholderSelector(
-      InterpolatedPlaceholderSelector node);
+    InterpolatedPlaceholderSelector node,
+  );
   external Object? visitPseudoSelector(InterpolatedPseudoSelector node);
   external Object? visitTypeSelector(InterpolatedTypeSelector node);
   external Object? visitUniversalSelector(InterpolatedUniversalSelector node);

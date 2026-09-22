@@ -21,16 +21,18 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class LmsColorSpace extends ColorSpace {
+final class const LmsColorSpace() extends ColorSpace {
+  @override
   bool get isBoundedInternal => false;
 
-  const LmsColorSpace()
-      : super('lms', const [
-          LinearChannel('long', 0, 1),
-          LinearChannel('medium', 0, 1),
-          LinearChannel('short', 0, 1),
-        ]);
+  this
+    : super('lms', const [
+        LinearChannel('long', 0, 1),
+        LinearChannel('medium', 0, 1),
+        LinearChannel('short', 0, 1),
+      ]);
 
+  @override
   SassColor convert(
     ColorSpace dest,
     double? long,
@@ -43,13 +45,27 @@ final class LmsColorSpace extends ColorSpace {
     bool missingA = false,
     bool missingB = false,
   }) {
+    if (missingA && missingB) {
+      missingChroma = true;
+      missingHue = true;
+    } else if (missingChroma && missingHue) {
+      missingA = true;
+      missingB = true;
+    }
+
+    if ((missingLightness && missingChroma && missingHue) ||
+        (long == null && medium == null && short == null)) {
+      return SassColor.forSpaceInternal(dest, null, null, null, alpha);
+    }
+
     switch (dest) {
-      case ColorSpace.oklab:
+      case .oklab:
         // Algorithm from https://drafts.csswg.org/css-color-4/#color-conversion-code
         var longScaled = _cubeRootPreservingSign(long ?? 0);
         var mediumScaled = _cubeRootPreservingSign(medium ?? 0);
         var shortScaled = _cubeRootPreservingSign(short ?? 0);
-        var lightness = lmsToOklab[0] * longScaled +
+        var lightness =
+            lmsToOklab[0] * longScaled +
             lmsToOklab[1] * mediumScaled +
             lmsToOklab[2] * shortScaled;
 
@@ -58,17 +74,17 @@ final class LmsColorSpace extends ColorSpace {
           missingA
               ? null
               : lmsToOklab[3] * longScaled +
-                  lmsToOklab[4] * mediumScaled +
-                  lmsToOklab[5] * shortScaled,
+                    lmsToOklab[4] * mediumScaled +
+                    lmsToOklab[5] * shortScaled,
           missingB
               ? null
               : lmsToOklab[6] * longScaled +
-                  lmsToOklab[7] * mediumScaled +
-                  lmsToOklab[8] * shortScaled,
+                    lmsToOklab[7] * mediumScaled +
+                    lmsToOklab[8] * shortScaled,
           alpha,
         );
 
-      case ColorSpace.oklch:
+      case .oklch:
         // This is equivalent to converting to OKLab and then to OKLCH, but we
         // do it inline to avoid extra list allocations since we expect
         // conversions to and from OKLCH to be very common.
@@ -80,8 +96,8 @@ final class LmsColorSpace extends ColorSpace {
           missingLightness
               ? null
               : lmsToOklab[0] * longScaled +
-                  lmsToOklab[1] * mediumScaled +
-                  lmsToOklab[2] * shortScaled,
+                    lmsToOklab[1] * mediumScaled +
+                    lmsToOklab[2] * shortScaled,
           lmsToOklab[3] * longScaled +
               lmsToOklab[4] * mediumScaled +
               lmsToOklab[5] * shortScaled,
@@ -114,26 +130,24 @@ final class LmsColorSpace extends ColorSpace {
   double _cubeRootPreservingSign(double number) =>
       math.pow(number.abs(), 1 / 3) * number.sign;
 
+  @override
   @protected
   double toLinear(double channel) => channel;
 
+  @override
   @protected
   double fromLinear(double channel) => channel;
 
+  @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
-        ColorSpace.srgbLinear ||
-        ColorSpace.srgb ||
-        ColorSpace.rgb =>
-          lmsToLinearSrgb,
-        ColorSpace.a98Rgb => lmsToLinearA98Rgb,
-        ColorSpace.prophotoRgb => lmsToLinearProphotoRgb,
-        ColorSpace.displayP3 ||
-        ColorSpace.displayP3Linear =>
-          lmsToLinearDisplayP3,
-        ColorSpace.rec2020 => lmsToLinearRec2020,
-        ColorSpace.xyzD65 => lmsToXyzD65,
-        ColorSpace.xyzD50 => lmsToXyzD50,
-        _ => super.transformationMatrix(dest),
-      };
+    .srgbLinear || .srgb || .rgb => lmsToLinearSrgb,
+    .a98Rgb => lmsToLinearA98Rgb,
+    .prophotoRgb => lmsToLinearProphotoRgb,
+    .displayP3 || .displayP3Linear => lmsToLinearDisplayP3,
+    .rec2020 => lmsToLinearRec2020,
+    .xyzD65 => lmsToXyzD65,
+    .xyzD50 => lmsToXyzD50,
+    _ => super.transformationMatrix(dest),
+  };
 }

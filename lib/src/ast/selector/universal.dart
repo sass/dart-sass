@@ -11,23 +11,26 @@ import '../selector.dart';
 /// Matches any element in the given namespace.
 ///
 /// {@category AST}
-final class UniversalSelector extends SimpleSelector {
+final class UniversalSelector(
+  super.span, {
+
   /// The selector namespace.
   ///
   /// If this is `null`, this matches all elements in the default namespace. If
   /// it's the empty string, this matches all elements that aren't in any
   /// namespace. If it's `*`, this matches all elements in any namespace.
   /// Otherwise, it matches all elements in the given namespace.
-  final String? namespace;
-
+  final String? namespace,
+}) extends SimpleSelector {
+  @override
   int get specificity => 0;
 
-  UniversalSelector(super.span, {this.namespace});
-
+  @override
   T accept<T>(SelectorVisitor<T> visitor) =>
       visitor.visitUniversalSelector(this);
 
   /// @nodoc
+  @override
   @internal
   List<SimpleSelector>? unify(List<SimpleSelector> compound) {
     switch (compound) {
@@ -49,6 +52,7 @@ final class UniversalSelector extends SimpleSelector {
     }
   }
 
+  @override
   bool isSuperselector(SimpleSelector other) {
     if (namespace == '*') return true;
     if (other is TypeSelector) return namespace == other.name.namespace;
@@ -56,8 +60,10 @@ final class UniversalSelector extends SimpleSelector {
     return namespace == null || super.isSuperselector(other);
   }
 
+  @override
   bool operator ==(Object other) =>
       other is UniversalSelector && other.namespace == namespace;
 
+  @override
   int get hashCode => namespace.hashCode;
 }

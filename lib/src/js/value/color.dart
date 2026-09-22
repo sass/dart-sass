@@ -20,130 +20,45 @@ final JSClass colorClass = () {
     _ConstructionOptions options,
   ) {
     var constructionSpace = _constructionSpace(options);
-    switch (constructionSpace) {
-      case ColorSpace.rgb:
-        return SassColor.rgb(
-          options.red,
-          options.green,
-          options.blue,
-          _handleUndefinedAlpha(options.alpha),
-        );
-
-      case ColorSpace.hsl:
-        return SassColor.hsl(
-          options.hue,
-          options.saturation,
-          options.lightness,
-          _handleUndefinedAlpha(options.alpha),
-        );
-
-      case ColorSpace.hwb:
-        return SassColor.hwb(
-          options.hue,
-          options.whiteness,
-          options.blackness,
-          _handleUndefinedAlpha(options.alpha),
-        );
-
-      case ColorSpace.lab:
-        return SassColor.lab(
-          options.lightness,
-          options.a,
-          options.b,
-          _handleUndefinedAlpha(options.alpha),
-        );
-      case ColorSpace.oklab:
-        return SassColor.oklab(
-          options.lightness,
-          options.a,
-          options.b,
-          _handleUndefinedAlpha(options.alpha),
-        );
-
-      case ColorSpace.lch:
-        return SassColor.lch(
-          options.lightness,
-          options.chroma,
-          options.hue,
-          _handleUndefinedAlpha(options.alpha),
-        );
-      case ColorSpace.oklch:
-        return SassColor.oklch(
-          options.lightness,
-          options.chroma,
-          options.hue,
-          _handleUndefinedAlpha(options.alpha),
-        );
-
-      case ColorSpace.srgb:
-        return SassColor.srgb(
-          options.red,
-          options.green,
-          options.blue,
-          _handleUndefinedAlpha(options.alpha),
-        );
-      case ColorSpace.srgbLinear:
-        return SassColor.srgbLinear(
-          options.red,
-          options.green,
-          options.blue,
-          _handleUndefinedAlpha(options.alpha),
-        );
-      case ColorSpace.displayP3:
-        return SassColor.displayP3(
-          options.red,
-          options.green,
-          options.blue,
-          _handleUndefinedAlpha(options.alpha),
-        );
-      case ColorSpace.displayP3Linear:
-        return SassColor.displayP3Linear(
-          options.red,
-          options.green,
-          options.blue,
-          _handleUndefinedAlpha(options.alpha),
-        );
-      case ColorSpace.a98Rgb:
-        return SassColor.a98Rgb(
-          options.red,
-          options.green,
-          options.blue,
-          _handleUndefinedAlpha(options.alpha),
-        );
-      case ColorSpace.prophotoRgb:
-        return SassColor.prophotoRgb(
-          options.red,
-          options.green,
-          options.blue,
-          _handleUndefinedAlpha(options.alpha),
-        );
-      case ColorSpace.rec2020:
-        return SassColor.rec2020(
-          options.red,
-          options.green,
-          options.blue,
-          _handleUndefinedAlpha(options.alpha),
-        );
+    var alpha = _handleUndefinedAlpha(options.alpha);
+    SassColor color = switch (constructionSpace) {
+      .rgb => .rgb(options.red, options.green, options.blue, alpha),
+      .hsl => .hsl(options.hue, options.saturation, options.lightness, alpha),
+      .hwb => .hwb(options.hue, options.whiteness, options.blackness, alpha),
+      .lab => .lab(options.lightness, options.a, options.b, alpha),
+      .oklab => .oklab(options.lightness, options.a, options.b, alpha),
+      .lch => .lch(options.lightness, options.chroma, options.hue, alpha),
+      .oklch => .oklch(options.lightness, options.chroma, options.hue, alpha),
+      .srgb => .srgb(options.red, options.green, options.blue, alpha),
+      .srgbLinear => .srgbLinear(
+        options.red,
+        options.green,
+        options.blue,
+        alpha,
+      ),
+      .displayP3 => .displayP3(options.red, options.green, options.blue, alpha),
+      .displayP3Linear => .displayP3Linear(
+        options.red,
+        options.green,
+        options.blue,
+        alpha,
+      ),
+      .a98Rgb => .a98Rgb(options.red, options.green, options.blue, alpha),
+      .prophotoRgb => .prophotoRgb(
+        options.red,
+        options.green,
+        options.blue,
+        alpha,
+      ),
+      .rec2020 => .rec2020(options.red, options.green, options.blue, alpha),
 
       // `xyz` name is mapped to `xyzD65` space.
-      case ColorSpace.xyzD50:
-        return SassColor.xyzD50(
-          options.x,
-          options.y,
-          options.z,
-          _handleUndefinedAlpha(options.alpha),
-        );
-      case ColorSpace.xyzD65:
-        return SassColor.xyzD65(
-          options.x,
-          options.y,
-          options.z,
-          _handleUndefinedAlpha(options.alpha),
-        );
+      .xyzD50 => .xyzD50(options.x, options.y, options.z, alpha),
+      .xyzD65 => .xyzD65(options.x, options.y, options.z, alpha),
 
-      default:
-        throw "Unreachable";
-    }
+      _ => throw "Unreachable",
+    };
+    return color;
   });
 
   jsClass.defineMethods({
@@ -163,9 +78,11 @@ final JSClass colorClass = () {
         _toSpace(self, options?.space).channel(channel),
     'isChannelMissing': (SassColor self, String channel) =>
         self.isChannelMissing(channel),
-    'isChannelPowerless': (SassColor self, String channel,
-            [_ChannelOptions? options]) =>
-        _toSpace(self, options?.space).isChannelPowerless(channel),
+    'isChannelPowerless': (
+      SassColor self,
+      String channel, [
+      _ChannelOptions? options,
+    ]) => _toSpace(self, options?.space).isChannelPowerless(channel),
     'change': (SassColor self, _ConstructionOptions options) {
       var space = options.space.andThen(ColorSpace.fromName) ?? self.space;
 
@@ -185,7 +102,7 @@ final JSClass colorClass = () {
       }
 
       switch (space) {
-        case ColorSpace.hsl:
+        case .hsl:
           changedColor = SassColor.hsl(
             changedValue('hue'),
             changedValue('saturation'),
@@ -194,7 +111,7 @@ final JSClass colorClass = () {
           );
           break;
 
-        case ColorSpace.hwb:
+        case .hwb:
           changedColor = SassColor.hwb(
             changedValue('hue'),
             changedValue('whiteness'),
@@ -203,7 +120,7 @@ final JSClass colorClass = () {
           );
           break;
 
-        case ColorSpace.rgb:
+        case .rgb:
           changedColor = SassColor.rgb(
             changedValue('red'),
             changedValue('green'),
@@ -212,7 +129,7 @@ final JSClass colorClass = () {
           );
           break;
 
-        case ColorSpace.lab:
+        case .lab:
           changedColor = SassColor.lab(
             changedValue('lightness'),
             changedValue('a'),
@@ -221,7 +138,7 @@ final JSClass colorClass = () {
           );
           break;
 
-        case ColorSpace.oklab:
+        case .oklab:
           changedColor = SassColor.oklab(
             changedValue('lightness'),
             changedValue('a'),
@@ -230,7 +147,7 @@ final JSClass colorClass = () {
           );
           break;
 
-        case ColorSpace.lch:
+        case .lch:
           changedColor = SassColor.lch(
             changedValue('lightness'),
             changedValue('chroma'),
@@ -238,7 +155,7 @@ final JSClass colorClass = () {
             changedValue('alpha'),
           );
           break;
-        case ColorSpace.oklch:
+        case .oklch:
           changedColor = SassColor.oklch(
             changedValue('lightness'),
             changedValue('chroma'),
@@ -247,7 +164,7 @@ final JSClass colorClass = () {
           );
           break;
 
-        case ColorSpace.a98Rgb:
+        case .a98Rgb:
           changedColor = SassColor.a98Rgb(
             changedValue('red'),
             changedValue('green'),
@@ -255,7 +172,7 @@ final JSClass colorClass = () {
             changedValue('alpha'),
           );
           break;
-        case ColorSpace.displayP3:
+        case .displayP3:
           changedColor = SassColor.displayP3(
             changedValue('red'),
             changedValue('green'),
@@ -263,7 +180,7 @@ final JSClass colorClass = () {
             changedValue('alpha'),
           );
           break;
-        case ColorSpace.displayP3Linear:
+        case .displayP3Linear:
           changedColor = SassColor.displayP3Linear(
             changedValue('red'),
             changedValue('green'),
@@ -271,7 +188,7 @@ final JSClass colorClass = () {
             changedValue('alpha'),
           );
           break;
-        case ColorSpace.prophotoRgb:
+        case .prophotoRgb:
           changedColor = SassColor.prophotoRgb(
             changedValue('red'),
             changedValue('green'),
@@ -279,7 +196,7 @@ final JSClass colorClass = () {
             changedValue('alpha'),
           );
           break;
-        case ColorSpace.rec2020:
+        case .rec2020:
           changedColor = SassColor.rec2020(
             changedValue('red'),
             changedValue('green'),
@@ -287,7 +204,7 @@ final JSClass colorClass = () {
             changedValue('alpha'),
           );
           break;
-        case ColorSpace.srgb:
+        case .srgb:
           changedColor = SassColor.srgb(
             changedValue('red'),
             changedValue('green'),
@@ -295,7 +212,7 @@ final JSClass colorClass = () {
             changedValue('alpha'),
           );
           break;
-        case ColorSpace.srgbLinear:
+        case .srgbLinear:
           changedColor = SassColor.srgbLinear(
             changedValue('red'),
             changedValue('green'),
@@ -304,7 +221,7 @@ final JSClass colorClass = () {
           );
           break;
 
-        case ColorSpace.xyzD50:
+        case .xyzD50:
           changedColor = SassColor.forSpaceInternal(
             space,
             changedValue('x'),
@@ -313,7 +230,7 @@ final JSClass colorClass = () {
             changedValue('alpha'),
           );
           break;
-        case ColorSpace.xyzD65:
+        case .xyzD65:
           changedColor = SassColor.forSpaceInternal(
             space,
             changedValue('x'),
@@ -329,31 +246,25 @@ final JSClass colorClass = () {
 
       return changedColor.toSpace(self.space);
     },
-    'interpolate': (
-      SassColor self,
-      SassColor color2, [
-      _InterpolationOptions? options,
-    ]) {
-      InterpolationMethod interpolationMethod;
+    'interpolate':
+        (SassColor self, SassColor color2, [_InterpolationOptions? options]) {
+          InterpolationMethod interpolationMethod;
 
-      if (options?.method case var method?) {
-        var hue = HueInterpolationMethod.values.byName(method);
-        interpolationMethod = InterpolationMethod(self.space, hue);
-      } else if (!self.space.isPolar) {
-        interpolationMethod = InterpolationMethod(self.space);
-      } else {
-        interpolationMethod = InterpolationMethod(
-          self.space,
-          HueInterpolationMethod.shorter,
-        );
-      }
+          if (options?.method case var method?) {
+            var hue = HueInterpolationMethod.values.byName(method);
+            interpolationMethod = InterpolationMethod(self.space, hue);
+          } else if (!self.space.isPolar) {
+            interpolationMethod = InterpolationMethod(self.space);
+          } else {
+            interpolationMethod = InterpolationMethod(self.space, .shorter);
+          }
 
-      return self.interpolate(
-        color2,
-        interpolationMethod,
-        weight: options?.weight,
-      );
-    },
+          return self.interpolate(
+            color2,
+            interpolationMethod,
+            weight: options?.weight,
+          );
+        },
   });
 
   jsClass.defineGetters({
@@ -383,15 +294,15 @@ double? _changeComponentValue(
   _ConstructionOptions changes,
 ) =>
     hasProperty(changes, channel) && !isUndefined(getProperty(changes, channel))
-        ? getProperty(changes, channel)
-        : initial.channel(channel);
+    ? getProperty(changes, channel)
+    : initial.channel(channel);
 
 /// Determines the construction space based on the provided options.
 ColorSpace _constructionSpace(_ConstructionOptions options) {
   if (options.space != null) return ColorSpace.fromName(options.space!);
-  if (options.red != null) return ColorSpace.rgb;
-  if (options.saturation != null) return ColorSpace.hsl;
-  if (options.whiteness != null) return ColorSpace.hwb;
+  if (options.red != null) return .rgb;
+  if (options.saturation != null) return .hsl;
+  if (options.whiteness != null) return .hwb;
   throw "No color space found";
 }
 

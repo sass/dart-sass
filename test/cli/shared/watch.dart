@@ -2,6 +2,8 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:io';
+
 import 'package:path/path.dart' as p;
 import 'package:sass/src/io.dart';
 import 'package:test/test.dart';
@@ -11,7 +13,9 @@ import 'package:test_process/test_process.dart';
 import '../../utils.dart';
 
 /// Defines test that are shared between the Dart and Node.js CLI test suites.
-void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
+void sharedTests(
+  Future<TestProcess> Function(Iterable<String> arguments) runSass,
+) {
   test("--poll may not be passed without --watch", () async {
     var sass = await runSass(["--poll", "-"]);
     await expectLater(
@@ -27,11 +31,11 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
   for (var poll in [true, false]) {
     Future<TestProcess> watch(Iterable<String> arguments) => runSass([
-          "--no-source-map",
-          "--watch",
-          ...arguments,
-          if (poll) "--poll",
-        ]);
+      "--no-source-map",
+      "--watch",
+      ...arguments,
+      if (poll) "--poll",
+    ]);
 
     /// Returns a future that completes after a delay if [poll] is `true`.
     ///
@@ -179,6 +183,31 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
               .validate();
         });
 
+        test("when it's modified atomically", () async {
+          await d.file("out.css", "x {y: z}").create();
+          await tick;
+          await d.file("test.scss", "a {b: c}").create();
+
+          var sass = await watch(["test.scss:out.css"]);
+          await expectLater(
+            sass.stdout,
+            emits(endsWith('Compiled test.scss to out.css.')),
+          );
+          await expectLater(sass.stdout, _watchingForChanges);
+          await tickIfPoll();
+
+          _writeAtomic("test.scss", "r {o: g}");
+          await expectLater(
+            sass.stdout,
+            emits(endsWith('Compiled test.scss to out.css.')),
+          );
+          await sass.kill();
+
+          await d
+              .file("out.css", equalsIgnoringWhitespace("r { o: g; }"))
+              .validate();
+        });
+
         test("when it's modified when watched from a directory", () async {
           await d.dir("dir", [d.file("test.scss", "a {b: c}")]).create();
 
@@ -202,8 +231,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           ]).validate();
         });
 
-        test(
-            "when it's modified twice when watched from a directory that is "
+        test("when it's modified twice when watched from a directory that is "
             "also a destination", () async {
           await d.file("test.scss", "a {b: c}").create();
 
@@ -282,6 +310,30 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
             await tickIfPoll();
 
             await d.file("_other.scss", "x {y: z}").create();
+            await expectLater(
+              sass.stdout,
+              emits(endsWith('Compiled test.scss to out.css.')),
+            );
+            await sass.kill();
+
+            await d
+                .file("out.css", equalsIgnoringWhitespace("x { y: z; }"))
+                .validate();
+          });
+
+          test("through @use atomically", () async {
+            await d.file("_other.scss", "a {b: c}").create();
+            await d.file("test.scss", "@use 'other'").create();
+
+            var sass = await watch(["test.scss:out.css"]);
+            await expectLater(
+              sass.stdout,
+              emits(endsWith('Compiled test.scss to out.css.')),
+            );
+            await expectLater(sass.stdout, _watchingForChanges);
+            await tickIfPoll();
+
+            _writeAtomic("_other.scss", "x {y: z}");
             await expectLater(
               sass.stdout,
               emits(endsWith('Compiled test.scss to out.css.')),
@@ -937,6 +989,60 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         );
       });
 
+      group('gracefully handles dependency loops', () {
+        test('present during initial compilation', () async {
+          await d.file("test.scss", "@use 'other'").create();
+          await d.file("_other.scss", "@use 'test'").create();
+
+          var sass = await watch(['test.scss:out.css']);
+          await expectLater(
+            sass.stderr,
+            emits('Error: Module loop: this module is already being loaded.'),
+          );
+          await expectLater(sass.stdout, _watchingForChanges);
+          await sass.kill();
+        });
+
+        test('added after initial compilation', () async {
+          await d.file("test.scss", "@use 'other'").create();
+          await d.file("_other.scss", "a {b: c}").create();
+
+          var sass = await watch(['test.scss:out.css']);
+          await expectLater(
+            sass.stdout,
+            emits(endsWith('Compiled test.scss to out.css.')),
+          );
+          await tick;
+
+          await d.file("_other.scss", "@use 'test'").create();
+          await expectLater(
+            sass.stderr,
+            emits('Error: Module loop: this module is already being loaded.'),
+          );
+          await sass.kill();
+        });
+
+        test('removed after initial compilation', () async {
+          await d.file("test.scss", "@use 'other'").create();
+          await d.file("_other.scss", "@use 'test'").create();
+
+          var sass = await watch(['test.scss:out.css']);
+          await expectLater(
+            sass.stderr,
+            emits('Error: Module loop: this module is already being loaded.'),
+          );
+          await expectLater(sass.stdout, _watchingForChanges);
+          await tick;
+
+          await d.file("_other.scss", "a {b: c}").create();
+          await expectLater(
+            sass.stdout,
+            emits(endsWith('Compiled test.scss to out.css.')),
+          );
+          await sass.kill();
+        });
+      });
+
       group("deletes the CSS", () {
         test("when a file is deleted", () async {
           await d.file("test.scss", "a {b: c}").create();
@@ -990,11 +1096,9 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
 
           d.file("test.scss").io.deleteSync();
           await expectLater(
-              sass.stdout,
-              emitsInOrder([
-                'Deleted out.css.',
-                'Deleted out.css.map.',
-              ]));
+            sass.stdout,
+            emitsInOrder(['Deleted out.css.', 'Deleted out.css.map.']),
+          );
           await sass.kill();
 
           await d.nothing("out.css").validate();
@@ -1063,6 +1167,35 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
         await d.file("dir/test.css", "a {b: c}").validate();
       });
 
+      // Regression test for #2846.
+      test("should ignore files in the output directory if it is inside the "
+          "source directory", () async {
+        await d.dir("dir", [d.dir("out")]).create();
+
+        var sass = await watch(["dir:dir/out"]);
+        await expectLater(sass.stdout, _watchingForChanges);
+        await tickIfPoll();
+
+        await d.dir("dir/out", [
+          d.file("test.css", "a {b: c}"),
+          d.file("test2.scss", "p {q: r}"),
+        ]).create();
+        await tick;
+
+        // Create a new file that *will* be compiled so that if the first change
+        // did incorrectly trigger a compilation, it would emit a message
+        // before the message for this change.
+        await d.file("dir/test3.scss", "x {y: z}").create();
+        await expectLater(
+          sass.stdout,
+          emits(endsWith(_compiled('dir/test3.scss', 'dir/out/test3.css'))),
+        );
+
+        await sass.kill();
+
+        await d.nothing("dir/out/out").validate();
+      });
+
       group("doesn't allow", () {
         test("--stdin", () async {
           var sass = await watch(["--stdin", "test.scss"]);
@@ -1081,6 +1214,17 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       });
     });
   }
+}
+
+/// Writes [contents] to [path] atomically.
+///
+/// This matches the "atomic write" pattern used by various tools in which a
+/// temp file is written first then moved to the desired path.
+void _writeAtomic(String path, String contents) {
+  var destination = p.join(d.sandbox, path);
+  File('$destination.tmp')
+    ..writeAsStringSync(contents)
+    ..renameSync(destination);
 }
 
 /// Returns the message that Sass prints indicating that [from] was compiled to

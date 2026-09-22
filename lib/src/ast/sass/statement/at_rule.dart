@@ -12,20 +12,21 @@ import 'parent.dart';
 /// An unknown at-rule.
 ///
 /// {@category AST}
-final class AtRule extends ParentStatement {
+final class AtRule(
   /// The name of this rule.
-  final Interpolation name;
+  final Interpolation name,
+  @override final FileSpan span, {
 
   /// The value of this rule.
-  final Interpolation? value;
+  final Interpolation? value,
+  Iterable<Statement>? children,
+}) extends ParentStatement {
+  this : super(children == null ? null : List.unmodifiableOf(children));
 
-  final FileSpan span;
-
-  AtRule(this.name, this.span, {this.value, Iterable<Statement>? children})
-      : super(children == null ? null : List.unmodifiable(children));
-
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitAtRule(this);
 
+  @override
   String toString() {
     var buffer = StringBuffer("@$name");
     if (value != null) buffer.write(" $value");

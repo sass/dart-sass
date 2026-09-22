@@ -119,9 +119,9 @@ void main() {
         File("pubspec.yaml").readAsStringSync(),
         sourceUrl: Uri.parse("pubspec.yaml"),
       );
-      packageJson =
-          json.decode(File("pkg/sass-parser/package.json").readAsStringSync())
-              as Map<String, Object?>;
+      packageJson = json.decode(
+        File("pkg/sass-parser/package.json").readAsStringSync(),
+      ) as Map<String, Object?>;
     });
 
     test(
@@ -159,11 +159,11 @@ Version _changelogVersion(String package) {
 /// Returns a [Matcher] that matches any valid variant of the CHANGELOG version
 /// [version] that the package itself can have.
 Matcher matchesChangelogVersion(Version version) => anyOf(
-      equals(version.toString()),
-      version.isPreRelease
-          ? equals("${version.nextPatch}-dev")
-          : equals("$version-dev"),
-    );
+  equals(version.toString()),
+  version.isPreRelease
+      ? equals("${version.nextPatch}-dev")
+      : equals("$version-dev"),
+);
 
 /// Verifies that [pkgVersion] loks like it was incremented when the version of
 /// the main Sass version was as well.
@@ -178,7 +178,8 @@ void _checkVersionIncrementsAlong(
   expect(
     _isDevVersion(pkgVersion),
     isFalse,
-    reason: "sass $sassVersion isn't a dev version but $pkgName $pkgVersion "
+    reason:
+        "sass $sassVersion isn't a dev version but $pkgName $pkgVersion "
         "is",
   );
 
@@ -186,7 +187,8 @@ void _checkVersionIncrementsAlong(
     expect(
       pkgVersion.isPreRelease,
       isTrue,
-      reason: "sass $sassVersion is a pre-release version but $pkgName "
+      reason:
+          "sass $sassVersion is a pre-release version but $pkgName "
           "$pkgVersion isn't",
     );
   }
@@ -211,14 +213,16 @@ void _checkVersionIncrementsAlong(
     expect(
       pkgPatch,
       equals(0),
-      reason: "sass minor version was incremented, $pkgName must increment "
+      reason:
+          "sass minor version was incremented, $pkgName must increment "
           "at least its minor version",
     );
   } else {
     expect(
       pkgMinor,
       equals(0),
-      reason: "sass major version was incremented, $pkgName must increment "
+      reason:
+          "sass major version was incremented, $pkgName must increment "
           "at its major version as well",
     );
   }

@@ -68,13 +68,13 @@ void main() {
       expect(
         SassCalculation.calc(
           SassCalculation.operate(
-            CalculationOperator.plus,
+            .plus,
             SassCalculation.operate(
-              CalculationOperator.minus,
+              .minus,
               SassCalculation.operate(
-                CalculationOperator.times,
+                .times,
                 SassCalculation.operate(
-                  CalculationOperator.dividedBy,
+                  .dividedBy,
                   SassNumber(5),
                   SassNumber(2),
                 ),
@@ -90,9 +90,8 @@ void main() {
     });
 
     test('interpolation', () {
-      var result = SassCalculation.calc(
-        CalculationInterpolation('1 + 2'),
-      ).assertCalculation();
+      var result = SassCalculation.calc(CalculationInterpolation('1 + 2'))
+          .assertCalculation();
       expect(result.name, equals('calc'));
       expect(result.arguments[0], equals(SassString('(1 + 2)')));
     });

@@ -7,25 +7,26 @@
 /// [qualified name]: https://www.w3.org/TR/css3-namespace/#css-qnames
 ///
 /// {@category AST}
-final class QualifiedName {
+final class QualifiedName(
   /// The identifier name.
-  final String name;
+  final String name, {
 
   /// The namespace name.
   ///
   /// If this is `null`, [name] belongs to the default namespace. If it's the
   /// empty string, [name] belongs to no namespace. If it's `*`, [name] belongs
   /// to any namespace. Otherwise, [name] belongs to the given namespace.
-  final String? namespace;
-
-  QualifiedName(this.name, {this.namespace});
-
+  final String? namespace,
+}) {
+  @override
   bool operator ==(Object other) =>
       other is QualifiedName &&
       other.name == name &&
       other.namespace == namespace;
 
+  @override
   int get hashCode => name.hashCode ^ namespace.hashCode;
 
+  @override
   String toString() => namespace == null ? name : "$namespace|$name";
 }

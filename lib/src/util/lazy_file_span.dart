@@ -8,10 +8,10 @@ import 'package:source_span/source_span.dart';
 /// A wrapper for [FileSpan] that allows an expensive creation process to be
 /// deferred until the span is actually needed.
 @internal
-final class LazyFileSpan implements FileSpan {
+final class LazyFileSpan(
   /// The function that creates the underlying span.
-  final FileSpan Function() _builder;
-
+  final FileSpan Function() _builder,
+) implements FileSpan {
   /// The underlying span this wraps, which is created the first time this
   /// getter is referenced.
   FileSpan get span => _span ??= _builder();
@@ -19,7 +19,7 @@ final class LazyFileSpan implements FileSpan {
 
   /// Creates a new [LazyFileSpan] that defers calling [builder] until the
   /// underlying span is needed.
-  LazyFileSpan(FileSpan Function() builder) : _builder = builder;
+  this;
 
   @override
   int compareTo(SourceSpan other) => span.compareTo(other);

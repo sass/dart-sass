@@ -13,17 +13,18 @@ import '../utils.dart';
 ///
 /// Note that [PublicMemberMap.length] is *not* `O(1)`.
 @internal
-final class PublicMemberMapView<V> extends UnmodifiableMapBase<String, V> {
+final class PublicMemberMapView<V>(
   /// The wrapped map.
-  final Map<String, V> _inner;
-
+  final Map<String, V> _inner,
+) extends UnmodifiableMapBase<String, V> {
+  @override
   Iterable<String> get keys => _inner.keys.where(isPublic);
 
-  PublicMemberMapView(this._inner);
-
+  @override
   bool containsKey(Object? key) =>
       key is String && isPublic(key) && _inner.containsKey(key);
 
+  @override
   V? operator [](Object? key) {
     if (key is String && isPublic(key)) return _inner[key];
     return null;

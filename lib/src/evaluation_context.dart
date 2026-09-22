@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 import 'deprecation.dart';
 import 'logger.dart';
@@ -15,7 +16,7 @@ import 'logger.dart';
 /// This allows us to expose zone-scoped information without having to create a
 /// new zone variable for each piece of information.
 @internal
-abstract interface class EvaluationContext {
+abstract base class EvaluationContext {
   /// The current evaluation context.
   ///
   /// Throws [StateError] if there isn't a Sass stylesheet currently being
@@ -41,7 +42,12 @@ abstract interface class EvaluationContext {
     }
   }
 
-  /// Returns the span for the currently executing callable.
+  /// A logger that forwards warnings to this evaluation context.
+  ///
+  /// [Logger.debug] should never be called for this logger, only [Logger.warn].
+  Logger get logger => _EvaluationContextLogger(this);
+
+  /// The span for the currently executing callable.
   ///
   /// For normal exception reporting, this should be avoided in favor of
   /// throwing [SassScriptException]s. It should only be used when calling APIs
@@ -67,15 +73,12 @@ abstract interface class EvaluationContext {
 /// {@category Compile}
 void warn(String message, {bool deprecation = false}) =>
     switch (EvaluationContext.currentOrNull) {
-      var context? => context.warn(
-          message,
-          deprecation ? Deprecation.userAuthored : null,
-        ),
-      _ when deprecation => (const Logger.stderr()).warnForDeprecation(
-          Deprecation.userAuthored,
-          message,
-        ),
-      _ => (const Logger.stderr()).warn(message),
+      var context? => context.warn(message, deprecation ? .userAuthored : null),
+      _ when deprecation => Logger.defaultLogger.warnForDeprecation(
+        .userAuthored,
+        message,
+      ),
+      _ => Logger.defaultLogger.warn(message),
     };
 
 /// Prints a deprecation warning with [message] of type [deprecation].
@@ -83,7 +86,7 @@ void warn(String message, {bool deprecation = false}) =>
 void warnForDeprecation(String message, Deprecation deprecation) =>
     switch (EvaluationContext.currentOrNull) {
       var context? => context.warn(message, deprecation),
-      _ => (const Logger.stderr()).warnForDeprecation(deprecation, message),
+      _ => Logger.defaultLogger.warnForDeprecation(deprecation, message),
     };
 
 /// Prints a deprecation warning with [message] of type [deprecation],
@@ -93,7 +96,7 @@ void warnForDeprecationFromApi(String message, Deprecation deprecation) {
   if (EvaluationContext._currentOrNull case var context?) {
     context.warn(message, deprecation);
   } else {
-    Logger.stderr().warnForDeprecation(deprecation, message);
+    Logger.defaultLogger.warnForDeprecation(deprecation, message);
   }
 }
 
@@ -102,5 +105,30 @@ void warnForDeprecationFromApi(String message, Deprecation deprecation) {
 /// This is zone-based, so if [callback] is asynchronous [warn] is set for the
 /// duration of that callback.
 @internal
-T withEvaluationContext<T>(EvaluationContext context, T callback()) =>
+T withEvaluationContext<T>(EvaluationContext context, T Function() callback) =>
     runZoned(callback, zoneValues: {#_evaluationContext: context});
+
+/// A [Logger] that forwards warnings to [EvaluationContext.warn].
+///
+/// This should only ever be used for warnings, not debug messages.
+class _EvaluationContextLogger(
+  /// The context to which this logger forwards.
+  final EvaluationContext _context,
+) implements Logger {
+  @override
+  void debug(String message, SourceSpan span) {
+    throw UnimplementedError(
+      "EvaluationContext.logger.debug() is not supported",
+    );
+  }
+
+  @override
+  void warn(
+    String message, {
+    FileSpan? span,
+    Trace? trace,
+    Deprecation? deprecation,
+  }) {
+    _context.warn(message, deprecation);
+  }
+}

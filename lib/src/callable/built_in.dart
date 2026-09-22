@@ -16,11 +16,13 @@ typedef Callback = Value Function(List<Value> arguments);
 /// parameters. When the callable is invoked, the first callback with matching
 /// parameters is invoked.
 final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
+  @override
   final String name;
 
   /// The overloads declared for this callable.
   final List<(ParameterList, Callback)> _overloads;
 
+  @override
   final bool acceptsContent;
 
   /// Creates a function with a single [parameters] declaration and a single
@@ -31,16 +33,16 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   ///
   /// If passed, [url] is the URL of the module in which the function is
   /// defined.
-  BuiltInCallable.function(
+  new function(
     String name,
     String parameters,
-    Value callback(List<Value> arguments), {
+    Value Function(List<Value> arguments) callback, {
     Object? url,
   }) : this.parsed(
-          name,
-          ParameterList.parse('@function $name($parameters) {', url: url),
-          callback,
-        );
+         name,
+         ParameterList.parse('@function $name($parameters) {', url: url),
+         callback,
+       );
 
   /// Creates a mixin with a single [parameters] declaration and a single
   /// [callback].
@@ -50,28 +52,28 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   ///
   /// If passed, [url] is the URL of the module in which the mixin is
   /// defined.
-  BuiltInCallable.mixin(
+  new mixin(
     String name,
     String parameters,
-    void callback(List<Value> arguments), {
+    void Function(List<Value> arguments) callback, {
     Object? url,
     bool acceptsContent = false,
   }) : this.parsed(
-          name,
-          ParameterList.parse('@mixin $name($parameters) {', url: url),
-          (arguments) {
-            callback(arguments);
-            return sassNull;
-          },
-          acceptsContent: acceptsContent,
-        );
+         name,
+         ParameterList.parse('@mixin $name($parameters) {', url: url),
+         (arguments) {
+           callback(arguments);
+           return sassNull;
+         },
+         acceptsContent: acceptsContent,
+       );
 
   /// Creates a callable with a single [parameters] declaration and a single
   /// [callback].
-  BuiltInCallable.parsed(
+  new parsed(
     this.name,
     ParameterList parameters,
-    Value callback(List<Value> arguments), {
+    Value Function(List<Value> arguments) callback, {
     this.acceptsContent = false,
   }) : _overloads = [(parameters, callback)];
 
@@ -84,20 +86,20 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   ///
   /// If passed, [url] is the URL of the module in which the function is
   /// defined.
-  BuiltInCallable.overloadedFunction(
+  new overloadedFunction(
     this.name,
     Map<String, Callback> overloads, {
     Object? url,
-  })  : _overloads = [
-          for (var (args, callback) in overloads.pairs)
-            (
-              ParameterList.parse('@function $name($args) {', url: url),
-              callback,
-            ),
-        ],
-        acceptsContent = false;
+  }) : _overloads = [
+         for (var (args, callback) in overloads.pairs)
+           (
+             ParameterList.parse('@function $name($args) {', url: url),
+             callback,
+           ),
+       ],
+       acceptsContent = false;
 
-  BuiltInCallable._(this.name, this._overloads, this.acceptsContent);
+  new _(this.name, this._overloads, this.acceptsContent);
 
   /// Returns the parameter declaration and Dart callback for the given
   /// positional and named parameters.
@@ -105,6 +107,7 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
   /// If no exact match is found, finds the closest approximation. Note that this
   /// doesn't guarantee that [positional] and [names] are valid for the returned
   /// [ParameterList].
+  @override
   (ParameterList, Callback) callbackFor(int positional, Set<String> names) {
     (ParameterList, Callback)? fuzzyMatch;
     int? minMismatchDistance;
@@ -138,18 +141,16 @@ final class BuiltInCallable implements Callable, AsyncBuiltInCallable {
       BuiltInCallable._(name, _overloads, acceptsContent);
 
   /// Returns a copy of this callable that emits a deprecation warning.
+  @override
   BuiltInCallable withDeprecationWarning(String module, [String? newName]) =>
-      BuiltInCallable._(
-          name,
-          [
-            for (var (declaration, function) in _overloads)
-              (
-                declaration,
-                (args) {
-                  warnForGlobalBuiltIn(module, newName ?? name);
-                  return function(args);
-                },
-              ),
-          ],
-          acceptsContent);
+      BuiltInCallable._(name, [
+        for (var (declaration, function) in _overloads)
+          (
+            declaration,
+            (args) {
+              warnForGlobalBuiltIn(module, newName ?? name);
+              return function(args);
+            },
+          ),
+      ], acceptsContent);
 }

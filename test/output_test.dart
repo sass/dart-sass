@@ -70,13 +70,15 @@ void main() {
   // because sass-spec normalizes CR LF newlines.
   group("normalizes newlines in a loud comment", () {
     test("in SCSS", () {
-      expect(compileString("/* foo\r\n * bar */").css,
-          equals("/* foo\n * bar */"));
+      expect(
+        compileString("/* foo\r\n * bar */").css,
+        equals("/* foo\n * bar */"),
+      );
     });
 
     test("in Sass", () {
       expect(
-        compileString("/*\r\n  foo\r\n  bar", syntax: Syntax.sass).css,
+        compileString("/*\r\n  foo\r\n  bar", syntax: .sass).css,
         equals("/* foo\n * bar */"),
       );
     });
@@ -266,9 +268,9 @@ selector {
     test("double trailing empty block", () {
       expect(
         compileString(
-                "selector { /* please don't move me */ /* please don't move me */ "
-                "}")
-            .css,
+          "selector { /* please don't move me */ /* please don't move me */ "
+          "}",
+        ).css,
         equals("""
 selector { /* please don't move me */ /* please don't move me */
 }"""),

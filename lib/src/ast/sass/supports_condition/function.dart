@@ -13,30 +13,32 @@ import '../supports_condition.dart';
 /// A function-syntax condition.
 ///
 /// {@category AST}
-final class SupportsFunction implements SupportsCondition {
+final class SupportsFunction(
   /// The name of the function.
-  final Interpolation name;
+  final Interpolation name,
 
   /// The arguments to the function.
-  final Interpolation arguments;
+  final Interpolation arguments,
 
-  final FileSpan span;
-
-  SupportsFunction(this.name, this.arguments, this.span);
-
+  @override final FileSpan span,
+) implements SupportsCondition {
   /// @nodoc
+  @override
   @internal
-  Interpolation toInterpolation() => (InterpolationBuffer()
-        ..addInterpolation(name)
-        ..write(name.span.between(arguments.span).text)
-        ..addInterpolation(arguments)
-        ..write(span.after(arguments.span).text))
-      .interpolation(span);
+  Interpolation toInterpolation() =>
+      (InterpolationBuffer()
+            ..addInterpolation(name)
+            ..write(name.span.between(arguments.span).text)
+            ..addInterpolation(arguments)
+            ..write(span.after(arguments.span).text))
+          .interpolation(span);
 
   /// @nodoc
+  @override
   @internal
   SupportsFunction withSpan(FileSpan span) =>
       SupportsFunction(name, arguments, span);
 
+  @override
   String toString() => "$name($arguments)";
 }

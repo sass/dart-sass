@@ -25,7 +25,7 @@ final String _pubCredentialsPath = p.join(
 Future<void> deploySassApi() async {
   // Write pub credentials
   Directory(p.dirname(_pubCredentialsPath)).createSync(recursive: true);
-  File(_pubCredentialsPath).openSync(mode: FileMode.writeOnlyAppend)
+  File(_pubCredentialsPath).openSync(mode: .writeOnlyAppend)
     ..writeStringSync(pkg.pubCredentials.value)
     ..closeSync();
 
@@ -57,14 +57,11 @@ Future<void> deploySassApi() async {
   }
 
   log("dart pub publish ${pubspec.name}");
-  var process = await Process.start(
-      p.join(sdkDir.path, "bin/dart"),
-      [
-        "pub",
-        "publish",
-        "--force",
-      ],
-      workingDirectory: "pkg/sass_api");
+  var process = await Process.start(p.join(sdkDir.path, "bin/dart"), [
+    "pub",
+    "publish",
+    "--force",
+  ], workingDirectory: "pkg/sass_api");
   LineSplitter().bind(utf8.decoder.bind(process.stdout)).listen(log);
   LineSplitter().bind(utf8.decoder.bind(process.stderr)).listen(log);
   if (await process.exitCode != 0) {

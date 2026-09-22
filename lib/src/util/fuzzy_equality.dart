@@ -8,12 +8,13 @@ import 'package:meta/meta.dart';
 import 'number.dart';
 
 @internal
-final class FuzzyEquality implements Equality<double> {
-  const FuzzyEquality();
-
+final class const FuzzyEquality() implements Equality<double> {
+  @override
   bool equals(double e1, double e2) => fuzzyEquals(e1, e2);
 
+  @override
   int hash(double e1) => fuzzyHashCode(e1);
 
+  @override
   bool isValidKey(Object? o) => o is double;
 }

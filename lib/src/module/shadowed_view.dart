@@ -21,19 +21,39 @@ final class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
   /// The wrapped module.
   final Module<T> _inner;
 
+  @override
   Uri? get url => _inner.url;
+
+  @override
   List<Module<T>> get upstream => _inner.upstream;
+
+  @override
   ExtensionStore get extensionStore => _inner.extensionStore;
+
+  @override
   CssStylesheet get css => _inner.css;
+
+  @override
   Map<Module<T>, List<CssComment>> get preModuleComments =>
       _inner.preModuleComments;
+
+  @override
   bool get transitivelyContainsCss => _inner.transitivelyContainsCss;
+
+  @override
   bool get transitivelyContainsExtensions =>
       _inner.transitivelyContainsExtensions;
 
+  @override
   final Map<String, Value> variables;
+
+  @override
   final Map<String, AstNode> variableNodes;
+
+  @override
   final Map<String, T> functions;
+
+  @override
   final Map<String, T> mixins;
 
   /// Returns whether this module exposes no members or CSS.
@@ -51,29 +71,29 @@ final class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
     Set<String>? mixins,
   }) =>
       _needsBlocklist(inner.variables, variables) ||
-              _needsBlocklist(inner.functions, functions) ||
-              _needsBlocklist(inner.mixins, mixins)
-          ? ShadowedModuleView(
-              inner,
-              variables: variables,
-              functions: functions,
-              mixins: mixins,
-            )
-          : null;
+          _needsBlocklist(inner.functions, functions) ||
+          _needsBlocklist(inner.mixins, mixins)
+      ? ShadowedModuleView(
+          inner,
+          variables: variables,
+          functions: functions,
+          mixins: mixins,
+        )
+      : null;
 
   /// Returns a view of [inner] that doesn't include the given [variables],
   /// [functions], or [mixins].
-  ShadowedModuleView(
+  new(
     this._inner, {
     Set<String>? variables,
     Set<String>? functions,
     Set<String>? mixins,
-  })  : variables = _shadowedMap(_inner.variables, variables),
-        variableNodes = _shadowedMap(_inner.variableNodes, variables),
-        functions = _shadowedMap(_inner.functions, functions),
-        mixins = _shadowedMap(_inner.mixins, mixins);
+  }) : variables = _shadowedMap(_inner.variables, variables),
+       variableNodes = _shadowedMap(_inner.variableNodes, variables),
+       functions = _shadowedMap(_inner.functions, functions),
+       mixins = _shadowedMap(_inner.mixins, mixins);
 
-  ShadowedModuleView._(
+  new _(
     this._inner,
     this.variables,
     this.variableNodes,
@@ -85,18 +105,17 @@ final class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
   static Map<String, V> _shadowedMap<V>(
     Map<String, V> map,
     Set<String>? blocklist,
-  ) =>
-      blocklist == null || !_needsBlocklist(map, blocklist)
-          ? map
-          : LimitedMapView.blocklist(map, blocklist);
+  ) => blocklist == null || !_needsBlocklist(map, blocklist)
+      ? map
+      : LimitedMapView.blocklist(map, blocklist);
 
   /// Returns whether any of [map]'s keys are in [blocklist].
   static bool _needsBlocklist(
     Map<String, Object?> map,
     Set<String>? blocklist,
-  ) =>
-      blocklist != null && map.isNotEmpty && blocklist.any(map.containsKey);
+  ) => blocklist != null && map.isNotEmpty && blocklist.any(map.containsKey);
 
+  @override
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (!variables.containsKey(name)) {
       throw SassScriptException("Undefined variable.");
@@ -105,19 +124,22 @@ final class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
     }
   }
 
+  @override
   Object variableIdentity(String name) {
     assert(variables.containsKey(name));
     return _inner.variableIdentity(name);
   }
 
+  @override
   bool couldHaveBeenConfigured(Set<String> variables) =>
       this.variables == _inner.variables
-          ? _inner.couldHaveBeenConfigured(variables)
-          : _inner.couldHaveBeenConfigured({
-              for (var name in this.variables.keys)
-                if (variables.contains(name)) name
-            });
+      ? _inner.couldHaveBeenConfigured(variables)
+      : _inner.couldHaveBeenConfigured({
+          for (var name in this.variables.keys)
+            if (variables.contains(name)) name,
+        });
 
+  @override
   bool operator ==(Object other) =>
       other is ShadowedModuleView &&
       _inner == other._inner &&
@@ -125,15 +147,18 @@ final class ShadowedModuleView<T extends AsyncCallable> implements Module<T> {
       iterableEquals(functions.keys, other.functions.keys) &&
       iterableEquals(mixins.keys, other.mixins.keys);
 
+  @override
   int get hashCode => _inner.hashCode;
 
+  @override
   Module<T> cloneCss() => ShadowedModuleView._(
-        _inner.cloneCss(),
-        variables,
-        variableNodes,
-        functions,
-        mixins,
-      );
+    _inner.cloneCss(),
+    variables,
+    variableNodes,
+    functions,
+    mixins,
+  );
 
+  @override
   String toString() => "shadowed $_inner";
 }

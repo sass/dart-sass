@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 5cc27e52100895729b3e9ef7368a97ff6e962d02
+// Checksum: 4c664d5dc9296b497c53de4d22f17b48e277b039
 //
 // ignore_for_file: unused_import
 
@@ -90,38 +90,35 @@ EvaluateResult evaluate(
   Logger? logger,
   bool quietDeps = false,
   bool sourceMap = false,
-}) =>
-    _EvaluateVisitor(
-      importCache: importCache,
-      functions: functions,
-      logger: logger,
-      quietDeps: quietDeps,
-      sourceMap: sourceMap,
-    ).run(importer, stylesheet);
+}) => _EvaluateVisitor(
+  importCache: importCache,
+  functions: functions,
+  logger: logger,
+  quietDeps: quietDeps,
+  sourceMap: sourceMap,
+).run(importer, stylesheet);
 
 /// A class that can evaluate multiple independent statements and expressions
 /// in the context of a single module.
-final class Evaluator {
-  /// The visitor that evaluates each expression and statement.
-  final _EvaluateVisitor _visitor;
+final class Evaluator({
+  ImportCache? importCache,
 
   /// The importer to use to resolve `@use` rules in [_visitor].
-  final Importer? _importer;
+  final Importer? _importer,
+  Iterable<Callable>? functions,
+  Logger? logger,
+}) {
+  /// The visitor that evaluates each expression and statement.
+  final _EvaluateVisitor _visitor = _EvaluateVisitor(
+    importCache: importCache,
+    functions: functions,
+    logger: logger,
+  );
 
   /// Creates an evaluator.
   ///
   /// Arguments are the same as for [evaluate].
-  Evaluator({
-    ImportCache? importCache,
-    Importer? importer,
-    Iterable<Callable>? functions,
-    Logger? logger,
-  })  : _visitor = _EvaluateVisitor(
-          importCache: importCache,
-          functions: functions,
-          logger: logger,
-        ),
-        _importer = importer;
+  this;
 
   void use(UseRule use) => _visitor.runStatement(_importer, use);
 
@@ -133,14 +130,24 @@ final class Evaluator {
 }
 
 /// A visitor that executes Sass code to produce a CSS tree.
-final class _EvaluateVisitor
-    implements
-        StatementVisitor<Value?>,
-        ExpressionVisitor<Value>,
-        IfConditionExpressionVisitor<Object /* String | bool */ >,
-        CssVisitor<void> {
+final class _EvaluateVisitor({
+  ImportCache? importCache,
+
+  Iterable<Callable>? functions,
+  Logger? logger,
+
+  /// Whether to avoid emitting warnings for files loaded from dependencies.
+  final bool _quietDeps = false,
+
+  /// Whether to track source map information.
+  final bool _sourceMap = false,
+}) implements
+    StatementVisitor<Value?>,
+    ExpressionVisitor<Value>,
+    IfConditionExpressionVisitor<Object /* String | bool */>,
+    CssVisitor<void> {
   /// The import cache used to import other stylesheets.
-  final ImportCache? _importCache;
+  final ImportCache _importCache = importCache ?? ImportCache.none();
 
   /// Built-in functions that are globally-accessible, even under the new module
   /// system.
@@ -163,7 +170,7 @@ final class _EvaluateVisitor
   final _moduleNodes = <Uri, AstNode>{};
 
   /// The logger to use to print warnings.
-  final Logger _logger;
+  final Logger _logger = logger ?? .defaultLogger;
 
   /// A set of message/location pairs for warnings that have been emitted via
   /// [_warn].
@@ -172,18 +179,12 @@ final class _EvaluateVisitor
   /// consoles with redundant warnings.
   final _warningsEmitted = <(String, SourceSpan)>{};
 
-  /// Whether to avoid emitting warnings for files loaded from dependencies.
-  final bool _quietDeps;
-
-  /// Whether to track source map information.
-  final bool _sourceMap;
-
   /// The unique compile context for tracking if [SassFunction]s and
   /// [SassMixin]s belongs to the current compilation or not.
   final Object _compileContext = Object();
 
   /// The current lexical environment.
-  Environment _environment;
+  Environment _environment = Environment();
 
   /// The style rule that defines the current parent selector, if any.
   ///
@@ -363,19 +364,7 @@ final class _EvaluateVisitor
   /// Creates a new visitor.
   ///
   /// Most arguments are the same as those to [evaluate].
-  _EvaluateVisitor({
-    ImportCache? importCache,
-    Iterable<Callable>? functions,
-    Logger? logger,
-    bool quietDeps = false,
-    bool sourceMap = false,
-  })  : _importCache = importCache ?? ImportCache.none(),
-        _logger = logger ?? const Logger.stderr(),
-        _quietDeps = quietDeps,
-        _sourceMap = sourceMap,
-        // The default environment is overridden in [_execute] for full
-        // stylesheets, but for [AsyncEvaluator] this environment is used.
-        _environment = Environment() {
+  this {
     var metaFunctions = [
       // These functions are defined in the context of the evaluator because
       // they need access to the [_environment] or other local state.
@@ -460,8 +449,10 @@ final class _EvaluateVisitor
 
         return SassMap({
           for (var (name, value) in module.functions.pairs)
-            SassString(name):
-                SassFunction.withCompileContext(value, _compileContext),
+            SassString(name): SassFunction.withCompileContext(
+              value,
+              _compileContext,
+            ),
         });
       }, url: "sass:meta"),
 
@@ -474,8 +465,10 @@ final class _EvaluateVisitor
 
         return SassMap({
           for (var (name, value) in module.mixins.pairs)
-            SassString(name):
-                SassMixin.withCompileContext(value, _compileContext),
+            SassString(name): SassMixin.withCompileContext(
+              value,
+              _compileContext,
+            ),
         });
       }, url: "sass:meta"),
 
@@ -492,7 +485,9 @@ final class _EvaluateVisitor
               throw r"$css and $module may not both be passed at once.";
             }
             return SassFunction.withCompileContext(
-                PlainCssCallable(name.text), _compileContext);
+              PlainCssCallable(name.text),
+              _compileContext,
+            );
           }
 
           var callable = _addExceptionSpan(_callableNode!, () {
@@ -531,9 +526,7 @@ final class _EvaluateVisitor
         return SassMixin.withCompileContext(callable, _compileContext);
       }, url: "sass:meta"),
 
-      BuiltInCallable.function("call", r"$function, $args...", (
-        arguments,
-      ) {
+      BuiltInCallable.function("call", r"$function, $args...", (arguments) {
         var function = arguments[0];
         var args = arguments[1] as SassArgumentList;
 
@@ -561,11 +554,8 @@ final class _EvaluateVisitor
             .callable;
         // ignore: unnecessary_type_check
         if (callable is Callable) {
-          return _runFunctionCallable(
-            invocation,
-            callable,
-            _callableNode!,
-          );
+          return _runFunctionCallable(invocation, callable, _callableNode!);
+          // ignore: dead_code
         } else {
           throw SassScriptException(
             "The function ${callable.name} is asynchronous.\n"
@@ -576,9 +566,7 @@ final class _EvaluateVisitor
     ];
 
     var metaMixins = [
-      BuiltInCallable.mixin("load-css", r"$url, $with: null", (
-        arguments,
-      ) {
+      BuiltInCallable.mixin("load-css", r"$url, $with: null", (arguments) {
         var url = Uri.parse(arguments[0].assertString("url").text);
         var withMap = arguments[1].realNull?.assertMap("with").contents;
 
@@ -589,14 +577,17 @@ final class _EvaluateVisitor
           var span = callableNode.span;
           var privateDeprecation = false;
           withMap.forEach((variable, value) {
-            var name =
-                variable.assertString("with key").text.replaceAll("_", "-");
+            var name = variable
+                .assertString("with key")
+                .text
+                .replaceAll("_", "-");
             if (values.containsKey(name)) {
               throw "The variable \$$name was configured twice.";
             } else if (name.startsWith("-") && !privateDeprecation) {
               privateDeprecation = true;
               throw SassScriptException(
-                  "Private variable \$$name can't be configured.");
+                "Private variable \$$name can't be configured.",
+              );
             }
 
             values[name] = ConfiguredValue.explicit(value, span, callableNode);
@@ -646,6 +637,7 @@ final class _EvaluateVisitor
               callableNode,
               callableNode,
             );
+            // ignore: dead_code
           } else {
             throw SassScriptException(
               "The mixin ${callable.name} is asynchronous.\n"
@@ -683,18 +675,15 @@ final class _EvaluateVisitor
 
   EvaluateResult run(Importer? importer, Stylesheet node) {
     try {
-      return withEvaluationContext(
-        _EvaluationContext(this, node),
-        () {
-          if (node.span.sourceUrl case var url?) {
-            _activeModules[url] = null;
-            _loadedUrls.add(url);
-          }
+      return withEvaluationContext(_EvaluationContext(this, node), () {
+        if (node.span.sourceUrl case var url?) {
+          _activeModules[url] = null;
+          _loadedUrls.add(url);
+        }
 
-          var module = _addExceptionTrace(() => _execute(importer, node));
-          return (stylesheet: _combineCss(module), loadedUrls: _loadedUrls);
-        },
-      );
+        var module = _addExceptionTrace(() => _execute(importer, node));
+        return (stylesheet: _combineCss(module), loadedUrls: _loadedUrls);
+      });
     } on SassException catch (error, stackTrace) {
       throwWithTrace(error.withLoadedUrls(_loadedUrls), error, stackTrace);
     }
@@ -735,7 +724,7 @@ final class _EvaluateVisitor
   T _withFakeStylesheet<T>(
     Importer? importer,
     AstNode nodeWithSpan,
-    T callback(),
+    T Function() callback,
   ) {
     var oldImporter = _importer;
     _importer = importer;
@@ -773,7 +762,7 @@ final class _EvaluateVisitor
     Uri url,
     String stackFrame,
     AstNode nodeWithSpan,
-    void callback(Module<Callable> module, bool firstLoad), {
+    void Function(Module<Callable> module, bool firstLoad) callback, {
     Uri? baseUrl,
     Configuration? configuration,
     bool namesInErrors = false,
@@ -792,10 +781,7 @@ final class _EvaluateVisitor
 
       // Always consider built-in stylesheets to be "already loaded", since they
       // never require additional execution to load and never produce CSS.
-      _addExceptionSpan(
-        nodeWithSpan,
-        () => callback(builtInModule, false),
-      );
+      _addExceptionSpan(nodeWithSpan, () => callback(builtInModule, false));
       return;
     }
 
@@ -811,7 +797,7 @@ final class _EvaluateVisitor
         if (_activeModules.containsKey(canonicalUrl)) {
           var message = namesInErrors
               ? "Module loop: ${p.prettyUri(canonicalUrl)} is already being "
-                  "loaded."
+                    "loaded."
               : "Module loop: this module is already being loaded.";
 
           throw _activeModules[canonicalUrl].andThen(
@@ -879,20 +865,21 @@ final class _EvaluateVisitor
           // this avoids throwing confusing errors for `@forward`ed modules
           // without configuration.
           alreadyLoaded.couldHaveBeenConfigured(
-              MapKeySet(currentConfiguration.values))) {
+            MapKeySet(currentConfiguration.values),
+          )) {
         var message = namesInErrors
             ? "${p.prettyUri(url)} was already loaded, so it can't be "
-                "configured using \"with\"."
+                  "configured using \"with\"."
             : "This module was already loaded, so it can't be configured using "
-                "\"with\".";
+                  "\"with\".";
 
         var existingSpan = _moduleNodes[url]?.span;
         var configurationSpan = configuration == null
             ? currentConfiguration.nodeWithSpan.span
             : null;
         var secondarySpans = {
-          if (existingSpan != null) existingSpan: "original load",
-          if (configurationSpan != null) configurationSpan: "configuration",
+          ?existingSpan: "original load",
+          ?configurationSpan: "configuration",
         };
 
         throw secondarySpans.isEmpty
@@ -926,6 +913,7 @@ final class _EvaluateVisitor
       _importer = importer;
       _stylesheet = stylesheet;
       var root = __root = ModifiableCssStylesheet(stylesheet.span);
+      _preModuleComments = {};
       _parent = root;
       _endOfImports = 0;
       _outOfOrderImports = null;
@@ -981,10 +969,10 @@ final class _EvaluateVisitor
       switch (_outOfOrderImports) {
         null => _root.children,
         var outOfOrderImports => [
-            ..._root.children.take(_endOfImports),
-            ...outOfOrderImports,
-            ..._root.children.skip(_endOfImports),
-          ],
+          ..._root.children.take(_endOfImports),
+          ...outOfOrderImports,
+          ..._root.children.skip(_endOfImports),
+        ],
       };
 
   /// Returns a new stylesheet containing [root]'s CSS as well as the CSS of all
@@ -1015,27 +1003,32 @@ final class _EvaluateVisitor
     // The CSS statements in the final document.
     var css = <CssNode>[];
 
-    /// The modules in reverse topological order.
+    // The modules in reverse topological order.
     var sorted = Queue<Module<Callable>>();
 
-    /// The modules that have been visited so far. Note that if [cloneCss] is
-    /// true, this contains the original modules, not the copies.
+    // The modules that have been visited so far. Note that if [cloneCss] is
+    // true, this contains the original modules, not the copies.
     var seen = <Module<Callable>>{};
 
     void visitModule(Module<Callable> module) {
       if (!seen.add(module)) return;
       if (clone) module = module.cloneCss();
 
+      var seenUpstream = <Module<Callable>>{};
       for (var upstream in module.upstream) {
-        if (upstream.transitivelyContainsCss) {
-          if (module.preModuleComments[upstream] case var comments?) {
-            // Intermix the top-level comments with plain CSS `@import`s until we
-            // start to have actual CSS defined, at which point start treating it as
-            // normal CSS.
-            (css.isEmpty ? imports : css).addAll(comments);
-          }
-          visitModule(upstream);
+        if (!upstream.transitivelyContainsCss) continue;
+
+        // A downstream module can load the same upstream module multiple times,
+        // but we only track pre-module comments for the first load.
+        if (!seenUpstream.add(upstream)) continue;
+
+        if (module.preModuleComments[upstream] case var comments?) {
+          // Intermix the top-level comments with plain CSS `@import`s until we
+          // start to have actual CSS defined, at which point start treating it as
+          // normal CSS.
+          (css.isEmpty ? imports : css).addAll(comments);
         }
+        visitModule(upstream);
       }
 
       sorted.addFirst(module);
@@ -1139,6 +1132,7 @@ final class _EvaluateVisitor
 
   // ## Statements
 
+  @override
   Value? visitStylesheet(Stylesheet node) {
     for (var warning in node.parseTimeWarnings) {
       _warn(warning.message, warning.span, warning.deprecation);
@@ -1158,6 +1152,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitAtRootRule(AtRootRule node) {
     var query = AtRootQuery.defaultQuery;
     if (node.query case var unparsedQuery?) {
@@ -1269,7 +1264,7 @@ final class _EvaluateVisitor
     AtRootQuery query,
     List<ModifiableCssParentNode> included,
   ) {
-    var scope = (void callback()) {
+    var scope = (void Function() callback) {
       // We can't use [_withParent] here because it'll add the node to the tree
       // in the wrong place.
       var oldParent = _parent;
@@ -1317,10 +1312,12 @@ final class _EvaluateVisitor
     return scope;
   }
 
+  @override
   Value visitContentBlock(ContentBlock node) => throw UnsupportedError(
-        "Evaluation handles @include and its content block together.",
-      );
+    "Evaluation handles @include and its content block together.",
+  );
 
+  @override
   Value? visitContentRule(ContentRule node) {
     var content = _environment.content;
     if (content == null) return null;
@@ -1335,6 +1332,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitDebugRule(DebugRule node) {
     var value = node.expression.accept(this);
     _logger.debug(
@@ -1344,6 +1342,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitDeclaration(Declaration node) {
     if (_styleRule == null && !_inUnknownAtRule && !_inKeyframes) {
       throw _exception(
@@ -1380,8 +1379,9 @@ final class _EvaluateVisitor
             CssValue(value, expression.span),
             node.span,
             parsedAsSassScript: node.parsedAsSassScript,
-            valueSpanForMap:
-                _sourceMap ? node.value.andThen(_expressionNode)?.span : null,
+            valueSpanForMap: _sourceMap
+                ? node.value.andThen(_expressionNode)?.span
+                : null,
           ),
         );
       }
@@ -1404,14 +1404,21 @@ final class _EvaluateVisitor
   /// Returns whether [value] is an empty list.
   bool _isEmptyList(Value value) => value.asList.isEmpty;
 
+  @override
   Value? visitEachRule(EachRule node) {
     var list = node.list.accept(this);
     var nodeWithSpan = _expressionNode(node.list);
     var setVariables = switch (node.variables) {
-      [var variable] => (Value value) =>
-          _environment.setLocalVariable(variable, value, nodeWithSpan),
-      var variables => (Value value) =>
-          _setMultipleVariables(variables, value, nodeWithSpan),
+      [var variable] => (Value value) => _environment.setLocalVariable(
+        variable,
+        value,
+        nodeWithSpan,
+      ),
+      var variables => (Value value) => _setMultipleVariables(
+        variables,
+        value,
+        nodeWithSpan,
+      ),
     };
     return _environment.scope(() {
       return _handleReturn<Value>(list.asList, (element) {
@@ -1441,13 +1448,12 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   Value visitErrorRule(ErrorRule node) {
-    throw _exception(
-      node.expression.accept(this).toString(),
-      node.span,
-    );
+    throw _exception(node.expression.accept(this).toString(), node.span);
   }
 
+  @override
   Value? visitExtendRule(ExtendRule node) {
     var styleRule = _styleRule;
     if (styleRule == null || _declarationName != null) {
@@ -1477,6 +1483,7 @@ final class _EvaluateVisitor
       trimAscii(targetText, excludeEscape: true),
       interpolationMap: targetMap,
       allowParent: false,
+      logger: _logger,
     );
 
     for (var complex in list.components) {
@@ -1511,6 +1518,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitAtRule(AtRule node) {
     // NOTE: this logic is largely duplicated in [visitCssAtRule]. Most changes
     // here should be mirrored there.
@@ -1591,6 +1599,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitForRule(ForRule node) {
     var fromNumber = _addExceptionSpan(
       node.from,
@@ -1626,9 +1635,9 @@ final class _EvaluateVisitor
           nodeWithSpan,
         );
         if (_handleReturn<Statement>(
-          node.children,
-          (child) => child.accept(this),
-        )
+              node.children,
+              (child) => child.accept(this),
+            )
             case var result?) {
           return result;
         }
@@ -1637,6 +1646,7 @@ final class _EvaluateVisitor
     }, semiGlobal: true);
   }
 
+  @override
   Value? visitForwardRule(ForwardRule node) {
     var oldConfiguration = _configuration;
     var adjustedConfiguration = oldConfiguration.throughForward(node);
@@ -1764,13 +1774,14 @@ final class _EvaluateVisitor
     throw _exception(
       nameInError
           ? "\$$name was not declared with !default in the @used "
-              "module."
+                "module."
           : "This variable was not declared with !default in the @used "
-              "module.",
+                "module.",
       value.configurationSpan,
     );
   }
 
+  @override
   Value? visitFunctionRule(FunctionRule node) {
     _environment.setFunction(
       UserDefinedCallable(
@@ -1782,6 +1793,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitIfRule(IfRule node) {
     IfRuleClause? clause = node.lastClause;
     for (var clauseToCheck in node.clauses) {
@@ -1803,6 +1815,7 @@ final class _EvaluateVisitor
     );
   }
 
+  @override
   Value? visitImportRule(ImportRule node) {
     for (var import in node.imports) {
       if (import is DynamicImport) {
@@ -1864,7 +1877,7 @@ final class _EvaluateVisitor
       // new one.
       var loadsUserDefinedModules =
           stylesheet.uses.any((rule) => rule.url.scheme != 'sass') ||
-              stylesheet.forwards.any((rule) => rule.url.scheme != 'sass');
+          stylesheet.forwards.any((rule) => rule.url.scheme != 'sass');
 
       late List<ModifiableCssNode> children;
       var environment = _environment.forImport();
@@ -1950,14 +1963,14 @@ final class _EvaluateVisitor
       assert(_importSpan == null);
       _importSpan = span;
 
-      if (_importCache case var importCache?) {
+      if (_importCache case var importCache) {
         baseUrl ??= _stylesheet.span.sourceUrl;
         if (importCache.canonicalize(
-          Uri.parse(url),
-          baseImporter: _importer,
-          baseUrl: baseUrl,
-          forImport: forImport,
-        )
+              Uri.parse(url),
+              baseImporter: _importer,
+              baseUrl: baseUrl,
+              forImport: forImport,
+            )
             case (var importer, var canonicalUrl, :var originalUrl)) {
           // Make sure we record the canonical URL as "loaded" even if the
           // actual load fails, because watchers should watch it to see if it
@@ -1966,10 +1979,10 @@ final class _EvaluateVisitor
 
           var isDependency = _inDependency || importer != _importer;
           if (importCache.importCanonical(
-            importer,
-            canonicalUrl,
-            originalUrl: originalUrl,
-          )
+                importer,
+                canonicalUrl,
+                originalUrl: originalUrl,
+              )
               case var stylesheet?) {
             return (stylesheet, importer: importer, isDependency: isDependency);
           }
@@ -2048,11 +2061,7 @@ final class _EvaluateVisitor
       case BuiltInCallable():
         _environment.withContent(contentCallable, () {
           _environment.asMixin(() {
-            _runBuiltInCallable(
-              arguments,
-              mixin,
-              nodeWithSpanWithoutContent,
-            );
+            _runBuiltInCallable(arguments, mixin, nodeWithSpanWithoutContent);
           });
         });
 
@@ -2092,6 +2101,7 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   Value? visitIncludeRule(IncludeRule node) {
     var mixin = _addExceptionSpan(
       node,
@@ -2138,6 +2148,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitMixinRule(MixinRule node) {
     _environment.setMixin(
       UserDefinedCallable(
@@ -2149,6 +2160,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitLoudComment(LoudComment node) {
     // NOTE: this logic is largely duplicated in [visitCssComment]. Most changes
     // here should be mirrored there.
@@ -2169,6 +2181,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitMediaRule(MediaRule node) {
     // NOTE: this logic is largely duplicated in [visitCssMediaRule]. Most
     // changes here should be mirrored there.
@@ -2206,28 +2219,24 @@ final class _EvaluateVisitor
     _withParent(
       ModifiableCssMediaRule(mergedQueries ?? queries, node.span),
       () {
-        _withMediaQueries(
-          mergedQueries ?? queries,
-          mergedSources,
-          () {
-            if (_styleRule case var styleRule?) {
-              // If we're in a style rule, copy it into the media query so that
-              // declarations immediately inside @media have somewhere to go.
-              //
-              // For example, "a {@media screen {b: c}}" should produce
-              // "@media screen {a {b: c}}".
-              _withParent(styleRule.copyWithoutChildren(), () {
-                for (var child in node.children) {
-                  child.accept(this);
-                }
-              }, scopeWhen: false);
-            } else {
+        _withMediaQueries(mergedQueries ?? queries, mergedSources, () {
+          if (_styleRule case var styleRule?) {
+            // If we're in a style rule, copy it into the media query so that
+            // declarations immediately inside @media have somewhere to go.
+            //
+            // For example, "a {@media screen {b: c}}" should produce
+            // "@media screen {a {b: c}}".
+            _withParent(styleRule.copyWithoutChildren(), () {
               for (var child in node.children) {
                 child.accept(this);
               }
+            }, scopeWhen: false);
+          } else {
+            for (var child in node.children) {
+              child.accept(this);
             }
-          },
-        );
+          }
+        });
       },
       through: (node) =>
           node is CssStyleRule ||
@@ -2242,9 +2251,7 @@ final class _EvaluateVisitor
 
   /// Evaluates [interpolation] and parses the result as a list of media
   /// queries.
-  List<CssMediaQuery> _visitMediaQueries(
-    Interpolation interpolation,
-  ) {
+  List<CssMediaQuery> _visitMediaQueries(Interpolation interpolation) {
     var (resolved, map) = _performInterpolationWithMap(
       interpolation,
       warnForColor: true,
@@ -2267,9 +2274,9 @@ final class _EvaluateVisitor
       inner:
       for (var query2 in queries2) {
         switch (query1.merge(query2)) {
-          case MediaQueryMergeResult.empty:
+          case .empty:
             continue inner;
-          case MediaQueryMergeResult.unrepresentable:
+          case .unrepresentable:
             return null;
           case MediaQuerySuccessfulMergeResult result:
             queries.add(result.query);
@@ -2279,10 +2286,13 @@ final class _EvaluateVisitor
     return queries;
   }
 
+  @override
   Value visitReturnRule(ReturnRule node) => node.expression.accept(this);
 
+  @override
   Value? visitSilentComment(SilentComment node) => null;
 
+  @override
   Value? visitStyleRule(StyleRule node) {
     // NOTE: this logic is largely duplicated in [visitCssStyleRule]. Most
     // changes here should be mirrored there.
@@ -2333,12 +2343,13 @@ final class _EvaluateVisitor
       selectorText,
       interpolationMap: selectorMap,
       plainCss: _stylesheet.plainCss,
+      logger: _logger,
     );
 
     var merge = switch (_styleRule) {
       null => true,
       CssStyleRule(fromPlainCss: true) => false,
-      _ => !(_stylesheet.plainCss && parsedSelector.containsParentSelector)
+      _ => !(_stylesheet.plainCss && parsedSelector.containsParentSelector),
     };
     if (merge) {
       if (_stylesheet.plainCss) {
@@ -2417,10 +2428,8 @@ final class _EvaluateVisitor
           complex.span.trimRight(),
           'invalid selector',
           {
-            rule.children.first.span: "this is not a style rule" +
-                (rule.children.every((child) => child is CssComment)
-                    ? '\n(try converting to a //-style comment)'
-                    : ''),
+            rule.children.first.span:
+                "this is not a style rule${rule.children.every((child) => child is CssComment) ? '\n(try converting to a //-style comment)' : ''}",
           },
           _stackTrace(complex.span),
         );
@@ -2428,6 +2437,7 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   Value? visitSupportsRule(SupportsRule node) {
     // NOTE: this logic is largely duplicated in [visitCssSupportsRule]. Most
     // changes here should be mirrored there.
@@ -2440,11 +2450,9 @@ final class _EvaluateVisitor
     }
 
     var rule = ModifiableCssSupportsRule(
-        CssValue(
-          _visitSupportsCondition(node.condition),
-          node.condition.span,
-        ),
-        node.span);
+      CssValue(_visitSupportsCondition(node.condition), node.condition.span),
+      node.span,
+    );
     if (_hasCssNesting) {
       _withParent(rule, () {
         for (var child in node.children) {
@@ -2490,25 +2498,27 @@ final class _EvaluateVisitor
               "${_parenthesize(operation.right, operation.operator)}",
         SupportsNegation negation => "not ${_parenthesize(negation.condition)}",
         SupportsInterpolation interpolation => _evaluateToCss(
-            interpolation.expression,
-            quote: false,
-          ),
+          interpolation.expression,
+          quote: false,
+        ),
         SupportsDeclaration declaration => _withSupportsDeclaration(
-            () => "(${_evaluateToCss(declaration.name)}:"
-                "${declaration.isCustomProperty ? '' : ' '}"
-                "${_evaluateToCss(declaration.value)})",
-          ),
-        SupportsFunction function => "${_performInterpolation(function.name)}("
-            "${_performInterpolation(function.arguments)})",
+          () =>
+              "(${_evaluateToCss(declaration.name)}:"
+              "${declaration.isCustomProperty ? '' : ' '}"
+              "${_evaluateToCss(declaration.value)})",
+        ),
+        SupportsFunction function =>
+          "${_performInterpolation(function.name)}("
+              "${_performInterpolation(function.arguments)})",
         SupportsAnything anything =>
           "(${_performInterpolation(anything.contents)})",
         var condition => throw ArgumentError(
-            "Unknown supports condition type ${condition.runtimeType}.",
-          ),
+          "Unknown supports condition type ${condition.runtimeType}.",
+        ),
       };
 
   /// Runs [callback] in a context where [_inSupportsDeclaration] is true.
-  T _withSupportsDeclaration<T>(T callback()) {
+  T _withSupportsDeclaration<T>(T Function() callback) {
     var oldInSupportsDeclaration = _inSupportsDeclaration;
     _inSupportsDeclaration = true;
     try {
@@ -2539,6 +2549,7 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   Value? visitVariableDeclaration(VariableDeclaration node) {
     if (node.isGuarded) {
       if (node.namespace == null && _environment.atRoot) {
@@ -2586,6 +2597,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitUseRule(UseRule node) {
     var configuration = const Configuration.empty();
     if (node.configuration.isNotEmpty) {
@@ -2610,6 +2622,7 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitWarnRule(WarnRule node) {
     var value = node.expression.accept(this);
     _logger.warn(
@@ -2619,14 +2632,15 @@ final class _EvaluateVisitor
     return null;
   }
 
+  @override
   Value? visitWhileRule(WhileRule node) {
     return _environment.scope(
       () {
         while (node.condition.accept(this).isTruthy) {
           if (_handleReturn<Statement>(
-            node.children,
-            (child) => child.accept(this),
-          )
+                node.children,
+                (child) => child.accept(this),
+              )
               case var result?) {
             return result;
           }
@@ -2640,8 +2654,9 @@ final class _EvaluateVisitor
 
   // ## Expressions
 
+  @override
   Value visitBinaryOperationExpression(BinaryOperationExpression node) {
-    if (_stylesheet.plainCss && node.operator != BinaryOperator.singleEquals) {
+    if (_stylesheet.plainCss && node.operator != .singleEquals) {
       throw _exception(
         "Operators aren't allowed in plain CSS.",
         node.operatorSpan,
@@ -2651,42 +2666,34 @@ final class _EvaluateVisitor
     return _addExceptionSpan(node, () {
       var left = node.left.accept(this);
       return switch (node.operator) {
-        BinaryOperator.singleEquals => left.singleEquals(
-            node.right.accept(this),
-          ),
-        BinaryOperator.or => left.isTruthy ? left : node.right.accept(this),
-        BinaryOperator.and => left.isTruthy ? node.right.accept(this) : left,
-        BinaryOperator.equals => SassBoolean(
-            left == node.right.accept(this),
-          ),
-        BinaryOperator.notEquals => SassBoolean(
-            left != node.right.accept(this),
-          ),
-        BinaryOperator.greaterThan => left.greaterThan(
-            node.right.accept(this),
-          ),
-        BinaryOperator.greaterThanOrEquals => left.greaterThanOrEquals(
-            node.right.accept(this),
-          ),
-        BinaryOperator.lessThan => left.lessThan(node.right.accept(this)),
-        BinaryOperator.lessThanOrEquals => left.lessThanOrEquals(
-            node.right.accept(this),
-          ),
-        BinaryOperator.plus => left.plus(node.right.accept(this)),
-        BinaryOperator.minus => left.minus(node.right.accept(this)),
-        BinaryOperator.times => left.times(node.right.accept(this)),
-        BinaryOperator.modulo => left.modulo(node.right.accept(this)),
+        .singleEquals => left.singleEquals(node.right.accept(this)),
+        .or => left.isTruthy ? left : node.right.accept(this),
+        .and => left.isTruthy ? node.right.accept(this) : left,
+        .equals => SassBoolean(left == node.right.accept(this)),
+        .notEquals => SassBoolean(left != node.right.accept(this)),
+        .greaterThan => left.greaterThan(node.right.accept(this)),
+        .greaterThanOrEquals => left.greaterThanOrEquals(
+          node.right.accept(this),
+        ),
+        .lessThan => left.lessThan(node.right.accept(this)),
+        .lessThanOrEquals => left.lessThanOrEquals(node.right.accept(this)),
+        .plus => left.plus(node.right.accept(this)),
+        .minus => left.minus(node.right.accept(this)),
+        .times => left.times(node.right.accept(this)),
+        .modulo => left.modulo(node.right.accept(this)),
 
         /// This can't be generated by the actual Sass parser, but it's still
         /// supported by the AST for calculation purposes. Might as well support
         /// it here too.
-        BinaryOperator.dividedBy => left.dividedBy(node.right.accept(this)),
+        .dividedBy => left.dividedBy(node.right.accept(this)),
       };
     });
   }
 
+  @override
   Value visitValueExpression(ValueExpression node) => node.value;
 
+  @override
   Value visitVariableExpression(VariableExpression node) {
     var result = _addExceptionSpan(
       node,
@@ -2697,23 +2704,24 @@ final class _EvaluateVisitor
     throw _exception("Undefined variable.", node.span);
   }
 
-  Value visitUnaryOperationExpression(
-    UnaryOperationExpression node,
-  ) {
+  @override
+  Value visitUnaryOperationExpression(UnaryOperationExpression node) {
     var operand = node.operand.accept(this);
     return _addExceptionSpan(node, () {
       return switch (node.operator) {
-        UnaryOperator.plus => operand.unaryPlus(),
-        UnaryOperator.minus => operand.unaryMinus(),
-        UnaryOperator.divide => operand.unaryDivide(),
-        UnaryOperator.not => operand.unaryNot(),
+        .plus => operand.unaryPlus(),
+        .minus => operand.unaryMinus(),
+        .divide => operand.unaryDivide(),
+        .not => operand.unaryNot(),
       };
     });
   }
 
+  @override
   SassBoolean visitBooleanExpression(BooleanExpression node) =>
       SassBoolean(node.value);
 
+  @override
   Value visitIfExpression(IfExpression node) {
     List<(String, Value)>? results;
     for (var (condition, expression) in node.branches) {
@@ -2732,73 +2740,84 @@ final class _EvaluateVisitor
     }
 
     if (results == null) return sassNull;
-    return SassString(
-        'if(' +
-            results.map((pair) => '${pair.$1}: ${pair.$2}').join('; ') +
-            ')',
-        quotes: false);
+    var args = results
+        .map((pair) => '${pair.$1}: ${pair.$2.toCssString()}')
+        .join('; ');
+    return SassString('if($args)', quotes: false);
   }
 
+  @override
   Object /* String | bool */ visitIfConditionParenthesized(
-          IfConditionParenthesized node) =>
-      switch (node.expression.accept(this)) {
-        String string => '($string)',
-        var result => result,
-      };
+    IfConditionParenthesized node,
+  ) => switch (node.expression.accept(this)) {
+    String string => '($string)',
+    var result => result,
+  };
 
+  @override
   Object /* String | bool */ visitIfConditionNegation(
-          IfConditionNegation node) =>
-      switch (node.expression.accept(this)) {
-        String string => 'not $string',
-        bool result => !result,
-        _ => throw UnsupportedError('unreachable'),
-      };
+    IfConditionNegation node,
+  ) => switch (node.expression.accept(this)) {
+    String string => 'not $string',
+    bool result => !result,
+    _ => throw UnsupportedError('unreachable'),
+  };
 
+  @override
   Object /* String | bool */ visitIfConditionOperation(
-      IfConditionOperation node) {
+    IfConditionOperation node,
+  ) {
     List<(IfConditionExpression, String)>? values;
     for (var expression in node.expressions) {
       switch (expression.accept(this)) {
         case String right:
           values ??= [];
           values.add((expression, right));
-        case false when node.op == BooleanOperator.and:
+        case false when node.op == .and:
           return false;
-        case true when node.op == BooleanOperator.or:
+        case true when node.op == .or:
           return true;
       }
     }
 
     return switch (values) {
-      null => node.op == BooleanOperator.and,
+      null => node.op == .and,
 
       // If the only CSS node left in the operation is parenthesized, remove
       // the parentheses. This is guaranteed to be valid because parentheses
       // contain an `<if-group>` and this operation is itself an
       // `<if-group>`.
-      [(IfConditionParenthesized(), var string)] =>
-        string.substring(1, string.length - 1),
+      [(IfConditionParenthesized(), var string)] => string.substring(
+        1,
+        string.length - 1,
+      ),
       _ => values.map((pair) => pair.$2).join(' ${node.op} '),
     };
   }
 
+  @override
   Object /* String | bool */ visitIfConditionFunction(
-          IfConditionFunction node) =>
-      _performInterpolation(node.name) +
-      '(' +
-      _performInterpolation(node.arguments) +
-      ')';
+    IfConditionFunction node,
+  ) =>
+      '${_performInterpolation(node.name)}(${_performInterpolation(node.arguments)})';
 
+  @override
   Object /* String | bool */ visitIfConditionSass(IfConditionSass node) =>
       node.expression.accept(this).isTruthy;
 
+  @override
   Object /* String | bool */ visitIfConditionRaw(IfConditionRaw node) =>
       _performInterpolation(node.text);
 
+  @override
   Value visitLegacyIfExpression(LegacyIfExpression node) {
     var (positional, named) = _evaluateMacroArguments(node);
     _verifyParameters(
-        positional.length, named, LegacyIfExpression.declaration, node);
+      positional.length,
+      named,
+      LegacyIfExpression.declaration,
+      node,
+    );
 
     // ignore: prefer_is_empty
     var condition = positional.elementAtOrNull(0) ?? named["condition"]!;
@@ -2809,29 +2828,30 @@ final class _EvaluateVisitor
     return result.accept(this);
   }
 
+  @override
   Value visitNullExpression(NullExpression node) => sassNull;
 
+  @override
   SassNumber visitNumberExpression(NumberExpression node) =>
       SassNumber(node.value, node.unit);
 
+  @override
   Value visitParenthesizedExpression(ParenthesizedExpression node) =>
       _stylesheet.plainCss
-          ? throw _exception(
-              "Parentheses aren't allowed in plain CSS.",
-              node.span,
-            )
-          : node.expression.accept(this);
+      ? throw _exception("Parentheses aren't allowed in plain CSS.", node.span)
+      : node.expression.accept(this);
 
+  @override
   SassColor visitColorExpression(ColorExpression node) => node.value;
 
+  @override
   SassList visitListExpression(ListExpression node) => SassList(
-        node.contents.map(
-          (Expression expression) => expression.accept(this),
-        ),
-        node.separator,
-        brackets: node.hasBrackets,
-      );
+    node.contents.map((Expression expression) => expression.accept(this)),
+    node.separator,
+    brackets: node.hasBrackets,
+  );
 
+  @override
   SassMap visitMapExpression(MapExpression node) {
     var map = <Value, Value>{};
     var keyNodes = <Value, AstNode>{};
@@ -2845,7 +2865,7 @@ final class _EvaluateVisitor
           'Duplicate key.',
           key.span,
           'second key',
-          {if (oldValueSpan != null) oldValueSpan: 'first key'},
+          {?oldValueSpan: 'first key'},
           _stackTrace(key.span),
         );
       }
@@ -2855,15 +2875,14 @@ final class _EvaluateVisitor
     return SassMap(map);
   }
 
+  @override
   Value visitFunctionExpression(FunctionExpression node) {
     var function = _stylesheet.plainCss
         ? null
         : _addExceptionSpan(
             node,
-            () => _environment.getFunction(
-              node.name,
-              namespace: node.namespace,
-            ),
+            () =>
+                _environment.getFunction(node.name, namespace: node.namespace),
             label: "function call",
           );
     if (function == null || node.originalName.startsWith('--')) {
@@ -2883,27 +2902,28 @@ final class _EvaluateVisitor
           return _visitCalculation(node, inLegacySassFunction: name);
 
         case "calc" ||
-              "clamp" ||
-              "hypot" ||
-              "sin" ||
-              "cos" ||
-              "tan" ||
-              "asin" ||
-              "acos" ||
-              "atan" ||
-              "sqrt" ||
-              "exp" ||
-              "sign" ||
-              "mod" ||
-              "rem" ||
-              "atan2" ||
-              "pow" ||
-              "log" ||
-              "calc-size":
+            "clamp" ||
+            "hypot" ||
+            "sin" ||
+            "cos" ||
+            "tan" ||
+            "asin" ||
+            "acos" ||
+            "atan" ||
+            "sqrt" ||
+            "exp" ||
+            "sign" ||
+            "mod" ||
+            "rem" ||
+            "atan2" ||
+            "pow" ||
+            "log" ||
+            "calc-size":
           return _visitCalculation(node);
       }
 
-      function = (_stylesheet.plainCss ? null : _builtInFunctions[node.name]) ??
+      function =
+          (_stylesheet.plainCss ? null : _builtInFunctions[node.name]) ??
           PlainCssCallable(node.originalName);
     }
 
@@ -2972,43 +2992,43 @@ final class _EvaluateVisitor
         "max" => SassCalculation.max(arguments),
         "hypot" => SassCalculation.hypot(arguments),
         "pow" => SassCalculation.pow(
-            arguments[0],
-            arguments.elementAtOrNull(1),
-          ),
+          arguments[0],
+          arguments.elementAtOrNull(1),
+        ),
         "atan2" => SassCalculation.atan2(
-            arguments[0],
-            arguments.elementAtOrNull(1),
-          ),
+          arguments[0],
+          arguments.elementAtOrNull(1),
+        ),
         "log" => SassCalculation.log(
-            arguments[0],
-            arguments.elementAtOrNull(1),
-          ),
+          arguments[0],
+          arguments.elementAtOrNull(1),
+        ),
         "mod" => SassCalculation.mod(
-            arguments[0],
-            arguments.elementAtOrNull(1),
-          ),
+          arguments[0],
+          arguments.elementAtOrNull(1),
+        ),
         "rem" => SassCalculation.rem(
-            arguments[0],
-            arguments.elementAtOrNull(1),
-          ),
+          arguments[0],
+          arguments.elementAtOrNull(1),
+        ),
         "round" => SassCalculation.roundInternal(
-            arguments[0],
-            arguments.elementAtOrNull(1),
-            arguments.elementAtOrNull(2),
-            span: node.span,
-            inLegacySassFunction: inLegacySassFunction,
-            warn: (message, [deprecation]) =>
-                _warn(message, node.span, deprecation),
-          ),
+          arguments[0],
+          arguments.elementAtOrNull(1),
+          arguments.elementAtOrNull(2),
+          span: node.span,
+          inLegacySassFunction: inLegacySassFunction,
+          warn: (message, [deprecation]) =>
+              _warn(message, node.span, deprecation),
+        ),
         "clamp" => SassCalculation.clamp(
-            arguments[0],
-            arguments.elementAtOrNull(1),
-            arguments.elementAtOrNull(2),
-          ),
+          arguments[0],
+          arguments.elementAtOrNull(1),
+          arguments.elementAtOrNull(2),
+        ),
         "calc-size" => SassCalculation.calcSize(
-            arguments[0],
-            arguments.elementAtOrNull(1),
-          ),
+          arguments[0],
+          arguments.elementAtOrNull(1),
+        ),
         _ => throw UnsupportedError('Unknown calculation name "${node.name}".'),
       };
     } on SassScriptException catch (error, stackTrace) {
@@ -3032,14 +3052,7 @@ final class _EvaluateVisitor
       } else if (maxArgs != null &&
           node.arguments.positional.length > maxArgs) {
         throw _exception(
-          "Only $maxArgs ${pluralize('argument', maxArgs)} allowed, but "
-                  "${node.arguments.positional.length} " +
-              pluralize(
-                'was',
-                node.arguments.positional.length,
-                plural: 'were',
-              ) +
-              " passed.",
+          "Only $maxArgs ${pluralize('argument', maxArgs)} allowed, but ${node.arguments.positional.length} ${pluralize('was', node.arguments.positional.length, plural: 'were')} passed.",
           node.span,
         );
       }
@@ -3047,16 +3060,16 @@ final class _EvaluateVisitor
 
     switch (node.name.toLowerCase()) {
       case "calc" ||
-            "sqrt" ||
-            "sin" ||
-            "cos" ||
-            "tan" ||
-            "asin" ||
-            "acos" ||
-            "atan" ||
-            "abs" ||
-            "exp" ||
-            "sign":
+          "sqrt" ||
+          "sin" ||
+          "cos" ||
+          "tan" ||
+          "asin" ||
+          "acos" ||
+          "atan" ||
+          "abs" ||
+          "exp" ||
+          "sign":
         check(1);
       case "min" || "max" || "hypot":
         check();
@@ -3138,10 +3151,7 @@ final class _EvaluateVisitor
           'infinity' => SassNumber(double.infinity),
           '-infinity' => SassNumber(double.negativeInfinity),
           'nan' => SassNumber(double.nan),
-          _ => SassString(
-              _performInterpolation(node.text),
-              quotes: false,
-            ),
+          _ => SassString(_performInterpolation(node.text), quotes: false),
         };
 
       case BinaryOperationExpression(:var operator, :var left, :var right):
@@ -3166,24 +3176,24 @@ final class _EvaluateVisitor
         );
 
       case NumberExpression() ||
-            VariableExpression() ||
-            FunctionExpression() ||
-            LegacyIfExpression():
+          VariableExpression() ||
+          FunctionExpression() ||
+          LegacyIfExpression():
         return switch (node.accept(this)) {
           SassNumber result => result,
           SassCalculation result => result,
           SassString result when !result.hasQuotes => result,
           var result => throw _exception(
-              "Value $result can't be used in a calculation.",
-              node.span,
-            ),
+            "Value $result can't be used in a calculation.",
+            node.span,
+          ),
         };
 
       case ListExpression(
-          hasBrackets: false,
-          separator: ListSeparator.space,
-          contents: [_, _, ...],
-        ):
+        hasBrackets: false,
+        separator: .space,
+        contents: [_, _, ...],
+      ):
         var elements = [
           for (var element in node.contents)
             _visitCalculationExpression(
@@ -3211,16 +3221,20 @@ final class _EvaluateVisitor
       // evaluating a calculation, but we want to avoid the extra allocations so
       // we handle it as we evaluate instead.
       case ListExpression(
-          hasBrackets: false,
-          separator: ListSeparator.slash,
-          contents: var contents,
-        ):
+        hasBrackets: false,
+        separator: .slash,
+        contents: var contents,
+      ):
         var adjusted = _inFunction || _inMixin
             ? _calcSlashListCache.putIfAbsent(
-                node, () => _adjustSlashPrecedence(contents))
+                node,
+                () => _adjustSlashPrecedence(contents),
+              )
             : _adjustSlashPrecedence(contents);
-        return _visitCalculationExpression(adjusted,
-            inLegacySassFunction: inLegacySassFunction);
+        return _visitCalculationExpression(
+          adjusted,
+          inLegacySassFunction: inLegacySassFunction,
+        );
 
       case _:
         assert(!node.isCalculationSafe);
@@ -3241,11 +3255,10 @@ final class _EvaluateVisitor
   Expression _adjustSlashPrecedence(List<Expression> contents) {
     var left = contents.first;
     for (var right in contents.skip(1)) {
-      if (right
-          case StringExpression(
-            text: Interpolation(asPlain: " "),
-            hasQuotes: false
-          )) {
+      if (right case StringExpression(
+        text: Interpolation(asPlain: " "),
+        hasQuotes: false,
+      )) {
         throw _exception(
           "This expression can't be used in a calculation.",
           right.span,
@@ -3254,14 +3267,14 @@ final class _EvaluateVisitor
 
       left = switch ((
         _splitCalculationSumTail(left),
-        _splitCalculationSumHead(right)
+        _splitCalculationSumHead(right),
       )) {
         // Example: 1 + 2 / 3 + 4
         (
           //   1                  +                 2
           (var leftRemainder, var leftOperator, var leftOperand),
           //   3                 +                  4
-          (var rightOperand, var rightOperator, var rightRemainder)
+          (var rightOperand, var rightOperator, var rightRemainder),
         ) =>
           // (1 + (2 / 3)) + 4
           BinaryOperationExpression(
@@ -3271,8 +3284,7 @@ final class _EvaluateVisitor
               leftOperator,
               leftRemainder,
               // 2 / 3
-              BinaryOperationExpression(
-                  BinaryOperator.dividedBy, leftOperand, rightOperand),
+              BinaryOperationExpression(.dividedBy, leftOperand, rightOperand),
             ),
             rightRemainder,
           ),
@@ -3284,8 +3296,7 @@ final class _EvaluateVisitor
             leftOperator,
             leftRemainder,
             // 2 / 3
-            BinaryOperationExpression(
-                BinaryOperator.dividedBy, leftOperand, right),
+            BinaryOperationExpression(.dividedBy, leftOperand, right),
           ),
         // Example: 1 / 2 + 3
         //       2                 +                  3
@@ -3294,28 +3305,25 @@ final class _EvaluateVisitor
           BinaryOperationExpression(
             rightOperator,
             // 1 / 2
-            BinaryOperationExpression(
-                BinaryOperator.dividedBy, left, rightOperand),
+            BinaryOperationExpression(.dividedBy, left, rightOperand),
             rightRemainder,
           ),
         _ => switch (right) {
-            // Example: 1 / 2 * 3
+          // Example: 1 / 2 * 3
+          BinaryOperationExpression(
+            operator: .times,
+            left: var rightOperand, // 2
+            right: var rightRemainder, // 3
+          ) =>
+            // (1 / 2) * 3
             BinaryOperationExpression(
-              operator: BinaryOperator.times,
-              left: var rightOperand, // 2
-              right: var rightRemainder, // 3
-            ) =>
-              // (1 / 2) * 3
-              BinaryOperationExpression(
-                BinaryOperator.times,
-                // 1 / 2
-                BinaryOperationExpression(
-                    BinaryOperator.dividedBy, left, rightOperand),
-                rightRemainder,
-              ),
-            _ =>
-              BinaryOperationExpression(BinaryOperator.dividedBy, left, right),
-          },
+              .times,
+              // 1 / 2
+              BinaryOperationExpression(.dividedBy, left, rightOperand),
+              rightRemainder,
+            ),
+          _ => BinaryOperationExpression(.dividedBy, left, right),
+        },
       };
     }
 
@@ -3331,37 +3339,35 @@ final class _EvaluateVisitor
   ///
   /// If [expression] is not such a sequence, returns `null`.
   (Expression, BinaryOperator, Expression)? _splitCalculationSumHead(
-      Expression expression) {
+    Expression expression,
+  ) {
     switch (expression) {
       // Example: ((1 + 2) + 3) - 4
       case BinaryOperationExpression(
-          // -
-          operator:
-              (BinaryOperator.plus || BinaryOperator.minus) && var operator,
-          left: BinaryOperationExpression(
-                operator: BinaryOperator.plus || BinaryOperator.minus
-              ) &&
-              var left, // ((1 + 2) + 3)
-          :var right // 4
-        ):
+        // -
+        operator: (.plus || .minus) && var operator,
+        left: BinaryOperationExpression(operator: .plus || .minus) &&
+            var left, // ((1 + 2) + 3)
+        :var right, // 4
+      ):
         // (1, +, 2 + 3)
-        var (head, leftOperator, leftRemainder) =
-            _splitCalculationSumHead(left)!;
+        var (head, leftOperator, leftRemainder) = _splitCalculationSumHead(
+          left,
+        )!;
         // (1, +, (2 + 3) - 4)
         return (
           head,
           leftOperator,
           // (2 + 3) - 4
-          BinaryOperationExpression(operator, leftRemainder, right)
+          BinaryOperationExpression(operator, leftRemainder, right),
         );
 
       // Example: 1 + 2
       case BinaryOperationExpression(
-          operator:
-              (BinaryOperator.plus || BinaryOperator.minus) && var operator,
-          :var left, // 1
-          :var right // 2
-        ):
+        operator: (.plus || .minus) && var operator,
+        :var left, // 1
+        :var right, // 2
+      ):
         // (1, +, 2)
         return (left, operator, right);
 
@@ -3379,7 +3385,8 @@ final class _EvaluateVisitor
   ///
   /// If [expression] is not such a sequence, returns `null`.
   (Expression, BinaryOperator, Expression)? _splitCalculationSumTail(
-      Expression expression) {
+    Expression expression,
+  ) {
     // Example: 1 - (2 + (3 + 4))
     //
     // Note: Sass parses operations left-associatively, so this parse won't
@@ -3387,34 +3394,31 @@ final class _EvaluateVisitor
     // comes up from some other source.
     switch (expression) {
       case BinaryOperationExpression(
-          // -
-          operator:
-              (BinaryOperator.plus || BinaryOperator.minus) && var operator,
-          :var left, // 1
-          right: BinaryOperationExpression(
-                operator: BinaryOperator.plus || BinaryOperator.minus
-              ) &&
-              var right // 2 + (3 + 4)
-        ):
+        // -
+        operator: (.plus || .minus) && var operator,
+        :var left, // 1
+        right: BinaryOperationExpression(operator: .plus || .minus) &&
+            var right, // 2 + (3 + 4)
+      ):
         // (2 + 3, +, 4)
-        var (rightRemainder, rightOperator, tail) =
-            _splitCalculationSumTail(right)!;
+        var (rightRemainder, rightOperator, tail) = _splitCalculationSumTail(
+          right,
+        )!;
         // (1 - (2 + 3), + 4)
         return (
           // 1 - (2 + 3)
           BinaryOperationExpression(operator, left, rightRemainder),
           rightOperator, // +
-          tail // 4
+          tail, // 4
         );
 
       // Example: 1 + 2
       case BinaryOperationExpression(
-          // +
-          operator:
-              (BinaryOperator.plus || BinaryOperator.minus) && var operator,
-          :var left, // 1
-          :var right // 2
-        ):
+        // +
+        operator: (.plus || .minus) && var operator,
+        :var left, // 1
+        :var right, // 2
+      ):
         // (1, +, 2)
         return (left, operator, right);
 
@@ -3428,8 +3432,7 @@ final class _EvaluateVisitor
   void _checkWhitespaceAroundCalculationOperator(
     BinaryOperationExpression node,
   ) {
-    if (node.operator != BinaryOperator.plus &&
-        node.operator != BinaryOperator.minus) {
+    if (node.operator != .plus && node.operator != .minus) {
       return;
     }
 
@@ -3458,17 +3461,16 @@ final class _EvaluateVisitor
   CalculationOperator _binaryOperatorToCalculationOperator(
     BinaryOperator operator,
     BinaryOperationExpression node,
-  ) =>
-      switch (operator) {
-        BinaryOperator.plus => CalculationOperator.plus,
-        BinaryOperator.minus => CalculationOperator.minus,
-        BinaryOperator.times => CalculationOperator.times,
-        BinaryOperator.dividedBy => CalculationOperator.dividedBy,
-        _ => throw _exception(
-            "This operation can't be used in a calculation.",
-            node.operatorSpan,
-          ),
-      };
+  ) => switch (operator) {
+    .plus => .plus,
+    .minus => .minus,
+    .times => .times,
+    .dividedBy => .dividedBy,
+    _ => throw _exception(
+      "This operation can't be used in a calculation.",
+      node.operatorSpan,
+    ),
+  };
 
   /// Throws an error if [elements] contains two adjacent non-string values.
   void _checkAdjacentCalculationValues(
@@ -3485,9 +3487,7 @@ final class _EvaluateVisitor
       var previousNode = node.contents[i - 1];
       var currentNode = node.contents[i];
       if (currentNode
-          case UnaryOperationExpression(
-                operator: UnaryOperator.minus || UnaryOperator.plus,
-              ) ||
+          case UnaryOperationExpression(operator: .minus || .plus) ||
               NumberExpression(value: < 0)) {
         // `calc(1 -2)` parses as a space-separated list whose second value is a
         // unary operator or a negative number, but just saying it's an invalid
@@ -3506,6 +3506,7 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   Value visitInterpolatedFunctionExpression(
     InterpolatedFunctionExpression node,
   ) {
@@ -3526,7 +3527,7 @@ final class _EvaluateVisitor
     ArgumentList arguments,
     UserDefinedCallable<Environment> callable,
     AstNode nodeWithSpan,
-    V run(),
+    V Function() run,
   ) {
     // TODO(nweiz): Set [trackSpans] to `null` once we're no longer emitting
     // deprecation warnings for /-as-division.
@@ -3562,11 +3563,14 @@ final class _EvaluateVisitor
             );
           }
 
-          for (var i = evaluated.positional.length;
-              i < parameters.length;
-              i++) {
+          for (
+            var i = evaluated.positional.length;
+            i < parameters.length;
+            i++
+          ) {
             var parameter = parameters[i];
-            var value = evaluated.named.remove(parameter.name) ??
+            var value =
+                evaluated.named.remove(parameter.name) ??
                 parameter.defaultValue!.accept<Value>(this);
             _environment.setLocalVariable(
               parameter.name,
@@ -3585,9 +3589,7 @@ final class _EvaluateVisitor
             argumentList = SassArgumentList(
               rest,
               evaluated.named,
-              evaluated.separator == ListSeparator.undecided
-                  ? ListSeparator.comma
-                  : evaluated.separator,
+              evaluated.separator == .undecided ? .comma : evaluated.separator,
             );
             _environment.setLocalVariable(
               restParameter,
@@ -3633,22 +3635,17 @@ final class _EvaluateVisitor
     if (callable is BuiltInCallable) {
       return _runBuiltInCallable(arguments, callable, nodeWithSpan);
     } else if (callable is UserDefinedCallable<Environment>) {
-      return _runUserDefinedCallable(
-        arguments,
-        callable,
-        nodeWithSpan,
-        () {
-          for (var statement in callable.declaration.children) {
-            var returnValue = statement.accept(this);
-            if (returnValue is Value) return returnValue;
-          }
+      return _runUserDefinedCallable(arguments, callable, nodeWithSpan, () {
+        for (var statement in callable.declaration.children) {
+          var returnValue = statement.accept(this);
+          if (returnValue is Value) return returnValue;
+        }
 
-          throw _exception(
-            "Function finished without @return.",
-            callable.declaration.span,
-          );
-        },
-      );
+        throw _exception(
+          "Function finished without @return.",
+          callable.declaration.span,
+        );
+      });
     } else if (callable is PlainCssCallable) {
       if (arguments.named.isNotEmpty || arguments.keywordRest != null) {
         throw _exception(
@@ -3711,9 +3708,11 @@ final class _EvaluateVisitor
       evaluated.positional.length,
       namedSet,
     );
-    _addExceptionSpan(nodeWithSpan,
-        () => overload.verify(evaluated.positional.length, namedSet),
-        label: "invocation");
+    _addExceptionSpan(
+      nodeWithSpan,
+      () => overload.verify(evaluated.positional.length, namedSet),
+      label: "invocation",
+    );
 
     var parameters = overload.parameters;
     for (var i = evaluated.positional.length; i < parameters.length; i++) {
@@ -3738,9 +3737,7 @@ final class _EvaluateVisitor
       argumentList = SassArgumentList(
         rest,
         evaluated.named,
-        evaluated.separator == ListSeparator.undecided
-            ? ListSeparator.comma
-            : evaluated.separator,
+        evaluated.separator == .undecided ? .comma : evaluated.separator,
       );
       evaluated.positional.add(argumentList);
     }
@@ -3808,7 +3805,7 @@ final class _EvaluateVisitor
         positionalNodes: positionalNodes,
         named: named,
         namedNodes: namedNodes,
-        separator: ListSeparator.undecided,
+        separator: ListSeparator.undecided, // dart-lang/sdk#64092
       );
     }
 
@@ -3877,7 +3874,7 @@ final class _EvaluateVisitor
   /// Returns the arguments as expressions so that they can be lazily evaluated
   /// for macros such as `if()`.
   (List<Expression> positional, Map<String, Expression> named)
-      _evaluateMacroArguments(CallableInvocation invocation) {
+  _evaluateMacroArguments(CallableInvocation invocation) {
     var restArgs_ = invocation.arguments.rest;
     if (restArgs_ == null) {
       return (invocation.arguments.positional, invocation.arguments.named);
@@ -3896,25 +3893,15 @@ final class _EvaluateVisitor
       );
     } else if (rest is SassList) {
       positional.addAll(
-        rest.asList.map(
-          (value) => ValueExpression(
-            value,
-            restArgs.span,
-          ),
-        ),
+        rest.asList.map((value) => ValueExpression(value, restArgs.span)),
       );
       if (rest is SassArgumentList) {
         rest.keywords.forEach((key, value) {
-          named[key] = ValueExpression(
-            value,
-            restArgs.span,
-          );
+          named[key] = ValueExpression(value, restArgs.span);
         });
       }
     } else {
-      positional.add(
-        ValueExpression(rest, restArgs.span),
-      );
+      positional.add(ValueExpression(rest, restArgs.span));
     }
 
     var keywordRestArgs_ = invocation.arguments.keywordRest;
@@ -3927,10 +3914,7 @@ final class _EvaluateVisitor
         named,
         keywordRest,
         invocation,
-        (value) => ValueExpression(
-          value,
-          keywordRestArgs.span,
-        ),
+        (value) => ValueExpression(value, keywordRestArgs.span),
       );
       return (positional, named);
     } else {
@@ -3956,7 +3940,7 @@ final class _EvaluateVisitor
     Map<String, T> values,
     SassMap map,
     AstNode nodeWithSpan,
-    T convert(Value value),
+    T Function(Value value) convert,
   ) {
     map.contents.forEach((key, value) {
       if (key is SassString) {
@@ -3978,13 +3962,16 @@ final class _EvaluateVisitor
     Map<String, dynamic> named,
     ParameterList parameters,
     AstNode nodeWithSpan,
-  ) =>
-      _addExceptionSpan(
-          nodeWithSpan, () => parameters.verify(positional, MapKeySet(named)));
+  ) => _addExceptionSpan(
+    nodeWithSpan,
+    () => parameters.verify(positional, MapKeySet(named)),
+  );
 
+  @override
   Value visitSelectorExpression(SelectorExpression node) =>
       _styleRuleIgnoringAtRoot?.originalSelector.asSassList ?? sassNull;
 
+  @override
   SassString visitStringExpression(StringExpression node) {
     // Don't use [performInterpolation] here because we need to get the raw text
     // from strings, rather than the semantic value.
@@ -3996,9 +3983,9 @@ final class _EvaluateVisitor
           switch (value) {
             String() => value,
             Expression() => switch (value.accept(this)) {
-                SassString(:var text) => text,
-                var result => _serialize(result, value, quote: false),
-              },
+              SassString(:var text) => text,
+              var result => _serialize(result, value, quote: false),
+            },
             _ => throw UnsupportedError("Unknown interpolation value $value"),
           },
       ].join(),
@@ -4008,13 +3995,9 @@ final class _EvaluateVisitor
     return result;
   }
 
-  SassString visitSupportsExpression(
-    SupportsExpression expression,
-  ) =>
-      SassString(
-        _visitSupportsCondition(expression.condition),
-        quotes: false,
-      );
+  @override
+  SassString visitSupportsExpression(SupportsExpression expression) =>
+      SassString(_visitSupportsCondition(expression.condition), quotes: false);
 
   // ## Plain CSS
 
@@ -4027,6 +4010,7 @@ final class _EvaluateVisitor
   // into the stylesheet as-is because the `@import` may be nested in other
   // rules). That's what these rules implement.
 
+  @override
   void visitCssAtRule(CssAtRule node) {
     // NOTE: this logic is largely duplicated in [visitAtRule]. Most changes
     // here should be mirrored there.
@@ -4092,6 +4076,7 @@ final class _EvaluateVisitor
     _inKeyframes = wasInKeyframes;
   }
 
+  @override
   void visitCssComment(CssComment node) {
     // NOTE: this logic is largely duplicated in [visitLoudComment]. Most
     // changes here should be mirrored there.
@@ -4105,6 +4090,7 @@ final class _EvaluateVisitor
     _parent.addChild(ModifiableCssComment(node.text, node.span));
   }
 
+  @override
   void visitCssDeclaration(CssDeclaration node) {
     _copyParentAfterSibling();
     _parent.addChild(
@@ -4118,6 +4104,7 @@ final class _EvaluateVisitor
     );
   }
 
+  @override
   void visitCssImport(CssImport node) {
     // NOTE: this logic is largely duplicated in [_visitStaticImport]. Most
     // changes here should be mirrored there.
@@ -4138,6 +4125,7 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   void visitCssKeyframeBlock(CssKeyframeBlock node) {
     // NOTE: this logic is largely duplicated in [visitStyleRule]. Most changes
     // here should be mirrored there.
@@ -4155,6 +4143,7 @@ final class _EvaluateVisitor
     );
   }
 
+  @override
   void visitCssMediaRule(CssMediaRule node) {
     // NOTE: this logic is largely duplicated in [visitMediaRule]. Most changes
     // here should be mirrored there.
@@ -4190,28 +4179,24 @@ final class _EvaluateVisitor
     _withParent(
       ModifiableCssMediaRule(mergedQueries ?? node.queries, node.span),
       () {
-        _withMediaQueries(
-          mergedQueries ?? node.queries,
-          mergedSources,
-          () {
-            if (_styleRule case var styleRule?) {
-              // If we're in a style rule, copy it into the media query so that
-              // declarations immediately inside @media have somewhere to go.
-              //
-              // For example, "a {@media screen {b: c}}" should produce
-              // "@media screen {a {b: c}}".
-              _withParent(styleRule.copyWithoutChildren(), () {
-                for (var child in node.children) {
-                  child.accept(this);
-                }
-              }, scopeWhen: false);
-            } else {
+        _withMediaQueries(mergedQueries ?? node.queries, mergedSources, () {
+          if (_styleRule case var styleRule?) {
+            // If we're in a style rule, copy it into the media query so that
+            // declarations immediately inside @media have somewhere to go.
+            //
+            // For example, "a {@media screen {b: c}}" should produce
+            // "@media screen {a {b: c}}".
+            _withParent(styleRule.copyWithoutChildren(), () {
               for (var child in node.children) {
                 child.accept(this);
               }
+            }, scopeWhen: false);
+          } else {
+            for (var child in node.children) {
+              child.accept(this);
             }
-          },
-        );
+          }
+        });
       },
       through: (node) =>
           node is CssStyleRule ||
@@ -4222,6 +4207,7 @@ final class _EvaluateVisitor
     );
   }
 
+  @override
   void visitCssStyleRule(CssStyleRule node) {
     // NOTE: this logic is largely duplicated in [visitStyleRule]. Most changes
     // here should be mirrored there.
@@ -4242,7 +4228,7 @@ final class _EvaluateVisitor
     var merge = switch (_styleRule) {
       null => true,
       CssStyleRule(fromPlainCss: true) => false,
-      _ => !(node.fromPlainCss && node.selector.containsParentSelector)
+      _ => !(node.fromPlainCss && node.selector.containsParentSelector),
     };
     var originalSelector = merge
         ? node.selector.nestWithin(
@@ -4279,12 +4265,14 @@ final class _EvaluateVisitor
     }
   }
 
+  @override
   void visitCssStylesheet(CssStylesheet node) {
     for (var statement in node.children) {
       statement.accept(this);
     }
   }
 
+  @override
   void visitCssSupportsRule(CssSupportsRule node) {
     // NOTE: this logic is largely duplicated in [visitSupportsRule]. Most
     // changes here should be mirrored there.
@@ -4337,10 +4325,7 @@ final class _EvaluateVisitor
   ///
   /// Returns the value returned by [callback], or `null` if it only ever
   /// returned `null`.
-  Value? _handleReturn<T>(
-    List<T> list,
-    Value? callback(T value),
-  ) {
+  Value? _handleReturn<T>(List<T> list, Value? Function(T value) callback) {
     for (var value in list) {
       if (callback(value) case var result?) return result;
     }
@@ -4348,10 +4333,7 @@ final class _EvaluateVisitor
   }
 
   /// Runs [callback] with [environment] as the current environment.
-  T _withEnvironment<T>(
-    Environment environment,
-    T callback(),
-  ) {
+  T _withEnvironment<T>(Environment environment, T Function() callback) {
     var oldEnvironment = _environment;
     _environment = environment;
     var result = callback();
@@ -4436,11 +4418,8 @@ final class _EvaluateVisitor
 
       if (warnForColor && namesByColor.containsKey(result)) {
         var alternative = BinaryOperationExpression(
-          BinaryOperator.plus,
-          StringExpression(
-            Interpolation.plain("", interpolation.span),
-            quotes: true,
-          ),
+          .plus,
+          StringExpression(.plain("", interpolation.span), quotes: true),
           expression,
         );
         _warn(
@@ -4469,10 +4448,7 @@ final class _EvaluateVisitor
 
   /// Evaluates [expression] and calls `toCssString()` and wraps a
   /// [SassScriptException] to associate it with [span].
-  String _evaluateToCss(
-    Expression expression, {
-    bool quote = true,
-  }) =>
+  String _evaluateToCss(Expression expression, {bool quote = true}) =>
       _serialize(expression.accept(this), expression, quote: quote);
 
   /// Calls `value.toCssString()` and wraps a [SassScriptException] to associate
@@ -4524,8 +4500,8 @@ final class _EvaluateVisitor
   /// Runs [callback] in a new environment scope unless [scopeWhen] is false.
   T _withParent<S extends ModifiableCssParentNode, T>(
     S node,
-    T callback(), {
-    bool through(CssNode node)?,
+    T Function() callback, {
+    bool Function(CssNode node)? through,
     bool scopeWhen = true,
   }) {
     _addChild(node, through: through);
@@ -4556,7 +4532,10 @@ final class _EvaluateVisitor
   /// If [through] is passed, [node] is added as a child of the first parent for
   /// which [through] returns `false` instead. That parent is copied unless it's the
   /// lattermost child of its parent.
-  void _addChild(ModifiableCssNode node, {bool through(CssNode node)?}) {
+  void _addChild(
+    ModifiableCssNode node, {
+    bool Function(CssNode node)? through,
+  }) {
     // Go up through parents that match [through].
     var parent = _parent;
     if (through != null) {
@@ -4591,10 +4570,7 @@ final class _EvaluateVisitor
   }
 
   /// Runs [callback] with [rule] as the current style rule.
-  T _withStyleRule<T>(
-    ModifiableCssStyleRule rule,
-    T callback(),
-  ) {
+  T _withStyleRule<T>(ModifiableCssStyleRule rule, T Function() callback) {
     var oldRule = _styleRuleIgnoringAtRoot;
     _styleRuleIgnoringAtRoot = rule;
     var result = callback();
@@ -4610,7 +4586,7 @@ final class _EvaluateVisitor
   T _withMediaQueries<T>(
     List<CssMediaQuery>? queries,
     Set<CssMediaQuery>? sources,
-    T callback(),
+    T Function() callback,
   ) {
     var oldMediaQueries = _mediaQueries;
     var oldSources = _mediaQuerySources;
@@ -4633,7 +4609,7 @@ final class _EvaluateVisitor
   T _withStackFrame<T>(
     String member,
     AstNode nodeWithSpan,
-    T callback(),
+    T Function() callback,
   ) {
     _stack.add((_member, nodeWithSpan));
     var oldMember = _member;
@@ -4647,11 +4623,10 @@ final class _EvaluateVisitor
   /// Creates a new stack frame with location information from [member] and
   /// [span].
   Frame _stackFrame(String member, FileSpan span) => frameForSpan(
-        span,
-        member,
-        url:
-            span.sourceUrl.andThen((url) => _importCache?.humanize(url) ?? url),
-      );
+    span,
+    member,
+    url: span.sourceUrl.andThen((url) => _importCache.humanize(url)),
+  );
 
   /// Returns a stack trace at the current point.
   ///
@@ -4701,14 +4676,13 @@ final class _EvaluateVisitor
     String message,
     String primaryLabel,
     Map<FileSpan, String> secondaryLabels,
-  ) =>
-      MultiSpanSassRuntimeException(
-        message,
-        _stack.last.$2.span,
-        primaryLabel,
-        secondaryLabels,
-        _stackTrace(),
-      );
+  ) => MultiSpanSassRuntimeException(
+    message,
+    _stack.last.$2.span,
+    primaryLabel,
+    secondaryLabels,
+    _stackTrace(),
+  );
 
   /// Runs [callback], and converts any [SassScriptException]s it throws to
   /// [SassRuntimeException]s with [nodeWithSpan]'s source span.
@@ -4724,7 +4698,7 @@ final class _EvaluateVisitor
   /// frame for [nodeWithSpan]. Otherwise, it will use the existing stack as-is.
   T _addExceptionSpan<T>(
     AstNode nodeWithSpan,
-    T callback(), {
+    T Function() callback, {
     String? label,
     bool addStackFrame = true,
   }) {
@@ -4739,8 +4713,11 @@ final class _EvaluateVisitor
         stackTrace,
       );
     } on SassException catch (error, stackTrace) {
-      throwWithTrace(_adjustException(error, nodeWithSpan.span, label: label),
-          error, stackTrace);
+      throwWithTrace(
+        _adjustException(error, nodeWithSpan.span, label: label),
+        error,
+        stackTrace,
+      );
     }
   }
 
@@ -4767,7 +4744,7 @@ final class _EvaluateVisitor
   /// Runs [callback], and converts any [SassException]s that aren't already
   /// [SassRuntimeException]s to [SassRuntimeException]s with the current stack
   /// trace.
-  T _addExceptionTrace<T>(T callback()) {
+  T _addExceptionTrace<T>(T Function() callback) {
     try {
       return callback();
     } on SassRuntimeException {
@@ -4784,7 +4761,7 @@ final class _EvaluateVisitor
   /// Runs [callback], and converts any [SassRuntimeException]s containing an
   /// @error to throw a more relevant [SassRuntimeException] with [nodeWithSpan]'s
   /// source span.
-  T _addErrorSpan<T>(AstNode nodeWithSpan, T callback()) {
+  T _addErrorSpan<T>(AstNode nodeWithSpan, T Function() callback) {
     try {
       return callback();
     } on SassRuntimeException catch (error, stackTrace) {
@@ -4821,12 +4798,11 @@ final class _EvaluateVisitor
 /// because it will add the parent selector to the CSS if the `@import` appeared
 /// in a nested context, but the parent selector was already added when the
 /// imported stylesheet was evaluated.
-final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
+final class _ImportedCssVisitor(
   /// The visitor in whose context this was created.
-  final _EvaluateVisitor _visitor;
-
-  _ImportedCssVisitor(this._visitor);
-
+  final _EvaluateVisitor _visitor,
+) implements ModifiableCssVisitor<void> {
+  @override
   void visitCssAtRule(ModifiableCssAtRule node) {
     _visitor._addChild(
       node,
@@ -4834,11 +4810,14 @@ final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
     );
   }
 
+  @override
   void visitCssComment(ModifiableCssComment node) => _visitor._addChild(node);
 
+  @override
   void visitCssDeclaration(ModifiableCssDeclaration node) =>
       _visitor._addChild(node);
 
+  @override
   void visitCssImport(ModifiableCssImport node) {
     if (_visitor._parent != _visitor._root) {
       _visitor._addChild(node);
@@ -4850,16 +4829,19 @@ final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
     }
   }
 
+  @override
   void visitCssKeyframeBlock(ModifiableCssKeyframeBlock node) {
     assert(false, "visitCssKeyframeBlock() should never be called.");
   }
 
+  @override
   void visitCssMediaRule(ModifiableCssMediaRule node) {
     // Whether [node.query] has been merged with [_visitor._mediaQueries]. If it
     // has been merged, merging again is a no-op; if it hasn't been merged,
     // merging again will fail.
     var mediaQueries = _visitor._mediaQueries;
-    var hasBeenMerged = mediaQueries == null ||
+    var hasBeenMerged =
+        mediaQueries == null ||
         _visitor._mergeMediaQueries(mediaQueries, node.queries) != null;
 
     _visitor._addChild(
@@ -4869,36 +4851,39 @@ final class _ImportedCssVisitor implements ModifiableCssVisitor<void> {
     );
   }
 
+  @override
   void visitCssStyleRule(ModifiableCssStyleRule node) =>
       _visitor._addChild(node, through: (node) => node is CssStyleRule);
 
+  @override
   void visitCssStylesheet(ModifiableCssStylesheet node) {
     for (var child in node.children) {
       child.accept(this);
     }
   }
 
+  @override
   void visitCssSupportsRule(ModifiableCssSupportsRule node) =>
       _visitor._addChild(node, through: (node) => node is CssStyleRule);
 }
 
 /// An implementation of [EvaluationContext] using the information available in
 /// [_EvaluateVisitor].
-final class _EvaluationContext implements EvaluationContext {
+final class _EvaluationContext(
   /// The visitor backing this context.
-  final _EvaluateVisitor _visitor;
+  final _EvaluateVisitor _visitor,
 
   /// The AST node whose span should be used for [warn] if no other span is
   /// available.
-  final AstNode _defaultWarnNodeWithSpan;
-
-  _EvaluationContext(this._visitor, this._defaultWarnNodeWithSpan);
-
+  final AstNode _defaultWarnNodeWithSpan,
+) extends EvaluationContext {
+  @override
   FileSpan get currentCallableSpan {
     if (_visitor._callableNode case var callableNode?) return callableNode.span;
     throw StateError("No Sass callable is currently being evaluated.");
   }
 
+  @override
   void warn(String message, [Deprecation? deprecation]) {
     _visitor._warn(
       message,
@@ -4940,6 +4925,7 @@ typedef _ArgumentResults = ({
 typedef _LoadedStylesheet = (
   /// The stylesheet itself.
   Stylesheet stylesheet, {
+
   /// The importer that was used to load the stylesheet.
   ///
   /// This is `null` when running in Node Sass compatibility mode.

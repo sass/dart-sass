@@ -10,13 +10,12 @@ import '../expression.dart';
 /// A parent selector reference, `&`.
 ///
 /// {@category AST}
-final class SelectorExpression extends Expression {
-  final FileSpan span;
-
-  SelectorExpression(this.span);
-
+final class SelectorExpression(@override final FileSpan span)
+    extends Expression {
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitSelectorExpression(this);
 
+  @override
   String toString() => "&";
 }

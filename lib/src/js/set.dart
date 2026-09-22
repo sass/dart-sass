@@ -6,5 +6,5 @@ import 'package:js/js.dart';
 
 @JS('Set')
 class JSSet {
-  external JSSet(List<Object?> contents);
+  external new(List<Object?> contents);
 }

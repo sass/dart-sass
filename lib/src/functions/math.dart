@@ -112,8 +112,9 @@ final _round = _numberFunction("round", (number) => number.round().toDouble());
 ///
 
 final _hypot = _function("hypot", r"$numbers...", (arguments) {
-  var numbers =
-      arguments[0].asList.map((argument) => argument.assertNumber()).toList();
+  var numbers = arguments[0].asList
+      .map((argument) => argument.assertNumber())
+      .toList();
   if (numbers.isEmpty) {
     throw SassScriptException("At least one argument must be passed.");
   }
@@ -225,9 +226,11 @@ final _randomFunction = _function("random", r"$limit: null", (arguments) {
   if (limitScalar < 1) {
     throw SassScriptException("\$limit: Must be greater than 0, was $limit.");
   }
-  return SassNumber.withUnits(_random.nextInt(limitScalar) + 1,
-      numeratorUnits: limit.numeratorUnits,
-      denominatorUnits: limit.denominatorUnits);
+  return SassNumber.withUnits(
+    _random.nextInt(limitScalar) + 1,
+    numeratorUnits: limit.numeratorUnits,
+    denominatorUnits: limit.denominatorUnits,
+  );
 });
 
 final _div = _function("div", r"$number1, $number2", (arguments) {
@@ -244,7 +247,7 @@ final _div = _function("div", r"$number1, $number2", (arguments) {
 /// math function.
 BuiltInCallable _singleArgumentMathFunc(
   String name,
-  SassNumber mathFunc(SassNumber value),
+  SassNumber Function(SassNumber value) mathFunc,
 ) {
   return _function(name, r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
@@ -254,7 +257,10 @@ BuiltInCallable _singleArgumentMathFunc(
 
 /// Returns a [Callable] named [name] that transforms a number's value
 /// using [transform] and preserves its units.
-BuiltInCallable _numberFunction(String name, double transform(double value)) {
+BuiltInCallable _numberFunction(
+  String name,
+  double Function(double value) transform,
+) {
   return _function(name, r"$number", (arguments) {
     var number = arguments[0].assertNumber("number");
     return SassNumber.withUnits(
@@ -269,6 +275,5 @@ BuiltInCallable _numberFunction(String name, double transform(double value)) {
 BuiltInCallable _function(
   String name,
   String arguments,
-  Value callback(List<Value> arguments),
-) =>
-    BuiltInCallable.function(name, arguments, callback, url: "sass:math");
+  Value Function(List<Value> arguments) callback,
+) => BuiltInCallable.function(name, arguments, callback, url: "sass:math");

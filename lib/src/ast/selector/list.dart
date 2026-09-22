@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 import '../../exception.dart';
 import '../../extend/functions.dart';
 import '../../interpolation_map.dart';
+import '../../logger.dart';
 import '../../parse/selector.dart';
 import '../../utils.dart';
 import '../../util/iterable.dart';
@@ -24,11 +25,12 @@ import '../selector.dart';
 ///
 /// {@category AST}
 /// {@category Parsing}
-final class SelectorList extends Selector {
+final class SelectorList(Iterable<ComplexSelector> components, super.span)
+    extends Selector {
   /// The components of this selector.
   ///
   /// This is never empty.
-  final List<ComplexSelector> components;
+  final List<ComplexSelector> components = List.unmodifiableOf(components);
 
   /// Returns a SassScript list that represents this selector.
   ///
@@ -44,9 +46,9 @@ final class SelectorList extends Selector {
             if (component.combinator case var combinator?)
               SassString(combinator.toString(), quotes: false),
           ],
-        ], ListSeparator.space);
+        ], .space);
       }),
-      ListSeparator.comma,
+      .comma,
     );
   }
 
@@ -91,14 +93,14 @@ final class SelectorList extends Selector {
     if (allowLeadingCombinator && allowTrailingCombinator) return;
     for (var complex in components) {
       complex.assertValid(
-          name: name,
-          allowLeadingCombinator: allowLeadingCombinator,
-          allowTrailingCombinator: allowTrailingCombinator);
+        name: name,
+        allowLeadingCombinator: allowLeadingCombinator,
+        allowTrailingCombinator: allowTrailingCombinator,
+      );
     }
   }
 
-  SelectorList(Iterable<ComplexSelector> components, super.span)
-      : components = List.unmodifiable(components) {
+  this {
     if (this.components.isEmpty) {
       throw ArgumentError("components may not be empty.");
     }
@@ -114,22 +116,27 @@ final class SelectorList extends Selector {
   /// If passed, [interpolationMap] maps the text of [contents] back to the
   /// original location of the selector in the source file.
   ///
+  /// The [logger] will be used to report deprecation warnings. If it's null,
+  /// they'll be reported using [Logger.defaultLogger].
+  ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory SelectorList.parse(
+  factory parse(
     String contents, {
     Object? url,
     InterpolationMap? interpolationMap,
     bool allowParent = true,
     bool plainCss = false,
-  }) =>
-      SelectorParser(
-        contents,
-        url: url,
-        interpolationMap: interpolationMap,
-        allowParent: allowParent,
-        plainCss: plainCss,
-      ).parse();
+    Logger? logger,
+  }) => SelectorParser(
+    contents,
+    url: url,
+    interpolationMap: interpolationMap,
+    allowParent: allowParent,
+    plainCss: plainCss,
+    logger: logger,
+  ).parse();
 
+  @override
   T accept<T>(SelectorVisitor<T> visitor) => visitor.visitSelectorList(this);
 
   /// Returns a [SelectorList] that matches only elements that are matched by
@@ -167,12 +174,17 @@ final class SelectorList extends Selector {
   }) {
     if (parent == null) {
       if (preserveParentSelectors) return this;
-      var parentSelector = accept(const _ParentSelectorVisitor());
-      if (parentSelector == null) return this;
-      throw SassException(
-        'Top-level selectors may not contain the parent selector "&".',
-        parentSelector.span,
-      );
+      if (accept(const _ParentSelectorVisitor()) case ParentSelector(
+        suffix: var _?,
+        :var span,
+      )) {
+        throw SassException(
+          'A top-level selector may not contain a parent selector with a '
+          'suffix.',
+          span,
+        );
+      }
+      return this;
     }
 
     return SelectorList(
@@ -220,19 +232,19 @@ final class SelectorList extends Selector {
               newComplexes.addAll(switch (complex.leadingCombinator) {
                 null => resolved,
                 var leadingCombinator => [
-                    for (var resolvedComplex in resolved)
-                      if (resolvedComplex.prependCombinator(leadingCombinator)
-                          case var newResolved?)
-                        newResolved
-                      else
-                        throw MultiSpanSassException(
-                          'The selector "$leadingCombinator $resolvedComplex" is '
-                              'invalid CSS.',
-                          complex.span.trimRight(),
-                          "inner selector",
-                          {parent.span.trimRight(): "outer selector"},
-                        ),
-                  ],
+                  for (var resolvedComplex in resolved)
+                    if (resolvedComplex.prependCombinator(leadingCombinator)
+                        case var newResolved?)
+                      newResolved
+                    else
+                      throw MultiSpanSassException(
+                        'The selector "$leadingCombinator $resolvedComplex" is '
+                            'invalid CSS.',
+                        complex.span.trimRight(),
+                        "inner selector",
+                        {parent.span.trimRight(): "outer selector"},
+                      ),
+                ],
               });
             } else {
               newComplexes = [
@@ -280,23 +292,22 @@ final class SelectorList extends Selector {
 
     var resolvedSimples = containsSelectorPseudo
         ? simples.map((simple) {
-            if (simple
-                case PseudoSelector(
-                  :var selector?,
-                ) when _containsParentSelector(selector)) {
+            if (simple case PseudoSelector(:var selector?)
+                when _containsParentSelector(selector)) {
               var nested = selector.nestWithin(parent, implicitParent: false);
               var result = simple.withSelector(nested);
               if (result != null) return result;
 
               var invalid = simple.toString().replaceFirst(
-                    RegExp(r"\(.*\)"),
-                    "($nested)",
-                  );
+                RegExp(r"\(.*\)"),
+                "($nested)",
+              );
               throw MultiSpanSassException(
-                  'The selector "$invalid" is invalid CSS.',
-                  simple.accept(_ParentSelectorVisitor())!.span.trimRight(),
-                  "parent selector",
-                  {parent.span.trimRight(): "outer selector"});
+                'The selector "$invalid" is invalid CSS.',
+                simple.accept(_ParentSelectorVisitor())!.span.trimRight(),
+                "parent selector",
+                {parent.span.trimRight(): "outer selector"},
+              );
             } else {
               return simple;
             }
@@ -318,12 +329,12 @@ final class SelectorList extends Selector {
       return switch (parent.withAdditionalCombinator(component.combinator)) {
         var list? => list.components,
         _ => throw MultiSpanSassException(
-            'The selector "${parent.components.first} ${component.combinator}" '
-                'is invalid CSS.',
-            parentSelector.span,
-            "parent selector",
-            {parent.span.trimRight(): "outer selector"},
-          )
+          'The selector "${parent.components.first} ${component.combinator}" '
+              'is invalid CSS.',
+          parentSelector.span,
+          "parent selector",
+          {parent.span.trimRight(): "outer selector"},
+        ),
       };
     }
 
@@ -370,7 +381,9 @@ final class SelectorList extends Selector {
         throwWithTrace(
           error
               .withAdditionalSpan(
-                  lastComponent.span.trimRight(), "outer selector")
+                lastComponent.span.trimRight(),
+                "outer selector",
+              )
               .withAdditionalSpan(parentSelector.span, "parent selector"),
           error,
           stackTrace,
@@ -397,14 +410,15 @@ final class SelectorList extends Selector {
     if (combinator == null) return this;
     var newComponents = [
       for (var complex in components)
-        if (complex.withAdditionalCombinator(combinator) case var newComplex?)
-          newComplex,
+        ?complex.withAdditionalCombinator(combinator),
     ];
     return newComponents.isEmpty ? null : SelectorList(newComponents, span);
   }
 
+  @override
   int get hashCode => listHash(components);
 
+  @override
   bool operator ==(Object other) =>
       other is SelectorList && listEquals(components, other.components);
 }
@@ -414,8 +428,8 @@ bool _containsParentSelector(Selector selector) =>
     selector.accept(const _ParentSelectorVisitor()) != null;
 
 /// A visitor for finding the first [ParentSelector] in a given selector.
-final class _ParentSelectorVisitor with SelectorSearchVisitor<ParentSelector> {
-  const _ParentSelectorVisitor();
-
+final class const _ParentSelectorVisitor()
+    with SelectorSearchVisitor<ParentSelector> {
+  @override
   ParentSelector visitParentSelector(ParentSelector selector) => selector;
 }

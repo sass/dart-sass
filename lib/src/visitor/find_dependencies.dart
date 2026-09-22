@@ -38,14 +38,25 @@ final class _FindDependenciesVisitor with RecursiveStatementVisitor {
   }
 
   // These can never contain imports.
+  @override
   void visitEachRule(EachRule node) {}
+
+  @override
   void visitForRule(ForRule node) {}
+
+  @override
   void visitIfRule(IfRule node) {}
+
+  @override
   void visitWhileRule(WhileRule node) {}
+
+  @override
   void visitCallableDeclaration(CallableDeclaration node) {}
+
   void visitInterpolation(Interpolation interpolation) {}
   void visitSupportsCondition(SupportsCondition condition) {}
 
+  @override
   void visitUseRule(UseRule node) {
     if (node.url.scheme != 'sass') {
       _uses.add(node.url);
@@ -54,24 +65,26 @@ final class _FindDependenciesVisitor with RecursiveStatementVisitor {
     }
   }
 
+  @override
   void visitForwardRule(ForwardRule node) {
     if (node.url.scheme != 'sass') _forwards.add(node.url);
   }
 
+  @override
   void visitImportRule(ImportRule node) {
     for (var import in node.imports) {
       if (import is DynamicImport) _imports.add(import.url);
     }
   }
 
+  @override
   void visitIncludeRule(IncludeRule node) {
     if (node.name != 'load-css') return;
     if (!_metaNamespaces.contains(node.namespace)) return;
 
-    if (node.arguments.positional
-        case [
-          StringExpression(text: Interpolation(asPlain: var url?)),
-        ]) {
+    if (node.arguments.positional case [
+      StringExpression(text: Interpolation(asPlain: var url?)),
+    ]) {
       try {
         _metaLoadCss.add(Uri.parse(url));
       } on FormatException {
@@ -82,34 +95,27 @@ final class _FindDependenciesVisitor with RecursiveStatementVisitor {
 }
 
 /// A struct of different types of dependencies a Sass stylesheet can contain.
-final class DependencyReport {
+final class DependencyReport._({
   /// An unmodifiable set of all `@use`d URLs in the stylesheet (excluding
   /// built-in modules).
-  final Set<Uri> uses;
+  required final Set<Uri> uses,
 
   /// An unmodifiable set of all `@forward`ed URLs in the stylesheet (excluding
   /// built-in modules).
-  final Set<Uri> forwards;
+  required final Set<Uri> forwards,
 
   /// An unmodifiable set of all URLs loaded by `meta.load-css()` calls with
   /// static string arguments outside of mixins.
-  final Set<Uri> metaLoadCss;
+  required final Set<Uri> metaLoadCss,
 
   /// An unmodifiable set of all dynamically `@import`ed URLs in the
   /// stylesheet.
-  final Set<Uri> imports;
-
+  required final Set<Uri> imports,
+}) {
   /// An unmodifiable set of all URLs in [uses], [forwards], and [metaLoadCss].
   Set<Uri> get modules => UnionSet({uses, forwards, metaLoadCss});
 
   /// An unmodifiable set of all URLs in [uses], [forwards], [metaLoadCss], and
   /// [imports].
   Set<Uri> get all => UnionSet({uses, forwards, metaLoadCss, imports});
-
-  DependencyReport._({
-    required this.uses,
-    required this.forwards,
-    required this.metaLoadCss,
-    required this.imports,
-  });
 }

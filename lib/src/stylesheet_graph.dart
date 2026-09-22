@@ -21,25 +21,23 @@ import 'visitor/find_dependencies.dart';
 /// contains those depended on via `@import`.
 typedef _UpstreamNodes = ({
   Map<Uri, StylesheetNode?> modules,
-  Map<Uri, StylesheetNode?> imports
+  Map<Uri, StylesheetNode?> imports,
 });
 
 /// A graph of the import relationships between stylesheets, available via
 /// [nodes].
 @internal
-final class StylesheetGraph {
+final class StylesheetGraph(
+  /// The import cache used to load stylesheets.
+  final ImportCache importCache,
+) {
   /// A map from canonical URLs to the stylesheet nodes for those URLs.
   Map<Uri, StylesheetNode> get nodes => UnmodifiableMapView(_nodes);
   final _nodes = <Uri, StylesheetNode>{};
 
-  /// The import cache used to load stylesheets.
-  final ImportCache importCache;
-
   /// A map from canonical URLs to the time the corresponding stylesheet or any
   /// of the stylesheets it transitively imports was modified.
   final _transitiveModificationTimes = <Uri, DateTime>{};
-
-  StylesheetGraph(this.importCache);
 
   /// Returns whether the stylesheet at [url] or any of the stylesheets it
   /// imports were modified since [since].
@@ -54,17 +52,27 @@ final class StylesheetGraph {
     Importer? baseImporter,
     Uri? baseUrl,
   ]) {
+    // Used to track dependency loops when calculating transitive modification
+    // time.
+    var seenNodes = <StylesheetNode>{};
     DateTime transitiveModificationTime(StylesheetNode node) {
+      seenNodes.add(node);
       return _transitiveModificationTimes.putIfAbsent(node.canonicalUrl, () {
         var latest = node.importer.modificationTime(node.canonicalUrl);
         for (var upstream in node.upstream.values.followedBy(
           node.upstreamImports.values,
         )) {
-          // If an import is missing, always recompile so we show the user the
-          // error.
-          var upstreamTime = upstream == null
-              ? DateTime.now()
-              : transitiveModificationTime(upstream);
+          var upstreamTime = switch (upstream) {
+            // If an import is missing, always recompile so we show the user
+            // the error.
+            null => DateTime.now(),
+            // If a dependency loop is encountered, use Unix epoch as a
+            // placeholder to avoid superfluous refreshes without creating a
+            // recursive loop here.
+            _ when seenNodes.contains(upstream) =>
+              DateTime.fromMillisecondsSinceEpoch(0),
+            _ => transitiveModificationTime(upstream),
+          };
           if (upstreamTime.isAfter(latest)) latest = upstreamTime;
         }
         return latest;
@@ -149,12 +157,16 @@ final class StylesheetGraph {
   ///
   /// The first map contains stylesheets depended on via module loads while the
   /// second map contains those depended on via `@import`.
+  ///
+  /// The [active] set, if passed, should contain the canonical URLs that are
+  /// currently being imported. It's used to detect circular imports.
   _UpstreamNodes _upstreamNodes(
     Stylesheet stylesheet,
     Importer baseImporter,
-    Uri baseUrl,
-  ) {
-    var active = {baseUrl};
+    Uri baseUrl, [
+    Set<Uri>? active,
+  ]) {
+    active ??= {baseUrl};
     var dependencies = findDependencies(stylesheet);
     return (
       modules: {
@@ -210,7 +222,8 @@ final class StylesheetGraph {
       var modified = false;
       try {
         var loadTime = importCache.loadTime(node.canonicalUrl);
-        modified = loadTime != null &&
+        modified =
+            loadTime != null &&
             node.importer.modificationTime(node.canonicalUrl).isAfter(loadTime);
       } on FileSystemException catch (_) {
         // If the file no longer exists, treat that as a modification.
@@ -385,7 +398,7 @@ final class StylesheetGraph {
       stylesheet,
       importer,
       canonicalUrl,
-      _upstreamNodes(stylesheet, importer, canonicalUrl),
+      _upstreamNodes(stylesheet, importer, canonicalUrl, active),
     );
     active.remove(canonicalUrl);
     _nodes[canonicalUrl] = node;
@@ -397,7 +410,7 @@ final class StylesheetGraph {
   /// If [callback] throws any errors, ignores them and returns `null`. This is
   /// used to wrap calls to the import cache, since importer errors should be
   /// surfaced by the compilation process rather than the graph.
-  T? _ignoreErrors<T>(T callback()) {
+  T? _ignoreErrors<T>(T Function() callback) {
     try {
       return callback();
     } catch (_) {
@@ -413,23 +426,25 @@ final class StylesheetGraph {
 /// A [StylesheetNode] is immutable except for its downstream nodes. When the
 /// stylesheet itself changes, a new node should be generated.
 @internal
-final class StylesheetNode {
-  /// The parsed stylesheet.
-  Stylesheet get stylesheet => _stylesheet;
-  Stylesheet _stylesheet;
+final class StylesheetNode._(
+  var Stylesheet _stylesheet,
 
   /// The importer that was used to load this stylesheet.
-  final Importer importer;
+  final Importer importer,
 
   /// The canonical URL of [stylesheet].
-  final Uri canonicalUrl;
+  final Uri canonicalUrl,
+  _UpstreamNodes allUpstream,
+) {
+  /// The parsed stylesheet.
+  Stylesheet get stylesheet => _stylesheet;
 
   /// A map from non-canonicalized `@use` and `@forward` URLs in [stylesheet] to
   /// the stylesheets those rules refer to.
   ///
   /// This may have `null` values, which indicate failed loads.
   Map<Uri, StylesheetNode?> get upstream => UnmodifiableMapView(_upstream);
-  Map<Uri, StylesheetNode?> _upstream;
+  Map<Uri, StylesheetNode?> _upstream = allUpstream.modules;
 
   /// A map from non-canonicalized `@import` URLs in [stylesheet] to the
   /// stylesheets those imports refer to.
@@ -437,19 +452,13 @@ final class StylesheetNode {
   /// This may have `null` values, which indicate failed imports.
   Map<Uri, StylesheetNode?> get upstreamImports =>
       UnmodifiableMapView(_upstreamImports);
-  Map<Uri, StylesheetNode?> _upstreamImports;
+  Map<Uri, StylesheetNode?> _upstreamImports = allUpstream.imports;
 
   /// The stylesheets that import [stylesheet].
   Set<StylesheetNode> get downstream => UnmodifiableSetView(_downstream);
   final _downstream = <StylesheetNode>{};
 
-  StylesheetNode._(
-    this._stylesheet,
-    this.importer,
-    this.canonicalUrl,
-    _UpstreamNodes allUpstream,
-  )   : _upstream = allUpstream.modules,
-        _upstreamImports = allUpstream.imports {
+  this {
     for (var node in upstream.values.followedBy(upstreamImports.values)) {
       node?._downstream.add(this);
     }
@@ -462,10 +471,14 @@ final class StylesheetNode {
     Map<Uri, StylesheetNode?> newUpstream,
     Map<Uri, StylesheetNode?> newUpstreamImports,
   ) {
-    var oldUpstream =
-        {...upstream.values, ...upstreamImports.values}.removeNull();
-    var newUpstreamSet =
-        {...newUpstream.values, ...newUpstreamImports.values}.removeNull();
+    var oldUpstream = {
+      ...upstream.values,
+      ...upstreamImports.values,
+    }.removeNull();
+    var newUpstreamSet = {
+      ...newUpstream.values,
+      ...newUpstreamImports.values,
+    }.removeNull();
 
     for (var removed in oldUpstream.difference(newUpstreamSet)) {
       var wasRemoved = removed._downstream.remove(this);
@@ -506,6 +519,7 @@ final class StylesheetNode {
     }
   }
 
+  @override
   String toString() =>
       stylesheet.span.sourceUrl.andThen(p.prettyUri) ?? '<unknown>';
 }

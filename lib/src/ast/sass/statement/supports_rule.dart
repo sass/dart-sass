@@ -12,16 +12,17 @@ import 'parent.dart';
 /// A `@supports` rule.
 ///
 /// {@category AST}
-final class SupportsRule extends ParentStatement<List<Statement>> {
+final class SupportsRule(
   /// The condition that selects what browsers this rule targets.
-  final SupportsCondition condition;
+  final SupportsCondition condition,
+  Iterable<Statement> children,
+  @override final FileSpan span,
+) extends ParentStatement<List<Statement>> {
+  this : super(List.unmodifiableOf(children));
 
-  final FileSpan span;
-
-  SupportsRule(this.condition, Iterable<Statement> children, this.span)
-      : super(List.unmodifiable(children));
-
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitSupportsRule(this);
 
+  @override
   String toString() => "@supports $condition {${children.join(' ')}}";
 }

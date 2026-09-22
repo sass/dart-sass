@@ -13,22 +13,21 @@ import '../statement.dart';
 /// This gives one selector all the styling of another.
 ///
 /// {@category AST}
-final class ExtendRule extends Statement {
+final class ExtendRule(
   /// The interpolation for the selector that will be extended.
-  final Interpolation selector;
-
+  final Interpolation selector,
+  @override final FileSpan span, {
+  bool optional = false,
+}) extends Statement {
   /// Whether this is an optional extension.
   ///
   /// If an extension isn't optional, it will emit an error if it doesn't match
   /// any selectors.
-  final bool isOptional;
+  final bool isOptional = optional;
 
-  final FileSpan span;
-
-  ExtendRule(this.selector, this.span, {bool optional = false})
-      : isOptional = optional;
-
+  @override
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitExtendRule(this);
 
+  @override
   String toString() => "@extend $selector${isOptional ? ' !optional' : ''};";
 }

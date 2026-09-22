@@ -16,37 +16,38 @@ import 'package:meta/meta.dart';
 /// This is unmodifiable *except for the [remove] method*, which is used for
 /// `@used with` to mark configured variables as used.
 @internal
-final class UnprefixedMapView<V> extends UnmodifiableMapBase<String, V> {
+final class UnprefixedMapView<V>(
   /// The wrapped map.
-  final Map<String, V> _map;
+  final Map<String, V> _map,
 
   /// The prefix to remove from the map keys.
-  final String _prefix;
-
+  final String _prefix,
+) extends UnmodifiableMapBase<String, V> {
+  @override
   Iterable<String> get keys => _UnprefixedKeys(this);
 
-  /// Creates a new unprefixed map view.
-  UnprefixedMapView(this._map, this._prefix);
-
+  @override
   V? operator [](Object? key) => key is String ? _map[_prefix + key] : null;
 
+  @override
   bool containsKey(Object? key) =>
       key is String ? _map.containsKey(_prefix + key) : false;
 
+  @override
   V? remove(Object? key) => key is String ? _map.remove(_prefix + key) : null;
 }
 
 /// The implementation of [UnprefixedMapViews.keys].
-final class _UnprefixedKeys extends IterableBase<String> {
+final class _UnprefixedKeys(
   /// The view whose keys are being iterated over.
-  final UnprefixedMapView<Object?> _view;
-
+  final UnprefixedMapView<Object?> _view,
+) extends IterableBase<String> {
+  @override
   Iterator<String> get iterator => _view._map.keys
       .where((key) => key.startsWith(_view._prefix))
       .map((key) => key.substring(_view._prefix.length))
       .iterator;
 
-  _UnprefixedKeys(this._view);
-
+  @override
   bool contains(Object? key) => _view.containsKey(key);
 }

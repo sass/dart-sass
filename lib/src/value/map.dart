@@ -26,35 +26,41 @@ final class SassMap extends Value {
   Map<Value, Value> get contents => _contents;
   final Map<Value, Value> _contents;
 
-  ListSeparator get separator =>
-      contents.isEmpty ? ListSeparator.undecided : ListSeparator.comma;
+  @override
+  ListSeparator get separator => contents.isEmpty ? .undecided : .comma;
 
+  @override
   List<Value> get asList => [
-        for (var (key, value) in contents.pairs)
-          SassList([key, value], ListSeparator.space),
-      ];
+    for (var (key, value) in contents.pairs) SassList([key, value], .space),
+  ];
 
   /// @nodoc
+  @override
   @internal
   int get lengthAsList => contents.length;
 
   /// Returns an empty map.
-  const SassMap.empty() : _contents = const {};
+  const new empty() : _contents = const {};
 
-  SassMap(Map<Value, Value> contents) : _contents = Map.unmodifiable(contents);
+  new(Map<Value, Value> contents) : _contents = Map.unmodifiableOf(contents);
 
   /// @nodoc
+  @override
   @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitMap(this);
 
+  @override
   SassMap assertMap([String? name]) => this;
 
+  @override
   SassMap tryMap() => this;
 
+  @override
   bool operator ==(Object other) =>
       (other is SassMap && mapEquals(other.contents, contents)) ||
       (contents.isEmpty && other is SassList && other.asList.isEmpty);
 
+  @override
   int get hashCode =>
       contents.isEmpty ? const SassList.empty().hashCode : mapHash(contents);
 }

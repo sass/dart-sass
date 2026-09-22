@@ -30,7 +30,7 @@ final JSClass mapClass = () {
       if (index < 0 || index >= self.lengthAsList) return undefined;
 
       var (key, value) = self.contents.pairs.elementAt(index);
-      return SassList([key, value], ListSeparator.space);
+      return SassList([key, value], .space);
     } else {
       return self.contents[indexOrKey] ?? undefined;
     }

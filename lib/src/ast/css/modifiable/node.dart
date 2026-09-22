@@ -16,6 +16,7 @@ import '../node.dart';
 /// unmodifiable types are used elsewhere to enforce that constraint.
 @internal
 abstract base class ModifiableCssNode extends CssNode {
+  @override
   ModifiableCssParentNode? get parent => _parent;
   ModifiableCssParentNode? _parent;
 
@@ -24,6 +25,7 @@ abstract base class ModifiableCssNode extends CssNode {
   /// This makes [remove] more efficient.
   int? _indexInParent;
 
+  @override
   var isGroupEnd = false;
 
   /// Whether this node has a visible sibling after it.
@@ -33,6 +35,7 @@ abstract base class ModifiableCssNode extends CssNode {
           .any((sibling) => !sibling.isInvisible) ??
       false;
 
+  @override
   T accept<T>(ModifiableCssVisitor<T> visitor);
 
   /// Removes `this` from [parent]'s child list.
@@ -54,19 +57,19 @@ abstract base class ModifiableCssNode extends CssNode {
 
 /// A modifiable version of [CssParentNode] for use in the evaluation step.
 @internal
-abstract base class ModifiableCssParentNode extends ModifiableCssNode
-    implements CssParentNode {
-  final List<ModifiableCssNode> children;
-  final List<ModifiableCssNode> _children;
+abstract base class ModifiableCssParentNode._(
+  final List<ModifiableCssNode> _children,
+) extends ModifiableCssNode implements CssParentNode {
+  @override
+  final List<ModifiableCssNode> children = UnmodifiableListView(_children);
+  @override
   bool get isChildless => false;
 
-  ModifiableCssParentNode() : this._([]);
+  new() : this._([]);
 
   /// A dummy constructor so that [_children] can be passed to the constructor
   /// for [this.children].
-  ModifiableCssParentNode._(List<ModifiableCssNode> children)
-      : _children = children,
-        children = UnmodifiableListView(children);
+  this;
 
   /// Returns whether `this` is equal to [other], ignoring their child nodes.
   bool equalsIgnoringChildren(ModifiableCssNode other);

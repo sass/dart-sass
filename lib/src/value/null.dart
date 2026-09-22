@@ -13,16 +13,19 @@ const Value sassNull = _SassNull();
 /// A SassScript null value.
 ///
 /// This can't be constructed directly; it can only be accessed via [sassNull].
-final class _SassNull extends Value {
+final class const _SassNull() extends Value {
+  @override
   bool get isTruthy => false;
 
+  @override
   bool get isBlank => true;
 
+  @override
   Value? get realNull => null;
 
-  const _SassNull();
-
+  @override
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitNull();
 
+  @override
   Value unaryNot() => sassTrue;
 }

@@ -53,26 +53,25 @@ base class Parser {
   static bool isVariableDeclarationLike(String text) =>
       Parser(text)._isVariableDeclarationLike();
 
-  @protected
-  Parser(String contents, {Object? url, InterpolationMap? interpolationMap})
-      : scanner = SpanScanner(contents, sourceUrl: _canonicalize(url)),
-        _interpolationMap = interpolationMap;
+  new(String contents, {Object? url, this._interpolationMap})
+    : scanner = SpanScanner(contents, sourceUrl: _canonicalize(url));
 
   /// Like [Parser.new], but avoids recanonicalizing [url].
   ///
   /// This doesn't support `interpolationMap` because when that's passed, the
   /// original `url` is unused anyway.
-  Parser.internal(String contents, {Uri? url})
-      : scanner = SpanScanner(contents, sourceUrl: url),
-        _interpolationMap = null;
+  new internal(String contents, {Uri? url})
+    : scanner = SpanScanner(contents, sourceUrl: url),
+      _interpolationMap = null;
 
   /// Canonicalized [urlOrObject] and returns it.
   ///
   /// If [urlOrobject] is null, returns it as-is.
   static Uri? _canonicalize(Object? urlOrObject) {
     if (urlOrObject == null) return null;
-    var url =
-        urlOrObject is String ? Uri.parse(urlOrObject) : urlOrObject as Uri;
+    var url = urlOrObject is String
+        ? Uri.parse(urlOrObject)
+        : urlOrObject as Uri;
     // Don't do extra de/reparsing for Sass URLs which we know can't be
     // canonicalized.
     if (url.scheme == 'sass') return url;
@@ -440,12 +439,12 @@ base class Parser {
         case $backslash:
           buffer.write(escape());
         case $percent ||
-              $ampersand ||
-              $hash ||
-              // dart-lang/sdk#52740
-              // ignore: non_constant_relational_pattern_expression
-              (>= $asterisk && <= $tilde) ||
-              >= 0x0080:
+            $ampersand ||
+            $hash ||
+            // dart-lang/sdk#52740
+            // ignore: non_constant_relational_pattern_expression
+            (>= $asterisk && <= $tilde) ||
+            >= 0x0080:
           buffer.writeCharCode(scanner.readChar());
         case int(isWhitespace: true):
           whitespace(consumeNewlines: true);
@@ -532,7 +531,7 @@ base class Parser {
   //
   // Returns whether or not the character was consumed.
   @protected
-  bool scanCharIf(bool condition(int? character)) {
+  bool scanCharIf(bool Function(int? character) condition) {
     var next = scanner.peekChar();
     if (!condition(next)) return false;
     scanner.readChar();
@@ -584,15 +583,15 @@ base class Parser {
   /// [the CSS algorithm]: https://drafts.csswg.org/css-syntax-3/#starts-with-a-number
   @protected
   bool lookingAtNumber() => switch (scanner.peekChar()) {
-        int(isDigit: true) => true,
-        $dot => scanner.peekChar(1)?.isDigit ?? false,
-        $plus || $minus => switch (scanner.peekChar(1)) {
-            int(isDigit: true) => true,
-            $dot => scanner.peekChar(2)?.isDigit ?? false,
-            _ => false,
-          },
-        _ => false,
-      };
+    int(isDigit: true) => true,
+    $dot => scanner.peekChar(1)?.isDigit ?? false,
+    $plus || $minus => switch (scanner.peekChar(1)) {
+      int(isDigit: true) => true,
+      $dot => scanner.peekChar(2)?.isDigit ?? false,
+      _ => false,
+    },
+    _ => false,
+  };
 
   /// Returns whether the scanner is immediately before a plain CSS identifier.
   ///
@@ -610,9 +609,9 @@ base class Parser {
     return switch (scanner.peekChar(forward)) {
       int(isNameStart: true) || $backslash => true,
       $dash => switch (scanner.peekChar(forward + 1)) {
-          int(isNameStart: true) || $backslash || $dash => true,
-          _ => false,
-        },
+        int(isNameStart: true) || $backslash || $dash => true,
+        _ => false,
+      },
       _ => false,
     };
   }
@@ -687,7 +686,7 @@ base class Parser {
 
   /// Runs [consumer] and returns the source text that it consumes.
   @protected
-  String rawText(void consumer()) {
+  String rawText(void Function() consumer) {
     var start = scanner.position;
     consumer();
     return scanner.substring(start);
@@ -729,7 +728,7 @@ base class Parser {
   /// Runs callback and, if it throws a [SourceSpanFormatException], rethrows it
   /// with [message] as its message.
   @protected
-  T withErrorMessage<T>(String message, T callback()) {
+  T withErrorMessage<T>(String message, T Function() callback) {
     try {
       return callback();
     } on SourceSpanFormatException catch (error, stackTrace) {
@@ -757,7 +756,7 @@ base class Parser {
   /// Runs [callback] and wraps any [SourceSpanFormatException] it throws in a
   /// [SassFormatException].
   @protected
-  T wrapSpanFormatException<T>(T callback()) {
+  T wrapSpanFormatException<T>(T Function() callback) {
     try {
       try {
         return callback();

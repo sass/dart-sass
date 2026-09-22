@@ -12,17 +12,11 @@ import 'node.dart';
 
 /// A modifiable version of [CssImport] for use in the evaluation step.
 @internal
-final class ModifiableCssImport extends ModifiableCssNode implements CssImport {
-  /// The URL being imported.
-  ///
-  /// This includes quotes.
-  final CssValue<String> url;
-
-  final CssValue<String>? modifiers;
-
-  final FileSpan span;
-
-  ModifiableCssImport(this.url, this.span, {this.modifiers});
-
+final class ModifiableCssImport(
+  @override final CssValue<String> url,
+  @override final FileSpan span, {
+  @override final CssValue<String>? modifiers,
+}) extends ModifiableCssNode implements CssImport {
+  @override
   T accept<T>(ModifiableCssVisitor<T> visitor) => visitor.visitCssImport(this);
 }

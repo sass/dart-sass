@@ -20,22 +20,24 @@ import 'xyz_d50.dart';
 ///
 /// @nodoc
 @internal
-final class LabColorSpace extends ColorSpace {
+final class const LabColorSpace() extends ColorSpace {
+  @override
   bool get isBoundedInternal => false;
 
-  const LabColorSpace()
-      : super('lab', const [
-          LinearChannel(
-            'lightness',
-            0,
-            100,
-            lowerClamped: true,
-            upperClamped: true,
-          ),
-          LinearChannel('a', -125, 125),
-          LinearChannel('b', -125, 125),
-        ]);
+  this
+    : super('lab', const [
+        LinearChannel(
+          'lightness',
+          0,
+          100,
+          lowerClamped: true,
+          upperClamped: true,
+        ),
+        LinearChannel('a', -125, 125),
+        LinearChannel('b', -125, 125),
+      ]);
 
+  @override
   SassColor convert(
     ColorSpace dest,
     double? lightness,
@@ -45,8 +47,16 @@ final class LabColorSpace extends ColorSpace {
     bool missingChroma = false,
     bool missingHue = false,
   }) {
+    if (missingChroma && missingHue) {
+      a = null;
+      b = null;
+    } else if (a == null && b == null) {
+      missingChroma = true;
+      missingHue = true;
+    }
+
     switch (dest) {
-      case ColorSpace.lab:
+      case .lab:
         var powerlessAB = lightness == null || fuzzyEquals(lightness, 0);
         return SassColor.lab(
           lightness,
@@ -55,7 +65,7 @@ final class LabColorSpace extends ColorSpace {
           alpha,
         );
 
-      case ColorSpace.lch:
+      case .lch:
         return labToLch(dest, lightness, a, b, alpha);
 
       default:

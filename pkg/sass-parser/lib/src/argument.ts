@@ -70,9 +70,7 @@ export type ArgumentObjectProps = NodeProps & {
  * ArgumentDeclarationProps}.
  */
 export type ArgumentExpressionProps =
-  | AnyExpression
-  | ExpressionProps
-  | Omit<ArgumentObjectProps, 'name'>;
+  AnyExpression | ExpressionProps | Omit<ArgumentObjectProps, 'name'>;
 
 /**
  * The initializer properties for {@link Argument}.

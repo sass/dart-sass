@@ -16,7 +16,7 @@ import 'utils.dart';
 class _NodeException extends JsError {
   // Fake constructor to silence the no_generative_constructor_in_superclass
   // error.
-  external factory _NodeException();
+  external factory();
 
   external SassException get _dartException;
 }

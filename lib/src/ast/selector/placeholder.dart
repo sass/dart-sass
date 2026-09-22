@@ -3,7 +3,6 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
-import 'package:source_span/source_span.dart';
 
 import '../../util/character.dart' as character;
 import '../../visitor/interface/selector.dart';
@@ -16,26 +15,29 @@ import '../selector.dart';
 /// emitting a CSS document.
 ///
 /// {@category AST}
-final class PlaceholderSelector extends SimpleSelector {
+final class PlaceholderSelector(
   /// The name of the placeholder.
-  final String name;
-
+  final String name,
+  super.span,
+) extends SimpleSelector {
   /// Returns whether this is a private selector (that is, whether it begins
   /// with `-` or `_`).
   bool get isPrivate => character.isPrivate(name);
 
-  PlaceholderSelector(this.name, FileSpan span) : super(span);
-
+  @override
   T accept<T>(SelectorVisitor<T> visitor) =>
       visitor.visitPlaceholderSelector(this);
 
   /// @nodoc
+  @override
   @internal
   PlaceholderSelector addSuffix(String suffix) =>
       PlaceholderSelector(name + suffix, span);
 
+  @override
   bool operator ==(Object other) =>
       other is PlaceholderSelector && other.name == name;
 
+  @override
   int get hashCode => name.hashCode;
 }

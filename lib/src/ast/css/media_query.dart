@@ -46,31 +46,31 @@ final class CssMediaQuery {
     String contents, {
     Object? url,
     InterpolationMap? interpolationMap,
-  }) =>
-      MediaQueryParser(
-        contents,
-        url: url,
-        interpolationMap: interpolationMap,
-      ).parse();
+  }) => MediaQueryParser(
+    contents,
+    url: url,
+    interpolationMap: interpolationMap,
+  ).parse();
 
   /// Creates a media query specifies a type and, optionally, conditions.
   ///
   /// This always sets [conjunction] to `true`.
-  CssMediaQuery.type(this.type, {this.modifier, Iterable<String>? conditions})
-      : conjunction = true,
-        conditions =
-            conditions == null ? const [] : List.unmodifiable(conditions);
+  new type(this.type, {this.modifier, Iterable<String>? conditions})
+    : conjunction = true,
+      conditions = conditions == null
+          ? const []
+          : List.unmodifiableOf(conditions);
 
   /// Creates a media query that matches [conditions] according to
   /// [conjunction].
   ///
   /// The [conjunction] argument may not be null if [conditions] is longer than
   /// a single element.
-  CssMediaQuery.condition(Iterable<String> conditions, {bool? conjunction})
-      : modifier = null,
-        type = null,
-        conjunction = conjunction ?? true,
-        conditions = List.unmodifiable(conditions) {
+  new condition(Iterable<String> conditions, {bool? conjunction})
+    : modifier = null,
+      type = null,
+      conjunction = conjunction ?? true,
+      conditions = List.unmodifiableOf(conditions) {
     if (this.conditions.length > 1 && conjunction == null) {
       throw ArgumentError(
         "If conditions is longer than one element, conjunction may not be "
@@ -83,7 +83,7 @@ final class CssMediaQuery {
   /// of both inputs.
   MediaQueryMergeResult merge(CssMediaQuery other) {
     if (!conjunction || !other.conjunction) {
-      return MediaQueryMergeResult.unrepresentable;
+      return .unrepresentable;
     }
 
     var ourModifier = this.modifier?.toLowerCase();
@@ -105,10 +105,12 @@ final class CssMediaQuery {
     List<String> conditions;
     if ((ourModifier == 'not') != (theirModifier == 'not')) {
       if (ourType == theirType) {
-        var negativeConditions =
-            ourModifier == 'not' ? this.conditions : other.conditions;
-        var positiveConditions =
-            ourModifier == 'not' ? other.conditions : this.conditions;
+        var negativeConditions = ourModifier == 'not'
+            ? this.conditions
+            : other.conditions;
+        var positiveConditions = ourModifier == 'not'
+            ? other.conditions
+            : this.conditions;
 
         // If the negative conditions are a subset of the positive conditions, the
         // query is empty. For example, `not screen and (color)` has no
@@ -118,12 +120,12 @@ final class CssMediaQuery {
         // (grid)`, because it means `not (screen and (color))` and so it allows
         // a screen with no color but with a grid.
         if (negativeConditions.every(positiveConditions.contains)) {
-          return MediaQueryMergeResult.empty;
+          return .empty;
         } else {
-          return MediaQueryMergeResult.unrepresentable;
+          return .unrepresentable;
         }
       } else if (matchesAllTypes || other.matchesAllTypes) {
-        return MediaQueryMergeResult.unrepresentable;
+        return .unrepresentable;
       }
 
       if (ourModifier == 'not') {
@@ -138,7 +140,7 @@ final class CssMediaQuery {
     } else if (ourModifier == 'not') {
       assert(theirModifier == 'not');
       // CSS has no way of representing "neither screen nor print".
-      if (ourType != theirType) return MediaQueryMergeResult.unrepresentable;
+      if (ourType != theirType) return .unrepresentable;
 
       var moreConditions = this.conditions.length > other.conditions.length
           ? this.conditions
@@ -155,7 +157,7 @@ final class CssMediaQuery {
         conditions = moreConditions;
       } else {
         // Otherwise, there's no way to represent the intersection.
-        return MediaQueryMergeResult.unrepresentable;
+        return .unrepresentable;
       }
     } else if (matchesAllTypes) {
       modifier = theirModifier;
@@ -168,7 +170,7 @@ final class CssMediaQuery {
       type = ourType;
       conditions = [...this.conditions, ...other.conditions];
     } else if (ourType != theirType) {
-      return MediaQueryMergeResult.empty;
+      return .empty;
     } else {
       modifier = ourModifier ?? theirModifier;
       type = ourType;
@@ -184,14 +186,17 @@ final class CssMediaQuery {
     );
   }
 
+  @override
   bool operator ==(Object other) =>
       other is CssMediaQuery &&
       other.modifier == modifier &&
       other.type == type &&
       listEquals(other.conditions, conditions);
 
+  @override
   int get hashCode => modifier.hashCode ^ type.hashCode ^ listHash(conditions);
 
+  @override
   String toString() {
     var buffer = StringBuffer();
     if (modifier != null) buffer.write("$modifier ");
@@ -226,11 +231,10 @@ enum _SingletonCssMediaQueryMergeResult implements MediaQueryMergeResult {
 }
 
 /// A successful result of [CssMediaQuery.merge].
-final class MediaQuerySuccessfulMergeResult implements MediaQueryMergeResult {
+final class MediaQuerySuccessfulMergeResult._(
   /// The merged media query.
-  final CssMediaQuery query;
-
-  MediaQuerySuccessfulMergeResult._(this.query);
-
+  final CssMediaQuery query,
+) implements MediaQueryMergeResult {
+  @override
   String toString() => query.toString();
 }

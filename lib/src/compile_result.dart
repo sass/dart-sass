@@ -12,13 +12,13 @@ import 'visitor/serialize.dart';
 /// the compilation process.
 ///
 /// {@category Compile}
-final class CompileResult {
+final class CompileResult(
   /// The result of evaluating the source file.
-  final EvaluateResult _evaluate;
+  final EvaluateResult _evaluate,
 
   /// The result of serializing the CSS AST to CSS text.
-  final SerializeResult _serialize;
-
+  final SerializeResult _serialize,
+) {
   /// The compiled CSS.
   String get css => _serialize.$1;
 
@@ -32,5 +32,5 @@ final class CompileResult {
 
   /// @nodoc
   @internal
-  CompileResult(this._evaluate, this._serialize);
+  this;
 }

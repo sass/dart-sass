@@ -8,6 +8,7 @@ import '../../exception.dart';
 import '../../parse/scss.dart';
 import '../../visitor/interface/expression.dart';
 import '../../visitor/is_calculation_safe.dart';
+import '../../visitor/is_plain_css.dart';
 import '../../visitor/source_interpolation.dart';
 import '../sass.dart';
 
@@ -19,11 +20,9 @@ import '../sass.dart';
 /// {@category AST}
 /// {@category Parsing}
 @sealed
-abstract base class Expression implements SassNode {
+abstract base class Expression() implements SassNode {
   /// Calls the appropriate visit method on [visitor].
   T accept<T>(ExpressionVisitor<T> visitor);
-
-  Expression();
 
   /// Whether this expression can be used in a calculation context.
   bool get isCalculationSafe => accept(const IsCalculationSafeVisitor());
@@ -46,6 +45,14 @@ abstract base class Expression implements SassNode {
   /// If passed, [url] is the name of the file from which [contents] comes.
   ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory Expression.parse(String contents, {Object? url}) =>
+  factory parse(String contents, {Object? url}) =>
       ScssParser(contents, url: url).parseExpression().$1;
+
+  /// Whether this expression is valid plain CSS that will produce the same
+  /// result as it would in Sass
+  ///
+  /// If [allowInterpolation] is true, interpolated expressions are allowed as
+  /// an exception, even if they contain SassScript.
+  bool isPlainCss({bool allowInterpolation = false}) =>
+      accept(IsPlainCssVisitor(allowInterpolation: allowInterpolation));
 }

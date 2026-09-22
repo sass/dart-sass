@@ -26,10 +26,11 @@ import 'utils.dart';
 /// buffers from the process to aid debugging.
 ///
 /// This API is based on the `test_process` package.
-final class EmbeddedProcess {
+final class EmbeddedProcess._(
   /// The underlying process.
-  final Process _process;
-
+  final Process _process, {
+  bool forwardOutput = false,
+}) {
   /// A [StreamQueue] that emits each outbound protocol buffer from the process.
   ///
   /// The initial int is the compilation ID.
@@ -41,15 +42,32 @@ final class EmbeddedProcess {
   late StreamQueue<String> _stderr;
 
   /// A splitter that can emit new copies of [outbound].
-  final StreamSplitter<(int, OutboundMessage)> _outboundSplitter;
+  final StreamSplitter<(int, OutboundMessage)> _outboundSplitter =
+      StreamSplitter(
+        _process.stdout.transform(lengthDelimitedDecoder).map((packet) {
+          var (compilationId, buffer) = parsePacket(packet);
+          return (compilationId, OutboundMessage.fromBuffer(buffer));
+        }),
+      );
 
   /// A splitter that can emit new copies of [stderr].
-  final StreamSplitter<String> _stderrSplitter;
+  final StreamSplitter<String> _stderrSplitter = StreamSplitter(
+    _process.stderr.transform(utf8.decoder).transform(const LineSplitter()),
+  );
 
   /// A sink into which inbound messages can be passed to the process.
   ///
   /// The initial int is the compilation ID.
-  final Sink<(int, InboundMessage)> inbound;
+  final Sink<(int, InboundMessage)> inbound =
+      StreamSinkTransformer<(int, InboundMessage), List<int>>.fromHandlers(
+        handleData: (pair, sink) {
+          var (compilationId, message) = pair;
+          sink.add(serializePacket(compilationId, message));
+        },
+      ).bind(
+        StreamSinkTransformer.fromStreamTransformer(lengthDelimitedEncoder)
+            .bind(_process.stdin),
+      );
 
   /// The raw standard input byte sink.
   IOSink get stdin => _process.stdin;
@@ -71,10 +89,7 @@ final class EmbeddedProcess {
   /// Completes to [_process]'s exit code if it's exited, otherwise completes to
   /// `null` immediately.
   Future<int?> get _exitCodeOrNull async {
-    var exitCode = await this.exitCode.timeout(
-          Duration.zero,
-          onTimeout: () => -1,
-        );
+    var exitCode = await this.exitCode.timeout(.zero, onTimeout: () => -1);
     return exitCode == -1 ? null : exitCode;
   }
 
@@ -109,30 +124,7 @@ final class EmbeddedProcess {
   /// Creates a [EmbeddedProcess] for [process].
   ///
   /// The [forwardOutput] argument is the same as that to [start].
-  EmbeddedProcess._(Process process, {bool forwardOutput = false})
-      : _process = process,
-        _outboundSplitter = StreamSplitter(
-          process.stdout.transform(lengthDelimitedDecoder).map((packet) {
-            var (compilationId, buffer) = parsePacket(packet);
-            return (compilationId, OutboundMessage.fromBuffer(buffer));
-          }),
-        ),
-        _stderrSplitter = StreamSplitter(
-          process.stderr
-              .transform(utf8.decoder)
-              .transform(const LineSplitter()),
-        ),
-        inbound = StreamSinkTransformer<(int, InboundMessage),
-            List<int>>.fromHandlers(
-          handleData: (pair, sink) {
-            var (compilationId, message) = pair;
-            sink.add(serializePacket(compilationId, message));
-          },
-        ).bind(
-          StreamSinkTransformer.fromStreamTransformer(
-            lengthDelimitedEncoder,
-          ).bind(process.stdin),
-        ) {
+  this {
     addTearDown(_tearDown);
     expect(
       _process.exitCode.then((_) => _logOutput()),
@@ -161,7 +153,7 @@ final class EmbeddedProcess {
     // If the process is already dead, do nothing.
     if (await _exitCodeOrNull != null) return;
 
-    _process.kill(ProcessSignal.sigkill);
+    _process.kill(.sigkill);
 
     // Log output now rather than waiting for the exitCode callback so that
     // it's visible even if we time out waiting for the process to die.
@@ -177,7 +169,7 @@ final class EmbeddedProcess {
 
     // Wait a timer tick to ensure that all available lines have been flushed to
     // [_log].
-    await Future<void>.delayed(Duration.zero);
+    await Future.pause();
 
     var buffer = StringBuffer();
     buffer.write("Process `dart_sass_embedded` ");
@@ -219,7 +211,7 @@ final class EmbeddedProcess {
   ///
   /// If this is called after the process is already dead, it does nothing.
   Future<void> kill() async {
-    _process.kill(ProcessSignal.sigkill);
+    _process.kill(.sigkill);
     await exitCode;
   }
 

@@ -17,33 +17,29 @@ import 'utils.dart';
 
 /// A Sass logger that sends log messages as `LogEvent`s.
 @internal
-final class EmbeddedLogger implements Logger {
+final class EmbeddedLogger(
   /// The [CompilationDispatcher] to which to send events.
-  final CompilationDispatcher _dispatcher;
+  final CompilationDispatcher _dispatcher, {
 
   /// Whether the formatted message should contain terminal colors.
-  final bool _color;
+  final bool _color = false,
 
   /// Whether the formatted message should use ASCII encoding.
-  final bool _ascii;
-
-  EmbeddedLogger(this._dispatcher, {bool color = false, bool ascii = false})
-      : _color = color,
-        _ascii = ascii;
-
+  final bool _ascii = false,
+}) implements Logger {
+  @override
   void debug(String message, SourceSpan span) {
     _dispatcher.sendLog(
       OutboundMessage_LogEvent()
-        ..type = LogEventType.DEBUG
+        ..type = .DEBUG
         ..message = message
         ..span = protofySpan(span)
-        ..formatted = (span.start.sourceUrl.andThen(p.prettyUri) ?? '-') +
-            ':${span.start.line + 1} ' +
-            (_color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG') +
-            ': $message\n',
+        ..formatted =
+            '${span.start.sourceUrl.andThen(p.prettyUri) ?? '-'}:${span.start.line + 1} ${_color ? '\u001b[1mDebug\u001b[0m' : 'DEBUG'}: $message\n',
     );
   }
 
+  @override
   void warn(
     String message, {
     FileSpan? span,
@@ -52,8 +48,7 @@ final class EmbeddedLogger implements Logger {
   }) {
     var formatted = withGlyphs(() {
       var buffer = StringBuffer();
-      var showDeprecation =
-          deprecation != null && deprecation != Deprecation.userAuthored;
+      var showDeprecation = deprecation != null && deprecation != .userAuthored;
       if (_color) {
         buffer.write('\u001b[33m\u001b[1m');
         if (deprecation != null) buffer.write('Deprecation ');
@@ -69,7 +64,7 @@ final class EmbeddedLogger implements Logger {
       } else if (trace != null) {
         buffer.writeln(': $message\n\n${span.highlight(color: _color)}');
       } else {
-        buffer.writeln(' on ${span.message("\n" + message, color: _color)}');
+        buffer.writeln(' on ${span.message("\n$message", color: _color)}');
       }
       if (trace != null) {
         buffer.writeln(indent(trace.toString().trimRight(), 4));
@@ -78,9 +73,7 @@ final class EmbeddedLogger implements Logger {
     }, ascii: _ascii);
 
     var event = OutboundMessage_LogEvent()
-      ..type = deprecation != null
-          ? LogEventType.DEPRECATION_WARNING
-          : LogEventType.WARNING
+      ..type = deprecation != null ? .DEPRECATION_WARNING : .WARNING
       ..message = message
       ..formatted = formatted;
     if (span != null) event.span = protofySpan(span);

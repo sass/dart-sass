@@ -5,6 +5,7 @@
 import 'package:meta/meta.dart';
 
 import '../../exception.dart';
+import '../../logger.dart';
 import '../../parse/selector.dart';
 import '../selector.dart';
 
@@ -25,7 +26,7 @@ final _subselectorPseudos = {
 ///
 /// {@category AST}
 /// {@category Parsing}
-abstract base class SimpleSelector extends Selector {
+abstract base class SimpleSelector(super.span) extends Selector {
   /// This selector's specificity.
   ///
   /// Specificity is represented in base 1000. The spec says this should be
@@ -43,25 +44,27 @@ abstract base class SimpleSelector extends Selector {
   @internal
   bool get hasComplicatedSuperselectorSemantics => false;
 
-  SimpleSelector(super.span);
-
   /// Parses a simple selector from [contents].
   ///
   /// If passed, [url] is the name of the file from which [contents] comes.
   /// [allowParent] controls whether a [ParentSelector] is allowed in this
   /// selector.
   ///
+  /// The [logger] will be used to report deprecation warnings. If it's null,
+  /// they'll be reported using [Logger.defaultLogger].
+  ///
   /// Throws a [SassFormatException] if parsing fails.
-  factory SimpleSelector.parse(
+  factory parse(
     String contents, {
     Object? url,
     bool allowParent = true,
-  }) =>
-      SelectorParser(
-        contents,
-        url: url,
-        allowParent: allowParent,
-      ).parseSimpleSelector();
+    Logger? logger,
+  }) => SelectorParser(
+    contents,
+    url: url,
+    allowParent: allowParent,
+    logger: logger,
+  ).parseSimpleSelector();
 
   /// Returns a new [SimpleSelector] based on `this`, as though it had been
   /// written with [suffix] at the end.
@@ -72,11 +75,11 @@ abstract base class SimpleSelector extends Selector {
   /// @nodoc
   @internal
   SimpleSelector addSuffix(String suffix) => throw MultiSpanSassException(
-        'Selector "$this" can\'t have a suffix',
-        span,
-        "outer selector",
-        {},
-      );
+    'Selector "$this" can\'t have a suffix',
+    span,
+    "outer selector",
+    {},
+  );
 
   /// Returns the components of a [CompoundSelector] that matches only elements
   /// matched by both this and [compound].

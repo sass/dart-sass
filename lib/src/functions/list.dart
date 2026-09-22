@@ -8,7 +8,6 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 import '../callable.dart';
-import '../deprecation.dart';
 import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
@@ -68,26 +67,23 @@ final _join = _function(
     var separatorParam = arguments[2].assertString("separator");
     var bracketedParam = arguments[3];
 
-    var separator = switch (separatorParam.text) {
+    ListSeparator separator = switch (separatorParam.text) {
       "auto" => switch ((list1.separator, list2.separator)) {
-          (ListSeparator.undecided, ListSeparator.undecided) =>
-            ListSeparator.space,
-          (ListSeparator.undecided, var separator) ||
-          (var separator, _) =>
-            separator,
-        },
-      "space" => ListSeparator.space,
-      "comma" => ListSeparator.comma,
-      "slash" => ListSeparator.slash,
+        (.undecided, .undecided) => .space,
+        (.undecided, var separator) || (var separator, _) => separator,
+      },
+      "space" => .space,
+      "comma" => .comma,
+      "slash" => .slash,
       _ => throw SassScriptException(
-          '\$separator: Must be "space", "comma", "slash", or "auto".',
-        ),
+        '\$separator: Must be "space", "comma", "slash", or "auto".',
+      ),
     };
 
     var bracketed =
         bracketedParam is SassString && bracketedParam.text == 'auto'
-            ? list1.hasBrackets
-            : bracketedParam.isTruthy;
+        ? list1.hasBrackets
+        : bracketedParam.isTruthy;
 
     var newList = [...list1.asList, ...list2.asList];
     return SassList(newList, separator, brackets: bracketed);
@@ -101,16 +97,14 @@ final _append = _function("append", r"$list, $val, $separator: auto", (
   var value = arguments[1];
   var separatorParam = arguments[2].assertString("separator");
 
-  var separator = switch (separatorParam.text) {
-    "auto" => list.separator == ListSeparator.undecided
-        ? ListSeparator.space
-        : list.separator,
-    "space" => ListSeparator.space,
-    "comma" => ListSeparator.comma,
-    "slash" => ListSeparator.slash,
+  ListSeparator separator = switch (separatorParam.text) {
+    "auto" => list.separator == .undecided ? .space : list.separator,
+    "space" => .space,
+    "comma" => .comma,
+    "slash" => .slash,
     _ => throw SassScriptException(
-        '\$separator: Must be "space", "comma", "slash", or "auto".',
-      ),
+      '\$separator: Must be "space", "comma", "slash", or "auto".',
+    ),
   };
 
   var newList = [...list.asList, value];
@@ -120,16 +114,16 @@ final _append = _function("append", r"$list, $val, $separator: auto", (
 final _zip = _function("zip", r"$lists...", (arguments) {
   var lists = arguments[0].asList.map((list) => list.asList).toList();
   if (lists.isEmpty) {
-    return const SassList.empty(separator: ListSeparator.comma);
+    return const SassList.empty(separator: .comma);
   }
 
   var i = 0;
   var results = <SassList>[];
   while (lists.every((list) => i != list.length)) {
-    results.add(SassList(lists.map((list) => list[i]), ListSeparator.space));
+    results.add(SassList(lists.map((list) => list[i]), .space));
     i++;
   }
-  return SassList(results, ListSeparator.comma);
+  return SassList(results, .comma);
 });
 
 final _index = _function("index", r"$list, $value", (arguments) {
@@ -144,8 +138,8 @@ final _separator = _function(
   "separator",
   r"$list",
   (arguments) => switch (arguments[0].separator) {
-    ListSeparator.comma => SassString("comma", quotes: false),
-    ListSeparator.slash => SassString("slash", quotes: false),
+    .comma => SassString("comma", quotes: false),
+    .slash => SassString("slash", quotes: false),
     _ => SassString("space", quotes: false),
   },
 );
@@ -162,7 +156,7 @@ final _slash = _function("slash", r"$elements...", (arguments) {
     'list literals.\n'
     'This function is deprecated and will be removed in Dart 3.0.0.\n'
     'More info and automated migrator: https://sass-lang.com/d/slash-div',
-    Deprecation.listSlash,
+    .listSlash,
   );
 
   var list = arguments[0].asList;
@@ -170,13 +164,12 @@ final _slash = _function("slash", r"$elements...", (arguments) {
     throw SassScriptException("At least two elements are required.");
   }
 
-  return SassList(list, ListSeparator.slash);
+  return SassList(list, .slash);
 });
 
 /// Like [BuiltInCallable.function], but always sets the URL to `sass:list`.
 BuiltInCallable _function(
   String name,
   String arguments,
-  Value callback(List<Value> arguments),
-) =>
-    BuiltInCallable.function(name, arguments, callback, url: "sass:list");
+  Value Function(List<Value> arguments) callback,
+) => BuiltInCallable.function(name, arguments, callback, url: "sass:list");

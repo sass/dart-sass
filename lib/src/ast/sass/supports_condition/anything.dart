@@ -14,25 +14,26 @@ import '../supports_condition.dart';
 /// `<general-enclosed>` production.
 ///
 /// {@category AST}
-final class SupportsAnything implements SupportsCondition {
+final class SupportsAnything(
   /// The contents of the condition.
-  final Interpolation contents;
-
-  final FileSpan span;
-
-  SupportsAnything(this.contents, this.span);
-
+  final Interpolation contents,
+  @override final FileSpan span,
+) implements SupportsCondition {
   /// @nodoc
+  @override
   @internal
-  Interpolation toInterpolation() => (InterpolationBuffer()
-        ..write(span.before(contents.span).text)
-        ..addInterpolation(contents)
-        ..write(span.after(contents.span).text))
-      .interpolation(span);
+  Interpolation toInterpolation() =>
+      (InterpolationBuffer()
+            ..write(span.before(contents.span).text)
+            ..addInterpolation(contents)
+            ..write(span.after(contents.span).text))
+          .interpolation(span);
 
   /// @nodoc
+  @override
   @internal
   SupportsAnything withSpan(FileSpan span) => SupportsAnything(contents, span);
 
+  @override
   String toString() => "($contents)";
 }

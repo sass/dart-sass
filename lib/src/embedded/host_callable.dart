@@ -46,16 +46,11 @@ Callable hostCallable(
 
     var response = dispatcher.sendFunctionCallRequest(request);
     try {
-      switch (response.whichResult()) {
-        case InboundMessage_FunctionCallResponse_Result.success:
-          return protofier.deprotofyResponse(response);
-
-        case InboundMessage_FunctionCallResponse_Result.error:
-          throw response.error;
-
-        case InboundMessage_FunctionCallResponse_Result.notSet:
-          throw mandatoryError('FunctionCallResponse.result');
-      }
+      return switch (response.whichResult()) {
+        .success => protofier.deprotofyResponse(response),
+        .error => throw response.error,
+        .notSet => throw mandatoryError('FunctionCallResponse.result'),
+      };
     } on ProtocolError catch (error, stackTrace) {
       dispatcher.sendError(handleError(error, stackTrace));
     }

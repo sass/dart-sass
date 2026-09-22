@@ -58,20 +58,17 @@ void deprecations() {
       _ => throw Exception('Invalid deprecation $key: $value'),
     };
     description = description
-        .replaceAll(
-          r'$PLATFORM',
-          r"${isJS ? 'JS': 'Dart'}",
-        )
-        .replaceAll(
-          RegExp(r"\$(?!\{)"),
-          "\\\$",
-        );
+        .replaceAll(r'$PLATFORM', r"${isJS ? 'JS': 'Dart'}")
+        .replaceAll(RegExp(r"\$(?!\{)"), "\\\$");
     var constructorName = deprecatedIn == null ? '.future' : '';
-    var deprecatedClause =
-        deprecatedIn == null ? '' : "deprecatedIn: '$deprecatedIn', ";
-    var obsoleteClause =
-        obsoleteIn == null ? '' : "obsoleteIn: '$obsoleteIn', ";
-    var comment = 'Deprecation for ${description.substring(0, 1).toLowerCase()}'
+    var deprecatedClause = deprecatedIn == null
+        ? ''
+        : "deprecatedIn: '$deprecatedIn', ";
+    var obsoleteClause = obsoleteIn == null
+        ? ''
+        : "obsoleteIn: '$obsoleteIn', ";
+    var comment =
+        'Deprecation for ${description.substring(0, 1).toLowerCase()}'
         '${description.substring(1)}';
     buffer.writeln('/// $comment');
     buffer.writeln(

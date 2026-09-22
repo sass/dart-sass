@@ -14,52 +14,74 @@ import 'package:source_span/source_span.dart';
 /// generally be preferred over this class wherever backwards compatibility
 /// isn't a concern.
 @internal
-final class MultiSpan implements FileSpan {
+final class MultiSpan._(
   /// The span to primarily highlight.
-  final FileSpan _primary;
+  final FileSpan _primary,
 
   /// The label for [primary].
-  final String primaryLabel;
+  final String primaryLabel,
 
   /// The [secondarySpans] map for [SourceSpanExtension.messageMultiple].
-  final Map<SourceSpan, String> secondarySpans;
-
-  MultiSpan(
+  final Map<SourceSpan, String> secondarySpans,
+) implements FileSpan {
+  new(
     FileSpan primary,
     String primaryLabel,
     Map<SourceSpan, String> secondarySpans,
-  ) : this._(primary, primaryLabel, Map.unmodifiable(secondarySpans));
+  ) : this._(primary, primaryLabel, Map.unmodifiableOf(secondarySpans));
 
-  MultiSpan._(this._primary, this.primaryLabel, this.secondarySpans);
-
+  @override
   FileLocation get start => _primary.start;
+
+  @override
   FileLocation get end => _primary.end;
+
+  @override
   String get text => _primary.text;
+
+  @override
   String get context => _primary.context;
+
+  @override
   SourceFile get file => _primary.file;
+
+  @override
   int get length => _primary.length;
+
+  @override
   Uri? get sourceUrl => _primary.sourceUrl;
+
+  @override
   int compareTo(SourceSpan other) => _primary.compareTo(other);
+
+  @override
   String toString() => _primary.toString();
+
+  @override
   MultiSpan expand(FileSpan other) => _withPrimary(_primary.expand(other));
+
+  @override
   SourceSpan union(SourceSpan other) => _primary.union(other);
+
   MultiSpan subspan(int start, [int? end]) =>
       _withPrimary(_primary.subspan(start, end));
 
+  @override
   String highlight({dynamic color}) => _primary.highlightMultiple(
-        primaryLabel,
-        secondarySpans,
-        color: color == true || color is String,
-        primaryColor: color is String ? color : null,
-      );
+    primaryLabel,
+    secondarySpans,
+    color: color == true || color is String,
+    primaryColor: color is String ? color : null,
+  );
 
+  @override
   String message(String message, {dynamic color}) => _primary.messageMultiple(
-        message,
-        primaryLabel,
-        secondarySpans,
-        color: color == true || color is String,
-        primaryColor: color is String ? color : null,
-      );
+    message,
+    primaryLabel,
+    secondarySpans,
+    color: color == true || color is String,
+    primaryColor: color is String ? color : null,
+  );
 
   String highlightMultiple(
     String newLabel,
@@ -67,14 +89,13 @@ final class MultiSpan implements FileSpan {
     bool color = false,
     String? primaryColor,
     String? secondaryColor,
-  }) =>
-      _primary.highlightMultiple(
-        newLabel,
-        {...secondarySpans, ...additionalSecondarySpans},
-        color: color,
-        primaryColor: primaryColor,
-        secondaryColor: secondaryColor,
-      );
+  }) => _primary.highlightMultiple(
+    newLabel,
+    {...secondarySpans, ...additionalSecondarySpans},
+    color: color,
+    primaryColor: primaryColor,
+    secondaryColor: secondaryColor,
+  );
 
   String messageMultiple(
     String message,
@@ -83,15 +104,14 @@ final class MultiSpan implements FileSpan {
     bool color = false,
     String? primaryColor,
     String? secondaryColor,
-  }) =>
-      _primary.messageMultiple(
-        message,
-        newLabel,
-        {...secondarySpans, ...additionalSecondarySpans},
-        color: color,
-        primaryColor: primaryColor,
-        secondaryColor: secondaryColor,
-      );
+  }) => _primary.messageMultiple(
+    message,
+    newLabel,
+    {...secondarySpans, ...additionalSecondarySpans},
+    color: color,
+    primaryColor: primaryColor,
+    secondaryColor: secondaryColor,
+  );
 
   /// Returns a copy of `this` with [newPrimary] as its primary span.
   MultiSpan _withPrimary(FileSpan newPrimary) =>

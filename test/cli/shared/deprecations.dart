@@ -7,7 +7,9 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 import 'package:test_process/test_process.dart';
 
 /// Defines test that are shared between the Dart and Node.js CLI test suites.
-void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
+void sharedTests(
+  Future<TestProcess> Function(Iterable<String> arguments) runSass,
+) {
   // Test complaining about invalid deprecations, combinations, etc
 
   group("--silence-deprecation", () {
@@ -28,8 +30,10 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           "--silence-deprecation=mixed-decls",
           "test.scss",
         ]);
-        expect(sass.stderr,
-            emits(contains("mixed-decls deprecation is obsolete")));
+        expect(
+          sass.stderr,
+          emits(contains("mixed-decls deprecation is obsolete")),
+        );
         await sass.shouldExit(0);
       });
 
@@ -117,9 +121,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       });
 
       group("an evaluation-time deprecation", () {
-        setUp(
-          () => d.file("test.scss", "a {b: nth(1 2 3, 1)}").create(),
-        );
+        setUp(() => d.file("test.scss", "a {b: nth(1 2 3, 1)}").create());
 
         test("in immediate mode", () async {
           var sass = await runSass([
@@ -172,8 +174,10 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           "--fatal-deprecation=mixed-decls",
           "test.scss",
         ]);
-        expect(sass.stderr,
-            emits(contains("mixed-decls deprecation is obsolete")));
+        expect(
+          sass.stderr,
+          emits(contains("mixed-decls deprecation is obsolete")),
+        );
         await sass.shouldExit(0);
       });
 
@@ -244,9 +248,7 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
       });
 
       group("an evaluation-time deprecation", () {
-        setUp(
-          () => d.file("test.scss", "a {b: nth(1 2 3, 1)}").create(),
-        );
+        setUp(() => d.file("test.scss", "a {b: nth(1 2 3, 1)}").create());
 
         test("in immediate mode", () async {
           var sass = await runSass([
@@ -345,8 +347,10 @@ void sharedTests(Future<TestProcess> runSass(Iterable<String> arguments)) {
           "--future-deprecation=mixed-decls",
           "test.scss",
         ]);
-        expect(sass.stderr,
-            emits(contains("mixed-decls deprecation is obsolete")));
+        expect(
+          sass.stderr,
+          emits(contains("mixed-decls deprecation is obsolete")),
+        );
         await sass.shouldExit(0);
       });
 

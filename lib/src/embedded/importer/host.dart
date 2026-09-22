@@ -14,19 +14,20 @@ import 'base.dart';
 
 /// An importer that asks the host to resolve imports.
 @internal
-final class HostImporter extends ImporterBase {
-  /// The host-provided ID of the importer to invoke.
-  final int _importerId;
+final class HostImporter(
+  super.dispatcher,
 
+  /// The host-provided ID of the importer to invoke.
+  final int _importerId,
+  Iterable<String> nonCanonicalSchemes,
+) extends ImporterBase {
   /// The set of URL schemes that this importer promises never to return from
   /// [canonicalize].
-  final Set<String> _nonCanonicalSchemes;
+  final Set<String> _nonCanonicalSchemes = Set.unmodifiable(
+    nonCanonicalSchemes,
+  );
 
-  HostImporter(
-    super.dispatcher,
-    this._importerId,
-    Iterable<String> nonCanonicalSchemes,
-  ) : _nonCanonicalSchemes = Set.unmodifiable(nonCanonicalSchemes) {
+  this {
     for (var scheme in _nonCanonicalSchemes) {
       if (isValidUrlScheme(scheme)) continue;
       throw SassException(
@@ -36,6 +37,7 @@ final class HostImporter extends ImporterBase {
     }
   }
 
+  @override
   Uri? canonicalize(Uri url) {
     var request = OutboundMessage_CanonicalizeRequest()
       ..importerId = _importerId
@@ -49,15 +51,13 @@ final class HostImporter extends ImporterBase {
     if (!response.containingUrlUnused) canonicalizeContext.containingUrl;
 
     return switch (response.whichResult()) {
-      InboundMessage_CanonicalizeResponse_Result.url => parseAbsoluteUrl(
-          "The importer",
-          response.url,
-        ),
-      InboundMessage_CanonicalizeResponse_Result.error => throw response.error,
-      InboundMessage_CanonicalizeResponse_Result.notSet => null,
+      .url => parseAbsoluteUrl("The importer", response.url),
+      .error => throw response.error,
+      .notSet => null,
     };
   }
 
+  @override
   ImporterResult? load(Uri url) {
     var response = dispatcher.sendImportRequest(
       OutboundMessage_ImportRequest()
@@ -66,23 +66,22 @@ final class HostImporter extends ImporterBase {
     );
 
     return switch (response.whichResult()) {
-      InboundMessage_ImportResponse_Result.success => ImporterResult(
-          response.success.contents,
-          sourceMapUrl: response.success.sourceMapUrl.isEmpty
-              ? null
-              : parseAbsoluteUrl(
-                  "The importer",
-                  response.success.sourceMapUrl,
-                ),
-          syntax: syntaxToSyntax(response.success.syntax),
-        ),
-      InboundMessage_ImportResponse_Result.error => throw response.error,
-      InboundMessage_ImportResponse_Result.notSet => null,
+      .success => ImporterResult(
+        response.success.contents,
+        sourceMapUrl: response.success.sourceMapUrl.isEmpty
+            ? null
+            : parseAbsoluteUrl("The importer", response.success.sourceMapUrl),
+        syntax: syntaxToSyntax(response.success.syntax),
+      ),
+      .error => throw response.error,
+      .notSet => null,
     };
   }
 
+  @override
   bool isNonCanonicalScheme(String scheme) =>
       _nonCanonicalSchemes.contains(scheme);
 
+  @override
   String toString() => "HostImporter";
 }

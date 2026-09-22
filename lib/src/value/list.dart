@@ -23,36 +23,41 @@ base class SassList extends Value {
   // We don't use public fields because they'd be overridden by the getters of
   // the same name in the JS API.
 
+  @override
   ListSeparator get separator => _separator;
   final ListSeparator _separator;
 
+  @override
   bool get hasBrackets => _hasBrackets;
   final bool _hasBrackets;
 
   /// @nodoc
+  @override
   @internal
   bool get isBlank =>
       !hasBrackets && asList.every((element) => element.isBlank);
 
+  @override
   List<Value> get asList => _contents;
 
   /// @nodoc
+  @override
   @internal
   int get lengthAsList => asList.length;
 
   /// Returns an empty list with the given [separator] and [brackets].
   ///
   /// The [separator] defaults to [ListSeparator.undecided], and [brackets] defaults to `false`.
-  const SassList.empty({ListSeparator? separator, bool brackets = false})
-      : _contents = const [],
-        _separator = separator ?? ListSeparator.undecided,
-        _hasBrackets = brackets;
+  const new empty({ListSeparator? separator, bool brackets = false})
+    : _contents = const [],
+      _separator = separator ?? .undecided,
+      _hasBrackets = brackets;
 
   /// Returns an empty list with the given [separator] and [brackets].
-  SassList(Iterable<Value> contents, this._separator, {bool brackets = false})
-      : _contents = List.unmodifiable(contents),
-        _hasBrackets = brackets {
-    if (separator == ListSeparator.undecided && asList.length > 1) {
+  new(Iterable<Value> contents, this._separator, {bool brackets = false})
+    : _contents = List.unmodifiableOf(contents),
+      _hasBrackets = brackets {
+    if (separator == .undecided && asList.length > 1) {
       throw ArgumentError(
         "A list with more than one element must have an explicit separator.",
       );
@@ -61,10 +66,11 @@ base class SassList extends Value {
 
   /// Add parentheses to the debug information for lists to help make the list
   /// bounds clear.
+  @override
   String toString() {
     if (hasBrackets ||
         lengthAsList == 0 ||
-        (lengthAsList == 1 && separator == ListSeparator.comma)) {
+        (lengthAsList == 1 && separator == .comma)) {
       return super.toString();
     }
 
@@ -72,14 +78,18 @@ base class SassList extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitList(this);
 
+  @override
   SassMap assertMap([String? name]) =>
       asList.isEmpty ? const SassMap.empty() : super.assertMap(name);
 
+  @override
   SassMap? tryMap() => asList.isEmpty ? const SassMap.empty() : null;
 
+  @override
   bool operator ==(Object other) =>
       (other is SassList &&
           other.separator == separator &&
@@ -87,13 +97,23 @@ base class SassList extends Value {
           listEquals(other.asList, asList)) ||
       (asList.isEmpty && other is SassMap && other.asList.isEmpty);
 
+  @override
   int get hashCode => listHash(asList);
 }
 
 /// An enum of list separator types.
 ///
 /// {@category Value}
-enum ListSeparator {
+enum ListSeparator(
+  /// The English name of the separator type.
+  final String _name,
+
+  /// The separator character.
+  ///
+  /// If the separator of a list has not been decided, this value will be
+  /// `null`.
+  final String? separator,
+) {
   /// A space-separated list.
   space('space', ' '),
 
@@ -109,15 +129,6 @@ enum ListSeparator {
   /// that list functions will prefer other lists' separators if possible.
   undecided('undecided', null);
 
-  final String _name;
-
-  /// The separator character.
-  ///
-  /// If the separator of a list has not been decided, this value will be
-  /// `null`.
-  final String? separator;
-
-  const ListSeparator(this._name, this.separator);
-
+  @override
   String toString() => _name;
 }

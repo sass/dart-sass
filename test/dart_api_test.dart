@@ -157,8 +157,7 @@ void main() {
       expect(css, equals("a {\n  b: from-relative;\n}"));
     });
 
-    test(
-        "the original importer takes precedence over other importers for "
+    test("the original importer takes precedence over other importers for "
         "relative imports", () async {
       await d.dir("original", [
         d.file("other.scss", "a {b: from-original}"),
@@ -182,7 +181,7 @@ void main() {
         importers: [
           TestImporter(
             (url) => url.scheme == 'first' ? url : null,
-            (url) => ImporterResult('a {from: first}', syntax: Syntax.scss),
+            (url) => ImporterResult('a {from: first}', syntax: .scss),
           ),
           // This importer should only be invoked once, because when the
           // "first:other" import is resolved it should be passed to the first
@@ -192,7 +191,7 @@ void main() {
               (url) => url.scheme == 'second' ? url : null,
               count: 1,
             ),
-            (url) => ImporterResult('@use "first:other";', syntax: Syntax.scss),
+            (url) => ImporterResult('@use "first:other";', syntax: .scss),
           ),
         ],
       ).css;
@@ -269,7 +268,7 @@ void main() {
 
       test("emits a BOM with compressed output", () async {
         expect(
-          compileString("a {b: 👭}", style: OutputStyle.compressed).css,
+          compileString("a {b: 👭}", style: .compressed).css,
           equals("\u{FEFF}a{b:👭}"),
         );
       });
@@ -289,11 +288,7 @@ void main() {
 
       test("emits a BOM with compressed output", () async {
         expect(
-          compileString(
-            "a {b: 👭}",
-            charset: false,
-            style: OutputStyle.compressed,
-          ).css,
+          compileString("a {b: 👭}", charset: false, style: .compressed).css,
           equals("a{b:👭}"),
         );
       });
@@ -327,7 +322,7 @@ void main() {
       await d.file("input.scss", "@import 'other';").create();
       var result = compile(
         d.path('input.scss'),
-        silenceDeprecations: [Deprecation.import],
+        silenceDeprecations: [.import],
       );
       expect(result.loadedUrls, contains(p.toUri(d.path('_other.scss'))));
     });
@@ -367,7 +362,7 @@ void main() {
       """).create();
       var result = compile(
         d.path('mercury.scss'),
-        silenceDeprecations: [Deprecation.import],
+        silenceDeprecations: [.import],
       );
       expect(
         result.loadedUrls,

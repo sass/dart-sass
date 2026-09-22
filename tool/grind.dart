@@ -34,23 +34,14 @@ void main(List<String> args) {
   pkg.homebrewFormula.value = "Formula/sass.rb";
   pkg.homebrewEditFormula.value = _updateHomebrewLanguageRevision;
   pkg.jsRequires.value = [
-    pkg.JSRequire(
-      "@parcel/watcher",
-      target: pkg.JSRequireTarget.cli,
-      lazy: true,
-      optional: true,
-    ),
-    pkg.JSRequire("immutable", target: pkg.JSRequireTarget.all),
-    pkg.JSRequire("chokidar", target: pkg.JSRequireTarget.cli),
-    pkg.JSRequire("readline", target: pkg.JSRequireTarget.cli),
-    pkg.JSRequire("fs", target: pkg.JSRequireTarget.node),
-    pkg.JSRequire(
-      "module",
-      target: pkg.JSRequireTarget.node,
-      identifier: 'nodeModule',
-    ),
-    pkg.JSRequire("stream", target: pkg.JSRequireTarget.node),
-    pkg.JSRequire("util", target: pkg.JSRequireTarget.node),
+    pkg.JSRequire("@parcel/watcher", target: .cli, lazy: true, optional: true),
+    pkg.JSRequire("immutable", target: .all),
+    pkg.JSRequire("chokidar", target: .cli),
+    pkg.JSRequire("readline", target: .cli),
+    pkg.JSRequire("fs", target: .node),
+    pkg.JSRequire("module", target: .node, identifier: 'nodeModule'),
+    pkg.JSRequire("stream", target: .node),
+    pkg.JSRequire("util", target: .node),
   ];
   pkg.jsModuleMainLibrary.value = "lib/src/js.dart";
   pkg.npmPackageJson.fn = () =>
@@ -126,9 +117,9 @@ void main(List<String> args) {
 
     return {
       ...pkg.environmentConstants.defaultValue,
-      "protocol-version": File(
-        'build/language/spec/EMBEDDED_PROTOCOL_VERSION',
-      ).readAsStringSync().trim(),
+      "protocol-version": File('build/language/spec/EMBEDDED_PROTOCOL_VERSION')
+          .readAsStringSync()
+          .trim(),
       "compiler-version": pkg.pubspec.version!.toString(),
     };
   };
@@ -166,7 +157,8 @@ void npmInstall() =>
 )
 void beforeTest() {}
 
-String get _nuspec => """
+String get _nuspec =>
+    """
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
@@ -201,9 +193,9 @@ final _readAndResolveRegExp = RegExp(
 /// which must appear on its own line. PATH is a relative file: URL to another
 /// Markdown file, and HEADER is the name of a header in that file whose
 /// contents should be included as-is.
-String _readAndResolveMarkdown(String path) => File(
-      path,
-    ).readAsStringSync().replaceAllMapped(_readAndResolveRegExp, (match) {
+String _readAndResolveMarkdown(String path) => File(path)
+    .readAsStringSync()
+    .replaceAllMapped(_readAndResolveRegExp, (match) {
       late String included;
       try {
         included = File(p.join(p.dirname(path), p.fromUri(match[1])))
@@ -242,8 +234,8 @@ Map<String, String> _fetchJSTypes() {
   return {
     for (var entry in Directory(typeRoot).listSync(recursive: true))
       if (entry is File && entry.path.endsWith('.d.ts'))
-        p.join('types', p.relative(entry.path, from: typeRoot)):
-            entry.readAsStringSync(),
+        p.join('types', p.relative(entry.path, from: typeRoot)): entry
+            .readAsStringSync(),
   };
 }
 
@@ -279,9 +271,9 @@ dart run protoc_plugin "\$@"
     arguments: ["generate"],
     runOptions: RunOptions(
       environment: {
-        "PATH": 'build' +
-            (Platform.isWindows ? ";" : ":") +
-            Platform.environment["PATH"]!,
+        "PATH":
+            'build${Platform.isWindows ? ";" : ":"}'
+            '${Platform.environment["PATH"]!}',
       },
     ),
   );

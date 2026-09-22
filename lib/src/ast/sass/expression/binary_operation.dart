@@ -14,16 +14,17 @@ import 'list.dart';
 /// A binary operator, as in `1 + 2` or `$this and $other`.
 ///
 /// {@category AST}
-final class BinaryOperationExpression extends Expression {
+final class BinaryOperationExpression(
   /// The operator being invoked.
-  final BinaryOperator operator;
+  final BinaryOperator operator,
 
   /// The left-hand operand.
-  final Expression left;
+  final Expression left,
 
   /// The right-hand operand.
-  final Expression right;
-
+  final Expression right,
+) extends Expression {
+  @override
   FileSpan get span {
     // Avoid creating a bunch of intermediate spans for multiple binary
     // expressions in a row by moving to the left- and right-most expressions.
@@ -43,18 +44,18 @@ final class BinaryOperationExpression extends Expression {
   ///
   /// @nodoc
   @internal
-  FileSpan get operatorSpan => left.span.file == right.span.file &&
+  FileSpan get operatorSpan =>
+      left.span.file == right.span.file &&
           left.span.end.offset < right.span.start.offset
       ? left.span.file
-          .span(left.span.end.offset, right.span.start.offset)
-          .trim()
+            .span(left.span.end.offset, right.span.start.offset)
+            .trim()
       : span;
-
-  BinaryOperationExpression(this.operator, this.left, this.right);
-
+  @override
   T accept<T>(ExpressionVisitor<T> visitor) =>
       visitor.visitBinaryOperationExpression(this);
 
+  @override
   String toString() {
     var buffer = StringBuffer();
 
@@ -93,7 +94,19 @@ final class BinaryOperationExpression extends Expression {
 /// A binary operator constant.
 ///
 /// {@category AST}
-enum BinaryOperator {
+enum BinaryOperator(
+  /// The English name of `this`.
+  final String name,
+
+  /// The Sass syntax for `this`.
+  final String operator,
+
+  /// The precedence of `this`.
+  ///
+  /// An operator with higher precedence binds tighter.
+  final int precedence, {
+  bool associative = false,
+}) {
   // Note: When updating these operators, also update
   // pkg/sass-parser/lib/src/expression/binary-operation.ts.
 
@@ -143,28 +156,11 @@ enum BinaryOperator {
   /// The modulo operator, `%`.
   modulo('modulo', '%', 6);
 
-  /// The English name of `this`.
-  final String name;
-
-  /// The Sass syntax for `this`.
-  final String operator;
-
-  /// The precedence of `this`.
-  ///
-  /// An operator with higher precedence binds tighter.
-  final int precedence;
-
   /// Whether this operation has the [associative property].
   ///
   /// [associative property]: https://en.wikipedia.org/wiki/Associative_property
-  final bool isAssociative;
+  final bool isAssociative = associative;
 
-  const BinaryOperator(
-    this.name,
-    this.operator,
-    this.precedence, {
-    bool associative = false,
-  }) : isAssociative = associative;
-
+  @override
   String toString() => name;
 }

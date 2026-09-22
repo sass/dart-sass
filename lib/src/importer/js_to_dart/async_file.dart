@@ -20,12 +20,11 @@ import '../utils.dart';
 /// A wrapper for a potentially-asynchronous JS API file importer that exposes
 /// it as a Dart [AsyncImporter].
 @internal
-final class JSToDartAsyncFileImporter extends AsyncImporter {
+final class JSToDartAsyncFileImporter(
   /// The wrapped `findFileUrl` function.
-  final Object? Function(String, CanonicalizeContext) _findFileUrl;
-
-  JSToDartAsyncFileImporter(this._findFileUrl);
-
+  final Object? Function(String, CanonicalizeContext) _findFileUrl,
+) extends AsyncImporter {
+  @override
   FutureOr<Uri?> canonicalize(Uri url) async {
     if (url.scheme == 'file') {
       return FilesystemImporter.noLoadPath.canonicalize(url);
@@ -53,13 +52,17 @@ final class JSToDartAsyncFileImporter extends AsyncImporter {
     return FilesystemImporter.noLoadPath.canonicalize(resultUrl);
   }
 
+  @override
   ImporterResult? load(Uri url) => FilesystemImporter.noLoadPath.load(url);
 
+  @override
   DateTime modificationTime(Uri url) =>
       FilesystemImporter.noLoadPath.modificationTime(url);
 
+  @override
   bool couldCanonicalize(Uri url, Uri canonicalUrl) =>
       FilesystemImporter.noLoadPath.couldCanonicalize(url, canonicalUrl);
 
+  @override
   bool isNonCanonicalScheme(String scheme) => scheme != 'file';
 }

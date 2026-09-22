@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 
 import '../ast/css/value.dart';
 import '../ast/selector.dart';
+import '../logger.dart';
 import '../util/character.dart';
 import '../utils.dart';
 import 'parser.dart';
@@ -34,28 +35,32 @@ final selectorPseudoElements = {"slotted"};
 /// This class is largely duplicated between here and [SelectorParser]. Most
 /// changes here should be mirrored there and vice versa.
 @internal
-final class SelectorParser extends Parser {
+final class SelectorParser(
+  super.contents, {
+  super.url,
+  super.interpolationMap,
+
   /// Whether this parser allows the parent selector `&`.
-  final bool _allowParent;
+  final bool _allowParent = true,
 
   /// Whether to parse the selector as plain CSS.
-  final bool _plainCss;
+  final bool _plainCss = false,
+  Logger? logger,
+}) extends Parser {
+  /// The logger used to report deprecation warnings.
+  final Logger _logger = logger ?? .defaultLogger;
 
   /// Creates a parser that parses CSS selectors.
   ///
-  /// If [allowParent] is `false`, this will throw a [SassFormatException] if
+  /// If [_allowParent] is `false`, this will throw a [SassFormatException] if
   /// the selector includes the parent selector `&`.
   ///
-  /// If [plainCss] is `true`, this will parse the selector as a plain CSS
+  /// If [_plainCss] is `true`, this will parse the selector as a plain CSS
   /// selector rather than a Sass selector.
-  SelectorParser(
-    super.contents, {
-    super.url,
-    super.interpolationMap,
-    bool allowParent = true,
-    bool plainCss = false,
-  })  : _allowParent = allowParent,
-        _plainCss = plainCss;
+  ///
+  /// The [logger] will be used to report deprecation warnings. If it's null,
+  /// they'll be reported using [Logger.defaultLogger].
+  this;
 
   SelectorList parse() {
     return wrapSpanFormatException(() {
@@ -147,43 +152,40 @@ final class SelectorParser extends Parser {
 
     loop:
     while (true) {
+      var beforeWhitespace = scanner.position;
       _whitespace();
+      var consumedWhitespace = scanner.position != beforeWhitespace;
 
-      var allowCombinator = combinator == null &&
+      var allowCombinator =
+          combinator == null &&
           (allowLeadingCombinator || lastCompound != null);
       switch (scanner.peekChar()) {
         case $plus when allowCombinator:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinator = CssValue(
-            Combinator.nextSibling,
-            spanFrom(combinatorStart),
-          );
+          combinator = CssValue(.nextSibling, spanFrom(combinatorStart));
 
         case $gt when allowCombinator:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinator = CssValue(Combinator.child, spanFrom(combinatorStart));
+          combinator = CssValue(.child, spanFrom(combinatorStart));
 
         case $tilde when allowCombinator:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinator = CssValue(
-            Combinator.followingSibling,
-            spanFrom(combinatorStart),
-          );
+          combinator = CssValue(.followingSibling, spanFrom(combinatorStart));
 
         case null:
           break loop;
 
         case $lbracket ||
-              $dot ||
-              $hash ||
-              $percent ||
-              $colon ||
-              $ampersand ||
-              $asterisk ||
-              $pipe:
+            $dot ||
+            $hash ||
+            $percent ||
+            $colon ||
+            $ampersand ||
+            $asterisk ||
+            $pipe:
         case _ when lookingAtIdentifier():
           if (lastCompound != null) {
             components.add(
@@ -199,7 +201,24 @@ final class SelectorParser extends Parser {
             componentStart = scanner.state;
           }
 
-          lastCompound = _compoundSelector();
+          var nextCompound = _compoundSelector();
+
+          if (lastCompound != null &&
+              combinator == null &&
+              !consumedWhitespace) {
+            _logger.warnForDeprecation(
+              .adjacentCompounds,
+              'Adjacent compound selectors must be separated by whitespace. '
+              'This will be an error in Dart Sass 2.0.0. Suggestion:\n'
+              '\n'
+              '$lastCompound $nextCompound\n'
+              '\n'
+              'More info: https://sass-lang.com/d/adjacent-compounds',
+              span: lastCompound.span.expand(nextCompound.span),
+            );
+          }
+
+          lastCompound = nextCompound;
           combinator = null;
           if (scanner.peekChar() == $ampersand) {
             scanner.error(
@@ -276,10 +295,7 @@ final class SelectorParser extends Parser {
       case $ampersand:
         var selector = _parentSelector();
         if (!allowParent) {
-          error(
-            "Parent selectors aren't allowed here.",
-            spanFrom(start),
-          );
+          error("Parent selectors aren't allowed here.", spanFrom(start));
         }
         return selector;
 
@@ -350,27 +366,27 @@ final class SelectorParser extends Parser {
     var start = scanner.position;
     switch (scanner.readChar()) {
       case $equal:
-        return AttributeOperator.equal;
+        return .equal;
 
       case $tilde:
         scanner.expectChar($equal);
-        return AttributeOperator.include;
+        return .include;
 
       case $pipe:
         scanner.expectChar($equal);
-        return AttributeOperator.dash;
+        return .dash;
 
       case $caret:
         scanner.expectChar($equal);
-        return AttributeOperator.prefix;
+        return .prefix;
 
       case $dollar:
         scanner.expectChar($equal);
-        return AttributeOperator.suffix;
+        return .suffix;
 
       case $asterisk:
         scanner.expectChar($equal);
-        return AttributeOperator.substring;
+        return .substring;
 
       default:
         scanner.error('Expected "]".', position: start);
@@ -526,12 +542,16 @@ final class SelectorParser extends Parser {
       return scanner.scanChar($asterisk)
           ? UniversalSelector(spanFrom(start), namespace: "*")
           : TypeSelector(
-              QualifiedName(identifier(), namespace: "*"), spanFrom(start));
+              QualifiedName(identifier(), namespace: "*"),
+              spanFrom(start),
+            );
     } else if (scanner.scanChar($pipe)) {
       return scanner.scanChar($asterisk)
           ? UniversalSelector(spanFrom(start), namespace: "")
           : TypeSelector(
-              QualifiedName(identifier(), namespace: ""), spanFrom(start));
+              QualifiedName(identifier(), namespace: ""),
+              spanFrom(start),
+            );
     }
 
     var nameOrNamespace = identifier();
@@ -541,18 +561,19 @@ final class SelectorParser extends Parser {
       return UniversalSelector(spanFrom(start), namespace: nameOrNamespace);
     } else {
       return TypeSelector(
-          QualifiedName(identifier(), namespace: nameOrNamespace),
-          spanFrom(start));
+        QualifiedName(identifier(), namespace: nameOrNamespace),
+        spanFrom(start),
+      );
     }
   }
 
   // Returns whether [character] can start a simple selector in the middle of a
   // compound selector.
   bool _isSimpleSelectorStart(int? character) => switch (character) {
-        $asterisk || $lbracket || $dot || $hash || $percent || $colon => true,
-        $ampersand => _plainCss,
-        _ => false,
-      };
+    $asterisk || $lbracket || $dot || $hash || $percent || $colon => true,
+    $ampersand => _plainCss,
+    _ => false,
+  };
 
   /// The value of `consumeNewlines` is not relevant for this class.
   void _whitespace() {

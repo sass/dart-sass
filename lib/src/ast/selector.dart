@@ -38,7 +38,7 @@ export 'selector/universal.dart';
 /// Selectors have structural equality semantics.
 ///
 /// {@category AST}
-abstract base class Selector implements AstNode {
+abstract base class Selector(@override final FileSpan span) implements AstNode {
   /// Whether this selector, and complex selectors containing it, should not be
   /// emitted.
   ///
@@ -53,25 +53,23 @@ abstract base class Selector implements AstNode {
   bool get containsParentSelector =>
       accept(const _ContainsParentSelectorVisitor());
 
-  final FileSpan span;
-
-  Selector(this.span);
-
   /// Calls the appropriate visit method on [visitor].
   T accept<T>(SelectorVisitor<T> visitor);
 
+  @override
   String toString() => serializeSelector(this, inspect: true);
 }
 
 /// The visitor used to implement [Selector.isInvisible].
-final class _IsInvisibleVisitor with AnySelectorVisitor {
-  const _IsInvisibleVisitor();
-
+final class const _IsInvisibleVisitor() with AnySelectorVisitor {
+  @override
   bool visitSelectorList(SelectorList list) =>
       list.components.every(visitComplexSelector);
 
+  @override
   bool visitPlaceholderSelector(PlaceholderSelector placeholder) => true;
 
+  @override
   bool visitPseudoSelector(PseudoSelector pseudo) {
     if (pseudo.selector case var selector?) {
       // We don't consider `:not(%foo)` to be invisible because, semantically,
@@ -86,8 +84,7 @@ final class _IsInvisibleVisitor with AnySelectorVisitor {
 }
 
 /// The visitor used to implement [Selector.containsParentSelector].
-final class _ContainsParentSelectorVisitor with AnySelectorVisitor {
-  const _ContainsParentSelectorVisitor();
-
+final class const _ContainsParentSelectorVisitor() with AnySelectorVisitor {
+  @override
   bool visitParentSelector(ParentSelector _) => true;
 }

@@ -37,11 +37,11 @@ void main() {
           SassList([
             SassString("a", quotes: false),
             SassString("b", quotes: false),
-          ], ListSeparator.space),
+          ], .space),
           SassList([
             SassString("c", quotes: false),
             SassString("d", quotes: false),
-          ], ListSeparator.space),
+          ], .space),
         ]),
       );
     });
@@ -94,12 +94,12 @@ void main() {
               SassList([
                 SassString("a", quotes: false),
                 SassString("b", quotes: false),
-              ], ListSeparator.space),
+              ], .space),
               SassList([
                 SassString("c", quotes: false),
                 SassString("d", quotes: false),
-              ], ListSeparator.space),
-            ], ListSeparator.comma),
+              ], .space),
+            ], .comma),
           ),
         ),
       );

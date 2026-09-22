@@ -17,11 +17,13 @@ import 'utils.dart';
 ///
 /// @nodoc
 @internal
-final class ProphotoRgbColorSpace extends ColorSpace {
+final class const ProphotoRgbColorSpace() extends ColorSpace {
+  @override
   bool get isBoundedInternal => true;
 
-  const ProphotoRgbColorSpace() : super('prophoto-rgb', rgbChannels);
+  this : super('prophoto-rgb', rgbChannels);
 
+  @override
   @protected
   double toLinear(double channel) {
     // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
@@ -29,6 +31,7 @@ final class ProphotoRgbColorSpace extends ColorSpace {
     return abs <= 16 / 512 ? channel / 16 : channel.sign * math.pow(abs, 1.8);
   }
 
+  @override
   @protected
   double fromLinear(double channel) {
     // Algorithm from https://www.w3.org/TR/css-color-4/#color-conversion-code
@@ -38,20 +41,16 @@ final class ProphotoRgbColorSpace extends ColorSpace {
         : 16 * channel;
   }
 
+  @override
   @protected
   Float64List transformationMatrix(ColorSpace dest) => switch (dest) {
-        ColorSpace.srgbLinear ||
-        ColorSpace.srgb ||
-        ColorSpace.rgb =>
-          linearProphotoRgbToLinearSrgb,
-        ColorSpace.a98Rgb => linearProphotoRgbToLinearA98Rgb,
-        ColorSpace.displayP3 ||
-        ColorSpace.displayP3Linear =>
-          linearProphotoRgbToLinearDisplayP3,
-        ColorSpace.rec2020 => linearProphotoRgbToLinearRec2020,
-        ColorSpace.xyzD65 => linearProphotoRgbToXyzD65,
-        ColorSpace.xyzD50 => linearProphotoRgbToXyzD50,
-        ColorSpace.lms => linearProphotoRgbToLms,
-        _ => super.transformationMatrix(dest),
-      };
+    .srgbLinear || .srgb || .rgb => linearProphotoRgbToLinearSrgb,
+    .a98Rgb => linearProphotoRgbToLinearA98Rgb,
+    .displayP3 || .displayP3Linear => linearProphotoRgbToLinearDisplayP3,
+    .rec2020 => linearProphotoRgbToLinearRec2020,
+    .xyzD65 => linearProphotoRgbToXyzD65,
+    .xyzD50 => linearProphotoRgbToXyzD50,
+    .lms => linearProphotoRgbToLms,
+    _ => super.transformationMatrix(dest),
+  };
 }

@@ -16,43 +16,59 @@ import '../value.dart';
 
 /// A module provided by Sass, available under the special `sass:` URL space.
 @internal
-final class BuiltInModule<T extends AsyncCallable> implements Module<T> {
-  final Uri url;
-  final Map<String, T> functions;
-  final Map<String, T> mixins;
-  final Map<String, Value> variables;
+final class BuiltInModule<T extends AsyncCallable>(
+  String name, {
+  Iterable<T>? functions,
+  Iterable<T>? mixins,
+  Map<String, Value>? variables,
+}) implements Module<T> {
+  @override
+  final Uri url = Uri(scheme: "sass", path: name);
 
+  @override
+  final Map<String, T> functions = _callableMap(functions);
+
+  @override
+  final Map<String, T> mixins = _callableMap(mixins);
+
+  @override
+  final Map<String, Value> variables = variables == null
+      ? const {}
+      : UnmodifiableMapView(variables);
+
+  @override
   List<Module<T>> get upstream => const [];
-  Map<String, AstNode> get variableNodes => const {};
-  ExtensionStore get extensionStore => ExtensionStore.empty;
-  CssStylesheet get css => CssStylesheet.empty(url: url);
-  Map<Module<T>, List<CssComment>> get preModuleComments => const {};
-  bool get transitivelyContainsCss => false;
-  bool get transitivelyContainsExtensions => false;
 
-  BuiltInModule(
-    String name, {
-    Iterable<T>? functions,
-    Iterable<T>? mixins,
-    Map<String, Value>? variables,
-  })  : url = Uri(scheme: "sass", path: name),
-        functions = _callableMap(functions),
-        mixins = _callableMap(mixins),
-        variables =
-            variables == null ? const {} : UnmodifiableMapView(variables);
+  @override
+  Map<String, AstNode> get variableNodes => const {};
+
+  @override
+  ExtensionStore get extensionStore => .empty;
+
+  @override
+  CssStylesheet get css => CssStylesheet.empty(url: url);
+
+  @override
+  Map<Module<T>, List<CssComment>> get preModuleComments => const {};
+
+  @override
+  bool get transitivelyContainsCss => false;
+
+  @override
+  bool get transitivelyContainsExtensions => false;
 
   /// Returns a map from [callables]' names to their values.
   static Map<String, T> _callableMap<T extends AsyncCallable>(
     Iterable<T>? callables,
-  ) =>
-      UnmodifiableMapView(
-        callables == null
-            ? {}
-            : UnmodifiableMapView({
-                for (var callable in callables) callable.name: callable,
-              }),
-      );
+  ) => UnmodifiableMapView(
+    callables == null
+        ? {}
+        : UnmodifiableMapView({
+            for (var callable in callables) callable.name: callable,
+          }),
+  );
 
+  @override
   void setVariable(String name, Value value, AstNode nodeWithSpan) {
     if (!variables.containsKey(name)) {
       throw SassScriptException("Undefined variable.");
@@ -60,12 +76,15 @@ final class BuiltInModule<T extends AsyncCallable> implements Module<T> {
     throw SassScriptException("Cannot modify built-in variable.");
   }
 
+  @override
   Object variableIdentity(String name) {
     assert(variables.containsKey(name));
     return this;
   }
 
+  @override
   bool couldHaveBeenConfigured(Set<String> _) => false;
 
+  @override
   Module<T> cloneCss() => this;
 }

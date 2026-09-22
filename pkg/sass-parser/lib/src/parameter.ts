@@ -78,9 +78,7 @@ export type ParameterObjectProps = NodeProps & {
  * ParameterDeclarationProps}.
  */
 export type ParameterExpressionProps =
-  | AnyExpression
-  | ExpressionProps
-  | Omit<ParameterObjectProps, 'name'>;
+  AnyExpression | ExpressionProps | Omit<ParameterObjectProps, 'name'>;
 
 /**
  * The initializer properties for {@link Parameter}.
@@ -88,9 +86,7 @@ export type ParameterExpressionProps =
  * @category Statement
  */
 export type ParameterProps =
-  | ParameterObjectProps
-  | string
-  | [string, ParameterExpressionProps];
+  ParameterObjectProps | string | [string, ParameterExpressionProps];
 
 /**
  * A single parameter defined in the parameter declaration of a `@mixin` or

@@ -52,9 +52,7 @@ export interface InterpolationObjectProps extends NodeProps {
  * @category Expression
  */
 export type InterpolationProps =
-  | InterpolationObjectProps
-  | ReadonlyArray<NewNodeForInterpolation>
-  | string;
+  InterpolationObjectProps | ReadonlyArray<NewNodeForInterpolation> | string;
 
 /**
  * Raws indicating how to precisely serialize an {@link Interpolation} node.

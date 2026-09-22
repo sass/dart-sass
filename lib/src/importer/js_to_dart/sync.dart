@@ -17,27 +17,25 @@ import 'utils.dart';
 /// A wrapper for a synchronous JS API importer that exposes it as a Dart
 /// [Importer].
 @internal
-final class JSToDartImporter extends Importer {
+final class JSToDartImporter(
   /// The wrapped canonicalize function.
-  final Object? Function(String, CanonicalizeContext) _canonicalize;
+  final Object? Function(String, CanonicalizeContext) _canonicalize,
 
   /// The wrapped load function.
-  final Object? Function(JSUrl) _load;
-
+  final Object? Function(JSUrl) _load,
+  Iterable<String>? nonCanonicalSchemes,
+) extends Importer {
   /// The set of URL schemes that this importer promises never to return from
   /// [canonicalize].
-  final Set<String> _nonCanonicalSchemes;
+  final Set<String> _nonCanonicalSchemes = nonCanonicalSchemes == null
+      ? const {}
+      : Set.unmodifiable(nonCanonicalSchemes);
 
-  JSToDartImporter(
-    this._canonicalize,
-    this._load,
-    Iterable<String>? nonCanonicalSchemes,
-  ) : _nonCanonicalSchemes = nonCanonicalSchemes == null
-            ? const {}
-            : Set.unmodifiable(nonCanonicalSchemes) {
+  this {
     _nonCanonicalSchemes.forEach(validateUrlScheme);
   }
 
+  @override
   Uri? canonicalize(Uri url) {
     var result = wrapJSExceptions(
       () => _canonicalize(url.toString(), canonicalizeContext),
@@ -57,6 +55,7 @@ final class JSToDartImporter extends Importer {
     }
   }
 
+  @override
   ImporterResult? load(Uri url) {
     var result = wrapJSExceptions(() => _load(dartToJSUrl(url)));
     if (result == null) return null;
@@ -99,6 +98,7 @@ final class JSToDartImporter extends Importer {
     );
   }
 
+  @override
   bool isNonCanonicalScheme(String scheme) =>
       _nonCanonicalSchemes.contains(scheme);
 }

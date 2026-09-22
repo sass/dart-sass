@@ -23,7 +23,7 @@ final _emptyUnquoted = SassString("", quotes: false);
 /// identifiers, but they may contain any text.
 ///
 /// {@category Value}
-final class SassString extends Value {
+final class SassString(final String _text, {bool quotes = true}) extends Value {
   // We don't use public fields because they'd be overridden by the getters of
   // the same name in the JS API.
 
@@ -40,11 +40,10 @@ final class SassString extends Value {
   /// `url(http://example.com)`. Unfortunately, it also means that we don't
   /// consider `foo` and `f\6F\6F` the same string.
   String get text => _text;
-  final String _text;
 
   /// Whether this string has quotes.
   bool get hasQuotes => _hasQuotes;
-  final bool _hasQuotes;
+  final bool _hasQuotes = quotes;
 
   /// Sass's notion of the length of this string.
   ///
@@ -64,75 +63,88 @@ final class SassString extends Value {
   int? _hashCache;
 
   /// @nodoc
+  @override
   @internal
   bool get isSpecialNumber {
     if (hasQuotes) return false;
     if (text.length < "min(_)".length) return false;
 
     return switch (text.codeUnitAt(0)) {
-      $a || $A => equalsLetterIgnoreCase($t, text.codeUnitAt(1)) &&
-          equalsLetterIgnoreCase($t, text.codeUnitAt(2)) &&
-          equalsLetterIgnoreCase($r, text.codeUnitAt(3)) &&
-          text.codeUnitAt(4) == $lparen,
+      $a || $A =>
+        equalsLetterIgnoreCase($t, text.codeUnitAt(1)) &&
+            equalsLetterIgnoreCase($t, text.codeUnitAt(2)) &&
+            equalsLetterIgnoreCase($r, text.codeUnitAt(3)) &&
+            text.codeUnitAt(4) == $lparen,
       $c || $C => switch (text.codeUnitAt(1)) {
-          $l || $L => equalsLetterIgnoreCase($a, text.codeUnitAt(2)) &&
+        $l || $L =>
+          equalsLetterIgnoreCase($a, text.codeUnitAt(2)) &&
               equalsLetterIgnoreCase($m, text.codeUnitAt(3)) &&
               equalsLetterIgnoreCase($p, text.codeUnitAt(4)) &&
               text.codeUnitAt(5) == $lparen,
-          $a || $A => equalsLetterIgnoreCase($l, text.codeUnitAt(2)) &&
+        $a || $A =>
+          equalsLetterIgnoreCase($l, text.codeUnitAt(2)) &&
               equalsLetterIgnoreCase($c, text.codeUnitAt(3)) &&
               text.codeUnitAt(4) == $lparen,
-          _ => false,
-        },
-      $v || $V => equalsLetterIgnoreCase($a, text.codeUnitAt(1)) &&
-          equalsLetterIgnoreCase($r, text.codeUnitAt(2)) &&
-          text.codeUnitAt(3) == $lparen,
-      $e || $E => equalsLetterIgnoreCase($n, text.codeUnitAt(1)) &&
-          equalsLetterIgnoreCase($v, text.codeUnitAt(2)) &&
-          text.codeUnitAt(3) == $lparen,
+        _ => false,
+      },
+      $v || $V =>
+        equalsLetterIgnoreCase($a, text.codeUnitAt(1)) &&
+            equalsLetterIgnoreCase($r, text.codeUnitAt(2)) &&
+            text.codeUnitAt(3) == $lparen,
+      $e || $E =>
+        equalsLetterIgnoreCase($n, text.codeUnitAt(1)) &&
+            equalsLetterIgnoreCase($v, text.codeUnitAt(2)) &&
+            text.codeUnitAt(3) == $lparen,
       $m || $M => switch (text.codeUnitAt(1)) {
-          $a || $A => equalsLetterIgnoreCase($x, text.codeUnitAt(2)) &&
+        $a || $A =>
+          equalsLetterIgnoreCase($x, text.codeUnitAt(2)) &&
               text.codeUnitAt(3) == $lparen,
-          $i || $I => equalsLetterIgnoreCase($n, text.codeUnitAt(2)) &&
+        $i || $I =>
+          equalsLetterIgnoreCase($n, text.codeUnitAt(2)) &&
               text.codeUnitAt(3) == $lparen,
-          _ => false,
-        },
-      $i || $I => equalsLetterIgnoreCase($f, text.codeUnitAt(1)) &&
-          text.codeUnitAt(2) == $lparen,
+        _ => false,
+      },
+      $i || $I =>
+        equalsLetterIgnoreCase($f, text.codeUnitAt(1)) &&
+            text.codeUnitAt(2) == $lparen,
       _ => false,
     };
   }
 
   /// @nodoc
+  @override
   @internal
   bool get isSpecialVariable {
     if (hasQuotes) return false;
     if (text.length < "var(_)".length) return false;
 
     return switch (text.codeUnitAt(0)) {
-      $a || $A => equalsLetterIgnoreCase($t, text.codeUnitAt(1)) &&
-          equalsLetterIgnoreCase($t, text.codeUnitAt(2)) &&
-          equalsLetterIgnoreCase($r, text.codeUnitAt(3)) &&
-          text.codeUnitAt(4) == $lparen,
-      $i || $I => equalsLetterIgnoreCase($f, text.codeUnitAt(1)) &&
-          text.codeUnitAt(2) == $lparen,
-      $v || $V => equalsLetterIgnoreCase($a, text.codeUnitAt(1)) &&
-          equalsLetterIgnoreCase($r, text.codeUnitAt(2)) &&
-          text.codeUnitAt(3) == $lparen,
+      $a || $A =>
+        equalsLetterIgnoreCase($t, text.codeUnitAt(1)) &&
+            equalsLetterIgnoreCase($t, text.codeUnitAt(2)) &&
+            equalsLetterIgnoreCase($r, text.codeUnitAt(3)) &&
+            text.codeUnitAt(4) == $lparen,
+      $i || $I =>
+        equalsLetterIgnoreCase($f, text.codeUnitAt(1)) &&
+            text.codeUnitAt(2) == $lparen,
+      $v || $V =>
+        equalsLetterIgnoreCase($a, text.codeUnitAt(1)) &&
+            equalsLetterIgnoreCase($r, text.codeUnitAt(2)) &&
+            text.codeUnitAt(3) == $lparen,
       _ => false,
     };
   }
 
   /// @nodoc
+  @override
   @internal
   bool get isBlank => !hasQuotes && text.isEmpty;
 
   /// Creates an empty string.
-  factory SassString.empty({bool quotes = true}) =>
-      quotes ? _emptyQuoted : _emptyUnquoted;
+  factory empty({bool quotes = true}) => quotes ? _emptyQuoted : _emptyUnquoted;
 
   /// Creates a string with the given [text].
-  SassString(this._text, {bool quotes = true}) : _hasQuotes = quotes;
+  this;
 
   /// Throws a [SassScriptException] if this is an unquoted string.
   ///
@@ -211,23 +223,30 @@ final class SassString extends Value {
   }
 
   /// @nodoc
+  @override
   @internal
   T accept<T>(ValueVisitor<T> visitor) => visitor.visitString(this);
 
+  @override
   SassString assertString([String? name]) => this;
 
+  @override
   SassFunction assertFunction([String? name]) => throw SassScriptException(
-      "$this is not a function reference.\n"
-      "Call meta.get-function() to get a reference for a function name.",
-      name);
+    "$this is not a function reference.\n"
+    "Call meta.get-function() to get a reference for a function name.",
+    name,
+  );
 
   /// @nodoc
+  @override
   @internal
   Value plus(Value other) => other is SassString
       ? SassString(text + other.text, quotes: hasQuotes)
       : SassString(text + other.toCssString(), quotes: hasQuotes);
 
+  @override
   bool operator ==(Object other) => other is SassString && text == other.text;
 
+  @override
   int get hashCode => _hashCache ??= text.hashCode;
 }

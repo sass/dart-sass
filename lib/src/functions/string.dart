@@ -46,25 +46,23 @@ final module = BuiltInModule(
     _function("split", r"$string, $separator, $limit: null", (arguments) {
       var string = arguments[0].assertString("string");
       var separator = arguments[1].assertString("separator");
-      var limit =
-          arguments[2].realNull?.assertNumber("limit").assertInt("limit");
+      var limit = arguments[2].realNull
+          ?.assertNumber("limit")
+          .assertInt("limit");
 
       if (limit != null && limit < 1) {
         throw SassScriptException("\$limit: Must be 1 or greater, was $limit.");
       }
 
       if (string.text.isEmpty) {
-        return const SassList.empty(
-          separator: ListSeparator.comma,
-          brackets: true,
-        );
+        return const SassList.empty(separator: .comma, brackets: true);
       } else if (separator.text.isEmpty) {
         return SassList(
           string.text.runes.map(
             (rune) =>
                 SassString(String.fromCharCode(rune), quotes: string.hasQuotes),
           ),
-          ListSeparator.comma,
+          .comma,
           brackets: true,
         );
       }
@@ -83,7 +81,7 @@ final module = BuiltInModule(
 
       return SassList(
         chunks.map((chunk) => SassString(chunk, quotes: string.hasQuotes)),
-        ListSeparator.comma,
+        .comma,
         brackets: true,
       );
     }),
@@ -247,6 +245,5 @@ int _codepointForIndex(
 BuiltInCallable _function(
   String name,
   String arguments,
-  Value callback(List<Value> arguments),
-) =>
-    BuiltInCallable.function(name, arguments, callback, url: "sass:string");
+  Value Function(List<Value> arguments) callback,
+) => BuiltInCallable.function(name, arguments, callback, url: "sass:string");

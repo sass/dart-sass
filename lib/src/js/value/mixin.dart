@@ -20,8 +20,7 @@ final JSClass mixinClass = () {
     );
   });
 
-  getJSClass(
-    SassMixin(Callable.function('f', '', (_) => sassNull)),
-  ).injectSuperclass(jsClass);
+  getJSClass(SassMixin(Callable.function('f', '', (_) => sassNull)))
+      .injectSuperclass(jsClass);
   return jsClass;
 }();
