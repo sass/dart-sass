@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: 3d41bea8a4f4c90069be1d4d21548ce9a20d33d3
+  // Checksum: ace7e727da69b207479e10bdf8f6f4868e1b2fde
 
   /// Deprecation for passing a string directly to meta.call().
   callString(
@@ -209,6 +209,7 @@ enum Deprecation {
   misplacedRest(
     'misplaced-rest',
     deprecatedIn: '1.91.0',
+    obsoleteIn: '2.0.0',
     description: 'A rest parameter before a positional or named parameter.',
   ),
 

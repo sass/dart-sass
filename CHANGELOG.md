@@ -28,6 +28,9 @@
 * **Breaking change:** Passing a string to `meta.call()` is now an error.
   Callers must pass a function object instead.
 
+* **Breaking change:** Passing a named or positional argument after a `...` rest
+  argument to a mixin or function is now an error.
+
 * **Brekaing change:** `meta.feature-exists()` has been removed. See [the Sass
   website](https://sass-lang.com/d/feature-exists) for details.
 
