@@ -1775,7 +1775,6 @@ abstract base class StylesheetParser extends Parser {
     var namedSpans = <String, FileSpan>{};
     Expression? rest;
     Expression? keywordRest;
-    var emittedRestDeprecation = false;
     while (_lookingAtExpression()) {
       var expression = expressionUntilComma(singleEquals: !mixin);
       whitespace(consumeNewlines: true);
@@ -1789,19 +1788,15 @@ abstract base class StylesheetParser extends Parser {
         named[expression.name] = value;
         namedSpans[expression.name] = expression.span.expand(value.span);
 
-        if (rest != null && !emittedRestDeprecation) {
-          emittedRestDeprecation = true;
-          warnings.add((
-            deprecation: .misplacedRest,
-            message:
-                'Named arguments must come before rest arguments.\n'
-                'This will be an error in Dart Sass 2.0.0.',
-            span: MultiSpan(
+        if (rest != null) {
+          error(
+            'Named arguments must come before rest arguments.',
+            MultiSpan(
               spanFromPosition(expression.span.start.offset),
               'named argument',
               {rest.span: 'rest argument'},
             ),
-          ));
+          );
         }
       } else if (scanner.scanChar($dot)) {
         scanner.expectChar($dot);
@@ -1822,17 +1817,13 @@ abstract base class StylesheetParser extends Parser {
       } else {
         positional.add(expression);
 
-        if (rest != null && !emittedRestDeprecation) {
-          emittedRestDeprecation = true;
-          warnings.add((
-            deprecation: .misplacedRest,
-            message:
-                'Positional arguments must come before rest arguments.\n'
-                'This will be an error in Dart Sass 2.0.0.',
-            span: MultiSpan(expression.span, 'positional argument', {
+        if (rest != null) {
+          error(
+            'Positional arguments must come before rest arguments.',
+            MultiSpan(expression.span, 'positional argument', {
               rest.span: 'rest argument',
             }),
-          ));
+          );
         }
       }
 
