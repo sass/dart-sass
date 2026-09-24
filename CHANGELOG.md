@@ -31,6 +31,16 @@
 * **Breaking change:** Passing a named or positional argument after a `...` rest
   argument to a mixin or function is now an error.
 
+* **Breaking change:** It is now an error to declare functions named
+  `expression` and `url` even if those functions' names are upper or mixed-case.
+
+* **Breaking change:** Calls to vendor prefixed `-...-expression` and `-...-url`
+  functions are now parsed the same as any other function, rather than being
+  parsed as special functions. These never had special semantics in any browser.
+
+* **Breaking change:** Calls to vendor prefixed `-...-progid:...()` functions
+  are no longer supported. These were never supported by any browser.
+
 * **Brekaing change:** `meta.feature-exists()` has been removed. See [the Sass
   website](https://sass-lang.com/d/feature-exists) for details.
 
