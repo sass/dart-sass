@@ -26,6 +26,7 @@ class MediaQueryParser(super.contents, {super.url, super.interpolationMap})
 
   /// Consumes a single media query.
   CssMediaQuery _mediaQuery() {
+    var start = scanner.state;
     // This is somewhat duplicated in StylesheetParser._mediaQuery.
     if (scanner.peekChar() == $lparen) {
       var conditions = [_mediaInParens()];
@@ -41,7 +42,11 @@ class MediaQueryParser(super.contents, {super.url, super.interpolationMap})
         conditions.addAll(_mediaLogicSequence("or"));
       }
 
-      return CssMediaQuery.condition(conditions, conjunction: conjunction);
+      return CssMediaQuery.condition(
+        conditions,
+        spanFrom(start),
+        conjunction: conjunction,
+      );
     }
 
     String? modifier;
@@ -52,14 +57,16 @@ class MediaQueryParser(super.contents, {super.url, super.interpolationMap})
       expectWhitespace();
       if (!lookingAtIdentifier()) {
         // For example, "@media not (...) {"
-        return CssMediaQuery.condition(["(not ${_mediaInParens()})"]);
+        return CssMediaQuery.condition([
+          "(not ${_mediaInParens()})",
+        ], spanFrom(start));
       }
     }
 
     _whitespace();
     if (!lookingAtIdentifier()) {
       // For example, "@media screen {"
-      return CssMediaQuery.type(identifier1);
+      return CssMediaQuery.type(identifier1, spanFrom(start));
     }
 
     var identifier2 = identifier();
@@ -77,7 +84,7 @@ class MediaQueryParser(super.contents, {super.url, super.interpolationMap})
         expectWhitespace();
       } else {
         // For example, "@media only screen {"
-        return CssMediaQuery.type(type, modifier: modifier);
+        return CssMediaQuery.type(type, spanFrom(start), modifier: modifier);
       }
     }
 
@@ -89,6 +96,7 @@ class MediaQueryParser(super.contents, {super.url, super.interpolationMap})
       expectWhitespace();
       return CssMediaQuery.type(
         type,
+        spanFrom(start),
         modifier: modifier,
         conditions: ["(not ${_mediaInParens()})"],
       );
@@ -96,6 +104,7 @@ class MediaQueryParser(super.contents, {super.url, super.interpolationMap})
 
     return CssMediaQuery.type(
       type,
+      spanFrom(start),
       modifier: modifier,
       conditions: _mediaLogicSequence("and"),
     );

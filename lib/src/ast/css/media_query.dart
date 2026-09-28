@@ -2,12 +2,18 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:source_span/source_span.dart';
+
 import '../../interpolation_map.dart';
 import '../../parse/media_query.dart';
 import '../../utils.dart';
+import '../node.dart';
 
 /// A plain CSS media query, as used in `@media` and `@import`.
-final class CssMediaQuery {
+final class CssMediaQuery implements AstNode {
+  @override
+  final FileSpan span;
+
   /// The modifier, probably either "not" or "only".
   ///
   /// This may be `null` if no modifier is in use.
@@ -55,7 +61,7 @@ final class CssMediaQuery {
   /// Creates a media query specifies a type and, optionally, conditions.
   ///
   /// This always sets [conjunction] to `true`.
-  new type(this.type, {this.modifier, Iterable<String>? conditions})
+  new type(this.type, this.span, {this.modifier, Iterable<String>? conditions})
     : conjunction = true,
       conditions = conditions == null
           ? const []
@@ -66,7 +72,7 @@ final class CssMediaQuery {
   ///
   /// The [conjunction] argument may not be null if [conditions] is longer than
   /// a single element.
-  new condition(Iterable<String> conditions, {bool? conjunction})
+  new condition(Iterable<String> conditions, this.span, {bool? conjunction})
     : modifier = null,
       type = null,
       conjunction = conjunction ?? true,
@@ -93,10 +99,11 @@ final class CssMediaQuery {
 
     if (ourType == null && theirType == null) {
       return MediaQuerySuccessfulMergeResult._(
-        CssMediaQuery.condition([
-          ...this.conditions,
-          ...other.conditions,
-        ], conjunction: true),
+        CssMediaQuery.condition(
+          [...this.conditions, ...other.conditions],
+          span,
+          conjunction: true,
+        ),
       );
     }
 
@@ -180,6 +187,7 @@ final class CssMediaQuery {
     return MediaQuerySuccessfulMergeResult._(
       CssMediaQuery.type(
         type == ourType ? this.type : other.type,
+        span,
         modifier: modifier == ourModifier ? this.modifier : other.modifier,
         conditions: conditions,
       ),
