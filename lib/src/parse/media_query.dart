@@ -5,6 +5,7 @@
 import 'package:charcode/charcode.dart';
 
 import '../ast/css.dart';
+import '../util/span.dart';
 import '../utils.dart';
 import 'parser.dart';
 
@@ -44,7 +45,7 @@ class MediaQueryParser(super.contents, {super.url, super.interpolationMap})
 
       return CssMediaQuery.condition(
         conditions,
-        spanFrom(start),
+        spanFrom(start).trimRight(),
         conjunction: conjunction,
       );
     }
@@ -66,7 +67,7 @@ class MediaQueryParser(super.contents, {super.url, super.interpolationMap})
     _whitespace();
     if (!lookingAtIdentifier()) {
       // For example, "@media screen {"
-      return CssMediaQuery.type(identifier1, spanFrom(start));
+      return CssMediaQuery.type(identifier1, spanFrom(start).trimRight());
     }
 
     var identifier2 = identifier();
@@ -84,7 +85,11 @@ class MediaQueryParser(super.contents, {super.url, super.interpolationMap})
         expectWhitespace();
       } else {
         // For example, "@media only screen {"
-        return CssMediaQuery.type(type, spanFrom(start), modifier: modifier);
+        return CssMediaQuery.type(
+          type,
+          spanFrom(start).trimRight(),
+          modifier: modifier,
+        );
       }
     }
 
@@ -94,19 +99,21 @@ class MediaQueryParser(super.contents, {super.url, super.interpolationMap})
     if (scanIdentifier("not")) {
       // For example, "@media screen and not (...) {"
       expectWhitespace();
+      var negated = _mediaInParens();
       return CssMediaQuery.type(
         type,
         spanFrom(start),
         modifier: modifier,
-        conditions: ["(not ${_mediaInParens()})"],
+        conditions: ["(not $negated)"],
       );
     }
 
+    var conditions = _mediaLogicSequence("and");
     return CssMediaQuery.type(
       type,
-      spanFrom(start),
+      spanFrom(start).trimRight(),
       modifier: modifier,
-      conditions: _mediaLogicSequence("and"),
+      conditions: conditions,
     );
   }
 
