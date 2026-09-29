@@ -9,6 +9,7 @@ import '../ast/css/value.dart';
 import '../ast/selector.dart';
 import '../logger.dart';
 import '../util/character.dart';
+import '../util/span.dart';
 import '../utils.dart';
 import 'parser.dart';
 
@@ -110,7 +111,7 @@ class SelectorParser(
       components.add(_complexSelector(lineBreak: lineBreak));
     }
 
-    return SelectorList(components, spanFrom(start));
+    return SelectorList(components, spanFrom(start).trimRight());
   }
 
   /// Consumes a complex selector.
@@ -168,7 +169,7 @@ class SelectorParser(
               ComplexSelectorComponent(
                 lastCompound,
                 combinators,
-                spanFrom(componentStart),
+                spanFrom(componentStart).trimRight(),
               ),
             );
           } else if (combinators.isNotEmpty) {
@@ -214,7 +215,7 @@ class SelectorParser(
         ComplexSelectorComponent(
           lastCompound,
           combinators,
-          spanFrom(componentStart),
+          spanFrom(componentStart).trimRight(),
         ),
       );
     } else if (combinators.isNotEmpty) {
@@ -226,7 +227,7 @@ class SelectorParser(
     return ComplexSelector(
       initialCombinators ?? const [],
       components,
-      spanFrom(start),
+      spanFrom(start).trimRight(),
       lineBreak: lineBreak,
     );
   }

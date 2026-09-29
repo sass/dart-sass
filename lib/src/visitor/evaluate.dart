@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 95c4f36c4b598ff4f5cc93d9ea94f389493b41d4
+// Checksum: 7022c48e00a3c6f8ffeec7cacc8dd8cd94e478ed
 //
 // ignore_for_file: unused_import
 
@@ -53,7 +53,6 @@ import '../util/character.dart';
 import '../util/map.dart';
 import '../util/multi_span.dart';
 import '../util/nullable.dart';
-import '../util/span.dart';
 import '../value.dart';
 import 'expression_to_calc.dart';
 import 'interface/css.dart';
@@ -1554,7 +1553,7 @@ final class _EvaluateVisitor({
         'This will be an error in Dart Sass 2.0.0.\n'
         '\n'
         'More info: https://sass-lang.com/d/bogus-combinators',
-        MultiSpan(complex.span.trimRight(), 'invalid selector', {
+        MultiSpan(complex.span, 'invalid selector', {
           node.span: '@extend rule',
         }),
         .bogusCombinators,
@@ -2550,7 +2549,7 @@ final class _EvaluateVisitor({
             'This will be an error in Dart Sass 2.0.0.\n'
             '\n'
             'More info: https://sass-lang.com/d/bogus-combinators',
-            complex.span.trimRight(),
+            complex.span,
             .bogusCombinators,
           );
         } else if (complex.leadingCombinators.isNotEmpty) {
@@ -2560,7 +2559,7 @@ final class _EvaluateVisitor({
               'This will be an error in Dart Sass 2.0.0.\n'
               '\n'
               'More info: https://sass-lang.com/d/bogus-combinators',
-              complex.span.trimRight(),
+              complex.span,
               .bogusCombinators,
             );
           }
@@ -2578,7 +2577,7 @@ final class _EvaluateVisitor({
             'This will be an error in Dart Sass 2.0.0.\n'
             '\n'
             'More info: https://sass-lang.com/d/bogus-combinators',
-            MultiSpan(complex.span.trimRight(), 'invalid selector', {
+            MultiSpan(complex.span, 'invalid selector', {
               rule.children.first.span: "this is not a style rule$suggestion",
             }),
             .bogusCombinators,

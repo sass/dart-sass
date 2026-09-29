@@ -31,14 +31,19 @@ final class MergedExtension._(
       throw ArgumentError("$left and $right aren't the same extension.");
     }
 
-    if (left.mediaContext != null &&
-        right.mediaContext != null &&
-        !listEquals(left.mediaContext, right.mediaContext)) {
-      throw SassException(
-        "From ${left.span.message('')}\n"
+    if ((left.mediaContext, right.mediaContext)
+        case (var leftContext?, var rightContext?)
+        when !listEquals(leftContext, rightContext)) {
+      throw MultiSpanSassException(
         "You may not @extend the same selector from within different media "
-        "queries.",
+            "queries.",
         right.span,
+        "second extension",
+        {
+          rightContext.last.span: "second extension @media",
+          left.span: "first extension",
+          leftContext.last.span: "first extension @media",
+        },
       );
     }
 

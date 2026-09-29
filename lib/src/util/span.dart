@@ -8,6 +8,7 @@ import 'package:string_scanner/string_scanner.dart';
 
 import '../utils.dart';
 import 'character.dart';
+import 'lazy_file_span.dart';
 
 /// A span that points nowhere.
 ///
@@ -17,10 +18,19 @@ final bogusSpan = SourceFile.decoded([]).span(0);
 
 extension SpanExtensions on FileSpan {
   /// Returns this span with all whitespace trimmed from both sides.
-  FileSpan trim() => trimLeft().trimRight();
+  ///
+  /// This operation is lazy—it only actually loads or changes the span once its
+  /// data is accessed.
+  FileSpan trim() => LazyFileSpan(() => _trimLeft()._trimRight());
 
   /// Returns this span with all leading whitespace trimmed.
-  FileSpan trimLeft() {
+  ///
+  /// This operation is lazy—it only actually loads or changes the span once its
+  /// data is accessed.
+  FileSpan trimLeft() => LazyFileSpan(() => _trimLeft());
+
+  /// Returns this span with all leading whitespace trimmed.
+  FileSpan _trimLeft() {
     var start = 0;
     while (text.codeUnitAt(start).isWhitespace) {
       start++;
@@ -29,7 +39,13 @@ extension SpanExtensions on FileSpan {
   }
 
   /// Returns this span with all trailing whitespace trimmed.
-  FileSpan trimRight() {
+  ///
+  /// This operation is lazy—it only actually loads or changes the span once its
+  /// data is accessed.
+  FileSpan trimRight() => LazyFileSpan(() => _trimRight());
+
+  /// Returns this span with all trailing whitespace trimmed.
+  FileSpan _trimRight() {
     var end = text.length - 1;
     while (text.codeUnitAt(end).isWhitespace) {
       end--;

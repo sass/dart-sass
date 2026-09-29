@@ -5,6 +5,7 @@
 import 'package:source_span/source_span.dart';
 
 import '../ast/css.dart';
+import '../ast/node.dart';
 import '../ast/selector.dart';
 import '../exception.dart';
 import '../utils.dart';
@@ -83,7 +84,13 @@ final class Extender(
 
   /// Asserts that the [mediaContext] for a selector is compatible with the
   /// query context for this extender.
-  void assertCompatibleMediaContext(List<CssMediaQuery>? mediaContext) {
+  ///
+  /// The [selectorNodeWithSpan] is used for error reporting as the location of
+  /// the selector being extended.
+  void assertCompatibleMediaContext(
+    List<CssMediaQuery>? mediaContext,
+    AstNode selectorNodeWithSpan,
+  ) {
     var extension = _extension;
     if (extension == null) return;
 
@@ -94,9 +101,15 @@ final class Extender(
       return;
     }
 
-    throw SassException(
+    throw MultiSpanSassException(
       "You may not @extend selectors across media queries.",
       extension.span,
+      "extension",
+      {
+        expectedMediaContext.last.span: "extension @media",
+        ?mediaContext?.last.span: "extended selector @media",
+        selectorNodeWithSpan.span: "extended selector",
+      },
     );
   }
 

@@ -1,3 +1,7 @@
+## 1.105.1
+
+* Improve error messages for `@extend`s across different media queries.
+
 ## 1.105.0
 
 * Add support for first-class modules. These can be accessed using the new
