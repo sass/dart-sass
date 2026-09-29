@@ -2,9 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-@TestOn('vm')
-library;
-
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_maps/source_maps.dart' as source_maps;
@@ -17,10 +14,10 @@ import 'package:sass/src/embedded/utils.dart';
 import 'embedded_process.dart';
 import 'utils.dart';
 
-void main() {
+void sharedTests(Future<EmbeddedProcess> Function() runSassEmbedded) {
   late EmbeddedProcess process;
   setUp(() async {
-    process = await EmbeddedProcess.start();
+    process = await runSassEmbedded();
   });
 
   group("exits upon protocol error", () {
@@ -515,9 +512,18 @@ void main() {
       );
 
       var failure = await getCompileFailure(process);
-      expect(failure.message, startsWith("Cannot open file: "));
       expect(
-        failure.message.replaceFirst("Cannot open file: ", "").trim(),
+        failure.message,
+        anyOf(
+          startsWith("Cannot open file: "),
+          startsWith("no such file or directory: "),
+        ),
+      );
+      expect(
+        failure.message
+            .replaceFirst("Cannot open file: ", "")
+            .replaceFirst("no such file or directory: ", "")
+            .trim(),
         equalsPath(d.path('test.scss')),
       );
       expect(failure.span.text, equals(''));
