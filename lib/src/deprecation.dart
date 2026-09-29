@@ -15,7 +15,7 @@ enum Deprecation {
   // DO NOT EDIT. This section was generated from the language repo.
   // See tool/grind/generate_deprecations.dart for details.
   //
-  // Checksum: ace7e727da69b207479e10bdf8f6f4868e1b2fde
+  // Checksum: 2a2c098ef7b31e1ced77c870a02e60f5b8ca892f
 
   /// Deprecation for passing a string directly to meta.call().
   callString(
@@ -240,6 +240,7 @@ enum Deprecation {
   functionName(
     'function-name',
     deprecatedIn: '1.98.0',
+    obsoleteIn: '2.0.0',
     description: 'Uppercase reserved function names.',
   ),
 
