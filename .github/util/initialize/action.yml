@@ -49,17 +49,15 @@ runs:
       with:
         setup_only: true
 
-    # This composite action requires bash, but bash is not available on windows-arm64 runner.
-    # Avoid running this composite action on non-PR, so that we can release on windows-arm64.
+    # This composite action requires bash, but bash is not available on
+    # windows-arm64 runner. In practice, we only use the windows-arm64 runner
+    # for releases, so it doesn't need to link repository versions.
     - name: Check out the language repo
-      if: github.event_name == 'pull_request'
+      if: runner.os != 'windows' || runner.arch != 'ARM64'
       uses: sass/clone-linked-repo@ec2dcd11c5eaec56b64855712372056a14e9614d # v1.0.0
       with: {repo: sass/sass, path: build/language}
-
-    # Git is not pre-installed on windows-arm64 runner, however actions/checkout support
-    # downloading repo via GitHub API.
     - name: Check out the language repo
-      if: github.event_name != 'pull_request'
+      if: runner.os == 'windows' && runner.arch == 'ARM64'
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: sass/sass
