@@ -1,3 +1,10 @@
+## 1.105.2
+
+### Node.js Embedded Host
+
+* Fix a deadlock while running asynchronous compilations when the embedded
+  compiler fails to load correctly.
+
 ## 1.105.1
 
 * Improve error messages for `@extend`s across different media queries.
