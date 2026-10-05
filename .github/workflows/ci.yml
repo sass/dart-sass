@@ -35,12 +35,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - if: steps.metadata.outputs.update-type != 'version-update:semver-major'
-        run: gh pr merge --auto --squash "$PR_URL"
+        run: gh pr merge --auto --squash "$PR_URL" -A "Sass Bot <sass.bot.beep.boop@gmail.com>"
         env:
-          GIT_AUTHOR_NAME: Sass Bot
-          GIT_AUTHOR_EMAIL: sass.bot.beep.boop@gmail.com
-          GIT_COMMITTER_NAME: Sass Bot
-          GIT_COMMITTER_EMAIL: sass.bot.beep.boop@gmail.com
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
