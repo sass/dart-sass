@@ -6,6 +6,7 @@ import 'package:source_span/source_span.dart';
 
 import '../../utils.dart';
 import '../../util/span.dart';
+import '../../util/string.dart';
 import 'expression.dart';
 import 'declaration.dart';
 import 'node.dart';
@@ -15,6 +16,8 @@ import 'node.dart';
 /// {@category AST}
 final class Parameter(
   /// The parameter name.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   @override final String name,
   @override final FileSpan span, {
 
@@ -34,5 +37,7 @@ final class Parameter(
       defaultValue == null ? span : span.initialIdentifier(includeLeading: 1);
 
   @override
-  String toString() => defaultValue == null ? name : "$name: $defaultValue";
+  String toString() => defaultValue == null
+      ? name.toCssIdentifier()
+      : "${name.toCssIdentifier()}: $defaultValue";
 }

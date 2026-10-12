@@ -57,7 +57,7 @@ class KeyframeSelectorParser(
       }
     }
 
-    if (scanIdentChar($e)) {
+    if (scanner.scanChar($e) || scanner.scanChar($E)) {
       buffer.writeCharCode($e);
       if (scanner.peekChar() case $plus || $minus) {
         buffer.writeCharCode(scanner.readChar());

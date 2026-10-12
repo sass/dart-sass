@@ -9,6 +9,7 @@ import '../../../exception.dart';
 import '../../../parse/scss.dart';
 import '../../../utils.dart';
 import '../../../util/span.dart';
+import '../../../util/string.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../declaration.dart';
@@ -22,6 +23,8 @@ import 'silent_comment.dart';
 /// {@category AST}
 final class VariableDeclaration(
   /// The name of the variable, with underscores converted to hyphens.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   @override final String name,
 
   /// The value the variable is being assigned to.
@@ -30,6 +33,8 @@ final class VariableDeclaration(
 
   /// The namespace of the variable being set, or `null` if it's defined or set
   /// without a namespace.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   final String? namespace,
   bool guarded = false,
   bool global = false,
@@ -90,8 +95,10 @@ final class VariableDeclaration(
   @override
   String toString() {
     var buffer = StringBuffer();
-    if (namespace != null) buffer.write("$namespace.");
-    buffer.write("\$$name: $expression;");
+    if (namespace case var namespace?) {
+      buffer.write("${namespace.toCssIdentifier()}.");
+    }
+    buffer.write("\$${name.toCssIdentifier()}: $expression;");
     return buffer.toString();
   }
 }

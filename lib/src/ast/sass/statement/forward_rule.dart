@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../util/span.dart';
+import '../../../util/string.dart';
 import '../../../visitor/interface/statement.dart';
 import '../configured_variable.dart';
 import '../dependency.dart';
@@ -25,6 +26,8 @@ final class ForwardRule extends Statement implements SassDependency {
   /// The set of mixin and function names that may be accessed from the
   /// forwarded module.
   ///
+  /// These are the semantic contents of the identifiers, with escapes resolved.
+  ///
   /// If this is empty, no mixins or functions may be accessed. If it's `null`,
   /// it imposes no restrictions on which mixins and function may be accessed.
   ///
@@ -35,6 +38,8 @@ final class ForwardRule extends Statement implements SassDependency {
 
   /// The set of variable names (without `$`) that may be accessed from the
   /// forwarded module.
+  ///
+  /// These are the semantic contents of the identifiers, with escapes resolved.
   ///
   /// If this is empty, no variables may be accessed. If it's `null`, it imposes
   /// no restrictions on which variables may be accessed.
@@ -47,6 +52,8 @@ final class ForwardRule extends Statement implements SassDependency {
   /// The set of mixin and function names that may not be accessed from the
   /// forwarded module.
   ///
+  /// These are the semantic contents of the identifiers, with escapes resolved.
+  ///
   /// If this is empty, any mixins or functions may be accessed. If it's `null`,
   /// it imposes no restrictions on which mixins or functions may be accessed.
   ///
@@ -58,6 +65,8 @@ final class ForwardRule extends Statement implements SassDependency {
   /// The set of variable names (without `$`) that may be accessed from the
   /// forwarded module.
   ///
+  /// These are the semantic contents of the identifiers, with escapes resolved.
+  ///
   /// If this is empty, any variables may be accessed. If it's `null`, it
   /// imposes no restrictions on which variables may be accessed.
   ///
@@ -68,6 +77,8 @@ final class ForwardRule extends Statement implements SassDependency {
 
   /// The prefix to add to the beginning of the names of members of the used
   /// module, or `null` if member names are used as-is.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   final String? prefix;
 
   /// A list of variable assignments used to configure the loaded modules.
@@ -168,6 +179,8 @@ final class ForwardRule extends Statement implements SassDependency {
   String _memberList(
     Iterable<String> mixinsAndFunctions,
     Iterable<String> variables,
-  ) =>
-      [...mixinsAndFunctions, for (var name in variables) "\$$name"].join(", ");
+  ) => [
+    for (var name in mixinsAndFunctions) name.toCssIdentifier(),
+    for (var name in variables) "\$${name.toCssIdentifier()}",
+  ].join(", ");
 }

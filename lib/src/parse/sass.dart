@@ -81,8 +81,8 @@ class SassParser(super.contents, {super.url, super.parseSelectors})
 
   @override
   Import importArgument() {
-    switch (scanner.peekChar()) {
-      case $u || $U:
+    switch (peekCharOrEscape()) {
+      case ($u || $U, _):
         var start = scanner.state;
         if (scanIdentifier("url")) {
           if (scanner.scanChar($lparen)) {
@@ -93,7 +93,7 @@ class SassParser(super.contents, {super.url, super.parseSelectors})
           }
         }
 
-      case $single_quote || $double_quote:
+      case ($single_quote || $double_quote, false):
         return super.importArgument();
     }
 

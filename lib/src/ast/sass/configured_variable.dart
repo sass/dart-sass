@@ -5,6 +5,7 @@
 import 'package:source_span/source_span.dart';
 
 import '../../util/span.dart';
+import '../../util/string.dart';
 import 'expression.dart';
 import 'declaration.dart';
 import 'node.dart';
@@ -14,6 +15,8 @@ import 'node.dart';
 /// {@category AST}
 final class ConfiguredVariable(
   /// The name of the variable being configured.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   @override final String name,
 
   /// The variable's value.
@@ -30,5 +33,6 @@ final class ConfiguredVariable(
   FileSpan get nameSpan => span.initialIdentifier(includeLeading: 1);
 
   @override
-  String toString() => "\$$name: $expression${isGuarded ? ' !default' : ''}";
+  String toString() =>
+      "\$${name.toCssIdentifier()}: $expression${isGuarded ? ' !default' : ''}";
 }

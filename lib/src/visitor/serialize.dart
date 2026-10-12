@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:charcode/charcode.dart';
+import 'package:sass/src/util/string.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:string_scanner/string_scanner.dart';
 
@@ -15,7 +16,6 @@ import '../ast/selector.dart';
 import '../color_names.dart';
 import '../exception.dart';
 import '../logger.dart';
-import '../parse/parser.dart';
 import '../utils.dart';
 import '../util/character.dart';
 import '../util/no_source_map_buffer.dart';
@@ -311,7 +311,7 @@ final class _SerializeVisitor({
     }
 
     if (query.type case var type?) {
-      _buffer.write(type);
+      _buffer.write(type.toCssIdentifier());
       if (query.conditions.isNotEmpty) _buffer.write(" and ");
     }
 
@@ -1157,8 +1157,30 @@ final class _SerializeVisitor({
       visitCalculation(SassCalculation.unsimplified('calc', [value]));
     } else {
       _writeNumber(value.value);
-      if (value.numeratorUnits case [var first]) _buffer.write(first);
+      if (value.numeratorUnits case [var first]) {
+        if (_isUnitAmbiguousWithExponent(first)) {
+          _buffer
+            ..write("\\65 ")
+            ..write(first.substring(1));
+        } else {
+          _buffer.write(first);
+        }
+      }
     }
+  }
+
+  /// Returns whether the given [unit], when serialized without escapes, would
+  /// be parsable as a numeric exponent.
+  bool _isUnitAmbiguousWithExponent(String unit) {
+    if (unit.length == 1) return false;
+    var first = unit.codeUnitAt(0);
+    if (first != $e && first != $E) return false;
+    var next = unit.codeUnitAt(1);
+    if (next == $minus) {
+      if (unit.length == 2) return false;
+      next = unit.codeUnitAt(2);
+    }
+    return next.isDigit;
   }
 
   /// Writes [number] without exponent notation and with at most
@@ -1583,7 +1605,7 @@ final class _SerializeVisitor({
 
     if (attribute.value case var value?) {
       _buffer.write(attribute.op);
-      if (Parser.isIdentifier(value) &&
+      if (value.toCssIdentifier() == value &&
           // Emit identifiers that start with `--` with quotes, because IE11
           // doesn't consider them to be valid identifiers.
           !value.startsWith('--')) {
@@ -1602,7 +1624,7 @@ final class _SerializeVisitor({
   @override
   void visitClassSelector(ClassSelector klass) {
     _buffer.writeCharCode($dot);
-    _buffer.write(klass.name);
+    _buffer.write(klass.name.toCssIdentifier());
   }
 
   @override
@@ -1648,7 +1670,7 @@ final class _SerializeVisitor({
   @override
   void visitIDSelector(IDSelector id) {
     _buffer.writeCharCode($hash);
-    _buffer.write(id.name);
+    _buffer.write(id.name.toCssIdentifier());
   }
 
   @override
@@ -1677,13 +1699,15 @@ final class _SerializeVisitor({
   @override
   void visitParentSelector(ParentSelector parent) {
     _buffer.writeCharCode($ampersand);
-    parent.suffix.andThen(_buffer.write);
+    parent.suffix.andThen(
+      (suffix) => _buffer.write(suffix.toCssIdentifier(body: true)),
+    );
   }
 
   @override
   void visitPlaceholderSelector(PlaceholderSelector placeholder) {
     _buffer.writeCharCode($percent);
-    _buffer.write(placeholder.name);
+    _buffer.write(placeholder.name.toCssIdentifier());
   }
 
   @override
@@ -1698,7 +1722,7 @@ final class _SerializeVisitor({
 
     _buffer.writeCharCode($colon);
     if (pseudo.isSyntacticElement) _buffer.writeCharCode($colon);
-    _buffer.write(pseudo.name);
+    _buffer.write(pseudo.name.toCssIdentifier());
     if (pseudo.argument == null && pseudo.selector == null) return;
 
     _buffer.writeCharCode($lparen);
@@ -1717,9 +1741,16 @@ final class _SerializeVisitor({
 
   @override
   void visitUniversalSelector(UniversalSelector universal) {
-    if (universal.namespace != null) {
-      _buffer.write(universal.namespace);
-      _buffer.writeCharCode($pipe);
+    switch (universal.namespace) {
+      case NoSelectorNamespace():
+        _buffer.writeCharCode($pipe);
+      case AnySelectorNamespace():
+        _buffer.write('*|');
+      case NamedSelectorNamespace(:var name):
+        _buffer.write(name.toCssIdentifier());
+        _buffer.writeCharCode($pipe);
+      case DefaultSelectorNamespace():
+      // Do nothing.
     }
     _buffer.writeCharCode($asterisk);
   }

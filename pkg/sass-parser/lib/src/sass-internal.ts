@@ -72,6 +72,8 @@ declare namespace SassInternal {
 
   function toCssIdentifier(text: string): string;
 
+  function resolveCssEscapes(text: string): string;
+
   function setToJS<T>(set: DartSet<T>): Set<T>;
 
   function mapToRecord<T>(set: DartMap<string, T>): Record<string, T>;
@@ -674,3 +676,4 @@ export const parseIdentifier = sassInternal.parseIdentifier;
 export const parseSelectorList = sassInternal.parseSelectorList;
 export const setToJS = sassInternal.setToJS;
 export const toCssIdentifier = sassInternal.toCssIdentifier;
+export const resolveCssEscapes = sassInternal.resolveCssEscapes;

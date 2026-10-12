@@ -133,11 +133,18 @@ int? _lastNonWhitespace(String string, {bool excludeEscape = false}) {
 
 /// Returns whether [member] is a public member name.
 ///
-/// Assumes that [member] is a valid Sass identifier.
+/// Assumes [identifier] is the semantic value of a Sass identifier, with
+/// escapes resolved.
 bool isPublic(String member) {
   var start = member.codeUnitAt(0);
   return start != $dash && start != $underscore;
 }
+
+/// Returns whether [member] is module-private.
+///
+/// Assumes [member] is the semantic value of a Sass identifier, with escapes
+/// resolved.
+bool isPrivate(String member) => !isPublic(member);
 
 /// Flattens the first level of nested arrays in [iterable].
 ///
@@ -442,6 +449,27 @@ int consumeEscapedCharacter(StringScanner scanner) {
       };
     case _:
       return scanner.readChar();
+  }
+}
+
+/// Returns the CSS escape sequence for the given [character], or the literal
+/// character if it doesn't need to be escaped.
+///
+/// If [identifierStart] is `true`, this escapes characters that are valid in
+/// identifier bodies but not at the beginning of identifiers.
+String characterToEscape(int character, {bool identifierStart = false}) {
+  if (identifierStart ? character.isNameStart : character.isName) {
+    return String.fromCharCode(character);
+  } else if (character <= 0x1F ||
+      character == 0x7F ||
+      (identifierStart && character.isDigit)) {
+    var buffer = StringBuffer()..writeCharCode($backslash);
+    if (character > 0xF) buffer.writeCharCode(hexCharFor(character >> 4));
+    buffer.writeCharCode(hexCharFor(character & 0xF));
+    buffer.writeCharCode($space);
+    return buffer.toString();
+  } else {
+    return String.fromCharCodes([$backslash, character]);
   }
 }
 

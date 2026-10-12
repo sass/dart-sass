@@ -14,11 +14,17 @@ import '../reference.dart';
 /// {@category AST}
 final class VariableExpression(
   /// The name of this variable, with underscores converted to hyphens.
+  ///
+  /// Escapes in the original text are normalized, but not interpreted as their
+  /// semantic values.
   @override final String name,
   @override final FileSpan span, {
 
   /// The namespace of the variable being referenced, or `null` if it's
   /// referenced without a namespace.
+  ///
+  /// Escapes in the original text are normalized, but not interpreted as their
+  /// semantic values.
   @override final String? namespace,
 }) extends Expression implements SassReference {
   @override

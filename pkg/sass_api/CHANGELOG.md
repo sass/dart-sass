@@ -1,3 +1,25 @@
+## 18.0.0
+
+* Add a `SelectorNamespace` type, along with subtypes
+  `DefaultSelectorNamespace`, `NoSelectorNamespace`, `AnySelectorNamespace`, and
+  `NamedSelectorNamespace`.
+
+* **Breaking change:** `QualifiedName.namespace` now uses the new
+  `SelectorNamespace` type.
+
+* **Breaking change:** `String` values that are parsed from identifiers now
+  contain the semantic value of those identifiers, with escapes resolved. These
+  are normalized back to escape codes at serialization time.
+
+  `Interpolation` values parsed from identifiers still contain normalized
+  identifiers for expressions. For statements, they now contain the identifier
+  syntax exactly as written in the document.
+
+* **Breaking change:** Parsed `Interpolation`s no longer normalize CSS escapes,
+  which means that `Interpolation.asPlain` is also are not normalized. Use
+  `Interpolation.asPlainIdentifier` instead to retrieve a normalized identifier
+  for use in checking for specific keywords.
+
 ## 17.11.1
 
 * No user-visible changes.

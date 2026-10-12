@@ -16,6 +16,8 @@ import '../selector.dart';
 /// {@category AST}
 final class IDSelector(
   /// The ID name this selects for.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   final String name,
   super.span,
 ) extends SimpleSelector {

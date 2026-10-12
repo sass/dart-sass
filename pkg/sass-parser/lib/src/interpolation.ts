@@ -132,6 +132,14 @@ export class Interpolation
     return this.nodes.join('');
   }
 
+  /// If this contains no interpolated expressions, returns its text contents
+  /// with any CSS escape codes resolved. Otherwise, returns `null`.
+  get asPlainIdentifier(): string | null {
+    const plain = this.asPlain;
+    if (plain === null) return null;
+    return sassInternal.resolveCssEscapes(plain);
+  }
+
   /**
    * Iterators that are currently active within this interpolation. Their
    * indices refer to the last position that has already been sent to the

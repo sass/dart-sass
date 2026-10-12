@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../../../util/string.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../statement.dart';
@@ -23,6 +24,8 @@ final class EachRule(
   @override final FileSpan span,
 ) extends ParentStatement<List<Statement>> {
   /// The variables assigned for each iteration.
+  ///
+  /// These are the semantic contents of the identifiers, with escapes resolved.
   final List<String> variables = List.unmodifiableOf(variables);
 
   this : super(List.unmodifiableOf(children));
@@ -31,7 +34,10 @@ final class EachRule(
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitEachRule(this);
 
   @override
-  String toString() =>
-      "@each ${variables.map((variable) => '\$$variable').join(', ')} in "
-      "$list {${children.join(" ")}}";
+  String toString() {
+    var variables = this.variables.map(
+      (variable) => '\$${variable.toCssIdentifier()}',
+    );
+    return "@each ${variables.join(', ')} in $list {${children.join(" ")}}";
+  }
 }

@@ -21,6 +21,8 @@ final class CssMediaQuery implements AstNode {
 
   /// The media type, for example "screen" or "print".
   ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
+  ///
   /// This may be `null`. If so, [conditions] will not be empty.
   final String? type;
 
