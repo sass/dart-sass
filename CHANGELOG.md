@@ -27,6 +27,11 @@
   As a special case, `\0` on its own will continue to be normalized to `\0 ` to
   support historical CSS hacks.
 
+* **Potentially breaking bug fix:** Throw an error for mixins and functions that
+  have rest parameters which are the same as normal parameters. Previously, the
+  positional parameters wouldn't be accessible and calling such a mixin or
+  function with a named argument would crash the compiler.
+
 * **Potentially breaking bug fix:** Fix various cases where using a CSS escape
   code at the beginning of an identifier would change parsing behavior versus
   using the character directly.

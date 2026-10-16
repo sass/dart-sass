@@ -1819,8 +1819,7 @@ abstract class StylesheetParser(
     var start = scanner.state;
     scanner.expectChar($lparen);
     whitespace(consumeNewlines: true);
-    var parameters = <Parameter>[];
-    var named = <String>{};
+    var parameters = <String, Parameter>{};
     String? restParameter;
     while (scanner.peekChar() == $dollar) {
       var variableStart = scanner.state;
@@ -1836,23 +1835,32 @@ abstract class StylesheetParser(
         scanner.expectChar($dot);
         whitespace(consumeNewlines: true);
         if (scanner.scanChar($comma)) whitespace(consumeNewlines: true);
+
+        if (parameters[name] case var first?) {
+          error(
+            "Duplicate parameter.",
+            MultiSpan(first.span, 'first', {spanFrom(variableStart): 'second'}),
+          );
+        }
         restParameter = name;
         break;
       }
 
-      parameters.add(
-        Parameter(name, spanFrom(variableStart), defaultValue: defaultValue),
-      );
-      if (!named.add(name)) {
-        error("Duplicate parameter.", parameters.last.span);
+      var span = spanFrom(variableStart);
+      if (parameters[name] case var first?) {
+        error(
+          "Duplicate parameter.",
+          MultiSpan(first.span, 'first', {span: 'second'}),
+        );
       }
+      parameters[name] = Parameter(name, span, defaultValue: defaultValue);
 
       if (!scanner.scanChar($comma)) break;
       whitespace(consumeNewlines: true);
     }
     scanner.expectChar($rparen);
     return ParameterList(
-      parameters,
+      parameters.values,
       spanFrom(start),
       restParameter: restParameter,
     );
