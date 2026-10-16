@@ -156,7 +156,7 @@ describe('a @mixin rule', () => {
             mixinName: 'f o',
             parameters: ['bar'],
           }).toString(),
-        ).toBe('@mixin f\\20o($bar) {}'));
+        ).toBe('@mixin f\\ o($bar) {}'));
 
       it('with afterName', () =>
         expect(
