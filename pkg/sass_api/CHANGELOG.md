@@ -20,6 +20,10 @@
   `Interpolation.asPlainIdentifier` instead to retrieve a normalized identifier
   for use in checking for specific keywords.
 
+## 17.11.2
+
+* No user-visible changes.
+
 ## 17.11.1
 
 * No user-visible changes.
