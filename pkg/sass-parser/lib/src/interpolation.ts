@@ -11,7 +11,7 @@ import {AnyExpression, ExpressionProps} from './expression';
 import {LazySource} from './lazy-source';
 import {Node, NodeProps} from './node';
 import {RawWithValue} from './raw-with-value';
-import type * as sassInternal from './sass-internal';
+import * as sassInternal from './sass-internal';
 import * as utils from './utils';
 
 /**
