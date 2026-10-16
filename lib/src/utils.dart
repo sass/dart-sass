@@ -444,7 +444,7 @@ int consumeEscapedCharacter(StringScanner scanner) {
       if (scanner.peekChar().isWhitespace) scanner.readChar();
 
       return switch (value) {
-        0 || (>= 0xD800 && <= 0xDFFF) || >= maxAllowedCharacter => 0xFFFD,
+        0 || (>= 0xD800 && <= 0xDFFF) || > maxAllowedCharacter => 0xFFFD,
         _ => value,
       };
     case _:
