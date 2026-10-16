@@ -10,6 +10,9 @@
 * Fix invalid source spans that could cause crashes when encountering a syntax
   error in selectors or media queries that also contain escape sequences.
 
+* Fix a bug that could cause crashes when encountering errors or warnings in
+  interpolations that contain patterns like `// */`.
+
 * **Potentially breaking compatibility fix:** CSS escape codes whose values are
   0, for Unicode surrogates, or greater than the maximum allowed code point are
   now consistently normalized to U+FFFD REPLACEMENT CHARACTER in expression
