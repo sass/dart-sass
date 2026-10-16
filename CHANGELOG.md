@@ -10,6 +10,9 @@
 * Fix invalid source spans that could cause crashes when encountering a syntax
   error in selectors or media queries that also contain escape sequences.
 
+* Fix a bug where the indented syntax parser would crash when parsing a file
+  where the first statement was indented *and* appeared after the first line.
+
 * Fix a bug that could cause crashes when encountering errors or warnings in
   interpolations that contain patterns like `// */`.
 

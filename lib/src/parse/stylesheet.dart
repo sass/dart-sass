@@ -5005,7 +5005,7 @@ abstract class StylesheetParser(
   @protected
   List<Statement> children(Statement Function() child);
 
-  /// Consumes top-level statements.
+  /// Consumes top-level statements at the root of the stylesheet.
   ///
   /// The [statement] callback may return `null`, indicating that a statement
   /// was consumed that shouldn't be added to the AST.
