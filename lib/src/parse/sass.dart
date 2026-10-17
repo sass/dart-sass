@@ -154,11 +154,16 @@ class SassParser(super.contents, {super.url, super.parseSelectors})
 
   @override
   List<Statement> statements(Statement? Function() statement) {
-    if (scanner.peekChar() case $tab || $space) {
+    if (_readIndentation(startOfStylesheet: true) != 0) {
+      int lastNewline;
+      for (lastNewline = scanner.position; lastNewline >= 0; lastNewline--) {
+        if (scanner.string.codeUnitAt(lastNewline).isNewline) break;
+      }
+
       scanner.error(
         "Indenting at the beginning of the document is illegal.",
-        position: 0,
-        length: scanner.position,
+        position: lastNewline + 1,
+        length: scanner.position - (lastNewline + 1),
       );
     }
 
@@ -403,9 +408,13 @@ class SassParser(super.contents, {super.url, super.parseSelectors})
 
   /// Consumes indentation whitespace and returns the indentation level of the
   /// next line.
-  int _readIndentation() {
+  ///
+  /// This requires that the next character be a newline unless
+  /// [startOfStylesheet] is `true`, in which case this treats the beginning of
+  /// the stylesheet as a virtual newline.
+  int _readIndentation({bool startOfStylesheet = false}) {
     var currentIndentation = _currentIndentation = _nextIndentation ??=
-        _peekIndentation();
+        _peekIndentation(startOfStylesheet: startOfStylesheet);
     scanner.state = _nextIndentationEnd!;
     _nextIndentation = null;
     _nextIndentationEnd = null;
@@ -413,7 +422,11 @@ class SassParser(super.contents, {super.url, super.parseSelectors})
   }
 
   /// Returns the indentation level of the next line.
-  int _peekIndentation() {
+  ///
+  /// This requires that the next character be a newline unless
+  /// [startOfStylesheet] is `true`, in which case this treats the beginning of
+  /// the stylesheet as a virtual newline.
+  int _peekIndentation({bool startOfStylesheet = false}) {
     if (_nextIndentation case var cached?) return cached;
 
     if (scanner.isDone) {
@@ -423,7 +436,7 @@ class SassParser(super.contents, {super.url, super.parseSelectors})
     }
 
     var start = scanner.state;
-    if (!scanCharIf((char) => char.isNewline)) {
+    if (!startOfStylesheet && !scanCharIf((char) => char.isNewline)) {
       scanner.error("Expected newline.", position: scanner.position);
     }
 

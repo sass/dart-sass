@@ -10,6 +10,12 @@
 * Fix invalid source spans that could cause crashes when encountering a syntax
   error in selectors or media queries that also contain escape sequences.
 
+* Fix a bug where the indented syntax parser would crash when parsing a file
+  where the first statement was indented *and* appeared after the first line.
+
+* Fix a bug that could cause crashes when encountering errors or warnings in
+  interpolations that contain patterns like `// */`.
+
 * **Potentially breaking compatibility fix:** CSS escape codes whose values are
   0, for Unicode surrogates, or greater than the maximum allowed code point are
   now consistently normalized to U+FFFD REPLACEMENT CHARACTER in expression
@@ -20,6 +26,11 @@
 
   As a special case, `\0` on its own will continue to be normalized to `\0 ` to
   support historical CSS hacks.
+
+* **Potentially breaking bug fix:** Throw an error for mixins and functions that
+  have rest parameters which are the same as normal parameters. Previously, the
+  positional parameters wouldn't be accessible and calling such a mixin or
+  function with a named argument would crash the compiler.
 
 * **Potentially breaking bug fix:** Fix various cases where using a CSS escape
   code at the beginning of an identifier would change parsing behavior versus

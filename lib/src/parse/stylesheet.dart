@@ -21,6 +21,7 @@ import '../util/multi_span.dart';
 import '../util/nullable.dart';
 import '../value.dart';
 import 'parser.dart';
+import 'scss.dart';
 import 'selector.dart' show selectorPseudoClasses, selectorPseudoElements;
 
 /// The base class for both the SCSS and indented syntax parsers.
@@ -91,6 +92,47 @@ abstract class StylesheetParser(
   /// The silent comment this parser encountered previously.
   @protected
   SilentComment? lastSilentComment;
+
+  /// Returns the index in [text] of the beginning of the final contiguous
+  /// sequence of whitespace and/or comments (either loud or silent).
+  ///
+  /// If [text] doesn't end with whitespace or comments, returns `text.length`.
+  /// If it's entirely whitespace or comments, returns `0`. This assumes [text]
+  /// is syntactically-valid Sass source code.
+  ///
+  /// @nodoc
+  @internal
+  static int lastIndexOfWhitespaceAndComments(String text) =>
+      _lastIndexOfWhitespaceAndCommentsQuick(text) ??
+      ScssParser(text)._lastIndexOfWhitespaceAndComments();
+
+  /// A partial implementation of [lastIndexOfWhitespaceAndComments] that scans
+  /// the string from right to left but returns `null` if it enounters anything
+  /// that could be a comment.
+  static int? _lastIndexOfWhitespaceAndCommentsQuick(String text) {
+    int? lastNonWhitespace;
+    for (var i = text.length - 1; i >= 0; i--) {
+      switch (text.codeUnitAt(i)) {
+        case $slash when i > 0:
+          if (text.codeUnitAt(i - 1) case $slash || $asterisk) return null;
+          lastNonWhitespace ??= i;
+
+        // If we hit a newline after we've seen a non-whitespace character *and*
+        // we haven't seen anything that could be a single-line comment, that's
+        // definitely our stopping point.
+        case int(isNewline: true) when lastNonWhitespace != null:
+          return lastNonWhitespace + 1;
+
+        case int(isWhitespace: true):
+          break;
+
+        case _:
+          lastNonWhitespace ??= i;
+      }
+    }
+
+    return lastNonWhitespace ?? 0;
+  }
 
   // ## Statements
 
@@ -1819,8 +1861,7 @@ abstract class StylesheetParser(
     var start = scanner.state;
     scanner.expectChar($lparen);
     whitespace(consumeNewlines: true);
-    var parameters = <Parameter>[];
-    var named = <String>{};
+    var parameters = <String, Parameter>{};
     String? restParameter;
     while (scanner.peekChar() == $dollar) {
       var variableStart = scanner.state;
@@ -1836,23 +1877,32 @@ abstract class StylesheetParser(
         scanner.expectChar($dot);
         whitespace(consumeNewlines: true);
         if (scanner.scanChar($comma)) whitespace(consumeNewlines: true);
+
+        if (parameters[name] case var first?) {
+          error(
+            "Duplicate parameter.",
+            MultiSpan(first.span, 'first', {spanFrom(variableStart): 'second'}),
+          );
+        }
         restParameter = name;
         break;
       }
 
-      parameters.add(
-        Parameter(name, spanFrom(variableStart), defaultValue: defaultValue),
-      );
-      if (!named.add(name)) {
-        error("Duplicate parameter.", parameters.last.span);
+      var span = spanFrom(variableStart);
+      if (parameters[name] case var first?) {
+        error(
+          "Duplicate parameter.",
+          MultiSpan(first.span, 'first', {span: 'second'}),
+        );
       }
+      parameters[name] = Parameter(name, span, defaultValue: defaultValue);
 
       if (!scanner.scanChar($comma)) break;
       whitespace(consumeNewlines: true);
     }
     scanner.expectChar($rparen);
     return ParameterList(
-      parameters,
+      parameters.values,
       spanFrom(start),
       restParameter: restParameter,
     );
@@ -3897,6 +3947,71 @@ abstract class StylesheetParser(
     return buffer.interpolation(spanFrom(start));
   }
 
+  /// A helper method for [lastIndexOfWhitespaceAndComments].
+  ///
+  /// It's not feasible to determine this in all cases by iterating backwards
+  /// from the end of the string. For example, `... //"` may or may not be a
+  /// single-line comment depending on whether the beginning of the line
+  /// contains a `"`, and `... // */` may or may not be a multi-line comment
+  /// depending on whether `/*` appears anywhere earlier in the string, whether
+  /// *that's* commented out, and so on. In order to handle this problem
+  /// generally, we have to essentially tokenize the string from the beginning
+  /// and record where the most recent whitespace character appeared.
+  int _lastIndexOfWhitespaceAndComments() {
+    int? index;
+
+    loop:
+    while (true) {
+      switch (peekCharOrEscape()) {
+        case ($double_quote || $single_quote, false):
+          interpolatedStringToken();
+
+        case ($slash, false):
+          switch (scanner.peekChar(1)) {
+            case $asterisk || $slash:
+              index = scanner.position;
+              whitespace(consumeNewlines: true);
+
+            case _:
+              scanner.readChar();
+          }
+
+        // Add a full interpolated identifier to handle cases like "#{...}--1",
+        // since "--1" isn't a valid identifier on its own.
+        case ($hash, false) when scanner.peekChar(1) == $lbrace:
+          interpolatedIdentifier(expression: false);
+
+        case (int(isWhitespace: true), false):
+          index = scanner.position;
+          whitespace(consumeNewlines: true);
+
+        case ($u || $U, _):
+          var beforeUrl = scanner.state;
+          var identifier = interpolatedIdentifier();
+          var plain = identifier.asPlainIdentifier;
+          if (plain != "url" &&
+              // This isn't actually a standard CSS feature, but it was
+              // supported by the old `@document` rule so we continue to support
+              // it for backwards-compatibility.
+              plain != "url-prefix") {
+            continue loop;
+          }
+
+          _tryUrlContents(beforeUrl, name: identifier);
+
+        case (null, _):
+          return index ?? scanner.position;
+
+        case (_, true):
+        case _ when lookingAtIdentifier():
+          interpolatedIdentifier(expression: false);
+
+        case _:
+          scanner.readChar();
+      }
+    }
+  }
+
   /// Consumes an identifier that may contain interpolation.
   ///
   /// The [expression] argument indicates whether this is being parsed as part
@@ -5005,7 +5120,7 @@ abstract class StylesheetParser(
   @protected
   List<Statement> children(Statement Function() child);
 
-  /// Consumes top-level statements.
+  /// Consumes top-level statements at the root of the stylesheet.
   ///
   /// The [statement] callback may return `null`, indicating that a statement
   /// was consumed that shouldn't be added to the AST.
