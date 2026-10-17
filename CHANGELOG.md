@@ -1,6 +1,8 @@
 ## 1.106.0
 
-* Don't normalize CSS escapes at the statement level.
+* Don't normalize CSS escapes in statement contexts that can contain
+  interpolation. For example, `@f\6Fo` is now emitted as written rather than
+  normalized to `@foo`.
 
 * Fix a bug where quotes would be removed from attribute selector values that
   contained backslashes.
