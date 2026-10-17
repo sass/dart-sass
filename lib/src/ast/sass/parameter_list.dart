@@ -52,7 +52,7 @@ final class ParameterList implements SassNode {
     if (!text.codeUnitAt(i + 1).isNameStart) return span;
 
     // Trim because it's possible that this span is empty (for example, a mixin
-    // may be declared without an parameter list).
+    // may be declared without a parameter list).
     return span.file.span(i + 1, span.end.offset).trim();
   }
 
