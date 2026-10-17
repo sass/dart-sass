@@ -4,7 +4,7 @@
 
 import 'package:meta/meta.dart';
 
-import '../../util/character.dart' as character;
+import '../../utils.dart' as utils;
 import '../../visitor/interface/selector.dart';
 import '../selector.dart';
 
@@ -17,12 +17,14 @@ import '../selector.dart';
 /// {@category AST}
 final class PlaceholderSelector(
   /// The name of the placeholder.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   final String name,
   super.span,
 ) extends SimpleSelector {
   /// Returns whether this is a private selector (that is, whether it begins
   /// with `-` or `_`).
-  bool get isPrivate => character.isPrivate(name);
+  bool get isPrivate => utils.isPrivate(name);
 
   @override
   T accept<T>(SelectorVisitor<T> visitor) =>

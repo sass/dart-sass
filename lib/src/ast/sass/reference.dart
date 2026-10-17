@@ -12,10 +12,14 @@ import 'node.dart';
 abstract interface class SassReference implements SassNode {
   /// The namespace of the member being referenced, or `null` if it's referenced
   /// without a namespace.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   String? get namespace;
 
   /// The name of the member being referenced, with underscores converted to
   /// hyphens.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   ///
   /// This does not include the `$` for variables.
   String get name;

@@ -8,6 +8,7 @@ import '../../exception.dart';
 import '../../parse/scss.dart';
 import '../../util/character.dart';
 import '../../util/span.dart';
+import '../../util/string.dart';
 import '../../utils.dart';
 import 'parameter.dart';
 import 'node.dart';
@@ -22,6 +23,8 @@ final class ParameterList implements SassNode {
 
   /// The name of the rest parameter (as in `$args...`), or `null` if none was
   /// declared.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   final String? restParameter;
 
   @override
@@ -161,6 +164,7 @@ final class ParameterList implements SassNode {
   @override
   String toString() => [
     for (var arg in parameters) '\$$arg',
-    if (restParameter != null) '\$$restParameter...',
+    if (restParameter case var restParameter?)
+      '\$${restParameter.toCssIdentifier()}...',
   ].join(', ');
 }

@@ -1,3 +1,41 @@
+## 1.106.0
+
+* Don't normalize CSS escapes in statement contexts that can contain
+  interpolation. For example, `@f\6Fo` is now emitted as written rather than
+  normalized to `@foo`.
+
+* Fix a bug where quotes would be removed from attribute selector values that
+  contained backslashes.
+
+* Fix invalid source spans that could cause crashes when encountering a syntax
+  error in selectors or media queries that also contain escape sequences.
+
+* **Potentially breaking compatibility fix:** CSS escape codes whose values are
+  0, for Unicode surrogates, or greater than the maximum allowed code point are
+  now consistently normalized to U+FFFD REPLACEMENT CHARACTER in expression
+  contexts. Previously, in some cases these were instead normalized to the
+  normalized form of the original escape sequence, which violates the principle
+  that all escape sequences for identical values should be normalized the same
+  way. In other cases, these would simply throw errors.
+
+  As a special case, `\0` on its own will continue to be normalized to `\0 ` to
+  support historical CSS hacks.
+
+* **Potentially breaking bug fix:** Fix various cases where using a CSS escape
+  code at the beginning of an identifier would change parsing behavior versus
+  using the character directly.
+
+* **Potentially breaking bug fix:** When a number's unit is ambiguous with a
+  numeric exponent, the unit is now serialized as an escape code rather than a
+  literal `e` to avoid being interpreted as an exponent by CSS.
+
+* **Potentially breaking bug fix:** Don't parse a CSS escape code for U+45 LATIN
+  CAPITAL LETTER E or U+65 LATIN LOWERCASE LETTER E as an exponent in
+  `@keyframes` percentage selectors.
+
+* **Potentially breaking bug fix:** Properly normalize underscores written as
+  CSS escape codes in variable, mixin, and function names.
+
 ## 1.105.2
 
 ### Node.js Embedded Host

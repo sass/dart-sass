@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:meta/meta.dart';
+import 'package:sass/src/util/string.dart';
 import 'package:source_span/source_span.dart';
 
 import 'expression.dart';
@@ -41,6 +42,12 @@ final class Interpolation implements SassNode {
     [String first] => first,
     _ => null,
   };
+
+  /// If this contains no interpolated expressions, returns its text contents
+  /// with any CSS escape codes resolved.
+  ///
+  /// Otherwise, returns `null`.
+  String? get asPlainIdentifier => asPlain?.resolveCssEscapes();
 
   /// Returns the plain text before the interpolation, or the empty string.
   ///

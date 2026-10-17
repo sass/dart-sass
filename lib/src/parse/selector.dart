@@ -322,11 +322,11 @@ class SelectorParser(
   QualifiedName _attributeName() {
     if (scanner.scanChar($asterisk)) {
       scanner.expectChar($pipe);
-      return QualifiedName(identifier(), namespace: "*");
+      return QualifiedName(identifier(), namespace: .any);
     }
 
     if (scanner.scanChar($pipe)) {
-      return QualifiedName(identifier(), namespace: "");
+      return QualifiedName(identifier(), namespace: .none);
     }
 
     var nameOrNamespace = identifier();
@@ -335,7 +335,7 @@ class SelectorParser(
     }
 
     scanner.readChar();
-    return QualifiedName(identifier(), namespace: nameOrNamespace);
+    return QualifiedName(identifier(), namespace: .named(nameOrNamespace));
   }
 
   /// Consumes an attribute selector's operator.
@@ -462,16 +462,16 @@ class SelectorParser(
   /// [An+B]: https://drafts.csswg.org/css-syntax-3/#anb-microsyntax
   String _aNPlusB() {
     var buffer = StringBuffer();
-    switch (scanner.peekChar()) {
-      case $e || $E:
+    switch (peekCharOrEscape()) {
+      case ($e || $E, _):
         expectIdentifier("even");
         return "even";
 
-      case $o || $O:
+      case ($o || $O, _):
         expectIdentifier("odd");
         return "odd";
 
-      case $plus || $minus:
+      case ($plus || $minus, false):
         buffer.writeCharCode(scanner.readChar());
         break;
     }
@@ -508,16 +508,16 @@ class SelectorParser(
     if (scanner.scanChar($asterisk)) {
       if (!scanner.scanChar($pipe)) return UniversalSelector(spanFrom(start));
       return scanner.scanChar($asterisk)
-          ? UniversalSelector(spanFrom(start), namespace: "*")
+          ? UniversalSelector(spanFrom(start), namespace: .any)
           : TypeSelector(
-              QualifiedName(identifier(), namespace: "*"),
+              QualifiedName(identifier(), namespace: .any),
               spanFrom(start),
             );
     } else if (scanner.scanChar($pipe)) {
       return scanner.scanChar($asterisk)
-          ? UniversalSelector(spanFrom(start), namespace: "")
+          ? UniversalSelector(spanFrom(start), namespace: .none)
           : TypeSelector(
-              QualifiedName(identifier(), namespace: ""),
+              QualifiedName(identifier(), namespace: .none),
               spanFrom(start),
             );
     }
@@ -526,10 +526,13 @@ class SelectorParser(
     if (!scanner.scanChar($pipe)) {
       return TypeSelector(QualifiedName(nameOrNamespace), spanFrom(start));
     } else if (scanner.scanChar($asterisk)) {
-      return UniversalSelector(spanFrom(start), namespace: nameOrNamespace);
+      return UniversalSelector(
+        spanFrom(start),
+        namespace: .named(nameOrNamespace),
+      );
     } else {
       return TypeSelector(
-        QualifiedName(identifier(), namespace: nameOrNamespace),
+        QualifiedName(identifier(), namespace: .named(nameOrNamespace)),
         spanFrom(start),
       );
     }

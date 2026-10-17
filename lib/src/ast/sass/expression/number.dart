@@ -17,6 +17,8 @@ final class NumberExpression(
   @override final FileSpan span, {
 
   /// The number's unit, or `null`.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   final String? unit,
 }) extends Expression {
   @override

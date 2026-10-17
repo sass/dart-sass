@@ -11,7 +11,7 @@ import {AnyExpression, ExpressionProps} from './expression';
 import {LazySource} from './lazy-source';
 import {Node, NodeProps} from './node';
 import {RawWithValue} from './raw-with-value';
-import type * as sassInternal from './sass-internal';
+import * as sassInternal from './sass-internal';
 import * as utils from './utils';
 
 /**
@@ -130,6 +130,14 @@ export class Interpolation
     if (this.nodes.length === 0) return '';
     if (this.nodes.some(node => typeof node !== 'string')) return null;
     return this.nodes.join('');
+  }
+
+  /// If this contains no interpolated expressions, returns its text contents
+  /// with any CSS escape codes resolved. Otherwise, returns `null`.
+  get asPlainIdentifier(): string | null {
+    const plain = this.asPlain;
+    if (plain === null) return null;
+    return sassInternal.resolveCssEscapes(plain);
   }
 
   /**

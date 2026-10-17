@@ -1,3 +1,10 @@
+## 0.5.0
+
+* **Breaking change:** Parsed `Interpolation`s no longer normalize CSS escapes,
+  which means that `Interpolation.asPlain` is also are not normalized. Use
+  `Interpolation.asPlainIdentifier` instead to retrieve a normalized identifier
+  for use in checking for specific keywords.
+
 ## 0.4.58
 
 * No user-visible changes.

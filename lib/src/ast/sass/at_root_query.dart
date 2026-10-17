@@ -22,6 +22,8 @@ final class AtRootQuery {
 
   /// The names of the rules included or excluded by this query.
   ///
+  /// These are the semantic contents of the identifiers, with escapes resolved.
+  ///
   /// There are two special names. "all" indicates that all rules are included
   /// or excluded, and "rule" indicates style rules are included or excluded.
   final Set<String> names;

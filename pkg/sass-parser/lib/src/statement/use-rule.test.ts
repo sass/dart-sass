@@ -283,7 +283,7 @@ describe('a @use rule', () => {
               useUrl: 'foo',
               namespace: ' ',
             }).toString(),
-          ).toBe('@use "foo" as \\20'));
+          ).toBe('@use "foo" as \\ '));
 
         it('with no namespace', () =>
           expect(
