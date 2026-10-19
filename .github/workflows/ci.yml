@@ -38,7 +38,7 @@ jobs:
         run: gh pr merge --auto --squash "$PR_URL" -A "sass.bot.beep.boop@gmail.com"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
   double_check:
     name: Double-check
