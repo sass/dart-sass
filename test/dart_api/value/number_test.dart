@@ -604,4 +604,10 @@ void main() {
       expect(number.denominatorUnits, equals(["ms", "kHz"]));
     });
   });
+
+  test("a number with an empty unit serializes to the number", () {
+    // Regression test for sass/dart-sass#2889. This isn't really ideal
+    // behavior, but it's not clear that it's worth deprecating.
+    expect(SassNumber(1, "").toString(), equals("1"));
+  });
 }
