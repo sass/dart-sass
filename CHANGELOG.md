@@ -1,3 +1,8 @@
+## 1.107.0-dev
+
+* Fix a bug where an attribute selector with an empty value (such as
+  `[class=""]`) would crash when serializing.
+
 ## 1.106.0
 
 * Don't normalize CSS escapes in statement contexts that can contain

@@ -1,3 +1,7 @@
+## 0.5.1-dev
+
+* No user-visible changes.
+
 ## 0.5.0
 
 * **Breaking change:** Parsed `Interpolation`s no longer normalize CSS escapes,

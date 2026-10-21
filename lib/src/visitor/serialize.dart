@@ -1605,7 +1605,7 @@ final class _SerializeVisitor({
 
     if (attribute.value case var value?) {
       _buffer.write(attribute.op);
-      if (value.toCssIdentifier() == value &&
+      if (value.tryCssIdentifier() == value &&
           // Emit identifiers that start with `--` with quotes, because IE11
           // doesn't consider them to be valid identifiers.
           !value.startsWith('--')) {

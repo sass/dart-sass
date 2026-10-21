@@ -132,6 +132,16 @@ extension StringExtension on String {
     return buffer.toString();
   }
 
+  /// Like [toCssIdentifier], but returns `null` instead of throwing an error if
+  /// this isn't a valid identifier.
+  String? tryCssIdentifier() {
+    try {
+      return toCssIdentifier();
+    } on FormatException {
+      return null;
+    }
+  }
+
   /// Interprets this string as a CSS identifier and resolves any escape codes
   /// it contains.
   ///
