@@ -37,6 +37,17 @@ class Parser(
   /// Throws a [SassFormatException] if parsing fails.
   static String parseIdentifier(String text) => Parser(text)._parseIdentifier();
 
+  /// Returns the leftmost index in [text] after any initial whitespace or
+  /// comments (either loud or silent).
+  ///
+  /// @nodoc
+  @internal
+  static int indexAfterWhitespaceAndComments(String text) {
+    var parser = Parser(text);
+    parser.whitespace(consumeNewlines: true);
+    return parser.scanner.position;
+  }
+
   /// Returns whether [text] is a valid CSS identifier.
   static bool isIdentifier(String text) {
     try {
