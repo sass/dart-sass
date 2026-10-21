@@ -104,7 +104,9 @@ void main(List<String> args) {
   // surface can validate its arguments using `ArgumentError`s.
   pkg.jsReleaseFlags.value.remove("-O4");
   pkg.jsReleaseFlags.value.addAll([
-      "-O2", "--omit-implicit-checks", "--trust-primitives",
+    "-O2",
+    "--omit-implicit-checks",
+    "--trust-primitives",
   ]);
 
   pkg.githubReleaseNotes.fn = () =>
