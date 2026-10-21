@@ -1,4 +1,4 @@
-## 1.107.0
+## 1.106.1
 
 * Fix a bug where an attribute selector with an empty value (such as
   `[class=""]`) would crash when serializing.
