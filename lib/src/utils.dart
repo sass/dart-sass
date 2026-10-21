@@ -6,7 +6,6 @@ import 'dart:math' as math;
 
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:string_scanner/string_scanner.dart';
@@ -14,6 +13,7 @@ import 'package:term_glyph/term_glyph.dart' as glyph;
 
 import 'ast/sass.dart';
 import 'exception.dart';
+import 'parse/parser.dart';
 import 'parse/scss.dart';
 import 'util/character.dart';
 import 'util/iterable.dart';
@@ -26,7 +26,6 @@ final _noSourceUrl = Uri.parse("-");
 final _traces = Expando<StackTrace>();
 
 /// Converts [iter] into a sentence, separating each word with [conjunction].
-@internal
 String toSentence(Iterable<Object> iter, [String? conjunction]) {
   conjunction ??= "and";
   if (iter.length == 1) return iter.first.toString();
@@ -34,7 +33,6 @@ String toSentence(Iterable<Object> iter, [String? conjunction]) {
 }
 
 /// Returns [string] with every line indented [indentation] spaces.
-@internal
 String indent(String string, int indentation) =>
     string.split("\n").map((line) => (" " * indentation) + line).join("\n");
 
@@ -42,7 +40,6 @@ String indent(String string, int indentation) =>
 ///
 /// By default, this just adds "s" to the end of [name] to get the plural. If
 /// [plural] is passed, that's used instead.
-@internal
 String pluralize(String name, int number, {String? plural}) {
   if (number == 1) return name;
   if (plural != null) return plural;
@@ -51,12 +48,10 @@ String pluralize(String name, int number, {String? plural}) {
 
 /// Returns `a $word` or `an $word` depending on whether [word] starts with a
 /// vowel.
-@internal
 String a(String word) =>
     [$a, $e, $i, $o, $u].contains(word.codeUnitAt(0)) ? "an $word" : "a $word";
 
 /// Returns a bulleted list of items in [bullets].
-@internal
 String bulletedList(Iterable<String> bullets) => bullets
     .map((element) {
       var lines = element.split("\n");
@@ -68,7 +63,6 @@ String bulletedList(Iterable<String> bullets) => bullets
     .join("\n");
 
 /// Returns the number of times [codeUnit] appears in [string].
-@internal
 int countOccurrences(String string, int codeUnit) {
   var count = 0;
   for (var i = 0; i < string.length; i++) {
@@ -81,7 +75,6 @@ int countOccurrences(String string, int codeUnit) {
 ///
 /// If [excludeEscape] is `true`, this doesn't trim whitespace included in a CSS
 /// escape.
-@internal
 String trimAscii(String string, {bool excludeEscape = false}) {
   var start = _firstNonWhitespace(string);
   return start == null
@@ -93,7 +86,6 @@ String trimAscii(String string, {bool excludeEscape = false}) {
 }
 
 /// Like [String.trimLeft], but only trims ASCII whitespace.
-@internal
 String trimAsciiLeft(String string) {
   var start = _firstNonWhitespace(string);
   return start == null ? "" : string.substring(start);
@@ -103,7 +95,6 @@ String trimAsciiLeft(String string) {
 ///
 /// If [excludeEscape] is `true`, this doesn't trim whitespace included in a CSS
 /// escape.
-@internal
 String trimAsciiRight(String string, {bool excludeEscape = false}) {
   var end = _lastNonWhitespace(string, excludeEscape: excludeEscape);
   return end == null ? "" : string.substring(0, end + 1);
@@ -142,12 +133,18 @@ int? _lastNonWhitespace(String string, {bool excludeEscape = false}) {
 
 /// Returns whether [member] is a public member name.
 ///
-/// Assumes that [member] is a valid Sass identifier.
-@internal
+/// Assumes [identifier] is the semantic value of a Sass identifier, with
+/// escapes resolved.
 bool isPublic(String member) {
   var start = member.codeUnitAt(0);
   return start != $dash && start != $underscore;
 }
+
+/// Returns whether [member] is module-private.
+///
+/// Assumes [member] is the semantic value of a Sass identifier, with escapes
+/// resolved.
+bool isPrivate(String member) => !isPublic(member);
 
 /// Flattens the first level of nested arrays in [iterable].
 ///
@@ -155,7 +152,6 @@ bool isPublic(String member) {
 /// the index *of* that iterable in [iterable]. For example,
 /// `flattenVertically([["1a", "1b"], ["2a", "2b"]])` returns `["1a", "2a",
 /// "1b", "2b"]`.
-@internal
 List<T> flattenVertically<T>(Iterable<Iterable<T>> iterable) {
   var queues = iterable.map((inner) => QueueList.from(inner)).toList();
   if (queues.length == 1) return queues.first;
@@ -171,14 +167,12 @@ List<T> flattenVertically<T>(Iterable<Iterable<T>> iterable) {
 }
 
 /// Returns [value] if it's a [T] or null otherwise.
-@internal
 T? castOrNull<T>(Object? value) => value is T ? value : null;
 
 /// Converts [codepointIndex] to a code unit index, relative to [string].
 ///
 /// A codepoint index is the index in pure Unicode codepoints; a code unit index
 /// is an index into a UTF-16 string.
-@internal
 int codepointIndexToCodeUnitIndex(String string, int codepointIndex) {
   var codeUnitIndex = 0;
   for (var i = 0; i < codepointIndex; i++) {
@@ -191,7 +185,6 @@ int codepointIndexToCodeUnitIndex(String string, int codepointIndex) {
 ///
 /// A codepoint index is the index in pure Unicode codepoints; a code unit index
 /// is an index into a UTF-16 string.
-@internal
 int codeUnitIndexToCodepointIndex(String string, int codeUnitIndex) {
   var codepointIndex = 0;
   for (var i = 0; i < codeUnitIndex; i++) {
@@ -202,31 +195,25 @@ int codeUnitIndexToCodepointIndex(String string, int codeUnitIndex) {
 }
 
 /// Returns whether [iterable1] and [iterable2] have the same contents.
-@internal
 bool iterableEquals(Iterable<Object> iterable1, Iterable<Object> iterable2) =>
     const IterableEquality<Object>().equals(iterable1, iterable2);
 
 /// Returns a hash code for [iterable] that matches [iterableEquals].
-@internal
 int iterableHash(Iterable<Object> iterable) =>
     const IterableEquality<Object>().hash(iterable);
 
 /// Returns whether [list1] and [list2] have the same contents.
-@internal
 bool listEquals(List<Object?>? list1, List<Object?>? list2) =>
     const ListEquality<Object?>().equals(list1, list2);
 
 /// Returns a hash code for [list] that matches [listEquals].
-@internal
 int listHash(List<Object> list) => const ListEquality<Object>().hash(list);
 
 /// Returns whether [map1] and [map2] have the same contents.
-@internal
 bool mapEquals(Map<Object, Object> map1, Map<Object, Object> map2) =>
     const MapEquality<Object, Object>().equals(map1, map2);
 
 /// Returns a hash code for [map] that matches [mapEquals].
-@internal
 int mapHash(Map<Object, Object> map) =>
     const MapEquality<Object, Object>().hash(map);
 
@@ -234,7 +221,6 @@ int mapHash(Map<Object, Object> map) =>
 ///
 /// By default, the frame's URL is set to `span.sourceUrl`. However, if [url] is
 /// passed, it's used instead.
-@internal
 Frame frameForSpan(SourceSpan span, String member, {Uri? url}) => Frame(
   url ?? span.sourceUrl ?? _noSourceUrl,
   span.start.line + 1,
@@ -248,7 +234,6 @@ Frame frameForSpan(SourceSpan span, String member, {Uri? url}) => Frame(
 ///
 /// This isn't particularly efficient, and should only be used for error
 /// messages.
-@internal
 String declarationName(FileSpan span) {
   var text = span.text;
   return trimAsciiRight(text.substring(0, text.indexOf(":")));
@@ -257,7 +242,6 @@ String declarationName(FileSpan span) {
 /// Returns [name] without a vendor prefix.
 ///
 /// If [name] has no vendor prefix, it's returned as-is.
-@internal
 String unvendor(String name) {
   if (name.length < 2) return name;
   if (name.codeUnitAt(0) != $dash) return name;
@@ -270,7 +254,6 @@ String unvendor(String name) {
 }
 
 /// Returns whether [string1] and [string2] are equal, ignoring ASCII case.
-@internal
 bool equalsIgnoreCase(String? string1, String? string2) {
   if (identical(string1, string2)) return true;
   if (string1 == null || string2 == null) return false;
@@ -288,7 +271,6 @@ bool equalsIgnoreCase(String? string1, String? string2) {
 }
 
 /// Returns whether [string] starts with [prefix], ignoring ASCII case.
-@internal
 bool startsWithIgnoreCase(String string, String prefix) {
   if (string.length < prefix.length) return false;
   for (var i = 0; i < prefix.length; i++) {
@@ -303,7 +285,6 @@ bool startsWithIgnoreCase(String string, String prefix) {
 }
 
 /// Destructively updates every element of [list] with the result of [function].
-@internal
 void mapInPlace<T>(List<T> list, T Function(T element) function) {
   for (var i = 0; i < list.length; i++) {
     list[i] = function(list[i]);
@@ -318,7 +299,6 @@ void mapInPlace<T>(List<T> list, T Function(T element) function) {
 /// If [select] is passed, it's used to check equality between elements in each
 /// list. If it returns `null`, the elements are considered unequal; otherwise,
 /// it should return the element to include in the return value.
-@internal
 List<T> longestCommonSubsequence<T>(
   List<T> list1,
   List<T> list2, {
@@ -364,7 +344,6 @@ List<T> longestCommonSubsequence<T>(
 /// Removes the first value in [list] that matches [test].
 ///
 /// If [orElse] is passed, calls it if no value matches.
-@internal
 void removeFirstWhere<T>(
   List<T> list,
   bool Function(T value) test, {
@@ -382,7 +361,6 @@ void removeFirstWhere<T>(
 /// Like [Map.addAll], but for two-layer maps.
 ///
 /// This avoids copying inner maps from [source] if possible.
-@internal
 void mapAddAll2<K1, K2, V>(
   Map<K1, Map<K2, V>> destination,
   Map<K1, Map<K2, V>> source,
@@ -397,7 +375,6 @@ void mapAddAll2<K1, K2, V>(
 }
 
 /// Sets all [keys] in [map] to [value].
-@internal
 void setAll<K, V>(Map<K, V> map, Iterable<K> keys, V value) {
   for (var key in keys) {
     map[key] = value;
@@ -406,7 +383,6 @@ void setAll<K, V>(Map<K, V> map, Iterable<K> keys, V value) {
 
 /// Rotates the element in list from [start] (inclusive) to [end] (exclusive)
 /// one index higher, looping the final element back to [start].
-@internal
 void rotateSlice(List<Object> list, int start, int end) {
   var element = list[end - 1];
   for (var i = start; i < end; i++) {
@@ -417,7 +393,6 @@ void rotateSlice(List<Object> list, int start, int end) {
 }
 
 /// Like [Iterable.map] but for an asynchronous [callback].
-@internal
 Future<Iterable<F>> mapAsync<E, F>(
   Iterable<E> iterable,
   Future<F> Function(E value) callback,
@@ -427,7 +402,6 @@ Future<Iterable<F>> mapAsync<E, F>(
 ///
 /// Note that this is *not* safe to call in parallel on the same map with the
 /// same key.
-@internal
 Future<V> putIfAbsentAsync<K, V>(
   Map<K, V> map,
   K key,
@@ -440,20 +414,17 @@ Future<V> putIfAbsentAsync<K, V>(
 }
 
 /// Returns a deep copy of a map that contains maps.
-@internal
 Map<K1, Map<K2, V>> copyMapOfMap<K1, K2, V>(Map<K1, Map<K2, V>> map) => {
   for (var (key, child) in map.pairs) key: Map.of(child),
 };
 
 /// Returns a deep copy of a map that contains lists.
-@internal
 Map<K, List<E>> copyMapOfList<K, E>(Map<K, List<E>> map) => {
   for (var (key, list) in map.pairs) key: list.toList(),
 };
 
 /// Consumes an escape sequence from [scanner] and returns the character it
 /// represents.
-@internal
 int consumeEscapedCharacter(StringScanner scanner) {
   // See https://drafts.csswg.org/css-syntax-3/#consume-escaped-code-point.
 
@@ -473,11 +444,32 @@ int consumeEscapedCharacter(StringScanner scanner) {
       if (scanner.peekChar().isWhitespace) scanner.readChar();
 
       return switch (value) {
-        0 || (>= 0xD800 && <= 0xDFFF) || >= maxAllowedCharacter => 0xFFFD,
+        0 || (>= 0xD800 && <= 0xDFFF) || > maxAllowedCharacter => 0xFFFD,
         _ => value,
       };
     case _:
       return scanner.readChar();
+  }
+}
+
+/// Returns the CSS escape sequence for the given [character], or the literal
+/// character if it doesn't need to be escaped.
+///
+/// If [identifierStart] is `true`, this escapes characters that are valid in
+/// identifier bodies but not at the beginning of identifiers.
+String characterToEscape(int character, {bool identifierStart = false}) {
+  if (identifierStart ? character.isNameStart : character.isName) {
+    return String.fromCharCode(character);
+  } else if (character <= 0x1F ||
+      character == 0x7F ||
+      (identifierStart && character.isDigit)) {
+    var buffer = StringBuffer()..writeCharCode($backslash);
+    if (character > 0xF) buffer.writeCharCode(hexCharFor(character >> 4));
+    buffer.writeCharCode(hexCharFor(character & 0xF));
+    buffer.writeCharCode($space);
+    return buffer.toString();
+  } else {
+    return String.fromCharCodes([$backslash, character]);
   }
 }
 
@@ -487,7 +479,6 @@ int consumeEscapedCharacter(StringScanner scanner) {
 /// [trace]) stored as its stack trace.
 ///
 /// Note that [trace] is only accessible via [getTrace].
-@internal
 Never throwWithTrace(Object error, Object originalError, StackTrace trace) {
   attachTrace(error, getTrace(originalError) ?? trace);
   throw error;
@@ -496,7 +487,6 @@ Never throwWithTrace(Object error, Object originalError, StackTrace trace) {
 /// Attaches [trace] to [error] so that it may be retrieved using [getTrace].
 ///
 /// In most cases, [throwWithTrace] should be used instead of this.
-@internal
 void attachTrace(Object error, StackTrace trace) {
   if (error case String() || num() || bool()) return;
 
@@ -509,7 +499,6 @@ void attachTrace(Object error, StackTrace trace) {
 
 /// Returns the stack trace associated with error using [throwWithTrace], or
 /// [defaultTrace] if it was thrown normally.
-@internal
 StackTrace? getTrace(Object error) =>
     error is String || error is num || error is bool ? null : _traces[error];
 
@@ -519,7 +508,6 @@ StackTrace? getTrace(Object error) =>
 /// If [requireParens] is `false`, this allows parentheses to be omitted.
 ///
 /// Throws a [SassFormatException] if parsing fails.
-@internal
 (String name, ParameterList) parseSignature(
   String signature, {
   bool requireParens = true,
@@ -537,3 +525,35 @@ StackTrace? getTrace(Object error) =>
     );
   }
 }
+
+/// Returns the default Sass namespace of the given stylesheet URL.
+DefaultNamespaceResult defaultNamespace(Uri url) {
+  var basename = url.pathSegments.isEmpty ? "" : url.pathSegments.last;
+  var dot = basename.indexOf(".");
+  var namespace = basename.substring(
+    basename.startsWith("_") ? 1 : 0,
+    dot == -1 ? basename.length : dot,
+  );
+  try {
+    return DefaultNamespace._(Parser.parseIdentifier(namespace));
+  } on SassFormatException {
+    return InvalidDefaultNamespace._(namespace);
+  }
+}
+
+/// The result of calling [defaultNamespace], either a [DefaultNamspace] or an
+/// [InvalidDefaultNamespace].
+sealed class DefaultNamespaceResult {}
+
+/// A successful result from [defaultNamespace].
+final class DefaultNamespace._(
+  /// The identifier value of the parsed namespace.
+  final String namespace,
+) extends DefaultNamespaceResult {}
+
+/// An unsuccessful result from [defaultNamespace].
+final class InvalidDefaultNamespace._(
+  /// The namespace that would have been parsed if it were a valid Sass
+  /// identifier.
+  final String namespace,
+) extends DefaultNamespaceResult {}

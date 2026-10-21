@@ -32,7 +32,7 @@ base class Parser {
   /// from source.
   final InterpolationMap? _interpolationMap;
 
-  /// Parses [text] as a CSS identifier and returns the result.
+  /// Parses [text] as a CSS identifier and returns its semantic content.
   ///
   /// Throws a [SassFormatException] if parsing fails.
   static String parseIdentifier(String text) => Parser(text)._parseIdentifier();
@@ -191,6 +191,8 @@ base class Parser {
 
   /// Consumes a plain CSS identifier.
   ///
+  /// This returns the parsed contents of the identifier with escapes resolved.
+  ///
   /// If [normalize] is `true`, this converts underscores into hyphens.
   ///
   /// If [unit] is `true`, this doesn't parse a `-` followed by a digit. This
@@ -213,18 +215,15 @@ base class Parser {
       }
     }
 
-    switch (scanner.peekChar()) {
-      case null:
-        scanner.error("Expected identifier.");
-      case $underscore when normalize:
-        scanner.readChar();
+    if (scanner.isDone) scanner.error("Expected identifier.");
+    switch (readCharOrEscape()) {
+      case ($underscore, _) when normalize:
         text.writeCharCode($dash);
-      case int(isNameStart: true):
-        text.writeCharCode(scanner.readChar());
-      case $backslash:
-        text.write(escape(identifierStart: true));
+      case (var char, true):
+      case (var char, _) when char.isNameStart:
+        text.writeCharCode(char);
       case _:
-        scanner.error("Expected identifier.");
+        scanner.error("Expected identifier.", position: scanner.position - 1);
     }
 
     _identifierBody(text, normalize: normalize, unit: unit);
@@ -248,20 +247,25 @@ base class Parser {
   }) {
     loop:
     while (true) {
-      switch (scanner.peekChar()) {
-        case null:
+      switch (peekCharOrEscape()) {
+        case (null, _):
           break loop;
-        case $dash when unit:
-          // Disallow `-` followed by a dot or a digit digit in units.
-          if (scanner.peekChar(1) case $dot || int(isDigit: true)) break loop;
-          text.writeCharCode(scanner.readChar());
-        case $underscore when normalize:
-          scanner.readChar();
+        case ($dash, _) when unit:
+          var beforeDash = scanner.state;
+          readCharOrEscape();
+          // Disallow `-` followed by a dot or a digit in units.
+          if (scanner.peekChar() case $dot || int(isDigit: true)) {
+            scanner.state = beforeDash;
+            break loop;
+          }
           text.writeCharCode($dash);
-        case int(isName: true):
-          text.writeCharCode(scanner.readChar());
-        case $backslash:
-          text.write(escape());
+        case ($underscore, _) when normalize:
+          readCharOrEscape();
+          text.writeCharCode($dash);
+        case (var char?, true):
+        case (var char? && int(isName: true), _):
+          readCharOrEscape();
+          text.writeCharCode(char);
         case _:
           break loop;
       }
@@ -298,7 +302,7 @@ base class Parser {
             scanner.readChar();
             scanner.readChar();
           } else {
-            buffer.writeCharCode(escapeCharacter());
+            buffer.writeCharCode(escape());
           }
         case _:
           buffer.writeCharCode(scanner.readChar());
@@ -342,20 +346,15 @@ base class Parser {
     var wroteNewline = false;
     loop:
     while (true) {
-      var next = scanner.peekChar();
-      switch (next) {
-        case null:
+      switch (peekCharOrEscape()) {
+        case (null, _):
           break loop;
 
-        case $backslash:
-          buffer.write(escape(identifierStart: true));
-          wroteNewline = false;
-
-        case $double_quote || $single_quote:
+        case ($double_quote || $single_quote, false):
           buffer.write(rawText(string));
           wroteNewline = false;
 
-        case $slash:
+        case ($slash, false):
           if (scanner.peekChar(1) == $asterisk) {
             buffer.write(rawText(loudComment));
           } else {
@@ -363,46 +362,47 @@ base class Parser {
           }
           wroteNewline = false;
 
-        case $space || $tab:
+        case ($space || $tab, false):
           if (wroteNewline || !scanner.peekChar(1).isWhitespace) {
             buffer.writeCharCode($space);
           }
           scanner.readChar();
 
-        case $lf || $cr || $ff:
+        case ($lf || $cr || $ff, false):
           if (!scanner.peekChar(-1).isNewline) buffer.writeln();
           scanner.readChar();
           wroteNewline = true;
 
-        case $lparen || $lbrace || $lbracket:
+        case (($lparen || $lbrace || $lbracket) && var next?, false):
           buffer.writeCharCode(next);
           brackets.add(opposite(scanner.readChar()));
           wroteNewline = false;
 
-        case $rparen || $rbrace || $rbracket:
+        case (($rparen || $rbrace || $rbracket) && var next?, false):
           if (brackets.isEmpty) break loop;
           buffer.writeCharCode(next);
           scanner.expectChar(brackets.removeLast());
           wroteNewline = false;
 
-        case $semicolon:
+        case ($semicolon, false):
           if (brackets.isEmpty) break loop;
           buffer.writeCharCode(scanner.readChar());
 
-        case $u || $U:
+        case ($u || $U, _):
           if (tryUrl() case var url?) {
             buffer.write(url);
           } else {
-            buffer.writeCharCode(scanner.readChar());
+            buffer.write(rawText(identifier));
           }
           wroteNewline = false;
 
+        case (_, true):
+        case _ when lookingAtIdentifier():
+          buffer.write(rawText(identifier));
+          wroteNewline = false;
+
         default:
-          if (lookingAtIdentifier()) {
-            buffer.write(identifier());
-          } else {
-            buffer.writeCharCode(scanner.readChar());
-          }
+          buffer.writeCharCode(scanner.readChar());
           wroteNewline = false;
       }
     }
@@ -437,7 +437,7 @@ base class Parser {
         case null:
           break loop;
         case $backslash:
-          buffer.write(escape());
+          buffer.write(rawText(escape));
         case $percent ||
             $ampersand ||
             $hash ||
@@ -471,61 +471,9 @@ base class Parser {
 
   // ## Characters
 
-  /// Consumes an escape sequence and returns the text that defines it.
-  ///
-  /// If [identifierStart] is true, this normalizes the escape sequence as
-  /// though it were at the beginning of an identifier.
-  @protected
-  String escape({bool identifierStart = false}) {
-    // See https://drafts.csswg.org/css-syntax-3/#consume-escaped-code-point.
-
-    var start = scanner.position;
-    scanner.expectChar($backslash);
-    var value = 0;
-    switch (scanner.peekChar()) {
-      case null:
-        scanner.error("Expected escape sequence.");
-      case int(isNewline: true):
-        scanner.error("Expected escape sequence.");
-      case int(isHex: true):
-        for (var i = 0; i < 6; i++) {
-          var next = scanner.peekChar();
-          if (next == null || !next.isHex) break;
-          value *= 16;
-          value += asHex(scanner.readChar());
-        }
-
-        scanCharIf((char) => char.isWhitespace);
-      case _:
-        value = scanner.readChar();
-    }
-
-    if (identifierStart ? value.isNameStart : value.isName) {
-      try {
-        return String.fromCharCode(value);
-      } on RangeError {
-        scanner.error(
-          "Invalid Unicode code point.",
-          position: start,
-          length: scanner.position - start,
-        );
-      }
-    } else if (value <= 0x1F ||
-        value == 0x7F ||
-        (identifierStart && value.isDigit)) {
-      var buffer = StringBuffer()..writeCharCode($backslash);
-      if (value > 0xF) buffer.writeCharCode(hexCharFor(value >> 4));
-      buffer.writeCharCode(hexCharFor(value & 0xF));
-      buffer.writeCharCode($space);
-      return buffer.toString();
-    } else {
-      return String.fromCharCodes([$backslash, value]);
-    }
-  }
-
   /// Consumes an escape sequence and returns the character it represents.
   @protected
-  int escapeCharacter() => consumeEscapedCharacter(scanner);
+  int escape() => consumeEscapedCharacter(scanner);
 
   // Consumes the next character if it matches [condition].
   //
@@ -537,6 +485,40 @@ base class Parser {
     scanner.readChar();
     return true;
   }
+
+  /// Returns the character [offset] away from [scanner.position] without
+  /// consuming it.
+  ///
+  /// If this character begins an escape, returns its contents instead of a
+  /// literal [$backslash]. The second return value indicates whether or not an
+  /// escaped character was parsed.
+  @protected
+  (int?, bool) peekCharOrEscape([int? offset]) {
+    switch (scanner.peekChar(offset)) {
+      case $backslash:
+        var start = scanner.state;
+        if (offset != null) scanner.position += offset;
+        try {
+          return (escape(), true);
+        } finally {
+          scanner.state = start;
+        }
+
+      case var char:
+        return (char, false);
+    }
+  }
+
+  /// Consumes and returns the next character in the stream.
+  ///
+  /// If the next character begins an escape, consumes the entire escape and
+  /// returns its contents instead of a literal [$backslash]. The second return
+  /// value indicates whether or not an escaped character was parsed.
+  @protected
+  (int, bool) readCharOrEscape() => switch (scanner.peekChar()) {
+    $backslash => (escape(), true),
+    _ => (scanner.readChar(), false),
+  };
 
   /// Consumes the next character or escape sequence if it matches [expected].
   ///
@@ -554,7 +536,7 @@ base class Parser {
 
       case $backslash:
         var start = scanner.state;
-        if (matches(escapeCharacter())) return true;
+        if (matches(escape())) return true;
         scanner.state = start;
     }
     return false;

@@ -175,7 +175,7 @@ describe('a @function rule', () => {
             functionName: 'f o',
             parameters: ['bar'],
           }).toString(),
-        ).toBe('@function f\\20o($bar) {}'));
+        ).toBe('@function f\\ o($bar) {}'));
 
       it('with afterName', () =>
         expect(

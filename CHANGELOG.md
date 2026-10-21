@@ -1,192 +1,68 @@
-## 2.0.0
+## 1.106.0
 
-* **Breaking change:** `/` is now used for slash-separated lists rather than
-  division in SassScript. You can still use it for division within `calc()` and
-  other calculation expressions, or use `math.div()` instead.
+* Don't normalize CSS escapes in statement contexts that can contain
+  interpolation. For example, `@f\6Fo` is now emitted as written rather than
+  normalized to `@foo`.
 
-* **Breaking change:** The global functions `red()`, `green()`, `blue()`,
-  `hue()`, `saturation()`, `lightness()`, `whiteness()`, `blackness()`,
-  `alpha()`, `opacity()`, `adjust-hue()`, `saturate()`, `desaturate()`,
-  `lighten()`, `darken()`, `opacify()`, `fade-in()`, `transparentize()`, and
-  `fade-out()`, as well as their `sass:color` equivalents where they exist, have
-  been removed.
+* Fix a bug where quotes would be removed from attribute selector values that
+  contained backslashes.
 
-* **Breaking change:** `@elseif` is no longer treated as equivalent to `@else
-  if`, and is now treated like any other unknown plain CSS at-rule.
+* Fix invalid source spans that could cause crashes when encountering a syntax
+  error in selectors or media queries that also contain escape sequences.
 
-* **Breaking change:** The `@-moz-document` rule no longer has any special
-  parsing associated with it. It is now parsed like any other unknown plain CSS
-  at-rule, where Sass features are only allowed within `#{}` interpolation.
+* **Potentially breaking compatibility fix:** CSS escape codes whose values are
+  0, for Unicode surrogates, or greater than the maximum allowed code point are
+  now consistently normalized to U+FFFD REPLACEMENT CHARACTER in expression
+  contexts. Previously, in some cases these were instead normalized to the
+  normalized form of the original escape sequence, which violates the principle
+  that all escape sequences for identical values should be normalized the same
+  way. In other cases, these would simply throw errors.
 
-* **Breaking change:** A variable definition may now only have a single
-  `!global` flag or `!default` flag, or one of each.
+  As a special case, `\0` on its own will continue to be normalized to `\0 ` to
+  support historical CSS hacks.
 
-* **Breaking change:** `+` and `-` operators with whitespace before but not
-  after them, as in `$a -$b`, are now forbidden due to being highly ambiguous
-  between `$a - $b` and `$a (-$b)`.
+* **Potentially breaking bug fix:** Fix various cases where using a CSS escape
+  code at the beginning of an identifier would change parsing behavior versus
+  using the character directly.
 
-* **Breaking change:** Passing a string to `meta.call()` is now an error.
-  Callers must pass a function object instead.
+* **Potentially breaking bug fix:** When a number's unit is ambiguous with a
+  numeric exponent, the unit is now serialized as an escape code rather than a
+  literal `e` to avoid being interpreted as an exponent by CSS.
 
-* **Breaking change:** Passing a named or positional argument after a `...` rest
-  argument to a mixin or function is now an error.
+* **Potentially breaking bug fix:** Don't parse a CSS escape code for U+45 LATIN
+  CAPITAL LETTER E or U+65 LATIN LOWERCASE LETTER E as an exponent in
+  `@keyframes` percentage selectors.
 
-* **Breaking change:** It is now an error to declare functions named
-  `expression` and `url` even if those functions' names are upper or mixed-case.
+* **Potentially breaking bug fix:** Properly normalize underscores written as
+  CSS escape codes in variable, mixin, and function names.
 
-* **Breaking change:** Calls to vendor prefixed `-...-expression` and `-...-url`
-  functions are now parsed the same as any other function, rather than being
-  parsed as special functions. These never had special semantics in any browser.
+## 1.105.2
 
-* **Breaking change:** Calls to vendor prefixed `-...-progid:...()` functions
-  are no longer supported. These were never supported by any browser.
+### Node.js Embedded Host
 
-* **Brekaing change:** `meta.feature-exists()` has been removed. See [the Sass
-  website](https://sass-lang.com/d/feature-exists) for details.
+* Fix a deadlock when the async compiler fails to start.
 
-* **Breaking change:** The current working directory is no longer ever
-  implicitly added as a load path. You can add it explicitly with
-  `--load-path=.` or similar options in the APIs.
+## 1.105.1
 
-* **Potentially breaking bug fix:** In some cases involving a `:has()` selector
-  with a leading combinator being `@extend`ed by a selector that contained its
-  own combinators, `@extend` used to generate incorrect selectors. This has been
-  fixed.
+* Improve error messages for `@extend`s across different media queries.
 
-* When extending selectors in `:is()`, `:has()`, or `:where()`, `@extend` will
-  now generate `:is()` selectors rather than manually combining selectors, since
-  there are no browser compatibility concerns in that context. This fixes
-  several related extension bugs in this context.
+## 1.105.0
 
-### Bogus Combinators
+* Add support for first-class modules. These can be accessed using the new
+  `meta.load()` and `meta.get-module()` functions, and may be passed as the
+  `$module` argument to numerous eisting `sass:meta` functions.
 
-* **Breaking change:** Selectors with more than one combinator in a row, such as
-  `.foo + ~ a`, are now syntax errors.
+* Add the `meta.css()` mixin, which includes CSS from a first-class module.
 
-* **Breaking change:** It's now an error for a selector at the root of the
-  document or in a psuedo selector to have a leading combinator, such as
-  `+ .foo`. These are still allowed in nested selectors and in `:has()`.
+### JS API
 
-* **Breaking change:** It's now an error for selectors with trailing
-  combinators, such as `.foo +`, to contain declarations, non-bubbling plain-CSS
-  at rules, or `@extend` rules.
-
-* **Breaking change:** It's now an error for `@extend` rules to extend selectors
-  with leading or trailing combinators.
-
-* **Breaking change:** The `$extender` and `$extendee` arguments of
-  `selector.extend()` and `selector.replace()`, as well as the `$super` and
-  `$sub` arguments of `selector.is-superselector()`, no longer allow selectors
-  with leading or trailing combinators.
-
-* **Breaking change:** The `$selector` arguments of `selector.extend()` and
-  `selector.replace()`, as well as the `$selector1` and `$selector2` arguments
-  of `selector.unify()`, no longer allow selectors with trailing combinators.
-  Leading combinators are still allowed for these functions because they may
-  appear in a plain CSS nesting context.
-
-### JavaScript API
-
-* **Breaking change:** The legacy JavaScript API (also known as the Node Sass
-  API) is no longer supported. See [the Sass
-  website](https://sass-lang.com/d/legacy-js-api) for details.
-
-* **Breaking change:** The JavaScript API no longer provides access to its
-  members through a default import in ESM. Users must `import * as sass from
-  'sass'` rather than `import sass from 'sass'`.
+* Add a `SassModule` class and a corresponding `Value.assertModule()` method.
 
 ### Dart API
 
-* **Breaking change:** Use [Dart class modifiers] where applicable for types
-  exposed by this package. This means that users' `Importer` implementations
-  must be marked as `final` or `base`.
+* Add a `SassModule` class and a corresponding `Value.assertModule()` method.
 
-  [Dart class modifiers]: https://dart.dev/language/class-modifiers
-
-* **Breaking change:** Replace the deprecated top-level `compile()`,
-  `compileString()`, `compileAsync()`, and `compileStringAsync()` functions with
-  the functions that used to be named `compileToResult()`,
-  `compileStringToResult()`, `compileToResultAsync()`, and
-  `compileStringToResultAsync()`. The latter function names still exist, but
-  they are now deprecated in favor of the former names.
-
-* **Breaking change:** The `deprecation` argument for `Logger.warn()` is now
-  `Deprecation?` rather than `bool`. This is `null` when the warning isn't for a
-  deprecation, and a `Deprecation` object when it is. You can change any use of
-  `deprecation` as a boolean to `deprecation != null` to preserve the existing
-  behavior.
-
-* **Breaking change:** It's now an error to return a relative URL from
-  `AsyncImporter.canonicalize` or `Importer.canonicalize`.
-  
-* **Breaking change:** Remove `Value.assertSelector()`,
-  `.assertSimpleSelector()`, `.assertCompoundSelector()`, and
-  `.assertComplexSelector()`. These are now only available through the expanded
-  `sass_api` package, since that package also exposes the selector AST that it
-  returns.
-
-* **Breaking change:** Remove the unnamed `Callable()` and `AsyncCallable()`
-  constructors. Use `Callable.function()` and `AsyncCallable.function()`
-  instead.
-
-* **Breaking change:** Remove `FilesystemImporter.cwd`. Instead use
-  `FilesystemImporter.noLoadPath` if you don't need to add the current working
-  directory as a load path, or `FilesystemImporter('.')` if you do.
-
-* **Breaking change:** Passing a relative `url` to `compileString()`,
-  `compileStringAsync()`, `compileStringToResult()`, and
-  `compileStringToResultAsync()` is now an error.
-
-* **Breaking change:** Remove `Deprecation.calcInterp`. This was never actually
-  emitted as a deprecation.
-
-* **Breaking change:** Remove `Deprecation.duplicateVariableFlags`. Use
-  `Deprecation.duplicateVarFlags`.
-
-#### `SassColor`
-
-* **Breaking change:** Remove the `SassColor.red`, `.green`, `.blue`, `.hue`,
-  `.saturation`, `.lightness`, `.whiteness`, and `.blackness` parameters. Use
-  the `SassColor.channel()` method instead.
-
-* **Breaking change:** Remove the `SassColor.changeRgb`, `.changeHsl`, and
-  `.changeHwb` methods. Use `SassColor.changeChannels()` instead.
-
-#### `ImporterResult`
-
-* **Breaking change:** Remove `ImporterResult.isIndented`. Use
-  `ImporterResult.syntax` instead.
-
-* **Breaking change:** Remove the `indented` parameter to `ImporterResult()`.
-  Use the `syntax` parameter instead.
-
-* **Breaking change:** The `syntax` parameter to `ImporterResult()` is now
-  `required` and non-nullable.
-
-### JavaScript API
-
-#### `SassColor`
-
-* **Breaking change:** Remove the `SassColor.red`, `.green`, `.blue`, `.hue`,
-  `.saturation`, `.lightness`, `.whiteness`, and `.blackness` parameters. Use
-  the `SassColor.channel()` method instead.
-
-* **Breaking change:** A `null` `alpha` argument for `new SassColor()` for a
-  legacy color space is now interpreted as a missing channel rather than a fully
-  opaque color. Use `undefined` to pass the default value for any channel or `1`
-  to explicitly make the color opaque.
-
-* **Breaking change:** Calling `SassColor.change()` for a legacy color with a
-  `null` value now marks that channel as missing rather than using its previous
-  value. Use `undefined` to retain the previous value.
-
-* **Breaking change:** Calling `SassColor.change()` with a channel name not in
-  the color's current color space is now an error for all colors. Previously,
-  legacy colors would automatically convert between the RGB, HSL, and HWB color
-  spaces. You can pass the `space` parameter to explicitly convert to a new
-  space.
-
-## 1.104.1-dev
+## 1.104.1
 
 * Fix a bug where loud comments before `@use` rules could be emitted multiple
   times under certain circumstances.
@@ -201,6 +77,11 @@
   output directory if the output directory is also within the source directory.
   This fixes a bug where `--watch` mode could enter an infinite loop recompiling
   the same CSS file over and over.
+
+* Sass now sets the modification time of output files to the time compilation
+  *started* rather than the time it *ended*. This ensures that, if a source file
+  is modified during compilation, `--watch` and `--update` mode will recompile
+  the outputs to include the new source file contents.
 
 ## 1.104.0
 

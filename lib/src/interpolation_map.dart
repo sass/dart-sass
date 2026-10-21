@@ -181,13 +181,17 @@ final class InterpolationMap(
   }
 
   /// Given the end of a [FileSpan] covering an interpolated expression, returns
-  /// the offset of the interpolation's closing `}`.
+  /// the offset of the next character that's not whitespace or a comment.
+  ///
+  /// For most interpolations, this will be the offset of the closing `}`.
+  /// However, some interpolations (such as those in `@media (<expr>: <expr>)`)
+  /// don't use literal `#{}` characters, in which case this will point to a
+  /// different bounding character.
   int _expandInterpolationSpanRight(FileLocation end) {
     var source = end.file.codeUnits;
     var i = end.offset;
     while (i < source.length) {
       var next = source[i++];
-      if (next == $rbrace) break;
       if (next == $slash) {
         var second = source[i++];
         if (second == $slash) {
@@ -203,6 +207,8 @@ final class InterpolationMap(
             if (char == $slash) break;
           }
         }
+      } else if (!next.isWhitespace) {
+        break;
       }
     }
 

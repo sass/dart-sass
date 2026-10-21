@@ -191,10 +191,10 @@ SimpleSelector? unifyUniversalAndElement(
   var (namespace1, name1) = _namespaceAndName(selector1, 'selector1');
   var (namespace2, name2) = _namespaceAndName(selector2, 'selector2');
 
-  String? namespace;
-  if (namespace1 == namespace2 || namespace2 == '*') {
+  SelectorNamespace namespace;
+  if (namespace1 == namespace2 || namespace2 == .any) {
     namespace = namespace1;
-  } else if (namespace1 == '*') {
+  } else if (namespace1 == .any) {
     namespace = namespace2;
   } else {
     return null;
@@ -203,7 +203,7 @@ SimpleSelector? unifyUniversalAndElement(
   String? name;
   if (name1 == name2 || name2 == null) {
     name = name1;
-  } else if (name1 == null || name1 == '*') {
+  } else if (name1 == null) {
     name = name2;
   } else {
     return null;
@@ -218,7 +218,7 @@ SimpleSelector? unifyUniversalAndElement(
 /// [UniversalSelector] or a [TypeSelector].
 ///
 /// The [name] parameter is used for error reporting.
-(String? namespace, String? name) _namespaceAndName(
+(SelectorNamespace namespace, String? name) _namespaceAndName(
   SimpleSelector selector,
   String name,
 ) => switch (selector) {
@@ -969,7 +969,7 @@ bool _compoundComponentsIsSuperselector(
 }) {
   if (compound1.isEmpty) return true;
   if (compound2.isEmpty) {
-    compound2 = [UniversalSelector(bogusSpan, namespace: '*')];
+    compound2 = [UniversalSelector(bogusSpan, namespace: .any)];
   }
   return compoundIsSuperselector(
     CompoundSelector(compound1, bogusSpan),

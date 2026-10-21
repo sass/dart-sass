@@ -5,6 +5,7 @@
 import 'package:source_span/source_span.dart';
 
 import '../../../util/span.dart';
+import '../../../util/string.dart';
 import '../../../visitor/interface/statement.dart';
 import '../../../visitor/statement_search.dart';
 import '../declaration.dart';
@@ -42,7 +43,7 @@ final class MixinRule extends CallableDeclaration implements SassDeclaration {
 
   @override
   String toString() {
-    var buffer = StringBuffer("@mixin $name");
+    var buffer = StringBuffer("@mixin ${name.toCssIdentifier()}");
     if (!parameters.isEmpty) buffer.write("($parameters)");
     buffer.write(" {${children.join(' ')}}");
     return buffer.toString();

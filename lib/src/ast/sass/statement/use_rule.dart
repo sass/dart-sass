@@ -8,6 +8,7 @@ import 'package:source_span/source_span.dart';
 import '../../../exception.dart';
 import '../../../parse/scss.dart';
 import '../../../util/span.dart';
+import '../../../util/string.dart';
 import '../../../visitor/interface/statement.dart';
 import '../configured_variable.dart';
 import '../dependency.dart';
@@ -25,6 +26,8 @@ final class UseRule(
 
   /// The namespace for members of the used module, or `null` if the members
   /// can be accessed without a namespace.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   final String? namespace,
   @override final FileSpan span, {
   Iterable<ConfiguredVariable>? configuration,
@@ -72,7 +75,7 @@ final class UseRule(
     var basename = url.pathSegments.isEmpty ? "" : url.pathSegments.last;
     var dot = basename.indexOf(".");
     if (namespace != basename.substring(0, dot == -1 ? basename.length : dot)) {
-      buffer.write(" as ${namespace ?? "*"}");
+      buffer.write(" as ${namespace?.toCssIdentifier() ?? "*"}");
     }
 
     if (configuration.isNotEmpty) {

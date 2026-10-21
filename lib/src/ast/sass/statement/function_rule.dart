@@ -5,6 +5,7 @@
 import 'package:source_span/source_span.dart';
 
 import '../../../util/span.dart';
+import '../../../util/string.dart';
 import '../../../visitor/interface/statement.dart';
 import '../declaration.dart';
 import 'callable_declaration.dart';
@@ -28,5 +29,6 @@ final class FunctionRule(
   T accept<T>(StatementVisitor<T> visitor) => visitor.visitFunctionRule(this);
 
   @override
-  String toString() => "@function $name($parameters) {${children.join(' ')}}";
+  String toString() =>
+      "@function ${name.toCssIdentifier()}($parameters) {${children.join(' ')}}";
 }

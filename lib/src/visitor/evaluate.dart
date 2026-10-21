@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 4c664d5dc9296b497c53de4d22f17b48e277b039
+// Checksum: 7022c48e00a3c6f8ffeec7cacc8dd8cd94e478ed
 //
 // ignore_for_file: unused_import
 
@@ -41,17 +41,20 @@ import '../extend/extension.dart';
 import '../functions.dart';
 import '../functions/meta.dart' as meta;
 import '../importer.dart';
+import '../importer/legacy_node.dart';
 import '../interpolation_map.dart';
 import '../logger.dart';
 import '../module.dart';
 import '../module/built_in.dart';
 import '../parse/keyframe_selector.dart';
+import '../syntax.dart';
 import '../utils.dart';
 import '../util/character.dart';
 import '../util/map.dart';
+import '../util/multi_span.dart';
 import '../util/nullable.dart';
-import '../util/span.dart';
 import '../value.dart';
+import 'expression_to_calc.dart';
 import 'interface/css.dart';
 import 'interface/expression.dart';
 import 'interface/if_condition_expression.dart';
@@ -64,7 +67,8 @@ typedef _ScopeCallback = void Function(void Function() callback);
 
 /// Converts [stylesheet] to a plain CSS tree.
 ///
-/// If [importCache] is passed, it's used to resolve imports in the Sass files.
+/// If [importCache] (or, on Node.js, [nodeImporter]) is passed, it's used to
+/// resolve imports in the Sass files.
 ///
 /// If [importer] is passed, it's used to resolve relative imports in
 /// [stylesheet] relative to `stylesheet.span.sourceUrl`.
@@ -85,6 +89,7 @@ typedef _ScopeCallback = void Function(void Function() callback);
 EvaluateResult evaluate(
   Stylesheet stylesheet, {
   ImportCache? importCache,
+  NodeImporter? nodeImporter,
   Importer? importer,
   Iterable<Callable>? functions,
   Logger? logger,
@@ -92,6 +97,7 @@ EvaluateResult evaluate(
   bool sourceMap = false,
 }) => _EvaluateVisitor(
   importCache: importCache,
+  nodeImporter: nodeImporter,
   functions: functions,
   logger: logger,
   quietDeps: quietDeps,
@@ -133,6 +139,9 @@ final class Evaluator({
 final class _EvaluateVisitor({
   ImportCache? importCache,
 
+  /// The Node Sass-compatible importer to use when loading new Sass files when
+  /// compiled to Node.js.
+  final NodeImporter? _nodeImporter,
   Iterable<Callable>? functions,
   Logger? logger,
 
@@ -147,7 +156,8 @@ final class _EvaluateVisitor({
     IfConditionExpressionVisitor<Object /* String | bool */>,
     CssVisitor<void> {
   /// The import cache used to import other stylesheets.
-  final ImportCache _importCache = importCache ?? ImportCache.none();
+  final ImportCache? _importCache =
+      importCache ?? (_nodeImporter == null ? ImportCache.none() : null);
 
   /// Built-in functions that are globally-accessible, even under the new module
   /// system.
@@ -184,7 +194,7 @@ final class _EvaluateVisitor({
   final Object _compileContext = Object();
 
   /// The current lexical environment.
-  Environment _environment = Environment();
+  Environment _environment;
 
   /// The style rule that defines the current parent selector, if any.
   ///
@@ -226,9 +236,6 @@ final class _EvaluateVisitor({
   ///
   /// This is used to produce warnings for importers.
   FileSpan? _importSpan;
-
-  /// Whether we're currently executing a mixin.
-  var _inMixin = false;
 
   /// Whether we're currently executing a function.
   var _inFunction = false;
@@ -275,6 +282,9 @@ final class _EvaluateVisitor({
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
   final _stack = <(String, AstNode)>[];
+
+  /// Whether we're running in Node Sass-compatibility mode.
+  bool get _asNodeSass => _nodeImporter != null;
 
   // ## Module-Specific Fields
 
@@ -334,13 +344,6 @@ final class _EvaluateVisitor({
   /// If this is empty, that indicates that the current module is not configured.
   var _configuration = const Configuration.empty();
 
-  /// A cache mapping slash-separated list expressions to the binary operation
-  /// expressions they're rewritten as when executing calculations.
-  ///
-  /// These are only cached in function and mixin contexts, where the same
-  /// calculations are likely to be evaluated multiple times.
-  final _calcSlashListCache = HashMap<ListExpression, Expression>.identity();
-
   /// Returns whether the current position in the output stylesheet uses plain
   /// CSS nesting.
   ///
@@ -364,7 +367,7 @@ final class _EvaluateVisitor({
   /// Creates a new visitor.
   ///
   /// Most arguments are the same as those to [evaluate].
-  this {
+  this : _environment = Environment() {
     var metaFunctions = [
       // These functions are defined in the context of the evaluator because
       // they need access to the [_environment] or other local state.
@@ -372,14 +375,14 @@ final class _EvaluateVisitor({
         "global-variable-exists",
         r"$name, $module: null",
         (arguments) {
-          var variable = arguments[0].assertString("name");
-          var module = arguments[1].realNull?.assertString("module");
-          return SassBoolean(
-            _environment.globalVariableExists(
-              variable.text.replaceAll("_", "-"),
-              namespace: module?.text,
-            ),
-          );
+          var name = arguments[0]
+              .assertString("name")
+              .text
+              .replaceAll("_", "-");
+          return SassBoolean(switch (_getNullableModule(arguments[1])) {
+            var module? => module.variables.containsKey(name),
+            _ => _environment.globalVariableExists(name),
+          });
         },
         url: "sass:meta",
       ),
@@ -394,28 +397,23 @@ final class _EvaluateVisitor({
       BuiltInCallable.function("function-exists", r"$name, $module: null", (
         arguments,
       ) {
-        var variable = arguments[0].assertString("name");
-        var module = arguments[1].realNull?.assertString("module");
-        return SassBoolean(
-          _environment.functionExists(
-                variable.text.replaceAll("_", "-"),
-                namespace: module?.text,
-              ) ||
-              _builtInFunctions.containsKey(variable.text),
-        );
+        var name = arguments[0].assertString("name").text.replaceAll("_", "-");
+        return SassBoolean(switch (_getNullableModule(arguments[1])) {
+          var module? => module.functions.containsKey(name),
+          _ =>
+            _environment.functionExists(name) ||
+                _builtInFunctions.containsKey(name),
+        });
       }, url: "sass:meta"),
 
       BuiltInCallable.function("mixin-exists", r"$name, $module: null", (
         arguments,
       ) {
-        var variable = arguments[0].assertString("name");
-        var module = arguments[1].realNull?.assertString("module");
-        return SassBoolean(
-          _environment.mixinExists(
-            variable.text.replaceAll("_", "-"),
-            namespace: module?.text,
-          ),
-        );
+        var name = arguments[0].assertString("name").text.replaceAll("_", "-");
+        return SassBoolean(switch (_getNullableModule(arguments[1])) {
+          var module? => module.mixins.containsKey(name),
+          _ => _environment.mixinExists(name),
+        });
       }, url: "sass:meta"),
 
       BuiltInCallable.function("content-exists", "", (arguments) {
@@ -427,50 +425,41 @@ final class _EvaluateVisitor({
         return SassBoolean(_environment.content != null);
       }, url: "sass:meta"),
 
-      BuiltInCallable.function("module-variables", r"$module", (arguments) {
-        var namespace = arguments[0].assertString("module");
-        var module = _environment.modules[namespace.text];
-        if (module == null) {
-          throw 'There is no module with namespace "${namespace.text}".';
-        }
-
-        return SassMap({
-          for (var (name, value) in module.variables.pairs)
+      BuiltInCallable.function(
+        "module-variables",
+        r"$module",
+        (arguments) => SassMap({
+          for (var (name, value) in _getModule(arguments[0]).variables.pairs)
             SassString(name): value,
-        });
-      }, url: "sass:meta"),
+        }),
+        url: "sass:meta",
+      ),
 
-      BuiltInCallable.function("module-functions", r"$module", (arguments) {
-        var namespace = arguments[0].assertString("module");
-        var module = _environment.modules[namespace.text];
-        if (module == null) {
-          throw 'There is no module with namespace "${namespace.text}".';
-        }
-
-        return SassMap({
-          for (var (name, value) in module.functions.pairs)
+      BuiltInCallable.function(
+        "module-functions",
+        r"$module",
+        (arguments) => SassMap({
+          for (var (name, value) in _getModule(arguments[0]).functions.pairs)
             SassString(name): SassFunction.withCompileContext(
               value,
               _compileContext,
             ),
-        });
-      }, url: "sass:meta"),
+        }),
+        url: "sass:meta",
+      ),
 
-      BuiltInCallable.function("module-mixins", r"$module", (arguments) {
-        var namespace = arguments[0].assertString("module");
-        var module = _environment.modules[namespace.text];
-        if (module == null) {
-          throw 'There is no module with namespace "${namespace.text}".';
-        }
-
-        return SassMap({
-          for (var (name, value) in module.mixins.pairs)
+      BuiltInCallable.function(
+        "module-mixins",
+        r"$module",
+        (arguments) => SassMap({
+          for (var (name, value) in _getModule(arguments[0]).mixins.pairs)
             SassString(name): SassMixin.withCompileContext(
               value,
               _compileContext,
             ),
-        });
-      }, url: "sass:meta"),
+        }),
+        url: "sass:meta",
+      ),
 
       BuiltInCallable.function(
         "get-function",
@@ -478,7 +467,8 @@ final class _EvaluateVisitor({
         (arguments) {
           var name = arguments[0].assertString("name");
           var css = arguments[1].isTruthy;
-          var module = arguments[2].realNull?.assertString("module");
+
+          var module = _getNullableModule(arguments[2]);
 
           if (css) {
             if (module != null) {
@@ -490,16 +480,15 @@ final class _EvaluateVisitor({
             );
           }
 
-          var callable = _addExceptionSpan(_callableNode!, () {
-            var normalizedName = name.text.replaceAll("_", "-");
-            var namespace = module?.text;
-            var local = _environment.getFunction(
-              normalizedName,
-              namespace: namespace,
-            );
-            if (local != null || namespace != null) return local;
-            return _builtInFunctions[normalizedName];
-          }, label: "function call");
+          var normalizedName = name.text.replaceAll("_", "-");
+          var callable = module == null
+              ? _addExceptionSpan(
+                  _callableNode!,
+                  () =>
+                      _environment.getFunction(normalizedName) ??
+                      _builtInFunctions[normalizedName],
+                )
+              : module.functions[normalizedName];
           if (callable == null) throw "Function not found: $name";
 
           return SassFunction.withCompileContext(callable, _compileContext);
@@ -511,20 +500,39 @@ final class _EvaluateVisitor({
         arguments,
       ) {
         var name = arguments[0].assertString("name");
-        var module = arguments[1].realNull?.assertString("module");
 
-        var callable = _addExceptionSpan(
-          _callableNode!,
-          () => _environment.getMixin(
-            name.text.replaceAll("_", "-"),
-            namespace: module?.text,
+        var normalizedName = name.text.replaceAll("_", "-");
+        var callable = switch (_getNullableModule(arguments[1])) {
+          var module? => module.mixins[normalizedName],
+          _ => _addExceptionSpan(
+            _callableNode!,
+            () => _environment.getMixin(normalizedName),
           ),
-          label: "mixin include",
-        );
+        };
         if (callable == null) throw "Mixin not found: $name";
 
         return SassMixin.withCompileContext(callable, _compileContext);
       }, url: "sass:meta"),
+
+      BuiltInCallable.function(
+        "get-module",
+        r"$module",
+        (arguments) => SassModule.withCompileContext(
+          _getModule(arguments[0]),
+          _compileContext,
+        ),
+        url: "sass:meta",
+      ),
+
+      BuiltInCallable.function(
+        "load",
+        r"$url, $with: null",
+        (arguments) => SassModule.withCompileContext(
+          _loadModuleForSassScript(arguments[0], arguments[1], "load"),
+          _compileContext,
+        ),
+        url: "sass:meta",
+      ),
 
       BuiltInCallable.function("call", r"$function, $args...", (arguments) {
         var function = arguments[0];
@@ -548,6 +556,24 @@ final class _EvaluateVisitor({
                 ),
         );
 
+        if (function is SassString) {
+          warnForDeprecation(
+            "Passing a string to call() is deprecated and will be illegal in "
+            "Dart Sass 2.0.0.\n"
+            "\n"
+            "Recommendation: call(get-function($function))",
+            .callString,
+          );
+
+          var callableNode = _callableNode!;
+          var expression = FunctionExpression(
+            function.text,
+            invocation,
+            callableNode.span,
+          );
+          return expression.accept(this);
+        }
+
         var callable = function
             .assertFunction("function")
             .assertCompileContext(_compileContext)
@@ -566,45 +592,26 @@ final class _EvaluateVisitor({
     ];
 
     var metaMixins = [
-      BuiltInCallable.mixin("load-css", r"$url, $with: null", (arguments) {
-        var url = Uri.parse(arguments[0].assertString("url").text);
-        var withMap = arguments[1].realNull?.assertMap("with").contents;
-
-        var callableNode = _callableNode!;
-        var configuration = const Configuration.empty();
-        if (withMap != null) {
-          var values = <String, ConfiguredValue>{};
-          var span = callableNode.span;
-          var privateDeprecation = false;
-          withMap.forEach((variable, value) {
-            var name = variable
-                .assertString("with key")
-                .text
-                .replaceAll("_", "-");
-            if (values.containsKey(name)) {
-              throw "The variable \$$name was configured twice.";
-            } else if (name.startsWith("-") && !privateDeprecation) {
-              privateDeprecation = true;
-              throw SassScriptException(
-                "Private variable \$$name can't be configured.",
-              );
-            }
-
-            values[name] = ConfiguredValue.explicit(value, span, callableNode);
-          });
-          configuration = ExplicitConfiguration(values, callableNode);
-        }
-
-        _loadModule(
-          url,
-          "load-css()",
-          callableNode,
-          (module, _) => _combineCss(module, clone: true).accept(this),
-          baseUrl: callableNode.span.sourceUrl,
-          configuration: configuration,
-          namesInErrors: true,
+      BuiltInCallable.mixin("css", r"$module", (arguments) {
+        var module = _getModule(arguments[0]);
+        _withStackFrame(
+          "css()",
+          _callableNode!,
+          () => _combineCss(module, clone: true).accept(this),
         );
-        _assertConfigurationIsEmpty(configuration, nameInError: true);
+      }, url: "sass:meta"),
+      BuiltInCallable.mixin("load-css", r"$url, $with: null", (arguments) {
+        var module = _loadModuleForSassScript(
+          arguments[0],
+          arguments[1],
+          "load-css",
+        );
+
+        _withStackFrame(
+          "load-css()",
+          _callableNode!,
+          () => _combineCss(module, clone: true).accept(this),
+        );
       }, url: "sass:meta"),
       BuiltInCallable.mixin(
         "apply",
@@ -678,7 +685,9 @@ final class _EvaluateVisitor({
       return withEvaluationContext(_EvaluationContext(this, node), () {
         if (node.span.sourceUrl case var url?) {
           _activeModules[url] = null;
-          _loadedUrls.add(url);
+          if (!(_asNodeSass && url.toString() == 'stdin')) {
+            _loadedUrls.add(url);
+          }
         }
 
         var module = _addExceptionTrace(() => _execute(importer, node));
@@ -708,6 +717,28 @@ final class _EvaluateVisitor({
           () => _addExceptionTrace(() => statement.accept(this)),
         ),
       );
+
+  /// Loads the module for the given Sass value as for `meta.get-module()`.
+  Module<Callable> _getModule(Value module) =>
+      _getNullableModule(module) ??
+      (throw SassScriptException(
+        "$module is neither a string nor a module reference.",
+        "module",
+      ));
+
+  /// Loads the module for the given Sass value as for `meta.get-module()`, and
+  /// returns `null` if [module] is the Sass `null` value.
+  Module<Callable>? _getNullableModule(Value module) => switch (module) {
+    SassModule module =>
+      // ignore: unnecessary_cast
+      module.assertCompileContext(_compileContext).module as Module<Callable>,
+    SassString(:var text) => _environment.getModule(text),
+    sassNull => null,
+    _ => throw SassScriptException(
+      "$module is neither a string nor a module reference.",
+      "module",
+    ),
+  };
 
   /// Asserts that [value] is not `null` and returns it.
   ///
@@ -758,11 +789,11 @@ final class _EvaluateVisitor({
   ///
   /// The [stackFrame] and [nodeWithSpan] are used for the name and location of
   /// the stack frame for the duration of the [callback].
-  void _loadModule(
+  T _loadModule<T>(
     Uri url,
     String stackFrame,
     AstNode nodeWithSpan,
-    void Function(Module<Callable> module, bool firstLoad) callback, {
+    T Function(Module<Callable> module, bool firstLoad) callback, {
     Uri? baseUrl,
     Configuration? configuration,
     bool namesInErrors = false,
@@ -777,15 +808,15 @@ final class _EvaluateVisitor({
         );
       }
 
-      // TODO: Is this exception span necessary?
-
       // Always consider built-in stylesheets to be "already loaded", since they
       // never require additional execution to load and never produce CSS.
-      _addExceptionSpan(nodeWithSpan, () => callback(builtInModule, false));
-      return;
+      return _addExceptionSpan(
+        nodeWithSpan,
+        () => callback(builtInModule, false),
+      );
     }
 
-    _withStackFrame(stackFrame, nodeWithSpan, () {
+    return _withStackFrame(stackFrame, nodeWithSpan, () {
       var (stylesheet, :importer, :isDependency) = _loadStylesheet(
         url.toString(),
         nodeWithSpan.span,
@@ -828,13 +859,62 @@ final class _EvaluateVisitor({
         _inDependency = oldInDependency;
       }
 
-      // TODO: Is this exception span necessary?
-      _addExceptionSpan(
+      return _addExceptionSpan(
         nodeWithSpan,
         () => callback(module, firstLoad),
         addStackFrame: false,
       );
     });
+  }
+
+  /// Loads a module as for `meta.load()`.
+  ///
+  /// The [caller] is the name of the SassScript function calling this, used for
+  /// error reporting.
+  Module<Callable> _loadModuleForSassScript(
+    Value urlArg,
+    Value withArg,
+    String caller,
+  ) {
+    var url = Uri.parse(urlArg.assertString("url").text);
+    var withMap = withArg.realNull?.assertMap("with").contents;
+
+    var callableNode = _callableNode!;
+    var configuration = const Configuration.empty();
+    if (withMap != null) {
+      var values = <String, ConfiguredValue>{};
+      var span = callableNode.span;
+      var privateDeprecation = false;
+      withMap.forEach((variable, value) {
+        var name = variable.assertString("with key").text.replaceAll("_", "-");
+        if (values.containsKey(name)) {
+          throw "The variable \$$name was configured twice.";
+        } else if (name.startsWith("-") && !privateDeprecation) {
+          privateDeprecation = true;
+          warnForDeprecation(
+            "Configuring private variables (such as \$$name) is "
+            "deprecated.\n"
+            "This will be an error in Dart Sass 2.0.0.",
+            .withPrivate,
+          );
+        }
+
+        values[name] = ConfiguredValue.explicit(value, span, callableNode);
+      });
+      configuration = ExplicitConfiguration(values, callableNode);
+    }
+
+    var module = _loadModule(
+      url,
+      "$caller()",
+      callableNode,
+      (module, _) => module,
+      baseUrl: callableNode.span.sourceUrl,
+      configuration: configuration,
+      namesInErrors: true,
+    );
+    _assertConfigurationIsEmpty(configuration, nameInError: true);
+    return module;
   }
 
   /// Executes [stylesheet], loaded by [importer], to produce a module.
@@ -984,7 +1064,6 @@ final class _EvaluateVisitor({
   /// that they don't modify [root] or its dependencies.
   CssStylesheet _combineCss(Module<Callable> root, {bool clone = false}) {
     if (!root.upstream.any((module) => module.transitivelyContainsCss)) {
-      root.extensionStore.trimModernSelectors();
       var selectors = root.extensionStore.simpleSelectors;
       if (root.extensionStore
               .extensionsWhereTarget((target) => !selectors.contains(target))
@@ -1080,7 +1159,6 @@ final class _EvaluateVisitor({
         module.extensionStore.addExtensions,
       );
       if (module.extensionStore.isEmpty) continue;
-      module.extensionStore.trimModernSelectors();
 
       for (var upstream in module.upstream) {
         if (upstream.url case var url?) {
@@ -1411,7 +1489,7 @@ final class _EvaluateVisitor({
     var setVariables = switch (node.variables) {
       [var variable] => (Value value) => _environment.setLocalVariable(
         variable,
-        value,
+        _withoutSlash(value, nodeWithSpan),
         nodeWithSpan,
       ),
       var variables => (Value value) => _setMultipleVariables(
@@ -1441,7 +1519,11 @@ final class _EvaluateVisitor({
     var list = value.asList;
     var minLength = math.min(variables.length, list.length);
     for (var i = 0; i < minLength; i++) {
-      _environment.setLocalVariable(variables[i], list[i], nodeWithSpan);
+      _environment.setLocalVariable(
+        variables[i],
+        _withoutSlash(list[i], nodeWithSpan),
+        nodeWithSpan,
+      );
     }
     for (var i = minLength; i < variables.length; i++) {
       _environment.setLocalVariable(variables[i], sassNull, nodeWithSpan);
@@ -1464,13 +1546,17 @@ final class _EvaluateVisitor({
     }
 
     for (var complex in styleRule.originalSelector.components) {
-      if (complex.isStandAlone) continue;
-      throw MultiSpanSassRuntimeException(
-        "This selector is invalid CSS and can't be an extender.",
-        complex.span.trimRight(),
-        'invalid selector',
-        {node.span: '@extend rule'},
-        _stackTrace(complex.span),
+      if (!complex.isBogus) continue;
+      _warn(
+        'The selector "${complex.toString().trim()}" is invalid CSS and '
+        '${complex.isUseless ? "can't" : "shouldn't"} be an extender.\n'
+        'This will be an error in Dart Sass 2.0.0.\n'
+        '\n'
+        'More info: https://sass-lang.com/d/bogus-combinators',
+        MultiSpan(complex.span, 'invalid selector', {
+          node.span: '@extend rule',
+        }),
+        .bogusCombinators,
       );
     }
 
@@ -1713,7 +1799,7 @@ final class _EvaluateVisitor({
 
       var variableNodeWithSpan = _expressionNode(variable.expression);
       newValues[variable.name] = ConfiguredValue.explicit(
-        variable.expression.accept(this),
+        _withoutSlash(variable.expression.accept(this), variableNodeWithSpan),
         variable.span,
         variableNodeWithSpan,
       );
@@ -1963,7 +2049,7 @@ final class _EvaluateVisitor({
       assert(_importSpan == null);
       _importSpan = span;
 
-      if (_importCache case var importCache) {
+      if (_importCache case var importCache?) {
         baseUrl ??= _stylesheet.span.sourceUrl;
         if (importCache.canonicalize(
               Uri.parse(url),
@@ -1972,6 +2058,14 @@ final class _EvaluateVisitor({
               forImport: forImport,
             )
             case (var importer, var canonicalUrl, :var originalUrl)) {
+          if (canonicalUrl.scheme == '') {
+            _logger.warnForDeprecation(
+              .relativeCanonical,
+              "Importer $importer canonicalized $url to $canonicalUrl.\n"
+              "Relative canonical URLs are deprecated and will eventually be "
+              "disallowed.",
+            );
+          }
           // Make sure we record the canonical URL as "loaded" even if the
           // actual load fails, because watchers should watch it to see if it
           // changes in a way that allows the load to succeed.
@@ -1986,6 +2080,18 @@ final class _EvaluateVisitor({
               case var stylesheet?) {
             return (stylesheet, importer: importer, isDependency: isDependency);
           }
+        }
+      }
+
+      if (_nodeImporter != null) {
+        if (_importLikeNode(
+              url,
+              baseUrl ?? _stylesheet.span.sourceUrl,
+              forImport,
+            )
+            case var result?) {
+          result.$1.span.sourceUrl.andThen(_loadedUrls.add);
+          return result;
         }
       }
 
@@ -2005,6 +2111,37 @@ final class _EvaluateVisitor({
     } finally {
       _importSpan = null;
     }
+  }
+
+  /// Imports a stylesheet using [_nodeImporter].
+  ///
+  /// Returns the [Stylesheet], or `null` if the import failed.
+  _LoadedStylesheet? _importLikeNode(
+    String originalUrl,
+    Uri? previous,
+    bool forImport,
+  ) {
+    var result = _nodeImporter!.loadRelative(originalUrl, previous, forImport);
+
+    bool isDependency;
+    if (result != null) {
+      isDependency = _inDependency;
+    } else {
+      result = _nodeImporter.load(originalUrl, previous, forImport);
+      if (result == null) return null;
+      isDependency = true;
+    }
+
+    var (contents, url) = result;
+    return (
+      Stylesheet.parse(
+        contents,
+        url.startsWith('file') ? Syntax.forPath(url) : .scss,
+        url: url,
+      ),
+      importer: null,
+      isDependency: isDependency,
+    );
   }
 
   /// Adds a CSS import for [import].
@@ -2106,7 +2243,6 @@ final class _EvaluateVisitor({
     var mixin = _addExceptionSpan(
       node,
       () => _environment.getMixin(node.name, namespace: node.namespace),
-      label: "mixin include",
     );
     if (node.originalName.startsWith('--') &&
         mixin is UserDefinedCallable &&
@@ -2132,18 +2268,13 @@ final class _EvaluateVisitor({
       () => node.spanWithoutContent,
     );
 
-    _inMixin = true;
-    try {
-      _applyMixin(
-        mixin,
-        contentCallable,
-        node.arguments,
-        node,
-        nodeWithSpanWithoutContent,
-      );
-    } finally {
-      _inMixin = false;
-    }
+    _applyMixin(
+      mixin,
+      contentCallable,
+      node.arguments,
+      node,
+      nodeWithSpanWithoutContent,
+    );
 
     return null;
   }
@@ -2287,7 +2418,8 @@ final class _EvaluateVisitor({
   }
 
   @override
-  Value visitReturnRule(ReturnRule node) => node.expression.accept(this);
+  Value visitReturnRule(ReturnRule node) =>
+      _withoutSlash(node.expression.accept(this), node.expression);
 
   @override
   Value? visitSilentComment(SilentComment node) => null;
@@ -2323,7 +2455,7 @@ final class _EvaluateVisitor({
         interpolationMap: selectorMap,
       ).parse();
       var rule = ModifiableCssKeyframeBlock(
-        CssValue(List.unmodifiable(parsedSelector), node.selector!.span),
+        CssValue(List.unmodifiableOf(parsedSelector), node.selector!.span),
         node.span,
       );
       _withParent(
@@ -2354,11 +2486,11 @@ final class _EvaluateVisitor({
     if (merge) {
       if (_stylesheet.plainCss) {
         for (var complex in parsedSelector.components) {
-          if (complex.leadingCombinator case var combinator?
+          if (complex.leadingCombinators case [var first, ...]
               when _stylesheet.plainCss) {
             throw _exception(
               "Top-level leading combinators aren't allowed in plain CSS.",
-              combinator.span,
+              first.span,
             );
           }
         }
@@ -2394,7 +2526,7 @@ final class _EvaluateVisitor({
     );
     _atRootExcludingStyleRule = oldAtRootExcludingStyleRule;
 
-    _checkBogusCombinators(rule);
+    _warnForBogusCombinators(rule);
 
     if (_styleRule == null && _parent.children.isNotEmpty) {
       var lastChild = _parent.children.last;
@@ -2404,35 +2536,53 @@ final class _EvaluateVisitor({
     return null;
   }
 
-  /// Throw errors for any bogus combinators in [rule].
-  void _checkBogusCombinators(CssStyleRule rule) {
-    if (rule.isInvisible) return;
+  /// Emits deprecation warnings for any bogus combinators in [rule].
+  void _warnForBogusCombinators(CssStyleRule rule) {
+    if (!rule.isInvisibleOtherThanBogusCombinators) {
+      for (var complex in rule.selector.components) {
+        if (!complex.isBogus) continue;
 
-    for (var complex in rule.selector.components) {
-      if (complex.isStandAlone) continue;
-
-      if (complex.leadingCombinator != null) {
-        if (!_stylesheet.plainCss) {
-          var span = complex.span.trimRight();
-          throw SassRuntimeException(
-            'This selector is invalid CSS.',
-            span,
-            _stackTrace(span),
+        if (complex.isUseless) {
+          _warn(
+            'The selector "${complex.toString().trim()}" is invalid CSS. It '
+            'will be omitted from the generated CSS.\n'
+            'This will be an error in Dart Sass 2.0.0.\n'
+            '\n'
+            'More info: https://sass-lang.com/d/bogus-combinators',
+            complex.span,
+            .bogusCombinators,
+          );
+        } else if (complex.leadingCombinators.isNotEmpty) {
+          if (!_stylesheet.plainCss) {
+            _warn(
+              'The selector "${complex.toString().trim()}" is invalid CSS.\n'
+              'This will be an error in Dart Sass 2.0.0.\n'
+              '\n'
+              'More info: https://sass-lang.com/d/bogus-combinators',
+              complex.span,
+              .bogusCombinators,
+            );
+          }
+        } else {
+          var willBeOmitted = complex.isBogusOtherThanLeadingCombinator
+              ? ' It will be omitted from the generated CSS.'
+              : '';
+          var suggestion = rule.children.every((child) => child is CssComment)
+              ? '\n(try converting to a //-style comment)'
+              : '';
+          _warn(
+            'The selector "${complex.toString().trim()}" is only valid for '
+            "nesting and shouldn't\n"
+            'have children other than style rules.$willBeOmitted\n'
+            'This will be an error in Dart Sass 2.0.0.\n'
+            '\n'
+            'More info: https://sass-lang.com/d/bogus-combinators',
+            MultiSpan(complex.span, 'invalid selector', {
+              rule.children.first.span: "this is not a style rule$suggestion",
+            }),
+            .bogusCombinators,
           );
         }
-      } else {
-        throw MultiSpanSassRuntimeException(
-          "This selector is only valid for nesting and shouldn't have "
-              "children other than\n"
-              'style rules.',
-          complex.span.trimRight(),
-          'invalid selector',
-          {
-            rule.children.first.span:
-                "this is not a style rule${rule.children.every((child) => child is CssComment) ? '\n(try converting to a //-style comment)' : ''}",
-          },
-          _stackTrace(complex.span),
-        );
       }
     }
   }
@@ -2563,7 +2713,7 @@ final class _EvaluateVisitor({
               override.assignmentNode,
               global: true,
             );
-          }, label: "variable declaration");
+          });
           return null;
         }
       }
@@ -2571,20 +2721,30 @@ final class _EvaluateVisitor({
       var value = _addExceptionSpan(
         node,
         () => _environment.getVariable(node.name, namespace: node.namespace),
-        label: "variable declaration",
       );
       if (value != null && value != sassNull) return null;
     }
 
     if (node.isGlobal && !_environment.globalVariableExists(node.name)) {
-      throw SassRuntimeException(
-        '!global assignments may not declare new variables.',
+      _warn(
+        _environment.atRoot
+            ? "As of Dart Sass 2.0.0, !global assignments won't be able to "
+                  "declare new variables.\n"
+                  "\n"
+                  "Since this assignment is at the root of the stylesheet, the "
+                  "!global flag is\n"
+                  "unnecessary and can safely be removed."
+            : "As of Dart Sass 2.0.0, !global assignments won't be able to "
+                  "declare new variables.\n"
+                  "\n"
+                  "Recommendation: add `${node.originalName}: null` at the "
+                  "stylesheet root.",
         node.span,
-        _stackTrace(node.span),
+        .newGlobal,
       );
     }
 
-    var value = node.expression.accept(this);
+    var value = _withoutSlash(node.expression.accept(this), node.expression);
     _addExceptionSpan(node, () {
       _environment.setVariable(
         node.name,
@@ -2593,7 +2753,7 @@ final class _EvaluateVisitor({
         namespace: node.namespace,
         global: node.isGlobal,
       );
-    }, label: "variable declaration");
+    });
     return null;
   }
 
@@ -2605,7 +2765,7 @@ final class _EvaluateVisitor({
       for (var variable in node.configuration) {
         var variableNodeWithSpan = _expressionNode(variable.expression);
         values[variable.name] = ConfiguredValue.explicit(
-          variable.expression.accept(this),
+          _withoutSlash(variable.expression.accept(this), variableNodeWithSpan),
           variable.span,
           variableNodeWithSpan,
         );
@@ -2624,7 +2784,7 @@ final class _EvaluateVisitor({
 
   @override
   Value? visitWarnRule(WarnRule node) {
-    var value = node.expression.accept(this);
+    var value = _addExceptionSpan(node, () => node.expression.accept(this));
     _logger.warn(
       value is SassString ? value.text : _serialize(value, node.expression),
       trace: _stackTrace(node.span),
@@ -2656,7 +2816,9 @@ final class _EvaluateVisitor({
 
   @override
   Value visitBinaryOperationExpression(BinaryOperationExpression node) {
-    if (_stylesheet.plainCss && node.operator != .singleEquals) {
+    if (_stylesheet.plainCss &&
+        node.operator != .singleEquals &&
+        node.operator != .dividedBy) {
       throw _exception(
         "Operators aren't allowed in plain CSS.",
         node.operatorSpan,
@@ -2680,15 +2842,68 @@ final class _EvaluateVisitor({
         .plus => left.plus(node.right.accept(this)),
         .minus => left.minus(node.right.accept(this)),
         .times => left.times(node.right.accept(this)),
+        .dividedBy => _slash(left, node.right.accept(this), node),
         .modulo => left.modulo(node.right.accept(this)),
-
-        /// This can't be generated by the actual Sass parser, but it's still
-        /// supported by the AST for calculation purposes. Might as well support
-        /// it here too.
-        .dividedBy => left.dividedBy(node.right.accept(this)),
       };
     });
   }
+
+  /// Returns the result of the SassScript `/` operation between [left] and
+  /// [right] in [node].
+  Value _slash(Value left, Value right, BinaryOperationExpression node) {
+    var result = left.dividedBy(right);
+    switch ((left, right)) {
+      case (SassNumber left, SassNumber right)
+          when node.allowsSlash &&
+              _operandAllowsSlash(node.left) &&
+              _operandAllowsSlash(node.right):
+        return (result as SassNumber).withSlash(left, right);
+
+      case (SassNumber(), SassNumber()):
+        String recommendation(Expression expression) => switch (expression) {
+          BinaryOperationExpression(
+            operator: .dividedBy,
+            :var left,
+            :var right,
+          ) =>
+            "math.div(${recommendation(left)}, ${recommendation(right)})",
+          ParenthesizedExpression() => expression.expression.toString(),
+          _ => expression.toString(),
+        };
+
+        _warn(
+          "Using / for division outside of calc() is deprecated "
+          "and will be removed in Dart Sass 2.0.0.\n"
+          "\n"
+          "Recommendation: ${recommendation(node)} or "
+          "${expressionToCalc(node)}\n"
+          "\n"
+          "More info and automated migrator: "
+          "https://sass-lang.com/d/slash-div",
+          node.span,
+          .slashDiv,
+        );
+        return result;
+
+      case _:
+        return result;
+    }
+  }
+
+  /// Returns whether [node] can be used as a component of a slash-separated
+  /// number.
+  ///
+  /// Although this logic is mostly resolved at parse-time, we can't tell
+  /// whether operands will be evaluated as calculations until evaluation-time.
+  bool _operandAllowsSlash(Expression node) =>
+      node is! FunctionExpression ||
+      (node.namespace == null &&
+          const {
+            "calc", "clamp", "hypot", "sin", "cos", "tan", "asin", "acos", //
+            "atan", "sqrt", "exp", "sign", "mod", "rem", "atan2", "pow", //
+            "log", "calc-size",
+          }.contains(node.name.toLowerCase()) &&
+          _environment.getFunction(node.name) == null);
 
   @override
   Value visitValueExpression(ValueExpression node) => node.value;
@@ -2698,7 +2913,6 @@ final class _EvaluateVisitor({
     var result = _addExceptionSpan(
       node,
       () => _environment.getVariable(node.name, namespace: node.namespace),
-      label: "variable use",
     );
     if (result != null) return result;
     throw _exception("Undefined variable.", node.span);
@@ -2799,7 +3013,8 @@ final class _EvaluateVisitor({
   Object /* String | bool */ visitIfConditionFunction(
     IfConditionFunction node,
   ) =>
-      '${_performInterpolation(node.name)}(${_performInterpolation(node.arguments)})';
+      '${_performInterpolation(node.name)}'
+      '(${_performInterpolation(node.arguments)})';
 
   @override
   Object /* String | bool */ visitIfConditionSass(IfConditionSass node) =>
@@ -2812,7 +3027,7 @@ final class _EvaluateVisitor({
   @override
   Value visitLegacyIfExpression(LegacyIfExpression node) {
     var (positional, named) = _evaluateMacroArguments(node);
-    _verifyParameters(
+    _verifyArguments(
       positional.length,
       named,
       LegacyIfExpression.declaration,
@@ -2825,7 +3040,7 @@ final class _EvaluateVisitor({
     var ifFalse = positional.elementAtOrNull(2) ?? named["if-false"]!;
 
     var result = condition.accept(this).isTruthy ? ifTrue : ifFalse;
-    return result.accept(this);
+    return _withoutSlash(result.accept(this), _expressionNode(result));
   }
 
   @override
@@ -2883,7 +3098,6 @@ final class _EvaluateVisitor({
             node,
             () =>
                 _environment.getFunction(node.name, namespace: node.namespace),
-            label: "function call",
           );
     if (function == null || node.originalName.startsWith('--')) {
       if (node.namespace != null) {
@@ -3052,7 +3266,8 @@ final class _EvaluateVisitor({
       } else if (maxArgs != null &&
           node.arguments.positional.length > maxArgs) {
         throw _exception(
-          "Only $maxArgs ${pluralize('argument', maxArgs)} allowed, but ${node.arguments.positional.length} ${pluralize('was', node.arguments.positional.length, plural: 'were')} passed.",
+          "Only $maxArgs ${pluralize('argument', maxArgs)} allowed, but "
+          "${node.arguments.positional.length} ${pluralize('was', node.arguments.positional.length, plural: 'were')} passed.",
           node.span,
         );
       }
@@ -3213,217 +3428,12 @@ final class _EvaluateVisitor({
 
         return SassString(elements.join(' '), quotes: false);
 
-      // Correctly handling slashes is complicated, because they're parsed as
-      // list separators and so have lower precedence than any mathematical
-      // operators. They *should* have higher precedence than addition or
-      // subtraction and equivalent precedence to multiplication. The spec
-      // handles this by reconstructing the AST once it's determined that it's
-      // evaluating a calculation, but we want to avoid the extra allocations so
-      // we handle it as we evaluate instead.
-      case ListExpression(
-        hasBrackets: false,
-        separator: .slash,
-        contents: var contents,
-      ):
-        var adjusted = _inFunction || _inMixin
-            ? _calcSlashListCache.putIfAbsent(
-                node,
-                () => _adjustSlashPrecedence(contents),
-              )
-            : _adjustSlashPrecedence(contents);
-        return _visitCalculationExpression(
-          adjusted,
-          inLegacySassFunction: inLegacySassFunction,
-        );
-
       case _:
         assert(!node.isCalculationSafe);
         throw _exception(
           "This expression can't be used in a calculation.",
           node.span,
         );
-    }
-  }
-
-  /// Converts the slash-separated list of [contents] into an expression that
-  /// matches `calc()` precedence.
-  ///
-  /// This is necessary because slashes are parsed as list separators and so
-  /// have lower precedence than any mathematical operators. They *should* have
-  /// higher precedence than addition or subtraction and equivalent precedence
-  /// to multiplication.
-  Expression _adjustSlashPrecedence(List<Expression> contents) {
-    var left = contents.first;
-    for (var right in contents.skip(1)) {
-      if (right case StringExpression(
-        text: Interpolation(asPlain: " "),
-        hasQuotes: false,
-      )) {
-        throw _exception(
-          "This expression can't be used in a calculation.",
-          right.span,
-        );
-      }
-
-      left = switch ((
-        _splitCalculationSumTail(left),
-        _splitCalculationSumHead(right),
-      )) {
-        // Example: 1 + 2 / 3 + 4
-        (
-          //   1                  +                 2
-          (var leftRemainder, var leftOperator, var leftOperand),
-          //   3                 +                  4
-          (var rightOperand, var rightOperator, var rightRemainder),
-        ) =>
-          // (1 + (2 / 3)) + 4
-          BinaryOperationExpression(
-            rightOperator,
-            // 1 + (2 / 3)
-            BinaryOperationExpression(
-              leftOperator,
-              leftRemainder,
-              // 2 / 3
-              BinaryOperationExpression(.dividedBy, leftOperand, rightOperand),
-            ),
-            rightRemainder,
-          ),
-        // Example: 1 + 2 / 3
-        //    1                  +                 2
-        ((var leftRemainder, var leftOperator, var leftOperand), _) =>
-          // 1 + (2 / 3)
-          BinaryOperationExpression(
-            leftOperator,
-            leftRemainder,
-            // 2 / 3
-            BinaryOperationExpression(.dividedBy, leftOperand, right),
-          ),
-        // Example: 1 / 2 + 3
-        //       2                 +                  3
-        (_, (var rightOperand, var rightOperator, var rightRemainder)) =>
-          // (1 / 2) + 3
-          BinaryOperationExpression(
-            rightOperator,
-            // 1 / 2
-            BinaryOperationExpression(.dividedBy, left, rightOperand),
-            rightRemainder,
-          ),
-        _ => switch (right) {
-          // Example: 1 / 2 * 3
-          BinaryOperationExpression(
-            operator: .times,
-            left: var rightOperand, // 2
-            right: var rightRemainder, // 3
-          ) =>
-            // (1 / 2) * 3
-            BinaryOperationExpression(
-              .times,
-              // 1 / 2
-              BinaryOperationExpression(.dividedBy, left, rightOperand),
-              rightRemainder,
-            ),
-          _ => BinaryOperationExpression(.dividedBy, left, right),
-        },
-      };
-    }
-
-    return left;
-  }
-
-  /// If [expression] is a sequence of `+` or `-` operations, returns the
-  /// leftmost operator and its operand, as well as the remainder of the
-  /// expression (which may be rewritten according to the associative property).
-  ///
-  /// For example, if [expression] is `1 + 2 - 3 + 4`, this returns `(1, +, 2
-  /// - 3 + 4)`. This works regardless of how [expression] has been parsed.
-  ///
-  /// If [expression] is not such a sequence, returns `null`.
-  (Expression, BinaryOperator, Expression)? _splitCalculationSumHead(
-    Expression expression,
-  ) {
-    switch (expression) {
-      // Example: ((1 + 2) + 3) - 4
-      case BinaryOperationExpression(
-        // -
-        operator: (.plus || .minus) && var operator,
-        left: BinaryOperationExpression(operator: .plus || .minus) &&
-            var left, // ((1 + 2) + 3)
-        :var right, // 4
-      ):
-        // (1, +, 2 + 3)
-        var (head, leftOperator, leftRemainder) = _splitCalculationSumHead(
-          left,
-        )!;
-        // (1, +, (2 + 3) - 4)
-        return (
-          head,
-          leftOperator,
-          // (2 + 3) - 4
-          BinaryOperationExpression(operator, leftRemainder, right),
-        );
-
-      // Example: 1 + 2
-      case BinaryOperationExpression(
-        operator: (.plus || .minus) && var operator,
-        :var left, // 1
-        :var right, // 2
-      ):
-        // (1, +, 2)
-        return (left, operator, right);
-
-      case _:
-        return null;
-    }
-  }
-
-  /// If [expression] is a sequence of `+` or `-` operations, returns the
-  /// rightmost operator and its operand, as well as the remainder of the
-  /// expression (which may be rewritten according to the associative property).
-  ///
-  /// For example, if [expression] is `1 + 2 - 3 + 4`, this returns `(1 + 2 - 3,
-  /// +, 4)`. This works regardless of how [expression] has been parsed.
-  ///
-  /// If [expression] is not such a sequence, returns `null`.
-  (Expression, BinaryOperator, Expression)? _splitCalculationSumTail(
-    Expression expression,
-  ) {
-    // Example: 1 - (2 + (3 + 4))
-    //
-    // Note: Sass parses operations left-associatively, so this parse won't
-    // actually appear naturally. We still handle it defensively in case it
-    // comes up from some other source.
-    switch (expression) {
-      case BinaryOperationExpression(
-        // -
-        operator: (.plus || .minus) && var operator,
-        :var left, // 1
-        right: BinaryOperationExpression(operator: .plus || .minus) &&
-            var right, // 2 + (3 + 4)
-      ):
-        // (2 + 3, +, 4)
-        var (rightRemainder, rightOperator, tail) = _splitCalculationSumTail(
-          right,
-        )!;
-        // (1 - (2 + 3), + 4)
-        return (
-          // 1 - (2 + 3)
-          BinaryOperationExpression(operator, left, rightRemainder),
-          rightOperator, // +
-          tail, // 4
-        );
-
-      // Example: 1 + 2
-      case BinaryOperationExpression(
-        // +
-        operator: (.plus || .minus) && var operator,
-        :var left, // 1
-        :var right, // 2
-      ):
-        // (1, +, 2)
-        return (left, operator, right);
-
-      case _:
-        return null;
     }
   }
 
@@ -3543,7 +3553,7 @@ final class _EvaluateVisitor({
       // don't affect the underlying environment closure.
       return _withEnvironment(callable.environment.closure(), () {
         return _environment.scope(() {
-          _verifyParameters(
+          _verifyArguments(
             evaluated.positional.length,
             evaluated.named,
             callable.declaration.parameters,
@@ -3571,7 +3581,10 @@ final class _EvaluateVisitor({
             var parameter = parameters[i];
             var value =
                 evaluated.named.remove(parameter.name) ??
-                parameter.defaultValue!.accept<Value>(this);
+                _withoutSlash(
+                  parameter.defaultValue!.accept<Value>(this),
+                  _expressionNode(parameter.defaultValue!),
+                );
             _environment.setLocalVariable(
               parameter.name,
               value,
@@ -3633,7 +3646,10 @@ final class _EvaluateVisitor({
     AstNode nodeWithSpan,
   ) {
     if (callable is BuiltInCallable) {
-      return _runBuiltInCallable(arguments, callable, nodeWithSpan);
+      return _withoutSlash(
+        _runBuiltInCallable(arguments, callable, nodeWithSpan),
+        nodeWithSpan,
+      );
     } else if (callable is UserDefinedCallable<Environment>) {
       return _runUserDefinedCallable(arguments, callable, nodeWithSpan, () {
         for (var statement in callable.declaration.children) {
@@ -3711,7 +3727,6 @@ final class _EvaluateVisitor({
     _addExceptionSpan(
       nodeWithSpan,
       () => overload.verify(evaluated.positional.length, namedSet),
-      label: "invocation",
     );
 
     var parameters = overload.parameters;
@@ -3719,7 +3734,10 @@ final class _EvaluateVisitor({
       var parameter = parameters[i];
       evaluated.positional.add(
         evaluated.named.remove(parameter.name) ??
-            parameter.defaultValue!.accept(this),
+            _withoutSlash(
+              parameter.defaultValue!.accept(this),
+              parameter.defaultValue!,
+            ),
       );
     }
 
@@ -3747,7 +3765,6 @@ final class _EvaluateVisitor({
       result = _addExceptionSpan(
         nodeWithSpan,
         () => callback(evaluated.positional),
-        label: "invocation",
       );
     } on SassException {
       rethrow;
@@ -3786,7 +3803,7 @@ final class _EvaluateVisitor({
     var positionalNodes = <AstNode>[];
     for (var expression in arguments.positional) {
       var nodeForSpan = _expressionNode(expression);
-      positional.add(expression.accept(this));
+      positional.add(_withoutSlash(expression.accept(this), nodeForSpan));
       positionalNodes.add(nodeForSpan);
     }
 
@@ -3794,7 +3811,7 @@ final class _EvaluateVisitor({
     var namedNodes = <String, AstNode>{};
     for (var (name, value) in arguments.named.pairs) {
       var nodeForSpan = _expressionNode(value);
-      named[name] = value.accept(this);
+      named[name] = _withoutSlash(value.accept(this), nodeForSpan);
       namedNodes[name] = nodeForSpan;
     }
 
@@ -3819,18 +3836,20 @@ final class _EvaluateVisitor({
           (key as SassString).text: restNodeForSpan,
       });
     } else if (rest is SassList) {
-      positional.addAll(rest.asList.map((value) => value));
+      positional.addAll(
+        rest.asList.map((value) => _withoutSlash(value, restNodeForSpan)),
+      );
       positionalNodes.addAll(List.filled(rest.lengthAsList, restNodeForSpan));
       separator = rest.separator;
 
       if (rest is SassArgumentList) {
         rest.keywords.forEach((key, value) {
-          named[key] = value;
+          named[key] = _withoutSlash(value, restNodeForSpan);
           namedNodes[key] = restNodeForSpan;
         });
       }
     } else {
-      positional.add(rest);
+      positional.add(_withoutSlash(rest, restNodeForSpan));
       positionalNodes.add(restNodeForSpan);
     }
 
@@ -3884,6 +3903,7 @@ final class _EvaluateVisitor({
     var positional = invocation.arguments.positional.toList();
     var named = Map.of(invocation.arguments.named);
     var rest = restArgs.accept(this);
+    var restNodeForSpan = _expressionNode(restArgs);
     if (rest is SassMap) {
       _addRestMap(
         named,
@@ -3893,15 +3913,25 @@ final class _EvaluateVisitor({
       );
     } else if (rest is SassList) {
       positional.addAll(
-        rest.asList.map((value) => ValueExpression(value, restArgs.span)),
+        rest.asList.map(
+          (value) => ValueExpression(
+            _withoutSlash(value, restNodeForSpan),
+            restArgs.span,
+          ),
+        ),
       );
       if (rest is SassArgumentList) {
         rest.keywords.forEach((key, value) {
-          named[key] = ValueExpression(value, restArgs.span);
+          named[key] = ValueExpression(
+            _withoutSlash(value, restNodeForSpan),
+            restArgs.span,
+          );
         });
       }
     } else {
-      positional.add(ValueExpression(rest, restArgs.span));
+      positional.add(
+        ValueExpression(_withoutSlash(rest, restNodeForSpan), restArgs.span),
+      );
     }
 
     var keywordRestArgs_ = invocation.arguments.keywordRest;
@@ -3909,12 +3939,16 @@ final class _EvaluateVisitor({
     var keywordRestArgs = keywordRestArgs_; // dart-lang/sdk#45348
 
     var keywordRest = keywordRestArgs.accept(this);
+    var keywordRestNodeForSpan = _expressionNode(keywordRestArgs);
     if (keywordRest is SassMap) {
       _addRestMap(
         named,
         keywordRest,
         invocation,
-        (value) => ValueExpression(value, keywordRestArgs.span),
+        (value) => ValueExpression(
+          _withoutSlash(value, keywordRestNodeForSpan),
+          keywordRestArgs.span,
+        ),
       );
       return (positional, named);
     } else {
@@ -3942,9 +3976,10 @@ final class _EvaluateVisitor({
     AstNode nodeWithSpan,
     T Function(Value value) convert,
   ) {
+    var expressionNode = _expressionNode(nodeWithSpan);
     map.contents.forEach((key, value) {
       if (key is SassString) {
-        values[key.text] = convert(value);
+        values[key.text] = convert(_withoutSlash(value, expressionNode));
       } else {
         throw _exception(
           "Variable keyword argument map must have string keys.\n"
@@ -3957,7 +3992,7 @@ final class _EvaluateVisitor({
 
   /// Throws a [SassRuntimeException] if [positional] and [named] aren't valid
   /// when applied to [parameters].
-  void _verifyParameters(
+  void _verifyArguments(
     int positional,
     Map<String, dynamic> named,
     ParameterList parameters,
@@ -4419,7 +4454,10 @@ final class _EvaluateVisitor({
       if (warnForColor && namesByColor.containsKey(result)) {
         var alternative = BinaryOperationExpression(
           .plus,
-          StringExpression(.plain("", interpolation.span), quotes: true),
+          StringExpression(
+            Interpolation.plain("", interpolation.span),
+            quotes: true,
+          ),
           expression,
         );
         _warn(
@@ -4482,7 +4520,6 @@ final class _EvaluateVisitor({
               expression.name,
               namespace: expression.namespace,
             ),
-            label: "variable",
           ) ??
           expression;
     } else {
@@ -4620,12 +4657,38 @@ final class _EvaluateVisitor({
     return result;
   }
 
+  /// Like [Value.withoutSlash], but produces a deprecation warning if [value]
+  /// was a slash-separated number.
+  Value _withoutSlash(Value value, AstNode nodeForSpan) {
+    if (value case SassNumber(asSlash: _?)) {
+      String recommendation(SassNumber number) => switch (number.asSlash) {
+        (var before, var after) =>
+          "math.div(${recommendation(before)}, ${recommendation(after)})",
+        _ => number.toString(),
+      };
+
+      _warn(
+        "Using / for division is deprecated and will be removed in Dart Sass "
+        "2.0.0.\n"
+        "\n"
+        "Recommendation: ${recommendation(value)}\n"
+        "\n"
+        "More info and automated migrator: "
+        "https://sass-lang.com/d/slash-div",
+        nodeForSpan.span,
+        .slashDiv,
+      );
+    }
+
+    return value.withoutSlash();
+  }
+
   /// Creates a new stack frame with location information from [member] and
   /// [span].
   Frame _stackFrame(String member, FileSpan span) => frameForSpan(
     span,
     member,
-    url: span.sourceUrl.andThen((url) => _importCache.humanize(url)),
+    url: span.sourceUrl.andThen((url) => _importCache?.humanize(url) ?? url),
   );
 
   /// Returns a stack trace at the current point.
@@ -4691,15 +4754,11 @@ final class _EvaluateVisitor({
   /// [AstNode.span] if the span isn't required, since some nodes need to do
   /// real work to manufacture a source span.
   ///
-  /// The [label] is used for [nodeWithSpan]'s span if the error already has a
-  /// source span.
-  ///
   /// If [addStackFrame] is true (the default), this will add an innermost stack
   /// frame for [nodeWithSpan]. Otherwise, it will use the existing stack as-is.
   T _addExceptionSpan<T>(
     AstNode nodeWithSpan,
     T Function() callback, {
-    String? label,
     bool addStackFrame = true,
   }) {
     try {
@@ -4712,33 +4771,7 @@ final class _EvaluateVisitor({
         error,
         stackTrace,
       );
-    } on SassException catch (error, stackTrace) {
-      throwWithTrace(
-        _adjustException(error, nodeWithSpan.span, label: label),
-        error,
-        stackTrace,
-      );
     }
-  }
-
-  /// Adjusts [exception] for [_addExceptionSpan].
-  SassException _adjustException(
-    SassException error,
-    FileSpan span, {
-    String? label,
-  }) {
-    // Don't add a duplicate span. This can happen when using `meta.call()` or
-    // `meta.include()`, since those involve two nested calls to
-    // [_addExceptionSpan] with the same span.
-    if (label != null && !error.hasSpan(span)) {
-      error = error.withAdditionalSpan(span, label);
-    }
-
-    if (error is! SassRuntimeException) {
-      error = error.withTrace(_stackTrace(error.span));
-    }
-
-    return error;
   }
 
   /// Runs [callback], and converts any [SassException]s that aren't already

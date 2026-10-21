@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -33,7 +32,6 @@ import 'options.dart';
 /// modification time. Note that these modification times are cached by [graph].
 ///
 /// Returns `(exitCode, error, stackTrace)` when an error occurs.
-@internal
 Future<(int, String, String?)?> compileStylesheet(
   ExecutableOptions options,
   StylesheetGraph graph,
@@ -87,7 +85,8 @@ Future<void> _compileStylesheetWithoutErrorHandling(
   String? destination, {
   bool ifModified = false,
 }) async {
-  var importer = FilesystemImporter.noLoadPath;
+  var compilationStarted = DateTime.now();
+  var importer = FilesystemImporter.cwd;
   if (ifModified) {
     try {
       if (source != null &&
@@ -127,7 +126,7 @@ Future<void> _compileStylesheetWithoutErrorHandling(
               syntax: syntax,
               logger: options.logger,
               importCache: importCache,
-              importer: FilesystemImporter.noLoadPath,
+              importer: FilesystemImporter.cwd,
               style: options.style,
               quietDeps: options.quietDeps,
               verbose: options.verbose,
@@ -162,7 +161,7 @@ Future<void> _compileStylesheetWithoutErrorHandling(
               syntax: syntax,
               logger: options.logger,
               importCache: graph.importCache,
-              importer: FilesystemImporter.noLoadPath,
+              importer: FilesystemImporter.cwd,
               style: options.style,
               quietDeps: options.quietDeps,
               verbose: options.verbose,
@@ -194,18 +193,25 @@ Future<void> _compileStylesheetWithoutErrorHandling(
       } else {
         ensureDir(p.dirname(destination));
         writeFile(destination, "${error.toCssString()}\n");
+        _trySetModificationTime(destination, compilationStarted);
       }
     }
     rethrow;
   }
 
   var css = result.css;
-  css += _writeSourceMap(options, result.sourceMap, destination);
+  css += _writeSourceMap(
+    options,
+    result.sourceMap,
+    destination,
+    compilationStarted,
+  );
   if (destination == null) {
     if (css.isNotEmpty) print(css);
   } else {
     ensureDir(p.dirname(destination));
     writeFile(destination, "$css\n");
+    _trySetModificationTime(destination, compilationStarted);
   }
 
   if (options.quiet || (!options.update && !options.watch)) return;
@@ -240,6 +246,7 @@ String _writeSourceMap(
   ExecutableOptions options,
   SingleMapping? sourceMap,
   String? destination,
+  DateTime compilationStarted,
 ) {
   if (sourceMap == null) return "";
 
@@ -270,6 +277,7 @@ String _writeSourceMap(
     var sourceMapPath = '${destination!}.map';
     ensureDir(p.dirname(sourceMapPath));
     writeFile(sourceMapPath, sourceMapText);
+    _trySetModificationTime(sourceMapPath, compilationStarted);
 
     url = p.toUri(p.relative(sourceMapPath, from: p.dirname(destination)));
   }
@@ -288,6 +296,20 @@ void _tryDelete(String path) {
     deleteFile(path);
   } on FileSystemException {
     // If the file doesn't exist, that's fine.
+  }
+}
+
+/// Backdate [path] to [time], ignoring failures.
+///
+/// We use the time that a compilation started as the modification time for
+/// output files so that if a source file is modified during compilation, it
+/// will be considered newer than the output and compilation will run again
+/// (immediately for `--watch` or on the next invocation for `--update`).
+void _trySetModificationTime(String path, DateTime time) {
+  try {
+    setModificationTime(path, time);
+  } on FileSystemException {
+    // The output is still usable with its actual modification time.
   }
 }
 

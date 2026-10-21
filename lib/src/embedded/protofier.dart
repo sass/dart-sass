@@ -2,8 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
-
 import '../util/map.dart';
 import '../util/nullable.dart';
 import '../value.dart';
@@ -18,7 +16,6 @@ import 'utils.dart';
 ///
 /// A given [Protofier] instance is valid only within the scope of a single
 /// custom function call.
-@internal
 final class Protofier(
   /// The dispatcher, for invoking deprotofied [Value_HostFunction]s.
   final CompilationDispatcher _dispatcher,
@@ -28,6 +25,9 @@ final class Protofier(
 
   /// The IDs of first-class mixins.
   final OpaqueRegistry<SassMixin> _mixins,
+
+  /// The IDs of first-class modules.
+  final OpaqueRegistry<SassModule> _modules,
 ) {
   /// Any argument lists transitively contained in [value].
   ///
@@ -96,12 +96,14 @@ final class Protofier(
         );
       case SassMixin():
         result.compilerMixin = Value_CompilerMixin(id: _mixins.getId(value));
+      case SassModule():
+        result.compilerModule = Value_CompilerModule(id: _modules.getId(value));
       case sassTrue:
-        result.singleton = .TRUE;
+        result.singleton = SingletonValue.TRUE;
       case sassFalse:
-        result.singleton = .FALSE;
+        result.singleton = SingletonValue.FALSE;
       case sassNull:
-        result.singleton = .NULL;
+        result.singleton = SingletonValue.NULL;
       case _:
         throw "Unknown Value $value";
     }
@@ -117,10 +119,10 @@ final class Protofier(
   /// Converts [separator] to its protocol buffer representation.
   proto.ListSeparator _protofySeparator(ListSeparator separator) =>
       switch (separator) {
-        .comma => .COMMA,
-        .space => .SPACE,
-        .slash => .SLASH,
-        .undecided => .UNDECIDED,
+        .comma => proto.ListSeparator.COMMA,
+        .space => proto.ListSeparator.SPACE,
+        .slash => proto.ListSeparator.SLASH,
+        .undecided => proto.ListSeparator.UNDECIDED,
       };
 
   /// Converts [calculation] to its protocol buffer representation.
@@ -155,10 +157,10 @@ final class Protofier(
   proto.CalculationOperator _protofyCalculationOperator(
     CalculationOperator operator,
   ) => switch (operator) {
-    .plus => .PLUS,
-    .minus => .MINUS,
-    .times => .TIMES,
-    .dividedBy => .DIVIDE,
+    .plus => proto.CalculationOperator.PLUS,
+    .minus => proto.CalculationOperator.MINUS,
+    .times => proto.CalculationOperator.TIMES,
+    .dividedBy => proto.CalculationOperator.DIVIDE,
   };
 
   /// Converts [response]'s return value to its Sass representation.
@@ -175,15 +177,15 @@ final class Protofier(
   Value _deprotofy(proto.Value value) {
     try {
       switch (value.whichValue()) {
-        case .string:
+        case Value_Value.string:
           return value.string.text.isEmpty
               ? SassString.empty(quotes: value.string.quoted)
               : SassString(value.string.text, quotes: value.string.quoted);
 
-        case .number:
+        case Value_Value.number:
           return _deprotofyNumber(value.number);
 
-        case .color:
+        case Value_Value.color:
           var space = ColorSpace.fromName(value.color.space);
           var channel1 = value.color.hasChannel1()
               ? value.color.channel1
@@ -195,34 +197,56 @@ final class Protofier(
               ? value.color.channel3
               : null;
           var alpha = value.color.hasAlpha() ? value.color.alpha : null;
+          switch (space) {
+            case .rgb:
+              return SassColor.rgb(channel1, channel2, channel3, alpha);
 
-          SassColor color = switch (space) {
-            .rgb => .rgb(channel1, channel2, channel3, alpha),
-            .hsl => .hsl(channel1, channel2, channel3, alpha),
-            .hwb => .hwb(channel1, channel2, channel3, alpha),
-            .lab => .lab(channel1, channel2, channel3, alpha),
-            .oklab => .oklab(channel1, channel2, channel3, alpha),
-            .lch => .lch(channel1, channel2, channel3, alpha),
-            .oklch => .oklch(channel1, channel2, channel3, alpha),
-            .srgb => .srgb(channel1, channel2, channel3, alpha),
-            .srgbLinear => .srgbLinear(channel1, channel2, channel3, alpha),
-            .displayP3 => .displayP3(channel1, channel2, channel3, alpha),
-            .displayP3Linear => .displayP3Linear(
-              channel1,
-              channel2,
-              channel3,
-              alpha,
-            ),
-            .a98Rgb => .a98Rgb(channel1, channel2, channel3, alpha),
-            .prophotoRgb => .prophotoRgb(channel1, channel2, channel3, alpha),
-            .rec2020 => .rec2020(channel1, channel2, channel3, alpha),
-            .xyzD50 => .xyzD50(channel1, channel2, channel3, alpha),
-            .xyzD65 => .xyzD65(channel1, channel2, channel3, alpha),
-            _ => throw "Unreachable",
-          };
-          return color;
+            case .hsl:
+              return SassColor.hsl(channel1, channel2, channel3, alpha);
 
-        case .argumentList:
+            case .hwb:
+              return SassColor.hwb(channel1, channel2, channel3, alpha);
+
+            case .lab:
+              return SassColor.lab(channel1, channel2, channel3, alpha);
+            case .oklab:
+              return SassColor.oklab(channel1, channel2, channel3, alpha);
+
+            case .lch:
+              return SassColor.lch(channel1, channel2, channel3, alpha);
+            case .oklch:
+              return SassColor.oklch(channel1, channel2, channel3, alpha);
+
+            case .srgb:
+              return SassColor.srgb(channel1, channel2, channel3, alpha);
+            case .srgbLinear:
+              return SassColor.srgbLinear(channel1, channel2, channel3, alpha);
+            case .displayP3:
+              return SassColor.displayP3(channel1, channel2, channel3, alpha);
+            case .displayP3Linear:
+              return SassColor.displayP3Linear(
+                channel1,
+                channel2,
+                channel3,
+                alpha,
+              );
+            case .a98Rgb:
+              return SassColor.a98Rgb(channel1, channel2, channel3, alpha);
+            case .prophotoRgb:
+              return SassColor.prophotoRgb(channel1, channel2, channel3, alpha);
+            case .rec2020:
+              return SassColor.rec2020(channel1, channel2, channel3, alpha);
+
+            case .xyzD50:
+              return SassColor.xyzD50(channel1, channel2, channel3, alpha);
+            case .xyzD65:
+              return SassColor.xyzD65(channel1, channel2, channel3, alpha);
+
+            default:
+              throw "Unreachable";
+          }
+
+        case Value_Value.argumentList:
           if (value.argumentList.id != 0) {
             return _argumentListForId(value.argumentList.id);
           }
@@ -241,7 +265,7 @@ final class Protofier(
               name: _deprotofy(value),
           }, separator);
 
-        case .list:
+        case Value_Value.list:
           var separator = _deprotofySeparator(value.list.separator);
           if (value.list.contents.isEmpty) {
             return SassList.empty(
@@ -264,7 +288,7 @@ final class Protofier(
             brackets: value.list.hasBrackets,
           );
 
-        case .map:
+        case Value_Value.map:
           return value.map.entries.isEmpty
               ? const SassMap.empty()
               : SassMap({
@@ -272,35 +296,43 @@ final class Protofier(
                     _deprotofy(key): _deprotofy(value),
                 });
 
-        case .compilerFunction:
+        case Value_Value.compilerFunction:
           var id = value.compilerFunction.id;
           if (_functions[id] case var function?) return function;
           throw paramsError(
             "CompilerFunction.id $id doesn't match any known functions",
           );
 
-        case .hostFunction:
+        case Value_Value.hostFunction:
           return SassFunction(
             hostCallable(
               _dispatcher,
               _functions,
               _mixins,
+              _modules,
               value.hostFunction.signature,
               id: value.hostFunction.id,
             ),
           );
 
-        case .compilerMixin:
+        case Value_Value.compilerMixin:
           var id = value.compilerMixin.id;
           if (_mixins[id] case var mixin?) return mixin;
           throw paramsError(
             "CompilerMixin.id $id doesn't match any known mixins",
           );
 
-        case .calculation:
+        case Value_Value.compilerModule:
+          var id = value.compilerModule.id;
+          if (_modules[id] case var module?) return module;
+          throw paramsError(
+            "CompilerModule.id $id doesn't match any known modules.",
+          );
+
+        case Value_Value.calculation:
           return _deprotofyCalculation(value.calculation);
 
-        case .singleton:
+        case Value_Value.singleton:
           return switch (value.singleton) {
             .TRUE => sassTrue,
             .FALSE => sassFalse,
@@ -308,7 +340,7 @@ final class Protofier(
             _ => throw "Unknown Value.singleton ${value.singleton}",
           };
 
-        case .notSet:
+        case Value_Value.notSet:
           throw mandatoryError("Value.value");
       }
     } on RangeError catch (error) {
@@ -317,7 +349,10 @@ final class Protofier(
         throw paramsError(error.toString());
       }
 
-      if (value.whichValue() == .color) name = 'Color.$name';
+      if (value.whichValue() == Value_Value.color) {
+        name = 'Color.$name';
+      }
+
       throw paramsError(
         '$name must be between ${error.start} and ${error.end}, was '
         '${error.invalidValue}',

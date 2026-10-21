@@ -16,6 +16,7 @@ export 'value/function.dart';
 export 'value/list.dart';
 export 'value/map.dart';
 export 'value/mixin.dart';
+export 'value/module.dart';
 export 'value/number.dart';
 export 'value/string.dart';
 
@@ -44,6 +45,7 @@ final JSClass valueClass = () {
     'assertFunction': (Value self, [String? name]) => self.assertFunction(name),
     'assertMap': (Value self, [String? name]) => self.assertMap(name),
     'assertMixin': (Value self, [String? name]) => self.assertMixin(name),
+    'assertModule': (Value self, [String? name]) => self.assertModule(name),
     'assertNumber': (Value self, [String? name]) => self.assertNumber(name),
     'assertString': (Value self, [String? name]) => self.assertString(name),
     'tryMap': (Value self) => self.tryMap(),

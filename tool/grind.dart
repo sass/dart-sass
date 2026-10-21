@@ -72,6 +72,7 @@ void main(List<String> args) {
     'SassList',
     'SassMap',
     'SassMixin',
+    'SassModule',
     'SassNumber',
     'SassString',
     'Value',

@@ -50,7 +50,7 @@ final class TypeSelector(
       super.isSuperselector(other) ||
       (other is TypeSelector &&
           name.name == other.name.name &&
-          (name.namespace == '*' || name.namespace == other.name.namespace));
+          (name.namespace == .any || name.namespace == other.name.namespace));
 
   @override
   bool operator ==(Object other) => other is TypeSelector && other.name == name;

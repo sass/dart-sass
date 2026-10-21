@@ -1,6 +1,6 @@
 {
   "name": "sass-parser",
-  "version": "0.5.0-dev",
+  "version": "0.5.0",
   "description": "A PostCSS-compatible wrapper of the official Sass parser",
   "repository": "sass/dart-sass",
   "author": "Google Inc.",
@@ -31,7 +31,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "postcss": "8.5.26",
+    "postcss": "8.5.30",
     "sass": "file:../../build/npm"
   },
   "devDependencies": {

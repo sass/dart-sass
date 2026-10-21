@@ -18,6 +18,7 @@ import 'package:sass/src/importer/node_package.dart' as npi;
 import '../logger.dart';
 import '../value/function.dart';
 import '../value/mixin.dart';
+import '../value/module.dart';
 import 'embedded_sass.pb.dart';
 import 'opaque_registry.dart';
 import 'host_callable.dart';
@@ -110,6 +111,7 @@ final class CompilationDispatcher(
   ) {
     var functions = OpaqueRegistry<SassFunction>();
     var mixins = OpaqueRegistry<SassMixin>();
+    var modules = OpaqueRegistry<SassModule>();
 
     sass.OutputStyle style = request.style == .COMPRESSED
         ? .compressed
@@ -163,7 +165,8 @@ final class CompilationDispatcher(
       );
 
       var globalFunctions = request.globalFunctions.map(
-        (signature) => hostCallable(this, functions, mixins, signature),
+        (signature) =>
+            hostCallable(this, functions, mixins, modules, signature),
       );
 
       late sass.CompileResult result;

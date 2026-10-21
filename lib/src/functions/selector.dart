@@ -203,7 +203,8 @@ CompoundSelector? _prependParent(CompoundSelector compound) {
   var span = EvaluationContext.current.currentCallableSpan;
   return switch (compound.components) {
     [UniversalSelector(), ...] => null,
-    [TypeSelector type, ...] when type.name.namespace != null => null,
+    [TypeSelector type, ...] when type.name.namespace != .defaultNamespace =>
+      null,
     [TypeSelector type, ...var rest] => CompoundSelector([
       ParentSelector(span, suffix: type.name.name),
       ...rest,

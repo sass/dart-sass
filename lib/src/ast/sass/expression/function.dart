@@ -19,6 +19,8 @@ import '../reference.dart';
 /// {@category AST}
 final class FunctionExpression(
   /// The name of the function being invoked, with underscores left as-is.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   final String originalName,
 
   /// The arguments to pass to the function.
@@ -27,6 +29,8 @@ final class FunctionExpression(
 
   /// The namespace of the function being invoked, or `null` if it's invoked
   /// without a namespace.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   @override final String? namespace,
 }) extends Expression implements CallableInvocation, SassReference {
   /// The name of the function being invoked, with underscores converted to

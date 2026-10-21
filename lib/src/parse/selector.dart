@@ -9,6 +9,7 @@ import '../ast/css/value.dart';
 import '../ast/selector.dart';
 import '../logger.dart';
 import '../util/character.dart';
+import '../util/span.dart';
 import '../utils.dart';
 import 'parser.dart';
 
@@ -34,8 +35,7 @@ final selectorPseudoElements = {"slotted"};
 ///
 /// This class is largely duplicated between here and [SelectorParser]. Most
 /// changes here should be mirrored there and vice versa.
-@internal
-final class SelectorParser(
+class SelectorParser(
   super.contents, {
   super.url,
   super.interpolationMap,
@@ -95,18 +95,10 @@ final class SelectorParser(
   }
 
   /// Consumes a selector list.
-  SelectorList _selectorList({
-    bool allowLeadingCombinator = true,
-    bool allowTrailingCombinator = true,
-  }) {
+  SelectorList _selectorList() {
     var start = scanner.state;
     var previousLine = scanner.line;
-    var components = <ComplexSelector>[
-      _complexSelector(
-        allowLeadingCombinator: allowLeadingCombinator,
-        allowTrailingCombinator: allowTrailingCombinator,
-      ),
-    ];
+    var components = <ComplexSelector>[_complexSelector()];
 
     _whitespace();
     while (scanner.scanChar($comma)) {
@@ -116,38 +108,24 @@ final class SelectorParser(
 
       var lineBreak = scanner.line != previousLine;
       if (lineBreak) previousLine = scanner.line;
-      components.add(
-        _complexSelector(
-          allowLeadingCombinator: allowLeadingCombinator,
-          allowTrailingCombinator: allowTrailingCombinator,
-          lineBreak: lineBreak,
-        ),
-      );
+      components.add(_complexSelector(lineBreak: lineBreak));
     }
 
-    return SelectorList(components, spanFrom(start));
+    return SelectorList(components, spanFrom(start).trimRight());
   }
 
   /// Consumes a complex selector.
   ///
-  /// If [allowLeadingCombinator] or [allowTrailingCombinator] is false, leading
-  /// or trailing combinators will be syntax errors, respectively. Both are
-  /// allowed by default.
-  ///
   /// If [lineBreak] is `true`, that indicates that there was a line break
   /// before this selector.
-  ComplexSelector _complexSelector({
-    bool allowLeadingCombinator = true,
-    bool allowTrailingCombinator = true,
-    bool lineBreak = false,
-  }) {
+  ComplexSelector _complexSelector({bool lineBreak = false}) {
     var start = scanner.state;
 
     var componentStart = scanner.state;
     CompoundSelector? lastCompound;
-    CssValue<Combinator>? combinator;
+    var combinators = <CssValue<Combinator>>[];
 
-    CssValue<Combinator>? leadingCombinator;
+    List<CssValue<Combinator>>? initialCombinators;
     var components = <ComplexSelectorComponent>[];
 
     loop:
@@ -156,24 +134,23 @@ final class SelectorParser(
       _whitespace();
       var consumedWhitespace = scanner.position != beforeWhitespace;
 
-      var allowCombinator =
-          combinator == null &&
-          (allowLeadingCombinator || lastCompound != null);
       switch (scanner.peekChar()) {
-        case $plus when allowCombinator:
+        case $plus:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinator = CssValue(.nextSibling, spanFrom(combinatorStart));
+          combinators.add(CssValue(.nextSibling, spanFrom(combinatorStart)));
 
-        case $gt when allowCombinator:
+        case $gt:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinator = CssValue(.child, spanFrom(combinatorStart));
+          combinators.add(CssValue(.child, spanFrom(combinatorStart)));
 
-        case $tilde when allowCombinator:
+        case $tilde:
           var combinatorStart = scanner.state;
           scanner.readChar();
-          combinator = CssValue(.followingSibling, spanFrom(combinatorStart));
+          combinators.add(
+            CssValue(.followingSibling, spanFrom(combinatorStart)),
+          );
 
         case null:
           break loop;
@@ -191,20 +168,20 @@ final class SelectorParser(
             components.add(
               ComplexSelectorComponent(
                 lastCompound,
-                spanFrom(componentStart),
-                combinator: combinator,
+                combinators,
+                spanFrom(componentStart).trimRight(),
               ),
             );
-          } else if (combinator != null) {
-            assert(leadingCombinator == null);
-            leadingCombinator = combinator;
+          } else if (combinators.isNotEmpty) {
+            assert(initialCombinators == null);
+            initialCombinators = combinators;
             componentStart = scanner.state;
           }
 
           var nextCompound = _compoundSelector();
 
           if (lastCompound != null &&
-              combinator == null &&
+              combinators.isEmpty &&
               !consumedWhitespace) {
             _logger.warnForDeprecation(
               .adjacentCompounds,
@@ -219,7 +196,7 @@ final class SelectorParser(
           }
 
           lastCompound = nextCompound;
-          combinator = null;
+          combinators = [];
           if (scanner.peekChar() == $ampersand) {
             scanner.error(
               '"&" may only used at the beginning of a compound selector.',
@@ -231,26 +208,26 @@ final class SelectorParser(
       }
     }
 
-    if (combinator != null && (_plainCss || !allowTrailingCombinator)) {
+    if (combinators.isNotEmpty && _plainCss) {
       scanner.error("expected selector.");
     } else if (lastCompound != null) {
       components.add(
         ComplexSelectorComponent(
           lastCompound,
-          spanFrom(componentStart),
-          combinator: combinator,
+          combinators,
+          spanFrom(componentStart).trimRight(),
         ),
       );
-    } else if (combinator != null) {
-      leadingCombinator = combinator;
+    } else if (combinators.isNotEmpty) {
+      initialCombinators = combinators;
     } else {
       scanner.error("expected selector.");
     }
 
     return ComplexSelector(
+      initialCombinators ?? const [],
       components,
-      spanFrom(start),
-      leadingCombinator: leadingCombinator,
+      spanFrom(start).trimRight(),
       lineBreak: lineBreak,
     );
   }
@@ -345,11 +322,11 @@ final class SelectorParser(
   QualifiedName _attributeName() {
     if (scanner.scanChar($asterisk)) {
       scanner.expectChar($pipe);
-      return QualifiedName(identifier(), namespace: "*");
+      return QualifiedName(identifier(), namespace: .any);
     }
 
     if (scanner.scanChar($pipe)) {
-      return QualifiedName(identifier(), namespace: "");
+      return QualifiedName(identifier(), namespace: .none);
     }
 
     var nameOrNamespace = identifier();
@@ -358,7 +335,7 @@ final class SelectorParser(
     }
 
     scanner.readChar();
-    return QualifiedName(identifier(), namespace: nameOrNamespace);
+    return QualifiedName(identifier(), namespace: .named(nameOrNamespace));
   }
 
   /// Consumes an attribute selector's operator.
@@ -450,18 +427,12 @@ final class SelectorParser(
     SelectorList? selector;
     if (element) {
       if (selectorPseudoElements.contains(unvendored)) {
-        selector = _selectorList(
-          allowLeadingCombinator: false,
-          allowTrailingCombinator: false,
-        );
+        selector = _selectorList();
       } else {
         argument = declarationValue(allowEmpty: true);
       }
     } else if (selectorPseudoClasses.contains(unvendored)) {
-      selector = _selectorList(
-        allowLeadingCombinator: equalsIgnoreCase(name, 'has'),
-        allowTrailingCombinator: false,
-      );
+      selector = _selectorList();
     } else if (unvendored == "nth-child" || unvendored == "nth-last-child") {
       argument = _aNPlusB();
       _whitespace();
@@ -470,10 +441,7 @@ final class SelectorParser(
         argument += " of";
         _whitespace();
 
-        selector = _selectorList(
-          allowLeadingCombinator: false,
-          allowTrailingCombinator: false,
-        );
+        selector = _selectorList();
       }
     } else {
       argument = declarationValue(allowEmpty: true).trimRight();
@@ -494,16 +462,16 @@ final class SelectorParser(
   /// [An+B]: https://drafts.csswg.org/css-syntax-3/#anb-microsyntax
   String _aNPlusB() {
     var buffer = StringBuffer();
-    switch (scanner.peekChar()) {
-      case $e || $E:
+    switch (peekCharOrEscape()) {
+      case ($e || $E, _):
         expectIdentifier("even");
         return "even";
 
-      case $o || $O:
+      case ($o || $O, _):
         expectIdentifier("odd");
         return "odd";
 
-      case $plus || $minus:
+      case ($plus || $minus, false):
         buffer.writeCharCode(scanner.readChar());
         break;
     }
@@ -540,16 +508,16 @@ final class SelectorParser(
     if (scanner.scanChar($asterisk)) {
       if (!scanner.scanChar($pipe)) return UniversalSelector(spanFrom(start));
       return scanner.scanChar($asterisk)
-          ? UniversalSelector(spanFrom(start), namespace: "*")
+          ? UniversalSelector(spanFrom(start), namespace: .any)
           : TypeSelector(
-              QualifiedName(identifier(), namespace: "*"),
+              QualifiedName(identifier(), namespace: .any),
               spanFrom(start),
             );
     } else if (scanner.scanChar($pipe)) {
       return scanner.scanChar($asterisk)
-          ? UniversalSelector(spanFrom(start), namespace: "")
+          ? UniversalSelector(spanFrom(start), namespace: .none)
           : TypeSelector(
-              QualifiedName(identifier(), namespace: ""),
+              QualifiedName(identifier(), namespace: .none),
               spanFrom(start),
             );
     }
@@ -558,10 +526,13 @@ final class SelectorParser(
     if (!scanner.scanChar($pipe)) {
       return TypeSelector(QualifiedName(nameOrNamespace), spanFrom(start));
     } else if (scanner.scanChar($asterisk)) {
-      return UniversalSelector(spanFrom(start), namespace: nameOrNamespace);
+      return UniversalSelector(
+        spanFrom(start),
+        namespace: .named(nameOrNamespace),
+      );
     } else {
       return TypeSelector(
-        QualifiedName(identifier(), namespace: nameOrNamespace),
+        QualifiedName(identifier(), namespace: .named(nameOrNamespace)),
         spanFrom(start),
       );
     }

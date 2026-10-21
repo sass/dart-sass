@@ -13,6 +13,7 @@ abstract interface class ValueVisitor<T> {
   T visitColor(SassColor value);
   T visitFunction(SassFunction value);
   T visitMixin(SassMixin value);
+  T visitModule(SassModule value);
   T visitList(SassList value);
   T visitMap(SassMap value);
   T visitNull();

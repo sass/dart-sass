@@ -15,6 +15,7 @@ import 'value/function.dart';
 import 'value/list.dart';
 import 'value/map.dart';
 import 'value/mixin.dart';
+import 'value/module.dart';
 import 'value/number.dart';
 import 'value/string.dart';
 import 'visitor/interface/value.dart';
@@ -28,6 +29,7 @@ export 'value/function.dart';
 export 'value/list.dart';
 export 'value/map.dart';
 export 'value/mixin.dart';
+export 'value/module.dart';
 export 'value/null.dart';
 export 'value/number.dart' hide conversionFactor;
 export 'value/string.dart';
@@ -41,7 +43,7 @@ export 'value/string.dart';
 ///
 /// {@category Value}
 @sealed
-abstract base class const Value() {
+abstract class const Value() {
   /// Whether the value counts as `true` in an `@if` statement and other
   /// contexts.
   bool get isTruthy => true;
@@ -123,9 +125,21 @@ abstract base class const Value() {
   /// [asList]. If [sassIndex] came from a function argument, [name] is the
   /// argument name (without the `$`). It's used for error reporting.
   int sassIndexToListIndex(Value sassIndex, [String? name]) {
-    var index = (sassIndex.assertNumber(
-      name,
-    )..assertNoUnits(name)).assertInt(name);
+    var indexValue = sassIndex.assertNumber(name);
+    if (indexValue.hasUnits) {
+      warnForDeprecation(
+        "\$$name: Passing a number with unit ${indexValue.unitString} is "
+        "deprecated.\n"
+        "\n"
+        "To preserve current behavior: "
+        "${indexValue.unitSuggestion(name ?? 'index')}\n"
+        "\n"
+        "More info: https://sass-lang.com/d/function-units",
+        .functionUnits,
+      );
+    }
+
+    var index = indexValue.assertInt(name);
     if (index == 0) throw SassScriptException("List index may not be 0.", name);
     if (index.abs() > lengthAsList) {
       throw SassScriptException(
@@ -174,6 +188,13 @@ abstract base class const Value() {
   /// (without the `$`). It's used for error reporting.
   SassMixin assertMixin([String? name]) =>
       throw SassScriptException("$this is not a mixin reference.", name);
+
+  /// Throws a [SassScriptException] if `this` isn't a module reference.
+  ///
+  /// If this came from a function argument, [name] is the argument name
+  /// (without the `$`). It's used for error reporting.
+  SassModule assertModule([String? name]) =>
+      throw SassScriptException("$this is not a module reference.", name);
 
   /// Throws a [SassScriptException] if `this` isn't a map.
   ///
@@ -351,7 +372,7 @@ abstract base class const Value() {
       toCssString() + other.text,
       quotes: other.hasQuotes,
     ),
-    SassCalculation() => throw SassScriptException(
+    SassCalculation() || SassModule() => throw SassScriptException(
       'Undefined operation "$this + $other".',
     ),
     _ => SassString(toCssString() + other.toCssString(), quotes: false),
@@ -361,16 +382,23 @@ abstract base class const Value() {
   ///
   /// @nodoc
   @internal
-  Value minus(Value other) => other is SassCalculation
-      ? throw SassScriptException('Undefined operation "$this - $other".')
-      : SassString("${toCssString()}-${other.toCssString()}", quotes: false);
+  Value minus(Value other) => switch (other) {
+    SassCalculation() || SassModule() => throw SassScriptException(
+      'Undefined operation "$this - $other".',
+    ),
+    _ => SassString("${toCssString()}-${other.toCssString()}", quotes: false),
+  };
 
   /// The SassScript `/` operation.
   ///
   /// @nodoc
   @internal
-  Value dividedBy(Value other) =>
-      throw SassScriptException('Undefined operation "$this / $other".');
+  Value dividedBy(Value other) => switch (other) {
+    SassModule() => throw SassScriptException(
+      'Undefined operation "$this / $other".',
+    ),
+    _ => SassString("${toCssString()}/${other.toCssString()}", quotes: false),
+  };
 
   /// The SassScript unary `+` operation.
   ///
@@ -434,38 +462,29 @@ extension SassApiValue on Value {
   /// Parses `this` as a selector list, in the same manner as the
   /// `selector-parse()` function.
   ///
-  /// Throws a [SassException] if this isn't a type that can be parsed as a
-  /// selector, or if parsing fails.
-  ///
-  /// If [allowParent] is `true`, this allows [ParentSelector]s. Otherwise,
-  /// they're considered parse errors.
-  ///
-  /// If [allowLeadingCombinator] or [allowTrailingCombinator] is `true`, this
-  /// allows selectors with leading or trailing selector combinators,
-  /// respectively. Otherwise, they produce errors after parsing. Both must be
-  /// true to allow a selector that consists only of a combinator.
+  /// Throws a [SassScriptException] if this isn't a type that can be parsed as a
+  /// selector, or if parsing fails. If [allowParent] is `true`, this allows
+  /// [ParentSelector]s. Otherwise, they're considered parse errors.
   ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
-  SelectorList assertSelector({
-    String? name,
-    bool allowParent = false,
-    bool allowLeadingCombinator = false,
-    bool allowTrailingCombinator = false,
-  }) {
+  SelectorList assertSelector({String? name, bool allowParent = false}) {
     var string = _selectorString(name);
-    return _addNameToFormatException(
-      name,
-      () => SelectorList.parse(
+    try {
+      return SelectorList.parse(
         string,
         allowParent: allowParent,
         logger: EvaluationContext.current.logger,
-      ),
-    )..assertValid(
-      name: name,
-      allowLeadingCombinator: allowLeadingCombinator,
-      allowTrailingCombinator: allowTrailingCombinator,
-    );
+      );
+    } on SassFormatException catch (error, stackTrace) {
+      // TODO(nweiz): colorize this if we're running in an environment where
+      // that works.
+      throwWithTrace(
+        SassScriptException(error.toString().replaceFirst("Error: ", ""), name),
+        error,
+        stackTrace,
+      );
+    }
   }
 
   /// Parses `this` as a simple selector, in the same manner as the
@@ -482,14 +501,21 @@ extension SassApiValue on Value {
     bool allowParent = false,
   }) {
     var string = _selectorString(name);
-    return _addNameToFormatException(
-      name,
-      () => SimpleSelector.parse(
+    try {
+      return SimpleSelector.parse(
         string,
         allowParent: allowParent,
         logger: EvaluationContext.current.logger,
-      ),
-    );
+      );
+    } on SassFormatException catch (error, stackTrace) {
+      // TODO(nweiz): colorize this if we're running in an environment where
+      // that works.
+      throwWithTrace(
+        SassScriptException(error.toString().replaceFirst("Error: ", ""), name),
+        error,
+        stackTrace,
+      );
+    }
   }
 
   /// Parses `this` as a compound selector, in the same manner as the
@@ -506,14 +532,21 @@ extension SassApiValue on Value {
     bool allowParent = false,
   }) {
     var string = _selectorString(name);
-    return _addNameToFormatException(
-      name,
-      () => CompoundSelector.parse(
+    try {
+      return CompoundSelector.parse(
         string,
         allowParent: allowParent,
         logger: EvaluationContext.current.logger,
-      ),
-    );
+      );
+    } on SassFormatException catch (error, stackTrace) {
+      // TODO(nweiz): colorize this if we're running in an environment where
+      // that works.
+      throwWithTrace(
+        SassScriptException(error.toString().replaceFirst("Error: ", ""), name),
+        error,
+        stackTrace,
+      );
+    }
   }
 
   /// Parses `this` as a complex selector, in the same manner as the
@@ -523,46 +556,27 @@ extension SassApiValue on Value {
   /// selector, or if parsing fails. If [allowParent] is `true`, this allows
   /// [ParentSelector]s. Otherwise, they're considered parse errors.
   ///
-  /// If [allowLeadingCombinator] or [allowTrailingCombinator] is `true`, this
-  /// allows selectors with leading or trailing selector combinators,
-  /// respectively. Otherwise, they produce errors after parsing. Both must be
-  /// true to allow a selector that consists only of a combinator.
-  ///
   /// If this came from a function argument, [name] is the argument name
   /// (without the `$`). It's used for error reporting.
   ComplexSelector assertComplexSelector({
     String? name,
     bool allowParent = false,
-    bool allowLeadingCombinator = false,
-    bool allowTrailingCombinator = false,
   }) {
     var string = _selectorString(name);
-    return _addNameToFormatException(
-      name,
-      () => ComplexSelector.parse(
+    try {
+      return ComplexSelector.parse(
         string,
         allowParent: allowParent,
         logger: EvaluationContext.current.logger,
-      ),
-    )..assertValid(
-      name: name,
-      allowLeadingCombinator: allowLeadingCombinator,
-      allowTrailingCombinator: allowTrailingCombinator,
-    );
-  }
-}
-
-/// Runs [callback], and if it throws a [SassFormatException], adds [name] to
-/// tbe beginning of the message.
-T _addNameToFormatException<T>(String? name, T Function() callback) {
-  try {
-    return callback();
-  } on SassFormatException catch (error, stackTrace) {
-    if (name == null) rethrow;
-    throwWithTrace(
-      error.withMessage("\$$name: ${error.message}"),
-      error,
-      stackTrace,
-    );
+      );
+    } on SassFormatException catch (error, stackTrace) {
+      // TODO(nweiz): colorize this if we're running in an environment where
+      // that works.
+      throwWithTrace(
+        SassScriptException(error.toString().replaceFirst("Error: ", ""), name),
+        error,
+        stackTrace,
+      );
+    }
   }
 }

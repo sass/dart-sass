@@ -1,12 +1,38 @@
 ## 18.0.0
 
-* Add a `ReplaceSelectorVisitor` class.
+* Add a `SelectorNamespace` type, along with subtypes
+  `DefaultSelectorNamespace`, `NoSelectorNamespace`, `AnySelectorNamespace`, and
+  `NamedSelectorNamespace`.
 
-* `/` is now parsed as slash-separated lists rather than division in SassScript.
+* **Breaking change:** `QualifiedName.namespace` now uses the new
+  `SelectorNamespace` type.
 
-* All parse methods now canonicalize their `url` parameters.
+* **Breaking change:** `String` values that are parsed from identifiers now
+  contain the semantic value of those identifiers, with escapes resolved. These
+  are normalized back to escape codes at serialization time.
 
-## 17.10.1-dev
+  `Interpolation` values parsed from identifiers still contain normalized
+  identifiers for expressions. For statements, they now contain the identifier
+  syntax exactly as written in the document.
+
+* **Breaking change:** Parsed `Interpolation`s no longer normalize CSS escapes,
+  which means that `Interpolation.asPlain` is also are not normalized. Use
+  `Interpolation.asPlainIdentifier` instead to retrieve a normalized identifier
+  for use in checking for specific keywords.
+
+## 17.11.2
+
+* No user-visible changes.
+
+## 17.11.1
+
+* No user-visible changes.
+
+## 17.11.0
+
+* No user-visible changes.
+
+## 17.10.1
 
 * Omit an extra newline that was being added to the end of `StyleRule.selector`
   in the indented syntax.
@@ -37,34 +63,7 @@
 
 ## 17.7.2
 
-### Bogus Selectors
-
-* Drop support for bogus selectors that can never become valid CSS through
-  nesting, including complex selectors with multiple combinators in a row and
-  selector pseudos whose selectors contain leading and trailing combinators
-  (except for `:has()`, which explicitly allows a leading combinator).
-
-* Replace `ComplexSelector.leadingCombinators` with a nullable
-  `ComplexSelector.leadingCombinator`.
-
-* Remove the `leadingCombinators` argument from `ComplexSelector()` and replace
-  it with a named `leadingCombinator` argument.
-
-* Replace `ComplexSelectorComponent.combinators` with a nullable
-  `ComplexSelectorComponent.combinator`.
-
-* Remove the `combinators` argument from `ComplexSelectorComponent()` and replace
-  it with a named `combinator` argument.
-
-* Replace `Selector.isBogus` with `SelectorList.isStandAlone`,
-  `SelectorList.isRelative`, `ComplexSelector.isStandAlone`, and
-  `ComplexSelector.isRelative`.
-
-* Replace `Selector.assertNotBogus()` with `SelectorList.assertValid()` and
-  `ComplexSelector.assertValid()`.
-
-* `Value.assertSelector()` and `Value.assertComplexSelector()` now forbid
-  selectors with leading or trailing combinators by default.
+* No user-visible changes.
 
 ## 17.7.1
 
