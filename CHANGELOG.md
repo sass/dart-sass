@@ -1,7 +1,14 @@
-## 1.107.0-dev
+## 1.107.0
 
 * Fix a bug where an attribute selector with an empty value (such as
   `[class=""]`) would crash when serializing.
+
+* Don't crash when serializing a number with an empty unit. This is only
+  possible through the JavaScript and Dart APIs or the embedded protocol.
+
+### Embedded Dart Sass
+
+* More robustly convert invalid value errors into `PARAMS` errors.
 
 ## 1.106.0
 

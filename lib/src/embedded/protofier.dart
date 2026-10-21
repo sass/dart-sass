@@ -357,6 +357,8 @@ final class Protofier(
         '$name must be between ${error.start} and ${error.end}, was '
         '${error.invalidValue}',
       );
+    } on ArgumentError catch (error) {
+      throw paramsError(error.toString());
     }
   }
 

@@ -1172,7 +1172,7 @@ final class _SerializeVisitor({
   /// Returns whether the given [unit], when serialized without escapes, would
   /// be parsable as a numeric exponent.
   bool _isUnitAmbiguousWithExponent(String unit) {
-    if (unit.length == 1) return false;
+    if (unit.length < 2) return false;
     var first = unit.codeUnitAt(0);
     if (first != $e && first != $E) return false;
     var next = unit.codeUnitAt(1);
