@@ -4,7 +4,7 @@
 
 import 'dart:js_interop';
 
-@JS('os.cpus')
-external JSArray _cpus();
+@JS('os.availableParallelism')
+external JSNumber _availableParallelism();
 
-int get concurrencyLimit => _cpus().length;
+int get concurrencyLimit => _availableParallelism().toDartInt;
