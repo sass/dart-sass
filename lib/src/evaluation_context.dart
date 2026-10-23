@@ -30,16 +30,6 @@ abstract class EvaluationContext {
         _ => null,
       };
 
-  /// The current evaluation context, or null if there isn't a Sass stylesheet
-  /// currently being evaluated.
-  static EvaluationContext? get _currentOrNull {
-    if (Zone.current[#_evaluationContext] case EvaluationContext context) {
-      return context;
-    } else {
-      return null;
-    }
-  }
-
   /// A logger that forwards warnings to this evaluation context.
   ///
   /// [Logger.debug] should never be called for this logger, only [Logger.warn].
@@ -79,22 +69,13 @@ void warn(String message, {bool deprecation = false}) =>
       _ => Logger.defaultLogger.warn(message),
     };
 
-/// Prints a deprecation warning with [message] of type [deprecation].
+/// Prints a deprecation warning with [message] of type [deprecation],
+/// using stderr if there is no [EvaluationContext.current].
 void warnForDeprecation(String message, Deprecation deprecation) =>
     switch (EvaluationContext.currentOrNull) {
       var context? => context.warn(message, deprecation),
       _ => Logger.defaultLogger.warnForDeprecation(deprecation, message),
     };
-
-/// Prints a deprecation warning with [message] of type [deprecation],
-/// using stderr if there is no [EvaluationContext.current].
-void warnForDeprecationFromApi(String message, Deprecation deprecation) {
-  if (EvaluationContext._currentOrNull case var context?) {
-    context.warn(message, deprecation);
-  } else {
-    Logger.defaultLogger.warnForDeprecation(deprecation, message);
-  }
-}
 
 /// Runs [callback] with [context] as [EvaluationContext.current].
 ///

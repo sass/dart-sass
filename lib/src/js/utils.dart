@@ -289,3 +289,19 @@ external _RequireMain? get _requireMain;
 class _RequireMain {
   external String? get filename;
 }
+
+/// The Node.js `util` module.
+@JS("util")
+external _Util? get _util;
+
+@JS()
+@anonymous
+class _Util {
+  @JS()
+  external String inspect(Object? object);
+}
+
+/// Returns a structured description of an arbitrary JavaScript object.
+///
+/// This uses `util.inspect` in Node.js, and `object.toString()` otherwise.
+String inspect(Object? object) => _util?.inspect(object) ?? "$object";

@@ -132,7 +132,10 @@ final class CompilationDispatcher(
           if (deprecation == null) {
             if (supportVersions) {
               try {
-                yield* sass.Deprecation.forVersion(Version.parse(item));
+                yield* sass.Deprecation.forVersionInternal(
+                  Version.parse(item),
+                  logger,
+                );
               } on FormatException {
                 logger.warn('Invalid deprecation id or version "$item".');
               }
@@ -146,10 +149,23 @@ final class CompilationDispatcher(
       }();
     }
 
-    var fatalDeprecations = parseDeprecationsOrWarn(
-      request.fatalDeprecation,
-      supportVersions: true,
-    );
+    var fatalDeprecations = {
+      ...?parseDeprecationsOrWarn(
+        request.fatalDeprecation,
+        supportVersions: true,
+      ),
+    };
+    for (var deprecation
+        in parseDeprecationsOrWarn(request.fatalDeprecationExcept) ??
+            const []) {
+      if (!fatalDeprecations.remove(deprecation)) {
+        throw paramsError(
+          "The deprecation \"$deprecation\" was excluded from a "
+          "DeprecationSelectorDifference that didn't include it.",
+        );
+      }
+    }
+
     var silenceDeprecations = parseDeprecationsOrWarn(
       request.silenceDeprecation,
     );

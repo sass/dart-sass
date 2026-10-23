@@ -2,7 +2,10 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'dart:isolate';
+
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 
 import 'io/interface.dart'
     if (dart.library.io) 'io/vm.dart'
@@ -22,6 +25,25 @@ final _realCaseCache = <String, String>{};
 /// We can't know for sure because different Mac OS systems are configured
 /// differently.
 bool get _couldBeCaseInsensitive => isWindows || isMacOS;
+
+/// The current version of Dart Sass.
+Version get dartSassVersion {
+  if (const bool.hasEnvironment('version')) {
+    return Version.parse(const String.fromEnvironment('version'));
+  }
+
+  var libDir = p.fromUri(
+    Isolate.resolvePackageUriSync(Uri.parse('package:sass/')),
+  );
+  var pubspec = readFile(p.join(libDir, '..', 'pubspec.yaml'));
+  return Version.parse(
+    pubspec
+        .split("\n")
+        .firstWhere((line) => line.startsWith('version: '))
+        .split(" ")
+        .last,
+  );
+}
 
 /// Returns the canonical form of `path` on disk.
 String canonicalize(String path) => _couldBeCaseInsensitive
