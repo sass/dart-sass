@@ -242,6 +242,15 @@ void sharedTests(
         await sass.shouldExit(0);
       });
 
+      test("for a future version", () async {
+        var sass = await runSass([
+          "--fatal-deprecation=999999.0.0",
+          "test.scss",
+        ]);
+        expect(sass.stderr, emitsThrough(contains("deprecation-version")));
+        await sass.shouldExit(0);
+      });
+
       test("in watch mode", () async {
         var sass = await runSass([
           "--watch",
@@ -316,6 +325,18 @@ void sharedTests(
         });
       });
 
+      test("an excluded deprecation that's not enabled", () async {
+          var sass = await runSass([
+            "--interactive",
+            "--fatal-deprecation=-elseif",
+          ]);
+          expect(
+            sass.stdout,
+            emits(contains('deprecation "elseif" was excluded.')),
+          );
+          await sass.shouldExit(64);
+      });
+
       group("a parse-time deprecation", () {
         setUp(
           () => d.file("test.scss", "@if true {} @elseif false {}").create(),
@@ -323,6 +344,12 @@ void sharedTests(
 
         test("in immediate mode", () async {
           var sass = await runSass(["--fatal-deprecation=elseif", "test.scss"]);
+          expect(sass.stderr, emits(startsWith("Error: ")));
+          await sass.shouldExit(65);
+        });
+
+        test("enabled via dart-sass-2", () async {
+          var sass = await runSass(["--fatal-deprecation=dart-sass-2", "test.scss"]);
           expect(sass.stderr, emits(startsWith("Error: ")));
           await sass.shouldExit(65);
         });

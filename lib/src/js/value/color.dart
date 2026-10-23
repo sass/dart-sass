@@ -193,7 +193,7 @@ final JSClass colorClass = () {
           space = .rgb;
         }
         if (space != self.space) {
-          warnForDeprecationFromApi(
+          warnForDeprecation(
             "Changing a channel not in this color's space without explicitly specifying "
             "the `space` option is deprecated."
             "\n"
@@ -527,7 +527,7 @@ void _checkNullAlphaDeprecation(_ConstructionOptions options) {
 
 // Warn users about null-alpha deprecation.
 void _emitNullAlphaDeprecation() {
-  warnForDeprecationFromApi(
+  warnForDeprecation(
     "Passing `alpha: null` without setting `space` is deprecated."
     "\n"
     "More info: https://sass-lang.com/d/null-alpha",
@@ -537,7 +537,7 @@ void _emitNullAlphaDeprecation() {
 
 // Warn users about `null` channel values without setting `space`.
 void _emitColor4ApiNullDeprecation(String name) {
-  warnForDeprecationFromApi(
+  warnForDeprecation(
     "Passing `$name: null` without setting `space` is deprecated."
     "\n"
     "More info: https://sass-lang.com/d/color-4-api",
@@ -547,7 +547,7 @@ void _emitColor4ApiNullDeprecation(String name) {
 
 // Warn users about legacy color channel getters.
 void _emitColor4ApiChannelDeprecation(String name) {
-  warnForDeprecationFromApi(
+  warnForDeprecation(
     "$name is deprecated, use `channel` instead."
     "\n"
     "More info: https://sass-lang.com/d/color-4-api",

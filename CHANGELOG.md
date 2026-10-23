@@ -1,3 +1,17 @@
+## 1.107.0
+
+### Command-Line Interface
+
+* The `--fatal-deprecations` flag can now exclude deprecations that would
+  otherwise be included by passing a version number. To exclude a deprecation,
+  add `-` before its name. For example, `--fatal-deprecations=1.107.0,-import`
+  includes all deprecations that were present in Dart Sass 1.107.0 *except* for
+  the `@import` deprecation.
+
+* The `--fatal-deprecations` flag now takes the special value `dart-sass-2`,
+  which treats as fatal all deprecations that will become fatal in Dart Sass
+  2.0.0.
+
 ## 1.106.1
 
 * Fix a bug where an attribute selector with an empty value (such as
