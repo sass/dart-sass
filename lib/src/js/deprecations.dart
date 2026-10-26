@@ -90,6 +90,8 @@ Iterable<dart.Deprecation> parseDeprecationSelector(
   Object? selectors,
 ) {
   switch (selectors) {
+    case null:
+      return const [];
     case String id:
       var deprecation = dart.Deprecation.fromId(id);
       if (deprecation == null) {

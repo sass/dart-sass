@@ -242,15 +242,6 @@ void sharedTests(
         await sass.shouldExit(0);
       });
 
-      test("for a future version", () async {
-        var sass = await runSass([
-          "--fatal-deprecation=999999.0.0",
-          "test.scss",
-        ]);
-        expect(sass.stderr, emitsThrough(contains("deprecation-version")));
-        await sass.shouldExit(0);
-      });
-
       test("in watch mode", () async {
         var sass = await runSass([
           "--watch",
@@ -325,6 +316,15 @@ void sharedTests(
         });
       });
 
+      test("a future version", () async {
+        var sass = await runSass([
+          "--fatal-deprecation=999999.0.0",
+          "test.scss",
+        ]);
+        expect(sass.stdout, emits(contains("version less than or equal to")));
+        await sass.shouldExit(64);
+      });
+
       test("an excluded deprecation that's not enabled", () async {
         var sass = await runSass([
           "--interactive",
@@ -332,7 +332,7 @@ void sharedTests(
         ]);
         expect(
           sass.stdout,
-          emits(contains('deprecation "elseif" was excluded.')),
+          emits(contains('deprecation "elseif" was excluded')),
         );
         await sass.shouldExit(64);
       });

@@ -600,15 +600,9 @@ final class ExecutableOptions._(
 
       try {
         var argVersion = Version.parse(id);
-        // We can't get the version synchronously when running from
-        // source, so we just ignore this check by using a version higher
-        // than any that will ever be used.
-        var sassVersion = Version.parse(
-          const bool.hasEnvironment('version')
-              ? const String.fromEnvironment('version')
-              : '1000.0.0',
-        );
-        if (argVersion > sassVersion) {
+        // TODO(sass/sass#4252) - Remove this once `Deprecation.forVersion()`
+        // enforces the same thing rather than just emitting a warning.
+        if (argVersion > dartSassVersion) {
           _fail(
             'Invalid version $argVersion. --fatal-deprecation '
             'requires a version less than or equal to the current '
