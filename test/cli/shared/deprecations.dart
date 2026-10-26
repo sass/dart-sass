@@ -326,15 +326,15 @@ void sharedTests(
       });
 
       test("an excluded deprecation that's not enabled", () async {
-          var sass = await runSass([
-            "--interactive",
-            "--fatal-deprecation=-elseif",
-          ]);
-          expect(
-            sass.stdout,
-            emits(contains('deprecation "elseif" was excluded.')),
-          );
-          await sass.shouldExit(64);
+        var sass = await runSass([
+          "--interactive",
+          "--fatal-deprecation=-elseif",
+        ]);
+        expect(
+          sass.stdout,
+          emits(contains('deprecation "elseif" was excluded.')),
+        );
+        await sass.shouldExit(64);
       });
 
       group("a parse-time deprecation", () {
@@ -349,7 +349,10 @@ void sharedTests(
         });
 
         test("enabled via dart-sass-2", () async {
-          var sass = await runSass(["--fatal-deprecation=dart-sass-2", "test.scss"]);
+          var sass = await runSass([
+            "--fatal-deprecation=dart-sass-2",
+            "test.scss",
+          ]);
           expect(sass.stderr, emits(startsWith("Error: ")));
           await sass.shouldExit(65);
         });
