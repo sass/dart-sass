@@ -2,15 +2,47 @@
 
 ### Command-Line Interface
 
-* The `--fatal-deprecations` flag can now exclude deprecations that would
+* The `--fatal-deprecation` flag can now exclude deprecations that would
   otherwise be included by passing a version number. To exclude a deprecation,
-  add `-` before its name. For example, `--fatal-deprecations=1.107.0,-import`
+  add `-` before its name. For example, `--fatal-deprecation=1.107.0,-import`
   includes all deprecations that were present in Dart Sass 1.107.0 *except* for
   the `@import` deprecation.
 
-* The `--fatal-deprecations` flag now takes the special value `dart-sass-2`,
+* The `--fatal-deprecation` flag now takes the special value `dart-sass-2`,
   which treats as fatal all deprecations that will become fatal in Dart Sass
   2.0.0.
+
+### JavaScript API
+
+* `Options.fatalDeprecations` can now take a `DeprecationSelectorDifference`
+  object of the form `{include: ..., except: ...}`, where the `include` field
+  lists deprecations to mark fatal (which can be version numbers) and the
+  `except` field lists deprecations *not* to mark fatal. The `except` field
+  takes precedence over `include`.
+
+* Add a (non-enumerable) `sass.deprecations.dartSass2` property which can be
+  passed to `Options.fatalDeprecations` to mark as fatal exactly the
+  deprecations that will become fatal in Dart Sass 2.0.0. This can be combined
+  with other deprecations or used in a `DeprecationSelectorDifference` to modify
+  exactly which deprecations it covers.
+
+* Passing a version number beyond the current Dart Sass version to
+  `Options.fatalDeprecations` is now deprecated. See [the Sass
+  website](https://sass-lang.com/d/deprecation-version) for details.
+
+### Dart API
+
+* Add a `Deprecation.dartSass2` property which returns exactly the set of
+  deprecations that will become fatal in Dart Sass 2.0.0.
+
+* Passing a version number beyond the current Dart Sass version to
+  `Deprecation.forVersion` is now deprecated.
+
+### Embedded Protocol
+
+* Add a `CompileRequest.fatal_deprecation_except` field which excludes
+  deprecations from being considered fatal if they would have been enabled by
+  `CompileRequest.fatal_deprecation`.
 
 ## 1.106.1
 
