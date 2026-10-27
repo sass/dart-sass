@@ -100,7 +100,15 @@ Iterable<dart.Deprecation> parseDeprecationSelector(
       } else {
         return [deprecation];
       }
-    case Deprecation(:var id):
+    case Version version:
+      return dart.Deprecation.forVersionInternal(version, logger);
+    case List<Object?> _:
+      return [
+        for (var selector in selectors)
+          ...parseDeprecationSelector(logger, selector!),
+      ];
+    case _ when hasProperty(selectors, 'id'):
+      var id = getProperty(selectors, 'id') as String;
       var deprecation = dart.Deprecation.fromId(id);
       if (deprecation == null) {
         logger.warn('Invalid deprecation "$id".');
@@ -108,13 +116,6 @@ Iterable<dart.Deprecation> parseDeprecationSelector(
       } else {
         return [deprecation];
       }
-    case Version version:
-      return dart.Deprecation.forVersionInternal(version, logger);
-    case List<Object> _:
-      return [
-        for (var selector in selectors)
-          ...parseDeprecationSelector(logger, selector),
-      ];
     default:
       var difference = selectors as DeprecationSelectorDifference;
       var include = {...parseDeprecationSelector(logger, difference.include)};
@@ -142,10 +143,10 @@ List<dart.Deprecation> parseDeprecations(
   Object? deprecations,
 ) {
   if (deprecations == null) return [];
-  if (deprecations is List<Object>) {
+  if (deprecations is List<Object?>) {
     return [
       for (var deprecation in deprecations)
-        ?parseDeprecation(logger, deprecation),
+        ?parseDeprecation(logger, deprecation!),
     ];
   } else if (parseDeprecation(logger, deprecations) case var parsed?) {
     return [parsed];

@@ -41,7 +41,9 @@ Version get dartSassVersion {
         .split("\n")
         .firstWhere((line) => line.startsWith('version: '))
         .split(" ")
-        .last,
+        .last
+        // Trim to get rid of the \r on Windows.
+        .trimRight(),
   );
 }
 
