@@ -40,6 +40,9 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
+      - if: steps.metadata.outputs.update-type == 'version-update:semver-major'
+        run: echo "Major version increment needs manual review."
+
   double_check:
     name: Double-check
     runs-on: ubuntu-latest
