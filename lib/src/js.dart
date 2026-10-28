@@ -66,7 +66,7 @@ void main() {
     ),
   );
   exports.NodePackageImporter = nodePackageImporterClass;
-  exports.deprecations = jsify(deprecations);
+  exports.deprecations = deprecationsObject;
   exports.Version = versionClass;
   exports.loadParserExports_ = allowInterop(loadParserExports);
 

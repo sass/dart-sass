@@ -103,10 +103,9 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
       lineFeed: _parseLineFeed(options.linefeed),
       url: file == null ? 'stdin' : p.toUri(file).toString(),
       quietDeps: options.quietDeps ?? false,
-      fatalDeprecations: parseDeprecations(
+      fatalDeprecations: parseDeprecationSelector(
         logger,
         options.fatalDeprecations,
-        supportVersions: true,
       ),
       futureDeprecations: parseDeprecations(logger, options.futureDeprecations),
       silenceDeprecations: parseDeprecations(
@@ -130,10 +129,9 @@ Future<RenderResult> _renderAsync(RenderOptions options) async {
       indentWidth: _parseIndentWidth(options.indentWidth),
       lineFeed: _parseLineFeed(options.linefeed),
       quietDeps: options.quietDeps ?? false,
-      fatalDeprecations: parseDeprecations(
+      fatalDeprecations: parseDeprecationSelector(
         logger,
         options.fatalDeprecations,
-        supportVersions: true,
       ),
       futureDeprecations: parseDeprecations(logger, options.futureDeprecations),
       silenceDeprecations: parseDeprecations(
@@ -181,10 +179,9 @@ RenderResult renderSync(RenderOptions options) {
         lineFeed: _parseLineFeed(options.linefeed),
         url: file == null ? 'stdin' : p.toUri(file).toString(),
         quietDeps: options.quietDeps ?? false,
-        fatalDeprecations: parseDeprecations(
+        fatalDeprecations: parseDeprecationSelector(
           logger,
           options.fatalDeprecations,
-          supportVersions: true,
         ),
         futureDeprecations: parseDeprecations(
           logger,
@@ -211,10 +208,9 @@ RenderResult renderSync(RenderOptions options) {
         indentWidth: _parseIndentWidth(options.indentWidth),
         lineFeed: _parseLineFeed(options.linefeed),
         quietDeps: options.quietDeps ?? false,
-        fatalDeprecations: parseDeprecations(
+        fatalDeprecations: parseDeprecationSelector(
           logger,
           options.fatalDeprecations,
-          supportVersions: true,
         ),
         futureDeprecations: parseDeprecations(
           logger,

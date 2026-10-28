@@ -129,9 +129,11 @@ final class ExecutableOptions._(
         'fatal-deprecation',
         help:
             'Deprecations to treat as errors. You may also pass a Sass\n'
-            'version to include any behavior deprecated in or before it.\n'
-            'See https://sass-lang.com/documentation/breaking-changes for \n'
-            'a complete list.',
+            'version to include any behavior deprecated in or before it,\n'
+            'or -{deprecation} to exclude a deprecation that would be included\n'
+            'by version. See '
+            'https://sass-lang.com/documentation/breaking-changes\n'
+            'for a complete list.',
       )
       ..addMultiOption('silence-deprecation', help: 'Deprecations to ignore.')
       ..addMultiOption(
@@ -578,7 +580,19 @@ final class ExecutableOptions._(
   /// The set of deprecations that cause errors.
   Set<Deprecation> get fatalDeprecations => _fatalDeprecations ??= () {
     var deprecations = <Deprecation>{};
+    var excluded = <Deprecation>{};
     for (var id in _options['fatal-deprecation'] as List<String>) {
+      if (id.startsWith('-')) {
+        excluded.add(
+          Deprecation.fromId(id.substring(1)) ??
+              _fail('Invalid deprecation "$id".'),
+        );
+        continue;
+      } else if (id == 'dart-sass-2') {
+        deprecations.addAll(Deprecation.dartSass2);
+        continue;
+      }
+
       if (Deprecation.fromId(id) case var deprecation?) {
         deprecations.add(deprecation);
         continue;
@@ -586,15 +600,9 @@ final class ExecutableOptions._(
 
       try {
         var argVersion = Version.parse(id);
-        // We can't get the version synchronously when running from
-        // source, so we just ignore this check by using a version higher
-        // than any that will ever be used.
-        var sassVersion = Version.parse(
-          const bool.hasEnvironment('version')
-              ? const String.fromEnvironment('version')
-              : '1000.0.0',
-        );
-        if (argVersion > sassVersion) {
+        // TODO(sass/sass#4252) - Remove this once `Deprecation.forVersion()`
+        // enforces the same thing rather than just emitting a warning.
+        if (argVersion > dartSassVersion) {
           _fail(
             'Invalid version $argVersion. --fatal-deprecation '
             'requires a version less than or equal to the current '
@@ -606,6 +614,16 @@ final class ExecutableOptions._(
         _fail('Invalid deprecation "$id".');
       }
     }
+
+    for (var deprecation in excluded) {
+      if (!deprecations.remove(deprecation)) {
+        _fail(
+          "The fatal deprecation \"$deprecation\" was excluded without first "
+          "being included.",
+        );
+      }
+    }
+
     return deprecations;
   }();
   Set<Deprecation>? _fatalDeprecations;

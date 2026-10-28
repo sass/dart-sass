@@ -54,10 +54,9 @@ NodeCompileResult compile(String path, [CompileOptions? options]) {
       logger: logger,
       importers: options?.importers?.map(_parseImporter),
       functions: _parseFunctions(options?.functions).cast(),
-      fatalDeprecations: parseDeprecations(
+      fatalDeprecations: parseDeprecationSelector(
         logger,
         options?.fatalDeprecations,
-        supportVersions: true,
       ),
       silenceDeprecations: parseDeprecations(
         logger,
@@ -107,10 +106,9 @@ NodeCompileResult compileString(String text, [CompileStringOptions? options]) {
           options?.importer.andThen(_parseImporter) ??
           (options?.url == null ? NoOpImporter() : null),
       functions: _parseFunctions(options?.functions).cast(),
-      fatalDeprecations: parseDeprecations(
+      fatalDeprecations: parseDeprecationSelector(
         logger,
         options?.fatalDeprecations,
-        supportVersions: true,
       ),
       silenceDeprecations: parseDeprecations(
         logger,
@@ -161,10 +159,9 @@ Promise compileAsync(String path, [CompileOptions? options]) {
           (importer) => _parseAsyncImporter(importer),
         ),
         functions: _parseFunctions(options?.functions, asynch: true),
-        fatalDeprecations: parseDeprecations(
+        fatalDeprecations: parseDeprecationSelector(
           logger,
           options?.fatalDeprecations,
-          supportVersions: true,
         ),
         silenceDeprecations: parseDeprecations(
           logger,
@@ -220,10 +217,9 @@ Promise compileStringAsync(String text, [CompileStringOptions? options]) {
             ) ??
             (options?.url == null ? NoOpImporter() : null),
         functions: _parseFunctions(options?.functions, asynch: true),
-        fatalDeprecations: parseDeprecations(
+        fatalDeprecations: parseDeprecationSelector(
           logger,
           options?.fatalDeprecations,
-          supportVersions: true,
         ),
         silenceDeprecations: parseDeprecations(
           logger,
