@@ -390,7 +390,10 @@ void main() {
         expect(logEvent.type, equals(LogEventType.WARNING));
         expect(logEvent.message, equals("hello"));
         expect(logEvent.span, equals(SourceSpan()));
-        expect(logEvent.stackTrace, equals("- 1:4  root stylesheet\n"));
+        expect(
+          logEvent.stackTrace,
+          equals([frame("-", 0, 3, "root stylesheet")]),
+        );
         expect(
           logEvent.formatted,
           equals(
@@ -451,7 +454,10 @@ void main() {
       expect(logEvent.span.start, equals(location(12, 0, 12)));
       expect(logEvent.span.end, equals(location(19, 0, 19)));
       expect(logEvent.span.context, equals("@if true {} @elseif true {}"));
-      expect(logEvent.stackTrace, "- 1:13  root stylesheet\n");
+      expect(
+        logEvent.stackTrace,
+        equals([frame("-", 0, 12, "root stylesheet")]),
+      );
       await process.kill();
     });
 
@@ -473,7 +479,10 @@ void main() {
       expect(logEvent.span.start, equals(location(3, 0, 3)));
       expect(logEvent.span.end, equals(location(22, 0, 22)));
       expect(logEvent.span.context, equals("a {\$var: value !global}"));
-      expect(logEvent.stackTrace, "- 1:4  root stylesheet\n");
+      expect(
+        logEvent.stackTrace,
+        equals([frame("-", 0, 3, "root stylesheet")]),
+      );
       await process.kill();
     });
   });
@@ -489,7 +498,7 @@ void main() {
       expect(failure.span.end, equals(location(6, 0, 6)));
       expect(failure.span.url, isEmpty);
       expect(failure.span.context, equals("a {b: }"));
-      expect(failure.stackTrace, equals("- 1:7  root stylesheet\n"));
+      expect(failure.stackTrace, equals([frame("-", 0, 6, "root stylesheet")]));
       await process.close();
     });
 
@@ -503,7 +512,7 @@ void main() {
       expect(failure.span.end, equals(location(15, 0, 15)));
       expect(failure.span.url, isEmpty);
       expect(failure.span.context, equals("a {b: 1px + 1em}"));
-      expect(failure.stackTrace, equals("- 1:7  root stylesheet\n"));
+      expect(failure.stackTrace, equals([frame("-", 0, 6, "root stylesheet")]));
       await process.close();
     });
 
@@ -548,7 +557,10 @@ void main() {
         failure.span.context,
         equals("            b: 1px +\n                1em;\n"),
       );
-      expect(failure.stackTrace, equals("- 2:16  root stylesheet\n"));
+      expect(
+        failure.stackTrace,
+        equals([frame("-", 1, 15, "root stylesheet")]),
+      );
       await process.close();
     });
 
@@ -568,10 +580,10 @@ void main() {
       var failure = await getCompileFailure(process);
       expect(
         failure.stackTrace,
-        equals(
-          "- 2:21  fail()\n"
-          "- 6:16  root stylesheet\n",
-        ),
+        equals([
+          frame("-", 1, 20, "fail()"),
+          frame("-", 5, 15, "root stylesheet"),
+        ]),
       );
       await process.close();
     });
@@ -584,7 +596,7 @@ void main() {
         expect(failure.span.url, equals("foo://bar/baz"));
         expect(
           failure.stackTrace,
-          equals("foo://bar/baz 1:7  root stylesheet\n"),
+          equals([frame("foo://bar/baz", 0, 6, "root stylesheet")]),
         );
         await process.close();
       });
@@ -599,8 +611,10 @@ void main() {
 
         var failure = await getCompileFailure(process);
         expect(p.fromUri(failure.span.url), equalsPath(path));
-        expect(failure.stackTrace, endsWith(" 1:7  root stylesheet\n"));
-        expect(failure.stackTrace.split(" ").first, equalsPath(path));
+        expect(
+          failure.stackTrace,
+          equals([frame(failure.span.url, 0, 6, "root stylesheet")]),
+        );
         await process.close();
       });
     });
@@ -615,7 +629,10 @@ void main() {
       expect(failure.span.end, equals(location(11, 0, 11)));
       expect(failure.span.url, isEmpty);
       expect(failure.span.context, equals("a {b: 1px + 2px}"));
-      expect(failure.stackTrace, equals("- 1:11  root stylesheet\n"));
+      expect(
+        failure.stackTrace,
+        equals([frame("-", 0, 10, "root stylesheet")]),
+      );
       await process.close();
     });
 

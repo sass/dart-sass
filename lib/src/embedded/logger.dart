@@ -46,6 +46,7 @@ final class EmbeddedLogger(
     Trace? trace,
     Deprecation? deprecation,
   }) {
+    var formattedSpanOffset = 0, formattedStackTraceOffset = 0;
     var formatted = withGlyphs(() {
       var buffer = StringBuffer();
       var showDeprecation = deprecation != null && deprecation != .userAuthored;
@@ -61,11 +62,16 @@ final class EmbeddedLogger(
       }
       if (span == null) {
         buffer.writeln(': $message');
+        formattedSpanOffset = buffer.length;
       } else if (trace != null) {
-        buffer.writeln(': $message\n\n${span.highlight(color: _color)}');
+        buffer.writeln(': $message\n');
+        formattedSpanOffset = buffer.length;
+        buffer.writeln(span.highlight(color: _color));
       } else {
         buffer.writeln(' on ${span.message("\n$message", color: _color)}');
+        formattedSpanOffset = buffer.length;
       }
+      formattedStackTraceOffset = buffer.length;
       if (trace != null) {
         buffer.writeln(indent(trace.toString().trimRight(), 4));
       }
@@ -77,9 +83,11 @@ final class EmbeddedLogger(
           ? LogEventType.DEPRECATION_WARNING
           : LogEventType.WARNING
       ..message = message
-      ..formatted = formatted;
+      ..formatted = formatted
+      ..formattedSpanOffset = formattedSpanOffset
+      ..formattedStackTraceOffset = formattedStackTraceOffset;
     if (span != null) event.span = protofySpan(span);
-    if (trace != null) event.stackTrace = trace.toString();
+    if (trace != null) event.stackTrace.addAll(protofyStackTrace(trace));
     if (deprecation != null) event.deprecationType = deprecation.id;
     _dispatcher.sendLog(event);
   }

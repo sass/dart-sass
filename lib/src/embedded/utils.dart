@@ -49,6 +49,15 @@ proto.SourceSpan protofySpan(SourceSpan span) {
   return protoSpan;
 }
 
+/// Convert a Dart stack trace to a protocol buffer stack trace
+Iterable<proto.StackFrame> protofyStackTrace(Trace trace) => trace.frames.map(
+  (frame) => proto.StackFrame()
+    ..description = frame.member ?? ""
+    ..line = (frame.line ?? 0) - 1
+    ..column = (frame.column ?? 0) - 1
+    ..url = frame.uri.toString(),
+);
+
 /// Converts a Dart source location to a protocol buffer source location.
 SourceSpan_SourceLocation _protofyLocation(SourceLocation location) =>
     SourceSpan_SourceLocation()
