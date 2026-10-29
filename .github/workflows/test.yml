@@ -21,7 +21,7 @@ jobs:
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with: {persist-credentials: false}
-    - uses: ./.github/util/initialize
+    - uses: $/.github/util/initialize
       with: {github-token: "${{ github.token }}"}
     - run: dart format .
     - run: dart fix --apply
@@ -34,7 +34,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {persist-credentials: false}
-      - uses: ./.github/util/initialize
+      - uses: $/.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
       - name: Analyze Dart
@@ -58,7 +58,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {persist-credentials: false}
-      - uses: ./.github/util/initialize
+      - uses: $/.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
       - name: dartdoc sass
@@ -99,11 +99,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {persist-credentials: false}
-      - uses: ./.github/util/initialize
+      - uses: $/.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
           github-token: ${{ github.token }}
-      - uses: ./.github/util/sass-spec
+      - uses: $/.github/util/sass-spec
 
       - name: Run specs
         run: npm run sass-spec -- --dart .. $extra_args
@@ -136,12 +136,12 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {persist-credentials: false}
-      - uses: ./.github/util/initialize
+      - uses: $/.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
           github-token: ${{ github.token }}
           node-version: ${{ matrix.node-version }}
-      - uses: ./.github/util/sass-spec
+      - uses: $/.github/util/sass-spec
 
       - name: Build JS
         run: dart run grinder pkg-npm-dev
@@ -179,11 +179,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {persist-credentials: false}
-      - uses: ./.github/util/initialize
+      - uses: $/.github/util/initialize
         with:
           github-token: ${{ github.token }}
           node-version: ${{ matrix.node-version }}
-      - uses: ./.github/util/sass-spec
+      - uses: $/.github/util/sass-spec
 
       - name: Check out the embedded host
         uses: sass/clone-linked-repo@ec2dcd11c5eaec56b64855712372056a14e9614d # v1.1.0
@@ -221,11 +221,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {persist-credentials: false}
       - uses: browser-actions/setup-chrome@48ad923757ca74d66703209fe939badbdf80f2f4 # v2.2.0
-      - uses: ./.github/util/initialize
+      - uses: $/.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
           github-token: ${{ github.token }}
-      - uses: ./.github/util/sass-spec
+      - uses: $/.github/util/sass-spec
 
       - name: Build JS
         run: dart run grinder pkg-npm-dev
@@ -264,7 +264,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {persist-credentials: false}
-      - uses: ./.github/util/initialize
+      - uses: $/.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
           github-token: ${{ github.token }}
@@ -301,7 +301,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {persist-credentials: false}
-      - uses: ./.github/util/initialize
+      - uses: $/.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
           github-token: ${{ github.token }}
@@ -325,7 +325,7 @@ jobs:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with: {persist-credentials: false}
     - uses: browser-actions/setup-chrome@48ad923757ca74d66703209fe939badbdf80f2f4 # v2.2.0
-    - uses: ./.github/util/initialize
+    - uses: $/.github/util/initialize
       with:
         dart-sdk: ${{ matrix.dart_channel }}
         github-token: ${{ github.token }}
@@ -366,7 +366,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {persist-credentials: false}
-      - uses: ./.github/util/initialize
+      - uses: $/.github/util/initialize
         with:
           dart-sdk: ${{ matrix.dart_channel }}
           github-token: ${{ github.token }}
@@ -389,7 +389,7 @@ jobs:
         with: {persist-credentials: false}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: {node-version: 'lts/*'}
-      - uses: ./.github/util/initialize
+      - uses: $/.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
       - run: dart run grinder pkg-npm-dev

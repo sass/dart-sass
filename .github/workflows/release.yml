@@ -27,21 +27,21 @@ jobs:
       id-token: write # Forwarded
       attestations: write # Forwarded
       artifact-metadata: write # Forwarded
-    uses: ./.github/workflows/build-linux.yml
+    uses: $/.github/workflows/build-linux.yml
 
   build_macos:
     permissions:
       id-token: write # Forwarded
       attestations: write # Forwarded
       artifact-metadata: write # Forwarded
-    uses: ./.github/workflows/build-macos.yml
+    uses: $/.github/workflows/build-macos.yml
 
   build_windows:
     permissions:
       id-token: write # Forwarded
       attestations: write # Forwarded
       artifact-metadata: write # Forwarded
-    uses: ./.github/workflows/build-windows.yml
+    uses: $/.github/workflows/build-windows.yml
 
   release_github:
     name: Release Github
@@ -51,7 +51,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {persist-credentials: false}
-      - uses: ./.github/util/initialize
+      - uses: $/.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
       - name: Deploy
@@ -87,7 +87,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {persist-credentials: false}
-      - uses: ./.github/util/initialize
+      - uses: $/.github/util/initialize
         with:
           github-token: ${{ github.token }}
           for-npm-deploy: true
@@ -111,7 +111,7 @@ jobs:
           # We have to use this rather than the implicit GitHub token so that
           # pushing a new tag triggers another action.
           token: ${{ secrets.GH_TOKEN }}
-      - uses: ./.github/util/initialize
+      - uses: $/.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
       - name: Deploy
@@ -244,7 +244,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {persist-credentials: false}
-      - uses: ./.github/util/initialize
+      - uses: $/.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
       - name: Deploy
