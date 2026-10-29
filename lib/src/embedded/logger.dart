@@ -62,10 +62,10 @@ final class EmbeddedLogger(
       }
       buffer.writeln(': $message');
       formattedSpanOffset = buffer.length;
-      if (span != null) buffer.writeln('\n${span.highlight(color: _color)}');
+      if (span != null) buffer.writeln(span.highlight(color: _color));
       formattedStackTraceOffset = buffer.length;
       if (trace != null) {
-        buffer.writeln(indent(trace.toString().trimRight(), 4));
+        buffer.writeln(indent(trace.toString().trimRight(), 2));
       } else if (span != null) {
         trace = Trace([
           Frame(
@@ -75,7 +75,7 @@ final class EmbeddedLogger(
             'root stylesheet',
           ),
         ]);
-        buffer.writeln(indent(trace.toString().trimRight(), 4));
+        buffer.writeln(indent(trace.toString().trimRight(), 2));
       }
 
       return buffer.toString();

@@ -38,9 +38,9 @@ final class const StderrLogger({
     }
 
     result.writeln(': $message');
-    if (span != null) result.writeln('\n${span.highlight(color: color)}');
+    if (span != null) result.writeln(span.highlight(color: color));
     if (trace != null) {
-      result.writeln(indent(trace.toString().trimRight(), 4));
+      result.writeln(indent(trace.toString().trimRight(), 2));
     } else if (span != null) {
       trace = Trace([
         Frame(
@@ -50,7 +50,7 @@ final class const StderrLogger({
           'root stylesheet',
         ),
       ]);
-      result.writeln(indent(trace.toString().trimRight(), 4));
+      result.writeln(indent(trace.toString().trimRight(), 2));
     }
 
     printError(result);

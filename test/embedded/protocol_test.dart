@@ -398,7 +398,7 @@ void main() {
           logEvent.formatted,
           equals(
             'WARNING: hello\n'
-            '    - 1:4  root stylesheet\n',
+            '  - 1:4  root stylesheet\n',
           ),
         );
         await process.kill();
@@ -411,7 +411,7 @@ void main() {
           logEvent.formatted,
           equals(
             '\x1B[33m\x1B[1mWarning\x1B[0m: hello\n'
-            '    - 1:4  root stylesheet\n',
+            '  - 1:4  root stylesheet\n',
           ),
         );
         await process.kill();
@@ -424,12 +424,12 @@ void main() {
           logEvent.formatted,
           equals(
             'WARNING: In Sass, "&&" means two copies of the parent '
-            'selector. You probably want to use "and" instead.\n\n'
+            'selector. You probably want to use "and" instead.\n'
             '  ,\n'
             '1 | a {@debug a && b}\n'
             '  |             ^^\n'
             '  \'\n'
-            '    - 1:13  root stylesheet\n',
+            '  - 1:13  root stylesheet\n',
           ),
         );
         await process.kill();
