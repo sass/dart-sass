@@ -43,15 +43,13 @@ jobs:
   static_analysis_ci:
     name: Static analysis (GitHub Actions)
     runs-on: ubuntu-latest
-
-    permissions:
-      security-events: write # Required by upload-sarif
-      actions: read # Required by upload-sarif
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with: {persist-credentials: false}
       - uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
-        with: {persona: pedantic}
+        with:
+          persona: pedantic
+          advanced-security: false # Fail the GitHub action if Zizmor has findings
 
   dartdoc:
     name: Dartdoc
