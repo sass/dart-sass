@@ -260,16 +260,15 @@ final class CompilationDispatcher(
         ..success = success
         ..loadedUrls.addAll(result.loadedUrls.map((url) => url.toString()));
     } on sass.SassException catch (error) {
-      var formattedSpanOffset = 0, formattedStackTraceOffset = 0;
+      var formattedSpanOffset = 0;
+      var formattedStackTraceOffset = 0;
       var formatted = withGlyphs(() {
         var buffer = StringBuffer()..writeln("Error: ${error.message}");
 
         formattedSpanOffset = buffer.length;
-
         buffer.write(error.span.highlight(color: request.alertColor));
 
         formattedStackTraceOffset = buffer.length;
-
         for (var frame in error.trace.toString().split("\n")) {
           if (frame.isEmpty) continue;
           buffer.writeln();
@@ -277,6 +276,7 @@ final class CompilationDispatcher(
         }
         return buffer.toString();
       }, ascii: request.alertAscii);
+
       return OutboundMessage_CompileResponse()
         ..failure = (OutboundMessage_CompileResponse_CompileFailure()
           ..message = error.message

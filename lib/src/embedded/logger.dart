@@ -46,7 +46,8 @@ final class EmbeddedLogger(
     Trace? trace,
     Deprecation? deprecation,
   }) {
-    var formattedSpanOffset = 0, formattedStackTraceOffset = 0;
+    var formattedSpanOffset = 0;
+    var formattedStackTraceOffset = 0;
     var formatted = withGlyphs(() {
       var buffer = StringBuffer();
       var showDeprecation = deprecation != null && deprecation != .userAuthored;
