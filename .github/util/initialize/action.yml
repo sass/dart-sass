@@ -14,12 +14,12 @@ runs:
         sdk: "${{ inputs.dart-sdk }}"
         architecture: "${{ inputs.architecture }}"
 
-    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       if: "inputs.for-npm-deploy != true"
       with:
         node-version: "${{ inputs.node-version }}"
 
-    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       if: inputs.for-npm-deploy == true
       with:
         node-version: "${{ inputs.node-version }}"
@@ -54,7 +54,7 @@ runs:
     # for releases, so it doesn't need to link repository versions.
     - name: Check out the language repo
       if: runner.os != 'windows' || runner.arch != 'ARM64'
-      uses: sass/clone-linked-repo@ec2dcd11c5eaec56b64855712372056a14e9614d # v1.0.0
+      uses: sass/clone-linked-repo@ec2dcd11c5eaec56b64855712372056a14e9614d # v1.1.0
       with: {repo: sass/sass, path: build/language}
     - name: Check out the language repo
       if: runner.os == 'windows' && runner.arch == 'ARM64'
