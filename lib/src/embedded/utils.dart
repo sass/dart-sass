@@ -53,8 +53,8 @@ proto.SourceSpan protofySpan(SourceSpan span) {
 Iterable<proto.StackFrame> protofyStackTrace(Trace trace) => trace.frames.map(
   (frame) => proto.StackFrame()
     ..description = frame.member ?? ""
-    ..line = (frame.line ?? 0) - 1
-    ..column = (frame.column ?? 0) - 1
+    ..line = (frame.line!) - 1
+    ..column = (frame.column!) - 1
     ..url = frame.uri.toString(),
 );
 
