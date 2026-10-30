@@ -5,6 +5,7 @@
 // ignore_for_file: implementation_imports
 
 import 'package:sass/src/parse/parser.dart';
+import 'package:sass/src/util/string.dart';
 
 export 'package:sass/sass.dart';
 export 'package:sass/src/ast/node.dart';
@@ -34,6 +35,13 @@ export 'package:sass/src/visitor/statement_search.dart';
 ///
 /// {@category Parsing}
 String parseIdentifier(String text) => Parser.parseIdentifier(text);
+
+/// Returns a minimally-escaped CSS identifiers whose contents evaluates to
+/// [text].
+///
+/// Throws a [FormatException] if [text] cannot be represented as a CSS
+/// identifier (such as the empty string).
+String toCssIdentifier(String text) => text.toCssIdentifier();
 
 /// Returns whether [text] is a valid CSS identifier.
 ///

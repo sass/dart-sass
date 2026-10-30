@@ -1,3 +1,8 @@
+## 18.3.0
+
+* Add a top-level `toCssIdentifier()` function which converts a string into a
+  CSS identifier with that string as its value.
+
 ## 18.2.0
 
 * No user-visible changes.
@@ -24,7 +29,7 @@
   syntax exactly as written in the document.
 
 * **Breaking change:** Parsed `Interpolation`s no longer normalize CSS escapes,
-  which means that `Interpolation.asPlain` is also are not normalized. Use
+  which means that `Interpolation.asPlain` is also not normalized. Use
   `Interpolation.asPlainIdentifier` instead to retrieve a normalized identifier
   for use in checking for specific keywords.
 
