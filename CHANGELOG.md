@@ -1,6 +1,6 @@
 ## 1.107.1
 
-* No user-visible changes.
+* Properly report the embedded protocol version as 3.4.0.
 
 ## 1.107.0
 
