@@ -1,3 +1,12 @@
+## 1.107.2
+
+* Fix an accidental breaking change introduced in 1.106.0 where passing an
+  identifier that included escape codes to `meta.get-module()` and related
+  functions that take module namespaces could fail to load the appropriate
+  module. Now the module whose namespace (semantically) equals the value of the
+  string passed to `meta.get-module()` will be loaded, whether that string is
+  quoted or unquoted.
+
 ## 1.107.1
 
 * Properly report the embedded protocol version as 3.4.0.

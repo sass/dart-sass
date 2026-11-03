@@ -4,6 +4,7 @@
 
 import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
+import 'package:sass/src/util/string.dart';
 
 import '../exception.dart';
 import '../util/character.dart';
@@ -41,6 +42,16 @@ class SassString(final String _text, {bool quotes = true}) extends Value {
   /// `url(http://example.com)`. Unfortunately, it also means that we don't
   /// consider `foo` and `f\6F\6F` the same string.
   String get text => _text;
+
+  /// The semantic contents of a quoted string or CSS identifier, with escape
+  /// codes resolved.
+  ///
+  /// For quoted strings, this is the same as [text]. For unquoted strings, this
+  /// resolves any escape codes first and returns the result.
+  ///
+  /// Throws an [ArgumentError] if this is an unquoted string that isn't a valid
+  /// CSS identifier.
+  String get semanticText => hasQuotes ? text : text.resolveCssEscapes();
 
   /// Whether this string has quotes.
   bool get hasQuotes => _hasQuotes;

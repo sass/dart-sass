@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 7022c48e00a3c6f8ffeec7cacc8dd8cd94e478ed
+// Checksum: 0e1a91e5c0a777dbac5aba6c5fe9bf35da12301f
 //
 // ignore_for_file: unused_import
 
@@ -377,7 +377,7 @@ final class _EvaluateVisitor({
         (arguments) {
           var name = arguments[0]
               .assertString("name")
-              .text
+              .semanticText
               .replaceAll("_", "-");
           return SassBoolean(switch (_getNullableModule(arguments[1])) {
             var module? => module.variables.containsKey(name),
@@ -390,14 +390,19 @@ final class _EvaluateVisitor({
       BuiltInCallable.function("variable-exists", r"$name", (arguments) {
         var variable = arguments[0].assertString("name");
         return SassBoolean(
-          _environment.variableExists(variable.text.replaceAll("_", "-")),
+          _environment.variableExists(
+            variable.semanticText.replaceAll("_", "-"),
+          ),
         );
       }, url: "sass:meta"),
 
       BuiltInCallable.function("function-exists", r"$name, $module: null", (
         arguments,
       ) {
-        var name = arguments[0].assertString("name").text.replaceAll("_", "-");
+        var name = arguments[0]
+            .assertString("name")
+            .semanticText
+            .replaceAll("_", "-");
         return SassBoolean(switch (_getNullableModule(arguments[1])) {
           var module? => module.functions.containsKey(name),
           _ =>
@@ -409,7 +414,10 @@ final class _EvaluateVisitor({
       BuiltInCallable.function("mixin-exists", r"$name, $module: null", (
         arguments,
       ) {
-        var name = arguments[0].assertString("name").text.replaceAll("_", "-");
+        var name = arguments[0]
+            .assertString("name")
+            .semanticText
+            .replaceAll("_", "-");
         return SassBoolean(switch (_getNullableModule(arguments[1])) {
           var module? => module.mixins.containsKey(name),
           _ => _environment.mixinExists(name),
@@ -480,7 +488,7 @@ final class _EvaluateVisitor({
             );
           }
 
-          var normalizedName = name.text.replaceAll("_", "-");
+          var normalizedName = name.semanticText.replaceAll("_", "-");
           var callable = module == null
               ? _addExceptionSpan(
                   _callableNode!,
@@ -501,7 +509,7 @@ final class _EvaluateVisitor({
       ) {
         var name = arguments[0].assertString("name");
 
-        var normalizedName = name.text.replaceAll("_", "-");
+        var normalizedName = name.semanticText.replaceAll("_", "-");
         var callable = switch (_getNullableModule(arguments[1])) {
           var module? => module.mixins[normalizedName],
           _ => _addExceptionSpan(
@@ -567,7 +575,7 @@ final class _EvaluateVisitor({
 
           var callableNode = _callableNode!;
           var expression = FunctionExpression(
-            function.text,
+            function.semanticText,
             invocation,
             callableNode.span,
           );
@@ -732,7 +740,7 @@ final class _EvaluateVisitor({
     SassModule module =>
       // ignore: unnecessary_cast
       module.assertCompileContext(_compileContext).module as Module<Callable>,
-    SassString(:var text) => _environment.getModule(text),
+    SassString(:var semanticText) => _environment.getModule(semanticText),
     sassNull => null,
     _ => throw SassScriptException(
       "$module is neither a string nor a module reference.",
@@ -886,7 +894,10 @@ final class _EvaluateVisitor({
       var span = callableNode.span;
       var privateDeprecation = false;
       withMap.forEach((variable, value) {
-        var name = variable.assertString("with key").text.replaceAll("_", "-");
+        var name = variable
+            .assertString("with key")
+            .semanticText
+            .replaceAll("_", "-");
         if (values.containsKey(name)) {
           throw "The variable \$$name was configured twice.";
         } else if (name.startsWith("-") && !privateDeprecation) {
@@ -3833,7 +3844,7 @@ final class _EvaluateVisitor({
       _addRestMap(named, rest, restArgs, (value) => value);
       namedNodes.addAll({
         for (var key in rest.contents.keys)
-          (key as SassString).text: restNodeForSpan,
+          (key as SassString).semanticText: restNodeForSpan,
       });
     } else if (rest is SassList) {
       positional.addAll(
@@ -3870,7 +3881,7 @@ final class _EvaluateVisitor({
       _addRestMap(named, keywordRest, keywordRestArgs, (value) => value);
       namedNodes.addAll({
         for (var key in keywordRest.contents.keys)
-          (key as SassString).text: keywordRestNodeForSpan,
+          (key as SassString).semanticText: keywordRestNodeForSpan,
       });
       return (
         positional: positional,
@@ -3979,7 +3990,9 @@ final class _EvaluateVisitor({
     var expressionNode = _expressionNode(nodeWithSpan);
     map.contents.forEach((key, value) {
       if (key is SassString) {
-        values[key.text] = convert(_withoutSlash(value, expressionNode));
+        values[key.semanticText] = convert(
+          _withoutSlash(value, expressionNode),
+        );
       } else {
         throw _exception(
           "Variable keyword argument map must have string keys.\n"
