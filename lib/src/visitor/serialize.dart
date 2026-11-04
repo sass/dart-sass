@@ -1014,7 +1014,7 @@ final class _SerializeVisitor({
     }
 
     _buffer.write("get-function(");
-    _visitQuotedString(function.callable.name);
+    _visitQuotedString(function.callable.name.toCssIdentifier());
     _buffer.writeCharCode($rparen);
   }
 
@@ -1025,7 +1025,7 @@ final class _SerializeVisitor({
     }
 
     _buffer.write("get-mixin(");
-    _visitQuotedString(mixin.callable.name);
+    _visitQuotedString(mixin.callable.name.toCssIdentifier());
     _buffer.writeCharCode($rparen);
   }
 
@@ -1039,7 +1039,7 @@ final class _SerializeVisitor({
     if (module.module.url.andThen(defaultNamespace) case DefaultNamespace(
       :var namespace,
     )) {
-      _visitQuotedString(namespace);
+      _visitQuotedString(namespace.toCssIdentifier());
     }
     _buffer.writeCharCode($rparen);
   }
