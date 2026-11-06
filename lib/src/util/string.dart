@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:meta/meta.dart';
 import 'package:sass/src/exception.dart';
 import 'package:string_scanner/string_scanner.dart';
 
@@ -20,7 +21,7 @@ extension StringExtension on String {
   /// Throws a [FormatException] if [text] cannot be represented as a CSS
   /// identifier (such as the empty string).
   String toCssIdentifier({bool body = false}) {
-    if (_isSimpleIdentifier()) return this;
+    if (isSimpleIdentifier) return this;
 
     var buffer = StringBuffer();
     var scanner = SpanScanner(this);
@@ -147,11 +148,35 @@ extension StringExtension on String {
   ///
   /// Throws an [ArgumentError] if this isn't a valid CSS identifier.
   String resolveCssEscapes() {
-    if (_isSimpleIdentifier()) return this;
+    if (isSimpleIdentifier) return this;
     try {
       return Parser.parseIdentifier(this);
-    } on SassFormatException catch (_) {
+    } on SassFormatException {
       throw ArgumentError('"$this" isn\'t a valid CSS identifier');
+    }
+  }
+
+  /// If [text]'s value is in the canonical form of an escaped identifier,
+  /// returns its semantic value, and returns `null` otherwise.
+  ///
+  /// This exists for compatibility with the pre-1.106.0 behavior, in which
+  /// identifiers were stored on AST nodes in canonical form and so lookups with
+  /// Sass strings only worked if those Sass strings were in the same canonical
+  /// form. See sass/sass#4268 for details and the path towards a better
+  /// behavior.
+  ///
+  /// @nodoc
+  @internal
+  String? resolveCssEscapesIfCanonical() {
+    if (isSimpleIdentifier) return this;
+
+    // This could obviously be more efficient, but we only get here when doing
+    // reflection on very unusual identifiers so it's not worth the extra code.
+    try {
+      var ident = Parser.parseIdentifier(this);
+      return this == ident.toCssIdentifier() ? ident : null;
+    } on SassFormatException {
+      return null;
     }
   }
 
@@ -160,7 +185,10 @@ extension StringExtension on String {
   ///
   /// This is intended to be a quick check to use for optimizations. It can
   /// return false negatives, but not false positives.
-  bool _isSimpleIdentifier() {
+  ///
+  /// @nodoc
+  @internal
+  bool get isSimpleIdentifier {
     if (length == 0) return false;
     var codeUnit = codeUnitAt(0);
     if (!codeUnit.isNameStart ||

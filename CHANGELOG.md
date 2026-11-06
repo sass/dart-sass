@@ -1,3 +1,9 @@
+## 1.108.0
+
+* Undo some unintentional breaking changes added in 1.106.0 relating to how
+  escaped identifiers interact with `sass:meta` functions and named rest
+  arguments.
+
 ## 1.107.1
 
 * Properly report the embedded protocol version as 3.4.0.

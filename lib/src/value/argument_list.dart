@@ -22,6 +22,10 @@ class SassArgumentList(
   /// The keyword arguments attached to this argument list.
   ///
   /// The argument names don't include `$`.
+  ///
+  /// For compatibility with pre-1.106.0 behavior, this stores the textual value
+  /// of argument names rather than their semantic value. See sass/sass#4268 for
+  /// details and the path towards a better behavior.
   Map<String, Value> get keywords {
     _wereKeywordsAccessed = true;
     return _keywords;

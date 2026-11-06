@@ -1,3 +1,7 @@
+## 18.4.0
+
+* No user-visible changes.
+
 ## 18.3.0
 
 * Add a top-level `toCssIdentifier()` function which converts a string into a

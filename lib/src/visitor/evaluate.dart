@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 7022c48e00a3c6f8ffeec7cacc8dd8cd94e478ed
+// Checksum: 0a65d34ec1531e9367542f53f52266fdb031c5bc
 //
 // ignore_for_file: unused_import
 
@@ -19,6 +19,7 @@ import 'package:cli_pkg/js.dart';
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
+import 'package:sass/src/util/string.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
@@ -375,10 +376,13 @@ final class _EvaluateVisitor({
         "global-variable-exists",
         r"$name, $module: null",
         (arguments) {
-          var name = arguments[0]
-              .assertString("name")
-              .text
-              .replaceAll("_", "-");
+          var name =
+              arguments[0]
+                  .assertString("name")
+                  .text
+                  .resolveCssEscapesIfCanonical()
+                  ?.replaceAll("_", "-") ??
+              "";
           return SassBoolean(switch (_getNullableModule(arguments[1])) {
             var module? => module.variables.containsKey(name),
             _ => _environment.globalVariableExists(name),
@@ -387,17 +391,32 @@ final class _EvaluateVisitor({
         url: "sass:meta",
       ),
 
-      BuiltInCallable.function("variable-exists", r"$name", (arguments) {
-        var variable = arguments[0].assertString("name");
-        return SassBoolean(
-          _environment.variableExists(variable.text.replaceAll("_", "-")),
-        );
-      }, url: "sass:meta"),
+      BuiltInCallable.function(
+        "variable-exists",
+        r"$name",
+        (arguments) => SassBoolean(
+          _environment.variableExists(
+            arguments[0]
+                    .assertString("name")
+                    .text
+                    .resolveCssEscapesIfCanonical()
+                    ?.replaceAll("_", "-") ??
+                "",
+          ),
+        ),
+        url: "sass:meta",
+      ),
 
       BuiltInCallable.function("function-exists", r"$name, $module: null", (
         arguments,
       ) {
-        var name = arguments[0].assertString("name").text.replaceAll("_", "-");
+        var name =
+            arguments[0]
+                .assertString("name")
+                .text
+                .resolveCssEscapesIfCanonical()
+                ?.replaceAll("_", "-") ??
+            "";
         return SassBoolean(switch (_getNullableModule(arguments[1])) {
           var module? => module.functions.containsKey(name),
           _ =>
@@ -409,7 +428,13 @@ final class _EvaluateVisitor({
       BuiltInCallable.function("mixin-exists", r"$name, $module: null", (
         arguments,
       ) {
-        var name = arguments[0].assertString("name").text.replaceAll("_", "-");
+        var name =
+            arguments[0]
+                .assertString("name")
+                .text
+                .resolveCssEscapesIfCanonical()
+                ?.replaceAll("_", "-") ??
+            "";
         return SassBoolean(switch (_getNullableModule(arguments[1])) {
           var module? => module.mixins.containsKey(name),
           _ => _environment.mixinExists(name),
@@ -430,7 +455,7 @@ final class _EvaluateVisitor({
         r"$module",
         (arguments) => SassMap({
           for (var (name, value) in _getModule(arguments[0]).variables.pairs)
-            SassString(name): value,
+            SassString(name.toCssIdentifier()): value,
         }),
         url: "sass:meta",
       ),
@@ -440,7 +465,7 @@ final class _EvaluateVisitor({
         r"$module",
         (arguments) => SassMap({
           for (var (name, value) in _getModule(arguments[0]).functions.pairs)
-            SassString(name): SassFunction.withCompileContext(
+            SassString(name.toCssIdentifier()): SassFunction.withCompileContext(
               value,
               _compileContext,
             ),
@@ -453,7 +478,7 @@ final class _EvaluateVisitor({
         r"$module",
         (arguments) => SassMap({
           for (var (name, value) in _getModule(arguments[0]).mixins.pairs)
-            SassString(name): SassMixin.withCompileContext(
+            SassString(name.toCssIdentifier()): SassMixin.withCompileContext(
               value,
               _compileContext,
             ),
@@ -480,7 +505,9 @@ final class _EvaluateVisitor({
             );
           }
 
-          var normalizedName = name.text.replaceAll("_", "-");
+          var normalizedName =
+              name.text.resolveCssEscapesIfCanonical()?.replaceAll("_", "-") ??
+              "";
           var callable = module == null
               ? _addExceptionSpan(
                   _callableNode!,
@@ -501,7 +528,9 @@ final class _EvaluateVisitor({
       ) {
         var name = arguments[0].assertString("name");
 
-        var normalizedName = name.text.replaceAll("_", "-");
+        var normalizedName =
+            name.text.resolveCssEscapesIfCanonical()?.replaceAll("_", "-") ??
+            "";
         var callable = switch (_getNullableModule(arguments[1])) {
           var module? => module.mixins[normalizedName],
           _ => _addExceptionSpan(
@@ -566,12 +595,18 @@ final class _EvaluateVisitor({
           );
 
           var callableNode = _callableNode!;
-          var expression = FunctionExpression(
-            function.text,
-            invocation,
-            callableNode.span,
-          );
-          return expression.accept(this);
+          return switch (function.text.resolveCssEscapesIfCanonical()) {
+            var name? => FunctionExpression(
+              name,
+              invocation,
+              callableNode.span,
+            ).accept(this),
+            _ => _runFunctionCallable(
+              invocation,
+              PlainCssCallable(function.text),
+              callableNode,
+            ),
+          };
         }
 
         var callable = function
@@ -732,7 +767,9 @@ final class _EvaluateVisitor({
     SassModule module =>
       // ignore: unnecessary_cast
       module.assertCompileContext(_compileContext).module as Module<Callable>,
-    SassString(:var text) => _environment.getModule(text),
+    SassString(:var text) =>
+      text.resolveCssEscapesIfCanonical().andThen(_environment.getModule) ??
+          (throw 'There is no module with namespace "$text".'),
     sassNull => null,
     _ => throw SassScriptException(
       "$module is neither a string nor a module reference.",
@@ -886,13 +923,20 @@ final class _EvaluateVisitor({
       var span = callableNode.span;
       var privateDeprecation = false;
       withMap.forEach((variable, value) {
-        var name = variable.assertString("with key").text.replaceAll("_", "-");
-        if (values.containsKey(name)) {
-          throw "The variable \$$name was configured twice.";
+        var originalName = variable.assertString("with key").text;
+        var name = originalName.resolveCssEscapesIfCanonical()?.replaceAll(
+          "_",
+          "-",
+        );
+        if (name == null) {
+          throw "\$$originalName was not declared with !default in the @used "
+              "module.";
+        } else if (values.containsKey(name)) {
+          throw "The variable \$$originalName was configured twice.";
         } else if (name.startsWith("-") && !privateDeprecation) {
           privateDeprecation = true;
           warnForDeprecation(
-            "Configuring private variables (such as \$$name) is "
+            "Configuring private variables (such as \$$originalName) is "
             "deprecated.\n"
             "This will be an error in Dart Sass 2.0.0.",
             .withPrivate,
@@ -3579,8 +3623,9 @@ final class _EvaluateVisitor({
             i++
           ) {
             var parameter = parameters[i];
+            var nameIdent = parameter.name.toCssIdentifier();
             var value =
-                evaluated.named.remove(parameter.name) ??
+                evaluated.named.remove(nameIdent) ??
                 _withoutSlash(
                   parameter.defaultValue!.accept<Value>(this),
                   _expressionNode(parameter.defaultValue!),
@@ -3588,7 +3633,7 @@ final class _EvaluateVisitor({
             _environment.setLocalVariable(
               parameter.name,
               value,
-              evaluated.namedNodes[parameter.name] ??
+              evaluated.namedNodes[nameIdent] ??
                   _expressionNode(parameter.defaultValue!),
             );
           }
@@ -3733,7 +3778,7 @@ final class _EvaluateVisitor({
     for (var i = evaluated.positional.length; i < parameters.length; i++) {
       var parameter = parameters[i];
       evaluated.positional.add(
-        evaluated.named.remove(parameter.name) ??
+        evaluated.named.remove(parameter.name.toCssIdentifier()) ??
             _withoutSlash(
               parameter.defaultValue!.accept(this),
               parameter.defaultValue!,
@@ -3807,9 +3852,13 @@ final class _EvaluateVisitor({
       positionalNodes.add(nodeForSpan);
     }
 
+    // Names are currently stored as textual values for backwards-compatibility
+    // with pre-1.106.0 behavior. See sass/sass#4268 for details and the path
+    // towards a better behavior.
     var named = <String, Value>{};
     var namedNodes = <String, AstNode>{};
     for (var (name, value) in arguments.named.pairs) {
+      name = name.toCssIdentifier();
       var nodeForSpan = _expressionNode(value);
       named[name] = _withoutSlash(value.accept(this), nodeForSpan);
       namedNodes[name] = nodeForSpan;
@@ -4941,6 +4990,10 @@ typedef _ArgumentResults = ({
   List<AstNode> positionalNodes,
 
   /// Arguments passed by name.
+  ///
+  /// For compatibility with pre-1.106.0 behavior, this stores the textual value
+  /// of argument names rather than their semantic value. See sass/sass#4268 for
+  /// details and the path towards a better behavior.
   Map<String, Value> named,
 
   /// The [AstNode]s that hold the spans for each [named] argument.
