@@ -258,6 +258,15 @@ SourceSpan_SourceLocation location(int offset, int line, int column) =>
       ..line = line
       ..column = column;
 
+/// Returns a [StackFrame] with the given [url], [line], [column], and
+/// [description].
+StackFrame frame(String url, int line, int column, String description) =>
+    StackFrame()
+      ..description = description
+      ..line = line
+      ..column = column
+      ..url = url;
+
 /// Returns a matcher that verifies whether the given value refers to the same
 /// path as [expected].
 Matcher equalsPath(String expected) => predicate<String>(

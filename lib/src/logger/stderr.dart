@@ -37,17 +37,21 @@ final class const StderrLogger({
       if (showDeprecation) result.write(' [$deprecation]');
     }
 
-    if (span == null) {
-      result.writeln(': $message');
-    } else if (trace != null) {
-      // If there's a span and a trace, the span's location information is
-      // probably duplicated in the trace, so we just use it for highlighting.
-      result.writeln(': $message\n\n${span.highlight(color: color)}');
-    } else {
-      result.writeln(' on ${span.message("\n$message", color: color)}');
+    result.writeln(': $message');
+    if (span != null) result.writeln(span.highlight(color: color));
+    if (trace != null) {
+      result.writeln(indent(trace.toString().trimRight(), 2));
+    } else if (span != null) {
+      trace = Trace([
+        Frame(
+          span.sourceUrl ?? Uri.parse('-'),
+          span.start.line,
+          span.start.column,
+          'root stylesheet',
+        ),
+      ]);
+      result.writeln(indent(trace.toString().trimRight(), 2));
     }
-
-    if (trace != null) result.writeln(indent(trace.toString().trimRight(), 4));
 
     printError(result);
   }
