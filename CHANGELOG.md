@@ -1,3 +1,10 @@
+## 1.108.1
+
+### Node.js Embedded Host
+
+* Fix an issue in the release process causing the OS-specific embedded Sass
+  packages to be missing their Dart Sass snapshots.
+
 ## 1.108.0
 
 * Undo some unintentional breaking changes added in 1.106.0 relating to how
