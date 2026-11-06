@@ -19,9 +19,10 @@ Future<void> fetchBootstrap4() =>
 @Task('Download Bourbon for testing purposes.')
 Future<void> fetchBourbon() => _getLatestRelease('thoughtbot/bourbon');
 
-@Task('Download Foundation for testing purposes.')
-Future<void> fetchFoundation() =>
-    _getLatestRelease('foundation/foundation-sites');
+@Task('Download Foundation 6.x for testing purposes.')
+Future<void> fetchFoundation6() =>
+    // Foundation v7 (a.k.a Yeti) no longer uses Sass
+    _getLatestRelease('foundation/foundation-sites', pattern: RegExp(r'^v6\.'));
 
 @Task('Download Bulma for testing purposes.')
 Future<void> fetchBulma() => _getLatestRelease('jgthms/bulma');
