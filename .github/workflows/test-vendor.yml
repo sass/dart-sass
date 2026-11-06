@@ -55,7 +55,7 @@ jobs:
               build/bourbon/spec/fixtures:build/bourbon-output
 
   foundation:
-    name: Foundation
+    name: Foundation 6
     runs-on: ubuntu-latest
 
     steps:
@@ -64,8 +64,10 @@ jobs:
       - uses: $/.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
-      - run: dart run grinder fetch-foundation
+      - run: dart run grinder fetch-foundation6
         env: {GITHUB_BEARER_TOKEN: "${{ secrets.GH_TOKEN }}"}
+      - run: npm install
+        working-directory: build/foundation-sites
       # TODO(nweiz): Foundation has proper Sass tests, but they're currently not
       # compatible with Dart Sass. Once they are, we should run those rather
       # than just building the CSS output.
