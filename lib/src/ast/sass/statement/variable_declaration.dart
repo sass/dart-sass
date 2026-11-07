@@ -13,6 +13,7 @@ import '../../../util/string.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../declaration.dart';
+import '../reference.dart';
 import '../statement.dart';
 import 'silent_comment.dart';
 
@@ -35,13 +36,13 @@ final class VariableDeclaration(
   /// without a namespace.
   ///
   /// This is the semantic contents of the identifier, with escapes resolved.
-  final String? namespace,
+  @override final String? namespace,
   bool guarded = false,
   bool global = false,
 
   /// The comment immediately preceding this declaration.
   final SilentComment? comment,
-}) extends Statement implements SassDeclaration {
+}) extends Statement implements SassDeclaration, SassReference {
   /// Whether this is a guarded assignment.
   ///
   /// Guarded assignments only happen if the variable is undefined or `null`.
@@ -66,6 +67,7 @@ final class VariableDeclaration(
     return span.initialIdentifier(includeLeading: 1);
   }
 
+  @override
   FileSpan? get namespaceSpan =>
       namespace == null ? null : span.initialIdentifier();
 

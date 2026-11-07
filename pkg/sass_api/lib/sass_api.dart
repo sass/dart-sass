@@ -12,6 +12,7 @@ export 'package:sass/src/ast/node.dart';
 export 'package:sass/src/ast/sass.dart' hide AtRootQuery;
 export 'package:sass/src/ast/selector.dart';
 export 'package:sass/src/async_import_cache.dart';
+export 'package:sass/src/color_names.dart';
 export 'package:sass/src/exception.dart' show SassFormatException;
 export 'package:sass/src/import_cache.dart';
 export 'package:sass/src/importer/node_package.dart';
@@ -38,6 +39,10 @@ String parseIdentifier(String text) => Parser.parseIdentifier(text);
 
 /// Returns a minimally-escaped CSS identifiers whose contents evaluates to
 /// [text].
+///
+/// **Note**: This does not guarantee that the resulting identifier will
+/// evaluate to an unquoted string in Sass. Identifiers like `true` and `red`
+/// are evaluated as other types.
 ///
 /// Throws a [FormatException] if [text] cannot be represented as a CSS
 /// identifier (such as the empty string).
