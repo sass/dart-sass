@@ -1,3 +1,10 @@
+## 18.5.0
+
+* Add top-level `colorByName` and `namesByColor` maps between CSS color names
+  and their values.
+
+* Make `VariableDeclaration` implement `SassReference`.
+
 ## 18.4.1
 
 * No user-visible changes.
