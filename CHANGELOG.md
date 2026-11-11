@@ -1,3 +1,7 @@
+## 1.108.2
+
+* No user-visible changes.
+
 ## 1.108.1
 
 ### Node.js Embedded Host
