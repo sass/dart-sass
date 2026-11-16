@@ -6,6 +6,7 @@ import * as postcss from 'postcss';
 import type {RootRaws} from 'postcss/lib/root';
 
 import * as sassParser from '../..';
+import {LazyRaws} from '../lazy-raws';
 import {LazySource} from '../lazy-source';
 import type * as sassInternal from '../sass-internal';
 import * as utils from '../utils';
@@ -20,6 +21,48 @@ import {
 import {_Root} from './root-internal';
 
 export type {RootRaws} from 'postcss/lib/root';
+
+class LazyRootRaws extends LazyRaws<sassInternal.Stylesheet> {
+  declare after?: string;
+  declare semicolon?: boolean;
+
+  constructor(inner: sassInternal.Stylesheet) {
+    super(inner, ['after', 'semicolon']);
+  }
+
+  protected _computeRaws(): void {
+    const lastChild = this._node.children.at(-1);
+    if (!lastChild) {
+      this._setRawDefault('semicolon', () => undefined);
+      this._setRawDefault('after', () => this._node.span.text);
+      return;
+    }
+
+    const trailingSpan = this._node.span.after(lastChild.span);
+    const textAfterSemicolon = this.#textAfterSemicolon(trailingSpan);
+    if (textAfterSemicolon === null) {
+      this._setRawDefault('semicolon', () => false);
+      this._setRawDefault('after', () =>
+        lastChild.hasChildren ? trailingSpan.text : '',
+      );
+    } else {
+      this._setRawDefault('semicolon', () => !lastChild.hasChildren);
+      this._setRawDefault('after', () => textAfterSemicolon);
+    }
+  }
+
+  /**
+   * Returns the text after {@link span}'s first semicolon, or `null` if it
+   * doesn't contain a semicolon at all.
+   */
+  #textAfterSemicolon(span: sassInternal.FileSpan): string | null {
+    const trimmed = span.trimLeft();
+    if (trimmed.length === 0) return null;
+
+    const trimmedText = trimmed.text;
+    return trimmedText.at(0) === ';' ? trimmedText.substring(1) : null;
+  }
+}
 
 /**
  * The initializer properties for {@link Root}.
@@ -52,6 +95,7 @@ export class Root extends _Root implements Statement {
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
+      this.raws = new LazyRootRaws(inner);
       appendInternalChildren(this, inner.children);
     }
   }

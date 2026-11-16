@@ -92,9 +92,7 @@ describe('a root node', () => {
   describe('clone', () => {
     let original: Root;
     beforeEach(() => {
-      original = scss.parse('@foo');
-      // TODO: remove this once raws are properly parsed
-      original.raws.after = '  ';
+      original = scss.parse('@foo;');
     });
 
     describe('with no overrides', () => {
@@ -104,7 +102,8 @@ describe('a root node', () => {
       });
 
       describe('has the same properties:', () => {
-        it('raws', () => expect(clone.raws).toEqual({after: '  '}));
+        it('raws', () =>
+          expect(clone.raws).toEqual({semicolon: true, after: ''}));
 
         it('source', () => expect(clone.source).toBe(original.source));
 
@@ -138,22 +137,124 @@ describe('a root node', () => {
 
       describe('raws', () => {
         it('defined', () =>
-          expect(original.clone({raws: {semicolon: true}}).raws).toEqual({
-            semicolon: true,
+          expect(original.clone({raws: {semicolon: false}}).raws).toEqual({
+            semicolon: false,
           }));
 
         it('undefined', () =>
           expect(original.clone({raws: undefined}).raws).toEqual({
-            after: '  ',
+            semicolon: true,
+            after: '',
           }));
       });
+    });
+  });
+
+  describe('raws', () => {
+    describe('after the final child', () => {
+      describe('without children', () => {
+        it('nothing', () =>
+          expect(scss.parse('@foo').raws).toEqual({
+            semicolon: false,
+            after: '',
+          }));
+
+        it('whitespace', () =>
+          expect(scss.parse('@foo  ').raws).toEqual({
+            semicolon: false,
+            after: '',
+          }));
+
+        it('one semicolon', () =>
+          expect(scss.parse('@foo;').raws).toEqual({
+            semicolon: true,
+            after: '',
+          }));
+
+        it('two semicolons', () =>
+          expect(scss.parse('@foo;;').raws).toEqual({
+            semicolon: true,
+            after: ';',
+          }));
+
+        it('whitespace then semicolon', () =>
+          expect(scss.parse('@foo  ;').raws).toEqual({
+            semicolon: true,
+            after: '',
+          }));
+
+        it('semicolon then whitespace', () =>
+          expect(scss.parse('@foo;  ').raws).toEqual({
+            semicolon: true,
+            after: '  ',
+          }));
+
+        it('semicolon whitespace semicolon', () =>
+          expect(scss.parse('@foo;  ;').raws).toEqual({
+            semicolon: true,
+            after: '  ;',
+          }));
+      });
+
+      describe('with children', () => {
+        it('nothing', () =>
+          expect(scss.parse('a {}').raws).toEqual({
+            semicolon: false,
+            after: '',
+          }));
+
+        it('whitespace', () =>
+          expect(scss.parse('a {}  ').raws).toEqual({
+            semicolon: false,
+            after: '  ',
+          }));
+
+        it('one semicolon', () =>
+          expect(scss.parse('a {};').raws).toEqual({
+            semicolon: false,
+            after: '',
+          }));
+
+        it('two semicolons', () =>
+          expect(scss.parse('a {};;').raws).toEqual({
+            semicolon: false,
+            after: ';',
+          }));
+
+        it('whitespace then semicolon', () =>
+          expect(scss.parse('a {}  ;').raws).toEqual({
+            semicolon: false,
+            after: '',
+          }));
+
+        it('semicolon then whitespace', () =>
+          expect(scss.parse('a {};  ').raws).toEqual({
+            semicolon: false,
+            after: '  ',
+          }));
+
+        it('semicolon whitespace semicolon', () =>
+          expect(scss.parse('a {};  ;').raws).toEqual({
+            semicolon: false,
+            after: '  ;',
+          }));
+      });
+    });
+
+    describe('without any children', () => {
+      it('empty', () => expect(scss.parse('').raws).toEqual({after: ''}));
+
+      it('whitespace', () =>
+        expect(scss.parse('  ').raws).toEqual({after: '  '}));
+
+      it('with a semicolon', () =>
+        expect(scss.parse(' ; ').raws).toEqual({after: ' ; '}));
     });
   });
 
   describe('toJSON', () => {
     it('without children', () => expect(scss.parse('')).toMatchSnapshot());
 
-    it('with children', () =>
-      expect(scss.parse('@foo').nodes[0]).toMatchSnapshot());
+    fit('with children', () => expect(scss.parse('@foo;')).toMatchSnapshot());
   });
 });

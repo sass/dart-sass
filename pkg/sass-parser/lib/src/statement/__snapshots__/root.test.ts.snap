@@ -4,18 +4,21 @@ exports[`a root node toJSON with children 1`] = `
 {
   "inputs": [
     {
-      "css": "@foo",
+      "css": "@foo;",
       "hasBOM": false,
       "id": "<input css _____>",
     },
   ],
-  "name": "foo",
-  "nameInterpolation": <foo>,
-  "params": "",
-  "raws": {},
-  "sassType": "atrule",
-  "source": <1:1-1:5 in 0>,
-  "type": "atrule",
+  "nodes": [
+    <@foo>,
+  ],
+  "raws": LazyRootRaws {
+    "after": "",
+    "semicolon": true,
+  },
+  "sassType": "root",
+  "source": <1:1-1:6 in 0>,
+  "type": "root",
 }
 `;
 
@@ -29,7 +32,10 @@ exports[`a root node toJSON without children 1`] = `
     },
   ],
   "nodes": [],
-  "raws": {},
+  "raws": LazyRootRaws {
+    "after": "",
+    "semicolon": undefined,
+  },
   "sassType": "root",
   "source": <1:1-1:1 in 0>,
   "type": "root",
