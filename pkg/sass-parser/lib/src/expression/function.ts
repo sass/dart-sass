@@ -5,6 +5,7 @@
 import * as postcss from 'postcss';
 
 import {ArgumentList, ArgumentListProps} from '../argument-list';
+import {LazyRaws} from '../lazy-raws';
 import {LazySource} from '../lazy-source';
 import {NodeProps} from '../node';
 import {RawWithValue} from '../raw-with-value';
@@ -108,6 +109,7 @@ export class FunctionExpression extends Expression {
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
+      this.raws = new LazyFunctionExpressionRaws(inner);
       this.namespace = inner.namespace ?? undefined;
       this.name = inner.name;
       this.arguments = new ArgumentList(undefined, inner.arguments);
@@ -148,5 +150,28 @@ export class FunctionExpression extends Expression {
   /** @hidden */
   get nonStatementChildren(): ReadonlyArray<ArgumentList> {
     return [this.arguments];
+  }
+}
+
+class LazyFunctionExpressionRaws
+  extends LazyRaws<sassInternal.FunctionExpression>
+  implements FunctionExpressionRaws
+{
+  declare namespace?: RawWithValue<string>;
+  declare name?: RawWithValue<string>;
+
+  constructor(inner: sassInternal.FunctionExpression) {
+    super(inner, ['namespace', 'name']);
+  }
+
+  protected _computeRaws(): void {
+    this._setRawDefault('namespace', () => {
+      const span = this._node.namespaceSpan;
+      return span ? {raw: span.text, value: this._node.namespace} : undefined;
+    });
+    this._setRawDefault('name', () => ({
+      raw: this._node.nameSpan.text,
+      value: this._node.name,
+    }));
   }
 }

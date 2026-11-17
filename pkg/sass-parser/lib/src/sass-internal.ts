@@ -335,6 +335,8 @@ declare namespace SassInternal {
     readonly namespace: string | null | undefined;
     readonly name: string;
     readonly arguments: ArgumentList;
+    readonly namespaceSpan: FileSpan | null | undefined;
+    readonly nameSpan: FileSpan;
   }
 
   class LegacyIfExpression extends Expression {

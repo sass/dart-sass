@@ -28,7 +28,16 @@ exports[`a function expression toJSON with a namespace 1`] = `
   ],
   "name": "foo",
   "namespace": "baz",
-  "raws": {},
+  "raws": LazyFunctionExpressionRaws {
+    "name": {
+      "raw": "foo",
+      "value": "foo",
+    },
+    "namespace": {
+      "raw": "baz",
+      "value": "baz",
+    },
+  },
   "sassType": "function-call",
   "source": <1:4-1:16 in 0>,
 }
@@ -45,7 +54,13 @@ exports[`a function expression toJSON without a namespace 1`] = `
     },
   ],
   "name": "foo",
-  "raws": {},
+  "raws": LazyFunctionExpressionRaws {
+    "name": {
+      "raw": "foo",
+      "value": "foo",
+    },
+    "namespace": undefined,
+  },
   "sassType": "function-call",
   "source": <1:4-1:12 in 0>,
 }

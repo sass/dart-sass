@@ -177,8 +177,11 @@ void _updateAstPrototypes() {
       .defineGetter('arguments', (IncludeRule self) => self.arguments);
   getJSClass(ContentRule(arguments, bogusSpan))
       .defineGetter('arguments', (ContentRule self) => self.arguments);
-  getJSClass(FunctionExpression('a', arguments, bogusSpan))
-      .defineGetter('arguments', (FunctionExpression self) => self.arguments);
+  getJSClass(FunctionExpression('a', arguments, bogusSpan)).defineGetters({
+    'arguments': (FunctionExpression self) => self.arguments,
+    'nameSpan': (FunctionExpression self) => self.nameSpan,
+    'namespaceSpan': (FunctionExpression self) => self.namespaceSpan,
+  });
   getJSClass(LegacyIfExpression(arguments, bogusSpan))
       .defineGetter('arguments', (LegacyIfExpression self) => self.arguments);
   getJSClass(

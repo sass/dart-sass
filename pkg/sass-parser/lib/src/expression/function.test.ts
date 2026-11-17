@@ -234,9 +234,7 @@ describe('a function expression', () => {
     let original: FunctionExpression;
 
     beforeEach(() => {
-      original = utils.parseExpression('baz.foo(bar)');
-      // TODO: remove this once raws are properly parsed
-      original.raws.name = {value: 'foo', raw: 'f\\6fo'};
+      original = utils.parseExpression('baz.f\\6fo(bar)');
     });
 
     describe('with no overrides', () => {
@@ -258,7 +256,10 @@ describe('a function expression', () => {
         });
 
         it('raws', () =>
-          expect(clone.raws).toEqual({name: {value: 'foo', raw: 'f\\6fo'}}));
+          expect(clone.raws).toEqual({
+            namespace: {value: 'baz', raw: 'baz'},
+            name: {value: 'foo', raw: 'f\\6fo'},
+          }));
 
         it('source', () => expect(clone.source).toBe(original.source));
       });
@@ -282,6 +283,7 @@ describe('a function expression', () => {
 
         it('undefined', () =>
           expect(original.clone({raws: undefined}).raws).toEqual({
+            namespace: {value: 'baz', raw: 'baz'},
             name: {value: 'foo', raw: 'f\\6fo'},
           }));
       });
@@ -320,6 +322,20 @@ describe('a function expression', () => {
           ).toHaveStringExpression('value', 'bar'));
       });
     });
+  });
+
+  describe('raws', () => {
+    it('with an escaped name', () =>
+      expect(utils.parseExpression('f\\6fo()').raws).toEqual({
+        name: {raw: 'f\\6fo', value: 'foo'},
+        namespace: undefined,
+      }));
+
+    it('with an escaped namespace', () =>
+      expect(utils.parseExpression('f\\6fo.bar()').raws).toEqual({
+        name: {raw: 'bar', value: 'bar'},
+        namespace: {raw: 'f\\6fo', value: 'foo'},
+      }));
   });
 
   describe('toJSON', () => {
