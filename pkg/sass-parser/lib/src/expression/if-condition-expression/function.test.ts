@@ -137,7 +137,7 @@ describe('an if() condition function', () => {
 
   describe('clone()', () => {
     beforeEach(() => {
-      node.raws.afterOpen = '  ';
+      node = utils.parseIfConditionExpression('media( screen )');
     });
 
     describe('with no overrides', () => {
@@ -149,6 +149,9 @@ describe('an if() condition function', () => {
 
         it('argument', () =>
           expect(clone).toHaveInterpolation('argument', 'screen'));
+
+        it('raws', () =>
+          expect(clone.raws).toEqual({afterOpen: ' ', beforeClose: ' '}));
       });
 
       describe('creates a new', () => {
@@ -169,7 +172,8 @@ describe('an if() condition function', () => {
 
         it('undefined', () =>
           expect(node.clone({raws: undefined}).raws).toEqual({
-            afterOpen: '  ',
+            afterOpen: ' ',
+            beforeClose: ' ',
           }));
       });
 
@@ -201,6 +205,26 @@ describe('an if() condition function', () => {
           ));
       });
     });
+  });
+
+  describe('raws', () => {
+    it('no whitespace', () =>
+      expect(utils.parseIfConditionExpression('media(screen)').raws).toEqual({
+        afterOpen: '',
+        beforeClose: '',
+      }));
+
+    it('whitespace before argument', () =>
+      expect(utils.parseIfConditionExpression('media(  screen)').raws).toEqual({
+        afterOpen: '  ',
+        beforeClose: '',
+      }));
+
+    it('whitespace after argument', () =>
+      expect(utils.parseIfConditionExpression('media(screen  )').raws).toEqual({
+        afterOpen: '',
+        beforeClose: '  ',
+      }));
   });
 
   it('toJSON', () =>

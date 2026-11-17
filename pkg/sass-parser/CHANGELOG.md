@@ -1,7 +1,7 @@
 ## 0.5.7-dev
 
-* Compute raws for parsed `Root` nodes, binary operations, color literals, and
-  function expressions.
+* Compute raws for parsed `Root` nodes, binary operations, color literals,
+  function expressions, and `if()` conditions.
 
 ## 0.5.6
 

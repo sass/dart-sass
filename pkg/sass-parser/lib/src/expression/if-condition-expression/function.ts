@@ -9,6 +9,7 @@ import type * as sassInternal from '../../sass-internal';
 import * as utils from '../../utils';
 import {AnyIfConditionExpression, IfConditionExpression} from './index';
 import {IfEntry} from '../if-entry';
+import {LazyRaws} from '../../lazy-raws';
 import {LazySource} from '../../lazy-source';
 import {Interpolation, InterpolationProps} from '../../interpolation';
 
@@ -83,6 +84,7 @@ export class IfConditionFunction extends IfConditionExpression {
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
+      this.raws = new LazyIfConditionFunctionRaws(inner);
       this.name = new Interpolation(undefined, inner.name);
       this.argument = new Interpolation(undefined, inner.arguments);
     }
@@ -115,5 +117,26 @@ export class IfConditionFunction extends IfConditionExpression {
   /** @hidden */
   get nonStatementChildren(): ReadonlyArray<Interpolation> {
     return [this.name, this.argument];
+  }
+}
+
+class LazyIfConditionFunctionRaws
+  extends LazyRaws<sassInternal.IfConditionFunction>
+  implements IfConditionFunctionRaws
+{
+  declare afterOpen?: string;
+  declare beforeClose?: string;
+
+  constructor(inner: sassInternal.IfConditionFunction) {
+    super(inner, ['afterOpen', 'beforeClose']);
+  }
+
+  protected _computeRaws(): void {
+    this._setRawDefault('afterOpen', () =>
+      this._node.name.span.between(this._node.arguments.span).text.substring(1),
+    );
+    this._setRawDefault('beforeClose', () =>
+      this._node.span.after(this._node.arguments.span).text.slice(0, -1),
+    );
   }
 }

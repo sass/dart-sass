@@ -3809,6 +3809,7 @@ abstract class StylesheetParser(
     // changes here should be mirrored there.
 
     var start = scanner.state;
+    LineScannerState? beforeWhitespace;
     var buffer = InterpolationBuffer();
 
     var brackets = <int>[];
@@ -3821,24 +3822,29 @@ abstract class StylesheetParser(
             interpolatedIdentifier(expression: expression),
           );
           wroteNewline = false;
+          beforeWhitespace = null;
 
         case ($double_quote || $single_quote, false):
           buffer.addInterpolation(interpolatedStringToken());
           wroteNewline = false;
+          beforeWhitespace = null;
 
         case ($slash, false):
           switch (scanner.peekChar(1)) {
             case $asterisk:
               buffer.write(rawText(loudComment));
               wroteNewline = false;
+              beforeWhitespace = null;
 
             case $slash when silentComments:
               silentComment();
               wroteNewline = false;
+              beforeWhitespace = null;
 
             case _:
               buffer.writeCharCode(scanner.readChar());
               wroteNewline = false;
+              beforeWhitespace = null;
           }
 
         // Add a full interpolated identifier to handle cases like "#{...}--1",
@@ -3847,15 +3853,18 @@ abstract class StylesheetParser(
           buffer.addInterpolation(
             interpolatedIdentifier(expression: expression),
           );
+          beforeWhitespace = null;
           wroteNewline = false;
 
         case ($space || $tab, false)
             when !wroteNewline && scanner.peekChar(1).isWhitespace:
           // Collapse whitespace into a single character unless it's following a
           // newline, in which case we assume it's indentation.
+          beforeWhitespace ??= scanner.state;
           scanner.readChar();
 
         case ($space || $tab, false):
+          beforeWhitespace ??= scanner.state;
           buffer.writeCharCode(scanner.readChar());
 
         case ($lf || $cr || $ff, false)
@@ -3865,6 +3874,7 @@ abstract class StylesheetParser(
         case ($lf || $cr || $ff, false):
           // Collapse multiple newlines into one.
           if (!scanner.peekChar(-1).isNewline) buffer.writeln();
+          beforeWhitespace ??= scanner.state;
           scanner.readChar();
           wroteNewline = true;
 
@@ -3876,6 +3886,7 @@ abstract class StylesheetParser(
           buffer.writeCharCode(bracket);
           brackets.add(opposite(bracket));
           wroteNewline = false;
+          beforeWhitespace = null;
 
         case ($rparen || $rbrace || $rbracket, false):
           if (brackets.isEmpty) break loop;
@@ -3883,16 +3894,19 @@ abstract class StylesheetParser(
           scanner.expectChar(bracket);
           buffer.writeCharCode(bracket);
           wroteNewline = false;
+          beforeWhitespace = null;
 
         case ($semicolon, false):
           if (!allowSemicolon && brackets.isEmpty) break loop;
           buffer.writeCharCode(scanner.readChar());
           wroteNewline = false;
+          beforeWhitespace = null;
 
         case ($colon, false):
           if (!allowColon && brackets.isEmpty) break loop;
           buffer.writeCharCode(scanner.readChar());
           wroteNewline = false;
+          beforeWhitespace = null;
 
         case ($u || $U, _):
           var beforeUrl = scanner.state;
@@ -3905,6 +3919,7 @@ abstract class StylesheetParser(
               plain != "url-prefix") {
             buffer.addInterpolation(identifier);
             wroteNewline = false;
+            beforeWhitespace = null;
             continue loop;
           }
 
@@ -3915,6 +3930,7 @@ abstract class StylesheetParser(
             buffer.writeCharCode(scanner.readChar());
           }
           wroteNewline = false;
+          beforeWhitespace = null;
 
         case ($o || $O, _):
           if (endAfterOf && brackets.isEmpty) {
@@ -3928,6 +3944,7 @@ abstract class StylesheetParser(
             interpolatedIdentifier(expression: expression),
           );
           wroteNewline = false;
+          beforeWhitespace = null;
 
         case (null, _):
           break loop;
@@ -3938,16 +3955,32 @@ abstract class StylesheetParser(
             interpolatedIdentifier(expression: expression),
           );
           wroteNewline = false;
+          beforeWhitespace = null;
 
         case _:
           buffer.writeCharCode(scanner.readChar());
           wroteNewline = false;
+          beforeWhitespace = null;
       }
     }
 
-    if (brackets.isNotEmpty) scanner.expectChar(brackets.last);
+    if (brackets.isNotEmpty) {
+      scanner.expectChar(brackets.last);
+      beforeWhitespace = null;
+    }
     if (!allowEmpty && buffer.isEmpty) scanner.error("Expected token.");
-    return buffer.interpolation(spanFrom(start));
+
+    var interpolation = buffer.interpolation(spanFrom(start, beforeWhitespace));
+    if (beforeWhitespace != null) {
+      if (interpolation.contents case [...var before, String last]) {
+        return Interpolation(
+          [...before, last.trimRightCss()],
+          interpolation.spans,
+          interpolation.span,
+        );
+      }
+    }
+    return interpolation;
   }
 
   /// A helper method for [lastIndexOfWhitespaceAndComments].

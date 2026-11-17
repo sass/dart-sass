@@ -209,4 +209,14 @@ extension StringExtension on String {
     }
     return true;
   }
+
+  /// Like [String.trimRight], but only considers characters that CSS considers
+  /// whitespace (not counting comments).
+  String trimRightCss() {
+    if (length == 0 || !codeUnitAt(length - 1).isWhitespace) return this;
+    for (var i = length - 1; i > 0; i--) {
+      if (!codeUnitAt(i - 1).isWhitespace) return substring(0, i);
+    }
+    return "";
+  }
 }
