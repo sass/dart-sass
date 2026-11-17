@@ -98,7 +98,6 @@ ParserExports loadParserExports() {
 /// Updates the prototype of a [FileSpan] to provide access to JS.
 void _updateFileSpanPrototype(FileSpan span) {
   getJSClass(span).defineMethods({
-    'text': (FileSpan span) => span.text,
     'trim': (FileSpan span) => span.trim(),
     'trimLeft': (FileSpan span) => span.trimLeft(),
     'trimRight': (FileSpan span) => span.trimRight(),
