@@ -99,13 +99,15 @@ ParserExports loadParserExports() {
 void _updateFileSpanPrototype(FileSpan span) {
   getJSClass(span).defineMethods({
     'text': (FileSpan span) => span.text,
-      'trim': (FileSpan span) => span.trim(),
-      'trimLeft': (FileSpan span) => span.trimLeft(),
-      'trimRight': (FileSpan span) => span.trimRight(),
-      'initialIdentifier': (FileSpan span, [int includeLeading = 0]) => span.initialIdentifier(includeLeading: includeLeading),
-      'withoutInitialIdentifier': (FileSpan span) => span.withoutInitialIdentifier(),
-      'before': (FileSpan span, FileSpan other) => span.before(other),
-      'after': (FileSpan span, FileSpan other) => span.after(other),
+    'trim': (FileSpan span) => span.trim(),
+    'trimLeft': (FileSpan span) => span.trimLeft(),
+    'trimRight': (FileSpan span) => span.trimRight(),
+    'initialIdentifier': (FileSpan span, [int includeLeading = 0]) =>
+        span.initialIdentifier(includeLeading: includeLeading),
+    'withoutInitialIdentifier': (FileSpan span) =>
+        span.withoutInitialIdentifier(),
+    'before': (FileSpan span, FileSpan other) => span.before(other),
+    'after': (FileSpan span, FileSpan other) => span.after(other),
   });
 }
 
@@ -138,10 +140,16 @@ void _updateAstPrototypes() {
       .defineGetter('codeUnits', (SourceFile self) => self.codeUnits);
   getJSClass(_interpolation)
       .defineGetter('asPlain', (Interpolation self) => self.asPlain);
-  getJSClass(ExtendRule(_interpolation, bogusSpan)).superclass..defineMethod(
-    'accept',
-    (Statement self, StatementVisitor<Object?> visitor) => self.accept(visitor),
-  )..defineGetter('hasChildren', (Statement self) => self is ParentStatement && self.children != null);
+  getJSClass(ExtendRule(_interpolation, bogusSpan)).superclass
+    ..defineMethod(
+      'accept',
+      (Statement self, StatementVisitor<Object?> visitor) =>
+          self.accept(visitor),
+    )
+    ..defineGetter(
+      'hasChildren',
+      (Statement self) => self is ParentStatement && self.children != null,
+    );
   var string = StringExpression(_interpolation);
   getJSClass(string).superclass.defineMethod(
     'accept',
