@@ -85,7 +85,7 @@ export abstract class LazyRaws<T extends sassInternal.SassNode> {
   }
 
   /** Make this look like a normal object when inspected in Node.js. */
-  [Symbol.for('util.inspect.custom')](
+  [Symbol.for('nodejs.util.inspect.custom')](
     _: number,
     options: util.InspectOptions,
   ): string {
