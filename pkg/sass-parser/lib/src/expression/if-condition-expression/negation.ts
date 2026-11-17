@@ -14,6 +14,7 @@ import {
   IfConditionExpressionProps,
 } from './index';
 import {IfEntry} from '../if-entry';
+import {LazyRaws} from '../../lazy-raws';
 import {LazySource} from '../../lazy-source';
 import {convertIfConditionExpression} from './convert';
 
@@ -77,6 +78,7 @@ export class IfConditionNegation extends IfConditionExpression {
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
+      this.raws = new LazyIfConditionNegationRaws(inner);
       this.negated = convertIfConditionExpression(inner.expression);
     }
     this.raws ??= {};
@@ -101,5 +103,26 @@ export class IfConditionNegation extends IfConditionExpression {
   /** @hidden */
   get nonStatementChildren(): ReadonlyArray<AnyIfConditionExpression> {
     return [this.negated];
+  }
+}
+
+class LazyIfConditionNegationRaws
+  extends LazyRaws<sassInternal.IfConditionNegation>
+  implements IfConditionNegationRaws
+{
+  declare not?: string;
+  declare between?: string;
+
+  constructor(inner: sassInternal.IfConditionNegation) {
+    super(inner, ['not', 'between']);
+  }
+
+  protected _computeRaws(): void {
+    const identifier = this._node.span.initialIdentifier();
+    this._setRawDefault('not', () => identifier.text);
+    this._setRawDefault(
+      'between',
+      () => identifier.between(this._node.expression.span).text,
+    );
   }
 }

@@ -10,7 +10,10 @@ exports[`an if() condition negatoin toJSON 1`] = `
     },
   ],
   "negated": <sass(true)>,
-  "raws": {},
+  "raws": LazyIfConditionNegationRaws {
+    "between": " ",
+    "not": "not",
+  },
   "sassType": "if-condition-negation",
   "source": <1:7-1:21 in 0>,
 }

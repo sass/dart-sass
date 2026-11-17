@@ -165,7 +165,7 @@ describe('an if() condition negatoin', () => {
 
   describe('clone()', () => {
     beforeEach(() => {
-      node.raws.between = '  ';
+      node = utils.parseIfConditionExpression('not  sass(true)');
     });
 
     describe('with no overrides', () => {
@@ -199,6 +199,7 @@ describe('an if() condition negatoin', () => {
 
         it('undefined', () =>
           expect(node.clone({raws: undefined}).raws).toEqual({
+            not: 'not',
             between: '  ',
           }));
       });
