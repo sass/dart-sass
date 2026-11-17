@@ -54,7 +54,7 @@ runs:
     # for releases, so it doesn't need to link repository versions.
     - name: Check out the language repo
       if: runner.os != 'windows' || runner.arch != 'ARM64'
-      uses: sass/clone-linked-repo@ec2dcd11c5eaec56b64855712372056a14e9614d # v1.1.0
+      uses: sass/clone-linked-repo@5c6b8c79dc302d9104921eb4fee1942b15031e36 # v1.2.0
       with: {repo: sass/sass, path: build/language}
     - name: Check out the language repo
       if: runner.os == 'windows' && runner.arch == 'ARM64'
