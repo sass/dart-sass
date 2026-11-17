@@ -1,3 +1,7 @@
+## 0.5.7-dev
+
+* Compute raws for parsed `Root` nodes.
+
 ## 0.5.6
 
 * No user-visible changes.

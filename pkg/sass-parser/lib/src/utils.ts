@@ -5,6 +5,7 @@
 import * as postcss from 'postcss';
 import * as sass from 'sass';
 
+import {LazyRaws} from './lazy-raws';
 import {Node} from './node';
 
 /**
@@ -115,6 +116,8 @@ function maybeClone<T>(value: T): T {
       clone[key] = maybeClone(child);
     }
     return clone as T;
+  } else if (value instanceof LazyRaws) {
+    return value._clone();
   }
   if (value instanceof postcss.Node) return value.clone() as T;
   return value;

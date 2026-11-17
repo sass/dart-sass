@@ -66,6 +66,7 @@ final _expression = NullExpression(bogusSpan);
 
 /// Loads and returns all the exports needed for the `sass-parser` package.
 ParserExports loadParserExports() {
+  _updateFileSpanPrototype(bogusSpan);
   _updateLazyFileSpanPrototype();
   _updateAstPrototypes();
   return ParserExports(
@@ -94,6 +95,21 @@ ParserExports loadParserExports() {
   );
 }
 
+/// Updates the prototype of a [FileSpan] to provide access to JS.
+void _updateFileSpanPrototype(FileSpan span) {
+  getJSClass(span).defineMethods({
+    'trim': (FileSpan span) => span.trim(),
+    'trimLeft': (FileSpan span) => span.trimLeft(),
+    'trimRight': (FileSpan span) => span.trimRight(),
+    'initialIdentifier': (FileSpan span, [int includeLeading = 0]) =>
+        span.initialIdentifier(includeLeading: includeLeading),
+    'withoutInitialIdentifier': (FileSpan span) =>
+        span.withoutInitialIdentifier(),
+    'before': (FileSpan span, FileSpan other) => span.before(other),
+    'after': (FileSpan span, FileSpan other) => span.after(other),
+  });
+}
+
 /// Updates the prototype of [LazyFileSpan] to provide access to JS.
 void _updateLazyFileSpanPrototype() {
   var span = LazyFileSpan(() => bogusSpan);
@@ -102,6 +118,7 @@ void _updateLazyFileSpanPrototype() {
     'length': (LazyFileSpan span) => span.length,
     'sourceUrl': (LazyFileSpan span) => span.sourceUrl,
   });
+  _updateFileSpanPrototype(span);
 }
 
 /// Modifies the prototypes of the Sass AST classes to provide access to JS.
@@ -122,10 +139,16 @@ void _updateAstPrototypes() {
       .defineGetter('codeUnits', (SourceFile self) => self.codeUnits);
   getJSClass(_interpolation)
       .defineGetter('asPlain', (Interpolation self) => self.asPlain);
-  getJSClass(ExtendRule(_interpolation, bogusSpan)).superclass.defineMethod(
-    'accept',
-    (Statement self, StatementVisitor<Object?> visitor) => self.accept(visitor),
-  );
+  getJSClass(ExtendRule(_interpolation, bogusSpan)).superclass
+    ..defineMethod(
+      'accept',
+      (Statement self, StatementVisitor<Object?> visitor) =>
+          self.accept(visitor),
+    )
+    ..defineGetter(
+      'hasChildren',
+      (Statement self) => self is ParentStatement && self.children != null,
+    );
   var string = StringExpression(_interpolation);
   getJSClass(string).superclass.defineMethod(
     'accept',

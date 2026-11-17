@@ -1,3 +1,7 @@
+## 18.5.1-dev
+
+* No user-visible changes.
+
 ## 18.5.0
 
 * Add top-level `colorByName` and `namesByColor` maps between CSS color names

@@ -15,6 +15,16 @@ export type Syntax = 'scss' | 'sass' | 'css';
 
 export interface FileSpan extends sass.SourceSpan {
   readonly file: SourceFile;
+  readonly length: number;
+  readonly text: string;
+
+  trim(): FileSpan;
+  trimLeft(): FileSpan;
+  trimRight(): FileSpan;
+  initialIdentifier(includeLeading?: number): FileSpan;
+  withoutInitialIdentifier(): FileSpan;
+  before(span: FileSpan): FileSpan;
+  after(span: FileSpan): FileSpan;
 }
 
 export interface SourceFile {
@@ -135,6 +145,7 @@ declare namespace SassInternal {
 
   class Statement extends SassNode {
     accept<T>(visitor: StatementVisitor<T>): T;
+    get hasChildren(): boolean;
   }
 
   class ParentStatement<T extends Statement[] | null> extends Statement {
