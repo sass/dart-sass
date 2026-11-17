@@ -9,7 +9,12 @@ exports[`a color expression toJSON 1`] = `
       "id": "<input css _____>",
     },
   ],
-  "raws": {},
+  "raws": LazyColorExpressionRaws {
+    "value": {
+      "raw": "#00f",
+      "value": <#00f>,
+    },
+  },
   "sassType": "color",
   "source": <1:4-1:8 in 0>,
   "value": {

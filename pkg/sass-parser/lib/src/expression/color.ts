@@ -6,6 +6,7 @@ import * as postcss from 'postcss';
 import * as sass from 'sass';
 
 import {LazySource} from '../lazy-source';
+import {LazyRaws} from '../lazy-raws';
 import {NodeProps} from '../node';
 import {RawWithValue} from '../raw-with-value';
 import type * as sassInternal from '../sass-internal';
@@ -80,6 +81,7 @@ export class ColorExpression extends Expression {
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
+      this.raws = new LazyColorExpressionRaws(inner);
       this.value = inner.value;
     }
   }
@@ -117,5 +119,23 @@ export class ColorExpression extends Expression {
   /** @hidden */
   get nonStatementChildren(): ReadonlyArray<never> {
     return [];
+  }
+}
+
+class LazyColorExpressionRaws
+  extends LazyRaws<sassInternal.ColorExpression>
+  implements ColorExpressionRaws
+{
+  declare value?: RawWithValue<sass.SassColor>;
+
+  constructor(inner: sassInternal.ColorExpression) {
+    super(inner, ['value']);
+  }
+
+  protected _computeRaws(): void {
+    this._setRawDefault('value', () => ({
+      raw: this._node.span.text,
+      value: this._node.value,
+    }));
   }
 }

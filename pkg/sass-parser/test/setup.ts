@@ -444,6 +444,17 @@ expect.addSnapshotSerializer({
   },
 });
 
+// Serialize Sass values tersely.
+expect.addSnapshotSerializer({
+  test(value: unknown): boolean {
+    return value instanceof sass.Value;
+  },
+
+  serialize(value: sass.Value): string {
+    return `<${value}>`;
+  },
+});
+
 /** Converts a {@link JsonPosition} into a terse string representation. */
 function tersePosition(position: JsonPosition): string {
   if (position.offset !== position.column - 1) {

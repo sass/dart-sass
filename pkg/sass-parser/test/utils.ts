@@ -23,11 +23,15 @@ import {
 } from '../lib';
 
 /** Parses a Sass expression from {@link text}. */
-export function parseExpression<T extends AnyExpression>(text: string): T {
+export function parseExpression<T extends AnyExpression>(
+  text: string,
+  {noRaws}: {noRaws?: boolean} = {},
+): T {
   const interpolation = (scss.parse(`@#{${text}}`).nodes[0] as GenericAtRule)
     .nameInterpolation;
   const expression = interpolation.nodes[0] as T;
   interpolation.removeChild(expression);
+  if (noRaws ?? false) expression.raws = {};
   return expression;
 }
 

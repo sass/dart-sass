@@ -5,6 +5,7 @@
 import type * as util from 'node:util';
 
 import * as sassInternal from './sass-internal';
+import * as utils from './utils';
 
 /**
  * A base class for PostCSS-compatible raws that are lazily computed from the
@@ -71,7 +72,7 @@ export abstract class LazyRaws<T extends sassInternal.SassNode> {
    */
   _clone(): this {
     const result = new (this.constructor as new (node: T) => this)(this._node);
-    result.#inner = structuredClone(this.#inner);
+    result.#inner = utils.maybeClone(this.#inner);
     return result;
   }
 

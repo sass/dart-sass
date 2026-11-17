@@ -155,10 +155,14 @@ describe('a color expression', () => {
 
   describe('stringifies', () => {
     it('without alpha', () =>
-      expect(utils.parseExpression('#abc').toString()).toBe('#aabbcc'));
+      expect(utils.parseExpression('#abc', {noRaws: true}).toString()).toBe(
+        '#aabbcc',
+      ));
 
     it('with alpha', () =>
-      expect(utils.parseExpression('#abcd').toString()).toBe('#aabbccdd'));
+      expect(utils.parseExpression('#abcd', {noRaws: true}).toString()).toBe(
+        '#aabbccdd',
+      ));
 
     describe('raws', () => {
       it('with the same raw value as the expression', () =>
@@ -184,8 +188,6 @@ describe('a color expression', () => {
 
     beforeEach(() => {
       original = utils.parseExpression('#00f');
-      // TODO: remove this once raws are properly parsed.
-      original.raws.value = {raw: 'blue', value: blue};
     });
 
     describe('with no overrides', () => {
@@ -197,7 +199,7 @@ describe('a color expression', () => {
         it('value', () => expect(clone.value).toEqual(blue));
 
         it('raws', () => {
-          expect(clone.raws.value!.raw).toBe('blue');
+          expect(clone.raws.value!.raw).toBe('#00f');
           expect(clone.raws.value!.value).toEqual(blue);
         });
 
@@ -236,7 +238,7 @@ describe('a color expression', () => {
 
         it('undefined', () =>
           expect(original.clone({raws: undefined}).raws.value!.raw).toBe(
-            'blue',
+            '#00f',
           ));
       });
     });

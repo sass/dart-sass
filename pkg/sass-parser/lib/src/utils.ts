@@ -102,10 +102,10 @@ export function cloneNode<T extends Pick<postcss.Node, 'source'>>(
 }
 
 /**
- * If {@link value} is a Sass node, a record, or an array, clones it and returns
- * the clone. Otherwise, returns it as-is.
+ * If {@link value} is a Sass node, a record, an array, or a {@link LazyRaws},
+ * clones it and returns the clone. Otherwise, returns it as-is.
  */
-function maybeClone<T>(value: T): T {
+export function maybeClone<T>(value: T): T {
   if (Array.isArray(value)) return value.map(maybeClone) as T;
   if (typeof value !== 'object' || value === null) return value;
   // The only records we care about are raws, which only contain primitives and
