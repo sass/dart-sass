@@ -99,7 +99,10 @@ describe('a binary operation', () => {
   describe('stringifies', () => {
     beforeEach(() => void (node = utils.parseExpression('foo + bar')));
 
-    it('without raws', () => expect(node.toString()).toBe('foo + bar'));
+    it('without raws', () => {
+      node.raws = {};
+      expect(node.toString()).toBe('foo + bar');
+    });
 
     it('with beforeOperator', () => {
       node.raws.beforeOperator = '/**/';
@@ -116,8 +119,6 @@ describe('a binary operation', () => {
     let original: BinaryOperationExpression;
     beforeEach(() => {
       original = utils.parseExpression('foo + bar');
-      // TODO: remove this once raws are properly parsed
-      original.raws.beforeOperator = '  ';
     });
 
     describe('with no overrides', () => {
@@ -131,7 +132,11 @@ describe('a binary operation', () => {
 
         it('right', () => expect(clone).toHaveStringExpression('right', 'bar'));
 
-        it('raws', () => expect(clone.raws).toEqual({beforeOperator: '  '}));
+        it('raws', () =>
+          expect(clone.raws).toEqual({
+            beforeOperator: ' ',
+            afterOperator: ' ',
+          }));
 
         it('source', () => expect(clone.source).toBe(original.source));
       });
@@ -190,10 +195,25 @@ describe('a binary operation', () => {
 
         it('undefined', () =>
           expect(original.clone({raws: undefined}).raws).toEqual({
-            beforeOperator: '  ',
+            beforeOperator: ' ',
+            afterOperator: ' ',
           }));
       });
     });
+  });
+
+  describe('raws', () => {
+    it('without whitespace', () =>
+      expect(utils.parseExpression('a+b').raws).toEqual({
+        beforeOperator: '',
+        afterOperator: '',
+      }));
+
+    it('with whitespace', () =>
+      expect(utils.parseExpression('a  +/**/b').raws).toEqual({
+        beforeOperator: '  ',
+        afterOperator: '/**/',
+      }));
   });
 
   it('toJSON', () =>

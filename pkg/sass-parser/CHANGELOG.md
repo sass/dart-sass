@@ -1,6 +1,6 @@
 ## 0.5.7-dev
 
-* Compute raws for parsed `Root` nodes.
+* Compute raws for parsed `Root` nodes and binary operations.
 
 ## 0.5.6
 

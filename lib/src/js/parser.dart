@@ -107,6 +107,9 @@ void _updateFileSpanPrototype(FileSpan span) {
         span.withoutInitialIdentifier(),
     'before': (FileSpan span, FileSpan other) => span.before(other),
     'after': (FileSpan span, FileSpan other) => span.after(other),
+    'between': (FileSpan span, FileSpan other) => span.between(other),
+    'subspan': (FileSpan span, int start, [int? end]) =>
+        span.subspan(start, end),
   });
 }
 

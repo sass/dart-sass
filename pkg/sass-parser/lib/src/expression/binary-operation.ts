@@ -4,6 +4,7 @@
 
 import * as postcss from 'postcss';
 
+import {LazyRaws} from '../lazy-raws';
 import {LazySource} from '../lazy-source';
 import {NodeProps} from '../node';
 import type * as sassInternal from '../sass-internal';
@@ -115,6 +116,7 @@ export class BinaryOperationExpression extends Expression {
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
+      this.raws = new LazyBinaryOperationExpressionRaws(inner);
       this.operator = inner.operator.operator;
       this.left = convertExpression(inner.left);
       this.right = convertExpression(inner.right);
@@ -148,5 +150,35 @@ export class BinaryOperationExpression extends Expression {
   /** @hidden */
   get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return [this.left, this.right];
+  }
+}
+
+class LazyBinaryOperationExpressionRaws
+  extends LazyRaws<sassInternal.BinaryOperationExpression>
+  implements BinaryOperationExpressionRaws
+{
+  declare beforeOperator?: string;
+  declare afterOperator?: string;
+
+  constructor(inner: sassInternal.BinaryOperationExpression) {
+    super(inner, ['beforeOperator', 'afterOperator']);
+  }
+
+  protected _computeRaws(): void {
+    // a + b
+    //  ^^^
+    const span = this._node.left.span.between(this._node.right.span);
+    // a + b
+    //   ^^
+    const trimmed = span.trimLeft();
+    // a + b
+    //  ^
+    this._setRawDefault('beforeOperator', () => span.before(trimmed).text);
+    // a + b
+    //    ^
+    this._setRawDefault(
+      'afterOperator',
+      () => trimmed.subspan(this._node.operator.operator.length).text,
+    );
   }
 }

@@ -11,7 +11,10 @@ exports[`a binary operation toJSON 1`] = `
   ],
   "left": <foo>,
   "operator": "+",
-  "raws": {},
+  "raws": LazyBinaryOperationExpressionRaws {
+    "afterOperator": " ",
+    "beforeOperator": " ",
+  },
   "right": <bar>,
   "sassType": "binary-operation",
   "source": <1:4-1:13 in 0>,

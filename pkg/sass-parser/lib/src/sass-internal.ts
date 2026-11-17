@@ -25,6 +25,8 @@ export interface FileSpan extends sass.SourceSpan {
   withoutInitialIdentifier(): FileSpan;
   before(span: FileSpan): FileSpan;
   after(span: FileSpan): FileSpan;
+  between(span: FileSpan): FileSpan;
+  subspan(start: number, end?: number): FileSpan;
 }
 
 export interface SourceFile {
