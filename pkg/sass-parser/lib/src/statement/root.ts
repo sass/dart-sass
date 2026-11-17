@@ -82,7 +82,10 @@ export class Root extends _Root implements Statement {
   }
 }
 
-class LazyRootRaws extends LazyRaws<sassInternal.Stylesheet> {
+class LazyRootRaws
+  extends LazyRaws<sassInternal.Stylesheet>
+  implements RootRaws
+{
   declare after?: string;
   declare semicolon?: boolean;
 
