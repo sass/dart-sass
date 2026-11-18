@@ -100,6 +100,9 @@ String realpath(String path) => throw '';
 @internal
 DateTime modificationTime(String path) => throw '';
 
+/// Sets the modification time of the file at [path] to [time].
+void setModificationTime(String path, DateTime time) => throw '';
+
 /// Returns the value of the environment variable with the given [name], or
 /// `null` if it's not set.
 @internal

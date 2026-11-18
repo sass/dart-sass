@@ -237,7 +237,7 @@ describe('a configured variable', () => {
               name: 'f o',
               expression: {text: 'bar', quotes: true},
             }).toString(),
-          ).toBe('$f\\20o: "bar"'));
+          ).toBe('$f\\ o: "bar"'));
       });
 
       // raws.before is only used as part of a Configuration

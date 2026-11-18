@@ -36,6 +36,7 @@ class ParserExports {
     required Function parse,
     required Function parseIdentifier,
     required Function toCssIdentifier,
+    required Function resolveCssEscapes,
     required Function createExpressionVisitor,
     required Function createIfConditionExpressionVisitor,
     required Function createStatementVisitor,
@@ -48,6 +49,7 @@ class ParserExports {
   external set parse(Function function);
   external set parseIdentifier(Function function);
   external set toCssIdentifier(Function function);
+  external set resolveCssEscapes(Function function);
   external set createStatementVisitor(Function function);
   external set createExpressionVisitor(Function function);
   external set setToJS(Function function);
@@ -70,6 +72,7 @@ ParserExports loadParserExports() {
     parse: allowInterop(_parse),
     parseIdentifier: allowInterop(_parseIdentifier),
     toCssIdentifier: allowInterop(_toCssIdentifier),
+    resolveCssEscapes: allowInterop(_resolveCssEscapes),
     createExpressionVisitor: allowInterop(
       (JSExpressionVisitorObject inner) => JSExpressionVisitor(inner),
     ),
@@ -238,3 +241,6 @@ String? _parseIdentifier(String identifier) {
 /// A JavaScript-friendly method to convert text to a valid CSS identifier with
 /// the same contents.
 String _toCssIdentifier(String text) => text.toCssIdentifier();
+
+/// A JavaScript-friendly method to CSS escape codes to their literal values.
+String _resolveCssEscapes(String text) => text.resolveCssEscapes();

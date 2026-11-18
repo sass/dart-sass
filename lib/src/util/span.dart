@@ -7,8 +7,11 @@ import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
+import '../parse/parser.dart';
+import '../parse/stylesheet.dart';
 import '../utils.dart';
 import 'character.dart';
+import 'lazy_file_span.dart';
 
 /// A span that points nowhere.
 ///
@@ -19,26 +22,31 @@ final bogusSpan = SourceFile.decoded([]).span(0);
 
 @internal
 extension SpanExtensions on FileSpan {
-  /// Returns this span with all whitespace trimmed from both sides.
-  FileSpan trim() => trimLeft().trimRight();
+  /// Returns this span with all whitespace and comments trimmed from both
+  /// sides.
+  ///
+  /// This operation is lazy—it only actually loads or changes the span once its
+  /// data is accessed.
+  FileSpan trim() => LazyFileSpan(() => _trimLeft()._trimRight());
 
-  /// Returns this span with all leading whitespace trimmed.
-  FileSpan trimLeft() {
-    var start = 0;
-    while (text.codeUnitAt(start).isWhitespace) {
-      start++;
-    }
-    return subspan(start);
-  }
+  /// Returns this span with all leading whitespace and comments trimmed.
+  ///
+  /// This operation is lazy—it only actually loads or changes the span once its
+  /// data is accessed.
+  FileSpan trimLeft() => LazyFileSpan(() => _trimLeft());
 
-  /// Returns this span with all trailing whitespace trimmed.
-  FileSpan trimRight() {
-    var end = text.length - 1;
-    while (text.codeUnitAt(end).isWhitespace) {
-      end--;
-    }
-    return subspan(0, end + 1);
-  }
+  /// Returns this span with all leading whitespace and comments trimmed.
+  FileSpan _trimLeft() => subspan(Parser.indexAfterWhitespaceAndComments(text));
+
+  /// Returns this span with all trailing whitespace and comments trimmed.
+  ///
+  /// This operation is lazy—it only actually loads or changes the span once its
+  /// data is accessed.
+  FileSpan trimRight() => LazyFileSpan(() => _trimRight());
+
+  /// Returns this span with all trailing whitespace and comments trimmed.
+  FileSpan _trimRight() =>
+      subspan(0, StylesheetParser.lastIndexOfWhitespaceAndComments(text));
 
   /// Returns the span of the identifier at the start of this span.
   ///

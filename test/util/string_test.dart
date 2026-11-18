@@ -15,6 +15,11 @@ void main() {
         () => expect('--'.toCssIdentifier(), equals('--')),
       );
 
+      test(
+        'a single hyphen with body: true',
+        () => expect('-'.toCssIdentifier(body: true), equals('-')),
+      );
+
       group("a starting character", () {
         const chars = {
           'lower-case alphabetic': 'q',
@@ -37,6 +42,16 @@ void main() {
               () => expect('-$char'.toCssIdentifier(), equals('-$char')),
             );
           }
+        });
+
+        group('with body: true', () {
+          test("at the very beginning that's numeric", () {
+            expect('1'.toCssIdentifier(body: true), equals('1'));
+          });
+
+          test("after a single hyphen that's numeric", () {
+            expect('-1'.toCssIdentifier(body: true), equals('-1'));
+          });
         });
       });
 
@@ -74,15 +89,17 @@ void main() {
     group('escapes', () {
       test(
         'a single hyphen',
-        () => expect('-'.toCssIdentifier(), equals('\\2d')),
+        () => expect('-'.toCssIdentifier(), equals('\\2d ')),
       );
 
       group('a starting character', () {
         const chars = {
-          'numeric': ('4', '\\34'),
-          'non-alphanumeric ASCII': ('%', '\\25'),
-          'a BMP private-use character': ('\ueabc', '\\eabc'),
-          'a supplementary private-use character': ('\u{fabcd}', '\\fabcd'),
+          'numeric': ('4', '\\34 '),
+          'non-printing ASCII': ('\u001f', '\\1f '),
+          'delete': ('\u007f', '\\7f '),
+          'non-alphanumeric ASCII': ('%', '\\%'),
+          'a BMP private-use character': ('\ueabc', '\\eabc '),
+          'a supplementary private-use character': ('\u{fabcd}', '\\fabcd '),
         };
 
         group("at the very beginning that's", () {
@@ -99,13 +116,46 @@ void main() {
             );
           }
         });
+
+        group('with body:true', () {
+          const chars = {
+            'non-printing ASCII': ('\u001f', '\\1f '),
+            'delete': ('\u007f', '\\7f '),
+            'non-alphanumeric ASCII': ('%', '\\%'),
+            'a BMP private-use character': ('\ueabc', '\\eabc '),
+            'a supplementary private-use character': ('\u{fabcd}', '\\fabcd '),
+          };
+
+          group("at the very beginning that's", () {
+            for (var (name, (char, escape)) in chars.pairs) {
+              test(
+                name,
+                () => expect(char.toCssIdentifier(body: true), equals(escape)),
+              );
+            }
+          });
+
+          group("after a single hyphen that's", () {
+            for (var (name, (char, escape)) in chars.pairs) {
+              test(
+                name,
+                () => expect(
+                  '-$char'.toCssIdentifier(body: true),
+                  equals('-$escape'),
+                ),
+              );
+            }
+          });
+        });
       });
 
       group('a middle character', () {
         const chars = {
-          'non-alphanumeric ASCII': ('%', '\\25'),
-          'a BMP private-use character': ('\ueabc', '\\eabc'),
-          'a supplementary private-use character': ('\u{fabcd}', '\\fabcd'),
+          'non-printing ASCII': ('\u001f', '\\1f '),
+          'delete': ('\u007f', '\\7f '),
+          'non-alphanumeric ASCII': ('%', '\\%'),
+          'a BMP private-use character': ('\ueabc', '\\eabc '),
+          'a supplementary private-use character': ('\u{fabcd}', '\\fabcd '),
         };
 
         group("after a name start that's", () {
@@ -181,46 +231,6 @@ void main() {
           );
         }
       });
-    });
-
-    group('adds a space between an escape and', () {
-      test('a digit', () => expect(' 1'.toCssIdentifier(), '\\20 1'));
-
-      test(
-        'a lowercase hex letter',
-        () => expect(' b'.toCssIdentifier(), '\\20 b'),
-      );
-
-      test(
-        'an uppercase hex letter',
-        () => expect(' B'.toCssIdentifier(), '\\20 B'),
-      );
-    });
-
-    group('doesn\'t add a space between an escape and', () {
-      test(
-        'the end of the string',
-        () => expect(' '.toCssIdentifier(), '\\20'),
-      );
-
-      test(
-        'a lowercase non-hex letter',
-        () => expect(' g'.toCssIdentifier(), '\\20g'),
-      );
-
-      test(
-        'an uppercase non-hex letter',
-        () => expect(' G'.toCssIdentifier(), '\\20G'),
-      );
-
-      test('a hyphen', () => expect(' -'.toCssIdentifier(), '\\20-'));
-
-      test(
-        'a non-ascii character',
-        () => expect(' ä'.toCssIdentifier(), '\\20ä'),
-      );
-
-      test('another escape', () => expect('  '.toCssIdentifier(), '\\20\\20'));
     });
   });
 }

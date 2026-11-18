@@ -1,4 +1,4 @@
-## 18.0.0
+## 19.0.0
 
 * Add a `ReplaceSelectorVisitor` class.
 
@@ -6,7 +6,69 @@
 
 * All parse methods now canonicalize their `url` parameters.
 
-## 17.10.1-dev
+## 18.5.0
+
+* Add top-level `colorByName` and `namesByColor` maps between CSS color names
+  and their values.
+
+* Make `VariableDeclaration` implement `SassReference`.
+
+## 18.4.1
+
+* No user-visible changes.
+
+## 18.4.0
+
+* No user-visible changes.
+
+## 18.3.0
+
+* Add a top-level `toCssIdentifier()` function which converts a string into a
+  CSS identifier with that string as its value.
+
+## 18.2.0
+
+* No user-visible changes.
+
+## 18.1.0
+
+* No user-visible changes.
+
+## 18.0.0
+
+* Add a `SelectorNamespace` type, along with subtypes
+  `DefaultSelectorNamespace`, `NoSelectorNamespace`, `AnySelectorNamespace`, and
+  `NamedSelectorNamespace`.
+
+* **Breaking change:** `QualifiedName.namespace` now uses the new
+  `SelectorNamespace` type.
+
+* **Breaking change:** `String` values that are parsed from identifiers now
+  contain the semantic value of those identifiers, with escapes resolved. These
+  are normalized back to escape codes at serialization time.
+
+  `Interpolation` values parsed from identifiers still contain normalized
+  identifiers for expressions. For statements, they now contain the identifier
+  syntax exactly as written in the document.
+
+* **Breaking change:** Parsed `Interpolation`s no longer normalize CSS escapes,
+  which means that `Interpolation.asPlain` is also not normalized. Use
+  `Interpolation.asPlainIdentifier` instead to retrieve a normalized identifier
+  for use in checking for specific keywords.
+
+## 17.11.2
+
+* No user-visible changes.
+
+## 17.11.1
+
+* No user-visible changes.
+
+## 17.11.0
+
+* No user-visible changes.
+
+## 17.10.1
 
 * Omit an extra newline that was being added to the end of `StyleRule.selector`
   in the indented syntax.

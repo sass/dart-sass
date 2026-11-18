@@ -8,6 +8,7 @@ import '../../exception.dart';
 import '../../parse/scss.dart';
 import '../../util/character.dart';
 import '../../util/span.dart';
+import '../../util/string.dart';
 import '../../utils.dart';
 import 'parameter.dart';
 import 'node.dart';
@@ -22,6 +23,8 @@ final class ParameterList implements SassNode {
 
   /// The name of the rest parameter (as in `$args...`), or `null` if none was
   /// declared.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   final String? restParameter;
 
   @override
@@ -49,7 +52,7 @@ final class ParameterList implements SassNode {
     if (!text.codeUnitAt(i + 1).isNameStart) return span;
 
     // Trim because it's possible that this span is empty (for example, a mixin
-    // may be declared without an parameter list).
+    // may be declared without a parameter list).
     return span.file.span(i + 1, span.end.offset).trim();
   }
 
@@ -73,18 +76,22 @@ final class ParameterList implements SassNode {
 
   /// Throws a [SassScriptException] if [positional] and [names] aren't valid
   /// for this parameter declaration.
+  ///
+  /// For compatibility with pre-1.106.0 behavior, this takes the textual values
+  /// of [names] rather than their semantic value. See sass/sass#4268 for
+  /// details and the path towards a better behavior.
   void verify(int positional, Set<String> names) {
     var namedUsed = 0;
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
       if (i < positional) {
-        if (names.contains(parameter.name)) {
+        if (names.contains(parameter.name.toCssIdentifier())) {
           throw SassScriptException(
             "Argument ${_originalParameterName(parameter.name)} was passed "
             "both by position and by name.",
           );
         }
-      } else if (names.contains(parameter.name)) {
+      } else if (names.contains(parameter.name.toCssIdentifier())) {
         namedUsed++;
       } else if (parameter.defaultValue == null) {
         throw MultiSpanSassScriptException(
@@ -111,7 +118,9 @@ final class ParameterList implements SassNode {
 
     if (namedUsed < names.length) {
       var unknownNames = Set.of(names)
-        ..removeAll(parameters.map((parameter) => parameter.name));
+        ..removeAll(
+          parameters.map((parameter) => parameter.name.toCssIdentifier()),
+        );
       throw MultiSpanSassScriptException(
         "No ${pluralize('parameter', unknownNames.length)} named "
             "${toSentence(unknownNames.map((name) => "\$$name"), 'or')}.",
@@ -161,6 +170,7 @@ final class ParameterList implements SassNode {
   @override
   String toString() => [
     for (var arg in parameters) '\$$arg',
-    if (restParameter != null) '\$$restParameter...',
+    if (restParameter case var restParameter?)
+      '\$${restParameter.toCssIdentifier()}...',
   ].join(', ');
 }

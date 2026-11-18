@@ -115,13 +115,13 @@ describe('a variable expression', () => {
               namespace: 'b r',
               variableName: 'foo',
             }).toString(),
-          ).toBe('b\\20r.$foo'));
+          ).toBe('b\\ r.$foo'));
       });
     });
 
     it("with a name that's not an identifier", () =>
       expect(new VariableExpression({variableName: 'f o'}).toString()).toBe(
-        '$f\\20o',
+        '$f\\ o',
       ));
 
     it('with matching namespace', () =>

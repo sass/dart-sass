@@ -22,6 +22,8 @@ import '../selector.dart';
 /// {@category AST}
 final class PseudoSelector(
   /// The name of this selector.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   final String name,
   super.span, {
   bool element = false,

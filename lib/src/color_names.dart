@@ -2,13 +2,10 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:meta/meta.dart';
-
 import 'value.dart';
 import 'util/map.dart';
 
 /// A map from (lowercase) color names to their color values.
-@internal
 final colorsByName = {
   // Note: these are in reverse alphabetical order so that colors with multiple
   // names will use the alphabetically first option in [namesByColor].
@@ -164,7 +161,6 @@ final colorsByName = {
 };
 
 /// A map from Sass colors to (lowercase) color names.
-@internal
 final namesByColor = {
   for (var (name, color) in colorsByName.pairs) color: name,
 };

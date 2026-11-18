@@ -9,6 +9,7 @@ import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 import '../ast/css.dart';
+import '../ast/node.dart';
 import '../ast/selector.dart';
 import '../ast/sass.dart';
 import '../exception.dart';
@@ -221,23 +222,11 @@ interface class ExtensionStore {
 
     _extendedModernPseudo = false;
     if (_extensions.isNotEmpty) {
-      try {
-        selector = _extendList(
-          originalSelector,
-          _extensions,
-          mediaQueryContext: mediaContext,
-        );
-      } on SassException catch (error, stackTrace) {
-        throwWithTrace(
-          SassException(
-            "From ${error.span.message('')}\n"
-            "${error.message}",
-            error.span,
-          ),
-          error,
-          stackTrace,
-        );
-      }
+      selector = _extendList(
+        originalSelector,
+        _extensions,
+        mediaQueryContext: mediaContext,
+      );
     }
 
     var modifiableSelector = ModifiableBox(selector);
@@ -463,24 +452,11 @@ interface class ExtensionStore {
     for (var selector in selectors) {
       _extendedModernPseudo = false;
       var oldValue = selector.value;
-      try {
-        selector.value = _extendList(
-          selector.value,
-          newExtensions,
-          mediaQueryContext: _mediaContexts[selector],
-        );
-      } on SassException catch (error, stackTrace) {
-        // TODO(nweiz): Make this a MultiSpanSassException.
-        throwWithTrace(
-          SassException(
-            "From ${selector.value.span.message('')}\n"
-            "${error.message}",
-            error.span,
-          ),
-          error,
-          stackTrace,
-        );
-      }
+      selector.value = _extendList(
+        selector.value,
+        newExtensions,
+        mediaQueryContext: _mediaContexts[selector],
+      );
 
       // If no extends actually happened (for example because unification
       // failed), we don't need to re-register the selector.
@@ -856,7 +832,10 @@ interface class ExtensionStore {
     if (options case [var extenders]) {
       List<ComplexSelector>? result;
       for (var extender in extenders) {
-        extender.assertCompatibleMediaContext(mediaQueryContext);
+        extender.assertCompatibleMediaContext(
+          mediaQueryContext,
+          component.selector,
+        );
         if (extender.selector.withAdditionalCombinator(component.combinator)
             case var complex?) {
           result ??= [];
@@ -982,7 +961,10 @@ interface class ExtensionStore {
     if (complexes == null) return null;
 
     for (var extender in extenders) {
-      extender.assertCompatibleMediaContext(mediaQueryContext);
+      extender.assertCompatibleMediaContext(
+        mediaQueryContext,
+        AstNode.fake(() => span),
+      );
     }
 
     return complexes;

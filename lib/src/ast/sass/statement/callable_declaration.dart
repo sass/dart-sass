@@ -15,6 +15,8 @@ import 'silent_comment.dart';
 /// {@category AST}
 abstract base class CallableDeclaration(
   /// The callable's original name, without underscores converted to hyphens.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   final String originalName,
 
   /// The declared parameters this callable accepts.

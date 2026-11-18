@@ -333,7 +333,7 @@ describe('a parameter', () => {
           ));
 
         it('with a non-identifier name', () =>
-          expect(new Parameter('f o').toString()).toBe('$f\\20o'));
+          expect(new Parameter('f o').toString()).toBe('$f\\ o'));
       });
 
       // raws.before is only used as part of a ParameterList

@@ -1,8 +1,51 @@
-## 0.5.0-dev
+## 0.6.0-dev
 
 * `/` is now parsed as slash-separated lists rather than division in SassScript.
 
-## 0.4.55-dev
+## 0.5.6
+
+* No user-visible changes.
+
+## 0.5.5
+
+* No user-visible changes.
+
+## 0.5.4
+
+* No user-visible changes.
+
+## 0.5.3
+
+* No user-visible changes.
+
+## 0.5.2
+
+* No user-visible changes.
+
+## 0.5.1
+
+* No user-visible changes.
+
+## 0.5.0
+
+* **Breaking change:** Parsed `Interpolation`s no longer normalize CSS escapes,
+  which means that `Interpolation.asPlain` is also are not normalized. Use
+  `Interpolation.asPlainIdentifier` instead to retrieve a normalized identifier
+  for use in checking for specific keywords.
+
+## 0.4.58
+
+* No user-visible changes.
+
+## 0.4.57
+
+* No user-visible changes.
+
+## 0.4.56
+
+* No user-visible changes.
+
+## 0.4.55
 
 * Omit an extra newline that was being added to the end of `Rule.selector` in
   the indented syntax.

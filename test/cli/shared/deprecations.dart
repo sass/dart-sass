@@ -243,6 +243,27 @@ void sharedTests(
         });
       });
 
+      test("a future version", () async {
+        var sass = await runSass([
+          "--fatal-deprecation=999999.0.0",
+          "test.scss",
+        ]);
+        expect(sass.stdout, emits(contains("version less than or equal to")));
+        await sass.shouldExit(64);
+      });
+
+      test("an excluded deprecation that's not enabled", () async {
+        var sass = await runSass([
+          "--interactive",
+          "--fatal-deprecation=-elseif",
+        ]);
+        expect(
+          sass.stdout,
+          emits(contains('deprecation "elseif" was excluded')),
+        );
+        await sass.shouldExit(64);
+      });
+
       group("a parse-time deprecation", () {
         // TODO: Test this again once new deprecations are added post-2.0.0.
       });
