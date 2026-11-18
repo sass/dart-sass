@@ -4,6 +4,7 @@
 
 import 'package:source_span/source_span.dart';
 
+import '../../../util/string.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../statement.dart';
@@ -16,6 +17,8 @@ import 'parent.dart';
 /// {@category AST}
 final class ForRule(
   /// The name of the variable that will contain the index value.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   final String variable,
 
   /// The expression for the start index.
@@ -37,6 +40,6 @@ final class ForRule(
 
   @override
   String toString() =>
-      "@for \$$variable from $from ${isExclusive ? 'to' : 'through'} $to "
-      "{${children.join(" ")}}";
+      "@for \$${variable.toCssIdentifier()} from $from "
+      "${isExclusive ? 'to' : 'through'} $to {${children.join(" ")}}";
 }

@@ -17,7 +17,7 @@ jobs:
     permissions:
       security-events: write # Forwarded
       actions: read # Forwarded
-    uses: ./.github/workflows/test.yml
+    uses: $/.github/workflows/test.yml
 
   dependabot_merge:
     name: Auto-merge Dependabot PR
@@ -35,10 +35,13 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - if: steps.metadata.outputs.update-type != 'version-update:semver-major'
-        run: gh pr merge --auto --squash "$PR_URL"
+        run: gh pr merge --auto --squash "$PR_URL" -A "sass.bot.beep.boop@gmail.com"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - if: steps.metadata.outputs.update-type == 'version-update:semver-major'
+        run: echo "Major version increment needs manual review."
 
   double_check:
     name: Double-check
@@ -47,9 +50,9 @@ jobs:
     if: "github.ref_type == 'tag' && github.event.repository.fork == false"
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {persist-credentials: false}
-      - uses: ./.github/util/initialize
+      - uses: $/.github/util/initialize
         with: {github-token: "${{ github.token }}"}
 
       - name: Run checks
@@ -58,7 +61,7 @@ jobs:
   test_vendor:
     needs: [double_check]
     if: "github.ref_type == 'tag' && github.event.repository.fork == false"
-    uses: ./.github/workflows/test-vendor.yml
+    uses: $/.github/workflows/test-vendor.yml
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -70,7 +73,7 @@ jobs:
       attestations: write # Forwarded
       contents: write # Forwarded
       id-token: write # Forwarded
-    uses: ./.github/workflows/release.yml
+    uses: $/.github/workflows/release.yml
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
       PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}

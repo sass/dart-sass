@@ -315,7 +315,7 @@ describe('a @include rule', () => {
               includeName: 'f o',
               arguments: [{text: 'bar'}],
             }).toString(),
-          ).toBe('@include f\\20o(bar)'));
+          ).toBe('@include f\\ o(bar)'));
       });
 
       it('with afterName', () =>

@@ -19,8 +19,8 @@ final class ParentSelector(
   /// The suffix that will be added to the parent selector after it's been
   /// resolved.
   ///
-  /// This is assumed to be a valid identifier suffix. It may be `null`,
-  /// indicating that the parent selector will not be modified.
+  /// This is the semantic contents of the identifier, with escapes resolved. It
+  /// may be `null`, indicating that the parent selector will not be modified.
   final String? suffix,
 }) extends SimpleSelector {
   @override

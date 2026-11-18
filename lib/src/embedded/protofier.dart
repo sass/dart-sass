@@ -28,6 +28,9 @@ final class Protofier(
 
   /// The IDs of first-class mixins.
   final OpaqueRegistry<SassMixin> _mixins,
+
+  /// The IDs of first-class modules.
+  final OpaqueRegistry<SassModule> _modules,
 ) {
   /// Any argument lists transitively contained in [value].
   ///
@@ -96,6 +99,8 @@ final class Protofier(
         );
       case SassMixin():
         result.compilerMixin = Value_CompilerMixin(id: _mixins.getId(value));
+      case SassModule():
+        result.compilerModule = Value_CompilerModule(id: _modules.getId(value));
       case sassTrue:
         result.singleton = .TRUE;
       case sassFalse:
@@ -285,6 +290,7 @@ final class Protofier(
               _dispatcher,
               _functions,
               _mixins,
+              _modules,
               value.hostFunction.signature,
               id: value.hostFunction.id,
             ),
@@ -295,6 +301,13 @@ final class Protofier(
           if (_mixins[id] case var mixin?) return mixin;
           throw paramsError(
             "CompilerMixin.id $id doesn't match any known mixins",
+          );
+
+        case .compilerModule:
+          var id = value.compilerModule.id;
+          if (_modules[id] case var module?) return module;
+          throw paramsError(
+            "CompilerModule.id $id doesn't match any known modules.",
           );
 
         case .calculation:
@@ -322,6 +335,8 @@ final class Protofier(
         '$name must be between ${error.start} and ${error.end}, was '
         '${error.invalidValue}',
       );
+    } on ArgumentError catch (error) {
+      throw paramsError(error.toString());
     }
   }
 

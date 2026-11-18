@@ -186,7 +186,161 @@
   spaces. You can pass the `space` parameter to explicitly convert to a new
   space.
 
-## 1.104.1-dev
+## 1.108.2
+
+* No user-visible changes.
+
+## 1.108.1
+
+### Node.js Embedded Host
+
+* Fix an issue in the release process causing the OS-specific embedded Sass
+  packages to be missing their Dart Sass snapshots.
+
+## 1.108.0
+
+* Undo some unintentional breaking changes added in 1.106.0 relating to how
+  escaped identifiers interact with `sass:meta` functions and named rest
+  arguments.
+
+## 1.107.1
+
+* Properly report the embedded protocol version as 3.4.0.
+
+## 1.107.0
+
+### Command-Line Interface
+
+* The `--fatal-deprecation` flag can now exclude deprecations that would
+  otherwise be included by passing a version number. To exclude a deprecation,
+  add `-` before its name. For example, `--fatal-deprecation=1.107.0,-import`
+  includes all deprecations that were present in Dart Sass 1.107.0 *except* for
+  the `@import` deprecation.
+
+* The `--fatal-deprecation` flag now takes the special value `dart-sass-2`,
+  which treats as fatal all deprecations that will become fatal in Dart Sass
+  2.0.0.
+
+### JavaScript API
+
+* `Options.fatalDeprecations` can now take a `DeprecationSelectorDifference`
+  object of the form `{include: ..., except: ...}`, where the `include` field
+  lists deprecations to mark fatal (which can be version numbers) and the
+  `except` field lists deprecations *not* to mark fatal. The `except` field
+  takes precedence over `include`.
+
+* Add a (non-enumerable) `sass.deprecations.dartSass2` property which can be
+  passed to `Options.fatalDeprecations` to mark as fatal exactly the
+  deprecations that will become fatal in Dart Sass 2.0.0. This can be combined
+  with other deprecations or used in a `DeprecationSelectorDifference` to modify
+  exactly which deprecations it covers.
+
+* Passing a version number beyond the current Dart Sass version to
+  `Options.fatalDeprecations` is now deprecated. See [the Sass
+  website](https://sass-lang.com/d/deprecation-version) for details.
+
+### Dart API
+
+* Add a `Deprecation.dartSass2` property which returns exactly the set of
+  deprecations that will become fatal in Dart Sass 2.0.0.
+
+* Passing a version number beyond the current Dart Sass version to
+  `Deprecation.forVersion` is now deprecated.
+
+### Embedded Protocol
+
+* Add a `CompileRequest.fatal_deprecation_except` field which excludes
+  deprecations from being considered fatal if they would have been enabled by
+  `CompileRequest.fatal_deprecation`.
+
+## 1.106.1
+
+* Fix a bug where an attribute selector with an empty value (such as
+  `[class=""]`) would crash when serializing.
+
+* Don't crash when serializing a number with an empty unit. This is only
+  possible through the JavaScript and Dart APIs or the embedded protocol.
+
+### Embedded Dart Sass
+
+* More robustly convert invalid value errors into `PARAMS` errors.
+
+## 1.106.0
+
+* Don't normalize CSS escapes in statement contexts that can contain
+  interpolation. For example, `@f\6Fo` is now emitted as written rather than
+  normalized to `@foo`.
+
+* Fix a bug where quotes would be removed from attribute selector values that
+  contained backslashes.
+
+* Fix invalid source spans that could cause crashes when encountering a syntax
+  error in selectors or media queries that also contain escape sequences.
+
+* Fix a bug where the indented syntax parser would crash when parsing a file
+  where the first statement was indented *and* appeared after the first line.
+
+* Fix a bug that could cause crashes when encountering errors or warnings in
+  interpolations that contain patterns like `// */`.
+
+* **Potentially breaking compatibility fix:** CSS escape codes whose values are
+  0, for Unicode surrogates, or greater than the maximum allowed code point are
+  now consistently normalized to U+FFFD REPLACEMENT CHARACTER in expression
+  contexts. Previously, in some cases these were instead normalized to the
+  normalized form of the original escape sequence, which violates the principle
+  that all escape sequences for identical values should be normalized the same
+  way. In other cases, these would simply throw errors.
+
+  As a special case, `\0` on its own will continue to be normalized to `\0 ` to
+  support historical CSS hacks.
+
+* **Potentially breaking bug fix:** Throw an error for mixins and functions that
+  have rest parameters which are the same as normal parameters. Previously, the
+  positional parameters wouldn't be accessible and calling such a mixin or
+  function with a named argument would crash the compiler.
+
+* **Potentially breaking bug fix:** Fix various cases where using a CSS escape
+  code at the beginning of an identifier would change parsing behavior versus
+  using the character directly.
+
+* **Potentially breaking bug fix:** When a number's unit is ambiguous with a
+  numeric exponent, the unit is now serialized as an escape code rather than a
+  literal `e` to avoid being interpreted as an exponent by CSS.
+
+* **Potentially breaking bug fix:** Don't parse a CSS escape code for U+45 LATIN
+  CAPITAL LETTER E or U+65 LATIN LOWERCASE LETTER E as an exponent in
+  `@keyframes` percentage selectors.
+
+* **Potentially breaking bug fix:** Properly normalize underscores written as
+  CSS escape codes in variable, mixin, and function names.
+
+## 1.105.2
+
+### Node.js Embedded Host
+
+* Fix a deadlock when the async compiler fails to start.
+
+## 1.105.1
+
+* Improve error messages for `@extend`s across different media queries.
+
+## 1.105.0
+
+* Add support for first-class modules. These can be accessed using the new
+  `meta.load()` and `meta.get-module()` functions, and may be passed as the
+  `$module` argument to numerous eisting `sass:meta` functions.
+
+* Add the `meta.css()` mixin, which includes CSS from a first-class module.
+
+### JS API
+
+* Add a `SassModule` class and a corresponding `Value.assertModule()` method.
+
+### Dart API
+
+* Add a `SassModule` class and a corresponding `Value.assertModule()` method.
+
+## 1.104.1
 
 * Fix a bug where loud comments before `@use` rules could be emitted multiple
   times under certain circumstances.
@@ -201,6 +355,11 @@
   output directory if the output directory is also within the source directory.
   This fixes a bug where `--watch` mode could enter an infinite loop recompiling
   the same CSS file over and over.
+
+* Sass now sets the modification time of output files to the time compilation
+  *started* rather than the time it *ended*. This ensures that, if a source file
+  is modified during compilation, `--watch` and `--update` mode will recompile
+  the outputs to include the new source file contents.
 
 ## 1.104.0
 

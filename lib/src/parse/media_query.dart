@@ -6,6 +6,7 @@ import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
 
 import '../ast/css.dart';
+import '../util/span.dart';
 import '../utils.dart';
 import 'parser.dart';
 
@@ -31,6 +32,7 @@ final class MediaQueryParser(
 
   /// Consumes a single media query.
   CssMediaQuery _mediaQuery() {
+    var start = scanner.state;
     // This is somewhat duplicated in StylesheetParser._mediaQuery.
     if (scanner.peekChar() == $lparen) {
       var conditions = [_mediaInParens()];
@@ -46,7 +48,11 @@ final class MediaQueryParser(
         conditions.addAll(_mediaLogicSequence("or"));
       }
 
-      return CssMediaQuery.condition(conditions, conjunction: conjunction);
+      return CssMediaQuery.condition(
+        conditions,
+        spanFrom(start).trimRight(),
+        conjunction: conjunction,
+      );
     }
 
     String? modifier;
@@ -57,14 +63,16 @@ final class MediaQueryParser(
       expectWhitespace();
       if (!lookingAtIdentifier()) {
         // For example, "@media not (...) {"
-        return CssMediaQuery.condition(["(not ${_mediaInParens()})"]);
+        return CssMediaQuery.condition([
+          "(not ${_mediaInParens()})",
+        ], spanFrom(start));
       }
     }
 
     _whitespace();
     if (!lookingAtIdentifier()) {
       // For example, "@media screen {"
-      return CssMediaQuery.type(identifier1);
+      return CssMediaQuery.type(identifier1, spanFrom(start).trimRight());
     }
 
     var identifier2 = identifier();
@@ -82,7 +90,11 @@ final class MediaQueryParser(
         expectWhitespace();
       } else {
         // For example, "@media only screen {"
-        return CssMediaQuery.type(type, modifier: modifier);
+        return CssMediaQuery.type(
+          type,
+          spanFrom(start).trimRight(),
+          modifier: modifier,
+        );
       }
     }
 
@@ -92,17 +104,21 @@ final class MediaQueryParser(
     if (scanIdentifier("not")) {
       // For example, "@media screen and not (...) {"
       expectWhitespace();
+      var negated = _mediaInParens();
       return CssMediaQuery.type(
         type,
+        spanFrom(start),
         modifier: modifier,
-        conditions: ["(not ${_mediaInParens()})"],
+        conditions: ["(not $negated)"],
       );
     }
 
+    var conditions = _mediaLogicSequence("and");
     return CssMediaQuery.type(
       type,
+      spanFrom(start).trimRight(),
       modifier: modifier,
-      conditions: _mediaLogicSequence("and"),
+      conditions: conditions,
     );
   }
 

@@ -445,7 +445,7 @@ describe('a @forward rule', () => {
               forwardUrl: 'foo',
               prefix: ' ',
             }).toString(),
-          ).toBe('@forward "foo" as \\20*'));
+          ).toBe('@forward "foo" as \\ *'));
 
         it('with show', () =>
           expect(
@@ -461,7 +461,7 @@ describe('a @forward rule', () => {
               forwardUrl: 'foo',
               show: {mixinsAndFunctions: [' ']},
             }).toString(),
-          ).toBe('@forward "foo" show \\20'));
+          ).toBe('@forward "foo" show \\ '));
 
         it('with hide', () =>
           expect(
@@ -477,7 +477,7 @@ describe('a @forward rule', () => {
               forwardUrl: 'foo',
               hide: {mixinsAndFunctions: [' ']},
             }).toString(),
-          ).toBe('@forward "foo" hide \\20'));
+          ).toBe('@forward "foo" hide \\ '));
 
         it('with configuration', () =>
           expect(

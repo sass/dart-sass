@@ -179,7 +179,7 @@ describe('a function expression', () => {
               name: 'foo',
               arguments: [{text: 'bar'}],
             }).toString(),
-          ).toBe('b\\20z.foo(bar)'));
+          ).toBe('b\\ z.foo(bar)'));
       });
     });
 
@@ -189,7 +189,7 @@ describe('a function expression', () => {
           name: 'f o',
           arguments: [{text: 'bar'}],
         }).toString(),
-      ).toBe('f\\20o(bar)'));
+      ).toBe('f\\ o(bar)'));
 
     it('with matching namespace', () =>
       expect(

@@ -6,6 +6,7 @@ import 'package:sass/src/utils.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../util/map.dart';
+import '../../util/string.dart';
 import 'expression.dart';
 import 'expression/list.dart';
 import 'node.dart';
@@ -18,6 +19,9 @@ final class ArgumentList implements SassNode {
   final List<Expression> positional;
 
   /// The arguments passed by name.
+  ///
+  /// The names are the semantic contents of the identifiers, with escapes
+  /// resolved.
   final Map<String, Expression> named;
 
   /// The spans for the arguments passed by name, including their argument names.
@@ -64,7 +68,7 @@ final class ArgumentList implements SassNode {
     var components = [
       for (var argument in positional) _parenthesizeArgument(argument),
       for (var (name, value) in named.pairs)
-        "\$$name: ${_parenthesizeArgument(value)}",
+        "\$${name.toCssIdentifier()}: ${_parenthesizeArgument(value)}",
       if (rest case var rest?) "${_parenthesizeArgument(rest)}...",
       if (keywordRest case var keywordRest?)
         "${_parenthesizeArgument(keywordRest)}...",

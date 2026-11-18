@@ -63,7 +63,7 @@ final class CssParser extends ScssParser {
     var name = interpolatedIdentifier();
     _whitespace();
 
-    return switch (name.asPlain) {
+    return switch (name.asPlainIdentifier) {
       "at-root" ||
       "content" ||
       "debug" ||
@@ -96,8 +96,8 @@ final class CssParser extends ScssParser {
   /// [start] should point before the `@`.
   ImportRule _cssImportRule(LineScannerState start) {
     var urlStart = scanner.state;
-    var url = switch (scanner.peekChar()) {
-      $u || $U => switch (dynamicUrl()) {
+    var url = switch (peekCharOrEscape()) {
+      ($u || $U, _) => switch (dynamicUrl()) {
         StringExpression string => string.text,
         InterpolatedFunctionExpression(
           :var name,
@@ -166,9 +166,10 @@ final class CssParser extends ScssParser {
   Expression identifierLike() {
     var start = scanner.state;
     var identifier = interpolatedIdentifier();
-    var plain = identifier.asPlain!; // CSS doesn't allow non-plain identifiers
+    var ident = identifier
+        .asPlainIdentifier!; // CSS doesn't allow non-plain identifiers
 
-    var lower = plain.toLowerCase();
+    var lower = ident.toLowerCase();
     if (trySpecialFunction(lower, start) case var specialFunction?) {
       return specialFunction;
     }
@@ -176,7 +177,7 @@ final class CssParser extends ScssParser {
     var beforeArguments = scanner.state;
     // `namespacedExpression()` is just here to throw a clearer error.
     if (scanner.scanChar($dot)) {
-      return namespacedExpression(plain, start);
+      return namespacedExpression(ident, start);
     } else if (lower == "if" && scanner.peekChar() == $lparen) {
       return ifExpression(start);
     } else if (!scanner.scanChar($lparen)) {
@@ -201,12 +202,12 @@ final class CssParser extends ScssParser {
       scanner.expectChar($rparen);
     }
 
-    if (_disallowedFunctionNames.contains(plain)) {
+    if (_disallowedFunctionNames.contains(ident)) {
       error("This function isn't allowed in plain CSS.", spanFrom(start));
     }
 
     return FunctionExpression(
-      plain,
+      ident,
       ArgumentList(arguments, const {}, const {}, spanFrom(beforeArguments)),
       spanFrom(start),
     );

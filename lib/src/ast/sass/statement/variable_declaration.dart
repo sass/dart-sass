@@ -9,9 +9,11 @@ import '../../../exception.dart';
 import '../../../parse/scss.dart';
 import '../../../utils.dart';
 import '../../../util/span.dart';
+import '../../../util/string.dart';
 import '../../../visitor/interface/statement.dart';
 import '../expression.dart';
 import '../declaration.dart';
+import '../reference.dart';
 import '../statement.dart';
 import 'silent_comment.dart';
 
@@ -22,6 +24,8 @@ import 'silent_comment.dart';
 /// {@category AST}
 final class VariableDeclaration(
   /// The name of the variable, with underscores converted to hyphens.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   @override final String name,
 
   /// The value the variable is being assigned to.
@@ -30,13 +34,15 @@ final class VariableDeclaration(
 
   /// The namespace of the variable being set, or `null` if it's defined or set
   /// without a namespace.
-  final String? namespace,
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
+  @override final String? namespace,
   bool guarded = false,
   bool global = false,
 
   /// The comment immediately preceding this declaration.
   final SilentComment? comment,
-}) extends Statement implements SassDeclaration {
+}) extends Statement implements SassDeclaration, SassReference {
   /// Whether this is a guarded assignment.
   ///
   /// Guarded assignments only happen if the variable is undefined or `null`.
@@ -61,6 +67,7 @@ final class VariableDeclaration(
     return span.initialIdentifier(includeLeading: 1);
   }
 
+  @override
   FileSpan? get namespaceSpan =>
       namespace == null ? null : span.initialIdentifier();
 
@@ -90,8 +97,10 @@ final class VariableDeclaration(
   @override
   String toString() {
     var buffer = StringBuffer();
-    if (namespace != null) buffer.write("$namespace.");
-    buffer.write("\$$name: $expression;");
+    if (namespace case var namespace?) {
+      buffer.write("${namespace.toCssIdentifier()}.");
+    }
+    buffer.write("\$${name.toCssIdentifier()}: $expression;");
     return buffer.toString();
   }
 }

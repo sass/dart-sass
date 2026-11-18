@@ -188,15 +188,43 @@ void sharedTests(
       }, skip: true);
 
       test("for a silent deprecation", () async {
-        // TODO: Test this again once new deprecations are added post-2.0.0.
+        var sass = await runSass([
+          "--fatal-deprecation=if-function",
+          "--silence-deprecation=if-function",
+          "test.scss",
+        ]);
+        expect(sass.stderr, emits(contains("Ignoring setting to silence")));
+        await sass.shouldExit(0);
       });
 
       test("in watch mode", () async {
-        // TODO: Test this again once new deprecations are added post-2.0.0.
+        var sass = await runSass([
+          "--watch",
+          "--poll",
+          "--fatal-deprecation=if-function",
+          "--silence-deprecation=if-function",
+          "test.scss:out.css",
+        ]);
+        expect(sass.stderr, emits(contains("Ignoring setting to silence")));
+
+        await expectLater(
+          sass.stdout,
+          emitsThrough(endsWith('Compiled test.scss to out.css.')),
+        );
+        await sass.kill();
       });
 
       test("in repl mode", () async {
-        // TODO: Test this again once new deprecations are added post-2.0.0.
+        var sass = await runSass([
+          "--interactive",
+          "--fatal-deprecation=if-function",
+          "--silence-deprecation=if-function",
+        ]);
+        await expectLater(
+          sass.stderr,
+          emits(contains("Ignoring setting to silence")),
+        );
+        await sass.kill();
       });
     });
 
@@ -241,6 +269,27 @@ void sharedTests(
           );
           await sass.shouldExit(64);
         });
+      });
+
+      test("a future version", () async {
+        var sass = await runSass([
+          "--fatal-deprecation=999999.0.0",
+          "test.scss",
+        ]);
+        expect(sass.stdout, emits(contains("version less than or equal to")));
+        await sass.shouldExit(64);
+      });
+
+      test("an excluded deprecation that's not enabled", () async {
+        var sass = await runSass([
+          "--interactive",
+          "--fatal-deprecation=-elseif",
+        ]);
+        expect(
+          sass.stdout,
+          emits(contains('deprecation "elseif" was excluded')),
+        );
+        await sass.shouldExit(64);
       });
 
       group("a parse-time deprecation", () {

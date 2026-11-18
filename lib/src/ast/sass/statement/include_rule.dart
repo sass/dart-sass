@@ -2,6 +2,7 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+import 'package:sass/src/util/string.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../../util/span.dart';
@@ -18,6 +19,8 @@ import 'content_block.dart';
 final class IncludeRule(
   /// The original name of the mixin being invoked, without underscores
   /// converted to hyphens.
+  ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
   final String originalName,
 
   /// The arguments to pass to the mixin.
@@ -66,8 +69,10 @@ final class IncludeRule(
   @override
   String toString() {
     var buffer = StringBuffer("@include ");
-    if (namespace != null) buffer.write("$namespace.");
-    buffer.write(name);
+    if (namespace case var namespace?) {
+      buffer.write("${namespace.toCssIdentifier()}.");
+    }
+    buffer.write(name.toCssIdentifier());
     if (!arguments.isEmpty) buffer.write("($arguments)");
     buffer.write(content == null ? ";" : " $content");
     return buffer.toString();

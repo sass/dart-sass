@@ -14,6 +14,8 @@ import 'node.dart';
 abstract interface class SassDeclaration implements SassNode {
   /// The name of the declaration, with underscores converted to hyphens.
   ///
+  /// This is the semantic contents of the identifier, with escapes resolved.
+  ///
   /// This does not include the `$` for variables.
   String get name;
 

@@ -18,6 +18,7 @@ import 'package:sass/src/importer/node_package.dart' as npi;
 import '../logger.dart';
 import '../value/function.dart';
 import '../value/mixin.dart';
+import '../value/module.dart';
 import 'embedded_sass.pb.dart';
 import 'opaque_registry.dart';
 import 'host_callable.dart';
@@ -110,6 +111,7 @@ final class CompilationDispatcher(
   ) {
     var functions = OpaqueRegistry<SassFunction>();
     var mixins = OpaqueRegistry<SassMixin>();
+    var modules = OpaqueRegistry<SassModule>();
 
     sass.OutputStyle style = request.style == .COMPRESSED
         ? .compressed
@@ -132,7 +134,10 @@ final class CompilationDispatcher(
           if (deprecation == null) {
             if (supportVersions) {
               try {
-                yield* sass.Deprecation.forVersion(Version.parse(item));
+                yield* sass.Deprecation.forVersionInternal(
+                  Version.parse(item),
+                  logger,
+                );
               } on FormatException {
                 logger.warn('Invalid deprecation id or version "$item".');
               }
@@ -146,10 +151,23 @@ final class CompilationDispatcher(
       }();
     }
 
-    var fatalDeprecations = parseDeprecationsOrWarn(
-      request.fatalDeprecation,
-      supportVersions: true,
-    );
+    var fatalDeprecations = {
+      ...?parseDeprecationsOrWarn(
+        request.fatalDeprecation,
+        supportVersions: true,
+      ),
+    };
+    for (var deprecation
+        in parseDeprecationsOrWarn(request.fatalDeprecationExcept) ??
+            const []) {
+      if (!fatalDeprecations.remove(deprecation)) {
+        throw paramsError(
+          "The deprecation \"$deprecation\" was excluded from a "
+          "DeprecationSelectorDifference that didn't include it.",
+        );
+      }
+    }
+
     var silenceDeprecations = parseDeprecationsOrWarn(
       request.silenceDeprecation,
     );
@@ -163,7 +181,8 @@ final class CompilationDispatcher(
       );
 
       var globalFunctions = request.globalFunctions.map(
-        (signature) => hostCallable(this, functions, mixins, signature),
+        (signature) =>
+            hostCallable(this, functions, mixins, modules, signature),
       );
 
       late sass.CompileResult result;

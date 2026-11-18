@@ -72,6 +72,7 @@ void main(List<String> args) {
     'SassList',
     'SassMap',
     'SassMixin',
+    'SassModule',
     'SassNumber',
     'SassString',
     'Value',
@@ -94,6 +95,19 @@ void main(List<String> args) {
     'Version',
     'parser_',
   };
+
+  // At time of writing (with Dart 3.13.0), `-O4` is equivalent in practice to
+  // `-O2 --omit-implicit-checks --trust-primitives`. However, `-O3` and `-O4`
+  // removes the guarantee that *any* subclasses of `Error` will be thrown in
+  // practice, while the explicit flags only remove that guarantee for *SDK
+  // types*. We want to preserve our own `Error` throws so that the JS API
+  // surface can validate its arguments using `ArgumentError`s.
+  pkg.jsReleaseFlags.value.remove("-O4");
+  pkg.jsReleaseFlags.value.addAll([
+    "-O2",
+    "--omit-implicit-checks",
+    "--trust-primitives",
+  ]);
 
   pkg.githubReleaseNotes.fn = () =>
       "To install Sass ${pkg.version}, download one of the packages below "

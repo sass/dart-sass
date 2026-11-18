@@ -151,43 +151,24 @@ final class InterpolationMap(
   /// Given the start of a [FileSpan] covering an interpolated expression, returns
   /// the offset of the interpolation's opening `#`.
   ///
-  /// Note that this can be tricked by a `#{` that appears within a single-line
-  /// comment before the expression, but since it's only used for error
-  /// reporting that's probably fine.
-  int _expandInterpolationSpanLeft(FileLocation start) {
-    var source = start.file.codeUnits;
-    var i = start.offset - 1;
-    while (i >= 0) {
-      var prev = source[i--];
-      if (prev == $lbrace) {
-        if (source[i] == $hash) break;
-      } else if (prev == $slash) {
-        var second = source[i--];
-        if (second == $asterisk) {
-          while (true) {
-            var char = source[i--];
-            if (char != $asterisk) continue;
-
-            do {
-              char = source[i--];
-            } while (char == $asterisk);
-            if (char == $slash) break;
-          }
-        }
-      }
-    }
-
-    return i;
-  }
+  /// Note that this can be tricked by a `#{` that appears within a comment
+  /// before the expression, but since that's very unlikely and this is only
+  /// used for error reporting that's probably fine.
+  int _expandInterpolationSpanLeft(FileLocation start) =>
+      start.file.getText(0, start.offset).lastIndexOf("#{");
 
   /// Given the end of a [FileSpan] covering an interpolated expression, returns
-  /// the offset of the interpolation's closing `}`.
+  /// the offset of the next character that's not whitespace or a comment.
+  ///
+  /// For most interpolations, this will be the offset of the closing `}`.
+  /// However, some interpolations (such as those in `@media (<expr>: <expr>)`)
+  /// don't use literal `#{}` characters, in which case this will point to a
+  /// different bounding character.
   int _expandInterpolationSpanRight(FileLocation end) {
     var source = end.file.codeUnits;
     var i = end.offset;
     while (i < source.length) {
       var next = source[i++];
-      if (next == $rbrace) break;
       if (next == $slash) {
         var second = source[i++];
         if (second == $slash) {
@@ -203,6 +184,8 @@ final class InterpolationMap(
             if (char == $slash) break;
           }
         }
+      } else if (!next.isWhitespace) {
+        break;
       }
     }
 

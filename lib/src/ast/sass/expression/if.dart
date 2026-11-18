@@ -208,11 +208,12 @@ final class IfConditionFunction(
   /// @nodoc
   @override
   @internal
-  bool get isArbitrarySubstitution => switch (name.asPlain?.toLowerCase()) {
-    "if" || "var" || "attr" => true,
-    var str? when str.startsWith("--") => true,
-    _ => false,
-  };
+  bool get isArbitrarySubstitution =>
+      switch (name.asPlainIdentifier?.toLowerCase()) {
+        "if" || "var" || "attr" => true,
+        var str? when str.startsWith("--") => true,
+        _ => false,
+      };
 
   /// @nodoc
   @override

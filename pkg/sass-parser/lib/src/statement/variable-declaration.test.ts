@@ -315,7 +315,7 @@ describe('a variable declaration', () => {
                 variableName: 'foo',
                 expression: {text: 'bar'},
               }).toString(),
-            ).toBe('b\\20z.$foo: bar'));
+            ).toBe('b\\ z.$foo: bar'));
         });
 
         it("with a name that's not an identifier", () =>
@@ -324,7 +324,7 @@ describe('a variable declaration', () => {
               variableName: 'f o',
               expression: {text: 'bar'},
             }).toString(),
-          ).toBe('$f\\20o: bar'));
+          ).toBe('$f\\ o: bar'));
 
         it('global', () =>
           expect(

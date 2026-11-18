@@ -2,9 +2,6 @@
 // MIT-style license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'dart:isolate';
-
-import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:term_glyph/term_glyph.dart' as term_glyph;
 
@@ -34,7 +31,13 @@ Future<void> main(List<String> args) async {
     term_glyph.ascii = !options.unicode;
 
     if (options.version) {
-      print(await _loadVersion());
+      var version = dartSassVersion.toString();
+      if (const bool.fromEnvironment('node')) {
+        version +=
+            " compiled with dart2js "
+            "${const String.fromEnvironment('dart-version', defaultValue: '???')}";
+      }
+      print(version);
       exitCode = 0;
       return;
     }
@@ -89,27 +92,4 @@ Future<void> main(List<String> args) async {
     printError(buffer);
     exitCode = 255;
   }
-}
-
-/// Loads and returns the current version of Sass.
-Future<String> _loadVersion() async {
-  if (const bool.hasEnvironment('version')) {
-    var version = const String.fromEnvironment('version');
-    if (const bool.fromEnvironment('node')) {
-      version +=
-          " compiled with dart2js "
-          "${const String.fromEnvironment('dart-version')}";
-    }
-    return version;
-  }
-
-  var libDir = p.fromUri(
-    await Isolate.resolvePackageUri(Uri.parse('package:sass/')),
-  );
-  var pubspec = readFile(p.join(libDir, '..', 'pubspec.yaml'));
-  return pubspec
-      .split("\n")
-      .firstWhere((line) => line.startsWith('version: '))
-      .split(" ")
-      .last;
 }

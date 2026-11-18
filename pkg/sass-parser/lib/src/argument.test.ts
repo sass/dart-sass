@@ -331,7 +331,7 @@ describe('an argument', () => {
 
         it('with a non-identifier name', () =>
           expect(new Argument(['f o', {text: 'bar'}]).toString()).toBe(
-            '$f\\20o: bar',
+            '$f\\ o: bar',
           ));
       });
 
