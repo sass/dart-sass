@@ -97,20 +97,22 @@ ParserExports loadParserExports() {
 
 /// Updates the prototype of a [FileSpan] to provide access to JS.
 void _updateFileSpanPrototype(FileSpan span) {
-  getJSClass(span).defineMethods({
-    'trim': (FileSpan span) => span.trim(),
-    'trimLeft': (FileSpan span) => span.trimLeft(),
-    'trimRight': (FileSpan span) => span.trimRight(),
-    'initialIdentifier': (FileSpan span, [int includeLeading = 0]) =>
-        span.initialIdentifier(includeLeading: includeLeading),
-    'withoutInitialIdentifier': (FileSpan span) =>
-        span.withoutInitialIdentifier(),
-    'before': (FileSpan span, FileSpan other) => span.before(other),
-    'after': (FileSpan span, FileSpan other) => span.after(other),
-    'between': (FileSpan span, FileSpan other) => span.between(other),
-    'subspan': (FileSpan span, int start, [int? end]) =>
-        span.subspan(start, end),
-  });
+  getJSClass(span)
+    ..defineMethods({
+      'trim': (FileSpan span) => span.trim(),
+      'trimLeft': (FileSpan span) => span.trimLeft(),
+      'trimRight': (FileSpan span) => span.trimRight(),
+      'initialIdentifier': (FileSpan span, [int includeLeading = 0]) =>
+          span.initialIdentifier(includeLeading: includeLeading),
+      'withoutInitialIdentifier': (FileSpan span) =>
+          span.withoutInitialIdentifier(),
+      'before': (FileSpan span, FileSpan other) => span.before(other),
+      'after': (FileSpan span, FileSpan other) => span.after(other),
+      'between': (FileSpan span, FileSpan other) => span.between(other),
+      'subspan': (FileSpan span, int start, [int? end]) =>
+          span.subspan(start, end),
+    })
+    ..defineGetter('length', (FileSpan span) => span.length);
 }
 
 /// Updates the prototype of [LazyFileSpan] to provide access to JS.
@@ -118,7 +120,6 @@ void _updateLazyFileSpanPrototype() {
   var span = LazyFileSpan(() => bogusSpan);
   getJSClass(span).defineGetters({
     'file': (LazyFileSpan span) => span.file,
-    'length': (LazyFileSpan span) => span.length,
     'sourceUrl': (LazyFileSpan span) => span.sourceUrl,
   });
   _updateFileSpanPrototype(span);

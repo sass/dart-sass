@@ -10,7 +10,10 @@ exports[`a parenthesized if() condition toJSON 1`] = `
     },
   ],
   "parenthesized": <sass(true)>,
-  "raws": {},
+  "raws": LazyIfConditionParenthesizedRaws {
+    "afterOpen": "",
+    "beforeClose": "",
+  },
   "sassType": "if-condition-parenthesized",
   "source": <1:7-1:19 in 0>,
 }
