@@ -320,7 +320,14 @@ final global = UnmodifiableListView([
             "color.channel() instead.",
           );
         case var argument:
-          warnForGlobalBuiltIn('color', 'alpha');
+          warnForDeprecation(
+            "alpha() is deprecated. Suggestion:\n"
+            "\n"
+            'color.channel(\$color, "alpha")\n'
+            "\n"
+            "More info: https://sass-lang.com/d/color-opacity",
+            .colorOpacity,
+          );
           return SassNumber(argument.assertColor("color").alpha);
       }
     },
@@ -510,6 +517,15 @@ final module = BuiltInModule(
             );
 
           case var argument:
+            warnForDeprecation(
+              "color.alpha() is deprecated. Suggestion:\n"
+              "\n"
+              'color.channel(\$color, "alpha")\n'
+              "\n"
+              "More info: https://sass-lang.com/d/color-opacity",
+              .colorOpacity,
+            );
+
             return SassNumber(argument.assertColor("color").alpha);
         }
       },
@@ -542,7 +558,7 @@ final module = BuiltInModule(
       if (arguments[0] is SassNumber) {
         var result = _functionString("opacity", arguments);
         warnForDeprecation(
-          "Passing a number (${arguments[0]} to color.opacity() is "
+          "Passing a number (${arguments[0]}) to color.opacity() is "
           "deprecated.\n"
           "\n"
           "Recommendation: $result",
@@ -550,6 +566,15 @@ final module = BuiltInModule(
         );
         return result;
       }
+
+      warnForDeprecation(
+        "color.opacity() is deprecated. Suggestion:\n"
+        "\n"
+        'color.channel(\$color, "alpha")\n'
+        "\n"
+        "More info: https://sass-lang.com/d/color-opacity",
+        .colorOpacity,
+      );
 
       var color = arguments[0].assertColor("color");
       return SassNumber(color.alpha);
