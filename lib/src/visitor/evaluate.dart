@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: c52668815f3a1516a95efaaf181502dc7f6c99a5
+// Checksum: 3ea4b93b72d9c566e3528060518a06eba3b7e852
 //
 // ignore_for_file: unused_import
 
@@ -3359,70 +3359,74 @@ final class _EvaluateVisitor({
         );
       }
 
-      left = switch ((
-        _splitCalculationSumTail(left),
-        _splitCalculationSumHead(right),
-      )) {
-        // Example: 1 + 2 / 3 + 4
-        (
-          //   1                  +                 2
-          (var leftRemainder, var leftOperator, var leftOperand),
-          //   3                 +                  4
-          (var rightOperand, var rightOperator, var rightRemainder),
-        ) =>
-          // (1 + (2 / 3)) + 4
-          BinaryOperationExpression(
-            rightOperator,
-            // 1 + (2 / 3)
-            BinaryOperationExpression(
-              leftOperator,
-              leftRemainder,
-              // 2 / 3
-              BinaryOperationExpression(.dividedBy, leftOperand, rightOperand),
-            ),
-            rightRemainder,
-          ),
-        // Example: 1 + 2 / 3
-        //    1                  +                 2
-        ((var leftRemainder, var leftOperator, var leftOperand), _) =>
-          // 1 + (2 / 3)
-          BinaryOperationExpression(
-            leftOperator,
-            leftRemainder,
-            // 2 / 3
-            BinaryOperationExpression(.dividedBy, leftOperand, right),
-          ),
-        // Example: 1 / 2 + 3
-        //       2                 +                  3
-        (_, (var rightOperand, var rightOperator, var rightRemainder)) =>
-          // (1 / 2) + 3
-          BinaryOperationExpression(
-            rightOperator,
-            // 1 / 2
-            BinaryOperationExpression(.dividedBy, left, rightOperand),
-            rightRemainder,
-          ),
-        _ => switch (right) {
-          // Example: 1 / 2 * 3
-          BinaryOperationExpression(
-            operator: .times,
-            left: var rightOperand, // 2
-            right: var rightRemainder, // 3
-          ) =>
-            // (1 / 2) * 3
-            BinaryOperationExpression(
-              .times,
-              // 1 / 2
-              BinaryOperationExpression(.dividedBy, left, rightOperand),
-              rightRemainder,
-            ),
-          _ => BinaryOperationExpression(.dividedBy, left, right),
-        },
-      };
+      left = _adjustSingleSlash(left, right);
     }
 
     return left;
   }
+
+  /// Converts a single slash-separated pair of [left] and [right] expressions
+  /// into an expression that matches `calc()` precendence.
+  Expression _adjustSingleSlash(Expression left, Expression right) => switch ((
+    _splitCalculationSumTail(left),
+    _splitCalculationSumHead(right),
+  )) {
+    // Example: 1 + 2 / 3 + 4
+    (
+      //   1                  +                 2
+      (var leftRemainder, var leftOperator, var leftOperand),
+      //   3                 +                  4
+      (var rightOperand, var rightOperator, var rightRemainder),
+    ) =>
+      // (1 + (2 / 3)) + 4
+      BinaryOperationExpression(
+        rightOperator,
+        // 1 + (2 / 3)
+        BinaryOperationExpression(
+          leftOperator,
+          leftRemainder,
+          // 2 / 3
+          _adjustSingleSlash(leftOperand, rightOperand),
+        ),
+        rightRemainder,
+      ),
+    // Example: 1 + 2 / 3
+    //    1                  +                 2
+    ((var leftRemainder, var leftOperator, var leftOperand), _) =>
+      // 1 + (2 / 3)
+      BinaryOperationExpression(
+        leftOperator,
+        leftRemainder,
+        // 2 / 3
+        _adjustSingleSlash(leftOperand, right),
+      ),
+    // Example: 1 / 2 + 3
+    //       2                 +                  3
+    (_, (var rightOperand, var rightOperator, var rightRemainder)) =>
+      // (1 / 2) + 3
+      BinaryOperationExpression(
+        rightOperator,
+        // 1 / 2
+        _adjustSingleSlash(left, rightOperand),
+        rightRemainder,
+      ),
+    _ => switch (right) {
+      // Example: 1 / 2 * 3
+      BinaryOperationExpression(
+        operator: .times,
+        left: var rightOperand, // 2
+        right: var rightRemainder, // 3
+      ) =>
+        // (1 / 2) * 3
+        BinaryOperationExpression(
+          .times,
+          // 1 / 2
+          _adjustSingleSlash(left, rightOperand),
+          rightRemainder,
+        ),
+      _ => BinaryOperationExpression(.dividedBy, left, right),
+    },
+  };
 
   /// If [expression] is a sequence of `+` or `-` operations, returns the
   /// leftmost operator and its operand, as well as the remainder of the
