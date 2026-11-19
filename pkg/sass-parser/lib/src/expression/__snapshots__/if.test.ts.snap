@@ -13,7 +13,10 @@ exports[`an if expression toJSON 1`] = `
     <sass($foo): bar>,
     <else: baz>,
   ],
-  "raws": {},
+  "raws": LazyIfExpressionRaws {
+    "beforeClose": "",
+    "trailingSemi": false,
+  },
   "sassType": "if-expr",
   "source": <1:4-1:34 in 0>,
 }

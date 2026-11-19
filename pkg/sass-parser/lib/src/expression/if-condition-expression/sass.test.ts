@@ -152,9 +152,9 @@ describe('a Sass if() condition', () => {
       }));
 
     it('whitespace', () =>
-      expect(
-        utils.parseIfConditionExpression('sass(  true/**/)').raws,
-      ).toEqual({afterOpen: '  ', beforeClose: '/**/'}));
+      expect(utils.parseIfConditionExpression('sass(  true/**/)').raws).toEqual(
+        {afterOpen: '  ', beforeClose: '/**/'},
+      ));
   });
 
   it('toJSON', () =>

@@ -5,6 +5,7 @@
 import * as postcss from 'postcss';
 
 import {Container} from '../container';
+import {LazyRaws} from '../lazy-raws';
 import {LazySource} from '../lazy-source';
 import {Node, NodeProps} from '../node';
 import type * as sassInternal from '../sass-internal';
@@ -43,11 +44,6 @@ export type NewNodeForIfExpression =
  * @category Expression
  */
 export interface IfExpressionRaws {
-  /**
-   * The whitespace between the opening parenthesis and the first expression.
-   */
-  afterOpen?: string;
-
   /**
    * The whitespace between the last semicolon and the closing bracket.
    *
@@ -111,6 +107,7 @@ export class IfExpression
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
+      this.raws = new LazyIfExpressionRaws(inner);
       this.nodes = [];
       for (const branch of inner.branches) {
         this.append([
@@ -261,7 +258,7 @@ export class IfExpression
 
   /** @hidden */
   toString(): string {
-    let result = 'if(' + (this.raws?.afterOpen ?? '');
+    let result = 'if(';
 
     for (let i = 0; i < this.nodes.length; i++) {
       const entry = this.nodes[i];
@@ -350,4 +347,36 @@ function isIfEntry(value: unknown): value is IfEntry {
     'sassType' in value &&
     value.sassType === 'if-entry'
   );
+}
+
+class LazyIfExpressionRaws
+  extends LazyRaws<sassInternal.IfExpression>
+  implements IfExpressionRaws
+{
+  declare beforeClose?: string;
+  declare trailingSemi?: boolean;
+
+  constructor(inner: sassInternal.IfExpression) {
+    super(inner, ['beforeClose', 'trailingSemi']);
+  }
+
+  protected _computeRaws(): void {
+    // if( a: b ; )    if( a: b )
+    //   ^^^^^^^^^^      ^^^^^^^^
+    const parens = this._node.span.withoutInitialIdentifier();
+    // if( a: b ; )    if( a: b )
+    //    ^^^^^^^^        ^^^^^^
+    const inParens = parens.subspan(1, parens.length - 1);
+    // if( a: b ; )    if( a: b )
+    //           ^             ^
+    const beforeClose = inParens.trailingWhitespace();
+    this._setRawDefault('beforeClose', () => beforeClose.text);
+    this._setRawDefault('trailingSemi', () => {
+      const i = beforeClose.start.offset - 1; // potential semicolon index
+      return (
+        beforeClose.file.getText(i, i + 1) === ';' &&
+        beforeClose.file.getText(i - 1, i) !== '\\'
+      );
+    });
+  }
 }

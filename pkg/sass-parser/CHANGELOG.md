@@ -1,7 +1,10 @@
-## 0.5.7-dev
+## 0.6.0-dev
 
 * Compute raws for parsed `Root` nodes, binary operations, color literals,
   function expressions, and `if()` conditions.
+
+* Remove the `IfExpression.afterOpen` raw. In keeping with PostCSS, we can use
+  `IfEntry.before` for this without losing any information.
 
 ## 0.5.6
 

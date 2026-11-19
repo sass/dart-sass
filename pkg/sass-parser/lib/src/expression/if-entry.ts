@@ -144,3 +144,29 @@ export class IfEntry extends Node {
     return children;
   }
 }
+
+// // This can't extend `LazyRaws` because there's no single Dart Sass node that it
+// // maps to.
+// class LazyIfEntryRaws implements IfEntryRaws
+// {
+//   declare afterOpen?: string;
+//   declare beforeClose?: string;
+
+//   constructor(inner: sassInternal.IfEntry) {
+//     super(inner, ['afterOpen', 'beforeClose']);
+//   }
+
+//   protected _computeRaws(): void {
+//     // sass( a )
+//     //     ^^^^^
+//     const parens = this._node.span.withoutInitialIdentifier();
+//     // sass( a )
+//     //      ^^^
+//     const inParens = parens.subspan(1, parens.length - 1);
+//     // sass( a )
+//     //       ^
+//     const trimmed = inParens.trim();
+//     this._setRawDefault('afterOpen', () => inParens.before(trimmed).text);
+//     this._setRawDefault('beforeClose', () => inParens.after(trimmed).text);
+//   }
+// }

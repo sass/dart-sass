@@ -720,20 +720,9 @@ describe('an if expression', () => {
 
       it('with default raws', () => expect(node.toString()).toBe('if()'));
 
-      it('with afterOpen', () => {
-        node.raws.afterOpen = '/**/';
-        expect(node.toString()).toBe('if(/**/)');
-      });
-
       it('with beforeClose', () => {
         node.raws.beforeClose = '/**/';
         expect(node.toString()).toBe('if(/**/)');
-      });
-
-      it('with afterOpen and beforeClose', () => {
-        node.raws.afterOpen = '/**/';
-        node.raws.beforeClose = '  ';
-        expect(node.toString()).toBe('if(/**/  )');
       });
 
       it('ignores trailingSemicolon', () => {
@@ -751,19 +740,6 @@ describe('an if expression', () => {
 
       it('with default raws', () =>
         expect(node.toString()).toBe('if(sass($foo): bar)'));
-
-      describe('with afterOpen', () => {
-        it('on its own', () => {
-          node.raws.afterOpen = '/**/';
-          expect(node.toString()).toBe('if(/**/sass($foo): bar)');
-        });
-
-        it('and nodes.before', () => {
-          node.raws.afterOpen = '/**/';
-          node.first!.raws.before = '  ';
-          expect(node.toString()).toBe('if(/**/  sass($foo): bar)');
-        });
-      });
 
       describe('with afterClose', () => {
         it('on its own', () => {
@@ -827,9 +803,9 @@ describe('an if expression', () => {
     let original: IfExpression;
 
     beforeEach(() => {
-      original = utils.parseExpression('if(sass($foo): bar; sass($baz): bang)');
-      // TODO: remove this once raws are properly parsed.
-      original.raws.afterOpen = '  ';
+      original = utils.parseExpression(
+        'if(sass($foo): bar; sass($baz): bang  )',
+      );
     });
 
     describe('with no overrides', () => {
@@ -846,7 +822,8 @@ describe('an if expression', () => {
           expect(clone.nodes[1]).toHaveStringExpression('value', 'bang');
         });
 
-        it('raws', () => expect(clone.raws).toEqual({afterOpen: '  '}));
+        it('raws', () =>
+          expect(clone.raws).toEqual({beforeClose: '  ', trailingSemi: false}));
 
         it('source', () => expect(clone.source).toBe(original.source));
       });
@@ -881,13 +858,46 @@ describe('an if expression', () => {
 
       describe('raws', () => {
         it('defined', () =>
-          expect(
-            original.clone({raws: {beforeClose: '/**/'}}).raws.beforeClose,
-          ).toBe('/**/'));
+          expect(original.clone({raws: {beforeClose: '/**/'}}).raws).toEqual({
+            beforeClose: '/**/',
+          }));
 
         it('undefined', () =>
-          expect(original.clone({raws: undefined}).raws.afterOpen).toBe('  '));
+          expect(original.clone({raws: undefined}).raws).toEqual({
+            beforeClose: '  ',
+            trailingSemi: false,
+          }));
       });
+    });
+  });
+
+  describe('raws', () => {
+    describe('trailing whitespace', () => {
+      it('without semicolon', () =>
+        expect(utils.parseExpression('if(sass($foo): bar  )').raws).toEqual({
+          beforeClose: '  ',
+          trailingSemi: false,
+        }));
+
+      it('with semicolon', () =>
+        expect(utils.parseExpression('if(sass($foo): bar ;  )').raws).toEqual({
+          beforeClose: '  ',
+          trailingSemi: true,
+        }));
+    });
+
+    describe('no trailing whitespace', () => {
+      it('without semicolon', () =>
+        expect(utils.parseExpression('if(sass($foo): bar)').raws).toEqual({
+          beforeClose: '',
+          trailingSemi: false,
+        }));
+
+      it('with semicolon', () =>
+        expect(utils.parseExpression('if(sass($foo): bar ;)').raws).toEqual({
+          beforeClose: '',
+          trailingSemi: true,
+        }));
     });
   });
 

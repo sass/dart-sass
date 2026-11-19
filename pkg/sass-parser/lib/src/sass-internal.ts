@@ -21,6 +21,7 @@ export interface FileSpan extends sass.SourceSpan {
   trim(): FileSpan;
   trimLeft(): FileSpan;
   trimRight(): FileSpan;
+  trailingWhitespace(): FileSpan;
   initialIdentifier(includeLeading?: number): FileSpan;
   withoutInitialIdentifier(): FileSpan;
   before(span: FileSpan): FileSpan;

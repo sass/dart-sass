@@ -102,6 +102,7 @@ void _updateFileSpanPrototype(FileSpan span) {
       'trim': (FileSpan span) => span.trim(),
       'trimLeft': (FileSpan span) => span.trimLeft(),
       'trimRight': (FileSpan span) => span.trimRight(),
+      'trailingWhitespace': (FileSpan span) => span.trailingWhitespace(),
       'initialIdentifier': (FileSpan span, [int includeLeading = 0]) =>
           span.initialIdentifier(includeLeading: includeLeading),
       'withoutInitialIdentifier': (FileSpan span) =>

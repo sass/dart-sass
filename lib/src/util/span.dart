@@ -45,6 +45,10 @@ extension SpanExtensions on FileSpan {
   FileSpan _trimRight() =>
       subspan(0, StylesheetParser.lastIndexOfWhitespaceAndComments(text));
 
+  /// Returns a span covering the trailing whitespace and comments in this span.
+  FileSpan trailingWhitespace() =>
+      subspan(StylesheetParser.lastIndexOfWhitespaceAndComments(text));
+
   /// Returns the span of the identifier at the start of this span.
   ///
   /// If [includeLeading] is greater than 0, that many additional characters
