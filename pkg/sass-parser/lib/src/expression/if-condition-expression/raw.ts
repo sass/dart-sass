@@ -18,7 +18,7 @@ import {Interpolation, InterpolationProps} from '../../interpolation';
  * @category Expression
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-interface -- No raws for a raw condition yet.
-export interface IfConditionRawRaws {}
+export interface IfConditionRawRaws {} // ah ah ah
 
 /**
  * The initializer properties for {@link IfConditionRaw}.

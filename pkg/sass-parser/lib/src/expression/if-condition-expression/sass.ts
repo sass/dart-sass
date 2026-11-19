@@ -12,6 +12,7 @@ import {AnyExpression, ExpressionProps} from '../index';
 import {AnyIfConditionExpression, IfConditionExpression} from './index';
 import {IfEntry} from '../if-entry';
 import {convertExpression} from '../convert';
+import {LazyRaws} from '../../lazy-raws';
 import {LazySource} from '../../lazy-source';
 
 /**
@@ -77,6 +78,7 @@ export class IfConditionSass extends IfConditionExpression {
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
+      this.raws = new LazyIfConditionSassRaws(inner);
       this.expression = convertExpression(inner.expression);
     }
     this.raws ??= {};
@@ -107,5 +109,31 @@ export class IfConditionSass extends IfConditionExpression {
   /** @hidden */
   get nonStatementChildren(): ReadonlyArray<AnyExpression> {
     return [this.expression];
+  }
+}
+
+class LazyIfConditionSassRaws
+  extends LazyRaws<sassInternal.IfConditionSass>
+  implements IfConditionSassRaws
+{
+  declare afterOpen?: string;
+  declare beforeClose?: string;
+
+  constructor(inner: sassInternal.IfConditionSass) {
+    super(inner, ['afterOpen', 'beforeClose']);
+  }
+
+  protected _computeRaws(): void {
+    // sass( a )
+    //     ^^^^^
+    const parens = this._node.span.withoutInitialIdentifier();
+    // sass( a )
+    //      ^^^
+    const inParens = parens.subspan(1, parens.length - 1);
+    // sass( a )
+    //       ^
+    const trimmed = inParens.trim();
+    this._setRawDefault('afterOpen', () => inParens.before(trimmed).text);
+    this._setRawDefault('beforeClose', () => inParens.after(trimmed).text);
   }
 }

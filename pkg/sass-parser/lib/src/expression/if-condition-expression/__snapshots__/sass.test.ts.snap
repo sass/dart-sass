@@ -10,7 +10,10 @@ exports[`a Sass if() condition toJSON 1`] = `
       "id": "<input css _____>",
     },
   ],
-  "raws": {},
+  "raws": LazyIfConditionSassRaws {
+    "afterOpen": "",
+    "beforeClose": "",
+  },
   "sassType": "if-condition-sass",
   "source": <1:7-1:17 in 0>,
 }

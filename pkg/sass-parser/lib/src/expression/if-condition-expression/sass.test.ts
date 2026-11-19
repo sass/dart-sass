@@ -93,7 +93,7 @@ describe('a Sass if() condition', () => {
 
   describe('clone()', () => {
     beforeEach(() => {
-      node.raws.afterOpen = '  ';
+      node = utils.parseIfConditionExpression('sass( true)');
     });
 
     describe('with no overrides', () => {
@@ -123,7 +123,8 @@ describe('a Sass if() condition', () => {
 
         it('undefined', () =>
           expect(node.clone({raws: undefined}).raws).toEqual({
-            afterOpen: '  ',
+            afterOpen: ' ',
+            beforeClose: '',
           }));
       });
 
@@ -141,6 +142,19 @@ describe('a Sass if() condition', () => {
           ));
       });
     });
+  });
+
+  describe('raws', () => {
+    it('no whitespace', () =>
+      expect(utils.parseIfConditionExpression('sass(true)').raws).toEqual({
+        afterOpen: '',
+        beforeClose: '',
+      }));
+
+    it('whitespace', () =>
+      expect(
+        utils.parseIfConditionExpression('sass(  true/**/)').raws,
+      ).toEqual({afterOpen: '  ', beforeClose: '/**/'}));
   });
 
   it('toJSON', () =>
