@@ -827,7 +827,7 @@ describe('an if() condition operation', () => {
 
   describe('clone()', () => {
     beforeEach(() => {
-      node.raws.operators = [{before: '  '}];
+      node = utils.parseIfConditionExpression('sass($foo)  and/**/sass($bar)');
     });
 
     describe('with no overrides', () => {
@@ -861,7 +861,13 @@ describe('an if() condition operation', () => {
 
         it('undefined', () =>
           expect(node.clone({raws: undefined}).raws).toEqual({
-            operators: [{before: '  '}],
+            operators: [
+              {
+                operator: {raw: 'and', value: 'and'},
+                before: '  ',
+                after: '/**/',
+              },
+            ],
           }));
       });
 
@@ -888,6 +894,56 @@ describe('an if() condition operation', () => {
         });
       });
     });
+  });
+
+  describe('raws', () => {
+    it('without whitespace', () =>
+      expect(
+        utils.parseIfConditionExpression('sass($foo)and sass($bar)').raws,
+      ).toEqual({
+        operators: [
+          {operator: {raw: 'and', value: 'and'}, before: '', after: ' '},
+        ],
+      }));
+
+    it('with whitespace', () =>
+      expect(
+        utils.parseIfConditionExpression('sass($foo)  and  sass($bar)').raws,
+      ).toEqual({
+        operators: [
+          {operator: {raw: 'and', value: 'and'}, before: '  ', after: '  '},
+        ],
+      }));
+
+    it('with unusual casing', () =>
+      expect(
+        utils.parseIfConditionExpression('sass($foo) AND sass($bar)').raws,
+      ).toEqual({
+        operators: [
+          {operator: {raw: 'AND', value: 'and'}, before: ' ', after: ' '},
+        ],
+      }));
+
+    it('with an escape casing', () =>
+      expect(
+        utils.parseIfConditionExpression('sass($foo) \\61nd sass($bar)').raws,
+      ).toEqual({
+        operators: [
+          {operator: {raw: '\\61nd', value: 'and'}, before: ' ', after: ' '},
+        ],
+      }));
+
+    it('with multiple operators', () =>
+      expect(
+        utils.parseIfConditionExpression(
+          'sass($foo) or sass($bar) or sass($baz)',
+        ).raws,
+      ).toEqual({
+        operators: [
+          {operator: {raw: 'or', value: 'or'}, before: ' ', after: ' '},
+          {operator: {raw: 'or', value: 'or'}, before: ' ', after: ' '},
+        ],
+      }));
   });
 
   describe('toJSON', () => {

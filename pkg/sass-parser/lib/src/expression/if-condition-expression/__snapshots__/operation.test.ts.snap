@@ -14,7 +14,18 @@ exports[`an if() condition operation toJSON and 1`] = `
     <sass($bar)>,
   ],
   "operator": "and",
-  "raws": {},
+  "raws": LazyIfConditionOperationRaws {
+    "operators": [
+      {
+        "after": " ",
+        "before": " ",
+        "operator": {
+          "raw": "and",
+          "value": "and",
+        },
+      },
+    ],
+  },
   "sassType": "if-condition-operation",
   "source": <1:7-1:32 in 0>,
 }
@@ -34,7 +45,18 @@ exports[`an if() condition operation toJSON or 1`] = `
     <sass($bar)>,
   ],
   "operator": "or",
-  "raws": {},
+  "raws": LazyIfConditionOperationRaws {
+    "operators": [
+      {
+        "after": " ",
+        "before": " ",
+        "operator": {
+          "raw": "or",
+          "value": "or",
+        },
+      },
+    ],
+  },
   "sassType": "if-condition-operation",
   "source": <1:7-1:31 in 0>,
 }

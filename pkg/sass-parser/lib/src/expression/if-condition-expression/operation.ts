@@ -14,10 +14,23 @@ import {
   IfConditionExpressionProps,
 } from './index';
 import {IfEntry} from '../if-entry';
+import {LazyRaws} from '../../lazy-raws';
 import {LazySource} from '../../lazy-source';
 import {convertIfConditionExpression} from './convert';
 import {RawWithValue} from '../../raw-with-value';
 import {Container} from '../../container';
+
+/** The raws for a single operator in an [#link IfConditionOperation}. */
+export interface IfConditionOperatorRaws {
+  /** The text of the operator, only used if it matches the given value. */
+  operator?: RawWithValue<'and' | 'or'>;
+
+  /** The whitespace before the operator. */
+  before?: string;
+
+  /** The whitespace after the operator. */
+  after?: string;
+}
 
 /**
  * The set of raws supported by {@link IfConditionOperation}.
@@ -25,17 +38,8 @@ import {Container} from '../../container';
  * @category Expression
  */
 export interface IfConditionOperationRaws {
-  /**
-   * The raws for each operator in the operation.
-   *
-   * `operator` is the text of the operator, which is only used if the operator
-   * matches the given value. `before` is the whitespace before the operator,
-   * `after` is the whitespace after it.
-   */
-  operators?: Array<
-    | {operator?: RawWithValue<'and' | 'or'>; before?: string; after?: string}
-    | undefined
-  >;
+  /** The raws for each operator in the operation. */
+  operators?: Array<IfConditionOperatorRaws | undefined>;
 }
 
 /**
@@ -112,6 +116,7 @@ export class IfConditionOperation
     super(defaults);
     if (inner) {
       this.source = new LazySource(inner);
+      this.raws = new LazyIfConditionOperationRaws(inner);
       this.nodes = [];
       for (const expression of inner.expressions) {
         this.append(convertIfConditionExpression(expression));
@@ -315,5 +320,39 @@ export class IfConditionOperation
   /** @hidden */
   get nonStatementChildren(): ReadonlyArray<AnyIfConditionExpression> {
     return this.nodes;
+  }
+}
+
+class LazyIfConditionOperationRaws
+  extends LazyRaws<sassInternal.IfConditionOperation>
+  implements IfConditionOperationRaws
+{
+  declare operators?: Array<IfConditionOperatorRaws | undefined>;
+
+  constructor(inner: sassInternal.IfConditionOperation) {
+    super(inner, ['operators']);
+  }
+
+  protected _computeRaws(): void {
+    this._setRawDefault('operators', () => {
+      const result: IfConditionOperatorRaws[] = [];
+      const value = this._node.op.name;
+      for (let i = 0; i < this._node.expressions.length - 1; i++) {
+        // a or b
+        //  ^^^^
+        const between = this._node.expressions[i].span.between(
+          this._node.expressions[i + 1].span,
+        );
+        // a or b
+        //   ^^
+        const operator = between.trimLeft().initialIdentifier();
+        result.push({
+          operator: {raw: operator.text, value},
+          before: between.before(operator).text,
+          after: between.after(operator).text,
+        });
+      }
+      return result;
+    });
   }
 }

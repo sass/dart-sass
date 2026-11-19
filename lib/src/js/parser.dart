@@ -192,6 +192,8 @@ void _updateAstPrototypes() {
   );
   getJSClass(IfConditionFunction(_interpolation, _interpolation, bogusSpan))
       .defineGetter('arguments', (IfConditionFunction self) => self.arguments);
+  getJSClass(BooleanOperator.and)
+      .defineGetter('name', (BooleanOperator self) => self.name);
 
   _addSupportsConditionToInterpolation();
 
