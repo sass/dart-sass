@@ -4,8 +4,8 @@
   deprecated along with the rest of the color channel functions, as the error
   message when using them with non-legacy colors indicates. They emit a new
   `color-opacity` deprecation because the existing `color-functions` will become
-  an error in Dart Sass 2.0.0, and we don't want to ensure that users have time
-  to adapt to this new deprecation.
+  an error in Dart Sass 2.0.0, and we want to ensure that users have time to
+  adapt to this new deprecation.
 
 ## 1.108.2
 
