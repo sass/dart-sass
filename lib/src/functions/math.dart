@@ -9,6 +9,7 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 import '../callable.dart';
+import '../evaluation_context.dart';
 import '../exception.dart';
 import '../module/built_in.dart';
 import '../util/number.dart';
@@ -234,9 +235,29 @@ final _randomFunction = _function("random", r"$limit: null", (arguments) {
 });
 
 final _div = _function("div", r"$number1, $number2", (arguments) {
-  var number1 = arguments[0].assertNumber('number1');
-  var number2 = arguments[1].assertNumber('number2');
-  return number1.dividedBy(number2);
+  switch ((arguments[0], arguments[1])) {
+    case ((SassNumber number1, SassNumber number2)):
+      return number1.dividedBy(number2);
+
+    case ((
+      var value1 && (SassColor() || SassNumber()),
+      var value2 && (SassColor() || SassNumber()),
+    )):
+    case ((var value1 && SassModule(), var value2)):
+    case ((var value1, var value2 && SassModule())):
+      throw SassScriptException('Undefined operation "$value1 / $value2".');
+
+    case ((var value1, var value2)):
+      warn(
+        "math.div() will only support number arguments in a future release.\n"
+        "Use list.slash() instead for a slash separator.",
+      );
+
+      return SassString(
+        "${value1.toCssString()}/${value2.toCssString()}",
+        quotes: false,
+      );
+  }
 });
 
 ///
