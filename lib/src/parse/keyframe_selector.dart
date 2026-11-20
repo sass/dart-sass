@@ -3,6 +3,7 @@
 // https://opensource.org/licenses/MIT.
 
 import 'package:charcode/charcode.dart';
+import 'package:string_scanner/string_scanner.dart';
 
 import '../util/character.dart';
 import 'parser.dart';
@@ -26,7 +27,7 @@ class KeyframeSelectorParser(
             selectors.add("to");
           }
         } else {
-          selectors.add(_percentage());
+          selectors.add(consumePercentage(scanner));
         }
         _whitespace();
       } while (scanner.scanChar($comma));
@@ -36,7 +37,8 @@ class KeyframeSelectorParser(
     });
   }
 
-  String _percentage() {
+  /// Consumes a keyframe percentage at the scanner's current position.
+  static String consumePercentage(SpanScanner scanner) {
     var buffer = StringBuffer();
     if (scanner.scanChar($plus)) buffer.writeCharCode($plus);
 

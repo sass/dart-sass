@@ -6,6 +6,10 @@ import {Node} from '../node';
 import type {AttributeSelector, AttributeSelectorProps} from './attribute';
 import type {ClassSelector, ClassSelectorProps} from './class';
 import type {IDSelector, IDSelectorProps} from './id';
+import type {
+  KeyframePercentage,
+  KeyframePercentageProps,
+} from './keyframe-percentage';
 import type {ParentSelector, ParentSelectorProps} from './parent';
 import type {
   PlaceholderSelector,
@@ -24,6 +28,7 @@ export type AnySimpleSelector =
   | AttributeSelector
   | ClassSelector
   | IDSelector
+  | KeyframePercentage
   | ParentSelector
   | PlaceholderSelector
   | PseudoSelector
@@ -39,6 +44,7 @@ export type SimpleSelectorType =
   | 'attribute'
   | 'class'
   | 'id'
+  | 'keyframe-percentage'
   | 'parent'
   | 'placeholder'
   | 'pseudo'
@@ -55,6 +61,7 @@ export type SimpleSelectorProps =
   | AttributeSelectorProps
   | ClassSelectorProps
   | IDSelectorProps
+  | KeyframePercentageProps
   | ParentSelectorProps
   | PlaceholderSelectorProps
   | PseudoSelectorProps

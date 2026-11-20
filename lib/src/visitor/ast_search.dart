@@ -245,6 +245,9 @@ mixin AstSearchVisitor<T> on StatementSearchVisitor<T>
       visitInterpolation(node.name);
 
   @override
+  T? visitKeyframePercentage(InterpolatedKeyframePercentage node) => null;
+
+  @override
   T? visitParentSelector(InterpolatedParentSelector node) =>
       node.suffix.andThen(visitInterpolation);
 

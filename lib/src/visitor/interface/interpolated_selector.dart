@@ -15,6 +15,7 @@ abstract interface class InterpolatedSelectorVisitor<T> {
   T visitComplexSelector(InterpolatedComplexSelector complex);
   T visitCompoundSelector(InterpolatedCompoundSelector compound);
   T visitIDSelector(InterpolatedIDSelector id);
+  T visitKeyframePercentage(InterpolatedKeyframePercentage percentage);
   T visitParentSelector(InterpolatedParentSelector placeholder);
   T visitPlaceholderSelector(InterpolatedPlaceholderSelector placeholder);
   T visitPseudoSelector(InterpolatedPseudoSelector pseudo);

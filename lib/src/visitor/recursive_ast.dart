@@ -334,6 +334,9 @@ mixin RecursiveAstVisitor on RecursiveStatementVisitor
   }
 
   @override
+  void visitKeyframePercentage(InterpolatedKeyframePercentage node) {}
+
+  @override
   void visitParentSelector(InterpolatedParentSelector node) {
     node.suffix.andThen(visitInterpolation);
   }

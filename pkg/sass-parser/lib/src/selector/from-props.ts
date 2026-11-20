@@ -6,6 +6,7 @@ import {AnySimpleSelector, SimpleSelectorProps} from '.';
 import {AttributeSelector} from './attribute';
 import {ClassSelector} from './class';
 import {IDSelector} from './id';
+import {KeyframePercentage} from './keyframe-percentage';
 import {ParentSelector} from './parent';
 import {PlaceholderSelector} from './placeholder';
 import {PseudoSelector} from './pseudo';
@@ -17,6 +18,7 @@ export function fromProps(props: SimpleSelectorProps): AnySimpleSelector {
   if ('attribute' in props) return new AttributeSelector(props);
   if ('class' in props) return new ClassSelector(props);
   if ('id' in props) return new IDSelector(props);
+  if ('percentage' in props) return new KeyframePercentage(props);
   if ('suffix' in props) return new ParentSelector(props);
   if ('placeholder' in props) return new PlaceholderSelector(props);
   if ('pseudo' in props) return new PseudoSelector(props);

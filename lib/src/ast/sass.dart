@@ -38,6 +38,7 @@ export 'sass/interpolated_selector/complex_component.dart';
 export 'sass/interpolated_selector/complex.dart';
 export 'sass/interpolated_selector/compound.dart';
 export 'sass/interpolated_selector/id.dart';
+export 'sass/interpolated_selector/keyframe_percentage.dart';
 export 'sass/interpolated_selector/list.dart';
 export 'sass/interpolated_selector/parent.dart';
 export 'sass/interpolated_selector/placeholder.dart';
