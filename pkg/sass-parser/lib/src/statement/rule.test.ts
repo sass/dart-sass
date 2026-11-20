@@ -7,6 +7,37 @@ import * as utils from '../../../test/utils';
 
 describe('a style rule', () => {
   let node: Rule;
+
+  describe('in a keyframes rule', () => {
+    it.each([
+      ['keyframes', '0%', '100%'],
+      ['-webkit-keyframes', 'from, 12.5%', 'to'],
+      ['keyframes', '.5%, +1E1%', '100%'],
+      ['keyframes', 'from', 'to'],
+    ])('round-trips @%s selectors %s and %s', (name, first, last) => {
+      const root = scss.parse(
+        `@${name} spin {${first} {opacity: 0} ${last} {opacity: 1}}`,
+      );
+      const printed = root.toString();
+      expect(root.clone().toString()).toBe(printed);
+
+      for (const stylesheet of [root, scss.parse(printed)]) {
+        const keyframes = stylesheet.nodes[0] as GenericAtRule;
+        expect(keyframes.nodes?.map(rule => (rule as Rule).selector)).toEqual([
+          first,
+          last,
+        ]);
+        expect(stylesheet.toString()).toBe(printed);
+      }
+    });
+
+    it('rejects percentage selectors outside keyframes', () => {
+      expect(() =>
+        scss.parse('@keyframes spin {from {opacity: 0}} 0% {opacity: 1}'),
+      ).toThrow('expected selector');
+    });
+  });
+
   describe('with no children', () => {
     function describeNode(description: string, create: () => Rule): void {
       describe(description, () => {

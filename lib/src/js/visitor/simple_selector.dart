@@ -24,6 +24,10 @@ class JSSimpleSelectorVisitor(final JSSimpleSelectorVisitorObject _inner)
       _inner.visitIDSelector(node);
 
   @override
+  Object? visitKeyframePercentage(InterpolatedKeyframePercentage node) =>
+      _inner.visitKeyframePercentage(node);
+
+  @override
   Object? visitParentSelector(InterpolatedParentSelector node) =>
       _inner.visitParentSelector(node);
 
@@ -63,6 +67,7 @@ class JSSimpleSelectorVisitorObject {
   external Object? visitAttributeSelector(InterpolatedAttributeSelector node);
   external Object? visitClassSelector(InterpolatedClassSelector node);
   external Object? visitIDSelector(InterpolatedIDSelector node);
+  external Object? visitKeyframePercentage(InterpolatedKeyframePercentage node);
   external Object? visitParentSelector(InterpolatedParentSelector node);
   external Object? visitPlaceholderSelector(
     InterpolatedPlaceholderSelector node,

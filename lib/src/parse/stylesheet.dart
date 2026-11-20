@@ -20,6 +20,7 @@ import '../utils.dart';
 import '../util/multi_span.dart';
 import '../util/nullable.dart';
 import '../value.dart';
+import 'keyframe_selector.dart';
 import 'parser.dart';
 import 'scss.dart';
 import 'selector.dart' show selectorPseudoClasses, selectorPseudoElements;
@@ -60,6 +61,9 @@ abstract class StylesheetParser(
 
   /// Whether the parser is currently parsing an unknown rule.
   var _inUnknownAtRule = false;
+
+  /// Whether style rules at this point may have keyframe selectors.
+  var _inKeyframes = false;
 
   /// Whether the parser is currently parsing a plain-CSS `@function` rule.
   var _inPlainCssFunction = false;
@@ -572,7 +576,7 @@ abstract class StylesheetParser(
 
     if (_parseSelectors) {
       if (start_ != null) scanner.state = start;
-      var selector = _selectorList();
+      var selector = _selectorList(allowKeyframePercentages: _inKeyframes);
       return _withStyleRuleChildren(
         selector,
         start,
@@ -614,7 +618,9 @@ abstract class StylesheetParser(
     T Function(List<Statement> children, FileSpan span) create,
   ) {
     var wasInStyleRule = _inStyleRule;
+    var wasInKeyframes = _inKeyframes;
     _inStyleRule = true;
+    _inKeyframes = false;
 
     return _withChildren(_statement, start, (children, span) {
       if (indented && children.isEmpty) {
@@ -628,6 +634,7 @@ abstract class StylesheetParser(
       }
 
       _inStyleRule = wasInStyleRule;
+      _inKeyframes = wasInKeyframes;
       return create(children, span);
     });
   }
@@ -1825,6 +1832,11 @@ abstract class StylesheetParser(
         when equalsIgnoreCase(name, 'function')) {
       _inPlainCssFunction = true;
     }
+    var wasInKeyframes = _inKeyframes;
+    if (name.asPlainIdentifier case var name?
+        when _parseSelectors && equalsIgnoreCase(unvendor(name), 'keyframes')) {
+      _inKeyframes = true;
+    }
 
     try {
       if (lookingAtChildren()) {
@@ -1841,6 +1853,7 @@ abstract class StylesheetParser(
     } finally {
       _inUnknownAtRule = wasInUnknownAtRule;
       _inPlainCssFunction = wasInPlainCssFunction;
+      _inKeyframes = wasInKeyframes;
     }
   }
 
@@ -4134,9 +4147,13 @@ abstract class StylesheetParser(
   // changes here should be mirrored there and vice versa.
 
   /// Consumes a selector list.
-  InterpolatedSelectorList _selectorList() {
+  InterpolatedSelectorList _selectorList({
+    bool allowKeyframePercentages = false,
+  }) {
     var previousLine = scanner.line;
-    var components = <InterpolatedComplexSelector>[_complexSelector()];
+    var components = [
+      _complexSelector(allowKeyframePercentage: allowKeyframePercentages),
+    ];
 
     whitespace(consumeNewlines: false);
     while (scanner.scanChar($comma)) {
@@ -4146,7 +4163,12 @@ abstract class StylesheetParser(
 
       var lineBreak = scanner.line != previousLine;
       if (lineBreak) previousLine = scanner.line;
-      components.add(_complexSelector(lineBreak: lineBreak));
+      components.add(
+        _complexSelector(
+          lineBreak: lineBreak,
+          allowKeyframePercentage: allowKeyframePercentages,
+        ),
+      );
     }
 
     return InterpolatedSelectorList(components);
@@ -4160,8 +4182,28 @@ abstract class StylesheetParser(
     bool allowLeadingCombinator = true,
     bool allowTrailingCombinator = true,
     bool lineBreak = false,
+    bool allowKeyframePercentage = false,
   }) {
     var start = scanner.state;
+
+    if (allowKeyframePercentage) {
+      var offset = scanner.peekChar() == $plus ? 1 : 0;
+      var next = scanner.peekChar(offset);
+      if (next.isDigit ||
+          (next == $dot && scanner.peekChar(offset + 1).isDigit)) {
+        KeyframeSelectorParser.consumePercentage(scanner);
+        var span = spanFrom(start);
+        whitespace(consumeNewlines: false);
+        return InterpolatedComplexSelector([
+          InterpolatedComplexSelectorComponent(
+            InterpolatedCompoundSelector([
+              InterpolatedKeyframePercentage(span),
+            ]),
+            span,
+          ),
+        ], span);
+      }
+    }
 
     var componentStart = scanner.state;
     InterpolatedCompoundSelector? lastCompound;

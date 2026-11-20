@@ -471,6 +471,10 @@ declare namespace SassInternal {
     readonly name: Interpolation;
   }
 
+  class KeyframePercentage extends SimpleSelector {
+    readonly percentage: string;
+  }
+
   class SelectorList extends SassNode {
     readonly components: ComplexSelector[];
   }
@@ -587,6 +591,7 @@ export type ComplexSelector = SassInternal.ComplexSelector;
 export type ComplexSelectorComponent = SassInternal.ComplexSelectorComponent;
 export type CompoundSelector = SassInternal.CompoundSelector;
 export type IDSelector = SassInternal.IDSelector;
+export type KeyframePercentage = SassInternal.KeyframePercentage;
 export type SelectorList = SassInternal.SelectorList;
 export type ParentSelector = SassInternal.ParentSelector;
 export type PlaceholderSelector = SassInternal.PlaceholderSelector;
@@ -656,6 +661,7 @@ export interface SimpleSelectorVisitorObject<T> {
   visitAttributeSelector(node: AttributeSelector): T;
   visitClassSelector(node: ClassSelector): T;
   visitIDSelector(node: IDSelector): T;
+  visitKeyframePercentage(node: KeyframePercentage): T;
   visitParentSelector(node: ParentSelector): T;
   visitPlaceholderSelector(node: PlaceholderSelector): T;
   visitPseudoSelector(node: PseudoSelector): T;

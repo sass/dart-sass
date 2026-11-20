@@ -240,6 +240,10 @@ export {
 } from './src/selector/compound';
 export {IDSelectorProps, IDSelectorRaws, IDSelector} from './src/selector/id';
 export {
+  KeyframePercentageProps,
+  KeyframePercentage,
+} from './src/selector/keyframe-percentage';
+export {
   SelectorListObjectProps,
   SelectorListProps,
   NewNodeForSelectorList,

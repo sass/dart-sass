@@ -7,6 +7,7 @@ import {AnySimpleSelector} from '.';
 import {AttributeSelector} from './attribute';
 import {ClassSelector} from './class';
 import {IDSelector} from './id';
+import {KeyframePercentage} from './keyframe-percentage';
 import {ParentSelector} from './parent';
 import {PlaceholderSelector} from './placeholder';
 import {PseudoSelector} from './pseudo';
@@ -18,6 +19,7 @@ const visitor = sassInternal.createSimpleSelectorVisitor<AnySimpleSelector>({
   visitAttributeSelector: inner => new AttributeSelector(undefined, inner),
   visitClassSelector: inner => new ClassSelector(undefined, inner),
   visitIDSelector: inner => new IDSelector(undefined, inner),
+  visitKeyframePercentage: inner => new KeyframePercentage(undefined, inner),
   visitParentSelector: inner => new ParentSelector(undefined, inner),
   visitPlaceholderSelector: inner => new PlaceholderSelector(undefined, inner),
   visitPseudoSelector: inner => new PseudoSelector(undefined, inner),
