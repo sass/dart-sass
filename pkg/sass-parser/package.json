@@ -6,7 +6,7 @@
   "author": "Google Inc.",
   "license": "MIT",
   "exports": {
-    "types": "./dist/types/index.d.ts",
+    "types": "./dist/lib/index.d.ts",
     "default": "./dist/lib/index.js"
   },
   "main": "dist/lib/index.js",
