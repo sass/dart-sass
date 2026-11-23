@@ -255,6 +255,6 @@ describe('a root node', () => {
   describe('toJSON', () => {
     it('without children', () => expect(scss.parse('')).toMatchSnapshot());
 
-    fit('with children', () => expect(scss.parse('@foo;')).toMatchSnapshot());
+    it('with children', () => expect(scss.parse('@foo;')).toMatchSnapshot());
   });
 });
