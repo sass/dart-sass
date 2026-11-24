@@ -1,4 +1,4 @@
-## 1.109.0-dev
+## 1.109.0
 
 * Deprecate `color.opacity()` and `color.alpha()`. These were intended to be
   deprecated along with the rest of the color channel functions, as the error
@@ -6,6 +6,13 @@
   `color-opacity` deprecation because the existing `color-functions` will become
   an error in Dart Sass 2.0.0, and we want to ensure that users have time to
   adapt to this new deprecation.
+
+* Deprecate passing certain types of strings to `sass:meta` functions that
+  expect identifiers. Passing strings that are plain identifiers without escapes
+  will continue to work as-is, as will passing unquoted strings that use the
+  canonical form of identifiers that contain escape codes. Strings that aren't
+  valid identifiers, as well as quoted strings that contain CSS escapes, now
+  produce deprecation warnings.
 
 ## 1.108.2
 

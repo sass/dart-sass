@@ -1,4 +1,4 @@
-## 0.5.7-dev
+## 0.5.7
 
 * No user-visible changes.
 

@@ -5,7 +5,7 @@
 // DO NOT EDIT. This file was generated from async_evaluate.dart.
 // See tool/grind/synchronize.dart for details.
 //
-// Checksum: 0a65d34ec1531e9367542f53f52266fdb031c5bc
+// Checksum: 975d4e7aab3a02737685cb3cac9bc7243697ff6f
 //
 // ignore_for_file: unused_import
 
@@ -48,6 +48,7 @@ import '../logger.dart';
 import '../module.dart';
 import '../module/built_in.dart';
 import '../parse/keyframe_selector.dart';
+import '../parse/parser.dart';
 import '../syntax.dart';
 import '../utils.dart';
 import '../util/character.dart';
@@ -377,13 +378,15 @@ final class _EvaluateVisitor({
         r"$name, $module: null",
         (arguments) {
           var name =
-              arguments[0]
-                  .assertString("name")
-                  .text
-                  .resolveCssEscapesIfCanonical()
-                  ?.replaceAll("_", "-") ??
+              _identifierValueForMetaFunction(
+                arguments[0].assertString("name"),
+                "global-variable-exists",
+              )?.replaceAll("_", "-") ??
               "";
-          return SassBoolean(switch (_getNullableModule(arguments[1])) {
+          return SassBoolean(switch (_getNullableModule(
+            arguments[1],
+            "global-variable-exists",
+          )) {
             var module? => module.variables.containsKey(name),
             _ => _environment.globalVariableExists(name),
           });
@@ -396,11 +399,10 @@ final class _EvaluateVisitor({
         r"$name",
         (arguments) => SassBoolean(
           _environment.variableExists(
-            arguments[0]
-                    .assertString("name")
-                    .text
-                    .resolveCssEscapesIfCanonical()
-                    ?.replaceAll("_", "-") ??
+            _identifierValueForMetaFunction(
+                  arguments[0].assertString("name"),
+                  "variable-exists",
+                )?.replaceAll("_", "-") ??
                 "",
           ),
         ),
@@ -411,13 +413,15 @@ final class _EvaluateVisitor({
         arguments,
       ) {
         var name =
-            arguments[0]
-                .assertString("name")
-                .text
-                .resolveCssEscapesIfCanonical()
-                ?.replaceAll("_", "-") ??
+            _identifierValueForMetaFunction(
+              arguments[0].assertString("name"),
+              "function-exists",
+            )?.replaceAll("_", "-") ??
             "";
-        return SassBoolean(switch (_getNullableModule(arguments[1])) {
+        return SassBoolean(switch (_getNullableModule(
+          arguments[1],
+          "function-exists",
+        )) {
           var module? => module.functions.containsKey(name),
           _ =>
             _environment.functionExists(name) ||
@@ -429,13 +433,15 @@ final class _EvaluateVisitor({
         arguments,
       ) {
         var name =
-            arguments[0]
-                .assertString("name")
-                .text
-                .resolveCssEscapesIfCanonical()
-                ?.replaceAll("_", "-") ??
+            _identifierValueForMetaFunction(
+              arguments[0].assertString("name"),
+              "mixin-exists",
+            )?.replaceAll("_", "-") ??
             "";
-        return SassBoolean(switch (_getNullableModule(arguments[1])) {
+        return SassBoolean(switch (_getNullableModule(
+          arguments[1],
+          "mixin-exists",
+        )) {
           var module? => module.mixins.containsKey(name),
           _ => _environment.mixinExists(name),
         });
@@ -493,7 +499,17 @@ final class _EvaluateVisitor({
           var name = arguments[0].assertString("name");
           var css = arguments[1].isTruthy;
 
-          var module = _getNullableModule(arguments[2]);
+          var module = _getNullableModule(arguments[2], "get-function");
+
+          // Compute this before checking for [css] so that we emit a
+          // deprecation warning for weird identifier shenanigans even in CSS
+          // mode.
+          var normalizedName =
+              _identifierValueForMetaFunction(
+                arguments[0].assertString("name"),
+                "get-function",
+              )?.replaceAll("_", "-") ??
+              "";
 
           if (css) {
             if (module != null) {
@@ -505,9 +521,6 @@ final class _EvaluateVisitor({
             );
           }
 
-          var normalizedName =
-              name.text.resolveCssEscapesIfCanonical()?.replaceAll("_", "-") ??
-              "";
           var callable = module == null
               ? _addExceptionSpan(
                   _callableNode!,
@@ -529,7 +542,10 @@ final class _EvaluateVisitor({
         var name = arguments[0].assertString("name");
 
         var normalizedName =
-            name.text.resolveCssEscapesIfCanonical()?.replaceAll("_", "-") ??
+            _identifierValueForMetaFunction(
+              arguments[0].assertString("name"),
+              "get-mixin",
+            )?.replaceAll("_", "-") ??
             "";
         var callable = switch (_getNullableModule(arguments[1])) {
           var module? => module.mixins[normalizedName],
@@ -715,6 +731,80 @@ final class _EvaluateVisitor({
     }
   }
 
+  /// Returns the value of `string.text.resolveCssEscapesIfCanonical()` and
+  /// prints [Deprecation.metaEscape] warnings if applicable.
+  ///
+  /// The [functionName] is the name of the `sass:meta` function being called.
+  ///
+  /// The [template] is the template used for suggested replacements, with `%s`
+  /// replaced by the recommended identifier. It defaults to
+  /// `"meta.$functionName(%s)"`.
+  static String? _identifierValueForMetaFunction(
+    SassString string,
+    String functionName, {
+    String? template,
+  }) {
+    template ??= "meta.$functionName(%s)";
+    if (string.hasQuotes) {
+      if (!Parser.isIdentifier(string.text) || string.text.contains('\\')) {
+        if (string.text.tryCssIdentifier() case var ident?) {
+          warnForDeprecation(
+            "meta.$functionName() will interpret the\n"
+            "quoted string ${string.toCssString()} as the semantic value of an "
+            "identifier\n"
+            "in Dart Sass 3.0.0. For forwards-compatibility, use an unquoted "
+            "string instead:\n"
+            "\n"
+            "Suggestion: ${template.replaceAll('%s', ident)})\n"
+            "\n"
+            "More info: https://sass-lang.com/d/meta-escape",
+            Deprecation.metaEscape,
+          );
+        } else {
+          warnForDeprecation(
+            "meta.$functionName() will throw an error for\n"
+            "the string ${string.toCssString()} in Dart Sass 3.0.0 because it "
+            "can't represent\n"
+            "the value of a valid CSS identifier.\n"
+            "\n"
+            "More info: https://sass-lang.com/d/meta-escape",
+            Deprecation.metaEscape,
+          );
+        }
+      }
+      return string.text.resolveCssEscapesIfCanonical();
+    } else if (string.text.tryResolveCssEscapes() case var resolved?) {
+      if (resolved.toCssIdentifier() == string.text) {
+        return resolved;
+      } else {
+        warnForDeprecation(
+          "meta.$functionName() will interpret the\n"
+          "unquoted string `${string.toCssString()}` as its value with escapes "
+          "resolved in Dart Sass 3.0.0. For forwards-compatibility, use an "
+          "unquoted string in canonical form instead:\n"
+          "\n"
+          "Suggestion: "
+          "${template.replaceAll('%s', resolved.toCssIdentifier())}\n"
+          "\n"
+          "More info: https://sass-lang.com/d/meta-escape",
+          Deprecation.metaEscape,
+        );
+        return null;
+      }
+    } else {
+      warnForDeprecation(
+        "meta.$functionName() will throw an error or\n"
+        "the unquoted string `${string.toCssString()}` in Dart Sass 3.0.0 "
+        "because it\n"
+        "isn't a valid CSS identifier.\n"
+        "\n"
+        "More info: https://sass-lang.com/d/meta-escape",
+        Deprecation.metaEscape,
+      );
+      return null;
+    }
+  }
+
   EvaluateResult run(Importer? importer, Stylesheet node) {
     try {
       return withEvaluationContext(_EvaluationContext(this, node), () {
@@ -763,19 +853,31 @@ final class _EvaluateVisitor({
 
   /// Loads the module for the given Sass value as for `meta.get-module()`, and
   /// returns `null` if [module] is the Sass `null` value.
-  Module<Callable>? _getNullableModule(Value module) => switch (module) {
-    SassModule module =>
-      // ignore: unnecessary_cast
-      module.assertCompileContext(_compileContext).module as Module<Callable>,
-    SassString(:var text) =>
-      text.resolveCssEscapesIfCanonical().andThen(_environment.getModule) ??
-          (throw 'There is no module with namespace "$text".'),
-    sassNull => null,
-    _ => throw SassScriptException(
-      "$module is neither a string nor a module reference.",
-      "module",
-    ),
-  };
+  ///
+  /// The [caller] is the function calling this, used for reporting
+  /// [Deprecation.metaEscape]. It may be `null`, indicating that this is the
+  /// direct `meta.get-module()` function.
+  Module<Callable>? _getNullableModule(Value module, [String? caller]) =>
+      switch (module) {
+        SassModule module =>
+          // ignore: unnecessary_cast
+          module.assertCompileContext(_compileContext).module
+              as Module<Callable>,
+        SassString string =>
+          _identifierValueForMetaFunction(
+                string,
+                caller ?? 'get-module',
+                template: caller.andThen(
+                  (caller) => 'meta.$caller(..., \$module: %s)',
+                ),
+              ).andThen(_environment.getModule) ??
+              (throw 'There is no module with namespace "${string.text}".'),
+        sassNull => null,
+        _ => throw SassScriptException(
+          "$module is neither a string nor a module reference.",
+          "module",
+        ),
+      };
 
   /// Asserts that [value] is not `null` and returns it.
   ///
@@ -923,11 +1025,13 @@ final class _EvaluateVisitor({
       var span = callableNode.span;
       var privateDeprecation = false;
       withMap.forEach((variable, value) {
-        var originalName = variable.assertString("with key").text;
-        var name = originalName.resolveCssEscapesIfCanonical()?.replaceAll(
-          "_",
-          "-",
-        );
+        var string = variable.assertString("with key");
+        var originalName = string.text;
+        var name = _identifierValueForMetaFunction(
+          string,
+          caller,
+          template: 'meta.$caller(..., \$with: (%s: ...))',
+        )?.replaceAll("_", "-");
         if (name == null) {
           throw "\$$originalName was not declared with !default in the @used "
               "module.";
@@ -4013,8 +4117,8 @@ final class _EvaluateVisitor({
   /// Throws a [SassRuntimeException] associated with [nodeWithSpan]'s source
   /// span if any [map] keys aren't strings.
   ///
-  /// If [convert] is passed, that's used to convert the map values to the value
-  /// type for [values]. Otherwise, the [Value]s are used as-is.
+  /// The [convert] function is used to convert the map values to the value type
+  /// for [values].
   ///
   /// This takes an [AstNode] rather than a [FileSpan] so it can avoid calling
   /// [AstNode.span] if the span isn't required, since some nodes need to do
@@ -4028,6 +4132,43 @@ final class _EvaluateVisitor({
     var expressionNode = _expressionNode(nodeWithSpan);
     map.contents.forEach((key, value) {
       if (key is SassString) {
+        if (key.hasQuotes) {
+          if (!Parser.isIdentifier(key.text) || key.text.contains('\\')) {
+            if (key.text.tryCssIdentifier() case var ident?) {
+              _warn(
+                "Function calls will interpret the quoted\n"
+                "string ${key.toCssString()} as the semantic value of an "
+                "argument name in Dart\n"
+                "Sass 3.0.0. For forwards-compatibility, use an unquoted "
+                "string instead:\n"
+                "\n"
+                "Suggestion: $ident: ...\n"
+                "\n"
+                "More info: https://sass-lang.com/d/meta-escape",
+                nodeWithSpan.span,
+                Deprecation.metaEscape,
+              );
+            }
+          }
+        } else if (key.text.tryResolveCssEscapes() case var resolved?) {
+          if (resolved.toCssIdentifier() != key.text) {
+            _warn(
+              "Function calls will interpret the unquoted\n"
+              "string `${key.toCssString()}` as its value with escapes "
+              "resolved in Dart Sass\n"
+              "3.0.0. For forwards-compatibility, use an unquoted string in "
+              "canonical form\n"
+              "instead:\n"
+              "\n"
+              "Suggestion: ${resolved.toCssIdentifier()}: ...\n"
+              "\n"
+              "More info: https://sass-lang.com/d/meta-escape",
+              nodeWithSpan.span,
+              Deprecation.metaEscape,
+            );
+          }
+        }
+
         values[key.text] = convert(_withoutSlash(value, expressionNode));
       } else {
         throw _exception(
