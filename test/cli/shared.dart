@@ -365,7 +365,7 @@ void sharedTests(
     expect(sass.stdout, emitsDone);
     expect(
       sass.stderr,
-      emitsInOrder(["WARNING: aw beans", "    test.scss 1:1  root stylesheet"]),
+      emitsInOrder(["WARNING: aw beans", "  test.scss 1:1  root stylesheet"]),
     );
     await sass.shouldExit(0);
   });

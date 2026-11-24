@@ -190,7 +190,7 @@ void main() {
     var failure = await getCompileFailure(process);
     expect(failure.message, equals('oh no'));
     expect(failure.span.text, equals("@use 'other'"));
-    expect(failure.stackTrace, equals('- 1:1  root stylesheet\n'));
+    expect(failure.stackTrace, equals([frame("-", 0, 0, "root stylesheet")]));
     await process.close();
   });
 

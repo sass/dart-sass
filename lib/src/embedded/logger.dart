@@ -46,6 +46,8 @@ final class EmbeddedLogger(
     Trace? trace,
     Deprecation? deprecation,
   }) {
+    var formattedSpanOffset = 0;
+    var formattedStackTraceOffset = 0;
     var formatted = withGlyphs(() {
       var buffer = StringBuffer();
       var showDeprecation = deprecation != null && deprecation != .userAuthored;
@@ -59,16 +61,24 @@ final class EmbeddedLogger(
         buffer.write('WARNING');
         if (showDeprecation) buffer.write(' [$deprecation]');
       }
-      if (span == null) {
-        buffer.writeln(': $message');
-      } else if (trace != null) {
-        buffer.writeln(': $message\n\n${span.highlight(color: _color)}');
-      } else {
-        buffer.writeln(' on ${span.message("\n$message", color: _color)}');
-      }
+      buffer.writeln(': $message');
+      formattedSpanOffset = buffer.length;
+      if (span != null) buffer.writeln(span.highlight(color: _color));
+      formattedStackTraceOffset = buffer.length;
       if (trace != null) {
-        buffer.writeln(indent(trace.toString().trimRight(), 4));
+        buffer.writeln(indent(trace.toString().trimRight(), 2));
+      } else if (span != null) {
+        trace = Trace([
+          Frame(
+            span.sourceUrl ?? Uri.parse('-'),
+            span.start.line,
+            span.start.column,
+            'root stylesheet',
+          ),
+        ]);
+        buffer.writeln(indent(trace.toString().trimRight(), 2));
       }
+
       return buffer.toString();
     }, ascii: _ascii);
 
@@ -77,9 +87,11 @@ final class EmbeddedLogger(
           ? LogEventType.DEPRECATION_WARNING
           : LogEventType.WARNING
       ..message = message
-      ..formatted = formatted;
+      ..formatted = formatted
+      ..formattedSpanOffset = formattedSpanOffset
+      ..formattedStackTraceOffset = formattedStackTraceOffset;
     if (span != null) event.span = protofySpan(span);
-    if (trace != null) event.stackTrace = trace.toString();
+    if (trace != null) event.stackTrace.addAll(protofyStackTrace(trace!));
     if (deprecation != null) event.deprecationType = deprecation.id;
     _dispatcher.sendLog(event);
   }
