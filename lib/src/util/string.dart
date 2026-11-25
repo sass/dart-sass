@@ -8,6 +8,7 @@ import 'package:sass/src/exception.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 import '../parse/parser.dart';
+import '../util/nullable.dart';
 import 'character.dart';
 
 extension StringExtension on String {
@@ -156,6 +157,20 @@ extension StringExtension on String {
     }
   }
 
+  /// Like [resolveCssEscapes], but returns `null` instead of throwing an error
+  /// if this isn't a valid identifier.
+  ///
+  /// @nodoc
+  @internal
+  String? tryResolveCssEscapes() {
+    if (isSimpleIdentifier) return this;
+    try {
+      return Parser.parseIdentifier(this);
+    } on SassFormatException {
+      return null;
+    }
+  }
+
   /// If [text]'s value is in the canonical form of an escaped identifier,
   /// returns its semantic value, and returns `null` otherwise.
   ///
@@ -167,18 +182,9 @@ extension StringExtension on String {
   ///
   /// @nodoc
   @internal
-  String? resolveCssEscapesIfCanonical() {
-    if (isSimpleIdentifier) return this;
-
-    // This could obviously be more efficient, but we only get here when doing
-    // reflection on very unusual identifiers so it's not worth the extra code.
-    try {
-      var ident = Parser.parseIdentifier(this);
-      return this == ident.toCssIdentifier() ? ident : null;
-    } on SassFormatException {
-      return null;
-    }
-  }
+  String? resolveCssEscapesIfCanonical() => tryResolveCssEscapes().andThen(
+    (ident) => this == ident.toCssIdentifier() ? ident : null,
+  );
 
   /// Returns whether this is a valid CSS identifier that has the same semantic
   /// content as the string itself.

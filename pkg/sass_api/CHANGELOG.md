@@ -1,4 +1,4 @@
-## 18.6.0-dev
+## 18.6.0
 
 * No user-visible changes.
 
