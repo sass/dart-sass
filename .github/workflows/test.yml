@@ -148,7 +148,7 @@ jobs:
         env: {UPDATE_SASS_SASS_REPO: false}
 
       - name: Check out Sass specification
-        uses: sass/clone-linked-repo@ec2dcd11c5eaec56b64855712372056a14e9614d # v1.1.0
+        uses: sass/clone-linked-repo@5c6b8c79dc302d9104921eb4fee1942b15031e36 # v1.2.0
         with:
           repo: sass/sass
           path: language
@@ -186,11 +186,11 @@ jobs:
       - uses: $/.github/util/sass-spec
 
       - name: Check out the embedded host
-        uses: sass/clone-linked-repo@ec2dcd11c5eaec56b64855712372056a14e9614d # v1.1.0
+        uses: sass/clone-linked-repo@5c6b8c79dc302d9104921eb4fee1942b15031e36 # v1.2.0
         with: {repo: sass/embedded-host-node}
 
       - name: Check out the language repo
-        uses: sass/clone-linked-repo@ec2dcd11c5eaec56b64855712372056a14e9614d # v1.1.0
+        uses: sass/clone-linked-repo@5c6b8c79dc302d9104921eb4fee1942b15031e36 # v1.2.0
         with: {repo: sass/sass, path: build/language}
 
       - name: Initialize embedded host
@@ -236,7 +236,7 @@ jobs:
         working-directory: build/npm
 
       - name: Check out Sass specification
-        uses: sass/clone-linked-repo@ec2dcd11c5eaec56b64855712372056a14e9614d # v1.1.0
+        uses: sass/clone-linked-repo@5c6b8c79dc302d9104921eb4fee1942b15031e36 # v1.2.0
         with:
           repo: sass/sass
           path: language
